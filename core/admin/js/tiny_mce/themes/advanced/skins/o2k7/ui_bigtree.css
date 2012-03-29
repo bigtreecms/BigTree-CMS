@@ -1,0 +1,8 @@
+/* BigTree Custom */
+.o2k7SkinBigTree .mceToolbar .mceToolbarStart span, .o2k7SkinBigTree .mceToolbar .mceToolbarEnd span, .o2k7SkinBigTree .mceButton, .o2k7SkinBigTree .mceSplitButton, .o2k7SkinBigTree .mceSeparator, .o2k7SkinBigTree .mceSplitButton a.mceOpen, .o2k7SkinBigTree .mceListBox a.mceOpen {background-image:url(img/button_bg_black.png)}
+.o2k7SkinBigTree td.mceToolbar, .o2k7SkinBigTree td.mceStatusbar, .o2k7SkinBigTree .mceMenuItemTitle a, .o2k7SkinBigTree .mceMenuItemTitle span.mceText, .o2k7SkinBigTree .mceStatusbar div, .o2k7SkinBigTree .mceStatusbar span, .o2k7SkinBigTree .mceStatusbar a {background:#535353; color:#FFF}
+.o2k7SkinBigTree table.mceListBoxEnabled .mceText, o2k7SkinBigTree .mceListBox .mceText {background:#FFF; border:1px solid #CBCFD4; border-bottom-color:#989FA9; border-right:0}
+.o2k7SkinBigTree table.mceListBoxEnabled:hover .mceText, .o2k7SkinBigTree .mceListBoxHover .mceText, .o2k7SkinBigTree .mceListBoxSelected .mceText {background:#FFF; border:1px solid #FFBD69; border-right:0}
+.o2k7SkinBigTree .mceExternalToolbar, .o2k7SkinBigTree .mceListBox .mceText, .o2k7SkinBigTree div.mceMenu, .o2k7SkinBigTree table.mceLayout, .o2k7SkinBigTree .mceMenuItemTitle a, .o2k7SkinBigTree table.mceLayout tr.mceFirst td, .o2k7SkinBigTree table.mceLayout, .o2k7SkinBigTree .mceMenuItemTitle a, .o2k7SkinBigTree table.mceLayout tr.mceLast td, .o2k7SkinBigTree .mceIframeContainer {border-color: #535353;}
+.o2k7SkinBigTree table.mceSplitButtonEnabled:hover a.mceAction, .o2k7SkinBigTree .mceSplitButtonHover a.mceAction, .o2k7SkinBigTree .mceSplitButtonSelected {background-image:url(img/button_bg_black.png)}
+.o2k7SkinBigTree .mceMenu .mceMenuItemEnabled a:hover, .o2k7SkinBigTree .mceMenu .mceMenuItemActive {background-color:#FFE7A1}

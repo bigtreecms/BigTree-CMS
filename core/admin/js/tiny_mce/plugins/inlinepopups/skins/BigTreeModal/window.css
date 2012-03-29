@@ -1,0 +1,102 @@
+/* Clearlooks 2 */
+
+/* Reset */
+.BigTreeModal, .BigTreeModal div, .BigTreeModal span, .BigTreeModal a {vertical-align:baseline; text-align:left; position:absolute; border:0; padding:0; margin:0; background:transparent; font-family:Arial,Verdana; font-size:11px; color:#000; text-decoration:none; font-weight:normal; width:auto; height:auto; overflow:hidden; display:block}
+
+/* General */
+.BigTreeModal {position:absolute; direction:ltr; border: 1px solid #999999; border-radius: 5px; box-shadow: 0 0 20px rgba(30, 30, 30, 0.7); }
+.BigTreeModal .mceWrapper {position:static}
+.mceEventBlocker {position:fixed; left:0; top:0; background:url(img/horizontal.gif) no-repeat 0 -75px; width:100%; height:100%}
+.BigTreeModal .mcePlaceHolder {border:1px solid #000; background:#888; top:0; left:0; opacity:0.5; -ms-filter:'alpha(opacity=50)'; filter:alpha(opacity=50)}
+.BigTreeModal_modalBlocker {position:fixed; left:0; top:0; width:100%; height:100%; background:#000; opacity:0.6; -ms-filter:'alpha(opacity=60)'; filter:alpha(opacity=60); display:none}
+
+/* Top */
+.BigTreeModal .mceTop { background: #CCCCCC; border-top: 1px solid #fff;
+	background: -moz-linear-gradient(#F7F7F7, #CCCCCC); /* FF 3.6+ */  
+	background: -ms-linear-gradient(#F7F7F7, #CCCCCC); /* IE10 */  
+	background: -webkit-linear-gradient(#F7F7F7, #CCCCCC); /* Safari 5.1+, Chrome 10+ */  
+	background: -o-linear-gradient(#F7F7F7, #CCCCCC); /* Opera 11.10 */  
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7F7F7', endColorstr='#CCCCCC'); /* IE6 & IE7 */  
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#F7F7F7', endColorstr='#CCCCCC')"; /* IE8+ */  
+	background: linear-gradient(#F7F7F7, #CCCCCC); /* the standard */ 
+}
+.BigTreeModal .mceTop, .BigTreeModal .mceTop div {top:0; width:100%; height:23px}
+.BigTreeModal .mceTop .mceLeft {width:6px; /* background:url(img/corners.gif) */}
+.BigTreeModal .mceTop .mceCenter {right:6px; width:100%; height:23px; /* background:url(img/horizontal.gif) 12px 0; clip:rect(auto auto auto 12px)*/}
+.BigTreeModal .mceTop .mceRight {right:0; width:6px; height:23px; /* background:url(img/corners.gif) -12px 0 */}
+.BigTreeModal .mceTop span {width:100%; text-align:center; vertical-align:middle; line-height:23px; font-weight:bold}
+.BigTreeModal .mceFocus .mceTop .mceLeft {/* background:url(img/corners.gif) -6px 0 */}
+.BigTreeModal .mceFocus .mceTop .mceCenter {/* background:url(img/horizontal.gif) 0 -23px */}
+.BigTreeModal .mceFocus .mceTop .mceRight {/* background:url(img/corners.gif) -18px 0 */}
+.BigTreeModal .mceFocus .mceTop span { color:#444; text-align:left; font-weight: normal; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); margin: 0 0 3px 7px; line-height: 1.9; }
+
+/* Middle */
+.BigTreeModal .mceMiddle { background: #fff; }
+.BigTreeModal .mceMiddle, .BigTreeModal .mceMiddle div {top:0}
+.BigTreeModal .mceMiddle {width:100%; height:100%; clip:rect(23px auto auto auto)}
+.BigTreeModal .mceMiddle .mceLeft {left:0; width:5px; height:100%; /* background:url(img/vertical.gif) -5px 0 */}
+.BigTreeModal .mceMiddle span {top:23px; left:0; width:100%; height:100%; background:#FFF}
+.BigTreeModal .mceMiddle .mceRight {right:0; width:5px; height:100%; /* background:url(img/vertical.gif) */}
+
+/* Bottom */
+.BigTreeModal .mceBottom, .BigTreeModal .mceBottom div { display: none; }
+.BigTreeModal .mceBottom {left:0; bottom:0; width:100%}
+.BigTreeModal .mceBottom div {top:0}
+.BigTreeModal .mceBottom .mceLeft {left:0; width:5px; /* background:url(img/corners.gif) -34px -6px */}
+.BigTreeModal .mceBottom .mceCenter {left:5px; width:100%; /* background:url(img/horizontal.gif) 0 -46px */}
+.BigTreeModal .mceBottom .mceRight {right:0; width:5px; /* background: url(img/corners.gif) -34px 0 */}
+.BigTreeModal .mceBottom span {display:none}
+.BigTreeModal .mceStatusbar .mceBottom, .BigTreeModal .mceStatusbar .mceBottom div {height:23px}
+.BigTreeModal .mceStatusbar .mceBottom .mceLeft {background:url(img/corners.gif) -29px 0}
+.BigTreeModal .mceStatusbar .mceBottom .mceCenter {background:url(img/horizontal.gif) 0 -52px}
+.BigTreeModal .mceStatusbar .mceBottom .mceRight {background:url(img/corners.gif) -24px 0}
+.BigTreeModal .mceStatusbar .mceBottom span {display:block; left:7px; font-family:Arial, Verdana; font-size:11px; line-height:23px}
+
+/* Actions */
+.BigTreeModal a {width:29px; height:16px; top:3px;}
+.BigTreeModal .mceClose {right:6px; background:url(img/buttons.gif) -87px 0}
+.BigTreeModal .mceMin {display:none; right:68px; background:url(img/buttons.gif) 0 0}
+.BigTreeModal .mceMed {display:none; right:37px; background:url(img/buttons.gif) -29px 0}
+.BigTreeModal .mceMax {display:none; right:37px; background:url(img/buttons.gif) -58px 0}
+.BigTreeModal .mceMove {display:none;width:100%;cursor:move;background:url(img/corners.gif) no-repeat -100px -100px}
+/* .BigTreeModal .mceMovable .mceMove {display:block} */
+.BigTreeModal .mceFocus .mceClose {right:6px; background:url(img/buttons.gif) -87px -16px; display: none; }
+.BigTreeModal .mceFocus .mceMin {right:68px; background:url(img/buttons.gif) 0 -16px}
+.BigTreeModal .mceFocus .mceMed {right:37px; background:url(img/buttons.gif) -29px -16px}
+.BigTreeModal .mceFocus .mceMax {right:37px; background:url(img/buttons.gif) -58px -16px}
+.BigTreeModal .mceFocus .mceClose:hover {right:6px; background:url(img/buttons.gif) -87px -32px}
+.BigTreeModal .mceFocus .mceClose:hover {right:6px; background:url(img/buttons.gif) -87px -32px}
+.BigTreeModal .mceFocus .mceMin:hover {right:68px; background:url(img/buttons.gif) 0 -32px}
+.BigTreeModal .mceFocus .mceMed:hover {right:37px; background:url(img/buttons.gif) -29px -32px}
+.BigTreeModal .mceFocus .mceMax:hover {right:37px; background:url(img/buttons.gif) -58px -32px}
+
+/* Resize */
+.BigTreeModal .mceResize {top:auto; left:auto; display:none; width:5px; height:5px; background:url(img/horizontal.gif) no-repeat 0 -75px}
+/* .BigTreeModal .mceResizable .mceResize {display:block} */
+.BigTreeModal .mceResizable .mceMin, .BigTreeModal .mceMax {display:none}
+.BigTreeModal .mceMinimizable .mceMin {display:none}
+.BigTreeModal .mceMaximizable .mceMax {display:none}
+.BigTreeModal .mceMaximized .mceMed {display:none}
+.BigTreeModal .mceMaximized .mceMax {display:none}
+.BigTreeModal a.mceResizeN {top:0; left:0; width:100%; cursor:n-resize}
+.BigTreeModal a.mceResizeNW {top:0; left:0; cursor:nw-resize}
+.BigTreeModal a.mceResizeNE {top:0; right:0; cursor:ne-resize}
+.BigTreeModal a.mceResizeW {top:0; left:0; height:100%; cursor:w-resize;}
+.BigTreeModal a.mceResizeE {top:0; right:0; height:100%; cursor:e-resize}
+.BigTreeModal a.mceResizeS {bottom:0; left:0; width:100%; cursor:s-resize}
+.BigTreeModal a.mceResizeSW {bottom:0; left:0; cursor:sw-resize}
+.BigTreeModal a.mceResizeSE {bottom:0; right:0; cursor:se-resize}
+
+/* Alert/Confirm */
+.BigTreeModal .mceButton { background: #BBB url(img/button-bg.png) repeat-x; border: 1px solid #CCCCCC; border-radius: 5px; color: #333; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px;/*  height: 36px; */ line-height: 14px; margin: 0 10px 0 0; padding: 10px 18px 12px 18px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); transition: background-color 0.2s, border-color 0.2s; user-select: none; width: auto; height: auto; }
+.BigTreeModal .mceButton:hover { background-color: #D3D3D3; font-weight: normal; }
+
+.BigTreeModal .mceMiddle .mceIcon {left:15px; top:35px; width:32px; height:32px}
+.BigTreeModal .mceAlert .mceMiddle span, .BigTreeModal .mceConfirm .mceMiddle span {background:transparent;left:20px; top:35px; width:320px; height:50px; font-weight:bold; overflow:auto; white-space:normal}
+.BigTreeModal a:hover {font-weight:bold;}
+.BigTreeModal .mceAlert .mceMiddle, .BigTreeModal .mceConfirm .mceMiddle {background:#fff;}
+.BigTreeModal .mceAlert .mceOk { top:auto; bottom: 20px; left:50%;  margin-left: -28px }
+.BigTreeModal .mceAlert .mceIcon {/* background:url(img/alert.gif); */ display: none;}
+.BigTreeModal .mceConfirm .mceOk {left:50%; top:auto; bottom: 20px; margin-left: -90px}
+.BigTreeModal .mceConfirm .mceCancel {left:50%; top:auto;  bottom: 20px;}
+.BigTreeModal .mceConfirm .mceIcon {background:url(img/confirm.gif); display: none;}

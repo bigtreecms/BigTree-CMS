@@ -1,0 +1,1 @@
+<input type="hidden" name="route" value="<? if (!$options["keep_original"] || !$value) { ?>generate<? } ?>" />

@@ -1,0 +1,1 @@
+<input type="hidden" name="<?=$key?>" value="<?=htmlspecialchars($value)?>" id="field_<?=$key?>" />

@@ -1,0 +1,104 @@
+/* Structure */
+#header_container { height: auto; }
+#header { width: auto; }
+#header h1 { width: auto; padding: 10px; }
+#top_nav_container { display: none; }
+#top_nav { width: auto; }
+#top_nav li { display: none; }
+#top_nav li.login { display: block; }
+
+#nav_bar { background: transparent; height: auto; overflow: hidden; }
+#nav li { }
+#nav li a { width: auto; padding: 12px 25px; height: auto; background-gradient: #CCCCCC #F6F6F6; border-radius: 0px; }
+#nav li a.active { height: auto; }
+#nav li a:hover { height: auto; }
+#nav li:first-child a { border-radius-top-left: 0px; }
+
+#nav .overview_nav { display: none; }
+#nav .settings_nav { display: none; }
+#nav .developer_nav { display: none; }
+#nav .login_nav { display: none; }
+
+#nav_search { display: none; }
+
+#page { width: auto; padding: 10px; overflow: hidden; }
+#breadcrumb { margin: -10px 0 20px 0; }
+
+#wrapper { width: auto; margin: 15px 0; }
+#footer { width: auto; }
+#footer #logos { width: auto; }
+#footer .logo_bigtree { width: auto; float: left; margin-left: 10px; height: auto; }
+#footer .logo_bigtree p { display: none; }
+#footer .logo_fastspot { float: right; width: auto; margin-right: 10px; height: auto; }
+#footer .logo_fastspot p { display: none; }
+#footer > p { display: none; }
+#footer_content { padding: 20px 0; height: auto; }
+
+/* Login */
+#login form { padding: 25px 15px; }
+#login fieldset input[type="text"], #login fieldset input[type="password"] { width: 260px; }
+#login a.forgot_password { display: none; }
+
+#dashboard .table { display: none; }
+
+/* Pages */
+
+.related_nav { display: none; }
+dl.table { width: auto; }
+.table .re_order { display: none; }
+.table .views { display: none; }
+.table .status { display: none; }
+.table .page_name_main, .table .page_name_nodrag { width: 219px; }
+.table .archive_column { display: none; }
+
+#right_side_bar { display: none; }
+#template_type { float: none; width: auto; }
+#subnav ul li a { width: 73px; }
+#subnav ul .access_tab, #subnav ul .move_tab, #subnav ul .seo_info { display: none; }
+.page_title_explanation { display: none; }
+.template_select li { height: auto; float: none; width: auto; padding: 8px 6px; }
+.template_select li p { margin: 0; width: auto; }
+.template_select li img { display: none; }
+form.module .template_page_link .external_link { width: 235px; clear: both; }
+.seo_goals { display: none; }
+
+form.module input[type="text"], form.module input[type="password"] { display: block; width: 290px; }
+form.module textarea { width: 290px; }
+
+/* Modules */
+
+.module_list dd { width: auto; margin: 10px 15px 0 0; float: none; }
+.module_table .auto { display: none; }
+.module_table .auto.first_auto { display: block; }
+.module_table .action_approve, .module_table .action_delete, .module_table .action_feature, .module_table .action_archive { display: none; }
+.module_table .auto { width: 227px !important; }
+.module_table .action_edit { border-right: none; }
+
+.image_list dd { clear: both; float: none; height: auto; width: auto; border: 0; border-bottom: 1px solid #CCC; margin: 0 15px 10px 0; overflow: hidden; }
+.image_list dd h4 { width: auto; height: auto; margin: 0 0 10px 0; padding: 0 15px 0 0; }
+.image_list div.list_image { height: auto; border: 0; text-align: left; padding: 0 15px 0 0; }
+.image_list dd div.list_image img { width: auto; max-width: 268px; }
+.image_list dd .reorder { display: none; }
+.image_list dd ul li { border: 0 !important; }
+.image_list .button_approve { display: none; }
+.image_list .button_archive { display: none; }
+.image_list .button_delete { display: none; }
+
+form.module .currently img { max-width: 300px; }
+
+.widget .table { width: 290px; }
+.aoi_widget .thead li { width: 206px; }
+.aoi_widget .aoi_add { width: 290px; }
+.aoi_widget .aoi_form input[type="text"] { width: 270px; }
+.widget .tbody > li { width: 290px; }
+.aoi_widget .tbody li li { width: 206px; }
+
+.search_bar input { width: 100px; }
+
+/* Users */
+.table .user_name, .table .user_company { display: none; }
+.table .user_email { width: 219px; }
+.users_table .action { display: none; }
+.users_table .action_edit { display: block; border-right: none; }
+.users_right_column { margin: 0 !important; clear: both; float: none; }
+#user_permissions { display: none; }
