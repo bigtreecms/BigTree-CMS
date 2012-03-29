@@ -57,7 +57,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 			$response = file_get_contents($url);
 		}
 		if ($response != "test.html") {
-			$error = ".htaccess overrides are currently not allowed by your Apache configuration. Please set 'AllowOverride All' for this directory.";
+			$warnings[] = ".htaccess overrides are currently not allowed by your Apache configuration. Please set 'AllowOverride All' for this directory.<br /><br /><strong>THIS COULD BE A FALSE NEGATIVE WARNING</strong> &mdash; If your server supports .htaccess overrides, ignore this warning.";
 		}
 		@unlink("test/.htaccess");
 		@unlink("test/rewrite.php");
