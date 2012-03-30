@@ -379,7 +379,6 @@
 				}
 			}
 			$output = curl_exec($ch);
-			echo curl_error($ch);
 			curl_close($ch);
 			return $output;
 		}
