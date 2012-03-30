@@ -164,16 +164,16 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 			global $root;
 			$d = opendir($root.$from);
 			if (!file_exists($root.$to)) {
-				mkdir($root.$to);
-				chmod($root.$to,0777);
+				@mkdir($root.$to);
+				@chmod($root.$to,0777);
 			}
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					if (is_dir($root.$from.$f)) {
 						bt_copy_dir($from.$f."/",$to.$f."/");
 					} else {
-						copy($from.$f,$to.$f);
-						chmod($to.$f,0777);
+						@copy($from.$f,$to.$f);
+						@chmod($to.$f,0777);
 					}
 				}
 			}

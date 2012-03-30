@@ -132,7 +132,7 @@
 		
 		if ($cache_age === false || $cache_age < (time() - (60 * 60 * 24))) {
 			$return = array();
-			$file = utf8_encode(file_get_contents("http://maps.google.com/maps/geo?q=$location&output=xml"));
+			$file = utf8_encode(BigTree::curl("http://maps.google.com/maps/geo?q=$location&output=xml"));
 			$xml = new SimpleXMLElement($file);
 			try {
 				$coords = explode(",", $xml->Response->Placemark->Point->coordinates);
