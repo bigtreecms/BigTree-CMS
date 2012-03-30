@@ -3980,7 +3980,7 @@
 		*/
 		
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
-			global $www_root,$admin_root;
+			global $www_root,$admin_root,$admin;
 			$table = mysql_real_escape_string($table);
 			$id = mysql_real_escape_string($id);
 			
