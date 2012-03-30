@@ -355,15 +355,20 @@
 				url - The URL to retrieve / POST to.
 				post - A key/value pair array of things to POST (optional).
 				options - A key/value pair of extra cURL options (optional).
+				strict_security - Force SSL verification of the host and peer if true.
 			
 			Returns:
 				The string response from the URL.
 		*/
 		
-		static function cURL($url,$post = array(),$options = array()) {
+		static function cURL($url,$post = array(),$options = array(),$strict_security = false) {
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			if (!$strict_security) {
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+			}
 			if (count($post)) {
 				curl_setopt($ch, CURLOPT_POST, true);
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
@@ -374,6 +379,7 @@
 				}
 			}
 			$output = curl_exec($ch);
+			echo curl_error($ch);
 			curl_close($ch);
 			return $output;
 		}
