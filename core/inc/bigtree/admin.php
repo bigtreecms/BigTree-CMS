@@ -3753,7 +3753,7 @@
 				An array of template entries.
 		*/
 
-		function getTemplates($sort = "position DESC") {
+		function getTemplates($sort = "position DESC, name ASC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_templates ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
