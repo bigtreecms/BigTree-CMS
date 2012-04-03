@@ -491,7 +491,7 @@
 				}
 			} else {
 				while ($f = sqlfetch($q)) {
-					$groups[$f["group_field"]] = $title;			
+					$groups[$f["group_field"]] = $f["group_field"];			
 				}
 			}
 			
