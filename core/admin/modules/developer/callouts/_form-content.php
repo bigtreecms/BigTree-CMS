@@ -56,7 +56,7 @@
 					<input type="text" name="resources[<?=$x?>][id]" value="<?=$resource["id"]?>" />
 				</section>
 				<section class="developer_resource_title">
-					<input type="text" name="resources[<?=$x?>][name]" value="<?=$resource["name"]?>" />
+					<input type="text" name="resources[<?=$x?>][title]" value="<?=$resource["title"]?>" />
 				</section>
 				<section class="developer_resource_subtitle">
 					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=$resource["subtitle"]?>" />

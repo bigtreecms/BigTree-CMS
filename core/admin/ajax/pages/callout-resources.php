@@ -32,7 +32,7 @@
 		foreach ($callout["resources"] as $options) {
 			$key = "callouts[$count][".$options["id"]."]";
 			$type = $options["type"];
-			$title = $options["name"];
+			$title = $options["title"];
 			$subtitle = $options["subtitle"];
 			$options["directory"] = "files/pages/";
 			$value = $resources[$options["id"]];

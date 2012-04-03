@@ -430,15 +430,15 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "name" && $key != "id" && $key != "type") {
+						if ($key != "title" && $key != "id" && $key != "type") {
 							$resource[$key] = $val;
 						}
 					}
 					
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["name"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 					
 					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["name"] = htmlspecialchars($resource["name"]);
+					$resource["title"] = htmlspecialchars($resource["title"]);
 					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
 					unset($resource["options"]);
 					$clean_resources[] = $resource;
@@ -1148,19 +1148,23 @@
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 		
+			$types = $this->getCachedFieldTypes();
+			$types = $types["template"];
+		
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 			    if ($resource["id"]) {
 			    	$options = json_decode($resource["options"],true);
 			    	foreach ($options as $key => $val) {
-			    		if ($key != "name" && $key != "id" && $key != "type")
+			    		if ($key != "title" && $key != "id" && $key != "type") {
 			    			$resource[$key] = $val;
+			    		}
 			    	}
 			    	
-			    	$file_contents .= '		$'.$resource["id"].' = '.$resource["name"].' - '.$types[$resource["type"]]."\n";
+			    	$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 			    	
 			    	$resource["id"] = htmlspecialchars($resource["id"]);
-			    	$resource["name"] = htmlspecialchars($resource["name"]);
+			    	$resource["title"] = htmlspecialchars($resource["title"]);
 			    	$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
 			    	unset($resource["options"]);
 			    	$clean_resources[] = $resource;
