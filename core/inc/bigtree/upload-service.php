@@ -140,6 +140,7 @@
 				if (!$relative_path) {
 					$relative_path = "files/";
 				}
+				$relative_path = rtrim($relative_path,"/")."/";
 				return $this->replaceLocal($local_file,$file_name,$relative_path,$remove_original);
 			} elseif ($this->Service == "s3") {
 				return $this->replaceS3($local_file,$file_name,$relative_path,$remove_original);
@@ -288,6 +289,7 @@
 				if (!$relative_path) {
 					$relative_path = "files/";
 				}
+				$relative_path = rtrim($relative_path,"/")."/";
 				return $this->uploadLocal($local_file,$file_name,$relative_path,$remove_original);
 			} elseif ($this->Service == "s3") {
 				return $this->uploadS3($local_file,$file_name,$relative_path,$remove_original);

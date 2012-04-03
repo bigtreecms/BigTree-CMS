@@ -54,16 +54,7 @@
 				$input_validation_class = ' class="'.$options["validation"].'"';
 			}
 			
-			if ($options["wrapper"]) {
-				echo $options["wrapper"];
-			}
-			
 			include BigTree::path("admin/form-field-types/draw/$type.php");
-			
-			if ($options["wrapper"]) {
-				$parts = explode(" ",$options["wrapper"]);
-				echo "</".substr($parts[0],1).">";
-			}
 		
 			$tabindex++;
 		}

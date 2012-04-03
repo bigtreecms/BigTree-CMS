@@ -19,10 +19,3 @@
 		<? BigTree::getFieldSelectOptions($table,$d["image"]) ?>
 	</select>
 </fieldset>
-
-<fieldset>
-	<label>Caption Field</label>
-	<select name="caption">
-		<? BigTree::getFieldSelectOptions($table,$d["caption"]) ?>
-	</select>
-</fieldset>

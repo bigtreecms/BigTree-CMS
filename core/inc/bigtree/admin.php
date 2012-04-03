@@ -1963,7 +1963,21 @@
 					"route" => "Generated Route",
 					"custom" => "Custom Function"
 				);
-				$types["template"] = $types["module"];
+				
+				$types["template"] = array(
+					"text" => "Text",
+					"textarea" => "Text Area",
+					"html" => "HTML Area",
+					"upload" => "Upload",
+					"list" => "List",
+					"checkbox" => "Checkbox",
+					"date" => "Date Picker",
+					"time" => "Time Picker",
+					"photo-gallery" => "Photo Gallery",
+					"array" => "Array of Items",
+					"custom" => "Custom Function"
+				);
+				
 				$types["callout"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",

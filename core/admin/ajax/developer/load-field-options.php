@@ -36,15 +36,6 @@
 	if (file_exists(BigTree::path("admin/ajax/developer/field-options/".$t.".php"))) {
 		include BigTree::path("admin/ajax/developer/field-options/".$t.".php");
 	}
-	
-	if ($t != "geocoding" && $t != "route") {
-?>
-<fieldset>
-	<label>Field Wrapper <small>(enter full tag, i.e. &lt;div class="test"&gt;)</small></label>
-	<input type="text" name="wrapper" value="<?=htmlspecialchars($d["wrapper"])?>" />
-</fieldset>
-<?
-	}
 ?>
 <script type="text/javascript">
 	$(".table_select").change(function() {

@@ -21,13 +21,6 @@
 </fieldset>
 
 <fieldset>
-	<label>Caption Field</label>
-	<select name="caption">
-		<? BigTree::getFieldSelectOptions($table,$d["caption"]) ?>
-	</select>
-</fieldset>
-
-<fieldset>
 	<label>Group Field</label>
 	<select name="group_field">
 		<? BigTree::getFieldSelectOptions($table,$d["group_field"]) ?>
