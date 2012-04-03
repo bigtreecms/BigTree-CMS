@@ -3096,8 +3096,10 @@
 				$regular_text = "";
 				$stripped_text = "";
 				foreach ($body_fields as $field) {
-					$regular_text .= $content[$field]." ";
-					$stripped_text .= strip_tags($content[$field])." ";
+					if (!is_array($content[$field])) {
+						$regular_text .= $content[$field]." ";
+						$stripped_text .= strip_tags($content[$field])." ";
+					}
 				}
 				// Check to see if there is any content
 				if ($stripped_text) {

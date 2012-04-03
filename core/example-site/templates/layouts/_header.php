@@ -17,7 +17,6 @@
 		<title><? if ($local_title) { echo $local_title . ' &middot; '; } ?><? if ($page_title) { echo $page_title . ' &middot; '; } ?><?=$site_title?></title>
 		
 		<link rel="shortcut icon" href="<?=$www_root?>favicon.ico" type="image/x-icon" />
-
 		
 		<link rel="stylesheet" href="<?=$www_root?>css/site.css" type="text/css" media="all" />
 		<link rel="stylesheet" href="<?=$www_root?>css/print.css" type="text/css" media="print" />

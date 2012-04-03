@@ -137,6 +137,8 @@ table { border-collapse: collapse; border-spacing: 0; }
 	#footer .address p { color: #666; font-family: 'OpenSans', sans-serif; font-size: 12px; margin-bottom: 2px; }
 	#footer .address a { color: #666; }
 	#footer .address a:hover { color: #222; }
+	#footer .about a { color: #666; border-bottom: 1px dotted #ccc; }
+	#footer .about a:hover { border-color: #222; color: #222; }
 	#footer .social p { line-height: 20px; margin-top: 22px; }
 	#footer .social a { background: url(../images/icon_footer_social.png) no-repeat left top; color: #222; display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 0 0 18px 20px; padding: 2px 0 0 25px; text-transform: uppercase; }
 	#footer .social a:hover { text-decoration: underline; }
@@ -173,6 +175,8 @@ table { border-collapse: collapse; border-spacing: 0; }
 	.content ol { list-style: decimal; }
 	.content ul { list-style: disc; }
 	.content li { font-size: 15px; line-height: 20px; }
+	.content a { color: #666; border-bottom: 1px dotted #ccc; }
+	.content a:hover { border-color: #222; color: #222; }
 	#page .content blockquote { margin: 27px 40px 30px; }
 	#page .content blockquote p { font-size: 26px; line-height: 40px; }
 	#page .content blockquote cite { display: block; font-size: 15px; font-style: italic; margin: 4px 0 0 40px; }

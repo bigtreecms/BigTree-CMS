@@ -39,7 +39,8 @@
 		}
 	}
 	
-	// See if .htaccess Rewrites work
+	// See if .htaccess Rewrites work -- this is buggy, so it's being commented out.
+	/*
 	if (is_writable(".")) {
 		@mkdir("test");
 		@file_put_contents("test/.htaccess",'RewriteEngine On
@@ -62,7 +63,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		@unlink("test/.htaccess");
 		@unlink("test/rewrite.php");
 		@rmdir("test");
-	}
+	} */
 
 	// Clean all post variables up.
 	foreach ($_POST as $key => $val) {
@@ -164,16 +165,16 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 			global $root;
 			$d = opendir($root.$from);
 			if (!file_exists($root.$to)) {
-				mkdir($root.$to);
-				chmod($root.$to,0777);
+				@mkdir($root.$to);
+				@chmod($root.$to,0777);
 			}
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					if (is_dir($root.$from.$f)) {
 						bt_copy_dir($from.$f."/",$to.$f."/");
 					} else {
-						copy($from.$f,$to.$f);
-						chmod($to.$f,0777);
+						@copy($from.$f,$to.$f);
+						@chmod($to.$f,0777);
 					}
 				}
 			}
@@ -333,8 +334,8 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 </IfModule>
 
 IndexIgnore */*
-RewriteEngine On
 
+RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
@@ -344,11 +345,9 @@ RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 php_flag short_open_tag On
 php_flag magic_quotes_gpc Off');
 
-		bt_touch_writable(".htaccess",'<IfModule mod_rewrite.c>
-  RewriteEngine on
-  RewriteRule    ^$    site/    [L]
-  RewriteRule    (.*) site/$1    [L]
-</IfModule>');
+		bt_touch_writable(".htaccess",'RewriteEngine On
+RewriteRule ^$ site/ [L]
+RewriteRule (.*) site/$1 [L]');
 		
 		// Install the example site if they asked for it.
 		if ($install_example_site) {
