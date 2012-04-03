@@ -16,7 +16,7 @@
 					<?=$footerAddress?>
 					<img src="http://maps.googleapis.com/maps/api/staticmap?center=<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&zoom=15&size=240x100&markers=color:red%7C<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&sensor=false" alt="" />
 				</div>
-				<div class="grid_4">
+				<div class="grid_4 about">
 					<h6><?=$aboutMe["resources"]["page_header"]?></h6>
 					<?
 						if ($aboutMe["resources"]["photo_file"] != "") {
