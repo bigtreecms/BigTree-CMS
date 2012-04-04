@@ -25,7 +25,6 @@
 		}
 	
 		foreach ($items["resources"] as $resource) {
-			$file = str_replace("{wwwroot}",$site_root,$resource["file"]);
 			if ($resource["is_image"]) {
 				$resource["type"] = "image";
 			}

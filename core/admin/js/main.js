@@ -1012,7 +1012,7 @@ var BigTreeFileManager = {
 		
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
-		$("#file_browser_selected_file").val($(this).attr("href"));
+		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/"));
 		$("#file_browser_info_pane").html("<spinner></spinner>");
 		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
 			{ file: $(this).attr("href") },
