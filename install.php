@@ -210,7 +210,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		bt_mkdir_writable("templates/layouts/");
 		bt_touch_writable("templates/layouts/_header.php");
 		bt_touch_writable("templates/layouts/default.php",'<? include "_header.php" ?>
-<?php echo $content?>
+<?=$content?>
 <? include "_footer.php" ?>');
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
@@ -218,8 +218,8 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		bt_touch_writable("templates/basic/_404.php");
 		bt_touch_writable("templates/basic/_sitemap.php");
 		bt_touch_writable("templates/basic/home.php");
-		bt_touch_writable("templates/basic/content.php",'<h1><?php echo $page_header?></h1>
-<?php echo $page_content?>');
+		bt_touch_writable("templates/basic/content.php",'<h1><?=$page_header?></h1>
+<?=$page_content?>');
 		bt_mkdir_writable("templates/callouts/");
 		
 		bt_touch_writable("templates/config.php",str_replace($find,$replace,file_get_contents("core/config.example.php")));
