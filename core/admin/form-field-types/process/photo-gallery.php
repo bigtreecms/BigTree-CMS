@@ -34,7 +34,7 @@
 					}
 				}
 			} elseif ($d["existing"]) {
-				$pinfo = BigTree::pathInfo($r["file"]);
+				$pinfo = BigTree::pathInfo($d["existing"]);
 				
 				// We're going to need to create a local copy if we need more 
 				if ((is_array($options["crops"]) && count($options["crops"])) || (is_array($options["thumbs"]) && count($options["thumbs"]))) {
