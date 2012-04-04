@@ -657,8 +657,14 @@ var BigTreePhotoGallery = Class.extend({
 	
 	openFileManager: function(ev) {
 		target = $(ev.target);
-		options = eval('(' + target.attr("name") + ')');
-		field = target.attr("href").substr(1);
+		// In case they click the span instead of the button.
+		if (!target.attr("href")) {
+			field = target.parent().attr("href").substr(1);	
+			options = eval('(' + target.parent().attr("name") + ')');
+		} else {
+			field = target.attr("href").substr(1);
+			options = eval('(' + target.attr("name") + ')');
+		}
 		BigTreeFileManager.formOpen("photo-gallery",field,options,$.proxy(this.useExistingFile,this));
 		return false;
 	},
@@ -858,7 +864,12 @@ var BigTreeDialog = Class.extend({
 	
 	CheckForEsc: function(e) {
 		if (e.keyCode == 27) {
-			this.DialogClose();
+			if (this.onCancel) {
+				this.onCancel();
+				$("body").off("keyup");
+			} else {
+				this.DialogClose();
+			}
 		}
 	},
 
