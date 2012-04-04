@@ -34,16 +34,12 @@
 					}
 				}
 			} elseif ($d["existing"]) {
-				$resource = mysql_real_escape_string($d["existing"]);
-				
-				$r = $admin->getResourceByFile($resource);
-				$r["file"] = str_replace(array("{wwwroot}",$www_root),$site_root,$r["file"]);
 				$pinfo = BigTree::pathInfo($r["file"]);
 				
 				// We're going to need to create a local copy if we need more 
 				if ((is_array($options["crops"]) && count($options["crops"])) || (is_array($options["thumbs"]) && count($options["thumbs"]))) {
 					$local_copy = $site_root."files/".uniqid("temp-").$pinfo["extension"];
-					file_put_contents($local_copy,file_get_contents($r["file"]));
+					file_put_contents($local_copy,file_get_contents($d["existing"]));
 					
 					$value = $upload_service->upload($local_copy,$pinfo["basename"],$options["directory"],false);
 					$pinfo = BigTree::pathInfo($value);
