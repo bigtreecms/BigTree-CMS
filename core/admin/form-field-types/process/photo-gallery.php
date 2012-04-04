@@ -34,6 +34,7 @@
 					}
 				}
 			} elseif ($d["existing"]) {
+				$d["existing"] = str_replace($www_root,$site_root,$d["existing"]);
 				$pinfo = BigTree::pathInfo($d["existing"]);
 				
 				// We're going to need to create a local copy if we need more 

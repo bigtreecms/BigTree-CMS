@@ -22,8 +22,6 @@
 			$minWidth = $_POST["minWidth"];
 			$minHeight = $_POST["minHeight"];
 			
-			$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
-			
 			foreach ($items["folders"] as $folder) {
 	?>
 	<a href="#<?=$folder["id"]?>" class="file folder<? if ($folder["permission"] == "n") { ?> disabled<? } ?>"><span class="file_type file_type_folder"></span> <?=$folder["name"]?></a>		
@@ -31,33 +29,35 @@
 			}
 		
 			foreach ($items["resources"] as $resource) {
-				$file = str_replace("{wwwroot}",$site_root,$resource["file"]);
-				$thumbs = json_decode($resource["thumbs"],true);
-				$thumb = $thumbs["bigtree_internal_list"];
-				$margin = $resource["list_thumb_margin"];
-				$thumb = str_replace("{wwwroot}",$www_root,$thumb);
-				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
-				
-				// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
-				$available_thumbs = array();
-				if (count($thumbs) > 0) {
-					foreach ($thumbs as $tk => $tu) {
-						if (substr($tk,0,17) != "bigtree_internal_") {
-							$available_thumbs[] = array(
-								"name" => $tk,
-								"file" => $tu
-							);
+				if ($resource["is_image"]) {
+					$file = str_replace("{wwwroot}",$site_root,$resource["file"]);
+					$thumbs = json_decode($resource["thumbs"],true);
+					$thumb = $thumbs["bigtree_internal_list"];
+					$margin = $resource["list_thumb_margin"];
+					$thumb = str_replace("{wwwroot}",$www_root,$thumb);
+					$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
+					
+					// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
+					$available_thumbs = array();
+					if (count($thumbs) > 0) {
+						foreach ($thumbs as $tk => $tu) {
+							if (substr($tk,0,17) != "bigtree_internal_") {
+								$available_thumbs[] = array(
+									"name" => $tk,
+									"file" => $tu
+								);
+							}
 						}
 					}
-				}
-				
-				$data = htmlspecialchars(json_encode(array(
-					"file" => $resource["file"],
-					"thumbs" => $available_thumbs
-				)));
+					
+					$data = htmlspecialchars(json_encode(array(
+						"file" => $resource["file"],
+						"thumbs" => $available_thumbs
+					)));
 	?>
 	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb?>" alt="" style="margin-top: <?=$margin?>px;" /></a>
 	<?
+				}
 			}
 		}
 		
