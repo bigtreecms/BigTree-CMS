@@ -357,6 +357,7 @@
 	.form_table header nav a, .form_table header nav a:hover { background: #D4D4D4; border-radius: 3px 3px 0 0; border: 1px solid #D4D4D4; border-top-color: #B9B9B9; border-width: 1px 1px 0 1px; color: #666; display: block; float: left; height: 26px; line-height: 26px; margin: 0 5px 0 0; padding: 0 15px; text-shadow: 0px 1px 0 rgba(255, 255, 255, 0.5); transition: background-color 0.2s, color 0.2s; }
 	.form_table header nav a:hover { background: #DCDCDC; color: #333; }
 	.form_table header nav a.active { background: #AFAFAF; border-color: #AFAFAF; color: #fff; padding: 0 15px; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.3); }
+	.form_table header .add span { background: url(../images/icons-16x16.png) no-repeat; float: left; height: 16px; margin: 2px 4px 0 -4px; width: 16px; }
 	
 	.form_table .labels { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; overflow: hidden; text-shadow: 0px -1px 0 #666; text-transform: uppercase; }
 	.form_table .labels span { font-size: 10px !important; }

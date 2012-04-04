@@ -75,9 +75,9 @@
 
 <div class="form_table">
 	<header>
-		<a href="#" class="add add_geocoding">Geocoding</a>
-		<a href="#" class="add add_many_to_many">Many-To-Many</a>
-		<a href="#" class="add add_unused">Add</a>
+		<a href="#" class="add add_geocoding"><span></span>Geocoding</a>
+		<a href="#" class="add add_many_to_many"><span></span>Many-To-Many</a>
+		<a href="#" class="add add_unused"><span></span>Add</a>
 		<select id="unused_field" class="custom_control">
 			<? foreach ($unused as $key => $val) { ?>
 			<option value="<?=htmlspecialchars($val)?>"><?=htmlspecialchars($key)?></option>

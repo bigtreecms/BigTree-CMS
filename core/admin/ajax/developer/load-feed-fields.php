@@ -36,7 +36,7 @@
 
 	<div class="form_table">
 		<header>
-			<a href="#" class="add add_field">Add</a>
+			<a href="#" class="add add_field"><span></span>Add</a>
 			<select id="unused_field" class="custom_control">
 				<? foreach ($unused as $field => $title) { ?>
 				<option value="<?=htmlspecialchars($title)?>"><?=htmlspecialchars($field)?></option>

@@ -35,6 +35,12 @@
 
 	if (file_exists(BigTree::path("admin/ajax/developer/field-options/".$t.".php"))) {
 		include BigTree::path("admin/ajax/developer/field-options/".$t.".php");
+	} else {
+		if ($t != "text" && $t != "textarea" && $t = "upload" && $t != "html" && $t != "list") {
+?>
+<p>This field type does not have any options.</p>
+<?
+		}
 	}
 ?>
 <script type="text/javascript">

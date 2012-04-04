@@ -91,7 +91,7 @@
 	<label>Resources</label>
 	<div class="form_table">
 		<header>
-			<a href="#" class="add_resource add">Add Resource</a>
+			<a href="#" class="add_resource add"><span></span>Add Resource</a>
 		</header>
 		<div class="labels">
 			<span class="developer_resource_id">ID</span>
