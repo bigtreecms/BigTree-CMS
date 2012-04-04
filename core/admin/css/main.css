@@ -666,6 +666,7 @@
 
 	.user_permissions .labels .permission_label { padding: 0 0 0 20px; text-align: left; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 466px; }
 	.user_permissions .labels .permission_label_wider { width: 666px; }
+	.user_permissions .labels .permission_label_admin { width: 746px; }
 	.user_permissions .labels .folder_label { width: 596px; }
 	.user_permissions .labels .permission_level { width: 70px; }
 	.user_permissions .labels .permission_alerts { width: 130px; }
@@ -675,6 +676,7 @@
 	.user_permissions section ul li:hover { background: #F9F9F9; }
 	.user_permissions section ul li .permission_label { background: url(../images/blue-arrow-sprite.png) no-repeat 17px 0px; color: #333; display: block; float: left; font-size: 15px; height: 32px; line-height: 32px; padding: 0 0 0 40px; width: 446px; }
 	.user_permissions section ul li .permission_label_wider { width: 646px; }
+	.user_permissions section ul li .permission_label_admin { width: 726px; }
 	.user_permissions section ul li .folder_label { width: 576px; }
 	.user_permissions section ul li .permission_label.expanded { background: url(../images/blue-arrow-sprite.png) no-repeat 17px -64px; }
 	.user_permissions section ul li .permission_label.disabled { background: url(../images/blue-arrow-sprite.png) no-repeat 17px -32px; }
@@ -686,22 +688,31 @@
 	.user_permissions section ul.depth_2 li .depth { width: 10px; }
 	.user_permissions section ul.depth_2 li .permission_label { width: 436px; }
 	.user_permissions section ul.depth_2 li .permission_label_wider { width: 636px; }
+	.user_permissions section ul.depth_2 li .permission_label_admin { width: 716px; }
 	.user_permissions section ul.depth_3 li .depth { width: 20px; }
 	.user_permissions section ul.depth_3 li .permission_label { width: 426px; }
+	.user_permissions section ul.depth_3 li .permission_label_admin { width: 706px; }
 	.user_permissions section ul.depth_4 li .depth { width: 30px; }
 	.user_permissions section ul.depth_4 li .permission_label { width: 416px; }
+	.user_permissions section ul.depth_4 li .permission_label_admin { width: 696px; }
 	.user_permissions section ul.depth_5 li .depth { width: 40px; }
 	.user_permissions section ul.depth_5 li .permission_label { width: 406px; }
+	.user_permissions section ul.depth_5 li .permission_label_admin { width: 686px; }
 	.user_permissions section ul.depth_6 li .depth { width: 50px; }
 	.user_permissions section ul.depth_6 li .permission_label { width: 396px; }
+	.user_permissions section ul.depth_6 li .permission_label_admin { width: 676px; }
 	.user_permissions section ul.depth_7 li .depth { width: 60px; }
 	.user_permissions section ul.depth_7 li .permission_label { width: 386px; }
+	.user_permissions section ul.depth_7 li .permission_label_admin { width: 666px; }
 	.user_permissions section ul.depth_8 li .depth { width: 70px; }
 	.user_permissions section ul.depth_8 li .permission_label { width: 376px; }
+	.user_permissions section ul.depth_8 li .permission_label_admin { width: 656px; }
 	.user_permissions section ul.depth_9 li .depth { width: 80px; }
 	.user_permissions section ul.depth_9 li .permission_label { width: 366px; }
+	.user_permissions section ul.depth_9 li .permission_label_admin { width: 646px; }
 	.user_permissions section ul.depth_10 li .depth { width: 90px; }
 	.user_permissions section ul.depth_10 li .permission_label { width: 356px; }
+	.user_permissions section ul.depth_10 li .permission_label_admin { width: 636px; }
 
 	.user_permissions section ul.depth_2 li .folder_label { width: 566px; }
 	.user_permissions section ul.depth_3 li .folder_label { width: 556px; }

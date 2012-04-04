@@ -12,7 +12,7 @@
 	}
 	
 	function _local_userDrawNavLevel($parent,$depth,$alert_above = false,$children = false) {
-		global $permissions,$alerts,$admin;
+		global $permissions,$alerts,$admin,$user;
 		if (!$children) {
 			$children = $admin->getPageChildren($parent);
 		}
@@ -26,12 +26,20 @@
 	?>
 	<li>
 		<span class="depth"></span>
-		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?>" href="#"><?=$f["nav_title"]?></a>
+		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>" href="#"><?=$f["nav_title"]?></a>
 		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ($alerts[$f["id"]] == "on" || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="i" <? if (!$permissions["page"][$f["id"]] || $permissions["page"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/></span>
+		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
+		</span>
+		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/>
+		</span>
+		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/>
+		</span>
+		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="i" <? if (!$permissions["page"][$f["id"]] || $permissions["page"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/>
+		</span>
 		<? _local_userDrawNavLevel($f["id"],$depth + 1,$alert_below,$grandchildren) ?>
 	</li>
 	<?
@@ -130,12 +138,12 @@
 		<section class="sub" id="permission_section">
 			<fieldset>
 				<label>Permissions
-					<small id="admin_user_message"<? if ($user["level"] < 1) { ?> style="display: none;"<? } ?>>(this user is an <strong>administrator</strong> and is a publisher of the entire site &mdash; permissions below are ignored)</small>
+					<small id="admin_user_message"<? if ($user["level"] < 1) { ?> style="display: none;"<? } ?>>(this user is an <strong>administrator</strong> and is a publisher of the entire site)</small>
 					<small id="regular_user_message"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>(for module sub-permissions "No Access" inherits from the main permission level)</small>
 				</label>
 			
 				<div class="user_permissions form_table">
-					<header>
+					<header<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 						<nav>
 							<ul>
 								<li><a href="#page_permissions" class="active">Pages</a></li>
@@ -146,23 +154,29 @@
 					</header>
 					<div id="page_permissions">
 						<div class="labels">
-							<span class="permission_label">Page</span>
+							<span class="permission_label<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>">Page</span>
 							<span class="permission_alerts">Content Alerts</span>
-							<span class="permission_level">Publisher</span>
-							<span class="permission_level">Editor</span>
-							<span class="permission_level">No Access</span>
-							<span class="permission_level">Inherit</span>
+							<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>Publisher</span>
+							<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>Editor</span>
+							<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>No Access</span>
+							<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>Inherit</span>
 						</div>
 						<section>
 							<ul class="depth_1">
 								<li class="top">
 									<span class="depth"></span>
-									<a class="permission_label expanded" href="#">All Pages</a>
+									<a class="permission_label expanded<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>" href="#">All Pages</a>
 									<span class="permission_alerts"><input type="checkbox" name="alerts[0]"<? if ($alerts[0] == "on") { ?> checked="checked"<? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][0] == "p") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][0] == "e") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][0] == "n" || !$permissions["page"][0]) { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level">&nbsp;</span>
+									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+										<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][0] == "p") { ?>checked="checked" <? } ?>/>
+									</span>
+									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+										<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][0] == "e") { ?>checked="checked" <? } ?>/>
+									</span>
+									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
+										<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][0] == "n" || !$permissions["page"][0]) { ?>checked="checked" <? } ?>/>
+									</span>
+									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>&nbsp;</span>
 									<? _local_userDrawNavLevel(0,2,$alerts[0]) ?>
 								</li>
 							</ul>
@@ -304,9 +318,17 @@
 	
 	$("#user_level").on("select:changed",function(event,data) {
 		if (data.value  > 0) {
+			// Set the active tab to Pages, show the Pages section, hide the header.
+			$(".user_permissions header").hide().find("a").removeClass("active").eq(0).addClass("active");
+			$(".user_permissions > div").hide().eq(0).show();
+			$(".user_permissions .permission_level").hide();
+			$(".user_permissions .permission_label").addClass("permission_label_admin");
 			$("#regular_user_message").hide();
 			$("#admin_user_message").show();
 		} else {
+			$(".user_permissions header").show();
+			$(".user_permissions .permission_level").show();
+			$(".user_permissions .permission_label").removeClass("permission_label_admin");
 			$("#regular_user_message").show();
 			$("#admin_user_message").hide();
 		}
