@@ -75,15 +75,15 @@
 	</form>
 </div>
 <?
-	if (count($htmls) || count($small_htmls) || count ($simplehtmls)) {
+	if (count($htmls) || count($simplehtmls)) {
 		include BigTree::path("admin/layouts/_tinymce.php"); 
 
-		if (count($htmls))
+		if (count($htmls)) {
 			include BigTree::path("admin/layouts/_tinymce_specific.php");
-		if (count($small_htmls))
-			include BigTree::path("admin/layouts/_tinymce_block_small.php");
-		if (count($simplehtmls))
+		}
+		if (count($simplehtmls)) {
 			include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
+		}
 	}
 ?>
 <script type="text/javascript">

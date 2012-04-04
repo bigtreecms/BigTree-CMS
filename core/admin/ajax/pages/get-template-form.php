@@ -23,7 +23,6 @@
 	}
 		
 	$htmls = array();
-	$small_htmls = array();
 ?>
 <div class="alert template_message">
 	<img src="<?=$image?>" alt="" />
@@ -67,9 +66,6 @@
 	
 	if (count($htmls)) {
 		include BigTree::path("admin/layouts/_tinymce_specific.php");
-	}
-	if (count($small_htmls)) {
-		include BigTree::path("admin/layouts/_tinymce_block_small.php");
 	}
 	if (count($simplehtmls)) {
 		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");

@@ -43,7 +43,7 @@
 		$resources = $cms->decodeResources($pdata["resources"]);
 			
 		$htmls = array();
-		$small_htmls = array();
+		$simplehtmls = array();
 		$tabindex = 1;
 ?>
 <html>
@@ -52,6 +52,9 @@
 		<script type="text/javascript" src="<?=$admin_root?>js/lib.js"></script>
 		<script type="text/javascript" src="<?=$admin_root?>js/main.js"></script>
 		<script type="text/javascript" src="<?=$admin_root?>js/pages.js"></script>
+		<style type="text/css">
+			#mceModalBlocker { display: none !important; }
+		</style>
 	</head>
 	<body>
 		<div id="bigtree_dialog_window" class="front_end_editor">
@@ -89,13 +92,11 @@
 						$mce_width = 760;
 						$mce_height = 365;
 						
-						if (count($htmls) || count($small_htmls) || count ($simplehtmls)) {
+						//$no_inline = true;
+						if (count($htmls) || count($simplehtmls)) {
 							include BigTree::path("admin/layouts/_tinymce.php");
 							if (count($htmls)) {
 								include BigTree::path("admin/layouts/_tinymce_specific.php");
-							}
-							if (count($small_htmls)) {
-								include BigTree::path("admin/layouts/_tinymce_block_small.php");
 							}
 							if (count($simplehtmls)) {
 								include BigTree::path("admin/layouts/_tinymce_specific_simple.php");

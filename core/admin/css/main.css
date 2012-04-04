@@ -886,8 +886,8 @@
 	#bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 110px; }
 	#bigtree_dialog_form .image_attr input.image_attr_thumbs { background: url(../images/picture.png) no-repeat 3px center; padding-left: 21px; width: 94px; }
 
-	#bigtree_dialog_window.front_end_editor { border: none; box-shadow: none; height: 613px; width: 100%; }
-	#bigtree_dialog_window.front_end_editor .overflow { height: 457px; max-height: none; width: 778px; }
+	#bigtree_dialog_window.front_end_editor { border: none; box-shadow: none; height: 625px; width: 100%; z-index: 1; }
+	#bigtree_dialog_window.front_end_editor .overflow { height: 469px; max-height: none; width: 800px; }
 	#bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }
 	#bigtree_dialog_window.front_end_editor input[type=submit] { margin-left: 10px; }
 	#bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
