@@ -3383,6 +3383,10 @@
 					if ($key == "external") {
 						$val = $cms->getInternalPageLink($val);
 					}
+					// Decode the changes' IPLs.
+					if (is_array($val)) {
+						$val = BigTree::untranslateArray($val);
+					}
 					$page[$key] = $val;
 				}
 				// Decode the tag changes, apply them back.
