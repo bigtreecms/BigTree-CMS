@@ -20,6 +20,27 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
-### 4.0b1
+### 4.0b2
+- Removed .htaccess warnings from the installer since it's throwing a lot of warnings when there isn't a problem.
+- Fixed page "Revisions" showing the currently published copy as an option for creating a new draft.
+- Fixed fatal error that's thrown when an item was locked and someone else tried to access it.
+- Updated BigTree::curl to not verify SSL host/peer (caused lots of failed cURLs)
+- Fixed a warning thrown when calculating SEO value if some of the field types were arrays in a page template.
+- Silenced some warnings in the installer (caused by shared server openbase_dir stuff).
+- Fixed styles in the example site.
+- Fixed an error that caused issues with grouped views in modules.
+- Removed the ability to use Field Wrappers.
+- Changed the default sorting for templates.
+- Changed the "name" field of resources of callouts to be "title" like everything else (if you've made some callouts, their titles may not be working now, sorry!)
+- Fixed some errors in processing photo gallery field types.
+- Fixed a bug with file dialogs when hitting Escape to close them.
+- Updated the user editor to hide permissions that aren't applicable to Administrators and Developers.
+- Fixed text-ellipsis for long URLs in the Properties section of pages.
+- Fixing pending changes to pages not decoding properly (caused broken images in HTML areas).
+- Added + icons to buttons in forms to bring better attention to them adding things.
+- Removed extraneous old code from BigTree 3.3
+- Fixed some HTML5 validation errors.
+- Fixed a </li> closing bug that was causing Internet Explorer to not render the nav properly.
 
-Initial public release.
+### 4.0b1
+- Initial public release.
