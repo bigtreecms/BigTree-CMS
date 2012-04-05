@@ -1221,25 +1221,23 @@
 	#bigtree_foundry_browser_window .browser_pane .button { float: right; margin: 5px 5px 0 0; }
 	
 	
-/*
-	-----------------------
+/*-----------------------------
 	Internet Explorer Fixes
-	-----------------------
-*/
+-----------------------------*/
 
-.ie nav.main li:hover a { -ms-filter: none; background: #243D4C; filter: none; }
-.ie nav.main li li a:hover { background: #406980; }
-.ie6 body.login { background: #333; }
-.ie7 body.login { background: #333; }
-.ie8 body.login { background: #333 url(../images/login-bg.png) repeat-x bottom left; }
-.ie8 input[type=text], .ie8 input[type=password], .ie8 input[type=email], .ie8 input[type=url] { height: 18px; padding: 7px 10px; }
-.ie7 input[type=text], .ie7 input[type=password], .ie7 input[type=email], .ie7 input[type=url] { height: 18px; padding: 7px 10px; }
-.ie7 .nav_shadow, .ie8 .nav_shadow { display: block; }
-.ie8 nav.main form input[type=search] { height: 12px; padding: 3px 34px 9px 13px; }
-.ie6 nav.main form .qs_query, .ie7 nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; height: 12px; margin: 5px 0; padding: 3px 34px 6px 13px; width: 175px; }
-.ie6 nav.main form .qs_image, .ie7 nav.main form .qs_image { height: 16px; margin: 10px 0 0 195px; position: absolute; user-select: none; width: 16px; }
-.ie8 .form_search { height: 12px; padding-bottom: 9px; padding-top: 3px; }
-.ie7 .form_search { background: #FFF url(../images/quick-search-icon.png) no-repeat 195px 5px; border: 1px solid #DCDCDC; float: left; height: 14px; line-height: 14px; margin: 5px 25px 0 -10px; padding: 3px 34px 3px 13px !important; width: 173px; }
-.ie7 nav.sub li { float: left; }
-.ie .view_paging li.first a { background: url(../images/caret-left.png) no-repeat center center; border-radius: 11px 0 0 11px; text-indent: -1000px; width: 6px; }
-.ie .view_paging li.last a { background: url(../images/caret-right.png) no-repeat center center; border-radius: 0 11px 11px 0; border-right: none; text-indent: -1000px; width: 6px; }
+	.ie nav.main li:hover a { -ms-filter: none; background: #243D4C; filter: none; }
+	.ie nav.main li li a:hover { background: #406980; }
+	.ie6 body.login { background: #333; }
+	.ie7 body.login { background: #333; }
+	.ie8 body.login { background: #333 url(../images/login-bg.png) repeat-x bottom left; }
+	.ie8 input[type=text], .ie8 input[type=password], .ie8 input[type=email], .ie8 input[type=url] { height: 18px; padding: 7px 10px; }
+	.ie7 input[type=text], .ie7 input[type=password], .ie7 input[type=email], .ie7 input[type=url] { height: 18px; padding: 7px 10px; }
+	.ie7 .nav_shadow, .ie8 .nav_shadow { display: block; }
+	.ie8 nav.main form input[type=search] { height: 12px; padding: 3px 34px 9px 13px; }
+	.ie6 nav.main form .qs_query, .ie7 nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; height: 12px; margin: 5px 0; padding: 3px 34px 6px 13px; width: 175px; }
+	.ie6 nav.main form .qs_image, .ie7 nav.main form .qs_image { height: 16px; margin: 10px 0 0 195px; position: absolute; user-select: none; width: 16px; }
+	.ie8 .form_search { height: 12px; padding-bottom: 9px; padding-top: 3px; }
+	.ie7 .form_search { background: #FFF url(../images/quick-search-icon.png) no-repeat 195px 5px; border: 1px solid #DCDCDC; float: left; height: 14px; line-height: 14px; margin: 5px 25px 0 -10px; padding: 3px 34px 3px 13px !important; width: 173px; }
+	.ie7 nav.sub li { float: left; }
+	.ie .view_paging li.first a { background: url(../images/caret-left.png) no-repeat center center; border-radius: 11px 0 0 11px; text-indent: -1000px; width: 6px; }
+	.ie .view_paging li.last a { background: url(../images/caret-right.png) no-repeat center center; border-radius: 0 11px 11px 0; border-right: none; text-indent: -1000px; width: 6px; }
