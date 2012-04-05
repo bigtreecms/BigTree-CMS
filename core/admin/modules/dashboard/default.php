@@ -130,8 +130,8 @@
 	<header>
 		<span class="messages_from_to">From</span>
 		<span class="messages_subject">Subject</span>
-		<span class="messages_date_time">Date</a></span>
-		<span class="messages_date_time">Time</a></span>
+		<span class="messages_date_time">Date</span>
+		<span class="messages_date_time">Time</span>
 		<span class="messages_view">View</span>
 	</header>
 	<ul>

@@ -431,7 +431,7 @@
 	.property_block .seo p { width: 127px; }
 
 /* Table Styles */
-	div.table { border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; margin: 0 0 20px 0; overflow: hidden; }
+	.table { border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; margin: 0 0 20px 0; overflow: hidden; }
 	.table > summary, .form_container > summary { background: #e2e2e2 url(../images/top-gradient.png) repeat-x; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 15px; }
 	.table > summary input { float: left; margin: 5px 25px 0 -10px; }
 	.table > summary p { color: #666; font-size: 12px; line-height: 37px; text-shadow: 0 1px 0 #FFF; }
