@@ -17,7 +17,7 @@
 		});
 	
 		$(".icon_delete").click(function() {
-			new BigTreeDialog("Delete Callout",'<p class="confirm">Are you sure you want to delete this callout?',$.proxy(function() {
+			new BigTreeDialog("<?=ucwords($delete_action)?> 404",'<p class="confirm">Are you sure you want to <?=$delete_action?> this 404?',$.proxy(function() {
 				id = $(this).attr("href").substr(1);
 				$(this).parents("li").remove();
 				$.ajax("<?=$admin_root?>ajax/dashboard/404/<?=$delete_action?>/", { data: { id: id }, type: "POST" });
