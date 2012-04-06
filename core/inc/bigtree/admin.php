@@ -1105,7 +1105,9 @@
 				Otherwise, returns the new tag id.
 		*/
 		
-		function createTag($tag) {
+		function createTag($tag) {	
+			global $cms;
+			
 			$tag = strtolower(html_entity_decode($tag));
 			// Check if the tag exists already.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".mysql_real_escape_string($tag)."'"));
