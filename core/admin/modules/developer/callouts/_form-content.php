@@ -22,6 +22,10 @@
 				<option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option>
 			</select>
 		</fieldset>
+		<fieldset>
+			<label class="required">Default Display Title <small>(displays if no resources are assigned to "Title" below)</small></label>
+			<input type="text" class="required" name="display_default" value="<?=$display_default?>" />
+		</fieldset>
 	</div>
 	<div class="right">
 		<fieldset>
@@ -31,7 +35,7 @@
 	</div>
 </section>
 <section class="sub">
-	<label>Resources <small>(please note that "type" is a reserved ID &mdash; any resource with that ID will be removed)</small></label>
+	<label>Resources <small>(please note that "type", "display_field" and "display_default" are all reserved IDs &mdash; any resources with these IDs will be removed)</small></label>
 	<div class="form_table">
 		<header>
 			<a href="#" class="add_resource add"><span></span>Add Resource</a>
@@ -41,6 +45,7 @@
 			<span class="developer_resource_title">Title</span>
 			<span class="developer_resource_subtitle">Subtitle</span>
 			<span class="developer_resource_type">Type</span>
+			<span class="developer_resource_display_title">Title</span>
 			<span class="developer_resource_action">Edit</span>
 			<span class="developer_resource_action">Delete</span>
 		</div>
@@ -67,6 +72,9 @@
 						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($v)?></option>
 						<? } ?>
 					</select>
+				</section>
+				<section class="developer_resource_display_title">
+					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
 				</section>
 				<section class="developer_resource_action">
 					<a href="#" class="icon_edit" name="<?=$x?>"></a>
