@@ -85,16 +85,19 @@
 		<li>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?
+				$description = $callout["display_title"];
 				foreach ($callout as $r => $v) {
+/*
 					if ($r != "type" && !$description) {
 						$description = $v;
 					}
+*/
 			?>
 			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars($v)?>" />
 			<?
 				}
 			?>
-			<h4><span class="icon_sort"></span><?=$description?></h4>
+			<h4><span class="icon_sort"></span><?=$description?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=$description?>" /></h4>
 			<p><?=$type["name"]?></p>
 			<div class="bottom">
 				<a href="#" class="icon_edit_small"></a>

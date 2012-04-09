@@ -1,7 +1,7 @@
 <?
 	if (isset($_POST["data"])) {
 		$resources = json_decode(base64_decode($_POST["data"]),true);
-		foreach ($resources as &$val) {
+		foreach ($resources as $$val) {
 			if (is_array(json_decode($val,true))) {
 				$val = BigTree::untranslateArray(json_decode($val,true));
 			} else {
@@ -44,6 +44,7 @@
 ?>
 <input type="hidden" name="callouts[<?=$count?>][display_default]" class="display_default" value="<?=$callout["display_default"]?>" />
 <input type="hidden" name="callouts[<?=$count?>][display_field]" class="display_field" value="callouts[<?=$count?>][<?=$callout["display_field"]?>]" />
+<input type="hidden" name="callouts[<?=$count?>][callout_count]" class="callout_count" value="<?=$count?>" />
 <script type="text/javascript">
 	BigTreeCustomControls();
 	

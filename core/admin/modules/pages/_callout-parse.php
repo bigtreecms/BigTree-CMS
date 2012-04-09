@@ -39,6 +39,7 @@
 					$callout[$key] = $value;
 			}
 			$callout["type"] = $data["type"];
+			$callout["display_title"] = $data["display_title"];
 			$callouts[] = $callout;
 		}
 	}

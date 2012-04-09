@@ -119,6 +119,7 @@ $(document).ready(function() {
 				li = $('<li>');
 				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
 				
+				callout_number = $("#bigtree_dialog_form input.callout_count").val();
 				callout_desc = "";
 				callout_desc_field = $("#bigtree_dialog_form [name='" + $("#bigtree_dialog_form .display_field").val() + "']");
 				if (callout_desc_field.is('select')) {
@@ -145,7 +146,7 @@ $(document).ready(function() {
 				$("#bigtree_callouts ul").append(li);
 				$("#bigtree_dialog_overlay, #bigtree_dialog_window").remove();
 				
-				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc);
+				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
 				
@@ -164,6 +165,7 @@ $(document).ready(function() {
 				li = $('<li>');
 				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
 				
+				callout_number = $("#bigtree_dialog_form input.callout_count").val();
 				callout_desc = "";
 				callout_desc_field = $("#bigtree_dialog_form [name='" + $("#bigtree_dialog_form .display_field").val() + "']");
 				if (callout_desc_field.is('select')) {
@@ -190,7 +192,7 @@ $(document).ready(function() {
 				active_callout_edit.replaceWith(li);
 				$("#bigtree_dialog_overlay, #bigtree_dialog_window").remove();
 				
-				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc);
+				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
 				
