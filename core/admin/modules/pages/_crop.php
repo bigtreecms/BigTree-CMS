@@ -2,7 +2,7 @@
 <h1><span class="crop"></span>Crop Images</h1>
 <div class="form_container">
 	<header>
-		<p>You have <?=count($crops)?> image<? if (count($crops) > 1) { ?>s<? } ?> that need<? if (count($crops) == 1) { ?>s<? } ?> to be cropped.</p>
+		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
 	<form method="post" action="<?=$admin_root?>pages/process-crops/" id="crop_form" class="module">
 		<input type="hidden" name="retpage" value="<?=htmlspecialchars($retpage)?>" />
@@ -117,6 +117,7 @@
 			$("#cropper li").eq(current-1).hide();
 			$("#cropper li").eq(current).show();
 			current++;
+			$("h2.cropper .current").html(current);
 			return false;
 		}
 	});

@@ -47,7 +47,7 @@
 <h1<?=$crop_hidden?>><span class="crop"></span>Crop Images</h1>
 <div class="form_container"<?=$crop_hidden?>>
 	<header>
-		<p>You have <?=count($crops)?> images that need to be cropped.</p>
+		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
 	<form method="post" action="../process-crops/" id="crop_form" class="module">
 		<input type="hidden" name="retpage" value="<?=htmlspecialchars($retpage)?>" />
@@ -162,6 +162,7 @@
 			$("#cropper li").eq(current-1).hide();
 			$("#cropper li").eq(current).show();
 			current++;
+			$("h2.cropper .current").html(current);
 			return false;
 		}
 	});
