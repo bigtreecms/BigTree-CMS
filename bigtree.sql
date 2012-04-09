@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS `bigtree_audit_trail`;
 CREATE TABLE `bigtree_audit_trail` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`user` int(11) unsigned NOT NULL,`table` varchar(255) NOT NULL,`entry` varchar(255) NOT NULL DEFAULT '',`type` varchar(255) NOT NULL,`date` datetime NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 DROP TABLE IF EXISTS `bigtree_callouts`;
-CREATE TABLE `bigtree_callouts` (`id` varchar(255) NOT NULL,`name` varchar(255) NOT NULL DEFAULT '',`description` text NOT NULL,`resources` text NOT NULL,`level` int(11) unsigned NOT NULL,`position` int(11) NOT NULL,`package` int(11) unsigned NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+CREATE TABLE `bigtree_callouts` (`id` varchar(255) NOT NULL,`name` varchar(255) NOT NULL DEFAULT '',`description` text NOT NULL,`display_default` varchar(255) NOT NULL,`display_field` varchar(255) NOT NULL,`resources` text NOT NULL,`level` int(11) unsigned NOT NULL,`position` int(11) NOT NULL,`package` int(11) unsigned NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 DROP TABLE IF EXISTS `bigtree_feeds`;
 CREATE TABLE `bigtree_feeds` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`route` varchar(255) NOT NULL,`name` varchar(255) NOT NULL,`description` text NOT NULL,`type` varchar(255) NOT NULL,`table` varchar(255) NOT NULL,`fields` text NOT NULL,`options` text NOT NULL,`package` int(11) unsigned NOT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
