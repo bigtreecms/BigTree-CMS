@@ -415,7 +415,7 @@
 				resources - An array of resources.
 		*/
 		
-		function createCallout($id,$name,$description,$level,$resources) {
+		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = '<?
 	/*
@@ -430,7 +430,7 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "title" && $key != "id" && $key != "type") {
+						if ($key != "title" && $key != "id" && $key != "type" && $key != "display_field" && $key != "display_default") {
 							$resource[$key] = $val;
 						}
 					}
@@ -454,13 +454,15 @@
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			$level = mysql_real_escape_string($level);
 			$resources = mysql_real_escape_string(json_encode($clean_resources));
+			$display_default = mysql_real_escape_string($display_default);
+			$display_field = mysql_real_escape_string($display_field);
 			
 			if (!file_exists($GLOBALS["server_root"]."templates/callouts/".$id.".php")) {
 				file_put_contents($GLOBALS["server_root"]."templates/callouts/".$id.".php",$file_contents);
 				chmod($GLOBALS["server_root"]."templates/callouts/".$id.".php",0777);
 			}
 			
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`) VALUES ('$id','$name','$description','$resources','$level')");
+			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
 		}
 		
 		/*
@@ -4849,13 +4851,13 @@
 				resources - An array of resources.
 		*/
 		
-		function updateCallout($id,$name,$description,$level,$resources) {
+		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			$r = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "name" && $key != "id" && $key != "type")
+						if ($key != "name" && $key != "id" && $key != "type" && $key != "display_field" && $key != "display_default")
 							$resource[$key] = $val;
 					}
 					$resource["id"] = htmlspecialchars($resource["id"]);
@@ -4871,8 +4873,10 @@
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			$level = mysql_real_escape_string($level);
 			$resources = mysql_real_escape_string(json_encode($r));
+			$display_default = mysql_real_escape_string($display_default);
+			$display_field = mysql_real_escape_string($display_field);
 			
-			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default' WHERE id = '$id'");
 		}
 		
 		/*

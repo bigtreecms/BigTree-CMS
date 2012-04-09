@@ -13,7 +13,7 @@
 	}
 	
 	if (isset($_POST["count"])) {
-		$bigtree_callout_count = $_POST["count"];
+		$count = $_POST["count"];
 	}
 	
 	$type = isset($_POST["type"]) ? $_POST["type"] : $type;
@@ -42,7 +42,8 @@
 		}
 	}
 ?>
-
+<input type="hidden" name="callouts[<?=$count?>][display_default]" class="display_default" value="<?=$callout["display_default"]?>" />
+<input type="hidden" name="callouts[<?=$count?>][display_field]" class="display_field" value="callouts[<?=$count?>][<?=$callout["display_field"]?>]" />
 <script type="text/javascript">
 	BigTreeCustomControls();
 	

@@ -120,7 +120,15 @@ $(document).ready(function() {
 				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
 				
 				callout_desc = "";
-				skipped_first = false;
+				callout_desc_field = $("#bigtree_dialog_form [name='" + $("#bigtree_dialog_form .display_field").val() + "']");
+				if (callout_desc_field.is('select')) {
+					callout_desc = callout_desc_field.find("option:selected").text();
+				} else {
+					callout_desc = callout_desc_field.val();
+				}
+				if ($.trim(callout_desc) == "") {
+					callout_desc = $("#bigtree_dialog_form .display_default").val();
+				}
 				$("#bigtree_dialog_form input, #bigtree_dialog_form textarea, #bigtree_dialog_form select").each(function() {
 					if ($(this).attr("type") != "submit") {
 						if ($(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
@@ -130,10 +138,6 @@ $(document).ready(function() {
 								tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
 							}
 						}
-						if (skipped_first && !callout_desc && $(this).val()) {
-							callout_desc = $(this).val();
-						}
-						skipped_first = true;
 						$(this).hide();
 						li.append($(this));
 					}
@@ -161,7 +165,15 @@ $(document).ready(function() {
 				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
 				
 				callout_desc = "";
-				skipped_first = false;
+				callout_desc_field = $("#bigtree_dialog_form [name='" + $("#bigtree_dialog_form .display_field").val() + "']");
+				if (callout_desc_field.is('select')) {
+					callout_desc = callout_desc_field.find("option:selected").text();
+				} else {
+					callout_desc = callout_desc_field.val();
+				}
+				if ($.trim(callout_desc) == "") {
+					callout_desc = $("#bigtree_dialog_form .display_default").val();
+				}
 				$("#bigtree_dialog_form input, #bigtree_dialog_form textarea, #bigtree_dialog_form select").each(function() {
 					if ($(this).attr("type") != "submit") {
 						if ($(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
@@ -171,10 +183,6 @@ $(document).ready(function() {
 								tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
 							}
 						}
-						if (skipped_first && !callout_desc && $(this).val()) {
-							callout_desc = $(this).val();
-						}
-						skipped_first = true;
 						$(this).hide();
 						li.append($(this));
 					}

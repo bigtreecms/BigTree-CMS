@@ -8,6 +8,12 @@
 	var current_editing_key;
 	var resource_count = 0;
 	
+	$("#resource_table").on("blur", ".developer_resource_id input", function() {
+		var id = $(this).val();
+		var parent = $(this).parents("li");
+		parent.find(".developer_resource_display_title input").val(id);
+	});
+	
 	$(".template_image_list a").click(function() {
 		$(".template_image_list a.active").removeClass("active");
 		$(this).addClass("active");
@@ -41,10 +47,11 @@
 		resource_count++;
 		
 		li = $('<li id="row_' + resource_count + '">');
-		li.html('<section class="developer_resource_id"><span class="icon_sort"></span><input type="text" name="resources[' + resource_count + '][id]" value="" /></section><section class="developer_resource_title"><input type="text" name="resources[' + resource_count + '][title]" value="" /></section><section class="developer_resource_subtitle"><input type="text" name="resources[' + resource_count + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + resource_count + '][type]" id="type_' + resource_count + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_action"><a href="#" tabindex="-1" class="icon_edit" name="' + resource_count + '"></a><input type="hidden" name="resources[' + resource_count + '][options]" value="" id="options_' + resource_count + '" /></section><section class="developer_resource_action"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
+		li.html('<section class="developer_resource_id"><span class="icon_sort"></span><input type="text" name="resources[' + resource_count + '][id]" value="" /></section><section class="developer_resource_title"><input type="text" name="resources[' + resource_count + '][title]" value="" /></section><section class="developer_resource_subtitle"><input type="text" name="resources[' + resource_count + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + resource_count + '][type]" id="type_' + resource_count + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_display_title"><input type="radio" name="display_field" value="" id="display_title_' + resource_count + '" /></section><section class="developer_resource_action"><a href="#" tabindex="-1" class="icon_edit" name="' + resource_count + '"></a><input type="hidden" name="resources[' + resource_count + '][options]" value="" id="options_' + resource_count + '" /></section><section class="developer_resource_action"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
 
 		$("#resource_table").append(li);
 		li.find("select").get(0).customControl = new BigTreeSelect(li.find("select").get(0));
+		li.find("input[type=radio]").get(0).customControl = new BigTreeRadioButton(li.find("input[type=radio]").get(0));
 
 		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
