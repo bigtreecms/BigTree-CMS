@@ -25,6 +25,6 @@
 	}
 	$breadcrumb[] = array("link" => $module["route"], "title" => $module["name"]);
 	
-	// Sub Nav
+	// Module Actions
 	$actions = $admin->getModuleNavigation($module);
 ?>
