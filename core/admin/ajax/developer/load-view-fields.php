@@ -100,7 +100,7 @@
 		<li>
 			<input class="custom_control" type="checkbox" name="actions[<?=$data["route"]?>]" checked="checked" value="<?=htmlspecialchars($action)?>" />
 			<a href="#" class="action active">
-				<span class="<?=$action["class"]?>"></span>
+				<span class="<?=$data["class"]?>"></span>
 			</a>
 		</li>
 		<?
