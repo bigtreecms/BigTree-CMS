@@ -210,7 +210,7 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	$("#bigtree_callouts ul").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+	$("#bigtree_callouts ul").sortable({ containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 });
 
 function checkTemplate() {
