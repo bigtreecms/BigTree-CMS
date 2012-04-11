@@ -37,7 +37,11 @@
 		?>
 		<span class="view_status">Status</span>
 		<?
-			foreach ($actions as $action => $status) {
+			foreach ($actions as $action => $data) {
+				if ($data != "on") {
+					$data = json_decode($data,true);
+					$action = $data["name"];
+				}
 		?>
 		<span class="view_action"><?=$action?></span>
 		<?
