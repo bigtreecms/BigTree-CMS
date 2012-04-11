@@ -2,7 +2,7 @@
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" />
 	</summary>
-	<article class="table auto_modules" id="table_contents">
+	<article class="table" id="table_contents">
 		<? include BigTree::path("admin/ajax/auto-modules/views/grouped.php") ?>
 	</article>
 </div>

@@ -958,7 +958,6 @@
 /* Icons */
 	.icon_sort { background: url(../images/icons.png) no-repeat -421px 9px; cursor: move; display: block; float: left; height: 35px; margin: 0 5px 0 0; width: 12px; }
 	.icon_edit { background: url(../images/icons.png) no-repeat -433px 5px; display: inline-block; height: 35px; width: 20px; }
-	.auto_modules .icon_edit { background: url(../images/icons.png) no-repeat -72px 5px; }
 	.icon_archive { background: url(../images/icons.png) no-repeat -93px 5px; display: inline-block; height: 35px; width: 20px; }
 	.icon_restore { background: url(../images/icons.png) no-repeat -16px 5px; display: inline-block; height: 35px; width: 21px; }
 	.icon_delete { background: url(../images/icons.png) no-repeat -38px 8px; display: inline-block; height: 35px; width: 16px; }
