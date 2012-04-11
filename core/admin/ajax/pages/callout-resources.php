@@ -36,7 +36,7 @@
 			$subtitle = $options["subtitle"];
 			$options["directory"] = "files/pages/";
 			$value = $resources[$options["id"]];
-			$currently_key = "callouts[$bigtree_callout_count][currently_".$options["id"]."]";
+			$currently_key = "callouts[$count][currently_".$options["id"]."]";
 			include BigTree::path("admin/form-field-types/draw/$type.php");
 			$tabindex++;
 		}

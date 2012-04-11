@@ -852,7 +852,9 @@
 ---------------------------*/
 
 	#bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 400000; }
-	#bigtree_dialog_window { background: #FFF; border: 1px solid #999; border-radius: 5px; box-shadow: 0 0 20px rgba(30,30,30,0.7); overflow: hidden; position: absolute; z-index: 500000; }
+	#bigtree_file_browser_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 400000; }
+	
+	#bigtree_dialog_window { background: #FFF; border: 1px solid #999; border-radius: 5px; box-shadow: 0 0 20px rgba(30,30,30,0.7); overflow: hidden; position: fixed; z-index: 500000; }
 	#bigtree_dialog_window h2 { background: #CCC url(../images/button-bg.png) repeat-x; border-radius-top-left: 5px; border-radius-top-right: 5px; float: none; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; padding: 5px 0 5px 10px; text-shadow: 0 1px 0 #FFF; }
 	#bigtree_dialog_window h2 #bigtree_dialog_close { display: block; float: right; margin: -2px 10px 0 0; }
 	#bigtree_dialog_window h2 span { margin: 2px 8px 0 0; }
@@ -893,6 +895,8 @@
 	#bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 110px; }
 	#bigtree_dialog_form .image_attr input.image_attr_thumbs { background: url(../images/picture.png) no-repeat 3px center; padding-left: 21px; width: 94px; }
 
+	#bigtree_dialog_form .image_field .button { padding: 0 10px; }
+	
 	#bigtree_dialog_window.front_end_editor { border: none; box-shadow: none; height: 625px; width: 100%; z-index: 1; }
 	#bigtree_dialog_window.front_end_editor .overflow { height: 469px; max-height: none; width: 800px; }
 	#bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }

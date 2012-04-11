@@ -842,7 +842,7 @@ var BigTreeDialog = Class.extend({
 		}		
 
 		leftd = parseInt((BigTree.WindowWidth() - $("#bigtree_dialog_window").width()) / 2);
-		topd = parseInt((BigTree.WindowHeight() - $("#bigtree_dialog_window").height()) / 2) + window.scrollY;
+		topd = parseInt((BigTree.WindowHeight() - $("#bigtree_dialog_window").height()) / 2);
 
 		$("#bigtree_dialog_window").css({ "top": topd + "px", "left": leftd + "px" });
 		

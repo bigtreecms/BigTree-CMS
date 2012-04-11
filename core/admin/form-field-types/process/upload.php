@@ -1,4 +1,8 @@
 <?
+	$temp_name = "";
+	$name = "";
+	$error = "";
+	
 	if ($file_data != $_FILES) {
 		$temp_name = $file_data["tmp_name"][$key];
 		$name = $file_data["name"][$key];
