@@ -851,8 +851,8 @@
 		BigTree Dialog
 ---------------------------*/
 
-	#bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 400000; }
-	#bigtree_file_browser_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 400000; }
+	#bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 500000; }
+	#bigtree_file_browser_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 500000; }
 	
 	#bigtree_dialog_window { background: #FFF; border: 1px solid #999; border-radius: 5px; box-shadow: 0 0 20px rgba(30,30,30,0.7); overflow: hidden; position: fixed; z-index: 500000; }
 	#bigtree_dialog_window h2 { background: #CCC url(../images/button-bg.png) repeat-x; border-radius-top-left: 5px; border-radius-top-right: 5px; float: none; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; padding: 5px 0 5px 10px; text-shadow: 0 1px 0 #FFF; }
@@ -906,7 +906,7 @@
 /*---------------------------
 	BigTree File Browser
 ---------------------------*/
-	#file_browser { background: #FFF; border: 1px solid #999; border-radius: 5px; box-shadow: 0 0 10px #444; height: 500px; overflow: hidden; position: fixed; width: 820px; z-index: 400001; }
+	#file_browser { background: #FFF; border: 1px solid #999; border-radius: 5px; box-shadow: 0 0 10px #444; height: 500px; overflow: hidden; position: fixed; width: 820px; z-index: 500000; }
 	#file_browser header { background: url(../images/top-gradient.png) repeat-x; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 10px; }
 	#file_browser header input { float: right; margin: 5px 0 0 3px; }
 	#file_browser header h2 { float: left; margin: 0 0 0 10px; padding: 3px 0 0 0; }
@@ -1210,7 +1210,7 @@
 	BigTree Foundry Browser
 ---------------------------*/
 
-	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #333; width: 600px; height: 400px; overflow: hidden; position: fixed; z-index: 400001; border-radius: 5px; box-shadow: 0 0 20px rgba(30,30,30,0.7); }
+	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #333; width: 600px; height: 400px; overflow: hidden; position: fixed; z-index: 500000; border-radius: 5px; box-shadow: 0 0 20px rgba(30,30,30,0.7); }
 	#bigtree_foundry_browser_window h2 { background: #CCC url(../images/button-bg.png) repeat-x; border-radius-top-left: 5px; border-radius-top-right: 5px; float: none; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; padding: 5px 0 5px 10px; text-shadow: 0 1px 0 #FFF; }
 	#bigtree_foundry_browser_close { background: url(../images/icons/cross.png); display: block; float: right; height: 16px; margin: -2px 3px 0 0; width: 16px; }
 	#bigtree_foundry_browser_form { clear: both; margin: 0; }
