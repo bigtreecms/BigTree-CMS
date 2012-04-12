@@ -207,7 +207,7 @@
 			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
 			while ($view = sqlfetch($q)) {
 				if ($recache) {
-					sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '$id'");
+					sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
 				}
 				
 				$view["fields"] = json_decode($view["fields"],true);
@@ -1241,5 +1241,23 @@
 			}
 		}
 
+		/*
+			Function: updatePendingItemField
+				Update a pending item's field with a given value.
+			
+			Parameters:
+				id - The id of the entry.
+				field - The field to change.
+				value - The value to set.
+		*/
+		
+		static function updatePendingItemField($id,$field,$value) {
+			$id = mysql_real_escape_string($id);
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
+			$changes = json_decode($item["changes"],true);
+			$changes[$field] = $value;
+			$changes = mysql_real_escape_string(json_encode($changes));
+			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes' WHERE id = '$id'");
+		}
 	}
 ?>
