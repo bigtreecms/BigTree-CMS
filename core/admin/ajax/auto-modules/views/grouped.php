@@ -11,7 +11,7 @@
 
 	$suffix = $suffix ? "-".$suffix : "";
 	$o = $options;
-	$view["per_page"] = 10000;
+	$view["options"]["per_page"] = 10000;
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
