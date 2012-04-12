@@ -234,9 +234,9 @@
 			// Check for module breadcrumbs
 			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
 			if ($mod["class"]) {
-				if (class_exists($m["class"])) {
-					@eval('$module = new '.$m["class"].';');
-					$bc += $module->getBreadcrumb($page);
+				if (class_exists($mod["class"])) {
+					@eval('$module = new '.$mod["class"].';');
+					$bc = array_merge($bc,$module->getBreadcrumb($page));
 				}
 			}
 			
