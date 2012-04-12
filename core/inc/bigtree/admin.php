@@ -5172,7 +5172,14 @@
 					}
 				}
 			}
-			$in_nav = mysql_real_escape_string($data["in_nav"]);
+			
+			// If this is top level nav and the user isn't a developer, use what the current state is.
+			if (!$current["parent"] && $this->Level < 2) {
+				$in_nav = mysql_real_escape_string($current["in_nav"]);
+			} else {
+				$in_nav = mysql_real_escape_string($data["in_nav"]);			
+			}
+			
 			$redirect_lower = mysql_real_escape_string($data["redirect_lower"]);
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
