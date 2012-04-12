@@ -552,7 +552,7 @@
 	#bigtree_callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
 	#bigtree_callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
 	#bigtree_callouts ul { overflow: hidden; margin: 0 0 10px; }
-	#bigtree_callouts li { background: #FFF; border: 1px solid #CCC; border-radius: 3px; float: left; height: 97px; margin: 5px 10px 5px 0; }
+	#bigtree_callouts li { background: #FFF; border: 1px solid #CCC; border-radius: 3px; float: left; height: 98px; margin: 5px 10px 5px 0; }
 	#bigtree_callouts .ui-sortable-helper { box-shadow: 0 0 3px rgba(0, 0, 0, 0.15); }
 	#bigtree_callouts .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; margin: 5px 10px 5px 0; height: 97px; width: 210px; }
 	#bigtree_callouts h4 { font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; width: 190px; }
