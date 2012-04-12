@@ -63,7 +63,12 @@ $(document).ready(function() {
 	
 	// Removeable Resources
 	$(".remove_resource").live("click",function() {
-		$(this).parent().remove();
+		p = $(this).parent();
+		if (p.hasClass("currently_file")) {
+			p.remove();
+		} else {
+			p.hide().find("input, img").remove();
+		}
 		return false;
 	});
 	
