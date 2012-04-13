@@ -4,7 +4,7 @@
 	$item_id = end($path);
 	
 	// Check for a page lock
-	$admin->lockCheck($form["table"],$item_id,"admin/modules/forms/_locked.php",$_GET["force"]);
+	$admin->lockCheck($form["table"],$item_id,"admin/auto-modules/forms/_locked.php",$_GET["force"]);
 
 	$data = BigTreeAutoModule::getPendingItem($form["table"],$item_id);
 	    

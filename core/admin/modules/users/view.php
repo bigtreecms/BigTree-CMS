@@ -25,10 +25,10 @@
 		if (searchTimer) {
 			clearTimeout(searchTimer);
 		}
-		searchTimer = setTimeout("reSearch()",400);
+		searchTimer = setTimeout("_local_search()",400);
 	});
 
-	function reSearch() {
+	function _local_search() {
 		$("#results").load("<?=$admin_root?>ajax/users/get-page/?page=0&query=" + escape($("#query").val()));
 	}
 	
