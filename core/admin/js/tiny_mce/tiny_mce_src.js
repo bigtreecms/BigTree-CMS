@@ -1321,7 +1321,7 @@ tinymce.create('static tinymce.util.XHR', {
 		BACKSPACE: 8,
 		ENTER: 13,
 		TAB: 9,
-        SPACEBAR: 32,
+		SPACEBAR: 32,
 		UP: 38,
 		DOWN: 40,
 		modifierPressed: function (e) {
@@ -3605,7 +3605,7 @@ tinymce.html.Styles = function(settings, schema) {
 								  else if (elementRule.paddEmpty)
 									  parent.empty().append(new tinymce.html.Node('#text', 3)).value = '\u00a0';
 							  }
-              }
+			  }
 						}
 					}
 				}

@@ -507,16 +507,16 @@
 		*/
 		
 		static function formatVendorPrefixes($data) {
-		    $p = explode(":", $data[0]);
-		    $d = trim($data[1]);
-		    
-		    $return = $p[0] . ": $d; ";
-		    $return .= "-webkit-".$p[0].": $d; ";
-		    $return .= "-moz-".$p[0].": $d; ";
-		    $return .= "-ms-".$p[0].": $d; ";
-		    $return .= "-o-".$p[0].": $d; ";
-		    
-		    return $return;
+			$p = explode(":", $data[0]);
+			$d = trim($data[1]);
+			
+			$return = $p[0] . ": $d; ";
+			$return .= "-webkit-".$p[0].": $d; ";
+			$return .= "-moz-".$p[0].": $d; ";
+			$return .= "-ms-".$p[0].": $d; ";
+			$return .= "-o-".$p[0].": $d; ";
+			
+			return $return;
 		}
 		
 		/*

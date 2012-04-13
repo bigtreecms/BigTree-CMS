@@ -10,25 +10,25 @@
 	<section>
 		<? if (!$btxTwitterAPI->active_username) { ?>
 		<h2>
-		    You still need to set a active username. <a href="<?=$mroot?>active-username/" class="button" style="float: right; margin-top: -6px;">Set Username</a> 
+			You still need to set a active username. <a href="<?=$mroot?>active-username/" class="button" style="float: right; margin-top: -6px;">Set Username</a> 
 		</h2>
 		<? } else { ?>
 		<h2>
-		    Active username: <strong><?=$btxTwitterAPI->active_username?></strong> 
-		    <a href="<?=$mroot?>clear-username/" class="button" style="float: right; margin-top: -6px;">Clear Username</a>
-		    <a href="<?=$mroot?>active-username/" class="button" style="float: right; margin-top: -6px; margin-right: 5px;">Set Username</a>
+			Active username: <strong><?=$btxTwitterAPI->active_username?></strong> 
+			<a href="<?=$mroot?>clear-username/" class="button" style="float: right; margin-top: -6px;">Clear Username</a>
+			<a href="<?=$mroot?>active-username/" class="button" style="float: right; margin-top: -6px; margin-right: 5px;">Set Username</a>
 		</h2>
 		<img src="<?=$user["profile_image_url"]?>" alt="<?=$user["screen_name"]?>" style="float: left; display: block; margin: 0 10px 10px 0;" />
 		<p style="overflow: hidden;">
-		    Tweets: <strong><?=$user["statuses_count"]?></strong>
-		    <br />
-		    Following: <strong><?=$user["friends_count"]?></strong>
-		    <br />
-		    Followers: <strong><?=$user["followers_count"]?></strong>
+			Tweets: <strong><?=$user["statuses_count"]?></strong>
+			<br />
+			Following: <strong><?=$user["friends_count"]?></strong>
+			<br />
+			Followers: <strong><?=$user["followers_count"]?></strong>
 		</p>
 		<hr />
 		<h2>
-		    Module Usage
+			Module Usage
 		</h2>
 		<p>The Twitter API module provides a simple way to fetch and parse json formatted Twitter feeds. </p>
 		<p>Create a new instance of the Twitter Class:</p>

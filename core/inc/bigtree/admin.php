@@ -689,9 +689,10 @@
 				icon - The icon class for the action.
 				form - Optional auto module form id.
 				view - Optional auto module view id.
+				level - The required access level.
 		*/
 		
-		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0) {
+		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0) {
 			$module = mysql_real_escape_string($module);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
 			$in_nav = mysql_real_escape_string($in_nav);
@@ -699,6 +700,7 @@
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$form = mysql_real_escape_string($form);
 			$view = mysql_real_escape_string($view);
+			$level = mysql_real_escape_string($level);
 		
 			$oroute = $route;
 			$x = 2;
@@ -707,7 +709,7 @@
 				$x++;
 			}
 			
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`form`,`view`) VALUES ('$module','$name','$route','$in_nav','$icon','$form','$view')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`) VALUES ('$module','$name','$route','$in_nav','$icon','$level','$form','$view')");
 		}
 		
 		/*
@@ -1157,22 +1159,22 @@
 		
 			$clean_resources = array();
 			foreach ($resources as $resource) {
-			    if ($resource["id"]) {
-			    	$options = json_decode($resource["options"],true);
-			    	foreach ($options as $key => $val) {
-			    		if ($key != "title" && $key != "id" && $key != "type") {
-			    			$resource[$key] = $val;
-			    		}
-			    	}
-			    	
-			    	$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
-			    	
-			    	$resource["id"] = htmlspecialchars($resource["id"]);
-			    	$resource["title"] = htmlspecialchars($resource["title"]);
-			    	$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
-			    	unset($resource["options"]);
-			    	$clean_resources[] = $resource;
-			    }
+				if ($resource["id"]) {
+					$options = json_decode($resource["options"],true);
+					foreach ($options as $key => $val) {
+						if ($key != "title" && $key != "id" && $key != "type") {
+							$resource[$key] = $val;
+						}
+					}
+					
+					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					
+					$resource["id"] = htmlspecialchars($resource["id"]);
+					$resource["title"] = htmlspecialchars($resource["title"]);
+					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					unset($resource["options"]);
+					$clean_resources[] = $resource;
+				}
 			}
 						
 			
@@ -2979,11 +2981,11 @@
 			$saved = array();
 			$q = sqlquery("SELECT bigtree_users.name, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
 			while ($f = sqlfetch($q)) {
-			    if ($f["saved"]) {
-			    	$saved[] = $f;
-			    } else {
-			    	$unsaved[] = $f;
-			    }
+				if ($f["saved"]) {
+					$saved[] = $f;
+				} else {
+					$unsaved[] = $f;
+				}
 			}
 			
 			return array("saved" => $saved, "unsaved" => $unsaved);
@@ -4993,14 +4995,16 @@
 				route - The action route.
 				in_nav - Whether the action is in the navigation.
 				icon - The icon class for the action.
+				level - The required access level.
 		*/
 		
-		function updateModuleAction($id,$name,$route,$in_nav,$icon) {
+		function updateModuleAction($id,$name,$route,$in_nav,$icon,$level) {
 			$id = mysql_real_escape_string($id);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
 			$in_nav = mysql_real_escape_string($in_nav);
 			$icon = mysql_real_escape_string($icon);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
+			$level = mysql_real_escape_string($level);
 			
 			$item = $this->getModuleAction($id);
 
@@ -5011,7 +5015,7 @@
 				$x++;
 			}
 			
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level' WHERE id = '$id'");
 		}
 		
 		/*
@@ -5488,20 +5492,20 @@
 		function updateTemplate($id,$name,$description,$level,$module,$image,$callouts_enabled,$resources) {
 			$clean_resources = array();
 			foreach ($resources as $resource) {
-			    if ($resource["id"]) {
-			    	$options = json_decode($resource["options"],true);
-			    	foreach ($options as $key => $val) {
-			    		if ($key != "title" && $key != "id" && $key != "subtitle" && $key != "type") {
-			    			$resource[$key] = $val;
-			    		}
-			    	}
-			    	
-			    	$resource["id"] = htmlspecialchars($resource["id"]);
-			    	$resource["title"] = htmlspecialchars($resource["title"]);
-			    	$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
-			    	unset($resource["options"]);
-			    	$clean_resources[] = $resource;
-			    }
+				if ($resource["id"]) {
+					$options = json_decode($resource["options"],true);
+					foreach ($options as $key => $val) {
+						if ($key != "title" && $key != "id" && $key != "subtitle" && $key != "type") {
+							$resource[$key] = $val;
+						}
+					}
+					
+					$resource["id"] = htmlspecialchars($resource["id"]);
+					$resource["title"] = htmlspecialchars($resource["title"]);
+					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					unset($resource["options"]);
+					$clean_resources[] = $resource;
+				}
 			}
 			
 			$id = mysql_real_escape_string($id);
