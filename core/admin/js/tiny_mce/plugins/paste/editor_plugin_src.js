@@ -98,8 +98,8 @@
 				// Execute post process handlers
 				t.onPostProcess.dispatch(t, o);
 
-				// json_encode content
-				o.content = ed.json_encoder.json_encode(o.node, {getInner : 1, forced_root_block : ''});
+				// Serialize content
+				o.content = ed.serializer.serialize(o.node, {getInner : 1, forced_root_block : ''});
 
 				// Plain text option active?
 				if ((!force_rich) && (ed.pasteAsPlainText)) {
@@ -359,7 +359,7 @@
 			}
 
 			// IE9 adds BRs before/after block elements when contents is pasted from word or for example another browser
-			if (tinymce.isIE && document.documentMode >= 9) {
+			if (tinymce.isIE && document.documentMode >= 9 && /<(h[1-6r]|p|div|address|pre|form|table|tbody|thead|tfoot|th|tr|td|li|ol|ul|caption|blockquote|center|dl|dt|dd|dir|fieldset)/.test(o.content)) {
 				// IE9 adds BRs before/after block elements when contents is pasted from word or for example another browser
 				process([[/(?:<br>&nbsp;[\s\r\n]+|<br>)*(<\/?(h[1-6r]|p|div|address|pre|form|table|tbody|thead|tfoot|th|tr|td|li|ol|ul|caption|blockquote|center|dl|dt|dd|dir|fieldset)[^>]*>)(?:<br>&nbsp;[\s\r\n]+|<br>)*/g, '$1']]);
 
@@ -645,7 +645,7 @@
 			} else {
 				if (tinymce.isWebKit) {
 					// We need to compress the styles on WebKit since if you paste <img border="0" /> it will become <img border="0" style="... lots of junk ..." />
-					// Removing the mce_style that contains the real value will force the json_encoder engine to compress the styles
+					// Removing the mce_style that contains the real value will force the Serializer engine to compress the styles
 					each(dom.select('*', o.node), function(el) {
 						el.removeAttribute('data-mce-style');
 					});
