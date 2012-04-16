@@ -15,7 +15,7 @@
 		die();
 	}
 	
-	$admin->createFieldType($_POST["id"],$_POST["name"],$_POST["pages"],$_POST["modules"],$_POST["callouots"]);
+	$admin->createFieldType($_POST["id"],$_POST["name"],$_POST["pages"],$_POST["modules"],$_POST["callouts"]);
 	
 	$admin->growl("Developer","Created Custom Field Type");
 	header("Location: ../new/$id/");
