@@ -6,9 +6,9 @@
 		<script type="text/javascript" src="<?=$admin_root?>js/jcrop.min.js"></script>
 	</head>
 	<body>
-		<div id="bigtree_dialog_window" class="front_end_editor">
+		<div class="bigtree_dialog_window front_end_editor">
 			<h2>Errors Occurred</h2>
-			<div id="bigtree_dialog_form">
+			<div class="bigtree_dialog_form">
 				<div class="overflow">
 					<div class="table">
 						<summary>

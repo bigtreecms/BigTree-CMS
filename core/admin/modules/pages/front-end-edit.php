@@ -57,9 +57,9 @@
 		</style>
 	</head>
 	<body>
-		<div id="bigtree_dialog_window" class="front_end_editor">
+		<div class="bigtree_dialog_window front_end_editor">
 			<h2>Edit Page Content</h2>
-			<form id="bigtree_dialog_form" method="post" action="<?=$admin_root?>pages/front-end-update/<?=$page?>/" enctype="multipart/form-data">
+			<form class="bigtree_dialog_form" method="post" action="<?=$admin_root?>pages/front-end-update/<?=$page?>/" enctype="multipart/form-data">
 				<div class="overflow">
 					<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 					<?
@@ -105,7 +105,7 @@
 					?>
 				</div>
 				<footer>
-					<a class="button" href="#">Cancel</a>
+					<a class="button bigtree_dialog_close" href="#">Cancel</a>
 					<input type="submit" class="button<? if (!$publisher) { ?> blue<? } ?>" name="ptype" value="Save" />
 					<? if ($publisher) { ?>
 					<input type="submit" class="button blue" name="ptype" value="Save &amp; Publish" />
@@ -120,7 +120,7 @@
 			<? } } ?>
 		
 			BigTreeCustomControls();
-			BigTreeFormValidator("#bigtree_dialog_form");
+			BigTreeFormValidator(".bigtree_dialog_form");
 			
 			$("footer a").click(function() {
 				parent.bigtree_bar_cancel();
