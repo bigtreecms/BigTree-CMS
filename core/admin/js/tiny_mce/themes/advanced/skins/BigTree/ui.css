@@ -14,9 +14,9 @@
 .BigTreeSkin .mceExternalClose {position:absolute; top:3px; right:3px; width:7px; height:7px; background:url(img/icons.png) -820px 0}
 
 /* Layout */
-.BigTreeSkin table.mceLayout {border:0; border-left:1px solid #CCC; border-right:1px solid #CCC; border-radius: 2px; }
-.BigTreeSkin table.mceLayout tr.mceFirst td {border-top:1px solid #CCC}
-.BigTreeSkin table.mceLayout tr.mceLast td {border-bottom:1px solid #CCC}
+.BigTreeSkin table.mceLayout {border:0; border: 1px solid #CCC; border-radius: 2px; }
+.BigTreeSkin table.mceLayout tr.mceFirst td { }
+.BigTreeSkin table.mceLayout tr.mceLast td { }
 .BigTreeSkin table.mceToolbar, .BigTreeSkin tr.mceFirst .mceToolbar tr td, .BigTreeSkin tr.mceLast .mceToolbar tr td {border:0; margin:0; padding:0}
 .BigTreeSkin .mceIframeContainer {border-top:1px solid #CCC; border-bottom:1px solid #CCC}
 .BigTreeSkin td.mceToolbar{background:#ddd;

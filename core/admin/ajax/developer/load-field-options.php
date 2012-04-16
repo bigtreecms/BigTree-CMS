@@ -28,7 +28,7 @@
 ?>
 <fieldset>
 	<label>Validation</label>
-	<input type="checkbox" name="validation" value="required" /> Required
+	<input type="checkbox" name="validation" value="required"<? if ($d["validation"] == "required") { ?> checked="checked"<? } ?> /> Required
 </fieldset>
 <?	
 	}
