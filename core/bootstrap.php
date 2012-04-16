@@ -65,6 +65,7 @@
 		"PasswordHash" => "inc/utils/PasswordHash.php",
 		"TextStatistics" => "inc/utils/text-statistics.php",
 		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
+		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
 		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
