@@ -194,7 +194,7 @@
 			$this->Transaction = $response["TRANSACTIONID"];
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 			
-			if ($response["ACK"] == "Success") {
+			if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
 				return $response["TRANSACTIONID"];
 			} else {
 				return false;
@@ -391,7 +391,7 @@
 				$this->CVV = false;
 			}
 			
-			if ($response["ACK"] == "Success") {
+			if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
 				return $response["TRANSACTIONID"];
 			} else {
 				return false;
@@ -460,6 +460,111 @@
 			
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: doExpressCheckoutPayment
+				Processes an Express Checkout transaction.
+				For: PayPal Payments Pro and Payflow Pro ONLY.
+				
+			Parameters:
+				token - The Express Checkout token returned by PayPal.
+				payer_id - The Payer ID returned by PayPal.
+				amount - The amount to charge.
+			
+			Returns:
+				An array of buyer information.
+		*/
+		
+		function doExpressCheckoutPayment($token,$payer_id,$amount) {
+			// Clean up the amount.
+			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			
+			$params = array();
+			$params["TOKEN"] = $token;
+			$params["PAYERID"] = $payer_id;
+			$params["AMT"] = $amount;
+			
+			// Payflow
+			if ($this->Service == "payflow") {
+				$params["TRXTYPE"] = "S";
+				$params["ACTION"] = "D";
+				$params["TENDER"] = "P";
+				
+				$response = $this->sendPayflow($params);
+				$this->Transaction = $response["PNREF"];
+				$this->PayPalTransaction = $response["PPREF"];
+				$this->Message = $response["RESPMSG"];
+				
+				if ($response["RESULT"] == "0") {
+					return $response["PNREF"];
+				} else {
+					return false;
+				}
+			// PayPal Payments Pro
+			} elseif ($this->Service == "paypal") {
+				$params["METHOD"] = "DoExpressCheckoutPayment";
+				$params["PAYMENTACTION"] = "Sale";
+				
+				$response = $this->sendPayPal($params);
+				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
+				$this->Transaction = $response["TRANSACTIONID"];
+				
+				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
+					return $response["TRANSACTIONID"];
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: getExpressCheckoutDetails
+				Returns checkout details for an Express Checkout transaciton.
+				For: PayPal Payments Pro and Payflow Pro ONLY.
+				
+			Parameters:
+				token - The Express Checkout token returned by PayPal.
+			
+			Returns:
+				An array of buyer information.
+		*/
+		
+		function getExpressCheckoutDetails($token) {
+			$params = array();
+			$params["TOKEN"] = $token;
+			
+			// Payflow
+			if ($this->Service == "payflow") {
+				$params["TRXTYPE"] = "S";
+				$params["ACTION"] = "G";
+				$params["TENDER"] = "P";
+				
+				$response = $this->sendPayflow($params);
+				$this->Message = $response["RESPMSG"];				
+				
+				if ($response["RESULT"] == "0") {
+					return $this->urldecode($response);
+				} else {
+					return false;
+				}
+			// PayPal Payments Pro
+			} elseif ($this->Service == "paypal") {
+				$params["METHOD"] = "GetExpressCheckoutDetails";
+				
+				$response = $this->sendPayPal($params);
+				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
+				
+				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
+					return $this->urldecode($response);
+				} else {
+					return false;
+				}
 			} else {
 				return false;
 			}
@@ -544,7 +649,7 @@
 			$this->Transaction = $response["REFUNDTRANSACTIONID"];
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 			
-			if ($response["ACK"] == "Success") {
+			if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
 				return $response["REFUNDTRANSACTIONID"];
 			} else {
 				return false;
@@ -737,6 +842,61 @@
 		}
 		
 		/*
+			Function: setupExpressCheckout
+				Sets up a PayPal Express Checkout session.
+				For: PayPal Payments Pro and Payflow Pro ONLY.
+			
+			Parameters:
+				amount - The amount to charge the user.
+				success_url - The URL to return to on successful PayPal login.
+				cancel_rul - The URL to return to if the user cancels payment.
+			
+			Returns:
+				Authorization token for redirect.
+		*/
+		
+		function setupExpressCheckout($amount,$success_url,$cancel_url) {
+			// Clean up the amount.
+			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			$params = array();
+			
+			$params["AMT"] = $amount;
+			$params["RETURNURL"] = $success_url;
+			$params["CANCELURL"] = $cancel_url;
+			
+			// Payflow
+			if ($this->Service == "payflow") {
+				$params["TRXTYPE"] = "S";
+				$params["ACTION"] = "S";
+				$params["TENDER"] = "P";
+				
+				$response = $this->sendPayflow($params);
+				$this->Message = $response["RESPMSG"];				
+				
+				if ($response["RESULT"] == "0") {
+					return $response["TOKEN"];
+				} else {
+					return false;
+				}
+			// PayPal Payments Pro
+			} elseif ($this->Service == "paypal") {
+				$params["METHOD"] = "SetExpressCheckout";
+				$params["PAYMENTACTION"] = "Sale";
+				
+				$response = $this->sendPayPal($params);
+				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
+				
+				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
+					return urldecode($response["TOKEN"]);
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		
+		/*
 			Function: setupPayPal
 				Prepares an environment for PayPal Payments Pro payments.
 		*/
@@ -785,6 +945,18 @@
 				"PARTNER" => $this->Partner,
 				"PWD" => $this->Password
 			);
+		}
+		
+		/*
+			Function: urldecode
+				urldecodes a whole array.
+		*/
+		
+		protected function urldecode($array) {
+			foreach ($array as &$item) {
+				$item = urldecode($item);
+			}
+			return $array;
 		}
 		
 		/*
@@ -853,7 +1025,7 @@
 			$this->Transaction = $response["AUTHORIZATIONID"];
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 			
-			if ($response["ACK"] == "Success") {
+			if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
 				return $response["AUTHORIZATIONID"];
 			} else {
 				return false;

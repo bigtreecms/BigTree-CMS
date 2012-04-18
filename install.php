@@ -1,4 +1,6 @@
 <?php
+	error_reporting(E_NONE);
+	
 	//!Server Parameters
 	$warnings = array();
 	if (!extension_loaded('json')) {
