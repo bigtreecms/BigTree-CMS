@@ -226,6 +226,7 @@
 		$cms->drawXMLSitemap();
 	}
 	if ($path[0] == "feeds") {
+		bigtree_setup_sql_connection();
 		$route = $path[1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
