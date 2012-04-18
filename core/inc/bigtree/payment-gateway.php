@@ -83,6 +83,15 @@
 		}
 		
 		/*
+			Function: authorizePayflow
+				PayPal Payflow Pro interface for <authorize>
+		*/
+		
+		protected function authorizePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
+			return $this->chargePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"A");
+		}
+		
+		/*
 			Function: cardType
 				Returns the type of credit card based on the number.
 			
@@ -187,6 +196,33 @@
 			
 			if ($response["ACK"] == "Success") {
 				return $response["TRANSACTIONID"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: capturePayflow
+				PayPal Payflow Pro interface for <capture>
+		*/
+		
+		protected function capturePayflow($transaction,$amount) {
+			$params = array();
+			
+			$params["TRXTYPE"] = "D";
+			$params["ORIGID"] = $transaction;
+			if ($amount) {
+				$params["AMT"] = $amount;
+			}
+			
+			$response = $this->sendPayflow($params);
+			
+			// Setup response messages.
+			$this->Transaction = $response["PNREF"];
+			$this->Message = urldecode($response["RESPMSG"]);
+			
+			if ($response["RESULT"] == "0") {
+				return $response["PNREF"];
 			} else {
 				return false;
 			}
@@ -399,34 +435,31 @@
 			
 			$response = $this->sendPayflow($params);
 			
-			print_r($response);
-			
 			// Setup response messages.
-			$this->Transaction = $response["TRANSACTIONID"];
-			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
+			$this->Transaction = $response["PNREF"];
+			$this->Message = urldecode($response["RESPMSG"]);
 			$this->Last4CC = substr(trim($card_number),-4,4);
 			
 			// Get a common AVS response.
-			$a = $response["AVSCODE"];
-			if ($a == "A" || $a == "B") {
+			if ($response["AVSADDR"] == "Y" && $response["AVSZIP"] == "Y") {
+				$this->AVS = "Both";
+			} elseif ($response["AVSADDR"] == "Y") {
 				$this->AVS = "Address";
-			} elseif ($a == "W" || $a == "Z" || $a == "P") {
+			} elseif ($response["AVSZIP"] == "Y") {
 				$this->AVS = "Zip";
-			} elseif ($a == "D" || $a == "F" || $a == "M" || $a == "Y" || $a == "X") {
-				$this->AVS = "Both";			
 			} else {
 				$this->AVS = false;
 			}
 			
 			// Get a common CVV response, either it passed or it didn't.
-			if ($response["CVV2MATCH"] == "M") {
+			if ($response["CVV2MATCH"] == "Y") {
 				$this->CVV = true;
 			} else {
 				$this->CVV = false;
 			}
 			
-			if ($response["ACK"] == "Success") {
-				return $response["TRANSACTIONID"];
+			if ($response["RESULT"] == "0") {
+				return $response["PNREF"];
 			} else {
 				return false;
 			}
@@ -519,6 +552,34 @@
 		}
 		
 		/*
+			Function: refundPayflow
+				PayPal Payflow Pro interface for <refund>
+		*/
+		
+		protected function refundPayflow($transaction,$card_number,$amount) {
+			$params = array();
+			
+			$params["TRXTYPE"] = "C";
+			$params["ORIGID"] = $transaction;
+
+			if ($amount) {
+				$params["AMT"] = $amount;
+			}
+			
+			$response = $this->sendPayflow($params);
+			
+			// Setup response messages.
+			$this->Transaction = $response["PNREF"];
+			$this->Message = urldecode($response["RESPMSG"]);
+			
+			if ($response["RESULT"] == "0") {
+				return $response["PNREF"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
 			Function: sendAuthorize
 				Sends a command to Authorize.Net.
 		*/
@@ -534,7 +595,7 @@
 			// Authorize wants a GET instead of a POST, so we have to convert it away from an array.
 			$fields = array();
 			foreach ($params as $key => $val) {
-				$fields[] = $key."=".urlencode($val);
+				$fields[] = $key."=".str_replace("&","%26",$val);
 			}
 			
 			// Send it off to the server, try 3 times.
@@ -575,7 +636,7 @@
 			// Authorize wants a GET instead of a POST, so we have to convert it away from an array.
 			$fields = array();
 			foreach ($params as $key => $val) {
-				$fields[] = $key."=".urlencode($val);
+				$fields[] = $key."=".str_replace("&","%26",$val);
 			}
 			
 			// Send it off to the server, try 3 times.
@@ -615,9 +676,18 @@
 				CURLOPT_USERAGENT => "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)"
 			);
 			
+			// Get the default parameters
+			$params = array_merge($this->DefaultParameters,$params);
+			
+			// Authorize wants a GET instead of a POST, so we have to convert it away from an array.
+			$fields = array();
+			foreach ($params as $key => $val) {
+				$fields[] = $key."=".str_replace("&","%26",$val);
+			}
+			
 			// Send it off to the server, try 3 times.
 			while ($count < 3) {
-				$response = BigTree::cURL($this->PostURL,array_merge($this->DefaultParameters,$params),$extras);
+				$response = BigTree::cURL($this->PostURL,implode("&",$fields),$extras);
 				
 				if ($response) {
 					$response = strstr($response, 'RESULT');
@@ -785,6 +855,30 @@
 			
 			if ($response["ACK"] == "Success") {
 				return $response["AUTHORIZATIONID"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: voidPayflow
+				PayPal Payflow Pro interface for <void>
+		*/
+		
+		protected function voidPayflow($authorization) {
+			$params = array();
+			
+			$params["TRXTYPE"] = "V";
+			$params["ORIGID"] = $authorization;
+
+			$response = $this->sendPayflow($params);
+			
+			// Setup response messages.
+			$this->Transaction = $response["PNREF"];
+			$this->Message = urldecode($response["RESPMSG"]);
+			
+			if ($response["RESULT"] == "0") {
+				return $response["PNREF"];
 			} else {
 				return false;
 			}
