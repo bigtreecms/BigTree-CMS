@@ -2,7 +2,7 @@
 	/*
 		Class: BigTreePaymentGateway
 			Controls eCommerce payment systems.
-			Wrapper overtop PayPal Payments Pro, Authorize.Net, PayPal Payflow Gateway
+			Wrapper overtop PayPal Payments Pro, Authorize.Net, PayPal Payflow Gateway, LinkPoint API
 	*/
 	
 	class BigTreePaymentGateway {
@@ -25,9 +25,11 @@
 				$this->setupPayPal($pgs["settings"]);
 			} elseif ($this->Service == "payflow") {
 				$this->setupPayflow($pgs["settings"]);
+			} elseif ($this->Service == "linkpoint") {
+				$this->setupLinkPoint($pgs["settings"]);
 			}
 		}
-		
+				
 		/*
 			Function: authorize
 				Authorizes a credit card and returns the transaction ID for later capture.
@@ -61,6 +63,8 @@
 				return $this->authorizePayPal($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "payflow") {
 				return $this->authorizePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
+			} elseif ($this->Service == "linkpoint") {
+				return $this->authorizeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);	
 			}
 		}
 		
@@ -71,6 +75,15 @@
 		
 		protected function authorizeAuthorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
 			return $this->chargeAuthorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"AUTH_ONLY");
+		}
+		
+		/*
+			Function: authorizeLinkPoint
+				First Data / LinkPoint interface for <authorize>
+		*/
+		
+		protected function authorizeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
+			return $this->chargeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"PREAUTH");
 		}
 		
 		/*
@@ -145,6 +158,8 @@
 				return $this->capturePayPal($transaction,$amount);
 			} elseif ($this->Service == "payflow") {
 				return $this->capturePayflow($transaction,$amount);
+			} elseif ($this->Service == "linkpoint") {
+				return $this->captureLinkPoint($transaction,$amount);
 			}
 		}
 		
@@ -170,6 +185,39 @@
 
 			if ($response["status"] == "approved") {
 				return $response["transaction"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: captureLinkPoint
+				First Data / LinkPoint interface for <capture>
+		*/
+		
+		protected function captureLinkPoint($transaction,$amount) {
+			$params = array(
+				"orderoptions" => array(
+					"ordertype" => "POSTAUTH"
+				),
+				"transactiondetails" => array(
+					"ip" => $_SERVER["REMOTE_ADDR"],
+					"oid" => $transaction
+				)
+			);
+			
+			if ($amount) {
+				$params["payment"]["chargetotal"] = $amount;
+			}
+			
+			$response = $this->sendLinkPoint($params);
+			
+			// Setup response messages.
+			$this->Transaction = strval($response->r_ordernum);
+			$this->Message = strval($response->r_error);
+
+			if (strval($response->r_message) == "ACCEPTED") {
+				return $this->Transaction;
 			} else {
 				return false;
 			}
@@ -261,6 +309,8 @@
 				return $this->chargePayPal($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "payflow") {
 				return $this->chargePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
+			} elseif ($this->Service == "linkpoint") {
+				return $this->chargeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			}
 		}
 		
@@ -325,6 +375,82 @@
 
 			if ($response["status"] == "approved") {
 				return $response["transaction"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: chargeLinkPoint
+				First Data / LinkPoint interface for <charge>
+		*/
+		
+		protected function chargeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,$action = "SALE") {
+			$card_month = substr($card_expiration,0,2);
+			$card_year = substr($card_expiration,-2,2);
+			
+			$params = array(
+				"orderoptions" => array(
+					"ordertype" => $action
+				),
+				"creditcard" => array(
+					"cardnumber" => $card_number,
+					"cardexpmonth" => $card_month,
+					"cardexpyear" => $card_year,
+					"cvmvalue" => $cvv,
+					"cvmindicator" => "provided"
+				),
+				"transactiondetails" => array(
+					"ip" => $_SERVER["REMOTE_ADDR"]
+				),
+				"billing" => array(
+					"name" => $card_name,
+					"address1" => $address["street"],
+					"address2" => $address["street2"],
+					"city" => $address["city"],
+					"state" => $address["state"],
+					"zip" => $address["zip"],
+					"phone" => $phone,
+					"email" => $email,
+					"userid" => $customer
+				),
+				"payment" => array(
+					"tax" => $tax,
+					"chargetotal" => $amount
+				),
+				"notes" => array(
+					"comments" => $description
+				)
+			);
+			
+			$response = $this->sendLinkPoint($params);
+			
+			// Setup response messages.
+			$this->Transaction = strval($response->r_ordernum);
+			$this->Message = strval($response->r_error);
+			$this->Last4CC = substr(trim($card_number),-4,4);
+			
+			// Get a common AVS response.
+			$a = substr(strval($response->r_avs),0,2);
+			if ($a == "YN") {
+				$this->AVS = "Address";
+			} elseif ($a == "NY") {
+				$this->AVS = "Zip";
+			} elseif ($a == "YY") {
+				$this->AVS = "Both";
+			} else {
+				$this->AVS = false;
+			}
+			
+			// CVV match.
+			if (substr(strval($response->r_avs),-1,1) == "M") {
+				$this->CVV = true;
+			} else {
+				$this->CVV = false;
+			}
+			
+			if (strval($response->r_message) == "APPROVED") {
+				return $this->Transaction;
 			} else {
 				return false;
 			}
@@ -594,6 +720,8 @@
 				return $this->refundPayPal($transaction,$card_number,$amount);
 			} elseif ($this->Service == "payflow") {
 				return $this->refundPayflow($transaction,$card_number,$amount);
+			} elseif ($this->Service == "linkpoint") {
+				return $this->refundLinkPoint($transaction,$card_number,$amount);
 			}
 		}
 		
@@ -620,6 +748,44 @@
 
 			if ($response["status"] == "approved") {
 				return $response["transaction"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: refundLinkPoint
+				First Data / LinkPoint interface for <refund>
+		*/
+		
+		protected function refundLinkPoint($transaction,$card_number,$amount) {
+			$params = array(
+				"orderoptions" => array(
+					"ordertype" => "CREDIT"
+				),
+				"creditcard" => array(
+					"cardnumber" => $card_number
+				),
+				"transactiondetails" => array(
+					"ip" => $_SERVER["REMOTE_ADDR"],
+					"oid" => $authorization
+				)
+			);
+			
+			if ($amount) {
+				$params["payment"]["chargetotal"] = $amount;
+			}
+			
+			$response = $this->sendLinkPoint($params);
+			
+			print_r($response);
+			
+			// Setup response messages.
+			$this->Transaction = strval($response->r_ordernum);
+			$this->Message = strval($response->r_error);
+
+			if (strval($response->r_message) == "ACCEPTED") {
+				return $this->Transaction;
 			} else {
 				return false;
 			}
@@ -719,6 +885,55 @@
 					);
 				}
 				
+				$count++;
+			}
+			
+			$this->Unresponsive = true;
+			return false;
+		}
+		
+		/*
+			Function: sendLinkPoint
+				Sends a command to First Data / LinkPoint.
+		*/
+		
+		protected function sendLinkPoint($params) {
+			$count = 0;
+			$this->Unresponsive = false;
+			
+			$params["merchantinfo"]["configfile"] = $this->Store;
+			$xml = "<order>";
+			foreach ($params as $container => $data) {
+				$xml .= "<$container>";
+				foreach ($data as $key => $val) {
+					if (is_array($val)) {
+						$xml .= "<$key>";
+						foreach ($val as $k => $vl) {
+							$xml .= "<$k>".htmlspecialchars($v)."</$k>";
+						}
+						$xml .= "</$key>";
+					} else {
+						$xml .= "<$key>".htmlspecialchars($val)."</$key>";
+					}
+				}
+				$xml .= "</$container>";
+			}
+			$xml .= "</order>";
+			
+			// Send it off to the server, try 3 times.
+			while ($count < 3) {
+				$ch = curl_init();
+				curl_setopt($ch,CURLOPT_URL,$this->PostURL);
+				curl_setopt($ch,CURLOPT_POST, 1); 
+				curl_setopt($ch,CURLOPT_POSTFIELDS, $xml);
+				curl_setopt($ch,CURLOPT_SSLCERT, $this->Certificate);
+				curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
+				curl_setopt($ch,CURLOPT_SSL_VERIFYHOST, 0);
+				curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, 0);
+				$response = curl_exec($ch);
+				if ($response) {
+					return simplexml_load_string("<lpresonsecontainer>".$response."</lpresonsecontainer>");
+				}
 				$count++;
 			}
 			
@@ -897,6 +1112,26 @@
 		}
 		
 		/*
+			Function: setupLinkPoint
+				Prepares an environment for First Data / LinkPoint.
+		*/
+		
+		protected function setupLinkPoint($settings) {
+			$this->Store = $settings["linkpoint-store"];
+			$this->Environment = $settings["linkpoint-environment"];
+			$this->Certificate = $GLOBALS["server_root"]."custom/certificates/".$settings["linkpoint-certificate"];
+
+			if ($this->Environment == "test") {
+				$this->PostURL = "https://staging.linkpt.net:1129";
+			} else {
+				$this->PostURL = "https://secure.linkpt.net:1129";
+				$this->DefaultParameters["orderoptions"] = array(
+					"result" => "live"
+				);
+			}
+		}
+		
+		/*
 			Function: setupPayPal
 				Prepares an environment for PayPal Payments Pro payments.
 		*/
@@ -981,6 +1216,8 @@
 				return $this->voidPayPal($authorization);
 			} elseif ($this->Service == "payflow") {
 				return $this->voidPayflow($authorization);
+			} elseif ($this->Service == "linkpoint") {
+				return $this->voidLinkPoint($authorization);
 			}
 		}
 		
@@ -1003,6 +1240,35 @@
 
 			if ($response["status"] == "approved") {
 				return $response["transaction"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: voidLinkPoint
+				First Data / LinkPoint interface for <void>
+		*/
+		
+		protected function voidLinkPoint($authorization) {
+			$params = array(
+				"orderoptions" => array(
+					"ordertype" => "VOID"
+				),
+				"transactiondetails" => array(
+					"ip" => $_SERVER["REMOTE_ADDR"],
+					"oid" => $authorization
+				)
+			);
+			
+			$response = $this->sendLinkPoint($params);
+			
+			// Setup response messages.
+			$this->Transaction = strval($response->r_ordernum);
+			$this->Message = strval($response->r_error);
+
+			if (strval($response->r_message) == "ACCEPTED") {
+				return $this->Transaction;
 			} else {
 				return false;
 			}
