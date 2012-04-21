@@ -371,7 +371,7 @@
 	.form_search { background: #FFF url(../images/quick-search-icon.png) no-repeat 195px 5px; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
 	.form_search:focus { border-color: #BBB; }
 	
-	.field_selector { background: #DDD url(../images/button-bg.png) repeat-x; border: 1px solid #CCC; border-radius: 3px; color: #333; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 5px 5px 0 0; padding: 0 0 0 5px; transition: background-color 0.2s, border-color 0.2s; }
+	.field_selector { background: #DDD url(../images/button-bg.png) repeat-x; border: 1px solid #CCC; border-radius: 3px; color: #333; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 5px 10px 0 0; padding: 0 0 0 5px; transition: background-color 0.2s, border-color 0.2s; }
 	.field_selector:hover { background-color: #EEE; }
 	.field_selector .current { border-left: 1px solid #CCC; float: left; height: 21px; margin: 0 -5px 0 5px; overflow: hidden; }
 	.field_selector .current a { display: block; height: 21px; padding: 0 10px; font-size: 12px; }
