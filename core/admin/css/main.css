@@ -324,7 +324,7 @@
 	
 /* Form Container Styles */
 	.form_container { background: #FFF; border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; margin: 0 0 25px 0; overflow: hidden; }
-	.form_container header { background: url(../images/top-gradient.png); height: 45px; overflow: hidden; }
+	.form_container header { background: url(../images/top-gradient.png); border-radius: 5px 5px 0 0; height: 45px; overflow: hidden; }
 	.form_container header p { color: #666; font-size: 12px; line-height: 45px; padding: 0 15px; text-shadow: 0 1px 0 #FFF; }
 	.form_container header h2 { line-height: 45px; padding: 0 15px; }
 	.form_container header h2.cropper span { background-image: none; display: block; float: left; height: auto; margin: 0 8px 0 0; }
@@ -341,7 +341,7 @@
 	.form_container aside { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; overflow: hidden; padding: 0 0 0 15px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35); }
 	.form_container section { overflow: hidden; padding: 30px; }
 	.form_container section.sub { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; }
-	.form_container footer { background-gradient: #DFDFDF #F5F5F5; border-top: 1px solid #CCC; overflow: hidden; padding: 30px; }
+	.form_container footer { background-gradient: #DFDFDF #F5F5F5; border-radius: 0 0 5px 5px; border-top: 1px solid #CCC; overflow: hidden; padding: 30px; }
 	.form_container footer a, .form_container footer input { float: left; margin: 0 15px 0 0; }
 	.form_container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 0 -30px 30px -30px; width: 958px; }
 	.form_container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }

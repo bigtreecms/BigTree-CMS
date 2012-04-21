@@ -690,9 +690,10 @@
 				form - Optional auto module form id.
 				view - Optional auto module view id.
 				level - The required access level.
+				position - The position in the list of actions.
 		*/
 		
-		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0) {
+		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0,$position = 0) {
 			$module = mysql_real_escape_string($module);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
 			$in_nav = mysql_real_escape_string($in_nav);
@@ -709,7 +710,7 @@
 				$x++;
 			}
 			
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`) VALUES ('$module','$name','$route','$in_nav','$icon','$level','$form','$view')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level','$form','$view','$position')");
 		}
 		
 		/*
