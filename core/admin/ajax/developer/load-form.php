@@ -15,7 +15,7 @@
 		$q = sqlquery("DESCRIBE $table");
 		while ($f = sqlfetch($q)) {
 			if (!in_array($f["Field"],$reserved) && !in_array($f["Field"],$used)) {
-				$unused[$f["Field"]] = ucwords(str_replace("_"," ",$f["Field"]));
+				$unused[] = array("field" => $f["Field"], "title" => ucwords(str_replace("_"," ",$f["Field"])));
 			}
 			if ($f["Field"] == "position") {
 				$positioned = true;
@@ -77,12 +77,6 @@
 	<header>
 		<a href="#" class="add add_geocoding"><span></span>Geocoding</a>
 		<a href="#" class="add add_many_to_many"><span></span>Many-To-Many</a>
-		<a href="#" class="add add_unused"><span></span>Add</a>
-		<select id="unused_field" class="custom_control">
-			<? foreach ($unused as $key => $val) { ?>
-			<option value="<?=htmlspecialchars($val)?>"><?=htmlspecialchars($key)?></option>
-			<? } ?>
-		</select>
 	</header>
 	<div class="labels">
 		<span class="developer_resource_form_title">Title</span>
@@ -176,27 +170,11 @@
 			if (title) {
 				key = $(this).attr("name");
 				if (key != "geocoding") {
-					sel = $("#unused_field").get(0);
-					sel.options[sel.options.length] = new Option(key,title,false,false);
+					fieldSelect.addField(key,title);
 				}
 			}
 			li.remove();
 		},this),"delete",false,"OK");
-		
-		return false;
-	});
-	
-	$(".add_unused").click(function() {
-		un = $("#unused_field").get(0);
-		key = un.options[un.selectedIndex].text;
-		title = un.options[un.selectedIndex].value;
-		un.remove(un.selectedIndex);
-		
-		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
-		
-		$("#resource_table").append(li);
-		_local_hooks();
 		
 		return false;
 	});
@@ -229,4 +207,16 @@
 	}
 	
 	_local_hooks();
+	
+	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
+		title = el.title;
+		key = el.field;
+		
+		li = $('<li id="row_' + key + '">');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+		
+		$("#resource_table").append(li);
+		fs.removeCurrent();
+		_local_hooks();
+	});
 </script>

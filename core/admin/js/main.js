@@ -100,6 +100,7 @@ $(document).ready(function() {
 		return false;
 	});
 	
+	// Tooltips
 	$(".has_tooltip").each(function() {
 		width = BigTree.WindowWidth();
 		offset = $(this).offset();
@@ -1436,6 +1437,80 @@ var BigTreeManyToMany = Class.extend({
 		},this),"delete",false,"OK");
 
 		return false;
+	}
+});
+
+// !BigTreeFieldSelect
+var BigTreeFieldSelect = Class.extend({
+	addCallback: false,
+	currentElement: 0,
+	elements: false,
+	container: false,
+	
+	init: function(selector,elements,callback) {
+		fs = $('<div class="field_selector">');
+		ophtml = "";
+		for (i = 0; i < elements.length; i++) {
+			ophtml += '<a href="#' + elements[i].title + '">' + elements[i].field + "</a>";
+		}
+		if (elements.length == 0) {
+			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p></p>' + ophtml + '</span>');
+		} else {
+			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p>' + elements[0].field + '</p>' + ophtml + '</span>');
+		}
+		$(selector).prepend(fs);
+		
+		fs.find("p").click(function() {
+			p = $(this).parent();
+			if (p.find("a").length > 1) {
+				$(this).parents(".field_selector").find(".dd").show();
+			}
+		});
+		
+		fs.find(".dd").on("click","a",$.proxy(function(ev) {
+			el = ev.currentTarget;
+			p = $(el).parents(".field_selector");
+			p.find("p").html($(el).html());
+			i = p.find(".dd").hide().find("a").index(el);
+			this.currentElement = i;
+			return false;
+		},this));
+		
+		fs.find(".add_field").click($.proxy(function() {
+			el = this.elements[this.currentElement];
+			this.addCallback(el,this);
+			return false;
+		},this));
+		
+		this.elements = elements;
+		this.container = fs;
+		this.addCallback = callback;
+		
+		if (this.elements.length == 0) {
+			this.container.hide();
+		}
+	},
+	
+	removeCurrent: function() {
+		this.container.find(".dd a").eq(this.currentElement).remove();
+		this.container.find(".current a").eq(this.currentElement).remove();
+		this.elements.splice(this.currentElement,1);
+		this.currentElement = 0;
+		if (this.elements.length == 0) {
+			this.container.hide();
+		} else {
+			this.container.find("p").html(this.elements[0].field);
+		}
+	},
+	
+	addField: function(field,title) {
+		this.container.find(".dd").append($('<a href="#' + title + '">' + field + '</a>'));
+		this.container.find(".current").append($('<a href="#' + title + '">' + field + '</a>'));
+		this.elements.push({ field: field, title: title });
+		if (this.elements.length == 1) {
+			this.container.find("p").html(this.elements[0].field);
+			this.container.show();
+		}
 	}
 });
 

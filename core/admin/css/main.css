@@ -317,7 +317,7 @@
 	footer.main .bigtree .links a { color: #CCC; float: left; font-size: 12px; height: 12px; text-transform: uppercase; }
 	footer.main .bigtree .links a:hover { color: #FFF; }
 	footer.main .bigtree .links span { background: url(../images/header-icons.png) -18px 0px; display: block; float: left; height: 10px; margin: 0 7px; width: 5px; }
-	footer.main .fastspot { background: url(../images/footer-fs.png) no-repeat; color: #6C7679; float: right; font-size: 10px; height: 25px; padding: 0 0 0 50px; text-align: right; text-shadow: 0 -1px 0 rgba(0, 0, 0, 1); width: 245px; }
+	footer.main .fastspot { color: #6C7679; float: right; font-size: 10px; height: 25px; text-align: right; text-shadow: 0 -1px 0 rgba(0, 0, 0, 1); width: 245px; }
 	footer.main .fastspot p { color: #999; font-size: 12px; line-height: 12px; margin: 0 0 7px 0; }
 	footer.main .fastspot a { color: #666; }
 	footer.main .fastspot a:hover { color: #999; }
@@ -370,6 +370,19 @@
 
 	.form_search { background: #FFF url(../images/quick-search-icon.png) no-repeat 195px 5px; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
 	.form_search:focus { border-color: #BBB; }
+	
+	.field_selector { background: #DDD url(../images/button-bg.png) repeat-x; border: 1px solid #CCC; border-radius: 3px; color: #333; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 5px 5px 0 0; padding: 0 0 0 5px; transition: background-color 0.2s, border-color 0.2s; }
+	.field_selector:hover { background-color: #EEE; }
+	.field_selector .current { border-left: 1px solid #CCC; float: left; height: 21px; margin: 0 -5px 0 5px; overflow: hidden; }
+	.field_selector .current a { display: block; height: 21px; padding: 0 10px; font-size: 12px; }
+	.field_selector .add_field { background: url(../images/icons-16x16.png) no-repeat 5px 0; float: left; height: 16px; margin: 2px 0 0 -4px; padding: 0 0 0 5px; width: 16px; }
+	.form_container .field_selector p { cursor: pointer; line-height: 21px; margin: 0; padding: 0 10px; color: #333; }
+	.field_selector .dd { background: #EEE; border: 1px solid #CCC; border-radius: 0px 3px 3px 3px; display: none; position: absolute; }
+	.field_selector .dd a { color: #333; display: block; font-size: 12px; height: 21px; line-height: 21px; padding: 0 10px; }
+	.field_selector .dd a:hover { background: #FFF; }
+	.field_selector .dd a:first-child { border-radius: 0 3px 0 0; }
+	.field_selector .dd a:last-child { border-radius: 0 0 3px 3px; }
+	.field_selector div { float: left; margin: -1px 0 0 5px; }
 
 	#link_finder { float: right; }
 	#link_finder_results { background: #FFF; border: 1px solid #CCC; margin: 34px 0 0 737px; position: absolute; width: 200px; }
