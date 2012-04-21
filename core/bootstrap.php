@@ -7,8 +7,6 @@
 	$GLOBALS["server_root"] = str_replace("core/bootstrap.php","",__FILE__);
 	$GLOBALS["site_root"] = $GLOBALS["server_root"]."site/";
 	$GLOBALS["www_root"] = $config["www_root"];
-	$GLOBALS["resource_root"] = $config["resource_root"];
-	$GLOBALS["gmaps_key"] = $config["gmaps_key"];
 	$GLOBALS["admin_ajax_root"] = $GLOBALS["server_root"]."core/admin/ajax/";
 	if (isset($config["root_page"])) {
 		$GLOBALS["root_page"] = $config["root_page"];

@@ -1,4 +1,6 @@
 <?php
+	// Turn off errors
+	ini_set("log_errors",false);
 	error_reporting(E_NONE);
 	
 	//!Server Parameters
