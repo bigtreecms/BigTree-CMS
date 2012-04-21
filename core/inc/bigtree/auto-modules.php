@@ -89,6 +89,7 @@
 		*/
 		
 		static function cacheRecord($item,$view,$parsers,$poplists) {
+			global $cms;
 			// Setup the fields and VALUES to INSERT INTO the cache table.
 			
 			$status = "l";
@@ -159,6 +160,7 @@
 					$vals[] = "'".$item[$view["options"]["caption"]]."'";
 				} else {
 					foreach ($view["fields"] as $field => $options) {
+						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 						$fields[] = "column$x";
 						if ($parsers[$field]) {
 							$vals[] = "'".mysql_real_escape_string($item[$field])."'";					

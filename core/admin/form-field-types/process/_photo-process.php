@@ -29,7 +29,7 @@
 	// Do EXIF Image Rotation
 	$already_created_first_copy = false;
 	if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
-		$exif = exif_read_data($temp_name);
+		$exif = @exif_read_data($temp_name);
 		$o = $exif['Orientation'];
 		if ($o == 3 || $o == 6 || $o == 8) {
 			$first_copy = $site_root."files/".uniqid("temp-").".jpg";
