@@ -14,8 +14,7 @@
 	if (count($modules)) {
 ?>
 <div class="table">
-	<summary><h2><?=$group["name"]?></h2></summary>
-	<section class="modules">
+	<section class="modules modules_no_header">
 		<? foreach ($modules as $module) { ?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>

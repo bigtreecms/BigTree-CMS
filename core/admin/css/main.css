@@ -623,6 +623,7 @@
 	
 /* Modules */
 	.table section.modules { overflow: hidden; padding-bottom: 10px; border-radius: 0px 0px 5px 5px; }
+	.table section.modules_no_header { border-radius: 5px; }
 	.table p.module { background: #FCFCFC; border: 1px solid #E7E7E7; border-radius: 5px; float: left; margin: 0 10px 10px 0; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s; width: 452px; }
 	.table p.module:hover { background: #FFF; border-color: #E0EAF0; box-shadow: 0px 0px 3px #EEE; }
 	.table p.module:nth-child(even) { margin-right: 0; }

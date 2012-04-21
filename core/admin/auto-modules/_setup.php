@@ -21,7 +21,7 @@
 		array("link" => "modules/","title" => "Modules")
 	);
 	if ($mgroup) {
-		$breadcrumb[] = array("link" => "modules/", "title" => $mgroup["name"]);
+		$breadcrumb[] = array("link" => "modules/".$mgroup["route"]."/", "title" => $mgroup["name"]);
 	}
 	$breadcrumb[] = array("link" => $module["route"], "title" => $module["name"]);
 	
