@@ -384,7 +384,7 @@
 	.sticky_controls.stuck nav { overflow: hidden; padding: 12px 0 0 15px; width: 711px; }
 	.sticky_controls.stuck nav a { border-width: 1px; border-radius: 3px; }
 
-	.move_page .labels .page_label { 31px  padding: 0 0 0 20px; text-align: left; width: 596px; }
+	.move_page .labels .page_label { padding: 0 0 0 20px; text-align: left; width: 596px; }
 	.move_page section { padding: 0; }
 	.move_page section ul { float: left; }
 	.move_page section ul li.top { border: none; }

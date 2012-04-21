@@ -4894,7 +4894,7 @@
 			global $cms;
 			
 			$page = mysql_real_escape_string($page);
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page'");
+			$q = sqlquery("SELECT id,path FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
 				$oldpath = $f["path"];
 				$path = $this->getFullNavigationPath($f["id"]);
@@ -5306,9 +5306,21 @@
 				$this->stop("You are not allowed to move pages.");
 			}
 			
+			// Get the existing path so we can create a route history
+			$current = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '$page'"));
+			$old_path = mysql_real_escape_string($current["path"]);
+			
 			sqlquery("UPDATE bigtree_pages SET parent = '$parent' WHERE id = '$page'");
-			$path = $this->getFullNavigationPath($page);
-			sqlquery("UPDATE bigtree_pages SET path = '".mysql_real_escape_string($path)."' WHERE id = '$page'");
+			$path = mysql_real_escape_string($this->getFullNavigationPath($page));
+			
+			// Set the route history
+			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '$old_path'");
+			sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$old_path','$path')");
+			
+			// Update the page with its new path.
+			sqlquery("UPDATE bigtree_pages SET path = '$path' WHERE id = '$page'");
+			
+			// Update the paths of any child pages.
 			$this->updateChildPagePaths($page);
 		}
 		
