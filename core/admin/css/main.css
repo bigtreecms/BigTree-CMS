@@ -374,7 +374,7 @@
 	#link_finder { float: right; }
 	#link_finder_results { background: #FFF; border: 1px solid #CCC; margin: 34px 0 0 737px; position: absolute; width: 200px; }
 	#link_finder_results a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 3px 10px; }
-	#link_finder_results a:nth-child(odd) { background: #F3F3F3; }
+	#link_finder_results a:nth-mchild(odd) { background: #F3F3F3; }
 	#link_finder_results a:last-child { border-bottom: none; }
 	#link_finder_results a:hover { background: #E0EAF0; }
 
@@ -622,7 +622,7 @@
 	.graph .date.first { margin-left: 0; }
 	
 /* Modules */
-	.table section.modules { overflow: hidden; padding-bottom: 10px; }
+	.table section.modules { overflow: hidden; padding-bottom: 10px; border-radius: 0px 0px 5px 5px; }
 	.table p.module { background: #FCFCFC; border: 1px solid #E7E7E7; border-radius: 5px; float: left; margin: 0 10px 10px 0; transition: background 0.2s, border-color 0.2s, box-shadow 0.2s; width: 452px; }
 	.table p.module:hover { background: #FFF; border-color: #E0EAF0; box-shadow: 0px 0px 3px #EEE; }
 	.table p.module:nth-child(even) { margin-right: 0; }
