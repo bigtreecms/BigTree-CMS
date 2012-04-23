@@ -80,7 +80,9 @@ $(document).ready(function() {
 		$("#" + next.attr("href").substr(1)).show();
 		$("#" + tab.attr("href").substr(1)).hide();
 		
-		if (nav.index(tab) == nav.length - 2) last_dialog
+		if (nav.index(tab) == nav.length - 2) {
+			$(this).hide();
+		}
 		
 		return false;
 	});

@@ -347,7 +347,7 @@
 	.form_container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }
 	.form_container .alert img { float: left; margin: 0 10px 0 0; }
 	.form_container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0; text-transform: uppercase; }
-	.form_container .alert p { color: #666; font-size: 13px; line-height: 30px; margin: 0; }
+	.form_container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
 	.form_container .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	.form_container .template_message { user-select: none; }
 	.form_container .template_message p { line-height: 13px; margin: 3px 0 0 0; }
@@ -586,9 +586,9 @@
 	.box_select:hover { background-gradient: #eaf5fc #ffffff; box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); color: #222; }
 	.box_select.active { background-gradient: #d6eefc #eaf5fc; box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); }
 	.box_select img { margin: 0 0 10px 0; }
-	.box_select p { font-size: 11px; line-height: 15px; }
-	
+	.box_select p { font-size: 11px; line-height: 15px; }	
 	.box_select.last { margin-right: 0; }
+	.developer .table .box_select { margin-bottom: 0; }
 
 /* Form Control Widget Styles */
 	.photo_gallery_widget { background: #FFF; border: 1px solid #CCC; border-radius: 3px; overflow: hidden; }
@@ -1051,6 +1051,11 @@
 	.icon_developer_upload_rackspace { background: url(../images/developer-icons-sprite.png) no-repeat -256px 0px; display: inline-block; height: 32px; width: 32px; }
 	.icon_developer_upload_amazon { background: url(../images/developer-icons-sprite.png) no-repeat -288px 0px; display: inline-block; height: 32px; width: 32px; }
 	.icon_developer_package { background: url(../images/developer-icons-sprite.png) no-repeat -349px 2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_payment_linkpoint { background: url(../images/developer-icons-sprite.png) no-repeat -400px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_payment_paypal { background: url(../images/developer-icons-sprite.png) no-repeat -432px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_payment_payflow { background: url(../images/developer-icons-sprite.png) no-repeat -464px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_payment_authorize { background: url(../images/developer-icons-sprite.png) no-repeat -496px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_payment_gateway { background: url(../images/developer-icons-sprite.png) no-repeat -528px 0px; display: inline-block; height: 32px; width: 32px; }
 	
 	.developer .box_select span.icon_developer_templates { margin: 2px 0 8px; }
 	.developer .box_select span.icon_developer_modules { margin: 3px 0 7px; }

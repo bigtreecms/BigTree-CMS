@@ -97,7 +97,7 @@
 		
 		/*
 			Function: authorizePayflow
-				PayPal Payflow Pro interface for <authorize>
+				PayPal Payflow Gateway interface for <authorize>
 		*/
 		
 		protected function authorizePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
@@ -251,7 +251,7 @@
 		
 		/*
 			Function: capturePayflow
-				PayPal Payflow Pro interface for <capture>
+				PayPal Payflow Gateway interface for <capture>
 		*/
 		
 		protected function capturePayflow($transaction,$amount) {
@@ -526,7 +526,7 @@
 		
 		/*
 			Function: chargePayflow
-				PayPal Payflow Pro interface for <charge>
+				PayPal Payflow Gateway interface for <charge>
 		*/
 		
 		protected function chargePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,$action = "S") {
@@ -594,7 +594,7 @@
 		/*
 			Function: doExpressCheckoutPayment
 				Processes an Express Checkout transaction.
-				For: PayPal Payments Pro and Payflow Pro ONLY.
+				For: PayPal Payments Pro and Payflow Gateway ONLY.
 				
 			Parameters:
 				token - The Express Checkout token returned by PayPal.
@@ -652,7 +652,7 @@
 		/*
 			Function: getExpressCheckoutDetails
 				Returns checkout details for an Express Checkout transaciton.
-				For: PayPal Payments Pro and Payflow Pro ONLY.
+				For: PayPal Payments Pro and Payflow Gateway ONLY.
 				
 			Parameters:
 				token - The Express Checkout token returned by PayPal.
@@ -824,7 +824,7 @@
 		
 		/*
 			Function: refundPayflow
-				PayPal Payflow Pro interface for <refund>
+				PayPal Payflow Gateway interface for <refund>
 		*/
 		
 		protected function refundPayflow($transaction,$card_number,$amount) {
@@ -983,7 +983,7 @@
 		
 		/*
 			Function: sendPayflow
-				Sends a command to PayPal Payflow Pro.
+				Sends a command to PayPal Payflow Gateway.
 		*/
 		
 		protected function sendPayflow($params) {
@@ -1059,7 +1059,7 @@
 		/*
 			Function: setupExpressCheckout
 				Sets up a PayPal Express Checkout session.
-				For: PayPal Payments Pro and Payflow Pro ONLY.
+				For: PayPal Payments Pro and Payflow Gateway ONLY.
 			
 			Parameters:
 				amount - The amount to charge the user.
@@ -1158,7 +1158,7 @@
 		
 		/*
 			Function: setupPayflow
-				Prepares an environment for PayPal Payflow Pro payments.
+				Prepares an environment for PayPal Payflow Gateway payments.
 		*/
 		
 		protected function setupPayflow($settings) {
@@ -1300,7 +1300,7 @@
 		
 		/*
 			Function: voidPayflow
-				PayPal Payflow Pro interface for <void>
+				PayPal Payflow Gateway interface for <void>
 		*/
 		
 		protected function voidPayflow($authorization) {
