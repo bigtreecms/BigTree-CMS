@@ -2763,10 +2763,13 @@
 				return $pp;
 			}
 
-			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"),true);
+			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"));
+			$parent = $parent["parent"];
+			
 			$pp = $u["permissions"]["page"][$parent];
 			while ((!$pp || $pp == "i") && $parent) {
-				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"),true);
+				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"));
+				$parent = $parent["parent"];
 				$pp = $u["permissions"]["page"][$parent];
 			}
 
