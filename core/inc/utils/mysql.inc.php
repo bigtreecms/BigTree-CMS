@@ -96,11 +96,13 @@
 	}
 
 	function sqlfetch($query,$single_column = false) {
-		if (!$single_column) {
-			return mysql_fetch_assoc($query);
-		} else {
-			$f = mysql_fetch_array($query);
-			return $f[0];
+		if ($query) {
+			if (!$single_column) {
+				return mysql_fetch_assoc($query);
+			} else {
+				$f = mysql_fetch_array($query);
+				return $f[0];
+			}
 		}
 	}
 
