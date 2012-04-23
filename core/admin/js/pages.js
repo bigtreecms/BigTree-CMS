@@ -143,6 +143,7 @@ $(document).ready(function() {
 					}
 				});
 				$("#bigtree_callouts ul").append(li);
+				last_dialog.parents("div").remove();
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
@@ -191,6 +192,7 @@ $(document).ready(function() {
 					}
 				});
 				active_callout_edit.replaceWith(li);
+				last_dialog.parents("div").remove();
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
