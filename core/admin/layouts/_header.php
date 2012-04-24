@@ -49,8 +49,6 @@
 		<meta charset="utf-8" />
 		<title><? if ($module_title) { ?><?=$module_title?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=$admin_root?>css/main.css" type="text/css" media="screen" />
-		<link media="only screen and (max-device-width: 480px)" href="<?=$admin_root?>css/mobile.css" type= "text/css" rel="stylesheet" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
 		<? if (is_array($css)) { foreach ($css as $style) { ?>
 		<link rel="stylesheet" href="<?=$admin_root?>css/<?=$style?>" type="text/css" media="screen" />
 		<? } } ?>
