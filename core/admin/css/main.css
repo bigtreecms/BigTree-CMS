@@ -915,6 +915,8 @@
 	.bigtree_dialog_form .list_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 90%; }
 	.bigtree_dialog_form .list_type_options { margin: 0 0 15px 0; }
 	.bigtree_dialog_form fieldset .list_attr { margin: 0; }
+	.bigtree_dialog_form .list_attr_triple ul li { width: 32%; }
+	.bigtree_dialog_form .list_attr_triple input { width: 85%; }
 	
 	.bigtree_dialog_form .image_attr { overflow: hidden; }
 	.bigtree_dialog_form .image_attr ul { overflow: hidden; }
