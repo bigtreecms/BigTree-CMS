@@ -30,8 +30,9 @@
 			array("link" => "field-types", "title" => "Field Types", "access" => 2),
 			array("link" => "feeds", "title" => "Feeds", "access" => 2),
 			array("link" => "settings", "title" => "Settings", "access" => 2),
-			array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
 			array("link" => "foundry/install", "title" => "Install Package", "access" => 2),
+			array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
+			array("link" => "payment-gateway", "title" => "Payment Gateway", "access" => 2)
 		))
 	);
 	

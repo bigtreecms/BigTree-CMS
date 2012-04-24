@@ -582,13 +582,14 @@
 	.page_url img { float: left; margin: 0 7px 0 0; }
 	
 /* Box Select Styles */
-	.box_select { background: #fff; border: 1px solid #D4D4D4; border-radius: 5px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); color: #333; float: left; height: 75px; margin: 0 20px 23px 0; padding: 20px 10px 5px 10px; text-align: center; text-shadow: 0 1px 0 rgba(255, 255, 255, 1); transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 80px; }
+	.box_select { background: #fff; border: 1px solid #D4D4D4; border-radius: 5px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); color: #333; float: left; height: 75px; margin: 0 20px 23px 0; padding: 25px 10px 10px 10px; text-align: center; text-shadow: 0 1px 0 rgba(255, 255, 255, 1); transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
 	.box_select:hover { background-gradient: #eaf5fc #ffffff; box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); color: #222; }
 	.box_select.active { background-gradient: #d6eefc #eaf5fc; box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); }
 	.box_select img { margin: 0 0 10px 0; }
 	.box_select p { font-size: 11px; line-height: 15px; }	
 	.box_select.last { margin-right: 0; }
-	.developer .table .box_select { margin-bottom: 0; }
+	
+	#template_tab fieldset { width: 917px; }
 
 /* Form Control Widget Styles */
 	.photo_gallery_widget { background: #FFF; border: 1px solid #CCC; border-radius: 3px; overflow: hidden; }
@@ -762,7 +763,10 @@
 /* Developer Stuff */
 	.developer .box_select span { margin: 0 0 10px 0; }
 	.developer h1 { line-height: 32px; }
-
+	
+	.developer .table .box_select { margin-bottom: 0; }
+	.developer .table > section { padding: 30px; }
+	
 	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 819px; }
 	.table .developer_templates_name a { color: #333; display: block; width: 802px; }
 	.table .developer_modules_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 757px; }
@@ -780,7 +784,7 @@
 	.table .developer_settings_name a { color: #333; display: block; }
 	.table .developer_settings_id { padding: 0 0 0 15px; text-align: left; width: 259px; }
 	.table .developer_settings_type { padding: 0 0 0 15px; text-align: left; width: 145px; }
-
+	
 	.template_image_list li { float: left; margin: 0 5px 5px 0; }
 	.template_image_list a { border: 1px solid #CCC; border-radius: 3px; display: block; height: 32px; padding: 5px; text-align: center; transition: background 0.2s, border-color 0.2s; width: 32px; }
 	.template_image_list a.active, .template_image_list a:hover { background: #E0EAF0; border-color: #9DBDD9; }
@@ -1165,7 +1169,7 @@
 	
 /* Array of Items / Many to Many Widget */
 	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; }
-	.multi_widget footer { border-top: none; padding: 20px; }
+	.multi_widget footer { border-top: none; overflow: hidden; padding: 20px; }
 	.multi_widget footer a { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
 	.multi_widget footer a .icon_small { height: 16px; margin-top: 6px; }
 	.multi_widget li { border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
