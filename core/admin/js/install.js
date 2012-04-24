@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	BigTreeCustomControls();
-	$("#loadbalanced").on("checked:click", function() {
+	$("#loadbalanced").on("click", function() {
 		toggleWriteDatabase($(this));
 	});
 });
@@ -78,7 +78,7 @@ var BigTreeCheckbox = Class.extend({
 			this.Link.addClass("checked");
 			$(this.Element).attr("checked","");
 		}
-		this.Element.trigger("checked:click");
+		this.Element.trigger("click");
 		return false;
 	}
 });
