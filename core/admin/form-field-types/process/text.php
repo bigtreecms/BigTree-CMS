@@ -10,7 +10,11 @@
 	}
 	
 	if ($st == "phone") {
-		$value = $data[$key]["phone_1"]."-".$data[$key]["phone_2"]."-".$data[$key]["phone_3"];
+		if (is_array($data[$key]["phone_1"])) {
+			$value = $data[$key]["phone_1"]."-".$data[$key]["phone_2"]."-".$data[$key]["phone_3"];
+		} else {
+			$value = $data[$key];
+		}
 	} elseif ($st == "address" || $st == "name") {
 		$value = json_encode($data[$key]);
 	} else {
