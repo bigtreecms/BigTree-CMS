@@ -888,8 +888,19 @@
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
 	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; }
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
-	.bigtree_dialog_form input[type=text] { display: block; width: 418px; }
+	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
+	
+	.bigtree_dialog_form .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
+	.bigtree_dialog_form .input_name input { width: 200px; }
+	.bigtree_dialog_form .input_name label { font-size: 11px; line-height: 11px; margin: 0; }
+	.bigtree_dialog_form .input_address_city input { width: 200px; }
+	.bigtree_dialog_form .input_address_zip input { width: 150px; }
+	.bigtree_dialog_form .text_input .input_phone_3 { margin: 0; }
+	.bigtree_dialog_form .input_phone_3 input { float: left; text-align: center; width: 30px; }
+	.bigtree_dialog_form .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
+	.bigtree_dialog_form .input_phone_4 input { text-align: center; width: 40px; }
+	
 	.bigtree_dialog_form textarea { display: block; width: 418px; }
 	.bigtree_dialog_form p.confirm { font-size: 14px; padding: 20px; }
 	.bigtree_dialog_form hr { background: #EEE; border: none; height: 1px; margin: 0px -10px 15px -10px; }
