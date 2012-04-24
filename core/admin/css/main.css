@@ -669,7 +669,7 @@
 	.image_list li a.image:hover { background: #DDD; }
 	.image_list li a.image img { max-height: 108px; max-width: 108px; }
 	.image_list li a:last-child { margin: 0; }
-	.image_list .ui-sortable-placeholder { background: #FFF; border: 1px solid #FFF; border-radius: 2px; cursor: move; float: left; height: 145px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
+	.image_list .ui-sortable-placeholder { background: #eee; border: 1px dashed #ccc; border-radius: 2px; cursor: move; float: left; height: 145px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	
 /* Message Center */
 	.alert .message_from { float: left; width: 220px; }
