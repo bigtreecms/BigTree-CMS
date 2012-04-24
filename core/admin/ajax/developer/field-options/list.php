@@ -27,7 +27,8 @@
 	<fieldset>
 		<div class="list_attr" id="pop_option_list">
 			<ul>
-				<li>Value:</li><li>Description:</li>
+				<li>Value</li>
+				<li>Description</li>
 			</ul>
 			<?
 				$x = 0;
