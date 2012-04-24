@@ -10,6 +10,12 @@
 	}
 	
 	$id = $admin->createModule($name,$group,$class,$table,$gbp);
+	
+	if (!$table) {
+		$admin->growl("Developer","Created Module");
+		header("Location: ../view/");
+		die();
+	}
 ?>
 <h1><span class="icon_developer_modules"></span>Module Created</h1>
 <div class="form_container">

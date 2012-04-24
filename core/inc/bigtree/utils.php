@@ -361,7 +361,7 @@
 				The string response from the URL.
 		*/
 		
-		static function cURL($url,$post = array(),$options = array(),$strict_security = false) {
+		static function cURL($url,$post = "",$options = array(),$strict_security = false) {
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -369,10 +369,7 @@
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
 			}
-			if (count($post)) {
-				curl_setopt($ch, CURLOPT_POST, true);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-			}
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 			if (count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
@@ -507,16 +504,16 @@
 		*/
 		
 		static function formatVendorPrefixes($data) {
-		    $p = explode(":", $data[0]);
-		    $d = trim($data[1]);
-		    
-		    $return = $p[0] . ": $d; ";
-		    $return .= "-webkit-".$p[0].": $d; ";
-		    $return .= "-moz-".$p[0].": $d; ";
-		    $return .= "-ms-".$p[0].": $d; ";
-		    $return .= "-o-".$p[0].": $d; ";
-		    
-		    return $return;
+			$p = explode(":", $data[0]);
+			$d = trim($data[1]);
+			
+			$return = $p[0] . ": $d; ";
+			$return .= "-webkit-".$p[0].": $d; ";
+			$return .= "-moz-".$p[0].": $d; ";
+			$return .= "-ms-".$p[0].": $d; ";
+			$return .= "-o-".$p[0].": $d; ";
+			
+			return $return;
 		}
 		
 		/*

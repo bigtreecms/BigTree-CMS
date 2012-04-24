@@ -1,7 +1,7 @@
 <?
 	if (isset($_POST["data"])) {
 		$resources = json_decode(base64_decode($_POST["data"]),true);
-		foreach ($resources as &$val) {
+		foreach ($resources as $$val) {
 			if (is_array(json_decode($val,true))) {
 				$val = BigTree::untranslateArray(json_decode($val,true));
 			} else {
@@ -13,7 +13,7 @@
 	}
 	
 	if (isset($_POST["count"])) {
-		$bigtree_callout_count = $_POST["count"];
+		$count = $_POST["count"];
 	}
 	
 	$type = isset($_POST["type"]) ? $_POST["type"] : $type;
@@ -36,13 +36,15 @@
 			$subtitle = $options["subtitle"];
 			$options["directory"] = "files/pages/";
 			$value = $resources[$options["id"]];
-			$currently_key = "callouts[$bigtree_callout_count][currently_".$options["id"]."]";
+			$currently_key = "callouts[$count][currently_".$options["id"]."]";
 			include BigTree::path("admin/form-field-types/draw/$type.php");
 			$tabindex++;
 		}
 	}
 ?>
-
+<input type="hidden" name="callouts[<?=$count?>][display_default]" class="display_default" value="<?=$callout["display_default"]?>" />
+<input type="hidden" name="callouts[<?=$count?>][display_field]" class="display_field" value="callouts[<?=$count?>][<?=$callout["display_field"]?>]" />
+<input type="hidden" name="callouts[<?=$count?>][callout_count]" class="callout_count" value="<?=$count?>" />
 <script type="text/javascript">
 	BigTreeCustomControls();
 	

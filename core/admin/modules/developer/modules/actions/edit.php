@@ -9,31 +9,7 @@
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/actions/update/<?=$item["id"]?>/" class="module">
-		<section>
-			<fieldset>
-				<label class="required">Name</label>
-				<input type="text" name="name" class="required" value="<?=$item["name"]?>" />
-			</fieldset>
-			<fieldset>
-				<label>Route</label>
-				<input type="text" name="route" value="<?=$item["route"]?>" />
-			</fieldset>
-			<fieldset>
-				<label class="required">Image</label>
-				<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
-				<ul class="developer_icon_list">
-					<? foreach ($classes as $class) { ?>
-					<li>
-						<a href="#<?=$class?>"<? if ($class == $item["class"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
-					</li>
-					<? } ?>
-				</ul>
-			</fieldset>
-			<fieldset>
-				<label>In Navigation</label>
-				<input type="checkbox" name="in_nav" <? if ($item["in_nav"]) { ?>checked="checked" <? } ?>/>
-			</fieldset>
-		</section>
+		<? include BigTree::path("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>

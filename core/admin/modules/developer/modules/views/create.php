@@ -3,10 +3,12 @@
 
 	$breadcrumb[] = array("title" => "Created View", "href" => "#");
 
-	$columns = sqlcolumns($table);
+	$options = json_decode($options,true);
+	
+	$columns = @sqlcolumns($table);
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group") && !$columns["position"]) {
+	if (($type == "draggable" || $options["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	if ($actions["archive"] && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
@@ -22,11 +24,11 @@
 	if (count($errors)) {
 		$_SESSION["bigtree"]["developer"]["saved_view"] = $_POST;
 ?>
-<h1><span class="icon_developer_modules"></span>View Error</h1>
+<h1><span class="icon_developer_modules"></span>View Creation Error</h1>
 <div class="form_container">
 	<section>
 		<? foreach ($errors as $error) { ?>
-		<p class="error_message"><?=$error?></p>
+		<p><?=$error?></p>
 		<? } ?>
 	</section>
 	<footer>

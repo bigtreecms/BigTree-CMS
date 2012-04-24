@@ -63,7 +63,12 @@ $(document).ready(function() {
 	
 	// Removeable Resources
 	$(".remove_resource").live("click",function() {
-		$(this).parent().remove();
+		p = $(this).parent();
+		if (p.hasClass("currently_file")) {
+			p.remove();
+		} else {
+			p.hide().find("input, img").remove();
+		}
 		return false;
 	});
 	
@@ -95,6 +100,7 @@ $(document).ready(function() {
 		return false;
 	});
 	
+	// Tooltips
 	$(".has_tooltip").each(function() {
 		width = BigTree.WindowWidth();
 		offset = $(this).offset();
@@ -464,9 +470,9 @@ var BigTreeFileInput = Class.extend({
 		var x = e.pageX - ox;
 		var y = e.pageY - oy;
 		
-		if (this.Element.parents("#bigtree_dialog_window").length) {
-			x -= $("#bigtree_dialog_form").offset().left;
-			y -= $("#bigtree_dialog_form").offset().top - 30;
+		if (this.Element.parents(".bigtree_dialog_window").length) {
+			x -= this.Element.parents(".bigtree_dialog_form").offset().left;
+			y -= this.Element.parents(".bigtree_dialog_form").offset().top - 30;
 		}
 		
 		var w = this.Element.get(0).offsetWidth;
@@ -814,16 +820,16 @@ var BigTreeTagAdder = {
 // !BigTree Dialog Class
 var BigTreeDialog = Class.extend({
 
+	dialogWindow: false,
 	onComplete: false,
 	onCancel: false,
 
 	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
-		$("#bigtree_dialog_overlay, #bigtree_dialog_window").remove();
 		this.onComplete = oncomplete;
-		overlay = $('<div id="bigtree_dialog_overlay">');
-		ddwindow = $('<div id="bigtree_dialog_window">');
-		$("body").append(overlay).append(ddwindow);
+		overlay = $('<div class="bigtree_dialog_overlay">');
+		dialog_window = $('<div class="bigtree_dialog_window">');
+		$("body").append(overlay).append(dialog_window);
 		
 		if (altSaveText) {
 			saveText = altSaveText;
@@ -833,33 +839,35 @@ var BigTreeDialog = Class.extend({
 		
 		if (!noSave) {
 			if (icon) {
-				ddwindow.html('<h2><span class="icon_dialog_' + icon + '"></span>' + title + '</h2><form id="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button" id="bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
+				dialog_window.html('<h2><span class="icon_dialog_' + icon + '"></span>' + title + '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
 			} else {
-				ddwindow.html('<h2>' + title + '</h2><form id="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button" id="bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
+				dialog_window.html('<h2>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
 			}
 		} else {
-			ddwindow.html('<h2><a href="#" class="icon_delete" id="bigtree_dialog_close"></a>' + title + '</h2><form id="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
+			dialog_window.html('<h2><a href="#" class="icon_delete" class="bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
 		}		
 
-		leftd = parseInt((BigTree.WindowWidth() - $("#bigtree_dialog_window").width()) / 2);
-		topd = parseInt((BigTree.WindowHeight() - $("#bigtree_dialog_window").height()) / 2) + window.scrollY;
+		leftd = parseInt((BigTree.WindowWidth() - dialog_window.width()) / 2);
+		topd = parseInt((BigTree.WindowHeight() - dialog_window.height()) / 2);
 
-		$("#bigtree_dialog_window").css({ "top": topd + "px", "left": leftd + "px" });
+		dialog_window.css({ "top": topd + "px", "left": leftd + "px" });
 		
 		if (altOnCancel) {
 			this.onCancel = altOnCancel;
-			$("#bigtree_dialog_close").click(altOnCancel);		
+			dialog_window.find(".bigtree_dialog_close").click(altOnCancel);		
 		} else {
-			$("#bigtree_dialog_close").click($.proxy(this.DialogClose,this));
+			dialog_window.find(".bigtree_dialog_close").click($.proxy(this.DialogClose,this));
 		}
 		
 		if (altOnComplete) {
-			$("#bigtree_dialog_form").submit(this.onComplete);
+			dialog_window.find(".bigtree_dialog_form").submit(this.onComplete);
 		} else {
-			$("#bigtree_dialog_form").submit($.proxy(this.DialogSubmit,this));
+			dialog_window.find(".bigtree_dialog_form").submit($.proxy(this.DialogSubmit,this));
 		}
 		
-		ddwindow.find("input[type=submit]").focus();
+		dialog_window.find("input[type=submit]").focus();
+		
+		this.dialogWindow = dialog_window;
 	},
 	
 	CheckForEsc: function(e) {
@@ -874,13 +882,14 @@ var BigTreeDialog = Class.extend({
 	},
 
 	DialogClose: function() {
-		$("#bigtree_dialog_overlay, #bigtree_dialog_window").remove();
+		$(".bigtree_dialog_overlay").last().remove();
+		$(".bigtree_dialog_window").last().remove();
 		$("body").off("keyup");
 		return false;
 	},
 
 	DialogSubmit: function() {
-		this.onComplete($("#bigtree_dialog_form").serializeJSON());
+		this.onComplete(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON());
 		if (this.onCancel) {
 			this.onCancel();
 		} else {
@@ -904,7 +913,6 @@ var BigTreeFileManager = {
 	fieldName: false,
 	minHeight: false,
 	minWidth: false,
-	overlay: false,
 	previewPrefix: false,
 	startSearchTimer: false,
 	titleSaveTimer: false,
@@ -913,22 +921,20 @@ var BigTreeFileManager = {
 	// Methods
 	
 	addFile: function() {
-		$("#file_browser").hide();
-		new BigTreeDialog("Upload File",'<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',$.proxy(this.createFile,this),"folder",false,"Upload File",true,$.proxy(this.cancelAdd,this));
+		new BigTreeDialog("Upload File",'<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',$.proxy(this.createFile,this),"folder",false,"Upload File",true,this.cancelAdd);
 		
 		return false;
 	},
 	
 	addFolder: function() {
-		$("#file_browser").hide();
-		new BigTreeDialog("New Folder",'<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',$.proxy(this.createFolder,this),"folder",false,"Create Folder",true,$.proxy(this.cancelAdd,this));
+		new BigTreeDialog("New Folder",'<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',$.proxy(this.createFolder,this),"folder",false,"Create Folder",true,this.cancelAdd);
 		
 		return false;
 	},
 	
 	cancelAdd: function() {
-		$("#bigtree_dialog_window").remove();
-		$("#file_browser").show();
+		$(".bigtree_dialog_overlay").last().remove();
+		$(".bigtree_dialog_window").last().remove();
 		
 		return false;
 	},
@@ -962,24 +968,27 @@ var BigTreeFileManager = {
 	},
 	
 	closeFileBrowser: function() {
-		$("#bigtree_dialog_overlay, #file_browser").remove();
+		$(".bigtree_dialog_overlay").last().remove();
+		$("#file_browser").remove();
 		$("#mceModalBlocker").show();
 		
 		return false;
 	},
 	
 	createFile: function() {
+		$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		$("#bigtree_dialog_form").attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
-		$("#bigtree_dialog_form footer *").hide();
-		$("#bigtree_dialog_form footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading file. Please wait…</p>'));
+		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
+		$(".bigtree_dialog_form").last().find("footer *").hide();
+		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading file. Please wait…</p>'));
 	},
 	
 	createFolder: function(data) {
+		$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		$("#bigtree_dialog_form").attr("action","admin_root/ajax/file-browser/create-folder/").attr("target","file_manager_upload_frame");
-		$("#bigtree_dialog_form footer *").hide();
-		$("#bigtree_dialog_form footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
+		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/create-folder/").attr("target","file_manager_upload_frame");
+		$(".bigtree_dialog_form").last().find("footer *").hide();
+		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
 	},
 	
 	disableCreate: function() {
@@ -1028,8 +1037,8 @@ var BigTreeFileManager = {
 	},
 	
 	finishedUpload: function(file,type,width,height) {
-		$("#bigtree_dialog_window, #file_manager_upload_frame").remove();
-		$("#file_browser").show();
+		$(".bigtree_dialog_window").last().remove();
+		$("#file_manager_upload_frame").remove();
 		
 		if (this.type == "image" || this.type == "photo-gallery") {
 			this.openImageFolder(this.currentFolder);	
@@ -1100,7 +1109,7 @@ var BigTreeFileManager = {
 		topOffset = Math.round((height - 500) / 2);
 		
 		// Create the window.
-		this.overlay = $('<div id="bigtree_dialog_overlay">');
+		overlay = $('<div class="bigtree_dialog_overlay">');
 		this.browser = $('<div id="file_browser">');
 		this.browser.css({ top: topOffset + "px", left: leftOffset + "px" });
 		this.browser.html('\
@@ -1131,7 +1140,7 @@ var BigTreeFileManager = {
 	</footer>\
 </form>');
 
-		$("body").append(this.overlay).append(this.browser);
+		$("body").append(overlay).append(this.browser);
 		
 		// Hook the cancel, submit, and search.
 		$("#file_browser_cancel").click($.proxy(this.closeFileBrowser,this));
@@ -1431,6 +1440,80 @@ var BigTreeManyToMany = Class.extend({
 	}
 });
 
+// !BigTreeFieldSelect
+var BigTreeFieldSelect = Class.extend({
+	addCallback: false,
+	currentElement: 0,
+	elements: false,
+	container: false,
+	
+	init: function(selector,elements,callback) {
+		fs = $('<div class="field_selector">');
+		ophtml = "";
+		for (i = 0; i < elements.length; i++) {
+			ophtml += '<a href="#' + elements[i].title + '">' + elements[i].field + "</a>";
+		}
+		if (elements.length == 0) {
+			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p></p>' + ophtml + '</span>');
+		} else {
+			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p>' + elements[0].field + '</p>' + ophtml + '</span>');
+		}
+		$(selector).prepend(fs);
+		
+		fs.find("p").click(function() {
+			p = $(this).parent();
+			if (p.find("a").length > 1) {
+				$(this).parents(".field_selector").find(".dd").show();
+			}
+		});
+		
+		fs.find(".dd").on("click","a",$.proxy(function(ev) {
+			el = ev.currentTarget;
+			p = $(el).parents(".field_selector");
+			p.find("p").html($(el).html());
+			i = p.find(".dd").hide().find("a").index(el);
+			this.currentElement = i;
+			return false;
+		},this));
+		
+		fs.find(".add_field").click($.proxy(function() {
+			el = this.elements[this.currentElement];
+			this.addCallback(el,this);
+			return false;
+		},this));
+		
+		this.elements = elements;
+		this.container = fs;
+		this.addCallback = callback;
+		
+		if (this.elements.length == 0) {
+			this.container.hide();
+		}
+	},
+	
+	removeCurrent: function() {
+		this.container.find(".dd a").eq(this.currentElement).remove();
+		this.container.find(".current a").eq(this.currentElement).remove();
+		this.elements.splice(this.currentElement,1);
+		this.currentElement = 0;
+		if (this.elements.length == 0) {
+			this.container.hide();
+		} else {
+			this.container.find("p").html(this.elements[0].field);
+		}
+	},
+	
+	addField: function(field,title) {
+		this.container.find(".dd").append($('<a href="#' + title + '">' + field + '</a>'));
+		this.container.find(".current").append($('<a href="#' + title + '">' + field + '</a>'));
+		this.elements.push({ field: field, title: title });
+		if (this.elements.length == 1) {
+			this.container.find("p").html(this.elements[0].field);
+			this.container.show();
+		}
+	}
+});
+
 // !BigTreeFormValidator
 var BigTreeFormValidator = Class.extend({
 	form: false,
@@ -1589,7 +1672,7 @@ var BigTreeFoundryBrowser = Class.extend({
 
 	init: function(directory,oncomplete) {
 		this.onComplete = oncomplete;
-		overlay = $('<div id="bigtree_dialog_overlay">');
+		overlay = $('<div class="bigtree_dialog_overlay">');
 		browserwindow = $('<div id="bigtree_foundry_browser_window">');
 		browserwindow.html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Please Wait...</form>');
 		$("body").append(overlay).append(browserwindow);
@@ -1605,7 +1688,8 @@ var BigTreeFoundryBrowser = Class.extend({
 	BrowserSubmit: function(ev) {
 		data = { file: $("#bigtree_foundry_selected_file").val(), directory: $("#bigtree_foundry_directory").val() };
 		this.onComplete(data);
-		$("#bigtree_dialog_overlay, #bigtree_foundry_browser_window").remove();
+		$(".bigtree_dialog_overlay").last().remove();
+		$("#bigtree_foundry_browser_window").remove();
 		return false;
 
 	}

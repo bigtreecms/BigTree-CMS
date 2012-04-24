@@ -3,6 +3,9 @@
 	$GLOBALS["bigtree"]["version"] = "4.0b2";		
 	$GLOBALS["wiki"] = "http://wiki.bigtreecms.com/index.php/";
 	
+	// Make sure no notice gets thrown for $path being too small.
+	$path = array_pad($path,2,"");
+	
 	// If they're requesting images, css, or js, just give it to them.
 	if ($path[1] == "images") {
 		$x = 2;
@@ -16,9 +19,9 @@
 		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
-			$ims = $headers["If-Modified-Since"];
+			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
 		} else {
-			$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
 		
 		$last_modified = filemtime($ifile);
@@ -58,9 +61,9 @@
 		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
-			$ims = $headers["If-Modified-Since"];
+			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
 		} else {
-			$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
 		
 		$last_modified = filemtime($ifile);
@@ -75,8 +78,6 @@
 	}
 	
 	if ($path[1] == "js") {
-		include "../templates/config.php";
-		
 		$pms = ini_get('post_max_size');
 		$mul = substr($pms,-1);
 		$mul = ($mul == 'M' ? 1048576 : ($mul == 'K' ? 1024 : ($mul == 'G' ? 1073741824 : 1)));
@@ -98,9 +99,9 @@
 		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
-			$ims = $headers["If-Modified-Since"];
+			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
 		} else {
-			$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
 		
 		$last_modified = filemtime($ifile);

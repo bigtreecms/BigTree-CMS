@@ -9,9 +9,9 @@
 		<script type="text/javascript" src="<?=$admin_root?>js/pages.js"></script>
 	</head>
 	<body>
-		<div id="bigtree_dialog_window" class="front_end_editor">
+		<div class="bigtree_dialog_window front_end_editor">
 			<h2><strong>Warning:</strong> This page is currently locked.</h2>
-			<form id="bigtree_dialog_form" method="post" action="<?=$admin_root?>pages/front-end-update/<?=$page["id"]?>/" enctype="multipart/form-data">
+			<form class="bigtree_dialog_form" method="post" action="<?=$admin_root?>pages/front-end-update/<?=$page["id"]?>/" enctype="multipart/form-data">
 				<div class="overflow">
 					<p>
 						<strong><?=$user["name"]?></strong> currently has this page locked for editing.  It was last accessed by <strong><?=$user["name"]?></strong> on <strong><?=date("F j, Y @ g:ia",strtotime($f["last_accessed"]))?></strong>.<br />

@@ -30,8 +30,9 @@
 			array("link" => "field-types", "title" => "Field Types", "access" => 2),
 			array("link" => "feeds", "title" => "Feeds", "access" => 2),
 			array("link" => "settings", "title" => "Settings", "access" => 2),
-			array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
 			array("link" => "foundry/install", "title" => "Install Package", "access" => 2),
+			array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
+			array("link" => "payment-gateway", "title" => "Payment Gateway", "access" => 2)
 		))
 	);
 	
@@ -48,8 +49,6 @@
 		<meta charset="utf-8" />
 		<title><? if ($module_title) { ?><?=$module_title?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=$admin_root?>css/main.css" type="text/css" media="screen" />
-		<link media="only screen and (max-device-width: 480px)" href="<?=$admin_root?>css/mobile.css" type= "text/css" rel="stylesheet" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
 		<? if (is_array($css)) { foreach ($css as $style) { ?>
 		<link rel="stylesheet" href="<?=$admin_root?>css/<?=$style?>" type="text/css" media="screen" />
 		<? } } ?>

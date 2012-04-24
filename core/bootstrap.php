@@ -7,8 +7,6 @@
 	$GLOBALS["server_root"] = str_replace("core/bootstrap.php","",__FILE__);
 	$GLOBALS["site_root"] = $GLOBALS["server_root"]."site/";
 	$GLOBALS["www_root"] = $config["www_root"];
-	$GLOBALS["resource_root"] = $config["resource_root"];
-	$GLOBALS["gmaps_key"] = $config["gmaps_key"];
 	$GLOBALS["admin_ajax_root"] = $GLOBALS["server_root"]."core/admin/ajax/";
 	if (isset($config["root_page"])) {
 		$GLOBALS["root_page"] = $config["root_page"];
@@ -65,6 +63,7 @@
 		"PasswordHash" => "inc/utils/PasswordHash.php",
 		"TextStatistics" => "inc/utils/text-statistics.php",
 		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
+		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
 		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",

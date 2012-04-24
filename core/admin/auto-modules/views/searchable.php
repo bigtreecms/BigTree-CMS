@@ -37,7 +37,11 @@
 		?>
 		<span class="view_status">Status</span>
 		<?
-			foreach ($actions as $action => $status) {
+			foreach ($actions as $action => $data) {
+				if ($data != "on") {
+					$data = json_decode($data,true);
+					$action = $data["name"];
+				}
 		?>
 		<span class="view_action"><?=$action?></span>
 		<?
@@ -56,7 +60,7 @@
 	var sortdir = "<?=$view["options"]["sort_direction"]?>";
 	var search = "";
 	
-	function reSearch() {
+	function _local_search() {
 		search = escape($("#search").val());
 		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
 	}
@@ -91,8 +95,9 @@
 	
 	$("#view_paging a").live("click",function() {
 		mpage = BigTree.CleanHref($(this).attr("href"));
-		if ($(this).hasClass("active") || $(this).hasClass("disabled"))
+		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
+		}
 		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
 
 		return false;

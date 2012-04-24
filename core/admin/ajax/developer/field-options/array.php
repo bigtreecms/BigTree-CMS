@@ -2,8 +2,8 @@
 <fieldset>
 	<div class="list_attr" id="pop_option_list">
 		<ul>
+			<li>Array Key</li>
 			<li>Title</li>
-			<li>Key</li>
 		</ul>
 		<?
 			// If we have fields already, show them.
@@ -13,10 +13,10 @@
 		?>
 		<ul>
 			<li>
-				<input type="text" name="fields[<?=$x?>][title]" value="<?=htmlspecialchars($option["title"])?>" />
+				<input type="text" name="fields[<?=$x?>][key]" value="<?=htmlspecialchars($option["key"])?>" />
 			</li>
 			<li>
-				<input type="text" name="fields[<?=$x?>][key]" value="<?=htmlspecialchars($option["key"])?>" />
+				<input type="text" name="fields[<?=$x?>][title]" value="<?=htmlspecialchars($option["title"])?>" />
 			</li>
 			<li class="del"><a href="#"><img src="<?=$admin_root?>images/currently-kill.png" alt="" /></a></li>
 		</ul>
@@ -29,10 +29,10 @@
 		?>
 		<ul>
 			<li>
-				<input type="text" name="fields[<?=$x?>][title]" value="" />
+				<input type="text" name="fields[<?=$x?>][key]" value="" />
 			</li>
 			<li>
-				<input type="text" name="fields[<?=$x?>][key]" value="" />
+				<input type="text" name="fields[<?=$x?>][title]" value="" />
 			</li>
 			<li class="del"><a href="#"><img src="<?=$admin_root?>images/currently-kill.png" alt="" /></a></li>
 		</ul>
@@ -64,13 +64,13 @@
 
 		ul = $('<ul>');
 		
-		li_value = $('<li>');
-		li_value.html('<input type="text" name="fields[' + option_count + '][title]" value="" />');
-		ul.append(li_value);
-		
 		li_description = $('<li>');
 		li_description.html('<input type="text" name="fields[' + option_count + '][key]" value="" />');
 		ul.append(li_description);
+		
+		li_value = $('<li>');
+		li_value.html('<input type="text" name="fields[' + option_count + '][title]" value="" />');
+		ul.append(li_value);
 		
 		li_del = $('<li class="del">');
 		li_del.html('<a href="#"><img src="<?=$admin_root?>images/currently-kill.png" alt="" /></a>');

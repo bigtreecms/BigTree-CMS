@@ -21,7 +21,7 @@
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($tblfields as $field) {
 			if (!in_array($field,$reserved) && !in_array($field,$used)) {
-				$unused[$field] = ucwords(str_replace("_"," ",$field));
+				$unused[] = array("field" => $field, "title" => ucwords(str_replace("_"," ",$field)));
 			}
 		}		
 	}
@@ -30,20 +30,14 @@
 
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
+	
+	$unused[] = array("field" => "-- Custom --", "title" => "");
 ?>
 <fieldset id="fields"<? if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<? } ?>>
 	<label>Fields</label>
 	
 	<div class="form_table">
-		<header>
-			<a href="#" class="add add_field"><span></span>Add</a>
-			<select id="unused_field" class="custom_control">
-				<? foreach ($unused as $field => $title) { ?>
-				<option value="<?=htmlspecialchars($title)?>"><?=htmlspecialchars($field)?></option>
-				<? } ?>
-				<option value="">-- Custom --</option>
-			</select>
-		</header>
+		<header></header>
 		<div class="labels">
 			<span class="developer_view_title">Title</span>
 			<span class="developer_view_parser">Parser</span>
@@ -100,7 +94,7 @@
 		<li>
 			<input class="custom_control" type="checkbox" name="actions[<?=$data["route"]?>]" checked="checked" value="<?=htmlspecialchars($action)?>" />
 			<a href="#" class="action active">
-				<span class="<?=$action["class"]?>"></span>
+				<span class="<?=$data["class"]?>"></span>
 			</a>
 		</li>
 		<?
@@ -132,18 +126,15 @@
 	var current_editing_key;
 	
 	$(".form_table .icon_delete").live("click",function() {
-		//new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
-			tf = $(this).parents("li").find("section").find("input");
-			
-			title = tf.val();
-			key = tf.attr("name").substr(7);
-			key = key.substr(0,key.length-8);
-			
-			sel = $("#unused_field").get(0);
-			sel.options[sel.options.length] = new Option(key,title,false,false);
-			$(this).parents("li").remove();
-		//},this),"delete",false,"OK");
+		tf = $(this).parents("li").find("section").find("input");
 		
+		title = tf.val();
+		key = tf.attr("name").substr(7);
+		key = key.substr(0,key.length-8);
+		
+		fieldSelect.addField(key,title);
+
+		$(this).parents("li").remove();		
 		return false;
 	});
 		
@@ -160,34 +151,6 @@
 		return false;
 	});
 		
-	$("#field_area .add").click(function() {
-		un = $("#unused_field").get(0);
-		key = un.options[un.selectedIndex].text;
-		title = un.options[un.selectedIndex].value;
-		
-		if (title) {
-			li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-		
-			un.remove(un.selectedIndex);
-			$("#sort_table").append(li);
-			_local_hooks();
-		} else {
-			new BigTreeDialog("Add Custom Column",'<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset><label>Column Title</label><input type="text" name="title" /></fieldset>',function(data) {
-				key = htmlspecialchars(data.key);
-				title = htmlspecialchars(data.title);
-				
-				li = $('<li id="row_' + key + '">');
-				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-				$("#sort_table").append(li);
-				_local_hooks();
-			});
-		}
-
-		return false;
-	});
-	
-	
 	$(".add_action").click(function() {
 		new BigTreeDialog("Add Custom Action",'<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. button_edit)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',function(data) {
 			li = $('<li>');
@@ -203,4 +166,28 @@
 	}
 	
 	_local_hooks();
+	
+	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
+		title = el.title;
+		key = el.field;
+		
+		if (title) {
+			li = $('<li id="row_' + key + '">');
+			li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+		
+			fs.removeCurrent();
+			$("#sort_table").append(li);
+			_local_hooks();
+		} else {
+			new BigTreeDialog("Add Custom Column",'<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset><label>Column Title</label><input type="text" name="title" /></fieldset>',function(data) {
+				key = htmlspecialchars(data.key);
+				title = htmlspecialchars(data.title);
+				
+				li = $('<li id="row_' + key + '">');
+				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+				$("#sort_table").append(li);
+				_local_hooks();
+			});
+		}
+	});
 </script>

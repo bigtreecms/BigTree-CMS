@@ -521,7 +521,7 @@
 				$item = $item["id"];
 			}
 			
-			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '".$this->$Module."' AND bigtree_tags_rel.entry = '$item' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '".$this->Module."' AND bigtree_tags_rel.entry = '$item' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
 
 			$tags = array();
 			while ($f = sqlfetch($q)) {

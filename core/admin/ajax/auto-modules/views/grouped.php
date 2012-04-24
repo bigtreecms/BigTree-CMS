@@ -11,7 +11,7 @@
 
 	$suffix = $suffix ? "-".$suffix : "";
 	$o = $options;
-	$view["per_page"] = 10000;
+	$view["options"]["per_page"] = 10000;
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
@@ -25,21 +25,25 @@
 ?>
 <header>
 	<?
-			$x = 0;
-			foreach ($fields as $key => $field) {
-				$x++;
+		$x = 0;
+		foreach ($fields as $key => $field) {
+			$x++;
 	?>
 	<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
 	<?
-			}
+		}
 	?>
 	<span class="view_status">Status</span>
 	<?	
-			foreach ($actions as $action => $status) {
+		foreach ($actions as $action => $data) {
+			if ($data != "on") {
+				$data = json_decode($data,true);
+				$action = $data["name"];
+			}
 	?>
 	<span class="view_action"><?=$action?></span>
 	<?
-			}
+		}
 	?>
 </header>
 <?	

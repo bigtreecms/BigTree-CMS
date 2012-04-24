@@ -226,6 +226,7 @@
 		$cms->drawXMLSitemap();
 	}
 	if ($path[0] == "feeds") {
+		bigtree_setup_sql_connection();
 		$route = $path[1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
@@ -352,7 +353,9 @@
 		// Let's check if it's in the old routing table.
 		$cms->checkOldRoutes($path);
 		// It's not, it's a 404.
-		$cms->handle404($_GET["bigtree_htaccess_url"]);		
+		if ($cms->handle404($_GET["bigtree_htaccess_url"])) {
+			include "../templates/basic/_404.php";
+		}
 	}
 	
 	$content = ob_get_clean();

@@ -3,7 +3,7 @@
 
 	$("#search").keyup(function() {
 		clearTimeout(searchTimer);
-		searchTimer = setTimeout("reSearch();",400);
+		searchTimer = setTimeout("_local_search();",400);
 	});
 	
 	$(".icon_edit").live("click",function() {

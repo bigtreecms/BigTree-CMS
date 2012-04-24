@@ -22,7 +22,11 @@
 		?>
 		<span class="view_status">Status</span>		
 		<?
-			foreach ($actions as $action => $status) {
+			foreach ($actions as $action => $data) {
+				if ($data != "on") {
+					$data = json_decode($data,true);
+					$action = $data["name"];
+				}
 		?>
 		<span class="view_action"><?=$action?></span>
 		<?
@@ -36,7 +40,7 @@
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script type="text/javascript">
-	function reSearch() {
+	function _local_search() {
 		$("#sort_table").load("<?=$admin_root?>ajax/auto-modules/views/draggable/", { view: <?=$view["id"]?>, search: $("#search").val() }, _local_createSortable);
 	}
 	

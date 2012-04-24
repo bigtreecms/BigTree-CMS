@@ -40,7 +40,9 @@ Changelog
 - Added + icons to buttons in forms to bring better attention to them adding things.
 - Removed extraneous old code from BigTree 3.3
 - Fixed some HTML5 validation errors.
-- Fixed a </li> closing bug that was causing Internet Explorer to not render the nav properly.
+- Fixed a tag closing bug that was causing Internet Explorer to not render the nav properly.
+- Fixed a bug with tagging items not sticking.
+- Fixed a message when deleting a 404.
 
 ### 4.0b1
 - Initial public release.

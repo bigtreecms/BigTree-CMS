@@ -32,6 +32,13 @@
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
 	
+	// Un-htmlspecialchar everything since createPage / updatePage is going to re-do it.
+	foreach ($pdata as $key => $val) {
+		if (!is_array($val)) {
+			$pdata[$key] = htmlspecialchars_decode($val);
+		}
+	}
+	
 	$pdata["resources"] = $_POST["resources"];
 	
 	if ($publisher && $_POST["ptype"] == "Save & Publish") {

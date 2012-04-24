@@ -59,8 +59,8 @@
 	$form_id = $admin->createModuleForm($_POST["title"],$_POST["table"],$fields);
 	
 	// Add module actions
-	$admin->createModuleAction($module,"Add ".$_POST["title"],"add","on","icon_small_add",$form_id);
-	$admin->createModuleAction($module,"Edit ".$_POST["title"],"edit","","icon_small_edit",$form_id);
+	$admin->createModuleAction($module,"Add ".$_POST["title"],"add","on","add",$form_id);
+	$admin->createModuleAction($module,"Edit ".$_POST["title"],"edit","","edit",$form_id);
 	
 	header("Location: ../view/$module/".$_POST["table"]."/".urlencode(htmlspecialchars($_POST["title"]))."/");
 	die();

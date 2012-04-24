@@ -66,33 +66,33 @@
 
 <script type="text/javascript">
 	$(".form_container nav a").click(function() {
-	    if ($(this).hasClass("active")) {
-	    	return;
-	    }
-	    
-	    t = $(".form_container").offset().top;
-	    if (window.scrollY > t) {
-	    	$('html, body').animate({
-	    		scrollTop: $(".form_container").offset().top
-	    	}, 200);
-	    }
-	    
-	    href = $(this).attr("href").substr(1);
-	    $(".form_container > form > section").hide();
-	    $(".form_container nav a").removeClass("active");
-	    $(this).addClass("active");
-	    $("#" + href).show();
-	    
-	    // Manage the "Next" buttons
-	    nav = $(".form_container nav a");
-	    index = nav.index(this);
-	    if (index == nav.length - 1) {
-	    	$(".next").hide();
-	    } else {
-	    	$(".next").show();				
-	    }
-	    
-	    return false;
+		if ($(this).hasClass("active")) {
+			return;
+		}
+		
+		t = $(".form_container").offset().top;
+		if (window.scrollY > t) {
+			$('html, body').animate({
+				scrollTop: $(".form_container").offset().top
+			}, 200);
+		}
+		
+		href = $(this).attr("href").substr(1);
+		$(".form_container > form > section").hide();
+		$(".form_container nav a").removeClass("active");
+		$(this).addClass("active");
+		$("#" + href).show();
+		
+		// Manage the "Next" buttons
+		nav = $(".form_container nav a");
+		index = nav.index(this);
+		if (index == nav.length - 1) {
+			$(".next").hide();
+		} else {
+			$(".next").show();				
+		}
+		
+		return false;
 	});
 
 	var template = "<?=$default_template?>";

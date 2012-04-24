@@ -415,7 +415,7 @@
 				resources - An array of resources.
 		*/
 		
-		function createCallout($id,$name,$description,$level,$resources) {
+		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = '<?
 	/*
@@ -430,12 +430,12 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "title" && $key != "id" && $key != "type") {
+						if ($key != "title" && $key != "id" && $key != "type" && $key != "display_field" && $key != "display_default") {
 							$resource[$key] = $val;
 						}
 					}
 					
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 					
 					$resource["id"] = htmlspecialchars($resource["id"]);
 					$resource["title"] = htmlspecialchars($resource["title"]);
@@ -454,13 +454,15 @@
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			$level = mysql_real_escape_string($level);
 			$resources = mysql_real_escape_string(json_encode($clean_resources));
+			$display_default = mysql_real_escape_string($display_default);
+			$display_field = mysql_real_escape_string($display_field);
 			
 			if (!file_exists($GLOBALS["server_root"]."templates/callouts/".$id.".php")) {
 				file_put_contents($GLOBALS["server_root"]."templates/callouts/".$id.".php",$file_contents);
 				chmod($GLOBALS["server_root"]."templates/callouts/".$id.".php",0777);
 			}
 			
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`) VALUES ('$id','$name','$description','$resources','$level')");
+			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
 		}
 		
 		/*
@@ -687,9 +689,11 @@
 				icon - The icon class for the action.
 				form - Optional auto module form id.
 				view - Optional auto module view id.
+				level - The required access level.
+				position - The position in the list of actions.
 		*/
 		
-		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0) {
+		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0,$position = 0) {
 			$module = mysql_real_escape_string($module);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
 			$in_nav = mysql_real_escape_string($in_nav);
@@ -697,6 +701,7 @@
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$form = mysql_real_escape_string($form);
 			$view = mysql_real_escape_string($view);
+			$level = mysql_real_escape_string($level);
 		
 			$oroute = $route;
 			$x = 2;
@@ -705,7 +710,7 @@
 				$x++;
 			}
 			
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`form`,`view`) VALUES ('$module','$name','$route','$in_nav','$icon','$form','$view')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level','$form','$view','$position')");
 		}
 		
 		/*
@@ -1155,22 +1160,22 @@
 		
 			$clean_resources = array();
 			foreach ($resources as $resource) {
-			    if ($resource["id"]) {
-			    	$options = json_decode($resource["options"],true);
-			    	foreach ($options as $key => $val) {
-			    		if ($key != "title" && $key != "id" && $key != "type") {
-			    			$resource[$key] = $val;
-			    		}
-			    	}
-			    	
-			    	$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
-			    	
-			    	$resource["id"] = htmlspecialchars($resource["id"]);
-			    	$resource["title"] = htmlspecialchars($resource["title"]);
-			    	$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
-			    	unset($resource["options"]);
-			    	$clean_resources[] = $resource;
-			    }
+				if ($resource["id"]) {
+					$options = json_decode($resource["options"],true);
+					foreach ($options as $key => $val) {
+						if ($key != "title" && $key != "id" && $key != "type") {
+							$resource[$key] = $val;
+						}
+					}
+					
+					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					
+					$resource["id"] = htmlspecialchars($resource["id"]);
+					$resource["title"] = htmlspecialchars($resource["title"]);
+					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					unset($resource["options"]);
+					$clean_resources[] = $resource;
+				}
 			}
 						
 			
@@ -2758,10 +2763,13 @@
 				return $pp;
 			}
 
-			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"),true);
+			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"));
+			$parent = $parent["parent"];
+			
 			$pp = $u["permissions"]["page"][$parent];
 			while ((!$pp || $pp == "i") && $parent) {
-				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"),true);
+				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"));
+				$parent = $parent["parent"];
 				$pp = $u["permissions"]["page"][$parent];
 			}
 
@@ -2977,11 +2985,11 @@
 			$saved = array();
 			$q = sqlquery("SELECT bigtree_users.name, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
 			while ($f = sqlfetch($q)) {
-			    if ($f["saved"]) {
-			    	$saved[] = $f;
-			    } else {
-			    	$unsaved[] = $f;
-			    }
+				if ($f["saved"]) {
+					$saved[] = $f;
+				} else {
+					$unsaved[] = $f;
+				}
 			}
 			
 			return array("saved" => $saved, "unsaved" => $unsaved);
@@ -4849,13 +4857,13 @@
 				resources - An array of resources.
 		*/
 		
-		function updateCallout($id,$name,$description,$level,$resources) {
+		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			$r = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "name" && $key != "id" && $key != "type")
+						if ($key != "name" && $key != "id" && $key != "type" && $key != "display_field" && $key != "display_default")
 							$resource[$key] = $val;
 					}
 					$resource["id"] = htmlspecialchars($resource["id"]);
@@ -4871,8 +4879,10 @@
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			$level = mysql_real_escape_string($level);
 			$resources = mysql_real_escape_string(json_encode($r));
+			$display_default = mysql_real_escape_string($display_default);
+			$display_field = mysql_real_escape_string($display_field);
 			
-			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default' WHERE id = '$id'");
 		}
 		
 		/*
@@ -4888,7 +4898,7 @@
 			global $cms;
 			
 			$page = mysql_real_escape_string($page);
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page'");
+			$q = sqlquery("SELECT id,path FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
 				$oldpath = $f["path"];
 				$path = $this->getFullNavigationPath($f["id"]);
@@ -4989,14 +4999,16 @@
 				route - The action route.
 				in_nav - Whether the action is in the navigation.
 				icon - The icon class for the action.
+				level - The required access level.
 		*/
 		
-		function updateModuleAction($id,$name,$route,$in_nav,$icon) {
+		function updateModuleAction($id,$name,$route,$in_nav,$icon,$level) {
 			$id = mysql_real_escape_string($id);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
 			$in_nav = mysql_real_escape_string($in_nav);
 			$icon = mysql_real_escape_string($icon);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
+			$level = mysql_real_escape_string($level);
 			
 			$item = $this->getModuleAction($id);
 
@@ -5007,7 +5019,7 @@
 				$x++;
 			}
 			
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level' WHERE id = '$id'");
 		}
 		
 		/*
@@ -5168,7 +5180,14 @@
 					}
 				}
 			}
-			$in_nav = mysql_real_escape_string($data["in_nav"]);
+			
+			// If this is top level nav and the user isn't a developer, use what the current state is.
+			if (!$current["parent"] && $this->Level < 2) {
+				$in_nav = mysql_real_escape_string($current["in_nav"]);
+			} else {
+				$in_nav = mysql_real_escape_string($data["in_nav"]);			
+			}
+			
 			$redirect_lower = mysql_real_escape_string($data["redirect_lower"]);
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
@@ -5291,9 +5310,21 @@
 				$this->stop("You are not allowed to move pages.");
 			}
 			
+			// Get the existing path so we can create a route history
+			$current = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '$page'"));
+			$old_path = mysql_real_escape_string($current["path"]);
+			
 			sqlquery("UPDATE bigtree_pages SET parent = '$parent' WHERE id = '$page'");
-			$path = $this->getFullNavigationPath($page);
-			sqlquery("UPDATE bigtree_pages SET path = '".mysql_real_escape_string($path)."' WHERE id = '$page'");
+			$path = mysql_real_escape_string($this->getFullNavigationPath($page));
+			
+			// Set the route history
+			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '$old_path'");
+			sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$old_path','$path')");
+			
+			// Update the page with its new path.
+			sqlquery("UPDATE bigtree_pages SET path = '$path' WHERE id = '$page'");
+			
+			// Update the paths of any child pages.
 			$this->updateChildPagePaths($page);
 		}
 		
@@ -5477,20 +5508,20 @@
 		function updateTemplate($id,$name,$description,$level,$module,$image,$callouts_enabled,$resources) {
 			$clean_resources = array();
 			foreach ($resources as $resource) {
-			    if ($resource["id"]) {
-			    	$options = json_decode($resource["options"],true);
-			    	foreach ($options as $key => $val) {
-			    		if ($key != "title" && $key != "id" && $key != "subtitle" && $key != "type") {
-			    			$resource[$key] = $val;
-			    		}
-			    	}
-			    	
-			    	$resource["id"] = htmlspecialchars($resource["id"]);
-			    	$resource["title"] = htmlspecialchars($resource["title"]);
-			    	$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
-			    	unset($resource["options"]);
-			    	$clean_resources[] = $resource;
-			    }
+				if ($resource["id"]) {
+					$options = json_decode($resource["options"],true);
+					foreach ($options as $key => $val) {
+						if ($key != "title" && $key != "id" && $key != "subtitle" && $key != "type") {
+							$resource[$key] = $val;
+						}
+					}
+					
+					$resource["id"] = htmlspecialchars($resource["id"]);
+					$resource["title"] = htmlspecialchars($resource["title"]);
+					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					unset($resource["options"]);
+					$clean_resources[] = $resource;
+				}
 			}
 			
 			$id = mysql_real_escape_string($id);

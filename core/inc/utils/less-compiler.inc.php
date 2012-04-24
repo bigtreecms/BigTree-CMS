@@ -27,9 +27,9 @@
  * the parse step. A reduction is done on the mixed in block as it is mixed in.
  *
  *  See the following:
- *    - entry point for parsing and compiling: lessc::parse()
- *    - parsing: lessc::parseChunk()
- *    - compiling: lessc::compileBlock()
+ *	- entry point for parsing and compiling: lessc::parse()
+ *	- parsing: lessc::parseChunk()
+ *	- compiling: lessc::compileBlock()
  *
  */
 class lessc {
@@ -92,7 +92,7 @@ class lessc {
 		'ms', 's', // Times
 		'Hz', 'kHz', //Frequencies
 	);
-    
+	
 	public $importDisabled = false;
 	public $importDir = '';
 
@@ -109,8 +109,8 @@ class lessc {
 	 * it must evaluate to a single value and thus is less ambiguous.
 	 *
 	 * Consider:
-	 *     property1: 10 -5; // is two numbers, 10 and -5
-	 *     property2: (10 -5); // should evaluate to 5
+	 *	 property1: 10 -5; // is two numbers, 10 and -5
+	 *	 property2: (10 -5); // should evaluate to 5
 	 */
 	protected $inParens = false;
 
@@ -1364,7 +1364,7 @@ class lessc {
 	 * Values in lessphp are typed by being wrapped in arrays, their format is
 	 * typically:
 	 *
-	 *     array(type, contents [, additional_contents]*)
+	 *	 array(type, contents [, additional_contents]*)
 	 *
 	 * Will not work on non reduced values (expressions, variables, etc)
 	 */

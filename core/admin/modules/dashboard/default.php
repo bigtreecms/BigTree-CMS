@@ -44,7 +44,7 @@
 		<h2 class="full">
 			<span class="world"></span>
 			Recent Traffic <small>Visits In The Past Two Weeks</small>
-			<a href="<?=$admin_root?>dashboard/analytics/" class="more">View Analytics</a>
+			<a href="<?=$admin_root?>dashboard/vitals-statistics/analytics/" class="more">View Analytics</a>
 		</h2>
 	</summary>
 	<section>

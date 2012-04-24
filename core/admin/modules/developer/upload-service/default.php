@@ -15,24 +15,22 @@
 ?>
 <h1><span class="<?=$class?>"></span>Upload Service</h1>
 
-<br class="clear" />
-<div class="form_container" id="instagram_api">
+<div class="table">
+	<summary><h2>Currently Using<small><?=$currently?></small></h2></summary>
 	<section>
-		<h2>Currently Using: <strong><?=$currently?></strong></h2>
+		<a class="box_select" href="local/">
+			<span class="icon_developer_upload_local"></span>
+			<p>Local Storage</p>
+		</a>
+		<a class="box_select" href="amazon/">
+			<span class="icon_developer_upload_amazon"></span>
+			<p>Amazon S3</p>
+		</a>
+		<? if (function_exists("mb_strlen")) { ?>
+		<a class="box_select" href="rackspace/">
+			<span class="icon_developer_upload_rackspace"></span>
+			<p>Rackspace Cloud Files</p>
+		</a>
+		<? } ?>
 	</section>
 </div>
-
-<a class="box_select" href="local/">
-	<span class="icon_developer_upload_local"></span>
-	<p>Local Storage</p>
-</a>
-<a class="box_select" href="amazon/">
-	<span class="icon_developer_upload_amazon"></span>
-	<p>Amazon S3</p>
-</a>
-<? if (function_exists("mb_strlen")) { ?>
-<a class="box_select" href="rackspace/">
-	<span class="icon_developer_upload_rackspace"></span>
-	<p>Rackspace Cloud Files</p>
-</a>
-<? } ?>

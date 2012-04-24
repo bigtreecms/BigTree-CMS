@@ -234,9 +234,9 @@
 			// Check for module breadcrumbs
 			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
 			if ($mod["class"]) {
-				if (class_exists($m["class"])) {
-					@eval('$module = new '.$m["class"].';');
-					$bc += $module->getBreadcrumb($page);
+				if (class_exists($mod["class"])) {
+					@eval('$module = new '.$mod["class"].';');
+					$bc = array_merge($bc,$module->getBreadcrumb($page));
 				}
 			}
 			
@@ -846,9 +846,11 @@
 				} else {
 					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('".mysql_real_escape_string(rtrim($_GET["bigtree_htaccess_url"],"/"))."','1')");
 				}
-				include "../templates/basic/_404.php";
+				return true;
 				define("BIGTREE_DO_NOT_CACHE",true);
 			}
+			
+			return false;
 		}
 		
 		/*
@@ -908,8 +910,11 @@
 			$accent_replace = array('A', 'A', 'A', 'A', 'A', 'A', 'AE', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'D', 'N', 'O', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'B', 'a', 'a', 'a', 'a', 'a', 'a', 'ae', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'n', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y');
 
 			$title = str_replace($accent_match, $accent_replace, $title);
-			
-			return strtolower(preg_replace('/\s/', '-',preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '',trim($title))));
+			$title = htmlspecialchars_decode($title);
+			$title = strtolower(preg_replace('/\s/', '-',preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '',trim($title))));
+			$title = str_replace("--","-",$title);
+	
+			return $title;
 		}
 	}
 ?>
