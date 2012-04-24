@@ -31,8 +31,8 @@
 			<?
 				foreach ($items as $item) {
 					$item["column1"] = str_replace("{wwwroot}",$www_root,$item["column1"]);
-					if ($options["preview_prefix"]) {
-						$preview_image = BigTree::prefixFile($item["column1"],$options["preview_prefix"]);
+					if ($options["prefix"]) {
+						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
 					} else {
 						$preview_image = $item["column1"];
 					}
