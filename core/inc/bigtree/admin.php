@@ -435,7 +435,7 @@
 						}
 					}
 					
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 					
 					$resource["id"] = htmlspecialchars($resource["id"]);
 					$resource["title"] = htmlspecialchars($resource["title"]);
