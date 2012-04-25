@@ -58,17 +58,18 @@
 	<input<?=$input_validation_class?> type="url" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=$value?>" id="field_<?=$key?>" />
 	<?
 		} elseif ($st == "phone") {
+			list($area_code,$prefix,$line_number) = explode("-",$value);
 	?>
 	<section class="input_phone_3">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_1]" maxlength="3" value="<?=substr($value,0,3)?>" id="field_<?=$key?>" placeholder="xxx" />
+		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_1]" maxlength="3" value="<?=$area_code?>" id="field_<?=$key?>" placeholder="xxx" />
 		<span>-</span>
 	</section>
 	<section class="input_phone_3">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_2]" maxlength="3" value="<?=substr($value,4,3)?>" id="field_<?=$key?>" placeholder="xxx" />
+		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_2]" maxlength="3" value="<?=$prefix?>" id="field_<?=$key?>" placeholder="xxx" />
 		<span>-</span>
 	</section>
 	<section class="input_phone_4">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_3]" maxlength="4" value="<?=substr($value,8,4)?>" id="field_<?=$key?>" placeholder="xxxx" />
+		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_3]" maxlength="4" value="<?=$line_number?>" id="field_<?=$key?>" placeholder="xxxx" />
 	</section>
 	<?
 			$tabindex += 2;

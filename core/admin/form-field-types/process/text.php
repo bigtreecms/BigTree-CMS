@@ -10,7 +10,7 @@
 	}
 	
 	if ($st == "phone") {
-		if (is_array($data[$key]["phone_1"])) {
+		if (is_array($data[$key])) {
 			$value = $data[$key]["phone_1"]."-".$data[$key]["phone_2"]."-".$data[$key]["phone_3"];
 		} else {
 			$value = $data[$key];

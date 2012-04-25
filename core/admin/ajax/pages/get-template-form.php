@@ -87,11 +87,9 @@
 			<?
 				$description = $callout["display_title"];
 				foreach ($callout as $r => $v) {
-/*
-					if ($r != "type" && !$description) {
-						$description = $v;
+					if (is_array($v)) {
+						$v = json_encode($v,true);
 					}
-*/
 			?>
 			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars($v)?>" />
 			<?
