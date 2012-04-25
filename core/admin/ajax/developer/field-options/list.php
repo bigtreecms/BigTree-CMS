@@ -101,13 +101,6 @@
 	
 	$(".add_option").click(_local_addOptionClick);
 	
-	$(".list_attr input").on("keydown",function(e) {
-		if (e.keyCode == 13) {
-			_local_addOptionClick();
-			return false;
-		}
-	});
-	
 	function _local_addOptionClick() {
 		option_count++;
 
