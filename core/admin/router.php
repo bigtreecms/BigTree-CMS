@@ -326,7 +326,7 @@
 	
 	$last_check = strtotime($cms->getSetting("bigtree-internal-cron-last-run"));
 	// It's been more than 24 hours since we last ran cron.
-	if ((time() - $last_check) < (24 * 60 * 60)) {
+	if ((time() - $last_check) > (24 * 60 * 60)) {
 		// Email the daily digest
 		$admin->emailDailyDigest();
 		// Cache google analytics
