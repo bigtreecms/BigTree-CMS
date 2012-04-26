@@ -1,6 +1,12 @@
 <?
 	$page = $cms->getPage(end($path));
 	
+	// Don't let them move the homepage.
+	if ($page["id"] == 0) {
+		header("Location: ../../edit/0/");
+		die();
+	}
+	
 	// Get all the ancestors
 	$bc = $cms->getBreadcrumbByPage($page);
 	$ancestors = array();

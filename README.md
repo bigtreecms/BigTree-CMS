@@ -20,6 +20,53 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0b3
+- Updated image cropper count design to make the number of crops more obvious
+- Updated callouts to allow developers to set a default title.
+- Updated module creation so that if there isn't a related table it throws a growl and moves away from the view/form creation process.
+- Fixed custom view actions behavior.
+- Fixed BigTreeModule::getTagsForItem
+- Changed positions to always be position: fixed instead of a mix of fixed and absolute.
+- Fixed the variable scope in which _404.php is included on 404 pages.
+- Fixed pulling module class' breadcrumb.
+- Fixed BigTreeCMS::urlify to properly decode html entities before creating a URL string (prevents this-amp-that type URLs).
+- Fixed some z-index issues with dialog windows.
+- Fixed Array of Items field type item order to be consistent with List.
+- Fixed using view actions (feature, archive, approve, dragging to change position) on items that are not yet published.
+- Fixed TinyMCE paste problems.
+- Added the ability to specify a required user level for a module action to appear in a module's admin navigation.
+- Updated the Home template to default to developer-only and set its position to be second in the list of default templates (so that content is the default for new pages).
+- Fixed (Database Populated) List field type not remembering your sort order the first time you create it.
+- Fixed Field Types not remembering whether they're allowed for Callouts on initial creation.
+- Fixed link to analytics on the dashboard.
+- Fixed Feeds not loading properly on the front end.
+- Fixed route history not being created when moving pages.
+- Fixed CSS border radius in several places in Safari.
+- Fixed grouped module breadcrumb going to the wrong place if you clicked the group name.
+- Fixed module designer creating the wrong icons and in the wrong order.
+- Updated BigTreeAdmin::createModuleAction to allow you to specify a default position.
+- Updated view caching to process out {wwwroot}
+- Fixed Module View creation to throw proper errors on draggableness (previously checked the wrong properties so false errors were thrown and real ones were missed)
+- Added + icons to the edit module screen.
+- Silenced some warnings when images had bad EXIF data.
+- Made initial content age be the date of installation instead of 1969.
+- Fixed install / admin errors when Notices were turned on in PHP.
+- Updated the style of the Unused Field adding mechanism to more accurately group the + icon and the field name together.  Thanks philp!
+- Fixed the front end editor messing up page titles / nav titles that had & in them.
+- Updated sqlfetch() to throw an Exception when you give it a bad sqlquery() result to aid in debugging.
+- Added BigTreePaymentGateway -- a way to handle payment gateways without knowing which one the user has.
+- Updated the layout of the developer landing to support Payment Gateways.
+- Fixed styling of phone / email field types when in callout editor.
+- Fixed callout's phone number processing.
+- Fixed the initial description of a callout's resources that's written to the callout file.
+- Fixed mobile.css and no-zoom/resize being set for mobile browsers (should work now on iPhone/Android, though not optimized for it yet).
+- Added placeholder styles for dragging of callouts and image views.
+- Fixed image views not using the "prefix" option properly.
+- Changed to native event firing on custom Select, Radio, and Checkboxes in the admin (used to be checked:click and select:changed, now you just observe click or changed).
+- Fixed Google Analytics and Daily Digest not sending out in the event that your cron isn't running (should have happened on any visit to the admin if cron hasn't run in 24 hours, wasn't)
+- Fixed File Browser not working on the front end editor.
+- Stopped the home page from being able to be moved.
+
 ### 4.0b2
 - Removed .htaccess warnings from the installer since it's throwing a lot of warnings when there isn't a problem.
 - Fixed page "Revisions" showing the currently published copy as an option for creating a new draft.
