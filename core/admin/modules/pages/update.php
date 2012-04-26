@@ -57,9 +57,19 @@
 	}
 	
 	$admin->unlock("bigtree_pages",$page);
+
+	// We can't return to any lower number, so even if we edited the homepage, return to the top level nav.	
+	if ($pdata["parent"] == "-1") {
+		$pdata["parent"] = 0;
+	}
 	
 	if (count($crops)) {
-		$retpage = $admin_root."pages/view-tree/".$pdata["parent"]."/";
+		if ($_POST["return_to_front"]) {
+			$pd = $cms->getPage($page);
+			$return_page = $www_root.$pd["path"]."/";
+		} else {
+			$return_page = $admin_root."pages/view-tree/".$pdata["parent"]."/";
+		}
 		include BigTree::path("admin/modules/pages/_crop.php");
 	} elseif (count($fails)) {
 		include BigTree::path("admin/modules/pages/_failed.php");
@@ -67,10 +77,11 @@
 		if (end($path) == "preview") {
 			$admin->ungrowl();
 			header("Location: ".$cms->getPreviewLink($page)."?bigtree_preview_bar=true");
+		} elseif ($_POST["return_to_front"]) {
+			$admin->ungrowl();
+			$pd = $cms->getPage($page);
+			header("Location: ".$www_root.$pd["path"]."/");
 		} else {
-			if ($pdata["parent"] == "-1") {
-				$pdata["parent"] = 0;
-			}
 			header("Location: ".$admin_root."pages/view-tree/".$pdata["parent"]."/");
 		}
 		die();

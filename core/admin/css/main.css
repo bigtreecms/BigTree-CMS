@@ -934,7 +934,7 @@
 	.bigtree_dialog_window.front_end_editor { border: none; box-shadow: none; height: 625px; width: 100%; z-index: 1; }
 	.bigtree_dialog_window.front_end_editor .overflow { height: 469px; max-height: none; width: 800px; }
 	.bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }
-	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-left: 10px; }
+	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-right: 10px; }
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
 /*---------------------------

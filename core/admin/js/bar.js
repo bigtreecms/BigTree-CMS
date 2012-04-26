@@ -41,7 +41,7 @@ function bigtree_show_bar() {
 	bigtree_bar = document.createElement("div");
 	bigtree_bar.setAttribute("id","bigtree_bar");
 	
-	bigtree_bar_html = '<a href="admin_root/" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="admin_root/pages/edit/' + bigtree_current_page_id + '/?return=front">View in BigTree</a><a href="#" id="bigtree_bar_close"></a><a href="admin_root/login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name">' + bigtree_user_name + '</span>';
+	bigtree_bar_html = '<a href="admin_root/" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="admin_root/pages/edit/' + bigtree_current_page_id + '/?return=front">Edit in BigTree</a><a href="#" id="bigtree_bar_close"></a><a href="admin_root/login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name">' + bigtree_user_name + '</span>';
 	if (bigtree_is_previewing) {
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
 	}

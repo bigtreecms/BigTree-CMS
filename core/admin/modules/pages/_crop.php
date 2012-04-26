@@ -5,7 +5,7 @@
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
 	<form method="post" action="<?=$admin_root?>pages/process-crops/" id="crop_form" class="module">
-		<input type="hidden" name="retpage" value="<?=htmlspecialchars($retpage)?>" />
+		<input type="hidden" name="retpage" value="<?=htmlspecialchars($return_page)?>" />
 		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
 		<section class="cropper">
 			<ul id="cropper">
