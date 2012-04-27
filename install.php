@@ -380,6 +380,11 @@ RewriteRule (.*) site/$1 [L]');
 	if (!$host) {
 		$host = "localhost";
 	}
+	
+	// Make a random settings key
+	if (!$settings_key) {
+		$settings_key = uniqid("",true);
+	}
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
