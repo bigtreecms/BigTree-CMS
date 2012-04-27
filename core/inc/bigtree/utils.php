@@ -361,7 +361,7 @@
 				The string response from the URL.
 		*/
 		
-		static function cURL($url,$post = "",$options = array(),$strict_security = false) {
+		static function cURL($url,$post = false,$options = array(),$strict_security = false) {
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -369,7 +369,9 @@
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
 			}
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+			if ($post) {
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+			}
 			if (count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
