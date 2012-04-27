@@ -376,10 +376,10 @@
 	.field_selector .current { border-left: 1px solid #CCC; float: left; height: 21px; margin: 0 -5px 0 5px; overflow: hidden; }
 	.field_selector .current a { display: block; height: 21px; padding: 0 10px; font-size: 12px; }
 	.field_selector .add_field { background: url(../images/icons-16x16.png) no-repeat 5px 0; float: left; height: 16px; margin: 2px 0 0 -4px; padding: 0 0 0 5px; width: 16px; }
-	.form_container .field_selector p { cursor: pointer; line-height: 21px; margin: 0; padding: 0 10px; color: #333; }
-	.field_selector .dd { background: #EEE; border: 1px solid #CCC; border-radius: 0px 3px 3px 3px; display: none; position: absolute; }
+	.form_container .field_selector p { background: #FFF url(../images/select-handle-sm.png) no-repeat right top; cursor: pointer; line-height: 21px; margin: 0; padding: 0 34px 0 10px; color: #333; }
+	.field_selector .dd { background: #FFF; border: 1px solid #CCC; border-radius: 0px 3px 3px 3px; display: none; position: absolute; }
 	.field_selector .dd a { color: #333; display: block; font-size: 12px; height: 21px; line-height: 21px; padding: 0 10px; }
-	.field_selector .dd a:hover { background: #FFF; }
+	.field_selector .dd a:hover { background: #EEE; }
 	.field_selector .dd a:first-child { border-radius: 0 3px 0 0; }
 	.field_selector .dd a:last-child { border-radius: 0 0 3px 3px; }
 	.field_selector div { float: left; margin: -1px 0 0 5px; }

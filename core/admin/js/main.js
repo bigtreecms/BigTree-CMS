@@ -1451,7 +1451,7 @@ var BigTreeFieldSelect = Class.extend({
 		fs = $('<div class="field_selector">');
 		ophtml = "";
 		for (i = 0; i < elements.length; i++) {
-			ophtml += '<a href="#' + elements[i].title + '">' + elements[i].field + "</a>";
+			ophtml += '<a href="#' + elements[i].title + '">' + elements[i].field + '</a>';
 		}
 		if (elements.length == 0) {
 			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p></p>' + ophtml + '</span>');
@@ -1460,10 +1460,11 @@ var BigTreeFieldSelect = Class.extend({
 		}
 		$(selector).prepend(fs);
 		
-		fs.find("p").click(function() {
+		fs.find("p").on("click", function() {
 			p = $(this).parent();
+			dd = $(this).parents(".field_selector").find(".dd");
 			if (p.find("a").length > 1) {
-				$(this).parents(".field_selector").find(".dd").show();
+				dd.show();				
 			}
 		});
 		
