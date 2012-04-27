@@ -122,7 +122,7 @@
 			BigTreeCustomControls();
 			BigTreeFormValidator(".bigtree_dialog_form");
 			
-			$("footer a").click(function() {
+			$(".bigtree_dialog_close").click(function() {
 				parent.bigtree_bar_cancel();
 				
 				return false;

@@ -887,6 +887,7 @@
 	.bigtree_dialog_form h4:first-child { margin-top: -10px; }
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
 	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; }
+	.bigtree_dialog_form fieldset:last-child { margin: 0; }
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
 	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
@@ -907,11 +908,15 @@
 	.bigtree_dialog_form footer a { margin: 0 10px 0 0; }
 
 	.bigtree_dialog_form .list_attr { margin: 0 0 15px; overflow: hidden; }
-	.bigtree_dialog_form .list_attr ul { clear: both; }
-	.bigtree_dialog_form .list_attr ul li { float: left; font-size: 10px; font-weight: bold; margin-bottom: 5px; width: 48%; }
+	.bigtree_dialog_form .list_attr ul { clear: both; margin: 0 0 5px 0; overflow: hidden; }
+	.bigtree_dialog_form .list_attr ul:last-child { margin: 0; }
+	.bigtree_dialog_form .list_attr ul li { float: left; font-size: 10px; font-weight: bold; width: 48%; }
 	.bigtree_dialog_form .list_attr ul li.del { padding: 3px 0 0; width: 15px; }
 	.bigtree_dialog_form .list_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 90%; }
 	.bigtree_dialog_form .list_type_options { margin: 0 0 15px 0; }
+	.bigtree_dialog_form fieldset .list_attr { margin: 0; }
+	.bigtree_dialog_form .list_attr_triple ul li { width: 32%; }
+	.bigtree_dialog_form .list_attr_triple input { width: 85%; }
 	
 	.bigtree_dialog_form .image_attr { overflow: hidden; }
 	.bigtree_dialog_form .image_attr ul { overflow: hidden; }
@@ -929,7 +934,7 @@
 	.bigtree_dialog_window.front_end_editor { border: none; box-shadow: none; height: 625px; width: 100%; z-index: 1; }
 	.bigtree_dialog_window.front_end_editor .overflow { height: 469px; max-height: none; width: 800px; }
 	.bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }
-	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-left: 10px; }
+	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-right: 10px; }
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
 /*---------------------------

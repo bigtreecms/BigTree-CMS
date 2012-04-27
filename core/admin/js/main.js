@@ -202,12 +202,10 @@ var BigTreeCheckbox = Class.extend({
 		if (!this.Element.attr("disabled")) {
 			if (this.Link.hasClass("checked")) {
 				this.Link.removeClass("checked");
-				$(this.Element).attr("checked",false);
 			} else {
 				this.Link.addClass("checked");
-				$(this.Element).attr("checked",true);
 			}
-			this.Element.trigger("checked:click");
+			this.Element.trigger("click");
 		}
 		return false;
 	}
@@ -353,7 +351,7 @@ var BigTreeSelect = Class.extend({
 				el.selectedIndex = index;
 			}
 			this.Container.find("span").html(el.options[index].text);
-			this.Element.trigger("select:changed", { value: el.options[index].value, text: el.options[index].text });
+			this.Element.trigger("changed", { value: el.options[index].value, text: el.options[index].text });
 			return false;
 		}
 		
@@ -412,7 +410,7 @@ var BigTreeSelect = Class.extend({
 		this.Container.find("span").html(el.innerHTML);
 		$("body").unbind("click",this.BoundWindowClick);
 		this.close();
-		this.Element.trigger("select:changed", { value: el.getAttribute("value"), text: el.innerHTML });
+		this.Element.trigger("changed", { value: el.getAttribute("value"), text: el.innerHTML });
 	}
 });
 
@@ -571,7 +569,7 @@ var BigTreeRadioButton = Class.extend({
 				}
 			});
 		}
-		this.Element.trigger("checked:click");
+		this.Element.trigger("click");
 		return false;
 	},
 	

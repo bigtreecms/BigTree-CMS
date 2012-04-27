@@ -241,15 +241,23 @@
 		
 		/*
 			Function: clearCache
-				Clears the cache of a view.
+				Clears the cache of a view or all views with a given table.
 			
 			Parameters:
-				view - The view id or view entry to clear the cache for.
+				view - The view id or view entry to clear the cache for or a table to find all views for (and clear their caches).
 		*/
 		
 		static function clearCache($view) {
-			$view = is_array($view) ? $view["id"] : mysql_real_escape_string($view);
-			sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '$view'");
+			if (is_array($view)) {
+				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".mysql_real_escape_string($view["id"])."'");		
+			} elseif (is_numeric($view)) {
+				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '$view'");
+			} else {
+				$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".mysql_real_escape_string($view)."'");
+				while ($f = sqlfetch($q)) {
+					sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".$f["id"]."'");
+				}
+			}
 		}
 		
 		/*
