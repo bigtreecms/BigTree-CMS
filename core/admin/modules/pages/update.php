@@ -79,8 +79,12 @@
 			header("Location: ".$cms->getPreviewLink($page)."?bigtree_preview_bar=true");
 		} elseif ($_POST["return_to_front"]) {
 			$admin->ungrowl();
-			$pd = $cms->getPage($page);
-			header("Location: ".$www_root.$pd["path"]."/");
+			if ($page == 0) {
+				header("Location: ".$www_root);
+			} else {
+				$pd = $cms->getPage($page);
+				header("Location: ".$www_root.$pd["path"]."/");
+			}
 		} else {
 			header("Location: ".$admin_root."pages/view-tree/".$pdata["parent"]."/");
 		}
