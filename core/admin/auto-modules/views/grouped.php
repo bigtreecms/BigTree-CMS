@@ -18,7 +18,7 @@
 		$("#table_contents ul").each(function() {
 			if ($("#search").val() == "") {
 				$(this).sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-					$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/?view=<?=$view["id"]?>&table_name=" + $(this).attr("id") + "&sort=" + escape($(this).sortable("serialize")));
+					$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
 				},this) });
 			}
 		});

@@ -39,7 +39,7 @@
 
 <script type="text/javascript">
 	$("#callouts").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-callouts/?sort=" + escape($("#callouts").sortable("serialize")), { type: "POST", data: { rel: <?=json_encode($rel_table)?> }});
+		$.ajax("<?=$admin_root?>ajax/developer/order-callouts/", { type: "POST", data: { sort: $("#callouts").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$(".icon_delete").click(function() {

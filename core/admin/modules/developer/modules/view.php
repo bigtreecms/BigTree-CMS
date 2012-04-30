@@ -45,7 +45,7 @@
 
 <script type="text/javascript">
 	$("#group_<?=$g["id"]?>").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-modules/?sort=" + escape($("#group_<?=$g["id"]?>").sortable("serialize")));
+		$.ajax("<?=$admin_root?>ajax/developer/order-modules/", { type: "POST", data: { sort: $("#group_<?=$g["id"]?>").sortable("serialize") } });
 	}});
 </script>
 <?
@@ -85,7 +85,7 @@
 
 <script type="text/javascript">
 	$("#group_0").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-modules/?sort=" + escape($("#group_0").sortable("serialize")));
+		$.ajax("<?=$admin_root?>ajax/developer/order-modules/", { type: "POST", data: { sort: $("#group_0").sortable("serialize") } });
 	}});
 
 	$(".icon_delete").click(function() {

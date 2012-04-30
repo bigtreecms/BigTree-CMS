@@ -174,7 +174,7 @@
 	form .float_contain { overflow: hidden; padding: 0 0 30px 0; }
 	form .left { float: left; margin: 0 25px 15px 0; width: 435px; }
 	form .right { float: right; margin: 0 0 15px 0; width: 435px; }
-	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password] { width: 410px; }
+	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password] { width: 413px; }
 	form .left textarea, form .right textarea { width: 413px; }
 	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }

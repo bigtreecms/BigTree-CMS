@@ -1,7 +1,7 @@
 <?
-	$r = $admin->getPageAccessLevel($_GET["id"]);
+	$r = $admin->getPageAccessLevel($_POST["id"]);
 	if ($r == "p") {
-		parse_str($_GET["sort"]);
+		parse_str($_POST["sort"]);
 		
 		$max = count($row);
 		foreach ($row as $pos => $id) {

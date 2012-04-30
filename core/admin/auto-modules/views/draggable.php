@@ -48,7 +48,7 @@
 		<? if ($perm == "p") { ?>
 		if ($("#search").val() == "") {
 			$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-				$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/?view=<?=$view["id"]?>&sort=" + escape($("#sort_table").sortable("serialize")));
+				$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", sort: $("#sort_table").sortable("serialize") } });
 			}});
 		}
 		<? } ?>

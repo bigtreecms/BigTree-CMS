@@ -144,7 +144,7 @@
 ?>
 <script type="text/javascript">
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/pages/order/?id=<?=$parent?>&sort=" + escape($("#pages_<?=$class?>").sortable("serialize")));
+		$.ajax("<?=$admin_root?>ajax/pages/order/", { type: "POST", data: { id: "<?=$parent?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});
 </script>
 <?

@@ -36,7 +36,7 @@
 
 <script type="text/javascript">
 	$("#groups").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-module-groups/?sort=" + escape($("#groups").sortable("serialize"))); 
+		$.ajax("<?=$admin_root?>ajax/developer/order-module-groups/", { type: "POST", data: { sort: $("#groups").sortable("serialize") } }); 
 	}});
 
 	$(".icon_delete").click(function() {

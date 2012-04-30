@@ -1,5 +1,5 @@
 <?
-	parse_str($_GET["sort"]);
+	parse_str($_POST["sort"]);
 	$max = count($row);
 	
 	foreach ($row as $pos => $id) {

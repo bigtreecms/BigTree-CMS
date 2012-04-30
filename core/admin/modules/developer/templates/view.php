@@ -75,11 +75,11 @@
 
 <script type="text/javascript">
 	$("#basic_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-templates/?sort=" + escape($("#basic_templates").sortable("serialize")), { type: "POST", data: { rel: <?=json_encode($rel_table)?> } }); 
+		$.ajax("<?=$admin_root?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#basic_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$("#routed_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-templates/?sort=" + escape($("#routed_templates").sortable("serialize")), { type: "POST", data: { rel: <?=json_encode($rel_table)?> } }); 
+		$.ajax("<?=$admin_root?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#routed_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$(".icon_delete").click(function() {

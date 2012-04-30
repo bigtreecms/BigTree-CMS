@@ -192,7 +192,7 @@
 
 <script type="text/javascript">
 	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-module-actions/?sort=" + escape($("#actions").sortable("serialize"))); 
+		$.ajax("<?=$admin_root?>ajax/developer/order-module-actions/", { type: "POST", data: { sort: $("#actions").sortable("serialize") } }); 
 	}});
 
 	$(".table .icon_delete").click(function() {
