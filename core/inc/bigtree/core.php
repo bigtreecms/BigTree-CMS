@@ -860,8 +860,8 @@
 		*/
 		
 		function makeSecure() {
-			if ($_SERVER["SERVER_PORT"] == 80) {
-				header("Location: ".str_replace("http://","https://",$GLOBALS["www_root"]).$_GET["bigtree_htaccess_url"]);
+			if (!$_SERVER["HTTPS"]) {
+				header("Location: https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"]);
 				die();
 			}
 			$this->Secure = true;

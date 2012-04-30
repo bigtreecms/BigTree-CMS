@@ -375,7 +375,12 @@
 	
 	// If we're in HTTPS, make sure all Javascript, images, and CSS are pulling from HTTPS
 	if ($cms->Secure) {
-		$content = str_replace(array('src="http://','link href="http://'),array('src="https://','link href="https://'),$content);
+		// Replace CSS includes
+		$content = preg_replace_callback('/<link [^>]*href="([^"]*)"/',create_function('$matches','
+			return str_replace(\'href="http://\',\'href="https://\',$matches[0]);
+		'),$content);
+		// Replace script and image tags.
+		$content = str_replace('src="http://','src="https://',$content);
 	}
 	
 	// Load the BigTree toolbar if you're logged in to the admin.
