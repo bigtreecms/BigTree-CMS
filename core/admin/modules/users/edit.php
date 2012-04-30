@@ -302,7 +302,7 @@
 		return false;
 	});
 	
-	$("input[type=checkbox]").on("checked:click",function() {
+	$("input[type=checkbox]").on("click",function() {
 		if ($(this).attr("checked")) {
 			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
 				$(this).attr("checked","checked").attr("disabled","disabled");
@@ -316,7 +316,7 @@
 		}
 	});
 	
-	$("#user_level").on("select:changed",function(event,data) {
+	$("#user_level").on("changed",function(event,data) {
 		if (data.value  > 0) {
 			// Set the active tab to Pages, show the Pages section, hide the header.
 			$(".user_permissions header").hide().find("a").removeClass("active").eq(0).addClass("active");

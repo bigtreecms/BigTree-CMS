@@ -80,7 +80,7 @@
 </div>
 
 <script type="text/javascript">
-	$("#form_table").bind("select:changed",function(event,data) {
+	$("#form_table").bind("changed",function(event,data) {
 		$("#field_area").load("<?=$admin_root?>ajax/developer/load-form/", { table: data.value });
 		$("#create").show();
 	});

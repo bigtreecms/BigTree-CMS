@@ -4,11 +4,11 @@
 	var gbp_count = <?=count($gbp)?>;
 	var goingToPop;
 	
-	$("#gbp_on").bind("checked:click",function() {
+	$("#gbp_on").bind("click",function() {
 		$("#gbp").toggle();
 	});
 	
-	$(".table_select").live("select:changed",tablePop);
+	$(".table_select").live("changed",tablePop);
 	
 	function tablePop(event,data) {
 		goingToPop = $(this).parent().siblings("fieldset");
