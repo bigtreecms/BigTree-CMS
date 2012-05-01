@@ -29,6 +29,7 @@
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
+		
 		$type = explode(".",$path[$x]);
 		$type = strtolower($type[count($type)-1]);
 		if ($type == "gif") {
@@ -39,8 +40,8 @@
 			header("Content-type: image/png");
 		}
 		
-		echo file_get_contents($ifile);
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+		echo file_get_contents($ifile);
 		die();
 	}
 	
@@ -116,8 +117,8 @@
 		} else {
 			header("Content-type: text/javascript");
 		}
-		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		
+		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		echo str_replace(array("{max_file_size}","www_root/","admin_root/"),array($max_file_size,$config["www_root"],$config["admin_root"]),file_get_contents($ifile));
 		die();
 	}

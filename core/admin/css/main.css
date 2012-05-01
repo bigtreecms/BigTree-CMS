@@ -1016,7 +1016,9 @@
 	.icon_message { background: url(../images/icons.png) no-repeat -401px 6px; display: inline-block; height: 35px; width: 20px; }
 	.icon_deny { background: url(../images/icons.png) no-repeat -454px 5px; display: inline-block; height: 35px; width: 21px; }
 	
-	.icon_export { background: url(../images/icons.png) no-repeat -477px 5px; display: inline-block; height: 35px; width: 27px; }
+	.icon_export { background: url(../images/icons.png) no-repeat -476px 5px; display: inline-block; height: 35px; width: 27px; }
+	.icon_view { background: url(../images/icons.png) no-repeat -526px 5px; display: inline-block; height: 35px; width: 22px; }
+	.icon_view_details { background: url(../images/icons.png) no-repeat -504px 5px; display: inline-block; height: 35px; width: 20px; }
 	
 	.icon_edit_small { background: url(../images/icons-smaller.png) no-repeat -53px 0; display: inline-block; height: 17px; width: 16px; }
 	.icon_delete_small { background: url(../images/icons-smaller.png) no-repeat -28px 3px; display: inline-block; height: 17px; width: 12px; }
@@ -1025,7 +1027,7 @@
 	.icon_dialog_add { background: url(../images/popup-icons.png) no-repeat -24px 0px; display: inline-block; height: 23px; width: 14px; }
 	.icon_dialog_callout { background: url(../images/popup-icons.png) no-repeat -38px 0px; display: inline-block; height: 23px; width: 19px; }
 	.icon_dialog_delete { background: url(../images/popup-icons.png) no-repeat -57px 0px; display: inline-block; height: 23px; width: 16px; }
-	.icon_dialog_folder { background: url(../images/popup-icons.png) no-repeat -74px 0px; display: inline-block; height: 23px; width: 22px; }
+	.icon_dialog_folder { background: url(../images/popup-icons.png) no-repeat -74px 0px; display: inline-block; height: 23px; width: 20px; }
 	.icon_dialog_upload { background: url(../images/popup-icons.png) no-repeat -97px 0px; display: inline-block; height: 23px; width: 18px; }
 	
 	.disabled_icon { cursor: default; opacity: 0.3; }
