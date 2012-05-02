@@ -3168,7 +3168,7 @@
 						$score += 20;
 					} else {
 						$read_score = round(($readability / 90),2);
-						$recommendations[] = "Your readability score is ".($read_score*100)."%.  Using shorter sentences and words with less syllables will make your site easier to read by search engines and users.";
+						$recommendations[] = "Your readability score is ".($read_score*100)."%.  Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
 						$score += ceil($read_score * 20);
 					}
 				} else {
