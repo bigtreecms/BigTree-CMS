@@ -164,18 +164,15 @@
 	});
 		
 	$(".icon_delete").live("click",function() {
-		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
-			li = $(this).parents("li");
-			title = li.find("input").val();
-			if (title) {
-				key = $(this).attr("name");
-				if (key != "geocoding") {
-					fieldSelect.addField(key,title);
-				}
+		li = $(this).parents("li");
+		title = li.find("input").val();
+		if (title) {
+			key = $(this).attr("name");
+			if (key != "geocoding") {
+				fieldSelect.addField(key,title);
 			}
-			li.remove();
-		},this),"delete",false,"OK");
-		
+		}
+		li.remove();
 		return false;
 	});
 	
