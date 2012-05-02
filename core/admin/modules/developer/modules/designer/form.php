@@ -37,9 +37,9 @@
 				<label class="required">Fields<? if ($e["fields"]) { ?><span class="form_error_reason">One Or More Fields Required</span><? } ?></label>
 				<div class="form_table">
 					<header>
-						<a class="add add_geocoding" href="#">Geocoding</a>
-						<a class="add add_many_to_many" href="#">Many-To-Many</a>
-						<a class="add add_field" href="#">Add</A>
+						<a class="add add_geocoding" href="#"><span></span>Geocoding</a>
+						<a class="add add_many_to_many" href="#"><span></span>Many-To-Many</a>
+						<a class="add add_field" href="#"><span></span>Field</A>
 					</header>
 					<div class="labels">
 						<span class="developer_resource_form_title">Title</span>
