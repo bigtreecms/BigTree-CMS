@@ -8,6 +8,8 @@
 	class BigTreePaymentGateway {
 		
 		var $Service = "";
+		var $PayPalPeriods = array("day" => "Day", "week" => "Week", "month" => "Month", "year" => "Year");
+		var $CountryCodes = array("ALAND ISLANDS" => "AX", "ALBANIA" => "AL", "ALGERIA" => "DZ", "AMERICAN SAMOA" => "AS", "ANDORRA" => "AD", "ANGUILLA" => "AI", "ANTARCTICA" => "AQ","ANTIGUA AND BARBUDA" => "AG", "ARGENTINA" => "AR", "ARMENIA" => "AM", "ARUBA" => "AW", "AUSTRALIA" => "AU", "AUSTRIA" => "AT", "AZERBAIJAN" => "AZ", "BAHAMAS" => "BS", "BAHRAIN" => "BH", "BANGLADESH" => "BD", "BARBADOS" => "BB", "BELGIUM" => "BE", "BELIZE" => "BZ", "BENIN" => "BJ", "BERMUDA" => "BM", "BHUTAN" => "BT", "BOSNIA-HERZEGOVINA" => "BA", "BOTSWANA" => "BW", "BOUVET ISLAND" => "BV", "BRAZIL" => "BR", "BRITISH INDIAN OCEAN TERRITORY" => "IO", "BRUNEI DARUSSALAM" => "BN", "BULGARIA" => "BG", "BURKINA FASO" => "BF", "CANADA" => "CA", "CAPE VERDE" => "CV", "CAYMAN ISLANDS" => "KY", "CENTRAL AFRICAN REPUBLIC" => "CF", "CHILE" => "CL", "CHINA" => "CN", "CHRISTMAS ISLAND" => "CX", "COCOS (KEELING) ISLANDS" => "CC", "COLOMBIA" => "CO", "COOK ISLANDS" => "CK", "COSTA RICA" => "CR", "CYPRUS" => "CY", "CZECH REPUBLIC" => "CZ", "DENMARK" => "DK", "DJIBOUTI" => "DJ", "DOMINICA" => "DM", "DOMINICAN REPUBLIC" => "DO", "ECUADOR" => "EC", "EGYPT" => "EG", "EL SALVADOR" => "SV", "ESTONIA" => "EE", "FALKLAND ISLANDS (MALVINAS)" => "FK", "FAROE ISLANDS" => "FO", "FIJI" => "FJ", "FINLAND" => "FI", "FRANCE" => "FR", "FRENCH GUIANA" => "GF", "FRENCH POLYNESIA" => "PF", "FRENCH SOUTHERN TERRITORIES" => "TF", "GABON" => "GA", "GAMBIA" => "GM", "GEORGIA" => "GE", "GERMANY" => "DE", "GHANA" => "GH", "GIBRALTAR" => "GI", "GREECE" => "GR", "GREENLAND" => "GL", "GRENADA" => "GD", "GUADELOUPE" => "GP", "GUAM" => "GU", "GUERNSEY" => "CG", "GUYANA" => "GY", "HEARD ISLAND AND MCDONALD ISLANDS" => "HM", "HOLY SEE (VATICAN CITY STATE)" => "VA", "HONDURAS" => "HN", "HONG KONG" => "HK", "HUNGARY" => "HU", "ICELAND" => "IS", "INDIA" => "IN", "INDONESIA" => "ID", "IRELAND" => "IE", "ISLE OF MAN" => "IM", "ISRAEL" => "IL", "ITALY" => "IT", "JAMAICA" => "JM", "JAPAN" => "JP", "JERSEY" => "JE", "JORDAN" => "JO", "KAZAKHSTAN" => "KZ", "KIRIBATI" => "KI", "KOREA, REPUBLIC OF" => "KR", "KUWAIT" => "KW", "KYRGYZSTAN" => "KG", "LATVIA" => "LV", "LESOTHO" => "LS", "LIECHTENSTEIN" => "LI", "LITHUANIA" => "LT", "LUXEMBOURG" => "LU", "MACAO" => "MO", "MACEDONIA" => "MK", "MADAGASCAR" => "MG", "MALAWI" => "MW", "MALAYSIA" => "MY", "MALTA" => "MT", "MARSHALL ISLANDS" => "MH", "MARTINIQUE" => "MQ", "MAURITANIA" => "MR", "MAURITIUS" => "MU", "MAYOTTE" => "YT", "MEXICO" => "MX", "MICRONESIA, FEDERATED STATES OF" => "FM", "MOLDOVA, REPUBLIC OF" => "MD", "MONACO" => "MC", "MONGOLIA" => "MN", "MONTENEGRO" => "ME", "MONTSERRAT" => "MS", "MOROCCO" => "MA", "MOZAMBIQUE" => "MZ", "NAMIBIA" => "NA", "NAURU" => "NR", "NEPAL" => "NP", "NETHERLANDS" => "NL", "NETHERLANDS ANTILLES" => "AN", "NEW CALEDONIA" => "NC", "NEW ZEALAND" => "NZ", "NICARAGUA" => "NI", "NIGER" => "NE", "NIUE" => "NU", "NORFOLK ISLAND" => "NF", "NORTHERN MARIANA ISLANDS" => "MP", "NORWAY" => "NO", "OMAN" => "OM", "PALAU" => "PW", "PALESTINE" => "PS", "PANAMA" => "PA", "PARAGUAY" => "PY", "PERU" => "PE", "PHILIPPINES" => "PH", "PITCAIRN" => "PN", "POLAND" => "PL", "PORTUGAL" => "PT", "PUERTO RICO" => "PR", "QATAR" => "QA", "REUNION" => "RE", "ROMANIA" => "RO", "RUSSIAN FEDERATION" => "RU", "RWANDA" => "RW", "SAINT HELENA" => "SH", "SAINT KITTS AND NEVIS" => "KN", "SAINT LUCIA" => "LC", "SAINT PIERRE AND MIQUELON" => "PM", "SAINT VINCENT AND THE GRENADINES" => "VC", "SAMOA" => "WS", "SAN MARINO" => "SM", "SAO TOME AND PRINCIPE" => "ST", "SAUDI ARABIA" => "SA", "SENEGAL" => "SN", "SERBIA" => "RS", "SEYCHELLES" => "SC", "SINGAPORE" => "SG", "SLOVAKIA" => "SK", "SLOVENIA" => "SI", "SOLOMON ISLANDS" => "SB", "SOUTH AFRICA" => "ZA", "SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS" => "GS", "SPAIN" => "ES", "SURINAME" => "SR", "SVALBARD AND JAN MAYEN" => "SJ", "SWAZILAND" => "SZ", "SWEDEN" => "SE", "SWITZERLAND" => "CH", "TAIWAN, PROVINCE OF CHINA" => "TW", "TANZANIA, UNITED REPUBLIC OF" => "TZ", "THAILAND" => "TH", "TIMOR-LESTE" => "TL", "TOGO" => "TG", "TOKELAU" => "TK", "TONGA" => "TO", "TRINIDAD AND TOBAGO" => "TT", "TUNISIA" => "TN", "TURKEY" => "TR", "TURKMENISTAN" => "™", "TURKS AND CAICOS ISLANDS " => "TC", "TUVALU" => "TV","UGANDA" => "UG", "UKRAINE" => "UA", "UNITED ARAB EMIRATES" => "AE", "UNITED KINGDOM" => "GB", "UNITED STATES" => "US", "UNITED STATES MINOR OUTLYING ISLANDS" => "UM", "URUGUAY" => "UY", "UZBEKISTAN" => "UZ", "VANUATU" => "VU", "VENEZUELA" => "VE", "VIET NAM" => "VN", "VIRGIN ISLANDS, BRITISH" => "VG", "VIRGIN ISLANDS, U.S." => "VI", "WALLIS AND FUTUNA" => "WF", "WESTERN SAHARA" => "EH", "ZAMBIA" => "ZM");
 		
 		/*
 			Constructor:
@@ -586,6 +588,140 @@
 			
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
+			} else {
+				return false;
+			}
+		}
+		
+		/*
+			Function: createRecurringPayment
+				Creates a recurring payment profile.
+			
+			Parameters:
+				description - A description of the subscription.
+				amount - The amount to charge (includes the tax).
+				start_date - The date to begin charging the user (YYYY-MM-DD, blank for immediately).
+				period - The unit of how often to charge the user (options: day, week, month, year)
+				frequency - The number of units that make up each billing period. (i.e. for bi-weekly the frequency is "2" and period is "week", quarterly would be frequency "3" and period "month")
+				card_name - Name as it appears on the credit card.
+				card_number - Credit card number.
+				card_expiration - 4 or 6 digit expiration date (MMYYYY or MMYY).
+				cvv - Credit card security code.
+				address - An address array with keys "street", "street2", "city", "state", "zip", "country"
+				email - Email address of the purchaser.
+				trial_amount - The amount to charge during the (optional) trial period.
+				trial_period - The unit of how often to charge the user during the (optional) trial period (options: day, week, month, year)
+				trial_frequency - The number of units that make up each billing segment of the (optional) trial period.
+				trial_length - The number of billing cycles the (optional) trial period should last.
+		
+			Returns:
+				Subscriber ID if successful, otherwise returns false.
+				$this->Message will contain an error message if not successful.
+		*/
+		
+		function createRecurringPayment($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount = false,$trial_period = false,$trial_frequency = false,$trial_length = false) {
+			// Clean up the amount and trial amount.
+			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			$trial_amount = round(floatval(str_replace(array('$',','),"",$trial_amount)),2);
+			
+			// If a start date wasn't given, do it now.
+			if (!$start_date) {
+				$start_date = date("Y-m-d H:i:s");
+			}
+
+			if ($this->Service == "authorize.net") {
+				return $this->createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+			} elseif ($this->Service == "paypal") {
+				return $this->createRecurringPaymentPayPal($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+			} elseif ($this->Service == "payflow") {
+				return $this->createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+			} elseif ($this->Service == "linkpoint") {
+				return $this->createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+			}
+		}
+		
+		/*
+			Function: createRecurringPaymentAuthorize
+				Authorize.Net interface for <createRecurringPayment>
+		*/
+		
+		protected function createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
+		
+		}
+		
+		/*
+			Function: createRecurringPaymentLinkPoint
+				First Data / LinkPoint interface for <createRecurringPayment>
+		*/
+		
+		protected function createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
+		
+		}
+		
+		/*
+			Function: createRecurringPaymentPayflow
+				Payflow Gateway interface for <createRecurringPayment>
+		*/
+		
+		protected function createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
+		
+		}
+		
+		/*
+			Function: createRecurringPaymentPayPal
+				PayPal Payments Pro interface for <createRecurringPayment>
+		*/
+		
+		protected function createRecurringPaymentPayPal($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
+			$params = array();
+			
+			$sd = strtotime($start_date);
+			// Parameters specific to creating a recurring profile
+			$params["METHOD"] = "CreateRecurringPaymentsProfile";
+			$params["PROFILESTARTDATE"] = gmdate("Y-m-d",$sd)."T".gmdate("H:i:s",$sd)."ZL";
+			$params["BILLINGPERIOD"] = $this->PayPalPeriods[$period];
+			$params["BILLINGFREQUENCY"] = $frequency;
+			if ($trial_amount) {
+				$params["TRIALAMT"] = $trial_amount;
+				$params["TRIALBILLINGPERIOD"] = $this->PayPalPeriods[$trial_period];
+				$params["TRIALBILLINGFREQUENCY"] = $trial_frequency;
+				$params["TRIALTOTALBILLINGCYCLES"] = $trial_length;
+			}
+			$params["DESC"] = $description;
+
+			// Split the card name into first name and last name.
+			$first_name = substr($card_name,0,strpos($card_name," "));
+			$last_name = trim(substr($card_name,strlen($first_name)));
+			
+			$params["AMT"] = $amount;
+			$params["CREDITCARDTYPE"] = $this->cardType($card_number);
+			$params["ACCT"] = $card_number;
+			$params["EXPDATE"] = $card_expiration;
+			$params["CVV2"] = $cvv;
+			
+			
+			$params["FIRSTNAME"] = $first_name;
+			$params["LASTNAME"] = $last_name;
+			$params["STREET"] = trim($address["street"]." ".$address["street2"]);
+			$params["CITY"] = $address["city"];
+			$params["STATE"] = $address["state"];
+			$params["ZIP"] = $address["zip"];
+			if (strlen($address["country"]) == 2) {
+				$params["COUNTRYCODE"] = $address["country"];
+			} else {
+				$params["COUNTRYCODE"] = $this->CountryCodes[strtoupper($address["country"])];
+			}
+			
+			$params["EMAIL"] = $email;
+			
+			$response = $this->sendPayPal($params);
+			
+			// Setup response messages.
+			$this->Profile = $response["PROFILEID"];
+			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
+			
+			if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
+				return $response["PROFILEID"];
 			} else {
 				return false;
 			}
