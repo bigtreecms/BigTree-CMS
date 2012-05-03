@@ -348,7 +348,8 @@
 	.form_container .alert img { float: left; margin: 0 10px 0 0; }
 	.form_container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0; text-transform: uppercase; }
 	.form_container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
-	.form_container .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.form_container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	#callout_resources .error_message { width: 420px; }
 	.form_container .template_message { user-select: none; }
 	.form_container .template_message p { line-height: 13px; margin: 3px 0 0 0; }
 

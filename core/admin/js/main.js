@@ -1516,16 +1516,13 @@ var BigTreeFieldSelect = Class.extend({
 // !BigTreeFormValidator
 var BigTreeFormValidator = Class.extend({
 	form: false,
-	callback: false,
 	
-	init: function(selector,callback) {
+	init: function(selector) {
 		this.form = $(selector);
-		this.callback = callback;
-		
 		this.form.submit($.proxy(this.validateForm,this));
 	},
 	
-	validateForm: function() {
+	validateForm: function(in_dialog) {
 		this.form.find(".form_error").removeClass("form_error");
 		this.form.find(".form_error_reason").remove();
 		
@@ -1573,11 +1570,15 @@ var BigTreeFormValidator = Class.extend({
 		});
 		
 		if (this.form.find(".form_error").length) {
-			$(".form_container .error_message").show();
-			$('html, body').animate({ scrollTop: $(".form_container").offset().top }, 200);
+			this.form.find(".error_message").show();
+			if (!in_dialog) {
+				$('html, body').animate({ scrollTop: $(".form_container").offset().top }, 200);
+			} else {
+				this.form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
+			}
 			return false;
 		} else {
-		
+			return true;
 		}
 	}
 });

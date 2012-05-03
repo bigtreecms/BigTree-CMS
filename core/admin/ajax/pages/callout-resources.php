@@ -26,6 +26,8 @@
 <?
 	}
 	
+	echo '<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>';
+	
 	$tabindex = 1000;
 	
 	if (count($callout["resources"])) {
@@ -37,6 +39,17 @@
 			$options["directory"] = "files/pages/";
 			$value = $resources[$options["id"]];
 			$currently_key = "callouts[$count][currently_".$options["id"]."]";
+			
+			// Setup Validation Classes
+			$label_validation_class = "";
+			$input_validation_class = "";
+			if ($options["validation"]) {
+				if (strpos($options["validation"],"required") !== false) {
+					$label_validation_class = ' class="required"';
+				}
+				$input_validation_class = ' class="'.$options["validation"].'"';
+			}
+			
 			include BigTree::path("admin/form-field-types/draw/$type.php");
 			$tabindex++;
 		}

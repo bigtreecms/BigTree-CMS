@@ -430,7 +430,7 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "title" && $key != "id" && $key != "type" && $key != "display_field" && $key != "display_default") {
+						if ($key != "id" && $key != "type" && $key != "display_field" && $key != "display_default" && $key != "title" && $key != "subtitle") {
 							$resource[$key] = $val;
 						}
 					}
@@ -4863,11 +4863,12 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$options = json_decode($resource["options"],true);
 					foreach ($options as $key => $val) {
-						if ($key != "name" && $key != "id" && $key != "type" && $key != "display_field" && $key != "display_default")
+						if ($key != "id" && $key != "type" && $key != "display_field" && $key != "display_default" && $key != "title" && $key != "subtitle") {
 							$resource[$key] = $val;
+						}
 					}
 					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["name"] = htmlspecialchars($resource["name"]);
+					$resource["title"] = htmlspecialchars($resource["title"]);
 					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
 					unset($resource["options"]);
 					$r[] = $resource;

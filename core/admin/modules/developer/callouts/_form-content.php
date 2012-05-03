@@ -23,7 +23,7 @@
 			</select>
 		</fieldset>
 		<fieldset>
-			<label class="required">Default Display Title <small>(displays if no resources are assigned to "Title" below)</small></label>
+			<label class="required">Default Display Title <small>(displays if no resources are assigned as "Title")</small></label>
 			<input type="text" class="required" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
