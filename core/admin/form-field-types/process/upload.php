@@ -83,10 +83,17 @@
 						}
 					// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.
 					} else {
-						$value = $r["file"];
+						$value = str_replace($site_root,"{wwwroot}",$r["file"]);
 					}
 				}
 			}
+		}
+	}
+	
+	// For callouts
+	if (!$value && $callout_resources) {
+		if (isset($data[$key])) {
+			$value = $data[$key];
 		}
 	}
 ?>		

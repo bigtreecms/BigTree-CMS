@@ -19,10 +19,10 @@
 				}
 				
 				$callout = array();
-				$sdata = $cms->getCallout($data["type"]);
-				$sresources = json_decode($sdata["resources"],true);
+				$callout_data = $cms->getCallout($data["type"]);
+				$callout_resources = json_decode($callout_data["resources"],true);
 				
-				foreach ($sresources as $options) {
+				foreach ($callout_resources as $options) {
 					$key = $options["id"];
 					$type = $options["type"];
 					$options["directory"] = "files/pages/";
