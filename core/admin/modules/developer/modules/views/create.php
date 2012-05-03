@@ -61,7 +61,7 @@
 		}
 		
 		// Let's create the view
-		$view_id = $admin->createModuleView($title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$preview_url);
+		$view_id = $admin->createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
 		
 		$mod = $admin->getModule($module);
