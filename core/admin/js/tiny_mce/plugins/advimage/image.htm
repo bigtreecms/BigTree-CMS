@@ -73,9 +73,16 @@
 								<td class="column1"><label id="stylelabel" for="style">{#advimage_dlg.style}</label></td> 
 								<td colspan="2"><input id="style" name="style" type="text" value="" onchange="ImageDialog.changeAppearance();" /></td> 
 							</tr>
+							
+<!--
 							<tr>
 								<td class="column1"><label id="classeslabel" for="classes">{#advimage_dlg.classes}</label></td> 
 								<td colspan="2"><input id="classes" name="classes" type="text" value="" onchange="selectByValue(this.form,'classlist',this.value,true);" /></td> 
+							</tr>
+-->
+							<tr>
+								<td><label for="class_list">{#class_name}</label></td>
+								<td colspan="2"><select id="class_list" name="class_list" class="mceEditableSelect"><option value=""></option></select></td>
 							</tr>
 							
 						</table>
@@ -157,10 +164,12 @@
 							<td><input id="border" name="border" type="text" value="" size="3" maxlength="3" class="number" onchange="ImageDialog.updateStyle('border');ImageDialog.changeAppearance();" onblur="ImageDialog.updateStyle('border');ImageDialog.changeAppearance();" /></td> 
 						</tr>
 
+<!--
 						<tr>
 							<td><label for="class_list">{#class_name}</label></td>
 							<td colspan="2"><select id="class_list" name="class_list" class="mceEditableSelect"><option value=""></option></select></td>
 						</tr>
+-->
 
 <!--
 						<tr>
