@@ -281,7 +281,7 @@
 			$query_fields = array();
 			$query_vals = array();
 			foreach ($data as $key => $val) {
-				if (isset($columns[$key])) {
+				if (array_key_exists($key,$columns)) {
 					$query_fields[] = "`".$key."`";
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
@@ -1038,7 +1038,7 @@
 			$columns = sqlcolumns($table);
 			
 			foreach ($data as $key => $val) {
-				if (isset($columns[$key])) {
+				if (array_key_exists($key,$columns)) {
 					$query_fields[] = "`".$key."`";
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
@@ -1201,7 +1201,10 @@
 			$columns = sqlcolumns($table);
 			$query = "UPDATE $table SET";
 			foreach ($data as $key => $val) {
-				if (isset($columns[$key])) {
+				if (array_key_exists($key,$columns)) {
+					if (is_array($val)) {
+						$val = json_encode($val);
+					}
 					if ($val === "NULL" || $val == "NOW()") {
 						$query .= "`$key` = $val,";
 					} else {

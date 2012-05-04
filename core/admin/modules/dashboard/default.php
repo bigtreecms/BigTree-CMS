@@ -14,7 +14,10 @@
 	$change_modules = array();
 	foreach ($changes as $c) {
 		// If we didn't get the info for this module already, get it.
-		if (!isset($change_modules[$c["module"]])) {
+		if (!$c["module"]) {
+			$c["module"] = 0;
+		}
+		if (!array_key_exists($c["module"],$change_modules)) {
 			// Pages
 			if ($c["module"] == 0) {
 				$change_modules[0] = array("title" => "Pages", "count" => 1);
