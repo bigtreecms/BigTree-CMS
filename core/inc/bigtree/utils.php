@@ -282,8 +282,8 @@
 			Parameters:
 				file - The location of the image to crop.
 				newfile - The location to save the new cropped image.
-				maxwidth - The maximum width of the new image.
-				maxheight - The maximum height of the new image.
+				maxwidth - The maximum width of the new image (0 for no max).
+				maxheight - The maximum height of the new image (0 for no max).
 				jpeg_quality - The quality to save (for GD) the new image at. Defaults to 90.
 		*/
 		

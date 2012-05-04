@@ -1,7 +1,8 @@
 <?
 	$dates[] = "field_$key";
-	if (!$value && $options["default_today"])
-		$value = date("Y-m-d");
+	if (!$value && $options["default_today"]) {
+		$value = date("m/d/Y");
+	}
 ?>
 <fieldset>
 	<? if ($title) { ?><label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>

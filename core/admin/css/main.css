@@ -704,7 +704,9 @@
 	.user_permissions section ul li .permission_label.disabled.expanded { background: url(../images/blue-arrow-sprite.png) no-repeat 17px -96px; }
 	.user_permissions section ul li .permission_level { float: left; height: 16px; padding: 8px 27px; width: 16px; }
 	.user_permissions section ul li .permission_alerts { float: left; height: 16px; padding: 8px 57px; width: 16px; }
-
+	.user_permissions section ul .module_group, .user_permissions section ul .module_group:hover { background-gradient: #274252 #406980; padding: 5px 20px; border: none; }
+	.user_permissions section ul .module_group .module_group_name { color: #FFF; font-size: 12px; }
+	
 	.user_permissions .depth { background: #ECECEC; float: left; height: 32px; }
 	.user_permissions section ul.depth_2 li .depth { width: 10px; }
 	.user_permissions section ul.depth_2 li .permission_label { width: 436px; }

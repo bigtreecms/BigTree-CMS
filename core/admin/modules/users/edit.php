@@ -87,7 +87,7 @@
 		unset($_SESSION["bigtree"]["update_user"]);
 	}
 	
-	$modules = $admin->getModules("name ASC");
+	$groups = $admin->getModuleGroups("name ASC");
 ?>
 <h1><span class="users"></span>Edit User</h1>
 <? include BigTree::path("admin/modules/users/_nav.php"); ?>
@@ -193,30 +193,39 @@
 						<section>
 							<ul class="depth_1">
 								<?
-									$x = 0;
-									foreach ($modules as $m) {
-										$x++;
-										$gbp = json_decode($m["gbp"],true);
-										if (!is_array($gbp)) {
-											$gbp = array();
-										}
+									$groups[] = array("id" => 0, "name" => "- Ungrouped -");
+									foreach ($groups as $group) {
+										$modules = $admin->getModulesByGroup($group,"name ASC");
+										if (count($modules)) {
 								?>
-								<li<? if ($x == 1) { ?> class="top"<? } ?>>
+								<li class="module_group">
+									<span class="module_group_name"><?=$group["name"]?></span>
+								</li>
+								<?
+											foreach ($modules as $m) {
+												$gbp = json_decode($m["gbp"],true);
+												if (!is_array($gbp)) {
+													$gbp = array();
+												}
+								?>
+								<li>
 									<span class="depth"></span>
-									<a class="permission_label permission_label_wider<? if (!count($gbp)) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
+									<a class="permission_label permission_label_wider<? if (!$gbp["enabled"]) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 									<?
-										if ($gbp["enabled"]) {
-											$categories = array();
-											$ot = mysql_real_escape_string($gbp["other_table"]);
-											$tf = mysql_real_escape_string($gbp["title_field"]);
-											if ($tf && $ot) {
-												$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
+												if ($gbp["enabled"]) {
+													$categories = array();
+													$ot = mysql_real_escape_string($gbp["other_table"]);
+													$tf = mysql_real_escape_string($gbp["title_field"]);
+													if ($tf && $ot) {
+														$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 									?>
 									<ul class="depth_2" style="display: none;">
-										<? while ($c = sqlfetch($q)) { ?>
+										<?
+													while ($c = sqlfetch($q)) {
+										?>
 										<li>
 											<span class="depth"></span>
 											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$c[$tf]?></a>
@@ -224,14 +233,18 @@
 											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="e" <? if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
 											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <? if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 										</li>
-										<? } ?>
+										<?
+														}
+										?>
 									</ul>
 									<?
+													}
+												}
 											}
-										}
 									?>
 								</li>
 								<?
+										}
 									}
 								?>	
 							</ul>
