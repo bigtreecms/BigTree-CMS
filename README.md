@@ -20,6 +20,25 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0b4
+- Fixed issues with saving pending changes on pages that were empty of content.
+- Fixed publishing pending changes for pages from the dashboard
+- Fixed the number of pending page changes on the dashboard always showing 1.
+- Updated the layout of the user permission editor to list modules by group.
+- Fixed the module permissions always showing a blue arrow even when sub-permissions were not available.
+- Fixed default date format for the date picker if "Default to Today's Date" was set.
+- Fixed callout files/images disappearing on re-save
+- Fixed resources in callouts saving strangely.
+- Fixed callout resources ignoring validation rules.
+- Restored ability to add classes to images in TinyMCE
+- Added missing + buttons in module designer.
+- Removed confirm dialogs from deleting fields from a form.
+- Fixed an error that caused options for a view to not save (and throw a warning) on initial creation.
+- Fixed cron-job not running properly.
+- Fixed BigTreeCMS::makeSecure
+- Fixed a few Javascript events in the admin (changing callout types and a few other places were broken in beta 3)
+- Switched sorting in the admin to use POST instead of GET (to support thousands of items).
+
 ### 4.0b3
 - Updated image cropper count design to make the number of crops more obvious
 - Updated callouts to allow developers to set a default title.
