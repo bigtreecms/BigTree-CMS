@@ -238,7 +238,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 	
 	$debug = false;
 	$config = array();
-	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\", "/"));
+	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\", "/"));
 	
 	// Let admin bootstrap itself.  New setup here so the admin can live at any path you choose for obscurity.
 	$parts_of_admin = explode("/",trim(str_replace($config["www_root"],"",$config["admin_root"]),"/"));
