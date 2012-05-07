@@ -1,7 +1,7 @@
 <?php
 	// Turn off errors
 	ini_set("log_errors",false);
-	error_reporting("E_NONE");
+	error_reporting("E_NONE"); 
 	
 	//!Server Parameters
 	$warnings = array();
