@@ -292,7 +292,7 @@ class CF_Http
 		if ($path) {
 			$this->cabundle_path = $path;
 		} else {
-			$this->cabundle_path = dirname(__FILE__) . "/share/cacert.pem";
+			$this->cabundle_path = dirname(strtr(__FILE__, "\\", "/")) . "/share/cacert.pem";
 		}
 		if (!file_exists($this->cabundle_path)) {
 			throw new IOException("Could not use CA bundle: "
@@ -3470,7 +3470,7 @@ class CF_Object
 			return;
 			
 		if (function_exists("finfo_open")) {
-			$local_magic = dirname(__FILE__) . "/share/magic";
+			$local_magic = dirname(strtr(__FILE__, "\\", "/")) . "/share/magic";
 			$finfo = @finfo_open(FILEINFO_MIME, $local_magic);
 
 			if (!$finfo) 

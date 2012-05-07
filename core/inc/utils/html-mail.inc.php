@@ -700,8 +700,8 @@ class htmlMimeMail
 				break;
 
 			case 'smtp':
-				require_once(dirname(__FILE__) . '/smtp.php');
-				require_once(dirname(__FILE__) . '/RFC822.php');
+				require_once(dirname(strtr(__FILE__, "\\", "/")) . '/smtp.php');
+				require_once(dirname(strtr(__FILE__, "\\", "/")) . '/RFC822.php');
 				$smtp = &smtp::connect($this->smtp_params);
 				
 				// Parse recipients argument for internet addresses
