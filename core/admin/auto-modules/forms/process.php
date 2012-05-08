@@ -2,6 +2,17 @@
 	$view = BigTreeAutoModule::getRelatedViewForForm($form);
 	$data_action = ($_POST["save_and_publish"] || $_POST["save_and_publish_x"] || $_POST["save_and_publish_y"]) ? "publish" : "save";
 	
+	// If there's a preprocess function for this module, let's get'r'done.
+	$preprocess_changes = array();
+	if ($form["preprocess"]) {
+	    $function = '$preprocess_changes = '.htmlspecialchars_decode($form["preprocess"]).'($_POST);';
+	    eval($function);
+	    // Update the $_POST
+	    foreach ($preprocess_changes as $key => $val) {
+	    	$_POST[$key] = $val;
+	    }
+	}
+	
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$permission = $admin->getAccessLevel($module,$_POST,$form["table"]);
 	if ($_POST["id"] && $permission && $permission != "n") {
@@ -15,7 +26,7 @@
 	}
 	
 	if (!$permission || $permission == "n") {
-		include BigTree::path("admin/atuo-modules/forms/_denied.php");
+		include BigTree::path("admin/auto-modules/forms/_denied.php");
 	} else {
 		// Initiate the Upload Service class.
 		$upload_service = new BigTreeUploadService;
@@ -55,6 +66,13 @@
 		
 			if (!$no_process) {
 				$item[$key] = $value;
+			}
+		}
+		
+		// See if we added anything in pre-processing that wasn't a field in the form.
+		foreach ($preprocess_changes as $key => $val) {
+			if (!isset($item[$key])) {
+				$item[$key] = $val;
 			}
 		}
 		
