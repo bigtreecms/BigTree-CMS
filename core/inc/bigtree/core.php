@@ -727,6 +727,38 @@
 		}
 		
 		/*
+			Function: getTag
+				Returns a tag for a given tag id.
+			
+			Parameters:
+				id - The id of the tag to retrieve.
+			
+			Returns:
+				A tag entry from bigtree_tags.
+		*/
+		
+		function getTag($id) {
+			$id = mysql_real_escape_string($id);
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
+		}
+		
+		/*
+			Function: getTagByRoute
+				Returns a tag for a given tag route.
+			
+			Parameters:
+				route - The route of the tag to retrieve.
+			
+			Returns:
+				A tag entry from bigtree_tags.
+		*/
+		
+		function getTagByRoute($route) {
+			$route = mysql_real_escape_string($route);
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"));
+		}
+		
+		/*
 			Function: getTagsForPage
 				Returns a list of tags the page was tagged with.
 			
