@@ -3,13 +3,6 @@
 	
 	$form = BigTreeAutoModule::getForm($action["form"]);
 	
-	if ($form["css"]) {
-		$css = explode(",",$form["css"]);
-	}
-	if ($form["javascript"]) {
-		$js = explode(",",$form["javascript"]);
-	}
-	
 	$action = end($path);
 	
 	if ($action == "process" || $action == "preview") {
