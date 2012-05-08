@@ -1,5 +1,5 @@
 <?
-	$root_path = str_replace("core/cron.php","",__FILE__);
+	$root_path = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
 	include $root_path."templates/config.php";
 	include $root_path."core/bootstrap.php";
 	

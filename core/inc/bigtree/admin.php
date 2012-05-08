@@ -4642,12 +4642,13 @@
 					);
 				}
 				
-				// If this is a pending change, just replace all the changes
+				// If this is a pending page, just replace all the changes
 				if ($pending) {
 					$changes = mysql_real_escape_string(json_encode($changes));
 				// Otherwise, we need to check what's changed.
 				} else {
 					$original_changes = json_decode($existing_pending_change["changes"],true);
+					
 					if (isset($original_changes["template"])) {
 						$template = $original_changes["template"];
 					}
@@ -4656,7 +4657,7 @@
 					}
 
 					foreach ($changes as $key => $val) {
-						if ($val != $existing_page[$key] && isset($existing_page[$key])) {
+						if ($val != $original_changes[$key] && array_key_exists($key,$existing_page)) {
 							$original_changes[$key] = $val;
 						}
 					}
@@ -4678,7 +4679,7 @@
 						$val = $this->makeIPL($val);
 					}
 
-					if (isset($existing_page[$key]) && $val != $existing_page[$key]) {
+					if (array_key_exists($key,$existing_page) && $val != $existing_page[$key]) {
 						$original_changes[$key] = $val;
 					}
 				}
@@ -4692,7 +4693,7 @@
 
 				$this->track("bigtree_pages",$page,"saved-draft");
 			}
-
+			
 			return sqlid();
 		}
 		

@@ -4,7 +4,7 @@
 	// Set some config vars automatically and setup some globals.
 	$GLOBALS["config"] = &$config;
 	$GLOBALS["domain"] = rtrim($config["domain"],"/");
-	$GLOBALS["server_root"] = str_replace("core/bootstrap.php","",__FILE__);
+	$GLOBALS["server_root"] = str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
 	$GLOBALS["site_root"] = $GLOBALS["server_root"]."site/";
 	$GLOBALS["www_root"] = $config["www_root"];
 	$GLOBALS["admin_ajax_root"] = $GLOBALS["server_root"]."core/admin/ajax/";

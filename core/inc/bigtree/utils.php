@@ -127,7 +127,7 @@
 				$mod = "";
 				$action = "";
 				// If this column doesn't exist in the Table A table, add it.
-				if (!isset($table_a_columns[$key])) {
+				if (!array_key_exists($key,$table_a_columns)) {
 					$action = "ADD";
 				} elseif ($table_a_columns[$key] !== $column) {
 					$action = "MODIFY";
@@ -172,7 +172,7 @@
 			
 			foreach ($table_a_columns as $key => $column) {
 				// If this key no longer exists in the new table, we should delete it.
-				if (!isset($table_b_columns[$key])) {
+				if (!array_key_exists($key,$table_b_columns)) {
 					$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
 				}	
 			}
