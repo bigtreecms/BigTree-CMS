@@ -1,6 +1,6 @@
 <?
 	// BigTree Version
-	$GLOBALS["bigtree"]["version"] = "4.0b3";		
+	$GLOBALS["bigtree"]["version"] = "4.0b4";		
 	$GLOBALS["wiki"] = "http://wiki.bigtreecms.com/index.php/";
 	
 	// Make sure no notice gets thrown for $path being too small.
