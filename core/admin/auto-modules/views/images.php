@@ -139,7 +139,7 @@
 <script type="text/javascript">
 	<? if ($perm == "p" && $view["options"]["draggable"]) { ?>
 	$("#image_list").sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/?view=<?=$view["id"]?>&table_name=image_list&sort=" + escape($("#image_list").sortable("serialize")));
+		$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
 	}});
 	<? } ?>
 	 
