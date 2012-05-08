@@ -721,8 +721,7 @@
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
-				javascript - Optional Javascript file to include in the form.
-				css - Optional CSS file to include in the form.
+				preprocess - Optional preprocessing function to run before data is parsed.
 				callback - Optional callback function to run after the form processes.
 				default_position - Default position for entries to the form (if the view is positioned).
 				
@@ -730,7 +729,7 @@
 				The new form id.
 		*/
 		
-		function createModuleForm($title,$table,$fields,$javascript = "",$css = "",$callback = "",$default_position = "") {
+		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "") {
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$table = mysql_real_escape_string($table);
 			$fields = mysql_real_escape_string(json_encode($fields));
@@ -874,6 +873,9 @@
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
 				$x++;
 			}
+			
+			// Make sure route isn't longer than 255
+			$route = substr($route,0,255);
 			
 			// If we have a parent, get the full navigation path, otherwise, just use this route as the path since it's top level.
 			if ($parent) {
@@ -5032,24 +5034,22 @@
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
-				javascript - Optional Javascript file to include in the form.
-				css - Optional CSS file to include in the form.
+				preprocess - Optional preprocessing function to run before data is parsed.
 				callback - Optional callback function to run after the form processes.
 				default_position - Default position for entries to the form (if the view is positioned).
 				suffix - Optional add/edit suffix for the form.
 		*/
 		
-		function updateModuleForm($id,$title,$table,$fields,$javascript = "",$css = "",$callback = "",$default_position = "",$suffix = "") {
+		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "") {
 			$id = mysql_real_escape_string($id);
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$table = mysql_real_escape_string($table);
 			$fields = mysql_real_escape_string(json_encode($fields));
-			$javascript - mysql_real_escape_string(htmlspecialchars($javascript));
-			$css - mysql_real_escape_string(htmlspecialchars($css));
+			$preprocess - mysql_real_escape_string(htmlspecialchars($preprocess));
 			$callback - mysql_real_escape_string($callback);
 			$default_position - mysql_real_escape_string($default_position);
 			
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', javascript = '$javascript', css = '$css', callback = '$callback', default_position = '$default_position' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position' WHERE id = '$id'");
 			
 			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);
 			if ($suffix != $oroute) {
@@ -5226,6 +5226,9 @@
 				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
 				$x++;
 			}
+			
+			// Make sure route isn't longer than 255
+			$route = substr($route,0,255);
 
 			// We have no idea how this affects the nav, just wipe it all.
 			if ($current["nav_title"] != $nav_title || $current["route"] != $route || $current["in_nav"] != $in_nav || $current["parent"] != $parent) {
