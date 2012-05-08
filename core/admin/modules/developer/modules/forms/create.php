@@ -16,7 +16,7 @@
 		$fields[$key] = $field;
 	}
 	
-	$form_id = $admin->createModuleForm($title,$table,$fields,$javascript,$css,$callback,$default_position);
+	$form_id = $admin->createModuleForm($title,$table,$fields,$preprocess,$callback,$default_position);
 	$admin->createModuleAction($module,"Add $title","add".$suffix,"on","add",$form_id);
 	$admin->createModuleAction($module,"Edit $title","edit".$suffix,"","edit",$form_id);
 			

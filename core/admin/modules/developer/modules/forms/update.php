@@ -10,7 +10,7 @@
 		$fields[$key] = $field;
 	}
 	
-	$admin->updateModuleForm(end($path),$title,$table,$fields,$javascript,$css,$callback,$default_position,$suffix);
+	$admin->updateModuleForm(end($path),$title,$table,$fields,$preprocess,$callback,$default_position,$suffix);
 	$action = $admin->getModuleActionForForm(end($path));
 	
 	$admin->growl("Developer","Updated Module Form");

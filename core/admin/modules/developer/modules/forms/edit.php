@@ -39,18 +39,13 @@
 				</fieldset>
 			</div>
 			<div class="right">
-				<fieldset class="split">
-					<label>Custom Javascript</label>
-					<input type="text" name="javascript" value="<?=$form["javascript"]?>" />
-				</fieldset>
-			
-				<fieldset class="split second">
-					<label>Custom CSS</label>
-					<input type="text" name="css" value="<?=$form["css"]?>" />
+				<fieldset>
+					<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
+					<input type="text" name="preprocess" value="<?=$form["preprocess"]?>" />
 				</fieldset>
 			
 				<fieldset>
-					<label>Function Callback <small>(passes in ID and parsed post data on success)</small></label>
+					<label>Function Callback <small>(passes in ID and parsed post data, and publish state)</small></label>
 					<input type="text" name="callback" value="<?=$form["callback"]?>" />
 				</fieldset>
 			</div>
