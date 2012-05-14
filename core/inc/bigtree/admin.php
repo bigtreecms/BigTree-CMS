@@ -5373,7 +5373,7 @@
 			$mtm_changes = mysql_real_escape_string(json_encode($mtm_changes));
 			$tags_changes = mysql_real_escape_string(json_encode($tags_changes));
 			
-			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), author = '".$this->ID."' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
 		}
 
 		/*
