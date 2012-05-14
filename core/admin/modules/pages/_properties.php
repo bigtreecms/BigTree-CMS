@@ -12,7 +12,11 @@
 		}
 		if ($page_data["changes_applied"]) {
 			$status = "Changes Pending";
-			$preview_url = $www_root."_preview/".$page_data["path"]."/";
+			if ($page_data["id"] == 0) {
+				$preview_url = $www_root."_preview/";
+			} else {
+				$preview_url = $www_root."_preview/".$page_data["path"]."/";
+			}
 		} else {
 			$status = "Published";
 		}

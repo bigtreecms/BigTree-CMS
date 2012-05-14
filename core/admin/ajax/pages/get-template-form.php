@@ -91,7 +91,7 @@
 						$v = json_encode($v,true);
 					}
 			?>
-			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars($v)?>" />
+			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
 			<?
 				}
 			?>
