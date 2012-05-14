@@ -55,5 +55,6 @@
 </fieldset>
 <fieldset>
 	<label>List Parser Function</label>
-	<input name="mtm-list-parser" value="<?=htmlspecialchars($d["mtm-list-parser"])?>" />
+	<input type="text" name="mtm-list-parser" value="<?=htmlspecialchars($d["mtm-list-parser"])?>" />
 </fieldset>
+<br />
