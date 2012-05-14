@@ -16,7 +16,7 @@
 	
 	// Cache Google Analytics Information
 	$ga = new BigTreeGoogleAnalytics;
-	if ($ga->AuthToken) {
+	if ($ga->AuthToken && $ga->Profile) {
 		$ga->cacheInformation();
 	}
 	

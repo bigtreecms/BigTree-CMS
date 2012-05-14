@@ -7,7 +7,7 @@
 				</article>
 				<article class="fastspot">
 					<p>
-						Version <?=$GLOBALS["bigtree"]["version"]?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> Fastspot
+						Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> Fastspot
 					</p>
 					<a href="<?=$admin_root?>credits/">Credits</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;<a href="http://www.bigtreecms.org/" target="_blank">Support</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;<a href="http://www.fastspot.com/agency/contact/" target="_blank">Contact Us</a>
 				</article>
