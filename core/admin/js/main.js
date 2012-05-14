@@ -940,7 +940,7 @@ var BigTreeFileManager = {
 	chooseImageSize: function() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
 		$("#file_browser_form footer input.blue").hide();
-		$("#file_browser_info_pane").css({ position: "absolute", marginLeft: "609px" });
+		$("#file_browser_info_pane").css({ position: "absolute", marginLeft: "609px", height: "397px" });
 		new_pane = $('<section id="file_browser_size_pane" style="margin-left: 820px;">');
 		new_pane.html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
 		for (i = 0; i< this.availableThumbs.length; i++) {
