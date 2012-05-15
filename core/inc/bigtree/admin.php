@@ -5425,7 +5425,7 @@
 			
 			Parameters:
 				old_id - The current id of the setting to update.
-				data - The new data for the setting ("id", "type", "name", "description", "locked", "encrypted")
+				data - The new data for the setting ("id", "type", "name", "description", "locked", "system", "encrypted")
 			
 			Returns:
 				true if successful, false if a setting exists for the new id already.
@@ -5453,7 +5453,7 @@
 				return false;
 			}
 			
-			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', name = '$name', description = '$description', locked = '$locked', encrypted = '$encrypted' WHERE id = '$old_id'");
+			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
 
 			// If encryption status has changed, update the value
 			if ($existing["encrypted"] && !$encrypted) {
