@@ -20,9 +20,10 @@
 		function __construct($email = false,$password = false,$profile = false) {
 			if (!$email) {
 				global $cms;
-				$email = $cms->getSetting("bigtree-internal-google-analytics-email");
-				$password = $cms->getSetting("bigtree-internal-google-analytics-password");
-				$profile = $cms->getSetting("bigtree-internal-google-analytics-profile");
+				$ga = $cms->getSetting("bigtree-internal-google-analytics");
+				$email = $ga["email"];
+				$password = $ga["password"];
+				$profile = $ga["profile"];
 			}
 			
 			$response = $this->httpRequest("https://www.google.com/accounts/ClientLogin",null,array(
@@ -63,7 +64,13 @@
 			$parameters['max-results'] = 100000;
 			$response = $this->httpRequest("https://www.google.com/analytics/feeds/data", $parameters, null, array('Authorization: GoogleLogin auth='.$this->AuthToken));
 			
-			$xml = simplexml_load_string($response["body"]);
+			$xml = @simplexml_load_string($response["body"]);
+			
+			// If we don't have any entries, something is probably wrong.
+			if (!count($xml->entry)) {
+				$admin->updateSettingValue("bigtree-internal-google-analytics",array("error" => "Your Google Analytics data is corrupt.  Please login again."));
+				return false;
+			}
 			
 			foreach ($xml->entry as $entry) {
 				$metrics = array();

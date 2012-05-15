@@ -2,31 +2,80 @@
 	$breadcrumb[] = array("title" => "System Update", "link" => "#");
 	
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
-	if ($current_revision < BIGTREE_REVISION) {
-		while ($current_revision < BIGTREE_REVISION) {
-			$current_revision++;
-			if (function_exists("_local_bigtree_update_".$current_revision)) {
-				eval("_local_bigtree_update_$current_revision();");
+	// If we recently upgraded...
+	if ($current_revision < BIGTREE_REVISION) {		
+		// Start the upgrade process if we've already said OK.
+		if (count($_POST)) {
+			while ($current_revision < BIGTREE_REVISION) {
+				$current_revision++;
+				if (function_exists("_local_bigtree_update_".$current_revision)) {
+					eval("_local_bigtree_update_$current_revision();");
+				}
 			}
-		}
 		
-		$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
-	}
+			$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
 ?>
 <h1><span class="developer"></span>System Update</h1>
 <div class="form_container">
+	<form method="post" action="">
+		<section>
+			<p>Your update is complete.</p>
+		</section>
+		<footer>
+			<a href="<?=$admin_root?>dashboard/" class="button blue">Return to Dashboard</a>
+		</footer>
+	</form>
+</div>
+<?
+		// See if there are db/fs updates available to run and confirm with them they've backed up their DB for continuing.
+		} else {
+			$updates_exist = false;
+			while ($current_revision < BIGTREE_REVISION) {
+				$current_revision++;
+				if (function_exists("_local_bigtree_update_".$current_revision)) {
+					$updates_exist = true;
+				}
+			}
+			
+			// If we don't have anything to run, just update the revision number and return to the dashboard.
+			if (!$updates_exist) {
+				$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
+				header("Location: ".$admin_root."dashboard/");
+				die();
+			}
+?>
+<h1><span class="developer"></span>System Update</h1>
+<div class="form_container">
+	<form method="post" action="">
+		<section>
+			<p>BigTree has been updated to <?=BIGTREE_VERSION?>.</p>
+			<p>
+				Your database and/or filesystem needs to be upgraded to be compatible with this version.<br />
+				It is recommended that you <strong>backup your old database</strong> before continuing.
+			</p>
+		</section>
+		<footer>
+			<input type="submit" class="button blue" name="upgrade" value="Upgrade Database" />
+		</footer>
+	</form>
+</div>
+<?
+		}
+	} else {
+?>
+
+<h1><span class="developer"></span>System Update</h1>
+<div class="form_container">
 	<section>
-		<p>BigTree has been updated to <?=BIGTREE_VERSION?>.</p>
-		<p>
-			Your database has been upgraded to be compatible with this version.<br />
-			Your <strong>old database</strong> has been backed up to <strong><?=$server_root?>cache/backup.sql</strong>
-		</p>
+		<p>BigTree is up to date.</p>
 	</section>
 	<footer>
 		<a href="<?=$admin_root?>dashboard/" class="button blue">Return to Dashboard</a>
 	</footer>
 </div>
-<?
+<?	
+	}
+
 	// BigTree 4.0b5 update -- REVISION 1
 	function _local_bigtree_update_1() {
 		global $cms,$admin;

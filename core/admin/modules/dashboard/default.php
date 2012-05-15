@@ -1,5 +1,12 @@
 <h1><span class="dashboard"></span>Overview</h1>
 <?
+	// Check whether our database is running the latest revision of BigTree or not.
+	$current_revision = $cms->getSetting("bigtree-internal-revision");
+	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
+		header("Location: ".$admin_root."dashboard/update/");
+		die();
+	}
+	
 	$breadcrumb[] = array("title" => "Overview", "link" => "#");
 	
 	// Get all the messages we've received.
