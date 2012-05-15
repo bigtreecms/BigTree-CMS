@@ -48,7 +48,7 @@
 	}
 
 	function setVal(id, value, name) {
-		if (typeof(value) != 'undefined') {
+		if (typeof(value) != 'undefined' && value != null) {
 			var elm = get(id);
 
 			if (elm.nodeName == "SELECT")
@@ -176,14 +176,14 @@
 						formItemName = type == 'global' ? name : type + '_' + name;
 
 						if (type == 'global')
-							list = data;
-						else if (type == 'video' || type == 'audio') {
+						list = data;
+					else if (type == 'video' || type == 'audio') {
 							list = data.video.attrs;
 
 							if (!list && !to_form)
-								data.video.attrs = list = {};
+							data.video.attrs = list = {};
 						} else
-							list = data.params;
+						list = data.params;
 
 						if (list) {
 							if (to_form) {
@@ -270,17 +270,17 @@
 					src = data.video.sources[2];
 					if (src)
 						setVal('video_altsource2', src.src);
-				} else if (data.type == 'audio') {
-					if (data.video.sources[0])
-						setVal('src', data.video.sources[0].src);
-					
-					src = data.video.sources[1];
-					if (src)
-						setVal('audio_altsource1', src.src);
-					
-					src = data.video.sources[2];
-					if (src)
-						setVal('audio_altsource2', src.src);
+                } else if (data.type == 'audio') {
+                    if (data.video.sources[0])
+                        setVal('src', data.video.sources[0].src);
+                    
+                    src = data.video.sources[1];
+                    if (src)
+                        setVal('audio_altsource1', src.src);
+                    
+                    src = data.video.sources[2];
+                    if (src)
+                        setVal('audio_altsource2', src.src);
 				} else {
 					// Check flash vars
 					if (data.type == 'flash') {
@@ -340,25 +340,25 @@
 					src = getVal("video_altsource2");
 					if (src)
 						data.video.sources[2] = {src : src};
-				} else if (data.type == 'audio') {
-					if (!data.video.sources)
-						data.video.sources = [];
-					
-					data.video.sources[0] = {src : src};
-					
-					src = getVal("audio_altsource1");
-					if (src)
-						data.video.sources[1] = {src : src};
-					
-					src = getVal("audio_altsource2");
-					if (src)
-						data.video.sources[2] = {src : src};
+                } else if (data.type == 'audio') {
+                    if (!data.video.sources)
+                        data.video.sources = [];
+                    
+                    data.video.sources[0] = {src : src};
+                    
+                    src = getVal("audio_altsource1");
+                    if (src)
+                        data.video.sources[1] = {src : src};
+                    
+                    src = getVal("audio_altsource2");
+                    if (src)
+                        data.video.sources[2] = {src : src};
 				} else
 					data.params.src = src;
 
 				// Set default size
-				setVal('width', data.width || (data.type == 'audio' ? 300 : 320));
-				setVal('height', data.height || (data.type == 'audio' ? 32 : 240));
+                setVal('width', data.width || (data.type == 'audio' ? 300 : 320));
+                setVal('height', data.height || (data.type == 'audio' ? 32 : 240));
 			}
 		},
 
@@ -387,16 +387,16 @@
 		},
 
 		beforeResize : function() {
-			this.width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
-			this.height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
+            this.width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
+            this.height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
 		},
 
 		changeSize : function(type) {
 			var width, height, scale, size;
 
 			if (get('constrain').checked) {
-				width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
-				height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
+                width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
+                height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
 
 				if (type == 'width') {
 					this.height = Math.round((width / this.width) * height);
@@ -427,24 +427,30 @@
 		},
 
 		getMediaTypeHTML : function(editor) {
-			function option(media_type){
+			function option(media_type, element) {
+				if (!editor.schema.getElementRule(element || media_type)) {
+					return '';
+				}
+
 				return '<option value="'+media_type+'">'+tinyMCEPopup.editor.translate("media_dlg."+media_type)+'</option>'
 			}
+
 			var html = "";
+
 			html += '<select id="media_type" name="media_type" onchange="Media.formToData(\'type\');">';
 			html += option("video");
 			html += option("audio");
-			html += option("flash");
-			html += option("quicktime");
-			html += option("shockwave");
-			html += option("windowsmedia");
-			html += option("realmedia");
+			html += option("flash", "object");
+			html += option("quicktime", "object");
+			html += option("shockwave", "object");
+			html += option("windowsmedia", "object");
+			html += option("realmedia", "object");
 			html += option("iframe");
 
 			if (editor.getParam('media_embedded_audio', false)) {
-				html += option('embeddedaudio');
+				html += option('embeddedaudio', "object");
 			}
-			
+
 			html += '</select>';
 			return html;
 		},

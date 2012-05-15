@@ -278,14 +278,14 @@
 				setAttr(elm, 'xml:lang', data.langcode);
 			}
 
-			// json_encode header fragment and crop away body part
-			html = new tinymce.html.json_encoder({
+			// Serialize header fragment and crop away body part
+			html = new tinymce.html.Serializer({
 				validate: false,
 				indent: true,
 				apply_source_formatting : true,
 				indent_before: 'head,html,body,meta,title,script,link,style',
 				indent_after: 'head,html,body,meta,title,script,link,style'
-			}).json_encode(headerFragment);
+			}).serialize(headerFragment);
 
 			this.head = html.substring(0, html.indexOf('</body>'));
 		},

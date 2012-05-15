@@ -123,7 +123,7 @@
 				});
 
 				// Convert image placeholders to video elements
-				ed.json_encoder.addNodeFilter('img', function(nodes, name, args) {
+				ed.serializer.addNodeFilter('img', function(nodes, name, args) {
 					var i = nodes.length, node;
 
 					while (i--) {
@@ -255,7 +255,7 @@
 				vspace : data.vspace,
 				src : self.editor.theme.url + '/img/trans.gif',
 				'class' : 'mceItemMedia mceItem' + self.getType(data.type).name,
-				'data-mce-json' : JSON.json_encode(data, "'")
+				'data-mce-json' : JSON.serialize(data, "'")
 			});
 
 			img.width = data.width || (data.type == 'audio' ? "300" : "320");
@@ -268,7 +268,7 @@
 		 * Converts the JSON data object to a HTML string.
 		 */
 		dataToHtml : function(data, force_absolute) {
-			return this.editor.json_encoder.json_encode(this.dataToImg(data, force_absolute), {forced_root_block : '', force_absolute : force_absolute});
+			return this.editor.serializer.serialize(this.dataToImg(data, force_absolute), {forced_root_block : '', force_absolute : force_absolute});
 		},
 
 		/**
@@ -383,7 +383,7 @@
 				style = node.attr('style');
 
 				if (style)
-					style = editor.dom.json_encodeStyle(editor.dom.parseStyle(style, 'img'));
+					style = editor.dom.serializeStyle(editor.dom.parseStyle(style, 'img'));
 			}
 
 			// Handle iframe
@@ -418,7 +418,7 @@
 				replacement = new Node('script', 1).attr('type', 'text/javascript');
 
 				value = new Node('#text', 3);
-				value.value = 'write' + typeItem.name + '(' + JSON.json_encode(tinymce.extend(data.params, {
+				value.value = 'write' + typeItem.name + '(' + JSON.serialize(tinymce.extend(data.params, {
 					width: node.attr('width'),
 					height: node.attr('height')
 				})) + ');';
@@ -650,10 +650,10 @@
 				hspace, vspace, align, bgcolor;
 
 			function getInnerHTML(node) {
-				return new tinymce.html.json_encoder({
+				return new tinymce.html.Serializer({
 					inner: true,
 					validate: false
-				}).json_encode(node);
+				}).serialize(node);
 			};
 
 			function lookupAttribute(o, attr) {
@@ -848,7 +848,7 @@
 			if (embed)
 				embed.remove();
 
-			// json_encode the inner HTML of the object element
+			// Serialize the inner HTML of the object element
 			if (object) {
 				html = getInnerHTML(object.remove());
 
@@ -856,7 +856,7 @@
 					data.object_html = html;
 			}
 
-			// json_encode the inner HTML of the video element
+			// Serialize the inner HTML of the video element
 			if (video) {
 				html = getInnerHTML(video.remove());
 
@@ -880,7 +880,7 @@
 				vspace : vspace,
 				align : align,
 				bgcolor : bgcolor,
-				"data-mce-json" : JSON.json_encode(data, "'")
+				"data-mce-json" : JSON.serialize(data, "'")
 			});
 		}
 	});

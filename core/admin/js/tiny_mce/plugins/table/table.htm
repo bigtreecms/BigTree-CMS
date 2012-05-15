@@ -13,19 +13,17 @@
 <body id="table" style="display: none" role="application" aria-labelledby="app_title">
 	<span style="display:none;" id="app_title">{#table_dlg.title}</span>
 	<form onsubmit="insertTable();return false;" action="#">
-<!--
 		<div class="tabs">
 			<ul>
 				<li id="general_tab" aria-controls="general_panel" class="current"><span><a href="javascript:mcTabs.displayTab('general_tab','general_panel');" onmousedown="return false;">{#table_dlg.general_tab}</a></span></li>
 				<li id="advanced_tab" aria-controls="advanced_panel"><span><a href="javascript:mcTabs.displayTab('advanced_tab','advanced_panel');" onmousedown="return false;">{#table_dlg.advanced_tab}</a></span></li>
 			</ul>
 		</div>
--->
 
 		<div class="panel_wrapper">
 			<div id="general_panel" class="panel current">
 				<fieldset>
-					<!-- <legend>{#table_dlg.general_props}</legend> -->
+					<legend>{#table_dlg.general_props}</legend>
 					<table role="presentation" border="0" cellpadding="4" cellspacing="0" width="100%">
 						<tr>
 							<td><label id="colslabel" for="cols">{#table_dlg.cols}</label></td>
@@ -33,14 +31,13 @@
 							<td><label id="rowslabel" for="rows">{#table_dlg.rows}</label></td>
 							<td><input id="rows" name="rows" type="text" value="" size="3" maxlength="3" class="required number min1" aria-required="true" /></td>
 						</tr>
-						
-						<tr style="display: none;">
+						<tr>
 							<td><label id="cellpaddinglabel" for="cellpadding">{#table_dlg.cellpadding}</label></td>
 							<td><input id="cellpadding" name="cellpadding" type="text" value="" size="3" maxlength="3" class="number" /></td>
 							<td><label id="cellspacinglabel" for="cellspacing">{#table_dlg.cellspacing}</label></td>
 							<td><input id="cellspacing" name="cellspacing" type="text" value="" size="3" maxlength="3" class="number" /></td>
 						</tr>
-						<tr style="display: none;">
+						<tr>
 							<td><label id="alignlabel" for="align">{#table_dlg.align}</label></td>
 							<td><select id="align" name="align">
 								<option value="">{#not_set}</option>
@@ -51,7 +48,6 @@
 							<td><label id="borderlabel" for="border">{#table_dlg.border}</label></td>
 							<td><input id="border" name="border" type="text" value="" size="3" maxlength="5" onchange="changedBorder();" class="size" /></td>
 						</tr>
-						
 						<tr id="width_row">
 							<td><label id="widthlabel" for="width">{#table_dlg.width}</label></td>
 							<td><input name="width" type="text" id="width" value="" size="7" maxlength="7" onchange="changedSize();" class="size" /></td>
@@ -65,8 +61,7 @@
 								<option value="" selected="selected">{#not_set}</option>
 							 </select></td>
 						</tr>
-						
-						<tr style="display: none;">
+						<tr>
 							<td class="column1" ><label for="caption">{#table_dlg.caption}</label></td> 
 							<td><input id="caption" name="caption" type="checkbox" class="checkbox" value="true" /></td> 
 						</tr>

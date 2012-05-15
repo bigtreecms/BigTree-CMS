@@ -144,7 +144,7 @@ function insertTable() {
 		//elm.outerHTML = elm.outerHTML;
 
 		inst.nodeChanged();
-		inst.execCommand('mceEndUndoLevel');
+		inst.execCommand('mceEndUndoLevel', false, {}, {skip_undo: true});
 
 		// Repaint if dimensions changed
 		if (formObj.width.value != orgTableWidth || formObj.height.value != orgTableHeight)
@@ -245,6 +245,11 @@ function insertTable() {
 	tinymce.each(dom.select('table[data-mce-new]'), function(node) {
 		var tdorth = dom.select('td,th', node);
 
+		// Fixes a bug in IE where the caret cannot be placed after the table if the table is at the end of the document
+		if (tinymce.isIE && node.nextSibling == null) {
+			dom.insertAfter(dom.create('p'), node);
+		}
+
 		try {
 			// IE9 might fail to do this selection 
 			inst.selection.setCursorLocation(tdorth[0], 0);
@@ -256,7 +261,7 @@ function insertTable() {
 	});
 
 	inst.addVisual();
-	inst.execCommand('mceEndUndoLevel');
+	inst.execCommand('mceEndUndoLevel', false, {}, {skip_undo: true});
 
 	tinyMCEPopup.close();
 }
@@ -328,7 +333,7 @@ function init() {
 		className = tinymce.trim(dom.getAttrib(elm, 'class').replace(/mceItem.+/g, ''));
 		id = dom.getAttrib(elm, 'id');
 		summary = dom.getAttrib(elm, 'summary');
-		style = dom.json_encodeStyle(st);
+		style = dom.serializeStyle(st);
 		dir = dom.getAttrib(elm, 'dir');
 		lang = dom.getAttrib(elm, 'lang');
 		background = getStyle(elm, 'background', 'backgroundImage').replace(new RegExp("url\\(['\"]?([^'\"]*)['\"]?\\)", 'gi'), "$1");
@@ -395,7 +400,7 @@ function changedSize() {
 	else
 		st['height'] = "";
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 function isCssSize(value) {
@@ -418,7 +423,7 @@ function changedBackgroundImage() {
 
 	st['background-image'] = "url('" + formObj.backgroundimage.value + "')";
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 function changedBorder() {
@@ -435,7 +440,7 @@ function changedBorder() {
 		}
 	}
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 function changedColor() {
@@ -452,7 +457,7 @@ function changedColor() {
 			st['border-width'] = cssSize(formObj.border.value, 1);
 	}
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 function changedStyle() {

@@ -46,6 +46,24 @@
 
 			f = f || {};
 			p = p || {};
+			
+			// Setup blocker
+			if (t.count == 0 && t.editor.getParam('dialog_type', 'modal') == 'modal') {
+				DOM.add(DOM.doc.body, 'div', {
+					id : 'mceModalBlocker',
+					'class' : (t.editor.settings.inlinepopups_skin || 'clearlooks2') + '_modalBlocker',
+					style : {zIndex : 500000}
+				});
+
+				DOM.show('mceModalBlocker'); // Reduces flicker in IE
+				DOM.setAttrib(DOM.doc.body, 'aria-hidden', 'true');
+			} else {
+				DOM.setStyle('mceModalBlocker', 'z-index', 500000);
+			}
+
+			if (tinymce.isIE6 || /Firefox\/2\./.test(navigator.userAgent) || (tinymce.isIE && !DOM.boxModel)) {
+				DOM.setStyles('mceModalBlocker', {position : 'absolute', left : vp.x, top : vp.y, width : vp.w - 2, height : vp.h - 2});
+			}
 
 			// Run native windows
 			if (!f.inline)
@@ -301,22 +319,6 @@
 				t.focus(id);
 			});
 
-			// Setup blocker
-			if (t.count == 0 && t.editor.getParam('dialog_type', 'modal') == 'modal') {
-				DOM.add(DOM.doc.body, 'div', {
-					id : 'mceModalBlocker',
-					'class' : (t.editor.settings.inlinepopups_skin || 'clearlooks2') + '_modalBlocker',
-					style : {zIndex : t.zIndex - 1}
-				});
-
-				DOM.show('mceModalBlocker'); // Reduces flicker in IE
-				DOM.setAttrib(DOM.doc.body, 'aria-hidden', 'true');
-			} else
-				DOM.setStyle('mceModalBlocker', 'z-index', t.zIndex - 1);
-
-			if (tinymce.isIE6 || /Firefox\/2\./.test(navigator.userAgent) || (tinymce.isIE && !DOM.boxModel))
-				DOM.setStyles('mceModalBlocker', {position : 'absolute', left : vp.x, top : vp.y, width : vp.w - 2, height : vp.h - 2});
-
 			DOM.setAttrib(id, 'aria-hidden', 'false');
 			t.focus(id);
 			t._fixIELayout(id, 1);
@@ -333,7 +335,7 @@
 			var t = this, w;
 
 			if (w = t.windows[id]) {
-				w.zIndex = this.zIndex++;
+				w.zIndex = 500000;
 				w.element.setStyle('zIndex', w.zIndex);
 				w.element.update();
 
@@ -411,7 +413,7 @@
 				DOM.add(d.body, 'div', {
 					id : 'mceEventBlocker',
 					'class' : 'mceEventBlocker ' + (t.editor.settings.inlinepopups_skin || 'clearlooks2'),
-					style : {zIndex : t.zIndex + 1}
+					style : {zIndex : 500000}
 				});
 
 				if (tinymce.isIE6 || (tinymce.isIE && !DOM.boxModel))
@@ -573,7 +575,7 @@
 			var fw, ix = 0;
 			// Find front most window and focus that
 			each (this.windows, function(w) {
-				if (w.zIndex > ix) {
+				if (w.zIndex >= ix) {
 					fw = w;
 					ix = w.zIndex;
 				}

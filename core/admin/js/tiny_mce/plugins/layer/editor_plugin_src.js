@@ -51,7 +51,7 @@
 					ed.getDoc().execCommand('2D-Position', false, true);
 			});
 
-			// Remove json_encoded styles when selecting a layer since it might be changed by a drag operation
+			// Remove serialized styles when selecting a layer since it might be changed by a drag operation
 			ed.onMouseUp.add(function(ed, e) {
 				var layer = findParentLayer(e.target);
 	

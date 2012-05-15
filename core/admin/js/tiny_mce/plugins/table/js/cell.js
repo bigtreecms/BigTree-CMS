@@ -42,7 +42,7 @@ function init() {
 		formObj.height.value = height;
 		formObj.id.value = id;
 		formObj.lang.value = lang;
-		formObj.style.value = ed.dom.json_encodeStyle(st);
+		formObj.style.value = ed.dom.serializeStyle(st);
 		selectByValue(formObj, 'align', align);
 		selectByValue(formObj, 'valign', valign);
 		selectByValue(formObj, 'class', className, true, true);
@@ -137,7 +137,7 @@ function updateAction() {
 			do {
 				if (cell == tdElm)
 					break;
-				col += cell.getAttribute("colspan");
+				col += cell.getAttribute("colspan")?cell.getAttribute("colspan"):1;
 			} while ((cell = nextCell(cell)) != null);
 
 			for (var i=0; i<rows.length; i++) {
@@ -152,7 +152,7 @@ function updateAction() {
 						cell = updateCell(cell, true);
 						break;
 					}
-					curr += cell.getAttribute("colspan");
+					curr += cell.getAttribute("colspan")?cell.getAttribute("colspan"):1;
 				} while ((cell = nextCell(cell)) != null);
 			}
 
@@ -205,7 +205,7 @@ function updateCell(td, skip_id) {
 	dom.setAttrib(td, 'vAlign', formObj.valign.value);
 	dom.setAttrib(td, 'lang', formObj.lang.value);
 	dom.setAttrib(td, 'dir', getSelectValue(formObj, 'dir'));
-	dom.setAttrib(td, 'style', ed.dom.json_encodeStyle(ed.dom.parseStyle(formObj.style.value)));
+	dom.setAttrib(td, 'style', ed.dom.serializeStyle(ed.dom.parseStyle(formObj.style.value)));
 	dom.setAttrib(td, 'scope', formObj.scope.value);
 	dom.setAttrib(td, 'class', getSelectValue(formObj, 'class'));
 
@@ -247,7 +247,7 @@ function updateCell(td, skip_id) {
 		td = newCell;
 	}
 
-	dom.setAttrib(td, 'style', dom.json_encodeStyle(dom.parseStyle(td.style.cssText)));
+	dom.setAttrib(td, 'style', dom.serializeStyle(dom.parseStyle(td.style.cssText)));
 
 	return td;
 }
@@ -258,7 +258,7 @@ function changedBackgroundImage() {
 
 	st['background-image'] = "url('" + formObj.backgroundimage.value + "')";
 
-	formObj.style.value = ed.dom.json_encodeStyle(st);
+	formObj.style.value = ed.dom.serializeStyle(st);
 }
 
 function changedSize() {
@@ -277,7 +277,7 @@ function changedSize() {
 	else
 		st['height'] = "";
 
-	formObj.style.value = ed.dom.json_encodeStyle(st);
+	formObj.style.value = ed.dom.serializeStyle(st);
 }
 
 function changedColor() {
@@ -287,7 +287,7 @@ function changedColor() {
 	st['background-color'] = formObj.bgcolor.value;
 	st['border-color'] = formObj.bordercolor.value;
 
-	formObj.style.value = ed.dom.json_encodeStyle(st);
+	formObj.style.value = ed.dom.serializeStyle(st);
 }
 
 function changedStyle() {

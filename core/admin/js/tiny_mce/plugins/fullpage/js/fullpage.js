@@ -142,8 +142,8 @@
 			else
 				styles['margin-left'] = '';
 
-			// json_encode, parse and rejson_encode this will compress redundant styles
-			setVal('style', dom.json_encodeStyle(dom.parseStyle(dom.json_encodeStyle(styles))));
+			// Serialize, parse and reserialize this will compress redundant styles
+			setVal('style', dom.serializeStyle(dom.parseStyle(dom.serializeStyle(styles))));
 			this.changedStyle();
 		},
 		

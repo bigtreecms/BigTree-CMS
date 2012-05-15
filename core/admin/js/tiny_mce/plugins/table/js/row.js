@@ -37,7 +37,7 @@ function init() {
 		formObj.height.value = height;
 		formObj.id.value = id;
 		formObj.lang.value = lang;
-		formObj.style.value = dom.json_encodeStyle(st);
+		formObj.style.value = dom.serializeStyle(st);
 		selectByValue(formObj, 'align', align);
 		selectByValue(formObj, 'valign', valign);
 		selectByValue(formObj, 'class', className, true, true);
@@ -132,7 +132,7 @@ function updateRow(tr_elm, skip_id, skip_parent) {
 	dom.setAttrib(tr_elm, 'vAlign', getSelectValue(formObj, 'valign'));
 	dom.setAttrib(tr_elm, 'lang', formObj.lang.value);
 	dom.setAttrib(tr_elm, 'dir', getSelectValue(formObj, 'dir'));
-	dom.setAttrib(tr_elm, 'style', dom.json_encodeStyle(dom.parseStyle(formObj.style.value)));
+	dom.setAttrib(tr_elm, 'style', dom.serializeStyle(dom.parseStyle(formObj.style.value)));
 	dom.setAttrib(tr_elm, 'class', getSelectValue(formObj, 'class'));
 
 	// Clear deprecated attributes
@@ -182,7 +182,7 @@ function updateRow(tr_elm, skip_id, skip_parent) {
 		tr_elm = newRow;
 	}
 
-	dom.setAttrib(tr_elm, 'style', dom.json_encodeStyle(dom.parseStyle(tr_elm.style.cssText)));
+	dom.setAttrib(tr_elm, 'style', dom.serializeStyle(dom.parseStyle(tr_elm.style.cssText)));
 }
 
 function changedBackgroundImage() {
@@ -191,7 +191,7 @@ function changedBackgroundImage() {
 
 	st['background-image'] = "url('" + formObj.backgroundimage.value + "')";
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 function changedStyle() {
@@ -222,7 +222,7 @@ function changedSize() {
 	else
 		st['height'] = "";
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 function changedColor() {
@@ -231,7 +231,7 @@ function changedColor() {
 
 	st['background-color'] = formObj.bgcolor.value;
 
-	formObj.style.value = dom.json_encodeStyle(st);
+	formObj.style.value = dom.serializeStyle(st);
 }
 
 tinyMCEPopup.onInit.add(init);
