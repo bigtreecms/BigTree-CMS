@@ -894,6 +894,8 @@
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
 	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
+	.bigtree_dialog_form input.date_picker { width: 180px; }
+	.bigtree_dialog_form input.time_picker { width: 180px; }
 	
 	.bigtree_dialog_form .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
 	.bigtree_dialog_form .input_name input { width: 200px; }
@@ -920,6 +922,7 @@
 	.bigtree_dialog_form fieldset .list_attr { margin: 0; }
 	.bigtree_dialog_form .list_attr_triple ul li { width: 32%; }
 	.bigtree_dialog_form .list_attr_triple input { width: 85%; }
+	.bigtree_dialog_form .list_attr select { width: 90%; height: 22px; }
 	
 	.bigtree_dialog_form .image_attr { overflow: hidden; }
 	.bigtree_dialog_form .image_attr ul { overflow: hidden; }
@@ -1190,7 +1193,7 @@
 	
 /* Array of Items / Many to Many Widget */
 	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; }
-	.multi_widget footer { border-top: none; overflow: hidden; padding: 20px; }
+	.multi_widget footer { border-radius: 0 0 2px 2px; border-top: none; overflow: hidden; padding: 20px; }
 	.multi_widget footer a { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
 	.multi_widget footer a .icon_small { height: 16px; margin-top: 6px; }
 	.multi_widget li { border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }

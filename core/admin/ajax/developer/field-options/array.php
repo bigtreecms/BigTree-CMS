@@ -1,9 +1,20 @@
+<?
+	$types = array(
+		"text" => "Text",
+		"textarea" => "Text Area",
+		"html" => "HTML",
+		"checkbox" => "Checkbox",
+		"date" => "Date Picker",
+		"time" => "Time Picker",
+	);
+?>
 <h4>Fields <a href="#" class="add_option"><img src="<?=$admin_root?>images/add.png" alt="" /></a></h4>
 <fieldset>
-	<div class="list_attr" id="pop_option_list">
+	<div class="list_attr list_attr_triple" id="array_option_list">
 		<ul>
 			<li>Array Key</li>
 			<li>Title</li>
+			<li>Type</li>
 		</ul>
 		<?
 			// If we have fields already, show them.
@@ -17,6 +28,13 @@
 			</li>
 			<li>
 				<input type="text" name="fields[<?=$x?>][title]" value="<?=htmlspecialchars($option["title"])?>" />
+			</li>
+			<li>
+				<select name="fields[<?=$x?>][type]">
+					<? foreach ($types as $type => $desc) { ?>
+					<option value="<?=$type?>"<? if ($type == $option["type"]) { ?> selected="selected"<? } ?>><?=$desc?></option>
+					<? } ?>
+				</select>
 			</li>
 			<li class="del"><a href="#"><img src="<?=$admin_root?>images/currently-kill.png" alt="" /></a></li>
 		</ul>
@@ -34,6 +52,13 @@
 			<li>
 				<input type="text" name="fields[<?=$x?>][title]" value="" />
 			</li>
+			<li>
+				<select name="fields[<?=$x?>][type]">
+					<? foreach ($types as $type => $desc) { ?>
+					<option value="<?=$type?>"><?=$desc?></option>
+					<? } ?>
+				</select>
+			</li>
 			<li class="del"><a href="#"><img src="<?=$admin_root?>images/currently-kill.png" alt="" /></a></li>
 		</ul>
 		<?
@@ -45,7 +70,7 @@
 <script type="text/javascript">
 	var option_count = <?=$x?>;
 	
-	$(".list_attr").on("click",".del a",function() {
+	$("#array_option_list").on("click",".del a",function() {
 		$(this).parents("ul").remove();
 		return false;
 	});
@@ -65,6 +90,10 @@
 		li_value.html('<input type="text" name="fields[' + option_count + '][title]" value="" />');
 		ul.append(li_value);
 		
+		li_type = $('<li>');
+		li_type.html('<select name="fields[' + option_count + '][type]"><? foreach ($types as $type => $desc) { ?><option value="<?=$type?>"><?=$desc?></option><? } ?></select>');
+		ul.append(li_type);
+		
 		li_del = $('<li class="del">');
 		li_del.html('<a href="#"><img src="<?=$admin_root?>images/currently-kill.png" alt="" /></a>');
 		li_del.find("a").click(function() {
@@ -73,7 +102,7 @@
 		});		
 		ul.append(li_del);
 		
-		$("#pop_option_list").append(ul);
+		$("#array_option_list").append(ul);
 		
 		return false;
 	}

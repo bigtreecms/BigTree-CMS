@@ -886,7 +886,16 @@ var BigTreeDialog = Class.extend({
 		return false;
 	},
 
-	DialogSubmit: function() {
+	DialogSubmit: function(ev) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		// Let's move all the TinyMCE content back.
+		if (tinyMCE) {
+			this.dialogWindow.find("textarea:hidden").each(function() {
+				id = $(this).attr("id");
+				$(this).val(tinyMCE.get(id).getContent());
+			});
+		}
 		this.onComplete(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON());
 		if (this.onCancel) {
 			this.onCancel();
@@ -1336,12 +1345,45 @@ var BigTreeArrayOfItems = Class.extend({
 	
 	addItem: function(ev) {
 		html = "";
+		tinymces = [];
+		datepickers = [];
+		timepickers = [];
 		for (field in this.options) {
-			html += '<fieldset><label>' + this.options[field].title + '</label><input type="text" name="' + this.options[field].key + '" /></fieldset>';
+			f = this.options[field];
+			html += '<fieldset><label>' + f.title + '</label>';
+			if (f.type == "text") {
+				html += '<input type="text" name="' + f.key + '" />';
+			} else if (f.type == "textarea") {
+				html += '<textarea name="' + f.key + '"></textarea>';
+			} else if (f.type == "html") {
+				html += '<textarea name="' + f.key + '" id="aoi_' + f.key + '" class="is_html"></textarea>';
+				tinymces[tinymces.length] = "aoi_" + f.key;
+			} else if (f.type == "checkbox") {
+				html += '<input type="checkbox" name="' + f.key + '" />';
+			} else if (f.type == "date") {
+				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" />';
+				datepickers[datepickers.length] = "aoi_" + f.key;
+			} else if (f.type == "time") {
+				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" />';
+				timepickers[timepickers.length] = "aoi_" + f.key;
+			}
+			html += '</fieldset>';
 		}
 		
+		html += '<br /><script type="text/javascript">';
+		if (tinymces.length) {
+			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
+		}
+		for (i = 0; i < datepickers.length; i++) {
+			html += '$("#' + datepickers[i] + '").datepicker({ durration: 200, showAnim: "slideDown" });';
+		}
+		for (i = 0; i < timepickers.length; i++) {
+			html += '$("#' + timepickers[i] + '").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });';
+		}
+		html += '</script>';
+		
 		new BigTreeDialog("Add Item",html,$.proxy(function(data) {
-			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a></li>');
+			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
 			li.find("input").val(json_encode(data));
 			// Get the first element returned so we can put it in as a description
 			for (i in data) {
@@ -1360,15 +1402,52 @@ var BigTreeArrayOfItems = Class.extend({
 		data = eval("(" + $(ev.target).parents("li").find("input").val() + ")");
 		
 		html = "";
+		tinymces = [];
+		datepickers = [];
+		timepickers = [];
 		for (field in this.options) {
-			html += '<fieldset><label>' + this.options[field].title + '</label><input type="text" name="' + this.options[field].key + '" value="' + htmlspecialchars(data[this.options[field].key]) + '" /></fieldset>';
+			f = this.options[field];
+			v = htmlspecialchars(data[f.key]);
+			html += '<fieldset><label>' + f.title + '</label>';
+			if (f.type == "text") {
+				html += '<input type="text" name="' + f.key + '" value="' + v + '" />';
+			} else if (f.type == "textarea") {
+				html += '<textarea name="' + f.key + '">' + v + '</textarea>';
+			} else if (f.type == "html") {
+				html += '<textarea name="' + f.key + '" id="aoi_' + f.key + '" class="is_html">' + v + '</textarea>';
+				tinymces[tinymces.length] = "aoi_" + f.key;
+			} else if (f.type == "checkbox") {
+				if (v) {
+					html += '<input type="checkbox" name="' + f.key + '" checked="checked" />';
+				} else {
+					html += '<input type="checkbox" name="' + f.key + '" />';
+				}
+			} else if (f.type == "date") {
+				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" value="' + v + '" />';
+				datepickers[datepickers.length] = "aoi_" + f.key;
+			} else if (f.type == "time") {
+				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" value="' + v + '" />';
+				timepickers[timepickers.length] = "aoi_" + f.key;
+			}
+			html += '</fieldset>';
 		}
 		
+		html += '<br /><script type="text/javascript">';
+		if (tinymces.length) {
+			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
+		}
+		for (i = 0; i < datepickers.length; i++) {
+			html += '$("#' + datepickers[i] + '").datepicker({ durration: 200, showAnim: "slideDown" });';
+		}
+		for (i = 0; i < timepickers.length; i++) {
+			html += '$("#' + timepickers[i] + '").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });';
+		}
+		html += '</script>';
+		
 		this.activeField = $(ev.target).parents("li");
-		test = this.activeField;
 		
 		new BigTreeDialog("Edit Item",html,$.proxy(function(data) {
-			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a></li>');
+			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
 			li.find("input").val(json_encode(data));
 			// Get the first element returned so we can put it in as a description
 			for (i in data) {

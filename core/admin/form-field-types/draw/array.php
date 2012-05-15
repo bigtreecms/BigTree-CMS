@@ -24,8 +24,8 @@
 				<input type="hidden" name="<?=$key?>[<?=$x?>]" value="<?=htmlspecialchars(json_encode($entry))?>" />
 				<span class="icon_sort"></span>
 				<p><?=BigTree::trimLength(strip_tags(current($entry)),100)?></p>
-				<a href="#" class="icon_edit"></a>
 				<a href="#" class="icon_delete"></a>
+				<a href="#" class="icon_edit"></a>
 			</li>
 			<?
 					$x++;
