@@ -19,7 +19,7 @@
 			"subtitle" => $_POST["subtitles"][$key],
 			"type" => $t
 		);
-		$options = json_decode($_POST["options"][$key],true);
+		$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
 		if (is_array($options)) {
 			foreach ($options as $k => $o) {
 				$field[$k] = $o;

@@ -9,7 +9,7 @@
 	
 	$fields = array();
 	foreach ($_POST["type"] as $key => $val) {
-		$field = json_decode($_POST["options"][$key],true);
+		$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
 		$field["type"] = $val;
 		$field["title"] = htmlspecialchars($_POST["titles"][$key]);
 		$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);

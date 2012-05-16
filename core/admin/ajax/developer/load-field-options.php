@@ -1,6 +1,6 @@
 <?
 	$t = $_POST["type"];
-	$d = json_decode($_POST["data"],true);
+	$d = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	$data = $d;
 	
 	$validation_options = array(
@@ -20,7 +20,7 @@
 	<select name="validation">
 		<option></option>
 		<? foreach ($validation_options as $k => $v) { ?>
-		<option value="<?=$k?>"<? if ($k == $d["validation"]) { ?> selected="selected"<? } ?>><?=$v?></option>
+		<option value="<?=$k?>"<? if ($k == $data["validation"]) { ?> selected="selected"<? } ?>><?=$v?></option>
 		<? } ?>
 	</select>
 </fieldset>
@@ -29,7 +29,7 @@
 ?>
 <fieldset>
 	<label>Validation</label>
-	<input type="checkbox" name="validation" value="required"<? if ($d["validation"] == "required") { ?> checked="checked"<? } ?> /> Required
+	<input type="checkbox" name="validation" value="required"<? if ($data["validation"] == "required") { ?> checked="checked"<? } ?> /> Required
 </fieldset>
 <?	
 	}
