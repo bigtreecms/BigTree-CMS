@@ -911,18 +911,6 @@
 	.bigtree_dialog_form p.confirm { font-size: 14px; padding: 20px; }
 	.bigtree_dialog_form hr { background: #EEE; border: none; height: 1px; margin: 0px -10px 15px -10px; }
 	.bigtree_dialog_form footer a { margin: 0 10px 0 0; }
-
-	.bigtree_dialog_form .list_attr { margin: 0 0 15px; overflow: hidden; }
-	.bigtree_dialog_form .list_attr ul { clear: both; margin: 0 0 5px 0; overflow: hidden; }
-	.bigtree_dialog_form .list_attr ul:last-child { margin: 0; }
-	.bigtree_dialog_form .list_attr ul li { float: left; font-size: 10px; font-weight: bold; width: 48%; }
-	.bigtree_dialog_form .list_attr ul li.del { padding: 3px 0 0; width: 15px; }
-	.bigtree_dialog_form .list_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 90%; }
-	.bigtree_dialog_form .list_type_options { margin: 0 0 15px 0; }
-	.bigtree_dialog_form fieldset .list_attr { margin: 0; }
-	.bigtree_dialog_form .list_attr_triple ul li { width: 32%; }
-	.bigtree_dialog_form .list_attr_triple input { width: 85%; }
-	.bigtree_dialog_form .list_attr select { width: 90%; height: 22px; }
 	
 	.bigtree_dialog_form .image_attr { overflow: hidden; }
 	.bigtree_dialog_form .image_attr ul { overflow: hidden; }
@@ -943,6 +931,29 @@
 	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-right: 10px; }
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
+/* List Options Widget */
+	.bigtree_dialog_form .list_options_widget { overflow: hidden; margin: 0 0 15px 0; }
+	.bigtree_dialog_form .list_options_widget summary { padding: 0 0 5px 15px; font-size: 12px; font-weight: bold; overflow: hidden; }
+	.bigtree_dialog_form .list_options_widget span { float: left; margin: 0 10px 0 0; }
+	.bigtree_dialog_form .list_options_widget input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; }
+	.bigtree_dialog_form .list_options_widget select { height: 22px; }
+	.bigtree_dialog_form .list_options_widget li { overflow: hidden; margin: 0 0 5px 0; }
+	.bigtree_dialog_form .list_options_widget li:last-child { margin: 0; }
+	.bigtree_dialog_form .list_options_widget_1 span { width: 409px; }
+	.bigtree_dialog_form .list_options_widget_2 span { width: 198px; }
+	.bigtree_dialog_form .list_options_widget_3 span { width: 129px; }
+	.bigtree_dialog_form .list_options_widget_1 input { width: 397px; }
+	.bigtree_dialog_form .list_options_widget_2 input { width: 185px; }
+	.bigtree_dialog_form .list_options_widget_3 input { width: 118px; }
+	.bigtree_dialog_form .list_options_widget_1 select { width: 409px; }
+	.bigtree_dialog_form .list_options_widget_2 select { width: 198px; }
+	.bigtree_dialog_form .list_options_widget_3 select { width: 129px; }
+	.bigtree_dialog_form .list_options_widget .icon_sort { width: 13px; margin: 0 2px 0 0; height: 20px; background-position: -421px 2px; }
+	.bigtree_dialog_form .list_options_widget .delete { padding: 3px 0 0 2px; display: inline-block; }
+	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { height: 22px; margin: 0 0 5px 0; width: 100%; }
+	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder:last-child { margin: 0; }
+	.bigtree_dialog_form .list_options_widget_3 .delete { padding: 3px 0 0 1px; }
+
 /*---------------------------
 	BigTree File Browser
 ---------------------------*/

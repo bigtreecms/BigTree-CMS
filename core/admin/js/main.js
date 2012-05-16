@@ -890,7 +890,7 @@ var BigTreeDialog = Class.extend({
 		ev.preventDefault();
 		ev.stopPropagation();
 		// Let's move all the TinyMCE content back.
-		if (tinyMCE) {
+		if (typeof tinyMCE != "undefined") {
 			this.dialogWindow.find("textarea:hidden").each(function() {
 				id = $(this).attr("id");
 				$(this).val(tinyMCE.get(id).getContent());
@@ -1469,6 +1469,116 @@ var BigTreeArrayOfItems = Class.extend({
 
 		return false;
 	}
+});
+
+
+// !BigTreeListMaker
+var BigTreeListMaker = Class.extend({
+	
+	container: false,
+	name: false,
+	keys: [],
+	count: 0,
+	
+	init: function(selector,name,title,columns,keys,existing) {
+		this.container = $(selector);
+		this.keys = keys;
+		this.name = name;
+		
+		// Add the title
+		html = '<h4>' + title + ' <a href="#" class="add_option"><img src="www_root/admin/images/add.png" alt="" /></a></h4>';
+		if (keys.length == 1) {
+			lclass = "list_options_widget_1";
+		} else if (keys.length == 2) {
+			lclass = "list_options_widget_2";
+		} else if (keys.length == 3) {
+			lclass = "list_options_widget_3";
+		} else {
+			alert("Error: Too many keys. Maximum is 3.");
+		}
+		html += '<fieldset class="list_options_widget ' + lclass + '">';
+		
+		// Add the column headers
+		html += '<summary>';
+		for (i = 0; i < columns.length; i++) {
+			html += '<span>' + columns[i] + '</span>';
+		}
+		html += '</summary>';
+		
+		// Add the options
+		html += '<ul>';
+		count = 0;
+		for (i in existing) {
+			html += '<li><span class="icon_sort"></span>';
+			for (x = 0; x < keys.length; x++) {
+				if (keys[x].type == "select") {
+					html += '<span><select name="' + name + '[' + count + '][' + keys[x].key + ']">';
+					for (v in keys[x].list) {
+						html += '<option value="' + htmlspecialchars(v) + '"';
+						if (v == existing[i][keys[x].key]) {
+							html += ' selected="selected"';
+						}
+						html += '>' + htmlspecialchars(keys[x].list[v]) + '</option>';
+					}
+					html += '</select></span>';
+				} else {
+					html += '<span><input type="text" name="' + name + '[' + count + '][' + keys[x].key + ']" value="' + htmlspecialchars(existing[i][keys[x].key]) + '" /></span>';
+				}
+			}
+			html += '<a class="delete" href="#"><img src="www_root/admin/images/currently-kill.png" alt="" /></a></li>';
+			count++;
+		}
+		html += '</ul>';
+		this.container.html(html);
+		
+		// Hide the summary if we have no options
+		if (!existing || existing.length == 0) {
+			this.container.find("summary").hide();
+		}
+		// Hook the add button
+		this.container.find(".add_option").click($.proxy(this.addOption,this));
+		// Hook delete buttons
+		this.container.on("click",".delete",this.deleteOption);
+		// Make it sortable
+		this.container.sortable({ handle: ".icon_sort", axis: "y", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder" });
+		// Set the count of options
+		this.count = count;
+	},
+	
+	addOption: function() {
+		html = '<li><span class="icon_sort"></span>';
+		for (x = 0; x < this.keys.length; x++) {
+			if (this.keys[x].type == "select") {
+				html += '<span><select name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']">';
+				for (v in this.keys[x].list) {
+					html += '<option value="' + htmlspecialchars(v) + '">' + htmlspecialchars(this.keys[x].list[v]) + '</option>';
+				}
+				html += '</select></span>';
+			} else {
+				html += '<span><input type="text" name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']" /></span>';
+			}
+		}
+		html += '<a class="delete" href="#"><img src="www_root/admin/images/currently-kill.png" alt="" /></a></li>';
+		// Add the option, increment the count
+		this.container.find("ul").append(html);
+		this.count++;
+		// We're guaranteed at least one option now, so show the header.
+		this.container.find("summary").show();
+
+		return false;
+	},
+	
+	deleteOption: function() {
+		ul = $(this).parents("ul").eq(0);
+		$(this).parents("li").eq(0).remove();
+		// Hide the header if we're out of options
+		if (ul.find("li").length == 0) {
+			ul.prev("summary").hide();
+		}
+
+		return false;
+	}
+
 });
 
 
