@@ -1,7 +1,7 @@
 <script type="text/javascript">
 	new BigTreeFormValidator("form.module");
 
-	$("#feed_table").bind("changed",function(event,data) {
+	$("#feed_table").change(function(event,data) {
 		$("#field_area").load("<?=$admin_root?>ajax/developer/load-feed-fields/?table=" + data.value);
 	});
 	
@@ -14,7 +14,7 @@
 		return false;
 	});
 	
-	$("#feed_type").bind("changed",function(event,data) {
+	$("#feed_type").change(function(event,data) {
 		if (data.value == "rss" || data.value == "rss2") {
 			$("#field_area").hide();
 		} else {

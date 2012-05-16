@@ -329,7 +329,7 @@
 		}
 	});
 	
-	$("#user_level").on("changed",function(event,data) {
+	$("#user_level").on("change",function(event,data) {
 		if (data.value  > 0) {
 			// Set the active tab to Pages, show the Pages section, hide the header.
 			$(".user_permissions header").hide().find("a").removeClass("active").eq(0).addClass("active");

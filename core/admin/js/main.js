@@ -351,7 +351,7 @@ var BigTreeSelect = Class.extend({
 				el.selectedIndex = index;
 			}
 			this.Container.find("span").html(el.options[index].text);
-			this.Element.trigger("changed", { value: el.options[index].value, text: el.options[index].text });
+			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 			return false;
 		}
 		
@@ -411,6 +411,7 @@ var BigTreeSelect = Class.extend({
 		$("body").unbind("click",this.BoundWindowClick);
 		this.close();
 		this.Element.trigger("changed", { value: el.getAttribute("value"), text: el.innerHTML });
+		this.Element.trigger("change", { value: el.getAttribute("value"), text: el.innerHTML });
 	}
 });
 

@@ -60,7 +60,7 @@
 </div>
 
 <script type="text/javascript">
-	$("#form_table").bind("changed",function(event,data) {
+	$("#form_table").change(function(event,data) {
 		$("#field_area").load("<?=$admin_root?>ajax/developer/load-form/", { table: data.value });
 	});
 </script>
