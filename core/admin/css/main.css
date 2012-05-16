@@ -932,7 +932,7 @@
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
 /* List Options Widget */
-	.bigtree_dialog_form .list_options_widget { overflow: hidden; margin: 0 0 15px 0; }
+	.bigtree_dialog_form fieldset.list_options_widget { overflow: hidden; margin: 0 0 15px 0; }
 	.bigtree_dialog_form .list_options_widget summary { padding: 0 0 5px 15px; font-size: 12px; font-weight: bold; overflow: hidden; }
 	.bigtree_dialog_form .list_options_widget span { float: left; margin: 0 10px 0 0; }
 	.bigtree_dialog_form .list_options_widget input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; }

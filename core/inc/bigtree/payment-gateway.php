@@ -58,6 +58,9 @@
 			// Clean up the amount and tax.
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			$tax = round(floatval(str_replace(array('$',','),"",$tax)),2);
+			
+			// Make card number only have numeric digits
+			$card_number = preg_replace('/\D/', '', $card_number);
 
 			if ($this->Service == "authorize.net") {
 				return $this->authorizeAuthorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
@@ -304,6 +307,9 @@
 			// Clean up the amount and tax.
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			$tax = round(floatval(str_replace(array('$',','),"",$tax)),2);
+			
+			// Make card number only have numeric digits
+			$card_number = preg_replace('/\D/', '', $card_number);
 
 			if ($this->Service == "authorize.net") {
 				return $this->chargeAuthorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
@@ -624,6 +630,9 @@
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			$trial_amount = round(floatval(str_replace(array('$',','),"",$trial_amount)),2);
 			
+			// Make card number only have numeric digits
+			$card_number = preg_replace('/\D/', '', $card_number);
+			
 			// If a start date wasn't given, do it now.
 			if (!$start_date) {
 				$start_date = date("Y-m-d H:i:s");
@@ -849,6 +858,9 @@
 		function refund($transaction,$card_number = "",$amount = 0) {
 			// Clean up the amount.
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			
+			// Make card number only have numeric digits
+			$card_number = preg_replace('/\D/', '', $card_number);
 
 			if ($this->Service == "authorize.net") {
 				return $this->refundAuthorize($transaction,$card_number,$amount);
