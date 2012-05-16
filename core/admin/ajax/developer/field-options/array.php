@@ -11,5 +11,5 @@
 <div id="aoi_fields"></div>
 
 <script type="text/javascript">	
-	new BigTreeListMaker("#aoi_fields","fields","Fields",["Array Key","Title","Type"],[{ key: "key", type: "text" },{ key: "title", type: "text" },{ key: "type", type: "select", list: <?=json_encode($types)?> }],<?=json_encode($d["fields"])?>);
+	new BigTreeListMaker("#aoi_fields","fields","Fields",["Array Key","Title","Type"],[{ key: "key", type: "text" },{ key: "title", type: "text" },{ key: "type", type: "select", list: <?=json_encode($types)?> }],<?=json_encode($data["fields"])?>);
 </script>

@@ -1,27 +1,27 @@
 <? if (!isset($_POST["template"])) { ?>
 <fieldset>
 	<label>Upload Directory <small>(required)</small></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($d["directory"])?>" />
+	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
 </fieldset>
 <? } ?>
 <fieldset>
 	<label>Image Uploader <small>(enables crops, thumbs, preview)</small></label>
-	<input type="checkbox" name="image"<? if ($d["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" /> Enabled
+	<input type="checkbox" name="image"<? if ($data["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" /> Enabled
 </fieldset>
 
-<div id="image_uploader_options"<? if (!$d["image"]) { ?> style="display: none;"<? } ?>>
+<div id="image_uploader_options"<? if (!$data["image"]) { ?> style="display: none;"<? } ?>>
 	<h4>Image Options</h4>
 	<fieldset>
 		<label>Minimum Width <small>(numeric value in pixels)</small></label>
-		<input type="text" name="min_width" value="<?=htmlspecialchars($d["min_width"])?>" />
+		<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Minimum Height <small>(numeric value in pixels)</small></label>
-		<input type="text" name="min_height" value="<?=htmlspecialchars($d["min_height"])?>" />
+		<input type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Preview Prefix <small>(for forms)</small></label>
-		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($d["preview_prefix"])?>" />
+		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 	</fieldset>
 	
 	<h4>Crops <a href="#" class="add_crop"><img src="<?=$admin_root?>images/add.png" alt="" /></a></h4>
@@ -33,8 +33,8 @@
 			<?
 				$ctx = 0;
 				$cx = 0;
-				if (!empty($d["crops"])) {
-					foreach ($d["crops"] as $crop) {
+				if (!empty($data["crops"])) {
+					foreach ($data["crops"] as $crop) {
 			?>
 			<ul>
 				<li>
@@ -85,8 +85,8 @@
 			</ul>
 			<?
 				$tx = 0;
-				if (!empty($d["thumbs"])) {
-					foreach ($d["thumbs"] as $thumb) {
+				if (!empty($data["thumbs"])) {
+					foreach ($data["thumbs"] as $thumb) {
 			?>
 			<ul>
 				<li>

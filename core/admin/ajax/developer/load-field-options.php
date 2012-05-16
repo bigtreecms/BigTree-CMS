@@ -1,6 +1,7 @@
 <?
 	$t = $_POST["type"];
 	$d = json_decode($_POST["data"],true);
+	$data = $d;
 	
 	$validation_options = array(
 		"required" => "Required",
