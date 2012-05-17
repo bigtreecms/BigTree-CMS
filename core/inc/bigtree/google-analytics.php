@@ -310,6 +310,7 @@
 			$visits = 0;
 			$bounces = 0;
 			$time_on_site = 0;
+			$total_entries = 0;
 			
 			foreach ($xml->entry as $entry) {
 				$title = str_replace("ga:browser=","",$entry->title);

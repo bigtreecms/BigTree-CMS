@@ -1252,7 +1252,7 @@
 			$phpass = new PasswordHash($config["password_depth"], TRUE);
 			$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
 
-			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`) VALUES ('$email','$password','$name','$company','$level','$permissions')");
+			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
 			$id = sqlid();
 			
 			// Audit trail.
@@ -1605,15 +1605,19 @@
 		*/
 
 		function emailDailyDigest() {
+			global $config;
+			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$config["domain"]);
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
 				$changes = $this->getPendingChanges($user["id"]);
 				$alerts = $this->getContentAlerts($user["id"]);
+				$messages = $this->getMessages($user["id"]);
+				$unread = $messages["unread"];
 
 				// Start building the email
 				$body =  "BigTree Daily Digest\n";
 				$body .= "====================\n";
-				$body .= $GLOBALS["admin_root"]."\n\n";
+				$body .= $config["admin_root"]."\n\n";
 				
 				if (is_array($alerts) && count($alerts)) {
 					$body .= "Content Age Alerts\n";
@@ -1621,8 +1625,8 @@
 					
 					foreach ($alerts as $alert) {
 						$body .= $alert["nav_title"]." - ".$alert["current_age"]." Days Old\n";
-						$body .= $GLOBALS["www_root"].$alert["path"]."/\n";
-						$body .= $GLOBALS["admin_root"]."pages/edit/".$alert["id"]."/\n\n";
+						$body .= $config["www_root"].$alert["path"]."/\n";
+						$body .= $config["admin_root"]."pages/edit/".$alert["id"]."/\n\n";
 					}
 				}
 
@@ -1648,8 +1652,17 @@
 					}
 				}
 				
-				if (count($alerts) || count($changes)) {
-					mail($user["email"],"BigTree Daily Digest",$body,"From: BigTree Digest <mailer@bigtreecms.com>");
+				if (count($unread)) {
+					$body .= "Unread Messages\n";
+					$body .= "---------------\n\n";
+					
+					foreach ($unread as $message) {
+						$body .= $message["sender_name"]." - ".date("n/j/y @ g:ia",strtotime($message["date"]))." - ".$message["subject"]."\n";
+					}
+				}
+				
+				if (count($alerts) || count($changes) || count($unread)) {
+					mail($user["email"],"BigTree Daily Digest",$body);
 				}
 			}
 		}
@@ -2087,16 +2100,18 @@
 		*/
 
 		function getChangeEditLink($change) {
+			global $config;
+			
 			if (!is_array($change)) {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$change'"));
 			}
 
 			if ($change["table"] == "bigtree_pages" && $change["item_id"]) {
-				return $GLOBALS["admin_root"]."pages/edit/".$change["item_id"]."/";
+				return $config["admin_root"]."pages/edit/".$change["item_id"]."/";
 			}
 
 			if ($change["table"] == "bigtree_pages") {
-				return $GLOBALS["admin_root"]."pages/edit/p".$change["id"]."/";
+				return $config["admin_root"]."pages/edit/p".$change["id"]."/";
 			}
 
 			$modid = $change["module"];
@@ -2109,9 +2124,9 @@
 			}
 
 			if ($action) {
-				return $GLOBALS["admin_root"].$module["route"]."/".$action["route"]."/".$change["item_id"]."/";
+				return $config["admin_root"].$module["route"]."/".$action["route"]."/".$change["item_id"]."/";
 			} else {
-				return $GLOBALS["admin_root"].$module["route"]."/edit/".$change["item_id"]."/";
+				return $config["admin_root"].$module["route"]."/edit/".$change["item_id"]."/";
 			}
 		}
 		
@@ -2277,23 +2292,31 @@
 			Function: getMessages
 				Returns all a user's messages.
 			
+			Parameters:
+				user - Optional user ID (defaults to logged in user)
+			
 			Returns:
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
 		
-		function getMessages() {
+		function getMessages($user = false) {
+			if ($user) {
+				$user = mysql_real_escape_string($user);
+			} else {
+				$user = $this->ID;
+			}
 			$sent = array();
 			$read = array();
 			$unread = array();
-			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '".$this->ID."' OR recipients LIKE '%|".$this->ID."|%' ORDER BY date DESC");
+			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
 			
 			while ($f = sqlfetch($q)) {
 				// If we're the sender put it in the sent array.
-				if ($f["sender"] == $this->ID) {
+				if ($f["sender"] == $user) {
 					$sent[] = $f;
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($f["read_by"] && strpos("|".$this->ID."|",$f["read_by"]) !== false) {
+					if ($f["read_by"] && strpos("|".$user."|",$f["read_by"]) !== false) {
 						$read[] = $f;
 					} else {
 						$unread[] = $f;
@@ -2791,8 +2814,9 @@
 		*/
 		
 		function getPageAdminLinks() {
+			global $config;
 			$pages = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$admin_root."%' OR resources LIKE '%".str_replace($www_root,"{wwwroot}",$admin_root)."%'");
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$config["admin_root"]."%' OR resources LIKE '%".str_replace($config["www_root"],"{wwwroot}",$config["admin_root"])."%'");
 			while ($f = sqlfetch($q)) {
 				$pages[] = $f;
 			}
@@ -3255,7 +3279,7 @@
 			}
 			
 			// Add module group based permissions as well
-			if (is_array($user["permissions"]["module_gbp"])) {
+			if (isset($user["permissions"]["module_gbp"]) && is_array($user["permissions"]["module_gbp"])) {
 				foreach ($user["permissions"]["module_gbp"] as $module => $groups) {
 					foreach ($groups as $group => $permission) {
 						if ($permission == "p") {
@@ -3304,14 +3328,8 @@
 				if ($ok) {
 					$mod = $this->getModule($f["module"]);
 					$user = $this->getUser($f["user"]);
-					$comments = unserialize($f["comments"]);
-					if (!is_array($comments)) {
-						$comments = array();
-					}
-
 					$f["mod"] = $mod;
 					$f["user"] = $user;
-					$f["comments"] = $comments;
 					$changes[] = $f;
 				}
 			}
@@ -4708,10 +4726,13 @@
 		*/
 
 		function track($table,$entry,$type) {
-			$table = mysql_real_escape_string($table);
-			$entry = mysql_real_escape_string($entry);
-			$type = mysql_real_escape_string($type);
-			sqlquery("INSERT INTO bigtree_audit_trail (`table`,`user`,`entry`,`date`,`type`) VALUES ('$table','".$this->ID."','$entry',NOW(),'$type')");
+			// If this is running fron cron or something, nobody is logged in so don't track.
+			if (isset($this->ID)) {
+				$table = mysql_real_escape_string($table);
+				$entry = mysql_real_escape_string($entry);
+				$type = mysql_real_escape_string($type);
+				sqlquery("INSERT INTO bigtree_audit_trail (`table`,`user`,`entry`,`date`,`type`) VALUES ('$table','".$this->ID."','$entry',NOW(),'$type')");
+			}
 		}
 		
 		/*
