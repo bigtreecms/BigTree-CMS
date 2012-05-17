@@ -41,11 +41,11 @@
 			<a href="#" class="add_resource add"><span></span>Add Resource</a>
 		</header>
 		<div class="labels">
-			<span class="developer_resource_id">ID</span>
-			<span class="developer_resource_title">Title</span>
-			<span class="developer_resource_subtitle">Subtitle</span>
+			<span class="developer_resource_callout_id">ID</span>
+			<span class="developer_resource_callout_title">Title</span>
+			<span class="developer_resource_callout_subtitle">Subtitle</span>
 			<span class="developer_resource_type">Type</span>
-			<span class="developer_resource_display_title">Title</span>
+			<span class="developer_resource_display_title">Label</span>
 			<span class="developer_resource_action">Edit</span>
 			<span class="developer_resource_action">Delete</span>
 		</div>
@@ -56,14 +56,14 @@
 					$x++;
 			?>
 			<li>
-				<section class="developer_resource_id">
+				<section class="developer_resource_callout_id">
 					<span class="icon_sort"></span>
 					<input type="text" name="resources[<?=$x?>][id]" value="<?=$resource["id"]?>" />
 				</section>
-				<section class="developer_resource_title">
+				<section class="developer_resource_callout_title">
 					<input type="text" name="resources[<?=$x?>][title]" value="<?=$resource["title"]?>" />
 				</section>
-				<section class="developer_resource_subtitle">
+				<section class="developer_resource_callout_subtitle">
 					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=$resource["subtitle"]?>" />
 				</section>
 				<section class="developer_resource_type">
