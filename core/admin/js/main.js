@@ -1810,14 +1810,14 @@ var BigTreeToolTip = Class.extend({
 		
 		if (auto_close) {
 			$(selector).mouseenter($.proxy(this.showTip,this));
-			$(selector).mouseleave($.proxy(function() { this.container.stop().fadeTo(200, 0); },this));
+			$(selector).mouseleave($.proxy(function() { this.container.stop().fadeTo(200, 0, function() { $(this).hide(); }); },this));
 		} else {
 			$(selector).click($.proxy(this.showTip,this));
 		}
 	},
 	
 	close: function() {
-		this.container.stop().fadeTo(200, 0);
+		this.container.stop().fadeTo(200, 0, function() { $(this).hide(); });
 		return false;
 	},
 	
