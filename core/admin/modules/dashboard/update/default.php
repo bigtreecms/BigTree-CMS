@@ -86,6 +86,10 @@
 		// Drop the css/javascript columns from bigtree_module_forms and add preprocess
 		sqlquery("ALTER TABLE `bigtree_module_forms` ADD COLUMN `preprocess` varchar(255) NOT NULL AFTER `title`, DROP COLUMN `javascript`, DROP COLUMN `css`");
 		
+		// Add the "trunk" column to bigtree_pages
+		sqlquery("ALTER TABLE `bigtree_pages` ADD COLUMN `trunk` char(2) NOT NULL AFTER `id`");
+		sqlquery("UPDATE `bigtree_pages` SET `trunk` = 'on' WHERE id = '0'");
+		
 		// Move Google Analytics information into a single setting
 		$ga_cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
 		$ga_email = $cms->getSetting("bigtree-internal-google-analytics-email");
