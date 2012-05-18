@@ -272,10 +272,10 @@
 	#quick_search_results { background: #FFF; border: 1px solid #aaa; box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25); margin: -6px 0 0 11px; position: absolute; user-select: none; width: 200px; z-index: 2; }
 	#quick_search_results p { background: #eaf5fc; border-bottom: 1px solid #aaa; color: #666; font-size: 10px; margin: 0; padding: 3px 10px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); }
 	#quick_search_results li, #quick_search_results ul { border: none; float: none; margin: 0; padding: 0; }
-	#quick_search_results a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 3px 10px; }
+	#quick_search_results a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 3px 10px; border-left: none; border-right: none; }
 	#quick_search_results li:nth-child(even) a { background: #F3F3F3; }
 	#quick_search_results li:last-child a { border-bottom: none; border-width: 0; }
-	#quick_search_results li a:hover { background: #d6eefc; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); } 
+	#quick_search_results li a:hover { background: #d6eefc; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); border-left: none; border-right: none; }
 
 	#growl { margin: -10px 8px 0 707px; position: absolute; width: 245px; }
 	#growl article { background: url(../images/growl-bg.png); border-bottom: 1px solid #222; border-radius: 4px; box-shadow: 0px 2px 4px rgba(0,0,0,0.5); margin: 5px 0 0 0; overflow: hidden; padding: 15px; }

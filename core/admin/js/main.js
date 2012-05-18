@@ -17,7 +17,7 @@ $(document).ready(function() {
 	}).focus(function() {
 		$(this).addClass("focus");
 	}).blur(function() {
-		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").hide().html(\"\");", 100);
+		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").fadeOut(200, function() { $(this).html(\"\"); });", 300);
 	});
 	
 	// !BigTree Link Finder
