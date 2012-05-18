@@ -173,6 +173,7 @@
 			
 			Parameters:
 				data - A page array (containing at least the "path" from the database) *(optional)*
+				ignore_trunk - Ignores trunk settings when returning the breadcrumb
 			
 			Returns:
 				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
@@ -181,12 +182,12 @@
 				<getBreadcrumbByPage>
 		*/
 		
-		function getBreadcrumb($data = false) {
+		function getBreadcrumb($data = false,$ignore_trunk = false) {
 			global $page;
 			if (!$data) {
-				return $this->getBreadcrumbByPage($page);
+				return $this->getBreadcrumbByPage($page,$ignore_trunk);
 			} else {
-				return $this->getBreadcrumbByPage($data);
+				return $this->getBreadcrumbByPage($data,$ignore_trunk);
 			}
 		}
 		
@@ -196,6 +197,7 @@
 			
 			Parameters:
 				page - A page array (containing at least the "path" from the database) *(optional)*
+				ignore_trunk - Ignores trunk settings when returning the breadcrumb
 			
 			Returns:
 				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
@@ -204,7 +206,7 @@
 				<getBreadcrumb>
 		*/
 		
-		function getBreadcrumbByPage($page) {
+		function getBreadcrumbByPage($page,$ignore_trunk = false) {
 			$bc = array();
 			
 			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
@@ -216,20 +218,29 @@
 				$paths[] = "path = '".mysql_real_escape_string(trim($path,"/"))."'";
 			}
 			
-			// Get all the ancestors, ordered by the page length so we get the oldest first.
-			$q = sqlquery("SELECT id,nav_title,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) ASC");
+			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
+			$q = sqlquery("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
+			$trunk_hit = false;
 			while ($f = sqlfetch($q)) {
-				if ($f["external"] && $f["template"] == "") {
-					if (substr($f["external"],0,6) == "ipl://") {
-						$f["link"] = $this->getInternalPageLink($f["external"]);
-					} else {
-						$f["link"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$f["external"]);
-					}
-				} else {
-					$f["link"] = $GLOBALS["www_root"].$f["path"]."/";
+				if ($f["trunk"]) {
+					$trunk_hit = true;
 				}
-				$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => $f["link"],"id" => $f["id"]);
+				
+				if (!$trunk_hit || $ignore_trunk) {
+					if ($f["external"] && $f["template"] == "") {
+						if (substr($f["external"],0,6) == "ipl://") {
+							$f["link"] = $this->getInternalPageLink($f["external"]);
+						} else {
+							$f["link"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$f["external"]);
+						}
+					} else {
+						$f["link"] = $GLOBALS["www_root"].$f["path"]."/";
+					}
+					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => $f["link"],"id" => $f["id"]);
+				}
 			}
+			
+			$bc = array_reverse($bc);
 			
 			// Check for module breadcrumbs
 			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
@@ -805,6 +816,9 @@
 			Function: getToplevelNavigationId
 				Returns the highest level ancestor for the current page.
 			
+			Parameters:
+				trunk_as_toplevel - Treat a trunk as top level navigation instead of a new "site" (will return the trunk instead of the first nav item below the trunk if encountered) - defaults to false
+			
 			Returns:
 				The ID of the highest ancestor of the current page.
 			
@@ -813,9 +827,9 @@
 			
 		*/
 		
-		function getTopLevelNavigationId() {
+		function getTopLevelNavigationId($trunk_as_toplevel = false) {
 			global $page;
-			return $this->getTopLevelNavigationIdForPage($page);
+			return $this->getTopLevelNavigationIdForPage($page,$trunk_as_toplevel);
 		}
 		
 		/*
@@ -824,6 +838,7 @@
 			
 			Parameters:
 				page - A page array (containing at least the page's "path").
+				trunk_as_toplevel - Treat a trunk as top level navigation instead of a new "site" (will return the trunk instead of the first nav item below the trunk if encountered) - defaults to false
 			
 			Returns:
 				The ID of the highest ancestor of the given page.
@@ -833,9 +848,24 @@
 			
 		*/
 		
-		function getTopLevelNavigationIdForPage($page) {
+		function getTopLevelNavigationIdForPage($page,$trunk_as_toplevel = false) {
+			$paths = array();
+			$path = "";
 			$parts = explode("/",$page["path"]);
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE path = '".mysql_real_escape_string($parts[0])."'"));
+			foreach ($parts as $part) {
+				$path .= "/".$part;
+				$path = ltrim($path,"/");
+				$paths[] = "path = '".mysql_real_escape_string($path)."'";
+			}
+			// Get either the trunk or the top level nav id.
+			$f = sqlfetch(sqlquery("SELECT id,trunk,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '0') ORDER BY LENGTH(path) DESC LIMIT 1"));
+			if ($f["trunk"] && !$trunk_as_toplevel) {
+				// Get the next item in the path.
+				$g = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND LENGTH(path) > ".strlen($f["path"])." ORDER BY LENGTH(path) ASC LIMIT 1"));
+				if ($g) {
+					$f = $g;
+				}
+			}
 			return $f["id"];
 		}
 		

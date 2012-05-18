@@ -905,9 +905,16 @@
 			$meta_description = htmlspecialchars($meta_description);
 			$meta_keywords = htmlspecialchars($meta_keywords);
 			$external = htmlspecialchars($external);
+			
+			// Set the trunk flag back to no if the user isn't a developer
+			if ($this->Level < 2) {
+				$trunk = "";
+			} else {
+				$trunk = mysql_real_escape_string($trunk);
+			}
 
 			// Make the page!
-			sqlquery("INSERT INTO bigtree_pages (`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources`,`callouts`,`meta_keywords`,`meta_description`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$callouts','$meta_keywords','$meta_description','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
+			sqlquery("INSERT INTO bigtree_pages (`trunk`,`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources`,`callouts`,`meta_keywords`,`meta_description`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$trunk','$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$callouts','$meta_keywords','$meta_description','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
 
 			$id = sqlid();
 
@@ -988,6 +995,13 @@
 			$data["external"] = htmlspecialchars($data["external"]);
 			$data["meta_keywords"] = htmlspecialchars($data["meta_keywords"]);
 			$data["meta_description"] = htmlspecialchars($data["meta_description"]);
+			
+			// Set the trunk flag back to no if the user isn't a developer
+			if ($this->Level < 2) {
+				$data["trunk"] = "";
+			} else {
+				$data["trunk"] = mysql_real_escape_string($data["trunk"]);
+			}
 			
 			$parent = mysql_real_escape_string($data["parent"]);
 
@@ -4641,6 +4655,17 @@
 			// Save tags separately
 			$tags = mysql_real_escape_string(json_encode($changes["_tags"]));
 			unset($changes["_tags"]);
+			
+			// Unset the trunk flag if the user isn't a developer
+			if ($this->Level < 2) {
+				unset($changes["trunk"]);
+			// Make sure the value is changed
+			} else {
+				$changes["trunk"] = $changes["trunk"];
+			}
+			
+			// Set the in_nav flag, since it's not in the post if the checkbox became unclicked
+			$changes["in_nav"] = $changes["in_nav"];
 
 			// If there's already a change in the queue, update it with this latest info.
 			if ($existing_pending_change) {
@@ -5204,6 +5229,13 @@
 				}
 			}
 			
+			// Set the trunk flag back to the current value if the user isn't a developer
+			if ($this->Level < 2) {
+				$trunk = $current["trunk"];
+			} else {
+				$trunk = mysql_real_escape_string($data["trunk"]);
+			}
+			
 			// If this is top level nav and the user isn't a developer, use what the current state is.
 			if (!$current["parent"] && $this->Level < 2) {
 				$in_nav = mysql_real_escape_string($current["in_nav"]);
@@ -5286,7 +5318,7 @@
 			$external = htmlspecialchars($external);
 
 			// Update the database
-			sqlquery("UPDATE bigtree_pages SET `parent` = '$parent', `nav_title` = '$nav_title', `route` = '$route', `path` = '$path', `in_nav` = '$in_nav', `title` = '$title', `template` = '$template', `external` = '$external', `new_window` = '$new_window', `resources` = '$resources', `callouts` = '$callouts', `meta_keywords` = '$meta_keywords', `meta_description` = '$meta_description', `last_edited_by` = '".$this->ID."', updated_at = NOW(), publish_at = $publish_at, expire_at = $expire_at, max_age = '$max_age' WHERE id = '$page'");
+			sqlquery("UPDATE bigtree_pages SET `trunk` = '$trunk', `parent` = '$parent', `nav_title` = '$nav_title', `route` = '$route', `path` = '$path', `in_nav` = '$in_nav', `title` = '$title', `template` = '$template', `external` = '$external', `new_window` = '$new_window', `resources` = '$resources', `callouts` = '$callouts', `meta_keywords` = '$meta_keywords', `meta_description` = '$meta_description', `last_edited_by` = '".$this->ID."', updated_at = NOW(), publish_at = $publish_at, expire_at = $expire_at, max_age = '$max_age' WHERE id = '$page'");
 
 			// Remove any pending drafts
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'");
