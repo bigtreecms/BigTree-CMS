@@ -684,8 +684,9 @@
 	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 314px; }
 	.table .users_email { text-align: left; width: 250px; }
 	.table .users_company { text-align: left; width: 250px; }
-	.table .users_api_type { text-align: left; width: 250px; }
-	.table .users_api_token { text-align: left; width: 250px; }
+	.table .tokens_name { text-align: left; width: 200px; padding: 0 0 0 20px; }
+	.table .tokens_token { text-align: left; width: 522px; padding: 0 0 0 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.table .tokens_type { padding: 0 0 0 20px; width: 52px; }
 
 	.user_permissions .labels .permission_label { padding: 0 0 0 20px; text-align: left; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 466px; }
 	.user_permissions .labels .permission_label_wider { width: 666px; }

@@ -8,6 +8,27 @@
 	class BigTree {
 	
 		/*
+			Function: apiEncode
+				Turns an array into the currently desired API encoding.
+			
+			Parameters:
+				array - An array of content with key/value pairs.
+		
+			Returns:
+				Either an XML string or JSON string.
+		*/
+		
+		static function apiEncode($array) {
+			if (BIGTREE_API_ENCODING == "json") {
+				header("Content-type: application/json");
+				return json_encode($array);
+			} else {
+				header("Content-type: text/xml");
+				return self::arrayToXML($data);
+			}	
+		}
+	
+		/*
 			Function: arrayToXML
 				Turns a PHP array into an XML string.
 			
