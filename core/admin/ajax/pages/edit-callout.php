@@ -23,7 +23,7 @@
 <script type="text/javascript">
 	BigTreeCustomControls();
 	
-	$("#callout_type select").bind("changed",function(event,data) {
+	$("#callout_type select").change(function(event,data) {
 		$("#callout_resources").load("<?=$admin_root?>ajax/pages/callout-resources/", { type: data.value, count: <?=$count?>, resources: "<?=$_POST["data"]?>" });
 	});
 </script>

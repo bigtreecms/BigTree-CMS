@@ -8,7 +8,7 @@
 		$("#gbp").toggle();
 	});
 	
-	$(".table_select").live("changed",tablePop);
+	$(".table_select").live("change",tablePop);
 	
 	function tablePop(event,data) {
 		goingToPop = $(this).parent().siblings("fieldset");

@@ -9,7 +9,7 @@
 	
 	foreach ($results as $item) {
 ?>
-<li>
+<li id="row_<?=$item["id"]?>">
 	<section class="users_name"><?=$item["name"]?></section>
 	<section class="users_email"><?=$item["email"]?></section>
 	<section class="users_company"><?=$item["company"]?></section>

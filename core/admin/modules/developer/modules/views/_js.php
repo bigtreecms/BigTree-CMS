@@ -1,5 +1,5 @@
 <script type="text/javascript">
-	$("#view_table").bind("changed",function(event,data) {
+	$("#view_table").change(function(event,data) {
 		$("#field_area").load("<?=$admin_root?>ajax/developer/load-view-fields/?table=" + data.value);
 	});
 	
@@ -13,7 +13,7 @@
 		return false;
 	});
 	
-	$("#view_type").bind("changed",function(event,data) {
+	$("#view_type").change(function(event,data) {
 		if (data.value == "images" || data.value == "images-grouped") {
 			$("#fields").hide();
 		} else {

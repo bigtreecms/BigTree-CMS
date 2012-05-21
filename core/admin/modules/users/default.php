@@ -1,1 +1,4 @@
-<? header("Location: view/"); ?>
+<?
+	header("Location: view/");
+	die();
+?>

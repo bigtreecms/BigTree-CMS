@@ -46,11 +46,15 @@
 		</select>
 	</fieldset>
 </div>
+<? if ($admin->Level > 1) { ?>
+<fieldset class="clear">
+	<input type="checkbox" name="trunk" <? if ($pdata["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" /> <label class="for_checkbox">Trunk</label>
+</fieldset>
+<? } ?>
 <fieldset class="visible clear">
 	<? if ($parent_to_check > 0 || $admin->Level > 1) { ?>
-	<input type="checkbox" name="in_nav" <? if (!$pdata || $pdata["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="6" /> <label class="for_checkbox">Visible In Navigation</label>
+	<input type="checkbox" name="in_nav" <? if (!$pdata || $pdata["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation</label>
 	<? } else { ?>
-	<input type="checkbox" name="in_nav" <? if ($pdata["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="6" /> <label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
+	<input type="checkbox" name="in_nav" <? if ($pdata["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
 	<? } ?>
 </fieldset>
-

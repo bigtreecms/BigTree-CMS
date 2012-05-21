@@ -17,7 +17,7 @@ $(document).ready(function() {
 	}).focus(function() {
 		$(this).addClass("focus");
 	}).blur(function() {
-		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").hide().html(\"\");", 100);
+		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").fadeOut(200, function() { $(this).html(\"\"); });", 300);
 	});
 	
 	// !BigTree Link Finder
@@ -351,7 +351,7 @@ var BigTreeSelect = Class.extend({
 				el.selectedIndex = index;
 			}
 			this.Container.find("span").html(el.options[index].text);
-			this.Element.trigger("changed", { value: el.options[index].value, text: el.options[index].text });
+			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 			return false;
 		}
 		
@@ -411,6 +411,7 @@ var BigTreeSelect = Class.extend({
 		$("body").unbind("click",this.BoundWindowClick);
 		this.close();
 		this.Element.trigger("changed", { value: el.getAttribute("value"), text: el.innerHTML });
+		this.Element.trigger("change", { value: el.getAttribute("value"), text: el.innerHTML });
 	}
 });
 
@@ -1815,14 +1816,14 @@ var BigTreeToolTip = Class.extend({
 		
 		if (auto_close) {
 			$(selector).mouseenter($.proxy(this.showTip,this));
-			$(selector).mouseleave($.proxy(function() { this.container.stop().fadeTo(200, 0); },this));
+			$(selector).mouseleave($.proxy(function() { this.container.stop().fadeTo(200, 0, function() { $(this).hide(); }); },this));
 		} else {
 			$(selector).click($.proxy(this.showTip,this));
 		}
 	},
 	
 	close: function() {
-		this.container.stop().fadeTo(200, 0);
+		this.container.stop().fadeTo(200, 0, function() { $(this).hide(); });
 		return false;
 	},
 	

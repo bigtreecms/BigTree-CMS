@@ -33,7 +33,7 @@
 	}
 	
 	$(".icon_delete").live("click",function() {
-		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this resource?',$.proxy(function() {
+		new BigTreeDialog("Delete User",'<p class="confirm">Are you sure you want to delete this user?',$.proxy(function() {
 			$.ajax("<?=$admin_root?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
 		},this),"delete",false,"OK");
 		
