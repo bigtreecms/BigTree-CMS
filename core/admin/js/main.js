@@ -1029,7 +1029,7 @@ var BigTreeFileManager = {
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
 		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/"));
-		$("#file_browser_info_pane").html("<spinner></spinner>");
+		$("#file_browser_info_pane").html('<span class="spinner"></span>');
 		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
 			{ file: $(this).attr("href") },
 			function() {
@@ -1090,7 +1090,7 @@ var BigTreeFileManager = {
 		BigTreeFileManager.availableThumbs = data.thumbs;
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/"));
 		
-		$("#file_browser_info_pane").html("<spinner></spinner>");
+		$("#file_browser_info_pane").html('<span class="spinner"></span>');
 		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
 			{ file: data.file },
 			function() {
@@ -1105,6 +1105,11 @@ var BigTreeFileManager = {
 	},
 	
 	open: function(type,min_width,min_height) {
+		if ($.browser.msie  && parseInt($.browser.version, 10) === 7) {
+			alert("This feature is not supported in Internet Explorer 7.  Please upgrade your browser.");
+			return false;
+		}
+
 		this.type = type;
 		this.minWidth = min_width;
 		this.minHeight = min_height;
@@ -1119,32 +1124,33 @@ var BigTreeFileManager = {
 		overlay = $('<div class="bigtree_dialog_overlay">');
 		this.browser = $('<div id="file_browser">');
 		this.browser.css({ top: topOffset + "px", left: leftOffset + "px" });
+		
 		this.browser.html('\
-<header>\
+<div class="header">\
 	<input class="form_search" id="file_browser_search" placeholder="Search" />\
 	<a href="#" class="button add_file">Upload File</a>\
 	<a href="#" class="button add_folder">New Folder</a>\
 	<span id="file_browser_type_icon"></span>\
 	<h2 id="file_browser_type"><em class="title"></em><em class="suffix"></em></h2>\
-</header>\
+</div>\
 <ul id="file_browser_breadcrumb"><li><a href="#0">Home</a></li></ul>\
-<section id="file_browser_upload_window" style="display: none;">\
-	<spinner style="display: none;" id="file_browser_spinner"></spinner>\
+<div id="file_browser_upload_window" style="display: none;">\
+	<span style="display: none;" id="file_browser_spinner" class="spinner"></span>\
 	<iframe name="resource_frame" id="file_browser_upload_frame" style="display: none;" src="admin_root/ajax/file-browser/busy/"></iframe>\
 	<form id="file_browser_upload_form" target="resource_frame" method="post" enctype="multipart/form-data" action="admin_root/ajax/file-browser/upload/">\
 		<input type="hidden" name="MAX_FILE_SIZE" value="{max_file_size}" />\
 		<input type="file" name="file" id="file_browser_file_input" /> \
 		<input type="submit" class="shorter blue" value="Upload" />\
 	</form>\
-</section>\
+</div>\
 <form method="post" action="" id="file_browser_form">\
 	<input type="hidden" id="file_browser_selected_file" value="" />\
-	<section id="file_browser_contents"></section>\
-	<section id="file_browser_info_pane"></section>\
-	<footer>\
+	<div id="file_browser_contents"></div>\
+	<div id="file_browser_info_pane"></div>\
+	<div class="footer">\
 		<input type="submit" class="button white" value="Cancel" id="file_browser_cancel" />\
 		<input type="submit" class="button blue" value="Use Selected Item" />\
-	</footer>\
+	</div>\
 </form>');
 
 		$("body").append(overlay).append(this.browser);

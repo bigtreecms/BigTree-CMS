@@ -958,13 +958,13 @@
 	BigTree File Browser
 ---------------------------*/
 	#file_browser { background: #FFF; border: 1px solid #999; border-radius: 5px; box-shadow: 0 0 10px #444; height: 500px; overflow: hidden; position: fixed; width: 820px; z-index: 500000; }
-	#file_browser header { background: url(../images/top-gradient.png) repeat-x; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 10px; }
-	#file_browser header input { float: right; margin: 5px 0 0 3px; }
-	#file_browser header h2 { float: left; margin: 0 0 0 10px; padding: 3px 0 0 0; }
-	#file_browser header span { float: left; }
-	#file_browser header em { font-style: normal; }
-	#file_browser header a { background-color: #DDD; border-radius: 3px; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 7px 5px 0 0; padding: 0; text-align: center; width: 85px; }
-	#file_browser header a:hover { background-color: #EEE; }
+	#file_browser .header { background: url(../images/top-gradient.png) repeat-x; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 10px; }
+	#file_browser .header input { float: right; margin: 5px 0 0 3px; width: 173px; }
+	#file_browser .header h2 { float: left; margin: 0 0 0 10px; padding: 3px 0 0 0; }
+	#file_browser .header span { float: left; }
+	#file_browser .header em { font-style: normal; }
+	#file_browser .header a { background-color: #DDD; border-radius: 3px; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 7px 5px 0 0; padding: 0; text-align: center; width: 85px; }
+	#file_browser .header a:hover { background-color: #EEE; }
 	#file_browser_breadcrumb { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #E5E5E5; float: left; height: 25px; width: 820px; }
 	#file_browser_breadcrumb li { float: left; }
 	#file_browser_breadcrumb a { background: url(../images/file-browser-divider.png) no-repeat top right; color: #333; display: block; font-size: 12px; height: 25px; line-height: 25px; padding: 0px 13px 0px 7px; }
@@ -990,8 +990,8 @@
 	#file_browser_contents .file_browser_images .file_type_folder_back { background: url(../images/icon-folder-back.png) no-repeat center; }
 	
 	#file_browser_info_pane { background: #EFEFEF; border-left: 1px solid #E5E5E5; float: left; height: 371px; width: 210px; }
-	#file_browser footer { background: #F5F5F5; border-top: 1px solid #E5E5E5; clear: both; padding: 15px 20px; }
-	#file_browser footer input { margin: 0 10px 0 0; }
+	#file_browser .footer { background: #F5F5F5; border-top: 1px solid #E5E5E5; clear: both; padding: 15px 20px; }
+	#file_browser .footer input { margin: 0 10px 0 0; }
 	#file_browser_size_pane { background: #FFF; border-left: 1px solid #E5E5E5; height: 377px; padding: 10px; position: absolute; width: 589px; z-index: 2; }
 	#file_browser_size_pane a { margin: 0 10px 10px 0; }
 	#file_browser_size_pane h3 { background: #3E667D url(../images/button-bg-dark.png) repeat-x 0px -1px; border-bottom: 1px solid #333; color: #FFF; font-size: 14px; height: 20px; line-height: 22px; margin: -10px -10px 10px -10px; padding: 5px 10px; }
@@ -1304,8 +1304,12 @@
 	.ie8 nav.main form input[type=search] { height: 12px; padding: 3px 34px 9px 13px; }
 	.ie6 nav.main form .qs_query, .ie7 nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; height: 12px; margin: 5px 0; padding: 3px 34px 6px 13px; width: 175px; }
 	.ie6 nav.main form .qs_image, .ie7 nav.main form .qs_image { height: 16px; margin: 10px 0 0 195px; position: absolute; user-select: none; width: 16px; }
-	.ie8 .form_search { height: 12px; padding-bottom: 9px; padding-top: 3px; }
+	.ie8 .form_search { height: 12px; padding-bottom: 9px; padding-top: 3px; background: #FFF url(../images/quick-search-icon.png) no-repeat 195px 5px; border: 1px solid #DCDCDC; }
 	.ie7 .form_search { background: #FFF url(../images/quick-search-icon.png) no-repeat 195px 5px; border: 1px solid #DCDCDC; float: left; height: 14px; line-height: 14px; margin: 5px 25px 0 -10px; padding: 3px 34px 3px 13px !important; width: 173px; }
 	.ie7 nav.sub li { float: left; }
 	.ie .view_paging li.first a { background: url(../images/caret-left.png) no-repeat center center; border-radius: 11px 0 0 11px; text-indent: -1000px; width: 6px; }
 	.ie .view_paging li.last a { background: url(../images/caret-right.png) no-repeat center center; border-radius: 0 11px 11px 0; border-right: none; text-indent: -1000px; width: 6px; }
+	.ie8 .table p.module { width: 447px; }
+	.ie7 .file_wrapper input { filter: alpha(opacity=0); }
+	.ie8 .file_wrapper input { -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; }
+	.ie8 #file_browser .header input { height: 12px; }

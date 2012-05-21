@@ -42,8 +42,8 @@ var PasteWordDialog = {
 		el = document.getElementById('iframe');
 
 		if (el) {
-			el.style.width  = (vp.w - 20) + 'px';
-			el.style.height = (vp.h - 90) + 'px';
+			el.style.width  = '434px';
+			el.style.height = '291px';
 		}
 	}
 };
