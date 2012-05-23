@@ -92,7 +92,7 @@
 	$d = opendir($GLOBALS["server_root"]."custom/inc/required/");
 	$custom_required_includes = array();
 	while ($f = readdir($d)) {
-		if ($f != "." && $f != "..") {
+		if ($f != "." && $f != ".." && !is_dir($GLOBALS["server_root"]."custom/inc/required/$f")) {
 			$custom_required_includes[] = $GLOBALS["server_root"]."custom/inc/required/$f";
 		}
 	}
