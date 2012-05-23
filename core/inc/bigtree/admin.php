@@ -111,10 +111,10 @@
 					return BigTree::apiEncode(array("success" => true, "token" => $existing["token"], "expires" => $time));
 				}
 
-				$token = str_rand(100);
+				$token = BigTree::randomString(100);
 				$r = sqlrows(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
 				while ($r) {
-					$token = str_rand(100);
+					$token = BigTree::randomString(100);
 					$r = sqlrows(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
 				}
 				
@@ -181,7 +181,12 @@
 				echo BigTree::apiEncode(array("success" => false,"error" => "Token has expired."));
 				return false;
 			}
-
+			
+			// If it's a temporary token, update its expiration to keep it fresh.
+			if ($t["temporary"]) {
+				sqlquery("UPDATE bigtree_api_tokens SET expires = '".date("Y-m-d H:i:s",strtotime("+30 minutes"))."' WHERE id = '".$t["id"]."'");
+			}
+			
 			$user = $this->getUser($t["user"]);
 			$this->ID = $user["id"];
 			$this->User = $user["email"];

@@ -26,7 +26,7 @@
 		
 		// Allow the authenticate call even if their token is wrong.
 		if ($apipath.$path[$x] != "users/authenticate") {
-			if (!$admin->validateAPIToken($_POST["token"])) {
+			if (!$admin->apiValidateToken($_POST["token"])) {
 				echo BigTree::apiEncode(array("success" => false,"error" => "Invalid token. Please login."));
 				die();
 			}
