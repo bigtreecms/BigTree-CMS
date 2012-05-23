@@ -127,7 +127,7 @@
 			// Group based permissions data
 			if ($view["gbp"]["enabled"] && $view["gbp"]["table"] == $view["table"]) {
 				$fields[] = "gbp_field";
-				$vals[] = "'".$item[$view["gbp"]["group_field"]]."'";
+				$vals[] = "'".mysql_real_escape_string($item[$view["gbp"]["group_field"]])."'";
 			}
 			
 			// Run parsers
