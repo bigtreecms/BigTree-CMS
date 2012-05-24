@@ -10,6 +10,6 @@
 		setting: Setting Object|
 	*/
 
-	$admin->requireAPILevel(1);
+	$admin->apiRequireLevel(1);
 	echo BigTree::apiEncode(array("success" => true,"setting" => $admin->getSettingById($_POST["id"])));
 ?>

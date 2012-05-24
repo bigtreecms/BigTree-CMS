@@ -9,7 +9,7 @@
 		data: Serialized Filesystem Time Data|
 	*/
 	
-	$admin->requireAPILevel(2);
+	$admin->apiRequireLevel(2);
 
 	$ignored = array(
 		$site_root."files/admin-cache/",

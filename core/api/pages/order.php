@@ -9,8 +9,8 @@
 	|Returns:|
 	*/
 	
-	$admin->requireAPIWrite();
-	$admin->requireAPILevel(1);
+	$admin->apiRequireWrite();
+	$admin->apiRequireLevel(1);
 
 	$page_array = $_POST["pages"];
 	if (!is_array($page_array))

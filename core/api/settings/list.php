@@ -8,7 +8,7 @@
 	|Returns:
 		settings: Array of Setting Objects|
 	*/
-	$admin->requireAPILevel(1);
+	$admin->apiRequireLevel(1);
 	$s = $admin->getAllSettings();
 	echo BigTree::apiEncode(array("success" => true,"settings" => $s));
 ?>

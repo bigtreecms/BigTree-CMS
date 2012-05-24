@@ -11,8 +11,8 @@
 		setting: Setting Object|
 	*/
 	
-	$admin->requireAPIWrite();
-	$admin->requireAPILevel(1);
+	$admin->apiRequireWrite();
+	$admin->apiRequireLevel(1);
 	
 	$setting = $admin->getSetting($_POST["id"]);
 	if ($setting["locked"] && $admin->Level < 2) {

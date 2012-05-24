@@ -15,8 +15,8 @@
 		setting: Setting Object|
 	*/
 	
-	$admin->requireAPIWrite();
-	$admin->requireAPILevel(2);
+	$admin->apiRequireWrite();
+	$admin->apiRequireLevel(2);
 	
 	$success = $admin->updateSetting($_POST["setting"],$_POST);
 	if ($success) {
