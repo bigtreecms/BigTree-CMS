@@ -18,8 +18,8 @@
 		user: User Object|
 	*/
 
-	$admin->requireAPIWrite();
-	$admin->requireAPILevel(1);
+	$admin->apiRequireWrite();
+	$admin->apiRequireLevel(1);
 	
 	$success = $admin->updateUser($_POST["id"],$_POST);
 	

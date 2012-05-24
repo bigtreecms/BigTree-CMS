@@ -10,8 +10,8 @@
 	|Returns:|
 	*/
 	
-	$admin->requireAPIWrite();
-	$admin->requireAPILevel(1);
+	$admin->apiRequireWrite();
+	$admin->apiRequireLevel(1);
 	
 	$success = $admin->deleteUser($_POST["id"]);
 	

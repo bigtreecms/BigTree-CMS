@@ -11,7 +11,7 @@
 		user: User Object|
 	*/
 
-	$admin->requireAPIWrite();
-	$admin->requireAPILevel(1);
+	$admin->apiRequireLevel(1);
+	
 	echo BigTree::apiEncode(array("success" => true,"user" => $admin->getUser($_POST["id"])));
 ?>
