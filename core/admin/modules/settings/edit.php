@@ -1,7 +1,7 @@
 <?
-	$breadcrumb[] = array("link" => "settings/edit/".end($path)."/", "title" => "Edit Setting");
+	$breadcrumb[] = array("link" => "settings/edit/".end($bigtree["path"])."/", "title" => "Edit Setting");
 	
-	$item = $admin->getSetting(end($path));
+	$item = $admin->getSetting(end($bigtree["path"]));
 	if ($item["encrypted"]) {
 		$item["value"] = "";
 	}
@@ -19,8 +19,8 @@
 	<? if ($item["encrypted"]) { ?>
 	<aside>This setting is encrypted.  The current value cannot be shown.</aside>
 	<? } ?>
-	<form class="module" action="<?=$admin_root?>settings/update/" method="post">	
-		<input type="hidden" name="id" value="<?=htmlspecialchars(end($path))?>" />
+	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
+		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
 				echo $item["description"];

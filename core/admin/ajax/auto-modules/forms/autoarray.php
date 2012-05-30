@@ -10,8 +10,9 @@
 	$items = array();
 	
 	foreach ($options as $option) {
-		foreach ($option as $key => $val)
-			$option[$key] = str_replace($config["www_root"],"{wwwroot}",$val);
+		foreach ($option as $key => $val) {
+			$option[$key] = str_replace(WWW_ROOT,"{wwwroot}",$val);
+		}
 		$items[] = $option;
 	}
 

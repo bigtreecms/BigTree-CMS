@@ -1,7 +1,7 @@
 <?
 	BigTree::globalizePOSTVars();
 
-	$module = end($path);
+	$module = end($bigtree["path"]);
 
 	if ($suffix) {
 		$suffix = "-".$suffix;
@@ -30,7 +30,7 @@
 		<p>Your form has been created. If you were creating a module from scratch, the process is now complete.</p>
 	</section>
 	<footer>
-		<a href="<?=$admin_root?><?=$mod["route"]?>/" class="button white">View Module</a>
-		<a href="<?=$admin_root?><?=$mod["route"]?>/add<?=$suffix?>/" class="button blue">View Form</a>
+		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/" class="button white">View Module</a>
+		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/add<?=$suffix?>/" class="button blue">View Form</a>
 	</footer>
 </div>

@@ -24,7 +24,7 @@
 		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 	</fieldset>
 	
-	<h4>Crops <a href="#" class="add_crop"><img src="<?=$admin_root?>images/add.png" alt="" /></a></h4>
+	<h4>Crops <a href="#" class="add_crop"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
 	<fieldset>
 		<div class="image_attr" id="pop_crop_list">
 			<ul>
@@ -77,7 +77,7 @@
 		</div>
 	</fieldset>
 	
-	<h4>Thumbnails <a href="#" class="add_thumb"><img src="<?=$admin_root?>images/add.png" alt="" /></a></h4>
+	<h4>Thumbnails <a href="#" class="add_thumb"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
 	<fieldset>
 		<div class="image_attr" id="pop_thumb_list">
 			<ul>

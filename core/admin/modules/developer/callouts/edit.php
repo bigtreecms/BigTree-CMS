@@ -1,6 +1,6 @@
 <?
 	$breadcrumb[] = array("title" => "Edit Callout", "link" => "#");
-	$callout = $cms->getCallout(end($path));
+	$callout = $cms->getCallout(end($bigtree["path"]));
 	
 	BigTree::globalizeArray($callout);
 	

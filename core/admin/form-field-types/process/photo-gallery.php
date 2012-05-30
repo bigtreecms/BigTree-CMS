@@ -34,12 +34,12 @@
 					}
 				}
 			} elseif ($d["existing"]) {
-				$d["existing"] = str_replace($www_root,$site_root,$d["existing"]);
+				$d["existing"] = str_replace(WWW_ROOT,SITE_ROOT,$d["existing"]);
 				$pinfo = BigTree::pathInfo($d["existing"]);
 				
 				// We're going to need to create a local copy if we need more 
 				if ((is_array($options["crops"]) && count($options["crops"])) || (is_array($options["thumbs"]) && count($options["thumbs"]))) {
-					$local_copy = $site_root."files/".uniqid("temp-").$pinfo["extension"];
+					$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
 					file_put_contents($local_copy,file_get_contents($d["existing"]));
 					
 					$value = $upload_service->upload($local_copy,$pinfo["basename"],$options["directory"],false);
@@ -61,7 +61,7 @@
 					
 					if (is_array($options["thumbs"])) {
 						foreach ($options["thumbs"] as $thumb) {
-							$temp_thumb = $site_root."files/".uniqid("temp-").".".$pinfo["extension"];
+							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 							BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
 							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 							$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);

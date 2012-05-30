@@ -154,9 +154,9 @@
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
-		$.ajax("<?=$admin_root?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=$admin_root?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
 			});
 		}});
 		

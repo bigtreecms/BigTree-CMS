@@ -17,7 +17,7 @@
 <li>
 	<section class="settings_name"><?=$item["name"]?></section>
 	<section class="settings_value"><?=$value?></section>
-	<section class="view_action"><a href="<?=$admin_root?>settings/edit/<?=$item["id"]?>/" class="icon_edit"></a></section>
+	<section class="view_action"><a href="<?=ADMIN_ROOT?>settings/edit/<?=$item["id"]?>/" class="icon_edit"></a></section>
 </li>
 <?
 	}

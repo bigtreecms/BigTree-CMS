@@ -1,7 +1,7 @@
 <?
-	$id = $commands[0];
-	$table = $commands[1];
-	$title = $commands[2];
+	$id = $bigtree["commands"][0];
+	$table = $bigtree["commands"][1];
+	$title = $bigtree["commands"][2];
 	
 	$mod = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
@@ -22,7 +22,7 @@
 		<section>
 			<? if ($landing_exists) { ?>
 			<div class="alert">
-				<img src="<?=$admin_root?>images/alert.png" alt="" />
+				<img src="<?=ADMIN_ROOT?>images/alert.png" alt="" />
 				<p><strong>Default View Taken:</strong> If this view is for a different edit action, please specify the suffix below (i.e. edit-group's suffix is "group").</p>
 			</div>
 			<fieldset>

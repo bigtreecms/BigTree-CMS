@@ -30,7 +30,7 @@
 				else
 					$ti = "Link";
 				foreach ($types as $error) {
-					$errorhtml .= '<li><section class="integrity_errors">Broken '.$ti.': '.$error.' &mdash; <a href="'.$admin_root.'pages/edit/'.$id.'/" target="_blank">'.$page["nav_title"].'</a></section></li>';
+					$errorhtml .= '<li><section class="integrity_errors">Broken '.$ti.': '.$error.' &mdash; <a href="'.ADMIN_ROOT.'pages/edit/'.$id.'/" target="_blank">'.$page["nav_title"].'</a></section></li>';
 					$x++;
 					$errors++;
 				}

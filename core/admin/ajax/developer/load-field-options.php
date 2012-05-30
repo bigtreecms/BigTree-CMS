@@ -51,9 +51,9 @@
 		$(".pop-dependant").each(function(el) {
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {
-					$(this).load("<?=$admin_root?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("name"));
+					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("name"));
 				} else {
-					$(this).load("<?=$admin_root?>ajax/developer/load-table-columns/?table=" + table + "&field=" + $(this).attr("name"));
+					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + table + "&field=" + $(this).attr("name"));
 				}
 			}
 		});

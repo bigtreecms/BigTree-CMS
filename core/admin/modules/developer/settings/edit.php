@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("title" => "Add Setting", "link" => "#");
 	
-	$item = $admin->getSetting(end($path));
+	$item = $admin->getSetting(end($bigtree["path"]));
 
 	BigTree::globalizeArray($item,array("htmlspecialchars"));
 	

@@ -16,7 +16,7 @@
 			<input class="text" type="email" name="email" />
 		</fieldset>
 		<fieldset class="lower">
-			<a href="<?=$admin_root?>login/" class="forgot_password">Back to Login</a>
+			<a href="<?=ADMIN_ROOT?>login/" class="forgot_password">Back to Login</a>
 			<input type="submit" class="button retrieve_password blue" value="Submit" />
 		</fieldset>
 	</form>

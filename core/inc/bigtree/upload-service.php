@@ -67,7 +67,7 @@
 		*/
 		
 		private function deleteLocal($file_location) {
-			unlink(str_replace("{wwwroot}",$GLOBALS["site_root"],$file_location));
+			unlink(str_replace("{wwwroot}",SITE_ROOT,$file_location));
 		}
 		
 		/*
@@ -168,9 +168,9 @@
 		
 		private function replaceLocal($local_file,$file_name,$relative_path,$remove_original) {
 			if ($remove_original) {	
-				$success = BigTree::moveFile($local_file,$GLOBALS["site_root"].$relative_path.$file_name);
+				$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$file_name);
 			} else {
-				$success = BigTree::copyFile($local_file,$GLOBALS["site_root"].$relative_path.$file_name);
+				$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
 			}
 			
 			if ($success) {
@@ -334,12 +334,12 @@
 		*/
 		
 		private function uploadLocal($local_file,$file_name,$relative_path,$remove_original) {
-			$safe_name = BigTree::getAvailableFileName($GLOBALS["site_root"].$relative_path,$file_name);
+			$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name);
 			
 			if ($remove_original) {
-				$success = BigTree::moveFile($local_file,$GLOBALS["site_root"].$relative_path.$safe_name);
+				$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 			} else {
-				$success = BigTree::copyFile($local_file,$GLOBALS["site_root"].$relative_path.$safe_name);
+				$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 			}
 			
 			if ($success) {

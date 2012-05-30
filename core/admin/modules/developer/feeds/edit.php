@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("title" => "Edit Feed", "link" => "#");
 	
-	$item = $cms->getFeed(end($commands));
+	$item = $cms->getFeed(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 ?>
 <h1><span class="icon_developer_feeds"></span>Edit Feed</h1>

@@ -1,11 +1,11 @@
 <?
-	$table = isset($commands[1]) ? $commands[1] : "";
+	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
 
-	$module = $admin->getModule($commands[0]);
+	$module = $admin->getModule($bigtree["commands"][0]);
 	$edit_action_exists = $admin->doesModuleEditActionExist($module["id"]);
 	
-	if (isset($commands[2])) {
-		$title = $commands[2];
+	if (isset($bigtree["commands"][2])) {
+		$title = $bigtree["commands"][2];
 		if (substr($title,-3,3) == "ies") {
 			$title = substr($title,0,-3)."y";
 		} else {
@@ -34,7 +34,7 @@
 				<? if ($edit_action_exists) { ?>
 				<fieldset>
 					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" <? if (isset($commands[3])) { echo 'value="'.$commands[3].'" '; } ?>/>
+					<input type="text" name="suffix" <? if (isset($bigtree["commands"][3])) { echo 'value="'.$bigtree["commands"][3].'" '; } ?>/>
 				</fieldset>
 				<? } ?>
 				
@@ -76,7 +76,7 @@
 
 <script type="text/javascript">
 	$("#form_table").change(function(event,data) {
-		$("#field_area").load("<?=$admin_root?>ajax/developer/load-form/", { table: data.value });
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value });
 		$("#create").show();
 	});
 </script>	

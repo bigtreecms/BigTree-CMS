@@ -36,7 +36,7 @@
 		
 		// If we've switched from searchable -> anything else or vice versa, wipe the width columns.
 		// Also wipe them if we have added or removed a column.
-		$old_view = BigTreeAutoModule::getView(end($path));
+		$old_view = BigTreeAutoModule::getView(end($bigtree["path"]));
 		$keys_match = true;
 		foreach ($old_view["fields"] as $key => $field) {
 			if (!$fields[$key]) {
@@ -62,12 +62,12 @@
 		}
 		
 		// Let's update the view
-		$admin->updateModuleView(end($path),$title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$uncached,$preview_url);
+		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$uncached,$preview_url);
 		
-		$action = $admin->getModuleActionForView(end($path));
+		$action = $admin->getModuleActionForView(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");
 		header("Location: ".$developer_root."modules/edit/".$action["module"]."/");
-		BigTreeAutoModule::clearCache(end($path));
+		BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		die();
 	}
 ?>

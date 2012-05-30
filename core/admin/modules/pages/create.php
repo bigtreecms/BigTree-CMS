@@ -30,12 +30,12 @@
 	}
 	
 	if (count($crops)) {
-		$return_page = $admin_root."pages/view-tree/".$_POST["parent"]."/";
+		$return_page = ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/";
 		include BigTree::path("admin/modules/pages/_crop.php");
 	} elseif (count($fails)) {
 		include BigTree::path("admin/modules/pages/_failed.php");
 	} else {
-		header("Location: ".$admin_root."pages/view-tree/".$_POST["parent"]."/");
+		header("Location: ".ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");
 		die();
 	}
 ?>

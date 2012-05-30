@@ -1,7 +1,7 @@
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
 	<channel>
 		<title><? if ($feed["options"]["feed_title"]) { echo $feed["options"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
-		<link><? if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=$www_root?>feeds/<?=$feed["route"]?>/<? } ?></link>
+		<link><? if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<? } ?></link>
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
 		<?
@@ -33,7 +33,7 @@
 				$time = strtotime($item[$feed["options"]["date"]]);
 		?>
 		<item>
-			<guid><?=$www_root?>feeds/<?=$feed["route"]?>/<?=$f["id"]?></guid>
+			<guid><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?=$f["id"]?></guid>
 			<title><![CDATA[<?=strip_tags($item[$feed["options"]["title"]])?>]]></title>
 			<description><![CDATA[<?=$blurb?><? if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><? } ?>]]></description>
 			<link><?=$link?></link>

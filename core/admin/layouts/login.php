@@ -8,18 +8,18 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title><?=$site["nav_title"]?> Login</title>
-		<link rel="stylesheet" href="<?=$admin_root?>css/main.css" type="text/css" media="screen" charset="utf-8" />
-		<script type="text/javascript" src="<?=$admin_root?>js/lib.js"></script>
-		<script type="text/javascript" src="<?=$admin_root?>js/main.js"></script>
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" charset="utf-8" />
+		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/lib.js"></script>
+		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/main.js"></script>
 	</head>
 	<body class="login">
 		<div class="login_wrapper">
 			<h1><?=$site["nav_title"]?></h1>
-			<?=$content?>
+			<?=$bigtree["content"]?>
 			
 			<a href="http://www.bigtreecms.com" class="login_logo" target="_blank"></a>
 			<span class="login_copyright">
-				Version <?=$GLOBALS["bigtree"]["version"]?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> <a href="http://www.fastspot.com" target="_blank"> Fastspot</a>
+				Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> <a href="http://www.fastspot.com" target="_blank"> Fastspot</a>
 			</span>
 		</div>
 	</body>

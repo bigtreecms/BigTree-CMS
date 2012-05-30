@@ -5,9 +5,9 @@
 	// Calculate the redirect location.
 	$pieces = explode("-",$action["route"]);
 	if (count($pieces) == 2) {
-		$redloc = $admin_root.$module["route"]."/view-".$pieces[1]."/";
+		$redloc = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/";
 	} else {
-		$redloc = $admin_root.$module["route"]."/";
+		$redloc = ADMIN_ROOT.$module["route"]."/";
 	}
 	
 	$crops = json_decode($_POST["crop_info"],true);
@@ -31,10 +31,10 @@
 		} else {
 			$pinfo = pathinfo($image_src);
 			
-			$temp_crop = $site_root."files/".uniqid("temp-").".".$pinfo["extension"];
+			$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 			BigTree::createCrop($image_src,$temp_crop,$x,$y,$cwidth,$cheight,$width,$height);
 			foreach ($thumbs as $thumb) {
-				$temp_thumb = $site_root."files/".uniqid("temp-").".".$pinfo["extension"];
+				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 				BigTree::createThumbnail($temp_crop,$temp_thumb,$thumb["width"],$thumb["height"]);
 				$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 			}
@@ -45,11 +45,11 @@
 	foreach ($after as $crop) {
 		$pinfo = pathinfo($crop["image"]);
 		
-		$temp_crop = $site_root."files/".uniqid("temp-").".".$pinfo["extension"];
+		$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 		BigTree::createCrop($crop["image"],$temp_crop,$x,$y,$cwidth,$cheight,$width,$height);
 
 		foreach ($thumbs as $thumb) {
-			$temp_thumb = $site_root."files/".uniqid("temp-").".".$pinfo["extension"];
+			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 			BigTree::createThumbnail($temp_crop,$temp_thumb,$thumb["width"],$thumb["height"]);
 			$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 		}

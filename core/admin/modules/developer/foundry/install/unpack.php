@@ -22,12 +22,12 @@
 		die();
 	}
 	
-	if (!is_writable($server_root."cache/")) {
+	if (!is_writable(SERVER_ROOT."cache/")) {
 		die("<p>Your cache/ directory must be writable.</p>");
 	}
 	
 	// Setup the cache root.
-	$cache_root = $server_root."cache/unpack/";
+	$cache_root = SERVER_ROOT."cache/unpack/";
 	if (!file_exists($cache_root)) {
 		mkdir($cache_root);
 	}
@@ -109,10 +109,10 @@
 		}
 		if ($type == "File") {
 			$location = $parts[2];
-			if (!BigTree::isWritable($server_root.$location)) {
+			if (!BigTree::isWritable(SERVER_ROOT.$location)) {
 				$errors[] = "Cannot write to $location &mdash; please make the root directory writable.";
 			}
-			if (file_exists($server_root.$location)) {
+			if (file_exists(SERVER_ROOT.$location)) {
 				$warnings[] = "A file already exists at $location &mdash; the file will be overwritten.";
 			}
 		}

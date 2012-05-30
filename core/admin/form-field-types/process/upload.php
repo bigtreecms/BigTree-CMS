@@ -45,15 +45,15 @@
 			} else {
 				if (substr($value,0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
-					$resource = mysql_real_escape_string(str_replace($www_root,"{wwwroot}",substr($value,11)));
+					$resource = mysql_real_escape_string(str_replace(WWW_ROOT,"{wwwroot}",substr($value,11)));
 					
 					$r = $admin->getResourceByFile($resource);
-					$r["file"] = str_replace(array("{wwwroot}",$www_root),$site_root,$r["file"]);
+					$r["file"] = str_replace(array("{wwwroot}",WWW_ROOT),SITE_ROOT,$r["file"]);
 					$pinfo = BigTree::pathInfo($r["file"]);					
 					
 					// We're going to need to create a local copy if we need more 
 					if ((is_array($options["crops"]) && count($options["crops"])) || (is_array($options["thumbs"]) && count($options["thumbs"]))) {
-						$local_copy = $site_root."files/".uniqid("temp-").$pinfo["extension"];
+						$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
 						file_put_contents($local_copy,file_get_contents($r["file"]));
 						
 						$value = $upload_service->upload($local_copy,$pinfo["basename"],$options["directory"],false);
@@ -75,7 +75,7 @@
 						
 						if (is_array($options["thumbs"])) {
 							foreach ($options["thumbs"] as $thumb) {
-								$temp_thumb = $site_root."files/".uniqid("temp-").".".$pinfo["extension"];
+								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 								BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 								$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
@@ -83,7 +83,7 @@
 						}
 					// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.
 					} else {
-						$value = str_replace($site_root,"{wwwroot}",$r["file"]);
+						$value = str_replace(SITE_ROOT,"{wwwroot}",$r["file"]);
 					}
 				}
 			}

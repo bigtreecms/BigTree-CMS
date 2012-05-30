@@ -3,7 +3,7 @@
 	
 	$form = BigTreeAutoModule::getForm($action["form"]);
 	
-	$action = end($path);
+	$action = end($bigtree["path"]);
 	
 	if ($action == "process" || $action == "preview") {
 		include BigTree::path("admin/auto-modules/forms/process.php");

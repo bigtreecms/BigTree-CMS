@@ -7,7 +7,7 @@
 	$table_exists = false;
 	$q = sqlquery("SHOW TABLES");
 	while ($f = sqlfetch($q)) {
-		$tname = $f["Tables_in_".$GLOBALS["config"]["db"]["name"]];
+		$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
 		if ($tname == $table) {
 			$table_exists = true;
 		}

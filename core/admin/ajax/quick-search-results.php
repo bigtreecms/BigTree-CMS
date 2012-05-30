@@ -11,7 +11,7 @@
 			foreach ($bc as $crumb) {
 				$crumbs[] = $crumb["title"];
 			}
-			echo '<li><a href="'.$admin_root."pages/view-tree/".$r["id"].'/" title="'.implode(" &raquo; ",$crumbs).'">'.$r["nav_title"].'</a></li>';
+			echo '<li><a href="'.ADMIN_ROOT."pages/view-tree/".$r["id"].'/" title="'.implode(" &raquo; ",$crumbs).'">'.$r["nav_title"].'</a></li>';
 		}
 		echo '</ul>';
 	}

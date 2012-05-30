@@ -1,6 +1,6 @@
 <?
 	// Make sure the user has the right to see this message
-	$message = $admin->getMessage(end($path));
+	$message = $admin->getMessage(end($bigtree["path"]));
 	$admin->markMessageRead($message["id"]);
 	
 	// Get the list of recipients to determine the names and also to tell _nav whether to show "Reply All"

@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("title" => "Edit Field Type", "link" => "#");
 	
-	$type = $admin->getFieldType(end($commands));
+	$type = $admin->getFieldType(end($bigtree["commands"]));
 	
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>

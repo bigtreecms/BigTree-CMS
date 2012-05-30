@@ -20,7 +20,7 @@
 			new BigTreeDialog("<?=ucwords($delete_action)?> 404",'<p class="confirm">Are you sure you want to <?=$delete_action?> this 404?',$.proxy(function() {
 				id = $(this).attr("href").substr(1);
 				$(this).parents("li").remove();
-				$.ajax("<?=$admin_root?>ajax/dashboard/404/<?=$delete_action?>/", { data: { id: id }, type: "POST" });
+				$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/<?=$delete_action?>/", { data: { id: id }, type: "POST" });
 			},this),"delete",false,"OK");
 			
 			return false;
@@ -28,11 +28,11 @@
 	}
 	
 	function save404() {
-		$.ajax("<?=$admin_root?>ajax/dashboard/404/update/", { data: { id: current_editing_id, value: $("#404_" + current_editing_id).val() }, type: "POST" });
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: current_editing_id, value: $("#404_" + current_editing_id).val() }, type: "POST" });
 	}
 	
 	function search404() {
-		$("#results").load("<?=$admin_root?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>" }, hookResults);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>" }, hookResults);
 	}
 	
 	$("#404_search").keyup(function() {

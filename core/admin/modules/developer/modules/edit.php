@@ -1,5 +1,5 @@
 <?
-	$id = end($path);
+	$id = end($bigtree["path"]);
 	$breadcrumb[] = array("title" => "Edit Module", "link" => "#");
 	
 	$mod = $admin->getModule($id);
@@ -30,7 +30,7 @@
 <h1><span class="icon_developer_modules"></span><?=$mod["name"]?></h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
-	<form method="post" action="<?=$developer_root?>modules/update/<?=end($path)?>/" enctype="multipart/form-data" class="module left">
+	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
 		<section>
 			<div class="left">
 				<fieldset>
@@ -192,7 +192,7 @@
 
 <script type="text/javascript">
 	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-module-actions/", { type: "POST", data: { sort: $("#actions").sortable("serialize") } }); 
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-actions/", { type: "POST", data: { sort: $("#actions").sortable("serialize") } }); 
 	}});
 
 	$(".table .icon_delete").click(function() {

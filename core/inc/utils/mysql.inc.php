@@ -9,33 +9,33 @@
 	$total_queries = 0;
 	
 	function bigtree_setup_sql_connection($read_write = "read") {
-		global $config;
+		global $bigtree;
 		
 		if ($read_write == "read") {
-			$connection = mysql_connect($config["db"]["host"],$config["db"]["user"],$config["db"]["password"]);
-			mysql_select_db($config["db"]["name"],$connection);
+			$connection = mysql_connect($bigtree["config"]["db"]["host"],$bigtree["config"]["db"]["user"],$bigtree["config"]["db"]["password"]);
+			mysql_select_db($bigtree["config"]["db"]["name"],$connection);
 			mysql_query("SET NAMES 'utf8'",$connection);
 		} else {
-			$connection = mysql_connect($config["db_write"]["host"],$config["db_write"]["user"],$config["db_write"]["password"]);
-			mysql_select_db($config["db_write"]["name"],$connection);
+			$connection = mysql_connect($bigtree["config"]["db_write"]["host"],$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"]);
+			mysql_select_db($bigtree["config"]["db_write"]["name"],$connection);
 			mysql_query("SET NAMES 'utf8'",$connection);
 		}
 		return $connection;
 	}
 
 	// If we're splitting writes off, make a different sqlquery function.  We're doing two functions so that the normal one doesn't need to figure out which connection to use and just uses the default.
-	if (isset($config["db_write"]) && $config["db_write"]["host"]) {
+	if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 		function sqlquery($query,$connection = false,$type = "read") {
-			global $sqlerrors;
+			global $sqlerrors,$bigtree;
 			
 			if (!$connection) {
 				$commands = explode(" ",$query);
-				$fc = strtolower($commands[0]);
+				$fc = strtolower($bigtree["commands"][0]);
 				if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
-					$connection = &$GLOBALS["mysql_write_connection"];
+					$connection = &$bigtree["mysql_write_connection"];
 					$type = "write";
 				} else {
-					$connection = &$GLOBALS["mysql_read_connection"];
+					$connection = &$bigtree["mysql_read_connection"];
 					$type = "read";
 				}
 			}
@@ -56,10 +56,10 @@
 		}
 	} else {
 		function sqlquery($query,$connection = false) {
-			global $sqlerrors;
+			global $sqlerrors,$bigtree;
 			
 			if (!$connection) {
-				$connection = &$GLOBALS["mysql_read_connection"];
+				$connection = &$bigtree["mysql_read_connection"];
 			}
 			
 			if ($connection === "disconnected") {
