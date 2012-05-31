@@ -127,7 +127,7 @@
 					<input type="text" name="company" value="<?=$company?>" tabindex="4" />
 				</fieldset>
 				
-				<br /><br />
+				<br />
 				
 				<fieldset>
 					<input type="checkbox" name="daily_digest" tabindex="4" <? if ($daily_digest) { ?> checked="checked"<? } ?> />
