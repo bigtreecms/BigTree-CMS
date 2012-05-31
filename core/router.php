@@ -157,6 +157,8 @@
 			$x++;
 		}
 		if (file_exists("../templates/ajax/".$ajax_path.$bigtree["path"][$x].".php")) {
+			$bigtree["commands"] = array();
+			$commands = array(); // Backwards compatibility
 			include "../templates/ajax/".$ajax_path.$bigtree["path"][$x].".php";
 		} else {
 			$inc = "../templates/ajax/".$bigtree["path"][1]."/";
@@ -183,7 +185,7 @@
 			}
 			
 			// Clean up
-			unset($inc_dir,$ajax_path,$y,$x);
+			unset($inc_dir,$ajax_path,$x);
 			
 			$bigtree["commands"] = array_slice($bigtree["path"],$y+1);
 			$commands = $bigtree["commands"]; // Backwards compatibility

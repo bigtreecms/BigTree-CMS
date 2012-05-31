@@ -1217,10 +1217,11 @@
 	.multi_widget footer { border-radius: 0 0 2px 2px; border-top: none; overflow: hidden; padding: 20px; }
 	.multi_widget footer a { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
 	.multi_widget footer a .icon_small { height: 16px; margin-top: 6px; }
-	.multi_widget li { border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
+	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
 	.multi_widget li p { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; }
 	.multi_widget li a { float: right; margin: 0 0 0 10px; }
 	.multi_widget li:nth-child(even) { background: #F8F8F8; }
+	.multi_widget .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
 	.many_to_many footer a { float: left; margin: 0 0 0 10px; }
 	
 /* ToolTip */
