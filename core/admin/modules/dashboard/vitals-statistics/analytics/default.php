@@ -197,8 +197,8 @@
 </ul>
 
 <script type="text/javascript">
-	$("#graph_data").load("<?=$admin_root?>ajax/analytics/get-graph/", { start_date: "<?=$tw_start?>", end_date: "<?=$tw_end?>" });
-	$("#ga_current_month").load("<?=$admin_root?>ajax/analytics/get-date-range/", { title: "Current Month", start_date: "<?=date("Y-m-01")?>", end_date: "<?=date("Y-m-d")?>" });
-	$("#ga_current_quarter").load("<?=$admin_root?>ajax/analytics/get-date-range/", { title: "Current Quarter", start_date: "<?=$quarter_start?>", end_date: "<?=$quarter_end?>" });
-	$("#ga_current_year").load("<?=$admin_root?>ajax/analytics/get-date-range/", { title: "Current Year", start_date: "<?=$year_start?>", end_date: "<?=$year_end?>" });
+	$("#graph_data").load("<?=ADMIN_ROOT?>ajax/analytics/get-graph/", { start_date: "<?=$tw_start?>", end_date: "<?=$tw_end?>" });
+	$("#ga_current_month").load("<?=ADMIN_ROOT?>ajax/analytics/get-date-range/", { title: "Current Month", start_date: "<?=date("Y-m-01")?>", end_date: "<?=date("Y-m-d")?>" });
+	$("#ga_current_quarter").load("<?=ADMIN_ROOT?>ajax/analytics/get-date-range/", { title: "Current Quarter", start_date: "<?=$quarter_start?>", end_date: "<?=$quarter_end?>" });
+	$("#ga_current_year").load("<?=ADMIN_ROOT?>ajax/analytics/get-date-range/", { title: "Current Year", start_date: "<?=$year_start?>", end_date: "<?=$year_end?>" });
 </script>

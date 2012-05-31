@@ -1,5 +1,5 @@
 <?
-	$page = end($path);
+	$page = end($bigtree["path"]);
 	
 	$pdata = $admin->getPendingPage($page);
 	

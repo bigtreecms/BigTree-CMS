@@ -65,7 +65,7 @@
 	
 	if (!tinyMCE) {
 		tiny = new Element("script");
-		tiny.src = "<?=$admin_root?>js/tiny_mce/tiny_mce.js";
+		tiny.src = "<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js";
 		$("body").append(tiny);
 	}
 </script>

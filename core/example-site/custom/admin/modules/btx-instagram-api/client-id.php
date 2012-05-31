@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("link" => $mroot . "client-id/", "title" => "Client ID");
 	
-	if (end($commands) == "save" && isset($_POST["instagram_client_id"])) {
+	if (end($bigtree["commands"]) == "save" && isset($_POST["instagram_client_id"])) {
 		if ($btxInstagramAPI->setClientID($_POST["instagram_client_id"])) {
 			BigTree::redirect($mroot);
 		} else {

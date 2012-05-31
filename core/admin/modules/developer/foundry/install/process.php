@@ -1,5 +1,5 @@
 <?
-	$cache_root = $server_root."cache/unpack/".end($path)."/";
+	$cache_root = SERVER_ROOT."cache/unpack/".end($bigtree["path"])."/";
 	$index = file_get_contents($cache_root."index.btx");
 	$lines = explode("\n",$index);
 	$module_name = $lines[0];
@@ -128,7 +128,7 @@
 				$destination = str_replace($key,$val,$destination);
 			}
 			
-			BigTree::copyFile($cache_root.$source,$server_root.$destination);
+			BigTree::copyFile($cache_root.$source,SERVER_ROOT.$destination);
 			if ($section == "Other") {			
 				$savedData["other_files"][] = $destination;
 			} elseif ($section == "Required") {
@@ -141,8 +141,8 @@
 			$source = $parts[1];
 			$destination = $parts[2];
 			$module_id = $parts[3];
-			BigTree::copyFile($cache_root.$source,$server_root.$destination);
-			file_put_contents($server_root.$destination,str_replace('var $Module = "'.$module_id.'";','var $Module = "'.$module_match[$module_id].'";',file_get_contents($server_root.$destination)));
+			BigTree::copyFile($cache_root.$source,SERVER_ROOT.$destination);
+			file_put_contents(SERVER_ROOT.$destination,str_replace('var $Module = "'.$module_id.'";','var $Module = "'.$module_match[$module_id].'";',file_get_contents(SERVER_ROOT.$destination)));
 			$savedData["class_files"][] = $destination;
 			$package_files[] = $destination;
 		}
@@ -163,6 +163,6 @@
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
-	header("Location: ".$admin_root."developer/foundry/install/complete/");
+	header("Location: ".ADMIN_ROOT."developer/foundry/install/complete/");
 	die();
 ?>

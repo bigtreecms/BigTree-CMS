@@ -1,5 +1,5 @@
 <?
-	$item = $admin->getModuleAction($commands[0]);
+	$item = $admin->getModuleAction($bigtree["commands"][0]);
 	BigTree::globalizeArray($item);
 	$module = $admin->getModule($module);
 	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");

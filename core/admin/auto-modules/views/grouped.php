@@ -10,7 +10,7 @@
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script type="text/javascript">
 	function _local_search() {
-		$("#table_contents").load("<?=$admin_root?>ajax/auto-modules/views/grouped/", { view: <?=$view["id"]?>, search: $("#search").val() }, _local_refreshSort);
+		$("#table_contents").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/grouped/", { view: <?=$view["id"]?>, search: $("#search").val() }, _local_refreshSort);
 	}
 
 	function _local_refreshSort() {
@@ -18,7 +18,7 @@
 		$("#table_contents ul").each(function() {
 			if ($("#search").val() == "") {
 				$(this).sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-					$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
+					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
 				},this) });
 			}
 		});

@@ -7,7 +7,7 @@
 	current = 0;
 	
 	function download_page() {
-		$.ajax("<?=$admin_root?>ajax/dashboard/check-page-integrity/?external=<?=$external?>&id=" + pages[current], {
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/check-page-integrity/?external=<?=$external?>&id=" + pages[current], {
 			complete: function(response) {
 				$("#updates").append(response);
 				current = current + 1;

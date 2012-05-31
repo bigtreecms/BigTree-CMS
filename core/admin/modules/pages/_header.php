@@ -1,9 +1,9 @@
 <?
-	$proot = $admin_root."pages/";
+	$proot = ADMIN_ROOT."pages/";
 	
 	// Get the breadcrumb -- if the last command in the URL is numeric, we're doing something with a page, otherwise we'll let the other actions do it themselves.
-	if (is_numeric(end($commands)) || $_POST["page"]) {
-		$parent = isset($_POST["page"]) ? $_POST["page"] : end($commands);
+	if (is_numeric(end($bigtree["commands"])) || $_POST["page"]) {
+		$parent = isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]);
 		
 		if ($parent[0] == "p") {
 			// Pending page, get the parent instead.

@@ -1,8 +1,8 @@
 <?
-	if ($path[3] == "groups") {
-		$current = $path[3]."/".$path[4];
+	if ($bigtree["path"][3] == "groups") {
+		$current = $bigtree["path"][3]."/".$bigtree["path"][4];
 	} else {
-		$current = $path[3];
+		$current = $bigtree["path"][3];
 	}
 	$subnav = array(
 		array("route" => "view", "class" => "list", "title" => "View Modules"),

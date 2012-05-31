@@ -20,7 +20,7 @@
 			parent::__construct($debug);
 			
 			$this->language = $language;
-			$this->curl_options = array(CURLOPT_USERAGENT => "BigTree (" . $GLOBALS["www_root"] . ")");
+			$this->curl_options = array(CURLOPT_USERAGENT => "BigTree (".WWW_ROOT.")");
 		}
 		
 		/*

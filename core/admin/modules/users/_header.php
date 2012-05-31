@@ -1,7 +1,7 @@
 <?
 	$module_title = "Users";
 	
-	if (end($path) != "password") {
+	if (end($bigtree["path"]) != "password") {
 		$admin->requireLevel(1);
 	}
 	

@@ -1,6 +1,6 @@
 <?
 	// Make sure the user has the right to see this message
-	$parent = $admin->getMessage(end($path));	
+	$parent = $admin->getMessage(end($bigtree["path"]));	
 	$users = $admin->getUsers();
 		
 	if ($_SESSION["saved_message"]) {
@@ -32,8 +32,8 @@
 <h1><span class="reply_message"></span>Reply To Message</h1>
 <? include "_nav.php" ?>
 <div class="form_container">
-	<form method="post" action="<?=$admin_root?>dashboard/messages/create-reply/" id="message_form">
-		<input type="hidden" name="response_to" value="<?=htmlspecialchars(end($path))?>" />
+	<form method="post" action="<?=ADMIN_ROOT?>dashboard/messages/create-reply/" id="message_form">
+		<input type="hidden" name="response_to" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<p<? if (!$error) { ?> style="display: none;"<? } ?> class="error_message">Errors found! Please fix the highlighted fields before submitting.</p>
 			<fieldset id="send_to"<? if ($error && !count($send_to)) { ?> class="form_error"<? } ?>>

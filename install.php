@@ -231,56 +231,80 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
 		bt_touch_writable("site/index.php",'<?
+	// Setup the BigTree variable "namespace"
+	$bigtree = array();
+	
 	if (!isset($_GET["bigtree_htaccess_url"])) {
 		$_GET["bigtree_htaccess_url"] = "";
 	}
-	$path = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
 	
-	$debug = false;
-	$config = array();
-	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\", "/"));
+	$bigtree["path"] = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
+	$path = $bigtree["path"]; // Backwards compatibility
+	
+	$bigtree["config"] = array();
+	$bigtree["config"]["debug"] = false;
+	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\", "/"));
+	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
+	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
 	
 	// Let admin bootstrap itself.  New setup here so the admin can live at any path you choose for obscurity.
-	$parts_of_admin = explode("/",trim(str_replace($config["www_root"],"",$config["admin_root"]),"/"));
+	$parts_of_admin = explode("/",trim(str_replace($bigtree["config"]["www_root"],"",$bigtree["config"]["admin_root"]),"/"));
 	$in_admin = true;
 	$x = 0;
+	// Go through each route, make sure the path matches the admin\'s route paths.
 	foreach ($parts_of_admin as $part) {
-		if ($part != $path[$x])	{
+		if ($part != $bigtree["path"][$x])	{
 			$in_admin = false;
 		}
 		$x++;
 	}
+	// If we are in the admin, let it bootstrap itself.
 	if ($in_admin) {
 		// Cut off additional routes from the path, some parts of the admin assume path[0] is "admin" and path[1] begins the routing.
 		if ($x > 1) {
-			$path = array_slice($path,$x - 1);
+			$bigtree["path"] = array_slice($bigtree["path"],$x - 1);
 		}
 		include "../core/admin/router.php";
 		die();
 	}
 	
-	// See if this thing is cached
-	if ($config["cache"] && $path[0] != "_preview" && $path[0] != "_preview-pending") {
+	// We\'re not in the admin, see if caching is enabled and serve up a cached page if it exists
+	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
 		$curl = $_GET["bigtree_htaccess_url"];
 		if (!$curl) {
 			$curl = "home";
 		}
 		$file = "../cache/".base64_encode($curl);
 		// If the file is at least 5 minutes fresh, serve it up.
+		clearstatcache();
 		if (file_exists($file) && filemtime($file) > (time()-300)) {
-			if ($config["xsendfile"]) {
-				header("X-Sendfile: ".$server_root."cache/".base64_encode($curl));
+			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
+			if ($bigtree["config"]["xsendfile"]) {
+				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\", "/"))."cache/".base64_encode($curl));
 				header("Content-Type: text/html");
 				die();
+			// Fall back on file_get_contents otherwise.
 			} else {
 				die(file_get_contents("../cache/".base64_encode($curl)));
 			}
 		}
 	}
+	
+	// Clean up the variables we set.
+	unset($config,$debug,$in_admin,$parts_of_admin,$x);
 
-	// Bootstrap BigTree 4.0
-	include "../core/bootstrap.php";
-	include "../core/router.php";
+	// Bootstrap BigTree
+	if (file_exists("../custom/bootstrap.php")) {
+		include "../custom/bootstrap.php";
+	} else {
+		include "../core/bootstrap.php";
+	}
+	// Route BigTree
+	if (file_exists("../custom/router.php")) {
+		include "../custom/router.php";
+	} else {
+		include "../core/router.php";
+	}
 ?>');
 		
 		bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>

@@ -1,6 +1,6 @@
 <?
 	$relative_path = "admin/modules/dashboard/vitals-statistics/analytics/";
-	$mroot = $admin_root."dashboard/vitals-statistics/analytics/";
+	$mroot = ADMIN_ROOT."dashboard/vitals-statistics/analytics/";
 
 	$breadcrumb = array(
 		array("link" => "dashboard/", "title" => "Dashboard"),

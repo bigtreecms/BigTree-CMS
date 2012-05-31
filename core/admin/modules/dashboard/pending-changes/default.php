@@ -48,12 +48,12 @@
 			foreach ($pages as $change) {
 				if ($change["item_id"]) {
 					$page = $cms->getPendingPage($change["item_id"]);
-					$preview_link = $www_root."_preview/".$page["path"]."/";
-					$edit_link = $admin_root."pages/edit/".$change["item_id"]."/";
+					$preview_link = WWW_ROOT."_preview/".$page["path"]."/";
+					$edit_link = ADMIN_ROOT."pages/edit/".$change["item_id"]."/";
 				} else {
 					$page = $cms->getPendingPage("p".$change["id"]);
-					$preview_link = $www_root."_preview-pending/".$change["id"]."/";
-					$edit_link = $admin_root."pages/edit/p".$change["id"]."/";
+					$preview_link = WWW_ROOT."_preview-pending/".$change["id"]."/";
+					$edit_link = ADMIN_ROOT."pages/edit/p".$change["id"]."/";
 				}
 		?>
 		<li>
@@ -74,7 +74,7 @@
 	
 	foreach ($modules as $mod) {
 		$view = BigTreeAutoModule::getViewForTable($mod["table"]);
-		$edit_link = $admin_root.$mod["route"]."/edit";
+		$edit_link = ADMIN_ROOT.$mod["route"]."/edit";
 		if ($view["suffix"]) {
 			$edit_link .= "-$suffix";
 		}
@@ -150,14 +150,14 @@
 
 <script type="text/javascript">
 	$(".icon_approve").click(function() {
-		$.ajax("<?=$admin_root?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
 		BigTree.growl("Pending Changes","Approved Change");
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
-		$.ajax("<?=$admin_root?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
 		BigTree.growl("Pending Changes","Rejected Change");
 		return false;

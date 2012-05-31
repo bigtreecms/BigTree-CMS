@@ -1,5 +1,5 @@
 <?
-	$admin->deleteSetting(end($path));
+	$admin->deleteSetting(end($bigtree["path"]));
 	
 	$admin->growl("Developer","Deleted Setting");
 	header("Location: ".$developer_root."settings/view/");

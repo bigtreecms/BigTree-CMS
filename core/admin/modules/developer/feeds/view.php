@@ -19,7 +19,7 @@
 			<section class="developer_feeds_name">
 				<a href="<?=$section_root?>edit/<?=$feed["id"]?>/"><?=$feed["name"]?></a>
 			</section>
-			<section class="developer_feeds_url"><a href="<?=$www_root?>feeds/<?=$feed["route"]?>/" target="_blank"><?=$www_root?>feeds/<?=$feed["route"]?>/</a></section>
+			<section class="developer_feeds_url"><a href="<?=WWW_ROOT?>feeds/<?=$feed["route"]?>/" target="_blank"><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/</a></section>
 			<section class="developer_feeds_type"><? if ($feed["type"]) { echo $feed_types[$feed["type"]]; } else { echo "Custom"; } ?></section>
 			<section class="view_action">
 				<a href="<?=$section_root?>edit/<?=$feed["id"]?>/" class="icon_edit"></a>

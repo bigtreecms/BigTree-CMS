@@ -437,30 +437,6 @@
 		*/
 
 		static function formatCSS3($css) {
-			// Border Radius Top Left - border-radius-top-left: 0px
-			$css = preg_replace_callback('/border-radius-top-left:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-top-left-radius: $r; -webkit-border-top-left-radius: $r; -moz-border-radius-topleft: $r;";
-			'),$css);
-			
-			// Border Radius Top Right - border-radius-top-right: 0px
-			$css = preg_replace_callback('/border-radius-top-right:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-top-right-radius: $r; -webkit-border-top-right-radius: $r; -moz-border-radius-topright: $r;";
-			'),$css);
-			
-			// Border Radius Bottom Left - border-radius-bottom-left: 0px
-			$css = preg_replace_callback('/border-radius-bottom-left:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-bottom-left-radius: $r; -webkit-border-bottom-left-radius: $r; -moz-border-radius-bottomleft: $r;";
-			'),$css);
-			
-			// Border Radius Bottom Right - border-radius-bottom-right: 0px
-			$css = preg_replace_callback('/border-radius-bottom-right:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-bottom-right-radius: $r; -webkit-border-bottom-right-radius: $r; -moz-border-radius-bottomright: $r;";
-			'),$css);
-			
 			// Background Gradients - background-gradient: #top #bottom
 			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',create_function('$data','
 				$d = trim($data[1]);
@@ -596,14 +572,16 @@
 		*/
 		
 		static function getTableSelectOptions($default = false) {
+			global $bigtree;
+			
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
-				$tname = $f["Tables_in_".$GLOBALS["config"]["db"]["name"]];
-				if ($GLOBALS["config"]["show_all_tables_in_dropdowns"] || ((substr($tname,0,8) !== "bigtree_"))) {
-					if ($default == $f["Tables_in_".$GLOBALS["config"]["db"]["name"]]) {
-						echo '<option selected="selected">'.$f["Tables_in_".$GLOBALS["config"]["db"]["name"]].'</option>';
+				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
+				if ($bigtree["config"]["show_all_tables_in_dropdowns"] || ((substr($tname,0,8) !== "bigtree_"))) {
+					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
+						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					} else {
-						echo '<option>'.$f["Tables_in_".$GLOBALS["config"]["db"]["name"]].'</option>';
+						echo '<option>'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					}
 				}
 			}
@@ -754,11 +732,10 @@
 		*/
 		
 		static function path($file) {
-			global $server_root;
-			if (file_exists($server_root."custom/".$file)) {
-				return $server_root."custom/".$file;
+			if (file_exists(SERVER_ROOT."custom/".$file)) {
+				return SERVER_ROOT."custom/".$file;
 			} else {
-				return $server_root."core/".$file;
+				return SERVER_ROOT."core/".$file;
 			}
 		}
 		

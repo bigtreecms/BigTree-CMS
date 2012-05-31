@@ -2,8 +2,8 @@
 	$breadcrumb = array(array("link" => "modules/","title" => "Modules"));
 	$module_title = "Modules";
 	
-	if ($path[2]) {
-		$group = $admin->getModuleGroupByRoute($path[2]);
+	if ($bigtree["path"][2]) {
+		$group = $admin->getModuleGroupByRoute($bigtree["path"][2]);
 		$modules = $admin->getModulesByGroup($group["id"]);
 		
 		$module_title = "Modules: " . $group["name"];
@@ -18,9 +18,9 @@
 		<? foreach ($modules as $module) { ?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
-			<a href="<?=$admin_root?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
+			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<? } ?>
-			<a class="module_name" href="<?=$admin_root?><?=$module["route"]?>/"><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?=$module["name"]?></a>
 		</p>
 		<? } ?>
 	</section>
@@ -45,9 +45,9 @@
 		?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
-			<a href="<?=$admin_root?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
+			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<? } ?>
-			<a class="module_name" href="<?=$admin_root?><?=$module["route"]?>/"><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?=$module["name"]?></a>
 		</p>
 		<? 
 				$module_count++;
@@ -70,9 +70,9 @@
 		?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
-			<a href="<?=$admin_root?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
+			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<? } ?>
-			<a class="module_name" href="<?=$admin_root?><?=$module["route"]?>/"><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?=$module["name"]?></a>
 		</p>
 		<? 
 				$module_count++;

@@ -13,7 +13,7 @@
 	} else {
 		$postdirectory = "";
 	}
-	$directory = $server_root.$postdirectory;
+	$directory = SERVER_ROOT.$postdirectory;
 	$subdirectories = array();
 	$files = array();
 	if ($postdirectory) {
@@ -31,7 +31,7 @@
 		}
 	}
 ?>
-<div class="directory">Current Directory: <em><?=str_replace($server_root,"/",$directory)?></em></div>
+<div class="directory">Current Directory: <em><?=str_replace(SERVER_ROOT,"/",$directory)?></em></div>
 <div class="navigation_pane">
 	<ul>
 		<? foreach ($subdirectories as $d) { ?>
@@ -46,7 +46,7 @@
 				$parts = BigTree::pathInfo($file);
 				$ext = strtolower($parts["extension"]);
 				if (($ext == "png" || $ext == "jpg" || $ext == "gif") && substr($postdirectory,0,5) == "site/") {
-					$image = $www_root.str_replace("site/","",$postdirectory).$file;
+					$image = WWW_ROOT.str_replace("site/","",$postdirectory).$file;
 					$class = "image";
 				} else {
 					if (file_exists(BigTree::path("admin/images/icons/file-types/$ext.png"))) {
@@ -71,7 +71,7 @@
 <script type="text/javascript">
 	$("#bigtree_foundry_browser_window .navigation_pane a").click(function(ev) {
 		directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
-		$("#bigtree_foundry_browser_form").load("<?=$admin_root?>ajax/foundry/file-browser/", { directory: directory });
+		$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { directory: directory });
 		return false;
 	});
 	

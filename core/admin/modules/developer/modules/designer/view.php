@@ -1,8 +1,8 @@
 <?
-	$mod = $commands[0];
-	$table = $commands[1];
+	$mod = $bigtree["commands"][0];
+	$table = $bigtree["commands"][1];
 	if (!$title) {
-		$title = (substr($commands[2],-1,1) != "s") ? $commands[2]."s" : $commands[2];
+		$title = (substr($bigtree["commands"][2],-1,1) != "s") ? $bigtree["commands"][2]."s" : $bigtree["commands"][2];
 	}
 	
 	$mdata = $admin->getModule($mod);
@@ -59,9 +59,9 @@
 	new BigTreeFormValidator("form.module");
 	
 	$(".options").click(function() {
-		$.ajax("<?=$admin_root?>ajax/developer/load-view-options/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-options/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
 			new BigTreeDialog("View Options",response.responseText,function(data) {
-				$.ajax("<?=$admin_root?>ajax/developer/save-view-options/", { type: "POST", data: data });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-view-options/", { type: "POST", data: data });
 			});
 		}});
 		

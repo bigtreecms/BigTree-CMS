@@ -62,7 +62,7 @@
 	
 	function _local_search() {
 		search = escape($("#search").val());
-		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
 	}
 	
 	$(".sort_column").live("click",function() {
@@ -89,7 +89,7 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(sortdir.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
 		return false;
 	});
 	
@@ -98,7 +98,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
 
 		return false;
 	});

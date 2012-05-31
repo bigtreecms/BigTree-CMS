@@ -1,5 +1,5 @@
 <?
-	$details = json_decode(bigtree_curl("http://developer.bigtreecms.com/ajax/foundry/get-type-details/",array("id" => end($path))),true);
+	$details = json_decode(bigtree_curl("http://developer.bigtreecms.com/ajax/foundry/get-type-details/",array("id" => end($bigtree["path"]))),true);
 ?>
 <h3 class="foundry">Installing Field Type</h3>
 <h4>Unpacking &ldquo;<?=$details["name"]?>&rdquo;</h4>
@@ -19,7 +19,7 @@
 <?
 	} else {	
 		// Create the unpack directory, download the package and extract it.
-		$cache = $server_root."cache/unpack/";
+		$cache = SERVER_ROOT."cache/unpack/";
 		if (!file_exists($cache)) {
 			mkdir($cache);
 			chmod($cache,0777);
@@ -35,9 +35,9 @@
 		foreach ($lines as $line) {
 			$pieces = explode("::||::",$line);
 			$file = $pieces[2];
-			if (!bigtree_is_writable($server_root.$file))
+			if (!bigtree_is_writable(SERVER_ROOT.$file))
 				$errors[] = "Cannot write file at &ldquo;$file&rdquo;";
-			if (file_exists($server_root.$file))
+			if (file_exists(SERVER_ROOT.$file))
 				$warnings[] = "A file already exists at &ldquo;$file&rdquo; &mdash; the file will be overwritten.";
 		}
 		

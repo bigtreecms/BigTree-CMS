@@ -1,12 +1,12 @@
 <?
-	$user = $admin->getUserByHash(end($path));
+	$user = $admin->getUserByHash(end($bigtree["path"]));
 	$failure = false;
 	
 	if ($_POST["password"]) {
 		if ($_POST["password"] != $_POST["confirm_password"]) {
 			$failure = true;
 		} else {
-			$admin->changePassword(end($path),$_POST["password"]);
+			$admin->changePassword(end($bigtree["path"]),$_POST["password"]);
 		}
 	}
 ?>
@@ -16,7 +16,7 @@
 		<? if ($failure) { ?><p class="error_message clear">Passwords did not match. Please try again.</p><? } ?>
 		<? if (!$user) { ?>
 		<fieldset class="clear">
-			<p>This reset request has expired. <a href="<?=$admin_root?>login/forgot-password/">Click Here</a> to request a new link.</p>
+			<p>This reset request has expired. <a href="<?=ADMIN_ROOT?>login/forgot-password/">Click Here</a> to request a new link.</p>
 		</fieldset>
 		<br />
 		<? } else { ?>

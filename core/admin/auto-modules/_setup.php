@@ -1,7 +1,7 @@
 <?	
 	$in_module = true;
 	
-	$mpage = $admin_root.$module["route"]."/";
+	$mpage = ADMIN_ROOT.$module["route"]."/";
 	$mgroup = false;
 	
 	// Calculate related modules

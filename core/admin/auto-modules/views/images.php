@@ -1,5 +1,5 @@
 <?
-	$mpage = $admin_root.$module["route"]."/";
+	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
 	BigTree::globalizeArray($view);
 	
@@ -30,7 +30,7 @@
 		<ul id="image_list" class="image_list">
 			<?
 				foreach ($items as $item) {
-					$item["column1"] = str_replace("{wwwroot}",$www_root,$item["column1"]);
+					$item["column1"] = str_replace("{wwwroot}",WWW_ROOT,$item["column1"]);
 					if ($options["prefix"]) {
 						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
 					} else {
@@ -139,7 +139,7 @@
 <script type="text/javascript">
 	<? if ($perm == "p" && $view["options"]["draggable"]) { ?>
 	$("#image_list").sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
 	}});
 	<? } ?>
 	 

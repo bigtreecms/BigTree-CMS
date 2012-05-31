@@ -22,9 +22,9 @@
 			$x++;
 			
 			if (!$item["image"]) {
-				$image = $admin_root."images/templates/page.png";
+				$image = ADMIN_ROOT."images/templates/page.png";
 			} else {
-				$image = $admin_root."images/templates/".$item["image"];
+				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
 	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $default_template) { ?> active<? } ?>">
@@ -45,9 +45,9 @@
 		$items = $admin->getRoutedTemplates();
 		foreach ($items as $item) {
 			if (!$item["image"]) {
-				$image = $admin_root."images/templates/page-module.png";
+				$image = ADMIN_ROOT."images/templates/page-module.png";
 			} else {
-				$image = $admin_root."images/templates/".$item["image"];
+				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
 	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $default_template) { ?> active<? } ?>">

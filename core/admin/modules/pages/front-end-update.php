@@ -2,7 +2,7 @@
 	// Initiate the Upload Service class.
 	$upload_service = new BigTreeUploadService;
 
-	$page = end($path);
+	$page = end($bigtree["path"]);
 	
 	if ($page[0] == "p") {
 		$change_id = substr($page,1);

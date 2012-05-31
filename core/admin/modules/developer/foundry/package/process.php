@@ -3,7 +3,7 @@
 	
 	// Function used for template directory inclusion:
 	function _local_recurseFileDirectory($directory) {
-		global $x,$index,$server_root,$tname,$dir;
+		global $x,$index,$tname,$dir;
 		$o = opendir($directory);
 		while ($r = readdir($o)) {
 			if ($r != "." && $r != "..") {
@@ -11,7 +11,7 @@
 					_local_recurseFileDirectory($directory.$r."/");
 				} else {
 					$x++;
-					$index .= "File::||BTX||::$x.part.btx::||BTX||::".str_replace($server_root,"",$directory)."$r::||BTX||::Template\n";
+					$index .= "File::||BTX||::$x.part.btx::||BTX||::".str_replace(SERVER_ROOT,"",$directory)."$r::||BTX||::Template\n";
 					copy($directory.$r,$dir."$x.part.btx");
 				}
 			}
@@ -28,12 +28,12 @@
 	BigTree::globalizePOSTVars();
 	
 	// First we need to package the file so they can download it manually if they wish.
-	if (!is_writable($server_root."cache/")) {
+	if (!is_writable(SERVER_ROOT."cache/")) {
 		die("Please make the cache/ directory writable.");
 	}
 	
 	$index = $package_name."\n";
-	$index .= "Packaged for BigTree ".$GLOBALS["bigtree"]["version"]." by ".$created_by."\n";
+	$index .= "Packaged for BigTree ".BIGTREE_VERSION." by ".$created_by."\n";
 	
 	if ($module) {
 		$modules = array($module_details);
@@ -44,10 +44,10 @@
 	}
 	
 	// Clear the cache area to build the package.
-	$dir = $server_root."cache/packager/";
+	$dir = SERVER_ROOT."cache/packager/";
 	exec("rm -rf ".$dir);
-	@unlink($server_root."cache/package.tar.gz");
-	mkdir($server_root."cache/packager");
+	@unlink(SERVER_ROOT."cache/package.tar.gz");
+	mkdir(SERVER_ROOT."cache/packager");
 	$x = 0;
 	
 	if (is_array($modules)) {
@@ -80,10 +80,10 @@
 			
 			// If we're bringing over a module template, copy the whole darn folder.
 			if ($item["routed"]) {
-				_local_recurseFileDirectory($server_root."templates/routed/$template/"); 
+				_local_recurseFileDirectory(SERVER_ROOT."templates/routed/$template/"); 
 			} else {
 				$x++;
-				copy($server_root."templates/basic/$template.php",$dir."$x.part.btx");
+				copy(SERVER_ROOT."templates/basic/$template.php",$dir."$x.part.btx");
 				$index .= "File::||BTX||::$x.part.btx::||BTX||::templates/basic/$template.php::||BTX||::Template\n";
 			}
 		}
@@ -96,7 +96,7 @@
 			$index .= "Callout::||BTX||::".json_encode($item)."\n";
 			$x++;
 			$index .= "File::||BTX||::$x.part.btx::||BTX||::templates/callouts/$callout.php\n";
-			copy($server_root."templates/callouts/$callout.php",$dir."$x.part.btx");
+			copy(SERVER_ROOT."templates/callouts/$callout.php",$dir."$x.part.btx");
 		}
 	}
 	
@@ -167,7 +167,7 @@
 					$module_for_file = $mid;
 			}
 			$index .= "ClassFile::||BTX||::$x.part.btx::||BTX||::$file::||BTX||::$module_for_file\n";
-			copy($server_root.$file,$dir."$x.part.btx");	
+			copy(SERVER_ROOT.$file,$dir."$x.part.btx");	
 		}
 	}
 	
@@ -176,7 +176,7 @@
 		foreach ($required_files as $file) {
 			$x++;
 			$index .= "File::||BTX||::$x.part.btx::||BTX||::$file::||BTX||::Required\n";
-			copy($server_root.$file,$dir."$x.part.btx");	
+			copy(SERVER_ROOT.$file,$dir."$x.part.btx");	
 		}
 	}
 	
@@ -185,24 +185,24 @@
 		foreach ($other_files as $file) {
 			$x++;
 			$index .= "File::||BTX||::$x.part.btx::||BTX||::$file::||BTX||::Other\n";
-			copy($server_root.$file,$dir."$x.part.btx");	
+			copy(SERVER_ROOT.$file,$dir."$x.part.btx");	
 		}
 	}
 	
 	file_put_contents($dir."index.btx",$index);
-	exec("cd $dir; tar -zcf $server_root"."cache/package.tar.gz *");
+	exec("cd $dir; tar -zcf SERVER_ROOT"."cache/package.tar.gz *");
 	
 	// Create the saved copy of this creation.
 	BigTree::globalizePOSTVars(array("mysql_real_escape_string"));
 	
-	$package_file = BigTree::getAvailableFileName($site_root."files/",$cms->urlify($package_name).".tgz");
+	$package_file = BigTree::getAvailableFileName(SITE_ROOT."files/",$cms->urlify($package_name).".tgz");
 	
 	// Move the file into place.
-	BigTree::moveFile($server_root."cache/package.tar.gz",$site_root."/files/".$package_file);
+	BigTree::moveFile(SERVER_ROOT."cache/package.tar.gz",SITE_ROOT."/files/".$package_file);
 ?>
 <h1><span class="foundry"></span>Download Package</h1>
 <div class="form_container">
 	<section>
-		<p>Package created successfully.  You may download it <a href="<?=$www_root?>files/<?=$package_file?>">by clicking here</a>.</p>
+		<p>Package created successfully.  You may download it <a href="<?=WWW_ROOT?>files/<?=$package_file?>">by clicking here</a>.</p>
 	</section>
 </form>

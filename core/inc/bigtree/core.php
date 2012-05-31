@@ -18,8 +18,8 @@
 		
 		function __construct() {
 			// If the cache exists, just use it.
-			if (file_exists($GLOBALS["server_root"]."cache/module-class-list.btc")) {
-				$items = json_decode(file_get_contents($GLOBALS["server_root"]."cache/module-class-list.btc"),true);
+			if (file_exists(SERVER_ROOT."cache/module-class-list.btc")) {
+				$items = json_decode(file_get_contents(SERVER_ROOT."cache/module-class-list.btc"),true);
 			} else {
 				// Get the Module Class List
 				$q = sqlquery("SELECT * FROM bigtree_modules");
@@ -29,7 +29,7 @@
 				}
 				
 				// Cache it so we don't hit the database.
-				file_put_contents($GLOBALS["server_root"]."cache/module-class-list.btc",json_encode($items));
+				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",json_encode($items));
 			}
 			
 			$this->ModuleClassList = $items;
@@ -59,7 +59,7 @@
 			// If it's in the old routing table, send them to the new page.
 			if ($found) {
 				header("HTTP/1.1 301 Moved Permanently");
-				header("Location: ".$GLOBALS["www_root"].str_replace($old,$new,$_GET["bigtree_htaccess_url"]));
+				header("Location: ".WWW_ROOT.str_replace($old,$new,$_GET["bigtree_htaccess_url"]));
 				die();
 			}
 		}
@@ -153,10 +153,10 @@
 						if (substr($f["external"],0,6) == "ipl://") {
 							$link = $this->getInternalPageLink($f["external"]);
 						} else {
-							$link = str_replace("{wwwroot}",$GLOBALS["www_root"],$f["external"]);
+							$link = str_replace("{wwwroot}",WWW_ROOT,$f["external"]);
 						}
 					} else {
-						$link = $GLOBALS["www_root"].$f["path"]."/";
+						$link = WWW_ROOT.$f["path"]."/";
 					}
 					
 					echo "<url><loc>".$link."</loc></url>";
@@ -231,10 +231,10 @@
 						if (substr($f["external"],0,6) == "ipl://") {
 							$f["link"] = $this->getInternalPageLink($f["external"]);
 						} else {
-							$f["link"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$f["external"]);
+							$f["link"] = str_replace("{wwwroot}",WWW_ROOT,$f["external"]);
 						}
 					} else {
-						$f["link"] = $GLOBALS["www_root"].$f["path"]."/";
+						$f["link"] = WWW_ROOT.$f["path"]."/";
 					}
 					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => $f["link"],"id" => $f["id"]);
 				}
@@ -294,7 +294,7 @@
 			$item["options"] = json_decode($item["options"],true);
 			if (is_array($item["options"])) {
 				foreach ($item["options"] as &$option) {
-					$option = str_replace("{wwwroot}",$GLOBALS["www_root"],$option);
+					$option = str_replace("{wwwroot}",WWW_ROOT,$option);
 				}
 			}
 			$item["fields"] = json_decode($item["fields"],true);
@@ -352,7 +352,7 @@
 		
 		function getInternalPageLink($ipl) {
 			if (substr($ipl,0,6) != "ipl://") {
-				return str_replace("{wwwroot}",$GLOBALS["www_root"],$ipl);
+				return str_replace("{wwwroot}",WWW_ROOT,$ipl);
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
@@ -368,8 +368,8 @@
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".mysql_real_escape_string($navid)."'"));
 				// Set the cache
-				$this->iplCache[$navid] = $GLOBALS["www_root"].$f["path"]."/";
-				return $GLOBALS["www_root"].$f["path"]."/".$commands;
+				$this->iplCache[$navid] = WWW_ROOT.$f["path"]."/";
+				return WWW_ROOT.$f["path"]."/".$commands;
 			}
 		}
 		
@@ -386,10 +386,10 @@
 		
 		function getLink($id) {
 			if ($id == 0) {
-				return $GLOBALS["www_root"];
+				return WWW_ROOT;
 			}
 			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".mysql_real_escape_string($id)."'"));
-			return $GLOBALS["www_root"].$f["path"]."/";
+			return WWW_ROOT.$f["path"]."/";
 		}
 		
 		/*
@@ -431,7 +431,7 @@
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
-				$link = $GLOBALS["www_root"].$f["path"]."/";
+				$link = WWW_ROOT.$f["path"]."/";
 				$new_window = false;
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
@@ -439,7 +439,7 @@
 					if (substr($f["external"],0,6) == "ipl://") {
 						$link = $this->getInternalPageLink($f["external"]);
 					} else {
-						$link = str_replace("{wwwroot}",$GLOBALS["www_root"],$f["external"]);
+						$link = str_replace("{wwwroot}",WWW_ROOT,$f["external"]);
 					}
 					if ($f["new_window"] == "Yes") {
 						$new_window = true;
@@ -625,12 +625,12 @@
 		
 		function getPreviewLink($id) {
 			if ($id == 0) {
-				return $GLOBALS["www_root"];
+				return WWW_ROOT;
 			} elseif (substr($id,0,1) == "p") {
-				return $GLOBALS["www_root"]."_preview-pending/".substr($id,1)."/";
+				return WWW_ROOT."_preview-pending/".substr($id,1)."/";
 			} else {
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".mysql_real_escape_string($id)."'"));
-				return $GLOBALS["www_root"]."_preview/".$f["path"]."/";
+				return WWW_ROOT."_preview/".$f["path"]."/";
 			}
 		}
 		
@@ -683,12 +683,12 @@
 		*/
 		
 		function getSetting($id) {
-			global $config;
+			global $bigtree;
 			$id = mysql_real_escape_string($id);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			// If the setting is encrypted, we need to re-pull just the value.
 			if ($f["encrypted"]) {
-				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($config["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
+				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 			}
 			
 			$value = json_decode($f["value"],true);
@@ -712,7 +712,7 @@
 		*/
 		
 		function getSettings($ids) {
-			global $config;
+			global $bigtree;
 			if (!is_array($ids)) {
 				$ids = array($ids);
 			}
@@ -725,7 +725,7 @@
 			while ($f = sqlfetch($q)) {
 				// If the setting is encrypted, we need to re-pull just the value.
 				if ($f["encrypted"]) {
-					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($config["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
+					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
 				}
 				$value = json_decode($f["value"],true);
 				if (is_array($value)) {
@@ -878,8 +878,6 @@
 		*/
 		
 		function handle404($url) {
-			global $www_root;
-			
 			header("HTTP/1.0 404 Not Found");
 			$url = mysql_real_escape_string(rtrim($url,"/"));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
@@ -892,7 +890,7 @@
 				if (substr($f["redirect_url"],0,7) == "http://" || substr($f["redirect_url"],0,8) == "https://") {
 					$redirect = $f["redirect_url"];
 				} else {
-					$redirect = $www_root.str_replace($www_root,"",$f["redirect_url"]);
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$f["redirect_url"]);
 				}
 				
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
@@ -949,7 +947,7 @@
 			if (substr($html,0,6) == "ipl://") {
 				$html = $this->getInternalPageLink($html);
 			} else {
-				$html = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),$GLOBALS["www_root"],$html);
+				$html = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),WWW_ROOT,$html);
 				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',create_function('$matches','global $cms; return \'="\'.$cms->getInternalPageLink($matches[1]).\'"\';'),$html);
 			}
 

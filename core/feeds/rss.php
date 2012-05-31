@@ -1,7 +1,7 @@
 <rss version="0.91">
 	<channel>
 		<title><? if ($feed["options"]["feed_title"]) { echo $feed["options"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
-		<link><? if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=$www_root?>feeds/<?=$feed["route"]?>/<? } ?></link>
+		<link><? if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<? } ?></link>
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
 		<?

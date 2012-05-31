@@ -2,40 +2,34 @@
 	ini_set("log_errors","false");
 
 	// Set some config vars automatically and setup some globals.
-	$GLOBALS["config"] = &$config;
-	$GLOBALS["domain"] = rtrim($config["domain"],"/");
-	$GLOBALS["server_root"] = str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
-	$GLOBALS["site_root"] = $GLOBALS["server_root"]."site/";
-	$GLOBALS["www_root"] = $config["www_root"];
-	$GLOBALS["admin_ajax_root"] = $GLOBALS["server_root"]."core/admin/ajax/";
-	if (isset($config["root_page"])) {
-		$GLOBALS["root_page"] = $config["root_page"];
-	} else {
-		$GLOBALS["root_page"] = 0;
-	}
+	$domain = rtrim($bigtree["config"]["domain"],"/");
+	$server_root = str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
+	$site_root = $server_root."site/";
+	$www_root = $bigtree["config"]["www_root"];
+	$secure_root = str_replace("http://","https://",$www_root);
 	
-	$config["server_root"] = $GLOBALS["server_root"];
-	
-	define("WWW_ROOT",$config["www_root"]);
-	define("SERVER_ROOT",$GLOBALS["server_root"]);
-	define("SITE_ROOT",$GLOBALS["site_root"]);
+	define("WWW_ROOT",$www_root);
+	define("SECURE_ROOT",$secure_root);
+	define("DOMAIN",$domain);
+	define("SERVER_ROOT",$server_root);
+	define("SITE_ROOT",$site_root);
 	
 	// Include required utility functions
-	if (file_exists($server_root."custom/inc/bigtree/utils.php")) {
-		include $server_root."custom/inc/bigtree/utils.php";
+	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
+		include SERVER_ROOT."custom/inc/bigtree/utils.php";
 	} else {
-		include $server_root."core/inc/bigtree/utils.php";
+		include SERVER_ROOT."core/inc/bigtree/utils.php";
 	}
 	
 	// Connect to MySQL and include the shorterner functions
 	include BigTree::path("inc/utils/mysql.inc.php");
 	
 	// Setup our connections as disconnected by default.
-	$GLOBALS["mysql_read_connection"] = "disconnected";
-	$GLOBALS["mysql_write_connection"] = "disconnected";
+	$bigtree["mysql_read_connection"] = "disconnected";
+	$bigtree["mysql_write_connection"] = "disconnected";
 	
 	// Turn on debugging if we're in debug mode.
-	if ($debug) {
+	if ($bigtree["config"]["debug"]) {
 		error_reporting(E_ALL ^ E_NOTICE);
 		ini_set("display_errors","on");
 	} else {
@@ -51,13 +45,10 @@
 		$cms = new BigTreeCMS;
 	}
 	
-	$GLOBALS["cms"] = &$cms;
-		
 	// Lazy loading of modules
-	$GLOBALS["module_list"] = $cms->ModuleClassList;
-	$GLOBALS["other_classes"] = array(
+	$bigtree["module_list"] = $cms->ModuleClassList;
+	$bigtree["other_classes"] = array(
 		"CSSMin" => "inc/utils/CSSMin.php",
-		"gapi" => "inc/utils/google-analytics.php",
 		"htmlMimeMail" => "inc/utils/html-mail.inc.php",
 		"JSMin" => "inc/utils/JSMin.php",
 		"PasswordHash" => "inc/utils/PasswordHash.php",
@@ -72,32 +63,37 @@
 	);
 	
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		$GLOBALS["other_classes"][BIGTREE_CUSTOM_ADMIN_CLASS] = BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
+		$bigtree["other_classes"][BIGTREE_CUSTOM_ADMIN_CLASS] = BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
 	
 	function __autoload($class) {
-		if (isset($GLOBALS["other_classes"][$class])) {
-			include_once BigTree::path($GLOBALS["other_classes"][$class]); 
-		} elseif (file_exists($GLOBALS["server_root"]."custom/inc/modules/".$GLOBALS["module_list"][$class].".php")) {
-			include_once $GLOBALS["server_root"]."custom/inc/modules/".$GLOBALS["module_list"][$class].".php";
-		} elseif (file_exists($GLOBALS["server_root"]."core/inc/modules/".$GLOBALS["module_list"][$class].".php")) {
-			include_once $GLOBALS["server_root"]."core/inc/modules/".$GLOBALS["module_list"][$class].".php";
+		global $bigtree;
+		
+		if (isset($bigtree["other_classes"][$class])) {
+			include_once BigTree::path($bigtree["other_classes"][$class]); 
+		} elseif (file_exists(SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php")) {
+			include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
+		} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
+			include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
 		} else {
-			echo "Critical Error: Could not load class $class.";
+			trigger_error("Could not load class $class.",E_USER_ERROR);
 		}
 	}
-	
 	
 	// Load everything in the custom extras folder.
-	$d = opendir($GLOBALS["server_root"]."custom/inc/required/");
+	$d = opendir(SERVER_ROOT."custom/inc/required/");
 	$custom_required_includes = array();
 	while ($f = readdir($d)) {
-		if ($f != "." && $f != ".." && !is_dir($GLOBALS["server_root"]."custom/inc/required/$f")) {
-			$custom_required_includes[] = $GLOBALS["server_root"]."custom/inc/required/$f";
+		if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
+			$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$f";
 		}
 	}
+	closedir($d);
 	
 	foreach ($custom_required_includes as $r) {
 		include $r;
 	}
+	
+	// Clean up
+	unset($d,$r,$custom_required_includes);
 ?>

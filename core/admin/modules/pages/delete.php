@@ -1,5 +1,5 @@
 <?
-	$page = end($path);
+	$page = end($bigtree["path"]);
 	
 	if (is_numeric($page)) {
 		$f = $cms->getPage($page);
@@ -11,5 +11,5 @@
 	
 	$admin->deletePage($page);
 	
-	header("Location: ".$admin_root."pages/view-tree/$parent/");
+	header("Location: ".ADMIN_ROOT."pages/view-tree/$parent/");
 ?>

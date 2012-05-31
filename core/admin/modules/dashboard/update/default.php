@@ -22,7 +22,7 @@
 			<p>Your update is complete.</p>
 		</section>
 		<footer>
-			<a href="<?=$admin_root?>dashboard/" class="button blue">Return to Dashboard</a>
+			<a href="<?=ADMIN_ROOT?>dashboard/" class="button blue">Return to Dashboard</a>
 		</footer>
 	</form>
 </div>
@@ -40,7 +40,7 @@
 			// If we don't have anything to run, just update the revision number and return to the dashboard.
 			if (!$updates_exist) {
 				$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
-				header("Location: ".$admin_root."dashboard/");
+				header("Location: ".ADMIN_ROOT."dashboard/");
 				die();
 			}
 ?>
@@ -70,7 +70,7 @@
 		<p>BigTree is up to date.</p>
 	</section>
 	<footer>
-		<a href="<?=$admin_root?>dashboard/" class="button blue">Return to Dashboard</a>
+		<a href="<?=ADMIN_ROOT?>dashboard/" class="button blue">Return to Dashboard</a>
 	</footer>
 </div>
 <?	

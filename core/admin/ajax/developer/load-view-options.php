@@ -24,9 +24,9 @@
 			div = $(this).find("div");
 			if (div.length) {
 				if (div.hasClass("sort_by")) {
-					div.load("<?=$admin_root?>ajax/developer/load-table-columns/?sort=true&table=" + _local_table + "&field=" + div.attr("name"));
+					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + _local_table + "&field=" + div.attr("name"));
 				} else {
-					div.load("<?=$admin_root?>ajax/developer/load-table-columns/?table=" + _local_table + "&field=" + div.attr("name"));
+					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + _local_table + "&field=" + div.attr("name"));
 				}
 			}
 		});

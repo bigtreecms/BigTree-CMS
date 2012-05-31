@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("link" => "#", "title" => "Edit User");
 	
-	$user = $admin->getUser($commands[0]);
+	$user = $admin->getUser($bigtree["commands"][0]);
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 	
 	if (!$permissions) {
@@ -92,7 +92,7 @@
 <h1><span class="users"></span>Edit User</h1>
 <? include BigTree::path("admin/modules/users/_nav.php"); ?>
 <div class="form_container">
-	<form class="module" action="<?=$admin_root?>users/update/<?=$path[3]?>/" method="post">
+	<form class="module" action="<?=ADMIN_ROOT?>users/update/<?=$bigtree["path"][3]?>/" method="post">
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">

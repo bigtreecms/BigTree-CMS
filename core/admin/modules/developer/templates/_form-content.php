@@ -68,18 +68,18 @@
 		<fieldset>
 			<ul class="template_image_list">
 				<?
-					$o = opendir($server_root."core/admin/images/templates/");
+					$o = opendir(SERVER_ROOT."core/admin/images/templates/");
 					while ($file = readdir($o)) {
 						if ($file != "." && $file != "..") {
 							$all[] = $file;
 				?>
-				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=$admin_root?>images/templates/<?=$file?>" alt="" /></a></li>
+				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" /></a></li>
 				<?
 						}
 					}
 					if ($image && !in_array($image,$all)) {
 				?>
-				<li><a href="#<?=htmlspecialchars($image)?>" class="active"><img src="<?=$admin_root?>images/templates/<?=$image?>" alt="" /></a></li>
+				<li><a href="#<?=htmlspecialchars($image)?>" class="active"><img src="<?=ADMIN_ROOT?>images/templates/<?=$image?>" alt="" /></a></li>
 				<?	
 					}
 				?>

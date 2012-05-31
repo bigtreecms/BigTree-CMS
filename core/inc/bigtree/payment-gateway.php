@@ -1267,7 +1267,7 @@
 		protected function setupLinkPoint($settings) {
 			$this->Store = $settings["linkpoint-store"];
 			$this->Environment = $settings["linkpoint-environment"];
-			$this->Certificate = $GLOBALS["server_root"]."custom/certificates/".$settings["linkpoint-certificate"];
+			$this->Certificate = SERVER_ROOT."custom/certificates/".$settings["linkpoint-certificate"];
 
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://staging.linkpt.net:1129";
