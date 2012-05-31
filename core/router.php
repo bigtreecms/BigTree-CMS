@@ -420,7 +420,7 @@
 			$return_link = $_SERVER["HTTP_REFERER"];
 		}
 				
-		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.ADMIN_ROOT.'js/bar.js"></script></body>',$bigtree["content"]);
+		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'js/bar.js"></script></body>',$bigtree["content"]);
 		$bigtree["config"]["cache"] = false;
 	}
 	
