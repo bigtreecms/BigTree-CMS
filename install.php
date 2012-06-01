@@ -243,7 +243,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 	
 	$bigtree["config"] = array();
 	$bigtree["config"]["debug"] = false;
-	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\", "/"));
+	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\\", "/"));
 	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
 	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
 	
@@ -280,7 +280,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		if (file_exists($file) && filemtime($file) > (time()-300)) {
 			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
 			if ($bigtree["config"]["xsendfile"]) {
-				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\", "/"))."cache/".base64_encode($curl));
+				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($curl));
 				header("Content-Type: text/html");
 				die();
 			// Fall back on file_get_contents otherwise.
