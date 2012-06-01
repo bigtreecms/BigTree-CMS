@@ -183,9 +183,9 @@
 		*/
 		
 		function getBreadcrumb($data = false,$ignore_trunk = false) {
-			global $page;
+			global $bigtree;
 			if (!$data) {
-				return $this->getBreadcrumbByPage($page,$ignore_trunk);
+				return $this->getBreadcrumbByPage($bigtree["page"],$ignore_trunk);
 			} else {
 				return $this->getBreadcrumbByPage($data,$ignore_trunk);
 			}
@@ -828,8 +828,8 @@
 		*/
 		
 		function getTopLevelNavigationId($trunk_as_toplevel = false) {
-			global $page;
-			return $this->getTopLevelNavigationIdForPage($page,$trunk_as_toplevel);
+			global $bigtree;
+			return $this->getTopLevelNavigationIdForPage($bigtree["page"],$trunk_as_toplevel);
 		}
 		
 		/*

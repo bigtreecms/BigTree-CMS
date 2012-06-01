@@ -1651,9 +1651,7 @@
 				$unread = $messages["unread"];
 
 				// Start building the email
-				$body =  "BigTree Daily Digest\n";
-				$body .= "====================\n";
-				$body .= $bigtree["config"]["admin_root"]."\n\n";
+				$body = "";
 				
 				if (is_array($alerts) && count($alerts)) {
 					$body .= "Content Age Alerts\n";
@@ -1697,8 +1695,11 @@
 					}
 				}
 				
-				if (count($alerts) || count($changes) || count($unread)) {
-					mail($user["email"],"BigTree Daily Digest",$body);
+				if ($body) {
+					$header =  "BigTree Daily Digest\n";
+					$header .= "====================\n";
+					$header .= $bigtree["config"]["admin_root"]."\n\n";
+					mail($user["email"],"BigTree Daily Digest",$header.$body,"From: BigTree CMS <no-reply@$no_reply_domain>");
 				}
 			}
 		}

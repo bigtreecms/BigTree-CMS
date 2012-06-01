@@ -1084,6 +1084,10 @@
 	.icon_small_caret_right { background-position: -64px -16px; }
 	.icon_small_delete { background-position: -80px -16px; }
 	.icon_small_folder { background-position: -96px -16px; }
+	.icon_small_calendar { background-position: -128px -16px; }
+	.icon_small_calendar2 { background-position: -144px -16px; }
+	.icon_small_search { background-position: -160px -16px; }
+	.icon_small_search2 { background-position: -176px -16px; }
 	
 	a.button .icon_small_world { background-position: -160px 9px; }
 	a.button .icon_small_server { background-position: -176px 9px; }
