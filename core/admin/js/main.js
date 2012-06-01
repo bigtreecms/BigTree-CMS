@@ -949,7 +949,7 @@ var BigTreeFileManager = {
 	
 	chooseImageSize: function() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
-		$("#file_browser_form footer input.blue").hide();
+		$("#file_browser_form .footer input.blue").hide();
 		$("#file_browser_info_pane").css({ position: "absolute", marginLeft: "609px", height: "397px" });
 		new_pane = $('<section id="file_browser_size_pane" style="margin-left: 820px;">');
 		new_pane.html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
@@ -1000,11 +1000,11 @@ var BigTreeFileManager = {
 	},
 	
 	disableCreate: function() {
-		$("#file_browser header a").hide();		
+		$("#file_browser .header a").hide();		
 	},
 	
 	enableCreate: function() {
-		$("#file_browser header a").show();
+		$("#file_browser .header a").show();
 	},
 	
 	fileBrowser: function() {
@@ -1181,8 +1181,8 @@ var BigTreeFileManager = {
 		});
 		
 		// Handle the create new folder / file clicks
-		$("#file_browser header .add_file").click($.proxy(this.addFile,this));
-		$("#file_browser header .add_folder").click($.proxy(this.addFolder,this));
+		$("#file_browser .header .add_file").click($.proxy(this.addFile,this));
+		$("#file_browser .header .add_folder").click($.proxy(this.addFolder,this));
 		
 		// Open the right browser
 		if (type == "image" || type == "photo-gallery") {
