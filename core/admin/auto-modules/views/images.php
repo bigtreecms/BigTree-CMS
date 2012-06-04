@@ -30,7 +30,7 @@
 		<ul id="image_list" class="image_list">
 			<?
 				foreach ($items as $item) {
-					$item["column1"] = str_replace("{wwwroot}",WWW_ROOT,$item["column1"]);
+					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($options["prefix"]) {
 						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
 					} else {

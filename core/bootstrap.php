@@ -6,9 +6,11 @@
 	$server_root = str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
 	$www_root = $bigtree["config"]["www_root"];
+	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
 	$secure_root = str_replace("http://","https://",$www_root);
 	
 	define("WWW_ROOT",$www_root);
+	define("STATIC_ROOT",$static_root);
 	define("SECURE_ROOT",$secure_root);
 	define("DOMAIN",$domain);
 	define("SERVER_ROOT",$server_root);

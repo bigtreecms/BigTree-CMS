@@ -179,7 +179,7 @@
 			} else {
 				$html = preg_replace_callback('/href="([^"]*)"/',create_function('$matches','
 					global $cms;
-					$href = str_replace("{wwwroot}",WWW_ROOT,$matches[1]);
+					$href = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$matches[1]);
 					if (strpos($href,WWW_ROOT) !== false) {
 						$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$href),"/"));
 						list($navid,$commands) = $cms->getNavId($command);
@@ -188,10 +188,10 @@
 							$href = "ipl://".$navid."//".base64_encode(json_encode($commands));
 						}
 					}
-					$href = str_replace(WWW_ROOT,"{wwwroot}",$href);
+					$href = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$href);
 					return \'href="\'.$href.\'"\';'
 				),$html);
-				$html = str_replace(WWW_ROOT,"{wwwroot}",$html);
+				$html = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$html);
 			}
 			return $html;
 		}
@@ -344,7 +344,7 @@
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),WWW_ROOT,$href);
+				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
 				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
@@ -377,7 +377,7 @@
 			$images = $doc->getElementsByTagName("img");
 			foreach ($images as $image) {
 				$href = $image->getAttribute("src");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),WWW_ROOT,$href);
+				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
 				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
@@ -506,7 +506,7 @@
 			$options = json_decode($options,true);
 			if (is_array($options)) {
 				foreach ($options as &$option) {
-					$option = str_replace(WWW_ROOT,"{wwwroot}",$option);
+					$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
 				}
 			}
 			
@@ -1897,7 +1897,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace("{wwwroot}",WWW_ROOT,$nav_item["external"]);
+				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
 				$nav[] = $nav_item;
 			}
 			return $nav;
@@ -2318,7 +2318,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace("{wwwroot}",WWW_ROOT,$nav_item["external"]);
+				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
 				$nav[] = $nav_item;
 			}
 			return $nav;
@@ -2758,7 +2758,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace("{wwwroot}",WWW_ROOT,$nav_item["external"]);
+				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
 				if ($levels > 1) {
 					$nav_item["children"] = $this->getNaturalNavigationByParent($f["id"],$levels - 1);
 				}
@@ -2964,7 +2964,7 @@
 			$items = array();
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
-					$f[$key] = str_replace("{wwwroot}",WWW_ROOT,$val);
+					$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 				}
 				$f["value"] = json_decode($f["value"],true);
 				if ($f["encrypted"] == "on") {
@@ -3522,10 +3522,10 @@
 			if (!$item) {
 				return false;
 			}
-			$item["file"] = str_replace("{wwwroot}",WWW_ROOT,$item["file"]);
+			$item["file"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["file"]);
 			$item["thumbs"] = json_decode($item["thumbs"],true);
 			foreach ($item["thumbs"] as &$thumb) {
-				$thumb = str_replace("{wwwroot}",WWW_ROOT,$thumb);
+				$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
 			}
 			return $item;
 		}
@@ -3684,7 +3684,7 @@
 			}
 
 			foreach ($f as $key => $val) {
-				$f[$key] = str_replace("{wwwroot}",WWW_ROOT,$val);
+				$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 			}
 			if ($f["encrypted"]) {
 				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
@@ -3717,7 +3717,7 @@
 			}
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
-					$f[$key] = str_replace("{wwwroot}",WWW_ROOT,$val);
+					$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 				}
 				$f["value"] = json_decode($f["value"],true);
 				if ($f["encrypted"] == "on") {
@@ -4163,7 +4163,7 @@
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			list($navid,$commands) = $cms->getNavId($command);
 			if (!$navid) {
-				return str_replace(array(WWW_ROOT,$GLOBALS["resource_root"]),"{wwwroot}",$url);
+				return str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$url);
 			}
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
 		}
@@ -5000,7 +5000,7 @@
 		function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
 			$options = json_decode($options,true);
 			foreach ($options as &$option) {
-				$option = str_replace(WWW_ROOT,"{wwwroot}",$option);
+				$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
 			}
 			
 			// Fix stuff up for the db.
