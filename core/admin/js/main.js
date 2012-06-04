@@ -964,7 +964,7 @@ var BigTreeFileManager = {
 		link.attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
 		link.html("Original");
 		new_pane.append(link);
-		$("#file_browser_form footer").before(new_pane);
+		$("#file_browser_form .footer").before(new_pane);
 		new_pane.animate({ marginLeft: "210px" },500);
 		$("#file_browser_info_pane").animate({ marginLeft: "-1px" },500);
 		
@@ -1018,6 +1018,9 @@ var BigTreeFileManager = {
 	},
 	
 	fileClick: function() {
+		// Show the "Use" button now that something is selected.
+		$("#file_browser .footer .blue").show();
+		
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
@@ -1075,6 +1078,9 @@ var BigTreeFileManager = {
 	},
 	
 	imageClick: function() {
+		// Show the "Use" button now that something is selected.
+		$("#file_browser .footer .blue").show();
+		
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
@@ -1150,7 +1156,7 @@ var BigTreeFileManager = {
 	<div id="file_browser_info_pane"></div>\
 	<div class="footer">\
 		<input type="submit" class="button white" value="Cancel" id="file_browser_cancel" />\
-		<input type="submit" class="button blue" value="Use Selected Item" />\
+		<input type="submit" class="button blue" value="Use Selected Item" style="display: none;" />\
 	</div>\
 </form>');
 

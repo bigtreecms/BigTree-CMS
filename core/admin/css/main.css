@@ -1004,7 +1004,7 @@
 	#file_browser .footer input { margin: 0 10px 0 0; }
 	#file_browser_size_pane { background: #FFF; border-left: 1px solid #E5E5E5; height: 377px; padding: 10px; position: absolute; width: 589px; z-index: 2; }
 	#file_browser_size_pane a { margin: 0 10px 10px 0; }
-	#file_browser_size_pane h3 { background: #3E667D url(../images/button-bg-dark.png) repeat-x 0px -1px; border-bottom: 1px solid #333; color: #FFF; font-size: 14px; height: 20px; line-height: 22px; margin: -10px -10px 10px -10px; padding: 5px 10px; }
+	#file_browser_size_pane h3 { background: #3E667D url(../images/button-bg-dark.png) repeat-x 0px -1px; border-bottom: 1px solid #333; color: #FFF; font-size: 14px; height: 20px; line-height: 22px; margin: -10px -10px 10px -10px; padding: 5px 10px; text-shadow: none; }
 	.file_browser_response { background: #333; border-radius: 3px; color: #FFF; font-size: 14px; height: 28px; line-height: 28px; text-align: center; }
 	.file_browser_error { background: red; }
 	.file_browser_detail_thumb { border-bottom: 1px solid #E5E5E5; padding: 10px; text-align: center; }
