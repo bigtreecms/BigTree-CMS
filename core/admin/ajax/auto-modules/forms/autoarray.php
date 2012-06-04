@@ -11,7 +11,7 @@
 	
 	foreach ($options as $option) {
 		foreach ($option as $key => $val) {
-			$option[$key] = str_replace(WWW_ROOT,"{wwwroot}",$val);
+			$option[$key] = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$val);
 		}
 		$items[] = $option;
 	}

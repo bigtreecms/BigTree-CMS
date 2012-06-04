@@ -153,7 +153,7 @@
 						if (substr($f["external"],0,6) == "ipl://") {
 							$link = $this->getInternalPageLink($f["external"]);
 						} else {
-							$link = str_replace("{wwwroot}",WWW_ROOT,$f["external"]);
+							$link = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
 						}
 					} else {
 						$link = WWW_ROOT.$f["path"]."/";
@@ -231,7 +231,7 @@
 						if (substr($f["external"],0,6) == "ipl://") {
 							$f["link"] = $this->getInternalPageLink($f["external"]);
 						} else {
-							$f["link"] = str_replace("{wwwroot}",WWW_ROOT,$f["external"]);
+							$f["link"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
 						}
 					} else {
 						$f["link"] = WWW_ROOT.$f["path"]."/";
@@ -294,7 +294,7 @@
 			$item["options"] = json_decode($item["options"],true);
 			if (is_array($item["options"])) {
 				foreach ($item["options"] as &$option) {
-					$option = str_replace("{wwwroot}",WWW_ROOT,$option);
+					$option = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$option);
 				}
 			}
 			$item["fields"] = json_decode($item["fields"],true);
@@ -352,7 +352,7 @@
 		
 		function getInternalPageLink($ipl) {
 			if (substr($ipl,0,6) != "ipl://") {
-				return str_replace("{wwwroot}",WWW_ROOT,$ipl);
+				return str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$ipl);
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
@@ -439,7 +439,7 @@
 					if (substr($f["external"],0,6) == "ipl://") {
 						$link = $this->getInternalPageLink($f["external"]);
 					} else {
-						$link = str_replace("{wwwroot}",WWW_ROOT,$f["external"]);
+						$link = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
 					}
 					if ($f["new_window"] == "Yes") {
 						$new_window = true;
@@ -947,7 +947,7 @@
 			if (substr($html,0,6) == "ipl://") {
 				$html = $this->getInternalPageLink($html);
 			} else {
-				$html = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),WWW_ROOT,$html);
+				$html = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstatic%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$html);
 				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',create_function('$matches','global $cms; return \'="\'.$cms->getInternalPageLink($matches[1]).\'"\';'),$html);
 			}
 

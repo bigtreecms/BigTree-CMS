@@ -956,12 +956,12 @@ var BigTreeFileManager = {
 		for (i = 0; i< this.availableThumbs.length; i++) {
 			size = this.availableThumbs[i];
 			link = $('<a class="button">');
-			link.attr("href",size.file.replace("{wwwroot}", "www_root/"));
+			link.attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
 			link.html(size.name);
 			new_pane.append(link);
 		}
 		link = $('<a class="button">');
-		link.attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/"));
+		link.attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
 		link.html("Original");
 		new_pane.append(link);
 		$("#file_browser_form footer").before(new_pane);
@@ -1029,7 +1029,7 @@ var BigTreeFileManager = {
 		
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
-		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/"));
+		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
 		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
 			{ file: $(this).attr("href") },
@@ -1089,7 +1089,7 @@ var BigTreeFileManager = {
 		
 		data = eval('(' + $(this).attr("href") + ')');
 		BigTreeFileManager.availableThumbs = data.thumbs;
-		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/"));
+		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
 		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",

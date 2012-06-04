@@ -5,6 +5,9 @@
 	// Set to false to stop all PHP errors/warnings from showing.
 	$bigtree["config"]["debug"] = true;
 	
+	// Routing setup
+	$bigtree["config"]["routing"] = "[routing]";
+	
 	// Database info.
 	$bigtree["config"]["db"]["host"] = "[host]";
 	$bigtree["config"]["db"]["name"] = "[db]";

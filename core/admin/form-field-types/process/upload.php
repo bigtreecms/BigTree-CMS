@@ -45,10 +45,10 @@
 			} else {
 				if (substr($value,0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
-					$resource = mysql_real_escape_string(str_replace(WWW_ROOT,"{wwwroot}",substr($value,11)));
+					$resource = mysql_real_escape_string(str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),substr($value,11)));
 					
 					$r = $admin->getResourceByFile($resource);
-					$r["file"] = str_replace(array("{wwwroot}",WWW_ROOT),SITE_ROOT,$r["file"]);
+					$r["file"] = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$r["file"]);
 					$pinfo = BigTree::pathInfo($r["file"]);					
 					
 					// We're going to need to create a local copy if we need more 
@@ -83,7 +83,7 @@
 						}
 					// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.
 					} else {
-						$value = str_replace(SITE_ROOT,"{wwwroot}",$r["file"]);
+						$value = str_replace(SITE_ROOT,"{staticroot}",$r["file"]);
 					}
 				}
 			}

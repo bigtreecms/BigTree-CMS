@@ -67,7 +67,7 @@
 		*/
 		
 		private function deleteLocal($file_location) {
-			unlink(str_replace("{wwwroot}",SITE_ROOT,$file_location));
+			unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
 		}
 		
 		/*
@@ -174,7 +174,7 @@
 			}
 			
 			if ($success) {
-				return "{wwwroot}".$relative_path.$file_name;
+				return "{staticroot}".$relative_path.$file_name;
 			} else {
 				return false;
 			}
@@ -343,7 +343,7 @@
 			}
 			
 			if ($success) {
-				return "{wwwroot}".$relative_path.$safe_name;
+				return "{staticroot}".$relative_path.$safe_name;
 			} else {
 				return false;
 			}
