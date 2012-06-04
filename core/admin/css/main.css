@@ -462,7 +462,7 @@
 	.table > summary .more { background: #F4F4F4; border-radius: 11px; box-shadow: 0px 1px 0 #AFAFAF; color: #666; float: right; font-size: 12px; height: 22px; line-height: 22px; margin: 2px -8px 0 0; padding: 0 15px; text-shadow: 0 1px 0 #FFF; transition: background 0.2s; }
 	.table > summary .more:hover { background: #fff; }
 	.table > summary h2.full { float: none; user-select: none; }
-	.table > header { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
+	.table > header { background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }

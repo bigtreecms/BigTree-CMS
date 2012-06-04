@@ -751,12 +751,11 @@
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$table = mysql_real_escape_string($table);
 			$fields = mysql_real_escape_string(json_encode($fields));
-			$javascript - mysql_real_escape_string(htmlspecialchars($javascript));
-			$css - mysql_real_escape_string(htmlspecialchars($css));
+			$preprocess - mysql_real_escape_string($preprocess);
 			$callback - mysql_real_escape_string($callback);
 			$default_position - mysql_real_escape_string($default_position);
 			
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`javascript`,`css`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$javascript','$css','$callback','$default_position')");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$javascript','$css','$callback','$default_position')");
 			return sqlid();
 		}
 		
