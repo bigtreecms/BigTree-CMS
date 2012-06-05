@@ -755,7 +755,7 @@
 			$callback - mysql_real_escape_string($callback);
 			$default_position - mysql_real_escape_string($default_position);
 			
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$javascript','$css','$callback','$default_position')");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position')");
 			return sqlid();
 		}
 		
