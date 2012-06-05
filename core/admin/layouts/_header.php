@@ -82,12 +82,12 @@
 					?>
 					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>>
 						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
-						<? if (count($item["children"])) { ?>
+						<? if (isset($item["children"])) { ?>
 						<ul>
 							<?
 								foreach ($item["children"] as $child) {
 									if ($admin->Level >= $child["access"]) {
-										if ($child["group"]) {
+										if (isset($child["group"])) {
 							?>
 							<li class="grouper"><?=$child["title"]?></li>
 							<? 

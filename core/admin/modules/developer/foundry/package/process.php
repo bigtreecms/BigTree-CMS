@@ -1,4 +1,4 @@
-<?
+<?	
 	$breadcrumb[] = array("title" => "Download Package", "link" => "#");
 	
 	// Function used for template directory inclusion:
@@ -190,7 +190,7 @@
 	}
 	
 	file_put_contents($dir."index.btx",$index);
-	exec("cd $dir; tar -zcf SERVER_ROOT"."cache/package.tar.gz *");
+	exec("cd $dir; tar -zcf ".SERVER_ROOT."cache/package.tar.gz *");
 	
 	// Create the saved copy of this creation.
 	BigTree::globalizePOSTVars(array("mysql_real_escape_string"));
@@ -198,9 +198,9 @@
 	$package_file = BigTree::getAvailableFileName(SITE_ROOT."files/",$cms->urlify($package_name).".tgz");
 	
 	// Move the file into place.
-	BigTree::moveFile(SERVER_ROOT."cache/package.tar.gz",SITE_ROOT."/files/".$package_file);
+	BigTree::moveFile(SERVER_ROOT."cache/package.tar.gz",SITE_ROOT."files/".$package_file);
 ?>
-<h1><span class="foundry"></span>Download Package</h1>
+<h1><span class="package"></span>Download Package</h1>
 <div class="form_container">
 	<section>
 		<p>Package created successfully.  You may download it <a href="<?=WWW_ROOT?>files/<?=$package_file?>">by clicking here</a>.</p>
