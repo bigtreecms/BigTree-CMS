@@ -30,11 +30,11 @@
 		
 			foreach ($items["resources"] as $resource) {
 				if ($resource["is_image"]) {
-					$file = str_replace("{wwwroot}",SITE_ROOT,$resource["file"]);
+					$file = str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$resource["file"]);
 					$thumbs = json_decode($resource["thumbs"],true);
 					$thumb = $thumbs["bigtree_internal_list"];
 					$margin = $resource["list_thumb_margin"];
-					$thumb = str_replace("{wwwroot}",WWW_ROOT,$thumb);
+					$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
 					$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
 					
 					// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
