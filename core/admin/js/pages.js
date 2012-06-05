@@ -26,8 +26,9 @@ $(document).ready(function() {
 	});
 	
 	// If the redirect lower checkbox is checked, remove selected template, otherwise reset it
-	$("input[name=redirect_lower]").bind("click",function() {
-		if ($(this).attr("checked")) {
+	$("input[name=redirect_lower]").click(function() {
+		// For some reason the click is firing before the checked status changes, so we're doing the opposite of what makes sense.
+		if (!$(this).attr("checked")) {
 			rememberedTemplate = $("#template").val();
 			rememberedExternal = $("#external_link").val();
 			$(".box_select").removeClass("active");
@@ -41,7 +42,7 @@ $(document).ready(function() {
 				$("#template").val(rememberedTemplate);
 				$(".box_select[href=#" + rememberedTemplate + "]").addClass("active");
 			} else {
-				$("template").val($(".box_select").addClass("active").attr("href").substr(1));
+				$("#template").val($(".box_select").eq(0).addClass("active").attr("href").substr(1));
 			}
 		}
 	});

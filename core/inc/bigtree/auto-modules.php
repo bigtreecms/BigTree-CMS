@@ -47,10 +47,10 @@
 			// See if we need to modify the cache table to add more fields.
 			$field_count = count($view["fields"]);
 			$cache_columns = sqlcolumns("bigtree_module_view_cache");
-			$cc = count($cache_columns) - 10;
+			$cc = count($cache_columns) - 11;
 			while ($field_count > $cc) {
 				$cc++;
-				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT AFTER column".($cc-1));
+				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
 			}
 			
 			// Cache all records that are published (and include their pending changes)
