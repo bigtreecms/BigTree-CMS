@@ -109,7 +109,7 @@
 		}
 		if ($type == "File") {
 			$location = $parts[2];
-			if (!BigTree::isWritable(SERVER_ROOT.$location)) {
+			if (!BigTree::isDirectoryWritable(SERVER_ROOT.$location)) {
 				$errors[] = "Cannot write to $location &mdash; please make the root directory writable.";
 			}
 			if (file_exists(SERVER_ROOT.$location)) {
@@ -142,10 +142,10 @@
 			
 			if (count($errors)) {
 		?>
-		<strong class="import_errors">Errors</strong>
-		<ul class="import_errors">
+		<h3>Errors</h3>
+		<ul class="styled">
 			<? foreach ($errors as $e) { ?>
-			<li>&raquo; <?=$e?></li>
+			<li><?=$e?></li>
 			<? } ?>
 		</ul>
 		<p><strong>ERRORS OCCURRED!</strong> &mdash; Please correct all errors.  You may not import this module while errors persist.</p>
