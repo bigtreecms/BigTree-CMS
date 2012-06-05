@@ -163,8 +163,6 @@
 	}
 	
 	$data = unserialize($_POST["details"]);
-	print_r($sqlerrors);
-	die();
 	
 	$admin->growl("Developer","Installed Package");
 	header("Location: ".ADMIN_ROOT."developer/foundry/install/complete/");
