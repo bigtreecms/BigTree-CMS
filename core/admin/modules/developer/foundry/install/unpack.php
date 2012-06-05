@@ -131,10 +131,10 @@
 		<?
 			if (count($warnings)) {
 		?>
-		<strong class="import_warnings">Warnings</strong>
-		<ul class="import_warnings">
+		<h3>Warnings</h3>
+		<ul class="styled">
 			<? foreach ($warnings as $w) { ?>
-			<li>&raquo; <?=$w?></li>
+			<li><?=$w?></li>
 			<? } ?>
 		</ul>
 		<?

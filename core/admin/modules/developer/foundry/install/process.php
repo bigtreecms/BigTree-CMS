@@ -153,7 +153,9 @@
 			$file = $cache_root.$parts[2];
 			$queries = explode("\n",file_get_contents($file));
 			foreach ($queries as $query) {
-				sqlquery($query);
+				if ($query) {
+					sqlquery($query);
+				}
 			}
 			$savedData["tables"][] = $table;
 			$package_tables[] = $table;
@@ -161,6 +163,8 @@
 	}
 	
 	$data = unserialize($_POST["details"]);
+	print_r($sqlerrors);
+	die();
 	
 	$admin->growl("Developer","Installed Package");
 	header("Location: ".ADMIN_ROOT."developer/foundry/install/complete/");
