@@ -36,7 +36,7 @@
 	$index .= "Packaged for BigTree ".BIGTREE_VERSION." by ".$created_by."\n";
 	
 	if ($module) {
-		$modules = array($module_details);
+		$modules = array($admin->getModule($module));
 	} elseif ($group) {
 		$group_details = $admin->getModuleGroup($group);
 		$modules = $admin->getModulesByGroup($group_details["id"]);
@@ -130,7 +130,8 @@
 			$x++;
 			list($table,$type) = explode("#",$t);
 			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
-			$create = str_replace(array("\r","\n")," ",end($f)).";\n";
+			$create = "DROP TABLE IF EXISTS `$table`\n";
+			$create .= str_replace(array("\r","\n")," ",end($f)).";\n";
 			if ($type == "structure") {
 				if (strpos($create,"AUTO_INCREMENT=") !== false) {
 					$pos = strpos($create,"AUTO_INCREMENT=");
