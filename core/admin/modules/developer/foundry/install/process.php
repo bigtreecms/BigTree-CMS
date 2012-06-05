@@ -162,6 +162,9 @@
 		}
 	}
 	
+	// Clear module class cache
+	unlink(SERVER_ROOT."cache/module-class-list.btc");
+	
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
