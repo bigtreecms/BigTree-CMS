@@ -153,7 +153,9 @@
 			$file = $cache_root.$parts[2];
 			$queries = explode("\n",file_get_contents($file));
 			foreach ($queries as $query) {
-				sqlquery($query);
+				if ($query) {
+					sqlquery($query);
+				}
 			}
 			$savedData["tables"][] = $table;
 			$package_tables[] = $table;
