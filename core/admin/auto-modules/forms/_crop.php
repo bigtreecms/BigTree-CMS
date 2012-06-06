@@ -59,7 +59,7 @@
 					foreach ($crops as $crop) {
 						$x++;
 						list($width,$height,$type,$attr) = getimagesize($crop["image"]);
-						$image = str_replace(SITE_ROOT,WWW_ROOT,$crop["image"]);
+						$image = str_replace(SITE_ROOT,STATIC_ROOT,$crop["image"]);
 						$cwidth = $crop["width"];
 						$cheight = $crop["height"];
 						
