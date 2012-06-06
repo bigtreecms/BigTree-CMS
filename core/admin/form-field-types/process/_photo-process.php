@@ -2,7 +2,7 @@
 	$failed = false;
 		
 	// Let's check the minimum requirements for the image first before we store it anywhere.
-	$image_info = getimagesize($temp_name);
+	$image_info = @getimagesize($temp_name);
 	$iwidth = $image_info[0];
 	$iheight = $image_info[1];
 	$itype = $image_info[2];
