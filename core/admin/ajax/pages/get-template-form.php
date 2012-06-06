@@ -81,18 +81,31 @@
 			foreach ($callouts as $callout) {
 				$description = "";
 				$type = $cms->getCallout($callout["type"]);
+				$temp_resources = json_decode($type["resources"],true);
+				$callout_resources = array();
+				// Loop through the resources and set the key to the id.
+				foreach ($temp_resources as $r) {
+					$callout_resources[$r["id"]] = $r;
+				}
 		?>
 		<li>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?
 				$description = $callout["display_title"];
 				foreach ($callout as $r => $v) {
-					if (is_array($v)) {
-						$v = json_encode($v,true);
-					}
+					if ($callout_resources[$r]["type"] == "upload") {
+			?>
+			<input type="file" name="callouts[<?=$x?>][<?=$r?>]" style="display:none;" class="custom_control" />
+			<input type="hidden" name="callouts[<?=$x?>][currently_<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
+			<?
+					} else {
+						if (is_array($v)) {
+							$v = json_encode($v,true);
+						}
 			?>
 			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
 			<?
+					}
 				}
 			?>
 			<h4><span class="icon_sort"></span><?=$description?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=$description?>" /></h4>
