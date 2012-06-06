@@ -3,6 +3,11 @@
 	define("BIGTREE_VERSION","4.0b5");
 	define("BIGTREE_REVISION",1);
 	
+	// Set static root for those without it
+	if (!$bigtree["config"]["static_root"]) {
+		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
+	}
+	
 	// Make sure no notice gets thrown for $bigtree["path"] being too small.
 	$bigtree["path"] = array_pad($bigtree["path"],2,"");
 	
@@ -119,7 +124,7 @@
 		}
 		
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo str_replace(array("{max_file_size}","www_root/","admin_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"]),file_get_contents($ifile));
+		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
 		die();
 	}
 	
