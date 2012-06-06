@@ -11,6 +11,8 @@
 		}
 	}
 	
+	$title = htmlspecialchars(urldecode($title));
+	
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 ?>

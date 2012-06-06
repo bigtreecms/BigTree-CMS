@@ -1,7 +1,7 @@
 <?
 	$id = $bigtree["commands"][0];
 	$table = $bigtree["commands"][1];
-	$title = $bigtree["commands"][2];
+	$title = htmlspecialchars(urldecode($bigtree["commands"][2]));
 	
 	$mod = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);

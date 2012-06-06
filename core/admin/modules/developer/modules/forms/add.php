@@ -14,6 +14,8 @@
 	} else {
 		$title = "";
 	}
+	
+	$title = htmlspecialchars(urldecode($title));
 
 	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/$id/");
 	$breadcrumb[] = array("title" => "Add Form", "link" => "#");
