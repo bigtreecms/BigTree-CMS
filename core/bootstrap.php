@@ -77,8 +77,6 @@
 			include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
 		} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
 			include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
-		} else {
-			trigger_error("Could not load class $class.",E_USER_ERROR);
 		}
 	}
 	
