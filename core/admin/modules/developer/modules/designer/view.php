@@ -4,6 +4,7 @@
 	if (!$title) {
 		$title = (substr($bigtree["commands"][2],-1,1) != "s") ? $bigtree["commands"][2]."s" : $bigtree["commands"][2];
 	}
+	$title = htmlspecialchars(urldecode($title));
 	$title = urldecode($title);
 	
 	$mdata = $admin->getModule($mod);
