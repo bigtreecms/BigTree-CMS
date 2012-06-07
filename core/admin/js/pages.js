@@ -239,7 +239,11 @@ function checkTemplate() {
 	if (tval.length) {
 		if (template != tval.val()) {
 			template = tval.val();
-			$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: page, template: template });
+			if (page !== false) {
+				$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: page, template: template });
+			} else {
+				$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: template });
+			}
 		}
 	}
 }
