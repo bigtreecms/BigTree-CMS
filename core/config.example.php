@@ -24,6 +24,7 @@
 	// Resource root must be on a different domain than www_root.  Usually we just remove the www. from the domain.
 	$bigtree["config"]["domain"] = "[domain]";
 	$bigtree["config"]["www_root"] = "[wwwroot]";
+	$bigtree["config"]["static_root"] = "[staticroot]";
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
 	// Email used for default form mailers	

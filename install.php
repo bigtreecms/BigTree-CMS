@@ -86,6 +86,7 @@
 			"[write_password]",
 			"[domain]",
 			"[wwwroot]",
+			"[staticroot]",
 			"[resourceroot]",
 			"[email]",
 			"[settings_key]",
@@ -94,7 +95,13 @@
 		);
 		
 		$domain = "http://".$_SERVER["HTTP_HOST"];
-		$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+		if ($routing == "basic") {
+			$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+			$www_root = $static_root."index.php/";
+		} else {
+			$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+			$static_root = $www_root;
+		}
 		$resource_root = str_replace("http://www.","http://",$www_root);
 		
 		$replace = array(
@@ -108,6 +115,7 @@
 			(isset($loadbalanced)) ? $write_password : "",
 			$domain,
 			$www_root,
+			$static_root,
 			$resource_root,
 			$cms_user,
 			$settings_key,
@@ -270,7 +278,7 @@
 		if (file_exists($file) && filemtime($file) > (time()-300)) {
 			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
 			if ($bigtree["config"]["xsendfile"]) {
-				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\", "/"))."cache/".base64_encode($curl));
+				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($curl));
 				header("Content-Type: text/html");
 				die();
 			// Fall back on file_get_contents otherwise.
@@ -373,6 +381,8 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]');
+		} else {
+			bt_touch_writable("index.php",'<? header("Location: site/index.php/"); ?>');
 		}
 		
 		if ($routing != "basic") {
@@ -425,9 +435,7 @@ RewriteRule (.*) site/$1 [L]');
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title>Install BigTree</title>
 		<?php if ($installed) { ?>
-		<link rel="stylesheet" href="admin/css/install.css" type="text/css" media="all" />
-		<script type="text/javascript" src="admin/js/lib.js"></script>
-		<script type="text/javascript" src="admin/js/install.js"></script>
+		<link rel="stylesheet" href="<?=$www_root?>admin/css/install.css" type="text/css" media="all" />
 		<?php } else { ?>
 		<link rel="stylesheet" href="core/admin/css/install.css" type="text/css" media="all" />
 		<script type="text/javascript" src="core/admin/js/lib.js"></script>
@@ -442,6 +450,9 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
 					<p>Your new BigTree site is ready to go! Login to the CMS using your newly created account.</p>
+					<? if ($routing == "basic") { ?>
+					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
+					<? } ?>
 				</fieldset>
 				
 				<hr />
