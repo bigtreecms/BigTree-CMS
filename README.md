@@ -20,6 +20,24 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0b6
+- NEW: BigTree now allows for usage of index.php routing WITHOUT .htaccess / mod_rewrite
+- NEW: BigTree::unzip function (preparing for the future)
+- FIXED: Buttons in the image browser not working in beta 5.
+- FIXED: Example site "Wonders" form missing in beta 5.
+- FIXED: Module forms not creating properly in beta 5.
+- FIXED: Choosing image size not working in Image Browser in beta 5.
+- FIXED: Styles of the H3 in the image size chooser in the Image Browser.
+- FIXED:  404s in the 404 list not being htmlspecialchar'd
+- FIXED: Some "Advanced Link" problems in TinyMCE
+- FIXED: Views with more than 5 columns causing a critical error.
+- FIXED: Many problems that stopped module packaging / importing from working in recent betas.
+- FIXED: Callout images throwing an error if they were unchanged from last publish (Thanks Phil P!)
+- FIXED: A warning that occurred if you uploaded an invalid image.
+- FIXED: Lazy loading of modules throwing a critical error when class_exists() was called (fixes Module Designer!)
+- FIXED: Module creation process showing urlencoded titles
+- FIXED: Homepage resources loading into a new page if the template was changed (Thanks Phil P!)
+
 ### 4.0b5
 - NEW: Array of Items now supports using several different field types (text, textarea, date, time, html)
 - NEW: BigTree version updater automatically does database and file system changes when a new revision is installed.
