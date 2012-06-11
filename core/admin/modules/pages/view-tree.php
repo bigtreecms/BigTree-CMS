@@ -54,7 +54,7 @@
 			foreach ($nav as $item) {
 				$perm = $admin->getPageAccessLevel($item["id"]);
 				
-				if ($item["bigtree_pending"]) {
+				if (isset($item["bigtree_pending"])) {
 					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">Pending</a>';
 					$status_class = "pending";
 				} elseif ($admin->getPageChanges($item["id"])) {
@@ -73,7 +73,7 @@
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 			<section class="pages_title<? if ($class == "archived") { ?>_widest<? } elseif (!$ga_on) { ?>_wider<? } ?>">
-				<? if ($parent_access == "p" && !$item["bigtree_pending"] && $draggable) { ?>
+				<? if ($parent_access == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
 				<span class="icon_sort"></span>
 				<? } ?>
 				<? if ($class != "archived") { ?>
@@ -113,7 +113,7 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<? if (!$item["bigtree_pending"] && $perm == "p" && ($parent != 0 || $admin->Level > 1) && $admin->canModifyChildren($item)) { ?>
+				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($parent != 0 || $admin->Level > 1) && $admin->canModifyChildren($item)) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="Archive Page" class="icon_archive"></a>
 				<? } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Pending Page" class="icon_delete"></a>

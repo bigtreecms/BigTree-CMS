@@ -227,16 +227,7 @@
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
-					if ($f["external"] && $f["template"] == "") {
-						if (substr($f["external"],0,6) == "ipl://") {
-							$f["link"] = $this->getInternalPageLink($f["external"]);
-						} else {
-							$f["link"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
-						}
-					} else {
-						$f["link"] = WWW_ROOT.$f["path"]."/";
-					}
-					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => $f["link"],"id" => $f["id"]);
+					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => WWW_ROOT.$f["path"]."/","id" => $f["id"]);
 				}
 			}
 			

@@ -10,7 +10,7 @@
 		} else {
 			$live_url = WWW_ROOT.$page_data["path"]."/";
 		}
-		if ($page_data["changes_applied"]) {
+		if (isset($page_data["changes_applied"])) {
 			$status = "Changes Pending";
 			if ($page_data["id"] == 0) {
 				$preview_url = WWW_ROOT."_preview/";
@@ -25,7 +25,7 @@
 		$status = "Unpublished";
 	}
 	
-	$open = $_COOKIE["bigtree_default_properties_open"] ? true : false;
+	$open = (isset($_COOKIE["bigtree_default_properties_open"]) && $_COOKIE["bigtree_default_properties_open"]) ? true : false;
 	
 	$seo_recs = "<ul>";
 	foreach ($seo["recommendations"] as $rec) {
