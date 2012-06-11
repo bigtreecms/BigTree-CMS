@@ -2943,8 +2943,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR `value` LIKE '%$part%' OR description LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(`value`) LIKE '%$part%')";
 				}
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
@@ -2996,8 +2996,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
 				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
 			// If we're grabbing anyone.
@@ -3747,8 +3747,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR value LIKE '%$part%' OR description LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(value) LIKE '%$part%')";
 				}
 				// Administrator
 				if ($this->Level < 2) {
@@ -3949,8 +3949,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
 				$q = sqlquery("SELECT id FROM bigtree_users WHERE ".implode(" AND ",$qp));
 			// If we're showing all.
@@ -4354,13 +4354,13 @@
 			$items = array();
 			
 			if ($query) {
-				$s = mysql_real_escape_string($query);
+				$s = mysql_real_escape_string(strtolower($query));
 				if ($type == "301") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
+					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
 				} elseif ($type == "ignored") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%') ORDER BY requests DESC LIMIT 50");
+					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') ORDER BY requests DESC LIMIT 50");
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND broken_url LIKE '%$s%' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
+					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
 				}
 			} else {
 				if ($type == "301") {
@@ -4425,12 +4425,12 @@
 		*/
 
 		function searchResources($query, $sort = "date DESC") {
-			$query = mysql_real_escape_string($query);
+			$query = mysql_real_escape_string(strtolower($query));
 			$folders = array();
 			$resources = array();
 			$permission_cache = array();
 
-			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
+			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE LOWER(name) LIKE '%$query%' ORDER BY name");
 			while ($f = sqlfetch($q)) {
 				$f["permission"] = $this->getResourceFolderPermission($f);
 				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
@@ -4439,7 +4439,7 @@
 				$folders[] = $f;
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
+			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
 				if ($permission_cache[$f["folder"]]) {

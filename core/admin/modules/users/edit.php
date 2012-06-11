@@ -22,12 +22,12 @@
 	<?
 			foreach ($children as $f) {
 				$grandchildren = $admin->getPageChildren($f["id"]);
-				$alert_below = ($alert_above || $alerts[$f["id"]]) ? true : false;
+				$alert_below = ($alert_above || (isset($alerts[$f["id"]]) && $alerts[$f["id"]])) ? true : false;
 	?>
 	<li>
 		<span class="depth"></span>
 		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>" href="#"><?=$f["nav_title"]?></a>
-		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ($alerts[$f["id"]] == "on" || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
+		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ((isset($alerts[$f["id"]]) && $alerts[$f["id"]] == "on") || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
 		</span>
@@ -85,6 +85,11 @@
 		BigTree::globalizeArray($_SESSION["bigtree"]["update_user"],array("htmlspecialchars"));
 		$e = true;
 		unset($_SESSION["bigtree"]["update_user"]);
+	}
+	
+	// Prevent a notice on alerts
+	if (!is_array($alerts)) {
+		$alerts = array(array());
 	}
 	
 	$groups = $admin->getModuleGroups("name ASC");
@@ -210,12 +215,12 @@
 								?>
 								<li>
 									<span class="depth"></span>
-									<a class="permission_label permission_label_wider<? if (!$gbp["enabled"]) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
+									<a class="permission_label permission_label_wider<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 									<?
-												if ($gbp["enabled"]) {
+												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
 													$categories = array();
 													$ot = mysql_real_escape_string($gbp["other_table"]);
 													$tf = mysql_real_escape_string($gbp["title_field"]);
