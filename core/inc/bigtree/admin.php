@@ -309,12 +309,14 @@
 				return true;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$module])) {
-				foreach ($this->Permissions["module_gbp"][$module] as $p) {
-					if ($p != "n") {
-						return true;
+			if (isset($this->Permissions["module_gbp"])) {
+				if (is_array($this->Permissions["module_gbp"][$module])) {
+					foreach ($this->Permissions["module_gbp"][$module] as $p) {
+						if ($p != "n") {
+							return true;
+						}
 					}
-				}
+				}	
 			}
 
 			return false;
@@ -3113,10 +3115,10 @@
 
 			if (is_array($template)) {
 				foreach ($template["resources"] as $item) {
-					if ($item["seo_body"]) {
+					if (isset($item["seo_body"]) && $item["seo_body"]) {
 						$body_fields[] = $item["id"];
 					}
-					if ($item["seo_h1"]) {
+					if (isset($item["seo_h1"]) && $item["seo_h1"]) {
 						$h1_field = $item["id"];
 					}
 					$tsources[$item["id"]] = $item;
@@ -3140,7 +3142,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$q = sqlquery("SELECT * FROM bigtree_pages WHERE title = '".mysql_real_escape_string($page["title"])."' AND id != '".$page["page"]."'");
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".mysql_real_escape_string($page["title"])."' AND id != '".$page["id"]."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
@@ -4070,6 +4072,8 @@
 		*/
 		
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
+			error_reporting(E_ALL);
+			ini_set("display_errors","on");
 			global $breadcrumb,$www_root,$admin_root,$cms,$admin;
 			$table = mysql_real_escape_string($table);
 			$id = mysql_real_escape_string($id);

@@ -38,6 +38,11 @@
 	
 	$unread_messages = $admin->getUnreadMessageCount();	
 	$site = $cms->getPage(0,false);
+	
+	// Hide some stupid notices.
+	if (!isset($in_module)) {
+	    $in_module = false;
+	}
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie ie6"> <![endif]-->
@@ -76,7 +81,7 @@
 		<nav class="main">
 			<section>
 				<ul>
-					<?
+					<?						
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"]) {
 					?>

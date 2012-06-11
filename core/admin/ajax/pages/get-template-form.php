@@ -21,8 +21,11 @@
 	} else {
 		$image = ADMIN_ROOT."images/templates/".$tdata["image"];
 	}
-		
+	
+	$dates = array();
+	$times = array();
 	$htmls = array();
+	$simplehtmls = array();
 ?>
 <div class="alert template_message">
 	<img src="<?=$image?>" alt="" />
