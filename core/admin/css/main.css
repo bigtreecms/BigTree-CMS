@@ -107,6 +107,7 @@
 	input[type=submit].shorter { padding: 4px 18px 6px; }
 
 	input[type=text], input[type=password], input[type=email], input[type=url] { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: "Helvetica", Arial; font-size: 13px; height: 30px; margin: 0; padding: 0 10px; transition: border-color 0.2s; width: 876px; }
+	input[disabled] { opacity: 0.5; }
 	input[type=checkbox] { border: 1px solid #CCC; height: 16px; width: 16px; }
 	input.date { background: #FFF url(../images/icon-calendar.png) no-repeat 176px center; width: 180px !important; }
 	input.date:focus { border-radius: 2px 2px 0 0; }

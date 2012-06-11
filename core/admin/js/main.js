@@ -288,6 +288,10 @@ var BigTreeSelect = Class.extend({
 	blur: function() {
 		this.Container.removeClass("focused");
 		this.Element.unbind("keydown");
+		this.Open = false;
+		this.Container.removeClass("open");
+		this.Container.find("datalist").hide();
+		$("body").unbind("click",this.BoundWindowClick);
 	},
 	
 	keydown: function(ev) {
@@ -362,6 +366,7 @@ var BigTreeSelect = Class.extend({
 	},
 	
 	click: function() {
+		$("select").blur();
 		this.Element.focus();
 		
 		// Check if we're in a sortable row and disable it's relative position if so.
@@ -374,11 +379,20 @@ var BigTreeSelect = Class.extend({
 		}
 		
 		if (!this.Open) {
+			dList = this.Container.find("datalist");
 			this.Open = true;
-			this.Container.find("datalist").show();
+			dList.show();
 			this.Container.addClass("open");
 			this.BoundWindowClick = $.proxy(this.close,this);
 			$("body").click(this.BoundWindowClick);
+			
+			// If the select drops below the visible area, scroll down a bit.
+			dOffset = dList.offset().top + dList.height();
+			toScroll = dOffset - window.scrollY - $(window).height();
+			if (toScroll > 0) {
+				$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
+			}
+			
 		} else {
 			this.Open = false;
 			this.Container.removeClass("open");
