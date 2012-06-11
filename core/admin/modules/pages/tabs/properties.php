@@ -9,7 +9,30 @@
 		"365" => "1 Year"
 	);
 	
-	$parent_to_check = $pdata ? $pdata["parent"] : $parent;
+	if (isset($pdata)) {
+		$parent_to_check = $pdata["parent"];
+	} else {
+		$parent_to_check = $parent;
+		// Stop the notices for new pages, batman!
+		$pdata = array(
+			"nav_title" => "",
+			"title" => "",
+			"resources" => "",
+			"publish_at" => "",
+			"expire_at" => "",
+			"max_age" => "",
+			"trunk" => "",
+			"in_nav" => "on",
+			"external" => "",
+			"new_window" => "",
+			"resources" => array(),
+			"callouts" => array(),
+			"tags" => false,
+			"route" => "",
+			"meta_keywords" => "",
+			"meta_description" => ""
+		);
+	}
 ?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 
@@ -53,7 +76,7 @@
 <? } ?>
 <fieldset class="visible clear">
 	<? if ($parent_to_check > 0 || $admin->Level > 1) { ?>
-	<input type="checkbox" name="in_nav" <? if (!$pdata || $pdata["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation</label>
+	<input type="checkbox" name="in_nav" <? if ($pdata["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation</label>
 	<? } else { ?>
 	<input type="checkbox" name="in_nav" <? if ($pdata["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
 	<? } ?>

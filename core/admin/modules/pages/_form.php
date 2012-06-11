@@ -20,7 +20,7 @@
 		<? } ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		
-		<? if ($pdata) { ?>
+		<? if (isset($pdata)) { ?>
 		<input type="hidden" name="page" value="<?=$pdata["id"]?>" />
 		<? } else { ?>
 		<input type="hidden" name="parent" value="<?=$parent?>" />
@@ -98,7 +98,7 @@
 		return false;
 	});
 
-	var template = "<?=$default_template?>";
+	var template = "<?=$pdata["template"]?>";
 	<? if ($action == "create") { ?>
 	var page = false;
 	<? } else { ?>

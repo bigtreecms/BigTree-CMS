@@ -19,7 +19,8 @@
 	include BigTree::path("admin/modules/pages/_nav.php");
 	
 	// Check for a page lock
-	$admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$_GET["force"]);
+	$force = isset($_GET["force"]) ? $_GET["force"] : false;
+	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$force);
 	
 	// See if there's a draft copy.
 	$draft = $admin->getPageChanges($pdata["id"]);
@@ -107,7 +108,7 @@
 	var active_draft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
 	var page = "<?=$pdata["id"]?>";
 	var page_updated_at = "<?=$pdata["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lockid?>' } });",60000);
+	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
 	
 	$(".icon_save").click(function() {
 		new BigTreeDialog("Save Revision",'<fieldset><label>Short Description <small>(quick reminder of what\'s special about this revision)</small></label><input type="text" name="description" /></fieldset>',$.proxy(function(d) {

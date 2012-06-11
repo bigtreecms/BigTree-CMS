@@ -2,14 +2,14 @@
 	if (isset($_POST["template"])) {
 		$template = $_POST["template"];
 	} else {
-		$template = $default_template;
+		$template = $pdata["template"];
 	}
 	
 	if (isset($_POST["page"])) {
 		$page = $cms->getPendingPage($_POST["page"]);
 		$resources = $page["resources"];
 		$callouts = $page["callouts"];
-	} elseif (!$resources && !$callouts) {
+	} elseif (!isset($resources) && !isset($callouts)) {
 		$resources = array();
 		$callouts = array();
 	}
@@ -41,7 +41,11 @@
 			$type = $options["type"];
 			$title = $options["title"];
 			$subtitle = $options["subtitle"];
-			$value = $resources[$key];
+			if (isset($resources[$key])) {
+				$value = $resources[$key];
+			} else {
+				$value = "";
+			}
 			$options["directory"] = "files/pages/";
 			$currently_key = "resources[currently_$key]";
 			$key = "resources[$key]";

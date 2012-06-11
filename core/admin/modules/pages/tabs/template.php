@@ -1,16 +1,14 @@
 <?
 	$items = $admin->getBasicTemplates();
-	if ($pdata) {
+	if (isset($pdata["id"])) {
 		if ($pdata["template"] && $pdata["template"] != "!") {
 			$td = $cms->getTemplate($pdata["template"]);
-			$default_template = $td["id"];
 			$callouts_enabled = $td["callouts_enabled"];
 		} else {
-			$default_template = $pdata["template"];
 			$callouts_enabled = false;
 		}
 	} else {
-		$default_template = $items[0]["id"];
+		$pdata["template"] = $items[0]["id"];
 		$callouts_enabled = $items[0]["callouts_enabled"];
 	}
 ?>
@@ -27,7 +25,7 @@
 				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
-	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $default_template) { ?> active<? } ?>">
+	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?>">
 		<img src="<?=$image?>" alt="" />
 		<p><?=$item["name"]?></p>
 	</a>
@@ -36,7 +34,7 @@
 	?>
 </fieldset>
 
-<input type="hidden" name="template" id="template" value="<?=$default_template?>" />
+<input type="hidden" name="template" id="template" value="<?=$pdata["template"]?>" />
 <hr />
 	
 <fieldset>
@@ -50,7 +48,7 @@
 				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
-	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $default_template) { ?> active<? } ?>">
+	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?>">
 		<img src="<?=$image?>" alt="" />
 		<p><?=$item["name"]?></p>
 	</a>
@@ -64,10 +62,10 @@
 <div class="left">
 	<fieldset>
 		<label>External Link <small>(include http://)</small></label>
-		<input type="text" name="external" value="<?=$pdata["external"]?>" id="external_link" tabindex="1" <? if ($default_template == "") { ?> class="active"<? } ?>/>
+		<input type="text" name="external" value="<?=$pdata["external"]?>" id="external_link" tabindex="1" <? if ($pdata["template"] == "") { ?> class="active"<? } ?>/>
 	</fieldset>
 	<fieldset>
-		<input type="checkbox" name="redirect_lower" <? if ($default_template == "!") { ?>checked="checked" <? } ?>tabindex="3" /><label class="for_checkbox">Redirect Lower</label>
+		<input type="checkbox" name="redirect_lower" <? if ($pdata["template"] == "!") { ?>checked="checked" <? } ?>tabindex="3" /><label class="for_checkbox">Redirect Lower</label>
 	</fieldset>
 </div>
 <div class="right">

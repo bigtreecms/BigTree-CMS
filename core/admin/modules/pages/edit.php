@@ -10,9 +10,6 @@
 		}
 	} else {
 		$r = $admin->getPageAccessLevel($page);
-		if ($pdata["changed_applied"]) {
-			$show_revert = true;
-		}
 	}
 
 	$resources = $pdata["resources"];
@@ -53,7 +50,8 @@
 	
 	
 	// Check for a page lock
-	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$_GET["force"]);
+	$force = isset($_GET["force"]) ? $_GET["force"] : false;
+	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$force);
 	
 	// SEO Checks
 	$seo = $admin->getPageSEORating($pdata,$resources);

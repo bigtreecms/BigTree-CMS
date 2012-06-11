@@ -88,7 +88,7 @@
 	label { color: #666; display: block; font-size: 13px; line-height: 1; margin: 0 0 10px 0; user-select: none; }
 	label small { color: #999; font-size: 11px; margin: 0 0 0 5px; }
 	label small strong { color: #436D86; }
-	label.for_checkbox { cursor: pointer; line-height: 17px; margin: 0; user-select: none; }
+	label.for_checkbox { cursor: pointer; line-height: 17px; margin: 0; user-select: none; float: left; }
 	.form_error label { color: #990000; }
 	label .form_error_reason { float: right; font-size: 11px; line-height: 13px; text-transform: uppercase; }
 
