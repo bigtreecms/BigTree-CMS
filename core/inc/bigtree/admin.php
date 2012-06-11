@@ -4072,9 +4072,7 @@
 		*/
 		
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
-			error_reporting(E_ALL);
-			ini_set("display_errors","on");
-			global $breadcrumb,$www_root,$admin_root,$cms,$admin;
+			global $breadcrumb,$www_root,$admin_root,$cms,$admin,$bigtree;
 			$table = mysql_real_escape_string($table);
 			$id = mysql_real_escape_string($id);
 			
@@ -4638,9 +4636,9 @@
 		*/
 
 		function stop($message = "") {
-			global $cms,$admin,$www_root,$admin_root,$site,$breadcrumb;
+			global $cms,$admin,$www_root,$admin_root,$site,$breadcrumb,$bigtree;
 			echo $message;
-			$content = ob_get_clean();
+			$bigtree["content"] = ob_get_clean();
 			include BigTree::path("admin/layouts/default.php");
 			die();
 		}

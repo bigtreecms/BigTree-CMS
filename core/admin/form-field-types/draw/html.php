@@ -1,5 +1,5 @@
 <?
-	if ($options["simple"]) {
+	if (isset($options["simple"]) && $options["simple"]) {
 		$simplehtmls[] = "field_$key";
 	} else {
 		$htmls[] = "field_$key";

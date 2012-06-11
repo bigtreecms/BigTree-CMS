@@ -49,7 +49,7 @@
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$input_validation_class = "";
-			if ($options["validation"]) {
+			if (isset($options["validation"]) && $options["validation"]) {
 				if (strpos($options["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
 				}
@@ -140,7 +140,7 @@
 	$(document.getElementById("<?=$id?>")).timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<? } } ?>
 	
-	<? if ($_POST["template"]) { ?>
+	<? if (isset($_POST["template"])) { ?>
 	BigTreeCustomControls();
 	<? } ?>
 </script>

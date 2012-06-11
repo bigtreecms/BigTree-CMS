@@ -788,6 +788,8 @@
 		
 		static function prefixFile($file,$prefix) {
 			$pinfo = self::pathInfo($file);
+			// Remove notices
+			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
 		}
 		

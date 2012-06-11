@@ -51,8 +51,9 @@
 	include BigTree::path("admin/modules/pages/_nav.php");
 	include BigTree::path("admin/modules/pages/_properties.php");
 	
+	
 	// Check for a page lock
-	$admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$_GET["force"]);
+	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$_GET["force"]);
 	
 	// SEO Checks
 	$seo = $admin->getPageSEORating($pdata,$resources);

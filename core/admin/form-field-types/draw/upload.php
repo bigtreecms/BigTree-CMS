@@ -1,5 +1,5 @@
 <?	
-	if (!$options["image"]) {
+	if (!isset($options["image"]) || !$options["image"]) {
 ?>
 <fieldset>
 	<? if ($title) { ?><label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
@@ -34,7 +34,7 @@
 <fieldset class="image_field">
 	<? if ($title) { ?><label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
 	<input<?=$input_validation_class?> type="file" tabindex="<?=$tabindex?>" name="<?=$key?>" id="field_<?=$key?>" />
-	<? if (!$no_file_browser) { ?>
+	<? if (!isset($no_file_browser) || !$no_file_browser) { ?>
 	<span class="or">OR</span>
 	<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images_small"></span>Browse</a>
 	<? } ?>
