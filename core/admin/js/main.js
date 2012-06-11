@@ -277,6 +277,8 @@ var BigTreeSelect = Class.extend({
 		// Observe focus on the select that's been hidden.
 		this.Element.focus($.proxy(this.focus,this));
 		this.Element.blur($.proxy(this.blur,this));
+		// Custom event to force open lists closed when another select opens.
+		this.Element.on("closeNow",$.proxy(this.close,this));
 	},
 	
 	focus: function() {
@@ -288,10 +290,6 @@ var BigTreeSelect = Class.extend({
 	blur: function() {
 		this.Container.removeClass("focused");
 		this.Element.unbind("keydown");
-		this.Open = false;
-		this.Container.removeClass("open");
-		this.Container.find("datalist").hide();
-		$("body").unbind("click",this.BoundWindowClick);
 	},
 	
 	keydown: function(ev) {
@@ -366,7 +364,7 @@ var BigTreeSelect = Class.extend({
 	},
 	
 	click: function() {
-		$("select").blur();
+		$("select").not(this.Element).trigger("closeNow");
 		this.Element.focus();
 		
 		// Check if we're in a sortable row and disable it's relative position if so.

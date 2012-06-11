@@ -1851,7 +1851,7 @@
 
 		function getActionClass($action,$item) {
 			$class = "";
-			if ($item["bigtree_pending"] && $action != "edit" && $action != "delete") {
+			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
 				return "icon_disabled";
 			}
 			if ($action == "feature") {

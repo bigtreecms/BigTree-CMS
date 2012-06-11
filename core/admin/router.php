@@ -158,7 +158,7 @@
 	$bigtree["layout"] = "default";
 	$inc_dir = "";
 	
-	if (!$admin->ID && $bigtree["path"][1] != "login") {
+	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		header("Location: ".ADMIN_ROOT."login/");
 		die();
 	} else {

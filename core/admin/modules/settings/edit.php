@@ -23,12 +23,17 @@
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
+				$htmls = array();
+				$simplehtmls = array();
+				
 				echo $item["description"];
 				
 				$t = $item["type"];
 				$title = "";
 				$value = $item["value"];
 				$key = $item["id"];
+				$input_validation_class = "";
+				
 				include BigTree::path("admin/form-field-types/draw/".$t.".php");
 				
 				$mce_width = 898;

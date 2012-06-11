@@ -2,20 +2,22 @@
 	$autoModule = new BigTreeAutoModule;
 
 	// Grab View Data
-	if ($_GET["view"])
+	if (isset($_GET["view"])) {
 		$view = $_GET["view"];
-	if ($_GET["module"])
+	}
+	if (isset($_GET["module"])) {
 		$module = $admin->getModuleByRoute($_GET["module"]);
+	}
 
 	$view = BigTreeAutoModule::getView($view);
 	BigTree::globalizeArray($view);
 		
-	$search = $_GET["search"] ? $_GET["search"] : "";
+	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 	
 	$sort = $options["sort_column"] ? $options["sort_column"] : "id";
 	$sort_direction = $options["sort_direction"] ? $options["sort_direction"] : "DESC";
-	$sort = $_GET["sort"] ? $_GET["sort"] : $sort;
-	$sort_direction = $_GET["sort_direction"] ? $_GET["sort_direction"] : $sort_direction;
+	$sort = isset($_GET["sort"]) ? $_GET["sort"] : $sort;
+	$sort_direction = isset($_GET["sort_direction"]) ? $_GET["sort_direction"] : $sort_direction;
 	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
@@ -30,12 +32,17 @@
 	$suffix = $suffix ? "-".$suffix : "";
 	
 	// Handle how many pages we have and what page we're on.
-	$page = $_GET["page"] ? $_GET["page"] : 0;
+	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
 	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,$sort_direction,false,$module);
 	$pages = $data["pages"];
 	$items = $data["results"];
 	
 	foreach ($items as $item) {
+		// If it's straight from the db, it's published.
+		if (!isset($item["status"])) {
+			$item["status"] = "";
+		}
+		
 		if ($item["status"] == "p") {
 			$status = "Pending";
 			$status_class = "pending";

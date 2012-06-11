@@ -5,12 +5,14 @@
 			$failure = true;
 		}
 	}
+	
+	$user = isset($_POST["user"]) ? htmlspecialchars($_POST["user"]) : "";
 ?>
 <form method="post" action="" class="module">
 	<? if ($failure) { ?><p class="error_message clear">You've entered an invalid email address and/or password.</p><? } ?>
 	<fieldset>
 		<label>Email</label>
-		<input type="email" id="user" name="user" class="text" value="<?=$_POST["user"]?>" />
+		<input type="email" id="user" name="user" class="text" value="<?=$user?>" />
 	</fieldset>
 	<fieldset>
 		<label>Password</label>

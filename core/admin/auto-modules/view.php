@@ -9,7 +9,7 @@
 ?>
 <h1>
 	<span class="modules"></span><?=$view["title"]?>
-	<? if (count($subnav)) { ?>
+	<? if (isset($subnav) && count($subnav)) { ?>
 	<div class="jump_group">
 		<span class="icon"></span>
 		<div class="dropdown">

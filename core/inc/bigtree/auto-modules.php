@@ -422,7 +422,7 @@
 		static function getFilterQuery($view) {
 			global $admin;
 			$module = $admin->getModule(self::getModuleForView($view));
-			if ($module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
+			if (isset($module["gbp"]["enabled"]) && $module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
 				$groups = $admin->getAccessGroups($module["id"]);
 				if (is_array($groups)) {
 					$gfl = array();
@@ -710,12 +710,17 @@
 				$q = sqlquery($query." ORDER BY $sort $sort_direction LIMIT ".($page * $per_page).",$per_page");
 				
 				while ($f = sqlfetch($q)) {
-					$item = array("id" => $f["id"], "featured" => $f["featured"], "position" => $f["position"], "approved" => $f["approved"], "archived" => $f["archived"]);
+					$featured = isset($f["featured"]) ? $f["featured"] : false;
+					$position = isset($f["position"]) ? $f["position"] : 0;
+					$approved = isset($f["approved"]) ? $f["approved"] : false;
+					$archived = isset($f["archived"]) ? $f["archived"] : false;
+					
+					$item = array("id" => $f["id"], "featured" => $featured, "position" => $position, "approved" => $approved, "archived" => $archived);
 					$x = 0;
 					foreach ($view["fields"] as $key => $field) {
 						$x++;
 						$item["column$x"] = strip_tags($f[$key]);
-						if ($module["gbp"]["enabled"]) {
+						if (isset($module["gbp"]["enabled"]) && $module["gbp"]["enabled"]) {
 							$item["gbp_field"] = $f[$module["gbp"]["group_field"]];
 						}
 					}
@@ -815,7 +820,7 @@
 		static function getUncachedFilterQuery($view) {
 			global $admin;
 			$module = $admin->getModule(self::getModuleForView($view));
-			if ($module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
+			if (isset($module["gbp"]["enabled"]) && $module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
 				$groups = $admin->getAccessGroups($module["id"]);
 				if (is_array($groups)) {
 					$gfl = array();
