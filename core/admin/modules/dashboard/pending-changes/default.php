@@ -23,7 +23,10 @@
 		}
 	}
 ?>
-<h1>Pending Changes</h1>
+<h1>
+	Pending Changes
+	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
+</h1>
 <?
 	if (count($pages)) {
 ?>

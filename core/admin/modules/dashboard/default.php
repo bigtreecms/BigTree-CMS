@@ -1,4 +1,7 @@
-<h1><span class="dashboard"></span>Overview</h1>
+<h1>
+	<span class="dashboard"></span>Overview
+	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
+</h1>
 <?
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");

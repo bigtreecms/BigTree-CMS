@@ -3,7 +3,7 @@
 	$parent = $admin->getMessage(end($bigtree["path"]));	
 	$users = $admin->getUsers();
 		
-	if ($_SESSION["saved_message"]) {
+	if (isset($_SESSION["saved_message"])) {
 		$send_to = $_SESSION["saved_message"]["send_to"];
 		$subject = htmlspecialchars($_SESSION["saved_message"]["subject"]);
 		$message = htmlspecialchars($_SESSION["saved_message"]["message"]);
@@ -16,7 +16,7 @@
 		
 		// Generate the recipient names from the parent if we're replying to all, otherwise, just use the sender.
 		$send_to = array();
-		if ($reply_all) {
+		if (isset($reply_all)) {
 			$p_recipients = explode("|",trim($parent["recipients"],"|"));
 			$p_recipients[] = $parent["sender"];
 			foreach ($p_recipients as $r) {
@@ -29,7 +29,10 @@
 		}
 	}
 ?>
-<h1><span class="reply_message"></span>Reply To Message</h1>
+<h1>
+	<span class="reply_message"></span>Reply To Message
+	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
+</h1>
 <? include "_nav.php" ?>
 <div class="form_container">
 	<form method="post" action="<?=ADMIN_ROOT?>dashboard/messages/create-reply/" id="message_form">

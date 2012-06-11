@@ -597,8 +597,12 @@
 			}
 			
 			if ($decode) {
-				$page["resources"] = $this->decodeResources($page["resources"]);
-				$page["callouts"] = $this->decodeCallouts($page["callouts"]);
+				if (isset($page["resources"]) && is_array($page["resources"])) {
+					$page["resources"] = $this->decodeResources($page["resources"]);	
+				}
+				if (isset($page["callouts"]) && is_array($page["callouts"])) {
+					$page["callouts"] = $this->decodeCallouts($page["callouts"]);
+				}
 			}
 			return $page;
 		}

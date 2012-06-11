@@ -6,7 +6,7 @@
 	?>
 	<a href="<?=ADMIN_ROOT?>dashboard/messages/reply/<?=end($bigtree["path"])?>/"<? if ($bigtree["path"][count($bigtree["path"])-2] == "reply") { ?> class="active"<? } ?>><span class="icon_small icon_small_reply"></span>Reply</a>
 	<?
-			if (count($recipients) > 1) {
+			if (isset($recipients) && count($recipients) > 1) {
 	?>
 	<a href="<?=ADMIN_ROOT?>dashboard/messages/reply-all/<?=end($bigtree["path"])?>/"<? if ($bigtree["path"][count($bigtree["path"])-2] == "reply-all") { ?> class="active"<? } ?>><span class="icon_small icon_small_reply_all"></span>Reply All</a>
 	<?

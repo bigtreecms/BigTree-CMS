@@ -1,4 +1,7 @@
-<h1><span class="messages"></span>Message Center</h1>
+<h1>
+	<span class="messages"></span>Message Center
+	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
+</h1>
 <?
 	include "_nav.php";
 	
