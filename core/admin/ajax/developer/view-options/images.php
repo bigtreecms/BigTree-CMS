@@ -1,11 +1,12 @@
+<?
+	// DAG GONE NOTICES!
+	$data["draggable"] = isset($data["draggable"]) ? $data["draggable"] : "";
+	$data["prefix"] = isset($data["prefix"]) ? $data["prefix"] : "";
+	$data["image"] = isset($data["image"]) ? $data["image"] : "";
+?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <? if ($data["draggable"]) { ?>checked="checked" <? } ?>/>
 	<label class="for_checkbox">Draggable</label>
-</fieldset>
-
-<fieldset>
-	<label>Image Directory <small>(relative to site root, i.e. &ldquo;images/features/&rdquo;)</small></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
 </fieldset>
 
 <fieldset>

@@ -1,4 +1,12 @@
 <?
+	// Prevent Notices
+	$data["list_type"] = isset($data["list_type"]) ? $data["list_type"] : "";
+	$data["allow-empty"] = isset($data["allow-empty"]) ? $data["allow-empty"] : "";
+	$data["pop-table"] = isset($data["pop-table"]) ? $data["pop-table"] : "";
+	$data["pop-description"] = isset($data["pop-description"]) ? $data["pop-description"] : "";
+	$data["pop-sort"] = isset($data["pop-sort"]) ? $data["pop-sort"] : "";
+	$data["list"] = isset($data["list"]) ? $data["list"] : array();
+	
 	$types = array(
 		"static" => "Static",
 		"db" => "Database Populated",
@@ -36,27 +44,36 @@
 	
 	<fieldset>
 		<label>Description Field</label>
-		<div name="pop-description" class="pop-dependant pop-table">
+		<div data-name="pop-description" class="pop-dependant pop-table">
 			<? if ($data["pop-table"]) { ?>
 			<select name="pop-description"><? BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-description"]) ?></select>
 			<? } else { ?>
-			<small>-- Please select a table --</small>
+			&mdash;
 			<? } ?>
 		</div>
 	</fieldset>
 	
 	<fieldset>
 		<label>Sort By</label>
-		<div name="pop-sort" class="sort_by pop-dependant pop-table">
+		<div data-name="pop-sort" class="sort_by pop-dependant pop-table">
 			<? if ($data["pop-table"]) { ?>
 			<select name="pop-sort"><? BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-sort"],true) ?></select>
 			<? } else { ?>
-			<small>-- Please select a table --</small>
+			&mdash;
 			<? } ?>
 		</div>	
 	</fieldset>
+	<br />
 </div>
 
 <script type="text/javascript">	
+	$("#field_list_types").change(function() {
+		$(".list_type_options").hide();
+		if ($(this).val() == "static") {
+			$("#static_list_options").show();
+		} else if ($(this).val() == "db") {
+			$("#db_list_options").show();
+		}
+	});
 	new BigTreeListMaker("#static_list_options","list","Static List Options",["Value","Description"],[{ key: "value", type: "text" },{ key: "description", type: "text" }],<?=json_encode($data["list"])?>);
 </script>

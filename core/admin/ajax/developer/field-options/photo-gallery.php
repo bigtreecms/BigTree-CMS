@@ -1,9 +1,22 @@
-<? if (!isset($_POST["template"])) { ?>
+<?
+	// Stop notices
+	$data["directory"] = isset($data["directory"]) ? $data["directory"] : "";
+	$data["image"] = isset($data["image"]) ? $data["image"] : "";
+	$data["min_width"] = isset($data["min_width"]) ? $data["min_width"] : "";
+	$data["min_height"] = isset($data["min_height"]) ? $data["min_height"] : "";
+	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
+	$data["crops"] = isset($data["crops"]) ? $data["crops"] : "";
+	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
+	
+	if (!isset($_POST["template"])) {
+?>
 <fieldset>
 	<label>Upload Directory <small>(required)</small></label>
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
 </fieldset>
-<? } ?>
+<?
+	}
+?>
 <fieldset>
 	<label>Minimum Width <small>(numeric value in pixels)</small></label>
 	<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />

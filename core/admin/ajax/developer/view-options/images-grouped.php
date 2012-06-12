@@ -1,15 +1,20 @@
+<?
+	// DAG GONE NOTICES!
+	$data["draggable"] = isset($data["draggable"]) ? $data["draggable"] : "";
+	$data["prefix"] = isset($data["prefix"]) ? $data["prefix"] : "";
+	$data["image"] = isset($data["image"]) ? $data["image"] : "";
+	$data["group_field"] = isset($data["group_field"]) ? $data["group_field"] : "";
+	$data["other_table"] = isset($data["other_table"]) ? $data["other_table"] : "";
+	$data["title_field"] = isset($data["title_field"]) ? $data["title_field"] : "";
+	$data["group_parser"] = isset($data["group_parser"]) ? $data["group_parser"] : "";
+?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <? if ($data["draggable"]) { ?>checked="checked" <? } ?>/>
 	<label class="for_checkbox">Draggable</label>
 </fieldset>
 
 <fieldset>
-	<label>Image Directory <small>(relative to site root, i.e. &ldquo;images/features/&rdquo;)</small></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
-</fieldset>
-
-<fieldset>
-	<label>Image Prefix <small>(for using thumbnails, i.e. &ldquo;thumb_&rdquo)</small></label>
+	<label>Image Prefix <small>(for using thumbnails, i.e. &ldquo;thumb_&rdquo;)</small></label>
 	<input type="text" name="prefix" value="<?=htmlspecialchars($data["prefix"])?>" />
 </fieldset>
 
@@ -40,7 +45,7 @@
 <fieldset>
 	<label>Field to Pull for Title</label>
 	<div data-name="title_field">
-		<? if ($data["title_field"]) { ?>
+		<? if ($data["other_table"]) { ?>
 		<select name="title_field">
 			<? BigTree::getFieldSelectOptions($data["other_table"],$data["title_field"]) ?>
 		</select>

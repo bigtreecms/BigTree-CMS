@@ -1,3 +1,7 @@
+<?
+	// Stop notices
+	$data["default_today"] = isset($data["default_today"]) ? $data["default_today"] : "";
+?>
 <fieldset>
 	<label>Default to Today's Date</label>
 	<select name="default_today">

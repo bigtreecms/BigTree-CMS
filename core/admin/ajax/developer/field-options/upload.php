@@ -1,12 +1,25 @@
-<? if (!isset($_POST["template"])) { ?>
+<?
+	// Stop notices
+	$data["directory"] = isset($data["directory"]) ? $data["directory"] : "";
+	$data["image"] = isset($data["image"]) ? $data["image"] : "";
+	$data["min_width"] = isset($data["min_width"]) ? $data["min_width"] : "";
+	$data["min_height"] = isset($data["min_height"]) ? $data["min_height"] : "";
+	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
+	$data["crops"] = isset($data["crops"]) ? $data["crops"] : "";
+	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
+	
+	if (!isset($_POST["template"])) {
+?>
 <fieldset>
 	<label>Upload Directory <small>(required)</small></label>
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
 </fieldset>
-<? } ?>
+<?
+	}
+?>
 <fieldset>
-	<label>Image Uploader <small>(enables crops, thumbs, preview)</small></label>
-	<input type="checkbox" name="image"<? if ($data["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" /> Enabled
+	<input type="checkbox" name="image"<? if ($data["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" />
+	<label class="for_checkbox">Image Uploader Enabled <small>(enables crops, thumbs, preview)</small></label>
 </fieldset>
 
 <div id="image_uploader_options"<? if (!$data["image"]) { ?> style="display: none;"<? } ?>>

@@ -1,4 +1,8 @@
 <?
+	// Stop notices
+	$data["seo_h1"] = isset($data["seo_h1"]) ? $data["seo_h1"] : "";
+	$data["sub_type"] = isset($data["sub_type"]) ? $data["sub_type"] : "";
+	
 	$sub_types = array(
 		"" => "",
 		"name" => "Name",
@@ -8,7 +12,7 @@
 		"phone" => "Phone Number"
 	);
 ?>
-<? if ($_POST["template"]) { ?>
+<? if (isset($_POST["template"])) { ?>
 <fieldset>
 	<label>Use For &lt;H1&gt; SEO Score <small>(only a single field can be used)</small></label>
 	<input type="checkbox" name="seo_h1"<? if ($data["seo_h1"]) { ?> checked="checked"<? } ?> /> Enabled
