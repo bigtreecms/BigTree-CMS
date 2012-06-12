@@ -1,7 +1,7 @@
 <?
 	$templates = $admin->getTemplates();
 	
-	// Need to create a ridiculous hack because jQuery's sortable is retarded.
+	// Need to create a ridiculous hack because jQuery's sortable is stupid.
 	$x = 0;
 	$rel_table = array();
 ?>

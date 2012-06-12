@@ -1,5 +1,9 @@
 <?
 	$resources = array();
+	
+	// Clear out notices
+	$name = $description = $callouts_enabled = $level = $module = $image = "";
+	$resources = array();
 ?>
 <h1><span class="icon_developer_templates"></span>Add Template</h1>
 <? include BigTree::path("admin/modules/developer/templates/_nav.php") ?>

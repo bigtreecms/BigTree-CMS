@@ -3,10 +3,10 @@
 	$types = $cached_types["template"];
 ?>
 <section>
-	<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="left">
-		<? if (!$template) { ?>
+		<? if (!isset($template)) { ?>
 		<fieldset>
 			<label class="required">ID</label>
 			<input type="text" class="required" name="id" />
@@ -25,7 +25,7 @@
 		</fieldset>
 	</div>
 	<div class="right">
-		<? if (!$template) { ?>
+		<? if (!isset($template)) { ?>
 		<fieldset>
 			<label>Type</label>
 			<select name="routed">
