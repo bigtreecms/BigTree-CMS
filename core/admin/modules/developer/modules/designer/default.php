@@ -29,12 +29,12 @@
 				</select>
 			</fieldset>
 			<div class="left">
-				<fieldset<? if ($e["table"]) { ?> class="form_error"<? } ?>>
-					<label class="required">Table Name <small>(for example, my_site_news)</small><? if ($e["table"]) { ?><span class="form_error_reason">Table Already Exists</span><? } ?></label>
+				<fieldset<? if (isset($e["table"])) { ?> class="form_error"<? } ?>>
+					<label class="required">Table Name <small>(for example, my_site_news)</small><? if (isset($e["table"])) { ?><span class="form_error_reason">Table Already Exists</span><? } ?></label>
 					<input name="table" class="required" type="text" value="<?=$table?>" />
 				</fieldset>
-				<fieldset<? if ($e["class"]) { ?> class="form_error"<? } ?>>
-					<label class="required">Class Name <small>(for example, MySiteNews)</small><? if ($e["class"]) { ?><span class="form_error_reason">Class Already Exists</span><? } ?></label>
+				<fieldset<? if (isset($e["class"])) { ?> class="form_error"<? } ?>>
+					<label class="required">Class Name <small>(for example, MySiteNews)</small><? if (isset($e["class"])) { ?><span class="form_error_reason">Class Already Exists</span><? } ?></label>
 					<input name="class" class="required" type="text" value="<?=$class?>" />
 				</fieldset>
 			</div>

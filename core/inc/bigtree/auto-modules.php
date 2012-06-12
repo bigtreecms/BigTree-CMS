@@ -698,8 +698,9 @@
 				foreach ($search_parts as $part) {
 					$x = 0;
 					$qp = array();
+					$part = mysql_real_escape_string(strtolower($part));
 					foreach ($view["fields"] as $key => $field) {
-						$qp[] = "`$key` LIKE '%".mysql_real_escape_string($part)."%'";
+						$qp[] = "LOWER(`$key`) LIKE '%$part%'";
 					}
 					$query .= " AND (".implode(" OR ",$qp).")";
 				}
@@ -751,9 +752,10 @@
 			foreach ($search_parts as $part) {
 				$x = 0;
 				$qp = array();
+				$part = mysql_real_escape_string(strtolower($part));
 				while ($x < $view_columns) {
 					$x++;
-					$qp[] = "column$x LIKE '%".mysql_real_escape_string($part)."%'";
+					$qp[] = "LOWER(column$x) LIKE '%$part%'";
 				}
 				$query .= " AND (".implode(" OR ",$qp).")";
 			}

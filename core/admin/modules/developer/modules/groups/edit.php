@@ -1,7 +1,6 @@
 <?
-	$breadcrumb[] = array("title" => "Edit Group", "link" => "developer/modules/groups/edit/$id/");
-
 	$id = end($bigtree["path"]);
+	$breadcrumb[] = array("title" => "Edit Group", "link" => "developer/modules/groups/edit/$id/");
 	$group = $admin->getModuleGroup($id);
 ?>
 <h1><span class="icon_developer_modules"></span>Edit Group</h1>

@@ -1,5 +1,5 @@
 <?
-	if ($_POST["view"]) {
+	if (isset($_POST["view"])) {
 		$autoModule = new BigTreeAutoModule;
 		$view = BigTreeAutoModule::getView($_POST["view"]);
 		
@@ -17,6 +17,10 @@
 	}
 	
 	$module = $admin->getModule($m);
+	
+	if (!isset($_POST["search"])) {
+		$_POST["search"] = "";
+	}
 	
 	if ($_POST["search"]) {
 		$view["options"]["per_page"] = 10000000;

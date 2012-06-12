@@ -35,8 +35,8 @@
 			</div>
 		</section>
 		<section id="field_area" class="sub">
-			<fieldset<? if ($e["fields"]) { ?> class="form_error"<? } ?>>
-				<label class="required">Fields<? if ($e["fields"]) { ?><span class="form_error_reason">One Or More Fields Required</span><? } ?></label>
+			<fieldset<? if (isset($e["fields"])) { ?> class="form_error"<? } ?>>
+				<label class="required">Fields<? if (isset($e["fields"])) { ?><span class="form_error_reason">One Or More Fields Required</span><? } ?></label>
 				<div class="form_table">
 					<header>
 						<a class="add add_geocoding" href="#"><span></span>Geocoding</a>

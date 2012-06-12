@@ -3,6 +3,9 @@
 	$table = $bigtree["commands"][1];
 	if (!$title) {
 		$title = (substr($bigtree["commands"][2],-1,1) != "s") ? $bigtree["commands"][2]."s" : $bigtree["commands"][2];
+		if (substr($title,-2) == "ys") {
+			$title = substr($title,0,-2)."ies";
+		}
 	}
 	$title = htmlspecialchars(urldecode($title));
 	$title = urldecode($title);

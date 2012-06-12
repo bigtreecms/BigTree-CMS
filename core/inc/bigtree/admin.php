@@ -2472,7 +2472,7 @@
 		*/
 
 		function getModuleActionForView($view) {
-			if (is_array($form)) {
+			if (is_array($view)) {
 				$view = mysql_real_escape_string($view["id"]);
 			} else {
 				$view = mysql_real_escape_string($view);

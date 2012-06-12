@@ -2,6 +2,8 @@
 	$module = $admin->getModule($bigtree["commands"][0]);
 	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
 	$breadcrumb[] = array("title" => "Add Action", "link" => "#");
+	
+	$item = array("name" => "", "route" => "", "level" => 0, "class" => "", "in_nav" => "");
 ?>
 <h1><span class="icon_developer_modules"></span>Add Action</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
