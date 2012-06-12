@@ -36,7 +36,6 @@
 				// Get the form field
 				$ff = $form["fields"][$key];
 				
-				$value = $item[$key];
 				if ($field["parser"]) {
 					$parsers[$key] = $field["parser"];
 				} elseif ($ff["type"] == "list" && $ff["list_type"] == "db") {
@@ -96,12 +95,19 @@
 			$pending_owner = 0;
 			if ($item["bigtree_changes"]) {
 				$status = "c";
-			} elseif ($item["bigtree_pending"]) {
+			} elseif (isset($item["bigtree_pending"])) {
 				$status = "p";
 				$pending_owner = $item["bigtree_pending_owner"];
 			}
 			$fields = array("view","id","status","position","approved","archived","featured","pending_owner");
-			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'".$item["position"]."'","'".$item["approved"]."'","'".$item["archived"]."'","'".$item["featured"]."'","'".$pending_owner."'");
+
+			// No more notices.
+			$approved = isset($item["approved"]) ? $item["approved"] : "";
+			$featured = isset($item["featured"]) ? $item["featured"] : "";
+			$archived = isset($item["archived"]) ? $item["archived"] : "";
+			$position = isset($item["position"]) ? $item["position"] : 0;
+
+			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'$position'","'$approved'","'$archived'","'$featured'","'".$pending_owner."'");
 			
 			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
 			if ($view["options"]["group_field"]) {
@@ -125,7 +131,7 @@
 			}
 			
 			// Group based permissions data
-			if ($view["gbp"]["enabled"] && $view["gbp"]["table"] == $view["table"]) {
+			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
 				$fields[] = "gbp_field";
 				$vals[] = "'".mysql_real_escape_string($item[$view["gbp"]["group_field"]])."'";
 			}
@@ -162,7 +168,7 @@
 					foreach ($view["fields"] as $field => $options) {
 						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 						$fields[] = "column$x";
-						if ($parsers[$field]) {
+						if (isset($parsers[$field]) && $parsers[$field]) {
 							$vals[] = "'".mysql_real_escape_string($item[$field])."'";					
 						} else {
 							$vals[] = "'".mysql_real_escape_string(strip_tags($item[$field]))."'";
@@ -856,7 +862,7 @@
 			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
 			$fields = json_decode($f["fields"],true);
 			$first = current($fields);
-			if (!$first["width"]) {
+			if (!isset($first["width"])) {
 				$awidth = count($actions) * 62;
 				$available = 888 - $awidth;
 				$percol = floor($available / count($fields));

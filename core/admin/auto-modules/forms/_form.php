@@ -1,7 +1,7 @@
 <div class="form_container">
 	<form method="post" action="process/" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
-		<? if ($item) { ?>
+		<? if (isset($item)) { ?>
 		<input type="hidden" name="id" value="<?=htmlspecialchars($item_id)?>" />
 		<? } ?>
 		<section>
@@ -10,6 +10,7 @@
 				$htmls = array();
 				$simplehtmls = array();
 				$dates = array();
+				$times = array();
 				$validators = array();
 				$tabindex = 1;
 
@@ -20,13 +21,13 @@
 						$type = $options["type"];
 						$title = $options["title"];
 						$subtitle = $options["subtitle"];
-						$value = $item[$key];
+						$value = isset($item[$key]) ? $item[$key] : "";
 						$currently_key = "currently_$key";
 						
 						// Setup Validation Classes
 						$label_validation_class = "";
 						$input_validation_class = "";
-						if ($options["validation"]) {
+						if (isset($options["validation"]) && $options["validation"]) {
 							if (strpos($options["validation"],"required") !== false) {
 								$label_validation_class = ' class="required"';
 							}
@@ -57,11 +58,11 @@
 				</fieldset>
 			</div>
 			<script type="text/javascript">
-				BigTreeTagAdder.init(<?=$module["id"]?>,<? if ($item["id"]) { echo $item["id"]; } else { echo "false"; } ?>,"bigtree_tag_browser");
+				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo $item["id"]; } else { echo "false"; } ?>,"bigtree_tag_browser");
 			</script>
 		</section>
 		<footer>
-			<? if ($view["preview_url"]) { ?>
+			<? if (isset($view) && $view["preview_url"]) { ?>
 			<a class="button save_and_preview" href="#">
 				<span></span>
 				Save &amp; Preview

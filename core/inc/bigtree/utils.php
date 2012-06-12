@@ -566,7 +566,7 @@
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-				if ($bigtree["config"]["show_all_tables_in_dropdowns"] || ((substr($tname,0,8) !== "bigtree_"))) {
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_"))) {
 					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
 						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					} else {

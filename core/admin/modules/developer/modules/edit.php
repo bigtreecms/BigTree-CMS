@@ -22,7 +22,7 @@
 		}
 	}
 	
-	$gbp = is_array($mod["gbp"]) ? $mod["gbp"] : array();
+	$gbp = is_array($mod["gbp"]) ? $mod["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
 	
 	$groups = $admin->getModuleGroups();
 ?>
@@ -56,11 +56,11 @@
 					<input name="class" type="text" value="<?=htmlspecialchars($mod["class"])?>" />
 				</fieldset>
 				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if ($gbp["enabled"]) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
+					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"])) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
 				</fieldset>
 			</div>
 		</section>
-		<section class="sub" id="gbp"<? if (!$gbp["enabled"]) { ?> style="display: none;"<? } ?>>
+		<section class="sub" id="gbp"<? if (!isset($gbp["enabled"])) { ?> style="display: none;"<? } ?>>
 			<div class="left">
 				<fieldset>
 					<label>Grouping Name <small>(i.e. "Category")</small></label>
@@ -100,7 +100,7 @@
 				<fieldset name="gbp[title_field]">
 					<label>Title Field</label>
 					<div>
-						<? if ($gbp["title_field"]) { ?>
+						<? if ($gbp["other_table"]) { ?>
 						<select name="gbp[title_field]">
 							<? BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
 						</select>

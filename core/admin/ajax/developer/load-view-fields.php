@@ -1,5 +1,5 @@
 <?
-	if ($_GET["table"]) {
+	if (isset($_GET["table"])) {
 		$table = $_GET["table"];
 	}
 	
@@ -26,8 +26,8 @@
 		}		
 	}
 	
-	$preview_field = $view["preview_field"] ? $view["preview_field"] : "id";
-
+	$preview_field = isset($view["preview_field"]) ? $view["preview_field"] : "id";
+	
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 	
@@ -102,9 +102,9 @@
 				}
 			}
 			foreach ($admin->ViewActions as $key => $action) {
-				if (in_array($action["key"],$tblfields) || $allow_all_actions) {
+				if (in_array($action["key"],$tblfields) || isset($allow_all_actions)) {
 					$checked = false;
-					if ($actions[$key] || (!isset($actions) && !$allow_all_actions) || ($allow_all_actions && ($key == "edit" || $key == "delete"))) {
+					if (isset($actions[$key]) || (!isset($actions) && !isset($allow_all_actions)) || (isset($allow_all_actions) && ($key == "edit" || $key == "delete"))) {
 						$checked = true;
 					}
 		?>

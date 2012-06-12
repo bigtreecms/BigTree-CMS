@@ -1,7 +1,7 @@
 <?
 	$id = $bigtree["commands"][0];
-	$table = $bigtree["commands"][1];
-	$title = htmlspecialchars(urldecode($bigtree["commands"][2]));
+	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
+	$title = isset($bigtree["commands"][2]) ? htmlspecialchars(urldecode($bigtree["commands"][2])) : "";
 	
 	$mod = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
@@ -12,6 +12,9 @@
 	if (isset($_SESSION["bigtree"]["developer"]["saved_view"])) {
 		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["saved_view"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree"]["developer"]["saved_view"]);
+	} else {
+		// Stop notices
+		$description = $type = $uncached = $preview_url = "";
 	}
 ?>
 <h1><span class="icon_developer_modules"></span>Add View</h1>

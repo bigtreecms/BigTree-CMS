@@ -3,9 +3,8 @@
 
 	$module = end($bigtree["path"]);
 
-	if ($suffix) {
-		$suffix = "-".$suffix;
-	}
+	$suffix = isset($suffix) ? "-".$suffix : "";
+	$default_position = isset($default_position) ? $default_position : "";
 	
 	$fields = array();
 	foreach ($_POST["type"] as $key => $val) {

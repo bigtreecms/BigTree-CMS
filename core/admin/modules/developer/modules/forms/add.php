@@ -1,4 +1,5 @@
 <?
+	$id = $bigtree["commands"][0];
 	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
 
 	$module = $admin->getModule($bigtree["commands"][0]);
@@ -52,12 +53,12 @@
 			<div class="right">
 				<fieldset>
 					<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
-					<input type="text" name="preprocess" value="<?=$form["preprocess"]?>" />
+					<input type="text" name="preprocess" />
 				</fieldset>
 				
 				<fieldset>
 					<label>Function Callback <small>(passes in ID and parsed post data, and publish state)</small></label>
-					<input type="text" name="callback" value="<?=htmlspecialchars($form["callback"])?>" />
+					<input type="text" name="callback" />
 				</fieldset>
 			</div>
 		</section>

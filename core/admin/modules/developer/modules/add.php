@@ -1,6 +1,9 @@
 <?
 	$breadcrumb[] = array("title" => "Add Module", "link" => "developer/modules/add/");
 	$groups = $admin->getModuleGroups();
+	
+	// Stop notices
+	$gbp = array();
 ?>
 
 <h1><span class="icon_developer_modules"></span>Add Module</h1>
@@ -12,17 +15,17 @@
 			<div class="left">
 				<fieldset>
 					<label class="required">Name</label>
-					<input name="name" class="required" type="text" value="<?=$name?>" />
+					<input name="name" class="required" type="text" />
 				</fieldset>
 			</div>
 			<br class="clear" /><br />
 			<fieldset class="developer_module_group">
 				<label>Group <small>(if a new group name is chosen, the select box is ignored)</small></label> 
-				<input name="group_new" type="text" placeholder="New Group" value="<?=$group_new?>" /><span>OR</span> 
+				<input name="group_new" type="text" placeholder="New Group" /><span>OR</span> 
 				<select name="group_existing">
 					<option value="0"></option>
 					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group["id"] == $group_existing) { ?> selected="selected"<? } ?>><?=htmlspecialchars($group["name"])?></option>
+					<option value="<?=$group["id"]?>"><?=htmlspecialchars($group["name"])?></option>
 					<? } ?>
 				</select>
 			</fieldset>
@@ -36,41 +39,33 @@
 				</fieldset>
 				<fieldset>
 					<label class="required">Class Name <small>(will create a class file in custom/inc/modules/)</small></label>
-					<input name="class" type="text" value="<?=$class?>" class="required" />
+					<input name="class" type="text" class="required" />
 				</fieldset>
 				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if ($gbp["enabled"]) { ?>checked="checked" <? } ?>/>
+					<input type="checkbox" name="gbp[enabled]" id="gbp_on" />
 					<label class="for_checkbox">Enable Advanced Permissions <small>(allows setting permissions on grouped views)</small></label>
 				</fieldset>
 			</div>
 		</section>
-		<section class="sub" id="gbp"<? if (!$gbp["enabled"]) { ?> style="display: none;"<? } ?>>
+		<section class="sub" id="gbp" style="display: none;">
 			<div class="left">
 				<fieldset>
 					<label>Grouping Name <small>(i.e. "Category")</small></label>
-					<input type="text" name="gbp[name]" value="<?=htmlspecialchars($gbp["name"])?>" />
+					<input type="text" name="gbp[name]" />
 				</fieldset>
 			</div>
-			<br class="clear" /><br />
+			<br class="clear" />
 			<article>
 				<fieldset>
 					<label>Main Table</label>
 					<select name="gbp[table]" class="table_select">
 						<option></option>
-						<? BigTree::getTableSelectOptions($gbp["table"]) ?>
+						<? BigTree::getTableSelectOptions() ?>
 					</select>
 				</fieldset>
 				<fieldset name="gbp[group_field]">
 					<label>Main Field</label>
-					<div>
-						<? if ($gbp["table"]) { ?>
-						<select name="gbp[group_field]">
-							<? BigTree::getFieldSelectOptions($gbp["table"],$gbp["group_field"]) ?>
-						</select>
-						<? } else { ?>
-						&mdash;
-						<? } ?>
-					</div>
+					<div>&mdash;</div>
 				</fieldset>
 			</article>
 			<article>
@@ -78,20 +73,12 @@
 					<label>Other Table</label>
 					<select name="gbp[other_table]" class="table_select">
 						<option></option>
-						<? BigTree::getTableSelectOptions($gbp["other_table"]) ?>
+						<? BigTree::getTableSelectOptions() ?>
 					</select>
 				</fieldset>
 				<fieldset name="gbp[title_field]">
 					<label>Title Field</label>
-					<div>
-						<? if ($gbp["title_field"]) { ?>
-						<select name="gbp[title_field]">
-							<? BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
-						</select>
-						<? } else { ?>
-						&mdash;
-						<? } ?>
-					</div>
+					<div>&mdash;</div>
 				</fieldset>
 			</article>
 		</section>
