@@ -39,7 +39,7 @@
 
 <fieldset>
 	<label>Field to Pull for Title</label>
-	<div name="title_field">
+	<div data-name="title_field">
 		<? if ($data["title_field"]) { ?>
 		<select name="title_field">
 			<? BigTree::getFieldSelectOptions($data["other_table"],$data["title_field"]) ?>

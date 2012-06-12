@@ -39,7 +39,7 @@
 
 <fieldset>
 	<label>Field to Pull for Title</label>
-	<div name="title_field">
+	<div data-name="title_field">
 		<? if ($data["other_table"]) { ?>
 		<select name="title_field">
 			<? BigTree::getFieldSelectOptions($data["other_table"],$data["title_field"]) ?>
@@ -52,7 +52,7 @@
 
 <fieldset>
 	<label>Field to Sort By</label>
-	<div name="sort_field">
+	<div data-name="sort_field">
 		<? if ($data["other_table"]) { ?>
 		<select name="ot_sort_field">
 			<? BigTree::getFieldSelectOptions($data["other_table"],$data["sort_field"]) ?>
