@@ -1,8 +1,11 @@
 <?
 	// If it's an AJAX request, get our data.
-	if ($_POST["view"]) {
+	if (isset($_POST["view"])) {
 		$view = BigTreeAutoModule::getView($_POST["view"]);
 	}
+	
+	// No moar notice!
+	$search = isset($_POST["search"]) ? $_POST["search"] : "";
 	
 	BigTree::globalizeArray($view);
 	$m = BigTreeAutoModule::getModuleForView($view);
@@ -47,13 +50,12 @@
 	?>
 </header>
 <?	
-	$q = sqlquery($query);
 	$gc = 0;
 	foreach ($groups as $group => $title) {		
 		if ($o["draggable"]) {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],"position DESC, id ASC","",$group,$module);
+			$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC","",$group,$module);
 		} else {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],$o["sort_field"],$o["sort_direction"],$group,$module);
+			$r = BigTreeAutoModule::getSearchResults($view,0,$search,$o["sort_field"],$o["sort_direction"],$group,$module);
 		}
 		
 		if (count($r["results"])) {
@@ -82,7 +84,7 @@
 				$value = $item["column$x"];
 		?>
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
-			<? if ($x == 1 && $perm == "p" && !$_POST["search"] && $o["draggable"]) { ?>
+			<? if ($x == 1 && $perm == "p" && !$search && $o["draggable"]) { ?>
 			<span class="icon_sort"></span>
 			<? } ?>
 			<?=$value?>

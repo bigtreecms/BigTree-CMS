@@ -114,7 +114,7 @@
 				$value = $item[$view["options"]["group_field"]];
 
 				// Check for a parser
-				if ($view["options"]["group_parser"]) {
+				if (isset($view["options"]["group_parser"]) && $view["options"]["group_parser"]) {
 					@eval($view["options"]["group_parser"]);
 				}
 
@@ -152,7 +152,7 @@
 			}
 			
 			$cache = true;
-			if ($view["options"]["filter"]) {
+			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
 				@eval('$cache = '.$view["options"]["filter"].'($item);');
 			}
 			
@@ -475,7 +475,7 @@
 		static function getGroupsForView($view) {
 			$groups = array();
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'";
-			if ($view["options"]["ot_sort_field"]) {
+			if (isset($view["options"]["ot_sort_field"]) && $view["options"]["ot_sort_field"]) {
 				$query .= " ORDER BY group_sort_field ".$view["options"]["ot_sort_direction"];
 			} else {
 				$query .= " ORDER BY group_field";
