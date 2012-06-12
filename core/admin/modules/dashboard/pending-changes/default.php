@@ -24,7 +24,7 @@
 	}
 ?>
 <h1>
-	Pending Changes
+	<span class="pending"></span>Pending Changes
 	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
 </h1>
 <?

@@ -52,6 +52,7 @@
 	h1 .reply_message { background-position: -54px -31px; width: 28px; }
 	h1 .vitals { background-position: -83px -32px; width: 28px; }
 	h1 .package { background-position: -112px -32px; width: 26px; }
+	h1 .pending { background-position: -140px -32px; width: 30px; }
 
 	h2 { color: rgba(51,51,51,0.9); float: left; font-size: 18px; font-weight: normal; height: 32px; line-height: 30px; padding: 5px 0 0 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h2 small { color: #999999; display: inline-block; font-size: 13px; padding: 0 0 0 10px; }
@@ -67,7 +68,7 @@
 	h2 .unread { background-position: -148px center; width: 24px; }
 	h2 .read { background-position: -173px center; width: 24px; }
 	h2 .sent { background-position: -197px center; width: 26px; }
-	h2 .pending { background-position: -81px center; width: 22px; }
+	h2 .pending { background-position: -223px center; width: 24px; }
 	
 	h3 { color: #999; font-size: 15px; font-weight: normal; margin: 0 0 10px 0; overflow: hidden; text-shadow: 0px 1px 1px #FFF; text-transform: uppercase; user-select: none; }
 	h3 span { float: left; line-height: 17px; }
