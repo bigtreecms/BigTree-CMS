@@ -16,8 +16,8 @@
 	
 	$sort = $options["sort_column"] ? $options["sort_column"] : "id";
 	$sort_direction = $options["sort_direction"] ? $options["sort_direction"] : "DESC";
-	$sort = isset($_GET["sort"]) ? $_GET["sort"] : $sort;
-	$sort_direction = isset($_GET["sort_direction"]) ? $_GET["sort_direction"] : $sort_direction;
+	$sort = (isset($_GET["sort"]) && $_GET["sort"]) ? $_GET["sort"] : $sort;
+	$sort_direction = (isset($_GET["sort_direction"]) && $_GET["sort_direction"]) ? $_GET["sort_direction"] : $sort_direction;
 	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
