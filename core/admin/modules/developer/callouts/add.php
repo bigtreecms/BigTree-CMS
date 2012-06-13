@@ -1,6 +1,9 @@
 <?
 	$breadcrumb[] = array("title" => "Add Callout", "link" => "#");
 	$resources = array();
+	
+	// Stop notices
+	$id = $name = $description = $display_default = $level = "";
 ?>
 <h1><span class="icon_developer_callouts"></span>Add Callout</h1>
 <? include BigTree::path("admin/modules/developer/callouts/_nav.php") ?>
