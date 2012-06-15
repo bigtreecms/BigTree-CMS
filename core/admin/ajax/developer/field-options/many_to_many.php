@@ -8,7 +8,7 @@
 </fieldset>
 <fieldset>
 	<label>My ID</label>
-	<div name="mtm-my-id" class="pop-dependant mtm-connecting-table">
+	<div data-name="mtm-my-id" class="pop-dependant mtm-connecting-table">
 		<? if ($data["mtm-connecting-table"]) { ?>
 		<select name="mtm-my-id"><? BigTree::getFieldSelectOptions($data["mtm-connecting-table"],$data["mtm-my-id"]) ?></select>
 		<? } else { ?>
@@ -18,7 +18,7 @@
 </fieldset>
 <fieldset>
 	<label>Other ID</label>
-	<div name="mtm-other-id" class="pop-dependant mtm-connecting-table">
+	<div data-name="mtm-other-id" class="pop-dependant mtm-connecting-table">
 		<? if ($data["mtm-connecting-table"]) { ?>
 		<select name="mtm-other-id"><? BigTree::getFieldSelectOptions($data["mtm-connecting-table"],$data["mtm-other-id"]) ?></select>
 		<? } else { ?>
@@ -35,7 +35,7 @@
 </fieldset>
 <fieldset>
 	<label>Other Descriptor</label>
-	<div name="mtm-other-descriptor" class="pop-dependant mtm-other-table">
+	<div data-name="mtm-other-descriptor" class="pop-dependant mtm-other-table">
 		<? if ($data["mtm-other-table"]) { ?>
 		<select name="mtm-other-descriptor"><? BigTree::getFieldSelectOptions($data["mtm-other-table"],$data["mtm-other-descriptor"]) ?></select>
 		<? } else { ?>
@@ -45,7 +45,7 @@
 </fieldset>
 <fieldset>
 	<label>Sort By</label>
-	<div name="mtm-sort" class="sort_by pop-dependant mtm-other-table">
+	<div data-name="mtm-sort" class="sort_by pop-dependant mtm-other-table">
 		<? if ($data["mtm-other-table"]) { ?>
 		<select name="mtm-sort"><? BigTree::getFieldSelectOptions($data["mtm-other-table"],$data["mtm-sort"],true) ?></select>
 		<? } else { ?>
