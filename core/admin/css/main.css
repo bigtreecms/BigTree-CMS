@@ -951,9 +951,9 @@
 	.bigtree_dialog_form .list_options_widget select { height: 22px; }
 	.bigtree_dialog_form .list_options_widget li { margin: 0 0 5px 0; overflow: hidden; }
 	.bigtree_dialog_form .list_options_widget li:last-child { margin: 0; }
-	.bigtree_dialog_form .list_options_widget_1 span { width: 409px; }
-	.bigtree_dialog_form .list_options_widget_2 span { width: 198px; }
-	.bigtree_dialog_form .list_options_widget_3 span { width: 129px; }
+	.bigtree_dialog_form .list_options_widget_1 span { width: 405px; }
+	.bigtree_dialog_form .list_options_widget_2 span { width: 190px; }
+	.bigtree_dialog_form .list_options_widget_3 span { width: 124px; }
 	.bigtree_dialog_form .list_options_widget_1 input { width: 397px; }
 	.bigtree_dialog_form .list_options_widget_2 input { width: 185px; }
 	.bigtree_dialog_form .list_options_widget_3 input { width: 118px; }

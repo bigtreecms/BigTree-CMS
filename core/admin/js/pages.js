@@ -121,7 +121,7 @@ $(document).ready(function() {
 
 				// Validate required fields.
 				v = new BigTreeFormValidator(last_dialog);
-				if (!v.validateForm(true)) {
+				if (!v.validateForm(false,true)) {
 					return false;
 				}
 				
@@ -177,7 +177,7 @@ $(document).ready(function() {
 				
 				// Validate required fields.
 				v = new BigTreeFormValidator(last_dialog);
-				if (!v.validateForm(true)) {
+				if (!v.validateForm(false,true)) {
 					return false;
 				}
 				
