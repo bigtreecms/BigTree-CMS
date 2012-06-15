@@ -101,9 +101,9 @@
 		}
 	}
 
-	function sqlfetch($query) {
+	function sqlfetch($query,$ignore_errors = false) {
 		// If the query is boolean, it's probably a "false" from a failed sql query.
-		if (is_bool($query)) {
+		if (is_bool($query) && !$ignore_errors) {
 			global $sqlerrors;
 			throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
 		} else {
@@ -150,7 +150,7 @@
 		} else {
 			$q = sqlquery("describe $table");
 		}
-		while ($f = sqlfetch($q)) {
+		while ($f = sqlfetch($q,true)) {
 			$tparts = explode(" ",$f["Type"]);
 			$type = explode("(",$tparts[0]);
 			if (sizeof($type) == 2) {
