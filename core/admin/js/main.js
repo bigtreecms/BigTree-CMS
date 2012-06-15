@@ -834,6 +834,8 @@ var BigTreeDialog = Class.extend({
 	dialogWindow: false,
 	onComplete: false,
 	onCancel: false,
+	dialogWidth: false,
+	dialogHeight: false,
 
 	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
@@ -857,9 +859,11 @@ var BigTreeDialog = Class.extend({
 		} else {
 			dialog_window.html('<h2><a href="#" class="icon_delete" class="bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
 		}		
-
-		leftd = parseInt((BigTree.WindowWidth() - dialog_window.width()) / 2);
-		topd = parseInt((BigTree.WindowHeight() - dialog_window.height()) / 2);
+		
+		this.dialogWidth = dialog_window.width();
+		this.dialogHeight = dialog_window.height();
+		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
+		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
 
 		dialog_window.css({ "top": topd + "px", "left": leftd + "px" });
 		
@@ -879,6 +883,9 @@ var BigTreeDialog = Class.extend({
 		dialog_window.find("input[type=submit]").focus();
 		
 		this.dialogWindow = dialog_window;
+		
+		// Move the dialog around with the window size.
+		$(window).resize($.proxy(this.WindowResize,this));		
 	},
 	
 	CheckForEsc: function(e) {
@@ -896,6 +903,7 @@ var BigTreeDialog = Class.extend({
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("body").off("keyup");
+		$(window).off("resize");
 		return false;
 	},
 
@@ -916,6 +924,13 @@ var BigTreeDialog = Class.extend({
 			this.DialogClose();
 		}
 		return false;
+	},
+	
+	WindowResize: function(ev) {
+		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
+		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
+
+		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
 	}
 });
 
