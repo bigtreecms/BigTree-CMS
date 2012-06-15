@@ -149,7 +149,7 @@
 	// BigTree 4.0b7 update -- REVISION 1
 	function _local_bigtree_update_3() {
 		// Fixes AES_ENCRYPT not encoding things properly.
-		sqlquery("ALTER TABLE `bigtree_settings` CHANGE `value` `value` longblob COLLATE utf8_bin NOT NULL");	
+		sqlquery("ALTER TABLE `bigtree_settings` CHANGE `value` `value` longblob NOT NULL");	
 	}
 	
 ?>
