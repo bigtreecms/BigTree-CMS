@@ -13,8 +13,15 @@
 	$module = $admin->getModule($m);
 
 	$suffix = $suffix ? "-".$suffix : "";
-	$o = $options;
 	$view["options"]["per_page"] = 10000;
+	
+	if (isset($options["sort_field"])) {
+		$sort = $options["sort_field"]." ".$options["sort_direction"];
+	} elseif (isset($options["sort"])) {
+		$sort = $options["sort"];
+	} else {
+		$sort = "id DESC";
+	}
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
@@ -52,10 +59,10 @@
 <?	
 	$gc = 0;
 	foreach ($groups as $group => $title) {		
-		if ($o["draggable"]) {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC","",$group,$module);
+		if ($options["draggable"]) {
+			$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC",$group,$module);
 		} else {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$search,$o["sort_field"],$o["sort_direction"],$group,$module);
+			$r = BigTreeAutoModule::getSearchResults($view,0,$search,$sort,$group,$module);
 		}
 		
 		if (count($r["results"])) {
@@ -84,7 +91,7 @@
 				$value = $item["column$x"];
 		?>
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
-			<? if ($x == 1 && $perm == "p" && !$search && $o["draggable"]) { ?>
+			<? if ($x == 1 && $perm == "p" && !$search && $options["draggable"]) { ?>
 			<span class="icon_sort"></span>
 			<? } ?>
 			<?=$value?>

@@ -24,7 +24,7 @@
 	
 	if ($_POST["search"]) {
 		$view["options"]["per_page"] = 10000000;
-		$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],"position DESC, id ASC","",false,$module);
+		$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],"position DESC, id ASC",false,$module);
 		$items = $r["results"];
 	} else {
 		$items = BigTreeAutoModule::getViewData($view,"position DESC, id ASC","both",$module);

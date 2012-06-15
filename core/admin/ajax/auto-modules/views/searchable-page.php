@@ -11,13 +11,20 @@
 
 	$view = BigTreeAutoModule::getView($view);
 	BigTree::globalizeArray($view);
-		
+
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 	
-	$sort = $options["sort_column"] ? $options["sort_column"] : "id";
-	$sort_direction = $options["sort_direction"] ? $options["sort_direction"] : "DESC";
-	$sort = (isset($_GET["sort"]) && $_GET["sort"]) ? $_GET["sort"] : $sort;
-	$sort_direction = (isset($_GET["sort_direction"]) && $_GET["sort_direction"]) ? $_GET["sort_direction"] : $sort_direction;
+	if (isset($_GET["sort"])) {
+		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
+	} else {
+		if (isset($options["sort_column"])) {
+			$sort = $options["sort_column"]." ".$options["sort_direction"];
+		} elseif (isset($options["sort"])) {
+			$sort = $options["sort"];
+		} else {
+			$sort = "id DESC";
+		}
+	}
 	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
@@ -33,7 +40,7 @@
 	
 	// Handle how many pages we have and what page we're on.
 	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
-	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,$sort_direction,false,$module);
+	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,false,$module);
 	$pages = $data["pages"];
 	$items = $data["results"];
 	
