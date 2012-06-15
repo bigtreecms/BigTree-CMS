@@ -39,9 +39,11 @@
 	} else {
 		// Clean up actions
 		$clean_actions = array();
-		foreach ($actions as $key => $val) {
-			if ($val) {
-				$clean_actions[$key] = $val;
+		if (isset($actions)) {
+			foreach ($actions as $key => $val) {
+				if ($val) {
+					$clean_actions[$key] = $val;
+				}
 			}
 		}
 		$actions = $clean_actions;

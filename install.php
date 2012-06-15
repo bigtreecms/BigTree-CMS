@@ -198,7 +198,7 @@
 		bt_mkdir_writable("templates/layouts/");
 		bt_touch_writable("templates/layouts/_header.php");
 		bt_touch_writable("templates/layouts/default.php",'<? include "_header.php" ?>
-<?=$content?>
+<?=$bigtree["content"]?>
 <? include "_footer.php" ?>');
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");

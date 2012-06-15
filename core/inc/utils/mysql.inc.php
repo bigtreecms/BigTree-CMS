@@ -162,7 +162,16 @@
 			unset($tparts[0]);
 			$type_extras = implode(" ",$tparts);
 			$key = $f["Field"];
-			$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "size" => $size,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
+			
+			if ($type == "enum") {
+				$options = explode(",",$size);
+				foreach ($options as &$option) {
+					$option = trim($option,"'");
+				}
+				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "options" => $options,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
+			} else {
+				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "size" => $size,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
+			}
 		}
 		return $cols;
 	}

@@ -23,14 +23,15 @@
 		}
 	} else {
 		$fields = array();
-		$q = sqlquery("DESCRIBE $table");
-		while ($f = sqlfetch($q)) {
-			if (!in_array($f["Field"],$reserved)) {
+		$columns = sqlcolumns($table);
+		foreach ($columns as $column) {
+			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
 				$type = "text";
-				$title = ucwords(str_replace(array("-","_")," ",$f["Field"]));
+				$title = ucwords(str_replace(array("-","_")," ",$column["name"]));
 				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),$title);
+				$options = array();
 				
 				if (strpos($title,"URL") !== false) {
 					$subtitle = "Include http://";
@@ -55,8 +56,21 @@
 				if (strpos($title,"Description") !== false) {
 					$type = "html";
 				}
+				
+				if ($column["type"] == "enum") {
+					$type = "list";
+					$list = array();
+					foreach ($column["options"] as $option) {
+						$list[] = array("value" => $option, "description" => $option);
+					}
+					$options = array(
+						"list_type" => "static",
+						"allow-empty" => "No",
+						"list" => $list
+					);
+				}
 
-				$fields[$f["Field"]] = array("title" => $title, "subtitle" => $subtitle, "type" => $type);
+				$fields[$column["name"]] = array_merge(array("title" => $title, "subtitle" => $subtitle, "type" => $type),$options);
 			}
 			
 			if ($f["Field"] == "position") {
