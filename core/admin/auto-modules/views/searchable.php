@@ -5,6 +5,15 @@
 	$perm = $admin->checkAccess($m);
 	
 	$suffix = $suffix ? "-".$suffix : "";
+	
+	if (isset($options["sort_column"])) {
+	    $sort = $options["sort_column"]." ".$options["sort_direction"];
+	} elseif (isset($options["sort"])) {
+	    $sort = $options["sort"];
+	} else {
+	    $sort = "id DESC";
+	}
+	list($sort_column,$sort_direction) = explode(" ",$sort);
 ?>
 <div class="table auto_modules">
 	<summary>
@@ -17,21 +26,20 @@
 			foreach ($fields as $key => $field) {
 				$x++;
 				
-				if ($key == $options["sort_column"]) {
-					$active = " ".strtolower($options["sort_direction"]);
-					$dir = $options["sort_direction"];
-					if ($dir == "ASC") {
+				if ($key == $sort_column) {
+					$active = " ".strtolower($sort_direction);
+					if ($sort_direction == "ASC") {
 						$achar = "&#9650;";
 					} else {
 						$achar = "&#9660;";
 					}
 				} else {
 					$active = "";
-					$dir = "ASC";
+					$sort_direction = "ASC";
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$dir?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$sort_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
 		<?
 			}
 		?>
