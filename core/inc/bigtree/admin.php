@@ -547,19 +547,21 @@
 				pages - Whether it can be used as a page resource or not ("on" is yes)
 				modules - Whether it can be used as a module resource or not ("on" is yes)
 				callouts - Whether it can be used as a callout resource or not ("on" is yes)
+				settings - Whether it can be used as a setting resource or not ("on" is yes)
 		*/
 		
-		function createFieldType($id,$name,$pages,$modules,$callouts) {
+		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$author = mysql_real_escape_string($this->Name);
 			$pages = mysql_real_escape_string($pages);
 			$modules = mysql_real_escape_string($modules);
 			$callouts = mysql_real_escape_string($callouts);
+			$settings = mysql_real_escape_string($settings);
 			
 			$file = "$id.php";
 			
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`) VALUES ('$id','$name','$pages','$modules','$callouts')");
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
 			
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
@@ -5027,16 +5029,18 @@
 				pages - Whether it can be used as a page resource or not ("on" is yes)
 				modules - Whether it can be used as a module resource or not ("on" is yes)
 				callouts - Whether it can be used as a callout resource or not ("on" is yes)
+				settings - Whether it can be used as a setting resource or not ("on" is yes)
 		*/
 		
-		function updateFieldType($id,$name,$pages,$modules,$callouts) {
+		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$pages = mysql_real_escape_string($pages);
 			$modules = mysql_real_escape_string($modules);
 			$callouts = mysql_real_escape_string($callouts);
+			$settings = mysql_real_escape_string($settings);
 			
-			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
 		}		
 		
 		/*

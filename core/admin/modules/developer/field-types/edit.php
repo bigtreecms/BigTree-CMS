@@ -2,7 +2,9 @@
 	$breadcrumb[] = array("title" => "Edit Field Type", "link" => "#");
 	
 	$type = $admin->getFieldType(end($bigtree["commands"]));
-	
+
+	// Stop notices
+	$id = $name = $pages = $modules = $callouts = $settings = "";
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
 <h1><span class="icon_developer_field_types"></span>Edit Field Type</h1>
@@ -22,6 +24,7 @@
 					<li><input type="checkbox" name="pages"<? if ($pages) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Pages</label></li>
 					<li><input type="checkbox" name="modules"<? if ($modules) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Modules</label></li>
 					<li><input type="checkbox" name="callouts"<? if ($callouts) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Callouts</label></li>
+					<li><input type="checkbox" name="settings"<? if ($settings) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Settings</label></li>
 				</ul>
 			</fieldset>
 		</section>
