@@ -79,7 +79,7 @@
 		
 		// Import a Module Form
 		if ($type == "ModuleForm") {
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`javascript`,`css`,`callback`,`table`,`fields`,`positioning`,`default_position`) VALUES ('$title','$javascript','$css','$callback','$table','$fields','$positioning','$default_position')");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position')");
 			$last_form_id = sqlid();
 		}
 		
