@@ -1786,7 +1786,7 @@ var BigTreeFormValidator = Class.extend({
 		if (this.form.find(".form_error").length) {
 			this.form.find(".error_message").show();
 			if (!in_dialog) {
-				$('html, body').animate({ scrollTop: $(".form_container").offset().top }, 200);
+				$("html, body").animate({ scrollTop: $(".form_container").offset().top }, 200);
 			} else {
 				this.form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
 			}
