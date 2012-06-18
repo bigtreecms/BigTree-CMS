@@ -8,7 +8,8 @@
 		array("link" => "dashboard/vitals-statistics/analytics/", "title" => "Analytics")
 	);
 	
-	$user = $cms->getSetting("bigtree-internal-google-analytics-email");
-	$pass = $cms->getSetting("bigtree-internal-google-analytics-password");
-	$profile = $cms->getSetting("bigtree-internal-google-analytics-profile");
+	$settings = $cms->getSetting("bigtree-internal-google-analytics");
+	$user = isset($settings["email"]) ? $settings["email"] : "";
+	$pass = isset($settings["password"]) ? $settings["password"] : "";
+	$profile = isset($settings["profile"]) ? $settings["profile"] : "";
 ?>

@@ -673,8 +673,7 @@
 				view - The view to pull data for.
 				page - The page of data to retrieve.
 				query - The query string to search against.
-				sort - The column to use to sort.
-				sort_direction - The direction to sort.
+				sort - The column and direction to sort.
 				group - The group to pull information for.
 				module - The module entry to check permissions against.
 		
@@ -682,7 +681,7 @@
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		static function getSearchResults($view,$page = 0,$query = "",$sort = "id",$sort_direction = "DESC",$group = false, $module = false) {
+		static function getSearchResults($view,$page = 0,$query = "",$sort = "id DESC",$group = false, $module = false) {
 			global $last_query,$admin;
 			
 			// If we don't need parsed data, just use the normal table.
@@ -714,7 +713,7 @@
 				$pages = ($pages > 0) ? $pages : 1;
 				$results = array();
 				
-				$q = sqlquery($query." ORDER BY $sort $sort_direction LIMIT ".($page * $per_page).",$per_page");
+				$q = sqlquery($query." ORDER BY $sort LIMIT ".($page * $per_page).",$per_page");
 				
 				while ($f = sqlfetch($q)) {
 					$featured = isset($f["featured"]) ? $f["featured"] : false;
@@ -766,22 +765,23 @@
 			$results = array();
 			
 			// Get the correct column name for sorting
-			if ($sort != "id") {
+			list($sort_field,$sort_direction) = explode(" ",$sort);
+			if ($sort_field != "id") {
 				$x = 0;
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
-					if ($field == $sort) {
-						$sort = "column$x";
+					if ($field == $sort_field) {
+						$sort_field = "column$x";
 					}
 				}
 			} else {
-				$sort = "CONVERT(id,UNSIGNED)";
+				$sort_field = "CONVERT(id,UNSIGNED)";
 			}
 			
 			if ($page === "all") {
-				$q = sqlquery($query." ORDER BY $sort $sort_direction");
+				$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
 			} else {
-				$q = sqlquery($query." ORDER BY $sort $sort_direction LIMIT ".($page * $per_page).",$per_page");
+				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".($page * $per_page).",$per_page");
 			}
 			
 			while ($f = sqlfetch($q)) {
@@ -896,7 +896,7 @@
 			// If we don't need parsed data, just use the normal table.
 			if ($view["uncached"]) {
 				$view["per_page"] = 10000;
-				$r = self::getSearchResults($view,0,"",$sort,"",false,$module);
+				$r = self::getSearchResults($view,0,"",$sort,false,$module);
 				return $r["results"];
 			}
 		

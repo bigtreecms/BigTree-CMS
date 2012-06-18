@@ -198,7 +198,7 @@
 		bt_mkdir_writable("templates/layouts/");
 		bt_touch_writable("templates/layouts/_header.php");
 		bt_touch_writable("templates/layouts/default.php",'<? include "_header.php" ?>
-<?=$content?>
+<?=$bigtree["content"]?>
 <? include "_footer.php" ?>');
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
@@ -595,7 +595,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br />
 				<hr />
 				
-				<h2 class="example"><span></span>Site Routing</h2>
+				<h2 class="routing"><span></span>Site Routing</h2>
 				<fieldset class="clear">
 					<p>BigTree makes your URLs pretty but mod_rewrite support can make them even more pretty. If your server supports .htaccess overrides and mod_rewrite support you can remove the /index.php/ from your URLs.</p>
 					<ul>

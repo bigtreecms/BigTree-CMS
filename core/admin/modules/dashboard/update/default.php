@@ -91,7 +91,6 @@
 		sqlquery("UPDATE `bigtree_pages` SET `trunk` = 'on' WHERE id = '0'");
 		
 		// Move Google Analytics information into a single setting
-		$ga_cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
 		$ga_email = $cms->getSetting("bigtree-internal-google-analytics-email");
 		$ga_password = $cms->getSetting("bigtree-internal-google-analytics-password");
 		$ga_profile = $cms->getSetting("bigtree-internal-google-analytics-profile");
@@ -102,7 +101,6 @@
 			"encrypted" => "on"
 		));
 		$admin->updateSettingValue("bigtree-internal-google-analytics",array(
-			"cache" => $ga_cache,
 			"email" => $ga_email,
 			"password" => $ga_password,
 			"profile" => $ga_profile
@@ -145,6 +143,13 @@
 		));
 		
 		// Delete all the old settings.
-		sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-google-analytics-cache' OR id = 'bigtree-internal-google-analytics-email' OR id = 'bigtree-internal-google-analytics-password' OR id = 'bigtree-internal-google-analytics-profile' OR id = 'bigtree-internal-rackspace-keys' OR id = 'bigtree-internal-rackspace-containers' OR id = 'bigtree-internal-s3-buckets' OR id = 'bigtree-internal-s3-keys'");
+		sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-google-analytics-email' OR id = 'bigtree-internal-google-analytics-password' OR id = 'bigtree-internal-google-analytics-profile' OR id = 'bigtree-internal-rackspace-keys' OR id = 'bigtree-internal-rackspace-containers' OR id = 'bigtree-internal-s3-buckets' OR id = 'bigtree-internal-s3-keys'");
 	}
+	
+	// BigTree 4.0b7 update -- REVISION 1
+	function _local_bigtree_update_3() {
+		// Fixes AES_ENCRYPT not encoding things properly.
+		sqlquery("ALTER TABLE `bigtree_settings` CHANGE `value` `value` longblob NOT NULL");	
+	}
+	
 ?>

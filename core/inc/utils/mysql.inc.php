@@ -101,9 +101,9 @@
 		}
 	}
 
-	function sqlfetch($query) {
+	function sqlfetch($query,$ignore_errors = false) {
 		// If the query is boolean, it's probably a "false" from a failed sql query.
-		if (is_bool($query)) {
+		if (is_bool($query) && !$ignore_errors) {
 			global $sqlerrors;
 			throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
 		} else {
@@ -150,7 +150,7 @@
 		} else {
 			$q = sqlquery("describe $table");
 		}
-		while ($f = sqlfetch($q)) {
+		while ($f = sqlfetch($q,true)) {
 			$tparts = explode(" ",$f["Type"]);
 			$type = explode("(",$tparts[0]);
 			if (sizeof($type) == 2) {
@@ -162,7 +162,16 @@
 			unset($tparts[0]);
 			$type_extras = implode(" ",$tparts);
 			$key = $f["Field"];
-			$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "size" => $size,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
+			
+			if ($type == "enum") {
+				$options = explode(",",$size);
+				foreach ($options as &$option) {
+					$option = trim($option,"'");
+				}
+				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "options" => $options,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
+			} else {
+				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "size" => $size,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
+			}
 		}
 		return $cols;
 	}

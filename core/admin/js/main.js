@@ -834,6 +834,8 @@ var BigTreeDialog = Class.extend({
 	dialogWindow: false,
 	onComplete: false,
 	onCancel: false,
+	dialogWidth: false,
+	dialogHeight: false,
 
 	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
@@ -857,9 +859,11 @@ var BigTreeDialog = Class.extend({
 		} else {
 			dialog_window.html('<h2><a href="#" class="icon_delete" class="bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
 		}		
-
-		leftd = parseInt((BigTree.WindowWidth() - dialog_window.width()) / 2);
-		topd = parseInt((BigTree.WindowHeight() - dialog_window.height()) / 2);
+		
+		this.dialogWidth = dialog_window.width();
+		this.dialogHeight = dialog_window.height();
+		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
+		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
 
 		dialog_window.css({ "top": topd + "px", "left": leftd + "px" });
 		
@@ -879,6 +883,9 @@ var BigTreeDialog = Class.extend({
 		dialog_window.find("input[type=submit]").focus();
 		
 		this.dialogWindow = dialog_window;
+		
+		// Move the dialog around with the window size.
+		$(window).resize($.proxy(this.WindowResize,this));		
 	},
 	
 	CheckForEsc: function(e) {
@@ -896,6 +903,7 @@ var BigTreeDialog = Class.extend({
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("body").off("keyup");
+		$(window).off("resize");
 		return false;
 	},
 
@@ -916,6 +924,13 @@ var BigTreeDialog = Class.extend({
 			this.DialogClose();
 		}
 		return false;
+	},
+	
+	WindowResize: function(ev) {
+		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
+		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
+
+		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
 	}
 });
 
@@ -1537,7 +1552,7 @@ var BigTreeListMaker = Class.extend({
 			html += '<li><span class="icon_sort"></span>';
 			for (x = 0; x < keys.length; x++) {
 				if (keys[x].type == "select") {
-					html += '<span><select name="' + name + '[' + count + '][' + keys[x].key + ']">';
+					html += '<span><select class="custom_control" name="' + name + '[' + count + '][' + keys[x].key + ']">';
 					for (v in keys[x].list) {
 						html += '<option value="' + htmlspecialchars(v) + '"';
 						if (v == existing[i][keys[x].key]) {
@@ -1574,7 +1589,7 @@ var BigTreeListMaker = Class.extend({
 		html = '<li><span class="icon_sort"></span>';
 		for (x = 0; x < this.keys.length; x++) {
 			if (this.keys[x].type == "select") {
-				html += '<span><select name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']">';
+				html += '<span><select class="custom_control" name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']">';
 				for (v in this.keys[x].list) {
 					html += '<option value="' + htmlspecialchars(v) + '">' + htmlspecialchars(this.keys[x].list[v]) + '</option>';
 				}
@@ -1736,7 +1751,7 @@ var BigTreeFormValidator = Class.extend({
 		this.form.submit($.proxy(this.validateForm,this));
 	},
 	
-	validateForm: function(in_dialog) {
+	validateForm: function(event,in_dialog) {
 		this.form.find(".form_error").removeClass("form_error");
 		this.form.find(".form_error_reason").remove();
 		

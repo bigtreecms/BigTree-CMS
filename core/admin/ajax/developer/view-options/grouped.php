@@ -11,20 +11,12 @@
 </fieldset>
 
 <fieldset>
-	<label>Field to Sort By Inside Groups <small>(if not draggable)</small></label>
+	<label>Sort By Inside Groups <small>(if not draggable)</small></label>
 	<div name="sort_field">
 		<select name="sort_field">
-			<? BigTree::getFieldSelectOptions($table,$data["sort_field"]) ?>
+			<? BigTree::getFieldSelectOptions($table,$data["sort"],true) ?>
 		</select>
 	</div>
-</fieldset>
-
-<fieldset>
-	<label>Sort Direction <small>(if not draggable)</small></label>
-	<select name="sort_direction">
-		<option>asc</option>
-		<option<? if ($data["sort_direction"] == "desc") { ?> selected="selected"<? } ?>>desc</option>
-	</select>
 </fieldset>
 
 <h4>Optional Parameters</h4>

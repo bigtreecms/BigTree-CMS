@@ -50,7 +50,7 @@
 	mkdir(SERVER_ROOT."cache/packager");
 	$x = 0;
 	
-	if (is_array($modules)) {
+	if (isset($modules) && is_array($modules)) {
 		foreach ($modules as $item) {
 			// Do stuff to dump databases here.
 			$index .= "Module::||BTX||::".json_encode($item)."\n";
@@ -73,7 +73,7 @@
 	}
 	
 	// Get the templates we're passing in.
-	if (is_array($templates)) {
+	if (isset($templates) && is_array($templates)) {
 		foreach ($templates as $template) {
 			$item = $cms->getTemplate($template);
 			$index .= "Template::||BTX||::".json_encode($item)."\n";
@@ -90,7 +90,7 @@
 	}
 	
 	// Get the callouts we're passing in.
-	if (is_array($callouts)) {
+	if (isset($callouts) && is_array($callouts)) {
 		foreach ($callouts as $callout) {
 			$item = $cms->getCallout($callout);
 			$index .= "Callout::||BTX||::".json_encode($item)."\n";
@@ -101,7 +101,7 @@
 	}
 	
 	// Get the feeds
-	if (is_array($feeds)) {
+	if (isset($feeds) && is_array($feeds)) {
 		foreach ($feeds as $feed) {
 			$item = $cms->getFeed($feed);
 			$index .= "Feed::||BTX||::".json_encode($item)."\n";
@@ -109,7 +109,7 @@
 	}
 	
 	// Get the settings
-	if (is_array($settings)) {
+	if (isset($settings) && is_array($settings)) {
 		foreach ($settings as $setting) {
 			$item = $admin->getSetting($setting);
 			$index .= "Setting::||BTX||::".json_encode($item)."\n";
@@ -117,7 +117,7 @@
 	}
 	
 	// Get the field types
-	if (is_array($field_types)) {
+	if (isset($field_types) && is_array($field_types)) {
 		foreach ($field_types as $type) {
 			$item = $admin->getFieldType($type);
 			$index .= "FieldType::||BTX||::".json_encode($item)."\n";
@@ -125,7 +125,7 @@
 	}
 	
 	// Get the included tables now... yep.
-	if (is_array($tables)) {
+	if (isset($tables) && is_array($tables)) {
 		foreach ($tables as $t) {
 			$x++;
 			list($table,$type) = explode("#",$t);
@@ -158,7 +158,7 @@
 	
 	
 	// Copy all the class files over...
-	if (is_array($class_files)) {
+	if (isset($class_files) && is_array($class_files)) {
 		foreach ($class_files as $file) {
 			$x++;
 			// This is a module class, replace var $Module = "[num]";
@@ -173,7 +173,7 @@
 	}
 	
 	// Copy all the required files over...
-	if (is_array($required_files)) {
+	if (isset($required_files) && is_array($required_files)) {
 		foreach ($required_files as $file) {
 			$x++;
 			$index .= "File::||BTX||::$x.part.btx::||BTX||::$file::||BTX||::Required\n";
@@ -182,7 +182,7 @@
 	}
 	
 	// Copy all the other files over...
-	if (is_array($other_files)) {
+	if (isset($other_files) && is_array($other_files)) {
 		foreach ($other_files as $file) {
 			$x++;
 			$index .= "File::||BTX||::$x.part.btx::||BTX||::$file::||BTX||::Other\n";
