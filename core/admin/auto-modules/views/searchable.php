@@ -64,8 +64,8 @@
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script type="text/javascript">
 	var mpage = 0;
-	var sort = "<?=$view["options"]["sort_column"]?>";
-	var sortdir = "<?=$view["options"]["sort_direction"]?>";
+	var sort = "<?=$sort_column?>";
+	var sortdir = "<?=$sort_direction?>";
 	var search = "";
 	
 	function _local_search() {
