@@ -14,7 +14,7 @@
 		unset($_SESSION["bigtree"]["developer"]["saved_view"]);
 	} else {
 		// Stop notices
-		$description = $type = $uncached = $preview_url = "";
+		$description = $type = $preview_url = "";
 	}
 ?>
 <h1><span class="icon_developer_modules"></span>Add View</h1>
@@ -64,11 +64,6 @@
 				<fieldset>
 					<label>Page Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
-				</fieldset>
-				
-				<fieldset>
-					<input type="checkbox" name="uncached" <? if ($uncached) { ?>checked="checked" <? } ?>/>
-					<label class="for_checkbox">Don't Cache View Data <small>(removes parsers, pending changes)</small></label>
 				</fieldset>
 			</div>
 			

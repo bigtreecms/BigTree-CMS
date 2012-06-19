@@ -1,35 +1,27 @@
 <?
-	$mpage = ADMIN_ROOT.$module["route"]."/";
-	
 	BigTree::globalizeArray($view);
-	$o = $options;
 	
-	$suffix = $suffix ? "-".$suffix : "";
-	
+	// Make sure our view data is cached;
 	BigTreeAutoModule::cacheViewData($view);
-	$m = BigTreeAutoModule::getModuleForView($view);
-	$module = $admin->getModule($m);
-	$perm = $admin->getAccessLevel($m);
 	
-	$items = array();
-	if ($view["options"]["draggable"]) {
-		$order = "`$table`.position DESC, `$table`.id ASC";
-	} else {
-		$order = "`$table`.id DESC";
-	}
-	
+	$module_id = BigTreeAutoModule::getModuleForView($view);
+	$module = $admin->getModule($module_id);
+	$permission = $admin->getAccessLevel($module_id);
+	$module_page = ADMIN_ROOT.$module["route"]."/";
+	$suffix = $suffix ? "-".$suffix : "";
+	$draggable = (isset($view["options"]["draggable"]) && $view["options"]["draggable"]) ? true : false;
 	$groups = BigTreeAutoModule::getGroupsForView($view);
 ?>
 <div class="table auto_modules">
 	<summary>
-		<p><? if ($perm == "p" && $view["options"]["draggable"]) { ?>Click and drag the light gray area of an item to sort the images. <? } ?>Click an image to edit it.</p>
+		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?>Click an image to edit it.</p>
 	</summary>
 	<?
 		$y = 0;
 		foreach ($groups as $group => $title) {
 			$y++;
 			
-			if ($o["draggable"]) {
+			if ($draggable) {
 				$items = BigTreeAutoModule::getViewDataForGroup($view,$group,"position DESC, id ASC","active");
 			} else {
 				$items = BigTreeAutoModule::getViewDataForGroup($view,$group,"id DESC","active");
@@ -51,11 +43,11 @@
 						$preview_image = $item["column1"];
 					}
 			?>
-			<li id="row_<?=$item["id"]?>"<? if ($perm != "p" || !$view["options"]["draggable"]) { ?> class="non_draggable"<? } ?>>
-				<a class="image" href="<?=$mpage?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
+				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
-					if ($perm == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
+					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
 						foreach ($actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -77,7 +69,7 @@
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
-									$link = $mpage.$data["route"]."/".$item["id"]."/";
+									$link = $module_page.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
 										eval('$link = '.$data["function"].'($item);');
 									}
@@ -110,10 +102,10 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image" href="<?=$mpage?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
-					if ($perm == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
+					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
 						foreach ($actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -130,7 +122,7 @@
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
-									$link = $mpage.$data["route"]."/".$item["id"]."/";
+									$link = $module_page.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
 										eval('$link = '.$data["function"].'($item);');
 									}
@@ -158,7 +150,7 @@
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script type="text/javascript">
-	<? if ($perm == "p" && $o["draggable"]) { ?>
+	<? if ($permission == "p" && $draggable) { ?>
 	$(".image_list").each(function() {
 		if ($(this).attr("id")) {
 			$(this).sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {

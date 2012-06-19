@@ -85,7 +85,7 @@
 		
 		// Import a Module View
 		if ($type == "ModuleView") {
-			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`table`,`fields`,`options`,`actions`,`suffix`,`uncached`,`preview_url`) VALUES ('$title','$description','".$data["type"]."','$table','$fields','$options','$actions','$suffix','$uncached','$preview_url')");
+			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`table`,`fields`,`options`,`actions`,`suffix`,`preview_url`) VALUES ('$title','$description','".$data["type"]."','$table','$fields','$options','$actions','$suffix','$preview_url')");
 			$last_view_id = sqlid();
 		}
 		

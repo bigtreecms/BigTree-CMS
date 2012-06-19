@@ -1,11 +1,3 @@
-<?	
-	BigTree::globalizeArray($view);
-		
-	$m = BigTreeAutoModule::getModuleForView($view);
-	$perm = $admin->getAccessLevel($m);
-	
-	$suffix = $suffix ? "-".$suffix : "";
-?>
 <div class="table auto_modules">
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" />
@@ -13,7 +5,7 @@
 	<header>
 		<?
 			$x = 0;
-			foreach ($fields as $key => $field) {
+			foreach ($view["fields"] as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
@@ -22,7 +14,7 @@
 		?>
 		<span class="view_status">Status</span>		
 		<?
-			foreach ($actions as $action => $data) {
+			foreach ($view["actions"] as $action => $data) {
 				if ($data != "on") {
 					$data = json_decode($data,true);
 					$action = $data["name"];
@@ -45,7 +37,7 @@
 	}
 	
 	function _local_createSortable() {
-		<? if ($perm == "p") { ?>
+		<? if ($permission == "p") { ?>
 		if ($("#search").val() == "") {
 			$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", sort: $("#sort_table").sortable("serialize") } });

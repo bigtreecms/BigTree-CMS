@@ -154,7 +154,9 @@
 	// BigTree 4.0b7 update -- REVISION 4
 	function _local_bigtree_update_4() {
 		// Adds the ability to make a field type available for Settings.
-		sqlquery("ALTER TABLE `bigtree_field_types` ADD COLUMN `settings` char(2) NOT NULL AFTER `callouts`");	
+		sqlquery("ALTER TABLE `bigtree_field_types` ADD COLUMN `settings` char(2) NOT NULL AFTER `callouts`");
+		// Remove uncached.
+		sqlquery("ALTER TABLE `bigtree_module_views` DROP COLUMN `uncached`");
 	}
 	
 ?>

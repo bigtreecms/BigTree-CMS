@@ -1,3 +1,7 @@
+<?
+	$m = BigTreeAutoModule::getModuleForView($view);
+	$perm = $admin->getAccessLevel($m);
+?>
 <div class="table">
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" />
@@ -14,7 +18,7 @@
 	}
 
 	function _local_refreshSort() {
-		<? if ($perm == "p" && $o["draggable"]) { ?>
+		<? if ($permission == "p" && $draggable) { ?>
 		$("#table_contents ul").each(function() {
 			if ($("#search").val() == "") {
 				$(this).sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {

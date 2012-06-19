@@ -62,7 +62,7 @@
 		}
 		
 		// Let's update the view
-		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$uncached,$preview_url);
+		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$preview_url);
 		
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");

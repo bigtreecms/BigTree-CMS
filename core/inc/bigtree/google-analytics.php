@@ -21,9 +21,9 @@
 			if (!$email) {
 				global $cms;
 				$ga = $cms->getSetting("bigtree-internal-google-analytics");
-				$email = $ga["email"];
-				$password = $ga["password"];
-				$profile = $ga["profile"];
+				$email = isset($ga["email"]) ? $ga["email"] : false;
+				$password = isset($ga["password"]) ? $ga["password"] : false;
+				$profile = isset($ga["profile"]) ? $ga["profile"] : false;
 			}
 			
 			$response = $this->httpRequest("https://www.google.com/accounts/ClientLogin",null,array(
@@ -36,7 +36,12 @@
 			
 			parse_str(str_replace(array("\n","\r\n"),'&',$response['body']),$auth_token);
 			
-			$this->AuthToken = $auth_token['Auth'];
+			if (isset($auth_token["Auth"])) {
+				$this->AuthToken = $auth_token["Auth"];
+			} else {
+				$this->AuthToken = false;
+			}
+			
 			$this->Profile = $profile;
 		}
 		

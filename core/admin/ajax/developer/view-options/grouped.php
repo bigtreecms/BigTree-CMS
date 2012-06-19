@@ -7,8 +7,14 @@
 	$draggable = isset($options["draggable"]) ? $options["draggable"] : false;
 	$other_table = isset($options["other_table"]) ? $options["other_table"] : false;
 	$title_field = isset($options["title_field"]) ? $options["title_field"] : false;
-	$sort_field = isset($options["sort_field"]) ? $options["sort_field"] : false;
+	$ot_sort_field = isset($options["ot_sort_field"]) ? $options["ot_sort_field"] : false;
+	$ot_sort_direction = isset($options["ot_sort_direction"]) ? $options["ot_sort_direction"] : false;
 ?>
+<fieldset>
+	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
+	<label class="for_checkbox">Draggable</label>
+</fieldset>
+
 <fieldset>
 	<label>Group Field</label>
 	<select name="group_field">
@@ -17,13 +23,8 @@
 </fieldset>
 
 <fieldset>
-	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
-	<label class="for_checkbox">Draggable</label>
-</fieldset>
-
-<fieldset>
 	<label>Sort By Inside Groups <small>(if not draggable)</small></label>
-	<select name="sort_field">
+	<select name="sort">
 		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
 	</select>
 </fieldset>
@@ -53,10 +54,10 @@
 
 <fieldset>
 	<label>Field to Sort By</label>
-	<div data-name="sort_field">
+	<div data-name="ot_sort_field">
 		<? if ($other_table) { ?>
 		<select name="ot_sort_field">
-			<? BigTree::getFieldSelectOptions($other_table,$sort_field) ?>
+			<? BigTree::getFieldSelectOptions($other_table,$ot_sort_field) ?>
 		</select>
 		<? } else { ?>
 		&mdash;
@@ -67,7 +68,7 @@
 <fieldset>
 	<label>Sort Direction</label>
 	<select name="ot_sort_direction">
-		<option>asc</option>
-		<option<? if ($data["sort_direction"] == "desc") { ?> selected="selected"<? } ?>>desc</option>
+		<option>ASC</option>
+		<option<? if ($ot_sort_direction == "DESC") { ?> selected="selected"<? } ?>>DESC</option>
 	</select>
 </fieldset>

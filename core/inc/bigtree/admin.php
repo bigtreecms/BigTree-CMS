@@ -810,14 +810,13 @@
 				fields - Field array.
 				actions - Actions array.
 				suffix - Add/Edit suffix.
-				uncached - Don't cache the view.
 				preview_url - Optional preview URL.
 				
 			Returns:
 				The id for view.
 		*/
 		
-		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$uncached = "",$preview_url = "") {
+		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			$table = mysql_real_escape_string($table);
@@ -826,10 +825,9 @@
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
-			$uncached = mysql_real_escape_string($uncached);
 			$preview_url = mysql_real_escape_string(htmlspecialchars($preview_url));
 			
-			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`uncached`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$uncached','$preview_url')");
+			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
 			
 			return sqlid();
 		}
@@ -5198,14 +5196,13 @@
 				fields - Field array.
 				actions - Actions array.
 				suffix - Add/Edit suffix.
-				uncached - Don't cache the view.
 				preview_url - Optional preview URL.
 				
 			Returns:
 				The id for view.
 		*/
 		
-		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$uncached = "",$preview_url = "") {
+		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
 			$id = mysql_real_escape_string($id);
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -5215,10 +5212,9 @@
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
-			$uncached = mysql_real_escape_string($uncached);
 			$preview_url = mysql_real_escape_string(htmlspecialchars($preview_url));
 			
-			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', uncached = '$uncached', preview_url = '$preview_url' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
 		}
 		
 		/*
