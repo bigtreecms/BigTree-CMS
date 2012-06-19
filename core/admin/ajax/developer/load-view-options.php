@@ -1,12 +1,11 @@
 <?
 	$table = $_POST["table"];
-	$t = $_POST["type"];
-	$d = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
-	$data = $d;
+	$type = $_POST["type"];
+	$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 ?>
 <div style="width: 450px;">
 	<?
-		$path = BigTree::path("admin/ajax/developer/view-options/".$t.".php");
+		$path = BigTree::path("admin/ajax/developer/view-options/".$type.".php");
 		if (file_exists($path)) {
 			include $path;
 		}

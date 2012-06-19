@@ -2056,6 +2056,21 @@
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
 				);
+				
+				$types["settings"] = array(
+					"text" => "Text",
+					"textarea" => "Text Area",
+					"html" => "HTML Area",
+					"upload" => "Upload",
+					"menu" => "Menu",
+					"list" => "List",
+					"checkbox" => "Checkbox",
+					"date" => "Date Picker",
+					"time" => "Time Picker",
+					"photo-gallery" => "Photo Gallery",
+					"array" => "Array of Items",
+					"custom" => "Custom Function"
+				);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
@@ -2067,6 +2082,9 @@
 					}
 					if ($f["callouts"]) {
 						$types["callout"][$f["id"]] = $f["name"];
+					}
+					if ($f["settings"]) {
+						$types["settings"][$f["id"]] = $f["name"];
 					}
 				}
 				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));

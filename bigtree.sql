@@ -60,7 +60,7 @@ DROP TABLE IF EXISTS `bigtree_route_history`;
 CREATE TABLE `bigtree_route_history` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`old_route` varchar(255) NOT NULL,`new_route` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `old_route` (`old_route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 DROP TABLE IF EXISTS `bigtree_settings`;
-CREATE TABLE `bigtree_settings` ( `id` varchar(255) COLLATE utf8_bin NOT NULL DEFAULT '', `value` longblob COLLATE utf8_bin NOT NULL, `type` varchar(255) COLLATE utf8_bin NOT NULL, `name` varchar(255) COLLATE utf8_bin NOT NULL DEFAULT '', `description` text COLLATE utf8_bin NOT NULL, `locked` char(2) COLLATE utf8_bin NOT NULL, `system` char(2) COLLATE utf8_bin NOT NULL, `encrypted` char(2) COLLATE utf8_bin NOT NULL, `package` int(11) unsigned NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+CREATE TABLE `bigtree_settings` ( `id` varchar(255) NOT NULL DEFAULT '', `value` longtext NOT NULL, `type` varchar(255) NOT NULL, `options` longtext NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `description` text NOT NULL, `locked` char(2) NOT NULL, `system` char(2) NOT NULL, `encrypted` char(2) NOT NULL, `package` int(11) unsigned NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 DROP TABLE IF EXISTS `bigtree_tags`;
 CREATE TABLE `bigtree_tags` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`tag` varchar(255) NOT NULL,`metaphone` varchar(255) NOT NULL,`route` varchar(255) DEFAULT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

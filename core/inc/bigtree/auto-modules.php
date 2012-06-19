@@ -864,7 +864,7 @@
 			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
 			$fields = json_decode($f["fields"],true);
 			$first = current($fields);
-			if (!isset($first["width"])) {
+			if (!isset($first["width"]) || !$first["width"]) {) {
 				$awidth = count($actions) * 62;
 				$available = 888 - $awidth;
 				$percol = floor($available / count($fields));

@@ -25,6 +25,8 @@
 			<?
 				$htmls = array();
 				$simplehtmls = array();
+				$dates = array();
+				$times = array();
 				
 				echo $item["description"];
 				
@@ -35,16 +37,6 @@
 				$input_validation_class = "";
 				
 				include BigTree::path("admin/form-field-types/draw/".$t.".php");
-				
-				$mce_width = 898;
-				$mce_height = 365;
-				
-				if (count($htmls)) {
-					include BigTree::path("admin/layouts/_tinymce_specific.php");
-				}
-				if (count($simplehtmls)) {
-					include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
-				}
 			?>
 		</section>
 		<footer>
@@ -52,3 +44,37 @@
 		</footer>
 	</form>
 </div>
+<?
+	if (count($htmls) || count($simplehtmls)) {
+		$mce_width = 898;
+		$mce_height = 365;
+		include BigTree::path("admin/layouts/_tinymce.php"); 
+				
+		if (count($htmls)) {
+			include BigTree::path("admin/layouts/_tinymce_specific.php");
+		}
+		if (count($simplehtmls)) {
+			include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
+		}
+	}
+	
+	if (count($dates) || count($times)) {
+?>
+<script type="text/javascript">
+	<?
+		foreach ($dates as $id) {
+	?>
+	$("#<?=$id?>").datepicker({ durration: 200, showAnim: "slideDown" });
+	<?
+		}
+
+		foreach ($times as $id) {
+	?>
+	$("#<?=$id?>").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	<?
+		}
+	?>
+</script>
+<?
+	}
+?>

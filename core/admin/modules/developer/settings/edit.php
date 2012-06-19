@@ -2,16 +2,19 @@
 	$breadcrumb[] = array("title" => "Add Setting", "link" => "#");
 	
 	$item = $admin->getSetting(end($bigtree["path"]));
-
 	BigTree::globalizeArray($item,array("htmlspecialchars"));
 	
-	if (is_array($_SESSION["bigtree"]["developer"]["setting_data"])) {
+	if (isset($_SESSION["bigtree"]["developer"]["setting_data"])) {
 		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["setting_data"]);
+		unset($_SESSION["bigtree"]["developer"]["setting_data"]);
 	}
 	
-	$e = $_SESSION["bigtree"]["developer"]["error"];
-	unset($_SESSION["bigtree"]["developer"]["error"]);
-	unset($_SESSION["bigtree"]["developer"]["setting_data"]);
+	if (isset($_SESSION["bigtree"]["developer"]["error"])) {
+		$e = $_SESSION["bigtree"]["developer"]["error"];
+		unset($_SESSION["bigtree"]["developer"]["error"]);
+	} else {
+		$e = false;
+	}
 ?>
 <h1><span class="icon_developer_settings"></span>Edit Setting</h1>
 <? include BigTree::path("admin/modules/developer/settings/_nav.php") ?>

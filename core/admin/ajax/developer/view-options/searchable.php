@@ -1,14 +1,8 @@
 <?
-	if (!empty($d)) {
-		BigTree::globalizeArray($d);
-	}
-
-	if (!$sort) {
-		$sort = "id DESC";
-	}
-	if (!$per_page) {
-		$per_page = 15;
-	}
+	// Defaults
+	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
+	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
+	$filter = isset($options["filter"]) ? $options["filter"] : "";
 ?>
 <fieldset>
 	<label>Sort By</label>
