@@ -38,9 +38,6 @@
 		ini_set("display_errors","off");
 	}
 	
-	error_reporting(E_ALL);
-	ini_set("display_errors","on");
-	
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/core.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
