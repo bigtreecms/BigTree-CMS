@@ -103,7 +103,7 @@
 	input[type=submit].red:hover, a.button.red:hover { background-color: #dd0919; }
 
 	a.button { display: inline-block; height: 35px; line-height: 37px; padding: 0 15px; }
-	a.button .icon_small { height: 35px; }
+	a.button .icon_small { height: 25px; }
 	input[type=submit].shorter, a.button.shorter { height: 28px; line-height: 30px; }
 	input[type=submit].shorter { padding: 4px 18px 6px; }
 

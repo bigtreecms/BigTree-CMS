@@ -51,6 +51,10 @@
 			<span class="icon_developer_payment_gateway"></span>
 			<p>Payment Gateway</p>
 		</a>
+		<a class="box_select" href="status/">
+			<span class="icon_vitals_404"></span>
+			<p>Site Status</p>
+		</a>
 	</section>
 </div>
 

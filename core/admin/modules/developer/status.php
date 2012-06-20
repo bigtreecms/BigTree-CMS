@@ -93,7 +93,7 @@
 	
 	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
-<h1>Site Status</h1>
+<h1><span class="developer"></span>Site Status</h1>
 <p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 
 <div class="table">

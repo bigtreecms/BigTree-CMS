@@ -711,17 +711,22 @@
 			$results = array();
 			
 			// Get the correct column name for sorting
-			list($sort_field,$sort_direction) = explode(" ",$sort);
-			if ($sort_field != "id") {
-				$x = 0;
-				foreach ($view["fields"] as $field => $options) {
-					$x++;
-					if ($field == $sort_field) {
-						$sort_field = "column$x";
-					}
+			if (count(explode(" ",$sort)) < 3) {
+				list($sort_field,$sort_direction) = explode(" ",$sort);
+				if ($sort_field != "id") {
+				    $x = 0;
+				    foreach ($view["fields"] as $field => $options) {
+				    	$x++;
+				    	if ($field == $sort_field) {
+				    		$sort_field = "column$x";
+				    	}
+				    }
+				} else {
+				    $sort_field = "CONVERT(id,UNSIGNED)";
 				}
 			} else {
-				$sort_field = "CONVERT(id,UNSIGNED)";
+				$sort_field = $sort;
+				$sort_direction = "";
 			}
 			
 			if ($page === "all") {
