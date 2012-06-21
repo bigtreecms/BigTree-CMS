@@ -399,6 +399,7 @@
 		*/
 			
 		function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
+			static $module_nav_count = 0;
 			$nav = array();
 			$find_children = array();
 			
@@ -472,8 +473,9 @@
 							// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
 							foreach ($modNav as $item) {
 								$item["parent"] = $f["id"];
-								unset($item["id"]);
+								$item["id"] = "module_nav_".$module_nav_count;
 								$nav[] = $item;
+								$module_nav_count++;
 							}
 						}
 					}
