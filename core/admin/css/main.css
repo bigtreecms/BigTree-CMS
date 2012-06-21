@@ -153,9 +153,9 @@
 	.radio_button a.focused { background-position: -80px 0; }
 	.radio_button a.checked.focused { background-position: -64px 0; }
 
-	.select { background: #FFF url(../images/select-handle.png) no-repeat top right; border: 1px solid #CCCCCC; border-radius: 3px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
+	.select { background: #FFF url(../images/select-handle.png) no-repeat top right; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
 	.select span { display: block; padding: 0 44px 0 10px; }
-	.select datalist { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 3px 3px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
+	.select datalist { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
 	.select data { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
 	.select data:last-child { border-radius: 0px 0px 3px 3px; }
 	.select data:hover { background: #F0F0F0; }
@@ -824,7 +824,7 @@
 	.developer .form_table .developer_resource_form_subtitle input { width: 225px; }
 	.developer .form_table .developer_resource_type { padding: 0 20px 0 0; text-align: left; width: 175px; }
 	.developer .form_table .developer_resource_type select { width: 170px; }
-	.developer .form_table .developer_resource_type .resource_name { background: #ededed; border: 1px solid #CCCCCC; border-radius: 3px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; padding: 0 44px 0 10px; user-select: none; width: 119px; }
+	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 119px; }
 	.developer .form_table .developer_resource_display_title { width: 40px; }
 	.developer .form_table .developer_resource_action { width: 60px; }
 	.developer .form_table .developer_resource_action a { margin: 5px 0 0 0; }
