@@ -2364,7 +2364,7 @@
 			$sent = array();
 			$read = array();
 			$unread = array();
-			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
+			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name, bigtree_users.email AS sender_email FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
 			
 			while ($f = sqlfetch($q)) {
 				// If we're the sender put it in the sent array.
@@ -2396,7 +2396,7 @@
 		
 		function getMessage($id) {
 			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".mysql_real_escape_string($id)."'"));
-			if ($message["sender"] != $this->ID && strpos("|".$this->ID."|",$message["recipients"]) === false) {
+			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
 				$this->stop("This message was not sent by you, or to you.");
 			}
 			return $message;
@@ -3065,7 +3065,7 @@
 			// Get all previous revisions, add them to the saved or unsaved list
 			$unsaved = array();
 			$saved = array();
-			$q = sqlquery("SELECT bigtree_users.name, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
+			$q = sqlquery("SELECT bigtree_users.name, bigtree_users.email, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
 			while ($f = sqlfetch($q)) {
 				if ($f["saved"]) {
 					$saved[] = $f;

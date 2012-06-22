@@ -10,7 +10,7 @@
 	foreach ($results as $item) {
 ?>
 <li id="row_<?=$item["id"]?>">
-	<section class="users_name"><?=$item["name"]?></section>
+	<section class="users_name"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 18)?>" alt="" /></span><?=$item["name"]?></section>
 	<section class="users_email"><?=$item["email"]?></section>
 	<section class="users_company"><?=$item["company"]?></section>
 	<section class="view_action">

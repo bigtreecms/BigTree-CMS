@@ -18,5 +18,5 @@
 
 <a class="box_select" href="vitals-statistics/integrity/">
 	<span class="icon_vitals_integrity"></span>
-	<p>Site Integrity</p>
+	<p>Integrity Check</p>
 </a>

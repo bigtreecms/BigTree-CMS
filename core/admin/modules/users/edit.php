@@ -94,7 +94,7 @@
 	
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
-<h1><span class="users"></span>Edit User</h1>
+<h1><span class="gravatar"><img src="<?=BigTree::gravatar($user["email"])?>" alt="" /></span>Edit User</h1>
 <? include BigTree::path("admin/modules/users/_nav.php"); ?>
 <div class="form_container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/<?=$bigtree["path"][3]?>/" method="post">
@@ -102,12 +102,13 @@
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
-					<label class="required">Email<? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
 					<input type="text" class="required email" name="email" value="<?=$email?>" tabindex="1" />
+					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
-					<label>Password <small>(leave blank to remain unchanged)</small></label>
+					<label>Password <small>(Leave blank to remain unchanged)</small></label>
 					<input type="password" name="password" value="" tabindex="3" />
 				</fieldset>
 				<? if ($user["id"] != $admin->ID) { ?>
@@ -350,5 +351,13 @@
 			$("#regular_user_message").show();
 			$("#admin_user_message").hide();
 		}
+	});
+	
+	
+	$(document).ready(function() {
+		$("input.email").blur(function() {
+			var email = md5($(this).val().trim());
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=18&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+		});
 	});
 </script>

@@ -666,6 +666,26 @@
 		}
 		
 		/*
+			Function: gravatar
+				Returns a properly formatted gravatar url.
+			
+			Parameters:
+				email - User's email address.
+				size - Image size; defaults to 28
+				default - Default profile image; defaults to BigTree icon
+				rating - Defaults to "pg"
+		*/
+		
+		static function gravatar($email = "", $size = 28, $default = false, $rating = "pg") {
+			if (!$default) {
+				$default = ADMIN_ROOT . "images/icon_default_gravatar.jpg";
+			}
+			return "http://www.gravatar.com/avatar/" . md5(strtolower($email)) . "?s=" . $size . "&d=" . urlencode($default) . "&rating=" . $rating;
+		}
+		
+		
+		
+		/*
 			Function: isDirectoryWritable
 				Extend's PHP's is_writable to support directories that don't exist yet.
 			

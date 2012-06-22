@@ -47,7 +47,7 @@
 					$x++;
 		?>
 		<li class="page_<?=$page?>"<? if ($page > 0) { ?> style="display: none;"<? } ?>>
-			<section class="messages_from_to"><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
@@ -91,7 +91,7 @@
 					$x++;
 		?>
 		<li class="page_<?=$page?>"<? if ($page > 0) { ?> style="display: none;"<? } ?>>
-			<section class="messages_from_to"><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>

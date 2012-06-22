@@ -14,7 +14,7 @@
 	
 	$nav = array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
-			array("link" => "overview", "title" => "Overview", "access" => 0),
+			array("link" => "", "title" => "Overview", "access" => 0),
 			array("link" => "pending-changes", "title" => "Pending Changes", "access" => 0),
 			array("link" => "messages", "title" => "Message Center", "access" => 0),
 			array("link" => "vitals-statistics", "title" => "Vitals &amp; Statistics", "access" => 1)
@@ -24,15 +24,19 @@
 		array("link" => "users", "title" => "Users", "access" => 1),
 		array("link" => "settings", "title" => "Settings", "access" => 1),
 		array("link" => "developer", "title" => "Developer", "access" => 2, "children" => array(
-			array("link" => "templates", "title" => "Templates", "access" => 2),
-			array("link" => "modules", "title" => "Modules", "access" => 2),
-			array("link" => "callouts", "title" => "Callouts", "access" => 2),
-			array("link" => "field-types", "title" => "Field Types", "access" => 2),
-			array("link" => "feeds", "title" => "Feeds", "access" => 2),
-			array("link" => "settings", "title" => "Settings", "access" => 2),
-			array("link" => "foundry/install", "title" => "Install Package", "access" => 2),
-			array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
-			array("link" => "payment-gateway", "title" => "Payment Gateway", "access" => 2)
+			array("link" => "", "title" => "Create", "access" => 2, "group" => true, "children" => array(
+				array("link" => "templates", "title" => "Templates", "access" => 2),
+				array("link" => "modules", "title" => "Modules", "access" => 2),
+				array("link" => "callouts", "title" => "Callouts", "access" => 2),
+				array("link" => "field-types", "title" => "Field Types", "access" => 2),
+				array("link" => "feeds", "title" => "Feeds", "access" => 2),
+				array("link" => "settings", "title" => "Settings", "access" => 2),
+				array("link" => "foundry/install", "title" => "Install Package", "access" => 2),
+			)),
+			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
+				array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
+				array("link" => "payment-gateway", "title" => "Payment Gateway", "access" => 2)
+			))
 		))
 	);
 	
@@ -73,7 +77,7 @@
 				<div></div>
 				<p class="messages"><span></span><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
-				<p class="welcome"><span></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
+				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 14)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site">View Site</a>
 			</section>

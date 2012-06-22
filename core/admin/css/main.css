@@ -28,10 +28,10 @@
 	/* Hack To Stop WebKit From Styling input[type=search] */
 	input[type=search] { -webkit-appearance: textfield; -webkit-box-sizing: content-box; }
 	input::-webkit-search-decoration, input::-webkit-search-cancel-button { display: none; }
-
+	
 	h1 { color: #333; font-size: 30px; font-weight: normal; height: 30px; line-height: 34px; margin: 0 0 15px 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h1 span { background: url(../images/h1-icons.png) no-repeat; float: left; height: 31px; margin: 0 10px 0 0; }
-	h1 .dashboard { background-position: -256px 0px; width: 30px; }
+	h1 .dashboard { background-position: 1px 0px; width: 29px; }
 	h1 .home { background-position: -28px 0px; width: 22px; }
 	h1 .add_page { background-position: -371px 0px; width: 27px; }
 	h1 .modules { background-position: -72px -1px; width: 24px; }
@@ -39,18 +39,18 @@
 	h1 .crop { background-position: -145px 0px; width: 30px; }
 	h1 .users { background-position: -175px 0px; width: 25px; }
 	h1 .settings { background-position: -200px 0px; width: 28px; }
-	h1 .developer { background-position: -228px -1px; width: 27px; }
+	h1 .developer { background-position: -227px -1px; width: 30px; }
 	h1 .page { background-position: -27px -31px; width: 26px; }
-	h1 .page_404 { background-position: -345px 0px; width: 28px; }
+	h1 .page_404 { background-position: -170px -31px; width: 32px; }
 	h1 .analytics { background-position: -287px 0px; width: 28px; }
 	h1 .integrity { background-position: -315px 0px; width: 30px; }
 	h1 .refresh { background-position: -427px 0px; width: 28px; }
 	h1 .move { background-position: -455px 0px; width: 28px; }
 	h1 .error { background-position: -345px 0px; width: 28px; }
-	h1 .messages { background-position: -483px 0px; width: 26px; }
+	h1 .messages { background-position: -481px 0px; width: 29px; }
 	h1 .add_message { background-position: 0px -31px; width: 27px; }
 	h1 .reply_message { background-position: -54px -31px; width: 28px; }
-	h1 .vitals { background-position: -83px -32px; width: 28px; }
+	h1 .vitals { background-position: -82px -33px; width: 29px; }
 	h1 .package { background-position: -112px -32px; width: 26px; }
 	h1 .pending { background-position: -140px -32px; width: 30px; }
 
@@ -82,7 +82,7 @@
 	hr { background: #CCC; border: none; box-shadow: 0px 1px #FFF; height: 1px; margin: 20px 0; opacity: 0.5; }
 
 /* Form Styles */
-	fieldset { margin: 0 0 15px 0; overflow: hidden; }
+	fieldset { margin: 0 0 15px 0; overflow: hidden; position: relative; }
 	fieldset:last-child { margin: 0; }
 	fieldset p { user-select: none; }
 
@@ -234,7 +234,7 @@
 	header.main .logout:hover { color: #fff; }
 	header.main .logout span { background: url(../images/header-icons.png) -8px 0px; display: block; float: left; height: 10px; margin: 0 5px 0 0; width: 8px; }
 	header.main p { color: #FFF; float: right; font-size: 11px; height: 11px; line-height: 11px; margin: 22px 0; text-shadow: 0 1px 0 #000; }
-	header.main p span { background: url(../images/header-icons.png); display: block; float: left; height: 10px; margin: 0 5px 0 0; width: 8px; }
+	/* header.main p span { background: url(../images/header-icons.png); display: block; float: left; height: 10px; margin: 0 5px 0 0; width: 8px; } */
 	header.main p.messages span { background-position: -28px 0px; width: 12px; }
 	header.main p a { color: #72BFEE; }
 	header.main p.messages a { color: #FFF; }
@@ -521,7 +521,7 @@
 
 	.table .site_status_message { padding: 0 0 0 20px; text-align: left; width: 300px; }
 	.table .site_status_action { text-align: left; width: 563px; }
-	.table .site_status_status { color: #FFF; width: 75px; }
+	.table .site_status_status { color: #FFF; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 75px; }
 	.table .site_status_status.good { background: green; }
 	.table .site_status_status.ok { background: orange; }
 	.table .site_status_status.bad { background: red; }
@@ -632,7 +632,7 @@
 	.analytics_columns li .value { color: #333; display: block; font-size: 13px; margin: 0; padding: 0 0 0 10px; }
 	.analytics_columns li:last-child { margin-right: 0; width: 306px; }
 
-	.graph { display: block; margin: 0 0 0 -1px; overflow: hidden; text-align: center; width: 919px; }
+	.graph { display: block; margin: 0 0 0 -1px; overflow: hidden; padding: 0 0 0 1px; text-align: center; width: 919px; }
 	.graph .bar { background: url(../images/graph-bg.png); box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
 	.graph .bar.first { margin-left: 0; }
 	.graph .bar.last { margin-right: 0; }
@@ -679,7 +679,7 @@
 /* Message Center */
 	.alert .message_from { float: left; width: 220px; }
 	.alert .message_to { float: left; width: 678px; }
-	.alert .message_from label, .alert .message_to label { color: #999; display: block; font-size: 10px; margin: 0 0 5px 0; text-shadow: 0px -1px 0 rgba(255,255,255,0.75); text-transform: uppercase; }
+	.alert .message_from label, .alert .message_to label { color: #999; display: block; font-size: 10px; margin: 2px 0 5px 0; text-shadow: 0px -1px 0 rgba(255,255,255,0.75); text-transform: uppercase; }
 	.alert .message_from p, .alert .message_to p { color: #666; font-size: 13px; line-height: 13px; margin: 0; }
 
 /* Users Stuff */
@@ -1072,8 +1072,8 @@
 	.icon_small_refresh { background-position: -80px 0px; }
 	.icon_small_edit { background-position: -96px 0px; }
 	.icon_small_sign { background-position: -112px 0px; }
-	.icon_small_ignored { background-position: -128px 0px; }
-	.icon_small_error { background-position: -144px 0px; }
+	.icon_small_ignored { background-position: -129px 0px; width: 14px; }
+	.icon_small_error { background-position: -143px 0px; }
 	.icon_small_world { background-position: -160px 0px; }
 	.icon_small_server { background-position: -176px 0px; }
 	.icon_small_clock { background-position: -192px 0px; }
@@ -1101,17 +1101,18 @@
 	.icon_developer_field_types { background: url(../images/developer-icons-sprite.png) no-repeat -128px 0px; display: inline-block; height: 32px; width: 32px; }
 	.icon_developer_callouts { background: url(../images/developer-icons-sprite.png) no-repeat -96px 0px; display: inline-block; height: 32px; width: 32px; }
 	.icon_developer_settings { background: url(../images/developer-icons-sprite.png) no-repeat -160px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_feeds { background: url(../images/developer-icons-sprite.png) no-repeat -192px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_upload_service { background: url(../images/developer-icons-sprite.png) no-repeat -224px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_upload_local { background: url(../images/developer-icons-sprite.png) no-repeat -320px 1px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_upload_rackspace { background: url(../images/developer-icons-sprite.png) no-repeat -256px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_upload_amazon { background: url(../images/developer-icons-sprite.png) no-repeat -288px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_package { background: url(../images/developer-icons-sprite.png) no-repeat -349px 2px; display: inline-block; height: 32px; width: 30px; }
-	.icon_developer_payment_linkpoint { background: url(../images/developer-icons-sprite.png) no-repeat -400px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_payment_paypal { background: url(../images/developer-icons-sprite.png) no-repeat -432px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_payment_payflow { background: url(../images/developer-icons-sprite.png) no-repeat -464px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_payment_authorize { background: url(../images/developer-icons-sprite.png) no-repeat -496px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_feeds { background: url(../images/developer-icons-sprite.png) no-repeat -192px 0px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_upload_service { background: url(../images/developer-icons-sprite.png) no-repeat -224px 0px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_upload_local { background: url(../images/developer-icons-sprite.png) no-repeat -318px -2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_upload_rackspace { background: url(../images/developer-icons-sprite.png) no-repeat -255px -2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_upload_amazon { background: url(../images/developer-icons-sprite.png) no-repeat -288px -2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_package { background: url(../images/developer-icons-sprite.png) no-repeat -349px 2px; display: inline-block; height: 32px; width: 29px; }
+	.icon_developer_payment_linkpoint { background: url(../images/developer-icons-sprite.png) no-repeat -404px -2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_payment_paypal { background: url(../images/developer-icons-sprite.png) no-repeat -433px -2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_payment_payflow { background: url(../images/developer-icons-sprite.png) no-repeat -464px -2px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_payment_authorize { background: url(../images/developer-icons-sprite.png) no-repeat -496px -2px; display: inline-block; height: 32px; width: 30px; }
 	.icon_developer_payment_gateway { background: url(../images/developer-icons-sprite.png) no-repeat -528px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_site_status { background: url(../images/developer-icons-sprite.png) no-repeat -558px 0px; display: inline-block; height: 32px; width: 23px; }
 	
 	.developer .box_select span.icon_developer_templates { margin: 2px 0 8px; }
 	.developer .box_select span.icon_developer_modules { margin: 3px 0 7px; }
@@ -1124,7 +1125,7 @@
 	.developer .box_select span.icon_developer_upload_amazon { margin: 2px 0 8px; }
 	
 	.icon_vitals_analytics { background: url("../images/h1-icons.png") no-repeat -286px 0; display: inline-block; height: 32px; margin: 4px 0 6px; width: 29px; }
-	.icon_vitals_404 { background: url("../images/h1-icons.png") no-repeat -345px 0; display: inline-block; height: 32px; margin: 4px 0 6px; width: 27px; }
+	.icon_vitals_404 { background: url("../images/h1-icons.png") no-repeat -170px -31px; display: inline-block; height: 32px; margin: 4px 0 6px; width: 32px; }
 	.icon_vitals_integrity { background: url("../images/h1-icons.png") no-repeat -315px 0; display: inline-block; height: 32px; margin: 4px 0 6px; width: 30px; }
 	
 
@@ -1250,7 +1251,7 @@
 	.tooltip_left .arrow { background-position: -52px 0; float: right; height: 21px; margin: 18px 0 0 0; width: 10px; }
 	
 /* Groups */
-	.jump_group { display: inline-block; position: relative; }
+	.jump_group { display: inline-block; position: relative; z-index: 1; }
 	.jump_group .icon { background: #DADADA url(../images/icon-grouper.png) no-repeat top center; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; display: block; height: 19px; width: 19px; }
 	.jump_group .dropdown { background: #DADADA url(../images/toolbar-bg.png) repeat-x top left; border: 1px solid #ccc; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); color: #FFF; display: none; left: 0; min-width: 150px; padding: 5px; position: absolute; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); top: 0; }
 	.jump_group:hover .dropdown { display: block; }
@@ -1258,6 +1259,17 @@
 	.jump_group .dropdown a { background: transparent; border-radius: 3px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0); color: #333; display: block; font-size: 12px; line-height: 16px; margin: 0 0 1px; padding: 4px 7px; text-shadow: 0px 1px 0 rgba(255, 255, 255, 0.5); transition: background-color 0.2s, box-shadow 0.2s; }
 	.jump_group .dropdown a:hover { background: #eee; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1); }
 	
+/* Gravatar */
+	.bigtree .gravatar { background: #fff; border: 1px solid #ccc; border-radius: 2px; display: block; float: left; height: auto; margin-right: 10px; margin-top: 0; padding: 3px; width: auto; }
+	.bigtree .gravatar img { float: left; margin: 0; width: 28px; }
+	.bigtree h1 .gravatar { margin-top: -3px; }
+	.bigtree header.main .gravatar { border-color: #999; box-shadow: 0 0 3px #000; margin: -3px 7px 0 0; overflow: hidden; padding: 0; }
+	.bigtree header.main .gravatar img { width: 14px; }
+	.bigtree .table .gravatar { padding: 2px; margin: 5px 10px 0 0; }
+	.bigtree .table .gravatar img { width: 18px; }
+	.bigtree .table .active .gravatar { border-color: #335B77; }
+	.bigtree fieldset .gravatar { border-color: #DEDEDE; bottom: 4px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); display: none; padding: 2px; position: absolute; right: -6px; }
+	.bigtree fieldset .gravatar img { width: 18px; }
 
 /*---------------------------
 	Module Packager Styles

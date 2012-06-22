@@ -24,8 +24,9 @@
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
-					<label class="required">Email<? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use</span><? } ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
+					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
@@ -67,4 +68,11 @@
 </div>
 <script type="text/javascript">
 	new BigTreeFormValidator("form.module");
+	
+	$(document).ready(function() {
+		$("input.email").blur(function() {
+			var email = md5($(this).val().trim());
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=18&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+		});
+	});
 </script>
