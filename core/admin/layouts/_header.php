@@ -25,17 +25,17 @@
 		array("link" => "settings", "title" => "Settings", "access" => 1),
 		array("link" => "developer", "title" => "Developer", "access" => 2, "children" => array(
 			array("link" => "", "title" => "Create", "access" => 2, "group" => true, "children" => array(
-				array("link" => "templates", "title" => "Templates", "access" => 2),
-				array("link" => "modules", "title" => "Modules", "access" => 2),
-				array("link" => "callouts", "title" => "Callouts", "access" => 2),
-				array("link" => "field-types", "title" => "Field Types", "access" => 2),
-				array("link" => "feeds", "title" => "Feeds", "access" => 2),
-				array("link" => "settings", "title" => "Settings", "access" => 2),
-				array("link" => "foundry/install", "title" => "Install Package", "access" => 2),
+				array("link" => "developer/templates", "title" => "Templates", "access" => 2),
+				array("link" => "developer/modules", "title" => "Modules", "access" => 2),
+				array("link" => "developer/callouts", "title" => "Callouts", "access" => 2),
+				array("link" => "developer/field-types", "title" => "Field Types", "access" => 2),
+				array("link" => "developer/feeds", "title" => "Feeds", "access" => 2),
+				array("link" => "developer/settings", "title" => "Settings", "access" => 2),
+				array("link" => "developer/foundry/install", "title" => "Install Package", "access" => 2),
 			)),
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
-				array("link" => "upload-service", "title" => "Upload Service", "access" => 2),
-				array("link" => "payment-gateway", "title" => "Payment Gateway", "access" => 2)
+				array("link" => "developer/upload-service", "title" => "Upload Service", "access" => 2),
+				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2)
 			))
 		))
 	);
