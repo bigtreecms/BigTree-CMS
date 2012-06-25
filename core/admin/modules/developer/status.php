@@ -7,7 +7,7 @@
 	//!BigTree Warnings
 	
 	// Check for Google Analytics
-	$content = file_get_contents(WWW_ROOT);
+	$content = @file_get_contents(WWW_ROOT);
 	if (strpos($content,"google-analytics.com/ga.js") === false) {
 		$warnings[] = array(
 			"parameter" => "Google Analytics",

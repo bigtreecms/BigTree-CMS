@@ -35,7 +35,8 @@
 			)),
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
 				array("link" => "developer/upload-service", "title" => "Upload Service", "access" => 2),
-				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2)
+				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
+				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1)
 			))
 		))
 	);
