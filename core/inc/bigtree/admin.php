@@ -72,11 +72,14 @@
 		
 		function __construct() {
 			if (isset($_SESSION["bigtree"]["email"])) {
-				$this->ID = $_SESSION["bigtree"]["id"];
-				$this->User = $_SESSION["bigtree"]["email"];
-				$this->Level = $_SESSION["bigtree"]["level"];
-				$this->Name = $_SESSION["bigtree"]["name"];
-				$this->Permissions = $_SESSION["bigtree"]["permissions"];
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '" . $_SESSION["bigtree"]["email"] . "'"));
+				if ($f) {
+					$this->ID = $_SESSION["bigtree"]["id"];
+					$this->User = $_SESSION["bigtree"]["email"];
+					$this->Level = $_SESSION["bigtree"]["level"];
+					$this->Name = $_SESSION["bigtree"]["name"];
+					$this->Permissions = $_SESSION["bigtree"]["permissions"];
+				}
 			} elseif (isset($_COOKIE["bigtree"]["email"])) {
 				$user = mysql_escape_string($_COOKIE["bigtree"]["email"]);
 				$pass = mysql_escape_string($_COOKIE["bigtree"]["password"]);

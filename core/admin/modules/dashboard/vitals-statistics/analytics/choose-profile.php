@@ -26,9 +26,9 @@
 				<select name="profile">
 					<?
 						foreach ($accounts as $account => $profiles) {
-							foreach ($profiles as $profile) {
+							foreach ($profiles as $pro) {
 					?>
-					<option value="<?=$profile["id"]?>"><?=$account?> &mdash; <?=$profile["title"]?></option>
+					<option value="<?=$pro["id"]?>"<? if ($pro["id"] == $profile) ?>><?=$account?> &mdash; <?=$pro["title"]?></option>
 					<?
 							}
 						}

@@ -32,17 +32,17 @@
 	h1 { color: #333; font-size: 30px; font-weight: normal; height: 30px; line-height: 34px; margin: 0 0 15px 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h1 span { background: url(../images/h1-icons.png) no-repeat; float: left; height: 31px; margin: 0 10px 0 0; }
 	h1 .dashboard { background-position: 1px 0px; width: 29px; }
-	h1 .home { background-position: -28px 0px; width: 22px; }
+	h1 .home { background-position: -258px 0px; width: 27px; }
 	h1 .add_page { background-position: -371px 0px; width: 27px; }
-	h1 .modules { background-position: -72px -1px; width: 24px; }
+	h1 .modules { background-position: -202px -30px; width: 26px; }
 	h1 .edit_page { background-position: -397px 0px; width: 30px; }
 	h1 .crop { background-position: -145px 0px; width: 30px; }
-	h1 .users { background-position: -175px 0px; width: 25px; }
-	h1 .settings { background-position: -200px 0px; width: 28px; }
-	h1 .developer { background-position: -227px -1px; width: 30px; }
+	h1 .users { background-position: -175px 1px; width: 26px; }
+	h1 .settings { background-position: -202px 0px; width: 25px; }
+	h1 .developer { background-position: -228px 0; width: 28px; }
 	h1 .page { background-position: -27px -31px; width: 26px; }
 	h1 .page_404 { background-position: -170px -31px; width: 32px; }
-	h1 .analytics { background-position: -287px 0px; width: 28px; }
+	h1 .analytics { background-position: -287px 1px; width: 26px; }
 	h1 .integrity { background-position: -315px 0px; width: 30px; }
 	h1 .refresh { background-position: -427px 0px; width: 28px; }
 	h1 .move { background-position: -455px 0px; width: 28px; }
@@ -50,7 +50,7 @@
 	h1 .messages { background-position: -481px 0px; width: 29px; }
 	h1 .add_message { background-position: 0px -31px; width: 27px; }
 	h1 .reply_message { background-position: -54px -31px; width: 28px; }
-	h1 .vitals { background-position: -82px -33px; width: 29px; }
+	h1 .vitals { background-position: -83px -32px; width: 28px; }
 	h1 .package { background-position: -112px -32px; width: 26px; }
 	h1 .pending { background-position: -140px -32px; width: 30px; }
 
@@ -314,7 +314,7 @@
 	footer.main { background: #111; border-top: 3px solid #fff; box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.25); min-width: 960px; padding: 20px 0; user-select: none; }
 	footer.main section { margin: 0 auto; overflow: hidden; width: 960px; }
 	footer.main .bigtree { float: left; }
-	footer.main .bigtree .logo { background: url(../images/logo.png); display: block; float: left; height: 36px; margin: 0; width: 151px; }
+	footer.main .bigtree .logo { background: url(../images/logo.png); display: block; float: left; height: 36px; margin: 0 0 5px; width: 151px; }
 	footer.main .bigtree .links { float: left; padding: 14px 0 0 0; }
 	footer.main .bigtree .links a { color: #CCC; float: left; font-size: 12px; height: 12px; text-transform: uppercase; }
 	footer.main .bigtree .links a:hover { color: #FFF; }
@@ -1091,13 +1091,14 @@
 	.icon_small_calendar2 { background-position: -144px -16px; }
 	.icon_small_search { background-position: -160px -16px; }
 	.icon_small_search2 { background-position: -176px -16px; }
+	.icon_small_setup { background-position: -193px -16px; }
 	
 	a.button .icon_small_world { background-position: -160px 9px; }
 	a.button .icon_small_server { background-position: -176px 9px; }
 	
 /* Developer Icons */
-	.icon_developer_templates { background: url(../images/developer-icons-sprite.png) no-repeat 0px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_modules { background: url(../images/developer-icons-sprite.png) no-repeat -32px 0px; display: inline-block; height: 32px; width: 32px; }
+	.icon_developer_templates { background: url(../images/developer-icons-sprite.png) no-repeat -1px 0px; display: inline-block; height: 32px; width: 30px; }
+	.icon_developer_modules { background: url(../images/developer-icons-sprite.png) no-repeat -32px 0px; display: inline-block; height: 32px; width: 28px; }
 	.icon_developer_field_types { background: url(../images/developer-icons-sprite.png) no-repeat -128px 0px; display: inline-block; height: 32px; width: 32px; }
 	.icon_developer_callouts { background: url(../images/developer-icons-sprite.png) no-repeat -96px 0px; display: inline-block; height: 32px; width: 32px; }
 	.icon_developer_settings { background: url(../images/developer-icons-sprite.png) no-repeat -160px 0px; display: inline-block; height: 32px; width: 32px; }
