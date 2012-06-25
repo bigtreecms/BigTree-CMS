@@ -1401,10 +1401,12 @@ var BigTreeArrayOfItems = Class.extend({
 			} else if (f.type == "checkbox") {
 				html += '<input type="checkbox" name="' + f.key + '" />';
 			} else if (f.type == "date") {
-				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" />';
+				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" />';
+				html += '<div id="aoi_' + f.key + '_datepicker"></div>';
 				datepickers[datepickers.length] = "aoi_" + f.key;
 			} else if (f.type == "time") {
-				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" />';
+				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" />';
+				html += '<div id="aoi_' + f.key + '_timepicker"></div>';
 				timepickers[timepickers.length] = "aoi_" + f.key;
 			}
 			html += '</fieldset>';
@@ -1415,10 +1417,10 @@ var BigTreeArrayOfItems = Class.extend({
 			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
 		}
 		for (i = 0; i < datepickers.length; i++) {
-			html += '$("#' + datepickers[i] + '").datepicker({ durration: 200, showAnim: "slideDown" });';
+			html += '$("#' + datepickers[i] + '_datepicker").datepicker({ onSelect: function(dateText) { $("#' + datepickers[i] + '").val(dateText); } });';
 		}
 		for (i = 0; i < timepickers.length; i++) {
-			html += '$("#' + timepickers[i] + '").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });';
+			html += '$("#' + timepickers[i] + '_timepicker").timepicker({ ampm: true, hourGrid: 6,	minuteGrid: 10, onSelect: function(dateText) { $("#' + timepickers[i] + '").val(dateText); } });';
 		}
 		html += '</script>';
 		
@@ -1445,9 +1447,14 @@ var BigTreeArrayOfItems = Class.extend({
 		tinymces = [];
 		datepickers = [];
 		timepickers = [];
+		timepickervals = [];
 		for (field in this.options) {
 			f = this.options[field];
-			v = htmlspecialchars(data[f.key]);
+			if (data[f.key]) {
+				v = htmlspecialchars(data[f.key]);				
+			} else {
+				v = "";
+			}
 			html += '<fieldset><label>' + f.title + '</label>';
 			if (f.type == "text") {
 				html += '<input type="text" name="' + f.key + '" value="' + v + '" />';
@@ -1463,11 +1470,14 @@ var BigTreeArrayOfItems = Class.extend({
 					html += '<input type="checkbox" name="' + f.key + '" />';
 				}
 			} else if (f.type == "date") {
-				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" value="' + v + '" />';
+				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" value="' + v + '" />';
+				html += '<div id="aoi_' + f.key + '_datepicker"></div>';
 				datepickers[datepickers.length] = "aoi_" + f.key;
 			} else if (f.type == "time") {
-				html += '<input type="text" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" value="' + v + '" />';
+				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" value="' + v + '" />';
+				html += '<div id="aoi_' + f.key + '_timepicker"></div>';
 				timepickers[timepickers.length] = "aoi_" + f.key;
+				timepickervals[timepickervals.length] = v;
 			}
 			html += '</fieldset>';
 		}
@@ -1477,10 +1487,11 @@ var BigTreeArrayOfItems = Class.extend({
 			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
 		}
 		for (i = 0; i < datepickers.length; i++) {
-			html += '$("#' + datepickers[i] + '").datepicker({ duration: 200, showAnim: "slideDown" });';
+			html += '$("#' + datepickers[i] + '_datepicker").datepicker({ defaultDate: $("#' + datepickers[i] + '").val(), onSelect: function(dateText) { $("#' + datepickers[i] + '").val(dateText); } });';
 		}
 		for (i = 0; i < timepickers.length; i++) {
-			html += '$("#' + timepickers[i] + '").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });';
+			d = BigTree.ParseTime(timepickervals[i]);
+			html += '$("#' + timepickers[i] + '_timepicker").timepicker({ hour: ' + d.getHours() + ', minute: ' + d.getMinutes() + ', ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) { $("#' + timepickers[i] + '").val(dateText); } });';
 		}
 		html += '</script>';
 		
@@ -1965,6 +1976,22 @@ var BigTree = {
 		});
 		t.replaceAll(this);
 		t.focus();
+	},
+	
+	
+	// Thanks John Resig!
+	// http://stackoverflow.com/questions/141348/what-is-the-best-way-to-parse-a-time-into-a-date-object-from-user-input-in-javas
+	ParseTime: function(time) {
+		var d = new Date();
+		time = time.match(/(\d+)(?::(\d\d))?\s*(p?)/);
+		if (time) {
+			d.setHours(parseInt(time[1]) + (time[3] ? 12 : 0));
+			d.setMinutes(parseInt(time[2]) || 0);
+		} else {
+			d.setHours(0);
+			d.setMinutes(0);
+		}
+		return d;
 	},
 	
 	SetPageCount: function(selector,pages,current_page) {
