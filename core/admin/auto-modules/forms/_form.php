@@ -92,14 +92,14 @@
 		if (is_array($dates)) {
 			foreach ($dates as $id) {
 	?>
-	$("#<?=$id?>").datepicker({ durration: 200, showAnim: "slideDown" });
+	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
 	<?
 			}
 		}
 		if (is_array($times)) {
 			foreach ($times as $id) {
 	?>
-	$("#<?=$id?>").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<?
 			}
 		}

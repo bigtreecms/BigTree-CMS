@@ -137,11 +137,11 @@
 ?>
 <script type="text/javascript">
 	<? if (is_array($dates)) { foreach ($dates as $id) { ?>
-	$(document.getElementById("<?=$id?>")).datepicker({ durration: 200, showAnim: "slideDown" });
+	$(document.getElementById("<?=$id?>")).datepicker({ duration: 200, showAnim: "slideDown" });
 	<? } } ?>
 	
 	<? if (is_array($times)) { foreach ($times as $id) { ?>
-	$(document.getElementById("<?=$id?>")).timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$(document.getElementById("<?=$id?>")).timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<? } } ?>
 	
 	<? if (isset($_POST["template"])) { ?>
