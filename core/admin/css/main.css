@@ -82,7 +82,7 @@
 	hr { background: #CCC; border: none; box-shadow: 0px 1px #FFF; height: 1px; margin: 20px 0; opacity: 0.5; }
 
 /* Form Styles */
-	fieldset { margin: 0 0 15px 0; overflow: hidden; position: relative; }
+	fieldset { margin: 0 0 15px 0; overflow: hidden; }
 	fieldset:last-child { margin: 0; }
 	fieldset p { user-select: none; }
 
@@ -1113,7 +1113,8 @@
 	.icon_developer_payment_payflow { background: url(../images/developer-icons-sprite.png) no-repeat -464px -2px; display: inline-block; height: 32px; width: 30px; }
 	.icon_developer_payment_authorize { background: url(../images/developer-icons-sprite.png) no-repeat -496px -2px; display: inline-block; height: 32px; width: 30px; }
 	.icon_developer_payment_gateway { background: url(../images/developer-icons-sprite.png) no-repeat -528px 0px; display: inline-block; height: 32px; width: 32px; }
-	.icon_developer_site_status { background: url(../images/developer-icons-sprite.png) no-repeat -558px 0px; display: inline-block; height: 32px; width: 23px; }
+	.icon_developer_site_status { background: url(../images/developer-icons-sprite.png) no-repeat -558px 0px; display: inline-block; height: 32px; width: 22px; }
+	.icon_developer_analytics { background: url(../images/developer-icons-sprite.png) no-repeat -579px 0px; display: inline-block; height: 32px; width: 26px; }
 	
 	.developer .box_select span.icon_developer_templates { margin: 2px 0 8px; }
 	.developer .box_select span.icon_developer_modules { margin: 3px 0 7px; }

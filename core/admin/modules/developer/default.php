@@ -51,6 +51,10 @@
 			<span class="icon_developer_payment_gateway"></span>
 			<p>Payment Gateway</p>
 		</a>
+		<a class="box_select" href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/configure/">
+			<span class="icon_developer_analytics"></span>
+			<p>Analytics</p>
+		</a>
 		<a class="box_select" href="status/">
 			<span class="icon_developer_site_status"></span>
 			<p>Site Status</p>

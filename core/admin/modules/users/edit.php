@@ -101,7 +101,7 @@
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
-				<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
+				<fieldset<? if ($e) { ?> class="form_error"<? } ?> style="position: relative;">
 					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
 					<input type="text" class="required email" name="email" value="<?=$email?>" tabindex="1" />
 					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
