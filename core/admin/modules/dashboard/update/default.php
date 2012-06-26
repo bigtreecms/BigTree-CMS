@@ -158,5 +158,9 @@
 		// Remove uncached.
 		sqlquery("ALTER TABLE `bigtree_module_views` DROP COLUMN `uncached`");
 	}
-	
+	// BigTree 4.0b7 update -- REVISION 5
+	function _local_bigtree_update_5() {
+		// Adds the ability to set options on a setting.
+		sqlquery("ALTER TABLE `bigtree_settings` ADD COLUMN `options` text NOT NULL AFTER `type`");
+	}
 ?>

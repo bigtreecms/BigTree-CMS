@@ -1126,6 +1126,8 @@
 			
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = mysql_real_escape_string($data["description"]);
+			// We don't want this encoded since it's JSON
+			$options = mysql_real_escape_string($data["options"]);
 
 			// See if there's already a setting with this ID
 			$r = sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$id'"));
@@ -1133,7 +1135,7 @@
 				return false;
 			}
 
-			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`locked`,`encrypted`,`system`) VALUES ('$id','$name','$description','$type','$locked','$encrypted','$system')");
+			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`options`,`locked`,`encrypted`,`system`) VALUES ('$id','$name','$description','$type','$options','$locked','$encrypted','$system')");
 			// Audit trail.
 			$this->track("bigtree_settings",$id,"created");
 
@@ -5549,13 +5551,15 @@
 			
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = mysql_real_escape_string($data["description"]);
+			// We don't want this encoded since it's JSON
+			$options = mysql_real_escape_string($data["options"]);
 			
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && $this->settingExists($id)) {
 				return false;
 			}
 			
-			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
+			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', `options` = '$options', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
 
 			// If encryption status has changed, update the value
 			if ($existing["encrypted"] && !$encrypted) {

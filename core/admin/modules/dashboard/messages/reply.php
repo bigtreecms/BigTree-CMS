@@ -91,7 +91,7 @@
 	</form>
 </div>
 <?
-	$htmls = array("message");
+	$bigtree["html_fields"] = array("message");
 	include BigTree::path("admin/layouts/_tinymce.php");
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 ?>

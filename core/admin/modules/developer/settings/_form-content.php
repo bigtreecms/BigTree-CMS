@@ -14,11 +14,12 @@
 	<div class="right">
 		<fieldset>
 			<label class="required">Type</label>
-			<select name="type">
+			<select name="type" id="settings_type">
 				<? foreach ($types as $k => $v) { ?>
 				<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v?></option>
 				<? } ?>
-			</select>
+			</select> &nbsp; <a class="icon_settings" href="#"></a>
+			<input type="hidden" name="options" value="<?=$options?>" id="options_settings" />
 		</fieldset>
 		<fieldset>
 			 <input type="checkbox" name="locked"<? if ($locked) { ?> checked="checked"<? } ?> />
@@ -35,3 +36,14 @@
 		<textarea name="description" id="setting_description"><?=$description?></textarea>
 	</fieldset>
 </section>
+<script type="text/javascript">
+	$(".icon_settings").live("click",function() {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
+			new BigTreeDialog("Settings Options",response.responseText,function(data) {
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + "settings", { type: "POST", data: data });
+			});
+		}});
+		
+		return false;
+	});
+</script>

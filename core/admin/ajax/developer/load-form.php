@@ -96,7 +96,6 @@
 		<span class="developer_resource_form_title">Title</span>
 		<span class="developer_resource_form_subtitle">Subtitle</span>
 		<span class="developer_resource_type">Type</span>
-		<span class="developer_resource_action">Edit</span>
 		<span class="developer_resource_action">Delete</span>
 	</div>
 	<ul id="resource_table">
@@ -135,9 +134,7 @@
 				<?
 					}
 				?>
-			</section>
-			<section class="developer_resource_action">
-				<a href="#" class="options icon_edit" name="<?=$key?>"></a>
+				<a href="#" class="options icon_settings" name="<?=$key?>"></a>
 				<input type="hidden" name="options[<?=$key?>]" value="<?=htmlspecialchars(json_encode($field))?>" id="options_<?=$key?>" />
 			</section>
 			<section class="developer_resource_action">
@@ -164,7 +161,7 @@
 	var current_editing_key;
 	var mtm_count = <?=$mtm_count?>;
 	
-	$(".icon_edit").live("click",function() {
+	$(".icon_settings").live("click",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		

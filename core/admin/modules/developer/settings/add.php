@@ -30,7 +30,7 @@
 	new BigTreeFormValidator("form.module");
 </script>
 <?
-	$htmls = array("setting_description");
+	$bigtree["html_fields"] = array("setting_description");
 	include BigTree::path("admin/layouts/_tinymce.php");
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 	

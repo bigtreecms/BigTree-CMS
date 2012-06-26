@@ -42,8 +42,10 @@
 		$template = $cms->getTemplate($pdata["template"]);
 		$resources = $cms->decodeResources($pdata["resources"]);
 			
-		$htmls = array();
-		$simplehtmls = array();
+		$bigtree["html_fields"] = array();
+		$bigtree["simple_html_fields"] = array();
+		$bigtree["timepickers"] = array();
+		$bigtree["datepickers"] = array();
 		$tabindex = 1;
 ?>
 <html>

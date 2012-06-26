@@ -13,30 +13,38 @@
 <h1><span class="settings"></span>Edit Setting</h1>
 <? include BigTree::path("admin/layouts/_tinymce.php"); ?>
 <div class="form_container">
-	<header>
-		<h2><?=$item["name"]?></h2>
-	</header>
 	<? if ($item["encrypted"]) { ?>
-	<aside>This setting is encrypted.  The current value cannot be shown.</aside>
+	<header><p>This setting is encrypted.  The current value cannot be shown.</p></header>
 	<? } ?>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
+				// Draw the setting description
+				echo $item["description"];
+				
+				// Setup field related nonsense.
 				$bigtree["datepickers"] = array();
 				$bigtree["timepickers"] = array();
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
 				
-				echo $item["description"];
+				$options = json_decode($item["options"],true);
+				// Setup Validation Classes
+				$label_validation_class = "";
+				$input_validation_class = "";
+				if (isset($options["validation"]) && $options["validation"]) {
+				    if (strpos($options["validation"],"required") !== false) {
+				    	$label_validation_class = ' class="required"';
+				    }
+				    $input_validation_class = ' class="'.$options["validation"].'"';
+				}
 				
-				$t = $item["type"];
-				$title = "";
+				$title = $item["name"];
 				$value = $item["value"];
 				$key = $item["id"];
-				$input_validation_class = "";
 				
-				include BigTree::path("admin/form-field-types/draw/".$t.".php");
+				include BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
 			?>
 		</section>
 		<footer>
@@ -58,9 +66,10 @@
 		}
 	}
 	
-	if (count($bigtree["datepickers"]) || count($bigtree["timepickers"])) {
 ?>
 <script type="text/javascript">
+	new BigTreeFormValidator("form.module");
+	
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>
@@ -75,6 +84,3 @@
 		}
 	?>
 </script>
-<?
-	}
-?>
