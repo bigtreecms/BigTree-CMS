@@ -7,16 +7,13 @@
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<?
-				$htmls = array();
-				$simplehtmls = array();
-				$dates = array();
-				$times = array();
-				$validators = array();
+				$bigtree["datepickers"] = array();
+				$bigtree["timepickers"] = array();
+				$bigtree["html_fields"] = array();
+				$bigtree["simple_html_fields"] = array();
+				
 				$tabindex = 1;
-
-				$fields = $form["fields"];
-			
-				foreach ($fields as $key => $options) {
+				foreach ($form["fields"] as $key => $options) {
 					if (is_array($options)) {
 						$type = $options["type"];
 						$title = $options["title"];
@@ -76,32 +73,29 @@
 	</form>
 </div>
 <?
-	if (count($htmls) || count($simplehtmls)) {
+	if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce.php"); 
 
-		if (count($htmls)) {
+		if (count($bigtree["html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific.php");
 		}
-		if (count($simplehtmls)) {
+		if (count($bigtree["simple_html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 		}
 	}
 ?>
 <script type="text/javascript">
 	<?
-		if (is_array($dates)) {
-			foreach ($dates as $id) {
+		foreach ($bigtree["datepickers"] as $id) {
 	?>
-	$("#<?=$id?>").datepicker({ durration: 200, showAnim: "slideDown" });
+	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
 	<?
-			}
 		}
-		if (is_array($times)) {
-			foreach ($times as $id) {
+
+		foreach ($bigtree["timepickers"] as $id) {
 	?>
-	$("#<?=$id?>").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<?
-			}
 		}
 	?>
 	

@@ -22,10 +22,10 @@
 		$image = ADMIN_ROOT."images/templates/".$tdata["image"];
 	}
 	
-	$dates = array();
-	$times = array();
-	$htmls = array();
-	$simplehtmls = array();
+	$bigtree["datepickers"] = array();
+	$bigtree["timepickers"] = array();
+	$bigtree["html_fields"] = array();
+	$bigtree["simple_html_fields"] = array();
 ?>
 <div class="alert template_message">
 	<img src="<?=$image?>" alt="" />
@@ -71,10 +71,10 @@
 	$mce_width = 898;
 	$mce_height = 365;
 	
-	if (count($htmls)) {
+	if (count($bigtree["html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific.php");
 	}
-	if (count($simplehtmls)) {
+	if (count($bigtree["simple_html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 	}
 	
@@ -136,15 +136,23 @@
 	}
 ?>
 <script type="text/javascript">
-	<? if (is_array($dates)) { foreach ($dates as $id) { ?>
-	$(document.getElementById("<?=$id?>")).datepicker({ durration: 200, showAnim: "slideDown" });
-	<? } } ?>
-	
-	<? if (is_array($times)) { foreach ($times as $id) { ?>
-	$(document.getElementById("<?=$id?>")).timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
-	<? } } ?>
-	
-	<? if (isset($_POST["template"])) { ?>
+	<?
+		foreach ($bigtree["datepickers"] as $id) {
+	?>
+	$(document.getElementById("<?=$id?>")).datepicker({ duration: 200, showAnim: "slideDown" });
+	<?
+		}
+		
+		foreach ($bigtree["timepickers"] as $id) {
+	?>
+	$(document.getElementById("<?=$id?>")).timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	<?
+		}
+		
+		if (isset($_POST["template"])) {
+	?>
 	BigTreeCustomControls();
-	<? } ?>
+	<?
+		}
+	?>
 </script>

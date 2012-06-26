@@ -32,6 +32,15 @@
 	
 	$tabindex = 1000;
 	
+	// Let field types know we're drawing callout resources.
+	$bigtree["in_callout"] = true;
+	$bigtree["datepickers"] = array();
+	$bigtree["datepicker_values"] = array();
+	$bigtree["timepickers"] = array();
+	$bigtree["timepicker_values"] = array();
+	$bigtree["html_fields"] = array();
+	$bigtree["simple_html_fields"] = array();
+	
 	if (count($callout["resources"])) {
 		foreach ($callout["resources"] as $options) {
 			$key = "callouts[$count][".$options["id"]."]";
@@ -68,15 +77,39 @@
 		tiny.src = "<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js";
 		$("body").append(tiny);
 	}
+	
+	<?
+		foreach ($bigtree["timepickers"] as $id) {
+			if ($bigtree["timepicker_values"][$id]) {
+				$time = strtotime($bigtree["timepicker_values"][$id]);
+			} else {
+				$time = strtotime("January 1, 2011 12:00am");
+			}
+	?>
+	$("#<?=$id?>").timepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
+	<?
+		}
+		
+		foreach ($bigtree["datepickers"] as $id) {
+			if ($bigtree["datepicker_values"][$id]) {
+				$date = date("m/d/Y",strtotime($bigtree["datepicker_values"][$id]));
+			} else {
+				$date = date("m/d/Y");
+			}
+	?>
+	$("#<?=$id?>").datepicker({ defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
+	<?
+		}
+	?>
 </script>
 <?
 	$mce_width = 400;
 	$mce_height = 150;
 	
-	if (count($htmls)) {
+	if (count($bigtree["html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific.php");
 	}
-	if (count($simplehtmls)) {
+	if (count($bigtree["simple_html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 	}
 ?>

@@ -8,7 +8,7 @@
   		inlinepopups_skin: "BigTreeModal",
 		theme: "advanced",
 		mode: "exact",
-		elements: "<?=implode(",",$simplehtmls)?>",
+		elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
 		file_browser_callback: "BigTreeFileManager.tinyMCEOpen",
 		plugins: "inlinepopups,paste",
 		theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code",

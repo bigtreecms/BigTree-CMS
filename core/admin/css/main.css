@@ -1211,6 +1211,7 @@
 	
 	.ui-datepicker .ui-datepicker-buttonpane button { background: #BBBBBB url("../images/button-bg.png") repeat-x 0 0; border: 1px solid #ddd; border-radius: 2px; text-shadow: 0 1px 0 rgba(255, 255, 255, 1); }
 	.ui-datepicker .ui-timepicker-div table { border: none; color: #ccc; margin: 4px 0 5px; text-transform: uppercase; }
+	.bigtree_dialog_form .ui-datepicker-close { display: none; }
 	
 /* SLIDER */
 	.ui-slider { position: relative; text-align: left; }

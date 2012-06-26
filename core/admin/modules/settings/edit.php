@@ -23,10 +23,10 @@
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
-				$htmls = array();
-				$simplehtmls = array();
-				$dates = array();
-				$times = array();
+				$bigtree["datepickers"] = array();
+				$bigtree["timepickers"] = array();
+				$bigtree["html_fields"] = array();
+				$bigtree["simple_html_fields"] = array();
 				
 				echo $item["description"];
 				
@@ -45,32 +45,32 @@
 	</form>
 </div>
 <?
-	if (count($htmls) || count($simplehtmls)) {
+	if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
 		$mce_width = 898;
 		$mce_height = 365;
 		include BigTree::path("admin/layouts/_tinymce.php"); 
 				
-		if (count($htmls)) {
+		if (count($bigtree["html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific.php");
 		}
-		if (count($simplehtmls)) {
+		if (count($bigtree["simple_html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 		}
 	}
 	
-	if (count($dates) || count($times)) {
+	if (count($bigtree["datepickers"]) || count($bigtree["timepickers"])) {
 ?>
 <script type="text/javascript">
 	<?
-		foreach ($dates as $id) {
+		foreach ($bigtree["datepickers"] as $id) {
 	?>
-	$("#<?=$id?>").datepicker({ durration: 200, showAnim: "slideDown" });
+	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
 	<?
 		}
 
-		foreach ($times as $id) {
+		foreach ($bigtree["timepickers"] as $id) {
 	?>
-	$("#<?=$id?>").timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<?
 		}
 	?>
