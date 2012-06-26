@@ -246,15 +246,17 @@ var BigTreeSelect = Class.extend({
 			
 			if (i == 0) {
 				selected = op.text;
-				html += '<span>' + op.text + '</span><datalist style="display: none;">';
+				html += '<span>' + op.text + '</span><div class="select_options" style="display: none;">';
 			}
-			html += '<data value="' + op.value + '">' + op.text + '</data>';
-			
+
 			if (op.selected) {
+				html += '<a class="active" href="#" data-value="' + op.value + '">' + op.text + '</a>';		
 				selected = op.text;
+			} else {
+				html += '<a href="#" data-value="' + op.value + '">' + op.text + '</a>';
 			}
 		}
-		html += '</datalist>';
+		html += '</div>';
 		div.html(html);
 		
 		spanwidth = maxwidth;
@@ -267,8 +269,8 @@ var BigTreeSelect = Class.extend({
 		}
 		
 		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected).click($.proxy(this.click,this));
-		div.find("datalist").css({ width: (maxwidth + 54) + "px" });
-		div.find("data").click($.proxy(this.select,this));
+		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
+		div.find("a").click($.proxy(this.select,this));
 		
 		$(element).after(div);
 		
@@ -377,7 +379,7 @@ var BigTreeSelect = Class.extend({
 		}
 		
 		if (!this.Open) {
-			dList = this.Container.find("datalist");
+			dList = this.Container.find(".select_options");
 			this.Open = true;
 			dList.show();
 			this.Container.addClass("open");
@@ -394,7 +396,7 @@ var BigTreeSelect = Class.extend({
 		} else {
 			this.Open = false;
 			this.Container.removeClass("open");
-			this.Container.find("datalist").hide();
+			this.Container.find(".select_options").hide();
 			$("body").unbind("click",this.BoundWindowClick);
 		}
 
@@ -404,7 +406,7 @@ var BigTreeSelect = Class.extend({
 	close: function() {
 		this.Open = false;
 		this.Container.removeClass("open");
-		this.Container.find("datalist").hide();
+		this.Container.find(".select_options").hide();
 		$("body").unbind("click",this.BoundWindowClick);
 		
 		// Reset relative position if applicable
@@ -417,13 +419,16 @@ var BigTreeSelect = Class.extend({
 	},
 	
 	select: function(event) {
-		el = event.target;
-		this.Element.val(el.getAttribute("value"));
-		this.Container.find("span").html(el.innerHTML);
+		el = $(event.target);
+		this.Element.val(el.attr("data-value"));
+		this.Container.find("span").html(el.html());
+		this.Container.find("a").removeClass("active");
+		el.addClass("active");
 		$("body").unbind("click",this.BoundWindowClick);
 		this.close();
-		this.Element.trigger("changed", { value: el.getAttribute("value"), text: el.innerHTML });
-		this.Element.trigger("change", { value: el.getAttribute("value"), text: el.innerHTML });
+		this.Element.trigger("changed", { value: el.attr("data-value"), text: el.innerHTML });
+		this.Element.trigger("change", { value: el.attr("-datavalue"), text: el.innerHTML });
+		return false;
 	}
 });
 
@@ -1390,7 +1395,11 @@ var BigTreeArrayOfItems = Class.extend({
 		timepickers = [];
 		for (field in this.options) {
 			f = this.options[field];
-			html += '<fieldset><label>' + f.title + '</label>';
+			html += '<fieldset>';
+			if (f.type != "checkbox") {
+				html += '<label>' + f.title + '</label>';
+			}
+			
 			if (f.type == "text") {
 				html += '<input type="text" name="' + f.key + '" />';
 			} else if (f.type == "textarea") {
@@ -1400,6 +1409,7 @@ var BigTreeArrayOfItems = Class.extend({
 				tinymces[tinymces.length] = "aoi_" + f.key;
 			} else if (f.type == "checkbox") {
 				html += '<input type="checkbox" name="' + f.key + '" />';
+				html += '<label class="for_checkbox">' + f.title + '</label>';
 			} else if (f.type == "date") {
 				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" />';
 				html += '<div id="aoi_' + f.key + '_datepicker"></div>';
@@ -1422,7 +1432,7 @@ var BigTreeArrayOfItems = Class.extend({
 		for (i = 0; i < timepickers.length; i++) {
 			html += '$("#' + timepickers[i] + '_timepicker").timepicker({ ampm: true, hourGrid: 6,	minuteGrid: 10, onSelect: function(dateText) { $("#' + timepickers[i] + '").val(dateText); } });';
 		}
-		html += '</script>';
+		html += 'BigTreeCustomControls();</script>';
 		
 		new BigTreeDialog("Add Item",html,$.proxy(function(data) {
 			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
@@ -1455,7 +1465,11 @@ var BigTreeArrayOfItems = Class.extend({
 			} else {
 				v = "";
 			}
-			html += '<fieldset><label>' + f.title + '</label>';
+			html += '<fieldset>';
+			if (f.type != "checkbox") {
+				html += '<label>' + f.title + '</label>';
+			}
+			
 			if (f.type == "text") {
 				html += '<input type="text" name="' + f.key + '" value="' + v + '" />';
 			} else if (f.type == "textarea") {
@@ -1469,6 +1483,7 @@ var BigTreeArrayOfItems = Class.extend({
 				} else {
 					html += '<input type="checkbox" name="' + f.key + '" />';
 				}
+				html += '<label class="for_checkbox">' + f.title + '</label>';
 			} else if (f.type == "date") {
 				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" value="' + v + '" />';
 				html += '<div id="aoi_' + f.key + '_datepicker"></div>';
@@ -1493,7 +1508,7 @@ var BigTreeArrayOfItems = Class.extend({
 			d = BigTree.ParseTime(timepickervals[i]);
 			html += '$("#' + timepickers[i] + '_timepicker").timepicker({ hour: ' + d.getHours() + ', minute: ' + d.getMinutes() + ', ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) { $("#' + timepickers[i] + '").val(dateText); } });';
 		}
-		html += '</script>';
+		html += 'BigTreeCustomControls();</script>';
 		
 		this.activeField = $(ev.target).parents("li");
 		
@@ -1979,14 +1994,14 @@ var BigTree = {
 	},
 	
 	
-	// Thanks John Resig!
+	// Thanks to John Resig and Benji York
 	// http://stackoverflow.com/questions/141348/what-is-the-best-way-to-parse-a-time-into-a-date-object-from-user-input-in-javas
 	ParseTime: function(time) {
 		var d = new Date();
-		time = time.match(/(\d+)(?::(\d\d))?\s*(p?)/);
+		time = time.match(/(\d+)(?::(\d\d))?\s*([pP]?)/);
 		if (time) {
-			d.setHours(parseInt(time[1]) + (time[3] ? 12 : 0));
-			d.setMinutes(parseInt(time[2]) || 0);
+			d.setHours(parseInt(time[1],10) + (time[3] ? 12 : 0));
+			d.setMinutes(parseInt(time[2],10) || 0);
 		} else {
 			d.setHours(0);
 			d.setMinutes(0);
