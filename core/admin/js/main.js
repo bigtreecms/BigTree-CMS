@@ -427,7 +427,7 @@ var BigTreeSelect = Class.extend({
 		$("body").unbind("click",this.BoundWindowClick);
 		this.close();
 		this.Element.trigger("changed", { value: el.attr("data-value"), text: el.innerHTML });
-		this.Element.trigger("change", { value: el.attr("-datavalue"), text: el.innerHTML });
+		this.Element.trigger("change", { value: el.attr("data-value"), text: el.innerHTML });
 		return false;
 	}
 });
