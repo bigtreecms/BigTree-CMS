@@ -1,9 +1,9 @@
 <?
 	$admin->requireLevel(2);
 	$breadcrumb[] = array("link" => "users/tokens/","title" => "API Tokens");
-	include BigTree::path("admin/modules/users/_nav.php");
 ?>
 <h1><span class="users"></span>API Tokens</h1>
+<? include BigTree::path("admin/modules/users/_nav.php") ?>
 
 <div class="table">
 	<summary>

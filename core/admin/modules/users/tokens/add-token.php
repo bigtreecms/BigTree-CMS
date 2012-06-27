@@ -2,9 +2,9 @@
 	$breadcrumb[] = array("link" => "users/tokens/add-token/","title" => "Add API Token");
 	$admin->requireLevel(2);
 	$users = $admin->getUsers();
-	include BigTree::path("admin/modules/users/_nav.php");
 ?>
 <h1><span class="users"></span>Add API Token</h1>
+<? include BigTree::path("admin/modules/users/_nav.php") ?>
 <div class="form_container">
 	<form class="module" action="<?=$admin_root?>users/tokens/create/" method="post">
 		<section>
