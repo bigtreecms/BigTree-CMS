@@ -1,7 +1,7 @@
 <?
 	BigTree::globalizePOSTVars();
 
-	$id = end($path);
+	$id = end($bigtree["path"]);
 
 	if ($group_new) {
 		$group = $admin->createModuleGroup($group_new,"on");

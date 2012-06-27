@@ -1,5 +1,5 @@
 <? include "_header.php" ?>
 <div id="page" class="wonders">
-	<?=$content?>
+	<?=$bigtree["content"]?>
 </div>
 <? include "_footer.php" ?>

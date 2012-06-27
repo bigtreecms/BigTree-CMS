@@ -4,7 +4,7 @@
 </header>
 <nav class="grid_3 subnav">
 	<?
-		$currentPage = $GLOBALS['domain'].$_SERVER['REQUEST_URI'];
+		$currentPage = DOMAIN.$_SERVER['REQUEST_URI'];
 		$topLevel = $cms->getToplevelNavigationId();
 		$nav = $cms->getNavByParent($topLevel, 2);
 		recurseNav($nav, $currentPage);

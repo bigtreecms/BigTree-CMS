@@ -1,5 +1,5 @@
 <?
-	$parent = end($path);
+	$parent = end($bigtree["path"]);
 
 	$r = $admin->getPageAccessLevel($parent); 
 	if ($r == "p") {

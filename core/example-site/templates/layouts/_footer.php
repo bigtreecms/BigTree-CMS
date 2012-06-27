@@ -48,6 +48,6 @@
 				</div>
 			</div>
 		</footer>
-		<script src="<?=$www_root?>js/site.js"></script>
+		<script src="<?=WWW_ROOT?>js/site.js"></script>
 	</body>
 </html>

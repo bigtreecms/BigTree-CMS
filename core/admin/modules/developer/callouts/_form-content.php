@@ -4,7 +4,7 @@
 ?>
 <section>
 	<div class="left">
-		<? if (!$callout) { ?>
+		<? if (!isset($callout)) { ?>
 		<fieldset>
 			<label class="required">ID</label>
 			<input type="text" class="required" name="id" value="<?=$id?>" />

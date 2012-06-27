@@ -7,7 +7,7 @@
 	//!BigTree Warnings
 	
 	// Check for Google Analytics
-	$content = file_get_contents($www_root);
+	$content = @file_get_contents(WWW_ROOT);
 	if (strpos($content,"google-analytics.com/ga.js") === false) {
 		$warnings[] = array(
 			"parameter" => "Google Analytics",
@@ -30,10 +30,10 @@
 	foreach ($forms as $form) {
 		foreach ($form["fields"] as $key => $data) {
 			if ($data["directory"]) {
-				if (!BigTree::isDirectoryWritable($site_root.$data["directory"])) {
+				if (!BigTree::isDirectoryWritable(SITE_ROOT.$data["directory"])) {
 					$warnings[] = array(
 						"parameter" => "Directory Permissions Error",
-						"rec" => "Make ".$site_root.$data["directory"]." writable.",
+						"rec" => "Make ".SITE_ROOT.$data["directory"]." writable.",
 						"status" => "bad"
 					);
 				}
@@ -46,12 +46,12 @@
 	foreach ($bad as $f) {
 		$warnings[] = array(
 			"parameter" => "Bad Admin Links",
-			"rec" => 'Remove links to Admin on <a href="'.$admin_root.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
+			"rec" => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
 			"status" => "ok"
 		);
 	}
 	
-	if (!file_exists($site_root."favicon.ico")) {
+	if (!file_exists(SITE_ROOT."favicon.ico")) {
 		$warnings[] = array(
 			"parameter" => "Missing Favicon",
 			"rec" => "Create a favicon and place it in the /site/ root.",
@@ -93,7 +93,7 @@
 	
 	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
-<h1>Site Status</h1>
+<h1><span class="developer"></span>Site Status</h1>
 <p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 
 <div class="table">

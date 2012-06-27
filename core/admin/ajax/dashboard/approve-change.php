@@ -24,7 +24,12 @@
 
 	// This is an update to an existing entry.
 	if ($change["item_id"]) {
-		BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$changes["mtm_changes"],$changes["tags_changes"]);
+		if ($change["table"] == "bigtree_pages") {
+			$page_data = $admin->getPendingPage($change["item_id"]);
+			$admin->updatePage($change["item_id"],$page_data);
+		} else {
+			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$changes["mtm_changes"],$changes["tags_changes"]);
+		}
 	// It's a new entry, let's publish it.
 	} else {
 		if ($change["table"] == "bigtree_pages") {

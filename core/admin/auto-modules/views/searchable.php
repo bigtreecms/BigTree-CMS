@@ -5,6 +5,15 @@
 	$perm = $admin->checkAccess($m);
 	
 	$suffix = $suffix ? "-".$suffix : "";
+	
+	if (isset($options["sort_column"])) {
+	    $sort = $options["sort_column"]." ".$options["sort_direction"];
+	} elseif (isset($options["sort"])) {
+	    $sort = $options["sort"];
+	} else {
+	    $sort = "id DESC";
+	}
+	list($sort_column,$sort_direction) = explode(" ",$sort);
 ?>
 <div class="table auto_modules">
 	<summary>
@@ -17,21 +26,20 @@
 			foreach ($fields as $key => $field) {
 				$x++;
 				
-				if ($key == $options["sort_column"]) {
-					$active = " ".strtolower($options["sort_direction"]);
-					$dir = $options["sort_direction"];
-					if ($dir == "ASC") {
+				if ($key == $sort_column) {
+					$active = " ".strtolower($sort_direction);
+					if ($sort_direction == "ASC") {
 						$achar = "&#9650;";
 					} else {
 						$achar = "&#9660;";
 					}
 				} else {
 					$active = "";
-					$dir = "ASC";
+					$sort_direction = "ASC";
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$dir?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$sort_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
 		<?
 			}
 		?>
@@ -56,13 +64,13 @@
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script type="text/javascript">
 	var mpage = 0;
-	var sort = "<?=$view["options"]["sort_column"]?>";
-	var sortdir = "<?=$view["options"]["sort_direction"]?>";
+	var sort = "<?=$sort_column?>";
+	var sortdir = "<?=$sort_direction?>";
 	var search = "";
 	
 	function _local_search() {
 		search = escape($("#search").val());
-		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
 	}
 	
 	$(".sort_column").live("click",function() {
@@ -89,7 +97,7 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(sortdir.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
 		return false;
 	});
 	
@@ -98,7 +106,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=$admin_root?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
 
 		return false;
 	});

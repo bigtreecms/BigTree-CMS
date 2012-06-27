@@ -1,5 +1,5 @@
 <?
-	$layout = "wonders";
+	$bigtree["layout"] = "wonders";
 	
 	include "../templates/routed/wonders/_header.php";
 	$currentWonder = $wondersMod->getCurrent();

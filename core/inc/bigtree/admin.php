@@ -24,6 +24,17 @@
 			"archived",
 			"approved"
 		);
+		
+		// !Reserved Top Level Routes
+		var $ReservedTLRoutes = array(
+			"ajax",
+			"css",
+			"feeds",
+			"js",
+			"sitemap.xml",
+			"_preview",
+			"_preview-pending"
+		);
 
 		// !View Actions
 		var $ViewActions = array(
@@ -61,11 +72,14 @@
 		
 		function __construct() {
 			if (isset($_SESSION["bigtree"]["email"])) {
-				$this->ID = $_SESSION["bigtree"]["id"];
-				$this->User = $_SESSION["bigtree"]["email"];
-				$this->Level = $_SESSION["bigtree"]["level"];
-				$this->Name = $_SESSION["bigtree"]["name"];
-				$this->Permissions = $_SESSION["bigtree"]["permissions"];
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '" . $_SESSION["bigtree"]["email"] . "'"));
+				if ($f) {
+					$this->ID = $_SESSION["bigtree"]["id"];
+					$this->User = $_SESSION["bigtree"]["email"];
+					$this->Level = $_SESSION["bigtree"]["level"];
+					$this->Name = $_SESSION["bigtree"]["name"];
+					$this->Permissions = $_SESSION["bigtree"]["permissions"];
+				}
 			} elseif (isset($_COOKIE["bigtree"]["email"])) {
 				$user = mysql_escape_string($_COOKIE["bigtree"]["email"]);
 				$pass = mysql_escape_string($_COOKIE["bigtree"]["password"]);
@@ -82,7 +96,14 @@
 					$_SESSION["bigtree"]["name"] = $f["name"];
 					$_SESSION["bigtree"]["permissions"] = $this->Permissions;
 				}
+				// Clean up
+				unset($user,$pass,$f);
 			}
+			
+			// Update the reserved top level routes with the admin's route
+			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
+			$this->ReservedTLRoutes[] = $ar[0];
+			unset($ar);
 		}
 		
 		/*
@@ -273,19 +294,19 @@
 			} else {
 				$html = preg_replace_callback('/href="([^"]*)"/',create_function('$matches','
 					global $cms;
-					$href = str_replace("{wwwroot}",$GLOBALS["www_root"],$matches[1]);
-					if (strpos($href,$GLOBALS["www_root"]) !== false) {
-						$command = explode("/",rtrim(str_replace($GLOBALS["www_root"],"",$href),"/"));
+					$href = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$matches[1]);
+					if (strpos($href,WWW_ROOT) !== false) {
+						$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$href),"/"));
 						list($navid,$commands) = $cms->getNavId($command);
 						$page = $cms->getPage($navid,false);
-						if ($navid && (!$commands[0] || substr($page["template"],0,6) == "module" || substr($commands[0],0,1) == "#")) {
+						if ($navid && (!$bigtree["commands"][0] || substr($page["template"],0,6) == "module" || substr($bigtree["commands"][0],0,1) == "#")) {
 							$href = "ipl://".$navid."//".base64_encode(json_encode($commands));
 						}
 					}
-					$href = str_replace($GLOBALS["www_root"],"{wwwroot}",$href);
+					$href = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$href);
 					return \'href="\'.$href.\'"\';'
 				),$html);
-				$html = str_replace($GLOBALS["www_root"],"{wwwroot}",$html);
+				$html = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$html);
 			}
 			return $html;
 		}
@@ -366,12 +387,12 @@
 		*/
 
 		function changePassword($hash,$password) {
-			global $config;
+			global $bigtree;
 
 			$hash = mysql_real_escape_string($hash);
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
 
-			$phpass = new PasswordHash($config["password_depth"], TRUE);
+			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = mysql_real_escape_string($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
@@ -403,12 +424,14 @@
 				return true;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$module])) {
-				foreach ($this->Permissions["module_gbp"][$module] as $p) {
-					if ($p != "n") {
-						return true;
+			if (isset($this->Permissions["module_gbp"])) {
+				if (is_array($this->Permissions["module_gbp"][$module])) {
+					foreach ($this->Permissions["module_gbp"][$module] as $p) {
+						if ($p != "n") {
+							return true;
+						}
 					}
-				}
+				}	
 			}
 
 			return false;
@@ -438,8 +461,8 @@
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),$GLOBALS["www_root"],$href);
-				if (substr($href,0,4) == "http" && strpos($href,$GLOBALS["www_root"]) === false) {
+				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
+				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (strpos($href,"#") !== false)
@@ -471,8 +494,8 @@
 			$images = $doc->getElementsByTagName("img");
 			foreach ($images as $image) {
 				$href = $image->getAttribute("src");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D"),$GLOBALS["www_root"],$href);
-				if (substr($href,0,4) == "http" && strpos($href,$GLOBALS["www_root"]) === false) {
+				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
+				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (!$this->urlExists($href)) {
@@ -507,10 +530,10 @@
 		*/
 
 		function clearCache() {
-			$d = opendir($GLOBALS["server_root"]."cache/");
+			$d = opendir(SERVER_ROOT."cache/");
 			while ($f = readdir($d)) {
-				if ($f != "." && $f != ".." && !is_dir($GLOBALS["server_root"]."cache/".$f)) {
-					unlink($GLOBALS["server_root"]."cache/".$f);
+				if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."cache/".$f)) {
+					unlink(SERVER_ROOT."cache/".$f);
 				}
 			}
 		}
@@ -605,9 +628,9 @@
 			$display_default = mysql_real_escape_string($display_default);
 			$display_field = mysql_real_escape_string($display_field);
 			
-			if (!file_exists($GLOBALS["server_root"]."templates/callouts/".$id.".php")) {
-				file_put_contents($GLOBALS["server_root"]."templates/callouts/".$id.".php",$file_contents);
-				chmod($GLOBALS["server_root"]."templates/callouts/".$id.".php",0777);
+			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
+				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
+				chmod(SERVER_ROOT."templates/callouts/".$id.".php",0777);
 			}
 			
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
@@ -636,7 +659,7 @@
 			$options = json_decode($options,true);
 			if (is_array($options)) {
 				foreach ($options as &$option) {
-					$option = str_replace($www_root,"{wwwroot}",$option);
+					$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
 				}
 			}
 			
@@ -675,37 +698,39 @@
 				pages - Whether it can be used as a page resource or not ("on" is yes)
 				modules - Whether it can be used as a module resource or not ("on" is yes)
 				callouts - Whether it can be used as a callout resource or not ("on" is yes)
+				settings - Whether it can be used as a setting resource or not ("on" is yes)
 		*/
 		
-		function createFieldType($id,$name,$pages,$modules,$callouts) {
+		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$author = mysql_real_escape_string($this->Name);
 			$pages = mysql_real_escape_string($pages);
 			$modules = mysql_real_escape_string($modules);
 			$callouts = mysql_real_escape_string($callouts);
+			$settings = mysql_real_escape_string($settings);
 			
 			$file = "$id.php";
 			
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`) VALUES ('$id','$name','$pages','$modules','$callouts')");
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
 			
 			// Make the files for draw and process and options if they don't exist.
-			if (!file_exists($GLOBALS["server_root"]."custom/admin/form-field-types/draw/$file")) {
-				BigTree::touchFile($GLOBALS["server_root"]."custom/admin/form-field-types/draw/$file");
-				file_put_contents($GLOBALS["server_root"]."custom/admin/form-field-types/draw/$file",'<? include BigTree::path("admin/form-field-types/draw/text.php"); ?>');
-				chmod($GLOBALS["server_root"]."custom/admin/form-field-types/draw/$file",0777);
+			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
+				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<? include BigTree::path("admin/form-field-types/draw/text.php"); ?>');
+				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
 			}
-			if (!file_exists($GLOBALS["server_root"]."custom/admin/form-field-types/process/$file")) {
-				BigTree::touchFile($GLOBALS["server_root"]."custom/admin/form-field-types/process/$file");
-				file_put_contents($GLOBALS["server_root"]."custom/admin/form-field-types/process/$file",'<? $value = $data[$key]; ?>');
-				chmod($GLOBALS["server_root"]."custom/admin/form-field-types/process/$file",0777);
+			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
+				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<? $value = $data[$key]; ?>');
+				chmod(SERVER_ROOT."custom/admin/form-field-types/process/$file",0777);
 			}
-			if (!file_exists($GLOBALS["server_root"]."custom/admin/ajax/developer/field-options/$file")) {
-				BigTree::touchFile($GLOBALS["server_root"]."custom/admin/ajax/developer/field-options/$file");
-				chmod($GLOBALS["server_root"]."custom/admin/ajax/developer/field-options/$file",0777);
+			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
+				BigTree::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
+				chmod(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file",0777);
 			}
 				
-			unlink($GLOBALS["server_root"]."cache/form-field-types.btc");
+			unlink(SERVER_ROOT."cache/form-field-types.btc");
 		}
 		
 		/*
@@ -761,21 +786,21 @@
 			
 			// Go through the hard coded modules
 			$existing = array();
-			$d = opendir($GLOBALS["server_root"]."core/admin/modules/");
+			$d = opendir(SERVER_ROOT."core/admin/modules/");
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					$existing[] = $f;
 				}
 			}
 			// Go through the directories (really ajax, css, images, js)
-			$d = opendir($GLOBALS["server_root"]."core/admin/");
+			$d = opendir(SERVER_ROOT."core/admin/");
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					$existing[] = $f;
 				}
 			}
 			// Go through the hard coded pages
-			$d = opendir($GLOBALS["server_root"]."core/admin/pages/");
+			$d = opendir(SERVER_ROOT."core/admin/pages/");
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					// Drop the .php
@@ -807,7 +832,7 @@
 			
 			if ($class) {
 				// Create class module.
-				$f = fopen($GLOBALS["server_root"]."custom/inc/modules/$route.php","w");
+				$f = fopen(SERVER_ROOT."custom/inc/modules/$route.php","w");
 				fwrite($f,"<?\n");
 				fwrite($f,"	class $class extends BigTreeModule {\n");
 				fwrite($f,"\n");
@@ -816,10 +841,10 @@
 				fwrite($f,"	}\n");
 				fwrite($f,"?>\n");
 				fclose($f);
-				chmod($GLOBALS["server_root"]."custom/inc/modules/$route.php",0777);
+				chmod(SERVER_ROOT."custom/inc/modules/$route.php",0777);
 				
 				// Remove cached class list.
-				unlink($GLOBALS["server_root"]."cache/module-class-list.btc");
+				unlink(SERVER_ROOT."cache/module-class-list.btc");
 			}
 			
 			return $id;
@@ -881,12 +906,11 @@
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$table = mysql_real_escape_string($table);
 			$fields = mysql_real_escape_string(json_encode($fields));
-			$javascript - mysql_real_escape_string(htmlspecialchars($javascript));
-			$css - mysql_real_escape_string(htmlspecialchars($css));
+			$preprocess - mysql_real_escape_string($preprocess);
 			$callback - mysql_real_escape_string($callback);
 			$default_position - mysql_real_escape_string($default_position);
 			
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`javascript`,`css`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$javascript','$css','$callback','$default_position')");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position')");
 			return sqlid();
 		}
 		
@@ -937,14 +961,13 @@
 				fields - Field array.
 				actions - Actions array.
 				suffix - Add/Edit suffix.
-				uncached - Don't cache the view.
 				preview_url - Optional preview URL.
 				
 			Returns:
 				The id for view.
 		*/
 		
-		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$uncached = "",$preview_url = "") {
+		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			$table = mysql_real_escape_string($table);
@@ -953,10 +976,9 @@
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
-			$uncached = mysql_real_escape_string($uncached);
 			$preview_url = mysql_real_escape_string(htmlspecialchars($preview_url));
 			
-			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`uncached`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$uncached','$preview_url')");
+			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
 			
 			return sqlid();
 		}
@@ -1008,7 +1030,11 @@
 			$x = 2;
 			// Reserved paths.
 			if ($parent == 0) {
-				while (file_exists($GLOBALS["server_root"]."site/".$route."/")) {
+				while (file_exists(SERVER_ROOT."site/".$route."/")) {
+					$route = $original_route."-".$x;
+					$x++;
+				}
+				while (in_array($route,$this->ReservedTLRoutes)) {
 					$route = $original_route."-".$x;
 					$x++;
 				}
@@ -1248,6 +1274,8 @@
 			
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = mysql_real_escape_string($data["description"]);
+			// We don't want this encoded since it's JSON
+			$options = mysql_real_escape_string($data["options"]);
 
 			// See if there's already a setting with this ID
 			$r = sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$id'"));
@@ -1255,7 +1283,7 @@
 				return false;
 			}
 
-			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`locked`,`encrypted`,`system`) VALUES ('$id','$name','$description','$type','$locked','$encrypted','$system')");
+			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`options`,`locked`,`encrypted`,`system`) VALUES ('$id','$name','$description','$type','$options','$locked','$encrypted','$system')");
 			// Audit trail.
 			$this->track("bigtree_settings",$id,"created");
 
@@ -1347,18 +1375,18 @@
 ?>';		
 			
 			if ($routed == "on") {
-				if (!file_exists($GLOBALS["server_root"]."templates/routed/".$id)) {
-					mkdir($GLOBALS["server_root"]."templates/routed/".$id);
-					chmod($GLOBALS["server_root"]."templates/routed/".$id,0777);
+				if (!file_exists(SERVER_ROOT."templates/routed/".$id)) {
+					mkdir(SERVER_ROOT."templates/routed/".$id);
+					chmod(SERVER_ROOT."templates/routed/".$id,0777);
 				}
-				if (!file_exists($GLOBALS["server_root"]."templates/routed/".$id."/default.php")) {
-					file_put_contents($GLOBALS["server_root"]."templates/routed/".$id."/default.php",$file_contents);
-					chmod($GLOBALS["server_root"]."templates/routed/".$id."/default.php",0777);
+				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
+					file_put_contents(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
+					chmod(SERVER_ROOT."templates/routed/".$id."/default.php",0777);
 				}
 			} else {
-				if (!file_exists($GLOBALS["server_root"]."templates/basic/".$id.".php")) {
-					file_put_contents($GLOBALS["server_root"]."templates/basic/".$id.".php",$file_contents);
-					chmod($GLOBALS["server_root"]."templates/basic/".$id.".php",0777);
+				if (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
+					file_put_contents(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
+					chmod(SERVER_ROOT."templates/basic/".$id.".php",0777);
 				}
 			}
 			
@@ -1388,7 +1416,7 @@
 		*/
 
 		function createUser($data) {
-			global $config;
+			global $bigtree;
 			
 			// Safely go through the post data
 			foreach ($data as $key => $val) {
@@ -1411,7 +1439,7 @@
 			}
 			
 			// Hash the password.
-			$phpass = new PasswordHash($config["password_depth"], TRUE);
+			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
 
 			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
@@ -1434,7 +1462,7 @@
 		function deleteCallout($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
-			unlink($GLOBALS["server_root"]."templates/callouts/$id.php");
+			unlink(SERVER_ROOT."templates/callouts/$id.php");
 		}
 		
 		/*
@@ -1459,8 +1487,8 @@
 		*/
 		
 		function deleteFieldType($id) {
-			unlink($GLOBALS["server_root"]."custom/admin/form-field-types/draw/$id.php");
-			unlink($GLOBALS["server_root"]."custom/admin/form-field-types/process/$id.php");
+			unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
+			unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".mysql_real_escape_string($id)."'");
 		}
 		
@@ -1477,7 +1505,7 @@
 			
 			// Get info and delete the class.
 			$module = $this->getModule($id);
-			unlink($GLOBALS["server_root"]."custom/inc/modules/".$module["route"].".php");
+			unlink(SERVER_ROOT."custom/inc/modules/".$module["route"].".php");
 	
 			// Delete all the related auto module actions
 			$actions = $this->getModuleActions($id);
@@ -1767,8 +1795,8 @@
 		*/
 
 		function emailDailyDigest() {
-			global $config;
-			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$config["domain"]);
+			global $bigtree;
+			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$bigtree["config"]["domain"]);
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
 				$changes = $this->getPendingChanges($user["id"]);
@@ -1777,9 +1805,7 @@
 				$unread = $messages["unread"];
 
 				// Start building the email
-				$body =  "BigTree Daily Digest\n";
-				$body .= "====================\n";
-				$body .= $config["admin_root"]."\n\n";
+				$body = "";
 				
 				if (is_array($alerts) && count($alerts)) {
 					$body .= "Content Age Alerts\n";
@@ -1787,8 +1813,8 @@
 					
 					foreach ($alerts as $alert) {
 						$body .= $alert["nav_title"]." - ".$alert["current_age"]." Days Old\n";
-						$body .= $config["www_root"].$alert["path"]."/\n";
-						$body .= $config["admin_root"]."pages/edit/".$alert["id"]."/\n\n";
+						$body .= $bigtree["config"]["www_root"].$alert["path"]."/\n";
+						$body .= $bigtree["config"]["admin_root"]."pages/edit/".$alert["id"]."/\n\n";
 					}
 				}
 
@@ -1823,8 +1849,11 @@
 					}
 				}
 				
-				if (count($alerts) || count($changes) || count($unread)) {
-					mail($user["email"],"BigTree Daily Digest",$body);
+				if ($body) {
+					$header =  "BigTree Daily Digest\n";
+					$header .= "====================\n";
+					$header .= $bigtree["config"]["admin_root"]."\n\n";
+					mail($user["email"],"BigTree Daily Digest",$header.$body,"From: BigTree CMS <no-reply@$no_reply_domain>");
 				}
 			}
 		}
@@ -1975,7 +2004,7 @@
 
 		function getActionClass($action,$item) {
 			$class = "";
-			if ($item["bigtree_pending"] && $action != "edit" && $action != "delete") {
+			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
 				return "icon_disabled";
 			}
 			if ($action == "feature") {
@@ -2064,7 +2093,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$nav_item["external"]);
+				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
 				$nav[] = $nav_item;
 			}
 			return $nav;
@@ -2175,8 +2204,8 @@
 		
 		function getCachedFieldTypes() {
 			// Used cached values if available, otherwise query the DB
-			if (file_exists($GLOBALS["server_root"]."cache/form-field-types.btc")) {
-				$types = json_decode(file_get_contents($GLOBALS["server_root"]."cache/form-field-types.btc"),true);
+			if (file_exists(SERVER_ROOT."cache/form-field-types.btc")) {
+				$types = json_decode(file_get_contents(SERVER_ROOT."cache/form-field-types.btc"),true);
 			} else {
 				$types["module"] = array(
 					"text" => "Text",
@@ -2219,6 +2248,21 @@
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
 				);
+				
+				$types["settings"] = array(
+					"text" => "Text",
+					"textarea" => "Text Area",
+					"html" => "HTML Area",
+					"upload" => "Upload",
+					"menu" => "Menu",
+					"list" => "List",
+					"checkbox" => "Checkbox",
+					"date" => "Date Picker",
+					"time" => "Time Picker",
+					"photo-gallery" => "Photo Gallery",
+					"array" => "Array of Items",
+					"custom" => "Custom Function"
+				);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
@@ -2231,8 +2275,11 @@
 					if ($f["callouts"]) {
 						$types["callout"][$f["id"]] = $f["name"];
 					}
+					if ($f["settings"]) {
+						$types["settings"][$f["id"]] = $f["name"];
+					}
 				}
-				file_put_contents($GLOBALS["server_root"]."cache/form-field-types.btc",json_encode($types));
+				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));
 			}
 			
 			return $types;
@@ -2303,18 +2350,18 @@
 		*/
 
 		function getChangeEditLink($change) {
-			global $config;
+			global $bigtree;
 			
 			if (!is_array($change)) {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$change'"));
 			}
 
 			if ($change["table"] == "bigtree_pages" && $change["item_id"]) {
-				return $config["admin_root"]."pages/edit/".$change["item_id"]."/";
+				return $bigtree["config"]["admin_root"]."pages/edit/".$change["item_id"]."/";
 			}
 
 			if ($change["table"] == "bigtree_pages") {
-				return $config["admin_root"]."pages/edit/p".$change["id"]."/";
+				return $bigtree["config"]["admin_root"]."pages/edit/p".$change["id"]."/";
 			}
 
 			$modid = $change["module"];
@@ -2327,9 +2374,9 @@
 			}
 
 			if ($action) {
-				return $config["admin_root"].$module["route"]."/".$action["route"]."/".$change["item_id"]."/";
+				return $bigtree["config"]["admin_root"].$module["route"]."/".$action["route"]."/".$change["item_id"]."/";
 			} else {
-				return $config["admin_root"].$module["route"]."/edit/".$change["item_id"]."/";
+				return $bigtree["config"]["admin_root"].$module["route"]."/edit/".$change["item_id"]."/";
 			}
 		}
 		
@@ -2485,7 +2532,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$nav_item["external"]);
+				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
 				$nav[] = $nav_item;
 			}
 			return $nav;
@@ -2511,7 +2558,7 @@
 			$sent = array();
 			$read = array();
 			$unread = array();
-			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
+			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name, bigtree_users.email AS sender_email FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
 			
 			while ($f = sqlfetch($q)) {
 				// If we're the sender put it in the sent array.
@@ -2543,7 +2590,7 @@
 		
 		function getMessage($id) {
 			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".mysql_real_escape_string($id)."'"));
-			if ($message["sender"] != $this->ID && strpos("|".$this->ID."|",$message["recipients"]) === false) {
+			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
 				$this->stop("This message was not sent by you, or to you.");
 			}
 			return $message;
@@ -2637,7 +2684,7 @@
 		*/
 
 		function getModuleActionForView($view) {
-			if (is_array($form)) {
+			if (is_array($view)) {
 				$view = mysql_real_escape_string($view["id"]);
 			} else {
 				$view = mysql_real_escape_string($view);
@@ -2925,7 +2972,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$nav_item["external"]);
+				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
 				if ($levels > 1) {
 					$nav_item["children"] = $this->getNaturalNavigationByParent($f["id"],$levels - 1);
 				}
@@ -3017,9 +3064,9 @@
 		*/
 		
 		function getPageAdminLinks() {
-			global $config;
+			global $bigtree;
 			$pages = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$config["admin_root"]."%' OR resources LIKE '%".str_replace($config["www_root"],"{wwwroot}",$config["admin_root"])."%'");
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
 			while ($f = sqlfetch($q)) {
 				$pages[] = $f;
 			}
@@ -3135,8 +3182,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR `value` LIKE '%$part%' OR description LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(`value`) LIKE '%$part%')";
 				}
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
@@ -3158,7 +3205,7 @@
 			$items = array();
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
-					$f[$key] = str_replace("{wwwroot}",$GLOBALS["www_root"],$val);
+					$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 				}
 				$f["value"] = json_decode($f["value"],true);
 				if ($f["encrypted"] == "on") {
@@ -3188,8 +3235,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
 				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
 			// If we're grabbing anyone.
@@ -3239,7 +3286,7 @@
 			// Get all previous revisions, add them to the saved or unsaved list
 			$unsaved = array();
 			$saved = array();
-			$q = sqlquery("SELECT bigtree_users.name, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
+			$q = sqlquery("SELECT bigtree_users.name, bigtree_users.email, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
 			while ($f = sqlfetch($q)) {
 				if ($f["saved"]) {
 					$saved[] = $f;
@@ -3307,10 +3354,10 @@
 
 			if (is_array($template)) {
 				foreach ($template["resources"] as $item) {
-					if ($item["seo_body"]) {
+					if (isset($item["seo_body"]) && $item["seo_body"]) {
 						$body_fields[] = $item["id"];
 					}
-					if ($item["seo_h1"]) {
+					if (isset($item["seo_h1"]) && $item["seo_h1"]) {
 						$h1_field = $item["id"];
 					}
 					$tsources[$item["id"]] = $item;
@@ -3334,7 +3381,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$q = sqlquery("SELECT * FROM bigtree_pages WHERE title = '".mysql_real_escape_string($page["title"])."' AND id != '".$page["page"]."'");
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".mysql_real_escape_string($page["title"])."' AND id != '".$page["id"]."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
@@ -3716,10 +3763,10 @@
 			if (!$item) {
 				return false;
 			}
-			$item["file"] = str_replace("{wwwroot}",$GLOBALS["www_root"],$item["file"]);
+			$item["file"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["file"]);
 			$item["thumbs"] = json_decode($item["thumbs"],true);
 			foreach ($item["thumbs"] as &$thumb) {
-				$thumb = str_replace("{wwwroot}",$GLOBALS["www_root"],$thumb);
+				$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
 			}
 			return $item;
 		}
@@ -3869,7 +3916,7 @@
 		*/
 
 		function getSetting($id) {
-			global $config;
+			global $bigtree;
 			$id = mysql_real_escape_string($id);
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
@@ -3878,10 +3925,10 @@
 			}
 
 			foreach ($f as $key => $val) {
-				$f[$key] = str_replace("{wwwroot}",$GLOBALS["www_root"],$val);
+				$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 			}
 			if ($f["encrypted"]) {
-				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($config["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
+				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 				$f["value"] = $v["value"];
 			}
 			$f["value"] = json_decode($f["value"],true);
@@ -3911,7 +3958,7 @@
 			}
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
-					$f[$key] = str_replace("{wwwroot}",$GLOBALS["www_root"],$val);
+					$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 				}
 				$f["value"] = json_decode($f["value"],true);
 				if ($f["encrypted"] == "on") {
@@ -3939,8 +3986,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR value LIKE '%$part%' OR description LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(value) LIKE '%$part%')";
 				}
 				// Administrator
 				if ($this->Level < 2) {
@@ -4141,8 +4188,8 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string($part);
-					$qp[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
+					$part = mysql_real_escape_string(strtolower($part));
+					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
 				$q = sqlquery("SELECT id FROM bigtree_users WHERE ".implode(" AND ",$qp));
 			// If we're showing all.
@@ -4227,11 +4274,11 @@
 			// Decode the commands attached to the page
 			$commands = json_decode(base64_decode($ipl[2]),true);
 			// If there are no commands, we're good.
-			if (!isset($commands[0]) || !$commands[0]) {
+			if (!isset($bigtree["commands"][0]) || !$bigtree["commands"][0]) {
 				return true;
 			}
 			// If it's a hash tag link, we're also good.
-			if (substr($commands[0],0,1) == "#") {
+			if (substr($bigtree["commands"][0],0,1) == "#") {
 				return true;
 			}
 			// Get template for the navigation id to see if it's a routed template
@@ -4264,7 +4311,7 @@
 		*/
 		
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
-			global $www_root,$admin_root,$admin;
+			global $breadcrumb,$www_root,$admin_root,$cms,$admin,$bigtree;
 			$table = mysql_real_escape_string($table);
 			$id = mysql_real_escape_string($id);
 			
@@ -4302,12 +4349,12 @@
 		function login($email,$password,$stay_logged_in = false) {
 			global $path;
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".mysql_real_escape_string($email)."'"));
-			$phpass = new PasswordHash($config["password_depth"], TRUE);
+			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
 				if ($stay_logged_in) {
-					setcookie('bigtree[email]',$f["email"],time()+31*60*60*24,str_replace($GLOBALS["domain"],"",$GLOBALS["www_root"]));
-					setcookie('bigtree[password]',$f["password"],time()+31*60*60*24,str_replace($GLOBALS["domain"],"",$GLOBALS["www_root"]));
+					setcookie('bigtree[email]',$f["email"],time()+31*60*60*24,str_replace($GLOBALS["domain"],"",WWW_ROOT));
+					setcookie('bigtree[password]',$f["password"],time()+31*60*60*24,str_replace($GLOBALS["domain"],"",WWW_ROOT));
 				}
 
 				$_SESSION["bigtree"]["id"] = $f["id"];
@@ -4334,8 +4381,8 @@
 		*/
 
 		function logout() {
-			setcookie("bigtree[email]","",time()-3600,str_replace($GLOBALS["domain"],"",$GLOBALS["www_root"]));
-			setcookie("bigtree[password]","",time()-3600,str_replace($GLOBALS["domain"],"",$GLOBALS["www_root"]));
+			setcookie("bigtree[email]","",time()-3600,str_replace($GLOBALS["domain"],"",WWW_ROOT));
+			setcookie("bigtree[password]","",time()-3600,str_replace($GLOBALS["domain"],"",WWW_ROOT));
 			unset($_SESSION["bigtree"]);
 			header("Location: ".$GLOBALS["admin_root"]);
 			die();
@@ -4354,10 +4401,10 @@
 
 		function makeIPL($url) {
 			global $cms;
-			$command = explode("/",rtrim(str_replace($GLOBALS["www_root"],"",$url),"/"));
+			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			list($navid,$commands) = $cms->getNavId($command);
 			if (!$navid) {
-				return str_replace(array($GLOBALS["www_root"],$GLOBALS["resource_root"]),"{wwwroot}",$url);
+				return str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$url);
 			}
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
 		}
@@ -4410,10 +4457,10 @@
 		function pingSearchEngines() {
 			global $cms;
 			if ($cms->getSetting("ping-search-engines") == "on") {
-				$google = file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode($GLOBALS["www_root"]."sitemap.xml"));
-				$ask = file_get_contents("http://submissions.ask.com/ping?sitemap=".urlencode($GLOBALS["www_root"]."sitemap.xml"));
-				$yahoo = file_get_contents("http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap=".urlencode($GLOBALS["www_root"]."sitemap.xml"));
-				$bing = file_get_contents("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode($GLOBALS["www_root"]."sitemap.xml"));
+				$google = file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				$ask = file_get_contents("http://submissions.ask.com/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				$yahoo = file_get_contents("http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				$bing = file_get_contents("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
 		}
 		
@@ -4546,13 +4593,13 @@
 			$items = array();
 			
 			if ($query) {
-				$s = mysql_real_escape_string($query);
+				$s = mysql_real_escape_string(strtolower($query));
 				if ($type == "301") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
+					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
 				} elseif ($type == "ignored") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%') ORDER BY requests DESC LIMIT 50");
+					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') ORDER BY requests DESC LIMIT 50");
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND broken_url LIKE '%$s%' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
+					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
 				}
 			} else {
 				if ($type == "301") {
@@ -4617,12 +4664,12 @@
 		*/
 
 		function searchResources($query, $sort = "date DESC") {
-			$query = mysql_real_escape_string($query);
+			$query = mysql_real_escape_string(strtolower($query));
 			$folders = array();
 			$resources = array();
 			$permission_cache = array();
 
-			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
+			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE LOWER(name) LIKE '%$query%' ORDER BY name");
 			while ($f = sqlfetch($q)) {
 				$f["permission"] = $this->getResourceFolderPermission($f);
 				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
@@ -4631,7 +4678,7 @@
 				$folders[] = $f;
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
+			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
 				if ($permission_cache[$f["folder"]]) {
@@ -4828,9 +4875,9 @@
 		*/
 
 		function stop($message = "") {
-			global $cms,$admin,$www_root,$admin_root,$site,$breadcrumb;
+			global $cms,$admin,$www_root,$admin_root,$site,$breadcrumb,$bigtree;
 			echo $message;
-			$content = ob_get_clean();
+			$bigtree["content"] = ob_get_clean();
 			include BigTree::path("admin/layouts/default.php");
 			die();
 		}
@@ -5073,9 +5120,9 @@
 		function unCache($page) {
 			global $cms;
 			if (is_array($page)) {
-				$file = $GLOBALS["server_root"]."cache/".base64_encode($page["path"]."/");
+				$file = SERVER_ROOT."cache/".base64_encode($page["path"]."/");
 			} else {
-				$file = $GLOBALS["server_root"]."cache/".base64_encode(str_replace($GLOBALS["www_root"],"",$cms->getLink($page)));		
+				$file = SERVER_ROOT."cache/".base64_encode(str_replace(WWW_ROOT,"",$cms->getLink($page)));		
 			}
 			if (file_exists($file)) {
 				@unlink($file);
@@ -5216,7 +5263,7 @@
 		function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
 			$options = json_decode($options,true);
 			foreach ($options as &$option) {
-				$option = str_replace($www_root,"{wwwroot}",$option);
+				$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
 			}
 			
 			// Fix stuff up for the db.
@@ -5241,16 +5288,18 @@
 				pages - Whether it can be used as a page resource or not ("on" is yes)
 				modules - Whether it can be used as a module resource or not ("on" is yes)
 				callouts - Whether it can be used as a callout resource or not ("on" is yes)
+				settings - Whether it can be used as a setting resource or not ("on" is yes)
 		*/
 		
-		function updateFieldType($id,$name,$pages,$modules,$callouts) {
+		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$pages = mysql_real_escape_string($pages);
 			$modules = mysql_real_escape_string($modules);
 			$callouts = mysql_real_escape_string($callouts);
+			$settings = mysql_real_escape_string($settings);
 			
-			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
 		}		
 		
 		/*
@@ -5274,7 +5323,7 @@
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', `gbp` = '$permissions' WHERE id = '$id'");
 		
 			// Remove cached class list.
-			unlink($GLOBALS["server_root"]."cache/module-class-list.btc");
+			unlink(SERVER_ROOT."cache/module-class-list.btc");
 		}
 		
 		/*
@@ -5390,14 +5439,13 @@
 				fields - Field array.
 				actions - Actions array.
 				suffix - Add/Edit suffix.
-				uncached - Don't cache the view.
 				preview_url - Optional preview URL.
 				
 			Returns:
 				The id for view.
 		*/
 		
-		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$uncached = "",$preview_url = "") {
+		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
 			$id = mysql_real_escape_string($id);
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -5407,10 +5455,9 @@
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
-			$uncached = mysql_real_escape_string($uncached);
 			$preview_url = mysql_real_escape_string(htmlspecialchars($preview_url));
 			
-			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', uncached = '$uncached', preview_url = '$preview_url' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
 		}
 		
 		/*
@@ -5506,7 +5553,11 @@
 			$x = 2;
 			// Reserved paths.
 			if ($parent == 0) {
-				while (file_exists($GLOBALS["server_root"]."site/".$route."/")) {
+				while (file_exists(SERVER_ROOT."site/".$route."/")) {
+					$route = $oroute."-".$x;
+					$x++;
+				}
+				while (in_array($route,$this->ReservedTLRoutes)) {
 					$route = $oroute."-".$x;
 					$x++;
 				}
@@ -5676,7 +5727,7 @@
 		*/
 
 		function updateProfile($data) {
-			global $config;
+			global $bigtree;
 
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
@@ -5687,7 +5738,7 @@
 			$id = mysql_real_escape_string($this->ID);
 
 			if ($data["password"]) {
-				$phpass = new PasswordHash($config["password_depth"], TRUE);
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 				$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
 				sqlquery("UPDATE bigtree_users SET `password` = '$password', `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
 			} else {
@@ -5723,7 +5774,7 @@
 		*/
 
 		function updateSetting($old_id,$data) {
-			global $config;
+			global $bigtree;
 			
 			// Get the existing setting information.
 			$existing = $this->getSetting($old_id);
@@ -5738,20 +5789,22 @@
 			
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = mysql_real_escape_string($data["description"]);
+			// We don't want this encoded since it's JSON
+			$options = mysql_real_escape_string($data["options"]);
 			
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && $this->settingExists($id)) {
 				return false;
 			}
 			
-			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
+			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', `options` = '$options', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
 
 			// If encryption status has changed, update the value
 			if ($existing["encrypted"] && !$encrypted) {
-				sqlquery("UPDATE bigtree_settings SET value = AES_DECRYPT(value,'".mysql_real_escape_string($config["settings_key"])."') WHERE id = '$id'");
+				sqlquery("UPDATE bigtree_settings SET value = AES_DECRYPT(value,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			}
 			if (!$existing["encrypted"] && $encrypted) {
-				sqlquery("UPDATE bigtree_settings SET value = AES_ENCRYPT(value,'".mysql_real_escape_string($config["settings_key"])."') WHERE id = '$id'");
+				sqlquery("UPDATE bigtree_settings SET value = AES_ENCRYPT(value,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			}
 			
 			// Audit trail.
@@ -5770,14 +5823,14 @@
 		*/
 
 		function updateSettingValue($id,$value) {
-			global $config;
+			global $bigtree;
 			$item = $this->getSetting($id);
 			$id = mysql_real_escape_string($id);
 
 			$value = mysql_real_escape_string(json_encode($value));
 
 			if ($item["encrypted"]) {
-				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".mysql_real_escape_string($config["settings_key"])."') WHERE id = '$id'");
+				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
@@ -5845,7 +5898,7 @@
 		*/
 
 		function updateUser($id,$data) {
-			global $config;
+			global $bigtree;
 			$id = mysql_real_escape_string($id);
 
 			// See if there's an email collission
@@ -5876,7 +5929,7 @@
 			$alerts = mysql_real_escape_string(json_encode($data["alerts"]));
 
 			if ($data["password"]) {
-				$phpass = new PasswordHash($config["password_depth"], TRUE);
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 				$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
 				sqlquery("UPDATE bigtree_users SET `email` = '$email', `password` = '$password', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
 			} else {
@@ -5898,10 +5951,10 @@
 		*/
 		
 		function updateUserPassword($id,$password) {
-			global $config;
+			global $bigtree;
 			
 			$id = mysql_real_escape_string($id);
-			$phpass = new PasswordHash($config["password_depth"], TRUE);
+			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = mysql_real_escape_string($phpass->HashPassword($password));
 			sqlquery("UPDATE bigtree_users SET password = '$password' WHERE id = '$id'");
 		}

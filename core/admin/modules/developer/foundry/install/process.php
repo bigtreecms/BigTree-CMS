@@ -1,5 +1,5 @@
 <?
-	$cache_root = $server_root."cache/unpack/".end($path)."/";
+	$cache_root = SERVER_ROOT."cache/unpack/".end($bigtree["path"])."/";
 	$index = file_get_contents($cache_root."index.btx");
 	$lines = explode("\n",$index);
 	$module_name = $lines[0];
@@ -79,13 +79,13 @@
 		
 		// Import a Module Form
 		if ($type == "ModuleForm") {
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`javascript`,`css`,`callback`,`table`,`fields`,`positioning`,`default_position`) VALUES ('$title','$javascript','$css','$callback','$table','$fields','$positioning','$default_position')");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position')");
 			$last_form_id = sqlid();
 		}
 		
 		// Import a Module View
 		if ($type == "ModuleView") {
-			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`table`,`fields`,`options`,`actions`,`suffix`,`uncached`,`preview_url`) VALUES ('$title','$description','".$data["type"]."','$table','$fields','$options','$actions','$suffix','$uncached','$preview_url')");
+			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`table`,`fields`,`options`,`actions`,`suffix`,`preview_url`) VALUES ('$title','$description','".$data["type"]."','$table','$fields','$options','$actions','$suffix','$preview_url')");
 			$last_view_id = sqlid();
 		}
 		
@@ -128,7 +128,7 @@
 				$destination = str_replace($key,$val,$destination);
 			}
 			
-			BigTree::copyFile($cache_root.$source,$server_root.$destination);
+			BigTree::copyFile($cache_root.$source,SERVER_ROOT.$destination);
 			if ($section == "Other") {			
 				$savedData["other_files"][] = $destination;
 			} elseif ($section == "Required") {
@@ -141,8 +141,8 @@
 			$source = $parts[1];
 			$destination = $parts[2];
 			$module_id = $parts[3];
-			BigTree::copyFile($cache_root.$source,$server_root.$destination);
-			file_put_contents($server_root.$destination,str_replace('var $Module = "'.$module_id.'";','var $Module = "'.$module_match[$module_id].'";',file_get_contents($server_root.$destination)));
+			BigTree::copyFile($cache_root.$source,SERVER_ROOT.$destination);
+			file_put_contents(SERVER_ROOT.$destination,str_replace('var $Module = "'.$module_id.'";','var $Module = "'.$module_match[$module_id].'";',file_get_contents(SERVER_ROOT.$destination)));
 			$savedData["class_files"][] = $destination;
 			$package_files[] = $destination;
 		}
@@ -153,16 +153,21 @@
 			$file = $cache_root.$parts[2];
 			$queries = explode("\n",file_get_contents($file));
 			foreach ($queries as $query) {
-				sqlquery($query);
+				if ($query) {
+					sqlquery($query);
+				}
 			}
 			$savedData["tables"][] = $table;
 			$package_tables[] = $table;
 		}
 	}
 	
+	// Clear module class cache
+	unlink(SERVER_ROOT."cache/module-class-list.btc");
+	
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
-	header("Location: ".$admin_root."developer/foundry/install/complete/");
+	header("Location: ".ADMIN_ROOT."developer/foundry/install/complete/");
 	die();
 ?>

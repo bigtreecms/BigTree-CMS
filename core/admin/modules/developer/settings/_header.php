@@ -1,11 +1,6 @@
 <?
-	$types = array(
-		"text" => "Text",
-		"textarea" => "Text Area",
-		"html" => "HTML Area",
-		"checkbox" => "Checkbox",
-		"menu" => "Menu"
-	);
+	$t = $admin->getCachedFieldTypes();
+	$types = $t["settings"];
 
 	$breadcrumb[] = array("title" => "Settings", "link" => "developer/settings/");
 	$section_root = $developer_root."settings/";

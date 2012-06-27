@@ -1,7 +1,7 @@
 <?
 	include "_file_chooser_header.php";
 	
-	$package = sqlfetch(sqlquery("SELECT * FROM bigtree_module_packages WHERE id = '".mysql_real_escape_string(end($commands))."'"));
+	$package = sqlfetch(sqlquery("SELECT * FROM bigtree_module_packages WHERE id = '".mysql_real_escape_string(end($bigtree["commands"]))."'"));
 	
 	if ($package["module_id"]) {
 		gatherModuleInformation($package["module_id"]);
@@ -11,7 +11,7 @@
 		foreach ($modules as $m) {
 			gatherModuleInformation($m["id"]);
 		}
-		if (file_exists($server_root."custom/inc/required/".$cms->urlify($group["name"]).".php")) {
+		if (file_exists(SERVER_ROOT."custom/inc/required/".$cms->urlify($group["name"]).".php")) {
 			$required_files[] = "custom/inc/required/".$cms->urlify($group["name"]).".php";
 		}
 	}
@@ -46,7 +46,7 @@
 	if (is_array($tables)) {
 		foreach ($tables as $key => $tval) {
 			list($table,$type) = explode("#",$tval);
-			if (!sqlrows(sqlquery("SELECT table_name FROM information_schema.tables WHERE table_schema = '".$config["db"]["name"]."' AND table_name = '$table'"))) {
+			if (!sqlrows(sqlquery("SELECT table_name FROM information_schema.tables WHERE table_schema = '".$bigtree["config"]["db"]["name"]."' AND table_name = '$table'"))) {
 				unset($tables[$key]);
 				$removed[] = "Table: $table";
 			}
@@ -96,7 +96,7 @@
 	// Remove files that don't exist anymore
 	if (is_array($files)) {
 		foreach ($files as $key => $f) {
-			if (!file_exists($server_root.$f)) {
+			if (!file_exists(SERVER_ROOT.$f)) {
 				unset($files[$key]);
 				$removed[] = "File: $f";
 			}
@@ -104,7 +104,7 @@
 	}
 	if (is_array($required_files)) {
 		foreach ($required_files as $key => $f) {
-			if (!file_exists($server_root.$f)) {
+			if (!file_exists(SERVER_ROOT.$f)) {
 				unset($files[$key]);
 				$removed[] = "File: $f";
 			}
@@ -112,7 +112,7 @@
 	}
 	if (is_array($class_files)) {
 		foreach ($class_files as $key => $f) {
-			if (!file_exists($server_root.$f)) {
+			if (!file_exists(SERVER_ROOT.$f)) {
 				unset($files[$key]);
 				$removed[] = "File: $f";
 			}

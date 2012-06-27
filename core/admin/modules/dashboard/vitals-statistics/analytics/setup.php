@@ -21,7 +21,7 @@
 			<? } ?>
 			<p>Please enter your Google Analytics email address and password below.</p>
 			<br />
-			<? if (end($path) == "error") { ?>
+			<? if (end($bigtree["path"]) == "error") { ?>
 			<p class="error_message">Google Login Failed.</p>
 			<? } ?>
 			<div class="left">

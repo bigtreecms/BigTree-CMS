@@ -1,5 +1,5 @@
 <?
-	$page = end($path);
+	$page = end($bigtree["path"]);
 	
 	$pdata = $admin->getPendingPage($page);
 	
@@ -10,9 +10,6 @@
 		}
 	} else {
 		$r = $admin->getPageAccessLevel($page);
-		if ($pdata["changed_applied"]) {
-			$show_revert = true;
-		}
 	}
 
 	$resources = $pdata["resources"];
@@ -51,8 +48,10 @@
 	include BigTree::path("admin/modules/pages/_nav.php");
 	include BigTree::path("admin/modules/pages/_properties.php");
 	
+	
 	// Check for a page lock
-	$admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$_GET["force"]);
+	$force = isset($_GET["force"]) ? $_GET["force"] : false;
+	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$force);
 	
 	// SEO Checks
 	$seo = $admin->getPageSEORating($pdata,$resources);

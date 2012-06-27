@@ -1,7 +1,7 @@
 <?
 	include BigTree::path("inc/modules/btx-wikipedia-api.php");
 	
-	$mroot = $admin_root . "btx-wikipedia-api/";
+	$mroot = ADMIN_ROOT."btx-wikipedia-api/";
 	
 	$btxWikipediaAPI = new BTXWikipediaAPI;
 	
@@ -34,7 +34,7 @@
 	);
 ?>
 <style>
-	h1 span.wikipedia { background: url(<?=$admin_root?>images/modules/btx-wikipedia-api-icon.png) no-repeat center; height: 30px; margin: 1px 8px 0 0; width: 30px; }
+	h1 span.wikipedia { background: url(<?=ADMIN_ROOT?>images/modules/btx-wikipedia-api-icon.png) no-repeat center; height: 30px; margin: 1px 8px 0 0; width: 30px; }
 	pre { background: #f6f6f6; border: 1px solid #ddd; border-radius: 5px; color: #333; font-size: 13px; line-height: 1.5; padding: 18px 20px 15px; margin: 10px 0 15px; }
 	#wikipedia_api hr { clear: both; margin-top: 25px; margin-bottom: 25px; }
 	#wikipedia_api h2 { float: none; }

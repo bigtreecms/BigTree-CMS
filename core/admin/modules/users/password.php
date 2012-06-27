@@ -3,12 +3,12 @@
 	if (count($_POST)) {
 		$f = $admin->getUser($admin->ID);
 		
-		$phpass = new PasswordHash($config["password_depth"], TRUE);
+		$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 		$ok = $phpass->CheckPassword($_POST["current_password"],$f["password"]);
 		if ($ok) {
 			$admin->updateUserPassword($admin->ID,$_POST["new_password"]);
 			$admin->growl("Users","Updated Password");
-			header("Location: $admin_root");
+			header("Location: ".ADMIN_ROOT);
 			die();
 		}
 		$error = true;

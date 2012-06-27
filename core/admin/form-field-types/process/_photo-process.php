@@ -2,7 +2,7 @@
 	$failed = false;
 		
 	// Let's check the minimum requirements for the image first before we store it anywhere.
-	$image_info = getimagesize($temp_name);
+	$image_info = @getimagesize($temp_name);
 	$iwidth = $image_info[0];
 	$iheight = $image_info[1];
 	$itype = $image_info[2];
@@ -32,7 +32,7 @@
 		$exif = @exif_read_data($temp_name);
 		$o = $exif['Orientation'];
 		if ($o == 3 || $o == 6 || $o == 8) {
-			$first_copy = $site_root."files/".uniqid("temp-").".jpg";
+			$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
 			$source = imagecreatefromjpeg($temp_name);
 			
 			if ($o == 3) {
@@ -60,14 +60,14 @@
 		
 		// Let's crush this png.
 		if ($itype == IMAGETYPE_PNG && $upload_service->optipng) {
-			$first_copy = $site_root."files/".uniqid("temp-").".png";
+			$first_copy = SITE_ROOT."files/".uniqid("temp-").".png";
 			move_uploaded_file($temp_name,$first_copy);
 			
 			exec($upload_service->optipng." ".$first_copy);
 		}
 		// Let's crush the gif and see if we can make it a PNG.
 		if ($itype == IMAGETYPE_GIF && $upload_service->optipng) {
-			$first_copy = $site_root."files/".uniqid("temp-").".gif";
+			$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
 			move_uploaded_file($temp_name,$first_copy);
 			
 			exec($upload_service->optipng." ".$first_copy);
@@ -81,7 +81,7 @@
 		}
 		// Let's trim the jpg.
 		if (!$already_created_first_copy && $itype == IMAGETYPE_JPEG && $upload_service->jpegtran) {
-			$first_copy = $site_root."files/".uniqid("temp-").".jpg";
+			$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
 			move_uploaded_file($temp_name,$first_copy);
 			
 			exec($upload_service->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
@@ -91,7 +91,7 @@
 		
 		list($iwidth,$iheight,$itype,$iattr) = getimagesize($first_copy);
 		
-		$temp_copy = $site_root."files/".uniqid("temp-").$itype_exts[$itype];
+		$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 		BigTree::copyFile($first_copy,$temp_copy);
 		
 		// Upload the original to the proper place.
@@ -127,7 +127,7 @@
 			} elseif ($iheight == $cheight && $iwidth == $cwidth) {
 				if (is_array($crop["thumbs"])) {
 					foreach ($crop["thumbs"] as $thumb) {
-						$temp_thumb = $site_root."files/".uniqid("temp-").$itype_exts[$itype];
+						$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 						BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
 						// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 						$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
@@ -141,7 +141,7 @@
 		// Handle thumbnailing
 		if (is_array($options["thumbs"])) {
 			foreach ($options["thumbs"] as $thumb) {
-				$temp_thumb = $site_root."files/".uniqid("temp-").$itype_exts[$itype];
+				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 				BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
 				// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 				$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);

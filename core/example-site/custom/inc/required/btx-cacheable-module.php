@@ -14,10 +14,8 @@
 				Setting $debug to true forces through cache.
 		*/
 		public function __construct($debug = false) {
-			global $server_root;
-			
 			$this->debug = $debug;
-			$this->cache_root = $server_root . "cache/custom/";
+			$this->cache_root = SERVER_ROOT . "cache/custom/";
 			$this->cache_base = $this->cache_root . $this->cache_prefix;
 			
 			if (!is_dir($this->cache_root)) {

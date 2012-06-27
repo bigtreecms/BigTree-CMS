@@ -9,13 +9,13 @@
 ?>
 <h1>
 	<span class="modules"></span><?=$view["title"]?>
-	<? if (count($subnav)) { ?>
+	<? if (isset($subnav) && count($subnav)) { ?>
 	<div class="jump_group">
 		<span class="icon"></span>
 		<div class="dropdown">
 			<strong><?=$mgroup["name"]?></strong>
 			<? foreach ($subnav as $link) { ?>
-			<a href="<?=$admin_root?><?=$link["link"]?>"><?=$link["title"]?></a>
+			<a href="<?=ADMIN_ROOT?><?=$link["link"]?>"><?=$link["title"]?></a>
 			<? } ?>
 		</div>
 	</div>

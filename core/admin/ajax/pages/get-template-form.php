@@ -2,14 +2,14 @@
 	if (isset($_POST["template"])) {
 		$template = $_POST["template"];
 	} else {
-		$template = $default_template;
+		$template = $pdata["template"];
 	}
 	
 	if (isset($_POST["page"])) {
 		$page = $cms->getPendingPage($_POST["page"]);
 		$resources = $page["resources"];
 		$callouts = $page["callouts"];
-	} elseif (!$resources && !$callouts) {
+	} elseif (!isset($resources) && !isset($callouts)) {
 		$resources = array();
 		$callouts = array();
 	}
@@ -17,12 +17,15 @@
 	$tdata = $cms->getTemplate($template);
 
 	if (!$tdata["image"]) {
-		$image = $admin_root."images/templates/page.png";
+		$image = ADMIN_ROOT."images/templates/page.png";
 	} else {
-		$image = $admin_root."images/templates/".$tdata["image"];
+		$image = ADMIN_ROOT."images/templates/".$tdata["image"];
 	}
-		
-	$htmls = array();
+	
+	$bigtree["datepickers"] = array();
+	$bigtree["timepickers"] = array();
+	$bigtree["html_fields"] = array();
+	$bigtree["simple_html_fields"] = array();
 ?>
 <div class="alert template_message">
 	<img src="<?=$image?>" alt="" />
@@ -38,7 +41,11 @@
 			$type = $options["type"];
 			$title = $options["title"];
 			$subtitle = $options["subtitle"];
-			$value = $resources[$key];
+			if (isset($resources[$key])) {
+				$value = $resources[$key];
+			} else {
+				$value = "";
+			}
 			$options["directory"] = "files/pages/";
 			$currently_key = "resources[currently_$key]";
 			$key = "resources[$key]";
@@ -46,7 +53,7 @@
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$input_validation_class = "";
-			if ($options["validation"]) {
+			if (isset($options["validation"]) && $options["validation"]) {
 				if (strpos($options["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
 				}
@@ -64,10 +71,10 @@
 	$mce_width = 898;
 	$mce_height = 365;
 	
-	if (count($htmls)) {
+	if (count($bigtree["html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific.php");
 	}
-	if (count($simplehtmls)) {
+	if (count($bigtree["simple_html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 	}
 	
@@ -81,18 +88,31 @@
 			foreach ($callouts as $callout) {
 				$description = "";
 				$type = $cms->getCallout($callout["type"]);
+				$temp_resources = json_decode($type["resources"],true);
+				$callout_resources = array();
+				// Loop through the resources and set the key to the id.
+				foreach ($temp_resources as $r) {
+					$callout_resources[$r["id"]] = $r;
+				}
 		?>
 		<li>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?
 				$description = $callout["display_title"];
 				foreach ($callout as $r => $v) {
-					if (is_array($v)) {
-						$v = json_encode($v,true);
-					}
+					if ($callout_resources[$r]["type"] == "upload") {
+			?>
+			<input type="file" name="callouts[<?=$x?>][<?=$r?>]" style="display:none;" class="custom_control" />
+			<input type="hidden" name="callouts[<?=$x?>][currently_<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
+			<?
+					} else {
+						if (is_array($v)) {
+							$v = json_encode($v,true);
+						}
 			?>
 			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
 			<?
+					}
 				}
 			?>
 			<h4><span class="icon_sort"></span><?=$description?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=$description?>" /></h4>
@@ -116,15 +136,23 @@
 	}
 ?>
 <script type="text/javascript">
-	<? if (is_array($dates)) { foreach ($dates as $id) { ?>
-	$(document.getElementById("<?=$id?>")).datepicker({ durration: 200, showAnim: "slideDown" });
-	<? } } ?>
-	
-	<? if (is_array($times)) { foreach ($times as $id) { ?>
-	$(document.getElementById("<?=$id?>")).timepicker({ durration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
-	<? } } ?>
-	
-	<? if ($_POST["template"]) { ?>
+	<?
+		foreach ($bigtree["datepickers"] as $id) {
+	?>
+	$(document.getElementById("<?=$id?>")).datepicker({ duration: 200, showAnim: "slideDown" });
+	<?
+		}
+		
+		foreach ($bigtree["timepickers"] as $id) {
+	?>
+	$(document.getElementById("<?=$id?>")).timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	<?
+		}
+		
+		if (isset($_POST["template"])) {
+	?>
 	BigTreeCustomControls();
-	<? } ?>
+	<?
+		}
+	?>
 </script>

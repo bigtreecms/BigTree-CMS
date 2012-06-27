@@ -1,7 +1,7 @@
 <?
-	$breadcrumb[] = array("link" => "settings/edit/".end($path)."/", "title" => "Edit Setting");
+	$breadcrumb[] = array("link" => "settings/edit/".end($bigtree["path"])."/", "title" => "Edit Setting");
 	
-	$item = $admin->getSetting(end($path));
+	$item = $admin->getSetting(end($bigtree["path"]));
 	if ($item["encrypted"]) {
 		$item["value"] = "";
 	}
@@ -13,33 +13,38 @@
 <h1><span class="settings"></span>Edit Setting</h1>
 <? include BigTree::path("admin/layouts/_tinymce.php"); ?>
 <div class="form_container">
-	<header>
-		<h2><?=$item["name"]?></h2>
-	</header>
 	<? if ($item["encrypted"]) { ?>
-	<aside>This setting is encrypted.  The current value cannot be shown.</aside>
+	<header><p>This setting is encrypted.  The current value cannot be shown.</p></header>
 	<? } ?>
-	<form class="module" action="<?=$admin_root?>settings/update/" method="post">	
-		<input type="hidden" name="id" value="<?=htmlspecialchars(end($path))?>" />
+	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
+		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
+				// Draw the setting description
 				echo $item["description"];
 				
-				$t = $item["type"];
-				$title = "";
+				// Setup field related nonsense.
+				$bigtree["datepickers"] = array();
+				$bigtree["timepickers"] = array();
+				$bigtree["html_fields"] = array();
+				$bigtree["simple_html_fields"] = array();
+				
+				$options = json_decode($item["options"],true);
+				// Setup Validation Classes
+				$label_validation_class = "";
+				$input_validation_class = "";
+				if (isset($options["validation"]) && $options["validation"]) {
+				    if (strpos($options["validation"],"required") !== false) {
+				    	$label_validation_class = ' class="required"';
+				    }
+				    $input_validation_class = ' class="'.$options["validation"].'"';
+				}
+				
+				$title = $item["name"];
 				$value = $item["value"];
 				$key = $item["id"];
-				include BigTree::path("admin/form-field-types/draw/".$t.".php");
 				
-				$mce_width = 898;
-				$mce_height = 365;
-				
-				if (count($htmls)) {
-					include BigTree::path("admin/layouts/_tinymce_specific.php");
-				}
-				if (count($simplehtmls)) {
-					include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
-				}
+				include BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
 			?>
 		</section>
 		<footer>
@@ -47,3 +52,35 @@
 		</footer>
 	</form>
 </div>
+<?
+	if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
+		$mce_width = 898;
+		$mce_height = 365;
+		include BigTree::path("admin/layouts/_tinymce.php"); 
+				
+		if (count($bigtree["html_fields"])) {
+			include BigTree::path("admin/layouts/_tinymce_specific.php");
+		}
+		if (count($bigtree["simple_html_fields"])) {
+			include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
+		}
+	}
+	
+?>
+<script type="text/javascript">
+	new BigTreeFormValidator("form.module");
+	
+	<?
+		foreach ($bigtree["datepickers"] as $id) {
+	?>
+	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
+	<?
+		}
+
+		foreach ($bigtree["timepickers"] as $id) {
+	?>
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	<?
+		}
+	?>
+</script>

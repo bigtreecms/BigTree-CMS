@@ -66,27 +66,27 @@
 	if (count($crops)) {
 		if ($_POST["return_to_front"]) {
 			$pd = $cms->getPage($page);
-			$return_page = $www_root.$pd["path"]."/";
+			$return_page = WWW_ROOT.$pd["path"]."/";
 		} else {
-			$return_page = $admin_root."pages/view-tree/".$pdata["parent"]."/";
+			$return_page = ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/";
 		}
 		include BigTree::path("admin/modules/pages/_crop.php");
 	} elseif (count($fails)) {
 		include BigTree::path("admin/modules/pages/_failed.php");
 	} else {
-		if (end($path) == "preview") {
+		if (end($bigtree["path"]) == "preview") {
 			$admin->ungrowl();
 			header("Location: ".$cms->getPreviewLink($page)."?bigtree_preview_bar=true");
 		} elseif ($_POST["return_to_front"]) {
 			$admin->ungrowl();
 			if ($page == 0) {
-				header("Location: ".$www_root);
+				header("Location: ".WWW_ROOT);
 			} else {
 				$pd = $cms->getPage($page);
-				header("Location: ".$www_root.$pd["path"]."/");
+				header("Location: ".WWW_ROOT.$pd["path"]."/");
 			}
 		} else {
-			header("Location: ".$admin_root."pages/view-tree/".$pdata["parent"]."/");
+			header("Location: ".ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/");
 		}
 		die();
 	}

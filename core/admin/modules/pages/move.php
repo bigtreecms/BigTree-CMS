@@ -1,5 +1,5 @@
 <?
-	$page = $cms->getPage(end($path));
+	$page = $cms->getPage(end($bigtree["path"]));
 	
 	// Don't let them move the homepage.
 	if ($page["id"] == 0) {
@@ -44,7 +44,7 @@
 <h1><span class="move"></span><?=$page["nav_title"]?></h1>
 <? include BigTree::path("admin/modules/pages/_nav.php") ?>
 <div class="form_container">
-	<form method="post" action="<?=$admin_root?>pages/move-update/">
+	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
 		<input type="hidden" name="page" value="<?=$page["id"]?>" />
 		<section>
 			<fieldset>

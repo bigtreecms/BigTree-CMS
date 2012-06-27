@@ -1,7 +1,7 @@
 <h1><span class="developer"></span>Developer</h1>
 
 <div class="table">
-	<summary><h2>Build Things</h2></summary>
+	<summary><h2>Create</h2></summary>
 	<section>
 		<a class="box_select" href="templates/">
 			<span class="icon_developer_templates"></span>
@@ -41,7 +41,7 @@
 
 
 <div class="table">
-	<summary><h2>Setup Things</h2></summary>
+	<summary><h2>Configure</h2></summary>
 	<section>
 		<a class="box_select" href="upload-service/">
 			<span class="icon_developer_upload_service"></span>
@@ -50,6 +50,14 @@
 		<a class="box_select" href="payment-gateway/">
 			<span class="icon_developer_payment_gateway"></span>
 			<p>Payment Gateway</p>
+		</a>
+		<a class="box_select" href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/configure/">
+			<span class="icon_developer_analytics"></span>
+			<p>Analytics</p>
+		</a>
+		<a class="box_select" href="status/">
+			<span class="icon_developer_site_status"></span>
+			<p>Site Status</p>
 		</a>
 	</section>
 </div>

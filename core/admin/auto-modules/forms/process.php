@@ -127,12 +127,12 @@
 		// Get the redirect location.
 		$pieces = explode("-",$action["route"]);
 		if (count($pieces) == 2) {
-			$redirect_url = $admin_root.$module["route"]."/view-".$pieces[1]."/";
+			$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/";
 		} else {
-			$redirect_url = $admin_root.$module["route"]."/";
+			$redirect_url = ADMIN_ROOT.$module["route"]."/";
 		}
 		
-		if (end($path) == "preview") {
+		if (end($bigtree["path"]) == "preview") {
 			$admin->ungrowl();
 			$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
 		}
@@ -153,7 +153,7 @@
 		if (count($crops) == 0) {
 			if (count($fails)) {
 				$suffix = $view["suffix"] ? "-".$view["suffix"] : "";
-				$edit_link = $admin_root.$module["route"]."/edit$suffix/$edit_id/";
+				$edit_link = ADMIN_ROOT.$module["route"]."/edit$suffix/$edit_id/";
 ?>
 <h1>Errors Occurred</h1>
 <div class="table">
@@ -176,7 +176,7 @@
 <a href="<?=$redirect_url?>" class="button blue">Continue</a> &nbsp; <a href="<?=$edit_link?>" class="button">Edit Entry</a> &nbsp; <a href="#" class="delete button red">Delete Entry</a>
 <script type="text/javascript">
 	$(".delete").click(function() {
-		$.ajax("<?=$admin_root?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$edit_id?>", {
+		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$edit_id?>", {
 			complete: function() {
 				document.location = '<?=$redirect_url?>';
 			}

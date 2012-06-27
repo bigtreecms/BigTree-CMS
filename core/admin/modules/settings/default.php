@@ -26,6 +26,6 @@
 	});
 
 	function _local_search() {
-		$("#results").load("<?=$admin_root?>ajax/settings/get-page/?page=0&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=0&query=" + escape($("#query").val()));
 	}
 </script>

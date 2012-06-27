@@ -35,14 +35,14 @@
 			
 			// Let's crush this png.
 			if ($itype == IMAGETYPE_PNG && $upload_service->optipng) {
-				$first_copy = $site_root."files/".uniqid("temp-").".png";
+				$first_copy = SITE_ROOT."files/".uniqid("temp-").".png";
 				move_uploaded_file($temp_name,$first_copy);
 				exec($upload_service->optipng." ".$first_copy);
 			}
 			
 			// Let's crush the gif and see if we can make it a PNG.
 			if ($itype == IMAGETYPE_GIF && $upload_service->optipng) {
-				$first_copy = $site_root."files/".uniqid("temp-").".gif";
+				$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
 				move_uploaded_file($temp_name,$first_copy);
 				
 				exec($upload_service->optipng." ".$first_copy);
@@ -57,7 +57,7 @@
 			
 			// Let's trim the jpg.
 			if ($itype == IMAGETYPE_JPEG && $upload_service->jpegtran) {
-				$first_copy = $site_root."files/".uniqid("temp-").".gif";
+				$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
 				move_uploaded_file($temp_name,$first_copy);
 				
 				exec($upload_service->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
@@ -72,7 +72,7 @@
 			
 			// First up is the list view
 			$pinfo = BigTree::pathInfo($f["name"]);
-			$temp_thumb = $site_root."files/".uniqid("temp-").$itype_exts[$itype];
+			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 			BigTree::createThumbnail($first_copy,$temp_thumb,100,100);
 			
 			list($twidth,$theight) = getimagesize($temp_thumb);
@@ -82,7 +82,7 @@
 			$thumbs["bigtree_internal_list"] = $thumb;
 			
 			// Next up is the more info view
-			$temp_thumb = $site_root."files/".uniqid("temp-").$itype_exts[$itype];
+			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 			BigTree::createThumbnail($first_copy,$temp_thumb,190,145);
 			
 			$thumb = $upload_service->upload($temp_thumb,"detail_thumb_".$pinfo["basename"],"files/resources/");
@@ -92,7 +92,7 @@
 			$more_thumb_types = json_decode($cms->getSetting("resource-thumbnail-sizes"),true);
 			foreach ($more_thumb_types as $mtk => $mtt) {
 				if ($iwidth > $mtt["width"] || $iheight > $mtt["height"]) {
-					$temp_thumb = $site_root."files/".uniqid("temp-").$itype_exts[$itype];
+					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 					BigTree::createThumbnail($first_copy,$temp_thumb,$mtt["width"],$mtt["height"]);
 				
 					$thumb = $upload_service->upload($temp_thumb,$mtt["prefix"].$pinfo["basename"],"files/resources/");
@@ -109,7 +109,7 @@
 ?>
 <html>
 	<head>
-		<link rel="stylesheet" href="<?=$admin_root?>css/main.css" />
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" />
 	</head>
 	<body style="background: transparent;">
 		<p class="file_browser_response">Successfully Uploaded</p>

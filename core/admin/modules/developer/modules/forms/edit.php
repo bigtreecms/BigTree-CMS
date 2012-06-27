@@ -1,5 +1,5 @@
 <?
-	$form = BigTreeAutoModule::getForm($commands[0]);;
+	$form = BigTreeAutoModule::getForm($bigtree["commands"][0]);;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 	
 	$action = $admin->getModuleActionForForm($form["id"]);
@@ -61,6 +61,6 @@
 
 <script type="text/javascript">
 	$("#form_table").change(function(event,data) {
-		$("#field_area").load("<?=$admin_root?>ajax/developer/load-form/", { table: data.value });
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value });
 	});
 </script>

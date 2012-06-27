@@ -23,14 +23,15 @@
 		}
 	} else {
 		$fields = array();
-		$q = sqlquery("DESCRIBE $table");
-		while ($f = sqlfetch($q)) {
-			if (!in_array($f["Field"],$reserved)) {
+		$columns = sqlcolumns($table);
+		foreach ($columns as $column) {
+			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
 				$type = "text";
-				$title = ucwords(str_replace(array("-","_")," ",$f["Field"]));
+				$title = ucwords(str_replace(array("-","_")," ",$column["name"]));
 				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),$title);
+				$options = array();
 				
 				if (strpos($title,"URL") !== false) {
 					$subtitle = "Include http://";
@@ -55,8 +56,21 @@
 				if (strpos($title,"Description") !== false) {
 					$type = "html";
 				}
+				
+				if ($column["type"] == "enum") {
+					$type = "list";
+					$list = array();
+					foreach ($column["options"] as $option) {
+						$list[] = array("value" => $option, "description" => $option);
+					}
+					$options = array(
+						"list_type" => "static",
+						"allow-empty" => "No",
+						"list" => $list
+					);
+				}
 
-				$fields[$f["Field"]] = array("title" => $title, "subtitle" => $subtitle, "type" => $type);
+				$fields[$column["name"]] = array_merge(array("title" => $title, "subtitle" => $subtitle, "type" => $type),$options);
 			}
 			
 			if ($f["Field"] == "position") {
@@ -82,7 +96,6 @@
 		<span class="developer_resource_form_title">Title</span>
 		<span class="developer_resource_form_subtitle">Subtitle</span>
 		<span class="developer_resource_type">Type</span>
-		<span class="developer_resource_action">Edit</span>
 		<span class="developer_resource_action">Delete</span>
 	</div>
 	<ul id="resource_table">
@@ -121,9 +134,7 @@
 				<?
 					}
 				?>
-			</section>
-			<section class="developer_resource_action">
-				<a href="#" class="options icon_edit" name="<?=$key?>"></a>
+				<a href="#" class="options icon_settings" name="<?=$key?>"></a>
 				<input type="hidden" name="options[<?=$key?>]" value="<?=htmlspecialchars(json_encode($field))?>" id="options_<?=$key?>" />
 			</section>
 			<section class="developer_resource_action">
@@ -150,13 +161,13 @@
 	var current_editing_key;
 	var mtm_count = <?=$mtm_count?>;
 	
-	$(".icon_edit").live("click",function() {
+	$(".icon_settings").live("click",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
-		$.ajax("<?=$admin_root?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=$admin_root?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
 			});
 		}});
 		
@@ -178,7 +189,7 @@
 	
 	$(".add_geocoding").click(function() {
 		li = $('<li id="row_geocoding">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="hidden" name="subtitles[geocoding]" value="" />&nbsp;</section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" />&nbsp;</section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[geocoding]" value="" disabled="disabled" /></section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" /><span class="resource_name">Geocoding</span></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
 		
 		$("#resource_table").append(li);
 		_local_hooks();
@@ -190,7 +201,7 @@
 		mtm_count++;
 			
 		li = $('<li id="mtm_row_' + mtm_count + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><p>Many To Many</p></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><span class="resource_name">Many To Many</span></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		_local_hooks();

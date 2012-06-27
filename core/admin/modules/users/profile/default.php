@@ -9,7 +9,7 @@
 ?>
 <h1><span class="users"></span>Profile</h1>
 <div class="form_container">
-	<form class="module" action="<?=$admin_root?>users/profile/update/" method="post">
+	<form class="module" action="<?=ADMIN_ROOT?>users/profile/update/" method="post">
 		<section>
 			<div class="left">
 				<fieldset>

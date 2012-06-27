@@ -14,13 +14,13 @@
 		</div>
 	</header>
 	<? include BigTree::path("admin/layouts/_tinymce.php"); ?>
-	<form method="post" class="module" action="<?=$admin_root?>pages/<?=$action?>/" enctype="multipart/form-data" id="page_form">
-		<? if ($_GET["return"] == "front") { ?>
+	<form method="post" class="module" action="<?=ADMIN_ROOT?>pages/<?=$action?>/" enctype="multipart/form-data" id="page_form">
+		<? if (isset($_GET["return"]) && $_GET["return"] == "front") { ?>
 		<input type="hidden" name="return_to_front" value="true" />
 		<? } ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		
-		<? if ($pdata) { ?>
+		<? if (isset($pdata)) { ?>
 		<input type="hidden" name="page" value="<?=$pdata["id"]?>" />
 		<? } else { ?>
 		<input type="hidden" name="parent" value="<?=$parent?>" />
@@ -98,15 +98,15 @@
 		return false;
 	});
 
-	var template = "<?=$default_template?>";
+	var template = "<?=$pdata["template"]?>";
 	<? if ($action == "create") { ?>
 	var page = false;
 	<? } else { ?>
 	var page = "<?=$pdata["id"]?>";
 	var page_updated_at = "<?=$pdata["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=$admin_root?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lockid?>' } });",60000);
+	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
 	<? } ?>
 	
 	new BigTreeFormValidator("#page_form");
 </script>
-<script type="text/javascript" src="<?=$admin_root?>js/pages.js"></script>
+<script type="text/javascript" src="<?=ADMIN_ROOT?>js/pages.js"></script>

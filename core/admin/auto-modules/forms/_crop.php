@@ -23,7 +23,7 @@
 <script type="text/javascript">
 	$$(".delete").click(function(ev) {
 		ev.stop();
-		new Ajax.Request("<?=$admin_root?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$edit_id?>", {
+		new Ajax.Request("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$edit_id?>", {
 			onComplete: function() {
 				document.location = '<?=$redirect_url?>';
 			}
@@ -43,7 +43,7 @@
 	}
 ?>
 
-<script src="<?=$admin_root?>js/jcrop.min.js" type="text/javascript"></script>
+<script src="<?=ADMIN_ROOT?>js/jcrop.min.js" type="text/javascript"></script>
 <h1<?=$crop_hidden?>><span class="crop"></span>Crop Images</h1>
 <div class="form_container"<?=$crop_hidden?>>
 	<header>
@@ -59,7 +59,7 @@
 					foreach ($crops as $crop) {
 						$x++;
 						list($width,$height,$type,$attr) = getimagesize($crop["image"]);
-						$image = str_replace($site_root,$www_root,$crop["image"]);
+						$image = str_replace(SITE_ROOT,STATIC_ROOT,$crop["image"]);
 						$cwidth = $crop["width"];
 						$cheight = $crop["height"];
 						

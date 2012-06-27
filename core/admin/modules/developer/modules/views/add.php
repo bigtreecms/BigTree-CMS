@@ -1,7 +1,7 @@
 <?
-	$id = $commands[0];
-	$table = $commands[1];
-	$title = $commands[2];
+	$id = $bigtree["commands"][0];
+	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
+	$title = isset($bigtree["commands"][2]) ? htmlspecialchars(urldecode($bigtree["commands"][2])) : "";
 	
 	$mod = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
@@ -12,6 +12,9 @@
 	if (isset($_SESSION["bigtree"]["developer"]["saved_view"])) {
 		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["saved_view"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree"]["developer"]["saved_view"]);
+	} else {
+		// Stop notices
+		$description = $type = $preview_url = "";
 	}
 ?>
 <h1><span class="icon_developer_modules"></span>Add View</h1>
@@ -22,7 +25,7 @@
 		<section>
 			<? if ($landing_exists) { ?>
 			<div class="alert">
-				<img src="<?=$admin_root?>images/alert.png" alt="" />
+				<img src="<?=ADMIN_ROOT?>images/alert.png" alt="" />
 				<p><strong>Default View Taken:</strong> If this view is for a different edit action, please specify the suffix below (i.e. edit-group's suffix is "group").</p>
 			</div>
 			<fieldset>
@@ -61,11 +64,6 @@
 				<fieldset>
 					<label>Page Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
-				</fieldset>
-				
-				<fieldset>
-					<input type="checkbox" name="uncached" <? if ($uncached) { ?>checked="checked" <? } ?>/>
-					<label class="for_checkbox">Don't Cache View Data <small>(removes parsers, pending changes)</small></label>
 				</fieldset>
 			</div>
 			

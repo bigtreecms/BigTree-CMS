@@ -6,7 +6,7 @@
 	$message = "";
 	$error = false;
 	
-	if ($_SESSION["saved_message"]) {
+	if (isset($_SESSION["saved_message"])) {
 		$send_to = $_SESSION["saved_message"]["send_to"];
 		$subject = htmlspecialchars($_SESSION["saved_message"]["subject"]);
 		$message = htmlspecialchars($_SESSION["saved_message"]["message"]);
@@ -14,7 +14,10 @@
 		unset($_SESSION["saved_message"]);
 	}
 ?>
-<h1><span class="add_message"></span>New Message</h1>
+<h1>
+	<span class="add_message"></span>New Message
+	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
+</h1>
 <? include "_nav.php" ?>
 <div class="form_container">
 	<form method="post" action="../create/" id="message_form">
@@ -76,7 +79,7 @@
 	</form>
 </div>
 <?
-	$htmls = array("message");
+	$bigtree["html_fields"] = array("message");
 	include BigTree::path("admin/layouts/_tinymce.php");
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 ?>

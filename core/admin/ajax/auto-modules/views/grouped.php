@@ -1,17 +1,26 @@
 <?
 	// If it's an AJAX request, get our data.
-	if ($_POST["view"]) {
+	if (isset($_POST["view"])) {
 		$view = BigTreeAutoModule::getView($_POST["view"]);
 	}
-	
 	BigTree::globalizeArray($view);
-	$m = BigTreeAutoModule::getModuleForView($view);
-	$perm = $admin->getAccessLevel($m);
-	$module = $admin->getModule($m);
+	
+	$module_id = BigTreeAutoModule::getModuleForView($view);
+	$permission = $admin->getAccessLevel($module_id);
+	$module = $admin->getModule($module_id);
 
+	// Defaults
+	$search = isset($_POST["search"]) ? $_POST["search"] : "";
 	$suffix = $suffix ? "-".$suffix : "";
-	$o = $options;
+	$draggable = (isset($options["draggable"]) && $options["draggable"]) ? true : false;
 	$view["options"]["per_page"] = 10000;
+	if (isset($options["sort_field"])) {
+		$sort = $options["sort_field"]." ".$options["sort_direction"];
+	} elseif (isset($options["sort"])) {
+		$sort = $options["sort"];
+	} else {
+		$sort = "id DESC";
+	}
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
@@ -47,13 +56,12 @@
 	?>
 </header>
 <?	
-	$q = sqlquery($query);
 	$gc = 0;
 	foreach ($groups as $group => $title) {		
-		if ($o["draggable"]) {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],"position DESC, id ASC","",$group,$module);
+		if ($draggable) {
+			$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC",$group,$module);
 		} else {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],$o["sort_field"],$o["sort_direction"],$group,$module);
+			$r = BigTreeAutoModule::getSearchResults($view,0,$search,$sort,$group,$module);
 		}
 		
 		if (count($r["results"])) {
@@ -82,7 +90,7 @@
 				$value = $item["column$x"];
 		?>
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
-			<? if ($x == 1 && $perm == "p" && !$_POST["search"] && $o["draggable"]) { ?>
+			<? if ($x == 1 && $permission == "p" && !$search && $draggable) { ?>
 			<span class="icon_sort"></span>
 			<? } ?>
 			<?=$value?>
@@ -92,7 +100,7 @@
 		?>
 		<section class="view_status status_<?=$status_class?>"><?=$status?></section>
 		<?
-			$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
+			$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
 			foreach ($actions as $action => $data) {
 				if ($data == "on") {
 					if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {

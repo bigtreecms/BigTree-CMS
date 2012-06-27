@@ -20,6 +20,60 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0b6
+- NEW: BigTree now allows for usage of index.php routing WITHOUT .htaccess / mod_rewrite
+- NEW: BigTree::unzip function (preparing for the future)
+- FIXED: Buttons in the image browser not working in beta 5.
+- FIXED: Example site "Wonders" form missing in beta 5.
+- FIXED: Module forms not creating properly in beta 5.
+- FIXED: Choosing image size not working in Image Browser in beta 5.
+- FIXED: Styles of the H3 in the image size chooser in the Image Browser.
+- FIXED:  404s in the 404 list not being htmlspecialchar'd
+- FIXED: Some "Advanced Link" problems in TinyMCE
+- FIXED: Views with more than 5 columns causing a critical error.
+- FIXED: Many problems that stopped module packaging / importing from working in recent betas.
+- FIXED: Callout images throwing an error if they were unchanged from last publish (Thanks Phil P!)
+- FIXED: A warning that occurred if you uploaded an invalid image.
+- FIXED: Lazy loading of modules throwing a critical error when class_exists() was called (fixes Module Designer!)
+- FIXED: Module creation process showing urlencoded titles
+- FIXED: Homepage resources loading into a new page if the template was changed (Thanks Phil P!)
+
+### 4.0b5
+- NEW: Array of Items now supports using several different field types (text, textarea, date, time, html)
+- NEW: BigTree version updater automatically does database and file system changes when a new revision is installed.
+- NEW: "Trunk" flag for pages that allows for resetting BigTreeCMS::getTopLevelNav and BigTreeCMS::getBreadcrumbByPage methods.
+- UPDATED: TinyMCE to latest version.
+- UPDATED: BigTreeAdmin::updateSetting now supports system settings.
+- UPDATED: System settings are now consolidated to not clutter the bigtree_settings table so much.
+- UPDATED: Cleaned up list-generating code to be usable by third party field types (see BigTreeListMaker JavaScript class).
+- UPDATED: Callouts "Title" now renamed "Label" so there aren't two things called "Title".
+- UPDATED: Daily Digest email now sends out emails alerting you of unread messages in Message Center.
+- UPDATED: Cleaned up the global namespace to move several variables ($content, $layout, $page, $callouts, $resources) into a $bigtree array variable.
+- FIXED: A possible notice in install.php
+- FIXED: Updating a pending page change (fixes restoring to a revision when a pending change to a page exists)
+- FIXED: "Cron" no longer tries to run Google Analytics if a profile isn't set.
+- FIXED: The size of some panels in the Image/File browser.
+- FIXED: Many to Many editor's odd style issues.
+- FIXED: Generated routes failing when publishing a pending item.
+- FIXED: Preview URL for the homepage.
+- FIXED: Double-encoding of HTML entities for callouts.
+- FIXED: Errors for "Array of Items" when used in callouts.
+- FIXED: Some issues with inline popups in TinyMCE.
+- FIXED: Custom select boxes were firing "changed" instead of "change" like a normal <select> element would.
+- FIXED: Tooltips not hiding properly (and causing things behind them to be unclickable)
+- FIXED: Creating a user not setting the daily digest flag properly.
+- FIXED: "Cron" not getting the right environment variables when running daily digest.
+- FIXED: "Growl" messages not showing up in Users section.
+- FIXED: Users rows not disappearing after deleting them.
+- FIXED: Deleting a user confirmation dialog saying "Resource" instead of "User"
+- FIXED: Styling and clickablility of Quick Search results in admin.
+- FIXED: File Browser in IE8, removed it's use with a warning in < IE8.
+- FIXED: Sub directories are no longer (attempted to be) included in /custom/inc/required/ (thus throwing a warning)
+- FIXED: Pages not publishing certain properties properly when published via the Pending Changes section of Dashboard.
+- FIXED: Saving a revision not showing the new revision immediately.
+- FIXED: Array of Items not getting a draggable placeholder
+- FIXED: Daily digest going out even if there was nothing for the user to be notified about.
+
 ### 4.0b4
 - Fixed issues with saving pending changes on pages that were empty of content.
 - Fixed publishing pending changes for pages from the dashboard

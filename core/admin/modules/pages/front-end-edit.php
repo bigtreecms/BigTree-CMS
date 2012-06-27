@@ -1,5 +1,5 @@
 <?
-	$page = end($path);
+	$page = end($bigtree["path"]);
 	
 	// Check for a page lock
 	$lock = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/front-end-locked.php",$_GET["force"],false);
@@ -42,16 +42,18 @@
 		$template = $cms->getTemplate($pdata["template"]);
 		$resources = $cms->decodeResources($pdata["resources"]);
 			
-		$htmls = array();
-		$simplehtmls = array();
+		$bigtree["html_fields"] = array();
+		$bigtree["simple_html_fields"] = array();
+		$bigtree["timepickers"] = array();
+		$bigtree["datepickers"] = array();
 		$tabindex = 1;
 ?>
 <html>
 	<head>
-		<link rel="stylesheet" href="<?=$admin_root?>css/main.css" type="text/css" media="screen" charset="utf-8" />
-		<script type="text/javascript" src="<?=$admin_root?>js/lib.js"></script>
-		<script type="text/javascript" src="<?=$admin_root?>js/main.js"></script>
-		<script type="text/javascript" src="<?=$admin_root?>js/pages.js"></script>
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" charset="utf-8" />
+		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/lib.js"></script>
+		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/main.js"></script>
+		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/pages.js"></script>
 		<style type="text/css">
 			#mceModalBlocker { display: none !important; }
 		</style>
@@ -59,7 +61,7 @@
 	<body>
 		<div class="bigtree_dialog_window front_end_editor">
 			<h2>Edit Page Content</h2>
-			<form class="bigtree_dialog_form" method="post" action="<?=$admin_root?>pages/front-end-update/<?=$page?>/" enctype="multipart/form-data">
+			<form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/<?=$page?>/" enctype="multipart/form-data">
 				<div class="overflow">
 					<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 					<?
@@ -129,7 +131,7 @@
 			});
 			
 			var page = "<?=$pdata["id"]?>";
-			lockTimer = setInterval("$.ajax('<?=$admin_root?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lockid?>' } });",60000);
+			lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lockid?>' } });",60000);
 		</script>
 	</body>
 </html>

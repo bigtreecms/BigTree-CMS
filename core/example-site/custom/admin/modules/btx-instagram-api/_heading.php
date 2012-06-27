@@ -6,7 +6,7 @@
 		<div class="dropdown">
 			<strong><?=$mgroup["name"]?></strong>
 			<? foreach ($subnav as $link) { ?>
-			<a href="<?=$admin_root?><?=$link["link"]?>"><?=$link["title"]?></a>
+			<a href="<?=ADMIN_ROOT?><?=$link["link"]?>"><?=$link["title"]?></a>
 			<? } ?>
 		</div>
 	</div>

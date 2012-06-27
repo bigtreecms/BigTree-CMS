@@ -1,10 +1,11 @@
 <h1><span class="modules"></span>Edit <?=$form["title"]?></h1>
 <?
 	include BigTree::path("admin/auto-modules/_nav.php");
-	$item_id = end($path);
+	$item_id = end($bigtree["path"]);
 	
 	// Check for a page lock
-	$admin->lockCheck($form["table"],$item_id,"admin/auto-modules/forms/_locked.php",$_GET["force"]);
+	$force = isset($_GET["force"]) ? $_GET["force"] : false;
+	$admin->lockCheck($form["table"],$item_id,"admin/auto-modules/forms/_locked.php",$force);
 
 	$data = BigTreeAutoModule::getPendingItem($form["table"],$item_id);
 		
@@ -24,7 +25,6 @@
 		} else {
 			$many_to_many = $data["mtm"];
 			$status = $data["status"];
-			$pending_resources = $data["resources"] ? $data["resources"] : array();
 			
 			$tags = $data["tags"];
 				

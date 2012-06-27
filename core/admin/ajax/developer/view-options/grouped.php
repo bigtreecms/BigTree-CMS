@@ -1,29 +1,31 @@
+<?
+	// Defaults
+	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
+	$group_field = isset($options["group_field"]) ? $options["group_field"] : "";
+	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
+	$filter = isset($options["filter"]) ? $options["filter"] : "";
+	$draggable = isset($options["draggable"]) ? $options["draggable"] : false;
+	$other_table = isset($options["other_table"]) ? $options["other_table"] : false;
+	$title_field = isset($options["title_field"]) ? $options["title_field"] : false;
+	$ot_sort_field = isset($options["ot_sort_field"]) ? $options["ot_sort_field"] : false;
+	$ot_sort_direction = isset($options["ot_sort_direction"]) ? $options["ot_sort_direction"] : false;
+?>
 <fieldset>
-	<label>Group Field</label>
-	<select name="group_field">
-		<? BigTree::getFieldSelectOptions($table,$data["group_field"]) ?>
-	</select>
-</fieldset>
-
-<fieldset>
-	<input type="checkbox" class="checkbox" name="draggable" <? if ($data["draggable"]) { ?>checked="checked" <? } ?>/>
+	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
 	<label class="for_checkbox">Draggable</label>
 </fieldset>
 
 <fieldset>
-	<label>Field to Sort By Inside Groups <small>(if not draggable)</small></label>
-	<div name="sort_field">
-		<select name="sort_field">
-			<? BigTree::getFieldSelectOptions($table,$data["sort_field"]) ?>
-		</select>
-	</div>
+	<label>Group Field</label>
+	<select name="group_field">
+		<? BigTree::getFieldSelectOptions($table,$group_field) ?>
+	</select>
 </fieldset>
 
 <fieldset>
-	<label>Sort Direction <small>(if not draggable)</small></label>
-	<select name="sort_direction">
-		<option>asc</option>
-		<option<? if ($data["sort_direction"] == "desc") { ?> selected="selected"<? } ?>>desc</option>
+	<label>Sort By Inside Groups <small>(if not draggable)</small></label>
+	<select name="sort">
+		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
 	</select>
 </fieldset>
 
@@ -33,16 +35,16 @@
 	<label>Other Table</label>
 	<select name="other_table" class="table_select">
 		<option></option>
-		<? BigTree::getTableSelectOptions($data["other_table"]) ?>
+		<? BigTree::getTableSelectOptions($other_table) ?>
 	</select>
 </fieldset>
 
 <fieldset>
 	<label>Field to Pull for Title</label>
-	<div name="title_field">
-		<? if ($data["other_table"]) { ?>
+	<div data-name="title_field">
+		<? if ($other_table) { ?>
 		<select name="title_field">
-			<? BigTree::getFieldSelectOptions($data["other_table"],$data["title_field"]) ?>
+			<? BigTree::getFieldSelectOptions($other_table,$title_field) ?>
 		</select>
 		<? } else { ?>
 		&mdash;
@@ -52,10 +54,10 @@
 
 <fieldset>
 	<label>Field to Sort By</label>
-	<div name="sort_field">
-		<? if ($data["other_table"]) { ?>
+	<div data-name="ot_sort_field">
+		<? if ($other_table) { ?>
 		<select name="ot_sort_field">
-			<? BigTree::getFieldSelectOptions($data["other_table"],$data["sort_field"]) ?>
+			<? BigTree::getFieldSelectOptions($other_table,$ot_sort_field) ?>
 		</select>
 		<? } else { ?>
 		&mdash;
@@ -66,7 +68,7 @@
 <fieldset>
 	<label>Sort Direction</label>
 	<select name="ot_sort_direction">
-		<option>asc</option>
-		<option<? if ($data["sort_direction"] == "desc") { ?> selected="selected"<? } ?>>desc</option>
+		<option>ASC</option>
+		<option<? if ($ot_sort_direction == "DESC") { ?> selected="selected"<? } ?>>DESC</option>
 	</select>
 </fieldset>

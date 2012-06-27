@@ -1,17 +1,10 @@
 <?
 	$admin->requireLevel(1);
 	
-	$admin->deleteSetting("bigtree-internal-google-analytics-profile");
-	$setting = array(
-		"id" => "bigtree-internal-google-analytics-profile",
-		"title" => "Google Analytics Profile ID",
-		"type" => "text",
-		"encrypted" => "on",
-		"system" => "on"
-	);
-	$admin->createSetting($setting);
-	$admin->updateSettingValue("bigtree-internal-google-analytics-profile",$_POST["profile"]);
-	
+	$settings = $cms->getSetting("bigtree-internal-google-analytics");
+	$settings["profile"] = $_POST["profile"];
+	$admin->updateSettingValue("bigtree-internal-google-analytics",$settings);
+		
 	$ga = new BigTreeGoogleAnalytics;
 	if ($ga->AuthToken) {
 		$ga->cacheInformation();

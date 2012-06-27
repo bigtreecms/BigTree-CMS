@@ -5,11 +5,11 @@
 	if (!$id) {
 		$_SESSION["bigtree"]["create_user"] = $_POST;
 		$admin->growl("Users","Creation Failed","error");
-		header("Location: ".$admin_root."users/add/");
+		header("Location: ".ADMIN_ROOT."users/add/");
 		die();
 	}
 
 	$admin->growl("Users","Added User");
-	header("Location: ".$admin_root."users/edit/$id/new/");
+	header("Location: ".ADMIN_ROOT."users/edit/$id/new/");
 	die();
 ?>

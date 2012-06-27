@@ -11,13 +11,13 @@
 	if (($type == "draggable" || $options["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
-	if ($actions["archive"] && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
+	if (isset($actions["archive"]) && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'archived' that is char(2) in order to use the archive function.";
 	}
-	if ($actions["approve"] && !(($columns["approved"]["type"] == "char" || $columns["approved"]["type"] == "varchar") && $columns["approved"]["size"] == "2")) {
+	if (isset($actions["approve"]) && !(($columns["approved"]["type"] == "char" || $columns["approved"]["type"] == "varchar") && $columns["approved"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'approved' that is char(2) in order to use the approve function.";
 	}
-	if ($actions["feature"] && !(($columns["featured"]["type"] == "char" || $columns["featured"]["type"] == "varchar") && $columns["featured"]["size"] == "2")) {
+	if (isset($actions["feature"]) && !(($columns["featured"]["type"] == "char" || $columns["featured"]["type"] == "varchar") && $columns["featured"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'featured' that is char(2) in order to use the feature function.";
 	}
 	
@@ -39,14 +39,19 @@
 	} else {
 		// Clean up actions
 		$clean_actions = array();
-		foreach ($actions as $key => $val) {
-			if ($val) {
-				$clean_actions[$key] = $val;
+		if (isset($actions)) {
+			foreach ($actions as $key => $val) {
+				if ($val) {
+					$clean_actions[$key] = $val;
+				}
 			}
 		}
 		$actions = $clean_actions;
 		
-		$module = end($path);
+		$module = end($bigtree["path"]);
+		
+		// Silence notices
+		$suffix = isset($suffix) ? $suffix : "";
 		
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$landing_exists = $admin->doesModuleLandingActionExist($module);
@@ -59,7 +64,7 @@
 		} else {
 			$route = "";
 		}
-		
+				
 		// Let's create the view
 		$view_id = $admin->createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
@@ -74,8 +79,8 @@
 		<p>Your view for <?=$mod["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
 	</section>
 	<footer>
-		<a href="<?=$admin_root?><?=$mod["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp; 
-		<a href="<?=$developer_root?>modules/forms/add/<?=end($path)?>/<?=urlencode($table)?>/<?=urlencode($title)?>/<?=urlencode($suffix)?>/" class="button blue">Add Form</a></p>
+		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp; 
+		<a href="<?=$developer_root?>modules/forms/add/<?=end($bigtree["path"])?>/<?=urlencode($table)?>/<?=urlencode($title)?>/<?=urlencode($suffix)?>/" class="button blue">Add Form</a></p>
 	</footer>
 </div>
 <?

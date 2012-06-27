@@ -6,7 +6,7 @@
 	}
 	$location = urlencode(trim(implode(", ",$location)));
 	
-	$file = utf8_encode(file_get_contents("http://maps.google.com/maps/geo?q=$location&output=xml&key=".$GLOBALS["gmaps_key"]));
+	$file = utf8_encode(file_get_contents("http://maps.google.com/maps/geo?q=$location&output=xml&key=".$bigtree["config"]["google_maps_key"]));
 	$xml = new SimpleXMLElement($file);
 	try {
 		$coords = explode(",",$xml->Response->Placemark->Point->coordinates);

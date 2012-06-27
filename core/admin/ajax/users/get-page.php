@@ -10,12 +10,12 @@
 	foreach ($results as $item) {
 ?>
 <li id="row_<?=$item["id"]?>">
-	<section class="users_name"><?=$item["name"]?></section>
+	<section class="users_name"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 18)?>" alt="" /></span><?=$item["name"]?></section>
 	<section class="users_email"><?=$item["email"]?></section>
 	<section class="users_company"><?=$item["company"]?></section>
 	<section class="view_action">
 		<? if ($admin->Level >= $item["level"]) { ?>
-		<a href="<?=$admin_root?>users/edit/<?=$item["id"]?>/" class="icon_edit"></a>
+		<a href="<?=ADMIN_ROOT?>users/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 		<? } else { ?>
 		<span class="icon_edit disabled_icon has_tooltip" data-tooltip="<p><strong>Edit User</strong></p><p>You may not edit users with higher permission levels than you.</p>"></span>
 		<? } ?>

@@ -10,8 +10,8 @@
 		$fields[$key] = $field;
 	}
 	
-	$admin->updateModuleForm(end($path),$title,$table,$fields,$preprocess,$callback,$default_position,$suffix);
-	$action = $admin->getModuleActionForForm(end($path));
+	$admin->updateModuleForm(end($bigtree["path"]),$title,$table,$fields,$preprocess,$callback,$default_position,$suffix);
+	$action = $admin->getModuleActionForForm(end($bigtree["path"]));
 	
 	$admin->growl("Developer","Updated Module Form");
 	header("Location: ".$developer_root."modules/edit/".$action["module"]."/");

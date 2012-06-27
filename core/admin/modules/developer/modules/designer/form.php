@@ -1,6 +1,6 @@
 <?
-	$mod = $admin->getModule($commands[0]);
-	$table = $commands[1];
+	$mod = $admin->getModule($bigtree["commands"][0]);
+	$table = $bigtree["commands"][1];
 	
 	if (!$title) {
 		$title = $mod["name"];
@@ -10,6 +10,8 @@
 			$title = rtrim($title,"s");
 		}
 	}
+	
+	$title = htmlspecialchars(urldecode($title));
 	
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
@@ -33,8 +35,8 @@
 			</div>
 		</section>
 		<section id="field_area" class="sub">
-			<fieldset<? if ($e["fields"]) { ?> class="form_error"<? } ?>>
-				<label class="required">Fields<? if ($e["fields"]) { ?><span class="form_error_reason">One Or More Fields Required</span><? } ?></label>
+			<fieldset<? if (isset($e["fields"])) { ?> class="form_error"<? } ?>>
+				<label class="required">Fields<? if (isset($e["fields"])) { ?><span class="form_error_reason">One Or More Fields Required</span><? } ?></label>
 				<div class="form_table">
 					<header>
 						<a class="add add_geocoding" href="#"><span></span>Geocoding</a>
@@ -69,9 +71,9 @@
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
-		$.ajax("<?=$admin_root?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=$admin_root?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
 			});
 		}});
 		

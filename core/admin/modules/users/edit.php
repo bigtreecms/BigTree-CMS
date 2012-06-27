@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("link" => "#", "title" => "Edit User");
 	
-	$user = $admin->getUser($commands[0]);
+	$user = $admin->getUser($bigtree["commands"][0]);
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 	
 	if (!$permissions) {
@@ -22,12 +22,12 @@
 	<?
 			foreach ($children as $f) {
 				$grandchildren = $admin->getPageChildren($f["id"]);
-				$alert_below = ($alert_above || $alerts[$f["id"]]) ? true : false;
+				$alert_below = ($alert_above || (isset($alerts[$f["id"]]) && $alerts[$f["id"]])) ? true : false;
 	?>
 	<li>
 		<span class="depth"></span>
 		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>" href="#"><?=$f["nav_title"]?></a>
-		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ($alerts[$f["id"]] == "on" || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
+		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ((isset($alerts[$f["id"]]) && $alerts[$f["id"]] == "on") || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
 		</span>
@@ -87,22 +87,28 @@
 		unset($_SESSION["bigtree"]["update_user"]);
 	}
 	
+	// Prevent a notice on alerts
+	if (!is_array($alerts)) {
+		$alerts = array(array());
+	}
+	
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
-<h1><span class="users"></span>Edit User</h1>
+<h1><span class="gravatar"><img src="<?=BigTree::gravatar($user["email"])?>" alt="" /></span>Edit User</h1>
 <? include BigTree::path("admin/modules/users/_nav.php"); ?>
 <div class="form_container">
-	<form class="module" action="<?=$admin_root?>users/update/<?=$path[3]?>/" method="post">
+	<form class="module" action="<?=ADMIN_ROOT?>users/update/<?=$bigtree["path"][3]?>/" method="post">
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
-				<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
-					<label class="required">Email<? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
+				<fieldset<? if ($e) { ?> class="form_error"<? } ?> style="position: relative;">
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
 					<input type="text" class="required email" name="email" value="<?=$email?>" tabindex="1" />
+					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
-					<label>Password <small>(leave blank to remain unchanged)</small></label>
+					<label>Password <small>(Leave blank to remain unchanged)</small></label>
 					<input type="password" name="password" value="" tabindex="3" />
 				</fieldset>
 				<? if ($user["id"] != $admin->ID) { ?>
@@ -127,7 +133,7 @@
 					<input type="text" name="company" value="<?=$company?>" tabindex="4" />
 				</fieldset>
 				
-				<br /><br />
+				<br />
 				
 				<fieldset>
 					<input type="checkbox" name="daily_digest" tabindex="4" <? if ($daily_digest) { ?> checked="checked"<? } ?> />
@@ -210,12 +216,12 @@
 								?>
 								<li>
 									<span class="depth"></span>
-									<a class="permission_label permission_label_wider<? if (!$gbp["enabled"]) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
+									<a class="permission_label permission_label_wider<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 									<?
-												if ($gbp["enabled"]) {
+												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
 													$categories = array();
 													$ot = mysql_real_escape_string($gbp["other_table"]);
 													$tf = mysql_real_escape_string($gbp["title_field"]);
@@ -345,5 +351,13 @@
 			$("#regular_user_message").show();
 			$("#admin_user_message").hide();
 		}
+	});
+	
+	
+	$(document).ready(function() {
+		$("input.email").blur(function() {
+			var email = md5($(this).val().trim());
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=18&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+		});
 	});
 </script>

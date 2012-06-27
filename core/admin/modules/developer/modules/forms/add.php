@@ -1,11 +1,12 @@
 <?
-	$table = isset($commands[1]) ? $commands[1] : "";
+	$id = $bigtree["commands"][0];
+	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
 
-	$module = $admin->getModule($commands[0]);
+	$module = $admin->getModule($bigtree["commands"][0]);
 	$edit_action_exists = $admin->doesModuleEditActionExist($module["id"]);
 	
-	if (isset($commands[2])) {
-		$title = $commands[2];
+	if (isset($bigtree["commands"][2])) {
+		$title = $bigtree["commands"][2];
 		if (substr($title,-3,3) == "ies") {
 			$title = substr($title,0,-3)."y";
 		} else {
@@ -14,6 +15,8 @@
 	} else {
 		$title = "";
 	}
+	
+	$title = htmlspecialchars(urldecode($title));
 
 	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/$id/");
 	$breadcrumb[] = array("title" => "Add Form", "link" => "#");
@@ -34,7 +37,7 @@
 				<? if ($edit_action_exists) { ?>
 				<fieldset>
 					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" <? if (isset($commands[3])) { echo 'value="'.$commands[3].'" '; } ?>/>
+					<input type="text" name="suffix" <? if (isset($bigtree["commands"][3])) { echo 'value="'.$bigtree["commands"][3].'" '; } ?>/>
 				</fieldset>
 				<? } ?>
 				
@@ -50,12 +53,12 @@
 			<div class="right">
 				<fieldset>
 					<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
-					<input type="text" name="preprocess" value="<?=$form["preprocess"]?>" />
+					<input type="text" name="preprocess" />
 				</fieldset>
 				
 				<fieldset>
 					<label>Function Callback <small>(passes in ID and parsed post data, and publish state)</small></label>
-					<input type="text" name="callback" value="<?=htmlspecialchars($form["callback"])?>" />
+					<input type="text" name="callback" />
 				</fieldset>
 			</div>
 		</section>
@@ -76,7 +79,7 @@
 
 <script type="text/javascript">
 	$("#form_table").change(function(event,data) {
-		$("#field_area").load("<?=$admin_root?>ajax/developer/load-form/", { table: data.value });
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value });
 		$("#create").show();
 	});
 </script>	

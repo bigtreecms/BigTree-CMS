@@ -1,7 +1,7 @@
 <?
-	$admin->deleteModuleForm(end($commands));
+	$admin->deleteModuleForm(end($bigtree["commands"]));
 
 	$admin->growl("Developer","Deleted Form");
-	header("Location: ".$developer_root."modules/edit/".$commands[0]."/");
+	header("Location: ".$developer_root."modules/edit/".$bigtree["commands"][0]."/");
 	die();
 ?>

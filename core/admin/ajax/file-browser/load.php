@@ -13,7 +13,7 @@
 	} else {
 		$postdirectory = "";
 	}
-	$directory = $server_root.$postdirectory;
+	$directory = SERVER_ROOT.$postdirectory;
 	$subdirectories = array();
 	$files = array();
 	if ($postdirectory) {
@@ -31,7 +31,7 @@
 		}
 	}
 ?>
-<div class="directory">Current Directory: <em><?=str_replace($server_root,"/",$directory)?></em></div>
+<div class="directory">Current Directory: <em><?=str_replace(SERVER_ROOT,"/",$directory)?></em></div>
 <div class="navigation_pane">
 	<ul>
 		<? foreach ($subdirectories as $d) { ?>
@@ -49,13 +49,13 @@
 				$parts = BigTree::pathInfo($file);
 				$ext = strtolower($parts["extension"]);
 				if (($ext == "png" || $ext == "jpg" || $ext == "gif") && substr($postdirectory,0,5) == "site/") {
-					$image = $www_root.str_replace("site/","",$postdirectory).$file;
+					$image = WWW_ROOT.str_replace("site/","",$postdirectory).$file;
 					$class = "image";
 				} else {
 					if (file_exists(BigTree::path("admin/images/file-types/$ext.png"))) {
-						$image = $admin_root."images/file-types/$ext.png";
+						$image = ADMIN_ROOT."images/file-types/$ext.png";
 					} else {
-						$image = $admin_root."images/file-types/other.png";
+						$image = ADMIN_ROOT."images/file-types/other.png";
 					}
 					$class = "file";
 				}
@@ -76,7 +76,7 @@
 <script type="text/javascript">
 	$(".navigation_pane a").click(function() {
 		directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
-		$("#bigtree_browser_form").load("<?=$admin_root?>ajax/file-browser/load/", { directory: directory, lockInSite: <? if ($_POST["lockInSite"]) { echo '"on"'; } else { echo '""'; } ?> });
+		$("#bigtree_browser_form").load("<?=ADMIN_ROOT?>ajax/file-browser/load/", { directory: directory, lockInSite: <? if ($_POST["lockInSite"]) { echo '"on"'; } else { echo '""'; } ?> });
 		
 		return false;
 	});

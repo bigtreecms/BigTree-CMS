@@ -48,7 +48,7 @@
 		
 		var val = $("#wiki_search input").val();
 		$.ajax({
-			url: "<?=$admin_root?>ajax/search-wikipedia/",
+			url: "<?=ADMIN_ROOT?>ajax/search-wikipedia/",
 			data: { q: val },
 			success: function(data) {
 				$("#wiki_results").html(data);

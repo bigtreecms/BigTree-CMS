@@ -1,21 +1,26 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.0b5");
-	define("BIGTREE_REVISION",1);
+	define("BIGTREE_VERSION","4.0b7");
+	define("BIGTREE_REVISION",5);
 	
-	// Make sure no notice gets thrown for $path being too small.
-	$path = array_pad($path,2,"");
+	// Set static root for those without it
+	if (!$bigtree["config"]["static_root"]) {
+		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
+	}
+	
+	// Make sure no notice gets thrown for $bigtree["path"] being too small.
+	$bigtree["path"] = array_pad($bigtree["path"],2,"");
 	
 	// If they're requesting images, css, or js, just give it to them.
-	if ($path[1] == "images") {
+	if ($bigtree["path"][1] == "images") {
 		$x = 2;
 		$ipath = "";
-		while ($x < count($path) - 1) {
-			$ipath .= $path[$x]."/";
+		while ($x < count($bigtree["path"]) - 1) {
+			$ipath .= $bigtree["path"][$x]."/";
 			$x++;
 		}
 		
-		$ifile = (file_exists("../custom/admin/images/".$ipath.$path[$x])) ? "../custom/admin/images/".$ipath.$path[$x] : "../core/admin/images/".$ipath.$path[$x];
+		$ifile = (file_exists("../custom/admin/images/".$ipath.$bigtree["path"][$x])) ? "../custom/admin/images/".$ipath.$bigtree["path"][$x] : "../core/admin/images/".$ipath.$bigtree["path"][$x];
 		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
@@ -30,7 +35,7 @@
 			die();
 		}
 		
-		$type = explode(".",$path[$x]);
+		$type = explode(".",$bigtree["path"][$x]);
 		$type = strtolower($type[count($type)-1]);
 		if ($type == "gif") {
 			header("Content-type: image/gif");
@@ -45,7 +50,7 @@
 		die();
 	}
 	
-	if ($path[1] == "css") {
+	if ($bigtree["path"][1] == "css") {
 		if (file_exists("../custom/inc/bigtree/utils.php")) {
 			include "../custom/inc/bigtree/utils.php";		
 		} else {
@@ -53,12 +58,12 @@
 		}
 		$x = 2;
 		$ipath = "";
-		while ($x < count($path) - 1) {
-			$ipath .= $path[$x]."/";
+		while ($x < count($bigtree["path"]) - 1) {
+			$ipath .= $bigtree["path"][$x]."/";
 			$x++;
 		}
 		
-		$ifile = (file_exists("../custom/admin/css/".$ipath.$path[$x])) ? "../custom/admin/css/".$ipath.$path[$x] : "../core/admin/css/".$ipath.$path[$x];
+		$ifile = (file_exists("../custom/admin/css/".$ipath.$bigtree["path"][$x])) ? "../custom/admin/css/".$ipath.$bigtree["path"][$x] : "../core/admin/css/".$ipath.$bigtree["path"][$x];
 		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
@@ -78,7 +83,7 @@
 		die();
 	}
 	
-	if ($path[1] == "js") {
+	if ($bigtree["path"][1] == "js") {
 		$pms = ini_get('post_max_size');
 		$mul = substr($pms,-1);
 		$mul = ($mul == 'M' ? 1048576 : ($mul == 'K' ? 1024 : ($mul == 'G' ? 1073741824 : 1)));
@@ -86,12 +91,12 @@
 		
 		$x = 2;
 		$ipath = "";
-		while ($x < count($path) - 1) {
-			$ipath .= $path[$x]."/";
+		while ($x < count($bigtree["path"]) - 1) {
+			$ipath .= $bigtree["path"][$x]."/";
 			$x++;
 		}
 		
-		$ifile = (file_exists("../custom/admin/js/".$ipath.$path[$x])) ? "../custom/admin/js/".$ipath.$path[$x] : "../core/admin/js/".$ipath.$path[$x];
+		$ifile = (file_exists("../custom/admin/js/".$ipath.$bigtree["path"][$x])) ? "../custom/admin/js/".$ipath.$bigtree["path"][$x] : "../core/admin/js/".$ipath.$bigtree["path"][$x];
 		
 		if (substr($ifile,-4,4) == ".php") {
 			include $ifile;
@@ -110,16 +115,16 @@
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
-		if (substr($path[$x],-3,3) == "css") {
+		if (substr($bigtree["path"][$x],-3,3) == "css") {
 			header("Content-type: text/css");
-		} elseif (substr($path[$x],-3,3) == "htm" || substr($path[$x],-4,4) == "html") {
+		} elseif (substr($bigtree["path"][$x],-3,3) == "htm" || substr($bigtree["path"][$x],-4,4) == "html") {
 			header("Content-type: text/html");
 		} else {
 			header("Content-type: text/javascript");
 		}
 		
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo str_replace(array("{max_file_size}","www_root/","admin_root/"),array($max_file_size,$config["www_root"],$config["admin_root"]),file_get_contents($ifile));
+		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
 		die();
 	}
 	
@@ -130,7 +135,10 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
-	$GLOBALS["admin_root"] = $config["admin_root"];
+	
+	$admin_root = $bigtree["config"]["admin_root"];
+	define("ADMIN_ROOT",$admin_root);
+	
 	bigtree_setup_sql_connection();
 	ob_start();
 	session_start();
@@ -143,32 +151,32 @@
 		$admin = new BigTreeAdmin;
 	}
 		
-	if (!isset($path[1])) {
-		$path[1] = "";
+	if (!isset($bigtree["path"][1])) {
+		$bigtree["path"][1] = "";
 	}
 	
-	$css = array();
-	$js = array();
-	$layout = "default";
-	if (!$admin->ID && $path[1] != "login") {
-		header("Location: ".$admin_root."login/");
+	$bigtree["layout"] = "default";
+	$inc_dir = "";
+	
+	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
+		header("Location: ".ADMIN_ROOT."login/");
 		die();
 	} else {
 		// We're logged in, let's go somewhere.
-		if (!$path[1]) {
-			header("Location: ".$admin_root."dashboard/");
+		if (!$bigtree["path"][1]) {
+			header("Location: ".ADMIN_ROOT."dashboard/");
 			die();
 		// We're hitting an ajax page.
-		} elseif ($path[1] == "ajax") {
+		} elseif ($bigtree["path"][1] == "ajax") {
 			$x = 2;
 			$ajpath = "";
-			while ($x < count($path) - 1) {
-				$ajpath .= $path[$x]."/";
+			while ($x < count($bigtree["path"]) - 1) {
+				$ajpath .= $bigtree["path"][$x]."/";
 				$x++;
 			}
 			
 			// Permissions!
-			$module = $admin->getModuleByRoute($path[2]);
+			$module = $admin->getModuleByRoute($bigtree["path"][2]);
 			if ($module && !$admin->checkAccess($module["id"])) {
 				include BigTree::path("admin/ajax/login.php");
 				die();
@@ -176,122 +184,124 @@
 
 			$autoModule = new BigTreeAutoModule;
 			
-			$path[$x] = str_replace(".php","",$path[$x]);
+			$bigtree["path"][$x] = str_replace(".php","",$bigtree["path"][$x]);
 
-			include BigTree::path("admin/ajax/".$ajpath.$path[$x].".php");
+			include BigTree::path("admin/ajax/".$ajpath.$bigtree["path"][$x].".php");
 			die();
 		// We've actually chosen a section now.
 		} else {
 			$ispage = false;
 			$inc = false;
 			// Check if it's a module or a normal page.
-			if (is_dir("../custom/admin/modules/".$path[1])) {
-				if (!isset($path[2])) {
-					$inc = "../custom/admin/modules/".$path[1]."/default.php";
+			if (is_dir("../custom/admin/modules/".$bigtree["path"][1])) {
+				if (!isset($bigtree["path"][2])) {
+					$inc = "../custom/admin/modules/".$bigtree["path"][1]."/default.php";
 				} else {
-					$inc = "../custom/admin/modules/".$path[1]."/";
+					$inc = "../custom/admin/modules/".$bigtree["path"][1]."/";
 					$inc_dir = $inc;
 					$x = 1;
 					$y = 1;
-					while ($x < count($path)) {
-						if (is_dir($inc.$path[$x])) {
-							$inc .= $path[$x]."/";
-							$inc_dir .= $path[$x]."/";
+					while ($x < count($bigtree["path"])) {
+						if (is_dir($inc.$bigtree["path"][$x])) {
+							$inc .= $bigtree["path"][$x]."/";
+							$inc_dir .= $bigtree["path"][$x]."/";
 							$y++;
-						} elseif (file_exists($inc.$path[$x].".php")) {
-							$inc .= $path[$x].".php";
+						} elseif (file_exists($inc.$bigtree["path"][$x].".php")) {
+							$inc .= $bigtree["path"][$x].".php";
 							$y++;
 						}
 						$x++;
 					}
 					if (substr($inc,-4,4) != ".php") {
-						if (file_exists($inc.end($path).".php")) {
-							$inc .= end($path).".php";
+						if (file_exists($inc.end($bigtree["path"]).".php")) {
+							$inc .= end($bigtree["path"]).".php";
 						} else {
 							$inc .= "default.php";
 						}
 					}
-					$commands = array_slice($path,$y+1);
+					$bigtree["commands"] = array_slice($bigtree["path"],$y+1);
+					$commands = $bigtree["commands"]; // Backwards compatibility
 				}
 			}
-			if (($inc && !file_exists($inc)) || (!$inc && is_dir("../core/admin/modules/".$path[1]))) {
-				if (!isset($path[2])) {
-					$inc = "../core/admin/modules/".$path[1]."/default.php";
+			if (($inc && !file_exists($inc)) || (!$inc && is_dir("../core/admin/modules/".$bigtree["path"][1]))) {
+				if (!isset($bigtree["path"][2])) {
+					$inc = "../core/admin/modules/".$bigtree["path"][1]."/default.php";
 				} else {
-					$inc = "../core/admin/modules/".$path[1]."/";
+					$inc = "../core/admin/modules/".$bigtree["path"][1]."/";
 					$inc_dir = $inc;
 					$x = 1;
 					$y = 1;
-					while ($x < count($path)) {
-						if (is_dir($inc.$path[$x])) {
-							$inc .= $path[$x]."/";
-							$inc_dir .= $path[$x]."/";
+					while ($x < count($bigtree["path"])) {
+						if (is_dir($inc.$bigtree["path"][$x])) {
+							$inc .= $bigtree["path"][$x]."/";
+							$inc_dir .= $bigtree["path"][$x]."/";
 							$y++;
-						} elseif (file_exists($inc.$path[$x].".php")) {
-							$inc .= $path[$x].".php";
+						} elseif (file_exists($inc.$bigtree["path"][$x].".php")) {
+							$inc .= $bigtree["path"][$x].".php";
 							$y++;
 						}
 						$x++;
 					}
 					if (substr($inc,-4,4) != ".php") {
-						if (file_exists($inc.end($path).".php")) {
-							$inc .= end($path).".php";
+						if (file_exists($inc.end($bigtree["path"]).".php")) {
+							$inc .= end($bigtree["path"]).".php";
 						} else {
 							$inc .= "default.php";
 						}
 					}
-					$commands = array_slice($path,$y+1);
+					$bigtree["commands"] = array_slice($bigtree["path"],$y+1);
+					$commands = $bigtree["commands"]; // Backwards compatibility
 				}
 			// It's a normal page.
 			} elseif (!$inc) {
-				if (file_exists("../custom/admin/pages/".$path[1].".php")) {
-					$inc = "../custom/admin/pages/".$path[1].".php";
-				} elseif (file_exists("../core/admin/pages/".$path[1].".php")) {
-					$inc = "../core/admin/pages/".$path[1].".php";
+				if (file_exists("../custom/admin/pages/".$bigtree["path"][1].".php")) {
+					$inc = "../custom/admin/pages/".$bigtree["path"][1].".php";
+				} elseif (file_exists("../core/admin/pages/".$bigtree["path"][1].".php")) {
+					$inc = "../core/admin/pages/".$bigtree["path"][1].".php";
 				}
 				$ispage = true;
 			}
 			
 			// Permissions!
 			if (!$ispage || !$inc) {
-				$module = $admin->getModuleByRoute($path[1]);
+				$module = $admin->getModuleByRoute($bigtree["path"][1]);
 				$module_title = $module["name"];
 				if ($module && !$admin->checkAccess($module["id"])) {
 					ob_clean();
 					include BigTree::path("admin/pages/_denied.php");
-					$content = ob_get_clean();
-					include BigTree::path("admin/layouts/".$layout.".php");
+					$bigtree["content"] = ob_get_clean();
+					include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
 					die();
 				}
 			}
 			
 			// Ok, if this inc is real, let's include it -- otherwise see if it's an auto-module action.
-			if (isset($path[1])) {
-				$module = $admin->getModuleByRoute($path[1]);
+			if (isset($bigtree["path"][1])) {
+				$module = $admin->getModuleByRoute($bigtree["path"][1]);
 			}
-			if (!isset($path[2])) {
-				$path[2] = "";
+			if (!isset($bigtree["path"][2])) {
+				$bigtree["path"][2] = "";
 			}
 			
-			$action = $admin->getModuleActionByRoute($module["id"],$path[2]);
+			$action = $admin->getModuleActionByRoute($module["id"],$bigtree["path"][2]);
 			
-			$inc_dir = str_replace("../",$server_root,$inc_dir);
+			$inc_dir = str_replace("../",SERVER_ROOT,$inc_dir);
 			
 			if ($module && ($action["view"] || $action["form"])) {
 				if ($action["form"]) {
-					$edit_id = isset($path[3]) ? $path[3] : "";
+					$edit_id = isset($bigtree["path"][3]) ? $bigtree["path"][3] : "";
 					include BigTree::path("admin/auto-modules/form.php");
 				} else {
 					include BigTree::path("admin/auto-modules/view.php");
 				}
 			} elseif (file_exists($inc)) {
 				// Include the top level module header.
-				if (!$ispage && file_exists(BigTree::path("admin/modules/".$path[1]."/_header.php"))) {
-					include BigTree::path("admin/modules/".$path[1]."/_header.php");
+				if (!$ispage && file_exists(BigTree::path("admin/modules/".$bigtree["path"][1]."/_header.php"))) {
+					include BigTree::path("admin/modules/".$bigtree["path"][1]."/_header.php");
 				}
 				
 				// Include the routed directory's module header if it's not the same one.
-				if (!$ispage && file_exists($inc_dir."_header.php") && BigTree::path("admin/modules/".$path[1]."/_header.php") != ($inc_dir."_header.php")) {
+				if (!$ispage && file_exists($inc_dir."_header.php") && BigTree::path("admin/modules/".$bigtree["path"][1]."/_header.php") != ($inc_dir."_header.php")) {
 					include $inc_dir."_header.php";
 				}
 				
@@ -299,13 +309,13 @@
 				include $inc;
 				
 				// Include the routed directory's footer if it's not the same as the top level footer.
-				if (!$ispage && file_exists($inc_dir."_footer.php") && BigTree::path("admin/modules/".$path[1]."/_footer.php") != ($inc_dir."_footer.php")) {
+				if (!$ispage && file_exists($inc_dir."_footer.php") && BigTree::path("admin/modules/".$bigtree["path"][1]."/_footer.php") != ($inc_dir."_footer.php")) {
 					include $inc_dir."_footer.php";
 				}
 				
 				// Include the top level module footer.
-				if (!$ispage && file_exists(BigTree::path("admin/modules/".$path[1]."/_footer.php"))) {
-					include BigTree::path("admin/modules/".$path[1]."/_footer.php");
+				if (!$ispage && file_exists(BigTree::path("admin/modules/".$bigtree["path"][1]."/_footer.php"))) {
+					include BigTree::path("admin/modules/".$bigtree["path"][1]."/_footer.php");
 				}
 			} else {
 				include BigTree::path("admin/pages/_404.php");
@@ -313,9 +323,9 @@
 		}
 	}
 	
-	$content = ob_get_clean();
+	$bigtree["content"] = ob_get_clean();
 	
-	include BigTree::path("admin/layouts/".$layout.".php");
+	include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
 	
 	// Execute cron tab functions if they haven't been run in 24 hours
 	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {

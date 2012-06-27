@@ -223,18 +223,7 @@
 			$pathinfo = self::pathInfo($to);
 			$file_name = $pathinfo["basename"];
 			$directory = $pathinfo["dirname"];
-			$dir_parts = explode("/",ltrim($directory,"/"));
-			
-			$dpath = "/";
-			foreach ($dir_parts as $d) {
-				$dpath .= $d;
-				// We're using the silence operator here because in situations with open_basedir restrictions checking for things farther up the path will result in warnings.
-				if (!@file_exists($dpath)) {
-					@mkdir($dpath);
-					@chmod($dpath,0777);
-				}
-				$dpath .= "/";
-			}
+			BigTree::makeDirectory($directory);
 			
 			copy($from,$to);
 			chmod($to,0777);
@@ -458,30 +447,6 @@
 		*/
 
 		static function formatCSS3($css) {
-			// Border Radius Top Left - border-radius-top-left: 0px
-			$css = preg_replace_callback('/border-radius-top-left:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-top-left-radius: $r; -webkit-border-top-left-radius: $r; -moz-border-radius-topleft: $r;";
-			'),$css);
-			
-			// Border Radius Top Right - border-radius-top-right: 0px
-			$css = preg_replace_callback('/border-radius-top-right:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-top-right-radius: $r; -webkit-border-top-right-radius: $r; -moz-border-radius-topright: $r;";
-			'),$css);
-			
-			// Border Radius Bottom Left - border-radius-bottom-left: 0px
-			$css = preg_replace_callback('/border-radius-bottom-left:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-bottom-left-radius: $r; -webkit-border-bottom-left-radius: $r; -moz-border-radius-bottomleft: $r;";
-			'),$css);
-			
-			// Border Radius Bottom Right - border-radius-bottom-right: 0px
-			$css = preg_replace_callback('/border-radius-bottom-right:([^\"]*);/iU',create_function('$data','
-				$r = trim($data[1]);
-				return "border-bottom-right-radius: $r; -webkit-border-bottom-right-radius: $r; -moz-border-radius-bottomright: $r;";
-			'),$css);
-			
 			// Background Gradients - background-gradient: #top #bottom
 			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',create_function('$data','
 				$d = trim($data[1]);
@@ -617,14 +582,16 @@
 		*/
 		
 		static function getTableSelectOptions($default = false) {
+			global $bigtree;
+			
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
-				$tname = $f["Tables_in_".$GLOBALS["config"]["db"]["name"]];
-				if ($GLOBALS["config"]["show_all_tables_in_dropdowns"] || ((substr($tname,0,8) !== "bigtree_"))) {
-					if ($default == $f["Tables_in_".$GLOBALS["config"]["db"]["name"]]) {
-						echo '<option selected="selected">'.$f["Tables_in_".$GLOBALS["config"]["db"]["name"]].'</option>';
+				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_"))) {
+					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
+						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					} else {
-						echo '<option>'.$f["Tables_in_".$GLOBALS["config"]["db"]["name"]].'</option>';
+						echo '<option>'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					}
 				}
 			}
@@ -720,6 +687,26 @@
 		}
 		
 		/*
+			Function: gravatar
+				Returns a properly formatted gravatar url.
+			
+			Parameters:
+				email - User's email address.
+				size - Image size; defaults to 28
+				default - Default profile image; defaults to BigTree icon
+				rating - Defaults to "pg"
+		*/
+		
+		static function gravatar($email = "", $size = 28, $default = false, $rating = "pg") {
+			if (!$default) {
+				$default = ADMIN_ROOT . "images/icon_default_gravatar.jpg";
+			}
+			return "http://www.gravatar.com/avatar/" . md5(strtolower($email)) . "?s=" . $size . "&d=" . urlencode($default) . "&rating=" . $rating;
+		}
+		
+		
+		
+		/*
 			Function: isDirectoryWritable
 				Extend's PHP's is_writable to support directories that don't exist yet.
 			
@@ -740,6 +727,30 @@
 				return self::isDirectoryWritable($path);
 			}
 			return is_writable($path);
+		}
+		
+		/*
+			Function: makeDirectory
+				Makes a directory (and all applicable parent directories).
+				Sets permissions to 777.
+			
+			Parameters:
+				directory - The full path to the directory to be made.
+		*/
+		
+		static function makeDirectory($directory) {
+			$dir_parts = explode("/",trim($directory,"/"));
+			
+			$dpath = "/";
+			foreach ($dir_parts as $d) {
+				$dpath .= $d;
+				// Silence situations with open_basedir restrictions.
+				if (!@file_exists($dpath)) {
+					@mkdir($dpath);
+					@chmod($dpath,0777);
+				}
+				$dpath .= "/";
+			}
 		}
 		
 		/*
@@ -775,11 +786,10 @@
 		*/
 		
 		static function path($file) {
-			global $server_root;
-			if (file_exists($server_root."custom/".$file)) {
-				return $server_root."custom/".$file;
+			if (file_exists(SERVER_ROOT."custom/".$file)) {
+				return SERVER_ROOT."custom/".$file;
 			} else {
-				return $server_root."core/".$file;
+				return SERVER_ROOT."core/".$file;
 			}
 		}
 		
@@ -819,7 +829,45 @@
 		
 		static function prefixFile($file,$prefix) {
 			$pinfo = self::pathInfo($file);
+			// Remove notices
+			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
+		}
+		
+		/*
+			Function: putFile
+				Writes data to a file, even if that directory for the file doesn't exist yet.
+				Sets the file permissions to 777 if the file did not exist.
+			
+			Parameters:
+				file - The location of the file.
+				contents - The data to write.
+			
+			Returns:
+				true if the move was successful, false if the directories were not writable.
+		*/
+		
+		static function putFile($file,$contents) {
+			if (!self::isDirectoryWritable($to)) {
+				return false;
+			}
+			if (!is_readable($from)) {
+				return false;
+			}
+			
+			$pathinfo = self::pathInfo($to);
+			$file_name = $pathinfo["basename"];
+			$directory = $pathinfo["dirname"];
+			BigTree::makeDirectory($directory);
+			
+			if (!file_exists($file)) {
+				file_put_contents($file,$contents);
+				chmod($file,0777);
+			} else {
+				file_put_contents($file,$contents);
+			}
+			
+			return true;
 		}
 		
 		/*
@@ -1085,6 +1133,103 @@
 				}
 			}
 			return $array;
+		}
+		
+		/*
+			Function: unzip
+				Unzips a file.
+			
+			Parameters:
+				file - Location of the file to unzip
+				destination - The full path to unzip the file's contents to.
+		*/
+		
+		static function unzip($file,$destination) {
+			// If we can't write the output directory, we're not getting anywhere.
+			if (!BigTree::isDirectoryWritable($destination)) {
+				return false;
+			}
+
+			// Up the memory limit for the unzip.
+			ini_set("memory_limit","512M");
+			
+			$destination = rtrim($destination)."/";
+			BigTree::makeDirectory($destination);
+			
+			// If we have the built in ZipArchive extension, use that.
+			if (class_exists("ZipArchive")) {
+				$z = new ZipArchive;
+				
+				if (!$z->open($file)) {
+					// Bad zip file.
+					return false;
+				}
+				
+				for ($i = 0; $i < $z->numFiles; $i++) {
+					if (!$info = $z->statIndex($i)) {
+						// Unzipping the file failed for some reason.
+						return false;
+					}
+					
+					// If it's a directory, ignore it. We'll create them in putFile.
+					if (substr($info["name"],-1) == "/") {
+						continue;
+					}
+					
+					// Ignore __MACOSX and all it's files.
+					if (substr($info["name"],0,9) == "__MACOSX/") {
+						continue;
+					}
+
+					$content = $z->getFromIndex($i);
+					if ($content === false) {
+						// File extraction failed.
+						return false;
+					}
+					BigTree::putFile($destination.$file["name"],$content);
+				}
+				
+				$z->close();
+				return true;
+
+			// Fall back on PclZip if we don't have the "native" version.
+			} else {
+				// WordPress claims this could be an issue, so we'll make sure multibyte encoding isn't overloaded.
+				if (ini_get('mbstring.func_overload') && function_exists('mb_internal_encoding')) {
+					$previous_encoding = mb_internal_encoding();
+					mb_internal_encoding('ISO-8859-1');
+				}
+				
+				$z = new PclZip($file);
+				$archive = $z->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
+
+				// If we saved a previous encoding, reset it now.
+				if (isset($previous_encoding)) {
+					mb_internal_encoding($previous_encoding);
+					unset($previous_encoding);
+				}
+				
+				// If it's not an array, it's not a good zip. Also, if it's empty it's not a good zip.
+				if (!is_array($archive) || !count($archive)) {
+					return false;
+				}
+
+				foreach ($archive as $item) {
+					// If it's a directory, ignore it. We'll create them in putFile.
+					if ($item["folder"]) {
+						continue;
+					}
+					
+					// Ignore __MACOSX and all it's files.
+					if (substr($item["filename"],0,9) == "__MACOSX/") {
+						continue;
+					}
+					
+					BigTree::putFile($directory.$item["filename"],$item["content"]);
+				}
+				
+				return true;
+			}
 		}
 		
 		/*

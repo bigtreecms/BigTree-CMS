@@ -1,9 +1,22 @@
-<? if (!isset($_POST["template"])) { ?>
+<?
+	// Stop notices
+	$data["directory"] = isset($data["directory"]) ? $data["directory"] : "";
+	$data["image"] = isset($data["image"]) ? $data["image"] : "";
+	$data["min_width"] = isset($data["min_width"]) ? $data["min_width"] : "";
+	$data["min_height"] = isset($data["min_height"]) ? $data["min_height"] : "";
+	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
+	$data["crops"] = isset($data["crops"]) ? $data["crops"] : "";
+	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
+	
+	if (!isset($_POST["template"])) {
+?>
 <fieldset>
 	<label>Upload Directory <small>(required)</small></label>
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
 </fieldset>
-<? } ?>
+<?
+	}
+?>
 <fieldset>
 	<label>Minimum Width <small>(numeric value in pixels)</small></label>
 	<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />
@@ -17,7 +30,7 @@
 	<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 </fieldset>
 
-<h4>Crops <a href="#" class="add_crop"><img src="<?=$admin_root?>images/add.png" alt="" /></a></h4>
+<h4>Crops <a href="#" class="add_crop"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
 <fieldset>
 	<div class="image_attr" id="pop_crop_list">
 		<ul>
@@ -70,7 +83,7 @@
 	</div>
 </fieldset>
 
-<h4>Thumbnails <a href="#" class="add_thumb"><img src="<?=$admin_root?>images/add.png" alt="" /></a></h4>
+<h4>Thumbnails <a href="#" class="add_thumb"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
 <fieldset>
 	<div class="image_attr" id="pop_thumb_list">
 		<ul>

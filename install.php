@@ -42,34 +42,8 @@
 			$warnings[] = "BigTree requires Apache to have mod_rewrite installed (this is a FATAL ERROR).";
 		}
 	}
-	
-	// See if .htaccess Rewrites work -- this is buggy, so it's being commented out.
-	/*
-	if (is_writable(".")) {
-		@mkdir("test");
-		@file_put_contents("test/.htaccess",'RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
-		@file_put_contents("test/rewrite.php",'<?=$_GET["link"]?>');
-		$url = "http://".$_SERVER["HTTP_HOST"].str_replace("install.php","test/test.html",$_SERVER["REQUEST_URI"]);
-		// If we have cURL, use it.
-		if (function_exists("curl_init")) {
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-			$response = curl_exec($ch);
-		} else {
-			$response = file_get_contents($url);
-		}
-		if ($response != "test.html") {
-			$warnings[] = ".htaccess overrides are currently not allowed by your Apache configuration. Please set 'AllowOverride All' for this directory.<br /><br /><strong>THIS COULD BE A FALSE NEGATIVE WARNING</strong> &mdash; If your server supports .htaccess overrides, ignore this warning.";
-		}
-		@unlink("test/.htaccess");
-		@unlink("test/rewrite.php");
-		@rmdir("test");
-	} */
 
-	// Clean all post variables up.
+	// Clean all post variables up, prevent SESSION hijacking.
 	foreach ($_POST as $key => $val) {
 		if (substr($key,0,1) != "_") {
 			$$key = $val;
@@ -112,14 +86,22 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 			"[write_password]",
 			"[domain]",
 			"[wwwroot]",
+			"[staticroot]",
 			"[resourceroot]",
 			"[email]",
 			"[settings_key]",
-			"[force_secure_login]"
+			"[force_secure_login]",
+			"[routing]"
 		);
 		
 		$domain = "http://".$_SERVER["HTTP_HOST"];
-		$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+		if ($routing == "basic") {
+			$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+			$www_root = $static_root."index.php/";
+		} else {
+			$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+			$static_root = $www_root;
+		}
 		$resource_root = str_replace("http://www.","http://",$www_root);
 		
 		$replace = array(
@@ -133,10 +115,12 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 			(isset($loadbalanced)) ? $write_password : "",
 			$domain,
 			$www_root,
+			$static_root,
 			$resource_root,
 			$cms_user,
 			$settings_key,
-			(isset($force_secure_login)) ? "true" : "false"
+			(isset($force_secure_login)) ? "true" : "false",
+			($routing == "basic") ? "basic" : "htaccess"
 		);
 		
 		$sql_queries = explode("\n",file_get_contents("bigtree.sql"));
@@ -214,7 +198,7 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		bt_mkdir_writable("templates/layouts/");
 		bt_touch_writable("templates/layouts/_header.php");
 		bt_touch_writable("templates/layouts/default.php",'<? include "_header.php" ?>
-<?=$content?>
+<?=$bigtree["content"]?>
 <? include "_footer.php" ?>');
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
@@ -231,59 +215,98 @@ RewriteRule ^(.*)$ rewrite.php?link=$1 [QSA,L]');
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
 		bt_touch_writable("site/index.php",'<?
-	if (!isset($_GET["bigtree_htaccess_url"])) {
-		$_GET["bigtree_htaccess_url"] = "";
-	}
-	$path = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
+	// Setup the BigTree variable "namespace"
+	$bigtree = array();
 	
-	$debug = false;
-	$config = array();
-	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\", "/"));
+	$bigtree["config"] = array();
+	$bigtree["config"]["debug"] = false;
+	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\\", "/"));
+	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
+	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
+	
+	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
+		if (!isset($_SERVER["PATH_INFO"])) {
+			$bigtree["path"] = array();
+		} else {
+			$bigtree["path"] = explode("/",trim($_SERVER["PATH_INFO"],"/"));
+		}
+	} else {
+		if (!isset($_GET["bigtree_htaccess_url"])) {
+			$_GET["bigtree_htaccess_url"] = "";
+		}
+	
+		$bigtree["path"] = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
+	}
+	$path = $bigtree["path"]; // Backwards compatibility
 	
 	// Let admin bootstrap itself.  New setup here so the admin can live at any path you choose for obscurity.
-	$parts_of_admin = explode("/",trim(str_replace($config["www_root"],"",$config["admin_root"]),"/"));
+	$parts_of_admin = explode("/",trim(str_replace($bigtree["config"]["www_root"],"",$bigtree["config"]["admin_root"]),"/"));
 	$in_admin = true;
 	$x = 0;
-	foreach ($parts_of_admin as $part) {
-		if ($part != $path[$x])	{
-			$in_admin = false;
+
+	// Go through each route, make sure the path matches the admin\'s route paths.
+	if (count($bigtree["path"]) < count($parts_of_admin)) {
+		$in_admin = false;
+	} else {
+		foreach ($parts_of_admin as $part) {
+		    if ($part != $bigtree["path"][$x])	{
+		    	$in_admin = false;
+		    }
+		    $x++;
 		}
-		$x++;
 	}
+	
+	// If we are in the admin, let it bootstrap itself.
 	if ($in_admin) {
 		// Cut off additional routes from the path, some parts of the admin assume path[0] is "admin" and path[1] begins the routing.
 		if ($x > 1) {
-			$path = array_slice($path,$x - 1);
+			$bigtree["path"] = array_slice($bigtree["path"],$x - 1);
 		}
 		include "../core/admin/router.php";
 		die();
 	}
 	
-	// See if this thing is cached
-	if ($config["cache"] && $path[0] != "_preview" && $path[0] != "_preview-pending") {
+	// We\'re not in the admin, see if caching is enabled and serve up a cached page if it exists
+	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
 		$curl = $_GET["bigtree_htaccess_url"];
 		if (!$curl) {
 			$curl = "home";
 		}
 		$file = "../cache/".base64_encode($curl);
 		// If the file is at least 5 minutes fresh, serve it up.
+		clearstatcache();
 		if (file_exists($file) && filemtime($file) > (time()-300)) {
-			if ($config["xsendfile"]) {
-				header("X-Sendfile: ".$server_root."cache/".base64_encode($curl));
+			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
+			if ($bigtree["config"]["xsendfile"]) {
+				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($curl));
 				header("Content-Type: text/html");
 				die();
+			// Fall back on file_get_contents otherwise.
 			} else {
 				die(file_get_contents("../cache/".base64_encode($curl)));
 			}
 		}
 	}
+	
+	// Clean up the variables we set.
+	unset($config,$debug,$in_admin,$parts_of_admin,$x);
 
-	// Bootstrap BigTree 4.0
-	include "../core/bootstrap.php";
-	include "../core/router.php";
+	// Bootstrap BigTree
+	if (file_exists("../custom/bootstrap.php")) {
+		include "../custom/bootstrap.php";
+	} else {
+		include "../core/bootstrap.php";
+	}
+	// Route BigTree
+	if (file_exists("../custom/router.php")) {
+		include "../custom/router.php";
+	} else {
+		include "../core/router.php";
+	}
 ?>');
 		
-		bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
+		if ($routing == "advanced") {
+			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
   # force deflate for mangled headers developer.yahoo.com/blogs/ydn/posts/2010/12/pushing-beyond-gzipping/
   <IfModule mod_setenvif.c>
     <IfModule mod_headers.c>
@@ -348,10 +371,25 @@ RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 
 php_flag short_open_tag On
 php_flag magic_quotes_gpc Off');
+			
+		} elseif ($routing == "simple") {
+			bt_touch_writable("site/.htaccess",'IndexIgnore */*
 
-		bt_touch_writable(".htaccess",'RewriteEngine On
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
+
+RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]');
+		} else {
+			bt_touch_writable("index.php",'<? header("Location: site/index.php/"); ?>');
+		}
+		
+		if ($routing != "basic") {
+			bt_touch_writable(".htaccess",'RewriteEngine On
 RewriteRule ^$ site/ [L]
 RewriteRule (.*) site/$1 [L]');
+		}
 		
 		// Install the example site if they asked for it.
 		if ($install_example_site) {
@@ -395,11 +433,9 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree</title>
+		<title>Install BigTree 4.0b7</title>
 		<?php if ($installed) { ?>
-		<link rel="stylesheet" href="admin/css/install.css" type="text/css" media="all" />
-		<script type="text/javascript" src="admin/js/lib.js"></script>
-		<script type="text/javascript" src="admin/js/install.js"></script>
+		<link rel="stylesheet" href="<?=$www_root?>admin/css/install.css" type="text/css" media="all" />
 		<?php } else { ?>
 		<link rel="stylesheet" href="core/admin/css/install.css" type="text/css" media="all" />
 		<script type="text/javascript" src="core/admin/js/lib.js"></script>
@@ -409,11 +445,14 @@ RewriteRule (.*) site/$1 [L]');
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree Installed</h1>
+			<h1>BigTree 4.0b7 Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
 					<p>Your new BigTree site is ready to go! Login to the CMS using your newly created account.</p>
+					<? if ($routing == "basic") { ?>
+					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
+					<? } ?>
 				</fieldset>
 				
 				<hr />
@@ -435,7 +474,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree</h1>
+			<h1>Install BigTree 4.0b7</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
@@ -550,6 +589,27 @@ RewriteRule (.*) site/$1 [L]');
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
 					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" />
+				</fieldset>
+				
+				<br class="clear" />
+				<br />
+				<hr />
+				
+				<h2 class="routing"><span></span>Site Routing</h2>
+				<fieldset class="clear">
+					<p>BigTree makes your URLs pretty but mod_rewrite support can make them even more pretty. If your server supports .htaccess overrides and mod_rewrite support you can remove the /index.php/ from your URLs.</p>
+					<ul>
+						<li>Choose <strong>"Basic Routing"</strong> if you are unsure your server supports .htaccess overrides and mod_rewrite.</li>
+						<li>Choose <strong>"Simple Rewrite Routing"</strong> if your server supports .htaccess and mod_rewrite but does not allow for php_flags and content compression.</li>
+						<li>Choose <strong>"Advanced Routing"</strong> to install an .htaccess that enables caching, compression, and routing.</li>
+					</ul>
+				</fieldset>
+				<fieldset class="clear">
+					<select name="routing">
+						<option value="basic"<? if (!$routing || $routing == "basic") { ?> selected="selected"<? } ?>>Basic Routing</option>
+						<option value="simple"<? if ($routing == "simple") { ?> selected="selected"<? } ?>>Simple Rewrite Routing</option>
+						<option value="advanced"<? if ($routing == "advanced") { ?> selected="selected"<? } ?>>Advanced Routing</option>
+					</select>
 				</fieldset>
 				
 				<br class="clear" />

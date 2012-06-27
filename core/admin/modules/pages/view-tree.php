@@ -1,7 +1,7 @@
 <?
 	$ga_on = $cms->getSetting("bigtree-internal-google-analytics-profile");
 	
-	$parent = is_array($commands) ? end($commands) : 0;
+	$parent = is_array($bigtree["commands"]) ? end($bigtree["commands"]) : 0;
 	$page = $cms->getPage($parent,false);
 	$parent_access = $admin->getPageAccessLevel($parent);
 	
@@ -16,7 +16,7 @@
 	}
 	
 	function local_drawPageTree($nav,$title,$subtitle,$class,$draggable = false) {
-		global $admin_root,$proot,$admin,$cms,$www_root,$ga_on,$parent_access,$parent;
+		global $proot,$admin,$cms,$ga_on,$parent_access,$parent;
 ?>
 <div class="table">
 	<summary>
@@ -54,11 +54,11 @@
 			foreach ($nav as $item) {
 				$perm = $admin->getPageAccessLevel($item["id"]);
 				
-				if ($item["bigtree_pending"]) {
-					$status = '<a href="'.$www_root.'_preview-pending/'.$item["id"].'/" target="_blank">Pending</a>';
+				if (isset($item["bigtree_pending"])) {
+					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">Pending</a>';
 					$status_class = "pending";
 				} elseif ($admin->getPageChanges($item["id"])) {
-					$status = '<a href="'.$www_root.'_preview/'.$item["path"].'/" target="_blank">Changed</a>';
+					$status = '<a href="'.WWW_ROOT.'_preview/'.$item["path"].'/" target="_blank">Changed</a>';
 					$status_class = "pending";
 				} elseif (strtotime($item["publish_at"]) > time()) {
 					$status = "Scheduled";
@@ -73,7 +73,7 @@
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 			<section class="pages_title<? if ($class == "archived") { ?>_widest<? } elseif (!$ga_on) { ?>_wider<? } ?>">
-				<? if ($parent_access == "p" && !$item["bigtree_pending"] && $draggable) { ?>
+				<? if ($parent_access == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
 				<span class="icon_sort"></span>
 				<? } ?>
 				<? if ($class != "archived") { ?>
@@ -113,7 +113,7 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<? if (!$item["bigtree_pending"] && $perm == "p" && ($parent != 0 || $admin->Level > 1) && $admin->canModifyChildren($item)) { ?>
+				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($parent != 0 || $admin->Level > 1) && $admin->canModifyChildren($item)) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="Archive Page" class="icon_archive"></a>
 				<? } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Pending Page" class="icon_delete"></a>
@@ -144,7 +144,7 @@
 ?>
 <script type="text/javascript">
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/pages/order/", { type: "POST", data: { id: "<?=$parent?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$parent?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});
 </script>
 <?

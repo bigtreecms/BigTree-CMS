@@ -13,6 +13,8 @@
 		"link required" => "Link (required)"
 	);
 	
+	$validation = isset($data["validation"]) ? $data["validation"] : "";
+	
 	if ($t == "text") {
 ?>
 <fieldset>
@@ -20,7 +22,7 @@
 	<select name="validation">
 		<option></option>
 		<? foreach ($validation_options as $k => $v) { ?>
-		<option value="<?=$k?>"<? if ($k == $data["validation"]) { ?> selected="selected"<? } ?>><?=$v?></option>
+		<option value="<?=$k?>"<? if ($k == $validation) { ?> selected="selected"<? } ?>><?=$v?></option>
 		<? } ?>
 	</select>
 </fieldset>
@@ -28,13 +30,16 @@
 	} elseif ($t == "textarea" || $t == "upload" || $t == "html" || $t == "list") {
 ?>
 <fieldset>
-	<label>Validation</label>
-	<input type="checkbox" name="validation" value="required"<? if ($data["validation"] == "required") { ?> checked="checked"<? } ?> /> Required
+	<input type="checkbox" name="validation" value="required"<? if ($validation == "required") { ?> checked="checked"<? } ?> />
+	<label class="for_checkbox">Required</label>
 </fieldset>
 <?	
 	}
 
 	if (file_exists(BigTree::path("admin/ajax/developer/field-options/".$t.".php"))) {
+		if ($t == "text" || $t == "textarea" || $t == "upload" || $t == "html" || $t == "list") {
+			echo "<hr />";
+		}
 		include BigTree::path("admin/ajax/developer/field-options/".$t.".php");
 	} else {
 		if ($t != "text" && $t != "textarea" && $t = "upload" && $t != "html" && $t != "list") {
@@ -45,15 +50,18 @@
 	}
 ?>
 <script type="text/javascript">
+	BigTreeCustomControls();
+	
 	$(".table_select").change(function() {
 		name = $(this).attr("name");
 		table = $(this).val();
 		$(".pop-dependant").each(function(el) {
+			console.log($(this));
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {
-					$(this).load("<?=$admin_root?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("name"));
+					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("data-name"), BigTreeCustomControls);
 				} else {
-					$(this).load("<?=$admin_root?>ajax/developer/load-table-columns/?table=" + table + "&field=" + $(this).attr("name"));
+					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + table + "&field=" + $(this).attr("data-name"), BigTreeCustomControls);
 				}
 			}
 		});

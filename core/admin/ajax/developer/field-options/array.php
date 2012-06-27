@@ -1,4 +1,7 @@
 <?
+	// Stop notices
+	$data["fields"] = isset($data["fields"]) ? $data["fields"] : array();
+	
 	$types = array(
 		"text" => "Text",
 		"textarea" => "Text Area",

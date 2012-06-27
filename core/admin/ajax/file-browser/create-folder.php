@@ -3,7 +3,7 @@
 ?>
 <html>
 	<head>
-		<link rel="stylesheet" href="<?=$admin_root?>css/main.css" />
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" />
 	</head>
 	<body style="background: transparent;">
 		<p class="file_browser_response">Successfully Created Folder</p>

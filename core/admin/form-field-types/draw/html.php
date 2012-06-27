@@ -1,8 +1,8 @@
 <?
-	if ($options["simple"]) {
-		$simplehtmls[] = "field_$key";
+	if (isset($options["simple"]) && $options["simple"]) {
+		$bigtree["simple_html_fields"][] = "field_$key";
 	} else {
-		$htmls[] = "field_$key";
+		$bigtree["html_fields"][] = "field_$key";
 	}
 	
 	include BigTree::path("admin/form-field-types/draw/textarea.php");

@@ -1,9 +1,12 @@
-<h1><span class="dashboard"></span>Overview</h1>
+<h1>
+	<span class="dashboard"></span>Overview
+	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
+</h1>
 <?
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		header("Location: ".$admin_root."dashboard/update/");
+		header("Location: ".ADMIN_ROOT."dashboard/update/");
 		die();
 	}
 	
@@ -54,7 +57,7 @@
 		<h2 class="full">
 			<span class="world"></span>
 			Recent Traffic <small>Visits In The Past Two Weeks</small>
-			<a href="<?=$admin_root?>dashboard/vitals-statistics/analytics/" class="more">View Analytics</a>
+			<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="more">View Analytics</a>
 		</h2>
 	</summary>
 	<section>
@@ -104,7 +107,7 @@
 		<h2 class="full">
 			<span class="pending"></span>
 			Pending Changes <small>Recent Changes Awaiting Approval</small>
-			<a href="<?=$admin_root?>dashboard/pending-changes/" class="more">View All Pending Changes</a>
+			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="more">View All Pending Changes</a>
 		</h2>
 	</summary>
 	<ul>
@@ -119,7 +122,7 @@
 			<section class="changes_awaiting">
 				<p>You have the following changes pending your approval:</p>
 				<? foreach ($change_modules as $m => $cm) { ?>
-				<p>&mdash; <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <a href="<?=$admin_root?>dashboard/pending-changes/#<?=$m?>"><?=$cm["title"]?></a></p>
+				<p>&mdash; <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><?=$cm["title"]?></a></p>
 				<? } ?>
 			</section>
 		</li>
@@ -134,7 +137,7 @@
 		<h2 class="full">
 			<span class="unread"></span>
 			Unread Messages
-			<a href="<?=$admin_root?>dashboard/messages/" class="more">View All Messages</a>
+			<a href="<?=ADMIN_ROOT?>dashboard/messages/" class="more">View All Messages</a>
 		</h2>
 	</summary>
 	<header>
@@ -154,11 +157,11 @@
 				foreach ($unread as $item) {
 		?>
 		<li>
-			<section class="messages_from_to"><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="<?=$admin_root?>dashboard/messages/view/<?=$item["id"]?>/" class="icon_message"></a></section>
+			<section class="messages_view"><a href="<?=ADMIN_ROOT?>dashboard/messages/view/<?=$item["id"]?>/" class="icon_message"></a></section>
 		</li>
 		<?
 				}

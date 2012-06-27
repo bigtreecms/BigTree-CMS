@@ -1,13 +1,19 @@
 <?
 	$breadcrumb[] = array("title" => "Add Setting", "link" => "#");
 	
-	if (is_array($_SESSION["bigtree"]["developer"]["setting_data"])) {
+	// Stop notices
+	$id = $name = $type = $locked = $encrypted = $description = "";
+	if (isset($_SESSION["bigtree"]["developer"]["setting_data"])) {
 		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["setting_data"]);
+		unset($_SESSION["bigtree"]["developer"]["setting_data"]);
 	}
 	
-	$e = $_SESSION["bigtree"]["developer"]["error"];
-	unset($_SESSION["bigtree"]["developer"]["error"]);
-	unset($_SESSION["bigtree"]["developer"]["setting_data"]);
+	if (isset($_SESSION["bigtree"]["developer"]["error"])) {
+		$e = $_SESSION["bigtree"]["developer"]["error"];
+		unset($_SESSION["bigtree"]["developer"]["error"]);
+	} else {
+		$e = false;
+	}
 ?>
 <h1><span class="icon_developer_settings"></span>Add Setting</h1>
 <? include BigTree::path("admin/modules/developer/settings/_nav.php") ?>
@@ -24,7 +30,7 @@
 	new BigTreeFormValidator("form.module");
 </script>
 <?
-	$htmls = array("setting_description");
+	$bigtree["html_fields"] = array("setting_description");
 	include BigTree::path("admin/layouts/_tinymce.php");
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 	

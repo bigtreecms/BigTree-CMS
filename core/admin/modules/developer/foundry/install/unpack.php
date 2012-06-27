@@ -22,12 +22,12 @@
 		die();
 	}
 	
-	if (!is_writable($server_root."cache/")) {
+	if (!is_writable(SERVER_ROOT."cache/")) {
 		die("<p>Your cache/ directory must be writable.</p>");
 	}
 	
 	// Setup the cache root.
-	$cache_root = $server_root."cache/unpack/";
+	$cache_root = SERVER_ROOT."cache/unpack/";
 	if (!file_exists($cache_root)) {
 		mkdir($cache_root);
 	}
@@ -109,10 +109,10 @@
 		}
 		if ($type == "File") {
 			$location = $parts[2];
-			if (!BigTree::isWritable($server_root.$location)) {
+			if (!BigTree::isDirectoryWritable(SERVER_ROOT.$location)) {
 				$errors[] = "Cannot write to $location &mdash; please make the root directory writable.";
 			}
-			if (file_exists($server_root.$location)) {
+			if (file_exists(SERVER_ROOT.$location)) {
 				$warnings[] = "A file already exists at $location &mdash; the file will be overwritten.";
 			}
 		}
@@ -131,10 +131,10 @@
 		<?
 			if (count($warnings)) {
 		?>
-		<strong class="import_warnings">Warnings</strong>
-		<ul class="import_warnings">
+		<h3>Warnings</h3>
+		<ul class="styled">
 			<? foreach ($warnings as $w) { ?>
-			<li>&raquo; <?=$w?></li>
+			<li><?=$w?></li>
 			<? } ?>
 		</ul>
 		<?
@@ -142,10 +142,10 @@
 			
 			if (count($errors)) {
 		?>
-		<strong class="import_errors">Errors</strong>
-		<ul class="import_errors">
+		<h3>Errors</h3>
+		<ul class="styled">
 			<? foreach ($errors as $e) { ?>
-			<li>&raquo; <?=$e?></li>
+			<li><?=$e?></li>
 			<? } ?>
 		</ul>
 		<p><strong>ERRORS OCCURRED!</strong> &mdash; Please correct all errors.  You may not import this module while errors persist.</p>

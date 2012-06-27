@@ -8,7 +8,7 @@
   		inlinepopups_skin: "BigTreeModal",
 		theme: "advanced",
 		mode: "exact",
-		elements: "<?=implode(",",$htmls)?>",
+		elements: "<?=implode(",",$bigtree["html_fields"])?>",
 		file_browser_callback: "BigTreeFileManager.tinyMCEOpen",
 		plugins: "advimage,paste,table,inlinepopups,spellchecker",
 		theme_advanced_blockformats: "p,h2,h3,h4",

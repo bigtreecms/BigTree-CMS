@@ -1,1 +1,1 @@
-<script type="text/javascript" src="<?=$admin_root?>js/tiny_mce/tiny_mce.js"></script>
+<script type="text/javascript" src="<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js"></script>

@@ -6,7 +6,7 @@
 	<?
 		}
 		
-		$st = $options["sub_type"];
+		$st = isset($options["sub_type"]) ? $options["sub_type"] : false;
 		if (!$st) {
 	?>
 	<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=$value?>" id="field_<?=$key?>" />

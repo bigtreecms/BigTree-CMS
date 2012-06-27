@@ -1,8 +1,7 @@
 <?
 	/* BASIC NAV RECURSION */
 	function recurseNav($nav, $mypage = "", $isSitemap = false) {
-		global $config, $www_root;
-		$lpage = $config["domain"].$_SERVER["REQUEST_URI"];
+		$lpage = DOMAIN.$_SERVER["REQUEST_URI"];
 		$i = 0;
 		$count = count($nav);
 		if ($count > 0) {
@@ -124,10 +123,8 @@
 	
 	/* GEOCODING */
 	function geocodeAddress($location) {
-		global $server_root;
-		
 		$location = urlencode(trim(strip_tags($location)));
-		$cache_file = $server_root . "cache/custom/google-maps-" . md5($location);
+		$cache_file = SERVER_ROOT . "cache/custom/google-maps-" . md5($location);
 		$cache_age = file_exists($cache_file) ? filemtime($cache_file) : 0;
 		
 		if ($cache_age === false || $cache_age < (time() - (60 * 60 * 24))) {

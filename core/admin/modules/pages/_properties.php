@@ -6,26 +6,26 @@
 	$seo = $admin->getPageSEORating($page_data,$page_data["resources"]);
 	if (isset($page_data["id"]) && is_numeric($page_data["id"])) {
 		if ($page_data["id"] == 0) {
-			$live_url = $www_root;
+			$live_url = WWW_ROOT;
 		} else {
-			$live_url = $www_root.$page_data["path"]."/";
+			$live_url = WWW_ROOT.$page_data["path"]."/";
 		}
-		if ($page_data["changes_applied"]) {
+		if (isset($page_data["changes_applied"])) {
 			$status = "Changes Pending";
 			if ($page_data["id"] == 0) {
-				$preview_url = $www_root."_preview/";
+				$preview_url = WWW_ROOT."_preview/";
 			} else {
-				$preview_url = $www_root."_preview/".$page_data["path"]."/";
+				$preview_url = WWW_ROOT."_preview/".$page_data["path"]."/";
 			}
 		} else {
 			$status = "Published";
 		}
 	} else {
-		$preview_url = $www_root."_preview-pending/".$page."/";
+		$preview_url = WWW_ROOT."_preview-pending/".$page."/";
 		$status = "Unpublished";
 	}
 	
-	$open = $_COOKIE["bigtree_default_properties_open"] ? true : false;
+	$open = (isset($_COOKIE["bigtree_default_properties_open"]) && $_COOKIE["bigtree_default_properties_open"]) ? true : false;
 	
 	$seo_recs = "<ul>";
 	foreach ($seo["recommendations"] as $rec) {

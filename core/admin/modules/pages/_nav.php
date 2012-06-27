@@ -1,5 +1,5 @@
 <?
-	$access = $admin->getPageAccessLevel(end($path));
+	$access = $admin->getPageAccessLevel(end($bigtree["path"]));
 	$available_actions = array(
 		array("route" => "view-tree", "name" => "View Subpages", "icon" => "list")
 	);
@@ -18,6 +18,6 @@
 ?>
 <nav class="sub">
 	<? foreach ($available_actions as $action) { ?>
-	<a href="<?=$admin_root?>pages/<?=$action["route"]?>/<?=end($path)?>/"<? if ($path[count($path)-2] == $action["route"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$action["icon"]?>"></span><?=$action["name"]?></a>
+	<a href="<?=ADMIN_ROOT?>pages/<?=$action["route"]?>/<?=end($bigtree["path"])?>/"<? if ($bigtree["path"][count($bigtree["path"])-2] == $action["route"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$action["icon"]?>"></span><?=$action["name"]?></a>
 	<? } ?>
 </nav>

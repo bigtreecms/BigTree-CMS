@@ -1,14 +1,19 @@
 <?
 	$breadcrumb[] = array("title" => "Add Field Type", "link" => "#");
 	
-	if (is_array($_SESSION["bigtree"]["admin_saved"])) {
+	// Stop notices
+	$id = $name = $pages = $modules = $callouts = $settings = "";
+	if (isset($_SESSION["bigtree"]["admin_saved"])) {
 		BigTree::globalizeArray($_SESSION["bigtree"]["admin_saved"],array("htmlspecialchars"));
+		unset($_SESSION["bigtree"]["admin_saved"]);
 	}
 	
-	unset($_SESSION["bigtree"]["admin_saved"]);
-	
-	$e = $_SESSION["bigtree"]["admin_error"];
-	unset($_SESSION["bigtree"]["admin_error"]);
+	if (isset($_SESSION["bigtree"]["admin_error"])) {
+		$e = $_SESSION["bigtree"]["admin_error"];
+		unset($_SESSION["bigtree"]["admin_error"]);
+	} else {
+		$e = false;
+	}
 ?>
 <h1><span class="icon_developer_field_types"></span>Add Field Type</h1>
 <? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
@@ -34,6 +39,7 @@
 						<li><input type="checkbox" name="pages"<? if ($pages) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Pages</label></li>
 						<li><input type="checkbox" name="modules"<? if ($modules) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Modules</label></li>
 						<li><input type="checkbox" name="callouts"<? if ($callouts) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Callouts</label></li>
+						<li><input type="checkbox" name="settings"<? if ($settings) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Settings</label></li>
 					</ul>
 				</fieldset>
 			</div>

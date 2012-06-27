@@ -1,7 +1,7 @@
 <?
 	$templates = $admin->getTemplates();
 	
-	// Need to create a ridiculous hack because jQuery's sortable is retarded.
+	// Need to create a ridiculous hack because jQuery's sortable is stupid.
 	$x = 0;
 	$rel_table = array();
 ?>
@@ -75,11 +75,11 @@
 
 <script type="text/javascript">
 	$("#basic_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#basic_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#basic_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$("#routed_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=$admin_root?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#routed_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#routed_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$(".icon_delete").click(function() {

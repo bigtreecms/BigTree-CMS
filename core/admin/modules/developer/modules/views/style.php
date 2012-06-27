@@ -1,5 +1,5 @@
 <?
-	$view = BigTreeAutoModule::getView(end($path));
+	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 ?>
 <h1><span class="icon_developer_modules"></span>Tweak View Styles</h1>
 <?

@@ -2,22 +2,31 @@
 	$autoModule = new BigTreeAutoModule;
 
 	// Grab View Data
-	if ($_GET["view"])
+	if (isset($_GET["view"])) {
 		$view = $_GET["view"];
-	if ($_GET["module"])
+	}
+	if (isset($_GET["module"])) {
 		$module = $admin->getModuleByRoute($_GET["module"]);
+	}
 
 	$view = BigTreeAutoModule::getView($view);
 	BigTree::globalizeArray($view);
-		
-	$search = $_GET["search"] ? $_GET["search"] : "";
+
+	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 	
-	$sort = $options["sort_column"] ? $options["sort_column"] : "id";
-	$sort_direction = $options["sort_direction"] ? $options["sort_direction"] : "DESC";
-	$sort = $_GET["sort"] ? $_GET["sort"] : $sort;
-	$sort_direction = $_GET["sort_direction"] ? $_GET["sort_direction"] : $sort_direction;
+	if (isset($_GET["sort"])) {
+		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
+	} else {
+		if (isset($options["sort_column"])) {
+			$sort = $options["sort_column"]." ".$options["sort_direction"];
+		} elseif (isset($options["sort"])) {
+			$sort = $options["sort"];
+		} else {
+			$sort = "id DESC";
+		}
+	}
 	
-	$mpage = $admin_root.$module["route"]."/";
+	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
@@ -30,12 +39,17 @@
 	$suffix = $suffix ? "-".$suffix : "";
 	
 	// Handle how many pages we have and what page we're on.
-	$page = $_GET["page"] ? $_GET["page"] : 0;
-	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,$sort_direction,false,$module);
+	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
+	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,false,$module);
 	$pages = $data["pages"];
 	$items = $data["results"];
 	
 	foreach ($items as $item) {
+		// If it's straight from the db, it's published.
+		if (!isset($item["status"])) {
+			$item["status"] = "";
+		}
+		
 		if ($item["status"] == "p") {
 			$status = "Pending";
 			$status_class = "pending";

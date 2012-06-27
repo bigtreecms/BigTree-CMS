@@ -3,10 +3,10 @@
 	$types = $cached_types["template"];
 ?>
 <section>
-	<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="left">
-		<? if (!$template) { ?>
+		<? if (!isset($template)) { ?>
 		<fieldset>
 			<label class="required">ID</label>
 			<input type="text" class="required" name="id" />
@@ -25,7 +25,7 @@
 		</fieldset>
 	</div>
 	<div class="right">
-		<? if (!$template) { ?>
+		<? if (!isset($template)) { ?>
 		<fieldset>
 			<label>Type</label>
 			<select name="routed">
@@ -68,18 +68,18 @@
 		<fieldset>
 			<ul class="template_image_list">
 				<?
-					$o = opendir($server_root."core/admin/images/templates/");
+					$o = opendir(SERVER_ROOT."core/admin/images/templates/");
 					while ($file = readdir($o)) {
 						if ($file != "." && $file != "..") {
 							$all[] = $file;
 				?>
-				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=$admin_root?>images/templates/<?=$file?>" alt="" /></a></li>
+				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" /></a></li>
 				<?
 						}
 					}
 					if ($image && !in_array($image,$all)) {
 				?>
-				<li><a href="#<?=htmlspecialchars($image)?>" class="active"><img src="<?=$admin_root?>images/templates/<?=$image?>" alt="" /></a></li>
+				<li><a href="#<?=htmlspecialchars($image)?>" class="active"><img src="<?=ADMIN_ROOT?>images/templates/<?=$image?>" alt="" /></a></li>
 				<?	
 					}
 				?>

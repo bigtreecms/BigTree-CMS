@@ -1,5 +1,5 @@
 <?
-	$module = $admin->getModule(end($commands));
+	$module = $admin->getModule(end($bigtree["commands"]));
 ?>
 <h1><span class="icon_developer_modules"></span>Module Designer</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
@@ -8,6 +8,6 @@
 		<h2>Module Complete</h2>
 	</header>
 	<section>
-		<p>Your module is created.  You may access it <a href="<?=$admin_root.$module["route"]?>/">by clicking here</a>.</p>
+		<p>Your module is created.  You may access it <a href="<?=ADMIN_ROOT.$module["route"]?>/">by clicking here</a>.</p>
 	</section>
 </div>

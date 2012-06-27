@@ -7,175 +7,6 @@
 	class BigTreeAutoModule {
 		
 		/*
-			Function: cacheViewData
-				Grabs all the data from a view and does parsing on it based on automatic assumptions and manual parsers.
-			
-			Parameters:
-				view - The view entry to cache data for.
-		*/
-		
-		static function cacheViewData($view) {
-			// See if we already have cached data.
-			$r = sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"));
-			if ($r) {
-				return;
-			}
-			
-			// Find out what module we're using so we can get the gbp_field
-			$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
-			$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
-			$view["gbp"] = json_decode($module["gbp"],true);
-			
-			// Setup information on our parsers and populated lists.
-			$form = self::getRelatedFormForView($view);
-			$view["fields"] = is_array($view["fields"]) ? $view["fields"] : array();
-			$parsers = array();
-			$poplists = array();
-			
-			foreach ($view["fields"] as $key => $field) {
-				// Get the form field
-				$ff = $form["fields"][$key];
-				
-				$value = $item[$key];
-				if ($field["parser"]) {
-					$parsers[$key] = $field["parser"];
-				} elseif ($ff["type"] == "list" && $ff["list_type"] == "db") {
-					$poplists[$key] = array("description" => $ff["pop-description"], "table" => $ff["pop-table"]);
-				}
-			}
-			
-			// See if we need to modify the cache table to add more fields.
-			$field_count = count($view["fields"]);
-			$cache_columns = sqlcolumns("bigtree_module_view_cache");
-			$cc = count($cache_columns) - 10;
-			while ($field_count > $cc) {
-				$cc++;
-				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT AFTER column".($cc-1));
-			}
-			
-			// Cache all records that are published (and include their pending changes)
-			$q = sqlquery("SELECT `".$view["table"]."`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND bigtree_pending_changes.table = '".$view["table"]."')");
-			while ($item = sqlfetch($q)) {
-				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"],true);
-					foreach ($changes as $key => $change) {
-						$item[$key] = $change;
-					}
-				}	
-
-				self::cacheRecord($item,$view,$parsers,$poplists);
-			}
-
-			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '".$view["table"]."' AND item_id = '0'");
-			while ($f = sqlfetch($q)) {
-				$item = json_decode($f["changes"],true);
-				$item["bigtree_pending"] = true;
-				$item["bigtree_pending_owner"] = $f["user"];
-				$item["id"] = "p".$f["id"];
-				
-				self::cacheRecord($item,$view,$parsers,$poplists);
-			}
-		}
-		
-		/*
-			Function: cacheRecord
-				Caches a single item in a view to the bigtree_module_view_cache table.
-			
-			Parameters:
-				item - The database record to cache.
-				view - The related view entry.
-				parsers - An array of manual parsers set in the view.
-				poplists - An array of populated lists that relate to the item.
-		*/
-		
-		static function cacheRecord($item,$view,$parsers,$poplists) {
-			global $cms;
-			// Setup the fields and VALUES to INSERT INTO the cache table.
-			
-			$status = "l";
-			$pending_owner = 0;
-			if ($item["bigtree_changes"]) {
-				$status = "c";
-			} elseif ($item["bigtree_pending"]) {
-				$status = "p";
-				$pending_owner = $item["bigtree_pending_owner"];
-			}
-			$fields = array("view","id","status","position","approved","archived","featured","pending_owner");
-			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'".$item["position"]."'","'".$item["approved"]."'","'".$item["archived"]."'","'".$item["featured"]."'","'".$pending_owner."'");
-			
-			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
-			if ($view["options"]["group_field"]) {
-				$value = $item[$view["options"]["group_field"]];
-
-				// Check for a parser
-				if ($view["options"]["group_parser"]) {
-					@eval($view["options"]["group_parser"]);
-				}
-
-				$fields[] = "group_field";
-				$vals[] = "'".mysql_real_escape_string($value)."'";
-				
-				if (is_numeric($value) && $view["options"]["other_table"]) {
-					$f = sqlfetch(sqlquery("SELECT * FROM `".$view["options"]["other_table"]."` WHERE id = '$value'"));
-					if ($view["options"]["ot_sort_field"]) {
-						$fields[] = "group_sort_field";
-						$vals[] = "'".mysql_real_escape_string($f[$view["options"]["ot_sort_field"]])."'";
-					}
-				}
-			}
-			
-			// Group based permissions data
-			if ($view["gbp"]["enabled"] && $view["gbp"]["table"] == $view["table"]) {
-				$fields[] = "gbp_field";
-				$vals[] = "'".mysql_real_escape_string($item[$view["gbp"]["group_field"]])."'";
-			}
-			
-			// Run parsers
-			foreach ($parsers as $key => $parser) {
-				$value = $item[$key];
-				@eval($parser);
-				$item[$key] = $value;
-			}
-			
-			// Run pop lists
-			foreach ($poplists as $key => $pop) {
-				$f = sqlfetch(sqlquery("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = '".$item[$key]."'"));
-				if (is_array($f)) {
-					$item[$key] = current($f);
-				}
-			}
-			
-			$cache = true;
-			if ($view["options"]["filter"]) {
-				@eval('$cache = '.$view["options"]["filter"].'($item);');
-			}
-			
-			if ($cache) {
-				$x = 1;
-				
-				if ($view["type"] == "images" || $view["type"] == "images-grouped") {
-					$fields[] = "column1";
-					$vals[] = "'".$item[$view["options"]["image"]]."'";
-					$fields[] = "column2";
-					$vals[] = "'".$item[$view["options"]["caption"]]."'";
-				} else {
-					foreach ($view["fields"] as $field => $options) {
-						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
-						$fields[] = "column$x";
-						if ($parsers[$field]) {
-							$vals[] = "'".mysql_real_escape_string($item[$field])."'";					
-						} else {
-							$vals[] = "'".mysql_real_escape_string(strip_tags($item[$field]))."'";
-						}
-						$x++;
-					}
-				}
-				
-				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
-			}
-		}
-		
-		/*
 			Function: cacheNewItem
 				Caches a new database entry by investigating associated views.
 			
@@ -234,6 +65,179 @@
 						$poplists[$key] = array("description" => $form["fields"][$key]["pop-description"], "table" => $form["fields"][$key]["pop-table"]);
 					}
 				}
+				
+				self::cacheRecord($item,$view,$parsers,$poplists);
+			}
+		}
+		
+		/*
+			Function: cacheRecord
+				Caches a single item in a view to the bigtree_module_view_cache table.
+			
+			Parameters:
+				item - The database record to cache.
+				view - The related view entry.
+				parsers - An array of manual parsers set in the view.
+				poplists - An array of populated lists that relate to the item.
+		*/
+		
+		static function cacheRecord($item,$view,$parsers,$poplists) {
+			global $cms;
+			// Setup the fields and VALUES to INSERT INTO the cache table.
+			
+			$status = "l";
+			$pending_owner = 0;
+			if ($item["bigtree_changes"]) {
+				$status = "c";
+			} elseif (isset($item["bigtree_pending"])) {
+				$status = "p";
+				$pending_owner = $item["bigtree_pending_owner"];
+			}
+			$fields = array("view","id","status","position","approved","archived","featured","pending_owner");
+
+			// No more notices.
+			$approved = isset($item["approved"]) ? $item["approved"] : "";
+			$featured = isset($item["featured"]) ? $item["featured"] : "";
+			$archived = isset($item["archived"]) ? $item["archived"] : "";
+			$position = isset($item["position"]) ? $item["position"] : 0;
+
+			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'$position'","'$approved'","'$archived'","'$featured'","'".$pending_owner."'");
+			
+			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
+			if (isset($view["options"]["group_field"]) && $view["options"]["group_field"]) {
+				$value = $item[$view["options"]["group_field"]];
+
+				// Check for a parser
+				if (isset($view["options"]["group_parser"]) && $view["options"]["group_parser"]) {
+					@eval($view["options"]["group_parser"]);
+				}
+
+				$fields[] = "group_field";
+				$vals[] = "'".mysql_real_escape_string($value)."'";
+				
+				if (is_numeric($value) && $view["options"]["other_table"]) {
+					$f = sqlfetch(sqlquery("SELECT * FROM `".$view["options"]["other_table"]."` WHERE id = '$value'"));
+					if ($view["options"]["ot_sort_field"]) {
+						$fields[] = "group_sort_field";
+						$vals[] = "'".mysql_real_escape_string($f[$view["options"]["ot_sort_field"]])."'";
+					}
+				}
+			}
+			
+			// Group based permissions data
+			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
+				$fields[] = "gbp_field";
+				$vals[] = "'".mysql_real_escape_string($item[$view["gbp"]["group_field"]])."'";
+			}
+			
+			// Run parsers
+			foreach ($parsers as $key => $parser) {
+				$value = $item[$key];
+				@eval($parser);
+				$item[$key] = $value;
+			}
+			
+			// Run pop lists
+			foreach ($poplists as $key => $pop) {
+				$f = sqlfetch(sqlquery("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = '".$item[$key]."'"));
+				if (is_array($f)) {
+					$item[$key] = current($f);
+				}
+			}
+			
+			$cache = true;
+			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
+				@eval('$cache = '.$view["options"]["filter"].'($item);');
+			}
+			
+			if ($cache) {
+				$x = 1;
+				
+				if ($view["type"] == "images" || $view["type"] == "images-grouped") {
+					$fields[] = "column1";
+					$vals[] = "'".$item[$view["options"]["image"]]."'";
+				} else {
+					foreach ($view["fields"] as $field => $options) {
+						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
+						$fields[] = "column$x";
+						if (isset($parsers[$field]) && $parsers[$field]) {
+							$vals[] = "'".mysql_real_escape_string($item[$field])."'";					
+						} else {
+							$vals[] = "'".mysql_real_escape_string(strip_tags($item[$field]))."'";
+						}
+						$x++;
+					}
+				}
+				
+				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
+			}
+		}
+		
+		/*
+			Function: cacheViewData
+				Grabs all the data from a view and does parsing on it based on automatic assumptions and manual parsers.
+			
+			Parameters:
+				view - The view entry to cache data for.
+		*/
+		
+		static function cacheViewData($view) {
+			// See if we already have cached data.
+			$r = sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"));
+			if ($r) {
+				return;
+			}
+			
+			// Find out what module we're using so we can get the gbp_field
+			$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
+			$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
+			$view["gbp"] = json_decode($module["gbp"],true);
+			
+			// Setup information on our parsers and populated lists.
+			$form = self::getRelatedFormForView($view);
+			$view["fields"] = is_array($view["fields"]) ? $view["fields"] : array();
+			$parsers = array();
+			$poplists = array();
+			
+			foreach ($view["fields"] as $key => $field) {
+				// Get the form field
+				$ff = $form["fields"][$key];
+				
+				if ($field["parser"]) {
+					$parsers[$key] = $field["parser"];
+				} elseif ($ff["type"] == "list" && $ff["list_type"] == "db") {
+					$poplists[$key] = array("description" => $ff["pop-description"], "table" => $ff["pop-table"]);
+				}
+			}
+			
+			// See if we need to modify the cache table to add more fields.
+			$field_count = count($view["fields"]);
+			$cache_columns = sqlcolumns("bigtree_module_view_cache");
+			$cc = count($cache_columns) - 11;
+			while ($field_count > $cc) {
+				$cc++;
+				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
+			}
+			
+			// Cache all records that are published (and include their pending changes)
+			$q = sqlquery("SELECT `".$view["table"]."`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND bigtree_pending_changes.table = '".$view["table"]."')");
+			while ($item = sqlfetch($q)) {
+				if ($item["bigtree_changes"]) {
+					$changes = json_decode($item["bigtree_changes"],true);
+					foreach ($changes as $key => $change) {
+						$item[$key] = $change;
+					}
+				}	
+
+				self::cacheRecord($item,$view,$parsers,$poplists);
+			}
+
+			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '".$view["table"]."' AND item_id = '0'");
+			while ($f = sqlfetch($q)) {
+				$item = json_decode($f["changes"],true);
+				$item["bigtree_pending"] = true;
+				$item["bigtree_pending_owner"] = $f["user"];
+				$item["id"] = "p".$f["id"];
 				
 				self::cacheRecord($item,$view,$parsers,$poplists);
 			}
@@ -422,7 +426,7 @@
 		static function getFilterQuery($view) {
 			global $admin;
 			$module = $admin->getModule(self::getModuleForView($view));
-			if ($module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
+			if (isset($module["gbp"]["enabled"]) && $module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
 				$groups = $admin->getAccessGroups($module["id"]);
 				if (is_array($groups)) {
 					$gfl = array();
@@ -469,7 +473,7 @@
 		static function getGroupsForView($view) {
 			$groups = array();
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'";
-			if ($view["options"]["ot_sort_field"]) {
+			if (isset($view["options"]["ot_sort_field"]) && $view["options"]["ot_sort_field"]) {
 				$query .= " ORDER BY group_sort_field ".$view["options"]["ot_sort_direction"];
 			} else {
 				$query .= " ORDER BY group_field";
@@ -667,8 +671,7 @@
 				view - The view to pull data for.
 				page - The page of data to retrieve.
 				query - The query string to search against.
-				sort - The column to use to sort.
-				sort_direction - The direction to sort.
+				sort - The column and direction to sort.
 				group - The group to pull information for.
 				module - The module entry to check permissions against.
 		
@@ -676,54 +679,8 @@
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		static function getSearchResults($view,$page = 0,$query = "",$sort = "id",$sort_direction = "DESC",$group = false, $module = false) {
+		static function getSearchResults($view,$page = 0,$query = "",$sort = "id DESC",$group = false, $module = false) {
 			global $last_query,$admin;
-			
-			// If we don't need parsed data, just use the normal table.
-			if ($view["uncached"]) {
-				$search_parts = explode(" ",strtolower($query));
-				
-				if ($group) {
-					$query = "SELECT * FROM ".$view["table"]." WHERE `".$view["options"]["group_field"]."` = '".mysql_real_escape_string($group)."'".self::getUncachedFilterQuery($view);
-				} else {
-					$query = "SELECT * FROM ".$view["table"]." WHERE 1".self::getUncachedFilterQuery($view);
-				}
-				
-				foreach ($search_parts as $part) {
-					$x = 0;
-					$qp = array();
-					foreach ($view["fields"] as $key => $field) {
-						$qp[] = "`$key` LIKE '%".mysql_real_escape_string($part)."%'";
-					}
-					$query .= " AND (".implode(" OR ",$qp).")";
-				}
-				
-				$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : 15;
-				
-				$qc = sqlfetch(sqlquery(str_replace("SELECT * FROM","SELECT COUNT(id) as `count` FROM",$query)));
-				$count = $qc["count"];
-				
-				$pages = ceil($count / $per_page);
-				$pages = ($pages > 0) ? $pages : 1;
-				$results = array();
-				
-				$q = sqlquery($query." ORDER BY $sort $sort_direction LIMIT ".($page * $per_page).",$per_page");
-				
-				while ($f = sqlfetch($q)) {
-					$item = array("id" => $f["id"], "featured" => $f["featured"], "position" => $f["position"], "approved" => $f["approved"], "archived" => $f["archived"]);
-					$x = 0;
-					foreach ($view["fields"] as $key => $field) {
-						$x++;
-						$item["column$x"] = strip_tags($f[$key]);
-						if ($module["gbp"]["enabled"]) {
-							$item["gbp_field"] = $f[$module["gbp"]["group_field"]];
-						}
-					}
-					$results[] = $item;
-				}
-				
-				return array("pages" => $pages, "results" => $results);
-			}
 			
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
@@ -740,9 +697,10 @@
 			foreach ($search_parts as $part) {
 				$x = 0;
 				$qp = array();
+				$part = mysql_real_escape_string(strtolower($part));
 				while ($x < $view_columns) {
 					$x++;
-					$qp[] = "column$x LIKE '%".mysql_real_escape_string($part)."%'";
+					$qp[] = "LOWER(column$x) LIKE '%$part%'";
 				}
 				$query .= " AND (".implode(" OR ",$qp).")";
 			}
@@ -753,22 +711,28 @@
 			$results = array();
 			
 			// Get the correct column name for sorting
-			if ($sort != "id") {
-				$x = 0;
-				foreach ($view["fields"] as $field => $options) {
-					$x++;
-					if ($field == $sort) {
-						$sort = "column$x";
-					}
+			if (count(explode(" ",$sort)) < 3) {
+				list($sort_field,$sort_direction) = explode(" ",$sort);
+				if ($sort_field != "id") {
+				    $x = 0;
+				    foreach ($view["fields"] as $field => $options) {
+				    	$x++;
+				    	if ($field == $sort_field) {
+				    		$sort_field = "column$x";
+				    	}
+				    }
+				} else {
+				    $sort_field = "CONVERT(id,UNSIGNED)";
 				}
 			} else {
-				$sort = "CONVERT(id,UNSIGNED)";
+				$sort_field = $sort;
+				$sort_direction = "";
 			}
 			
 			if ($page === "all") {
-				$q = sqlquery($query." ORDER BY $sort $sort_direction");
+				$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
 			} else {
-				$q = sqlquery($query." ORDER BY $sort $sort_direction LIMIT ".($page * $per_page).",$per_page");
+				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".($page * $per_page).",$per_page");
 			}
 			
 			while ($f = sqlfetch($q)) {
@@ -801,34 +765,6 @@
 		}
 		
 		/*
-			Function: getUncachedFilterQuery
-				Returns a query string that is used for searching views based on group permissions.
-				This query is used on the table itself instead of the view cache.
-			
-			Parameters:
-				view - The view to create a filter for.
-			
-			Returns:
-				A set of MySQL statements that filter out information the user cannot access.
-		*/
-		
-		static function getUncachedFilterQuery($view) {
-			global $admin;
-			$module = $admin->getModule(self::getModuleForView($view));
-			if ($module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
-				$groups = $admin->getAccessGroups($module["id"]);
-				if (is_array($groups)) {
-					$gfl = array();
-					foreach ($groups as $g) {
-						$gfl[] = "`".$module["gbp"]["group_field"]."` = '".mysql_real_escape_string($g)."'";
-					}
-					return " AND (".implode(" OR ",$gfl).")";
-				}
-			}
-			return "";
-		}
-		
-		/*
 			Function: getView
 				Returns a view.
 			
@@ -851,7 +787,7 @@
 			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
 			$fields = json_decode($f["fields"],true);
 			$first = current($fields);
-			if (!$first["width"]) {
+			if (!isset($first["width"]) || !$first["width"]) {
 				$awidth = count($actions) * 62;
 				$available = 888 - $awidth;
 				$percol = floor($available / count($fields));
@@ -880,13 +816,6 @@
 		*/
 		
 		static function getViewData($view,$sort = "id DESC",$type = "both",$module = false) {
-			// If we don't need parsed data, just use the normal table.
-			if ($view["uncached"]) {
-				$view["per_page"] = 10000;
-				$r = self::getSearchResults($view,0,"",$sort,"",false,$module);
-				return $r["results"];
-			}
-		
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
 			
