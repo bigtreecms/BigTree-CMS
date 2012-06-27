@@ -394,6 +394,178 @@
 			}
 			rmdir($dir);
 		}
+		
+		/*
+			Function: describeTable
+				Gives in depth information about a MySQL table's structure and keys.
+			
+			Parameters:
+				table - The table name.
+				db - (optionally) a different database than the currently selected one.
+			
+			Returns:
+				An array of table information.
+		*/
+		
+		static function describeTable($table,$db = false) {
+			$result["columns"] = array();
+			$result["indexes"] = array();
+			$result["foreign_keys"] = array();
+			$result["primary_key"] = false;
+			
+			if ($db) {
+				$q = mysql_db_query($db,"SHOW CREATE TABLE `$table`");
+			} else {
+				$q = sqlquery("SHOW CREATE TABLE `$table`");
+			}
+			$f = sqlfetch($q);
+			$lines = explode("\n",$f["Create Table"]);
+			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
+			$main_lines = array_slice($lines,1,-1);
+			foreach ($main_lines as $line) {
+				$column = array();
+				$line = rtrim(trim($line),",");
+				if (substr($line,0,3) == "KEY") { // Keys
+					$parts = explode(" ",$line);
+					$key_parts = array();
+					$kp = explode(",",ltrim(rtrim($parts[2],")"),"("));
+					foreach ($kp as $p) {
+						$key_parts[] = trim($p,"`");
+					}
+					$result["indexes"][trim($parts[1],"`")] = $key_parts;
+				} elseif (substr($line,0,7) == "PRIMARY") { // Primary Keys
+					$parts = explode(" ",$line);
+					$key_parts = array();
+					$kp = explode(",",ltrim(rtrim($parts[2],")"),"("));
+					foreach ($kp as $p) {
+						$key_parts[] = trim($p,"`");
+					}
+					$result["primary_key"] = $key_parts;
+				} elseif (substr($line,0,10) == "CONSTRAINT") { // Foreign Keys
+					$parts = explode(" ",$line);
+					$key_name = trim($parts[1],"`");
+					$local_column = trim(ltrim(rtrim($parts[4],")"),"("),"`");
+					$other_table = trim($parts[6],"`");
+					$other_column = trim(ltrim(rtrim($parts[7],")"),"("),"`");
+					$result["foreign_keys"][$key_name] = array("name" => $key_name, "local_column" => $local_column, "other_table" => $other_table, "other_column" => $other_column);
+					if (count($parts) > 9) {
+						$result["foreign_keys"][$key_name]["on_".strtolower($parts[9])] = implode(" ",array_slice($parts,10));
+					}
+				} elseif (substr($line,0,1) == "`") { // Column Definition
+					$line = substr($line,1); // Get rid of the first `
+					$key = substr($line,0,strpos($line,"`")); // Get the key name.
+					$line = substr($line,strlen($key) + 2); // Take away the key from the line.
+					
+					// We need to figure out if the next part has a size definition
+					$parts = explode(" ",$line);
+					if (strpos($parts[0],"(") !== false) { // Yes, there's a size definition
+						$type = "";
+						// We're going to walk the string finding out the definition.
+						$in_quotes = false;
+						$finished_type = false;
+						$finished_size = false;
+						$x = 0;
+						$size = "";
+						$options = array();
+						while (!$finished_size) {
+							$c = substr($line,$x,1);
+							if (!$finished_type) { // If we haven't finished the type, keep working on it.
+								if ($c == "(") { // If it's a (, we're starting the size definition
+									$finished_type = true;
+								} else { // Keep writing the type
+									$type .= $c;
+								}
+							} else { // We're finished the type, working in size definition
+								if (!$in_quotes && $c == ")") { // If we're not in quotes and we encountered a ) we've hit the end of the size
+									$finished_size = true;
+								} else {
+									if ($c == "'") { // Check on whether we're starting a new option, ending an option, or adding to an option.
+										if (!$in_quotes) { // If we're not in quotes, we're starting a new option.
+											$current_option = "";
+											$in_quotes = true;
+										} else {
+											if (substr($line,$x + 1,1) == "'") { // If there's a second ' after this one, it's escaped.
+												$current_option .= "'";
+												$x++;
+											} else { // We closed an option, add it to the list.
+												$in_quotes = false;
+												$options[] = $current_option;
+											}
+										}
+									} else { // It's not a quote, it's content.
+										if ($in_quotes) {
+											$current_option .= $c;
+										} elseif ($c != ",") { // We ignore commas, they're just separators between ENUM options.
+											$size .= $c;
+										}
+									}
+								}
+							}
+							$x++;
+						}
+						$line = substr($line,$x);
+					} else { // No size definition
+						$type = $parts[0];
+						$line = substr($line,strlen($type) + 1);
+					}
+					
+					$column["name"] = $key;
+					$column["type"] = $type;
+					if ($size) {
+						$column["size"] = $size;
+					}
+					if ($type == "enum") {
+						$column["options"] = $options;
+					}
+					$column["allow_null"] = true;
+					
+					$extras = explode(" ",$line);
+					for ($x = 0; $x < count($extras); $x++) {
+						$part = $extras[$x];
+						if ($part == "NOT" && $extras[$x + 1] == "NULL") {
+							$column["allow_null"] = false;
+							$x++; // Skip NULL
+						}
+						if ($part == "CHARACTER" && $extras[$x + 1] == "SET") {
+							$column["charset"] = $extras[$x + 2];
+							$x += 2;
+						}
+						if ($part == "DEFAULT") {
+							$default = "";
+							$x++;
+							while ($default != "NULL" && substr($default,-1,1) != "'") {
+								$default .= $extras[$x];
+							}
+							$column["default"] = trim($default,"'");
+						}
+						if ($part == "COLLATE") {
+							$column["collate"] = $extras[$x + 1];
+							$x++;
+						}
+						if ($part == "ON") {
+							$column["on_".strtolower($extras[$x + 1])] = $extras[$x + 2];
+							$x += 2;
+						}
+						if ($part == "AUTO_INCREMENT") {
+							$column["auto_increment"] = true;
+						}
+					}
+					
+					$result["columns"][$key] = $column;
+				}
+			}
+			
+			$last_line = substr(end($lines),2);
+			$parts = explode(" ",$last_line);
+			foreach ($parts as $part) {
+				list($key,$value) = explode("=",$part);
+				if ($key && $value) {
+					$result[strtolower($key)] = $value;
+				}
+			}
+			
+			return $result;
+		}
 
 		/*
 			Function: formatBytes

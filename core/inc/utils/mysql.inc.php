@@ -1,12 +1,9 @@
 <?
-	// MySQL Call Functions, with brand new wrappers for Transaction logging.
-	// ----------------------------------------------------------------------
-	// Last revision 5/25/2010 by Tim B.
+	// - MySQL Call Wrapper Functions -
+	// Support for splitting reads/writes and handling error throwing automatically.
 
 	$sqlerrors = array();
 	$sqlqueries = array();
-	$last_query = "";
-	$total_queries = 0;
 	
 	function bigtree_setup_sql_connection($read_write = "read") {
 		global $bigtree;
@@ -78,29 +75,6 @@
 		}
 	}
 
-	function sqldbquery($db,$query) {
-		global $sqlerrors;
-		$q = mysql_db_query($db,$query);
-		$e = mysql_error();
-		if ($e) {
-			$sqlerror = "<b>".$e."</b> in query ".$query;
-			array_push($sqlerrors,$sqlerror);
-			return false;
-		} else {
-			return $q;
-		}
-	}
-
-	function sqlfetchobj($query) {
-		// If the query is boolean, it's probably a "false" from a failed sql query.
-		if (is_bool($query)) {
-			global $sqlerrors;
-			throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
-		} else {
-			return mysql_fetch_object($query);
-		}
-	}
-
 	function sqlfetch($query,$ignore_errors = false) {
 		// If the query is boolean, it's probably a "false" from a failed sql query.
 		if (is_bool($query) && !$ignore_errors) {
@@ -119,36 +93,12 @@
 		return mysql_insert_id();
 	}
 
-	function sqlforeignkeys($table) {
-		$keys = array();
-		$q = sqlquery("show table status");
-		while ($f = mysql_fetch_array($q)) {
-			if ($f["Name"] == $table) {
-				$comments = explode(";",$f["Comment"]);
-				foreach ($comments as $comment) {
-					if (strpos($comment,"REFER") !== false) {
-						$com = explode(" ",$comment);
-						$tkey = substr($com[1],2,-2);
-						$ekey = explode("`",$com[3]);
-						$dbtable = explode("/",$ekey[1]);
-						$edb = $dbtable[0];
-						$etable = $dbtable[1];
-						$ekey = $ekey[3];
-						$key = array("key" => $tkey,"foreign_db" => $edb,"foreign_table" => $etable,"foreign_key" => $ekey);
-						$keys[] = $key;
-					}
-				}
-			}
-		}
-		return $keys;
-	}
-
 	function sqlcolumns($table,$db = false) {
 		$cols = array();
 		if ($db) {
-			$q = sqldbquery($db,"describe $table");
+			$q = mysql_db_query($db,"DESCRIBE $table");
 		} else {
-			$q = sqlquery("describe $table");
+			$q = sqlquery("DESCRIBE $table");
 		}
 		while ($f = sqlfetch($q,true)) {
 			$tparts = explode(" ",$f["Type"]);
@@ -174,14 +124,5 @@
 			}
 		}
 		return $cols;
-	}
-
-	function sqlprimarykey($table) {
-		$cols = sqlcolumns($table);
-		foreach ($cols as $col) {
-			if ($col["key"] == "PRI")
-				return $col["name"];
-		}
-		return false;
 	}
 ?>
