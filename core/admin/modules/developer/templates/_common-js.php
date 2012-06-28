@@ -15,7 +15,7 @@
 		return false;
 	});
 	
-	$(".icon_edit").live("click",function() {
+	$(".icon_settings").live("click",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
@@ -40,7 +40,7 @@
 		resource_count++;
 		
 		li = $('<li id="row_' + resource_count + '">');
-		li.html('<section class="developer_resource_id"><span class="icon_sort"></span><input type="text" name="resources[' + resource_count + '][id]" value="" /></section><section class="developer_resource_title"><input type="text" name="resources[' + resource_count + '][title]" value="" /></section><section class="developer_resource_subtitle"><input type="text" name="resources[' + resource_count + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + resource_count + '][type]" id="type_' + resource_count + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_action"><a href="#" tabindex="-1" class="icon_edit" name="' + resource_count + '"></a><input type="hidden" name="resources[' + resource_count + '][options]" value="" id="options_' + resource_count + '" /></section><section class="developer_resource_action"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
+		li.html('<section class="developer_resource_id"><span class="icon_sort"></span><input type="text" name="resources[' + resource_count + '][id]" value="" /></section><section class="developer_resource_title"><input type="text" name="resources[' + resource_count + '][title]" value="" /></section><section class="developer_resource_subtitle"><input type="text" name="resources[' + resource_count + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + resource_count + '][type]" id="type_' + resource_count + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + resource_count + '"></a><input type="hidden" name="resources[' + resource_count + '][options]" value="" id="options_' + resource_count + '" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
 
 		$("#resource_table").append(li);
 		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });

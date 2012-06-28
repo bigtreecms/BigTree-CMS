@@ -98,8 +98,7 @@
 			<span class="developer_resource_title">Title</span>
 			<span class="developer_resource_subtitle">Subtitle</span>
 			<span class="developer_resource_type">Type</span>
-			<span class="developer_resource_action">Edit</span>
-			<span class="developer_resource_action">Delete</span>
+			<span class="developer_resource_action right">Delete</span>
 		</div>
 		<ul id="resource_table">
 			<?
@@ -124,12 +123,10 @@
 						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($v)?></option>
 						<? } ?>
 					</select>
-				</section>
-				<section class="developer_resource_action">
-					<a href="#" class="icon_edit" name="<?=$x?>"></a>
+					<a href="#" class="icon_settings" name="<?=$x?>"></a>
 					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource))?>" id="options_<?=$x?>" />
 				</section>
-				<section class="developer_resource_action">
+				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>

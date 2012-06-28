@@ -822,13 +822,15 @@
 	.developer .form_table .developer_resource_subtitle input { width: 168px; }
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
 	.developer .form_table .developer_resource_form_subtitle input { width: 235px; }
-	.developer .form_table .developer_resource_type { padding: 0; text-align: left; width: 235px; }
+	.developer .form_table .developer_resource_type { padding: 0; text-align: left; width: 240px; }
 	.developer .form_table .developer_resource_type .select { width: 205px; }
-	.developer .form_table .developer_resource_type .icon_settings { margin: 5px 0 0 5px; }
+	.developer .form_table .developer_resource_type .icon_settings { margin: 5px 0 0 10px; }
 	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 119px; }
 	.developer .form_table .developer_resource_display_title { width: 40px; }
-	.developer .form_table .developer_resource_action { width: 60px; }
+	.developer .form_table .developer_resource_action { width: 55px; }
 	.developer .form_table .developer_resource_action a { margin: 5px 0 0 0; }
+	
+	.developer .form_table .developer_resource_action.right { float: right; }
 	
 	.developer .form_table .developer_resource_callout_id { padding: 0 0 0 30px; text-align: left; width: 137px; }
 	.developer .form_table .developer_resource_callout_id input { width: 100px; }
@@ -1034,7 +1036,7 @@
 	.icon_approve_on { background-position: -180px 5px; }
 	.icon_feature { background: url(../images/icons.png) no-repeat -113px 5px; display: inline-block; height: 35px; width: 21px; }
 	.icon_feature_on { background-position: -134px 5px; }
-	.icon_settings { background: url(../images/icons.png) no-repeat -205px 4px; display: inline-block; height: 35px; width: 22px; }
+	.icon_settings { background: url(../images/icons.png) no-repeat -550px 4px; display: inline-block; height: 35px; width: 22px; }
 	.icon_suitcase { background: url(../images/icons.png) no-repeat -229px 7px; display: inline-block; height: 35px; width: 20px; }
 	.icon_images { background: url(../images/icons.png) no-repeat -250px 6px; display: inline-block; height: 35px; width: 22px; }
 	.icon_images_small { background: url(../images/icons.png) no-repeat -55px 6px; display: inline-block; height: 28px; width: 16px; }

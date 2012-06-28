@@ -46,8 +46,7 @@
 			<span class="developer_resource_callout_subtitle">Subtitle</span>
 			<span class="developer_resource_type">Type</span>
 			<span class="developer_resource_display_title">Label</span>
-			<span class="developer_resource_action">Edit</span>
-			<span class="developer_resource_action">Delete</span>
+			<span class="developer_resource_action right">Delete</span>
 		</div>
 		<ul id="resource_table">
 			<?
@@ -75,12 +74,10 @@
 				</section>
 				<section class="developer_resource_display_title">
 					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
-				</section>
-				<section class="developer_resource_action">
-					<a href="#" class="icon_edit" name="<?=$x?>"></a>
+					<a href="#" class="icon_settings" name="<?=$x?>"></a>
 					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource))?>" id="options_<?=$x?>" />
 				</section>
-				<section class="developer_resource_action">
+				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>
