@@ -59,8 +59,4 @@
 	</form>
 </div>
 
-<script type="text/javascript">
-	$("#form_table").change(function(event,data) {
-		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value });
-	});
-</script>
+<? include BigTree::path("admin/modules/developer/modules/forms/_js.php") ?>
