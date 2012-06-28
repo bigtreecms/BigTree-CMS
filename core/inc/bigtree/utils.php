@@ -518,35 +518,34 @@
 						$column["options"] = $options;
 					}
 					$column["allow_null"] = true;
-					
 					$extras = explode(" ",$line);
 					for ($x = 0; $x < count($extras); $x++) {
 						$part = $extras[$x];
 						if ($part == "NOT" && $extras[$x + 1] == "NULL") {
 							$column["allow_null"] = false;
 							$x++; // Skip NULL
-						}
-						if ($part == "CHARACTER" && $extras[$x + 1] == "SET") {
+						} elseif ($part == "CHARACTER" && $extras[$x + 1] == "SET") {
 							$column["charset"] = $extras[$x + 2];
 							$x += 2;
-						}
-						if ($part == "DEFAULT") {
+						} elseif ($part == "DEFAULT") {
 							$default = "";
 							$x++;
-							while ($default != "NULL" && substr($default,-1,1) != "'") {
-								$default .= $extras[$x];
+							if (substr($extras[$x],0,1) == "'") {
+								while (substr($default,-1,1) != "'") {
+									$default .= " ".$extras[$x];
+									$x++;
+								}
+							} else {
+								$default = $extras[$x];
 							}
-							$column["default"] = trim($default,"'");
-						}
-						if ($part == "COLLATE") {
+							$column["default"] = trim(trim($default),"'");
+						} elseif ($part == "COLLATE") {
 							$column["collate"] = $extras[$x + 1];
 							$x++;
-						}
-						if ($part == "ON") {
+						} elseif ($part == "ON") {
 							$column["on_".strtolower($extras[$x + 1])] = $extras[$x + 2];
 							$x += 2;
-						}
-						if ($part == "AUTO_INCREMENT") {
+						} elseif ($part == "AUTO_INCREMENT") {
 							$column["auto_increment"] = true;
 						}
 					}

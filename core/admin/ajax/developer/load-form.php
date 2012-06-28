@@ -23,8 +23,8 @@
 		}
 	} else {
 		$fields = array();
-		$columns = sqlcolumns($table);
-		foreach ($columns as $column) {
+		$table_info = BigTree::describeTable($table);
+		foreach ($table_info["columns"] as $column) {
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
@@ -46,7 +46,7 @@
 				}
 				
 				if (strpos($title,"Image") !== false) {
-					$type = "image";
+					$type = "upload";
 				}
 				
 				if (strpos($title,"Featured") !== false) {
