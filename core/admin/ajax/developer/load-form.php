@@ -58,6 +58,14 @@
 					$type = "date";
 				}
 				
+				if ($column["type"] == "time") {
+					$type = "time";
+				}
+				
+				if ($column["type"] == "datetime") {
+					$type = "datetime";
+				}
+				
 				if ($column["type"] == "enum") {
 					$type = "list";
 					$list = array();

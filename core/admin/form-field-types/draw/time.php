@@ -1,5 +1,3 @@
-<?
-?>
 <fieldset>
 	<?
 		if ($title) {
@@ -13,13 +11,13 @@
 			$bigtree["timepicker_values"]["field_$clean_key"] = $value;		
 			$bigtree["timepickers"][] = "field_$clean_key";
 	?>
-	<input type="hidden" name="<?=$key?>" value="<? if ($value) { echo date("g:ia",strtotime($value)); } ?>" />
+	<input type="hidden" name="<?=$key?>" value="<? if ($value) { echo date("h:i a",strtotime($value)); } ?>" />
 	<div id="field_<?=$clean_key?>"></div>
 	<?		
 		} else {
 			$bigtree["timepickers"][] = "field_$key";
 	?>
-	<input type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<? if ($value) { echo date("g:ia",strtotime($value)); } ?>" autocomplete="off" id="field_<?=$key?>" class="time_picker <?=$options["validation"]?>" />
+	<input type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<? if ($value) { echo date("h:i a",strtotime($value)); } ?>" autocomplete="off" id="field_<?=$key?>" class="time_picker <?=$options["validation"]?>" />
 	<?
 		}
 	?>

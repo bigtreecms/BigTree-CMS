@@ -9,6 +9,7 @@
 			<?
 				$bigtree["datepickers"] = array();
 				$bigtree["timepickers"] = array();
+				$bigtree["datetimepickers"] = array();
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
 				
@@ -94,7 +95,13 @@
 
 		foreach ($bigtree["timepickers"] as $id) {
 	?>
-	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+	<?
+		}
+		
+		foreach ($bigtree["datetimepickers"] as $id) {
+	?>
+	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 	<?
 		}
 	?>

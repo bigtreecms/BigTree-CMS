@@ -2027,6 +2027,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
 					"route" => "Generated Route",
@@ -2042,6 +2043,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
@@ -2056,6 +2058,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
 				);
@@ -2070,6 +2073,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
 					"custom" => "Custom Function"

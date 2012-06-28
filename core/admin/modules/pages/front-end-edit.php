@@ -95,12 +95,12 @@
 						$mce_height = 365;
 						
 						//$no_inline = true;
-						if (count($htmls) || count($simplehtmls)) {
+						if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
 							include BigTree::path("admin/layouts/_tinymce.php");
-							if (count($htmls)) {
+							if (count($bigtree["html_fields"])) {
 								include BigTree::path("admin/layouts/_tinymce_specific.php");
 							}
-							if (count($simplehtmls)) {
+							if (count($bigtree["simple_html_fields"])) {
 								include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 							}
 						}
@@ -117,9 +117,25 @@
 		</div>
 		
 		<script type="text/javascript">
-			<? if (is_array($dates)) { foreach ($dates as $id) { ?>
-			$(document.getElementById("<?=$id?>")).datepicker();
-			<? } } ?>
+			<?
+				foreach ($bigtree["datepickers"] as $id) {
+			?>
+			$(document.getElementById("<?=$id?>")).datepicker({ duration: 200, showAnim: "slideDown" });
+			<?
+				}
+				
+				foreach ($bigtree["timepickers"] as $id) {
+			?>
+			$(document.getElementById("<?=$id?>")).timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+			<?
+				}
+				
+				foreach ($bigtree["datetimepickers"] as $id) {
+			?>
+			$(document.getElementById("<?=$id?>")).datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+			<?
+				}
+			?>
 		
 			BigTreeCustomControls();
 			BigTreeFormValidator(".bigtree_dialog_form");
