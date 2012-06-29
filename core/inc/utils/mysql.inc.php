@@ -129,47 +129,4 @@
 	function sqlid() {
 		return mysql_insert_id();
 	}
-
-	/*
-		Function: sqlcolumns
-			Returns an array of information on each of the columns on a SQL table.
-			Slated for DEPRECATION in favor of BigTree::describeTable which is much faster and provides more information.
-		
-		Parameters:
-			table - The table to pull columns for.
-			db - The database to use (if not the currently active database).
-	*/
-	
-	function sqlcolumns($table,$db = false) {
-		$cols = array();
-		if ($db) {
-			$q = mysql_db_query($db,"DESCRIBE $table");
-		} else {
-			$q = sqlquery("DESCRIBE $table");
-		}
-		while ($f = sqlfetch($q,true)) {
-			$tparts = explode(" ",$f["Type"]);
-			$type = explode("(",$tparts[0]);
-			if (sizeof($type) == 2) {
-				$size = substr($type[1],0,-1);
-			} else {
-				$size = "";
-			}
-			$type = $type[0];
-			unset($tparts[0]);
-			$type_extras = implode(" ",$tparts);
-			$key = $f["Field"];
-			
-			if ($type == "enum") {
-				$options = explode(",",$size);
-				foreach ($options as &$option) {
-					$option = trim($option,"'");
-				}
-				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "options" => $options,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
-			} else {
-				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "size" => $size,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
-			}
-		}
-		return $cols;
-	}
 ?>

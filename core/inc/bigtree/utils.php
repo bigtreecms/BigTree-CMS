@@ -103,84 +103,6 @@
 		}
 		
 		/*
-			Function: compareTables
-				Compares two tables in a MySQL database and tells you the SQL needed to get Table A to Table B.
-				You can pass in the columns ahead of time if these tables exist in separate databases.
-			
-			Parameters:
-				table_a - The table to modify.
-				table_b - The table to turn table_a into.
-				table_a_columns - (optional) table_a's column information
-				table_b_columns - (optional) table_b's column information
-			
-			Returns:
-				An array of queries needed to transform table_a into table_b.
-		*/
-		
-		static function compareTables($table_a,$table_b,$table_a_columns = false,$table_b_columns = false) {
-			$table_a_columns = !empty($table_a_columns) ? $table_a_columns : sqlcolumns($table_a);
-			$table_b_columns = !empty($table_b_columns) ? $table_b_columns : sqlcolumns($table_b);
-			
-			$queries = array();
-			$last_key = "";
-			foreach ($table_b_columns as $key => $column) {
-				$mod = "";
-				$action = "";
-				// If this column doesn't exist in the Table A table, add it.
-				if (!array_key_exists($key,$table_a_columns)) {
-					$action = "ADD";
-				} elseif ($table_a_columns[$key] !== $column) {
-					$action = "MODIFY";
-				}
-				
-				if ($action) {
-					$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
-					if ($column["size"]) {
-						$mod .= "(".$column["size"].")";
-					}
-					if ($column["type_extras"]) {
-						$mod .= " ".$column["type_extras"];
-					}
-					if ($column["null"] == "NO") {
-						$mod .= " NOT NULL";
-					} else {
-						$mod .= " NULL";
-					}
-					if ($column["default"]) {
-						$d = $column["default"];
-						if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
-							$mod .= " DEFAULT $d";
-						} else {
-							$mod .= " DEFAULT '".mysql_real_escape_string($d)."'";
-						}
-					}
-					if ($column["extra"]) {
-						$mod .= " ".$column["extra"];
-					}
-					
-					if ($last_key) {
-						$mod .= " AFTER `$last_key`";
-					} else {
-						$mod .= " FIRST";
-					}
-					
-					$queries[] = $mod;
-				}
-				
-				$last_key = $key;
-			}
-			
-			foreach ($table_a_columns as $key => $column) {
-				// If this key no longer exists in the new table, we should delete it.
-				if (!array_key_exists($key,$table_b_columns)) {
-					$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
-				}	
-			}
-			
-			return $queries;
-		}
-		
-		/*
 			Function: copyFile
 				Copies a file into a directory, even if that directory doesn't exist yet.
 			
@@ -698,9 +620,9 @@
 		*/
 		
 		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
-			$cols = sqlcolumns($table);
+			$table_description = self::describeTable($table);
 			echo '<option></option>';
-			foreach ($cols as $col) {
+			foreach ($table_description["columns"] as $col) {
 				if ($sorting) {
 					if ($default == $col["name"]." ASC") {
 						echo '<option selected="selected">'.$col["name"].' ASC</option>';
