@@ -212,8 +212,8 @@
 			
 			// See if we need to modify the cache table to add more fields.
 			$field_count = count($view["fields"]);
-			$cache_columns = sqlcolumns("bigtree_module_view_cache");
-			$cc = count($cache_columns) - 11;
+			$table_description = BigTree::describeTable("bigtree_module_view_cache");
+			$cc = count($table_description["columns"]) - 11;
 			while ($field_count > $cc) {
 				$cc++;
 				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
@@ -281,11 +281,11 @@
 		static function createItem($table,$data,$many_to_many = array(),$tags = array()) {
 			global $admin,$module;
 			
-			$columns = sqlcolumns($table);
+			$table_description = BigTree::describeTable($table);
 			$query_fields = array();
 			$query_vals = array();
 			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$columns)) {
+				if (array_key_exists($key,$table_description["columns"])) {
 					$query_fields[] = "`".$key."`";
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
@@ -299,13 +299,14 @@
 
 			// Handle many to many
 			foreach ($many_to_many as $mtm) {
-				$cols = sqlcolumns($mtm["table"]);
+				$table_description = BigTree::describeTable($mtm["table"]);
 				if (is_array($mtm["data"])) {
 					foreach ($mtm["data"] as $position => $item) {
-						if ($cols["position"])
+						if (isset($table_description["columns"]["position"])) {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
-						else
+						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
+						}
 					}
 				}
 			}
@@ -964,10 +965,10 @@
 			
 			$query_fields = array();
 			$query_vals = array();
-			$columns = sqlcolumns($table);
+			$table_description = BigTree::describeTable($table);
 			
 			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$columns)) {
+				if (array_key_exists($key,$table_description["columns"])) {
 					$query_fields[] = "`".$key."`";
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
@@ -981,10 +982,10 @@
 
 			// Handle many to many
 			foreach ($many_to_many as $mtm) {
-				$cols = sqlcolumns($mtm["table"]);
+				$table_description = BigTree::describeTable($mtm["table"]);
 				if (!empty($mtm["data"])) {
 					foreach ($mtm["data"] as $position => $item) {
-						if ($cols["position"]) {
+						if (isset($table_description["columns"]["position"])) {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
@@ -1127,10 +1128,10 @@
 		
 		static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin,$module;
-			$columns = sqlcolumns($table);
+			$table_description = BigTree::describeTable($table);
 			$query = "UPDATE $table SET";
 			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$columns)) {
+				if (array_key_exists($key,$table_description["columns"])) {
 					if (is_array($val)) {
 						$val = json_encode($val);
 					}
@@ -1148,10 +1149,10 @@
 			if (!empty($many_to_many)) {
 				foreach ($many_to_many as $mtm) {
 					sqlquery("DELETE FROM `".$mtm["table"]."` WHERE `".$mtm["my-id"]."` = '$id'");
-					$cols = sqlcolumns($mtm["table"]);
+					$table_description = BigTree::describeTable($mtm["table"]);
 					if (is_array($mtm["data"])) {
 						foreach ($mtm["data"] as $position => $item) {
-							if ($cols["position"]) {
+							if (isset($table_description["columns"]["position"])) {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
 							} else {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
