@@ -24,6 +24,11 @@
 	} else {
 		$fields = array();
 		$table_info = BigTree::describeTable($table);
+		// Let's relate the foreign keys based on the local column so we can check easier.
+		$foreign_keys = array();
+		foreach ($table_info["foreign_keys"] as $key) {
+			$foreign_keys[$key["local_column"]] = $key;
+		}
 		foreach ($table_info["columns"] as $column) {
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
@@ -74,9 +79,39 @@
 					}
 					$options = array(
 						"list_type" => "static",
-						"allow-empty" => "No",
 						"list" => $list
 					);
+					if ($column["allow_null"]) {
+						$options["allow-empty"] = "Yes";
+					} else {
+						$options["allow-empty"] = "No";
+					}
+				}
+				
+				// Database populated list for foreign keys.
+				if (substr($column["type"],-3,3) == "int" && isset($foreign_keys[$column["name"]]) && $foreign_keys[$column["name"]]["other_column"] == "id") {
+					$type = "list";
+					// Describe this other table
+					$other_table = BigTree::describeTable($foreign_keys[$column["name"]]["other_table"]);
+					$ot_columns = $other_table["columns"];
+					$desc_column = "";
+					// Find the first short title-esque column and use it as the populated list descriptor
+					while (!$desc_column && next($ot_columns)) {
+						$col = current($ot_columns);
+						if (($col["type"] == "varchar" || $col["type"] == "char") && $col["size"] > 2) {
+							$desc_column = $col;
+						}
+					}
+					$options = array("list_type" => "db", "pop-table" => $foreign_keys[$column["name"]]["other_table"]);
+					if ($desc_column) {
+						$options["pop-description"] = $desc_column["name"];
+						$options["pop-sort"] = $desc_column["name"]." ASC";
+					}
+					if ($column["allow_null"]) {
+						$options["allow-empty"] = "Yes";
+					} else {
+						$options["allow-empty"] = "No";
+					}
 				}
 
 				$fields[$column["name"]] = array_merge(array("title" => $title, "subtitle" => $subtitle, "type" => $type),$options);

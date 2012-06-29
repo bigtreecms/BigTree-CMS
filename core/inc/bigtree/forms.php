@@ -18,10 +18,10 @@
 		function __construct($table) {
 			$this->Table = $table;
 			
-			$fields = sqlcolumns($this->Table);
-			$this->Columns = $fields;
+			$table_description = BigTree::describeTable($this->Table);
+			$this->Columns = $table_description["columns"];
 
-			foreach ($fields as $key => $field) {
+			foreach ($this->Columns as $key => $field) {
 				$this->Fields[$key] = $field["type"];
 			}
 		}
@@ -82,19 +82,19 @@
 			foreach ($data as $key => $val) {
 				$type = $this->Fields[$key];
 				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
-					$data[$key] = $this->sanitizeInteger($val);
+					$data[$key] = $this->sanitizeInteger($val,$this->Columns[$key]["allow_null"]);
 				}
 				if ($type == "float" || $type == "double" || $type == "decimal") {
-					$data[$key] = $this->sanitizeFloat($val);
+					$data[$key] = $this->sanitizeFloat($val,$this->Columns[$key]["allow_null"]);
 				}
 				if ($type == "datetime" || $type == "timestamp") {
-					$data[$key] = $this->sanitizeDateTime($val,$this->Columns[$key]["null"]);
+					$data[$key] = $this->sanitizeDateTime($val,$this->Columns[$key]["allow_null"]);
 				}
 				if ($type == "date" || $type == "year") {
-					$data[$key] = $this->sanitizeDate($val,$this->Columns[$key]["null"]);
+					$data[$key] = $this->sanitizeDate($val,$this->Columns[$key]["allow_null"]);
 				}
 				if ($type == "time") {
-					$data[$key] = $this->sanitizeTime($val,$this->Columns[$key]["null"]);
+					$data[$key] = $this->sanitizeTime($val,$this->Columns[$key]["allow_null"]);
 				}
 			}
 			return $data;
@@ -150,8 +150,12 @@
 				<sanitizeFormDataForDB>
 		*/
 		
-		private function sanitizeFloat($val) {
-			return floatval(str_replace(array(",","$"),"",$val));
+		private function sanitizeFloat($val,$allow_null) {
+			if ($val !== 0 && !$val) {
+				return "NULL";	
+			} else {
+				return floatval(str_replace(array(",","$"),"",$val));
+			}
 		}
 		
 		/*
@@ -163,7 +167,11 @@
 		*/
 		
 		private function sanitizeInteger($val) {
-			return intval(str_replace(array(",","$"),"",$val));
+			if ($val !== 0 && !$val) {
+				return "NULL";	
+			} else {
+				return intval(str_replace(array(",","$"),"",$val));
+			}
 		}
 		
 		/*
