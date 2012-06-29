@@ -72,13 +72,13 @@
 		
 		function __construct() {
 			if (isset($_SESSION["bigtree"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '" . $_SESSION["bigtree"]["email"] . "'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree"]["id"]."' AND email = '".$_SESSION["bigtree"]["email"]."'"));
 				if ($f) {
-					$this->ID = $_SESSION["bigtree"]["id"];
-					$this->User = $_SESSION["bigtree"]["email"];
-					$this->Level = $_SESSION["bigtree"]["level"];
-					$this->Name = $_SESSION["bigtree"]["name"];
-					$this->Permissions = $_SESSION["bigtree"]["permissions"];
+					$this->ID = $f["id"];
+					$this->User = $f["email"];
+					$this->Level = $f["level"];
+					$this->Name = $f["name"];
+					$this->Permissions = json_decode($f["permissions"]);
 				}
 			} elseif (isset($_COOKIE["bigtree"]["email"])) {
 				$user = mysql_escape_string($_COOKIE["bigtree"]["email"]);
@@ -92,9 +92,6 @@
 					$this->Permissions = json_decode($f["permissions"],true);
 					$_SESSION["bigtree"]["id"] = $f["id"];
 					$_SESSION["bigtree"]["email"] = $f["email"];
-					$_SESSION["bigtree"]["level"] = $f["level"];
-					$_SESSION["bigtree"]["name"] = $f["name"];
-					$_SESSION["bigtree"]["permissions"] = $this->Permissions;
 				}
 				// Clean up
 				unset($user,$pass,$f);
