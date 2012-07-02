@@ -149,6 +149,12 @@
 	<?
 		}
 		
+		foreach ($bigtree["datetimepickers"] as $id) {
+	?>
+	$(document.getElementById("<?=$id?>")).datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+	<?
+		}
+		
 		if (isset($_POST["template"])) {
 	?>
 	BigTreeCustomControls();

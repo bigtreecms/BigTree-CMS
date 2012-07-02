@@ -1,8 +1,11 @@
 <?
-	$cols = sqlcolumns($options["mtm-connecting-table"]);
+	// Find out whether this is a draggable Many to Many.
+	$table_description = BigTree::describeTable($options["mtm-connecting-table"]);
+	$cols = $table_description["columns"];
 	$sortable = false;
-	if ($cols["position"])
+	if (isset($cols["position"])) {
 		$sortable = true;
+	}
 	
 	if ($many_to_many[$key]) {
 		$entries = array();

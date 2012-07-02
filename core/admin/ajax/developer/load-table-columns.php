@@ -11,20 +11,10 @@
 	}
 	
 	if ($table) {
-		$cols = sqlcolumns($table);
+		$table_description = BigTree::describeTable($table);
 ?>
 <select name="<?=$field?>">
-	<option></option>
-	<?
-		foreach ($cols as $col) {
-			if ($sort) {
-				echo '<option>'.$col["name"].' ASC</option>';
-				echo '<option>'.$col["name"].' DESC</option>';
-			} else {
-				echo '<option>'.$col["name"].'</option>';
-			}		
-		}
-	?>
+	<?=BigTree::getFieldSelectOptions($table,$field,$sort)?>
 </select>
 <?
 	} else {

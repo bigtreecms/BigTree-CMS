@@ -5,7 +5,8 @@
 
 	$options = json_decode($options,true);
 	
-	$columns = @sqlcolumns($table);
+	$table_description = @BigTree::describeTable($table);
+	$columns = $table_description["columns"];
 	$errors = array();
 	// Check for errors
 	if (($type == "draggable" || $options["draggable"]) && !$columns["position"]) {

@@ -23,8 +23,13 @@
 		}
 	} else {
 		$fields = array();
-		$columns = sqlcolumns($table);
-		foreach ($columns as $column) {
+		$table_info = BigTree::describeTable($table);
+		// Let's relate the foreign keys based on the local column so we can check easier.
+		$foreign_keys = array();
+		foreach ($table_info["foreign_keys"] as $key) {
+			$foreign_keys[$key["local_column"]] = $key;
+		}
+		foreach ($table_info["columns"] as $column) {
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
@@ -37,24 +42,33 @@
 					$subtitle = "Include http://";
 				}
 				
-				if (strpos($title,"Date") !== false) {
-					$type = "date";
-				}
-				
 				if (strpos($title,"File") !== false || strpos($title,"PDF") !== false) {
 					$type = "upload";
 				}
 				
 				if (strpos($title,"Image") !== false) {
-					$type = "image";
-				}
-				
-				if (strpos($title,"Featured") !== false) {
-					$type = "checkbox";
+					$type = "upload";
+					$options["image"] = "on";
 				}
 				
 				if (strpos($title,"Description") !== false) {
 					$type = "html";
+				}
+				
+				if ($column["name"] == "featured") {
+					$type = "checkbox";
+				}
+				
+				if ($column["type"] == "date") {
+					$type = "date";
+				}
+				
+				if ($column["type"] == "time") {
+					$type = "time";
+				}
+				
+				if ($column["type"] == "datetime") {
+					$type = "datetime";
 				}
 				
 				if ($column["type"] == "enum") {
@@ -65,9 +79,39 @@
 					}
 					$options = array(
 						"list_type" => "static",
-						"allow-empty" => "No",
 						"list" => $list
 					);
+					if ($column["allow_null"]) {
+						$options["allow-empty"] = "Yes";
+					} else {
+						$options["allow-empty"] = "No";
+					}
+				}
+				
+				// Database populated list for foreign keys.
+				if (substr($column["type"],-3,3) == "int" && isset($foreign_keys[$column["name"]]) && $foreign_keys[$column["name"]]["other_column"] == "id") {
+					$type = "list";
+					// Describe this other table
+					$other_table = BigTree::describeTable($foreign_keys[$column["name"]]["other_table"]);
+					$ot_columns = $other_table["columns"];
+					$desc_column = "";
+					// Find the first short title-esque column and use it as the populated list descriptor
+					while (!$desc_column && next($ot_columns)) {
+						$col = current($ot_columns);
+						if (($col["type"] == "varchar" || $col["type"] == "char") && $col["size"] > 2) {
+							$desc_column = $col;
+						}
+					}
+					$options = array("list_type" => "db", "pop-table" => $foreign_keys[$column["name"]]["other_table"]);
+					if ($desc_column) {
+						$options["pop-description"] = $desc_column["name"];
+						$options["pop-sort"] = $desc_column["name"]." ASC";
+					}
+					if ($column["allow_null"]) {
+						$options["allow-empty"] = "Yes";
+					} else {
+						$options["allow-empty"] = "No";
+					}
 				}
 
 				$fields[$column["name"]] = array_merge(array("title" => $title, "subtitle" => $subtitle, "type" => $type),$options);
@@ -158,69 +202,14 @@
 <? } ?>
 
 <script type="text/javascript">
-	var current_editing_key;
-	var mtm_count = <?=$mtm_count?>;
-	
-	$(".icon_settings").live("click",function() {
-		key = $(this).attr("name");
-		
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
-			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
-			});
-		}});
-		
-		return false;
-	});
-		
-	$(".icon_delete").live("click",function() {
-		li = $(this).parents("li");
-		title = li.find("input").val();
-		if (title) {
-			key = $(this).attr("name");
-			if (key != "geocoding") {
-				fieldSelect.addField(key,title);
-			}
-		}
-		li.remove();
-		return false;
-	});
-	
-	$(".add_geocoding").click(function() {
-		li = $('<li id="row_geocoding">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[geocoding]" value="" disabled="disabled" /></section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" value="geocoding" /><span class="resource_name">Geocoding</span><a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
-		
-		$("#resource_table").append(li);
-		_local_hooks();
-		
-		return false;
-	});
-	
-	$(".add_many_to_many").click(function() {
-		mtm_count++;
-			
-		li = $('<li id="mtm_row_' + mtm_count + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><span class="resource_name">Many To Many</span><a href="#" class="options icon_settings" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
-		
-		$("#resource_table").append(li);
-		_local_hooks();
-		
-		return false;
-	});
-	
-	function _local_hooks() {
-		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		BigTreeCustomControls();
-	}
-	
-	_local_hooks();
+	mtm_count = <?=$mtm_count?>;
 	
 	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
 		title = el.title;
 		key = el.field;
 		
 		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		fs.removeCurrent();

@@ -20,7 +20,21 @@
 		return $connection;
 	}
 
-	// If we're splitting writes off, make a different sqlquery function.  We're doing two functions so that the normal one doesn't need to figure out which connection to use and just uses the default.
+	/*
+		Function: sqlquery
+			Equivalent to mysql_query in most cases.
+			If BigTree has enabled splitting off to a separate write server this function will send all write related queries to the write server and all read queries to the read server.
+			If BigTree has not enabled a separate write server the type parameter does not exist.
+		
+		Paramters:
+			query - A query string.
+			connection - An optional MySQL connection (normally this is chosen automatically)
+			type - Chosen automatically if a connection isn't passed. "read" or "write" to specify which server to use.
+			
+		Returns:
+			A MySQL query resource.
+	*/
+	
 	if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 		function sqlquery($query,$connection = false,$type = "read") {
 			global $sqlerrors,$bigtree;
@@ -74,6 +88,19 @@
 			return $q;
 		}
 	}
+	
+	/*
+		Function: sqlfetch
+			Equivalent to mysql_fetch_assoc.
+			Throws an exception if it is called on an invalid query resource which includes the most recent MySQL errors.
+		
+		Parameters:
+			query - The mysql query resource (returned via sqlquery or mysql_query or mysql_db_query)
+			ignore_errors - If set to true an exception will not be thrown on a bad query resource.
+		
+		Returns:
+			A row from the query in array format with key/value pairs.
+	*/
 
 	function sqlfetch($query,$ignore_errors = false) {
 		// If the query is boolean, it's probably a "false" from a failed sql query.
@@ -84,45 +111,22 @@
 			return mysql_fetch_assoc($query);
 		}
 	}
+	
+	/*
+		Function: sqlrows
+			Equivalent to mysql_num_rows.
+	*/
 
 	function sqlrows($result) {
 		return mysql_num_rows($result);
 	}
+	
+	/*
+		Function: sqlid
+			Equivalent to mysql_insert_id.
+	*/
 
 	function sqlid() {
 		return mysql_insert_id();
-	}
-
-	function sqlcolumns($table,$db = false) {
-		$cols = array();
-		if ($db) {
-			$q = mysql_db_query($db,"DESCRIBE $table");
-		} else {
-			$q = sqlquery("DESCRIBE $table");
-		}
-		while ($f = sqlfetch($q,true)) {
-			$tparts = explode(" ",$f["Type"]);
-			$type = explode("(",$tparts[0]);
-			if (sizeof($type) == 2) {
-				$size = substr($type[1],0,-1);
-			} else {
-				$size = "";
-			}
-			$type = $type[0];
-			unset($tparts[0]);
-			$type_extras = implode(" ",$tparts);
-			$key = $f["Field"];
-			
-			if ($type == "enum") {
-				$options = explode(",",$size);
-				foreach ($options as &$option) {
-					$option = trim($option,"'");
-				}
-				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "options" => $options,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
-			} else {
-				$cols[$key] = array("name" => $key,"type" => $type,"type_extras" => $type_extras, "size" => $size,"key" => $f["Key"],"default" => $f["Default"],"null" => $f["Null"],"extra" => $f["Extra"]);
-			}
-		}
-		return $cols;
 	}
 ?>

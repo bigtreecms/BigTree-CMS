@@ -825,7 +825,7 @@
 	.developer .form_table .developer_resource_type { padding: 0; text-align: left; width: 240px; }
 	.developer .form_table .developer_resource_type .select { width: 205px; }
 	.developer .form_table .developer_resource_type .icon_settings { margin: 5px 0 0 10px; }
-	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 151px; }
+	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 152px; }
 	.developer .form_table .developer_resource_display_title { width: 40px; }
 	.developer .form_table .developer_resource_action { width: 55px; }
 	.developer .form_table .developer_resource_action a { margin: 5px 0 0 0; }

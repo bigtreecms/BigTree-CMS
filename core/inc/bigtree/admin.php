@@ -72,13 +72,13 @@
 		
 		function __construct() {
 			if (isset($_SESSION["bigtree"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '" . $_SESSION["bigtree"]["email"] . "'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree"]["id"]."' AND email = '".$_SESSION["bigtree"]["email"]."'"));
 				if ($f) {
-					$this->ID = $_SESSION["bigtree"]["id"];
-					$this->User = $_SESSION["bigtree"]["email"];
-					$this->Level = $_SESSION["bigtree"]["level"];
-					$this->Name = $_SESSION["bigtree"]["name"];
-					$this->Permissions = $_SESSION["bigtree"]["permissions"];
+					$this->ID = $f["id"];
+					$this->User = $f["email"];
+					$this->Level = $f["level"];
+					$this->Name = $f["name"];
+					$this->Permissions = json_decode($f["permissions"]);
 				}
 			} elseif (isset($_COOKIE["bigtree"]["email"])) {
 				$user = mysql_escape_string($_COOKIE["bigtree"]["email"]);
@@ -92,9 +92,6 @@
 					$this->Permissions = json_decode($f["permissions"],true);
 					$_SESSION["bigtree"]["id"] = $f["id"];
 					$_SESSION["bigtree"]["email"] = $f["email"];
-					$_SESSION["bigtree"]["level"] = $f["level"];
-					$_SESSION["bigtree"]["name"] = $f["name"];
-					$_SESSION["bigtree"]["permissions"] = $this->Permissions;
 				}
 				// Clean up
 				unset($user,$pass,$f);
@@ -828,7 +825,7 @@
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
-			$preview_url = mysql_real_escape_string(htmlspecialchars($preview_url));
+			$preview_url = mysql_real_escape_string(htmlspecialchars($this->makeIPL($preview_url)));
 			
 			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
 			
@@ -2027,6 +2024,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
 					"route" => "Generated Route",
@@ -2042,6 +2040,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
@@ -2056,6 +2055,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
 				);
@@ -2070,6 +2070,7 @@
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
 					"time" => "Time Picker",
+					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
@@ -5217,7 +5218,7 @@
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
-			$preview_url = mysql_real_escape_string(htmlspecialchars($preview_url));
+			$preview_url = mysql_real_escape_string(htmlspecialchars($this->makeIPL($preview_url)));
 			
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
 		}

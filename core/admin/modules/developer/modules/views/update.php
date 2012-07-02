@@ -1,7 +1,8 @@
 <?	
 	BigTree::globalizePOSTVars();
 	
-	$columns = sqlcolumns($table);
+	$table_description = BigTree::describeTable($table);
+	$columns = $table_description["columns"];
 	
 	$errors = array();
 	// Check for errors

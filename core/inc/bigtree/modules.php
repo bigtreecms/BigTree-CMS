@@ -607,9 +607,9 @@
 		*/
 		
 		function search($query,$sortby = false,$limit = false) {
-			$fields = sqlcolumns($this->Table);
+			$table_description = BigTree::describeTable($this->Table);
 			
-			foreach ($fields as $field) {
+			foreach ($table_description["columns"] as $field) {
 				$where[] = "`$field` LIKE '%".mysql_real_escape_string($query)."%'";
 			}
 			

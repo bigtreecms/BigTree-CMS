@@ -291,6 +291,9 @@
 	// Clean up the variables we set.
 	unset($config,$debug,$in_admin,$parts_of_admin,$x);
 
+	// For shared core setups
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\", "/"));
+
 	// Bootstrap BigTree
 	if (file_exists("../custom/bootstrap.php")) {
 		include "../custom/bootstrap.php";

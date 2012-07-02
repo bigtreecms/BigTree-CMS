@@ -138,8 +138,8 @@
 		}
 		
 		// Check to see if this is a positioned element, if it is and the form is selected to move to the top, update the record.
-		$cols = sqlcolumns($table);
-		if ($cols["position"] && $form["default_position"] == "Top" && !$_POST["id"]) {
+		$table_description = BigTree::describeTable($table);
+		if (isset($table_description["columns"]["position"]) && $form["default_position"] == "Top" && !$_POST["id"]) {
 			$max = sqlrows(sqlquery("SELECT id FROM `$table`"));
 			BigTreeAutoModule::updateItem($table,$edit_id,array("position" => $max));
 		}
