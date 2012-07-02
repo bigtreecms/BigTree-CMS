@@ -3,7 +3,8 @@
 
 	// Set some config vars automatically and setup some globals.
 	$domain = rtrim($bigtree["config"]["domain"],"/");
-	$server_root = str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
+	// This is set now in index.php but is left for backwards compatibility.
+	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
 	$www_root = $bigtree["config"]["www_root"];
 	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
