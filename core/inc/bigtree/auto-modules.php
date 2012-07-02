@@ -777,6 +777,8 @@
 		*/
 
 		static function getView($id) {
+			global $cms;
+			
 			if (is_array($id)) {
 				$id = $id["id"];
 			}
@@ -784,6 +786,7 @@
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
 			$f["actions"] = json_decode($f["actions"],true);
 			$f["options"] = json_decode($f["options"],true);
+			$f["preview_url"] = $cms->replaceInternalPageLinks($f["preview_url"]);
 			
 			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
 			$fields = json_decode($f["fields"],true);
