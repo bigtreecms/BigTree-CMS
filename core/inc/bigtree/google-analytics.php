@@ -69,13 +69,13 @@
 			$parameters['max-results'] = 100000;
 			$response = $this->httpRequest("https://www.google.com/analytics/feeds/data", $parameters, null, array('Authorization: GoogleLogin auth='.$this->AuthToken));
 			
-			$xml = @simplexml_load_string($response["body"]);
-			
-			// If we don't have any entries, something is probably wrong.
-			if (!count($xml->entry)) {
+			// If we don't have a response the password probably changed.
+			if (!$response["body"]) {
 				$admin->updateSettingValue("bigtree-internal-google-analytics",array("error" => "Your Google Analytics data is corrupt.  Please login again."));
 				return false;
-			}
+			}			
+
+			$xml = @simplexml_load_string($response["body"]);
 			
 			foreach ($xml->entry as $entry) {
 				$metrics = array();
