@@ -12,6 +12,5 @@
 	$admin->updateModule($id,$name,$group,$class,$gbp);	
 
 	$admin->growl("Developer","Updated Module");
-	header("Location: ".$developer_root."modules/view/");
-	die();	
+	BigTree::redirect($developer_root."modules/view/");
 ?>

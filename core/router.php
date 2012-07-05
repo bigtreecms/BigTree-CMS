@@ -280,9 +280,7 @@
 		if ($bigtree["page"]["template"] == "!") {
 			$nav = $cms->getNavByParent($bigtree["page"]["id"],1);
 			$first = current($nav);
-			header("HTTP/1.1 303 See Other");
-			header("Location: ".$first["link"]);
-			die();
+			BigTree::redirect($first["link"], 303);
 		}
 		
 		// If the template is a module, do its routing for it, otherwise just include the template.
@@ -341,7 +339,7 @@
 		} elseif ($bigtree["page"]["template"]) {
 			include "../templates/basic/".$bigtree["page"]["template"].".php";
 		} else {
-			header("Location: ".$bigtree["page"]["external"]);
+			BigTree::redirect($bigtree["page"]["external"]);
 		}
 	// Load the home page if there are no routes.
 	} elseif (!$_GET["bigtree_htaccess_url"] || empty($bigtree["path"][0])) {

@@ -159,13 +159,11 @@
 	$inc_dir = "";
 	
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		header("Location: ".ADMIN_ROOT."login/");
-		die();
+		BigTree::redirect(ADMIN_ROOT."login/");
 	} else {
 		// We're logged in, let's go somewhere.
 		if (!$bigtree["path"][1]) {
-			header("Location: ".ADMIN_ROOT."dashboard/");
-			die();
+			BigTree::redirect(ADMIN_ROOT."dashboard/");
 		// We're hitting an ajax page.
 		} elseif ($bigtree["path"][1] == "ajax") {
 			$x = 2;

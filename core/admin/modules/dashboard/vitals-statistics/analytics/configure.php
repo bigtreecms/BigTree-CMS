@@ -8,8 +8,7 @@
 <?
 	} else {
 		if (!$user || !$pass || !$profile) {
-			header("Location: ".$mroot."setup/");
-			die();
+			BigTree::redirect($mroot."setup/");
 		}
 		
 		$breadcrumb[] = array("link" => "dashboard/analytics/configure/", "title" => "Configure");

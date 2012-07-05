@@ -5,8 +5,7 @@
 	if ($cms->getTemplate($id)) {
 		$_SESSION["bigtree"]["admin_saved"] = $_POST;
 		$_SESSION["bigtree"]["admin_error"] = true;
-		header("Location: ../add/");
-		die();
+		BigTree::redirect("../add/");
 	}
 	
 	if ($_FILES["image"]["tmp_name"]) {
@@ -23,6 +22,5 @@
 	$admin->createTemplate($id,$name,$description,$routed,$level,$module,$image,$callouts_enabled,$resources);	
 	
 	$admin->growl("Developer","Created Template");
-	header("Location: ".$developer_root."templates/view/");
-	die();
+	BigTree::redirect($developer_root."templates/view/");
 ?>

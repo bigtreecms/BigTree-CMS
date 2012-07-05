@@ -10,6 +10,5 @@
 	$admin->updateSettingValue("bigtree-internal-payment-gateway",$gateway);
 	
 	$admin->growl("Developer","Updated Payment Gateway");
-	header("Location: $developer_root");
-	die();
+	BigTree::redirect($developer_root);
 ?>

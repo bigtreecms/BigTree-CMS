@@ -3,8 +3,7 @@
 	
 	$ga = new BigTreeGoogleAnalytics($_POST["email"],$_POST["password"]);
 	if (!$ga->AuthToken) {
-		header("Location: ".$mroot."setup/error/");
-		die();
+		BigTree::redirect($mroot."setup/error/");
 	}
 	
 	if (!$admin->settingExists("bigtree-internal-google-analytics")) {
@@ -21,6 +20,5 @@
 	));
 	
 	$admin->growl("Analytics","Account Authenticated");
-	header("Location: ".$mroot."choose-profile/");	
-	die();
+	BigTree::redirect($mroot."choose-profile/");	
 ?>

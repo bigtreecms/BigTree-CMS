@@ -187,8 +187,7 @@
 </script>
 <?
 			} else {
-				header("Location: $redirect_url");
-				die();
+				BigTree:redirect($redirect_url);
 			}
 		} else {
 			include BigTree::path("admin/auto-modules/forms/_crop.php");

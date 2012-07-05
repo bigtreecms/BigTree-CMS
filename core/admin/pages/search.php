@@ -1,7 +1,6 @@
 <?
 	if ($_POST["query"]) {
-		header("Location: ".urlencode($_POST["query"])."/");
-		die();
+		BigTree::redirect(urlencode($_POST["query"])."/");
 	}
 	
 	$breadcrumb = array(array("link" => "search/","title" => "Advanced Search"), array("link" => "search/".urlencode(end($bigtree["path"]))."/", "title" => "Query: &ldquo;".end($bigtree["path"])."&rdquo;"));

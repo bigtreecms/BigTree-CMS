@@ -43,6 +43,5 @@
 	$admin->updateSettingValue("bigtree-internal-upload-service",$ups);
 	
 	$admin->growl("Developer","Updated Rackspace Keys");
-	header("Location: $developer_root");
-	die();
+	BigTree::redirect($developer_root);
 ?>

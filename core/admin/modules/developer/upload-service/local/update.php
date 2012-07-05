@@ -20,6 +20,5 @@
 	$admin->updateSettingValue("bigtree-internal-upload-service",$ups);	
 	
 	$admin->growl("Developer","Updated Upload Service");
-	header("Location: $developer_root");
-	die();
+	BigTree::redirect($developer_root);
 ?>

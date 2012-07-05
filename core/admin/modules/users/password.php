@@ -8,8 +8,7 @@
 		if ($ok) {
 			$admin->updateUserPassword($admin->ID,$_POST["new_password"]);
 			$admin->growl("Users","Updated Password");
-			header("Location: ".ADMIN_ROOT);
-			die();
+			BigTree::redirect(ADMIN_ROOT);
 		}
 		$error = true;
 	}

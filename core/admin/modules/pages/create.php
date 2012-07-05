@@ -35,7 +35,6 @@
 	} elseif (count($fails)) {
 		include BigTree::path("admin/modules/pages/_failed.php");
 	} else {
-		header("Location: ".ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");
-		die();
+		BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");
 	}
 ?>

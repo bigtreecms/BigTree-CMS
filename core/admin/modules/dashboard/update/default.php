@@ -40,8 +40,7 @@
 			// If we don't have anything to run, just update the revision number and return to the dashboard.
 			if (!$updates_exist) {
 				$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
-				header("Location: ".ADMIN_ROOT."dashboard/");
-				die();
+				BigTree::redirect(ADMIN_ROOT."dashboard/");
 			}
 ?>
 <h1><span class="developer"></span>System Update</h1>

@@ -1,11 +1,9 @@
 <?
 	if (!$user || !$pass) {
-		header("Location: ".$mroot."setup/");
-		die();
+		BigTree::redirect($mroot."setup/");
 	}
 	
 	if (!$profile) {
-		header("Location: ".$mroot."choose-profile/");
-		die();
+		BigTree::redirect($mroot."choose-profile/");
 	}
 ?>

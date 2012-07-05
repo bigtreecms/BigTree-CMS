@@ -3,8 +3,7 @@
 	
 	// Don't let them move the homepage.
 	if ($page["id"] == 0) {
-		header("Location: ../../edit/0/");
-		die();
+		BigTree::redirect("../../edit/0/");
 	}
 	
 	// Get all the ancestors

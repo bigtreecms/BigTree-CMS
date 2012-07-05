@@ -24,8 +24,7 @@
 	if (count($errors)) {
 		$_SESSION["developer"]["designer_errors"] = $errors;
 		$_SESSION["developer"]["saved_module"] = $_POST;
-		header("Location: ../");
-		die();
+		BigTree::redirect("../");
 	}
 		
 	if ($group_new) {
@@ -39,5 +38,5 @@
 	// Create the table.
 	sqlquery("CREATE TABLE `$table` (`id` int(11) NOT NULL auto_increment, PRIMARY KEY  (`id`)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin");
 	
-	header("Location: ../form/$id/$table/");
+	BigTree::redirect("../form/$id/$table/");
 ?>
