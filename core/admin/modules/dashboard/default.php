@@ -6,8 +6,7 @@
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		header("Location: ".ADMIN_ROOT."dashboard/update/");
-		die();
+		BigTree::redirect(ADMIN_ROOT."dashboard/update/");
 	}
 	
 	$breadcrumb[] = array("title" => "Overview", "link" => "#");

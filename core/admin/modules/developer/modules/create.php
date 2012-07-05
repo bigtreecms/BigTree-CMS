@@ -13,8 +13,7 @@
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");
-		header("Location: ../view/");
-		die();
+		BigTree::redirect("../view/");
 	}
 ?>
 <h1><span class="icon_developer_modules"></span>Module Created</h1>

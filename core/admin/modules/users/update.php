@@ -5,12 +5,10 @@
 	if (!$success) {
 		$_SESSION["bigtree"]["update_user"] = $_POST;
 		$admin->growl("Users","Update Failed","error");
-		header("Location: ".ADMIN_ROOT."users/edit/".end($bigtree["path"])."/");
-		die();
+		BigTree::redirect(ADMIN_ROOT."users/edit/".end($bigtree["path"])."/");
 	}
 	
 	$admin->growl("Users","Updated User");
 	
-	header("Location: ".ADMIN_ROOT."users/");
-	die();
+	BigTree::redirect(ADMIN_ROOT."users/");
 ?>

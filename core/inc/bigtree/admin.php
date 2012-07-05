@@ -281,8 +281,7 @@
 			$password = mysql_real_escape_string($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
-			header("Location: ".$GLOBALS["admin_root"]."login/reset-success/");
-			die();
+			BigTree::redirect($GLOBALS["admin_root"]."login/reset-success/");
 		}
 		
 		/*
@@ -1732,8 +1731,7 @@
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$f["id"]."'");
 
 			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".$GLOBALS["admin_root"]."login/reset-password/$hash/","From: no-reply@bigtreecms.com");
-			header("Location: ".$GLOBALS["admin_root"]."login/forgot-success/");
-			die();
+			BigTree::redirect($GLOBALS["admin_root"]."login/forgot-success/");
 		}
 		
 		/*
@@ -4149,11 +4147,10 @@
 				$_SESSION["bigtree"]["permissions"] = json_decode($f["permissions"],true);
 
 				if ($path[1] == "login") {
-					header("Location: ".$GLOBALS["admin_root"]);
+					BigTree::redirect($GLOBALS["admin_root"]);
 				} else {
-					header("Location: ".$GLOBALS["domain"].$_SERVER["REQUEST_URI"]);
+					BigTree::redirect(BigTree::currentURL());
 				}
-				die();
 			} else {
 				return false;
 			}
@@ -4169,8 +4166,7 @@
 			setcookie("bigtree[email]","",time()-3600,str_replace($GLOBALS["domain"],"",WWW_ROOT));
 			setcookie("bigtree[password]","",time()-3600,str_replace($GLOBALS["domain"],"",WWW_ROOT));
 			unset($_SESSION["bigtree"]);
-			header("Location: ".$GLOBALS["admin_root"]);
-			die();
+			BigTree::redirect($GLOBALS["admin_root"]);
 		}
 		
 		/*

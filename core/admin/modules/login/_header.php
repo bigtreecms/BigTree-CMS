@@ -4,7 +4,6 @@
 	
 	// Check if we're forcing HTTPS
 	if ($bigtree["config"]["force_secure_login"] && $_SERVER["SERVER_PORT"] == 80) {
-		header("Location: ".str_replace("http://","https://",ADMIN_ROOT)."login/");
-		die();
+		BigTree::redirect(str_replace("http://","https://",ADMIN_ROOT)."login/");
 	}
 ?>

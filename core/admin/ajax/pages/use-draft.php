@@ -37,6 +37,5 @@
 	}
 	
 	$admin->growl("Pages","Loaded Saved Revision");
-	header("Location: ".ADMIN_ROOT."pages/edit/".$revision["page"]."/");
-	die();
+	BigTree:redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");
 ?>

@@ -1,1 +1,1 @@
-<? header("Location: view/") ?>
+<? BigTree::redirect("view/") ?>

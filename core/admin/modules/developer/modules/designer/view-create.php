@@ -19,6 +19,5 @@
 	$view_id = $admin->createModuleView($title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix);
 	$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id,0,1);
 		
-	header("Location: ../complete/$module/");
-	die();
+	BigTree::redirect("../complete/$module/");
 ?>

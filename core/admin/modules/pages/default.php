@@ -1,4 +1,3 @@
 <?
-	header("Location: view-tree/0/");
-	die();
+	BigTree::redirect("view-tree/0/");
 ?>

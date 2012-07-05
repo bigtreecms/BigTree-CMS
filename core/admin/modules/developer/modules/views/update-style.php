@@ -13,6 +13,5 @@
 	$action = $admin->getModuleActionForView(end($bigtree["path"]));
 
 	$admin->growl("Developer","Updated View Styles");
-	header("Location: ".$developer_root."modules/edit/".$action["module"]."/");
-	die();
+	BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
 ?>

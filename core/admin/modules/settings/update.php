@@ -18,6 +18,5 @@
 		
 		$admin->growl("Settings","Updated Setting");
 	}
-	header("Location: ".ADMIN_ROOT."settings/");
-	die();
+	BigTree::redirect(ADMIN_ROOT."settings/");
 ?>

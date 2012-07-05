@@ -11,6 +11,5 @@
 	}
 	
 	$admin->growl("Analytics","Profile Set");
-	header("Location: ".$mroot);	
-	die();
+	BigTree::redirect($mroot);	
 ?>

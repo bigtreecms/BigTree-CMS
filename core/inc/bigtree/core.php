@@ -36,6 +36,26 @@
 		}
 		
 		/*
+			Function: catch404
+				Manually catch and display the 404 page from a routed template; logs missing page with handle404
+		*/
+		
+		function catch404() {
+			global $cms,$bigtree;
+			
+			if ($this->handle404(str_ireplace(WWW_ROOT, "", BigTree::currentURL()))) {
+				$bigtree["layout"] = "default"; //reset layout
+				ob_start();
+				include "../templates/basic/_404.php";
+				$bigtree["content"] = ob_get_clean();
+				ob_start();
+				include "../templates/layouts/".$bigtree["layout"].".php";
+				$bigtree["content"] = ob_get_clean();
+				die($bigtree["content"]);
+			}
+		}
+		
+		/*
 			Function: checkOldRoutes
 				Checks the old route table, redirects if the page is found.
 			
@@ -58,9 +78,7 @@
 			}
 			// If it's in the old routing table, send them to the new page.
 			if ($found) {
-				header("HTTP/1.1 301 Moved Permanently");
-				header("Location: ".WWW_ROOT.str_replace($old,$new,$_GET["bigtree_htaccess_url"]));
-				die();
+				BigTree::redirect(WWW_ROOT.str_replace($old,$new,$_GET["bigtree_htaccess_url"]),"301");
 			}
 		}
 		
@@ -875,10 +893,10 @@
 		*/
 		
 		function handle404($url) {
-			header("HTTP/1.0 404 Not Found");
+			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			$url = mysql_real_escape_string(rtrim($url,"/"));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
-
+			
 			if ($f["redirect_url"]) {
 				if ($f["redirect_url"] == "/") {
 					$f["redirect_url"] = "";
@@ -891,9 +909,7 @@
 				}
 				
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
-				header("HTTP/1.1 301 Moved Permanently");
-				header("Location: $redirect");
-				die();
+				BigTree::redirect($redirect,"301");
 			} else {
 				$referer = $_SERVER["HTTP_REFERER"];
 				$requester = $_SERVER["REMOTE_ADDR"];
@@ -918,8 +934,7 @@
 		
 		function makeSecure() {
 			if (!$_SERVER["HTTPS"]) {
-				header("Location: https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"]);
-				die();
+				BigTree::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"],"301");
 			}
 			$this->Secure = true;
 		}

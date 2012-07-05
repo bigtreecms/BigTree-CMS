@@ -5,6 +5,5 @@
 	
 	$admin->growl("Pages","Archived Page");
 
-	header("Location: ".ADMIN_ROOT."pages/view-tree/".$page["parent"]."/");
-	die();
+	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$page["parent"]."/");
 ?>

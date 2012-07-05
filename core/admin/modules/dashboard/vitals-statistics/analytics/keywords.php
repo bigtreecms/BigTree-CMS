@@ -5,7 +5,7 @@
 	$cache = $cms->getSetting("bigtree-internal-google-analytics-cache"); 
 	
 	if (!$cache) {
-		header("Location: setup/");
+		BigTree::redirect("setup/");
 	}
 ?>
 <h1>

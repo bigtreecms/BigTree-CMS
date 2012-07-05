@@ -76,18 +76,17 @@
 	} else {
 		if (end($bigtree["path"]) == "preview") {
 			$admin->ungrowl();
-			header("Location: ".$cms->getPreviewLink($page)."?bigtree_preview_bar=true");
+			BigTree::redirect($cms->getPreviewLink($page)."?bigtree_preview_bar=true");
 		} elseif ($_POST["return_to_front"]) {
 			$admin->ungrowl();
 			if ($page == 0) {
-				header("Location: ".WWW_ROOT);
+				BigTree::redirect(WWW_ROOT);
 			} else {
 				$pd = $cms->getPage($page);
-				header("Location: ".WWW_ROOT.$pd["path"]."/");
+				BigTree::redirect(WWW_ROOT.$pd["path"]."/");
 			}
 		} else {
-			header("Location: ".ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/");
+			BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/");
 		}
-		die();
 	}
 ?>

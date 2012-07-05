@@ -168,6 +168,5 @@
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
-	header("Location: ".ADMIN_ROOT."developer/foundry/install/complete/");
-	die();
+	BigTree::redirect(ADMIN_ROOT."developer/foundry/install/complete/");
 ?>

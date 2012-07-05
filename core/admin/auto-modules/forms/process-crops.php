@@ -61,6 +61,5 @@
 		unlink($crop["image"]);
 	}
 	
-	header("Location: $redloc");
-	die();
+	BigTree:redirect($redloc);
 ?>

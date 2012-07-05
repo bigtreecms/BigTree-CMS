@@ -294,6 +294,20 @@
 		}
 		
 		/*
+			Function: currentURL
+				Return the current active URL with correct protocall and port
+		*/
+		static function currentURL() {
+			$url = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
+			if ($_SERVER["SERVER_PORT"] != "80") {
+				$url .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
+			} else {
+				$url .= $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+			}
+			return $url;
+		}
+				
+		/*
 			Function: deleteDirectory
 				Deletes a directory including everything in it.
 			
@@ -986,16 +1000,21 @@
 			
 			Parameters:
 				url - The URL to redirect to.
-				type - The type of redirect, defaults to normal 302 redirect.
+				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
 		
-		static function redirect($url = false, $type = "302") {
+		static function redirect($url = false, $codes = array("302")) {
+			global $status_codes;
 			if (!$url) {
 				return false;
-			} else if ($type == "301") {
-				header ('HTTP/1.1 301 Moved Permanently');
-			} else if ($type == "404") {
-				header('HTTP/1.0 404 Not Found');
+			}
+			if (!is_array($codes)) {
+				$codes = array($codes);
+			}
+			foreach ($codes as $code) {
+				if ($status_codes[$code]) {
+					header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
+				}
 			}
 			header("Location: ".$url);
 			die();
@@ -1345,4 +1364,23 @@
 	$country_list = array("United States","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombi","Comoros","Congo (Brazzaville)","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor (Timor Timur)","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia, The","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea, North","Korea, South","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepa","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia and Montenegro","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
 
 	$month_list = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
+	
+	$status_codes = array(
+		"200" => "OK",
+		"300" => "Multiple Choices",
+		"301" => "Moved Permanently",
+		"302" => "Found",
+		"304" => "Not Modified",
+		"307" => "Temporary Redirect",
+		"400" => "Bad Request",
+		"401" => "Unauthorized",
+		"403" => "Forbidden",
+		"404" => "Not Found",
+		"410" => "Gone",
+		"500" => "Internal Server Error",
+		"501" => "Not Implemented",
+		"503" => "Service Unavailable",
+		"550" => "Permission denied"
+	);
+	
 ?>
