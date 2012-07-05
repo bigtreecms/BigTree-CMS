@@ -10,6 +10,7 @@
 <?
 	include BigTree::path("admin/modules/developer/modules/_nav.php");
 	foreach ($groups as $g) {
+		if (count($g["modules"])) {
 ?>
 <div class="table">
 	<summary>
@@ -49,9 +50,11 @@
 	}});
 </script>
 <?
+		}
 	}
+	
+	if (count($ungrouped_modules)) {
 ?>
-
 <div class="table">
 	<summary>
 		<h2>Ungrouped Modules</h2>
@@ -82,6 +85,9 @@
 		<? } ?>
 	</ul>
 </div>
+<?
+	}
+?>
 
 <script type="text/javascript">
 	$("#group_0").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {

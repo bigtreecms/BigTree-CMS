@@ -46,6 +46,7 @@
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["timepickers"] = array();
 		$bigtree["datepickers"] = array();
+		$bigtree["datetimepickers"] = array();
 		$tabindex = 1;
 ?>
 <html>

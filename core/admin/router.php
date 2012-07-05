@@ -4,7 +4,7 @@
 	define("BIGTREE_REVISION",5);
 	
 	// Set static root for those without it
-	if (!$bigtree["config"]["static_root"]) {
+	if (!isset($bigtree["config"]["static_root"])) {
 		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
 	}
 	

@@ -223,6 +223,9 @@
 	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\\", "/"));
 	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
 	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
+
+	// For shared core setups
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\", "/"));
 	
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {
@@ -290,9 +293,6 @@
 	
 	// Clean up the variables we set.
 	unset($config,$debug,$in_admin,$parts_of_admin,$x);
-
-	// For shared core setups
-	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\", "/"));
 
 	// Bootstrap BigTree
 	if (file_exists("../custom/bootstrap.php")) {

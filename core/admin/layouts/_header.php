@@ -97,7 +97,7 @@
 							<?
 								foreach ($item["children"] as $child) {
 									if ($admin->Level >= $child["access"]) {
-										if (isset($child["group"])) {
+										if (isset($child["group"]) && count($child["children"])) {
 							?>
 							<li class="grouper"><?=$child["title"]?></li>
 							<? 
@@ -106,7 +106,7 @@
 							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=$c["title"]?></a></li>
 							<?
 											}
-										} else {
+										} elseif (!isset($child["group"])) {
 							?>
 							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=$child["title"]?></a></li>
 							<?
