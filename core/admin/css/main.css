@@ -292,8 +292,6 @@
 	.icon_growl_seo { background: url(../images/growl-icons.png) no-repeat -110px 0px; height: 31px; width: 30px; }
 
 /* Sub Navigation */
-	.nav_shadow { background: url(../images/nav-shadow.png) repeat-x; display: none; height: 4px; }
-
 	nav.sub  { background: #DADADA url(../images/toolbar-bg.png) repeat-x left top; border: 1px solid #CCC; border-radius: 3px; display: block; height: 30px; margin: 0 0 20px 0; overflow: hidden; user-select: none; }
 	nav.sub a { border-right: 1px solid #CCC; color: #555; float: left; font-size: 13px; height: 30px; line-height: 31px; padding: 0 15px 0 13px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); }
 	nav.sub a:hover { background: #E8E8E8 url(../images/toolbar-bg.png) repeat-x; color: #333; }

@@ -129,7 +129,6 @@
 				</form>
 			</section>
 		</nav>
-		<div class="nav_shadow"></div>
 		<div class="body">
 			<div class="wrapper">
 				<aside id="growl"></aside>
