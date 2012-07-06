@@ -225,7 +225,7 @@
 	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
 
 	// For shared core setups
-	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\", "/"));
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));
 	
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {
