@@ -941,13 +941,13 @@
 		
 		/*
 			Function: replaceInternalPageLinks
-				Replaces the page links in an HTML block with soft links (ipl and {wwwroot}).
+				Replaces the internal page links in an HTML block with hard links.
 			
 			Parameters:
 				html - An HTML block
 			
 			Returns:
-				An HTML block with links soft-linked.
+				An HTML block with links hard-linked.
 		*/
 		
 		function replaceInternalPageLinks($html) {
