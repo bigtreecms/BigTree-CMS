@@ -3,6 +3,17 @@
 	ini_set("log_errors",false);
 	error_reporting(0); 
 	
+	// Allow for passing in $_POST via command line for automatic installs.
+	if (isset($argv) && count($argv) > 1) {
+		// Cut off the first argument.
+		$vars = array_slice($argv, 1);
+		// Loop through the variables passed in.
+		foreach ($vars as $v) {
+			list($key,$val) = explode("=",$v);
+			$_POST[$key] = $val;
+		}
+	}
+	
 	//!Server Parameters
 	$warnings = array();
 	if (!extension_loaded('json')) {
