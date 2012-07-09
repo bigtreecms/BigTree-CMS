@@ -98,22 +98,23 @@
 			"[domain]",
 			"[wwwroot]",
 			"[staticroot]",
-			"[resourceroot]",
 			"[email]",
 			"[settings_key]",
 			"[force_secure_login]",
 			"[routing]"
 		);
 		
-		$domain = "http://".$_SERVER["HTTP_HOST"];
-		if ($routing == "basic") {
-			$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
-			$www_root = $static_root."index.php/";
-		} else {
-			$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
-			$static_root = $www_root;
-		}
-		$resource_root = str_replace("http://www.","http://",$www_root);
+		// Let domain/www_root/static_root be set by post for command line installs
+		if (!isset($domain)) {
+			$domain = "http://".$_SERVER["HTTP_HOST"];
+			if ($routing == "basic") {
+				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$www_root = $static_root."index.php/";
+			} else {
+				$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+				$static_root = $www_root;
+			}
+		}	
 		
 		$replace = array(
 			$host,
@@ -127,7 +128,6 @@
 			$domain,
 			$www_root,
 			$static_root,
-			$resource_root,
 			$cms_user,
 			$settings_key,
 			(isset($force_secure_login)) ? "true" : "false",
