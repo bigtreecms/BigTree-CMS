@@ -768,17 +768,16 @@
 			
 			Parameters:
 				name - The name of the group.
-				package - The (optional) package id the group originated from.
+				in_nav - Whether to show the group in the dropdown navigation
 			
 			Returns:
 				The id of the newly created group.
 		*/
 		
-		function createModuleGroup($name,$in_nav,$package = 0) {
+		function createModuleGroup($name,$in_nav) {
 			global $cms;
 			
 			$name = mysql_real_escape_string($name);
-			$packge = mysql_real_escape_string($package);
 			
 			// Get a unique route
 			$x = 2;
@@ -792,7 +791,7 @@
 			// Just to be safe
 			$route = mysql_real_escape_string($route);
 			
-			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`,`in_nav`,`package`) VALUES ('$name','$route','$in_nav','$package')");
+			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`,`in_nav`) VALUES ('$name','$route','$in_nav')");
 			return sqlid();
 		}
 		
@@ -2674,47 +2673,6 @@
 		}
 		
 		/*
-			Function: getModulePackage
-				Returns a module package with details decoded.
-			
-			Parameters:
-				id - The id of the module package.
-			
-			Returns:
-				A module package entry from bigtree_module_packages.
-		*/
-
-		function getModulePackage($id) {
-			$id = mysql_real_escape_string($id);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_module_packages WHERE id = '$id'"));
-			if (!$item) {
-				return false;
-			}
-			$item["details"] = json_decode($item["details"],true);
-			return $item;
-		}
-
-		/*
-			Function: getModulePackages
-				Returns a list of module packages.
-			
-			Parameters:
-				sort - Sort order (defaults to alphabetical by name)
-			
-			Returns:
-				An array of entries from bigtree_module_packages.
-		*/
-
-		function getModulePackages($sort = "name ASC") {
-			$packages = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_packages ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$packages[] = $f;
-			}
-			return $packages;
-		}
-		
-		/*
 			Function: getModules
 				Returns a list of modules.
 			
@@ -2757,7 +2715,11 @@
 				$group = mysql_real_escape_string($group);
 			}
 			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_modules WHERE `group` = '$group' ORDER BY $sort");
+			if ($group) {
+				$q = sqlquery("SELECT * FROM bigtree_modules WHERE `group` = '$group' ORDER BY $sort");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+			}
 			while ($f = sqlfetch($q)) {
 				if ($this->checkAccess($f["id"]) || !$auth) {
 					$items[$f["id"]] = $f;
@@ -3521,8 +3483,12 @@
 					$folders[] = $f;
 				}
 			}
-
-			$q = sqlquery("SELECT * FROM bigtree_resources WHERE folder = '$folder' ORDER BY $sort");
+			
+			if ($folder) {
+				$q = sqlquery("SELECT * FROM bigtree_resources WHERE folder = '$folder' ORDER BY $sort");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_resources WHERE folder = 0 OR folder IS NULL ORDER BY $sort");
+			}
 			while ($f = sqlfetch($q)) {
 				$resources[] = $f;
 			}
