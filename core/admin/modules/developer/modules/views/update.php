@@ -4,9 +4,11 @@
 	$table_description = BigTree::describeTable($table);
 	$columns = $table_description["columns"];
 	
+	$options = json_decode($options, true);
+	
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $type == "images" || $type == "images-group") && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	
@@ -63,7 +65,7 @@
 		}
 		
 		// Let's update the view
-		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$preview_url);
+		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");
