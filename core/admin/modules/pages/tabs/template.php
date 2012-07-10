@@ -16,6 +16,7 @@
 	<label>Flexible Templates</label>
 	<?
 		$x = 0;
+		$last_row = count($items) - (count($items) % 7);
 		foreach ($items as $item) {
 			$x++;
 			
@@ -25,7 +26,7 @@
 				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
-	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?>">
+	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?><? if ($x > $last_row) { ?> last_row<? } ?>">
 		<img src="<?=$image?>" alt="" />
 		<p><?=$item["name"]?></p>
 	</a>
@@ -41,6 +42,7 @@
 	<label>Special Templates</label>
 	<?
 		$items = $admin->getRoutedTemplates();
+		$last_row = count($items) - (count($items) % 7);
 		foreach ($items as $item) {
 			if (!$item["image"]) {
 				$image = ADMIN_ROOT."images/templates/page-module.png";
@@ -48,7 +50,7 @@
 				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
-	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?>">
+	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?><? if ($x > $last_row) { ?> last_row<? } ?>">
 		<img src="<?=$image?>" alt="" />
 		<p><?=$item["name"]?></p>
 	</a>

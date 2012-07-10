@@ -48,7 +48,6 @@
 		<input type="text" name="title" id="page_title" tabindex="2" value="<?=$pdata["title"]?>" class="required" />
 	</fieldset>
 </div>
-<!-- <div class="triplets"> -->
 <div class="left date_pickers">
 	<fieldset>
 		<label>Publish Date <small>(blank = immediately)</small></label>

@@ -585,9 +585,10 @@
 	.page_url img { float: left; margin: 0 7px 0 0; }
 	
 /* Box Select Styles */
-	.box_select { background: #fff; border: 1px solid #D4D4D4; border-radius: 5px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); color: #333; float: left; height: 75px; margin: 0 20px 23px 0; padding: 25px 10px 10px 10px; text-align: center; text-shadow: 0 1px 0 rgba(255, 255, 255, 1); transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
+	.box_select { background: #fff; border: 1px solid #D4D4D4; border-radius: 5px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); color: #333; float: left; height: 75px; margin: 0 20px 20px 0; padding: 25px 10px 10px 10px; text-align: center; text-shadow: 0 1px 0 rgba(255, 255, 255, 1); transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
 	.box_select:hover { background-gradient: #eaf5fc #ffffff; box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); color: #222; }
 	.box_select.active { background-gradient: #d6eefc #eaf5fc; box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); }
+	.box_select.last_row { margin-bottom: 15px; }
 	.box_select img { margin: 0 0 10px 0; }
 	.box_select p { font-size: 11px; line-height: 15px; }	
 	.box_select.last { margin-right: 0; }
