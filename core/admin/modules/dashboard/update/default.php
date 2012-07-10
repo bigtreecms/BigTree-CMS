@@ -145,21 +145,21 @@
 		sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-google-analytics-email' OR id = 'bigtree-internal-google-analytics-password' OR id = 'bigtree-internal-google-analytics-profile' OR id = 'bigtree-internal-rackspace-keys' OR id = 'bigtree-internal-rackspace-containers' OR id = 'bigtree-internal-s3-buckets' OR id = 'bigtree-internal-s3-keys'");
 	}
 	
-	// BigTree 4.0b7 update -- REVISION 3
-	function _local_bigtree_update_3() {
-		// Fixes AES_ENCRYPT not encoding things properly.
-		sqlquery("ALTER TABLE `bigtree_settings` CHANGE `value` `value` longblob NOT NULL");	
-	}
-	// BigTree 4.0b7 update -- REVISION 4
-	function _local_bigtree_update_4() {
-		// Adds the ability to make a field type available for Settings.
-		sqlquery("ALTER TABLE `bigtree_field_types` ADD COLUMN `settings` char(2) NOT NULL AFTER `callouts`");
-		// Remove uncached.
-		sqlquery("ALTER TABLE `bigtree_module_views` DROP COLUMN `uncached`");
-	}
 	// BigTree 4.0b7 update -- REVISION 5
 	function _local_bigtree_update_5() {
+		// Fixes AES_ENCRYPT not encoding things properly.
+		sqlquery("ALTER TABLE `bigtree_settings` CHANGE `value` `value` longblob NOT NULL");	
+
+		// Adds the ability to make a field type available for Settings.
+		sqlquery("ALTER TABLE `bigtree_field_types` ADD COLUMN `settings` char(2) NOT NULL AFTER `callouts`");
+
+		// Remove uncached.
+		sqlquery("ALTER TABLE `bigtree_module_views` DROP COLUMN `uncached`");
+
 		// Adds the ability to set options on a setting.
 		sqlquery("ALTER TABLE `bigtree_settings` ADD COLUMN `options` text NOT NULL AFTER `type`");
+		
+		// Alter the module view cache table so that it can be used for custom view caching
+		sqlquery("ALTER TABLE `bigtree_module_view_cache` CHANGE `view` `view` varchar(255) NOT NULL");
 	}
 ?>

@@ -24,7 +24,7 @@
 		} else {
 			$bigtree["datepickers"][] = "field_$key";
 	?>
-	<input type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=date("m/d/Y",strtotime($value))?>" autocomplete="off" id="field_<?=$key?>" class="date_picker<?=$validation?>" />
+	<input type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<? if ($value) { echo date("m/d/Y",strtotime($value)); } ?>" autocomplete="off" id="field_<?=$key?>" class="date_picker<?=$validation?>" />
 	<?
 		}
 	?>
