@@ -344,7 +344,7 @@
 	.form_container section { overflow: hidden; padding: 30px; }
 	.form_container section.sub { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; }
 	.form_container footer { background-gradient: #DFDFDF #F5F5F5; border-radius: 0 0 5px 5px; border-top: 1px solid #CCC; overflow: hidden; padding: 30px; }
-	.form_container footer a, .form_container footer input { float: left; margin: 0 15px 0 0; }
+	.form_container footer .button, .form_container footer input { float: left; margin: 0 15px 0 0; }
 	.form_container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 0 -30px 30px -30px; width: 958px; }
 	.form_container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }
 	.form_container .alert img { float: left; margin: 0 10px 0 0; }
@@ -1227,8 +1227,8 @@
 /* Array of Items / Many to Many Widget */
 	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; }
 	.multi_widget footer { border-radius: 0 0 2px 2px; border-top: none; overflow: hidden; padding: 20px; }
-	.multi_widget footer a { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
-	.multi_widget footer a .icon_small { height: 16px; margin-top: 6px; }
+	.multi_widget footer .button { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
+	.multi_widget footer .button .icon_small { height: 16px; margin-top: 6px; }
 	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
 	.multi_widget li p { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; }
 	.multi_widget li a { float: right; margin: 0 0 0 10px; }
