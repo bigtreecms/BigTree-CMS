@@ -124,7 +124,7 @@
 	/* GEOCODING */
 	function geocodeAddress($location) {
 		$location = urlencode(trim(strip_tags($location)));
-		$cache_file = SERVER_ROOT . "cache/custom/google-maps-" . md5($location);
+		$cache_file = SERVER_ROOT . "cache/google-maps-" . md5($location);
 		$cache_age = file_exists($cache_file) ? filemtime($cache_file) : 0;
 		
 		if ($cache_age === false || $cache_age < (time() - (60 * 60 * 24))) {
