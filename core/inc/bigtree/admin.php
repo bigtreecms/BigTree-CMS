@@ -5265,38 +5265,44 @@
 				$parent = $current["parent"];
 			}
 
-			// Create a route if we don't have one, otherwise, make sure the one they provided doesn't suck.
-			$route = $data["route"];
-			if (!$route) {
-				$route = $cms->urlify($data["nav_title"]);
+			if ($page == 0) {
+				// Home page doesn't get a route - fixes sitemap bug
+				$route = "";
 			} else {
-				$route = $cms->urlify($route);
-			}
+				// Create a route if we don't have one, otherwise, make sure the one they provided doesn't suck.
+				$route = $data["route"];
+				if (!$route) {
+					$route = $cms->urlify($data["nav_title"]);
+				} else {
+					$route = $cms->urlify($route);
+				}
 
-			// Get a unique route
-			$oroute = $route;
-			$x = 2;
-			// Reserved paths.
-			if ($parent == 0) {
-				while (file_exists(SERVER_ROOT."site/".$route."/")) {
-					$route = $oroute."-".$x;
-					$x++;
+				// Get a unique route
+				$oroute = $route;
+				$x = 2;
+				// Reserved paths.
+				if ($parent == 0) {
+					while (file_exists(SERVER_ROOT."site/".$route."/")) {
+						$route = $oroute."-".$x;
+						$x++;
+					}
+					while (in_array($route,$this->ReservedTLRoutes)) {
+						$route = $oroute."-".$x;
+						$x++;
+					}
 				}
-				while (in_array($route,$this->ReservedTLRoutes)) {
-					$route = $oroute."-".$x;
-					$x++;
-				}
-			}
-			// Existing pages.
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
-			while ($f) {
-				$route = $oroute."-".$x;
+
+				// Existing pages.
 				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
-				$x++;
+				while ($f) {
+					$route = $oroute."-".$x;
+					$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
+					$x++;
+				}
+				
+				// Make sure route isn't longer than 255
+				$route = substr($route,0,255);
 			}
-			
-			// Make sure route isn't longer than 255
-			$route = substr($route,0,255);
 
 			// We have no idea how this affects the nav, just wipe it all.
 			if ($current["nav_title"] != $nav_title || $current["route"] != $route || $current["in_nav"] != $in_nav || $current["parent"] != $parent) {
@@ -5318,7 +5324,7 @@
 			}
 
 			// Set the full path, saves DB access time on the front end.
-			if ($parent) {
+			if ($parent > -1) {
 				$path = $this->getFullNavigationPath($parent)."/".$route;
 			} else {
 				$path = $route;

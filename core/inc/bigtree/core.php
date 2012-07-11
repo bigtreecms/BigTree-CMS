@@ -174,7 +174,7 @@
 							$link = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
 						}
 					} else {
-						$link = WWW_ROOT.$f["path"]."/";
+						$link = WWW_ROOT.$f["path"].(($f["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
 					}
 					
 					echo "<url><loc>".$link."</loc></url>";
