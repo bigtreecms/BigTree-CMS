@@ -419,8 +419,10 @@ RewriteRule (.*) site/$1 [L]');
 			// Update the config file with CSS/Javascript for the example site.
 			$config_data = str_replace($find,$replace,file_get_contents("templates/config.php")); 
 			$config_data = str_replace('// "javascript_file.js"','"jquery-1.7.1.min.js",
+		"jquery.ba-dotimeout.min.js",
+		"jquery.breakpoints.js",
 		"main.js"',$config_data);
-			$config_data = str_replace('// "style_sheet.css"','"grid.css",
+			$config_data = str_replace('// "style_sheet.css"','"griddle.css",
 		"master.css"',$config_data);
 			file_put_contents("templates/config.php",$config_data);
 		}
