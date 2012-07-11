@@ -28,7 +28,7 @@
 	$actions = array(
 		array(
 			"name" => "API Settings",
-			"class" => "server",
+			"class" => "setup",
 			"route" => ""
 		),
 		array(
