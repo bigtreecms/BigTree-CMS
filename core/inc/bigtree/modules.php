@@ -508,6 +508,22 @@
 		}
 		
 		/*
+			Function: getSitemap
+				An optional function to override in your module class.
+				Provides additional sitemap children when <BigTreeCMS.getNavByParent> is called on a page with a template that uses this module.
+			
+			Parameters:
+				page - The page data for the current page the user is on.
+			
+			Returns:
+				An array of arrays with "title" and "link" key/value pairs. Should not be a multi level array.
+		*/
+		
+		function getSitemap($page) {
+			return array();
+		}
+		
+		/*
 			Function: getTagsForItem
 				Returns a list of tags the given table entry has been tagged with.
 			

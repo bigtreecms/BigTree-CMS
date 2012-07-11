@@ -164,7 +164,7 @@
 			header("Content-type: text/xml");
 			echo '<?xml version="1.0" encoding="UTF-8"?>';
 			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
-			$q = sqlquery("SELECT template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL)");
+			$q = sqlquery("SELECT p.id,p.template,p.external,p.path,t.routed,m.class AS module_class FROM bigtree_pages AS p, bigtree_templates AS t, bigtree_modules AS m WHERE p.archived = '' AND (p.publish_at >= NOW() OR p.publish_at IS NULL) AND (p.template = t.id AND (t.routed = '' OR m.id = t.module)) ORDER BY p.id ASC");
 			while ($f = sqlfetch($q)) {
 				if ($f["template"] || strpos($f["external"],$GLOBALS["domain"])) {	
 					if (!$f["template"]) {
@@ -177,7 +177,17 @@
 						$link = WWW_ROOT.$f["path"].(($f["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
 					}
 					
-					echo "<url><loc>".$link."</loc></url>";
+					echo "<url><loc>".$link."</loc></url>\n";
+					
+					// Added routed template support
+					if ($f["routed"] == "on") {
+						$mod = new $f["module_class"];
+						$subnav = $mod->getSitemap($f);
+						foreach ($subnav as $s) {
+							echo "<url><loc>".$s["link"]."</loc></url>\n";
+						}
+						$mod = $subnav = null;
+					}
 				}
 			}
 			echo '</urlset>';
