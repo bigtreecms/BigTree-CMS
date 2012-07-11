@@ -5,17 +5,33 @@
 		global $admin,$cms,$autoModule,$tables,$templates,$settings,$feeds,$class_files,$required_files,$other_files;
 		$m = $admin->getModule($mid);
 		$actions = $admin->getModuleActions($m["id"]);
-		
 		// Get all the tables of the module's actions.
 		foreach ($actions as $action) {
 			if ($action["form"] || $action["view"]) {
 				if ($action["form"]) {
 					$auto = $autoModule->getForm($action["form"]);
+					foreach ($auto["fields"] as $field) {
+						if ($field["type"] == "list" && $field["list_type"] == "db") {
+							if (!in_array($field["pop-table"]."#structure",$tables)) {
+								$tables[] = $field["pop-table"]."#structure";
+							}
+						}
+						if ($field["type"] == "many_to_many") {
+							if (!in_array($field["mtm-connecting-table"]."#structure",$tables)) {
+								$tables[] = $field["mtm-connecting-table"]."#structure";
+							}
+							if (!in_array($field["mtm-other-table"]."#structure",$tables)) {
+								$tables[] = $field["mtm-other-table"]."#structure";
+							}
+						}
+					}
 				} else {
 					$auto = $autoModule->getView($action["view"]);
 				}
-				if (!in_array($auto["table"]."#structure",$tables))
+
+				if (!in_array($auto["table"]."#structure",$tables)) {
 					$tables[] = $auto["table"]."#structure";
+				}
 			}
 		}
 		
