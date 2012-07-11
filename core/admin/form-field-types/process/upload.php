@@ -85,6 +85,8 @@
 					} else {
 						$value = str_replace(SITE_ROOT,"{staticroot}",$r["file"]);
 					}
+				} else {
+					$value = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$value);
 				}
 			}
 		}
