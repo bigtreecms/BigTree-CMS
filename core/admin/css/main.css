@@ -1348,3 +1348,11 @@
 	.ie7 .file_wrapper input { filter: alpha(opacity=0); }
 	.ie8 .file_wrapper input { -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; }
 	.ie8 #file_browser .header input { height: 12px; }
+
+/* Retina Assets */
+	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
+	
+		input[type="submit"], a.button { background: #BBB url("../images/button-bg-2x.png") repeat-x; background-size: 1px 36px; }
+		.select { background: #FFF url(../images/select-handle-2x.png) no-repeat top right; background-size: 34px 30px; }
+		.checkbox a { background-image: url(../images/checkbox-sprite-2x.png); background-size: 32px 32px; }
+	}
