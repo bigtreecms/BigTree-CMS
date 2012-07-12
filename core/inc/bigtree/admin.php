@@ -5324,7 +5324,7 @@
 			}
 
 			// Set the full path, saves DB access time on the front end.
-			if ($parent > -1) {
+			if ($parent > 0) {
 				$path = $this->getFullNavigationPath($parent)."/".$route;
 			} else {
 				$path = $route;
