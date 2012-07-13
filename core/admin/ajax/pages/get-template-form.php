@@ -24,6 +24,7 @@
 	
 	$bigtree["datepickers"] = array();
 	$bigtree["timepickers"] = array();
+	$bigtree["datetimepickers"] = array();
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 ?>
