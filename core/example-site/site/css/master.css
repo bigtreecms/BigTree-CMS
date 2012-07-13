@@ -22,41 +22,41 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 ---------------------------*/
 @font-face {
 	font-family: 'GentiumBookBasic';
-	src: url('../fonts/genbkbasr-webfont.eot');
-	src: url('../fonts/genbkbasr-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/genbkbasr-webfont.woff') format('woff'),
-		 url('../fonts/genbkbasr-webfont.ttf') format('truetype'),
-		 url('../fonts/genbkbasr-webfont.svg#GentiumBookBasicRegular') format('svg');
+	src: url('static_root/fonts/genbkbasr-webfont.eot');
+	src: url('static_root/fonts/genbkbasr-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('static_root/fonts/genbkbasr-webfont.woff') format('woff'),
+		 url('static_root/fonts/genbkbasr-webfont.ttf') format('truetype'),
+		 url('static_root/fonts/genbkbasr-webfont.svg#GentiumBookBasicRegular') format('svg');
 	font-weight: 400;
 	font-style: normal;
 }
 @font-face {
 	font-family: 'OpenSans';
-	src: url('../fonts/opensans-regular-webfont.eot');
-	src: url('../fonts/opensans-regular-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/opensans-regular-webfont.woff') format('woff'),
-		 url('../fonts/opensans-regular-webfont.ttf') format('truetype'),
-		 url('../fonts/opensans-regular-webfont.svg#OpenSansRegular') format('svg');
+	src: url('static_root/fonts/opensans-regular-webfont.eot');
+	src: url('static_root/fonts/opensans-regular-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('static_root/fonts/opensans-regular-webfont.woff') format('woff'),
+		 url('static_root/fonts/opensans-regular-webfont.ttf') format('truetype'),
+		 url('static_root/fonts/opensans-regular-webfont.svg#OpenSansRegular') format('svg');
 	font-weight: 400;
 	font-style: normal;
 }
 @font-face {
 	font-family: 'OpenSans';
-	src: url('../fonts/opensans-bold-webfont.eot');
-	src: url('../fonts/opensans-bold-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/opensans-bold-webfont.woff') format('woff'),
-		 url('../fonts/opensans-bold-webfont.ttf') format('truetype'),
-		 url('../fonts/opensans-bold-webfont.svg#OpenSansBold') format('svg');
+	src: url('static_root/fonts/opensans-bold-webfont.eot');
+	src: url('static_root/fonts/opensans-bold-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('static_root/fonts/opensans-bold-webfont.woff') format('woff'),
+		 url('static_root/fonts/opensans-bold-webfont.ttf') format('truetype'),
+		 url('static_root/fonts/opensans-bold-webfont.svg#OpenSansBold') format('svg');
 	font-weight: 600;
 	font-style: normal;
 }
 @font-face {
 	font-family: 'OpenSans';
-	src: url('../fonts/opensans-extrabold-webfont.eot');
-	src: url('../fonts/opensans-extrabold-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('../fonts/opensans-extrabold-webfont.woff') format('woff'),
-		 url('../fonts/opensans-extrabold-webfont.ttf') format('truetype'),
-		 url('../fonts/opensans-extrabold-webfont.svg#OpenSansExtrabold') format('svg');
+	src: url('static_root/fonts/opensans-extrabold-webfont.eot');
+	src: url('static_root/fonts/opensans-extrabold-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('static_root/fonts/opensans-extrabold-webfont.woff') format('woff'),
+		 url('static_root/fonts/opensans-extrabold-webfont.ttf') format('truetype'),
+		 url('static_root/fonts/opensans-extrabold-webfont.svg#OpenSansExtrabold') format('svg');
 	font-weight: 800;
 	font-style: normal;
 }
@@ -75,7 +75,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 /*---------------------------
   Elements
 ---------------------------*/
-	body { background: url(../images/bg_pattern.png) repeat center top; font-family: 'OpenSans', sans-serif; overflow-x: hidden; overflow-y: scroll; }
+	body { background: url(static_root/images/bg_pattern.png) repeat center top; font-family: 'OpenSans', sans-serif; overflow-x: hidden; overflow-y: scroll; }
 	body * { word-wrap: break-word; } /* Webkit Text Wrap Fix */
 	
 	h1, h2, h3, h4, h5, h6 { color: #222; font-family: 'OpenSans', sans-serif; }
@@ -135,7 +135,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	#footer .about a { color: #666; border-bottom: 1px dotted #ccc; }
 	#footer .about a:hover { border-color: #222; color: #222; }
 	#footer .social p { line-height: 20px; margin-top: 22px; }
-	#footer .social a { background: url(../images/icon_footer_social.png) no-repeat left top; color: #222; display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 0 0 18px 20px; padding: 0 0 0 25px; text-transform: uppercase; }
+	#footer .social a { background: url(static_root/images/icon_footer_social.png) no-repeat left top; color: #222; display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 0 0 18px 20px; padding: 0 0 0 25px; text-transform: uppercase; }
 	#footer .social small { color: #999; display: block; font-size: 9px; line-height: 1; }
 	#footer .social .facebook { background-position: 0 0; }
 	#footer .social .twitter { background-position: 0 -40px; }
@@ -226,7 +226,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.twitter_timeline .timeline article:hover a { color: #222; }
 	.twitter_timeline .timeline article:hover strong { color: #222; }
 	.twitter_timeline .triggers { height: 85%; position: absolute; right: 0; top: 15%; }
-	.twitter_timeline .trigger { background: #222 url(../images/icon_arrows.png) no-repeat left center; cursor: pointer; display: block; height: 40%; text-indent: -99999px; width: 20px; }
+	.twitter_timeline .trigger { background: #222 url(static_root/images/icon_arrows.png) no-repeat left center; cursor: pointer; display: block; height: 40%; text-indent: -99999px; width: 20px; }
 	.twitter_timeline .disabled { background-color: #ccc; }
 	.twitter_timeline .previous { background-position: -20px center; }
 	.twitter_timeline .previous.disabled { background-position: 0 center; }
