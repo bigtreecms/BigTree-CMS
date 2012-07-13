@@ -105,6 +105,12 @@
 								include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 							}
 						}
+						
+						if (!count($template["resources"])) {
+					?>
+					<p>This page has no editable content.</p>
+					<?
+						}
 					?>
 				</div>
 				<footer>
