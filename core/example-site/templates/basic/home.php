@@ -117,7 +117,7 @@
 	<div class="row_12">
 		<header class="cell_12">
 			<h3>"<?=$twitter_search?>"</h3>
-			<p>Random, un currated, posts on <a href="http://www.twitter.com/" target="_blank">twitter</a> about "<?=$twitter_search?>"</p>
+			<p>Random, un-curated posts on <a href="http://www.twitter.com/" target="_blank">Twitter</a> about "<?=$twitter_search?>"</p>
 			<hr />
 		</header>
 	</div>
