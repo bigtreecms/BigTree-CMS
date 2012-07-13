@@ -672,10 +672,10 @@
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$route = mysql_real_escape_string($route);
 			$class = mysql_real_escape_string($class);
-			$group = mysql_real_escape_string($group);
+			$group = $group ? "'".mysql_real_escape_string($group)."'" : "NULL";
 			$gbp = mysql_real_escape_string(json_encode($permissions));
 			
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class','$group','$gbp')");
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group,'$gbp')");
 			$id = sqlid();
 			
 			if ($class) {
