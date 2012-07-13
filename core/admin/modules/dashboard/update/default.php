@@ -162,4 +162,11 @@
 		// Alter the module view cache table so that it can be used for custom view caching
 		sqlquery("ALTER TABLE `bigtree_module_view_cache` CHANGE `view` `view` varchar(255) NOT NULL");
 	}
+	
+	// BigTree 4.0b7 update -- REVISION 6
+	function _local_bigtree_update_6() {
+		// Allows null values for module groups and resource folders.
+		sqlquery("ALTER TABLE `bigtree_modules` CHANGE `group` `group` int(11) UNSIGNED DEFAULT NULL");
+		sqlquery("ALTER TABLE `bigtree_resources` CHANGE `folder` `folder` int(11) UNSIGNED DEFAULT NULL");
+	}
 ?>
