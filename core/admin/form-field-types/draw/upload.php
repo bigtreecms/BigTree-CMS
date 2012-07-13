@@ -13,10 +13,14 @@
 </fieldset>
 <?
 	} else {
-		if ($options["preview_prefix"]) {
-			$preview_image = BigTree::prefixFile($value,$options["preview_prefix"]);
+		if ($value) {
+			if ($options["preview_prefix"]) {
+				$preview_image = BigTree::prefixFile($value,$options["preview_prefix"]);
+			} else {
+				$preview_image = $value;
+			}
 		} else {
-			$preview_image = $value;
+			$preview_image = false;
 		}
 		
 		$button_options = array(
@@ -42,7 +46,9 @@
 	<div class="currently" id="field_currently_<?=$key?>"<? if (!$value) { ?> style="display: none;"<? } ?>>
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
+			<? if ($preview_image) { ?>
 			<img src="<?=$preview_image?>" alt="" />
+			<? } ?>
 		</div>
 		<label>CURRENT</label>
 		<input type="hidden" name="<?=$currently_key?>" value="<?=htmlspecialchars($value)?>" />
