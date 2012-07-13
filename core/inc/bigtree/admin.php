@@ -1060,7 +1060,7 @@
 		*/
 		
 		function createResource($folder,$file,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array(),$list_thumb_margin = 0) {
-			$folder = mysql_real_escape_string($folder);
+			$folder = $folder ? "'".mysql_real_escape_string($folder)."'" : "NULL";
 			$file = mysql_real_escape_string($file);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$type = mysql_real_escape_string($type);
@@ -1070,7 +1070,7 @@
 			$thumbs = mysql_real_escape_string(json_encode($thumbs));
 			$list_thumb_margin = intval($list_thumb_margin);
 			
-			sqlquery("INSERT INTO bigtree_resources (`file`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file',NOW(),'$name','$type','$folder','$is_image','$height','$width','$thumbs','$list_thumb_margin')");	
+			sqlquery("INSERT INTO bigtree_resources (`file`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");	
 			return sqlid();
 		}
 		
