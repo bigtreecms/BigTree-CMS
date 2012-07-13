@@ -112,6 +112,8 @@
 					$data = str_replace('$'.$key,$val,$data);
 				}
 			}
+			// Replace roots
+			$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
 			if ($bigtree["config"]["css"]["minify"]) {
 				require_once(SERVER_ROOT."core/inc/utils/CSSMin.php");			
 				$minifier = new CSSMin;
