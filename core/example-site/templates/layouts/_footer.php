@@ -14,7 +14,7 @@
 				<div class="cell_3 address">
 					<h6>Contact</h6>
 					<?=$footerAddress?>
-					<img src="http://maps.googleapis.com/maps/api/staticmap?center=<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&zoom=15&size=240x100&markers=color:red%7C<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&sensor=false" alt="" />
+					<img src="http://maps.googleapis.com/maps/api/staticmap?center=<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&amp;zoom=15&amp;size=240x100&amp;markers=color:red%7C<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&amp;sensor=false" alt="" />
 				</div>
 				<div class="cell_3 push_1 right social">
 					<h6>Accounts</h6>
