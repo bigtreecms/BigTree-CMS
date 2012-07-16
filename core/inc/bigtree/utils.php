@@ -638,16 +638,16 @@
 			echo '<option></option>';
 			foreach ($table_description["columns"] as $col) {
 				if ($sorting) {
-					if ($default == $col["name"]." ASC") {
-						echo '<option selected="selected">'.$col["name"].' ASC</option>';
+					if ($default == $col["name"]." ASC" || $default == "`".$col["name"]."` ASC") {
+						echo '<option selected="selected">`'.$col["name"].'` ASC</option>';
 					} else {
-						echo '<option>'.$col["name"].' ASC</option>';
+						echo '<option>`'.$col["name"].'` ASC</option>';
 					}
 					
-					if ($default == $col["name"]." DESC") {
-						echo '<option selected="selected">'.$col["name"].' DESC</option>';
+					if ($default == $col["name"]." DESC" || $default == "`".$col["name"]."` DESC") {
+						echo '<option selected="selected">`'.$col["name"].'` DESC</option>';
 					} else {
-						echo '<option>'.$col["name"].' DESC</option>';
+						echo '<option>`'.$col["name"].'` DESC</option>';
 					}
 				} else {
 					if ($default == $col["name"]) {
