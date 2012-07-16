@@ -1,14 +1,15 @@
-<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<rss version="2.0">
 	<channel>
 		<title><? if ($feed["options"]["feed_title"]) { echo $feed["options"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
 		<link><? if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<? } ?></link>
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
+		<generator>BigTree CMS (http://www.bigtreecms.org)</generator>
 		<?
-			$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id desc";
+			$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
 			$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
 
-			$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
+			$q = sqlquery("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
 			while ($item = sqlfetch($q)) {
 				foreach ($item as $key => $val) {
 					if (is_array(json_decode($val,true))) {
@@ -30,15 +31,25 @@
 				$content = $item[$feed["options"]["description"]];
 				$limit = $feed["options"]["content_limit"] ? $feed["options"]["content_limit"] : 500;
 				$blurb = BigTree::trimLength($content,$limit);
-				$time = strtotime($item[$feed["options"]["date"]]);
 		?>
 		<item>
 			<guid><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?=$f["id"]?></guid>
 			<title><![CDATA[<?=strip_tags($item[$feed["options"]["title"]])?>]]></title>
 			<description><![CDATA[<?=$blurb?><? if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><? } ?>]]></description>
 			<link><?=$link?></link>
-			<dc:creator><?=$item[$feed["options"]["creator"]]?></dc:creator>
-			<dc:date><?=date("Y-m-d",$time)."T".date("H:i:sP",$time)?></dc:date>
+			<?
+				if ($feed["options"]["creator"]) {
+			?>
+			<author><?=$item[$feed["options"]["creator"]]?></author>
+			<?
+				}
+				
+				if ($feed["options"]["date"]) {
+			?>
+			<pubDate><?=date("D, d M Y H:i:s T",strtotime($item[$feed["options"]["date"]]))?></pubDate>
+			<?
+				}
+			?>
 		</item>
 		<?
 			}

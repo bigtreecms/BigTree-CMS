@@ -5,29 +5,34 @@
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
 		<?
-			$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id desc";
+			$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
 			$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
 			
-			$am = new BigTreeModule;
-			
-			$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
-			while ($f = sqlfetch($q)) {
-				$f = $am->get($f);
+			$q = sqlquery("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
+			while ($item = sqlfetch($q)) {
+				foreach ($item as $key => $val) {
+					if (is_array(json_decode($val,true))) {
+						$item[$key] = BigTree::untranslateArray(json_decode($val,true));
+					} else {
+						$item[$key] = $cms->replaceInternalPageLinks($val);
+					}
+				}
+				
 				if ($feed["options"]["link_gen"]) {
 					$link = $feed["options"]["link_gen"];
 					foreach ($f as $key => $val) {
 						$link = str_replace("{".$key."}",$val,$link);
 					}
 				} else {
-					$link = $f[$feed["options"]["link"]];
+					$link = $item[$feed["options"]["link"]];
 				}
 				
-				$content = $f[$feed["options"]["description"]];
+				$content = $item[$feed["options"]["description"]];
 				$limit = $feed["options"]["content_limit"] ? $feed["options"]["content_limit"] : 500;
 				$blurb = BigTree::trimLength($content,$limit);
 		?>
 		<item>
-			<title><![CDATA[<?=strip_tags($f[$feed["options"]["title"]])?>]]></title>
+			<title><![CDATA[<?=strip_tags($item[$feed["options"]["title"]])?>]]></title>
 			<description><![CDATA[<?=$blurb?><? if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><? } ?>]]></description>
 			<link><?=$link?></link>
 		</item>
