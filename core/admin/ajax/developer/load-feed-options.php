@@ -9,3 +9,6 @@
 		include $path;
 	}
 ?>
+<script type="text/javascript">
+	BigTreeCustomControls();
+</script>
