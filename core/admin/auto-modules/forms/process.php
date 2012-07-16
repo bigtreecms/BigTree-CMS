@@ -5,12 +5,14 @@
 	// If there's a preprocess function for this module, let's get'r'done.
 	$preprocess_changes = array();
 	if ($form["preprocess"]) {
-	    $function = '$preprocess_changes = '.htmlspecialchars_decode($form["preprocess"]).'($_POST);';
-	    eval($function);
-	    // Update the $_POST
-	    foreach ($preprocess_changes as $key => $val) {
-	    	$_POST[$key] = $val;
-	    }
+		$function = '$preprocess_changes = '.htmlspecialchars_decode($form["preprocess"]).'($_POST);';
+		eval($function);
+		// Update the $_POST
+		if (is_array($preprocess_changes)) {
+			foreach ($preprocess_changes as $key => $val) {
+				$_POST[$key] = $val;
+			}
+		}
 	}
 	
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
@@ -70,9 +72,11 @@
 		}
 		
 		// See if we added anything in pre-processing that wasn't a field in the form.
-		foreach ($preprocess_changes as $key => $val) {
-			if (!isset($item[$key])) {
-				$item[$key] = $val;
+		if (is_array($preprocess_changes)) {
+			foreach ($preprocess_changes as $key => $val) {
+				if (!isset($item[$key])) {
+					$item[$key] = $val;
+				}
 			}
 		}
 		
