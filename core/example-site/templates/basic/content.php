@@ -8,6 +8,7 @@
 	*/
 ?>
 <article>
+	<h1><?=$page_header?></h1>
 	<? 
 		if ($photo_file) { 
 			$photo_file = BigTree::prefixFile($photo_file, "med_");
@@ -25,6 +26,5 @@
 	<?
 		}
 	?>
-	<h1><?=$page_header?></h1>
 	<?=$page_content?>
 </article>

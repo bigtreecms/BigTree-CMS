@@ -1,10 +1,15 @@
 <?
+	// Get the homepage, don't process resources.
 	$site = $cms->getPage(0, false);
 	
 	$site_title = $site["title"];
 	$page_title = ($page["title"] != $site_title) ? $page["title"] : false;
-	$top = $cms->getToplevelNavigationId($page["id"]);
-	$nav = $cms->getNavByParent(0, 2);
+	
+	// Get top level navigation, only one level deep.
+	$nav = $cms->getNavByParent(0, 1);
+	
+	// Get the current page URL
+	$current_page = WWW_ROOT.$_GET["bigtree_htaccess_url"];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,20 +37,14 @@
 	<body class="griddle">
 		<header id="header">
 			<div class="row_12 contain">
-				<div class="cell_4">
+				<div class="cell_5">
 					<a href="<?=WWW_ROOT?>" class="branding"><?=$site_title?></a>
 				</div>
-				<div class="cell_8">
+				<div class="cell_7">
 					<nav>
-						<? 
-							$count = count($nav) - 1;
-							$i = 0;
-							foreach ($nav as $item) { 
-						?>
-						<a href="<?=$item["link"]?>"<? if ($item["id"] == $top) { ?> class="active"<? } ?>><?=$item["title"]?></a>
-						<? 
-							}
-						?>
+						<? foreach ($nav as $item) { ?>
+						<a href="<?=$item["link"]?>"<? if (strpos($current_page,$item["link"]) !== false) { ?> class="active"<? } ?>><?=$item["title"]?></a>
+						<? } ?>
 					</nav>
 				</div>
 			</div>
