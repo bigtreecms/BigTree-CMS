@@ -325,7 +325,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		h1 { font-size: 44px; }
 		
 		#header { height: auto; }
-		#header .cell_4, #header .cell_8 { text-align: center; width: 97.9166666666666667%; }
+		#header .cell_5, #header .cell_7 { text-align: center; width: 97.9166666666666667%; }
 		#header .branding { float: none; line-height: 1.4; margin: 10px 0 0; }
 		#header nav { float: none; overflow: hidden; padding: 0 0 12px; text-align: center; }
 		#header nav a { display: inline-block; float: none; margin: 0 10px; padding: 0 0 5px; }
