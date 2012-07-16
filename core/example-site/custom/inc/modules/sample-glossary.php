@@ -16,7 +16,7 @@
 			foreach ($terms as $term) {
 				$nav[] = array(
 					"title" => $term["term"], 
-					"link" => $pageLink . $term["route"] . "/"
+					"link" => $pageLink.urlencode($term["route"])."/"
 				);
 			}
 			
