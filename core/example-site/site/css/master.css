@@ -202,7 +202,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.intro_block .more { color: #222; }
 	.intro_block .more:hover { border-color: #000; color: #000; }
 	
-	.twitter_timeline { position: relative; }
+	.twitter_timeline { position: relative; -webkit-tap-highlight-color: rgba(255,255,255,0); }
 	.twitter_timeline header { margin: 6% 0 0; }
 	.twitter_timeline h3 { font-size: 18px; float: left; margin: 0 10px 0 0; text-transform: uppercase; }
 	.twitter_timeline p { float: left; }
@@ -217,7 +217,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 			 -o-transition: left 0.25s ease-out;
 				transition: left 0.25s ease-out;
 	}
-	.twitter_timeline .timeline article { float: left; margin: 0 13px 0 12px; width: 275px; }
+	.twitter_timeline .timeline article { float: left; margin: 0 13px 0 12px; overflow: hidden; width: 275px; }
 	.twitter_timeline .timeline p { font-size: 13px; font-family: "GentiumBookBasic", serif; line-height: 20px; margin-bottom: 24px; }
 	.twitter_timeline .timeline a { color: #999; border-bottom: 1px dotted #ccc; }
 	.twitter_timeline .timeline a:hover { border-color: #222; color: #222; }
