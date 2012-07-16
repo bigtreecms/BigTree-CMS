@@ -1,4 +1,7 @@
 <?
+	// Force IE into IE7 compatibility mode.
+	header("X-UA-Compatible: IE=EmulateIE7");
+	
 	// Get the homepage, don't process resources.
 	$site = $cms->getPage(0, false);
 	
@@ -15,14 +18,11 @@
 <html lang="en">
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=7" /> <!-- FORCE IE 7 -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 		<meta name="keywords" content="" />
 		<meta name="description" content="" />
 				
 		<title><? if ($local_title) { echo $local_title . ' &middot; '; } ?><? if ($page_title) { echo $page_title . ' &middot; '; } ?><?=$site_title?></title>
-		
-		<link rel="shortcut icon" href="<?=STATIC_ROOT?>favicon.ico" type="image/x-icon" />
 		
 		<link rel="stylesheet" href="<?=WWW_ROOT?>css/site.css" type="text/css" media="all" />
 		<link rel="stylesheet" href="<?=STATIC_ROOT?>css/print.css" type="text/css" media="print" />
