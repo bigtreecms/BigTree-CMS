@@ -9,11 +9,20 @@
 ?>
 <article>
 	<? 
-		if ($photo_file != "") { 
+		if ($photo_file) { 
 			$photo_file = BigTree::prefixFile($photo_file, "med_");
 	?>
-	<img src="<?=$photo_file?>" alt="Content Image" class="block_right" />
-	<? 
+	<figure>
+		<img src="<?=$photo_file?>" alt="Content Image" />
+		<?
+			if ($photo_caption) {
+		?>
+		<figcaption><?=$photo_caption?></figcaption>
+		<?
+			}
+		?>
+	</figure>
+	<?
 		}
 	?>
 	<h1><?=$page_header?></h1>

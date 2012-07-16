@@ -240,6 +240,8 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.content { padding-left: 20px; }
 	.content a { border-bottom: 1px dotted #999; }
 	.content a:hover { border-color: #222; }
+	.content figure { float: right; width: 300px; margin: 0 0 20px 20px; }
+	.content figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
 	
 	.sidebar {  }
 	.callout { background: #F9F9F9; padding: 20px; }
@@ -295,6 +297,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		#feature .description { padding: 50px 8% 30px; }
 		#feature .triggers { left: 8%; }
 	}
+	
 	@media screen and (max-width: 1220px) {
 		#feature .descriptions { width: 39.5833333333333333%; }
 		#feature .description { padding: 50px 8% 30px; }
@@ -302,6 +305,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		
 		.twitter_timeline .timeline article { width: 220px; margin: 0 10px; }
 	}
+	
 	@media screen and (max-width: 980px) {
 		#header .branding { font-size: 22px; }
 		#header nav a { margin: 0 0 0 20px; }
@@ -315,6 +319,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		#footer .about { width: 97.9166666666666667%; }
 		#footer .about h6 { margin: 5% 0 3%; }
 	}
+	
 	@media screen and (max-width: 740px) {
 		h1 { font-size: 44px; }
 		
@@ -372,6 +377,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		.subnav ul { margin: 0; }
 		.subnav li { padding: 0; }
 	}
+	
 	@media screen and (max-width: 500px) {
 		h1 { font-size: 34px; }
 		h2 { font-size: 28px; }
