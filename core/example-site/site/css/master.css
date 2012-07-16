@@ -241,6 +241,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.content a { border-bottom: 1px dotted #999; }
 	.content a:hover { border-color: #222; }
 	.content figure { float: right; width: 300px; margin: 0 0 20px 20px; }
+	.content figure img { width: 100%; }
 	.content figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
 	
 	.sidebar {  }
@@ -348,7 +349,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		
 		
 		#subpage { margin: 120px auto 50px; }
-		#subpage .sidebar { width: 97.9166666666666667%; }
+		#subpage .sidebar { width: 100%; }
 		.sidebar .callouts { display: none; }
 		
 		p { font-size: 13px; }
@@ -367,7 +368,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		.blog .post .image img { max-width: 100%; }
 		.blog .post .links { margin-bottom: 7%; }
 		
-		.subnav { margin: 5px 0 0; position: relative; width: 97.9166666666666667%; }
+		.subnav { margin: 5px 0 0; position: relative; width: 100%; }
 		.subnav .nav_label { display: block; }
 		.subnav .nav_options { background: #fff; box-shadow: 0 0 5px rgba(0, 0, 0, 0.4); display: none; left: 0; max-height: 300px; overflow-y: auto; position: absolute; top: 0; width: 100%; z-index: 10; }
 		.subnav:hover .nav_options { display: block; }
@@ -379,6 +380,11 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	}
 	
 	@media screen and (max-width: 500px) {
+		/* Hide some BigTree Bar Elements */
+		#bigtree_name { display: none; }
+		#bigtree_logout { display: none; }
+		#bigtree_edit_content { display: none; }
+				
 		h1 { font-size: 34px; }
 		h2 { font-size: 28px; }
 		
@@ -399,6 +405,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		.twitter_timeline p { width: 80%; }
 		
 		#subpage { margin: 100px auto 50px; }
+		.content figure { width: 100%; float: none; margin: 0 0 20px 0; }
 		
 		.blog .post { margin-bottom: 10%; }
 		.blog .post .image { float: left; margin: 5% 0; max-width: 100%; }
