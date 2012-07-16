@@ -1,27 +1,27 @@
 <?
+	// Send the XML Headers
 	header("Content-type: text/xml");
+	// Get the Blog's settings so we can draw the title and tagline in the RSS.
 	$settings = $cms->getSetting("btx-dogwood-settings");
+	// Get the 15 most recent posts.
+	$posts = $dogwood->getRecentPosts(15);
 ?>
-<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<rss version="2.0">
 	<channel>
-		<title><?=$settings["title"]?> RSS Feed</title>
+		<title><?=$settings["title"]?></title>
 		<link><?=$blog_link?></link>
-		<description></description>
+		<description><?=$settings["tagline"]?></description>
 		<language>en-us</language>
-		<?
-			$posts = $dogwood->getRecentPosts(15);
-			foreach ($posts as $post) {
-		?>
+		<generator>BigTree CMS (http://www.bigtreecms.org/)</generator>
+		<? foreach ($posts as $post) { ?>
 		<item>
 			<title><?=$post["title"]?></title>
 			<description><![CDATA[<?=$post["blurb"]?>]]></description>
 			<link><?=$blog_link."post/".$post["route"]?>/</link>
-			<dc:creator><?=$post["author"]["name"]?></dc:creator>
-			<dc:date><?=date("Y-m-d",strtotime($post["date"]))?>T<?=date("H:i:s",strtotime($post["date"]))?>+05:00</dc:date>
+			<author><?=$post["author"]["email"]?></author>
+			<pubDate><?=date("D, d M Y H:i:s T",strtotime($post["date"]))?></pubDate>
 		</item>
-		<?
-			}
-		?>
+		<? } ?>
 	</channel>
 </rss>
 <? die(); ?>

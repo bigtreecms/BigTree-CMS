@@ -12,7 +12,7 @@
 	$nav = $cms->getNavByParent(0, 1);
 	
 	// Get the current page URL
-	$current_page = WWW_ROOT.$_GET["bigtree_htaccess_url"];
+	$current_page = BigTree::currentURL();
 ?>
 <!DOCTYPE html>
 <html lang="en">

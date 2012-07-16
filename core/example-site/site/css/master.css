@@ -289,9 +289,15 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.blog .post .links a { margin: 0 15px 0 0; }
 	.blog .post .comments { margin-top: 3%; margin-bottom: 3%; }
 	.blog .post .disqus_notice { font-size: 16px; }
+	.blog .last_post { border-bottom: none; }
 	
 	.blog .post_page { border: none; margin-top: 0; margin-bottom: 0; }
 	.blog .post_page .meta { margin-bottom: 6%; }
+	
+	.blog .dogwood_newer_posts { float: left; }
+	.blog .dogwood_older_posts { float: right; }
+	.blog .dogwood_search .query { width: 66.4%; margin: 2% 1% 2% 5%; }
+	.blog .dogwood_search .submit { width: 20%; margin: 2% 5% 2% 0; }
 	
 	@media screen and (min-width: 1220px) {
 		#feature .descriptions { width: 31.25%; }

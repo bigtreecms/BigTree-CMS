@@ -1,11 +1,12 @@
 <?
+	// If we've enabled Disqus in the admin for commenting we're either going to load the comment counts for a post list or show the comment thread on the detail page.
 	if ($settings["disqus"]) {
 ?>
 <script type="text/javascript">
 	var disqus_shortname = '<?=$settings["disqus"]?>';
 	<?
-		if ($post_detail === true) {
-			// COMMENT WIDGET
+		// Draw the comment thread if we're on the detail page
+		if ($post_detail) {
 	?>
 	(function() {
 		var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
@@ -13,8 +14,8 @@
 		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
 	})();
 	<?
+		// Draw comment counts if we're on a list view
 		} else {
-			// COMMENT COUNTS
 	?>
 	(function () {
 		var s = document.createElement('script'); s.async = true;
