@@ -272,7 +272,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.blog .author_bio h4 { font-size: 23px; }
 	.blog .author_bio p { font-size: 13px; }
 	
-	.blog .post { border-bottom: 1px dotted #222; margin-top: 3%; margin-bottom: 5%; }
+	.blog .post { border-bottom: 1px dotted #222; margin-bottom: 5%; }
 	.blog .post .meta { font-family: 'OpenSans', sans-serif; font-size: 16px; margin: 0 0 3%; }
 	.blog .post .meta a { border-bottom: 1px dotted #999; color: #222; font-style: italic; }
 	.blog .post .meta a:hover { border-color: #222; }

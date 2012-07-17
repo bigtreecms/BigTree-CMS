@@ -11,13 +11,13 @@
 	// Grab a page of results
 	$posts = $dogwood->getSearchPageOfPosts($query,$current_page,5);
 	if ($current_page) {
-		$local_title = "Page ".($current_page + 1)." of results for &quot;" . htmlspecialchars($query) . "&quot;";	
+		$local_title = "Page ".($current_page + 1)." of search results for &quot;" . htmlspecialchars($query) . "&quot;";	
 	} else {
-		$local_title = "Results for &quot;" . htmlspecialchars($query) . "&quot;";
+		$local_title = "Search results for &quot;" . htmlspecialchars($query) . "&quot;";
 	}
 ?>
 <div class="cell_11">
-	<h3>Results for &ldquo;<?=htmlspecialchars($query)?>&rdquo;</h3>
+	<h3>Search results for &ldquo;<?=htmlspecialchars($query)?>&rdquo;</h3>
 	<?
 		if (count($posts)) {
 			$x = 0;

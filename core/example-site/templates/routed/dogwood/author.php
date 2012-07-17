@@ -39,7 +39,7 @@
 		}
 		
 		if (count($posts)) {
-			$x++;
+			$x = 0;
 			foreach ($posts as $post) {
 				$x++;
 				if ($x == count($posts)) {
