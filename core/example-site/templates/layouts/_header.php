@@ -1,7 +1,4 @@
-<?
-	// Force IE into IE7 compatibility mode.
-	header("X-UA-Compatible: IE=EmulateIE7");
-	
+<?	
 	// Get the homepage, don't process resources.
 	$site = $cms->getPage(0, false);
 	
