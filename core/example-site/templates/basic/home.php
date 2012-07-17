@@ -11,23 +11,21 @@
 		$twitter_search = Twitter Search Phrase - Text
 	*/
 	
+	// Switch to loading the content of this page into the /templates/layouts/home.php file.
 	$bigtree["layout"] = "home";
-	$featuresMod = new SampleFeatures();
-	$features = $featuresMod->getApproved("position DESC");
 	
+	// Get all approved features in positioned order.
+	$featuresMod = new SampleFeatures;
+	$features = $featuresMod->getApproved("position DESC, id ASC");	
 ?>
 <section id="feature">
 	<div class="background" style="background-color: #<?=$features[0]["background"]?>">
 		<div class="row_12 content">
 			<div class="descriptions cell_5 right" style="background-color: #<?=$features[0]["background"]?>">
 				<menu class="triggers">
-					<? 
-						for ($i = 0, $count = count($features); $i < $count; $i++) {
-					?>
+					<? for ($i = 0, $count = count($features); $i < $count; $i++) { ?>
 					<span<? if ($i == 0) { ?> class="active"<? } ?>><? echo ($i + 1) ?></span>
-					<?
-						}
-					?>
+					<? } ?>
 				</menu>
 				<div class="viewport">
 					<?

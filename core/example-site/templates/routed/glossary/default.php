@@ -6,16 +6,17 @@
 	*/
 	
 	$glossaryMod = new SampleGlossary;
-	
 	$term = false;
+	
+	// If we have a URL route, grab a term for it.
 	if (isset($commands[0])) {
 		$term = $glossaryMod->getByRoute($commands[0]);
 	}
 	
+	// If we don't have a term, redirect with a 301 to the first approved term.
 	if (!$term) {
 		$terms = $glossaryMod->getApproved();
-		header("Location: ".$cms->getLink($page["id"]).$terms[0]["route"]."/");
-		die();
+		BigTree::redirect(WWW_ROOT.$bigtree["page"]["path"]."/".$terms[0]["route"]."/",301);
 	}
 ?>
 <article>

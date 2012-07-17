@@ -2,7 +2,7 @@
 <div class="row_12" id="subpage">
 	<aside class="cell_3 sidebar">
 		<?
-			$currentPage = DOMAIN.$_SERVER['REQUEST_URI'];
+			// Get the top level page of the one we're on, then get all navigation below it and draw it.
 			$topLevel = $cms->getToplevelNavigationId();
 			$nav = $cms->getNavByParent($topLevel, 2);
 			if (count($nav)) {
@@ -13,7 +13,7 @@
 				<div class="nav_options">
 					<?
 						// Found in /custom/inc/required/utils.php
-						recurseNav($nav, $currentPage);
+						recurseNav($nav);
 					?>
 				</div>
 			</nav>
@@ -21,17 +21,18 @@
 		<? 
 			}
 			
-			if (count($page["callouts"])) { 
+			// If we have callouts, draw them.
+			if (count($bigtree["page"]["callouts"])) { 
 		?>
 		<div class="callouts clear">
 			<?
-				foreach ($page["callouts"] as $callout) {
-					include "../templates/callouts/" . $callout["type"] . ".php";
+				foreach ($bigtree["page"]["callouts"] as $callout) {
+					include "../templates/callouts/".$callout["type"].".php";
 				}
 			?>
 		</div>
 		<? 
-			} 
+			}
 		?>
 	</aside>
 	<div class="cell_9 content">

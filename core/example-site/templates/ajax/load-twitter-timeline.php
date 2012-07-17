@@ -1,12 +1,8 @@
 <?
-	if (class_exists("BTXTwitterAPI")) {
-		$twitterAPI = new BTXTwitterAPI;
-		$twitterTimeline = $twitterAPI->search($_GET["search"]);
-		$twitterCount = floor(count($twitterTimeline["results"]) / 3) * 3;
-		$twitterTimeline = array_slice($twitterTimeline["results"], 0, $twitterCount);
-	} else {
-		$twitterTimeline = false;
-	}
+	$twitterAPI = new BTXTwitterAPI;
+	$twitterTimeline = $twitterAPI->search($_GET["search"]);
+	$twitterCount = floor(count($twitterTimeline["results"]) / 3) * 3;
+	$twitterTimeline = array_slice($twitterTimeline["results"], 0, $twitterCount);
 	
 	foreach ($twitterTimeline as $tweet) {
 ?>

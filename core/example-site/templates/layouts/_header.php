@@ -6,7 +6,7 @@
 	$site = $cms->getPage(0, false);
 	
 	$site_title = $site["title"];
-	$page_title = ($page["title"] != $site_title) ? $page["title"] : false;
+	$page_title = ($bigtree["page"]["title"] != $site_title) ? $bigtree["page"]["title"] : false;
 	
 	// Get top level navigation, only one level deep.
 	$nav = $cms->getNavByParent(0, 1);

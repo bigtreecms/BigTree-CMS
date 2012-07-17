@@ -1,6 +1,11 @@
 <?
+	// Get the footer address that's stored in Settings
 	$footerAddress = $cms->getSetting("footer-address");
-	$footerSocial = json_decode($cms->getSetting("footer-social-links"), true);
+	
+	// Get social media links from Settings.
+	$footerSocial = $cms->getSetting("footer-social-links");
+	
+	// Get information from the about page to display in the footer.
 	$aboutMe = $cms->getPage(4);
 	
 	// Trim just the address
@@ -19,19 +24,15 @@
 				<div class="cell_3 push_1 right social">
 					<h6>Accounts</h6>
 					<p>
-						<?
-							foreach ($footerSocial as $socialLink) {
-						?>
+						<? foreach ($footerSocial as $socialLink) { ?>
 						<a href="<?=$socialLink["link"]?>" class="<?=strtolower($socialLink["title"])?>" target="_blank"><?=$socialLink["title"]?><small><?=$socialLink["subtitle"]?></small></a>
-						<?
-							}
-						?>
+						<? } ?>
 					</p>
 				</div>
 				<div class="cell_4 push_1 about">
 					<h6><?=$aboutMe["resources"]["page_header"]?></h6>
 					<?
-						if ($aboutMe["resources"]["photo_file"] != "") {
+						if ($aboutMe["resources"]["photo_file"]) {
 							$photoFile = BigTree::prefixFile($aboutMe["resources"]["photo_file"], "tiny_");
 					?>
 					<img src="<?=$photoFile?>" alt="Image: <?=$aboutMe["resources"]["page_header"]?>" class="block_left" />

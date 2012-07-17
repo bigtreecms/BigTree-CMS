@@ -1,7 +1,7 @@
 <?
 	/* BASIC NAV RECURSION */
-	function recurseNav($nav, $mypage = "", $isSitemap = false) {
-		$lpage = DOMAIN.$_SERVER["REQUEST_URI"];
+	function recurseNav($nav, $isSitemap = false) {
+		$current_page = BigTree::currentURL();
 		$i = 0;
 		$count = count($nav);
 		if ($count > 0) {
@@ -9,13 +9,13 @@
 			foreach ($nav as $navitem) {
 				$link = $navitem["link"];
 				$target = (isset($navitem['new_window']) && $navitem['new_window'] == 'Yes') ? ' target="_blank"' : '';
-				$hasSubnav = strpos($mypage,$link) !== false && $navitem["children"];
+				$hasSubnav = strpos($current_page,$link) !== false && $navitem["children"];
 				
 				$class = ' class="';
-				if (strpos($mypage, $link) !== false) {
+				if (strpos($current_page, $link) !== false) {
 					$class .= 'sub_current';
 				}
-				if ($mypage == $link) {
+				if ($current_page == $link) {
 					$class .= ' active';
 				}
 				if ($navitem["class"] != "") {
@@ -27,10 +27,10 @@
 				if ($hasSubnav) {
 					$li_class .= ' has_subnav';
 				}
-				if (strpos($mypage, $link) !== false) {
+				if (strpos($current_page, $link) !== false) {
 					$li_class .= ' sub_current';
 				}
-				if ($mypage == $link) {
+				if ($current_page == $link) {
 					$li_class .= ' active';
 				}
 				if ($i == 0) {
@@ -49,8 +49,8 @@
 				echo '<li' . $li_class . '>';
 				echo '<a href="' . $link . '"' . $target . $class . '>' . $navitem["title"].'</a>';
 
-				if ((strpos($lpage, $link) !== false && $navitem["children"]) || $isSitemap === true) {
-					recurseNav($navitem["children"], $mypage, $isSitemap);
+				if ((strpos($current_page, $link) !== false && $navitem["children"]) || $isSitemap === true) {
+					recurseNav($navitem["children"], $isSitemap);
 				}
 
 				echo '</li>';
