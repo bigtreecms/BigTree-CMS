@@ -13,6 +13,11 @@
 		} else {
 			$value = htmlspecialchars($data[$key]);
 		}
+		
+		// Form Field Types are probably going to already encode their stuff so we need it back.
+		if (is_array(json_decode($value,true))) {
+			$value = json_decode($value,true);
+		}
 	
 		$admin->updateSettingValue($_POST["id"],$value);
 		
