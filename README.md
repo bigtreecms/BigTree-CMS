@@ -52,6 +52,10 @@ Changelog
 - FIXED: Empty module groups are no longer shown in the Modules dropdown
 - FIXED: File Browser "Cancel" button not closing the window when packaging a module.
 - FIXED: The front end editor now alerts a user if there is no editable content.
+- FIXED: Custom selects misbehaving in dialogs
+- FIXED: Sorting via fields not using backticks (`) around column names
+- FIXED: RSS 2 feeds not really being RSS 2.0
+- FIXED: Warning that could show when preprocessing functions didn't return an array
 - REMOVED: Custom JavaScript and CSS in Auto Module forms.
 - REMOVED: Uncached ability in Auto Module views.
 
