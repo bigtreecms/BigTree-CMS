@@ -170,7 +170,7 @@ var Site = {
     	},
     	respond: function() {
     		if (this.loaded) {
-    			this.pageWidth = this.$viewport.outerWidth(true);
+    			this.pageWidth = this.$viewport.outerWidth();
     			this.itemWidth = this.$articles.eq(0).outerWidth(true);
     			this.perPage = this.pageWidth / this.itemWidth;
     			this.pageCount = Math.ceil(this.$articles.length / this.perPage);
