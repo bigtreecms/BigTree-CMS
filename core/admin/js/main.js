@@ -219,6 +219,7 @@ var BigTreeSelect = Class.extend({
 	Open: false,
 	Options: [],
 	BoundWindowClick: false,
+	BoundOverflowScroll: false,
 	WasRelative: false,
 	KeyDownBind: false,
 	
@@ -366,19 +367,19 @@ var BigTreeSelect = Class.extend({
 	},
 	
 	click: function() {
-		$("select").not(this.Element).trigger("closeNow");
-		this.Element.focus();
-		
-		// Check if we're in a sortable row and disable it's relative position if so.
-		li = this.Element.parent("li");
-		if (li.length) {
-			if (li.css("position") == "relative") {
-				li.css("position","");
-				this.WasRelative = true;
-			}
-		}
-		
 		if (!this.Open) {
+			$("select").not(this.Element).trigger("closeNow");
+			this.Element.focus();
+			
+			// Check if we're in a sortable row and disable it's relative position if so.
+			li = this.Element.parent("li");
+			if (li.length) {
+				if (li.css("position") == "relative") {
+					li.css("position","");
+					this.WasRelative = true;
+				}
+			}
+			
 			dList = this.Container.find(".select_options");
 			this.Open = true;
 			dList.show();
@@ -386,18 +387,27 @@ var BigTreeSelect = Class.extend({
 			this.BoundWindowClick = $.proxy(this.close,this);
 			$("body").click(this.BoundWindowClick);
 			
-			// If the select drops below the visible area, scroll down a bit.
-			dOffset = dList.offset().top + dList.height();
-			toScroll = dOffset - window.scrollY - $(window).height();
-			if (toScroll > 0) {
-				$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
+			// Find out if we're in a dialog and have an overflow
+			overflow = this.Container.parents(".overflow");
+			if (overflow.length) {				
+				// WebKit needs fixin.
+				if ($.browser.webkit) {
+					dList.css("marginTop",-1 * overflow.scrollTop() + "px");
+				}
+				
+				// When someone scrolls the overflow, close the select or the dropdown will detach.
+				this.BoundOverflowScroll = $.proxy(this.close,this);
+				setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
+			} else {
+				// If the select drops below the visible area, scroll down a bit.
+				dOffset = dList.offset().top + dList.height();
+				toScroll = dOffset - window.scrollY - $(window).height();
+				if (toScroll > 0) {
+				    $('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
+				}
 			}
-			
 		} else {
-			this.Open = false;
-			this.Container.removeClass("open");
-			this.Container.find(".select_options").hide();
-			$("body").unbind("click",this.BoundWindowClick);
+			this.close();
 		}
 
 		return false;
@@ -408,6 +418,11 @@ var BigTreeSelect = Class.extend({
 		this.Container.removeClass("open");
 		this.Container.find(".select_options").hide();
 		$("body").unbind("click",this.BoundWindowClick);
+		
+		if (this.BoundOverflowScroll) {
+			this.Container.parents(".overflow").unbind("scroll",this.BoundOverflowScroll);
+			this.BoundOverflowScroll = false;
+		}
 		
 		// Reset relative position if applicable
 		if (this.WasRelative) {
@@ -424,8 +439,9 @@ var BigTreeSelect = Class.extend({
 		this.Container.find("span").html(el.html());
 		this.Container.find("a").removeClass("active");
 		el.addClass("active");
-		$("body").unbind("click",this.BoundWindowClick);
+		
 		this.close();
+
 		this.Element.trigger("changed", { value: el.attr("data-value"), text: el.innerHTML });
 		this.Element.trigger("change", { value: el.attr("data-value"), text: el.innerHTML });
 		return false;
