@@ -135,11 +135,10 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	#footer .about a { color: #666; border-bottom: 1px dotted #ccc; }
 	#footer .about a:hover { border-color: #222; color: #222; }
 	#footer .social p { line-height: 20px; margin-top: 22px; }
-	#footer .social a { background: url(static_root/images/icon_footer_social.png) no-repeat left top; color: #222; display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 0 0 18px 20px; padding: 0 0 0 25px; text-transform: uppercase; }
+	#footer .social a { background: url(static_root/images/footer-social.png) no-repeat left top; color: #222; display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 0 0 18px 20px; padding: 0 0 0 25px; text-transform: uppercase; }
 	#footer .social small { color: #999; display: block; font-size: 9px; line-height: 1; }
 	#footer .social .facebook { background-position: 0 0; }
-	#footer .social .twitter { background-position: 0 -40px; }
-	#footer .social .github { background-position: 0 -79px; }
+	#footer .social .twitter { background-position: 0 -30px; }
 	
 	#footer .copyright { border-top: 1px solid #eee; margin: 3% 0 0; text-align: center; }
 	#footer .copyright p { color: #999; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 26px 0; }
@@ -289,7 +288,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.blog .post .links a { margin: 0 15px 0 0; }
 	.blog .post .comments { margin-top: 3%; margin-bottom: 3%; }
 	.blog .post .disqus_notice { font-size: 16px; }
-	.blog .last_post { border-bottom: none; }
+	.blog .last_post { border-bottom: none; margin-bottom: 0; }
 	
 	.blog .post_page { border: none; margin-top: 0; margin-bottom: 0; }
 	.blog .post_page .meta { margin-bottom: 6%; }
@@ -419,4 +418,12 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		
 		.split { width: 100%; }
 		.addthis_toolbox { float: left; }
+	}
+	
+	/* Hi-Res Display Assets */
+	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
+		
+		#footer .social .facebook { background: url(static_root/images/footer-facebook-hi-res.png) no-repeat; background-size: 16px 16px; }
+		#footer .social .twitter { background: url(static_root/images/footer-twitter-hi-res.png) no-repeat; background-size: 16px 16px; }
+
 	}
