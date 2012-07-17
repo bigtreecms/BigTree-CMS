@@ -208,7 +208,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.twitter_timeline p { float: left; }
 	.twitter_timeline p a { border-bottom: 1px dotted #ccc; color: #222; }
 	.twitter_timeline p a:hover { border-color: #222; }
-	.twitter_timeline hr { clear: both; margin: 25px 0 40px; width: 60%; }
+	.twitter_timeline hr { clear: both; margin: 25px 0 40px; width: 100%; }
 	.twitter_timeline .viewport { height: 200px; overflow: hidden; position: relative; }
 	.twitter_timeline .timeline { left: 0; position: absolute; top: 0; width: 10000px; 
 		-webkit-transition: left 0.25s ease-out;
