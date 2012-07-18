@@ -56,6 +56,7 @@ Changelog
 - FIXED: Sorting via fields not using backticks (`) around column names
 - FIXED: RSS 2 feeds not really being RSS 2.0
 - FIXED: Warning that could show when preprocessing functions didn't return an array
+- FIXED: A rare bug where creating a new item in a module before the module's view was cached would make the existing items never cache.
 - REMOVED: Custom JavaScript and CSS in Auto Module forms.
 - REMOVED: Uncached ability in Auto Module views.
 
