@@ -47,29 +47,30 @@
 				$view["actions"] = json_decode($view["actions"],true);
 				$view["options"] = json_decode($view["options"],true);
 				
-				// In case this view has never been cached.
-				self::cacheViewData($view);
+				// In case this view has never been cached, run the whole view, otherwise just this one.
+				if (!self::cacheViewData($view)) {
 				
-				// Find out what module we're using so we can get the gbp_field
-				$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
-				$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
-				$view["gbp"] = json_decode($module["gbp"],true);
-				
-				$form = self::getRelatedFormForView($view);
-				
-				$parsers = array();
-				$poplists = array();
-				
-				foreach ($view["fields"] as $key => $field) {
-					$value = $item[$key];
-					if ($field["parser"]) {
-						$parsers[$key] = $field["parser"];
-					} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {
-						$poplists[$key] = array("description" => $form["fields"][$key]["pop-description"], "table" => $form["fields"][$key]["pop-table"]);
+					// Find out what module we're using so we can get the gbp_field
+					$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
+					$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
+					$view["gbp"] = json_decode($module["gbp"],true);
+					
+					$form = self::getRelatedFormForView($view);
+					
+					$parsers = array();
+					$poplists = array();
+					
+					foreach ($view["fields"] as $key => $field) {
+						$value = $item[$key];
+						if ($field["parser"]) {
+							$parsers[$key] = $field["parser"];
+						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {
+							$poplists[$key] = array("description" => $form["fields"][$key]["pop-description"], "table" => $form["fields"][$key]["pop-table"]);
+						}
 					}
+					
+					self::cacheRecord($item,$view,$parsers,$poplists);
 				}
-				
-				self::cacheRecord($item,$view,$parsers,$poplists);
 			}
 		}
 		
@@ -188,7 +189,7 @@
 			// See if we already have cached data.
 			$r = sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"));
 			if ($r) {
-				return;
+				return false;
 			}
 			
 			// Find out what module we're using so we can get the gbp_field
@@ -244,6 +245,8 @@
 				
 				self::cacheRecord($item,$view,$parsers,$poplists);
 			}
+			
+			return true;
 		}
 		
 		/*
