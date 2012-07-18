@@ -47,6 +47,9 @@
 				$view["actions"] = json_decode($view["actions"],true);
 				$view["options"] = json_decode($view["options"],true);
 				
+				// In case this view has never been cached.
+				self::cacheViewData($view);
+				
 				// Find out what module we're using so we can get the gbp_field
 				$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
 				$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
