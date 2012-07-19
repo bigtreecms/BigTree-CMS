@@ -24,7 +24,7 @@
 			"archived",
 			"approved"
 		);
-		
+
 		// !Reserved Top Level Routes
 		var $ReservedTLRoutes = array(
 			"ajax",
@@ -64,12 +64,12 @@
 				"class" => "icon_delete"
 			)
 		);
-		
+
 		/*
 			Constructor:
 				Initializes the user's permissions.
 		*/
-		
+
 		function __construct() {
 			if (isset($_SESSION["bigtree"]["email"])) {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree"]["id"]."' AND email = '".$_SESSION["bigtree"]["email"]."'"));
@@ -96,30 +96,30 @@
 				// Clean up
 				unset($user,$pass,$f);
 			}
-			
+
 			// Update the reserved top level routes with the admin's route
 			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
 			$this->ReservedTLRoutes[] = $ar[0];
 			unset($ar);
 		}
-		
+
 		/*
 			Function: archivePage
 				Archives a page.
-			
+
 			Parameters:
 				page - Either a page id or page entry.
-		
+
 			Returns:
 				true if successful. false if the logged in user doesn't have permission.
-			
+
 			See Also:
 				<archivePageChildren>
 		*/
 
 		function archivePage($page) {
 			global $cms;
-			
+
 			if (is_array($page)) {
 				$page = mysql_real_escape_string($page["id"]);
 			} else {
@@ -136,14 +136,14 @@
 			}
 			return false;
 		}
-		
+
 		/*
 			Function: archivePageChildren
 				Archives a page's children and sets the archive status to inherited.
-			
+
 			Parameters:
 				page - A page id.
-			
+
 			See Also:
 				<archivePage>
 		*/
@@ -163,10 +163,10 @@
 		/*
 			Function: autoIPL
 				Automatically converts links to internal page links.
-			
+
 			Parameters:
 				html - A string of contents that may contain URLs
-			
+
 			Returns:
 				A string with hard links converted into internal page links.
 		*/
@@ -195,20 +195,20 @@
 			}
 			return $html;
 		}
-		
+
 		/*
 			Function: canAccessGroup
 				Returns whether or not the logged in user can access a module group.
 				Utility for form field types / views -- we already know module group permissions are enabled so we skip some overhead
-		
+
 			Parameters:
 				module - A module entry.
 				group - A group id.
-			
+
 			Returns:
 				true if the user can access this group, otherwise false.
 		*/
-			
+
 		function canAccessGroup($module,$group) {
 			if ($this->Level > 0) {
 				return true;
@@ -229,24 +229,24 @@
 
 			return false;
 		}
-		
+
 		/*
 			Function: canModifyChildren
 				Checks whether the logged in user can modify all child pages or a page.
 				Assumes we already know that we're a publisher of the parent.
-			
+
 			Parameters:
 				page - The page entry to check children for.
-			
+
 			Returns:
 				true if the user can modify all the page children, otherwise false.
 		*/
-		
+
 		function canModifyChildren($page) {
 			if ($this->Level > 0) {
 				return true;
 			}
-			
+
 			$q = sqlquery("SELECT id FROM bigtree_pages WHERE path LIKE '".mysql_real_escape_string($page["path"])."%'");
 			while ($f = sqlfetch($q)) {
 				$perm = $this->Permissions["page"][$f["id"]];
@@ -254,10 +254,10 @@
 					return false;
 				}
 			}
-			
+
 			return true;
 		}
-		
+
 		/*
 			Function: changePassword
 				Changes a user's password via a password change hash and redirects to a success page.
@@ -283,18 +283,18 @@
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
 			BigTree::redirect($GLOBALS["admin_root"]."login/reset-success/");
 		}
-		
+
 		/*
 			Function: checkAccess
 				Determines whether the logged in user has access to a module or not.
-			
+
 			Parameters:
 				module - Either a module id or module entry.
-			
+
 			Returns:
 				true if the user can access the module, otherwise false.
 		*/
-		
+
 		function checkAccess($module) {
 			if (is_array($module)) {
 				$module = $module["id"];
@@ -315,21 +315,21 @@
 							return true;
 						}
 					}
-				}	
+				}
 			}
 
 			return false;
 		}
-		
+
 		/*
 			Function: checkHTML
 				Checks a block of HTML for broken links/images
-			
+
 			Parameters:
 				relative_path - The starting path of the page containing the HTML (so that relative links, i.e. "good/" know where to begin)
 				html - A string of HTML
 				external - Whether to check external links (slow) or not
-		
+
 			Returns:
 				An array of errors.
 		*/
@@ -407,7 +407,7 @@
 			}
 			return array($errors);
 		}
-		
+
 		/*
 			Function: clearCache
 				Removes all files in the cache directory.
@@ -421,11 +421,11 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: createCallout
 				Creates a callout and its files.
-			
+
 			Parameters:
 				id - The id.
 				name - The name.
@@ -433,17 +433,17 @@
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers).
 				resources - An array of resources.
 		*/
-		
+
 		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = '<?
 	/*
 		Resources Available:
-';			
-			
+';
+
 			$cached_types = $this->getCachedFieldTypes();
 			$types = $cached_types["callout"];
-			
+
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"] && $resource["id"] != "type") {
@@ -453,9 +453,9 @@
 							$resource[$key] = $val;
 						}
 					}
-					
+
 					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
-					
+
 					$resource["id"] = htmlspecialchars($resource["id"]);
 					$resource["title"] = htmlspecialchars($resource["title"]);
 					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
@@ -463,10 +463,10 @@
 					$clean_resources[] = $resource;
 				}
 			}
-			
+
 			$file_contents .= '	*/
-?>';		
-			
+?>';
+
 			// Clean up the post variables
 			$id = mysql_real_escape_string(htmlspecialchars($id));
 			$name = mysql_real_escape_string(htmlspecialchars($name));
@@ -475,19 +475,19 @@
 			$resources = mysql_real_escape_string(json_encode($clean_resources));
 			$display_default = mysql_real_escape_string($display_default);
 			$display_field = mysql_real_escape_string($display_field);
-			
+
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
 				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
 				chmod(SERVER_ROOT."templates/callouts/".$id.".php",0777);
 			}
-			
+
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
 		}
-		
+
 		/*
 			Function: createFeed
 				Creates a feed.
-			
+
 			Parameters:
 				name - The name.
 				description - The description.
@@ -495,14 +495,14 @@
 				type - The feed type.
 				options - The feed type options.
 				fields - The fields.
-			
+
 			Returns:
 				The route to the new feed.
 		*/
-		
+
 		function createFeed($name,$description,$table,$type,$options,$fields) {
 			global $cms;
-			
+
 			// Options were encoded before submitting the form, so let's get them back.
 			$options = json_decode($options,true);
 			if (is_array($options)) {
@@ -510,7 +510,7 @@
 					$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
 				}
 			}
-			
+
 			// Get a unique route!
 			$route = $cms->urlify($name);
 			$x = 2;
@@ -521,7 +521,7 @@
 				$f = $cms->getFeedByRoute($route);
 				$x++;
 			}
-			
+
 			// Fix stuff up for the db.
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -530,16 +530,16 @@
 			$options = mysql_real_escape_string(json_encode($options));
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$route = mysql_real_escape_string($route);
-			
+
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','$type','$table','$fields','$options')");
-			
+
 			return $route;
 		}
-		
+
 		/*
 			Function: createFieldType
 				Creates a field type and its files.
-			
+
 			Parameters:
 				id - The id of the field type.
 				name - The name.
@@ -548,7 +548,7 @@
 				callouts - Whether it can be used as a callout resource or not ("on" is yes)
 				settings - Whether it can be used as a setting resource or not ("on" is yes)
 		*/
-		
+
 		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
@@ -557,11 +557,11 @@
 			$modules = mysql_real_escape_string($modules);
 			$callouts = mysql_real_escape_string($callouts);
 			$settings = mysql_real_escape_string($settings);
-			
+
 			$file = "$id.php";
-			
+
 			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
-			
+
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
@@ -577,27 +577,27 @@
 				BigTree::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
 				chmod(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file",0777);
 			}
-				
+
 			unlink(SERVER_ROOT."cache/form-field-types.btc");
 		}
-		
+
 		/*
 			Function: createMessage
 				Creates a message in message center.
-			
+
 			Parameters:
 				subject - The subject line.
 				message - The message.
 				recipients - The recipients.
 				in_response_to - The message being replied to.
 		*/
-		
+
 		function createMessage($subject,$message,$recipients,$in_response_to = 0) {
 			// Clear tags out of the subject, sanitize the message body of XSS attacks.
 			$subject = mysql_real_escape_string(htmlspecialchars(strip_tags($subject)));
 			$message = mysql_real_escape_string(strip_tags($message,"<p><b><strong><em><i><a>"));
 			$in_response_to = mysql_real_escape_string($in_response_to);
-			
+
 			// We build the send_to field this way so that we don't have to create a second table of recipients.
 			// Is it faster database wise using a LIKE over a JOIN? I don't know, but it makes for one less table.
 			$send_to = "|";
@@ -605,33 +605,33 @@
 				// Make sure they actually put in a number and didn't try to screw with the $_POST
 				$send_to .= intval($r)."|";
 			}
-			
+
 			$send_to = mysql_real_escape_string($send_to);
-			
-			sqlquery("INSERT INTO bigtree_messages (`sender`,`recipients`,`subject`,`message`,`date`,`response_to`) VALUES ('".$this->ID."','$send_to','$subject','$message',NOW(),'$in_response_to')");	
+
+			sqlquery("INSERT INTO bigtree_messages (`sender`,`recipients`,`subject`,`message`,`date`,`response_to`) VALUES ('".$this->ID."','$send_to','$subject','$message',NOW(),'$in_response_to')");
 		}
-		
+
 		/*
 			Function: createModule
 				Creates a module and its class file.
-			
+
 			Parameters:
 				name - The name of the module.
 				group - The group for the module.
 				class - The module class to create.
 				table - The table this module relates to.
 				permissions - The group-based permissions.
-			
+
 			Returns:
 				The new module id.
 		*/
-		
+
 		function createModule($name,$group,$class,$table,$permissions) {
 			global $cms;
-			
+
 			// Find an available module route.
 			$route = $cms->urlify($name);
-			
+
 			// Go through the hard coded modules
 			$existing = array();
 			$d = opendir(SERVER_ROOT."core/admin/modules/");
@@ -660,7 +660,7 @@
 			while ($f = sqlfetch($q)) {
 				$existing[] = $f["route"];
 			}
-			
+
 			// Get a unique route
 			$x = 2;
 			$oroute = $route;
@@ -668,16 +668,16 @@
 				$route = $oroute."-".$x;
 				$x++;
 			}
-			
+
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$route = mysql_real_escape_string($route);
 			$class = mysql_real_escape_string($class);
 			$group = $group ? "'".mysql_real_escape_string($group)."'" : "NULL";
 			$gbp = mysql_real_escape_string(json_encode($permissions));
-			
+
 			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group,'$gbp')");
 			$id = sqlid();
-			
+
 			if ($class) {
 				// Create class module.
 				$f = fopen(SERVER_ROOT."custom/inc/modules/$route.php","w");
@@ -690,18 +690,18 @@
 				fwrite($f,"?>\n");
 				fclose($f);
 				chmod(SERVER_ROOT."custom/inc/modules/$route.php",0777);
-				
+
 				// Remove cached class list.
 				unlink(SERVER_ROOT."cache/module-class-list.btc");
 			}
-			
+
 			return $id;
 		}
-		
+
 		/*
 			Function: createModuleAction
 				Creates a module action.
-			
+
 			Parameters:
 				module - The module to create an action for.
 				name - The name of the action.
@@ -713,7 +713,7 @@
 				level - The required access level.
 				position - The position in the list of actions.
 		*/
-		
+
 		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0,$position = 0) {
 			$module = mysql_real_escape_string($module);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
@@ -723,21 +723,21 @@
 			$form = mysql_real_escape_string($form);
 			$view = mysql_real_escape_string($view);
 			$level = mysql_real_escape_string($level);
-		
+
 			$oroute = $route;
 			$x = 2;
 			while ($f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"))) {
 				$route = $oroute."-".$x;
 				$x++;
 			}
-			
+
 			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level','$form','$view','$position')");
 		}
-		
+
 		/*
 			Function: createModuleForm
 				Creates a module form.
-			
+
 			Parameters:
 				title - The title of the form.
 				table - The table for the form data.
@@ -745,60 +745,62 @@
 				preprocess - Optional preprocessing function to run before data is parsed.
 				callback - Optional callback function to run after the form processes.
 				default_position - Default position for entries to the form (if the view is positioned).
-				
+				return_view - The view to return to after completing the form.
+
 			Returns:
 				The new form id.
 		*/
-		
-		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "") {
+
+		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false) {
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$table = mysql_real_escape_string($table);
 			$fields = mysql_real_escape_string(json_encode($fields));
 			$preprocess - mysql_real_escape_string($preprocess);
 			$callback - mysql_real_escape_string($callback);
 			$default_position - mysql_real_escape_string($default_position);
-			
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position')");
+			$return_view = $return_view ? "'".mysql_real_escape_string($return_view)."'" : "NULL";
+
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view)");
 			return sqlid();
 		}
-		
+
 		/*
 			Function: createModuleGroup
 				Creates a module group.
-			
+
 			Parameters:
 				name - The name of the group.
 				in_nav - Whether to show the group in the dropdown navigation
-			
+
 			Returns:
 				The id of the newly created group.
 		*/
-		
+
 		function createModuleGroup($name,$in_nav) {
 			global $cms;
-			
+
 			$name = mysql_real_escape_string($name);
-			
+
 			// Get a unique route
 			$x = 2;
 			$route = $cms->urlify($name);
 			$oroute = $route;
 			while ($this->getModuleGroupByRoute($route)) {
 				$route = $oroute."-".$x;
-				$x++;			
+				$x++;
 			}
-			
+
 			// Just to be safe
 			$route = mysql_real_escape_string($route);
-			
+
 			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`,`in_nav`) VALUES ('$name','$route','$in_nav')");
 			return sqlid();
 		}
-		
+
 		/*
 			Function: createModuleView
 				Creates a module view.
-			
+
 			Parameters:
 				title - View title.
 				description - Description.
@@ -809,11 +811,11 @@
 				actions - Actions array.
 				suffix - Add/Edit suffix.
 				preview_url - Optional preview URL.
-				
+
 			Returns:
 				The id for view.
 		*/
-		
+
 		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -824,27 +826,27 @@
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
 			$preview_url = mysql_real_escape_string(htmlspecialchars($this->makeIPL($preview_url)));
-			
+
 			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
-			
+
 			return sqlid();
 		}
-		
+
 		/*
 			Function: createPage
 				Creates a page.
 				Does not check permissions.
-			
+
 			Parameters:
 				data - An array of page information.
-			
+
 			Returns:
 				The id of the newly created page.
 		*/
 
 		function createPage($data) {
 			global $cms;
-			
+
 			// Loop through the posted data, make sure no session hijacking is done.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
@@ -855,13 +857,13 @@
 					}
 				}
 			}
-			
+
 			// If there's an external link, make sure it's a relative URL
 			if ($external) {
 				$external = $this->makeIPL($external);
 			}
-			
-			
+
+
 			// Who knows what they may have put in for a route, so we're not going to use the mysql_real_escape_string version.
 			$route = $data["route"];
 			if (!$route) {
@@ -871,7 +873,7 @@
 				// Otherwise sanitize the one they did provide.
 				$route = $cms->urlify($route);
 			}
-			
+
 			// We need to figure out a unique route for the page.  Make sure it doesn't match a directory in /site/
 			$original_route = $route;
 			$x = 2;
@@ -886,7 +888,7 @@
 					$x++;
 				}
 			}
-			
+
 			// Make sure it doesn't have the same route as any of its siblings.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
 			while ($f) {
@@ -894,17 +896,17 @@
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
 				$x++;
 			}
-			
+
 			// Make sure route isn't longer than 255
 			$route = substr($route,0,255);
-			
+
 			// If we have a parent, get the full navigation path, otherwise, just use this route as the path since it's top level.
 			if ($parent) {
 				$path = $this->getFullNavigationPath($parent)."/".$route;
 			} else {
 				$path = $route;
 			}
-			
+
 			// If we set a publish at date, make it the proper MySQL format.
 			if ($publish_at) {
 				$publish_at = "'".date("Y-m-d",strtotime($publish_at))."'";
@@ -918,15 +920,15 @@
 			} else {
 				$expire_at = "NULL";
 			}
-			
+
 			// Make the title, navigation title, description, keywords, and external link htmlspecialchar'd -- these are all things we'll be echoing in the HTML so we might as well make them valid now instead of at display time.
-			
+
 			$title = htmlspecialchars($title);
 			$nav_title = htmlspecialchars($nav_title);
 			$meta_description = htmlspecialchars($meta_description);
 			$meta_keywords = htmlspecialchars($meta_keywords);
 			$external = htmlspecialchars($external);
-			
+
 			// Set the trunk flag back to no if the user isn't a developer
 			if ($this->Level < 2) {
 				$trunk = "";
@@ -948,7 +950,7 @@
 
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path'");
-			
+
 			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
 			$this->clearCache();
 			// Let search engines know this page now exists.
@@ -958,11 +960,11 @@
 
 			return $id;
 		}
-		
+
 		/*
 			Function: createPendingChange
 				Creates a pending change.
-			
+
 			Parameters:
 				table - The table the change applies to.
 				item_id - The entry the change applies to's id.
@@ -970,11 +972,11 @@
 				mtm_changes - Many to Many changes.
 				tags_changes - Tags changes.
 				module - The module id for the change.
-				
+
 			Returns:
 				The change id.
 		*/
-		
+
 		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
 			$table = mysql_real_escape_string($table);
 			$item_id = mysql_real_escape_string($item_id);
@@ -982,68 +984,68 @@
 			$mtm_changes = mysql_real_escape_string(json_encode($mtm_changes));
 			$tags_changes = mysql_real_escape_string(json_encode($tags_changes));
 			$module = mysql_real_escape_string($module);
-			
+
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`) VALUES ('".$this->ID."',NOW(),'$table','$item_id','$changes','$mtm_changes','$tags_changes','$module')");
 			return sqlid();
 		}
-		
+
 		/*
 			Function: createPendingPage
 				Creates a pending page entry in bigtree_pending_changes
-			
+
 			Parameters:
 				data - An array of page information.
-		
+
 			Returns:
 				The id of the pending change.
 		*/
 
 		function createPendingPage($data) {
 			global $cms;
-			
+
 			// Make a relative URL for external links.
 			if ($data["external"]) {
 				$data["external"] = $this->makeIPL($data["external"]);
 			}
-			
+
 			// Save the tags, then dump them from the saved changes array.
 			$tags = mysql_real_escape_string(json_encode($data["_tags"]));
 			unset($data["_tags"]);
-			
+
 			// Make the nav title, title, external link, keywords, and description htmlspecialchar'd for displaying on the front end / the form again.
 			$data["nav_title"] = htmlspecialchars($data["nav_title"]);
 			$data["title"] = htmlspecialchars($data["title"]);
 			$data["external"] = htmlspecialchars($data["external"]);
 			$data["meta_keywords"] = htmlspecialchars($data["meta_keywords"]);
 			$data["meta_description"] = htmlspecialchars($data["meta_description"]);
-			
+
 			// Set the trunk flag back to no if the user isn't a developer
 			if ($this->Level < 2) {
 				$data["trunk"] = "";
 			} else {
 				$data["trunk"] = mysql_real_escape_string($data["trunk"]);
 			}
-			
+
 			$parent = mysql_real_escape_string($data["parent"]);
 
 			// JSON encode the changes and stick them in the database.
 			unset($data["MAX_FILE_SIZE"]);
 			unset($data["ptype"]);
 			$data = mysql_real_escape_string(json_encode($data));
-			
+
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`title`,`table`,`changes`,`tags_changes`,`type`,`module`,`pending_page_parent`) VALUES ('".$this->ID."',NOW(),'New Page Created','bigtree_pages','$data','$tags','NEW','','$parent')");
 			$id = sqlid();
-			
+
 			// Audit trail
 			$this->track("bigtree_pages","p$id","created-pending");
 
 			return $id;
 		}
-		
+
 		/*
 			Function: createResource
 				Creates a resource.
-			
+
 			Parameters:
 				folder - The folder to place it in.
 				file - The file path.
@@ -1054,11 +1056,11 @@
 				width - The image width (if it's an image).
 				thumbs - An array of thumbnails (if it's an image).
 				list_thumb_margin - The margin for the list thumbnail (if it's an image).
-			
+
 			Returns:
 				The new resource id.
 		*/
-		
+
 		function createResource($folder,$file,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array(),$list_thumb_margin = 0) {
 			$folder = $folder ? "'".mysql_real_escape_string($folder)."'" : "NULL";
 			$file = mysql_real_escape_string($file);
@@ -1069,37 +1071,37 @@
 			$width = intval($width);
 			$thumbs = mysql_real_escape_string(json_encode($thumbs));
 			$list_thumb_margin = intval($list_thumb_margin);
-			
-			sqlquery("INSERT INTO bigtree_resources (`file`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");	
+
+			sqlquery("INSERT INTO bigtree_resources (`file`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");
 			return sqlid();
 		}
-		
+
 		/*
 			Function: createResourceFolder
 				Creates a resource folder.
 				Checks permissions.
-			
+
 			Paremeters:
 				parent - The parent folder.
 				name - The name of the new folder.
-			
+
 			Returns:
 				The new folder id.
 		*/
-		
+
 		function createResourceFolder($parent,$name) {
 			$perm = $this->getResourceFolderPermission($parent);
 			if ($perm != "p") {
 				die("You don't have permission to make a folder here.");
 			}
-			
+
 			$parent = mysql_real_escape_string($parent);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
-			
+
 			sqlquery("INSERT INTO bigtree_resource_folders (`name`,`parent`) VALUES ('$name','$parent')");
 			return sqlid();
 		}
-		
+
 		/*
 			Function: createSetting
 				Creates a setting.
@@ -1118,7 +1120,7 @@
 					$$key = mysql_real_escape_string(htmlspecialchars($val));
 				}
 			}
-			
+
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = mysql_real_escape_string($data["description"]);
 			// We don't want this encoded since it's JSON
@@ -1136,26 +1138,26 @@
 
 			return true;
 		}
-		
+
 		/*
 			Function: createTag
 				Creates a new tag, or returns the id of an existing one.
-			
+
 			Parameters:
 				tag - The tag.
-			
+
 			Returns:
 				If the tag exists, returns the existing tag's id.
 				Otherwise, returns the new tag id.
 		*/
-		
-		function createTag($tag) {	
+
+		function createTag($tag) {
 			global $cms;
-			
+
 			$tag = strtolower(html_entity_decode($tag));
 			// Check if the tag exists already.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".mysql_real_escape_string($tag)."'"));
-			
+
 			if (!$f) {
 				$meta = metaphone($tag);
 				$route = $cms->urlify($tag);
@@ -1170,14 +1172,14 @@
 			} else {
 				$id = $f["id"];
 			}
-			
+
 			return $id;
 		}
-		
+
 		/*
 			Function: createTemplate
 				Creates a template and its default files/directories.
-		
+
 			Paremeters:
 				id - Id for the template.
 				name - Name
@@ -1189,14 +1191,14 @@
 				callouts_enabled - "on" for yes
 				resources - An array of resources
 		*/
-		
+
 		function createTemplate($id,$name,$description,$routed,$level,$module,$image,$callouts_enabled,$resources) {
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
-		
+
 			$types = $this->getCachedFieldTypes();
 			$types = $types["template"];
-		
+
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
@@ -1206,9 +1208,9 @@
 							$resource[$key] = $val;
 						}
 					}
-					
+
 					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
-					
+
 					$resource["id"] = htmlspecialchars($resource["id"]);
 					$resource["title"] = htmlspecialchars($resource["title"]);
 					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
@@ -1216,11 +1218,11 @@
 					$clean_resources[] = $resource;
 				}
 			}
-						
-			
+
+
 			$file_contents .= '	*/
-?>';		
-			
+?>';
+
 			if ($routed == "on") {
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id)) {
 					mkdir(SERVER_ROOT."templates/routed/".$id);
@@ -1236,7 +1238,7 @@
 					chmod(SERVER_ROOT."templates/basic/".$id.".php",0777);
 				}
 			}
-			
+
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -1246,25 +1248,25 @@
 			$level = mysql_real_escape_string($level);
 			$callouts_enabled = mysql_real_escape_string($callouts_enabled);
 			$routed = mysql_real_escape_string($routed);
-			
+
 			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`image`,`description`,`level`,`callouts_enabled`,`routed`) VALUES ('$id','$name','$module','$resources','$image','$description','$level','$callouts_enabled','$routed')");
 		}
-		
+
 		/*
 			Function: createUser
 				Creates a user.
 				Checks for developer access.
-			
+
 			Parameters:
 				data - An array of user data. ("email", "password", "name", "company", "level", "permissions")
-			
+
 			Returns:
 				id of the newly created user or false if a user already exists with the provided email.
 		*/
 
 		function createUser($data) {
 			global $bigtree;
-			
+
 			// Safely go through the post data
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
@@ -1279,81 +1281,81 @@
 			}
 
 			$permissions = mysql_real_escape_string(json_encode($data["permissions"]));
-			
+
 			// If the user is trying to create a developer user and they're not a developer, then… no.
 			if ($level > $this->Level) {
 				$level = $this->Level;
 			}
-			
+
 			// Hash the password.
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
 
 			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
 			$id = sqlid();
-			
+
 			// Audit trail.
 			$this->track("bigtree_users",$id,"created");
 
 			return $id;
 		}
-		
+
 		/*
 			Function: deleteCallout
 				Deletes a callout and removes its file.
-			
+
 			Parameters:
 				id - The id of the callout.
 		*/
-		
+
 		function deleteCallout($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 		}
-		
+
 		/*
 			Function: deleteFeed
 				Deletes a feed.
-			
+
 			Parameters:
 				id - The id of the feed.
 		*/
-		
+
 		function deleteFeed($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_feeds WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteFieldType
 				Deletes a field type and erases its files.
-		
+
 			Parameters:
 				id - The id of the field type.
 		*/
-		
+
 		function deleteFieldType($id) {
 			unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".mysql_real_escape_string($id)."'");
 		}
-		
+
 		/*
 			Function: deleteModule
 				Deletes a module.
-			
+
 			Parameters:
 				id - The id of the module.
 		*/
-		
+
 		function deleteModule($id) {
 			$id = mysql_real_escape_string($id);
-			
+
 			// Get info and delete the class.
 			$module = $this->getModule($id);
 			unlink(SERVER_ROOT."custom/inc/modules/".$module["route"].".php");
-	
+
 			// Delete all the related auto module actions
 			$actions = $this->getModuleActions($id);
 			foreach ($actions as $action) {
@@ -1364,26 +1366,26 @@
 					sqlquery("DELETE FROM bigtree_module_views WHERE id = '".$action["view"]."'");
 				}
 			}
-			
+
 			// Delete actions
 			sqlquery("DELETE FROM bigtree_module_actions WHERE module = '$id'");
-			
+
 			// Delete the module
 			sqlquery("DELETE FROM bigtree_modules WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteModuleAction
 				Deletes a module action.
 				Also deletes the related form or view if no other action is using it.
-			
+
 			Parameters:
 				id - The id of the action to delete.
 		*/
-		
+
 		function deleteModuleAction($id) {
 			$id = mysql_real_escape_string($id);
-			
+
 			$a = $this->getModuleAction($id);
 			if ($a["form"]) {
 				// Only delete the auto-ness if it's the only one using it.
@@ -1399,60 +1401,60 @@
 			}
 			sqlquery("DELETE FROM bigtree_module_actions WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteModuleForm
 				Deletes a module form and its related actions.
-			
+
 			Parameters:
 				id - The id of the module form.
 		*/
-		
+
 		function deleteModuleForm($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_module_forms WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE form = '$id'");
 		}
-		
+
 		/*
 			Function: deleteModuleGroup
 				Deletes a module group. Sets modules in the group to Misc.
-			
+
 			Parameters:
 				id - The id of the module group.
 		*/
-		
+
 		function deleteModuleGroup($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_module_groups WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_modules SET `group` = '0' WHERE `group` = '$id'");
 		}
-		
+
 		/*
 			Function: deleteModuleView
 				Deletes a module view and its related actions.
-			
+
 			Parameters:
 				id - The id of the module view.
 		*/
-		
+
 		function deleteModuleView($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_module_views WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE view = '$id'");
 		}
-		
+
 		/*
 			Function: deletePage
 				Deletes a page or a pending page.
 				Checks permissions.
-			
+
 			Parameters:
 				page - A page id or a pending page id prefixed with a "p"
-			
+
 			Returns:
 				true if successful. Stops page execution if permission issues occur.
-		*/		
+		*/
 
 		function deletePage($page) {
 			global $cms;
@@ -1478,12 +1480,12 @@
 			}
 			$this->stop("You do not have permission to delete this page.");
 		}
-		
+
 		/*
 			Function: deletePageChildren
 				Deletes the children of a page and recurses downward.
 				Does not check permissions.
-			
+
 			Parameters:
 				id - The parent id to delete children for.
 		*/
@@ -1496,16 +1498,16 @@
 			sqlquery("DELETE FROM bigtree_pages WHERE parent = '$id'");
 			$this->track("bigtree_pages",$id,"deleted");
 		}
-		
+
 		/*
 			Function: deletePageDraft
 				Deletes a page draft.
 				Checks permissions.
-			
+
 			Parameters:
 				id - The page id to delete the draft for.
 		*/
-		
+
 		function deletePageDraft($id) {
 			$id = mysql_real_escape_string($id);
 			// Get the version, check if the user has access to the page the version refers to.
@@ -1513,20 +1515,20 @@
 			if ($access != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
-			
+
 			// Delete draft copy
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'");
 		}
-		
+
 		/*
 			Function: deletePageRevision
 				Deletes a page revision.
 				Checks permissions.
-			
+
 			Parameters:
 				id - The page version id.
 		*/
-		
+
 		function deletePageRevision($id) {
 			// Get the version, check if the user has access to the page the version refers to.
 			$revision = $this->getPageRevision($id);
@@ -1534,58 +1536,58 @@
 			if ($access != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
-			
+
 			// Delete the revision
 			sqlquery("DELETE FROM bigtree_page_revisions WHERE id = '".$revision["id"]."'");
 		}
-		
+
 		/*
 			Function: deletePendingChange
 				Deletes a pending change.
-			
+
 			Parameters:
 				id - The id of the change.
 		*/
-		
+
 		function deletePendingChange($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteSetting
 				Deletes a setting.
-			
+
 			Parameters:
 				id - The id of the setting.
 		*/
-		
+
 		function deleteSetting($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteTemplate
 				Deletes a template.
-			
+
 			Parameters:
 				id - The id of the template.
 		*/
-		
+
 		function deleteTemplate($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("DELETE FROM bigtree_templates WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteUser
 				Deletes a user.
 				Checks for developer access.
-			
+
 			Parameters:
 				id - The user id to delete.
-		
+
 			Returns:
 				true if successful. false if the logged in user does not have permission to delete the user.
 		*/
@@ -1605,37 +1607,37 @@
 
 			return true;
 		}
-		
+
 		/*
 			Function: doesModuleEditActionExist
 				Determines whether there is already an edit action for a module.
-			
+
 			Parameters:
 				module - The module id to check.
-		
+
 			Returns:
 				1 or 0, for true or false.
 		*/
-		
+
 		function doesModuleEditActionExist($module) {
 			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".mysql_real_escape_string($module)."' AND route = 'edit'"));
 		}
-		
+
 		/*
 			Function: doesModuleLandingActionExist
 				Determines whether there is already a landing action for a module.
-			
+
 			Parameters:
 				module - The module id to check.
-		
+
 			Returns:
 				1 or 0, for true or false.
 		*/
-		
+
 		function doesModuleLandingActionExist($module) {
 			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".mysql_real_escape_string($module)."' AND route = ''"));
 		}
-		
+
 		/*
 			Function: emailDailyDigest
 				Sends out a daily digest email to all who have subscribed.
@@ -1653,11 +1655,11 @@
 
 				// Start building the email
 				$body = "";
-				
+
 				if (is_array($alerts) && count($alerts)) {
 					$body .= "Content Age Alerts\n";
 					$body .= "------------------\n\n";
-					
+
 					foreach ($alerts as $alert) {
 						$body .= $alert["nav_title"]." - ".$alert["current_age"]." Days Old\n";
 						$body .= $bigtree["config"]["www_root"].$alert["path"]."/\n";
@@ -1683,19 +1685,19 @@
 						}
 						$body .= "\n".$change["user"]["name"]." has submitted this change request.\n";
 						$body .= $this->getChangeEditLink($change)."\n\n";
-						
+
 					}
 				}
-				
+
 				if (count($unread)) {
 					$body .= "Unread Messages\n";
 					$body .= "---------------\n\n";
-					
+
 					foreach ($unread as $message) {
 						$body .= $message["sender_name"]." - ".date("n/j/y @ g:ia",strtotime($message["date"]))." - ".$message["subject"]."\n";
 					}
 				}
-				
+
 				if ($body) {
 					$header =  "BigTree Daily Digest\n";
 					$header .= "====================\n";
@@ -1704,7 +1706,7 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: forgotPassword
 				Creates a new password change hash and sends an email to the user.
@@ -1732,18 +1734,18 @@
 			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".$GLOBALS["admin_root"]."login/reset-password/$hash/","From: no-reply@bigtreecms.com");
 			BigTree::redirect($GLOBALS["admin_root"]."login/forgot-success/");
 		}
-		
+
 		/*
 			Function: get404Total
 				Get the total number of 404s of a certain type.
-			
+
 			Parameters:
 				type - The type to retrieve the count for (301, ignored, 404)
-			
+
 			Returns:
 				The number of 404s in the table of the given type.
 		*/
-		
+
 		function get404Total($type) {
 			if ($type == "404") {
 				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''"));
@@ -1752,17 +1754,17 @@
 			} elseif ($type == "ignored") {
 				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = 'on'"));
 			}
-			
+
 			return $total["total"];
 		}
-		
+
 		/*
 			Function: getAccessGroups
 				Returns a list of all groups the logged in user has access to in a module.
-			
+
 			Parameters:
 				module - A module id or module entry.
-			
+
 			Returns:
 				An array of groups if a user has limited access to a module or "true" if the user has access to all groups.
 		*/
@@ -1775,7 +1777,7 @@
 			if (is_array($module)) {
 				$module = $module["id"];
 			}
-			
+
 			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
 				return true;
 			}
@@ -1790,19 +1792,19 @@
 			}
 			return $groups;
 		}
-		
+
 		/*
 			Function: getAccessLevel
 				Returns the permission level for a given module and item.
-			
+
 			Parameters:
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
-			
+
 			Returns:
 				The permission level for the given item or module (if item was not passed).
-			
+
 			See Also:
 				<getCachedAccessLevel>
 		*/
@@ -1820,7 +1822,7 @@
 			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
-			
+
 			if (is_array($this->Permissions["module_gbp"][$id])) {
 				$gv = $item[$module["gbp"]["group_field"]];
 				$gp = $this->Permissions["module_gbp"][$id][$gv];
@@ -1832,18 +1834,18 @@
 
 			return $perm;
 		}
-		
+
 		/*
 			Function: getActionClass
 				Returns the button class for the given action and item.
-			
+
 			Parameters:
 				action - The action for the item (edit, feature, approve, etc)
 				item - The entry to check the action for.
-			
+
 			Returns:
 				Class name for the <a> tag.
-				
+
 				For example, if the item is already featured, this returns "icon_featured icon_featured_on" for the "feature" action.
 				If the item isn't already featured, it would simply return "icon_featured" for the "feature" action.
 		*/
@@ -1882,14 +1884,14 @@
 			}
 			return $class;
 		}
-		
+
 		/*
 			Function: getArchivedNavigationByParent
 				Returns an alphabetic list of navigation that is archived under the given parent.
-			
+
 			Parameters:
 				parent - The ID of the parent page
-			
+
 			Returns:
 				An array of page entries.
 		*/
@@ -1903,23 +1905,23 @@
 			}
 			return $nav;
 		}
-		
+
 		/*
 			Function: getAutoModuleActions
 				Return a list of module forms and views.
 				Used by the API for reconstructing forms and views.
-			
+
 			Parameters:
 				module - The module id to pull forms/views for.
-			
+
 			Returns:
 				An array of module actions with "form" and "view" columns replaced with form and view data.
-			
+
 			See Also:
 				<BigTreeAutoModule.getForm>
 				<BigTreeAutoModule.getView>
 		*/
-		
+
 		function getAutoModuleActions($module) {
 			$items = array();
 			$id = mysql_real_escape_string($module);
@@ -1936,11 +1938,11 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getBasicTemplates
-				Returns a list of non-routed templates ordered by position.	
-			
+				Returns a list of non-routed templates ordered by position.
+
 			Returns:
 				An array of template entries.
 		*/
@@ -1955,19 +1957,19 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getCachedAccessLevel
 				Returns the permission level for a given module and cached view entry.
-			
+
 			Parameters:
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
-			
+
 			Returns:
 				The permission level for the given item or module (if item was not passed).
-			
+
 			See Also:
 				<getAccessLevel>
 		*/
@@ -1998,15 +2000,15 @@
 
 			return $perm;
 		}
-		
+
 		/*
 			Function: getCachedFieldTypes
 				Caches available field types and returns them.
-			
+
 			Returns:
 				Array of three arrays of field types (template, module, and callout).
 		*/
-		
+
 		function getCachedFieldTypes() {
 			// Used cached values if available, otherwise query the DB
 			if (file_exists(SERVER_ROOT."cache/form-field-types.btc")) {
@@ -2027,7 +2029,7 @@
 					"route" => "Generated Route",
 					"custom" => "Custom Function"
 				);
-				
+
 				$types["template"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
@@ -2042,7 +2044,7 @@
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
 				);
-				
+
 				$types["callout"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
@@ -2056,7 +2058,7 @@
 					"array" => "Array of Items",
 					"custom" => "Custom Function"
 				);
-				
+
 				$types["settings"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
@@ -2090,35 +2092,35 @@
 				}
 				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));
 			}
-			
+
 			return $types;
 		}
-		
+
 		/*
 			Function: getCallout
 				Returns a callout entry.
-			
+
 			Parameters:
 				id - The id of the callout.
-			
+
 			Returns:
 				A callout entry from bigtree_callouts with resources decoded.
 		*/
-		
+
 		function getCallout($id) {
 			$id = mysql_real_escape_string($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '$id'"));
 			$item["resources"] = json_decode($item["resources"],true);
 			return $item;
 		}
-		
+
 		/*
 			Function: getCallouts
 				Returns a list of callouts.
-			
+
 			Parameters:
 				sort - The order to return the callouts. Defaults to positioned.
-		
+
 			Returns:
 				An array of callout entries from bigtree_callouts.
 		*/
@@ -2131,14 +2133,14 @@
 			}
 			return $callouts;
 		}
-		
+
 		/*
 			Function: getChange
 				Get a pending change.
-			
+
 			Parameters:
 				id - The id of the pending change.
-			
+
 			Returns:
 				A pending change entry from the bigtree_pending_changes table.
 		*/
@@ -2160,7 +2162,7 @@
 
 		function getChangeEditLink($change) {
 			global $bigtree;
-			
+
 			if (!is_array($change)) {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$change'"));
 			}
@@ -2188,29 +2190,29 @@
 				return $bigtree["config"]["admin_root"].$module["route"]."/edit/".$change["item_id"]."/";
 			}
 		}
-		
+
 		/*
 			Function: getContentAlerts
 				Gets a list of pages with content older than their Max Content Age that a user follows.
-			
+
 			Parameters:
 				user - The user id to pull alerts for or a user entry.
-			
+
 			Returns:
 				An array of arrays containing a page title, path, and id.
 		*/
-		
+
 		function getContentAlerts($user) {
 			if (is_array($user)) {
 				$user = $this->getUser($user["id"]);
 			} else {
 				$user = $this->getUser($user);
 			}
-			
+
 			if (!is_array($user["alerts"])) {
 				return false;
 			}
-			
+
 			$alerts = array();
 			// We're going to generate a list of pages the user cares about first to get their paths.
 			$where = array();
@@ -2232,25 +2234,25 @@
 				// Find all the pages that are old that contain our paths
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
 			}
-			
+
 			while ($f = sqlfetch($q)) {
 				$alerts[] = $f;
 			}
-			
+
 			return $alerts;
 		}
-		
+
 		/*
 			Function: getFeeds
 				Returns a list of feeds.
-				
+
 			Parameters:
 				sort - The sort direction, defaults to name.
-			
+
 			Returns:
 				An array of feed elements from bigtree_feeds sorted by name.
 		*/
-		
+
 		function getFeeds($sort = "name ASC") {
 			$feeds = array();
 			$q = sqlquery("SELECT * FROM bigtree_feeds ORDER BY $sort");
@@ -2259,18 +2261,18 @@
 			}
 			return $feeds;
 		}
-		
+
 		/*
 			Function: getFieldType
 				Returns a field type.
-			
+
 			Parameters:
 				id - The id of the file type.
-			
+
 			Returns:
 				A field type entry with the "files" column decoded.
 		*/
-		
+
 		function getFieldType($id) {
 			$id = mysql_real_escape_string($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '$id'"));
@@ -2279,14 +2281,14 @@
 			}
 			return $item;
 		}
-		
+
 		/*
 			Function: getFieldTypes
 				Returns a list of field types.
-			
+
 			Parameters:
 				sort - The sort directon, defaults to name ASC.
-			
+
 			Returns:
 				An array of entries from bigtree_field_types.
 		*/
@@ -2299,24 +2301,24 @@
 			}
 			return $types;
 		}
-		
+
 		/*
 			Function: getFullNavigationPath
 				Calculates the full navigation path for a given page ID.
-			
+
 			Parameters:
 				id - The page ID to calculate the navigation path for.
-			
+
 			Returns:
 				The navigation path (normally found in the "path" column in bigtree_pages).
 		*/
 
 		function getFullNavigationPath($id, $path = array()) {
 			global $cms;
-			
+
 			// We can change $GLOBALS["root_page"] to drive multiple sites from different branches of the Pages tree.
 			$root_page = isset($GLOBALS["root_page"]) ? $_GLOBALS["root_page"] : 0;
-			
+
 			$f = sqlfetch(sqlquery("SELECT route,id,parent FROM bigtree_pages WHERE id = '$id'"));
 			$path[] = $cms->urlify($f["route"]);
 			if ($f["parent"] != $root_page && $f["parent"] != 0) {
@@ -2325,14 +2327,14 @@
 			$path = implode("/",array_reverse($path));
 			return $path;
 		}
-		
+
 		/*
 			Function: getHiddenNavigationByParent
 				Returns an alphabetic list of navigation that is hidden under the given parent.
-			
+
 			Parameters:
 				parent - The ID of the parent page
-			
+
 			Returns:
 				An array of page entries.
 		*/
@@ -2346,18 +2348,18 @@
 			}
 			return $nav;
 		}
-		
+
 		/*
 			Function: getMessages
 				Returns all a user's messages.
-			
+
 			Parameters:
 				user - Optional user ID (defaults to logged in user)
-			
+
 			Returns:
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
-		
+
 		function getMessages($user = false) {
 			if ($user) {
 				$user = mysql_real_escape_string($user);
@@ -2368,7 +2370,7 @@
 			$read = array();
 			$unread = array();
 			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name, bigtree_users.email AS sender_email FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
-			
+
 			while ($f = sqlfetch($q)) {
 				// If we're the sender put it in the sent array.
 				if ($f["sender"] == $user) {
@@ -2382,21 +2384,21 @@
 					}
 				}
 			}
-			
+
 			return array("sent" => $sent, "read" => $read, "unread" => $unread);
 		}
-		
+
 		/*
 			Function: getMessage
 				Returns a message from message center.
-			
+
 			Paramters:
 				id - The id of the message.
-		
+
 			Returns:
 				An entry from bigtree_messages.
 		*/
-		
+
 		function getMessage($id) {
 			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".mysql_real_escape_string($id)."'"));
 			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
@@ -2404,14 +2406,14 @@
 			}
 			return $message;
 		}
-		
+
 		/*
 			Function: getModule
 				Returns an entry from the bigtree_modules table.
-			
+
 			Parameters:
 				id - The id of the module.
-			
+
 			Returns:
 				A module entry with the "gbp" column decoded.
 		*/
@@ -2426,14 +2428,14 @@
 			$module["gbp"] = json_decode($module["gbp"],true);
 			return $module;
 		}
-		
+
 		/*
 			Function: getModuleAction
 				Returns an entry from the bigtree_module_actions table.
-			
+
 			Parameters:
 				id - The id of the action.
-			
+
 			Returns:
 				A module action entry.
 		*/
@@ -2442,15 +2444,15 @@
 			$id = mysql_real_escape_string($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE id = '$id'"));
 		}
-		
+
 		/*
 			Function: getModuleActionByRoute
 				Returns an entry from the bigtree_module_actions table for the given module and route.
-			
+
 			Parameters:
 				module - The module to lookup an action for.
 				route - The route of the action.
-			
+
 			Returns:
 				A module action entry.
 		*/
@@ -2460,14 +2462,14 @@
 			$route = mysql_real_escape_string($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
 		}
-		
+
 		/*
 			Function: getModuleActionForForm
 				Returns the related module action for an auto module form.
-			
+
 			Parameters:
 				form - The id of a form or a form entry.
-			
+
 			Returns:
 				A module action entry.
 		*/
@@ -2480,14 +2482,14 @@
 			}
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form'"));
 		}
-		
+
 		/*
 			Function: getModuleActionForView
 				Returns the related module action for an auto module view.
-			
+
 			Parameters:
 				view - The id of a view or a view entry.
-			
+
 			Returns:
 				A module action entry.
 		*/
@@ -2500,14 +2502,14 @@
 			}
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '$view'"));
 		}
-		
+
 		/*
 			Function: getModuleActions
 				Returns a list of module actions in positioned order.
-			
+
 			Parameters:
 				module - A module id or a module entry.
-			
+
 			Returns:
 				An array of module action entries.
 		*/
@@ -2525,18 +2527,18 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getModuleByRoute
 				Returns a module entry for the given route.
-			
+
 			Parameters:
 				route - A module route.
-			
+
 			Returns:
 				A module entry with the "gbp" column decoded or false if a module was not found.
 		*/
-		
+
 		function getModuleByRoute($route) {
 			$route = mysql_real_escape_string($route);
 			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE route = '$route'"));
@@ -2547,15 +2549,15 @@
 			$module["gbp"] = json_decode($module["gbp"],true);
 			return $module;
 		}
-		
+
 		/*
 			Function: getModuleForms
 				Gets all module forms.
-			
+
 			Returns:
 				An array of entries from bigtree_module_forms with "fields" decoded.
 		*/
-		
+
 		function getModuleForms() {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_module_forms");
@@ -2565,75 +2567,75 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getModuleGroup
 				Returns a module group entry from the bigtree_module_groups table.
-			
+
 			Parameters:
 				id - The id of the module group.
-			
+
 			Returns:
 				A module group entry.
-			
+
 			See Also:
 				<getModuleGroupByName>
 				<getModuleGroupByRoute>
 		*/
-		
+
 		function getModuleGroup($id) {
 			$id = mysql_real_escape_string($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE id = '$id'"));
 		}
-		
+
 		/*
 			Function: getModuleGroupByName
 				Returns a module group entry from the bigtree_module_groups table.
-			
+
 			Parameters:
 				name - The name of the module group.
-			
+
 			Returns:
 				A module group entry.
-			
+
 			See Also:
 				<getModuleGroup>
 				<getModuleGroupByRoute>
 		*/
-			
+
 
 		function getModuleGroupByName($name) {
 			$name = mysql_real_escape_string(strtolower($name));
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE LOWER(name) = '$name'"));
 		}
-		
+
 		/*
 			Function: getModuleGroupByRoute
 				Returns a module group entry from the bigtree_module_groups table.
-			
+
 			Parameters:
 				route - The route of the module group.
-			
+
 			Returns:
 				A module group entry.
-			
+
 			See Also:
 				<getModuleGroup>
 				<getModuleGroupByName>
 		*/
-		
+
 		function getModuleGroupByRoute($route) {
 			$name = mysql_real_escape_string($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '$route'"));
 		}
-		
+
 		/*
 			Function: getModuleGroups
 				Returns a list of module groups.
-			
+
 			Parameters:
 				sort - Sort by (defaults to positioned)
-			
+
 			Returns:
 				An array of module group entries from bigtree_module_groups.
 		*/
@@ -2646,14 +2648,14 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getModuleNavigation
 				Returns a list of module actions that are in navigation.
-			
+
 			Parameters:
 				module - A module id or a module entry.
-			
+
 			Returns:
 				An array of module actions from bigtree_module_actions.
 		*/
@@ -2671,15 +2673,15 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getModules
 				Returns a list of modules.
-			
+
 			Parameters:
 				sort - The sort order (defaults to oldest first).
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
-			
+
 			Returns:
 				An array of entries from the bigtree_modules table with an additional "group_name" column for the group the module is in.
 		*/
@@ -2694,16 +2696,16 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getModulesByGroup
 				Returns a list of modules in a given group.
-			
+
 			Parameters:
 				group - The group to return modules for.
 				sort - The sort order (defaults to positioned)
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
-			
+
 			Returns:
 				An array of entries from the bigtree_modules table with an additional "group_name" column for the group the module is in.
 		*/
@@ -2727,15 +2729,15 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getNaturalNavigationByParent
 				Returns a list of positioned navigation that is in navigation under the given parent.
 				Does not return module navigation.
-			
+
 			Parameters:
 				parent - The ID of the parent page
-			
+
 			Returns:
 				An array of page entries.
 		*/
@@ -2752,17 +2754,17 @@
 			}
 			return $nav;
 		}
-		
+
 		/*
 			Function: getPageAccessLevel
 				Returns the access level for the logged in user to a given page.
-			
+
 			Parameters:
 				page - The page id.
-			
+
 			Returns:
 				"p" for publisher, "e" for editor, false for no access.
-			
+
 			See Also:
 				<getPageAccessLevelForUser>
 		*/
@@ -2770,18 +2772,18 @@
 		function getPageAccessLevel($page) {
 			return $this->getPageAccessLevelByUser($page,$this->ID);
 		}
-		
+
 		/*
 			Function: getPageAccessLevel
 				Returns the access level for the given user to a given page.
-			
+
 			Parameters:
 				page - The page id.
 				user - The user id.
-			
+
 			Returns:
 				"p" for publisher, "e" for editor, false for no access.
-			
+
 			See Also:
 				<getPageAccessLevel>
 		*/
@@ -2812,7 +2814,7 @@
 
 			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"));
 			$parent = $parent["parent"];
-			
+
 			$pp = $u["permissions"]["page"][$parent];
 			while ((!$pp || $pp == "i") && $parent) {
 				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"));
@@ -2826,15 +2828,15 @@
 
 			return $pp;
 		}
-		
+
 		/*
 			Function: getPageAdminLinks
 				Gets a list of pages that link back to the admin.
-			
+
 			Returns:
 				An array of pages that link to the admin.
 		*/
-		
+
 		function getPageAdminLinks() {
 			global $bigtree;
 			$pages = array();
@@ -2844,18 +2846,18 @@
 			}
 			return $pages;
 		}
-		
+
 		/*
 			Function: getPageChanges
 				Returns pending changes for a given page.
-			
+
 			Parameters:
 				page - The page id.
-		
+
 			Returns:
 				An entry from bigtree_pending_changes with changes decoded.
 		*/
-		
+
 		function getPageChanges($page) {
 			$page = mysql_real_escape_string($page);
 			$c = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
@@ -2865,19 +2867,19 @@
 			$c["changes"] = json_decode($c["changes"],true);
 			return $c;
 		}
-		
+
 		/*
 			Function: getPageChildren
 				Returns all non-archived children of a given page.
-			
+
 			Parameters:
 				page - The page id to pull children for.
 				sort - The way to sort results. Defaults to nav_title ASC.
-		
+
 			Returns:
 				An array of pages.
 		*/
-		
+
 		function getPageChildren($page,$sort = "nav_title ASC") {
 			$page = mysql_real_escape_string($page);
 			$items = array();
@@ -2887,15 +2889,15 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getPageIds
 				Returns all page ids in bigtree_pages.
-			
+
 			Returns:
 				An array of page ids.
 		*/
-		
+
 		function getPageIds() {
 			$ids = array();
 			$q = sqlquery("SELECT id FROM bigtree_pages ORDER BY id ASC");
@@ -2904,16 +2906,16 @@
 			}
 			return $ids;
 		}
-		
+
 		/*
 			Function: getPageOfSettings
 				Returns a page of settings.
-			
+
 			Parameters:
 				page - The page to return.
 				query - Optional query string to search against.
 				sort - Sort order. Defaults to name ASC.
-			
+
 			Returns:
 				An array of entries from bigtree_settings.
 				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
@@ -2946,7 +2948,7 @@
 					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system != 'on' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
 				}
 			}
-			
+
 			$items = array();
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
@@ -2960,16 +2962,16 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getPageOfUsers
 				Returns a page of users.
-			
+
 			Parameters:
 				page - The page of users to return.
 				query - Optional query string to search against.
 				sort - Order to sort the results by. Defaults to name ASC.
-			
+
 			Returns:
 				An array of entries from bigtree_users.
 		*/
@@ -2996,14 +2998,14 @@
 
 			return $items;
 		}
-		
+
 		/*
 			Function: getPageRevision
 				Returns a version of a page from the bigtree_page_revisions table.
-			
+
 			Parameters:
 				id - The id of the page version.
-			
+
 			Returns:
 				A page version entry from the table.
 		*/
@@ -3013,21 +3015,21 @@
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_page_revisions WHERE id = '$id'"));
 			return $item;
 		}
-		
+
 		/*
 			Function: getPageRevisions
 				Get all revisions for a page.
-			
+
 			Parameters:
 				page - The page id to get revisions for.
-			
+
 			Returns:
 				An array of "saved" revisions and "unsaved" revisions.
 		*/
-		
+
 		function getPageRevisions($page) {
 			$page = mysql_real_escape_string($page);
-			
+
 			// Get all previous revisions, add them to the saved or unsaved list
 			$unsaved = array();
 			$saved = array();
@@ -3039,18 +3041,18 @@
 					$unsaved[] = $f;
 				}
 			}
-			
+
 			return array("saved" => $saved, "unsaved" => $unsaved);
 		}
-		
+
 		/*
 			Function: getPages
 				Returns all pages from the database.
-			
+
 			Returns:
 				Array of unmodified entries from bigtree_pages.
 		*/
-		
+
 		function getPages() {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_pages ORDER BY id ASC");
@@ -3059,21 +3061,21 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getPageSEORating
 				Returns the SEO rating for a page.
-			
+
 			Parameters:
 				page - A page array.
 				content - An array of resources.
-			
+
 			Returns:
 				An array of SEO data.
 				"score" reflects a score from 0 to 100 points.
 				"recommendations" is an array of recommendations to improve SEO score.
 				"color" is a color reflecting the SEO score.
-				
+
 				Score Parameters
 				- Having a title - 5 points
 				- Having a unique title - 5 points
@@ -3089,7 +3091,7 @@
 				- Readability Score - up to 20 points
 				- Fresh content - up to 10 points
 		*/
-		
+
 		function getPageSEORating($page,$content) {
 			global $cms;
 			$template = $cms->getTemplate($page["template"]);
@@ -3248,14 +3250,14 @@
 
 			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
 		}
-		
+
 		/*
 			Function: getPendingChange
 				Returns a pending change from the bigtree_pending_changes table.
-			
+
 			Parameters:
 				id - The id of the change.
-			
+
 			Returns:
 				A entry from the table with the "changes" column decoded.
 		*/
@@ -3269,7 +3271,7 @@
 			$item["changes"] = json_decode($item["changes"],true);
 			return $item;
 		}
-		
+
 		/*
 			Function: getPendingChanges
 				Returns a list of changes that the logged in user has access to publish.
@@ -3299,7 +3301,7 @@
 					}
 				}
 			}
-			
+
 			// Add module group based permissions as well
 			if (isset($user["permissions"]["module_gbp"]) && is_array($user["permissions"]["module_gbp"])) {
 				foreach ($user["permissions"]["module_gbp"] as $module => $groups) {
@@ -3312,16 +3314,16 @@
 			}
 
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE ".implode(" OR ",$search)." ORDER BY date DESC");
-			
+
 			while ($f = sqlfetch($q)) {
 				$ok = false;
-				
+
 				if (!$f["item_id"]) {
 					$id = "p".$f["id"];
 				} else {
 					$id = $f["item_id"];
 				}
-				
+
 				// If they're an admin, they've got it.
 				if ($user["level"] > 0) {
 					$ok = true;
@@ -3358,15 +3360,15 @@
 
 			return $changes;
 		}
-		
+
 		/*
 			Function: getPendingNavigationByParent
 				Returns a list of pending pages under a given parent ordered by most recent.
-			
+
 			Parameters:
 				parent - The ID of the parent page
 				in_nav - "on" returns pages in navigation, "" returns hidden pages
-			
+
 			Returns:
 				An array of pending page titles/ids.
 		*/
@@ -3405,7 +3407,7 @@
 
 		function getPendingPage($id) {
 			global $cms;
-			
+
 			// Get the live page.
 			if (is_numeric($id)) {
 				global $cms;
@@ -3455,7 +3457,7 @@
 			}
 			return $page;
 		}
-		
+
 		/*
 			Function: getContentsOfResourceFolder
 				Returns a list of resources and subfolders in a folder (based on user permissions).
@@ -3483,7 +3485,7 @@
 					$folders[] = $f;
 				}
 			}
-			
+
 			if ($folder) {
 				$q = sqlquery("SELECT * FROM bigtree_resources WHERE folder = '$folder' ORDER BY $sort");
 			} else {
@@ -3495,18 +3497,18 @@
 
 			return array("folders" => $folders, "resources" => $resources);
 		}
-		
+
 		/*
 			Function: getResourceByFile
 				Returns a resource with the given file name.
-			
+
 			Parameters:
 				file - The file name.
-			
+
 			Returns:
 				An entry from bigtree_resources with file and thumbs decoded.
 		*/
-		
+
 		function getResourceByFile($file) {
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".mysql_real_escape_string($file)."'"));
 			if (!$item) {
@@ -3519,18 +3521,18 @@
 			}
 			return $item;
 		}
-		
+
 		/*
 			Function: getResourceFolder
 				Returns a resource folder.
-			
+
 			Parameters:
 				id - The id of the folder.
-			
+
 			Returns:
 				A resource folder entry.
 		*/
-		
+
 		function getResourceFolder($id) {
 			$id = mysql_real_escape_string($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '$id'"));
@@ -3563,18 +3565,18 @@
 				return array_reverse($crumb);
 			}
 		}
-		
+
 		/*
 			Function: getResourceFolderChildren
 				Returns the child folders of a resource folder.
-			
+
 			Parameters:
 				id - The id of the parent folder.
-			
+
 			Returns:
 				An array of resource folder entries.
 		*/
-		
+
 		function getResourceFolderChildren($id) {
 			$items = array();
 			$id = mysql_real_escape_string($id);
@@ -3632,11 +3634,11 @@
 				return $this->getResourceFolderPermission($folder["parent"]);
 			}
 		}
-		
+
 		/*
 			Function: getRoutedTemplates
 				Returns a list of routed templates ordered by position.
-			
+
 			Returns:
 				An array of template entries.
 		*/
@@ -3651,14 +3653,14 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getSetting
 				Returns a setting.
-			
+
 			Parameters:
 				id - The id of the setting to return.
-			
+
 			Returns:
 				A setting entry with its value properly decoded and decrypted.
 				Returns false if the setting could not be found.
@@ -3683,15 +3685,15 @@
 			$f["value"] = json_decode($f["value"],true);
 			return $f;
 		}
-		
+
 		/*
 			Function: getSettings
 				Returns a list of all settings.
-				Checks for developer access. 
-			
+				Checks for developer access.
+
 			Parameters:
 				sort - Order to return the settings. Defaults to name ASC.
-			
+
 			Returns:
 				An array of entries from bigtree_settings.
 				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
@@ -3717,14 +3719,14 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getSettingsPageCount
 				Returns the number of pages of settings.
-			
+
 			Parameters:
 				query - Optional string to query against.
-			
+
 			Returns:
 				The number of pages of settings.
 		*/
@@ -3763,30 +3765,30 @@
 
 			return $pages;
 		}
-		
+
 		/*
 			Function: getTag
 				Returns a tag for the given id.
-			
+
 			Parameters:
 				id - The id of the tag.
-			
+
 			Returns:
 				A bigtree_tags entry.
 		*/
-		
+
 		function getTag($id) {
 			$id = mysql_real_escape_string($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
 		}
-		
+
 		/*
 			Function: getTagsForPage
 				Returns a list of tags a page is tagged with.
-			
+
 			Parameters:
 				page - Either a page id or a page entry.
-			
+
 			Returns:
 				An array of tags.
 		*/
@@ -3797,7 +3799,7 @@
 			} else {
 				$page = mysql_real_escape_string($page);
 			}
-			
+
 			$tags = array();
 			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.tag = bigtree_tags.id AND bigtree_tags_rel.entry = '$page' AND bigtree_tags_rel.module = '0' ORDER BY bigtree_tags.tag");
 			while ($f = sqlfetch($q)) {
@@ -3805,14 +3807,14 @@
 			}
 			return $tags;
 		}
-		
+
 		/*
 			Function: getTemplates
 				Returns a list of templates.
-			
+
 			Parameters:
 				sort - Sort order, defaults to positioned.
-			
+
 			Returns:
 				An array of template entries.
 		*/
@@ -3825,30 +3827,30 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getUnreadMessageCount
 				Returns the number of unread messages for the logged in user.
-			
+
 			Returns:
 				The number of unread messages.
 		*/
-		
+
 		function getUnreadMessageCount() {
 			return sqlrows(sqlquery("SELECT id FROM bigtree_messages WHERE recipients LIKE '%|".$this->ID."|%' AND read_by NOT LIKE '%|".$this->ID."|%'"));
 		}
-		
+
 		/*
 			Function: getUser
 				Gets a user's decoded information.
-			
+
 			Parameters:
 				id - The id of the user to return.
-			
+
 			Returns:
 				A user entry from bigtree_users with permissions and alerts decoded.
 		*/
-		
+
 		function getUser($id) {
 			$id = mysql_real_escape_string($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '$id'"));
@@ -3865,46 +3867,46 @@
 			$item["alerts"] = json_decode($item["alerts"],true);
 			return $item;
 		}
-		
+
 		/*
 			Function: getUserByEmail
 				Gets a user entry for a given email.
-			
+
 			Parameters:
 				email - The email to find.
-			
+
 			Returns:
 				A user entry from bigtree_users.
 		*/
-		
+
 		function getUserByEmail($email) {
 			$email = mysql_real_escape_string($email);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
 		}
-		
+
 		/*
 			Function: getUserByHash
 				Gets a user entry for a change password hash.
-			
+
 			Parameters:
 				hash - The hash to find.
-			
+
 			Returns:
 				A user entry from bigtree_users.
 		*/
-		
+
 		function getUserByHash($hash) {
 			$hash = mysql_real_escape_string($hash);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
 		}
-		
+
 		/*
 			Function: getUsers
 				Returns a list of all users.
-			
+
 			Parameters:
 				sort - Order to sort the list. Defaults to name ASC.
-			
+
 			Returns:
 				An array of entries from bigtree_users.
 				The keys of the array are the ids of the user.
@@ -3919,14 +3921,14 @@
 
 			return $items;
 		}
-		
+
 		/*
 			Function: getUsersPageCount
 				Returns the number of pages of users.
-			
+
 			Parameters:
 				query - Optional query string to search against.
-			
+
 			Returns:
 				The number of pages of results.
 		*/
@@ -3951,14 +3953,14 @@
 			if ($pages == 0) {
 				$pages = 1;
 			}
-			
+
 			return $pages;
 		}
-		
+
 		/*
 			Function: growl
 				Sets up a growl session for the next page reload.
-			
+
 			Parameters:
 				title - The section message for the growl.
 				message - The description of what happened.
@@ -3968,14 +3970,14 @@
 		function growl($title,$message,$type = "success") {
 			$_SESSION["bigtree"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
-		
+
 		/*
 			Function: htmlClean
 				Removes things that shouldn't be in the <body> of an HTML document from a string.
-			
+
 			Parameters:
 				html - A string of HTML
-			
+
 			Returns:
 				A clean string of HTML for echoing in <body>
 		*/
@@ -3983,29 +3985,29 @@
 		function htmlClean($html) {
 			return str_replace("<br></br>","<br />",strip_tags($html,"<a><abbr><address><area><article><aside><audio><b><base><bdo><blockquote><body><br><button><canvas><caption><cite><code><col><colgroup><command><datalist><dd><del><details><dfn><div><dl><dt><em><emded><fieldset><figcaption><figure><footer><form><h1><h2><h3><h4><h5><h6><header><hgroup><hr><i><iframe><img><input><ins><keygen><kbd><label><legend><li><link><map><mark><menu><meter><nav><noscript><object><ol><optgroup><option><output><p><param><pre><progress><q><rp><rt><ruby><s><samp><script><section><select><small><source><span><strong><style><sub><summary><sup><table><tbody><td><textarea><tfoot><th><thead><time><title><tr><ul><var><video><wbr>"));
 		}
-		
+
 		/*
 			Function: ignore404
 				Ignores a 404 error.
 				Checks permissions.
-			
+
 			Parameters:
 				id - The id of the reported 404.
 		*/
-		
+
 		function ignore404($id) {
 			$this->requireLevel(1);
 			$id = mysql_real_escape_string($id);
 			sqlquery("UPDATE bigtree_404s SET ignored = 'on' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: iplExists
 				Determines whether an internal page link still exists or not.
-			
+
 			Parameters:
 				ipl - An internal page link
-			
+
 			Returns:
 				True if it is still a valid link, otherwise false.
 		*/
@@ -4013,13 +4015,13 @@
 		function iplExists($ipl) {
 			global $cms;
 			$ipl = explode("//",$ipl);
-			
+
 			// See if the page it references still exists.
 			$nav_id = $ipl[1];
 			if (!sqlrows(sqlquery("SELECT id FROM bigtree_pages WHERE id = '$nav_id'"))) {
 				return false;
 			}
-			
+
 			// Decode the commands attached to the page
 			$commands = json_decode(base64_decode($ipl[2]),true);
 			// If there are no commands, we're good.
@@ -4036,34 +4038,34 @@
 			if ($t["routed"]) {
 				return true;
 			}
-			
+
 			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
 			return false;
 		}
-		
+
 		/*
 			Function: lockCheck
 				Checks if a lock exists.
 				If a lock exists and it's currently active, stops page execution and shows the lock page.
 				If a lock is yours, refreshes the lock.
 				If there is no lock, creates one for you.
-			
+
 			Parameters:
 				table - The table to check.
 				id - The id of the entry to check.
 				include - The lock page to include (relative to /core/ or /custom/)
 				force - Whether to force through the lock or not.
 				in_admin - Whether to call stop()
-			
+
 			Returns:
 				Your lock id.
 		*/
-		
+
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
 			global $breadcrumb,$www_root,$admin_root,$cms,$admin,$bigtree;
 			$table = mysql_real_escape_string($table);
 			$id = mysql_real_escape_string($id);
-			
+
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
 				include BigTree::path($include);
@@ -4072,7 +4074,7 @@
 				}
 				return false;
 			}
-			
+
 			if ($f) {
 				sqlquery("UPDATE bigtree_locks SET last_accessed = NOW(), user = '".$this->ID."' WHERE id = '".$f["id"]."'");
 				return $f["id"];
@@ -4081,16 +4083,16 @@
 				return sqlid();
 			}
 		}
-		
+
 		/*
 			Function: login
 				Attempts to login a user to the CMS.
-			
+
 			Parameters:
 				email - The email address of the user.
 				password - The password of the user.
 				stay_logged_in - Whether to set a cookie to keep the user logged in.
-			
+
 			Returns:
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
@@ -4121,7 +4123,7 @@
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: logout
 				Logs out of the CMS.
@@ -4134,14 +4136,14 @@
 			unset($_SESSION["bigtree"]);
 			BigTree::redirect($GLOBALS["admin_root"]);
 		}
-		
+
 		/*
 			Function: makeIPL
 				Creates an internal page link out of a URL.
-				
+
 			Paramters:
 				url - A URL
-			
+
 			Returns:
 				An internal page link (if possible) or just the same URL (if it's not internal).
 		*/
@@ -4155,15 +4157,15 @@
 			}
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
 		}
-		
+
 		/*
 			Function: markMessageRead
 				Marks a message as read by the currently logged in user.
-			
+
 			Parameters:
 				id - The message id.
 		*/
-		
+
 		function markMessageRead($id) {
 			$message = $this->getMessage($id);
 			if (!$message) {
@@ -4173,15 +4175,15 @@
 			sqlquery("UPDATE bigtree_messages SET read_by = '".mysql_real_escape_string($read_by)."' WHERE id = '".$message["id"]."'");
 			return true;
 		}
-		
+
 		/*
 			Function: moduleActionExists
 				Checks to see if an action exists for a given route and module.
-			
+
 			Parameters:
 				module - The module to check.
 				route - The route of the action to check.
-			
+
 			Returns:
 				true if an action exists, otherwise false.
 		*/
@@ -4195,10 +4197,10 @@
 			}
 			return false;
 		}
-		
+
 		/*
 			Function: pingSearchEngines
-				Sends the latest sitemap.xml out to search engine ping services if enabled in settings.	
+				Sends the latest sitemap.xml out to search engine ping services if enabled in settings.
 		*/
 
 		function pingSearchEngines() {
@@ -4210,28 +4212,28 @@
 				$bing = file_get_contents("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
 		}
-		
+
 		/*
 			Function: refreshLock
 				Refreshes a lock.
-			
+
 			Paramters:
 				id - The id of the lock.
 		*/
-		
+
 		function refreshLock($id) {
 			$id = mysql_real_escape_string($id);
 			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE id = '$id' AND user = '".$this->ID."'");
 		}
-		
+
 		/*
 			Function: requireAccess
 				Checks the logged in user's access to a given module.
 				Throws a permission denied page and stops page execution if the user doesn't have access.
-			
+
 			Parameters:
 				module - The id of the module to check access to.
-				
+
 			Returns:
 				The permission level of the logged in user.
 		*/
@@ -4249,12 +4251,12 @@
 			}
 			return $this->Permissions[$module];
 		}
-		
+
 		/*
 			Function: requireLevel
 				Requires the logged in user to have a certain access level to continue.
 				Throws a permission denied page and stops page execution if the user doesn't have access.
-			
+
 			Parameters:
 				level - An access level (0 being normal user, 1 being administrator, 2 being developer)
 		*/
@@ -4269,15 +4271,15 @@
 				die();
 			}
 		}
-		
+
 		/*
 			Function: requirePublisher
 				Checks the logged in user's access to a given module to make sure they are a publisher.
 				Throws a permission denied page and stops page execution if the user doesn't have access.
-			
+
 			Parameters:
 				module - The id of the module to check access to.
-				
+
 			Returns:
 				The permission level of the logged in user.
 		*/
@@ -4295,50 +4297,50 @@
 			}
 			return true;
 		}
-		
+
 		/*
 			Function: saveCurrentPageRevision
 				Saves the currently published page as a revision.
-			
+
 			Parameters:
 				page - The page id.
 				description - The revision description.
-			
+
 			Returns:
 				The new revision id.
 		*/
-		
+
 		function saveCurrentPageRevision($page,$description) {
 			$page = mysql_real_escape_string($page);
 			$description = mysql_real_escape_string($description);
-			
+
 			// Get the current page.
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
 			foreach ($current as $key => $val) {
 				$$key = mysql_real_escape_string($val);
 			}
-			
+
 			// Copy it to the saved versions
 			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`callouts`,`author`,`updated_at`,`saved`,`saved_description`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$callouts','$last_edited_by','$updated_at','on','$description')");
-			
+
 			return sqlid();
 		}
-		
+
 		/*
 			Function: search404s
 				Searches 404s, returns results.
-			
+
 			Parameters:
 				type - The type of results (301, 404, or ignored).
 				query - The search query.
-			
+
 			Returns:
 				An array of entries from bigtree_404s.
 		*/
-		
+
 		function search404s($type,$query = "") {
 			$items = array();
-			
+
 			if ($query) {
 				$s = mysql_real_escape_string(strtolower($query));
 				if ($type == "301") {
@@ -4357,47 +4359,47 @@
 					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
 				}
 			}
-			
+
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
-			
+
 			return $items;
 		}
-		
+
 		/*
 			Function: searchPages
 				Searches for pages.
-			
+
 			Parameters:
 				query - Query string to search against.
 				fields - Fields to search.
 				max - Maximum number of results to return.
-				
+
 			Returns:
 				An array of pages.
 		*/
-		
+
 		function searchPages($query,$fields = array("nav_title"),$max = 10) {
 			$results = array();
 			$terms = explode(" ",$query);
-	
+
 			foreach ($terms as $term) {
 				$term = mysql_real_escape_string(strtolower($term));
 				$or_parts = array();
 				foreach ($fields as $field) {
-					$or_parts[] = "LOWER(`$field`) LIKE '%$term%'";				
+					$or_parts[] = "LOWER(`$field`) LIKE '%$term%'";
 				}
 				$qpart[] = "(".implode(" OR ",$or_parts).")";
 			}
-			
+
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE ".implode(" AND ",$qpart)." ORDER BY nav_title LIMIT $max");
 			while ($f = sqlfetch($q)) {
 				$results[] = $f;
 			}
 			return $results;
 		}
-		
+
 		/*
 			Function: searchResources
 				Returns a list of folders and files that match the given query string.
@@ -4440,18 +4442,18 @@
 
 			return array("folders" => $folders, "resources" => $resources);
 		}
-		
+
 		/*
 			Function: searchTags
 				Finds existing tags that are similar.
-			
+
 			Parameters:
 				tag - A tag to find similar tags for.
-			
+
 			Returns:
 				An array of up to 8 similar tags.
 		*/
-		
+
 		function searchTags($tag) {
 			$tags = array();
 			$meta = metaphone($tag);
@@ -4465,146 +4467,146 @@
 					$dist[] = $distance;
 				}
 			}
-			
+
 			array_multisort($dist,SORT_ASC,$tags);
-			
+
 			if (count($tags) > 8) {
 				$tags = array_slice($tags,0,8);
 			}
-			
+
 			return $tags;
 		}
-		
+
 		/*
 			Function: set404Redirect
 				Sets the redirect address for a 404.
 				Checks permissions.
-			
+
 			Parameters:
 				id - The id of the 404.
 				url - The redirect URL.
 		*/
-		
+
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = mysql_real_escape_string($id);
 			$url = mysql_real_escape_string($url);
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: setCalloutPosition
 				Sets the position of a callout.
-			
+
 			Parameters:
 				id - The id of the callout.
 				position - The position to set.
 		*/
-		
+
 		function setCalloutPosition($id,$position) {
 			$id = mysql_real_escape_string($id);
 			$position = mysql_real_escape_string($position);
 			sqlquery("UPDATE bigtree_callouts SET position = '$position' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: setModuleActionPosition
 				Sets the position of a module action.
-			
+
 			Parameters:
 				id - The id of the module action.
 				position - The position to set.
 		*/
-		
+
 		function setModuleActionPosition($id,$position) {
 			$id = mysql_real_escape_string($id);
 			$position = mysql_real_escape_string($position);
 			sqlquery("UPDATE bigtree_module_actions SET position = '$position' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: setModuleGroupPosition
 				Sets the position of a module group.
-			
+
 			Parameters:
 				id - The id of the module group.
 				position - The position to set.
 		*/
-		
+
 		function setModuleGroupPosition($id,$position) {
 			$id = mysql_real_escape_string($id);
 			$position = mysql_real_escape_string($position);
 			sqlquery("UPDATE bigtree_module_groups SET position = '$position' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: setModulePosition
 				Sets the position of a module.
-			
+
 			Parameters:
 				id - The id of the module.
 				position - The position to set.
 		*/
-		
+
 		function setModulePosition($id,$position) {
 			$id = mysql_real_escape_string($id);
 			$position = mysql_real_escape_string($position);
 			sqlquery("UPDATE bigtree_modules SET position = '$position' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: setPagePosition
 				Sets the position of a page.
-			
+
 			Parameters:
 				id - The id of the page.
 				position - The position to set.
 		*/
-		
+
 		function setPagePosition($id,$position) {
 			$id = mysql_real_escape_string($id);
 			$position = mysql_real_escape_string($position);
 			sqlquery("UPDATE bigtree_pages SET position = '$position' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: setPasswordHashForUser
 				Creates a change password hash for a user.
-			
+
 			Parameters:
 				user - A user entry.
-			
+
 			Returns:
 				A change password hash.
 		*/
-		
+
 		function setPasswordHashForUser($user) {
 			$hash = md5(microtime().$user["password"]);
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
 		}
-		
+
 		/*
 			Function: setTemplatePosition
 				Sets the position of a template.
-			
+
 			Parameters:
 				id - The id of the template.
 				position - The position to set.
 		*/
-		
+
 		function setTemplatePosition($id,$position) {
 			$id = mysql_real_escape_string($id);
 			$position = mysql_real_escape_string($position);
 			sqlquery("UPDATE bigtree_templates SET position = '$position' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: settingExists
 				Determines whether a setting exists for a given id.
-			
+
 			Parameters:
 				id - The setting id to check for.
-			
+
 			Returns:
 				1 if the setting exists, otherwise 0.
 		*/
@@ -4612,11 +4614,11 @@
 		function settingExists($id) {
 			return sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '".mysql_real_escape_string($id)."'"));
 		}
-		
+
 		/*
 			Function: stop
 				Stops processing of the Admin area and shows a message in the default layout.
-			
+
 			Parameters:
 				message - Content to show (error, permission denied, etc)
 		*/
@@ -4628,13 +4630,13 @@
 			include BigTree::path("admin/layouts/default.php");
 			die();
 		}
-		
+
 		/*
 			Function: submitPageChange
 				Adds a pending change to the bigtree_pending_changes table for the page.
 				Determines what has changed and only stores the changed fields.
 				Does not check permissions.
-			
+
 			Parameters:
 				page - The page id or pending page id (prefixed with a "p")
 				changes - An array of changes
@@ -4642,7 +4644,7 @@
 
 		function submitPageChange($page,$changes) {
 			global $cms;
-			
+
 			if ($page[0] == "p") {
 				// It's still pending...
 				$existing_page = array();
@@ -4661,11 +4663,11 @@
 			} else {
 				$existing_pending_change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
 			}
-			
+
 			// Save tags separately
 			$tags = mysql_real_escape_string(json_encode($changes["_tags"]));
 			unset($changes["_tags"]);
-			
+
 			// Unset the trunk flag if the user isn't a developer
 			if ($this->Level < 2) {
 				unset($changes["trunk"]);
@@ -4673,7 +4675,7 @@
 			} else {
 				$changes["trunk"] = $changes["trunk"];
 			}
-			
+
 			// Set the in_nav flag, since it's not in the post if the checkbox became unclicked
 			$changes["in_nav"] = $changes["in_nav"];
 
@@ -4694,14 +4696,14 @@
 						"comment" => "A new revision has been made.  Owner switched to ".$user["name"]."."
 					);
 				}
-				
+
 				// If this is a pending page, just replace all the changes
 				if ($pending) {
 					$changes = mysql_real_escape_string(json_encode($changes));
 				// Otherwise, we need to check what's changed.
 				} else {
 					$original_changes = json_decode($existing_pending_change["changes"],true);
-					
+
 					if (isset($original_changes["template"])) {
 						$template = $original_changes["template"];
 					}
@@ -4720,7 +4722,7 @@
 
 				$comments = mysql_real_escape_string(json_encode($comments));
 				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', tags_changes = '$tags', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
-				
+
 				$this->track("bigtree_pages",$page,"updated-draft");
 
 			// We're submitting a change to a presently published page with no pending changes.
@@ -4746,14 +4748,14 @@
 
 				$this->track("bigtree_pages",$page,"saved-draft");
 			}
-			
+
 			return sqlid();
 		}
-		
+
 		/*
 			Function: track
 				Logs a user's actions to the audit trail table.
-			
+
 			Parameters:
 				table - The table affected by the user.
 				entry - The primary key of the entry affected by the user.
@@ -4769,22 +4771,22 @@
 				sqlquery("INSERT INTO bigtree_audit_trail (`table`,`user`,`entry`,`date`,`type`) VALUES ('$table','".$this->ID."','$entry',NOW(),'$type')");
 			}
 		}
-		
+
 		/*
 			Function: unarchivePage
 				Unarchives a page and all its children that inherited archived status.
 				Checks permissions.
-			
+
 			Parameters:
 				page - The page id or page entry.
-			
+
 			Returns:
 				true if successful. false if permission was denied.
 		*/
 
 		function unarchivePage($page) {
 			global $cms;
-			
+
 			if (is_array($page)) {
 				$page = mysql_real_escape_string($page["id"]);
 			} else {
@@ -4799,12 +4801,12 @@
 			}
 			return false;
 		}
-		
+
 		/*
 			Function: unarchivePageChildren
 				Unarchives a page's children that have the archived_inherited status.
 				Does not checks permissions.
-			
+
 			Parameters:
 				id - The parent page id.
 		*/
@@ -4819,7 +4821,7 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: ungrowl
 				Destroys the growl session.
@@ -4828,14 +4830,14 @@
 		function ungrowl() {
 			unset($_SESSION["bigtree"]["flash"]);
 		}
-		
+
 		/*
 			Function: urlExists
 				Attempts to connect to a URL using cURL.
-			
+
 			Parameters:
 				url - The URL to connect to.
-			
+
 			Returns:
 				true if it can connect, false if connection failed.
 		*/
@@ -4855,11 +4857,11 @@
 			curl_close($handle);
 			return $connectable;
 		}
-		
+
 		/*
 			Function: unCache
 				Removes the cached copy of a given page.
-				
+
 			Parameters:
 				page - Either a page id or a page entry.
 		*/
@@ -4869,45 +4871,45 @@
 			if (is_array($page)) {
 				$file = SERVER_ROOT."cache/".base64_encode($page["path"]."/");
 			} else {
-				$file = SERVER_ROOT."cache/".base64_encode(str_replace(WWW_ROOT,"",$cms->getLink($page)));		
+				$file = SERVER_ROOT."cache/".base64_encode(str_replace(WWW_ROOT,"",$cms->getLink($page)));
 			}
 			if (file_exists($file)) {
 				@unlink($file);
 			}
 		}
-		
+
 		/*
 			Function: unignore404
 				Unignores a 404.
 				Checks permissions.
-			
+
 			Parameters:
 				id - The id of the 404.
 		*/
-		
+
 		function unignore404($id) {
 			$this->requireLevel(1);
 			$id = mysql_real_escape_string($id);
 			sqlquery("UPDATE bigtree_404s SET ignored = '' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: unlock
 				Removes a lock from a table entry.
-			
+
 			Parameters:
 				table - The table the entry is in.
 				id - The id of the entry.
 		*/
-		
+
 		function unlock($table,$id) {
 			sqlquery("DELETE FROM bigtree_locks WHERE `table` = '".mysql_real_escape_string($table)."' AND item_id = '".mysql_real_escape_string($id)."'");
 		}
-		
+
 		/*
 			Function: updateCallout
 				Updates a callout.
-			
+
 			Parameters:
 				id - The id of the callout to update.
 				name - The name.
@@ -4915,7 +4917,7 @@
 				level - The access level (0 for all users, 1 for administrators, 2 for developers)
 				resources - An array of resources.
 		*/
-		
+
 		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			$r = array();
 			foreach ($resources as $resource) {
@@ -4933,7 +4935,7 @@
 					$r[] = $resource;
 				}
 			}
-			
+
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -4941,22 +4943,22 @@
 			$resources = mysql_real_escape_string(json_encode($r));
 			$display_default = mysql_real_escape_string($display_default);
 			$display_field = mysql_real_escape_string($display_field);
-			
+
 			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: updateChildPagePaths
 				Updates the paths for pages who are descendants of a given page to reflect the page's new route.
 				Also sets route history if the page has changed paths.
-			
+
 			Parameters:
 				page - The page id.
 		*/
 
 		function updateChildPagePaths($page) {
 			global $cms;
-			
+
 			$page = mysql_real_escape_string($page);
 			$q = sqlquery("SELECT id,path FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
@@ -4970,11 +4972,11 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: updateFeed
 				Updates a feed.
-			
+
 			Parameters:
 				id - The id of the feed to update.
 				name - The name.
@@ -4984,13 +4986,13 @@
 				options - The feed type options.
 				fields - The fields.
 		*/
-		
+
 		function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
 			$options = json_decode($options,true);
 			foreach ($options as &$option) {
 				$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
 			}
-			
+
 			// Fix stuff up for the db.
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
@@ -4999,14 +5001,14 @@
 			$type = mysql_real_escape_string($type);
 			$options = mysql_real_escape_string(json_encode($options));
 			$fields = mysql_real_escape_string(json_encode($fields));
-			
+
 			sqlquery("UPDATE bigtree_feeds SET name = '$name', description = '$description', `table` = '$table', type = '$type', fields = '$fields', options = '$options' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: updateFieldType
 				Updates a field type.
-			
+
 			Parameters:
 				id - The id of the field type.
 				name - The name.
@@ -5015,7 +5017,7 @@
 				callouts - Whether it can be used as a callout resource or not ("on" is yes)
 				settings - Whether it can be used as a setting resource or not ("on" is yes)
 		*/
-		
+
 		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
@@ -5023,14 +5025,14 @@
 			$modules = mysql_real_escape_string($modules);
 			$callouts = mysql_real_escape_string($callouts);
 			$settings = mysql_real_escape_string($settings);
-			
+
 			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
-		}		
-		
+		}
+
 		/*
 			Function: updateModule
 				Updates a module.
-			
+
 			Parameters:
 				id - The id of the module to update.
 				name - The name of the module.
@@ -5038,7 +5040,7 @@
 				class - The module class to create.
 				permissions - The group-based permissions.
 		*/
-		
+
 		function updateModule($id,$name,$group,$class,$permissions) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
@@ -5046,15 +5048,15 @@
 			$class = mysql_real_escape_string($class);
 			$permissions = mysql_real_escape_string(json_encode($permissions));
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', `gbp` = '$permissions' WHERE id = '$id'");
-		
+
 			// Remove cached class list.
 			unlink(SERVER_ROOT."cache/module-class-list.btc");
 		}
-		
+
 		/*
 			Function: updateModuleAction
 				Updates a module action.
-			
+
 			Parameters:
 				id - The id of the module action to update.
 				name - The name of the action.
@@ -5063,7 +5065,7 @@
 				icon - The icon class for the action.
 				level - The required access level.
 		*/
-		
+
 		function updateModuleAction($id,$name,$route,$in_nav,$icon,$level) {
 			$id = mysql_real_escape_string($id);
 			$route = mysql_real_escape_string(htmlspecialchars($route));
@@ -5071,7 +5073,7 @@
 			$icon = mysql_real_escape_string($icon);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$level = mysql_real_escape_string($level);
-			
+
 			$item = $this->getModuleAction($id);
 
 			$oroute = $route;
@@ -5080,14 +5082,14 @@
 				$route = $oroute."-".$x;
 				$x++;
 			}
-			
+
 			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: updateModuleForm
 				Updates a module form.
-			
+
 			Parameters:
 				id - The id of the form.
 				title - The title of the form.
@@ -5097,9 +5099,10 @@
 				callback - Optional callback function to run after the form processes.
 				default_position - Default position for entries to the form (if the view is positioned).
 				suffix - Optional add/edit suffix for the form.
+				return_view - The view to return to when the form is completed.
 		*/
-		
-		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "") {
+
+		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false) {
 			$id = mysql_real_escape_string($id);
 			$title = mysql_real_escape_string(htmlspecialchars($title));
 			$table = mysql_real_escape_string($table);
@@ -5107,31 +5110,34 @@
 			$preprocess - mysql_real_escape_string(htmlspecialchars($preprocess));
 			$callback - mysql_real_escape_string($callback);
 			$default_position - mysql_real_escape_string($default_position);
-			
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position' WHERE id = '$id'");
-			
+			$return_view = $return_view ? "'".mysql_real_escape_string($return_view)."'" : "NULL";
+
+			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view WHERE id = '$id'");
+
+			$action = $this->getModuleActionForForm($id);
 			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);
 			if ($suffix != $oroute) {
+				$suffix = mysql_real_escape_string($suffix);
 				sqlquery("UPDATE bigtree_module_actions SET route = 'add-$suffix' WHERE module = '".$action["module"]."' AND route = 'add-$oroute'");
 				sqlquery("UPDATE bigtree_module_actions SET route = 'edit-$suffix' WHERE module = '".$action["module"]."' AND route = 'edit-$oroute'");
 			}
 		}
-		
+
 		/*
 			Function: updateModuleGroup
 				Updates a module group's name.
-			
+
 			Parameters:
 				id - The id of the module group to update.
 				name - The name of the module group.
 		*/
-		
+
 		function updateModuleGroup($id,$name,$in_nav) {
 			global $cms;
-			
+
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
-			
+
 			// Get a unique route
 			$x = 2;
 			$route = $cms->urlify($name);
@@ -5143,17 +5149,17 @@
 					$x++;
 				}
 			}
-			
+
 			// Just to be safe
 			$route = mysql_real_escape_string($route);
-			
+
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route', in_nav = '$in_nav' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: updateModuleView
 				Updates a module view.
-			
+
 			Parameters:
 				id - The view id.
 				title - View title.
@@ -5165,11 +5171,11 @@
 				actions - Actions array.
 				suffix - Add/Edit suffix.
 				preview_url - Optional preview URL.
-				
+
 			Returns:
 				The id for view.
 		*/
-		
+
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
 			$id = mysql_real_escape_string($id);
 			$title = mysql_real_escape_string(htmlspecialchars($title));
@@ -5181,33 +5187,33 @@
 			$actions = mysql_real_escape_string(json_encode($actions));
 			$suffix = mysql_real_escape_string($suffix);
 			$preview_url = mysql_real_escape_string(htmlspecialchars($this->makeIPL($preview_url)));
-			
+
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: updateModuleViewFields
 				Updates the fields for a module view.
-			
+
 			Paramters:
 				view - The view id.
 				fields - A fields array.
 		*/
-		
+
 		function updateModuleViewFields($view,$fields) {
 			$view = mysql_real_escape_string($view);
 			$fields = mysql_real_escape_string(json_encode($fields));
 			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '$view'");
 		}
-		
+
 		/*
 			Function: updatePage
 				Updates a page.
 				Does not check permissions.
-			
+
 			Paramters:
 				page - The page id to update.
-				data - The page data to update with.	
+				data - The page data to update with.
 		*/
 
 		function updatePage($page,$data) {
@@ -5238,21 +5244,21 @@
 					}
 				}
 			}
-			
+
 			// Set the trunk flag back to the current value if the user isn't a developer
 			if ($this->Level < 2) {
 				$trunk = $current["trunk"];
 			} else {
 				$trunk = mysql_real_escape_string($data["trunk"]);
 			}
-			
+
 			// If this is top level nav and the user isn't a developer, use what the current state is.
 			if (!$current["parent"] && $this->Level < 2) {
 				$in_nav = mysql_real_escape_string($current["in_nav"]);
 			} else {
-				$in_nav = mysql_real_escape_string($data["in_nav"]);			
+				$in_nav = mysql_real_escape_string($data["in_nav"]);
 			}
-			
+
 			$redirect_lower = mysql_real_escape_string($data["redirect_lower"]);
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
@@ -5299,7 +5305,7 @@
 					$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
 					$x++;
 				}
-				
+
 				// Make sure route isn't longer than 255
 				$route = substr($route,0,255);
 			}
@@ -5363,59 +5369,59 @@
 					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ('0','$page','$tag')");
 				}
 			}
-			
+
 			// Audit trail.
 			$this->track("bigtree_pages",$page,"updated");
 
 			return $page;
 		}
-		
+
 		/*
 			Function: updatePageParent
 				Changes a page's parent.
 				Checks permissions.
-			
+
 			Parameters:
 				page - The page to update.
 				parent - The parent to switch to.
 		*/
-		
+
 		function updatePageParent($page,$parent) {
 			$page = mysql_real_escape_string($page);
 			$parent = mysql_real_escape_string($parent);
-			
+
 			if ($this->Level < 1) {
 				$this->stop("You are not allowed to move pages.");
 			}
-			
+
 			// Get the existing path so we can create a route history
 			$current = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '$page'"));
 			$old_path = mysql_real_escape_string($current["path"]);
-			
+
 			sqlquery("UPDATE bigtree_pages SET parent = '$parent' WHERE id = '$page'");
 			$path = mysql_real_escape_string($this->getFullNavigationPath($page));
-			
+
 			// Set the route history
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '$old_path'");
 			sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$old_path','$path')");
-			
+
 			// Update the page with its new path.
 			sqlquery("UPDATE bigtree_pages SET path = '$path' WHERE id = '$page'");
-			
+
 			// Update the paths of any child pages.
 			$this->updateChildPagePaths($page);
 		}
-		
+
 		/*
 			Function: updatePageRevision
 				Updates a page revision to save it as a favorite.
 				Checks permissions.
-			
+
 			Parameters:
 				id - The page revision id.
 				description - Saved description.
 		*/
-		
+
 		function updatePageRevision($id,$description) {
 			// Get the version, check if the user has access to the page the version refers to.
 			$revision = $this->getPageRevision($id);
@@ -5423,29 +5429,29 @@
 			if ($access != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
-			
+
 			// Save the version's description and saved status
 			$description = mysql_real_escape_string(htmlspecialchars($description));
 			sqlquery("UPDATE bigtree_page_revisions SET saved = 'on', saved_description = '$description' WHERE id = '".$revision["id"]."'");
 		}
-		
+
 		/*
 			Function: updatePendingChange
 				Updated a pending change.
-			
+
 			Parameters:
 				id - The id of the pending change.
 				changes - The changes to the fields in the entry.
 				mtm_changes - Many to Many changes.
 				tags_changes - Tags changes.
 		*/
-		
+
 		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
 			$id = mysql_real_escape_string($id);
 			$changes = mysql_real_escape_string(json_encode($changes));
 			$mtm_changes = mysql_real_escape_string(json_encode($mtm_changes));
 			$tags_changes = mysql_real_escape_string(json_encode($tags_changes));
-			
+
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
 		}
 
@@ -5476,58 +5482,58 @@
 				sqlquery("UPDATE bigtree_users SET `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
 			}
 		}
-		
+
 		/*
 			Function: updateResource
 				Updates a resource.
-			
+
 			Parameters:
 				id - The id of the resource.
 				name - The name of the resource.
 		*/
-		
+
 		function updateResource($id,$name) {
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($title));
 			sqlquery("UPDATE bigtree_resources SET name = '$name' WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: updateSetting
 				Updates a setting.
-			
+
 			Parameters:
 				old_id - The current id of the setting to update.
 				data - The new data for the setting ("id", "type", "name", "description", "locked", "system", "encrypted")
-			
+
 			Returns:
 				true if successful, false if a setting exists for the new id already.
 		*/
 
 		function updateSetting($old_id,$data) {
 			global $bigtree;
-			
+
 			// Get the existing setting information.
 			$existing = $this->getSetting($old_id);
 			$old_id = mysql_real_escape_string($old_id);
-			
+
 			// Globalize the data and clean it up.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
 					$$key = mysql_real_escape_string(htmlspecialchars($val));
 				}
 			}
-			
+
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = mysql_real_escape_string($data["description"]);
 			// We don't want this encoded since it's JSON
 			$options = mysql_real_escape_string($data["options"]);
-			
+
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && $this->settingExists($id)) {
 				return false;
 			}
-			
+
 			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', `options` = '$options', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
 
 			// If encryption status has changed, update the value
@@ -5537,17 +5543,17 @@
 			if (!$existing["encrypted"] && $encrypted) {
 				sqlquery("UPDATE bigtree_settings SET value = AES_ENCRYPT(value,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			}
-			
+
 			// Audit trail.
 			$this->track("bigtree_settings",$id,"updated");
 
 			return true;
 		}
-		
+
 		/*
 			Function: updateSettingValue
 				Updates the value of a setting.
-			
+
 			Paramters:
 				id - The id of the setting to update.
 				value - A value to set (can be a string or array).
@@ -5565,15 +5571,15 @@
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
-			
+
 			// Audit trail
 			$this->track("bigtree_settings",$id,"updated-value");
 		}
-		
+
 		/*
 			Function: updateTemplate
 				Updates a template.
-		
+
 			Paremeters:
 				id - The id of the template to update.
 				name - Name
@@ -5584,7 +5590,7 @@
 				callouts_enabled - "on" for yes
 				resources - An array of resources
 		*/
-		
+
 		function updateTemplate($id,$name,$description,$level,$module,$image,$callouts_enabled,$resources) {
 			$clean_resources = array();
 			foreach ($resources as $resource) {
@@ -5595,7 +5601,7 @@
 							$resource[$key] = $val;
 						}
 					}
-					
+
 					$resource["id"] = htmlspecialchars($resource["id"]);
 					$resource["title"] = htmlspecialchars($resource["title"]);
 					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
@@ -5603,7 +5609,7 @@
 					$clean_resources[] = $resource;
 				}
 			}
-			
+
 			$id = mysql_real_escape_string($id);
 			$name = mysql_real_escape_string(htmlspecialchars($name));
 			$description = mysql_real_escape_string(htmlspecialchars($description));
@@ -5612,7 +5618,7 @@
 			$image = mysql_real_escape_string($image);
 			$level = mysql_real_escape_string($level);
 			$callouts_enabled = mysql_real_escape_string($callouts_enabled);
-			
+
 			sqlquery("UPDATE bigtree_templates SET resources = '$resources', image = '$image', name = '$name', module = '$module', description = '$description', level = '$level', callouts_enabled = '$callouts_enabled' WHERE id = '$id'");
 		}
 
@@ -5671,19 +5677,19 @@
 
 			return true;
 		}
-		
+
 		/*
 			Function: updateUserPassword
 				Updates a user's password.
-			
+
 			Parameters:
 				id - The user's id.
 				password - The new password.
 		*/
-		
+
 		function updateUserPassword($id,$password) {
 			global $bigtree;
-			
+
 			$id = mysql_real_escape_string($id);
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = mysql_real_escape_string($phpass->HashPassword($password));
