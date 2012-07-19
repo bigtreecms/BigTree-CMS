@@ -35,11 +35,11 @@
 					}
 				} else {
 					$active = "";
-					$sort_direction = "ASC";
+					$s_direction = "ASC";
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$sort_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
 		<?
 			}
 		?>
