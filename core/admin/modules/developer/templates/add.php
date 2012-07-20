@@ -4,6 +4,14 @@
 	// Clear out notices
 	$name = $description = $callouts_enabled = $level = $module = $image = "";
 	$resources = array();
+	$show_error = false;
+	
+	if ($_SESSION["bigtree"]["admin_error"]) {
+		unset($_SESSION["bigtree"]["admin_error"]);
+		BigTree::globalizeArray($_SESSION["bigtree"]["admin_saved"]);
+		unset($_SESSION["bigtree"]["admin_saved"]);
+		$show_error = true;
+	}
 ?>
 <h1><span class="icon_developer_templates"></span>Add Template</h1>
 <? include BigTree::path("admin/modules/developer/templates/_nav.php") ?>
