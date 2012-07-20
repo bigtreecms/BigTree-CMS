@@ -78,7 +78,7 @@
 					$this->User = $f["email"];
 					$this->Level = $f["level"];
 					$this->Name = $f["name"];
-					$this->Permissions = json_decode($f["permissions"]);
+					$this->Permissions = json_decode($f["permissions"],true);
 				}
 			} elseif (isset($_COOKIE["bigtree"]["email"])) {
 				$user = mysql_escape_string($_COOKIE["bigtree"]["email"]);
@@ -2802,7 +2802,7 @@
 				$pdata = json_decode($f["changes"],true);
 				return $this->getPageAccessLevelByUser($pdata["parent"],$user);
 			}
-
+			
 			$pp = $this->Permissions["page"][$page];
 			if ($pp == "n") {
 				return false;
