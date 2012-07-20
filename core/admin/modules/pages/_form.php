@@ -68,11 +68,7 @@
 </div>
 
 <script type="text/javascript">
-	$(".form_container nav a").click(function() {
-		if ($(this).hasClass("active")) {
-			return;
-		}
-		
+	$(".form_container nav a").click(function() {		
 		t = $(".form_container").offset().top;
 		if (window.scrollY > t) {
 			$('html, body').animate({
