@@ -59,11 +59,11 @@
 			foreach ($actions as $a) {
 				// If there's an auto module, include it as well.
 				if ($a["form"]) {
-					$form = $autoModule->getForm($a["form"]);
+					$form = BigTreeAutoModule::getForm($a["form"]);
 					$index .= "ModuleForm::||BTX||::".json_encode($form)."\n";
 				}
 				if ($a["view"]) {
-					$view = $autoModule->getView($a["view"]);
+					$view = BigTreeAutoModule::getView($a["view"]);
 					$index .= "ModuleView::||BTX||::".json_encode($view)."\n";
 				}
 				// Draw Action after the form/view since we'll need to know the form/view ID to create the action.

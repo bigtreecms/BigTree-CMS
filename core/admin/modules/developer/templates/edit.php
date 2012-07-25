@@ -2,6 +2,7 @@
 	$breadcrumb[] = array("title" => "Edit Template", "link" => "#");
 	$template = $cms->getTemplate(end($bigtree["path"]));
 	BigTree::globalizeArray($template);
+	$show_error = false;
 ?>
 <h1><span class="icon_developer_templates"></span>Edit Template</h1>
 <? include BigTree::path("admin/modules/developer/templates/_nav.php") ?>

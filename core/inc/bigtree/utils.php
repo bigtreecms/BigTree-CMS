@@ -698,19 +698,24 @@
 		*/
 		
 		static function globalizeArray($array,$non_array_functions = array()) {
-			foreach ($array as $key => $val) {
-				if (strpos($key,0,1) != "_") {
-					global $$key;
-					if (is_array($val)) {
-						$$key = $val;
-					} else {
-						foreach ($non_array_functions as $func) {
-							$val = $func($val);
-						}
-						$$key = $val;
-					}
+			if (is_array($array)) {
+				foreach ($array as $key => $val) {
+				    if (strpos($key,0,1) != "_") {
+				    	global $$key;
+				    	if (is_array($val)) {
+				    		$$key = $val;
+				    	} else {
+				    		foreach ($non_array_functions as $func) {
+				    			$val = $func($val);
+				    		}
+				    		$$key = $val;
+				    	}
+				    }
 				}
+				
+				return true;
 			}
+			return false;
 		}
 		
 		/*

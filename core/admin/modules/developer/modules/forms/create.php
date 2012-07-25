@@ -5,7 +5,7 @@
 
 	$suffix = isset($suffix) ? "-".$suffix : "";
 	$default_position = isset($default_position) ? $default_position : "";
-	
+
 	$fields = array();
 	foreach ($_POST["type"] as $key => $val) {
 		$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
@@ -14,11 +14,11 @@
 		$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
 		$fields[$key] = $field;
 	}
-	
-	$form_id = $admin->createModuleForm($title,$table,$fields,$preprocess,$callback,$default_position);
+
+	$form_id = $admin->createModuleForm($title,$table,$fields,$preprocess,$callback,$default_position,$return_view);
 	$admin->createModuleAction($module,"Add $title","add".$suffix,"on","add",$form_id);
 	$admin->createModuleAction($module,"Edit $title","edit".$suffix,"","edit",$form_id);
-			
+
 	$mod = $admin->getModule($module);
 ?>
 <h1><span class="icon_developer_modules"></span>Created Form</h1>

@@ -829,12 +829,13 @@
 		*/
 		
 		function getTemplate($id) {
-			$t = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
-			if (!$t) {
+			$id = mysql_real_escape_string($id);
+			$template = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
+			if (!$template) {
 				return false;
 			}
-			$t["resources"] = json_decode($t["resources"],true);
-			return $t;
+			$template["resources"] = json_decode($template["resources"],true);
+			return $template;
 		}
 		
 		/*

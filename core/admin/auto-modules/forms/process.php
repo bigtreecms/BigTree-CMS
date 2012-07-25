@@ -1,7 +1,7 @@
 <?
 	$view = BigTreeAutoModule::getRelatedViewForForm($form);
 	$data_action = ($_POST["save_and_publish"] || $_POST["save_and_publish_x"] || $_POST["save_and_publish_y"]) ? "publish" : "save";
-	
+
 	// If there's a preprocess function for this module, let's get'r'done.
 	$preprocess_changes = array();
 	if ($form["preprocess"]) {
@@ -14,19 +14,19 @@
 			}
 		}
 	}
-	
+
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$permission = $admin->getAccessLevel($module,$_POST,$form["table"]);
 	if ($_POST["id"] && $permission && $permission != "n") {
 		$existing_item = BigTreeAutoModule::getPendingItem($form["table"],$_POST["id"]);
 		$previous_permission = $admin->getAccessLevel($module,$existing_item["item"],$form["table"]);
-		
+
 		// If the current permission is e or p, drop it down to e if the old one was e.
 		if ($previous_permission != "p") {
 			$permission = $previous_permission;
 		}
 	}
-	
+
 	if (!$permission || $permission == "n") {
 		include BigTree::path("admin/auto-modules/forms/_denied.php");
 	} else {
@@ -37,17 +37,17 @@
 		$crops = array();
 		$many_to_many = array();
 		$fails = array();
-		
+
 		// Let us figure out what was posted and get the data...!
 		$item = array();
-		
+
 		$data = $_POST;
 		$file_data = $_FILES;
-		
+
 		foreach ($fields as $key => $options) {
 			$type = $options["type"];
 			$tpath = BigTree::path("admin/form-field-types/process/$type.php");
-			
+
 			$no_process = false;
 			// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
 			if (file_exists($tpath)) {
@@ -55,7 +55,7 @@
 			} else {
 				$value = htmlspecialchars($data[$key]);
 			}
-			
+
 			if (!BigTreeForms::validate($value,$options["validation"])) {
 				$error = $options["error_message"] ? $options["error_message"] : BigTreeForms::errorMessage($value,$options["validation"]);
 				$fails[] = array(
@@ -63,14 +63,14 @@
 					"error" => $error
 				);
 			}
-			
+
 			$value = $admin->autoIPL($value);
-		
+
 			if (!$no_process) {
 				$item[$key] = $value;
 			}
 		}
-		
+
 		// See if we added anything in pre-processing that wasn't a field in the form.
 		if (is_array($preprocess_changes)) {
 			foreach ($preprocess_changes as $key => $val) {
@@ -79,18 +79,18 @@
 				}
 			}
 		}
-		
+
 		// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
 		$formParser = new BigTreeForms($form["table"]);
 		$item = $formParser->sanitizeFormDataForDB($item);
 		$tags = $_POST["_tags"];
 		$resources = $_POST["_resources"];
-		
+
 		$edit_id = $_POST["id"] ? $_POST["id"] : false;
 		$new_id = false;
-		
+
 		$table = $form["table"];
-		// Let's stick it in the database or whatever!	
+		// Let's stick it in the database or whatever!
 		if ($permission == "e" || $data_action == "save") {
 			// We're an editor
 			if ($edit_id) {
@@ -100,7 +100,7 @@
 				$edit_id = "p".BigTreeAutoModule::createPendingItem($module["id"],$table,$item,$many_to_many,$tags);
 				$admin->growl($module["name"],"Created ".$form["title"]." Draft");
 			}
-			
+
 			if ($edit_id && is_numeric($edit_id)) {
 				$published = true;
 			} else {
@@ -122,38 +122,47 @@
 			}
 			$published = true;
 		}
-		
+
 		// Kill off any applicable locks to the entry
 		if ($edit_id) {
 			$admin->unlock($table,$edit_id);
 		}
-		
+
 		// Get the redirect location.
-		$pieces = explode("-",$action["route"]);
-		if (count($pieces) == 2) {
-			$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/";
+		if ($form["return_view"]) {
+			$a = $admin->getModuleActionForView($form["return_view"]);
+			if ($a["route"]) {
+				$redirect_url = ADMIN_ROOT.$module["route"]."/".$a["route"]."/";
+			} else {
+				$redirect_url = ADMIN_ROOT.$module["route"]."/";
+			}
 		} else {
-			$redirect_url = ADMIN_ROOT.$module["route"]."/";
+			$pieces = explode("-",$action["route"]);
+			if (count($pieces) == 2) {
+				$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/";
+			} else {
+				$redirect_url = ADMIN_ROOT.$module["route"]."/";
+			}
 		}
-		
+
 		if (end($bigtree["path"]) == "preview") {
 			$admin->ungrowl();
 			$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
 		}
-		
+
 		// Check to see if this is a positioned element, if it is and the form is selected to move to the top, update the record.
 		$table_description = BigTree::describeTable($table);
 		if (isset($table_description["columns"]["position"]) && $form["default_position"] == "Top" && !$_POST["id"]) {
 			$max = sqlrows(sqlquery("SELECT id FROM `$table`"));
 			BigTreeAutoModule::updateItem($table,$edit_id,array("position" => $max));
 		}
-			
+
 		// If there's a callback function for this module, let's get'r'done.
 		if ($form["callback"]) {
 			$function = htmlspecialchars_decode($form["callback"]).'($edit_id,$item,$published);';
 			eval($function);
 		}
-		
+
 		if (count($crops) == 0) {
 			if (count($fails)) {
 				$suffix = $view["suffix"] ? "-".$view["suffix"] : "";
@@ -185,7 +194,7 @@
 				document.location = '<?=$redirect_url?>';
 			}
 		});
-		
+
 		return false;
 	});
 </script>
