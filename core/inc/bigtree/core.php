@@ -886,7 +886,7 @@
 			$f = sqlfetch(sqlquery("SELECT id,trunk,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '0') ORDER BY LENGTH(path) DESC LIMIT 1"));
 			if ($f["trunk"] && !$trunk_as_toplevel) {
 				// Get the next item in the path.
-				$g = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND LENGTH(path) > ".strlen($f["path"])." ORDER BY LENGTH(path) ASC LIMIT 1"));
+				$g = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND LENGTH(path) < ".strlen($f["path"])." ORDER BY LENGTH(path) ASC LIMIT 1"));
 				if ($g) {
 					$f = $g;
 				}

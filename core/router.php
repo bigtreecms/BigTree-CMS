@@ -364,6 +364,9 @@
 		}
 		
 		include "../templates/basic/".$bigtree["page"]["template"].".php";
+	// Check for standard sitemap
+	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {
+		include "../templates/basic/_sitemap.php";
 	// We've got a 404, check for old routes or throw one.
 	} else {
 		// Let's check if it's in the old routing table.
