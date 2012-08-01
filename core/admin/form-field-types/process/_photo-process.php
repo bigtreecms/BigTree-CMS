@@ -117,6 +117,7 @@
 				$crops[] = array(
 					"image" => $temp_copy,
 					"directory" => $options["directory"],
+					"retina" => $options["retina"],
 					"name" => $pinfo["basename"],
 					"width" => $cwidth,
 					"height" => $cheight,
@@ -128,7 +129,7 @@
 				if (is_array($crop["thumbs"])) {
 					foreach ($crop["thumbs"] as $thumb) {
 						$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-						BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
+						BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"]);
 						// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 						$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
 					}
@@ -142,7 +143,7 @@
 		if (is_array($options["thumbs"])) {
 			foreach ($options["thumbs"] as $thumb) {
 				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
+				BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"]);
 				// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 				$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
 			}

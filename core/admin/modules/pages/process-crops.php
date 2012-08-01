@@ -18,6 +18,7 @@
 		$width = $_POST["width"][$key];
 		$height = $_POST["height"][$key];
 		$thumbs = is_array($crop["thumbs"]) ? $crop["thumbs"] : array();
+		$retina = $crop["retina"];
 		
 		// If we're replacing the actual image, do it last.
 		if (!$prefix) {
@@ -32,10 +33,10 @@
 			$pinfo = pathinfo($image_src);
 			
 			$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-			BigTree::createCrop($image_src,$temp_crop,$x,$y,$cwidth,$cheight,$width,$height);
+			BigTree::createCrop($image_src,$temp_crop,$x,$y,$cwidth,$cheight,$width,$height,$retina);
 			foreach ($thumbs as $thumb) {
 				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-				BigTree::createThumbnail($temp_crop,$temp_thumb,$thumb["width"],$thumb["height"]);
+				BigTree::createThumbnail($temp_crop,$temp_thumb,$thumb["width"],$thumb["height"],$retina);
 				$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 			}
 			$upload_service->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
@@ -46,11 +47,11 @@
 		$pinfo = pathinfo($crop["image"]);
 		
 		$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-		BigTree::createCrop($crop["image"],$temp_crop,$crop["x"],$crop["y"],$crop["width"],$crop["height"],$crop["w"],$crop["h"]);
+		BigTree::createCrop($crop["image"],$temp_crop,$crop["x"],$crop["y"],$crop["width"],$crop["height"],$crop["w"],$crop["h"],$crop["retina"]);
 
 		foreach ($crop["thumbs"] as $thumb) {
 			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-			BigTree::createThumbnail($temp_crop,$temp_thumb,$thumb["width"],$thumb["height"]);
+			BigTree::createThumbnail($temp_crop,$temp_thumb,$thumb["width"],$thumb["height"],$crop["retina"]);
 			$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 		}
 		

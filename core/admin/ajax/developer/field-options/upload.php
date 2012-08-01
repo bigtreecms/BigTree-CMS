@@ -36,6 +36,11 @@
 		<label>Preview Prefix <small>(for forms)</small></label>
 		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 	</fieldset>
+	<fieldset>
+		<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/documentation/developer-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
+		<input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?>/>
+		<label class="for_checkbox"> When Available</label>
+	</fieldset>
 	
 	<h4>Crops <a href="#" class="add_crop"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
 	<fieldset>
@@ -59,8 +64,8 @@
 				<li>
 					<input type="text" name="crops[<?=$cx?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
 				</li>
-				<li class="thumbnail"><a href="#<?=$cx?>"></a></li>
-				<li class="del"><a href="#<?=$cx?>"></a></li>
+				<li class="thumbnail"><a href="#<?=$cx?>" title="Create Thumbnail of Crop"></a></li>
+				<li class="del"><a href="#<?=$cx?>" title="Remove"></a></li>
 			</ul>
 			<?
 						if (!empty($crop["thumbs"])) {
@@ -78,7 +83,7 @@
 					<input type="text" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 				</li>
 				<li class="up"></li>
-				<li class="del"><a href="#"></a></li>
+				<li class="del"><a href="#" title="Remove"></a></li>
 			</ul>
 			<?		
 							}
@@ -111,7 +116,7 @@
 				<li>
 					<input type="text" name="thumbs[<?=$tx?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 				</li>
-				<li class="del"><a href="#"></a></li>
+				<li class="del"><a href="#" title="Remove"></a></li>
 			</ul>
 			<?
 						$tx++;

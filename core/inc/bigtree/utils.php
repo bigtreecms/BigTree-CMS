@@ -141,17 +141,26 @@
 				newfile - The location to save the new cropped image.
 				x - The starting x value of the crop.
 				y - The starting y value of the crop.
-				crop_width - The width to crop from the original image.
-				crop_height - The height to crop from the original image.
-				width - The resized width of the new image.
-				height - The resized height of the new image.
+				target_width - The desired width of the new image.
+				target_height - The desired height of the new image.
+				width - The width to crop from the original image.
+				height - The height to crop from the original image.
+				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				jpeg_quality - The quality to save (for GD) the new image at. Defaults to 90.
 		*/
 		
-		static function createCrop($file,$newfile,$x,$y,$crop_width,$crop_height,$width,$height,$jpeg_quality = 90) {
+		static function createCrop($file,$newfile,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$jpeg_quality = 90) {
+			// If we're doing a retina image we're going to check to see if the cropping area is at least twice the desired size
+			if ($retina && ($x + $width) >= $target_width * 2 && ($y + $height) >= $target_height * 2) {
+			    $jpeg_quality = 25;
+			    $target_width *= 2;
+			    $target_height *= 2;
+			}
+			
+			// Use GD if Imagick isn't available.
 			if (!class_exists("Imagick",false)) {
 				list($w, $h, $type) = getimagesize($file);
-				$image_p = imagecreatetruecolor($crop_width,$crop_height);
+				$image_p = imagecreatetruecolor($target_width,$target_height);
 				if ($type == IMAGETYPE_JPEG) {
 					$image = imagecreatefromjpeg($file);
 				} elseif ($type == IMAGETYPE_GIF) {
@@ -159,11 +168,11 @@
 				} elseif ($type == IMAGETYPE_PNG) {
 					$image = imagecreatefrompng($file);
 				}
-		
+				
 				imagealphablending($image, true);
 				imagealphablending($image_p, false);
 				imagesavealpha($image_p, true);
-				imagecopyresampled($image_p, $image, 0, 0, $x, $y, $crop_width, $crop_height, $width, $height);
+				imagecopyresampled($image_p, $image, 0, 0, $x, $y, $target_width, $target_height, $width, $height);
 		
 				if ($type == IMAGETYPE_JPEG) {
 					imagejpeg($image_p,$newfile,$jpeg_quality);
@@ -176,10 +185,12 @@
 		
 				imagedestroy($image);
 				imagedestroy($image_p);
+			// Use Imagick if available.
 			} else {
 				$image = new Imagick($file);
+				$image->setImageCompressionQuality($jpeg_quality);
 				$image->cropImage($width,$height,$x,$y);
-				$image->thumbNailImage($crop_width,$crop_height);
+				$image->thumbNailImage($target_width,$target_height);
 				$image->writeImage($newfile);
 			}
 			return $newfile;
@@ -195,10 +206,11 @@
 				newfile - The location to save the new cropped image.
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
+				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				jpeg_quality - The quality to save (for GD) the new image at. Defaults to 90.
 		*/
 		
-		static function createThumbnail($file,$newfile,$maxwidth,$maxheight,$jpeg_quality = 90) {
+		static function createThumbnail($file,$newfile,$maxwidth,$maxheight,$retina = false,$jpeg_quality = 90) {
 			list($w, $h, $type) = getimagesize($file);
 			if ($w > $maxwidth && $maxwidth) {
 				$perc = $maxwidth / $w;
@@ -222,7 +234,15 @@
 				$nw = $w;
 				$nh = $h;
 			}
+			
+			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
+			if ($retina && $nw * 2 <= $w && $nh * 2 <= $h) {
+			    $nw *= 2;
+			    $nh *= 2;
+			    $jpeg_quality = 25;
+			}
 		
+			// Use GD if Imagick isn't available.
 			if (!class_exists("Imagick",false)) {
 				$image_p = imagecreatetruecolor($nw, $nh);
 				if ($type == IMAGETYPE_JPEG) {
@@ -249,8 +269,10 @@
 				imagedestroy($image_p);
 				chmod($newfile,0777);
 				return $newfile;
+			// Use Imagick...
 			} else {
 				$image = new Imagick($file);
+				$image->setImageCompressionQuality($jpeg_quality);
 				$image->thumbnailImage($nw,$nh);
 				$image->writeImage($newfile);
 				return $newfile;

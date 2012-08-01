@@ -33,7 +33,7 @@
 		ul.append(li_up);
 		
 		li_del = $('<li class="del">');
-		li_del.html('<a href="#"></a>');
+		li_del.html('<a href="#" title="Remove"></a>');
 		ul.append(li_del);
 	
 		$(this).parents("ul").after(ul);
@@ -67,11 +67,11 @@
 		ul.append(li_height);
 		
 		li_thumb = $('<li class="thumbnail">');
-		li_thumb.html('<a href="#' + crop_count + '"></a>');
+		li_thumb.html('<a href="#' + crop_count + '" title="Create Thumbnail of Crop"></a>');
 		ul.append(li_thumb);
 		
 		li_del = $('<li class="del">');
-		li_del.html('<a href="#' + crop_count + '"></a>');
+		li_del.html('<a href="#' + crop_count + '" title="Remove"></a>');
 		ul.append(li_del);
 		
 		$("#pop_crop_list").append(ul);
