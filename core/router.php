@@ -385,7 +385,7 @@
 	$bigtree["content"] = ob_get_clean();
 	
 	// Allow for special output filter functions.
-	$filter = false;
+	$filter = null;
 	if ($bigtree["config"]["output_filter"]) {
 		$filter = $bigtree["config"]["output_filter"];
 	}
