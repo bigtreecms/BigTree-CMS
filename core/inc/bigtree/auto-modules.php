@@ -720,7 +720,7 @@
 			// Get the correct column name for sorting
 			if (count(explode(" ",$sort)) < 3) {
 				list($sort_field,$sort_direction) = explode(" ",$sort);
-				$sort_field = str_ireplace("`", "", $sort_field);
+				$sort_field = str_replace("`", "", $sort_field);
 				if ($sort_field != "id") {
 				    $x = 0;
 				    foreach ($view["fields"] as $field => $options) {
