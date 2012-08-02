@@ -217,40 +217,11 @@
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($w, $h, $type) = getimagesize($file);
-			if ($w > $maxwidth && $maxwidth) {
-				$perc = $maxwidth / $w;
-				$nw = $maxwidth;
-				$nh = round($h * $perc,0);
-				if ($nh > $maxheight && $maxheight) {
-					$perc = $maxheight / $nh;
-					$nh = $maxheight;
-					$nw = round($nw * $perc,0);
-				}
-			} elseif ($h > $maxheight && $maxheight) {
-				$perc = $maxheight / $h;
-				$nh = $maxheight;
-				$nw = round($w * $perc,0);
-				if ($nw > $maxwidth && $maxwidth) {
-					$perc = $maxwidth / $nw;
-					$nw = $maxwidth;
-					$nh = round($nh * $perc,0);
-				}
-			} else {
-				$nw = $w;
-				$nh = $h;
-			}
-			
-			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
-			if ($retina && $nw * 2 <= $w && $nh * 2 <= $h) {
-			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
-			    $nw *= 2;
-			    $nh *= 2;
-			}
+			list($w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
 		
 			// Use GD if Imagick isn't available.
 			if (!class_exists("Imagick",false)) {
-				$image_p = imagecreatetruecolor($nw, $nh);
+				$image_p = imagecreatetruecolor($result_width, $result_height);
 				if ($type == IMAGETYPE_JPEG) {
 					$image = imagecreatefromjpeg($file);
 				} elseif ($type == IMAGETYPE_GIF) {
@@ -262,7 +233,7 @@
 				imagealphablending($image, true);
 				imagealphablending($image_p, false);
 				imagesavealpha($image_p, true);
-				imagecopyresampled($image_p, $image, 0, 0, 0, 0, $nw, $nh, $w, $h);
+				imagecopyresampled($image_p, $image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
 		
 				if ($type == IMAGETYPE_JPEG) {
 					imagejpeg($image_p,$newfile,$jpeg_quality);
@@ -279,7 +250,7 @@
 			} else {
 				$image = new Imagick($file);
 				$image->setImageCompressionQuality($jpeg_quality);
-				$image->thumbnailImage($nw,$nh);
+				$image->thumbnailImage($result_width,$result_height);
 				$image->writeImage($newfile);
 				return $newfile;
 			}
@@ -709,6 +680,57 @@
 					}
 				}
 			}
+		}
+		
+		/*
+			Function: getThumbnailSizes
+				Returns a list of sizes of an image and the result sizes.
+			
+			Parameters:
+				file - The location of the image to crop.
+				maxwidth - The maximum width of the new image (0 for no max).
+				maxheight - The maximum height of the new image (0 for no max).
+				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
+			
+			Returns:
+				An array with (width,height,result width,result height)
+		*/
+		
+		static function getThumbnailSizes($file,$maxwidth,$maxheight,$retina = false) {
+			global $bigtree;
+			
+			list($w, $h, $type) = getimagesize($file);
+			if ($w > $maxwidth && $maxwidth) {
+				$perc = $maxwidth / $w;
+				$result_width = $maxwidth;
+				$result_height = round($h * $perc,0);
+				if ($result_height > $maxheight && $maxheight) {
+					$perc = $maxheight / $result_height;
+					$result_height = $maxheight;
+					$result_width = round($result_width * $perc,0);
+				}
+			} elseif ($h > $maxheight && $maxheight) {
+				$perc = $maxheight / $h;
+				$result_height = $maxheight;
+				$result_width = round($w * $perc,0);
+				if ($result_width > $maxwidth && $maxwidth) {
+					$perc = $maxwidth / $result_width;
+					$result_width = $maxwidth;
+					$result_height = round($result_height * $perc,0);
+				}
+			} else {
+				$result_width = $w;
+				$result_height = $h;
+			}
+			
+			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
+			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
+			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
+			    $result_width *= 2;
+			    $result_height *= 2;
+			}
+			
+			return array($w,$h,$result_width,$result_height);
 		}
 		
 		/*
