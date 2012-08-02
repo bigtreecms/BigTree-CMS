@@ -47,8 +47,18 @@
 							$preview_margin = 0;
 						}
 						
-						$initial_x = ceil(($box_width - $min_width) / 2);
-						$initial_y = ceil(($box_height - $min_height) / 2);
+						// If we're doing a retina crop, make the initial crop area fit the retina version.
+						if ($crop["retina"] && $width >= $cwidth * 2 && $height >= $cheight * 2) {
+							$initial_width = $min_width * 2;
+							$initial_height = $min_height * 2;
+						} else {
+							$initial_width = $min_width;
+							$initial_height = $min_height;
+						}
+						
+						// Figure out where we're starting the cropping box (should be centered)
+						$initial_x = ceil(($box_width - $initial_width) / 2);
+						$initial_y = ceil(($box_height - $initial_height) / 2);
 				?>
 				<li<? if ($x > 1) { ?> style="display: none;"<? } ?>>
 					<div class="original">
@@ -72,7 +82,7 @@
 							$("#cropImage<?=$x?>").Jcrop({
 								minSize: [<?=$min_width?>,<?=$min_height?>],
 								aspectRatio: <?=($min_width / $min_height)?>,
-								setSelect: [<?=$initial_x?>,<?=$initial_y?>,<?=($initial_x+$min_width)?>,<?=($initial_y+$min_height)?>],
+								setSelect: [<?=$initial_x?>,<?=$initial_y?>,<?=($initial_x + $initial_width)?>,<?=($initial_y + $initial_height)?>],
 								onSelect: _local_showPreview<?=$x?>,
 								onChange: _local_showPreview<?=$x?>
 							});

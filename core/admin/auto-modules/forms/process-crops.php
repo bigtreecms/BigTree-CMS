@@ -1,7 +1,4 @@
 <?
-	error_reporting(E_ALL);
-	ini_set("display_errors","on");
-	
 	// Initiate the Upload Service class.
 	$upload_service = new BigTreeUploadService;
 	
@@ -64,8 +61,6 @@
 	foreach ($crops as $crop) {
 		unlink($crop["image"]);
 	}
-	
-	die();
 	
 	BigTree::redirect($redloc);
 ?>
