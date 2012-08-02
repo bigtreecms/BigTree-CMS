@@ -218,6 +218,13 @@
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
 			list($w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
+			
+			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
+			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
+			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
+			    $result_width *= 2;
+			    $result_height *= 2;
+			}
 		
 			// Use GD if Imagick isn't available.
 			if (!class_exists("Imagick",false)) {
@@ -690,13 +697,12 @@
 				file - The location of the image to crop.
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
-				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 			
 			Returns:
 				An array with (width,height,result width,result height)
 		*/
 		
-		static function getThumbnailSizes($file,$maxwidth,$maxheight,$retina = false) {
+		static function getThumbnailSizes($file,$maxwidth,$maxheight) {
 			global $bigtree;
 			
 			list($w, $h, $type) = getimagesize($file);
@@ -721,13 +727,6 @@
 			} else {
 				$result_width = $w;
 				$result_height = $h;
-			}
-			
-			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
-			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
-			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
-			    $result_width *= 2;
-			    $result_height *= 2;
 			}
 			
 			return array($w,$h,$result_width,$result_height);
