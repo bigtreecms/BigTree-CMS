@@ -27,8 +27,9 @@
 	$bigtree["config"]["static_root"] = "[staticroot]";
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
-	// Email used for default form mailers	
-	$bigtree["config"]["contact_email"] = "[email]";
+	// Default Image Quality Presets
+	$bigtree["config"]["image_quality"] = 90;
+	$bigtree["config"]["retina_image_quality"] = 25;
 	
 	// The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
 	$bigtree["config"]["password_depth"] = 8;

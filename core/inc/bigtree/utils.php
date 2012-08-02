@@ -146,13 +146,16 @@
 				width - The width to crop from the original image.
 				height - The height to crop from the original image.
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
-				jpeg_quality - The quality to save (for GD) the new image at. Defaults to 90.
 		*/
 		
-		static function createCrop($file,$newfile,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$jpeg_quality = 90) {
+		static function createCrop($file,$newfile,$x,$y,$target_width,$target_height,$width,$height,$retina = false) {
+			global $bigtree;
+			
+			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
+			
 			// If we're doing a retina image we're going to check to see if the cropping area is at least twice the desired size
 			if ($retina && ($x + $width) >= $target_width * 2 && ($y + $height) >= $target_height * 2) {
-			    $jpeg_quality = 25;
+			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 			    $target_width *= 2;
 			    $target_height *= 2;
 			}
@@ -207,10 +210,13 @@
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
-				jpeg_quality - The quality to save (for GD) the new image at. Defaults to 90.
 		*/
 		
-		static function createThumbnail($file,$newfile,$maxwidth,$maxheight,$retina = false,$jpeg_quality = 90) {
+		static function createThumbnail($file,$newfile,$maxwidth,$maxheight,$retina = false) {
+			global $bigtree;
+			
+			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
+			
 			list($w, $h, $type) = getimagesize($file);
 			if ($w > $maxwidth && $maxwidth) {
 				$perc = $maxwidth / $w;
@@ -237,9 +243,9 @@
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $nw * 2 <= $w && $nh * 2 <= $h) {
+			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 			    $nw *= 2;
 			    $nh *= 2;
-			    $jpeg_quality = 25;
 			}
 		
 			// Use GD if Imagick isn't available.
