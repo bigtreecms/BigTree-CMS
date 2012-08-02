@@ -32,11 +32,26 @@
 		li_up = $('<li class="up">');
 		ul.append(li_up);
 		
+		li_color = $('<li class="colormode">');
+		li_color.html('<input type="hidden" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][grayscale]" value="" /><a href="#" title="Switch Color Mode"></a>');
+		ul.append(li_color);
+		
 		li_del = $('<li class="del">');
 		li_del.html('<a href="#" title="Remove"></a>');
 		ul.append(li_del);
 	
 		$(this).parents("ul").after(ul);
+		
+		return false;
+	});
+	
+	$(".image_attr").on("click",".colormode a",function() {
+		$(this).toggleClass("gray");
+		if ($(this).hasClass("gray")) {
+			$(this).prev("input").val("on");
+		} else {
+			$(this).prev("input").val("");			
+		}
 		
 		return false;
 	});
@@ -69,6 +84,10 @@
 		li_thumb = $('<li class="thumbnail">');
 		li_thumb.html('<a href="#' + crop_count + '" title="Create Thumbnail of Crop"></a>');
 		ul.append(li_thumb);
+		
+		li_color = $('<li class="colormode">');
+		li_color.html('<input type="hidden" name="crops[' + crop_count + '][grayscale]" value="" /><a href="#" title="Switch Color Mode"></a>');
+		ul.append(li_color);
 		
 		li_del = $('<li class="del">');
 		li_del.html('<a href="#' + crop_count + '" title="Remove"></a>');
@@ -103,6 +122,10 @@
 		li_height = $('<li>');
 		li_height.html('<input type="text" name="thumbs[' + thumb_count + '][height]" value="" />');
 		ul.append(li_height);
+		
+		li_color = $('<li class="colormode">');
+		li_color.html('<input type="hidden" name="thumbs[' + thumb_count + '][grayscale]" value="" /><a href="#" title="Switch Color Mode"></a>');
+		ul.append(li_color);
 		
 		li_del = $('<li class="del">');
 		li_del.html('<a href="#"></a>');

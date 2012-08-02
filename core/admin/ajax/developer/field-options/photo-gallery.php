@@ -58,6 +58,10 @@
 				<input type="text" name="crops[<?=$cx?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
 			</li>
 			<li class="thumbnail"><a href="#<?=$cx?>" title="Create Thumbnail of Crop"></a></li>
+			<li class="colormode">
+				<input type="hidden" name="crops[<?=$cx?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+				<a href="#" title="Switch Color Mode"<? if ($crop["grayscale"]) { ?> class="gray"<? } ?>></a>
+			</li>
 			<li class="del"><a href="#<?=$cx?>" title="Remove"></a></li>
 		</ul>
 		<?
@@ -76,6 +80,10 @@
 				<input type="text" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 			</li>
 			<li class="up"></li>
+			<li class="colormode">
+				<input type="hidden" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+				<a href="#" title="Switch Color Mode"<? if ($thumb["grayscale"]) { ?> class="gray"<? } ?>></a>
+			</li>
 			<li class="del"><a href="#" title="Remove"></a></li>
 		</ul>
 		<?		
@@ -108,6 +116,10 @@
 			</li>
 			<li>
 				<input type="text" name="thumbs[<?=$tx?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
+			</li>
+			<li class="colormode">
+				<input type="hidden" name="thumbs[<?=$tx?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+				<a href="#" title="Switch Color Mode"<? if ($thumb["grayscale"]) { ?> class="gray"<? } ?>></a>
 			</li>
 			<li class="del"><a href="#" title="Remove"></a></li>
 		</ul>

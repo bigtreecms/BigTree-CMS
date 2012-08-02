@@ -929,14 +929,17 @@
 	
 	.bigtree_dialog_form .image_attr { overflow: hidden; }
 	.bigtree_dialog_form .image_attr ul { overflow: hidden; }
-	.bigtree_dialog_form .image_attr ul li { float: left; font-size: 10px; font-weight: bold; margin-bottom: 5px; width: 132px; }
-	.bigtree_dialog_form .image_attr ul li.del { width: 16px; }
-	.bigtree_dialog_form .image_attr ul li.up { background: url(../images/arrow-turn-left-up.png) no-repeat left center; height: 16px; width: 21px; }
-	.bigtree_dialog_form .image_attr ul li.del a { background: url(../images/currently-kill.png) no-repeat center; display: block; height: 16px; margin: 3px 0 0 0; width: 16px; }
-	.bigtree_dialog_form .image_attr ul li.thumbnail { width: 21px; }
-	.bigtree_dialog_form .image_attr ul li.thumbnail a { background: url(../images/picture.png) no-repeat center; display: block; height: 16px; margin: 3px 0 0 0; width: 16px; }
-	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 110px; }
-	.bigtree_dialog_form .image_attr input.image_attr_thumbs { background: url(../images/picture.png) no-repeat 3px center; padding-left: 21px; width: 94px; }
+	.bigtree_dialog_form .image_attr ul li { float: left; font-size: 10px; font-weight: bold; margin-bottom: 5px; width: 123px; }
+	.bigtree_dialog_form .image_attr ul li.up { background: url(../images/arrow-turn-left-up.png) no-repeat center 3px; height: 19px; width: 22px; }
+	.bigtree_dialog_form .image_attr ul li.del { width: 22px; text-align: center; }
+	.bigtree_dialog_form .image_attr ul li.del a { background: url(../images/currently-kill.png) no-repeat center; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
+	.bigtree_dialog_form .image_attr ul li.thumbnail { width: 22px; text-align: center; }
+	.bigtree_dialog_form .image_attr ul li.thumbnail a { background: url(../images/picture.png) no-repeat center; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
+	.bigtree_dialog_form .image_attr ul li.colormode { width: 22px; text-align: center; }
+	.bigtree_dialog_form .image_attr ul li.colormode a { background: url(../images/color-grayscale.png) no-repeat top left; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
+	.bigtree_dialog_form .image_attr ul li.colormode a.gray { background-position: 0px -16px; }
+	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 105px; }
+	.bigtree_dialog_form .image_attr input.image_attr_thumbs { background: url(../images/picture.png) no-repeat 3px center; padding-left: 21px; width: 89px; }
 
 	.bigtree_dialog_form .image_field .button { padding: 0 10px; }
 	
@@ -1355,4 +1358,7 @@
 		input[type="submit"], a.button { background: #BBB url("../images/button-bg-2x.png") repeat-x; background-size: 1px 36px; }
 		.select { background: #FFF url(../images/select-handle-2x.png) no-repeat top right; background-size: 34px 30px; }
 		.checkbox a { background-image: url(../images/checkbox-sprite-2x.png); background-size: 32px 32px; }
+		
+		.bigtree_dialog_form .image_attr ul li.colormode a { background-image: url(../images/color-grayscale-2x.png); background-size: 16px 32px; }
+		.bigtree_dialog_form .image_attr ul li.colormode a.gray { background-position: 0px -16px; }
 	}
