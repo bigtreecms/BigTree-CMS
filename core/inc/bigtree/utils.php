@@ -176,7 +176,7 @@
 			imagecopyresampled($cropped_image, $original_image, 0, 0, $x, $y, $target_width, $target_height, $width, $height);
 			
 			if ($grayscale) {
-				imagefilter($cropped_image, IMG_FILTER_GRAYSCALE)
+				imagefilter($cropped_image, IMG_FILTER_GRAYSCALE);
 			}
 		
 			if ($type == IMAGETYPE_JPEG) {
@@ -236,7 +236,7 @@
 			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
 		
 			if ($grayscale) {
-			    imagefilter($cropped_image, IMG_FILTER_GRAYSCALE)
+			    imagefilter($cropped_image, IMG_FILTER_GRAYSCALE);
 			}
 		
 			if ($type == IMAGETYPE_JPEG) {
