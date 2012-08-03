@@ -134,11 +134,10 @@
 		/*
 			Function: createCrop
 				Creates a cropped image from a source image.
-				Uses ImageMagick extension if available. Falls back to gd.
 			
 			Parameters:
 				file - The location of the image to crop.
-				newfile - The location to save the new cropped image.
+				new_file - The location to save the new cropped image.
 				x - The starting x value of the crop.
 				y - The starting y value of the crop.
 				target_width - The desired width of the new image.
@@ -146,9 +145,10 @@
 				width - The width to crop from the original image.
 				height - The height to crop from the original image.
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
+				grayscale - Whether to make the crop be in grayscale or not, defaults to false
 		*/
 		
-		static function createCrop($file,$newfile,$x,$y,$target_width,$target_height,$width,$height,$retina = false) {
+		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
@@ -160,59 +160,54 @@
 			    $target_height *= 2;
 			}
 			
-			// Use GD if Imagick isn't available.
-			if (!class_exists("Imagick",false)) {
-				list($w, $h, $type) = getimagesize($file);
-				$image_p = imagecreatetruecolor($target_width,$target_height);
-				if ($type == IMAGETYPE_JPEG) {
-					$image = imagecreatefromjpeg($file);
-				} elseif ($type == IMAGETYPE_GIF) {
-					$image = imagecreatefromgif($file);
-				} elseif ($type == IMAGETYPE_PNG) {
-					$image = imagecreatefrompng($file);
-				}
-				
-				imagealphablending($image, true);
-				imagealphablending($image_p, false);
-				imagesavealpha($image_p, true);
-				imagecopyresampled($image_p, $image, 0, 0, $x, $y, $target_width, $target_height, $width, $height);
-		
-				if ($type == IMAGETYPE_JPEG) {
-					imagejpeg($image_p,$newfile,$jpeg_quality);
-				} elseif ($type == IMAGETYPE_GIF) {
-					imagegif($image_p,$newfile);
-				} elseif ($type == IMAGETYPE_PNG) {
-					imagepng($image_p,$newfile);
-				}
-				chmod($newfile,0777);
-		
-				imagedestroy($image);
-				imagedestroy($image_p);
-			// Use Imagick if available.
-			} else {
-				$image = new Imagick($file);
-				$image->setImageCompressionQuality($jpeg_quality);
-				$image->cropImage($width,$height,$x,$y);
-				$image->thumbNailImage($target_width,$target_height);
-				$image->writeImage($newfile);
+			list($w, $h, $type) = getimagesize($file);
+			$cropped_image = imagecreatetruecolor($target_width,$target_height);
+			if ($type == IMAGETYPE_JPEG) {
+			    $original_image = imagecreatefromjpeg($file);
+			} elseif ($type == IMAGETYPE_GIF) {
+			    $original_image = imagecreatefromgif($file);
+			} elseif ($type == IMAGETYPE_PNG) {
+			    $original_image = imagecreatefrompng($file);
 			}
-			return $newfile;
+			
+			imagealphablending($original_image, true);
+			imagealphablending($cropped_image, false);
+			imagesavealpha($cropped_image, true);
+			imagecopyresampled($cropped_image, $original_image, 0, 0, $x, $y, $target_width, $target_height, $width, $height);
+			
+			if ($grayscale) {
+				imagefilter($cropped_image, IMG_FILTER_GRAYSCALE)
+			}
+		
+			if ($type == IMAGETYPE_JPEG) {
+			    imagejpeg($cropped_image,$new_file,$jpeg_quality);
+			} elseif ($type == IMAGETYPE_GIF) {
+			    imagegif($cropped_image,$new_file);
+			} elseif ($type == IMAGETYPE_PNG) {
+			    imagepng($cropped_image,$new_file);
+			}
+			chmod($new_file,0777);
+		
+			imagedestroy($original_image);
+			imagedestroy($cropped_image);
+			
+			return $new_file;
 		}
 		
 		/*
 			Function: createThumbnail
 				Creates a thumbnailed image from a source image.
-				Uses ImageMagick extension if available. Falls back to gd.
 			
 			Parameters:
 				file - The location of the image to crop.
-				newfile - The location to save the new cropped image.
+				new_file - The location to save the new cropped image.
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
+				grayscale - Whether to make the crop be in grayscale or not, defaults to false
 		*/
 		
-		static function createThumbnail($file,$newfile,$maxwidth,$maxheight,$retina = false) {
+		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false) {
 			global $bigtree;
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
@@ -225,42 +220,38 @@
 			    $result_width *= 2;
 			    $result_height *= 2;
 			}
-		
-			// Use GD if Imagick isn't available.
-			if (!class_exists("Imagick",false)) {
-				$image_p = imagecreatetruecolor($result_width, $result_height);
-				if ($type == IMAGETYPE_JPEG) {
-					$image = imagecreatefromjpeg($file);
-				} elseif ($type == IMAGETYPE_GIF) {
-					$image = imagecreatefromgif($file);
-				} elseif ($type == IMAGETYPE_PNG) {
-					$image = imagecreatefrompng($file);
-				}
-		
-				imagealphablending($image, true);
-				imagealphablending($image_p, false);
-				imagesavealpha($image_p, true);
-				imagecopyresampled($image_p, $image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
-		
-				if ($type == IMAGETYPE_JPEG) {
-					imagejpeg($image_p,$newfile,$jpeg_quality);
-				} elseif ($type == IMAGETYPE_GIF) {
-					imagegif($image_p,$newfile);
-				} elseif ($type == IMAGETYPE_PNG) {
-					imagepng($image_p,$newfile);
-				}
-				imagedestroy($image);
-				imagedestroy($image_p);
-				chmod($newfile,0777);
-				return $newfile;
-			// Use Imagick...
-			} else {
-				$image = new Imagick($file);
-				$image->setImageCompressionQuality($jpeg_quality);
-				$image->thumbnailImage($result_width,$result_height);
-				$image->writeImage($newfile);
-				return $newfile;
+
+			$thumbnailed_image = imagecreatetruecolor($result_width, $result_height);
+			if ($type == IMAGETYPE_JPEG) {
+			    $original_image = imagecreatefromjpeg($file);
+			} elseif ($type == IMAGETYPE_GIF) {
+			    $original_image = imagecreatefromgif($file);
+			} elseif ($type == IMAGETYPE_PNG) {
+			    $original_image = imagecreatefrompng($file);
 			}
+		
+			imagealphablending($original_image, true);
+			imagealphablending($thumbnailed_image, false);
+			imagesavealpha($thumbnailed_image, true);
+			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
+		
+			if ($grayscale) {
+			    imagefilter($cropped_image, IMG_FILTER_GRAYSCALE)
+			}
+		
+			if ($type == IMAGETYPE_JPEG) {
+			    imagejpeg($thumbnailed_image,$new_file,$jpeg_quality);
+			} elseif ($type == IMAGETYPE_GIF) {
+			    imagegif($thumbnailed_image,$new_file);
+			} elseif ($type == IMAGETYPE_PNG) {
+			    imagepng($thumbnailed_image,$new_file);
+			}
+			chmod($new_file,0777);
+			
+			imagedestroy($original_image);
+			imagedestroy($thumbnailed_image);
+			
+			return $new_file;
 		}
 		
 		/*

@@ -18,7 +18,6 @@
 		$width = $_POST["width"][$key];
 		$height = $_POST["height"][$key];
 		$thumbs = is_array($crop["thumbs"]) ? $crop["thumbs"] : array();
-		$retina = $crop["retina"];
 		
 		// If we're replacing the actual image, do it last.
 		if (!$prefix) {
@@ -33,13 +32,13 @@
 			$pinfo = pathinfo($image_src);
 			
 			$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-			BigTree::createCrop($image_src,$temp_crop,$x,$y,$cwidth,$cheight,$width,$height,$retina);
+			BigTree::createCrop($image_src,$temp_crop,$x,$y,$cwidth,$cheight,$width,$height,$crop["retina"],$crop["grayscale"]);
 			foreach ($thumbs as $thumb) {
 				// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-				list($w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$retina);
+				list($w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$crop["retina"]);
 				
 				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-				BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$retina);
+				BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
 				$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 			}
 			$upload_service->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
@@ -54,10 +53,10 @@
 
 		foreach ($crop["thumbs"] as $thumb) {
 			// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-			list($w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$retina);
+			list($w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$crop["retina"]);
 				
 			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-			BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$retina);
+			BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
 			$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 		}
 		

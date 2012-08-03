@@ -31,8 +31,8 @@
 	if (!ini_get('short_open_tag')) {
 		$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
 	}
-	if (!extension_loaded('gd') && !extension_loaded('imagick')) {
-		$warnings[] = "PHP does not have GD or ImageMagick enabled. This will severely limit your ability to do anything with images in BigTree.";
+	if (!extension_loaded('gd')) {
+		$warnings[] = "PHP does not have the GD library enabled. This will severely limit your ability to do anything with images in BigTree.";
 	}
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize is currently less than 4MB. 8MB or higher is recommended.";

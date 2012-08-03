@@ -66,12 +66,7 @@
 	$magic_quotes_runtime = !get_magic_quotes_runtime() ? "good" : "bad";
 	$file_uploads = ini_get('file_uploads') ? "good" : "bad";
 	$short_tags = ini_get('short_open_tag') ? "good" : "bad";
-	$gd = extension_loaded('gd') ? "good" : "bad";
-	if ($gd == "good") {
-		$image_support = extension_loaded('imagick') ? "good" : "ok";
-	} else {
-		$image_support = extension_loaded("imagick") ? "good" : "bad";
-	}
+	$image_support = extension_loaded('gd') ? "good" : "bad";
 	
 	$ftp = function_exists("ftp_connect") ? "good" : "ok";
 	
@@ -172,7 +167,7 @@
 		</li>
 		<li>
 			<section class="site_status_message">Image Processing</section>
-			<section class="site_status_action">Either ImageMagick (recommended - green) or GD (yellow) is required</section>
+			<section class="site_status_action">GD library support is required</section>
 			<section class="site_status_status <?=$image_support?>"></section>
 		</li>
 		<li>
