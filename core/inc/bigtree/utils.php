@@ -212,7 +212,7 @@
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
+			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
@@ -236,7 +236,7 @@
 			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
 		
 			if ($grayscale) {
-			    imagefilter($cropped_image, IMG_FILTER_GRAYSCALE);
+			    imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
 			}
 		
 			if ($type == IMAGETYPE_JPEG) {
@@ -690,7 +690,7 @@
 				maxheight - The maximum height of the new image (0 for no max).
 			
 			Returns:
-				An array with (width,height,result width,result height)
+				An array with (type,width,height,result width,result height)
 		*/
 		
 		static function getThumbnailSizes($file,$maxwidth,$maxheight) {
@@ -720,7 +720,7 @@
 				$result_height = $h;
 			}
 			
-			return array($w,$h,$result_width,$result_height);
+			return array($type,$w,$h,$result_width,$result_height);
 		}
 		
 		/*

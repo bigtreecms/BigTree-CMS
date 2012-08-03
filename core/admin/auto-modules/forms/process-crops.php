@@ -35,7 +35,7 @@
 			BigTree::createCrop($image_src,$temp_crop,$x,$y,$cwidth,$cheight,$width,$height,$crop["retina"],$crop["grayscale"]);
 			foreach ($thumbs as $thumb) {
 				// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-				list($w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$crop["retina"]);
+				list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$crop["retina"]);
 				
 				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 				BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
@@ -53,7 +53,7 @@
 
 		foreach ($thumbs as $thumb) {
 			// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-			list($w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$crop["retina"]);
+			list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"],$crop["retina"]);
 				
 			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 			BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
