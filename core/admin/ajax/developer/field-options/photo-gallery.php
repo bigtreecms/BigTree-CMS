@@ -118,7 +118,7 @@
 				<input type="text" name="thumbs[<?=$tx?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 			</li>
 			<li class="colormode">
-				<input type="hidden" name="thumbs[<?=$tx?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+				<input type="hidden" name="thumbs[<?=$tx?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
 				<a href="#" title="Switch Color Mode"<? if ($thumb["grayscale"]) { ?> class="gray"<? } ?>></a>
 			</li>
 			<li class="del"><a href="#" title="Remove"></a></li>
