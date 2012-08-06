@@ -23,7 +23,7 @@
 			</select>
 		</fieldset>
 		<fieldset>
-			<label class="required">Default Display Title <small>(displays if no resources are assigned as "Title")</small></label>
+			<label class="required">Default Display Label <small>(displays if no resources are assigned as "Label")</small></label>
 			<input type="text" class="required" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
@@ -71,11 +71,11 @@
 						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($v)?></option>
 						<? } ?>
 					</select>
+					<a href="#" class="icon_settings" name="<?=$x?>"></a>
+					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource))?>" id="options_<?=$x?>" />
 				</section>
 				<section class="developer_resource_display_title">
 					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
-					<a href="#" class="icon_settings" name="<?=$x?>"></a>
-					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource))?>" id="options_<?=$x?>" />
 				</section>
 				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
