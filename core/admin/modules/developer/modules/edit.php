@@ -56,7 +56,7 @@
 					<input name="class" type="text" value="<?=htmlspecialchars($mod["class"])?>" />
 				</fieldset>
 				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"])) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
+					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
 				</fieldset>
 			</div>
 		</section>
