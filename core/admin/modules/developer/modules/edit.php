@@ -60,7 +60,7 @@
 				</fieldset>
 			</div>
 		</section>
-		<section class="sub" id="gbp"<? if (!isset($gbp["enabled"])) { ?> style="display: none;"<? } ?>>
+		<section class="sub" id="gbp"<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> style="display: none;"<? } ?>>
 			<div class="left">
 				<fieldset>
 					<label>Grouping Name <small>(i.e. "Category")</small></label>
