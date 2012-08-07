@@ -67,7 +67,7 @@
 	var mtm_count = 0;
 	var key = 0;
 	
-	$(".icon_options").live("click",function() {
+	$(".icon_settings").live("click",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
