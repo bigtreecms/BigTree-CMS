@@ -1811,7 +1811,7 @@ var BigTreeFormValidator = Class.extend({
 			if (!val) {
 				$(this).parents("fieldset").addClass("form_error");
 				$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
-				$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">This Field Is Required</span>'));
+				$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 			}
 		});
 		
