@@ -44,7 +44,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
-				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($view["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
 					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
@@ -102,7 +102,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($view["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
 					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
@@ -172,5 +172,10 @@
 		}
 		
 		$(this).css(style);
+	});
+	
+	// Stop disabled edit action from working.
+	$(".image_list a.image_disabled").click(function() {
+		return false;
 	});
 </script>
