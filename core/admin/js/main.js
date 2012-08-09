@@ -857,6 +857,7 @@ var BigTreeDialog = Class.extend({
 	onCancel: false,
 	dialogWidth: false,
 	dialogHeight: false,
+	heightWatchTimer: false,
 
 	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
@@ -906,7 +907,10 @@ var BigTreeDialog = Class.extend({
 		this.dialogWindow = dialog_window;
 		
 		// Move the dialog around with the window size.
-		$(window).resize($.proxy(this.WindowResize,this));		
+		$(window).resize($.proxy(this.WindowResize,this));
+		
+		// Set a timer to watch for a change in the dialog height
+		this.heightWatchTimer = setInterval($.proxy(this.WatchHeight,this),250);
 	},
 	
 	CheckForEsc: function(e) {
@@ -947,11 +951,23 @@ var BigTreeDialog = Class.extend({
 		return false;
 	},
 	
-	WindowResize: function(ev) {
+	WatchHeight: function() {
+		height = this.dialogWindow.height();
+		if (height != this.dialogHeight) {
+			this.dialogHeight = height;
+			this.WindowResize(false,true);
+		}
+	},
+	
+	WindowResize: function(ev,animate) {
 		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
 		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
-
-		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
+		
+		if (animate) {
+			this.dialogWindow.animate({ "top": topd + "px", "left": leftd + "px" }, 200);
+		} else {
+			this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
+		}
 	}
 });
 
