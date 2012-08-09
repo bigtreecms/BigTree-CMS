@@ -298,6 +298,7 @@ var BigTreeSelect = Class.extend({
 				    selected_option = text;
 				}
 				
+				
 				if (option.attr("selected")) {
 				    html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
 				    selected_option = text;
@@ -726,7 +727,7 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		li = $('<li>').html('<figure><img src="admin_root/images/pending-upload.jpg" alt="" style="margin: 11px 0 0 0;" /></figure><a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>');
+		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>');
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);

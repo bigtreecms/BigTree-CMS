@@ -604,6 +604,7 @@
 	.photo_gallery_widget li a { margin: 5px 5px 0 0; }
 	.photo_gallery_widget li a:last-child { margin: 5px 0 0 0; }
 	.photo_gallery_widget figure { background: #CCC; height: 75px; margin: 0; width: 75px; }
+	.photo_gallery_widget figure figcaption { background: #FFF; color: #333; font-size: 10px; line-height: 15px; text-align: center; padding: 6px 0; display: block; }
 	.photo_gallery_widget img { width: 75px; }
 	.photo_gallery_widget footer { background: #F5F5F5; padding: 20px; }
 	.photo_gallery_widget .file_wrapper { margin: 0; }
