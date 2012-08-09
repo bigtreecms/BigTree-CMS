@@ -110,7 +110,7 @@
 	<? } else { ?>
 	var page = "<?=$pdata["id"]?>";
 	var page_updated_at = "<?=$pdata["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
+	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$pdata["id"]?>' } });",60000);
 	<? } ?>
 	
 	new BigTreeFormValidator("#page_form");

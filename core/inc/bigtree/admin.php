@@ -4215,12 +4215,14 @@
 				Refreshes a lock.
 
 			Paramters:
-				id - The id of the lock.
+				table - The table for the lock.
+				id - The id of the item.
 		*/
 
-		function refreshLock($id) {
+		function refreshLock($table,$id) {
 			$id = mysql_real_escape_string($id);
-			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE id = '$id' AND user = '".$this->ID."'");
+			$table = mysql_real_escape_string($table);
+			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE `table` = '$table' AND item_id = '$id' AND user = '".$this->ID."'");
 		}
 
 		/*
