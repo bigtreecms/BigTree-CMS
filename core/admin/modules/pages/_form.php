@@ -1,10 +1,18 @@
+<?
+	$hide_template_tab = false;
+	if (is_array($template_data) && $template_data["level"] > $admin->Level) {
+		$hide_template_tab = true;
+	}
+?>
 <div class="form_container">
 	<header>
 		<div class="sticky_controls">
 			<div class="shadow">
 				<nav class="left">
 					<a href="#properties_tab"<? if ($action == "create") { ?> class="active"<? } ?>>Properties</a>
+					<? if (!$hide_template_tab) { ?>
 					<a href="#template_tab">Template</a>
+					<? } ?>
 					<a href="#content_tab"<? if ($action == "update") { ?> class="active"<? } ?>>Content</a>
 					<a href="#seo_tab">SEO</a>
 				</nav>
@@ -29,9 +37,11 @@
 		<section id="properties_tab"<? if ($action == "update") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/properties.php") ?>
 		</section>
+		<? if (!$hide_template_tab) { ?>
 		<section id="template_tab" style="display: none;">
 			<? include BigTree::path("admin/modules/pages/tabs/template.php") ?>
 		</section>
+		<? } ?>
 		<section id="content_tab"<? if ($action == "create") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/content.php") ?>
 		</section>

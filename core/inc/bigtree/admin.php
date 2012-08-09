@@ -5225,6 +5225,11 @@
 			foreach ($current as $key => $val) {
 				$$key = mysql_real_escape_string($val);
 			}
+			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
+			$template_data = $cms->getTemplate($template);
+			if (is_array($template_data) && $template_data["level"] > $this->Level) {
+				$data["template"] = $template;
+			}
 			// Copy it to the saved versions
 			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`callouts`,`author`,`updated_at`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$callouts','$last_edited_by','$updated_at')");
 
