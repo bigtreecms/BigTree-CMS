@@ -59,6 +59,9 @@
 	$seo_recommendations = $seo["recommendations"];
 	$seo_color = $seo["color"];
 	
+	// Grab template information
+	$template_data = $cms->getTemplate($pdata["template"]);
+	
 	$action = "update";
 	include BigTree::path("admin/modules/pages/_form.php");
 ?>

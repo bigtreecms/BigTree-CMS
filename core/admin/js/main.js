@@ -234,31 +234,81 @@ var BigTreeSelect = Class.extend({
 		
 		html = "";
 		selected = "";
-		for (i = 0; i < element.options.length; i++) {
-			op = element.options[i];
-			this.Options[i] = op;
-			
-			// Get the size of this text.
-			tester.html(op.text);
-			width = tester.width();
-			if (width > maxwidth) {
-				maxwidth = width;
-			}
-			
-			if (i == 0) {
-				selected = op.text;
-				html += '<span>' + op.text + '</span><div class="select_options" style="display: none;">';
-			}
-
-			if (op.selected) {
-				html += '<a class="active" href="#" data-value="' + op.value + '">' + op.text + '</a>';		
-				selected = op.text;
+		
+		// Need to find all children since we have to account for options in and out of optgroups
+		first_level = $(element).children();
+		y = 0;
+		for (i = 0; i < first_level.length; i++) {
+			el = first_level.get(i);
+			if (el.nodeName.toLowerCase() == "optgroup") {
+				l = $(el).attr("label");
+				html += '<div class="group">' + l + '</div>';
+				// Get the size of this text.
+				tester.html(l);
+				width = tester.width();
+				if (width > maxwidth) {
+				    maxwidth = width;
+				}
+				
+				options = $(el).find("option");
+				for (x = 0; x < options.length; x++) {
+					y++;
+					option = options.eq(x);
+					text = option.html();
+					val = option.attr("value");
+					if (!val) {
+						val = text;
+					}
+					
+					// Get the size of this text.
+					tester.html(text);
+					width = tester.width();
+					if (width > maxwidth) {
+					    maxwidth = width + 20;
+					}
+					
+					if (y == 1) {
+						selected_option = text;
+					}
+					
+					if (option.attr("selected")) {
+					    html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
+					    selected_option = text;
+					} else {
+					    html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
+					}
+				}
 			} else {
-				html += '<a href="#" data-value="' + op.value + '">' + op.text + '</a>';
+				y++;
+				option = $(el);
+				text = option.html();
+				val = option.attr("value");
+				if (!val) {
+				    val = text;
+				}
+				
+				// Get the size of this text.
+				tester.html(text);
+				width = tester.width();
+				if (width > maxwidth) {
+				    maxwidth = width + 20;
+				}
+				
+				if (y == 1) {
+				    selected_option = text;
+				}
+				
+				
+				if (option.attr("selected")) {
+				    html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
+				    selected_option = text;
+				} else {
+				    html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
+				}
 			}
 		}
-		html += '</div>';
-		div.html(html);
+		
+		div.html('<span>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
 		
 		spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
@@ -269,7 +319,7 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected).click($.proxy(this.click,this));
+		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
 		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
 		div.find("a").click($.proxy(this.select,this));
 		
@@ -677,7 +727,7 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		li = $('<li>').html('<figure><img src="admin_root/images/pending-upload.jpg" alt="" style="margin: 11px 0 0 0;" /></figure><a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>');
+		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>');
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);
@@ -857,6 +907,7 @@ var BigTreeDialog = Class.extend({
 	onCancel: false,
 	dialogWidth: false,
 	dialogHeight: false,
+	heightWatchTimer: false,
 
 	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
@@ -906,7 +957,10 @@ var BigTreeDialog = Class.extend({
 		this.dialogWindow = dialog_window;
 		
 		// Move the dialog around with the window size.
-		$(window).resize($.proxy(this.WindowResize,this));		
+		$(window).resize($.proxy(this.WindowResize,this));
+		
+		// Set a timer to watch for a change in the dialog height
+		this.heightWatchTimer = setInterval($.proxy(this.WatchHeight,this),250);
 	},
 	
 	CheckForEsc: function(e) {
@@ -947,11 +1001,23 @@ var BigTreeDialog = Class.extend({
 		return false;
 	},
 	
-	WindowResize: function(ev) {
+	WatchHeight: function() {
+		height = this.dialogWindow.height();
+		if (height != this.dialogHeight) {
+			this.dialogHeight = height;
+			this.WindowResize(false,true);
+		}
+	},
+	
+	WindowResize: function(ev,animate) {
 		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
 		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
-
-		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
+		
+		if (animate) {
+			this.dialogWindow.animate({ "top": topd + "px", "left": leftd + "px" }, 200);
+		} else {
+			this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
+		}
 	}
 });
 

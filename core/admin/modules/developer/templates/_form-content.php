@@ -49,11 +49,22 @@
 			<select name="module">
 				<option></option>
 				<?
-					$modules = $admin->getModules("name ASC");
-					foreach ($modules as $m) {
+					$groups = $admin->getModuleGroups("name ASC");
+					foreach ($groups as $g) {
+						$modules = $admin->getModulesByGroup($g["id"],"name ASC");
+						if (count($modules)) {
 				?>
-				<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
+				<optgroup label="<?=$g["name"]?>">
+					<?
+							foreach ($modules as $m) {
+					?>
+					<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
+					<?
+							}
+					?>
+				</optgroup>
 				<?
+						}
 					}
 				?>
 			</select>	
@@ -120,7 +131,7 @@
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
 						<? foreach ($types as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($v)?></option>
+						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v?></option>
 						<? } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>

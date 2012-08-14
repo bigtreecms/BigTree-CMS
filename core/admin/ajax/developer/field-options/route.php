@@ -5,7 +5,7 @@
 	$data["keep_original"] = isset($data["keep_original"]) ? $data["keep_original"] : "";
 ?>
 <fieldset>
-	<label>Source Field</label>
+	<label>Source Field <small>(the column name of the field to use to generate the route)</small></label>
 	<input type="text" name="source" value="<?=htmlspecialchars($data["source"])?>" />
 </fieldset>
 

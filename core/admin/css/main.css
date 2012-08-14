@@ -155,11 +155,13 @@
 
 	.select { background: #FFF url(../images/select-handle.png) no-repeat top right; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
 	.select span { display: block; padding: 0 44px 0 10px; }
+	.select .group { padding: 5px 10px; font-size: 10px; line-height: 15px; color: #666; background: #F6F6F6; }
 	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
 	.select a:last-child { border-radius: 0px 0px 3px 3px; }
-	.select a.active { background: #F6F6F6; }
+	.select a.active { background: #E0EAF0; }
 	.select a:hover { background: #EEE; }
+	.select a.optgroup { padding: 5px 20px; }
 	.select.focused { border-color: #AAA; }
 	.select.open { border-radius: 2px 2px 0px 0px; }
 	.form_error .select { background: #FCE8E8 url(../images/select-handle-error.png) no-repeat top right; border-color: #990000; }
@@ -602,6 +604,7 @@
 	.photo_gallery_widget li a { margin: 5px 5px 0 0; }
 	.photo_gallery_widget li a:last-child { margin: 5px 0 0 0; }
 	.photo_gallery_widget figure { background: #CCC; height: 75px; margin: 0; width: 75px; }
+	.photo_gallery_widget figure figcaption { background: #FFF; color: #333; font-size: 10px; line-height: 15px; text-align: center; padding: 6px 0; display: block; }
 	.photo_gallery_widget img { width: 75px; }
 	.photo_gallery_widget footer { background: #F5F5F5; padding: 20px; }
 	.photo_gallery_widget .file_wrapper { margin: 0; }
@@ -672,6 +675,8 @@
 	.image_list li a.image { background: #CCC; display: block; height: 108px; margin: 0 0 5px 0; transition: background 0.2s; width: 108px; }
 	.image_list li a.image:hover { background: #DDD; }
 	.image_list li a.image img { max-height: 108px; max-width: 108px; }
+	.image_list li a.image_disabled { cursor: default; }
+	.image_list li a.image_disabled:hover { background: #CCC; }
 	.image_list li a:last-child { margin: 0; }
 	.image_list .ui-sortable-placeholder { background: #eee; border: 1px dashed #ccc; border-radius: 2px; cursor: move; float: left; height: 145px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	

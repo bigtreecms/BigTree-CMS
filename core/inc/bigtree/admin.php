@@ -281,7 +281,7 @@
 			$password = mysql_real_escape_string($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
-			BigTree::redirect($GLOBALS["admin_root"]."login/reset-success/");
+			BigTree::redirect(ADMIN_ROOT."login/reset-success/");
 		}
 
 		/*
@@ -1731,8 +1731,8 @@
 			$hash = mysql_real_escape_string(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$f["id"]."'");
 
-			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".$GLOBALS["admin_root"]."login/reset-password/$hash/","From: no-reply@bigtreecms.com");
-			BigTree::redirect($GLOBALS["admin_root"]."login/forgot-success/");
+			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".ADMIN_ROOT."login/reset-password/$hash/","From: no-reply@bigtreecms.com");
+			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
 		}
 
 		/*
@@ -2316,12 +2316,9 @@
 		function getFullNavigationPath($id, $path = array()) {
 			global $cms;
 
-			// We can change $GLOBALS["root_page"] to drive multiple sites from different branches of the Pages tree.
-			$root_page = isset($GLOBALS["root_page"]) ? $_GLOBALS["root_page"] : 0;
-
 			$f = sqlfetch(sqlquery("SELECT route,id,parent FROM bigtree_pages WHERE id = '$id'"));
 			$path[] = $cms->urlify($f["route"]);
-			if ($f["parent"] != $root_page && $f["parent"] != 0) {
+			if ($f["parent"] != 0) {
 				return $this->getFullNavigationPath($f["parent"],$path);
 			}
 			$path = implode("/",array_reverse($path));
@@ -4104,8 +4101,8 @@
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
 				if ($stay_logged_in) {
-					setcookie('bigtree[email]',$f["email"],time()+31*60*60*24,str_replace($GLOBALS["domain"],"",WWW_ROOT));
-					setcookie('bigtree[password]',$f["password"],time()+31*60*60*24,str_replace($GLOBALS["domain"],"",WWW_ROOT));
+					setcookie('bigtree[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
+					setcookie('bigtree[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 				}
 
 				$_SESSION["bigtree"]["id"] = $f["id"];
@@ -4113,11 +4110,11 @@
 				$_SESSION["bigtree"]["level"] = $f["level"];
 				$_SESSION["bigtree"]["name"] = $f["name"];
 				$_SESSION["bigtree"]["permissions"] = json_decode($f["permissions"],true);
-
-				if ($path[1] == "login") {
-					BigTree::redirect($GLOBALS["admin_root"]);
+				
+				if (isset($_SESSION["bigtree_login_redirect"])) {
+					BigTree::redirect($_SESSION["bigtree_login_redirect"]);
 				} else {
-					BigTree::redirect(BigTree::currentURL());
+					BigTree::redirect(ADMIN_ROOT);
 				}
 			} else {
 				return false;
@@ -4131,10 +4128,10 @@
 		*/
 
 		function logout() {
-			setcookie("bigtree[email]","",time()-3600,str_replace($GLOBALS["domain"],"",WWW_ROOT));
-			setcookie("bigtree[password]","",time()-3600,str_replace($GLOBALS["domain"],"",WWW_ROOT));
+			setcookie("bigtree[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			setcookie("bigtree[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			unset($_SESSION["bigtree"]);
-			BigTree::redirect($GLOBALS["admin_root"]);
+			BigTree::redirect(ADMIN_ROOT);
 		}
 
 		/*
@@ -4218,12 +4215,14 @@
 				Refreshes a lock.
 
 			Paramters:
-				id - The id of the lock.
+				table - The table for the lock.
+				id - The id of the item.
 		*/
 
-		function refreshLock($id) {
+		function refreshLock($table,$id) {
 			$id = mysql_real_escape_string($id);
-			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE id = '$id' AND user = '".$this->ID."'");
+			$table = mysql_real_escape_string($table);
+			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE `table` = '$table' AND item_id = '$id' AND user = '".$this->ID."'");
 		}
 
 		/*
@@ -5227,6 +5226,11 @@
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
 			foreach ($current as $key => $val) {
 				$$key = mysql_real_escape_string($val);
+			}
+			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
+			$template_data = $cms->getTemplate($template);
+			if (is_array($template_data) && $template_data["level"] > $this->Level) {
+				$data["template"] = $template;
 			}
 			// Copy it to the saved versions
 			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`callouts`,`author`,`updated_at`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$callouts','$last_edited_by','$updated_at')");

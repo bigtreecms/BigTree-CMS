@@ -126,7 +126,50 @@
 	
 	// Get the included tables now... yep.
 	if (isset($tables) && is_array($tables)) {
+		// We need to rearrange the tables array so that ones that have foreign keys fall at the end.
+		$rearranged_tables = array();
+		$pending_tables = array();
+		$table_info = array();
 		foreach ($tables as $t) {
+			list($table,$type) = explode("#",$t);
+			$i = BigTree::describeTable($table);
+			if (!count($i["foreign_keys"])) {
+				$rearranged_tables[] = $t;
+			} else {
+				$table_info[$t] = $i;
+				$pending_tables[] = $t;
+			}
+		}
+		// We're going to loop the number of times there are tables so we don't loop forever
+		for ($i = 0; $i < count($pending_tables); $i++) {
+			$t = $pending_tables[$i];
+			$keys = $table_info[$t]["foreign_keys"];
+			$ok = true;
+			foreach ($keys as $key) {
+				// If we haven't already found this foreign key table and it's not related to BigTree's core tables, we're not including it yet.
+				if (!in_array($key["other_table"]."#data",$rearranged_tables) &&!in_array($key["other_table"]."#structure",$rearranged_tables) && substr($key["other_table"],0,8) != "bigtree_") {
+					$ok = false;
+				}
+			}
+			// If we've already got the table for this one's foreign keys, add it to the rearranged tables if we haven't already.
+			if ($ok && !in_array($t,$rearranged_tables)) {
+				$rearranged_tables[] = $t;
+			}
+		}
+		
+		// If we have less rearranged tables than pending tables we're missing a table dependancy.
+		if (count($rearranged_tables) != count($tables)) {
+			$failed_tables = array();
+			foreach ($tables as $t) {
+				if (!in_array($t,$rearranged_tables)) {
+					list($table,$type) = explode("#",$t);
+					$failed_tables[] = $table;
+				}
+			}
+			$admin->stop('<h1><span class="package"></span>Package Creation Failed</h1><div class="form_container"><section><p>The following tables have missing foreign key constraints: '.implode(", ",$failed_tables).'</p></section></div>');
+		}
+		
+		foreach ($rearranged_tables as $t) {
 			$x++;
 			list($table,$type) = explode("#",$t);
 			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
@@ -206,4 +249,4 @@
 	<section>
 		<p>Package created successfully.  You may download it <a href="<?=WWW_ROOT?>files/<?=$package_file?>">by clicking here</a>.</p>
 	</section>
-</form>
+</div>

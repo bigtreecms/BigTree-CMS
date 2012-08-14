@@ -159,6 +159,7 @@
 	$inc_dir = "";
 
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
+		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 		BigTree::redirect(ADMIN_ROOT."login/");
 	} else {
 		// We're logged in, let's go somewhere.

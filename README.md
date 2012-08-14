@@ -20,6 +20,36 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0RC1
+- NEW: Retina Display asset support (create 2x images at lower quality when capable)
+- NEW: Forms can now manually specify a return view.
+- NEW: Image quality settings can now be set in /templates/config.php for both retina images and regular images (previously BigTree always used 90%).
+- NEW: Crops and thumbnails can now be given grayscale treatment.
+- UPDATED: Custom <select>s now support <optgroup>
+- UPDATED: Thumbnails of cropped images now re-crop from the original image to preserve quality.
+- UPDATED: Template add/edit now groups Related Modules in <optgroups> for easier choosing of modules with the same name.
+- FIXED: Form's action routes not updating if suffix changed.
+- FIXED: Searchable view sorting.
+- FIXED: Template creation now throws an error message if you try to use an existing ID.
+- FIXED: # being thrown if you click on an already active tab in Pages. Now scrolls to the top.
+- FIXED: Regular user permissions that totally got screwed in beta 7.
+- FIXED: Trunk support in BigTreeCMS::getToplevelNavigationIdByPage
+- FIXED: Duplicate entries sometimes occurring in sitemap.xml
+- FIXED: Warning being thrown for output filters being false in router.
+- FIXED: Terminology on Callout add/edit page. Fixed options button being in the wrong place as well. Fixed doubled radio buttons.
+- FIXED: Group based permissions being checked off for modules where it was null.
+- FIXED: Options button in Module Designer.
+- FIXED: Image Views ignoring the "Edit" function being deactivated.
+- FIXED: Admin not redirecting to the requested page if it was requested when you weren't logged in. (Now returns to the requested page after login).
+- FIXED: Dialogs not re-centering if their height changed.
+- FIXED: Template tab in Pages now hides if a user doesn't have access to the template that is currently set (i.e. the template is Administrator or Developer only).
+- FIXED: Auto Modules now properly refresh their locks on content every minute.
+- FIXED: Double encoding of the names of Field Types (leading to &amp; showing up).
+- FIXED: Missing image when adding an image to a photo gallery for the first time.
+- FIXED: Packaging a module with tables that had foreign keys not being packaged in the proper order (leading to failed creation of tables due to foreign key constraints).
+- RETURNED: Support for /sitemap/ defaulting to /templates/basic/_sitemap.php
+- REMOVED: Imagick support. GD support remains.
+
 ### 4.0b7
 - NEW: Redesigned sample site that provides more in depth examples of using BigTree
 - NEW: Field Types are now able to be used in Settings
