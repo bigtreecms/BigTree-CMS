@@ -891,7 +891,7 @@
 				A view entry with options, and fields decoded and field widths set for Pending Changes.
 		*/
 		
-		static function getViewForTable($table) {
+		function getViewForTable($table) {
 			$table = mysql_real_escape_string($table);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
 			$f["options"] = json_decode($f["options"],true);
