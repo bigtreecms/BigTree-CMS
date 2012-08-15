@@ -688,8 +688,8 @@
 
 /* Users Stuff */
 	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 314px; }
-	.table .users_email { text-align: left; width: 250px; }
-	.table .users_company { text-align: left; width: 250px; }
+	.table .users_email { text-align: left; width: 230px; }
+	.table .users_company { text-align: left; width: 230px; }
 	.table .users_api_type { text-align: left; width: 250px; }
 	.table .users_api_token { text-align: left; width: 250px; }
 
