@@ -5,6 +5,7 @@
 	);
 
 	//!BigTree Warnings
+	$warnings = array();
 	
 	// Check for Google Analytics
 	$content = @file_get_contents(WWW_ROOT);
@@ -83,14 +84,12 @@
 	$mem_limit = ini_get("memory_limit");
 	$memory_limit = (intval($mem_limit) > 32) ? "good" : "bad";
 	
-	$apache_modules = apache_get_modules();
-	$mod_rewrite = in_array('mod_rewrite', $apache_modules) ? "good" : "bad";
-	
 	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
 <h1><span class="developer"></span>Site Status</h1>
 <p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 
+<? if (count($warnings)) { ?>
 <div class="table">
 	<summary>
 		<h2 class="no_icon">Warnings</h2>
@@ -110,6 +109,7 @@
 		<? } ?>
 	</ul>
 </div>
+<? } ?>
 <div class="table">
 	<summary>
 		<h2 class="no_icon">Server Parameters</h2>
@@ -169,11 +169,6 @@
 			<section class="site_status_message">Image Processing</section>
 			<section class="site_status_action">GD library support is required</section>
 			<section class="site_status_status <?=$image_support?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">URL Rewrite Support</section>
-			<section class="site_status_action">mod_rewrite for Apache is required</section>
-			<section class="site_status_status <?=$mod_rewrite?>"></section>
 		</li>
 		<li>
 			<section class="site_status_message">External URL Opening</section>
