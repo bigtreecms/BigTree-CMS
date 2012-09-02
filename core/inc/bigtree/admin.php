@@ -2771,7 +2771,7 @@
 		}
 
 		/*
-			Function: getPageAccessLevel
+			Function: getPageAccessLevelByUser
 				Returns the access level for the given user to a given page.
 
 			Parameters:
