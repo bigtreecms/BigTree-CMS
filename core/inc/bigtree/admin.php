@@ -2786,11 +2786,13 @@
 		*/
 
 		function getPageAccessLevelByUser($page,$user) {
+			// See if the user is an administrator, if so we can skip permissions.
 			$u = $this->getUser($user);
 			if ($u["level"] > 0) {
 				return "p";
 			}
 
+			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
 				if ($f["user"] == $user) {
@@ -2800,18 +2802,19 @@
 				return $this->getPageAccessLevelByUser($pdata["parent"],$user);
 			}
 			
+			// See if this page has an explicit permission set and return it if so.
 			$pp = $this->Permissions["page"][$page];
 			if ($pp == "n") {
 				return false;
-			}
-
-			if ($pp && $pp != "i") {
+			} elseif ($pp && $pp != "i") {
 				return $pp;
 			}
-
+			
+			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
 			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"));
 			$parent = $parent["parent"];
-
+			
+			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
 			$pp = $u["permissions"]["page"][$parent];
 			while ((!$pp || $pp == "i") && $parent) {
 				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"));
@@ -2819,10 +2822,12 @@
 				$pp = $u["permissions"]["page"][$parent];
 			}
 
+			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
 			if (!$pp || $pp == "i" || $pp == "n") {
 				return false;
 			}
-
+			
+			// Return whatever we found.
 			return $pp;
 		}
 
