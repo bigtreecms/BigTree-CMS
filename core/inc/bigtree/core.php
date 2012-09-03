@@ -371,7 +371,20 @@
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
-			$commands = implode("/",json_decode(base64_decode($ipl[2]),true));
+			
+			// New IPLs are encoded in JSON
+			$c = json_decode(base64_decode($ipl[2]));
+			// Help with transitions.
+			if (!is_array($c)) {
+				$c = unserialize(base64_decode($ipl[2]));
+			}
+			// If it can't be rectified, we still don't want a warning.
+			if (is_array($c)) {
+				$commands = implode("/",$c);
+			} else {
+				$commands = "";
+			}
+			
 			if ($commands && strpos($commands,"?") === false) {
 				$commands .= "/";
 			}
