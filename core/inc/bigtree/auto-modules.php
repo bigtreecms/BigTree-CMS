@@ -492,6 +492,8 @@
 				$otq = array();
 				while ($f = sqlfetch($q)) {
 					$otq[] = "id = '".$f["group_field"]."'";
+					// We need to instatiate all of these as empty first in case the database relationship doesn't exist.
+					$groups[$f["group_field"]] = "";
 				}
 				if (count($otq)) {
 					if ($view["options"]["ot_sort_field"]) {
