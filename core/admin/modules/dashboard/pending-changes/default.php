@@ -34,7 +34,7 @@
 <div class="table">
 	<summary>
 		<h2 class="full">
-			<span class="pending"></span>
+			<span class="pages"></span>
 			Pages
 		</h2>
 	</summary>
@@ -87,7 +87,7 @@
 <div class="table">
 	<summary>
 		<h2 class="full">
-			<span class="pending"></span>
+			<span class="modules"></span>
 			<?=$mod["name"]?>
 		</h2>
 	</summary>

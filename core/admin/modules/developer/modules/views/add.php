@@ -1,7 +1,7 @@
 <?
 	$id = $bigtree["commands"][0];
 	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
-	$title = isset($bigtree["commands"][2]) ? htmlspecialchars(urldecode($bigtree["commands"][2])) : "";
+	$title = htmlspecialchars(implode("/",array_slice($bigtree["commands"],2)));
 	
 	$mod = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
@@ -17,7 +17,7 @@
 		$description = $type = $preview_url = "";
 	}
 ?>
-<h1><span class="icon_developer_modules"></span>Add View</h1>
+<h1><span class="modules"></span>Add View</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
 <div class="form_container">
 
@@ -25,7 +25,7 @@
 		<section>
 			<? if ($landing_exists) { ?>
 			<div class="alert">
-				<img src="<?=ADMIN_ROOT?>images/alert.png" alt="" />
+				<span></span>
 				<p><strong>Default View Taken:</strong> If this view is for a different edit action, please specify the suffix below (i.e. edit-group's suffix is "group").</p>
 			</div>
 			<fieldset>

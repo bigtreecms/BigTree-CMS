@@ -308,7 +308,7 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.html('<span>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
+		div.html('<div class="handle"></div><span>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
 		
 		spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
@@ -317,11 +317,16 @@ var BigTreeSelect = Class.extend({
 			if (sectionwidth < (maxwidth + 56)) {
 				spanwidth = sectionwidth - 56;
 			}
+			// Account for the handle.
+			spanwidth -= 24;
+			div.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
 		}
+		
 		
 		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
 		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
 		div.find("a").click($.proxy(this.select,this));
+		div.find(".handle").click($.proxy(this.click,this));
 		
 		$(element).after(div);
 		
@@ -693,8 +698,8 @@ var BigTreePhotoGallery = Class.extend({
 		this.fileInput = this.container.find("footer input");
 		
 		this.container.find("ul").sortable({ items: "li" });
-		this.container.on("click",".icon_delete_small",this.deletePhoto);
-		this.container.on("click",".icon_edit_small",$.proxy(this.editPhoto,this));
+		this.container.on("click",".icon_delete",this.deletePhoto);
+		this.container.on("click",".icon_edit",$.proxy(this.editPhoto,this));
 		this.container.find(".form_image_browser").click($.proxy(this.openFileManager,this));
 	},
 	
@@ -727,7 +732,7 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>');
+		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);
@@ -758,7 +763,7 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	useExistingFile: function(path,caption,thumbnail) {
-		li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>');
+		li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
 		li.find("img").load(function() {
 			w = $(this).width();
 			h = $(this).height();
@@ -1122,7 +1127,7 @@ var BigTreeFileManager = {
 	},
 	
 	fileBrowser: function() {
-		$("#file_browser_type_icon").addClass("icon_suitcase");
+		$("#file_browser_type_icon").addClass("icon_folder");
 		$("#file_browser_type .title").html("File Browser");
 		this.openFileFolder(0);
 	},
@@ -1249,6 +1254,7 @@ var BigTreeFileManager = {
 		this.browser.html('\
 <div class="header">\
 	<input class="form_search" id="file_browser_search" placeholder="Search" />\
+	<span class="form_search_icon"></span>\
 	<a href="#" class="button add_file">Upload File</a>\
 	<a href="#" class="button add_folder">New Folder</a>\
 	<span id="file_browser_type_icon"></span>\
@@ -1634,7 +1640,7 @@ var BigTreeListMaker = Class.extend({
 		this.name = name;
 		
 		// Add the title
-		html = '<h4>' + title + ' <a href="#" class="add_option"><img src="www_root/admin/images/add.png" alt="" /></a></h4>';
+		html = '<h4>' + title + ' <a href="#" class="add_option icon_small icon_small_add"></a></h4>';
 		if (keys.length == 1) {
 			lclass = "list_options_widget_1";
 		} else if (keys.length == 2) {
@@ -1673,7 +1679,7 @@ var BigTreeListMaker = Class.extend({
 					html += '<span><input type="text" name="' + name + '[' + count + '][' + keys[x].key + ']" value="' + htmlspecialchars(existing[i][keys[x].key]) + '" /></span>';
 				}
 			}
-			html += '<a class="delete" href="#"><img src="www_root/admin/images/currently-kill.png" alt="" /></a></li>';
+			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
 			count++;
 		}
 		html += '</ul>';
@@ -1706,7 +1712,7 @@ var BigTreeListMaker = Class.extend({
 				html += '<span><input type="text" name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']" /></span>';
 			}
 		}
-		html += '<a class="delete" href="#"><img src="www_root/admin/images/currently-kill.png" alt="" /></a></li>';
+		html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
 		// Add the option, increment the count
 		this.container.find("ul").append(html);
 		this.count++;
@@ -1789,9 +1795,9 @@ var BigTreeFieldSelect = Class.extend({
 			ophtml += '<a href="#' + elements[i].title + '">' + elements[i].field + '</a>';
 		}
 		if (elements.length == 0) {
-			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p></p>' + ophtml + '</span>');
+			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="handle"></span><span class="current"><p></p>' + ophtml + '</span>');
 		} else {
-			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="current"><p>' + elements[0].field + '</p>' + ophtml + '</span>');
+			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="handle"></span><span class="current"><p>' + elements[0].field + '</p>' + ophtml + '</span>');
 		}
 		$(selector).prepend(fs);
 		
@@ -2127,7 +2133,7 @@ var BigTree = {
 			end_page = pages;
 		}
 		
-		content = '<li class="first"><a href="#' + prev_page + '">&laquo;</a></li>';
+		content = '<li class="first"><a href="#' + prev_page + '"><span>&laquo;</span></a></li>';
 		for (i = start_page; i < end_page; i++) {
 			content += '<li><a href="#' + i + '"';
 			if (i == current_page) {
@@ -2135,7 +2141,7 @@ var BigTree = {
 			}
 			content += '>' + (i + 1) + '</a></li>';
 		}
-		content += '<li class="last"><a href="#' + next_page + '">&raquo;</a></li>';
+		content += '<li class="last"><a href="#' + next_page + '"><span>&raquo;</span></a></li>';
 		
 		$(selector).html(content);
 	},

@@ -27,7 +27,7 @@
 	$groups = $admin->getModuleGroups();
 ?>
 
-<h1><span class="icon_developer_modules"></span><?=$mod["name"]?></h1>
+<h1><span class="modules"></span><?=$mod["name"]?></h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">

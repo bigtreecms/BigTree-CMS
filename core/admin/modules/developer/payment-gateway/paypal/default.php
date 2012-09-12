@@ -2,7 +2,7 @@
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 	$breadcrumb[] = array("title" => "PayPal Payments Pro", "link" => "#");
 ?>
-<h1><span class="icon_developer_payment_paypal"></span>PayPal Payments Pro</h1>
+<h1><span class="paypal"></span>PayPal Payments Pro</h1>
 <div class="form_container">
 	<header><h2>PayPal Payments Pro Settings</h2></header>
 	<aside>Your current upload service is: <strong><?=$currently?></strong></aside>

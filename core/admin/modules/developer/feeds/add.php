@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("title" => "Add Feed", "link" => "#");
 ?>
-<h1><span class="icon_developer_feeds"></span>Add Feed</h1>
+<h1><span class="feeds"></span>Add Feed</h1>
 <? include BigTree::path("admin/modules/developer/feeds/_nav.php") ?>
 <div class="form_container">
 	<form method="post" action="<?=$section_root?>create/" class="module">

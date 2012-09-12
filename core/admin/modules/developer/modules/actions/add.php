@@ -5,7 +5,7 @@
 	
 	$item = array("name" => "", "route" => "", "level" => 0, "class" => "", "in_nav" => "");
 ?>
-<h1><span class="icon_developer_modules"></span>Add Action</h1>
+<h1><span class="modules"></span>Add Action</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/actions/create/<?=$module["id"]?>/" class="module">

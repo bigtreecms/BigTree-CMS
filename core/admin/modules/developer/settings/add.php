@@ -15,7 +15,7 @@
 		$e = false;
 	}
 ?>
-<h1><span class="icon_developer_settings"></span>Add Setting</h1>
+<h1><span class="settings"></span>Add Setting</h1>
 <? include BigTree::path("admin/modules/developer/settings/_nav.php") ?>
 
 <div class="form_container">

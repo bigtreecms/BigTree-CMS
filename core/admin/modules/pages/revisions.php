@@ -8,13 +8,13 @@
 	
 	if (!$pdata) {
 ?>
-<h1><span class="error"></span>Error</h1>
+<h1><span class="page_error"></span>Error</h1>
 <p class="error">The page you are trying to edit no longer exists.</p>
 <?
 		$admin->stop();
 	}
 ?>
-<h1><span class="refresh"></span><?=$pdata["nav_title"]?></h1>	
+<h1><span class="page_versions"></span><?=$pdata["nav_title"]?></h1>	
 <?
 	include BigTree::path("admin/modules/pages/_nav.php");
 	
@@ -32,7 +32,7 @@
 	$revisions = $admin->getPageRevisions($page);
 ?>
 <div class="table">
-	<summary><h2><span class="visible"></span>Unpublished Drafts</h2></summary>
+	<summary><h2><span class="pages"></span>Unpublished Drafts</h2></summary>
 	<header>
 		<span class="pages_last_edited">Last Edited</span>
 		<span class="pages_draft_author">Draft Author</span>

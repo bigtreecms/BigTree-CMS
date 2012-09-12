@@ -106,6 +106,7 @@
 		// If the query is boolean, it's probably a "false" from a failed sql query.
 		if (is_bool($query) && !$ignore_errors) {
 			global $sqlerrors;
+			print_r($sqlerrors);
 			throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
 		} else {
 			return mysql_fetch_assoc($query);

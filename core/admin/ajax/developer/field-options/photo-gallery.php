@@ -35,7 +35,7 @@
     <label class="for_checkbox"> When Available</label>
 </fieldset>
 
-<h4>Crops <a href="#" class="add_crop"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
+<h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>
 <fieldset>
 	<div class="image_attr" id="pop_crop_list">
 		<ul>
@@ -71,6 +71,7 @@
 		?>
 		<ul class="image_attr_thumbs_<?=$cx?>">
 			<li>
+				<span class="icon_small icon_small_picture"></span>
 				<input type="text" class="image_attr_thumbs" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
 			</li>
 			<li>
@@ -79,7 +80,7 @@
 			<li>
 				<input type="text" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 			</li>
-			<li class="up"></li>
+			<li class="up"><span class="icon_small icon_small_up"></span></li>
 			<li class="colormode">
 				<input type="hidden" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
 				<a href="#" title="Switch Color Mode"<? if ($thumb["grayscale"]) { ?> class="gray"<? } ?>></a>
@@ -96,7 +97,7 @@
 	</div>
 </fieldset>
 
-<h4>Thumbnails <a href="#" class="add_thumb"><img src="<?=ADMIN_ROOT?>images/add.png" alt="" /></a></h4>
+<h4>Thumbnails <a href="#" class="add_thumb icon_small icon_small_add"></a></h4>
 <fieldset>
 	<div class="image_attr" id="pop_thumb_list">
 		<ul>

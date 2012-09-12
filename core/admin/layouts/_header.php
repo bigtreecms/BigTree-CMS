@@ -78,7 +78,7 @@
 			<section>
 				<a href="<?=ADMIN_ROOT?>login/logout/" class="logout"><span></span>Logout</a>
 				<div></div>
-				<p class="messages"><span></span><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
+				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
 				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 14)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>

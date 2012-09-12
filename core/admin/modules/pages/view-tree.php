@@ -153,7 +153,7 @@
 
 	if (!$page) {
 ?>
-<h1><span class="error"></span>Error</h1>
+<h1><span class="page_error"></span>Error</h1>
 <p class="error">The page you are trying to view no longer exists.</p>
 <?
 		$admin->stop();
@@ -179,7 +179,7 @@
 	if (count($nav_visible) || count($nav_hidden) || count($nav_archived)) {
 		// Drag Visible Pages
 		if (count($nav_visible)) {
-			local_drawPageTree($nav_visible,"Visible","","visible",true);
+			local_drawPageTree($nav_visible,"Visible","","pages",true);
 		}
 		
 		// Draw Hidden Pages

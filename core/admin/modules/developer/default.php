@@ -4,36 +4,36 @@
 	<summary><h2>Create</h2></summary>
 	<section>
 		<a class="box_select" href="templates/">
-			<span class="icon_developer_templates"></span>
+			<span class="templates"></span>
 			<p>Templates</p>
 		</a>
 		
 		<a class="box_select" href="modules/">
-			<span class="icon_developer_modules"></span>
+			<span class="modules"></span>
 			<p>Modules</p>
 		</a>
 		
 		<a class="box_select" href="callouts/">
-			<span class="icon_developer_callouts"></span>
+			<span class="callouts"></span>
 			<p>Callouts</p>
 		</a>
 		
 		<a class="box_select" href="field-types/">
-			<span class="icon_developer_field_types"></span>
+			<span class="field_types"></span>
 			<p>Field Types</p>
 		</a>
 		
 		<a class="box_select" href="feeds/">
-			<span class="icon_developer_feeds"></span>
+			<span class="feeds"></span>
 			<p>Feeds</p>
 		</a>
 		
 		<a class="box_select" href="settings/">
-			<span class="icon_developer_settings"></span>
+			<span class="settings"></span>
 			<p>Settings</p>
 		</a>
 		<a class="box_select last" href="foundry/install/">
-			<span class="icon_developer_package"></span>
+			<span class="package"></span>
 			<p>Install Package</p>
 		</a>
 	</section>
@@ -43,20 +43,20 @@
 <div class="table">
 	<summary><h2>Configure</h2></summary>
 	<section>
-		<a class="box_select" href="upload-service/">
-			<span class="icon_developer_upload_service"></span>
-			<p>Upload Service</p>
+		<a class="box_select" href="cloud-storage/">
+			<span class="cloud"></span>
+			<p>Cloud Storage</p>
 		</a>
 		<a class="box_select" href="payment-gateway/">
-			<span class="icon_developer_payment_gateway"></span>
+			<span class="payment"></span>
 			<p>Payment Gateway</p>
 		</a>
 		<a class="box_select" href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/configure/">
-			<span class="icon_developer_analytics"></span>
+			<span class="analytics"></span>
 			<p>Analytics</p>
 		</a>
 		<a class="box_select" href="status/">
-			<span class="icon_developer_site_status"></span>
+			<span class="vitals"></span>
 			<p>Site Status</p>
 		</a>
 	</section>

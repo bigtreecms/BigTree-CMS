@@ -6,7 +6,7 @@
 	
 	$ungrouped_modules = $admin->getModulesByGroup(0);
 ?>
-<h1><span class="icon_developer_modules"></span>Modules</h1>
+<h1><span class="modules"></span>Modules</h1>
 <?
 	include BigTree::path("admin/modules/developer/modules/_nav.php");
 	foreach ($groups as $g) {

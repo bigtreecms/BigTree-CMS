@@ -4,7 +4,7 @@
 	$item = $cms->getFeed(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 ?>
-<h1><span class="icon_developer_feeds"></span>Edit Feed</h1>
+<h1><span class="feeds"></span>Edit Feed</h1>
 <? include BigTree::path("admin/modules/developer/feeds/_nav.php") ?>
 
 <div class="form_container">

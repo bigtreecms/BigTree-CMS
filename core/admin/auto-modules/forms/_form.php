@@ -45,7 +45,7 @@
 			?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
-					<label>Tags <img src="<?=ADMIN_ROOT?>images/tag.png" alt="" /></label>
+					<label>Tags<span></span></label>
 					<ul id="tag_list">
 						<? foreach ($tags as $tag) { ?>
 						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>
@@ -62,7 +62,7 @@
 		<footer>
 			<? if (isset($view) && $view["preview_url"]) { ?>
 			<a class="button save_and_preview" href="#">
-				<span></span>
+				<span class="icon_small icon_small_computer"></span>
 				Save &amp; Preview
 			</a>
 			<? } ?>

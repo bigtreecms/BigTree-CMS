@@ -10,6 +10,7 @@ bigtree_bar_head.appendChild(bigtree_bar_css);
 
 // Add the bar tab
 bigtree_bar_tab = document.createElement("a");
+bigtree_bar_tab.innerHTML = '<span></span>';
 bigtree_bar_tab.setAttribute("id","bigtree_bar_tab");
 bigtree_bar_tab.setAttribute("href","#");
 bigtree_bar_tab.onclick = bigtree_show_bar;

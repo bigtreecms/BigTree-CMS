@@ -5,6 +5,7 @@
 <div class="table">
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" />
+		<span class="form_search_icon"></span>
 	</summary>
 	<article class="table" id="table_contents">
 		<? include BigTree::path("admin/ajax/auto-modules/views/grouped.php") ?>

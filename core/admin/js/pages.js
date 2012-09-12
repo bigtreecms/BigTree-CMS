@@ -126,7 +126,7 @@ $(document).ready(function() {
 				}
 				
 				li = $('<li>');
-				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
+				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
 				
 				callout_number = last_dialog.find("input.callout_count").val();
 				callout_desc = "";
@@ -157,7 +157,7 @@ $(document).ready(function() {
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
-				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
+				li.find("h4").html(callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
 				
@@ -168,7 +168,7 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	$("#bigtree_callouts").on("click",".icon_edit_small",function() {
+	$("#bigtree_callouts").on("click",".icon_edit",function() {
 		active_callout_edit = $(this).parents("li");
 		
 		$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: callout_count, data: active_callout_edit.find(".callout_data").val() }, complete: function(response) {
@@ -182,7 +182,7 @@ $(document).ready(function() {
 				}
 				
 				li = $('<li>');
-				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
+				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
 				
 				callout_number = last_dialog.find("input.callout_count").val();
 				callout_desc = "";
@@ -213,7 +213,7 @@ $(document).ready(function() {
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
-				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
+				li.find("h4").html(callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
 				
@@ -224,14 +224,14 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	$("#bigtree_callouts").on("click",".icon_delete_small",function() {
+	$("#bigtree_callouts").on("click",".icon_delete",function() {
 		new BigTreeDialog("Delete Callout", '<p class="confirm">Are you sure you want to delete this callout?</p>', $.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 		return false;
 	});
 	
-	$("#bigtree_callouts ul").sortable({ containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+	$("#bigtree_callouts ul").sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 });
 
 function checkTemplate() {

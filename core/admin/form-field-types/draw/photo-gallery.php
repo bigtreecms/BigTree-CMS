@@ -39,7 +39,7 @@
 				</figure>
 				<input type="hidden" name="<?=$key?>[<?=$pgw_current?>][image]" value="<?=$pd["image"]?>" />
 				<input type="hidden" name="<?=$key?>[<?=$pgw_current?>][caption]" value="<?=$pd["caption"]?>" class="caption" />
-				<a href="#" class="icon_edit_small"></a><a href="#" class="icon_delete_small"></a>
+				<a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>
 			</li>
 			<?
 						$pgw_current++;
@@ -50,7 +50,7 @@
 		<footer class="image_field">
 			<input<?=$input_validation_class?> type="file" tabindex="<?=$tabindex?>" name="<?=$key?>[<?=$pgw_current?>][image]" id="field_<?=$key?>" />
 			<span class="or">OR</span>
-			<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images_small"></span>Browse</a>
+			<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
 			<a href="#" class="button blue add_photo">Add Photo</a>
 		</footer>
 	</div>

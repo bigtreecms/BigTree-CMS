@@ -27,18 +27,19 @@
 	
 	
 	/* Installer Styles */
-	body.install { background: url(../images/login-bg.png), url(../images/repeat-bg.png); background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
+	body.install { background: url(../images/login-bg.png), url(../images/login-pattern-bg.png); background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
 	.install_wrapper { margin: 0 auto; padding: 75px 0 25px; width: 650px; }
 	.install_wrapper hr { border: 1px solid #fff; border-top-color: #eee; margin: 20px 0; }
 	.install_wrapper h1 { color: #FFF; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; text-shadow: 0 1px 0 #000; }
 	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 1); overflow: hidden; padding: 30px 0 0; }
 	.install_wrapper h2 { color: #444; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; text-shadow: 0 1px 0 #FFF; }
-	.install_wrapper h2 span { background: url(../images/icons-install.png) no-repeat; display: block; float: left; height: 25px; margin: 0 5px 0 0; width: 25px; }
-	.install_wrapper h2.database span { background-position: -25px 2px; width: 20px; }
-	.install_wrapper h2.security span { background-position: -45px 4px; margin-right: 7px; width: 23px; }
-	.install_wrapper h2.account span { background-position: -68px 1px; margin-right: 7px; width: 23px; }
-	.install_wrapper h2.example span { background-position: -91px 3px; margin-right: 7px; width: 23px; }
-	.install_wrapper h2.routing span { background-position: -113px 0px; margin-right: 6px; width: 26px; }
+	.install_wrapper h2 span { background: url(../images/icon-sprite.png) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
+	.install_wrapper h2.getting_started span { background-position: -390px -175px; }
+	.install_wrapper h2.database span { background-position: -365px -175px; }
+	.install_wrapper h2.security span { background-position: -340px -175px; }
+	.install_wrapper h2.account span { background-position: -315px -175px; }
+	.install_wrapper h2.example span { background-position: -290px -175px; }
+	.install_wrapper h2.routing span { background-position: -265px -175px; }
 	.install_wrapper fieldset { padding: 0 30px; }
 	.install_wrapper fieldset.left { float: left; padding: 0 0 0 30px; }
 	.install_wrapper fieldset.right { float: right; padding: 0 30px 0 0; }
@@ -53,27 +54,34 @@
 	.install_wrapper .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	.install_wrapper .warning_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	.install_wrapper .delete_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 10px 0 0 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
-	.install_logo { background: url(../images/logo.png) no-repeat center; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 151px; }
+	.install_logo { background: url(../images/icon-sprite.png) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 100px; }
 	.install_copyright:hover { color: #ccc; }
 	
 	label.for_checkbox { cursor: pointer; line-height: 17px; margin: 0; user-select: none; }
 	.checkbox { float: left; margin: 0 7px 0 0; }
-	.checkbox a { background: url(../images/checkbox-sprite.png); cursor: pointer; display: block; height: 16px; width: 16px; }
-	.checkbox a.checked { background-position: 0px 16px; }
-	.checkbox a.focused { background-position: -16px 0px; }
-	.checkbox a.checked.focused { background-position: -16px 16px; }
+	.checkbox a { background: url(../images/icon-sprite.png) -150px -105px; cursor: pointer; display: block; height: 16px; width: 16px; }
+	.checkbox a.checked { background-position: -150px -121px; }
+	.checkbox a.focused { background-position: -166px -105px; }
+	.checkbox a.checked.focused { background-position: -166px -121px; }
+	.checkbox a.disabled { cursor: default; opacity: 0.3; }
+	.checkbox a.disabled.focused { background-position: 0px 0px; }
+	.checkbox a.disabled.focused.checked { background-position: 0px 16px; }
 	
-	.select { background: #FFF url(../images/select-handle.png) no-repeat top right; border: 1px solid #CCCCCC; border-radius: 3px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
+	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
+	.select .handle { float: right; background: url(../images/icon-sprite.png) -340px -105px; width: 34px; height: 30px; }
 	.select span { display: block; padding: 0 44px 0 10px; }
-	.select datalist { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 3px 3px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
-	.select data { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
-	.select data:last-child { border-radius: 0px 0px 3px 3px; }
-	.select data:hover { background: #F0F0F0; }
-	.select data.active { background: #EEE; }
+	.select .group { padding: 5px 10px; font-size: 10px; line-height: 15px; color: #666; background: #F6F6F6; }
+	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
+	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
+	.select a:last-child { border-radius: 0px 0px 3px 3px; }
+	.select a.active { background: #E0EAF0; }
+	.select a:hover { background: #EEE; }
+	.select a.optgroup { padding: 5px 20px; }
 	.select.focused { border-color: #AAA; }
-	.select.open { border-radius: 3px 3px 0px 0px; }
-	.form_error .select { background: #FCE8E8 url(../images/select-handle-error.png) no-repeat top right; border-color: #990000; }
+	.select.open { border-radius: 2px 2px 0px 0px; }
+	.form_error .select { background-color: #FCE8E8; border-color: #990000; }
+	.form_error .select .handle { background-position: -374px -105px; }
 	
 	.form_error label { color: #990000; }
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { background: #FCE8E8; border-color: #990000; }
@@ -82,3 +90,9 @@
 	input[type=submit].blue, a.button.blue { background: #3E667D url(../images/button-bg-dark.png) repeat-x; border: 1px solid #243D4C; color: #FFF; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); }
 	input[type=submit].blue:hover, a.button.blue:hover { background-color: #4f829f; }
 	
+/* Retina Assets */
+	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
+	
+		.install_wrapper h2 span, .install_logo, .checkbox a, .select .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
+	
+	}

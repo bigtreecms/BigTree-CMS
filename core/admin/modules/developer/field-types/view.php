@@ -1,7 +1,7 @@
 <?
 	$types = $admin->getFieldTypes();
 ?>
-<h1><span class="icon_developer_field_types"></span>Field Types</h1>
+<h1><span class="field_types"></span>Field Types</h1>
 <? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
 
 <div class="table">

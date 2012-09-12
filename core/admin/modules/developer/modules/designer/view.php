@@ -2,17 +2,20 @@
 	$mod = $bigtree["commands"][0];
 	$table = $bigtree["commands"][1];
 	if (!$title) {
-		$title = (substr($bigtree["commands"][2],-1,1) != "s") ? $bigtree["commands"][2]."s" : $bigtree["commands"][2];
+		// Get the title from the route
+		$title = implode("/",array_slice($bigtree["commands"],2));
+		// Add an s to the name (i.e. View Goods)
+		$title = (substr($title,-1,1) != "s") ? $title."s" : $title;
+		// If it ends in ys like Buddys then change it to Buddies
 		if (substr($title,-2) == "ys") {
 			$title = substr($title,0,-2)."ies";
 		}
 	}
-	$title = htmlspecialchars(urldecode($title));
-	$title = urldecode($title);
+	$title = htmlspecialchars($title);
 	
 	$mdata = $admin->getModule($mod);
 ?>
-<h1><span class="icon_developer_modules"></span>Module Designer</h1>
+<h1><span class="modules"></span>Module Designer</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<header>
