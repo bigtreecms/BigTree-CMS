@@ -16,16 +16,16 @@
 		$upload_service = new BigTreeUploadService;
 		$temp_name = $f["tmp_name"];
 		
+		$n = strrev($f["name"]);
+		$extension = strtolower(strrev(substr($n,0,strpos($n,"."))));
+		
 		list($iwidth,$iheight,$itype,$iattr) = getimagesize($temp_name);
 		// It's a regular file
 		if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 			$type = "file";
 			$file = $upload_service->upload($temp_name,$f["name"],$options["directory"]);
 			
-			$n = strrev($f["name"]);
-			$ext = strtolower(strrev(substr($n,0,strpos($n,".")-1)));
-			
-			$admin->createResource($folder,$file,$f["name"],$ext);
+			$admin->createResource($folder,$file,$f["name"],$extension);
 		// It's an image
 		} else {
 			$type = "image";
@@ -103,7 +103,7 @@
 			// Upload the original to the proper place.
 			$file = $upload_service->upload($first_copy,$f["name"],"files/resources/");
 			
-			$admin->createResource($folder,$file,$f["name"],"","on",$iheight,$iwidth,$thumbs,$margin);
+			$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
 		}
 	}
 ?>
