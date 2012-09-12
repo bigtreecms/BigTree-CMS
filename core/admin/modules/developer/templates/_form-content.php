@@ -50,6 +50,7 @@
 				<option></option>
 				<?
 					$groups = $admin->getModuleGroups("name ASC");
+					$groups[] = array("id" => "0", "name" => "Ungrouped");
 					foreach ($groups as $g) {
 						$modules = $admin->getModulesByGroup($g["id"],"name ASC");
 						if (count($modules)) {

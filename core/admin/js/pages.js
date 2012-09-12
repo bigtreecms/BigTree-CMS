@@ -116,7 +116,9 @@ $(document).ready(function() {
 	// Callouts
 	$("#bigtree_callouts .add_callout").click(function() {
 		$.ajax("admin_root/ajax/pages/add-callout/", { type: "POST", data: { count: callout_count }, complete: function(response) {
-			new BigTreeDialog("Add Callout",response.responseText,function() {		
+			new BigTreeDialog("Add Callout",response.responseText,function(e) {		
+				e.preventDefault();
+				
 				last_dialog = $(".bigtree_dialog_form").last();
 
 				// Validate required fields.
@@ -141,7 +143,7 @@ $(document).ready(function() {
 				}
 				last_dialog.find("input, textarea, select").each(function() {
 					if ($(this).attr("type") != "submit") {
-						if ($(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
+						if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
 							var mce = tinyMCE.get($(this).attr("id"));
 							if (mce) {
 								mce.save();
@@ -172,7 +174,9 @@ $(document).ready(function() {
 		active_callout_edit = $(this).parents("li");
 		
 		$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: callout_count, data: active_callout_edit.find(".callout_data").val() }, complete: function(response) {
-			new BigTreeDialog("Edit Callout",response.responseText,function() {
+			new BigTreeDialog("Edit Callout",response.responseText,function(e) {
+				e.preventDefault();
+				
 				last_dialog = $(".bigtree_dialog_form").last();
 				
 				// Validate required fields.
@@ -197,7 +201,7 @@ $(document).ready(function() {
 				}
 				last_dialog.find("input, textarea, select").each(function() {
 					if ($(this).attr("type") != "submit") {
-						if ($(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
+						if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
 							var mce = tinyMCE.get($(this).attr("id"));
 							if (mce) {
 								mce.save();
