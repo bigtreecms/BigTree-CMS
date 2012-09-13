@@ -661,7 +661,7 @@
 				Get the <select> options for all of tables in the database excluding bigtree_ prefixed tables.
 			
 			Parameters:
-				default - The currentlly selected value.
+				default - The currently selected value.
 		*/
 		
 		static function getTableSelectOptions($default = false) {

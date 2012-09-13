@@ -132,8 +132,8 @@
 	
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { background: #FCE8E8; border-color: #990000; }
 	
-	fieldset .date_picker_icon, fieldset .time_picker_icon { position: absolute; margin: 8px 0 0 178px; }
-	input.date_picker, input.time_picker { width: 180px !important; }
+	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; }
+	input.date_picker, input.time_picker { float: left; width: 180px !important; }
 	input.date_picker:focus, input.time_picker:focus { border-radius: 2px 2px 0 0; }
 
 	textarea { border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: Helvetica,sans-serif; font-size: 12px; height: 150px; line-height: 16px; margin: 0; padding: 5px 10px; transition: border-color 0.2s; width: 875px; }
@@ -362,7 +362,7 @@
 	.form_container footer .button, .form_container footer input { float: left; margin: 0 15px 0 0; }
 	.form_container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 0 -30px 30px -30px; width: 958px; }
 	.form_container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }
-	.form_container .alert span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
+	.form_container .alert > span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
 	.form_container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; display: block; }
 	.form_container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
 	.form_container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
@@ -396,13 +396,13 @@
 	
 	.field_selector { background: #DDD url(../images/row-bg-sprite.png) repeat-x 0px -188px; border: 1px solid #CCC; border-radius: 3px; color: #333; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 5px 10px 0 0; padding: 0 0 0 5px; transition: background-color 0.2s, border-color 0.2s; }
 	.field_selector:hover { background-color: #EEE; }
-	.field_selector .current { border-left: 1px solid #CCC; float: left; height: 21px; margin: 0 -5px 0 5px; overflow: hidden; }
+	.field_selector .current { border-left: 1px solid #CCC; float: left; height: 21px; margin: 0 -5px 0 5px; overflow: hidden; user-select: none; }
 	.field_selector .current a { display: block; font-size: 12px; height: 21px; padding: 0 10px; }
 	.field_selector .add_field { background: url(../images/icon-sprite.png) no-repeat -32px -140px; float: left; height: 16px; margin: 2px 0 0 0; width: 16px; }
 	.form_container .field_selector p { background: #FFF; color: #333; cursor: pointer; line-height: 21px; margin: 0; padding: 0 0 0 10px; }
-	.field_selector .handle { background: url(../images/icon-sprite.png) no-repeat -475px -105px; height: 21px; width: 24px; float: right; }
+	.field_selector .handle { background: url(../images/icon-sprite.png) no-repeat -475px -105px; cursor: pointer; height: 21px; width: 24px; float: right; }
 	.field_selector .dd { background: #FFF; border: 1px solid #CCC; border-radius: 0px 0px 3px 3px; display: none; position: absolute; margin: 22px 0 0 0; }
-	.field_selector .dd a { color: #333; display: block; font-size: 12px; height: 21px; line-height: 21px; padding: 0 10px; }
+	.field_selector .dd a { color: #333; display: block; font-size: 12px; height: 21px; line-height: 21px; padding: 0 34px 0 10px; }
 	.field_selector .dd a:hover { background: #EEE; }
 	.field_selector .dd a:first-child { border-radius: 0 3px 0 0; }
 	.field_selector .dd a:last-child { border-radius: 0 0 3px 3px; }
@@ -484,7 +484,7 @@
 	.table > summary.taller p { line-height: 45px; }
 	.table > summary .add { background: #DDD url(../images/row-bg-sprite.png) repeat-x 0px -188px; border: 1px solid #CCC; border-radius: 3px; color: #333; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 7px -7px 0 0; padding: 0 10px; transition: background-color 0.2s, border-color 0.2s; }
 	.table > summary .add:hover { background-color: #F3F3F3; }
-	.table > summary .export { background: url(../images/icon-sprite.png) no-repeat -128px -140px; float: right; height: 16px; margin: 10px 0 0 0; width: 16px; }
+	.table > summary .icon_small_export { float: right; margin: 10px 0 0 0; }
 	.table > summary .more { background: #F4F4F4; border-radius: 11px; box-shadow: 0px 1px 0 #AFAFAF; color: #666; float: right; font-size: 12px; height: 22px; line-height: 22px; margin: 2px -8px 0 0; padding: 0 15px; text-shadow: 0 1px 0 #FFF; transition: background 0.2s; }
 	.table > summary .more:hover { background: #fff; }
 	.table > summary h2.full { float: none; user-select: none; }
@@ -972,9 +972,10 @@
 	.bigtree_dialog_form .image_attr ul li.colormode { width: 22px; text-align: center; }
 	.bigtree_dialog_form .image_attr ul li.colormode a { background: url(../images/icon-sprite.png) -185px -105px; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
 	.bigtree_dialog_form .image_attr ul li.colormode a.gray { background-position: -185px -121px; }
+	.bigtree_dialog_form .image_attr .thumbed { position: relative; }
 	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 105px; }
-	.bigtree_dialog_form .image_attr input.image_attr_thumbs { padding-left: 21px; width: 89px; }
-	.bigtree_dialog_form .image_attr .icon_small_picture { position: absolute; margin: 3px 0 0 3px; }
+	.bigtree_dialog_form .image_attr input.image_attr_thumbs { padding-left: 23px; width: 89px; }
+	.bigtree_dialog_form .image_attr .icon_small_picture { position: absolute; margin: 3px 0 0 5px; }
 
 	.bigtree_dialog_form .image_field .button { padding: 0 10px; }
 	
@@ -1124,6 +1125,7 @@
 	.icon_small_up { background-position: -448px -140px; }
 	.icon_small_computer { background-position: -464px -140px; }
 	.icon_small_picture { background-position: -480px -140px; }
+	.icon_small_package_export { background-position: -496px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
@@ -1366,7 +1368,7 @@
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
 	
-		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, .table > summary .export, footer.main .bigtree .logo, .login_logo, .form_container .alert span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
+		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
 		
 		/* Icons */
 		*[class*='icon_'] { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }

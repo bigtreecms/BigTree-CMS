@@ -1801,13 +1801,7 @@ var BigTreeFieldSelect = Class.extend({
 		}
 		$(selector).prepend(fs);
 		
-		fs.find("p").on("click", function() {
-			p = $(this).parent();
-			dd = $(this).parents(".field_selector").find(".dd");
-			if (p.find("a").length > 1) {
-				dd.show();				
-			}
-		});
+		fs.find("p, .handle").click($.proxy(this.click,this));
 		
 		fs.find(".dd").on("click","a",$.proxy(function(ev) {
 			el = ev.currentTarget;
@@ -1833,6 +1827,36 @@ var BigTreeFieldSelect = Class.extend({
 		}
 	},
 	
+	addField: function(field,title) {
+		this.container.find(".dd").append($('<a href="#' + title + '">' + field + '</a>'));
+		this.container.find(".current").append($('<a href="#' + title + '">' + field + '</a>'));
+		this.elements.push({ field: field, title: title });
+		if (this.elements.length == 1) {
+			this.container.find("p").html(this.elements[0].field);
+			this.container.show();
+		}
+	},
+	
+	click: function(ev) {
+		p = $(ev.currentTarget);
+		dd = p.parents(".field_selector").find(".dd");
+		if (dd.hasClass("open")) {
+		    this.close();
+		} else {
+		    if (dd.find("a").length > 1) {
+		    	dd.show().addClass("open");
+		    	this.BoundWindowClick = $.proxy(this.close,this);
+		    	$("body").bind("click",this.BoundWindowClick);
+		    }
+		}
+		return false;
+	},
+	
+	close: function() {
+		$(window).unbind("click",this.BoundWindowClick);
+		$(".field_selector .dd").removeClass("open").hide();
+	},
+	
 	removeCurrent: function() {
 		this.container.find(".dd a").eq(this.currentElement).remove();
 		this.container.find(".current a").eq(this.currentElement).remove();
@@ -1842,16 +1866,6 @@ var BigTreeFieldSelect = Class.extend({
 			this.container.hide();
 		} else {
 			this.container.find("p").html(this.elements[0].field);
-		}
-	},
-	
-	addField: function(field,title) {
-		this.container.find(".dd").append($('<a href="#' + title + '">' + field + '</a>'));
-		this.container.find(".current").append($('<a href="#' + title + '">' + field + '</a>'));
-		this.elements.push({ field: field, title: title });
-		if (this.elements.length == 1) {
-			this.container.find("p").html(this.elements[0].field);
-			this.container.show();
 		}
 	}
 });

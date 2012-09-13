@@ -17,7 +17,7 @@
 		
 		ul = $('<ul class="image_attr_thumbs_' + count + '">');
 		
-		li_pre = $('<li>');
+		li_pre = $('<li class="thumbed">');
 		li_pre.html('<span class="icon_small icon_small_picture"></span><input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][prefix]" value="" />');
 		ul.append(li_pre);
 		

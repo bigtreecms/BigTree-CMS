@@ -12,15 +12,15 @@
 					$auto = BigTreeAutoModule::getForm($action["form"]);
 					foreach ($auto["fields"] as $field) {
 						if ($field["type"] == "list" && $field["list_type"] == "db") {
-							if (!in_array($field["pop-table"]."#structure",$tables)) {
+							if (!in_array($field["pop-table"]."#structure",$tables) && substr($field["pop-table"],0,8) != "bigtree_") {
 								$tables[] = $field["pop-table"]."#structure";
 							}
 						}
 						if ($field["type"] == "many_to_many") {
-							if (!in_array($field["mtm-connecting-table"]."#structure",$tables)) {
+							if (!in_array($field["mtm-connecting-table"]."#structure",$tables) && substr($field["mtm-connecting-table"],0,8) != "bigtree_") {
 								$tables[] = $field["mtm-connecting-table"]."#structure";
 							}
-							if (!in_array($field["mtm-other-table"]."#structure",$tables)) {
+							if (!in_array($field["mtm-other-table"]."#structure",$tables) && substr($field["mtm-other-table"],0,8) != "bigtree_") {
 								$tables[] = $field["mtm-other-table"]."#structure";
 							}
 						}

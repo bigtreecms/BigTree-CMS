@@ -14,7 +14,7 @@
 ?>
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>foundry/package/choose-files/group/<?=$g["id"]?>/" class="export"></a>
+		<a href="<?=$developer_root?>foundry/package/choose-files/group/<?=$g["id"]?>/" class="icon_small icon_small_export"></a>
 		<h2><?=$g["name"]?></h2>
 	</summary>
 	<header>
