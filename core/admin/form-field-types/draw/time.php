@@ -17,8 +17,8 @@
 		} else {
 			$bigtree["timepickers"][] = "field_$key";
 	?>
-	<span class="icon_small icon_small_clock time_picker_icon"></span>
 	<input type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<? if ($value) { echo date("h:i a",strtotime($value)); } ?>" autocomplete="off" id="field_<?=$key?>" class="time_picker <?=$options["validation"]?>" />
+	<span class="icon_small icon_small_clock time_picker_icon"></span>
 	<?
 		}
 	?>

@@ -25,6 +25,7 @@
 			$bigtree["datetimepickers"][] = "field_$key";
 	?>
 	<input type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=date("m/d/Y h:i a",strtotime($value))?>" autocomplete="off" id="field_<?=$key?>" class="date_picker<?=$validation?>" />
+	<span class="icon_small icon_small_calendar date_picker_icon"></span>
 	<?
 		}
 	?>
