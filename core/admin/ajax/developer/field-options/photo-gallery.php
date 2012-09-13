@@ -70,7 +70,7 @@
 							$ctx++;
 		?>
 		<ul class="image_attr_thumbs_<?=$cx?>">
-			<li>
+			<li class="thumbed">
 				<span class="icon_small icon_small_picture"></span>
 				<input type="text" class="image_attr_thumbs" name="crops[<?=$cx?>][thumbs][<?=$ctx?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
 			</li>
