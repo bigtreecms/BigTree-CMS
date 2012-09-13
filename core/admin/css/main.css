@@ -362,7 +362,7 @@
 	.form_container footer .button, .form_container footer input { float: left; margin: 0 15px 0 0; }
 	.form_container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 0 -30px 30px -30px; width: 958px; }
 	.form_container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }
-	.form_container .alert span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
+	.form_container .alert > span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
 	.form_container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; display: block; }
 	.form_container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
 	.form_container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
@@ -1368,7 +1368,7 @@
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
 	
-		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
+		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
 		
 		/* Icons */
 		*[class*='icon_'] { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
