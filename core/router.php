@@ -205,7 +205,7 @@
 
 	// See if we're previewing changes.
 	$bigtree["preview"] = false;
-	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree"]["id"]) {
+	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree_admin"]["id"]) {
 		$npath = array();
 		foreach ($bigtree["path"] as $item) {
 			if ($item != "_preview") {
@@ -220,7 +220,7 @@
 		unset($npath);
 	}
 	
-	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree"]["id"]) {
+	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
 		$commands = $bigtree["commands"]; // Backwards compatibility
@@ -403,7 +403,7 @@
 	}
 	
 	// Load the BigTree toolbar if you're logged in to the admin.
-	if ($bigtree["page"]["id"] && !$cms->Secure && isset($_COOKIE["bigtree"]["email"]) && !$_SESSION["bigtree"]["id"]) {
+	if ($bigtree["page"]["id"] && !$cms->Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
 		include BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -413,7 +413,7 @@
 		}
 	}
 	
-	if (isset($bigtree["page"]) && $_SESSION["bigtree"]["id"] && !$cms->Secure) {
+	if (isset($bigtree["page"]) && $_SESSION["bigtree_admin"]["id"] && !$cms->Secure) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? "false" : "true";
 		$show_preview_bar = "false";
 		$return_link = "";
@@ -423,7 +423,7 @@
 			$return_link = $_SERVER["HTTP_REFERER"];
 		}
 				
-		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'js/bar.js"></script></body>',$bigtree["content"]);
+		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree_admin"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'js/bar.js"></script></body>',$bigtree["content"]);
 		$bigtree["config"]["cache"] = false;
 	}
 	
