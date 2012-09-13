@@ -181,5 +181,7 @@
 		// Remove image an description columns from modules.
 		sqlquery("ALTER TABLE `bigtree_modules` DROP COLUMN `image`");
 		sqlquery("ALTER TABLE `bigtree_modules` DROP COLUMN `description`");
+		/// Remove locked column from pages.
+		sqlquery("ALTER TABLE `bigtree_pages` DROP COLUMN `locked`");
 	}
 ?>
