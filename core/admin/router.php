@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
 	define("BIGTREE_VERSION","4.0RC2");
-	define("BIGTREE_REVISION",7);
+	define("BIGTREE_REVISION",8);
 
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {

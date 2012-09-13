@@ -175,4 +175,11 @@
 		// Allow forms to set their return view manually.
 		sqlquery("ALTER TABLE `bigtree_module_forms` ADD COLUMN `return_view` INT(11) UNSIGNED AFTER `default_position`");
 	}
+	
+	// BigTree 4.0RC2 update -- REVISION 8
+	function _local_bigtree_update_8() {
+		// Remove image an description columns from modules.
+		sqlquery("ALTER TABLE `bigtree_modules` DROP COLUMN `image`");
+		sqlquery("ALTER TABLE `bigtree_modules` DROP COLUMN `description`");
+	}
 ?>
