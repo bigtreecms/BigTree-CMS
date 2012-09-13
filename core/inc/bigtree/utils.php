@@ -1002,6 +1002,110 @@
 		}
 		
 		/*
+			Function: placeholder
+			
+			Parameters:
+				width - The width of desired image
+				height - The height of desired image
+				bg_color - The background color; must be full 6 charachter hex value
+				text_color - The text color; must be full 6 charachter hex value
+				icon_path - Image to render, relative to 'site/'; disbales text rendering
+				text_string - Text to render; overrides default dimension display
+				
+			Returns:
+				Nothing; Renders a placeholder image
+			
+			See Also:
+				<placeholderURL>
+		*/
+		
+		static function placeholder($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
+			// Check size
+			$width = ($width > 2000) ? 2000 : $width;
+			$height = ($height > 2000) ? 2000 : $height;
+			
+			// Check colors
+			$bg_color = ($bg_color === false) ? "cccccc" : $bg_color;
+			$text_color = ($text_color === false) ? "666666" : $text_color;
+			
+			// Set text
+			$text = $text_string;
+			if ($icon_path != false) {
+				$text = "";
+			} else {
+				if ($text_string == false) {
+					$text = $width . " X " . $height;
+				}
+			}
+			
+			// Create image
+			$image = imagecreatetruecolor($width, $height);
+			// Build rgba from hex
+			$bg_color = imagecolorallocate($image, base_convert(substr($bg_color, 0, 2), 16, 10), base_convert(substr($bg_color, 2, 2), 16, 10), base_convert(substr($bg_color, 4, 2), 16, 10));
+			$text_color = imagecolorallocate($image, base_convert(substr($text_color, 0, 2), 16, 10), base_convert(substr($text_color, 2, 2), 16, 10), base_convert(substr($text_color, 4, 2), 16, 10));
+			// Fill image
+			ImageFill($image, 0, 0, $bg_color); 
+			
+			// Add text if provided or default to size
+			if ($text != "") {
+				$font = BigTree::path("inc/utils/share/arial.ttf");
+				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
+				$textpos = imageTTFBbox($fontsize, 0, $font, $text); 
+				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
+			}
+			
+			// Add icon if provided
+			if ($icon_path) {
+				$icon_size = getimagesize($icon_path);
+				$icon_width = $icon_size[0];
+				$icon_height = $icon_size[1];
+				$icon_x = ($width - $icon_width) / 2;
+				$icon_y = ($height - $icon_height) / 2;
+				
+				$icon = imagecreatefrompng($icon_path); 
+				imagesavealpha($icon, true);
+				imagealphablending($icon, true);
+				imagecopyresampled($image, $icon, $icon_x, $icon_y, 0, 0, $icon_width, $icon_height, $icon_width, $icon_height);
+			}
+			
+			
+			// Serve image and die
+			header("Content-Type: image/png"); 
+			imagepng($image);   
+			ImageDestroy($image);
+			die();
+		}
+		
+		/*
+			Function: placeholderURL
+			
+			Parameters:
+				width - The width of the image
+				height - The height of the image
+				style - The style to use when rendering the image
+				bg_color - The background color; must be full 6 charachter hex value
+				text_color - The text color; must be full 6 charachter hex value
+				
+			Returns:
+				The full url to a styled placeholder image
+			
+			See Also:
+				<placeholder>
+		*/
+		
+		static function placeholderURL($width, $height, $style = "default", $bg_color = false, $text_color = false) {
+			$url = WWW_ROOT."placeholder/".$style."/".$height."x".$width."/";
+			if ($bg_color !== false) {
+				$url .= $bg_color . "/";
+				
+				if ($text_color !== false) {
+					$url .= $text_color . "/";
+				}
+			}
+			return $url;
+		}
+		
+		/*
 			Function: randomString
 				Returns a random string.
 			
