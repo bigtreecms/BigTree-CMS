@@ -4,14 +4,14 @@
 	$item = $admin->getSetting(end($bigtree["path"]));
 	BigTree::globalizeArray($item,array("htmlspecialchars"));
 	
-	if (isset($_SESSION["bigtree"]["developer"]["setting_data"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["setting_data"]);
-		unset($_SESSION["bigtree"]["developer"]["setting_data"]);
+	if (isset($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
+		unset($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 	}
 	
-	if (isset($_SESSION["bigtree"]["developer"]["error"])) {
-		$e = $_SESSION["bigtree"]["developer"]["error"];
-		unset($_SESSION["bigtree"]["developer"]["error"]);
+	if (isset($_SESSION["bigtree_admin"]["developer"]["error"])) {
+		$e = $_SESSION["bigtree_admin"]["developer"]["error"];
+		unset($_SESSION["bigtree_admin"]["developer"]["error"]);
 	} else {
 		$e = false;
 	}

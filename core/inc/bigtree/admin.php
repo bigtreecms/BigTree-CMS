@@ -71,8 +71,8 @@
 		*/
 
 		function __construct() {
-			if (isset($_SESSION["bigtree"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree"]["id"]."' AND email = '".$_SESSION["bigtree"]["email"]."'"));
+			if (isset($_SESSION["bigtree_admin"]["email"])) {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
 				if ($f) {
 					$this->ID = $f["id"];
 					$this->User = $f["email"];
@@ -90,8 +90,8 @@
 					$this->Level = $f["level"];
 					$this->Name = $f["name"];
 					$this->Permissions = json_decode($f["permissions"],true);
-					$_SESSION["bigtree"]["id"] = $f["id"];
-					$_SESSION["bigtree"]["email"] = $f["email"];
+					$_SESSION["bigtree_admin"]["id"] = $f["id"];
+					$_SESSION["bigtree_admin"]["email"] = $f["email"];
 				}
 				// Clean up
 				unset($user,$pass,$f);
@@ -3970,7 +3970,7 @@
 		*/
 
 		function growl($title,$message,$type = "success") {
-			$_SESSION["bigtree"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
+			$_SESSION["bigtree_admin"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
 		/*
@@ -4110,11 +4110,11 @@
 					setcookie('bigtree[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 				}
 
-				$_SESSION["bigtree"]["id"] = $f["id"];
-				$_SESSION["bigtree"]["email"] = $f["email"];
-				$_SESSION["bigtree"]["level"] = $f["level"];
-				$_SESSION["bigtree"]["name"] = $f["name"];
-				$_SESSION["bigtree"]["permissions"] = json_decode($f["permissions"],true);
+				$_SESSION["bigtree_admin"]["id"] = $f["id"];
+				$_SESSION["bigtree_admin"]["email"] = $f["email"];
+				$_SESSION["bigtree_admin"]["level"] = $f["level"];
+				$_SESSION["bigtree_admin"]["name"] = $f["name"];
+				$_SESSION["bigtree_admin"]["permissions"] = json_decode($f["permissions"],true);
 				
 				if (isset($_SESSION["bigtree_login_redirect"])) {
 					BigTree::redirect($_SESSION["bigtree_login_redirect"]);
@@ -4135,7 +4135,7 @@
 		function logout() {
 			setcookie("bigtree[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			setcookie("bigtree[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			unset($_SESSION["bigtree"]);
+			unset($_SESSION["bigtree_admin"]);
 			BigTree::redirect(ADMIN_ROOT);
 		}
 
@@ -4835,7 +4835,7 @@
 		*/
 
 		function ungrowl() {
-			unset($_SESSION["bigtree"]["flash"]);
+			unset($_SESSION["bigtree_admin"]["flash"]);
 		}
 
 		/*

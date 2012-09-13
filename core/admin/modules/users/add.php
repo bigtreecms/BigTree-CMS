@@ -3,11 +3,11 @@
 	
 	$e = false;
 
-	if (isset($_SESSION["bigtree"]["create_user"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["create_user"],array("htmlspecialchars"));
+	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["create_user"],array("htmlspecialchars"));
 		$daily_digest = isset($daily_digest) ? $daily_digest : false;
 		$e = true;
-		unset($_SESSION["bigtree"]["create_user"]);
+		unset($_SESSION["bigtree_admin"]["create_user"]);
 	} else {
 		$email = "";
 		$name = "";

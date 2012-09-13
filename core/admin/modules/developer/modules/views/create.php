@@ -23,7 +23,7 @@
 	}
 
 	if (count($errors)) {
-		$_SESSION["bigtree"]["developer"]["saved_view"] = $_POST;
+		$_SESSION["bigtree_admin"]["developer"]["saved_view"] = $_POST;
 ?>
 <h1><span class="modules"></span>View Creation Error</h1>
 <div class="form_container">

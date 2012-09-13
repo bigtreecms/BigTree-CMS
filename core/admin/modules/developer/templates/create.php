@@ -3,8 +3,8 @@
 	
 	// Let's see if the ID has already been used.
 	if ($cms->getTemplate($id)) {
-		$_SESSION["bigtree"]["admin_saved"] = $_POST;
-		$_SESSION["bigtree"]["admin_error"] = true;
+		$_SESSION["bigtree_admin"]["admin_saved"] = $_POST;
+		$_SESSION["bigtree_admin"]["admin_error"] = true;
 		BigTree::redirect("../add/");
 	}
 	

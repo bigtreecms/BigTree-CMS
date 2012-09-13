@@ -81,10 +81,10 @@
 	
 	$e = false;
 
-	if (isset($_SESSION["bigtree"]["update_user"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["update_user"],array("htmlspecialchars"));
+	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
 		$e = true;
-		unset($_SESSION["bigtree"]["update_user"]);
+		unset($_SESSION["bigtree_admin"]["update_user"]);
 	}
 	
 	// Prevent a notice on alerts

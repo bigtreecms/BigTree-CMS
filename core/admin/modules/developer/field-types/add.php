@@ -3,14 +3,14 @@
 	
 	// Stop notices
 	$id = $name = $pages = $modules = $callouts = $settings = "";
-	if (isset($_SESSION["bigtree"]["admin_saved"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["admin_saved"],array("htmlspecialchars"));
-		unset($_SESSION["bigtree"]["admin_saved"]);
+	if (isset($_SESSION["bigtree_admin"]["admin_saved"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["admin_saved"],array("htmlspecialchars"));
+		unset($_SESSION["bigtree_admin"]["admin_saved"]);
 	}
 	
-	if (isset($_SESSION["bigtree"]["admin_error"])) {
-		$e = $_SESSION["bigtree"]["admin_error"];
-		unset($_SESSION["bigtree"]["admin_error"]);
+	if (isset($_SESSION["bigtree_admin"]["admin_error"])) {
+		$e = $_SESSION["bigtree_admin"]["admin_error"];
+		unset($_SESSION["bigtree_admin"]["admin_error"]);
 	} else {
 		$e = false;
 	}

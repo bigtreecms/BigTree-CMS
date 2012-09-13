@@ -6,10 +6,10 @@
 	$resources = array();
 	$show_error = false;
 	
-	if ($_SESSION["bigtree"]["admin_error"]) {
-		unset($_SESSION["bigtree"]["admin_error"]);
-		BigTree::globalizeArray($_SESSION["bigtree"]["admin_saved"]);
-		unset($_SESSION["bigtree"]["admin_saved"]);
+	if ($_SESSION["bigtree_admin"]["admin_error"]) {
+		unset($_SESSION["bigtree_admin"]["admin_error"]);
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["admin_saved"]);
+		unset($_SESSION["bigtree_admin"]["admin_saved"]);
 		$show_error = true;
 	}
 ?>
