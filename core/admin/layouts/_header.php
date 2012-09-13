@@ -124,7 +124,7 @@
 						}
 					?>
 				</ul>
-				<form method="post" action="<?=ADMIN_ROOT?>search/">
+				<form method="get" action="<?=ADMIN_ROOT?>search/">
 					<input type="submit" class="qs_image" alt="Search" />
 					<input type="search" name="query" autocomplete="off" placeholder="Quick Search" class="qs_query" />
 					<div id="quick_search_results" style="display: none;"></div>

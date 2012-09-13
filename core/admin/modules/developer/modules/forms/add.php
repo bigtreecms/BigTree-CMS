@@ -1,12 +1,12 @@
 <?
-	$id = $bigtree["commands"][0];
-	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
+	$id = $_GET["module"]
+	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 
-	$module = $admin->getModule($bigtree["commands"][0]);
+	$module = $admin->getModule($id);
 	$edit_action_exists = $admin->doesModuleEditActionExist($module["id"]);
 
-	if (isset($bigtree["commands"][2])) {
-		$title = $bigtree["commands"][2];
+	if (isset($_GET["title"])) {
+		$title = $_GET["title"];
 		if (substr($title,-3,3) == "ies") {
 			$title = substr($title,0,-3)."y";
 		} else {
@@ -49,7 +49,7 @@
 				<? if ($edit_action_exists) { ?>
 				<fieldset>
 					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" <? if (isset($bigtree["commands"][3])) { echo 'value="'.$bigtree["commands"][3].'" '; } ?>/>
+					<input type="text" name="suffix" <? if (isset($_GET["suffix"])) { ?>value="<?=$_GET["suffix"]?>" <? } ?>/>
 				</fieldset>
 				<? } ?>
 
@@ -68,7 +68,7 @@
 					<label>Return View <small>(after the form is submitted, it will return to this view)</small></label>
 					<select name="return_view">
 						<? foreach ($available_views as $view) { ?>
-						<option value="<?=$view["id"]?>"<? if (isset($bigtree["commands"][4]) && $bigtree["commands"][4] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["name"]?></option>
+						<option value="<?=$view["id"]?>"<? if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["name"]?></option>
 						<? } ?>
 					</select>
 				</fieldset>

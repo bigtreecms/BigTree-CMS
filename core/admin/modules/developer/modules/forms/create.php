@@ -19,7 +19,7 @@
 	$admin->createModuleAction($module,"Add $title","add".$suffix,"on","add",$form_id);
 	$admin->createModuleAction($module,"Edit $title","edit".$suffix,"","edit",$form_id);
 
-	$mod = $admin->getModule($module);
+	$module_info = $admin->getModule($module);
 ?>
 <h1><span class="modules"></span>Created Form</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
@@ -29,7 +29,7 @@
 		<p>Your form has been created. If you were creating a module from scratch, the process is now complete.</p>
 	</section>
 	<footer>
-		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/" class="button white">View Module</a>
-		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/add<?=$suffix?>/" class="button blue">View Form</a>
+		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/" class="button white">View Module</a>
+		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/add<?=$suffix?>/" class="button blue">View Form</a>
 	</footer>
 </div>

@@ -1,6 +1,6 @@
 <?
 	$admin->requireLevel(1);
-	$success = $admin->updateUser(end($bigtree["path"]),$_POST);
+	$success = $admin->updateUser($_POST["id"],$_POST);
 	
 	if (!$success) {
 		$_SESSION["bigtree"]["update_user"] = $_POST;

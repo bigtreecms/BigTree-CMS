@@ -4385,6 +4385,9 @@
 		*/
 
 		function searchPages($query,$fields = array("nav_title"),$max = 10) {
+			// Since we're in JSON we have to do stupid things to the /s for URL searches.
+			$query = str_replace('/','\\\/',$query);
+			
 			$results = array();
 			$terms = explode(" ",$query);
 
