@@ -1,5 +1,5 @@
 <?
-	$module = $admin->getModule($bigtree["commands"][0]);
+	$module = $admin->getModule(end($bigtree["commands"]));
 	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
 	$breadcrumb[] = array("title" => "Add Action", "link" => "#");
 	

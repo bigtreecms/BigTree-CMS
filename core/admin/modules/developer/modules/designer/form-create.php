@@ -61,5 +61,5 @@
 	$admin->createModuleAction($module,"Add ".$_POST["title"],"add","on","add",$form_id);
 	$admin->createModuleAction($module,"Edit ".$_POST["title"],"edit","","edit",$form_id);
 	
-	BigTree::redirect("../view/$module/".$_POST["table"]."/".str_replace("%2F","/",urlencode($_POST["title"]))."/");
+	BigTree::redirect("../view/?module=$module&table=".urlencode($_POST["table"])."&title=".urlencode($_POST["title"]));
 ?>
