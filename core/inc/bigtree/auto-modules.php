@@ -700,7 +700,7 @@
 			} else {
 				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'".self::getFilterQuery($view);
 			}
-
+			
 			foreach ($search_parts as $part) {
 				$x = 0;
 				$qp = array();
@@ -709,7 +709,9 @@
 					$x++;
 					$qp[] = "LOWER(column$x) LIKE '%$part%'";
 				}
-				$query .= " AND (".implode(" OR ",$qp).")";
+				if (count($qp)) {
+					$query .= " AND (".implode(" OR ",$qp).")";
+				}
 			}
 			
 			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : 15;
@@ -797,17 +799,21 @@
 			
 			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
 			$fields = json_decode($f["fields"],true);
-			$first = current($fields);
-			if (!isset($first["width"]) || !$first["width"]) {
-				$awidth = count($actions) * 62;
-				$available = 888 - $awidth;
-				$percol = floor($available / count($fields));
-			
-				foreach ($fields as $key => $field) {
-					$fields[$key]["width"] = $percol - 20;
+			if (count($fields)) {
+				$first = current($fields);
+				if (!isset($first["width"]) || !$first["width"]) {
+				    $awidth = count($actions) * 62;
+				    $available = 888 - $awidth;
+				    $percol = floor($available / count($fields));
+				
+				    foreach ($fields as $key => $field) {
+				    	$fields[$key]["width"] = $percol - 20;
+				    }
 				}
+				$f["fields"] = $fields;
+			} else {
+				$f["fields"] = array();
 			}
-			$f["fields"] = $fields;
 
 			return $f;
 		}
