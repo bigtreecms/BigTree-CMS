@@ -85,7 +85,7 @@
 	$d = opendir(SERVER_ROOT."custom/inc/required/");
 	$custom_required_includes = array();
 	while ($f = readdir($d)) {
-		if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
+		if (substr($f,0,1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
 			$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$f";
 		}
 	}
