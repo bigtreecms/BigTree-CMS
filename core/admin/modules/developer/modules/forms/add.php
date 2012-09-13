@@ -34,7 +34,7 @@
 	$breadcrumb[] = array("title" => "Add Form", "link" => "#");
 ?>
 
-<h1><span class="icon_developer_modules"></span>Add Form</h1>
+<h1><span class="modules"></span>Add Form</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 
 <div class="form_container">

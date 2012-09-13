@@ -5,7 +5,7 @@
 	$x = 0;
 	$rel_table = array();
 ?>
-<h1><span class="icon_developer_callouts"></span>Callouts</h1>
+<h1><span class="callouts"></span>Callouts</h1>
 <? include BigTree::path("admin/modules/developer/callouts/_nav.php") ?>
 
 <div class="table">

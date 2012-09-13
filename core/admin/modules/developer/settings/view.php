@@ -1,7 +1,7 @@
 <?
 	$settings = $admin->getSettings();
 ?>
-<h1><span class="icon_developer_settings"></span>Settings</h1>
+<h1><span class="settings"></span>Settings</h1>
 <? include BigTree::path("admin/modules/developer/settings/_nav.php") ?>
 
 <div class="table">

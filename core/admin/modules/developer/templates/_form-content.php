@@ -72,20 +72,18 @@
 		</fieldset>
 		
 		<fieldset>
-			<label>Image <small>(upload an image of ~32x32 pixels or a choose a default)</small></label>
+			<label>Image <small>(upload an image of 32x32 or 64x64 pixels or a choose an existing image)</small></label>
 			<input type="file" name="image" />
 			<input type="hidden" name="existing_image" id="existing_image" />
-		</fieldset>
-		
-		<fieldset>
+
 			<ul class="template_image_list">
 				<?
 					$o = opendir(SERVER_ROOT."core/admin/images/templates/");
 					while ($file = readdir($o)) {
-						if ($file != "." && $file != "..") {
+						if (substr($file,0,1) != ".") {
 							$all[] = $file;
 				?>
-				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" /></a></li>
+				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" width="32" height="32" /></a></li>
 				<?
 						}
 					}

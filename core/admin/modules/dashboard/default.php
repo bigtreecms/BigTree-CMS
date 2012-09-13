@@ -54,7 +54,7 @@
 <div class="table">
 	<summary>
 		<h2 class="full">
-			<span class="world"></span>
+			<span class="analytics"></span>
 			Recent Traffic <small>Visits In The Past Two Weeks</small>
 			<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="more">View Analytics</a>
 		</h2>

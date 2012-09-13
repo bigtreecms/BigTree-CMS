@@ -13,7 +13,7 @@
 		$show_error = true;
 	}
 ?>
-<h1><span class="icon_developer_templates"></span>Add Template</h1>
+<h1><span class="templates"></span>Add Template</h1>
 <? include BigTree::path("admin/modules/developer/templates/_nav.php") ?>
 
 <div class="form_container">

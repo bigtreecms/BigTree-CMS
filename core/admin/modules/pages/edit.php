@@ -21,7 +21,7 @@
 			array("link" => "pages/view-tree/0/", "title" => "Home")
 		);
 ?>
-<h1><span class="error"></span>Error</h1>
+<h1><span class="page_error"></span>Error</h1>
 <p class="error">The page you are trying to edit no longer exists.</p>
 <?
 		$admin->stop();

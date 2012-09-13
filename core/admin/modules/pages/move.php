@@ -40,7 +40,7 @@
 		}
 	}
 ?>
-<h1><span class="move"></span><?=$page["nav_title"]?></h1>
+<h1><span class="move_page"></span><?=$page["nav_title"]?></h1>
 <? include BigTree::path("admin/modules/pages/_nav.php") ?>
 <div class="form_container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">

@@ -2,7 +2,7 @@
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 	$breadcrumb[] = array("title" => "First Data / LinkPoint", "link" => "#");
 ?>
-<h1><span class="icon_developer_payment_linkpoint"></span>First Data / LinkPoint</h1>
+<h1><span class="linkpoint"></span>First Data / LinkPoint</h1>
 <div class="form_container">
 	<header><h2>First Data / LinkPoint Settings</h2></header>
 	<aside>Your current upload service is: <strong><?=$currently?></strong></aside>

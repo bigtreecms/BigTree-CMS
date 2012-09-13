@@ -25,7 +25,7 @@
 	if (count($errors)) {
 		$_SESSION["bigtree"]["developer"]["saved_view"] = $_POST;
 ?>
-<h1><span class="icon_developer_modules"></span>View Creation Error</h1>
+<h1><span class="modules"></span>View Creation Error</h1>
 <div class="form_container">
 	<section>
 		<? foreach ($errors as $error) { ?>
@@ -72,7 +72,7 @@
 
 		$mod = $admin->getModule($module);
 ?>
-<h1><span class="icon_developer_modules"></span>Created View</h1>
+<h1><span class="modules"></span>Created View</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<section>

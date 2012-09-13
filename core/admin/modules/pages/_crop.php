@@ -59,12 +59,16 @@
 						// Figure out where we're starting the cropping box (should be centered)
 						$initial_x = ceil(($box_width - $initial_width) / 2);
 						$initial_y = ceil(($box_height - $initial_height) / 2);
+						
+						// Figure out where the arrow should be
+						$arrow_margin = 13 + ceil($box_height / 2);
 				?>
 				<li<? if ($x > 1) { ?> style="display: none;"<? } ?>>
 					<div class="original">
 						<p>Original</p>
 						<img src="<?=$image?>" id="cropImage<?=$x?>" width="<?=$box_width?>" height="<?=$box_height?>" />
-					</div>			
+					</div>
+					<div class="crop_arrow" style="margin-top: <?=$arrow_margin?>px;"></div>
 					<div class="cropped">
 						<p>Cropped (<?=$cwidth?>x<?=$cheight?>)</p>
 						<div style="padding-top: <?=$preview_margin?>px;">

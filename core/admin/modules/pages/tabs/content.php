@@ -7,7 +7,7 @@
 
 <div class="tags" id="bigtree_tag_browser">
 	<fieldset>
-		<label>Tags <img src="<?=ADMIN_ROOT?>images/tag.png" alt="" /></label>
+		<label>Tags<span></span></label>
 		<ul id="tag_list">
 			<?
 				if (is_array($pdata["tags"])) {

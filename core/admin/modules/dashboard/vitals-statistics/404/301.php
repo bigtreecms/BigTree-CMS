@@ -12,6 +12,7 @@
 <div class="table">
 	<summary class="taller">
 		<input type="search" class="form_search" placeholder="Search" id="404_search" />
+		<span class="form_search_icon"></span>
 		<p><?=$total?> URL<? if ($total != 1) { ?>s<? } ?> have 301 redirects &mdash; Redirect URLs save automatically as you type them.</p>
 	</summary>
 	<header>

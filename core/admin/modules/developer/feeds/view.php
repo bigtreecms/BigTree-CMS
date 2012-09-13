@@ -1,7 +1,7 @@
 <?
 	$feeds = $admin->getFeeds();
 ?>
-<h1><span class="icon_developer_feeds"></span>Feeds</h1>
+<h1><span class="feeds"></span>Feeds</h1>
 <? include BigTree::path("admin/modules/developer/feeds/_nav.php") ?>
 
 <div class="table">

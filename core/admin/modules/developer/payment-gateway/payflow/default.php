@@ -2,7 +2,7 @@
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 	$breadcrumb[] = array("title" => "PayPal Payflow Gateway", "link" => "#");
 ?>
-<h1><span class="icon_developer_payment_payflow"></span>PayPal Payflow Gateway</h1>
+<h1><span class="payflow"></span>PayPal Payflow Gateway</h1>
 <div class="form_container">
 	<header><h2>PayPal Payflow Gateway Settings</h2></header>
 	<aside>Your current upload service is: <strong><?=$currently?></strong></aside>

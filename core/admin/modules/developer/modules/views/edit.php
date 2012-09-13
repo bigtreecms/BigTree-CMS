@@ -8,7 +8,7 @@
 	
 	BigTree::globalizeArray($view,array("htmlspecialchars"));
 ?>
-<h1><span class="icon_developer_modules"></span>Edit View</h1>
+<h1><span class="modules"></span>Edit View</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
 
 <div class="form_container">
@@ -17,7 +17,7 @@
 		<section>
 			<? if ($action["route"]) { ?>
 			<div class="alert">
-				<img src="<?=ADMIN_ROOT?>images/alert.png" alt="" />
+				<span></span>
 				<p><strong>This is not the default view:</strong>  You may specify an action suffix below.</p>
 			</div>
 			<fieldset>

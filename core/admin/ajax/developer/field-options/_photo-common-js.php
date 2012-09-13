@@ -18,7 +18,7 @@
 		ul = $('<ul class="image_attr_thumbs_' + count + '">');
 		
 		li_pre = $('<li>');
-		li_pre.html('<input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][prefix]" value="" />');
+		li_pre.html('<span class="icon_small icon_small_picture"></span><input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][prefix]" value="" />');
 		ul.append(li_pre);
 		
 		li_width = $('<li>');
@@ -30,6 +30,7 @@
 		ul.append(li_height);
 		
 		li_up = $('<li class="up">');
+		li_up.html('<span class="icon_small icon_small_up"></span>');
 		ul.append(li_up);
 		
 		li_color = $('<li class="colormode">');

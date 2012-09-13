@@ -29,7 +29,7 @@
 	$bigtree["simple_html_fields"] = array();
 ?>
 <div class="alert template_message">
-	<img src="<?=$image?>" alt="" />
+	<img src="<?=$image?>" alt="" width="32" height="32" />
 	<label>Template</label>
 	<p><? if ($template == "") { ?>External Link<? } elseif ($template == "!") { ?>Redirect Lower<? } else { ?><?=str_replace("Module - ","",$tdata["name"])?><? } ?></p>
 </div>
@@ -116,11 +116,12 @@
 					}
 				}
 			?>
-			<h4><span class="icon_sort"></span><?=$description?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=$description?>" /></h4>
+			<h4><?=$description?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=$description?>" /></h4>
 			<p><?=$type["name"]?></p>
 			<div class="bottom">
-				<a href="#" class="icon_edit_small"></a>
-				<a href="#" class="icon_delete_small"></a>
+				<span class="icon_drag"></span>
+				<a href="#" class="icon_edit"></a>
+				<a href="#" class="icon_delete"></a>
 			</div>
 		</li>
 		<?

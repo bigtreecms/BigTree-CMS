@@ -6,7 +6,7 @@
 	
 	$resources = json_decode($callout["resources"],true);
 ?>
-<h1><span class="icon_developer_callouts"></span>Edit Callout</h1>
+<h1><span class="callouts"></span>Edit Callout</h1>
 <? include BigTree::path("admin/modules/developer/callouts/_nav.php") ?>
 
 <div class="form_container">

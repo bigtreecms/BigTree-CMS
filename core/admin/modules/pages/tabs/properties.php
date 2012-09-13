@@ -51,11 +51,13 @@
 <div class="left date_pickers">
 	<fieldset>
 		<label>Publish Date <small>(blank = immediately)</small></label>
-		<input type="text" class="date" id="publish_at" name="publish_at" tabindex="3" value="<? if ($pdata["publish_at"]) { echo date("Y-m-d",strtotime($pdata["publish_at"])); } ?>" />
+		<span class="icon_small icon_small_calendar date_picker_icon"></span>
+		<input type="text" class="date_picker" id="publish_at" name="publish_at" tabindex="3" value="<? if ($pdata["publish_at"]) { echo date("Y-m-d",strtotime($pdata["publish_at"])); } ?>" />
 	</fieldset>
 	<fieldset class="right">
 		<label>Expiration Date <small>(blank = never)</small></label>
-		<input type="text" class="date" id="expire_at" name="expire_at" tabindex="4" value="<? if ($pdata["expire_at"]) { echo date("Y-m-d",strtotime($pdata["expire_at"])); } ?>" />
+		<span class="icon_small icon_small_calendar date_picker_icon"></span>
+		<input type="text" class="date_picker" id="expire_at" name="expire_at" tabindex="4" value="<? if ($pdata["expire_at"]) { echo date("Y-m-d",strtotime($pdata["expire_at"])); } ?>" />
 	</fieldset>
 </div>
 <div class="right">

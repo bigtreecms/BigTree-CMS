@@ -58,6 +58,11 @@
 			$keys_match = false;
 		}
 		
+		// Check preview field
+		if ((!$old_view["preview_url"] && $preview_url) || ($old_view["preview_url"] && !$preview_url)) {
+			$keys_match = false;
+		}
+		
 		if (!$keys_match || ($old_view["type"] == "searchable" && $type != "searchable") || ($type == "searchable" && $old_view["type"] != "searchable")) {
 			foreach ($fields as $key => $field) {
 				unset($fields[$key]["width"]);

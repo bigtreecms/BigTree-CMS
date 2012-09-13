@@ -45,19 +45,8 @@
 			foreach ($files as $file) {
 				$parts = BigTree::pathInfo($file);
 				$ext = strtolower($parts["extension"]);
-				if (($ext == "png" || $ext == "jpg" || $ext == "gif") && substr($postdirectory,0,5) == "site/") {
-					$image = WWW_ROOT.str_replace("site/","",$postdirectory).$file;
-					$class = "image";
-				} else {
-					if (file_exists(BigTree::path("admin/images/icons/file-types/$ext.png"))) {
-						$image = $aroot."images/icons/file-types/$ext.png";
-					} else {
-						$image = $aroot."images/icons/file-types/other.png";
-					}
-					$class = "file";
-				}
 		?>
-		<li class="<?=$class?>"><?=$file?></li>
+		<li class="file"><span class="icon_small icon_small_file_default icon_small_file_<?=$ext?>"></span><p><?=$file?></p></li>
 		<?
 			}
 		?>
@@ -78,7 +67,7 @@
 	$("#bigtree_foundry_browser_window .browser_pane li").click(function() {
 		$(".browser_pane li").removeClass("selected");
 		$(this).addClass("selected");
-		$("#bigtree_foundry_selected_file").val($(this).html());
+		$("#bigtree_foundry_selected_file").val($(this).find("p").html());
 		return false;
 	});
 	

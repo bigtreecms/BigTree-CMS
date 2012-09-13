@@ -18,6 +18,7 @@
 				</nav>
 				<div id="link_finder_results" style="display: none;"></div>
 				<input type="search" id="link_finder" class="form_search" autocomplete="off" placeholder="Link Finder" />
+				<span class="form_search_icon link_finder_search_icon"></span>
 			</div>
 		</div>
 	</header>
@@ -63,7 +64,7 @@
 					}
 				} else {
 			?>
-			<a href="#" class="button save_and_preview"><span></span>Save &amp; Preview</a>
+			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
 			<input type="submit" name="ptype" value="Save"<? if (!$publisher) { ?> class="blue"<? } ?> />
 			<?
 					if ($publisher) {

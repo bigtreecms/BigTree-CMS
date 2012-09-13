@@ -1,6 +1,6 @@
 <?
 	if ($_POST["query"]) {
-		BigTree::redirect(urlencode($_POST["query"])."/");
+		BigTree::redirect(str_replace("%2F","/",urlencode($_POST["query"]))."/");
 	}
 	
 	$breadcrumb = array(array("link" => "search/","title" => "Advanced Search"), array("link" => "search/".urlencode(end($bigtree["path"]))."/", "title" => "Query: &ldquo;".end($bigtree["path"])."&rdquo;"));
@@ -8,7 +8,10 @@
 	
 	$total_results = 0;
 	$results = array();
-	$w = "'%".mysql_real_escape_string(end($bigtree["path"]))."%'";
+	
+	$search_term = implode("/",array_slice($bigtree["path"],2));
+	
+	$w = "'%".mysql_real_escape_string($search_term)."%'";
 	
 	// Get the "Pages" results.
 	$r = $admin->searchPages(end($bigtree["path"]),array("title","resources","meta_keywords","meta_description","nav_title"),"50");
@@ -50,7 +53,8 @@
 				
 				// Get matching results
 				$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
-				while ($r = sqlfetch($qs)) {
+				// Ignore SQL failures because we might have bad collation.
+				while ($r = sqlfetch($qs,true)) {
 					$m_results[] = $r;
 					$total_results++;
 				}
@@ -69,8 +73,8 @@
 <h1>Advanced Search</h1>
 <form class="adv_search" method="post" action="<?=ADMIN_ROOT?>search/">
 	<h3><?=number_format($total_results)?> Search results for &ldquo;<?=end($bigtree["path"])?>&rdquo;</h3>
-	<input type="image" src="<?=ADMIN_ROOT?>images/quick-search-icon.png" />
-	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
+	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($search_term)?>" />
+	<input type="submit" />
 </form>
 
 <div class="form_container">

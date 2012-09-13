@@ -7,7 +7,7 @@
 	$id = $name = $pages = $modules = $callouts = $settings = "";
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
-<h1><span class="icon_developer_field_types"></span>Edit Field Type</h1>
+<h1><span class="field_types"></span>Edit Field Type</h1>
 <? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
 
 <div class="form_container">

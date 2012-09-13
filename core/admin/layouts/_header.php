@@ -8,7 +8,9 @@
 			foreach ($modules as $m) {
 				$children[] = array("link" => $m["route"], "title" => $m["name"], "access" => 0);
 			}
-			$mgroups[] = array("link" => $mg["route"], "title" => $mg["name"], "access" => 0, "group" => true, "children" => $children);
+			if (count($children)) {
+				$mgroups[] = array("link" => $mg["route"], "title" => $mg["name"], "access" => 0, "group" => true, "children" => $children);
+			}
 		}
 	}
 	
@@ -34,7 +36,7 @@
 				array("link" => "developer/foundry/install", "title" => "Install Package", "access" => 2),
 			)),
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/upload-service", "title" => "Upload Service", "access" => 2),
+				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
 				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
 				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1)
 			))
@@ -76,7 +78,7 @@
 			<section>
 				<a href="<?=ADMIN_ROOT?>login/logout/" class="logout"><span></span>Logout</a>
 				<div></div>
-				<p class="messages"><span></span><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
+				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
 				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 14)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>
@@ -123,7 +125,7 @@
 					?>
 				</ul>
 				<form method="post" action="<?=ADMIN_ROOT?>search/">
-					<input type="image" src="<?=ADMIN_ROOT?>images/quick-search-icon.png" class="qs_image" alt="Search" />
+					<input type="submit" class="qs_image" alt="Search" />
 					<input type="search" name="query" autocomplete="off" placeholder="Quick Search" class="qs_query" />
 					<div id="quick_search_results" style="display: none;"></div>
 				</form>

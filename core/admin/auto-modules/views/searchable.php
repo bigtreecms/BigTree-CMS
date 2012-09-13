@@ -18,6 +18,7 @@
 <div class="table auto_modules">
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" />
+		<span class="form_search_icon"></span>
 		<ul id="view_paging" class="view_paging"></ul>
 	</summary>
 	<header>
