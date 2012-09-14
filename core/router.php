@@ -151,7 +151,7 @@
 	
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax") {
-		bigtree_setup_sql_connection();
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$x = 1;
 		$ajax_path = "";
 		while ($x < count($bigtree["path"]) - 1) {
@@ -235,7 +235,7 @@
 		$cms->drawXMLSitemap();
 	}
 	if ($bigtree["path"][0] == "feeds") {
-		bigtree_setup_sql_connection();
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$route = $bigtree["path"][1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {

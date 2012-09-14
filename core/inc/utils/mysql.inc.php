@@ -9,13 +9,11 @@
 		global $bigtree;
 		
 		if ($read_write == "read") {
-			$connection = mysql_connect($bigtree["config"]["db"]["host"],$bigtree["config"]["db"]["user"],$bigtree["config"]["db"]["password"]);
-			mysql_select_db($bigtree["config"]["db"]["name"],$connection);
-			mysql_query("SET NAMES 'utf8'",$connection);
+			$connection = new mysqli($bigtree["config"]["db"]["host"],$bigtree["config"]["db"]["user"],$bigtree["config"]["db"]["password"],$bigtree["config"]["db"]["name"]);
+			$connection->query("SET NAMES 'utf8'");
 		} else {
-			$connection = mysql_connect($bigtree["config"]["db_write"]["host"],$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"]);
-			mysql_select_db($bigtree["config"]["db_write"]["name"],$connection);
-			mysql_query("SET NAMES 'utf8'",$connection);
+			$connection = new mysqli($bigtree["config"]["db_write"]["host"],$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"],$bigtree["config"]["db_write"]["name"]);
+			$connection->query("SET NAMES 'utf8'");
 		}
 		return $connection;
 	}
@@ -55,8 +53,8 @@
 				$connection = bigtree_setup_sql_connection($type);
 			}	
 			
-			$q = mysql_query($query,$connection);
-			$e = mysql_error();
+			$q = $connection->query($query);
+			$e = $connection->error;
 			if ($e) {
 				$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
 				array_push($sqlerrors,$sqlerror);
@@ -77,8 +75,8 @@
 				$connection = bigtree_setup_sql_connection();
 			}
 			
-			$q = mysql_query($query,$connection);
-			$e = mysql_error();
+			$q = $connection->query($query);
+			$e = $connection->error;
 			if ($e) {
 				$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
 				array_push($sqlerrors,$sqlerror);
@@ -106,10 +104,9 @@
 		// If the query is boolean, it's probably a "false" from a failed sql query.
 		if (is_bool($query) && !$ignore_errors) {
 			global $sqlerrors;
-			print_r($sqlerrors);
 			throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
 		} else {
-			return mysql_fetch_assoc($query);
+			return $query->fetch_assoc();
 		}
 	}
 	
@@ -119,7 +116,7 @@
 	*/
 
 	function sqlrows($result) {
-		return mysql_num_rows($result);
+		return $result->num_rows;
 	}
 	
 	/*
@@ -128,6 +125,11 @@
 	*/
 
 	function sqlid() {
-		return mysql_insert_id();
+		global $bigtree;
+		if ($bigtree["mysql_write_connection"] !== "disconnected") {
+			return $bigtree["mysql_write_connection"]->insert_id;
+		} else {
+			return $bigtree["mysql_read_connect"]->insert_id;
+		}
 	}
 ?>
