@@ -902,7 +902,7 @@
 	.developer_action_list li a.active span { opacity: 1; }
 	.developer_action_list input { display: none; }
 
-	.developer_icon_list li { float: left; margin: 0 5px 0 0; }
+	.developer_icon_list li { float: left; margin: 0 5px 5px 0; }
 	.developer_icon_list li a { background: #FCFCFC; border: 1px solid #CCC; border-radius: 3px; display: block; height: 16px; padding: 5px; width: 16px; }
 	.developer_icon_list li a span { opacity: 0.5; }
 	.developer_icon_list li a.active, .developer_icon_list li a:hover { background: #FFF; border-color: #AAA; box-shadow: 0 0 2px #CCC; }
@@ -1125,7 +1125,6 @@
 	.icon_small_up { background-position: -448px -140px; }
 	.icon_small_computer { background-position: -464px -140px; }
 	.icon_small_picture { background-position: -480px -140px; }
-	.icon_small_package_export { background-position: -496px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
