@@ -32,9 +32,9 @@
 				if (substr($key,0,1) != "_") {
 					if ($key != "type") {
 						if (is_array($val)) {
-							$$key = mysql_real_escape_string(json_encode($val,true));
+							$$key = sqlescape(json_encode($val,true));
 						} else {
-							$$key = mysql_real_escape_string($val);
+							$$key = sqlescape($val);
 						}
 					}
 				}

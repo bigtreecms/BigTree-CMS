@@ -4,7 +4,7 @@
 		die("You don't have permission to make a folder here.");
 	}
 	
-	$folder = mysql_real_escape_string($_POST["folder"]);
+	$folder = sqlescape($_POST["folder"]);
 	$f = $_FILES["file"];
 	if ($f["error"]) {
 		if ($f["error"] == 2 || $f["error"] == 1) {

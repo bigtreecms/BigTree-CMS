@@ -9,7 +9,7 @@
 	<?=$details["description"]?>
 </p>
 <?
-	$existing = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".mysql_real_escape_string($details["field_type_id"])."'"));
+	$existing = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".sqlescape($details["field_type_id"])."'"));
 	
 	if ($existing) {
 ?>
@@ -41,7 +41,7 @@
 				$warnings[] = "A file already exists at &ldquo;$file&rdquo; &mdash; the file will be overwritten.";
 		}
 		
-		bigtree_clean_globalize_array($details,array("mysql_real_escape_string"));
+		bigtree_clean_globalize_array($details,array("sqlescape"));
 
 		if (count($warnings)) {
 ?>

@@ -224,8 +224,8 @@
 									<?
 												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
 													$categories = array();
-													$ot = mysql_real_escape_string($gbp["other_table"]);
-													$tf = mysql_real_escape_string($gbp["title_field"]);
+													$ot = sqlescape($gbp["other_table"]);
+													$tf = sqlescape($gbp["title_field"]);
 													if ($tf && $ot) {
 														$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 									?>

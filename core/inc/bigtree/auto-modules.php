@@ -117,13 +117,13 @@
 				}
 
 				$fields[] = "group_field";
-				$vals[] = "'".mysql_real_escape_string($value)."'";
+				$vals[] = "'".sqlescape($value)."'";
 				
 				if (is_numeric($value) && $view["options"]["other_table"]) {
 					$f = sqlfetch(sqlquery("SELECT * FROM `".$view["options"]["other_table"]."` WHERE id = '$value'"));
 					if ($view["options"]["ot_sort_field"]) {
 						$fields[] = "group_sort_field";
-						$vals[] = "'".mysql_real_escape_string($f[$view["options"]["ot_sort_field"]])."'";
+						$vals[] = "'".sqlescape($f[$view["options"]["ot_sort_field"]])."'";
 					}
 				}
 			}
@@ -131,7 +131,7 @@
 			// Group based permissions data
 			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
 				$fields[] = "gbp_field";
-				$vals[] = "'".mysql_real_escape_string($item[$view["gbp"]["group_field"]])."'";
+				$vals[] = "'".sqlescape($item[$view["gbp"]["group_field"]])."'";
 			}
 			
 			// Run parsers
@@ -165,9 +165,9 @@
 						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 						$fields[] = "column$x";
 						if (isset($parsers[$field]) && $parsers[$field]) {
-							$vals[] = "'".mysql_real_escape_string($item[$field])."'";					
+							$vals[] = "'".sqlescape($item[$field])."'";					
 						} else {
-							$vals[] = "'".mysql_real_escape_string(strip_tags($item[$field]))."'";
+							$vals[] = "'".sqlescape(strip_tags($item[$field]))."'";
 						}
 						$x++;
 					}
@@ -259,11 +259,11 @@
 		
 		static function clearCache($view) {
 			if (is_array($view)) {
-				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".mysql_real_escape_string($view["id"])."'");		
+				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".sqlescape($view["id"])."'");		
 			} elseif (is_numeric($view)) {
 				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '$view'");
 			} else {
-				$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".mysql_real_escape_string($view)."'");
+				$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($view)."'");
 				while ($f = sqlfetch($q)) {
 					sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".$f["id"]."'");
 				}
@@ -296,7 +296,7 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
-						$query_vals[] = "'".mysql_real_escape_string($val)."'";
+						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
 			}
@@ -318,7 +318,7 @@
 			}
 
 			// Handle the tags
-			$mid = mysql_real_escape_string($module["id"]);
+			$mid = sqlescape($module["id"]);
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '$mid' AND entry = '$id'");
 			if (is_array($tags)) {
 				foreach ($tags as $tag) {
@@ -360,9 +360,9 @@
 				}
 			}
 
-			$data = mysql_real_escape_string(json_encode($data));
-			$many_data = mysql_real_escape_string(json_encode($many_to_many));
-			$tags_data = mysql_real_escape_string(json_encode($tags));
+			$data = sqlescape(json_encode($data));
+			$many_data = sqlescape(json_encode($many_to_many));
+			$tags_data = sqlescape(json_encode($tags));
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`) VALUES (".$admin->ID.",NOW(),'$table','$data','$many_data','$tags_data','$module','NEW')");
 			
 			$id = sqlid();
@@ -388,7 +388,7 @@
 		static function deleteItem($table,$id) {
 			global $admin;
 			
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM $table WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'");
 			self::uncacheItem($id,$table);
@@ -410,7 +410,7 @@
 		static function deletePendingItem($table,$id) {
 			global $admin;
 			
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND id = '$id'");
 			self::uncacheItem("p$id",$table);
 
@@ -438,7 +438,7 @@
 				if (is_array($groups)) {
 					$gfl = array();
 					foreach ($groups as $g) {
-						$gfl[] = "`gbp_field` = '".mysql_real_escape_string($g)."'";
+						$gfl[] = "`gbp_field` = '".sqlescape($g)."'";
 					}
 					return " AND (".implode(" OR ",$gfl).")";
 				}
@@ -649,7 +649,7 @@
 		*/
 
 		static function getRelatedFormForView($view) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE `table` = '".mysql_real_escape_string($view["table"])."'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
 			$f["fields"] = json_decode($f["fields"],true);
 			return $f;
 		}
@@ -666,7 +666,7 @@
 		*/
 
 		static function getRelatedViewForForm($form) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '".mysql_real_escape_string($form["table"])."'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
 			return $f;
 		}
 		
@@ -696,7 +696,7 @@
 			$view_columns = count($view["fields"]);
 			
 			if ($group !== false) {
-				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."' AND group_field = '".mysql_real_escape_string($group)."'".self::getFilterQuery($view);				
+				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."' AND group_field = '".sqlescape($group)."'".self::getFilterQuery($view);				
 			} else {
 				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'".self::getFilterQuery($view);
 			}
@@ -704,7 +704,7 @@
 			foreach ($search_parts as $part) {
 				$x = 0;
 				$qp = array();
-				$part = mysql_real_escape_string(strtolower($part));
+				$part = sqlescape(strtolower($part));
 				while ($x < $view_columns) {
 					$x++;
 					$qp[] = "LOWER(column$x) LIKE '%$part%'";
@@ -872,11 +872,11 @@
 			
 			$items = array();
 			if ($type == "both") {
-				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".mysql_real_escape_string($group)."' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".sqlescape($group)."' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			} elseif ($type == "active") {
-				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".mysql_real_escape_string($group)."' AND status != 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".sqlescape($group)."' AND status != 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			} elseif ($type == "pending") {
-				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".mysql_real_escape_string($group)."' AND status = 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".sqlescape($group)."' AND status = 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			}
 			
 			while ($f = sqlfetch($q)) {
@@ -898,7 +898,7 @@
 		*/
 		
 		static function getViewForTable($table) {
-			$table = mysql_real_escape_string($table);
+			$table = sqlescape($table);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
 			$f["options"] = json_decode($f["options"],true);
 			
@@ -946,7 +946,7 @@
 						} else {
 							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {
 								$fdata = $form["fields"][$key];
-								$f = sqlfetch(sqlquery("SELECT `".$fdata["pop-description"]."` FROM `".$fdata["pop-table"]."` WHERE `id` = '".mysql_real_escape_string($value)."'"));
+								$f = sqlfetch(sqlquery("SELECT `".$fdata["pop-description"]."` FROM `".$fdata["pop-table"]."` WHERE `id` = '".sqlescape($value)."'"));
 								$value = $f[$fdata["pop-description"]];
 							}
 							
@@ -989,7 +989,7 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
-						$query_vals[] = "'".mysql_real_escape_string($val)."'";
+						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
 			}
@@ -1011,7 +1011,7 @@
 			}
 
 			// Handle the tags
-			$mid = mysql_real_escape_string($module["id"]);
+			$mid = sqlescape($module["id"]);
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '$mid' AND entry = '$id'");
 			if (!empty($tags)) {
 				foreach ($tags as $tag) {
@@ -1068,9 +1068,9 @@
 				if ($original[$key] == $val)
 					unset($data[$key]);
 			}
-			$changes = mysql_real_escape_string(json_encode($data));
-			$many_data = mysql_real_escape_string(json_encode($many_to_many));
-			$tags_data = mysql_real_escape_string(json_encode($tags));
+			$changes = sqlescape(json_encode($data));
+			$many_data = sqlescape(json_encode($many_to_many));
+			$tags_data = sqlescape(json_encode($tags));
 
 			// Find out if there's already a change waiting
 			if (substr($id,0,1) == "p") {
@@ -1094,7 +1094,7 @@
 						"comment" => "A new revision has been made.  Owner switched to ".$user["name"]."."
 					);
 				}
-				$comments = mysql_real_escape_string(json_encode($comments));
+				$comments = sqlescape(json_encode($comments));
 				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
 				self::recacheItem($id,$table);
 				
@@ -1154,7 +1154,7 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query .= "`$key` = $val,";
 					} else {
-						$query .= "`$key` = '".mysql_real_escape_string($val)."',";
+						$query .= "`$key` = '".sqlescape($val)."',";
 					}
 				}
 			}
@@ -1179,7 +1179,7 @@
 			}
 
 			// Handle the tags
-			$mid = mysql_real_escape_string($module["id"]);
+			$mid = sqlescape($module["id"]);
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '$mid' AND entry = '$id'");
 			if (!empty($tags)) {
 				foreach ($tags as $tag) {
@@ -1211,11 +1211,11 @@
 		*/
 		
 		static function updatePendingItemField($id,$field,$value) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
 			$changes = json_decode($item["changes"],true);
 			$changes[$field] = $value;
-			$changes = mysql_real_escape_string(json_encode($changes));
+			$changes = sqlescape(json_encode($changes));
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes' WHERE id = '$id'");
 		}
 	}

@@ -239,7 +239,7 @@
 			$path = "";
 			foreach ($pieces as $piece) {
 				$path = $path.$piece."/";
-				$paths[] = "path = '".mysql_real_escape_string(trim($path,"/"))."'";
+				$paths[] = "path = '".sqlescape(trim($path,"/"))."'";
 			}
 			
 			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
@@ -300,7 +300,7 @@
 		
 		function getFeed($item) {
 			if (!is_array($item)) {
-				$item = mysql_real_escape_string($item);
+				$item = sqlescape($item);
 				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
 			}
 			if (!$item) {
@@ -331,7 +331,7 @@
 		*/
 		
 		function getFeedByRoute($route) {
-			$route = mysql_real_escape_string($route);
+			$route = sqlescape($route);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
 			return $this->getFeed($item);
 		}
@@ -394,7 +394,7 @@
 				return $this->iplCache[$navid].$commands;
 			} else {
 				// Get the page's path
-				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".mysql_real_escape_string($navid)."'"));
+				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 				// Set the cache
 				$this->iplCache[$navid] = WWW_ROOT.$f["path"]."/";
 				return WWW_ROOT.$f["path"]."/".$commands;
@@ -416,7 +416,7 @@
 			if ($id == 0) {
 				return WWW_ROOT;
 			}
-			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".mysql_real_escape_string($id)."'"));
+			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
 			return WWW_ROOT.$f["path"]."/";
 		}
 		
@@ -445,12 +445,12 @@
 			if (is_array($parent)) {
 				$where_parent = array();
 				foreach ($parent as $p) {
-					$where_parent[] = "parent = '".mysql_real_escape_string($p)."'";
+					$where_parent[] = "parent = '".sqlescape($p)."'";
 				}
 				$where_parent = "(".implode(" OR ",$where_parent).")";
 			// If it's an integer, let's just pull the children for the provided parent.
 			} else {
-				$parent = mysql_real_escape_string($parent);
+				$parent = sqlescape($parent);
 				$where_parent = "parent = '$parent'";
 			}
 			
@@ -499,7 +499,7 @@
 				if (is_array($parent)) {
 					$where_parent = array();
 					foreach ($parent as $p) {
-						$where_parent[] = "bigtree_pages.id = '".mysql_real_escape_string($p)."'";
+						$where_parent[] = "bigtree_pages.id = '".sqlescape($p)."'";
 					}
 					$q = sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND (".implode(" OR ",$where_parent).")");
 					while ($f = sqlfetch($q)) {
@@ -663,7 +663,7 @@
 			} elseif (substr($id,0,1) == "p") {
 				return WWW_ROOT."_preview-pending/".substr($id,1)."/";
 			} else {
-				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".mysql_real_escape_string($id)."'"));
+				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
 				return WWW_ROOT."_preview/".$f["path"]."/";
 			}
 		}
@@ -683,7 +683,7 @@
 			$results = array();
 			$relevance = array();
 			foreach ($tags as $tag) {
-				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".mysql_real_escape_string($tag)."'"));
+				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 				if ($tdat) {
 					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND module = '0'");
 					while ($f = sqlfetch($q)) {
@@ -718,11 +718,11 @@
 		
 		function getSetting($id) {
 			global $bigtree;
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			// If the setting is encrypted, we need to re-pull just the value.
 			if ($f["encrypted"]) {
-				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
+				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 			}
 			
 			$value = json_decode($f["value"],true);
@@ -752,14 +752,14 @@
 			}
 			$parts = array();
 			foreach ($ids as $id) {
-				$parts[] = "id = '".mysql_real_escape_string($id)."'";
+				$parts[] = "id = '".sqlescape($id)."'";
 			}
 			$settings = array();
 			$q = sqlquery("SELECT * FROM bigtree_settings WHERE (".implode(" OR ",$parts).") ORDER BY id ASC");
 			while ($f = sqlfetch($q)) {
 				// If the setting is encrypted, we need to re-pull just the value.
 				if ($f["encrypted"]) {
-					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
+					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
 				}
 				$value = json_decode($f["value"],true);
 				if (is_array($value)) {
@@ -783,7 +783,7 @@
 		*/
 		
 		function getTag($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
 		}
 		
@@ -799,7 +799,7 @@
 		*/
 		
 		function getTagByRoute($route) {
-			$route = mysql_real_escape_string($route);
+			$route = sqlescape($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"));
 		}
 		
@@ -838,7 +838,7 @@
 		*/
 		
 		function getTemplate($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$template = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
 			if (!$template) {
 				return false;
@@ -890,7 +890,7 @@
 			foreach ($parts as $part) {
 				$path .= "/".$part;
 				$path = ltrim($path,"/");
-				$paths[] = "path = '".mysql_real_escape_string($path)."'";
+				$paths[] = "path = '".sqlescape($path)."'";
 			}
 			// Get either the trunk or the top level nav id.
 			$f = sqlfetch(sqlquery("SELECT id,trunk,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '0') ORDER BY LENGTH(path) DESC LIMIT 1"));
@@ -914,7 +914,7 @@
 		
 		function handle404($url) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-			$url = mysql_real_escape_string(rtrim($url,"/"));
+			$url = sqlescape(rtrim($url,"/"));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
 			
 			if ($f["redirect_url"]) {
@@ -937,7 +937,7 @@
 				if ($f) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
 				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('".mysql_real_escape_string(rtrim($_GET["bigtree_htaccess_url"],"/"))."','1')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('".sqlescape(rtrim($_GET["bigtree_htaccess_url"],"/"))."','1')");
 				}
 				return true;
 				define("BIGTREE_DO_NOT_CACHE",true);

@@ -1,7 +1,7 @@
 <?
 	include "_file_chooser_header.php";
 	
-	$package = sqlfetch(sqlquery("SELECT * FROM bigtree_module_packages WHERE id = '".mysql_real_escape_string(end($bigtree["commands"]))."'"));
+	$package = sqlfetch(sqlquery("SELECT * FROM bigtree_module_packages WHERE id = '".sqlescape(end($bigtree["commands"]))."'"));
 	
 	if ($package["module_id"]) {
 		gatherModuleInformation($package["module_id"]);
