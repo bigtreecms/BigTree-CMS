@@ -697,9 +697,9 @@
 	.view_paging li:last-child a span { background: url(../images/icon-sprite.png) no-repeat -137px -125px; width: 6px; height: 9px; display: block; }
 
 	.image_list { margin-bottom: -10px; overflow: hidden; }
-	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; height: 145px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
+	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	.image_list li.non_draggable { cursor: default; }
-	.image_list li a { cursor: pointer; height: 28px; margin: 0 3px 0 0; }
+	.image_list li a { cursor: pointer; margin: 0 3px 0 0; }
 	.image_list li a.image { background: #CCC; display: block; height: 108px; margin: 0 0 5px 0; transition: background 0.2s; width: 108px; }
 	.image_list li a.image:hover { background: #DDD; }
 	.image_list li a.image img { max-height: 108px; max-width: 108px; }
