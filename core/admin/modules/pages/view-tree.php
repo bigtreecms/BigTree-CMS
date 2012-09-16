@@ -113,7 +113,7 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($parent != 0 || $admin->Level > 1) && $admin->canModifyChildren($item)) { ?>
+				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($parent != 0 || $admin->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="Archive Page" class="icon_archive"></a>
 				<? } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Pending Page" class="icon_delete"></a>
