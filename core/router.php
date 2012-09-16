@@ -52,16 +52,13 @@
 				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
 			}
 			
-			if (!$ims) {
-				header("Content-type: text/javascript");
-				die(file_get_contents($cfile));
-			} elseif (strtotime($ims) == $last_modified) {
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-				die();
-			} else {
+			if (!$ims || strtotime($ims) != $last_modified) {
 				header("Content-type: text/javascript");
 				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 				die(file_get_contents($cfile));
+			} else {
+				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+				die();
 			}
 		}
 	}
@@ -131,16 +128,13 @@
 				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
 			}
 			
-			if (!$ims) {
-				header("Content-type: text/css");
-				die(file_get_contents($cfile));
-			} elseif (strtotime($ims) == $last_modified) {
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-				die();
-			} else {
+			if (!$ims || strtotime($ims) != $last_modified) {
 				header("Content-type: text/css");
 				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 				die(file_get_contents($cfile));
+			} else {
+				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+				die();
 			}
 		}
 	}
