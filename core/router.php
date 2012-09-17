@@ -14,52 +14,55 @@
 					$mtime = $m;
 				}
 			}
-		}
-		// If we have a newer Javascript file to include or we haven't cached yet, do it now.
-		if (!file_exists($cfile) || $mtime > $last_modified) {
-			$data = "";
-			if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
-				foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
-					$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
-				}
+			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
+			if (!file_exists($cfile) || $mtime > $last_modified) {
+			    $data = "";
+			    if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
+			    	foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
+			    		$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
+			    	}
+			    }
+			    // Replace www_root/ and Minify
+			    $data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
+			    if (is_array($_GET)) {
+			    	foreach ($_GET as $key => $val) {
+			    		if ($key != "bigtree_htaccess_url") {
+			    			$data = str_replace('$'.$key,$val,$data);
+			    		}
+			    	}
+			    }
+			    if (is_array($bigtree["config"]["js"]["vars"])) {
+			    	foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
+			    		$data = str_replace('$'.$key,$val,$data);
+			    	}
+			    }
+			    if ($bigtree["config"]["js"]["minify"]) {
+			    	$data = JSMin::minify($data);
+			    }
+			    file_put_contents($cfile,$data);
+			    header("Content-type: text/javascript");
+			    die($data);
+			} else {
+			    // Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
+			    if (function_exists("apache_request_headers")) {
+			    	$headers = apache_request_headers();
+			    	$ims = $headers["If-Modified-Since"];
+			    } else {
+			    	$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+			    }
+			    
+			    if (!$ims || strtotime($ims) != $last_modified) {
+			    	header("Content-type: text/javascript");
+			    	header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+			    	die(file_get_contents($cfile));
+			    } else {
+			    	header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+			    	die();
+			    }
 			}
-			// Replace www_root/ and Minify
-			$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-			if (is_array($_GET)) {
-				foreach ($_GET as $key => $val) {
-					if ($key != "bigtree_htaccess_url") {
-						$data = str_replace('$'.$key,$val,$data);
-					}
-				}
-			}
-			if (is_array($bigtree["config"]["js"]["vars"])) {
-				foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
-					$data = str_replace('$'.$key,$val,$data);
-				}
-			}
-			if ($bigtree["config"]["js"]["minify"]) {
-				$data = JSMin::minify($data);
-			}
-			file_put_contents($cfile,$data);
-			header("Content-type: text/javascript");
-			die($data);
 		} else {
-			// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
-			if (function_exists("apache_request_headers")) {
-				$headers = apache_request_headers();
-				$ims = $headers["If-Modified-Since"];
-			} else {
-				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
-			}
-			
-			if (!$ims || strtotime($ims) != $last_modified) {
-				header("Content-type: text/javascript");
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-				die(file_get_contents($cfile));
-			} else {
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-				die();
-			}
+			header("HTTP/1.0 404 Not Found");
+			die();
 		}
 	}
 
@@ -78,64 +81,67 @@
 					$mtime = $m;
 				}
 			}
-		}
-		// If we have a newer CSS file to include or we haven't cached yet, do it now.
-		if (!file_exists($cfile) || $mtime > $last_modified) {
-			$data = "";
-			if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
-				// if we need LESS
-				if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-					require_once(SERVER_ROOT."core/inc/utils/less-compiler.inc.php");
-					$less_compiler = new lessc();
-				}
-				foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
-					$style = file_get_contents(SITE_ROOT."css/$style_file");
-					if (strpos($style_file, "less") > -1) {
-						// convert LESS
-						$style = $less_compiler->parse($style);
-					} else {
-						// normal CSS
-						if ($bigtree["config"]["css"]["prefix"]) {
-							// Replace CSS3 easymode
-							$style = BigTree::formatCSS3($style);
-						}
-					}
-					$data .= $style."\n";
-				}
+			// If we have a newer CSS file to include or we haven't cached yet, do it now.
+			if (!file_exists($cfile) || $mtime > $last_modified) {
+			    $data = "";
+			    if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+			    	// if we need LESS
+			    	if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
+			    		require_once(SERVER_ROOT."core/inc/utils/less-compiler.inc.php");
+			    		$less_compiler = new lessc();
+			    	}
+			    	foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
+			    		$style = file_get_contents(SITE_ROOT."css/$style_file");
+			    		if (strpos($style_file, "less") > -1) {
+			    			// convert LESS
+			    			$style = $less_compiler->parse($style);
+			    		} else {
+			    			// normal CSS
+			    			if ($bigtree["config"]["css"]["prefix"]) {
+			    				// Replace CSS3 easymode
+			    				$style = BigTree::formatCSS3($style);
+			    			}
+			    		}
+			    		$data .= $style."\n";
+			    	}
+			    }
+			    // Should only loop once, not with every file
+			    if (is_array($bigtree["config"]["css"]["vars"])) {
+			    	foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
+			    		$data = str_replace('$'.$key,$val,$data);
+			    	}
+			    }
+			    // Replace roots
+			    $data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
+			    if ($bigtree["config"]["css"]["minify"]) {
+			    	require_once(SERVER_ROOT."core/inc/utils/CSSMin.php");			
+			    	$minifier = new CSSMin;
+			    	$data = $minifier->run($data);
+			    }	
+			    file_put_contents($cfile,$data);
+			    header("Content-type: text/css");
+			    die($data);
+			} else {
+			    // Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
+			    if (function_exists("apache_request_headers")) {
+			    	$headers = apache_request_headers();
+			    	$ims = $headers["If-Modified-Since"];
+			    } else {
+			    	$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+			    }
+			    
+			    if (!$ims || strtotime($ims) != $last_modified) {
+			    	header("Content-type: text/css");
+			    	header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+			    	die(file_get_contents($cfile));
+			    } else {
+			    	header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+			    	die();
+			    }
 			}
-			// Should only loop once, not with every file
-			if (is_array($bigtree["config"]["css"]["vars"])) {
-				foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
-					$data = str_replace('$'.$key,$val,$data);
-				}
-			}
-			// Replace roots
-			$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-			if ($bigtree["config"]["css"]["minify"]) {
-				require_once(SERVER_ROOT."core/inc/utils/CSSMin.php");			
-				$minifier = new CSSMin;
-				$data = $minifier->run($data);
-			}	
-			file_put_contents($cfile,$data);
-			header("Content-type: text/css");
-			die($data);
 		} else {
-			// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
-			if (function_exists("apache_request_headers")) {
-				$headers = apache_request_headers();
-				$ims = $headers["If-Modified-Since"];
-			} else {
-				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
-			}
-			
-			if (!$ims || strtotime($ims) != $last_modified) {
-				header("Content-type: text/css");
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-				die(file_get_contents($cfile));
-			} else {
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-				die();
-			}
+			header("HTTP/1.0 404 Not Found");
+			die();
 		}
 	}
 	
