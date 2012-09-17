@@ -61,6 +61,12 @@
 					
 						if (is_array($options["crops"])) {
 							foreach ($options["crops"] as $crop) {
+								// Make a square if the user forgot to enter one of the crop dimensions.
+								if (!$crop["height"]) {
+									$crop["height"] = $crop["width"];
+								} elseif (!$crop["width"]) {
+									$crop["width"] = $crop["height"];
+								}
 								$crops[] = array(
 									"image" => $local_copy,
 									"directory" => $options["directory"],
