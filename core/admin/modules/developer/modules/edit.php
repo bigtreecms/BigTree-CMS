@@ -136,7 +136,7 @@
 				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
 				<a href="<?=$developer_root?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
 				<? } else { ?>
-				<span class="icon_preview disabled_icon"></span>
+				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
 				<? } ?>
 			</section>
 			<section class="view_action"><a href="<?=$developer_root?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
