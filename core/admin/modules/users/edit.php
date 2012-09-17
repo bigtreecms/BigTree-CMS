@@ -322,8 +322,10 @@
 		return false;
 	});
 	
+	// Observe content alert checkboxes
 	$("input[type=checkbox]").on("click",function() {
-		if ($(this).attr("checked")) {
+		// This is kind of backwards since it gets fired before the checkbox gets its checked status.
+		if (!$(this).attr("checked")) {
 			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
 				$(this).attr("checked","checked").attr("disabled","disabled");
 				this.customControl.Link.addClass("checked").addClass("disabled");
