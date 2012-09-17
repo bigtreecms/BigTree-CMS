@@ -559,7 +559,7 @@
 	.table .status_scheduled { color: #436D86; font-size: 9px; }
 	.table .status_expired { color: #CC3B46; font-size: 9px; }
 
-	.table .integrity_progress { float: right; }
+	.table .integrity_progress { float: right; background-gradient: #CCCCCC #FFFFFF; border-left: 1px solid #AAA; margin: 0 -20px 0 0; padding: 0px 20px;  }
 	.table .integrity_progress .complete { color: green; }
 	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 938px; }
 
