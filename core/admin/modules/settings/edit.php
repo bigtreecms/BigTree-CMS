@@ -35,10 +35,10 @@
 				$label_validation_class = "";
 				$input_validation_class = "";
 				if (isset($options["validation"]) && $options["validation"]) {
-				    if (strpos($options["validation"],"required") !== false) {
-				    	$label_validation_class = ' class="required"';
-				    }
-				    $input_validation_class = ' class="'.$options["validation"].'"';
+					if (strpos($options["validation"],"required") !== false) {
+						$label_validation_class = ' class="required"';
+					}
+					$input_validation_class = ' class="'.$options["validation"].'"';
 				}
 				
 				$title = $item["name"];

@@ -24,9 +24,9 @@
 		
 			$colors = colorPalette($img_source, $num_results);
 			foreach ($colors as $hex) {
-			    $samples[] = array(
-			    	"value" => $hex
-			    );
+				$samples[] = array(
+					"value" => $hex
+				);
 			}
 			
 			foreach ($samples as $option) {

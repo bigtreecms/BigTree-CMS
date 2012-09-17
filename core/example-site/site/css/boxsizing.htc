@@ -19,10 +19,10 @@
 * 
 * @category  JScript 
 * @package   box-sizing-polyfill
-* @author    Christian Schepp Schaefer <schaepp@gmx.de> <http://twitter.com/derSchepp>
+* @author	Christian Schepp Schaefer <schaepp@gmx.de> <http://twitter.com/derSchepp>
 * @copyright 2012 Christian Schepp Schaefer
 * @license   http://www.gnu.org/copyleft/lesser.html The GNU LESSER GENERAL PUBLIC LICENSE, Version 3.0
-* @link      http://github.com/Schepp/box-sizing-polyfill 
+* @link	  http://github.com/Schepp/box-sizing-polyfill 
 *
 * PREFACE:
 *

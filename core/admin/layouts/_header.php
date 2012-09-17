@@ -48,7 +48,7 @@
 	
 	// Hide some stupid notices.
 	if (!isset($in_module)) {
-	    $in_module = false;
+		$in_module = false;
 	}
 ?>
 <!doctype html> 

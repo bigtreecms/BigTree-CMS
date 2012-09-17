@@ -33,10 +33,10 @@
 						foreach ($features as $feature) {
 					?>
 					<article class="description<? if ($i == 0) { ?>  active<? } ?>" data-background="#<?=$feature["background"]?>">
-					    <h2><?=$feature["title"]?></h2>
-					    <hr />
-					    <p><?=BigTree::trimLength($feature["description"], 225)?></p>
-					    <a href="<?=$feature["link"]?>" class="more" target="_blank">Read More</a>
+						<h2><?=$feature["title"]?></h2>
+						<hr />
+						<p><?=BigTree::trimLength($feature["description"], 225)?></p>
+						<a href="<?=$feature["link"]?>" class="more" target="_blank">Read More</a>
 					</article>
 					<?
 							$i++;

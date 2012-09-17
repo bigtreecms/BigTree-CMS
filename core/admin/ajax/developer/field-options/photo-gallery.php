@@ -30,9 +30,9 @@
 	<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 </fieldset>
 <fieldset>
-    <label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/documentation/developer-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-    <input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?>/>
-    <label class="for_checkbox"> When Available</label>
+	<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/documentation/developer-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
+	<input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?>/>
+	<label class="for_checkbox"> When Available</label>
 </fieldset>
 
 <h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>

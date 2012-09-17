@@ -724,15 +724,15 @@
 				list($sort_field,$sort_direction) = explode(" ",$sort);
 				$sort_field = str_replace("`", "", $sort_field);
 				if ($sort_field != "id") {
-				    $x = 0;
-				    foreach ($view["fields"] as $field => $options) {
-				    	$x++;
-				    	if ($field == $sort_field) {
-				    		$sort_field = "column$x";
-				    	}
-				    }
+					$x = 0;
+					foreach ($view["fields"] as $field => $options) {
+						$x++;
+						if ($field == $sort_field) {
+							$sort_field = "column$x";
+						}
+					}
 				} else {
-				    $sort_field = "CONVERT(id,UNSIGNED)";
+					$sort_field = "CONVERT(id,UNSIGNED)";
 				}
 			} else {
 				$sort_field = $sort;
@@ -802,13 +802,13 @@
 			if (count($fields)) {
 				$first = current($fields);
 				if (!isset($first["width"]) || !$first["width"]) {
-				    $awidth = count($actions) * 62;
-				    $available = 888 - $awidth;
-				    $percol = floor($available / count($fields));
+					$awidth = count($actions) * 62;
+					$available = 888 - $awidth;
+					$percol = floor($available / count($fields));
 				
-				    foreach ($fields as $key => $field) {
-				    	$fields[$key]["width"] = $percol - 20;
-				    }
+					foreach ($fields as $key => $field) {
+						$fields[$key]["width"] = $percol - 20;
+					}
 				}
 				$f["fields"] = $fields;
 			} else {

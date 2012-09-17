@@ -155,19 +155,19 @@
 			
 			// If we're doing a retina image we're going to check to see if the cropping area is at least twice the desired size
 			if ($retina && ($x + $width) >= $target_width * 2 && ($y + $height) >= $target_height * 2) {
-			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
-			    $target_width *= 2;
-			    $target_height *= 2;
+				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
+				$target_width *= 2;
+				$target_height *= 2;
 			}
 			
 			list($w, $h, $type) = getimagesize($file);
 			$cropped_image = imagecreatetruecolor($target_width,$target_height);
 			if ($type == IMAGETYPE_JPEG) {
-			    $original_image = imagecreatefromjpeg($file);
+				$original_image = imagecreatefromjpeg($file);
 			} elseif ($type == IMAGETYPE_GIF) {
-			    $original_image = imagecreatefromgif($file);
+				$original_image = imagecreatefromgif($file);
 			} elseif ($type == IMAGETYPE_PNG) {
-			    $original_image = imagecreatefrompng($file);
+				$original_image = imagecreatefrompng($file);
 			}
 			
 			imagealphablending($original_image, true);
@@ -180,11 +180,11 @@
 			}
 		
 			if ($type == IMAGETYPE_JPEG) {
-			    imagejpeg($cropped_image,$new_file,$jpeg_quality);
+				imagejpeg($cropped_image,$new_file,$jpeg_quality);
 			} elseif ($type == IMAGETYPE_GIF) {
-			    imagegif($cropped_image,$new_file);
+				imagegif($cropped_image,$new_file);
 			} elseif ($type == IMAGETYPE_PNG) {
-			    imagepng($cropped_image,$new_file);
+				imagepng($cropped_image,$new_file);
 			}
 			chmod($new_file,0777);
 		
@@ -216,18 +216,18 @@
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
-			    $jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
-			    $result_width *= 2;
-			    $result_height *= 2;
+				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
+				$result_width *= 2;
+				$result_height *= 2;
 			}
 
 			$thumbnailed_image = imagecreatetruecolor($result_width, $result_height);
 			if ($type == IMAGETYPE_JPEG) {
-			    $original_image = imagecreatefromjpeg($file);
+				$original_image = imagecreatefromjpeg($file);
 			} elseif ($type == IMAGETYPE_GIF) {
-			    $original_image = imagecreatefromgif($file);
+				$original_image = imagecreatefromgif($file);
 			} elseif ($type == IMAGETYPE_PNG) {
-			    $original_image = imagecreatefrompng($file);
+				$original_image = imagecreatefrompng($file);
 			}
 		
 			imagealphablending($original_image, true);
@@ -236,15 +236,15 @@
 			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
 		
 			if ($grayscale) {
-			    imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
+				imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
 			}
 		
 			if ($type == IMAGETYPE_JPEG) {
-			    imagejpeg($thumbnailed_image,$new_file,$jpeg_quality);
+				imagejpeg($thumbnailed_image,$new_file,$jpeg_quality);
 			} elseif ($type == IMAGETYPE_GIF) {
-			    imagegif($thumbnailed_image,$new_file);
+				imagegif($thumbnailed_image,$new_file);
 			} elseif ($type == IMAGETYPE_PNG) {
-			    imagepng($thumbnailed_image,$new_file);
+				imagepng($thumbnailed_image,$new_file);
 			}
 			chmod($new_file,0777);
 			
@@ -740,17 +740,17 @@
 		static function globalizeArray($array,$non_array_functions = array()) {
 			if (is_array($array)) {
 				foreach ($array as $key => $val) {
-				    if (strpos($key,0,1) != "_") {
-				    	global $$key;
-				    	if (is_array($val)) {
-				    		$$key = $val;
-				    	} else {
-				    		foreach ($non_array_functions as $func) {
-				    			$val = $func($val);
-				    		}
-				    		$$key = $val;
-				    	}
-				    }
+					if (strpos($key,0,1) != "_") {
+						global $$key;
+						if (is_array($val)) {
+							$$key = $val;
+						} else {
+							foreach ($non_array_functions as $func) {
+								$val = $func($val);
+							}
+							$$key = $val;
+						}
+					}
 				}
 				
 				return true;

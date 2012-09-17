@@ -23,19 +23,19 @@
 			<figcaption class="caption"><?=$post["caption"]?></figcaption>
 		</figure>
 		<?
-		    }
-		    
-		    // Echo the full blog post.
-		    echo $post["content"];
-		    
-		    // If we have tags on the post, draw them.
-		    if (count($tags)) {
-		    	$tag_links = array();
-		    	foreach ($tags as $tag) {
-		    		$tag_links[] = '<a href="'.$blog_link.'tag/'.$tag["route"].'/">'.$tag["tag"].'</a>';
-		    	}
-		    	echo '<p>Tagged: '.implode(", ",$tag_links).'</p>';
-		    }
+			}
+			
+			// Echo the full blog post.
+			echo $post["content"];
+			
+			// If we have tags on the post, draw them.
+			if (count($tags)) {
+				$tag_links = array();
+				foreach ($tags as $tag) {
+					$tag_links[] = '<a href="'.$blog_link.'tag/'.$tag["route"].'/">'.$tag["tag"].'</a>';
+				}
+				echo '<p>Tagged: '.implode(", ",$tag_links).'</p>';
+			}
 		?>
 	</div>
 	<div class="cell_12 author_info clear">
