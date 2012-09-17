@@ -139,7 +139,7 @@
 	});
 		
 	
-	$(".developer_action_list .action").click(function() {
+	$(".developer_action_list").on("click",".action",function() {
 		if ($(this).hasClass("active")) {
 			$(this).removeClass("active");
 			$(this).prev("input").attr("checked",false);
