@@ -1,7 +1,7 @@
 <?
 	$breadcrumb[] = array("link" => "#", "title" => "Edit User");
 	
-	$user = $admin->getUser($bigtree["commands"][0]);
+	$user = $admin->getUser(end($bigtree["commands"]));
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 	
 	if (!$permissions) {
@@ -81,10 +81,10 @@
 	
 	$e = false;
 
-	if (isset($_SESSION["bigtree"]["update_user"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["update_user"],array("htmlspecialchars"));
+	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
 		$e = true;
-		unset($_SESSION["bigtree"]["update_user"]);
+		unset($_SESSION["bigtree_admin"]["update_user"]);
 	}
 	
 	// Prevent a notice on alerts
@@ -97,7 +97,8 @@
 <h1><span class="gravatar"><img src="<?=BigTree::gravatar($user["email"])?>" alt="" /></span>Edit User</h1>
 <? include BigTree::path("admin/modules/users/_nav.php"); ?>
 <div class="form_container">
-	<form class="module" action="<?=ADMIN_ROOT?>users/update/<?=$bigtree["path"][3]?>/" method="post">
+	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
+		<input type="hidden" name="id" value="<?=$user["id"]?>" />
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
@@ -223,8 +224,8 @@
 									<?
 												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
 													$categories = array();
-													$ot = mysql_real_escape_string($gbp["other_table"]);
-													$tf = mysql_real_escape_string($gbp["title_field"]);
+													$ot = sqlescape($gbp["other_table"]);
+													$tf = sqlescape($gbp["title_field"]);
 													if ($tf && $ot) {
 														$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 									?>
@@ -321,8 +322,10 @@
 		return false;
 	});
 	
+	// Observe content alert checkboxes
 	$("input[type=checkbox]").on("click",function() {
-		if ($(this).attr("checked")) {
+		// This is kind of backwards since it gets fired before the checkbox gets its checked status.
+		if (!$(this).attr("checked")) {
 			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
 				$(this).attr("checked","checked").attr("disabled","disabled");
 				this.customControl.Link.addClass("checked").addClass("disabled");

@@ -21,11 +21,11 @@
 <? include "_nav.php" ?>
 <div class="form_container">
 	<form method="post" action="../create/" id="message_form">
+		<? if (count($users) > 1) { ?>
 		<section>
 			<p<? if (!$error) { ?> style="display: none;"<? } ?> class="error_message">Errors found! Please fix the highlighted fields before submitting.</p>
 			<fieldset id="send_to"<? if ($error && !count($send_to)) { ?> class="form_error"<? } ?>>
 				<label class="required">Send To<? if ($error && !count($send_to)) { ?><span class="form_error_reason">Required</span><? } ?></label>
-				<? if (count($users) > 1) { ?>
 				<div class="multi_widget many_to_many">
 					<ul>
 						<?
@@ -59,9 +59,6 @@
 						<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add User</a>
 					</footer>
 				</div>
-				<? } else { ?>
-				<p><strong>There must be more then one active user to send messages.</strong></p>
-				<? } ?>
 			</fieldset>
 			<fieldset<? if ($error && !$subject) { ?> class="form_error"<? } ?>>
 				<label class="required">Subject<? if ($error && !$subject) { ?><span class="form_error_reason">Required</span><? } ?></label>
@@ -76,6 +73,11 @@
 			<a href="../" class="button">Discard</a>
 			<input type="submit" class="button blue" value="Send Message" />
 		</footer>
+		<? } else { ?>
+		<section>
+			<p>There must be more then one active user to send messages.</p>
+		</section>
+		<? } ?>
 	</form>
 </div>
 <?

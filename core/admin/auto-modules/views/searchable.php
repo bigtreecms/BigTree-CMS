@@ -7,11 +7,11 @@
 	$suffix = $suffix ? "-".$suffix : "";
 	
 	if (isset($options["sort_column"])) {
-	    $sort = $options["sort_column"]." ".$options["sort_direction"];
+		$sort = $options["sort_column"]." ".$options["sort_direction"];
 	} elseif (isset($options["sort"])) {
-	    $sort = $options["sort"];
+		$sort = $options["sort"];
 	} else {
-	    $sort = "id DESC";
+		$sort = "id DESC";
 	}
 	list($sort_column,$sort_direction) = explode(" ",$sort);
 ?>

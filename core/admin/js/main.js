@@ -247,7 +247,7 @@ var BigTreeSelect = Class.extend({
 				tester.html(l);
 				width = tester.width();
 				if (width > maxwidth) {
-				    maxwidth = width;
+					maxwidth = width;
 				}
 				
 				options = $(el).find("option");
@@ -264,7 +264,7 @@ var BigTreeSelect = Class.extend({
 					tester.html(text);
 					width = tester.width();
 					if (width > maxwidth) {
-					    maxwidth = width + 20;
+						maxwidth = width + 20;
 					}
 					
 					if (y == 1) {
@@ -272,10 +272,10 @@ var BigTreeSelect = Class.extend({
 					}
 					
 					if (option.attr("selected")) {
-					    html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
-					    selected_option = text;
+						html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
+						selected_option = text;
 					} else {
-					    html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
+						html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
 					}
 				}
 			} else {
@@ -284,26 +284,26 @@ var BigTreeSelect = Class.extend({
 				text = option.html();
 				val = option.attr("value");
 				if (!val) {
-				    val = text;
+					val = text;
 				}
 				
 				// Get the size of this text.
 				tester.html(text);
 				width = tester.width();
 				if (width > maxwidth) {
-				    maxwidth = width + 20;
+					maxwidth = width + 20;
 				}
 				
 				if (y == 1) {
-				    selected_option = text;
+					selected_option = text;
 				}
 				
 				
 				if (option.attr("selected")) {
-				    html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
-				    selected_option = text;
+					html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
+					selected_option = text;
 				} else {
-				    html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
+					html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
 				}
 			}
 		}
@@ -458,7 +458,7 @@ var BigTreeSelect = Class.extend({
 				dOffset = dList.offset().top + dList.height();
 				toScroll = dOffset - window.scrollY - $(window).height();
 				if (toScroll > 0) {
-				    $('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
+					$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
 				}
 			}
 		} else {
@@ -1841,13 +1841,13 @@ var BigTreeFieldSelect = Class.extend({
 		p = $(ev.currentTarget);
 		dd = p.parents(".field_selector").find(".dd");
 		if (dd.hasClass("open")) {
-		    this.close();
+			this.close();
 		} else {
-		    if (dd.find("a").length > 1) {
-		    	dd.show().addClass("open");
-		    	this.BoundWindowClick = $.proxy(this.close,this);
-		    	$("body").bind("click",this.BoundWindowClick);
-		    }
+			if (dd.find("a").length > 1) {
+				dd.show().addClass("open");
+				this.BoundWindowClick = $.proxy(this.close,this);
+				$("body").bind("click",this.BoundWindowClick);
+			}
 		}
 		return false;
 	},

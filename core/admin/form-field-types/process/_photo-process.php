@@ -26,31 +26,32 @@
 		$failed = true;
 	}
 
-	// Do EXIF Image Rotation
-	$already_created_first_copy = false;
-	if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
-		$exif = @exif_read_data($temp_name);
-		$o = $exif['Orientation'];
-		if ($o == 3 || $o == 6 || $o == 8) {
-			$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
-			$source = imagecreatefromjpeg($temp_name);
-			
-			if ($o == 3) {
-				$source = imagerotate($source,180,0);
-			} elseif ($o == 6) {
-				$source = imagerotate($source,270,0);
-			} else {
-				$source = imagerotate($source,90,0);
+	if (!$failed) {	
+		// Do EXIF Image Rotation
+		$already_created_first_copy = false;
+		if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
+			$exif = @exif_read_data($temp_name);
+			$o = $exif['Orientation'];
+			if ($o == 3 || $o == 6 || $o == 8) {
+				$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
+				$source = imagecreatefromjpeg($temp_name);
+				
+				if ($o == 3) {
+					$source = imagerotate($source,180,0);
+				} elseif ($o == 6) {
+					$source = imagerotate($source,270,0);
+				} else {
+					$source = imagerotate($source,90,0);
+				}
+				
+				imagejpeg($source,$first_copy);
+				imagedestroy($source);
+				$already_created_first_copy = true;
 			}
-			
-			imagejpeg($source,$first_copy);
-			imagedestroy($source);
-			$already_created_first_copy = true;
 		}
-	}
 	
-	$value = "";
-	if (!$failed) {
+		$value = "";
+
 		// Make a temporary copy to be used for thumbnails and crops.
 		$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 		
@@ -96,57 +97,70 @@
 		
 		// Upload the original to the proper place.
 		$value = $upload_service->upload($first_copy,$name,$options["directory"]);
+ 		
+ 		// If the upload service didn't return a value, we failed to upload it for one reason or another.
  		if (!$value) {
 			$fails[] = array("field" => $options["title"], "error" => "Could not upload file.  The destination is not writable.");
 			unlink($temp_copy);
 			unlink($first_copy);
 			$failed = true;
-		}
-	}
-	
-	// If we didn't fail, let's check on crops and thumbnails.
-	if (!$failed) {
-		$pinfo = BigTree::pathInfo($value);
-		// Handle Crops
-		foreach ($options["crops"] as $crop) {
-			$cwidth = $crop["width"];
-			$cheight = $crop["height"];
-			
-			// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
-			if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
-				$crops[] = array(
-					"image" => $temp_copy,
-					"directory" => $options["directory"],
-					"retina" => $options["retina"],
-					"name" => $pinfo["basename"],
-					"width" => $cwidth,
-					"height" => $cheight,
-					"prefix" => $crop["prefix"],
-					"thumbs" => $crop["thumbs"],
-					"grayscale" => $crop["grayscale"]
-				);
-			// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
-			} elseif ($iheight == $cheight && $iwidth == $cwidth) {
-				if (is_array($crop["thumbs"])) {
-					foreach ($crop["thumbs"] as $thumb) {
-						$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-						BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
-						// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-						$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
-					}
-				}
-
-				$upload_service->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$options["directory"],false);
-			}
-		}
+		// If we did upload it successfully, check on thumbs and crops.
+		} else { 
+			// Get path info on the file.
+			$pinfo = BigTree::pathInfo($value);
 		
-		// Handle thumbnailing
-		if (is_array($options["thumbs"])) {
-			foreach ($options["thumbs"] as $thumb) {
-				$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
-				// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-				$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+			// Handle Crops
+			foreach ($options["crops"] as $crop) {
+				$cwidth = $crop["width"];
+				$cheight = $crop["height"];
+				
+				// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
+				if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
+					// Make a square if for some reason someone only entered one dimension for a crop.
+					if (!$cwidth) {
+						$cwidth = $cheight;
+					} elseif (!$cheight) {
+						$cheight = $cwidth;
+					}
+					$crops[] = array(
+						"image" => $temp_copy,
+						"directory" => $options["directory"],
+						"retina" => $options["retina"],
+						"name" => $pinfo["basename"],
+						"width" => $cwidth,
+						"height" => $cheight,
+						"prefix" => $crop["prefix"],
+						"thumbs" => $crop["thumbs"],
+						"grayscale" => $crop["grayscale"]
+					);
+				// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
+				} elseif ($iheight == $cheight && $iwidth == $cwidth) {
+					if (is_array($crop["thumbs"])) {
+						foreach ($crop["thumbs"] as $thumb) {
+							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+							BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
+							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+							$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+						}
+					}
+		
+					$upload_service->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$options["directory"],false);
+				}
+			}
+			
+			// Handle thumbnailing
+			if (is_array($options["thumbs"])) {
+				foreach ($options["thumbs"] as $thumb) {
+					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+					BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
+					// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+					$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+				}
+			}
+			
+			// If we don't have any crops, get rid of the temporary image we made.
+			if (!count($crops)) {
+				unlink($temp_copy);
 			}
 		}
 	}

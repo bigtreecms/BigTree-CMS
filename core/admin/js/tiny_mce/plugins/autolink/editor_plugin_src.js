@@ -42,7 +42,7 @@
 			if (e.keyCode == 32)
 				return t.handleSpacebar(ed);
 			});
-	       },
+		   },
 
 		handleEclipse : function(ed) {
 			this.parseCurrentLine(ed, -1, '(', true);

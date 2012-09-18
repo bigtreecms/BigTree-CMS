@@ -78,6 +78,9 @@
 			include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
 		} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
 			include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
+		} else {
+			// Clear the module class list just in case we're missing something.
+			unlink(SERVER_ROOT."cache/module-class-list.btc");
 		}
 	}
 	
@@ -85,7 +88,7 @@
 	$d = opendir(SERVER_ROOT."custom/inc/required/");
 	$custom_required_includes = array();
 	while ($f = readdir($d)) {
-		if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
+		if (substr($f,0,1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
 			$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$f";
 		}
 	}

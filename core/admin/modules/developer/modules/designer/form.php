@@ -1,9 +1,9 @@
 <?
-	$mod = $admin->getModule($bigtree["commands"][0]);
-	$table = $bigtree["commands"][1];
+	$module = $admin->getModule($_GET["module"]);
+	$table = $_GET["table"];
 	
 	if (!$title) {
-		$title = $mod["name"];
+		$title = $module["name"];
 		if (substr($title,-3,3) == "ies") {
 			$title = substr($title,0,-3)."y";
 		} else {
@@ -23,7 +23,7 @@
 		<p>Step 2: Creating Your Form</p>
 	</header>
 	<form method="post" action="<?=$developer_root?>modules/designer/form-create/" class="module">
-		<input type="hidden" name="module" value="<?=$mod["id"]?>" />
+		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>
 			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>

@@ -189,7 +189,7 @@
 					$values = array();
 					foreach ($f as $key => $val) {
 						$fields[] = "`$key`";
-						$values[] = '"'.mysql_real_escape_string(str_replace(array("\r","\n")," ",$val)).'"';
+						$values[] = '"'.sqlescape(str_replace(array("\r","\n")," ",$val)).'"';
 					}
 					$create .= "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).");\n";
 				}
@@ -237,7 +237,7 @@
 	exec("cd $dir; tar -zcf ".SERVER_ROOT."cache/package.tar.gz *");
 	
 	// Create the saved copy of this creation.
-	BigTree::globalizePOSTVars(array("mysql_real_escape_string"));
+	BigTree::globalizePOSTVars(array("sqlescape"));
 	
 	$package_file = BigTree::getAvailableFileName(SITE_ROOT."files/",$cms->urlify($package_name).".tgz");
 	

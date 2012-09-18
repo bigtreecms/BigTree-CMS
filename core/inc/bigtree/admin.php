@@ -71,8 +71,8 @@
 		*/
 
 		function __construct() {
-			if (isset($_SESSION["bigtree"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree"]["id"]."' AND email = '".$_SESSION["bigtree"]["email"]."'"));
+			if (isset($_SESSION["bigtree_admin"]["email"])) {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
 				if ($f) {
 					$this->ID = $f["id"];
 					$this->User = $f["email"];
@@ -80,9 +80,9 @@
 					$this->Name = $f["name"];
 					$this->Permissions = json_decode($f["permissions"],true);
 				}
-			} elseif (isset($_COOKIE["bigtree"]["email"])) {
-				$user = mysql_escape_string($_COOKIE["bigtree"]["email"]);
-				$pass = mysql_escape_string($_COOKIE["bigtree"]["password"]);
+			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
+				$user = mysql_escape_string($_COOKIE["bigtree_admin"]["email"]);
+				$pass = mysql_escape_string($_COOKIE["bigtree_admin"]["password"]);
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user' AND password = '$pass'"));
 				if ($f) {
 					$this->ID = $f["id"];
@@ -90,8 +90,8 @@
 					$this->Level = $f["level"];
 					$this->Name = $f["name"];
 					$this->Permissions = json_decode($f["permissions"],true);
-					$_SESSION["bigtree"]["id"] = $f["id"];
-					$_SESSION["bigtree"]["email"] = $f["email"];
+					$_SESSION["bigtree_admin"]["id"] = $f["id"];
+					$_SESSION["bigtree_admin"]["email"] = $f["email"];
 				}
 				// Clean up
 				unset($user,$pass,$f);
@@ -121,9 +121,9 @@
 			global $cms;
 
 			if (is_array($page)) {
-				$page = mysql_real_escape_string($page["id"]);
+				$page = sqlescape($page["id"]);
 			} else {
-				$page = mysql_real_escape_string($page);
+				$page = sqlescape($page);
 			}
 
 			$access = $this->getPageAccessLevel($page);
@@ -149,7 +149,7 @@
 		*/
 
 		function archivePageChildren($page) {
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
 				if (!$f["archived"]) {
@@ -247,7 +247,7 @@
 				return true;
 			}
 
-			$q = sqlquery("SELECT id FROM bigtree_pages WHERE path LIKE '".mysql_real_escape_string($page["path"])."%'");
+			$q = sqlquery("SELECT id FROM bigtree_pages WHERE path LIKE '".sqlescape($page["path"])."%'");
 			while ($f = sqlfetch($q)) {
 				$perm = $this->Permissions["page"][$f["id"]];
 				if ($perm == "n" || $perm == "e") {
@@ -274,11 +274,11 @@
 		function changePassword($hash,$password) {
 			global $bigtree;
 
-			$hash = mysql_real_escape_string($hash);
+			$hash = sqlescape($hash);
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
 
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = mysql_real_escape_string($phpass->HashPassword($password));
+			$password = sqlescape($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
 			BigTree::redirect(ADMIN_ROOT."login/reset-success/");
@@ -468,13 +468,13 @@
 ?>';
 
 			// Clean up the post variables
-			$id = mysql_real_escape_string(htmlspecialchars($id));
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$level = mysql_real_escape_string($level);
-			$resources = mysql_real_escape_string(json_encode($clean_resources));
-			$display_default = mysql_real_escape_string($display_default);
-			$display_field = mysql_real_escape_string($display_field);
+			$id = sqlescape(htmlspecialchars($id));
+			$name = sqlescape(htmlspecialchars($name));
+			$description = sqlescape(htmlspecialchars($description));
+			$level = sqlescape($level);
+			$resources = sqlescape(json_encode($clean_resources));
+			$display_default = sqlescape($display_default);
+			$display_field = sqlescape($display_field);
 
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
 				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
@@ -523,13 +523,13 @@
 			}
 
 			// Fix stuff up for the db.
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$table = mysql_real_escape_string($table);
-			$type = mysql_real_escape_string($type);
-			$options = mysql_real_escape_string(json_encode($options));
-			$fields = mysql_real_escape_string(json_encode($fields));
-			$route = mysql_real_escape_string($route);
+			$name = sqlescape(htmlspecialchars($name));
+			$description = sqlescape(htmlspecialchars($description));
+			$table = sqlescape($table);
+			$type = sqlescape($type);
+			$options = sqlescape(json_encode($options));
+			$fields = sqlescape(json_encode($fields));
+			$route = sqlescape($route);
 
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','$type','$table','$fields','$options')");
 
@@ -550,13 +550,13 @@
 		*/
 
 		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$author = mysql_real_escape_string($this->Name);
-			$pages = mysql_real_escape_string($pages);
-			$modules = mysql_real_escape_string($modules);
-			$callouts = mysql_real_escape_string($callouts);
-			$settings = mysql_real_escape_string($settings);
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$author = sqlescape($this->Name);
+			$pages = sqlescape($pages);
+			$modules = sqlescape($modules);
+			$callouts = sqlescape($callouts);
+			$settings = sqlescape($settings);
 
 			$file = "$id.php";
 
@@ -594,9 +594,9 @@
 
 		function createMessage($subject,$message,$recipients,$in_response_to = 0) {
 			// Clear tags out of the subject, sanitize the message body of XSS attacks.
-			$subject = mysql_real_escape_string(htmlspecialchars(strip_tags($subject)));
-			$message = mysql_real_escape_string(strip_tags($message,"<p><b><strong><em><i><a>"));
-			$in_response_to = mysql_real_escape_string($in_response_to);
+			$subject = sqlescape(htmlspecialchars(strip_tags($subject)));
+			$message = sqlescape(strip_tags($message,"<p><b><strong><em><i><a>"));
+			$in_response_to = sqlescape($in_response_to);
 
 			// We build the send_to field this way so that we don't have to create a second table of recipients.
 			// Is it faster database wise using a LIKE over a JOIN? I don't know, but it makes for one less table.
@@ -606,7 +606,7 @@
 				$send_to .= intval($r)."|";
 			}
 
-			$send_to = mysql_real_escape_string($send_to);
+			$send_to = sqlescape($send_to);
 
 			sqlquery("INSERT INTO bigtree_messages (`sender`,`recipients`,`subject`,`message`,`date`,`response_to`) VALUES ('".$this->ID."','$send_to','$subject','$message',NOW(),'$in_response_to')");
 		}
@@ -669,11 +669,11 @@
 				$x++;
 			}
 
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$route = mysql_real_escape_string($route);
-			$class = mysql_real_escape_string($class);
-			$group = $group ? "'".mysql_real_escape_string($group)."'" : "NULL";
-			$gbp = mysql_real_escape_string(json_encode($permissions));
+			$name = sqlescape(htmlspecialchars($name));
+			$route = sqlescape($route);
+			$class = sqlescape($class);
+			$group = $group ? "'".sqlescape($group)."'" : "NULL";
+			$gbp = sqlescape(json_encode($permissions));
 
 			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group,'$gbp')");
 			$id = sqlid();
@@ -715,14 +715,14 @@
 		*/
 
 		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0,$position = 0) {
-			$module = mysql_real_escape_string($module);
-			$route = mysql_real_escape_string(htmlspecialchars($route));
-			$in_nav = mysql_real_escape_string($in_nav);
-			$icon = mysql_real_escape_string($icon);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$form = mysql_real_escape_string($form);
-			$view = mysql_real_escape_string($view);
-			$level = mysql_real_escape_string($level);
+			$module = sqlescape($module);
+			$route = sqlescape(htmlspecialchars($route));
+			$in_nav = sqlescape($in_nav);
+			$icon = sqlescape($icon);
+			$name = sqlescape(htmlspecialchars($name));
+			$form = sqlescape($form);
+			$view = sqlescape($view);
+			$level = sqlescape($level);
 
 			$oroute = $route;
 			$x = 2;
@@ -752,13 +752,13 @@
 		*/
 
 		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false) {
-			$title = mysql_real_escape_string(htmlspecialchars($title));
-			$table = mysql_real_escape_string($table);
-			$fields = mysql_real_escape_string(json_encode($fields));
-			$preprocess - mysql_real_escape_string($preprocess);
-			$callback - mysql_real_escape_string($callback);
-			$default_position - mysql_real_escape_string($default_position);
-			$return_view = $return_view ? "'".mysql_real_escape_string($return_view)."'" : "NULL";
+			$title = sqlescape(htmlspecialchars($title));
+			$table = sqlescape($table);
+			$fields = sqlescape(json_encode($fields));
+			$preprocess - sqlescape($preprocess);
+			$callback - sqlescape($callback);
+			$default_position - sqlescape($default_position);
+			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 
 			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view)");
 			return sqlid();
@@ -779,7 +779,7 @@
 		function createModuleGroup($name,$in_nav) {
 			global $cms;
 
-			$name = mysql_real_escape_string($name);
+			$name = sqlescape($name);
 
 			// Get a unique route
 			$x = 2;
@@ -791,7 +791,7 @@
 			}
 
 			// Just to be safe
-			$route = mysql_real_escape_string($route);
+			$route = sqlescape($route);
 
 			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`,`in_nav`) VALUES ('$name','$route','$in_nav')");
 			return sqlid();
@@ -817,15 +817,15 @@
 		*/
 
 		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
-			$title = mysql_real_escape_string(htmlspecialchars($title));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$table = mysql_real_escape_string($table);
-			$type = mysql_real_escape_string($type);
-			$options = mysql_real_escape_string(json_encode($options));
-			$fields = mysql_real_escape_string(json_encode($fields));
-			$actions = mysql_real_escape_string(json_encode($actions));
-			$suffix = mysql_real_escape_string($suffix);
-			$preview_url = mysql_real_escape_string(htmlspecialchars($this->makeIPL($preview_url)));
+			$title = sqlescape(htmlspecialchars($title));
+			$description = sqlescape(htmlspecialchars($description));
+			$table = sqlescape($table);
+			$type = sqlescape($type);
+			$options = sqlescape(json_encode($options));
+			$fields = sqlescape(json_encode($fields));
+			$actions = sqlescape(json_encode($actions));
+			$suffix = sqlescape($suffix);
+			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
 			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
 
@@ -851,9 +851,9 @@
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
 					if (is_array($val)) {
-						$$key = mysql_real_escape_string(json_encode($val));
+						$$key = sqlescape(json_encode($val));
 					} else {
-						$$key = mysql_real_escape_string($val);
+						$$key = sqlescape($val);
 					}
 				}
 			}
@@ -864,7 +864,7 @@
 			}
 
 
-			// Who knows what they may have put in for a route, so we're not going to use the mysql_real_escape_string version.
+			// Who knows what they may have put in for a route, so we're not going to use the sqlescape version.
 			$route = $data["route"];
 			if (!$route) {
 				// If they didn't specify a route use the navigation title
@@ -933,7 +933,7 @@
 			if ($this->Level < 2) {
 				$trunk = "";
 			} else {
-				$trunk = mysql_real_escape_string($trunk);
+				$trunk = sqlescape($trunk);
 			}
 
 			// Make the page!
@@ -944,7 +944,7 @@
 			// Handle tags
 			if (is_array($data["_tags"])) {
 				foreach ($data["_tags"] as $tag) {
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ('0','$id','$tag')");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('bigtree_pages','$id','$tag')");
 				}
 			}
 
@@ -978,12 +978,12 @@
 		*/
 
 		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
-			$table = mysql_real_escape_string($table);
-			$item_id = mysql_real_escape_string($item_id);
-			$changes = mysql_real_escape_string(json_encode($changes));
-			$mtm_changes = mysql_real_escape_string(json_encode($mtm_changes));
-			$tags_changes = mysql_real_escape_string(json_encode($tags_changes));
-			$module = mysql_real_escape_string($module);
+			$table = sqlescape($table);
+			$item_id = sqlescape($item_id);
+			$changes = sqlescape(json_encode($changes));
+			$mtm_changes = sqlescape(json_encode($mtm_changes));
+			$tags_changes = sqlescape(json_encode($tags_changes));
+			$module = sqlescape($module);
 
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`) VALUES ('".$this->ID."',NOW(),'$table','$item_id','$changes','$mtm_changes','$tags_changes','$module')");
 			return sqlid();
@@ -1009,7 +1009,7 @@
 			}
 
 			// Save the tags, then dump them from the saved changes array.
-			$tags = mysql_real_escape_string(json_encode($data["_tags"]));
+			$tags = sqlescape(json_encode($data["_tags"]));
 			unset($data["_tags"]);
 
 			// Make the nav title, title, external link, keywords, and description htmlspecialchar'd for displaying on the front end / the form again.
@@ -1023,15 +1023,15 @@
 			if ($this->Level < 2) {
 				$data["trunk"] = "";
 			} else {
-				$data["trunk"] = mysql_real_escape_string($data["trunk"]);
+				$data["trunk"] = sqlescape($data["trunk"]);
 			}
 
-			$parent = mysql_real_escape_string($data["parent"]);
+			$parent = sqlescape($data["parent"]);
 
 			// JSON encode the changes and stick them in the database.
 			unset($data["MAX_FILE_SIZE"]);
 			unset($data["ptype"]);
-			$data = mysql_real_escape_string(json_encode($data));
+			$data = sqlescape(json_encode($data));
 
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`title`,`table`,`changes`,`tags_changes`,`type`,`module`,`pending_page_parent`) VALUES ('".$this->ID."',NOW(),'New Page Created','bigtree_pages','$data','$tags','NEW','','$parent')");
 			$id = sqlid();
@@ -1062,14 +1062,14 @@
 		*/
 
 		function createResource($folder,$file,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array(),$list_thumb_margin = 0) {
-			$folder = $folder ? "'".mysql_real_escape_string($folder)."'" : "NULL";
-			$file = mysql_real_escape_string($file);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$type = mysql_real_escape_string($type);
-			$is_image = mysql_real_escape_string($is_image);
+			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
+			$file = sqlescape($file);
+			$name = sqlescape(htmlspecialchars($name));
+			$type = sqlescape($type);
+			$is_image = sqlescape($is_image);
 			$height = intval($height);
 			$width = intval($width);
-			$thumbs = mysql_real_escape_string(json_encode($thumbs));
+			$thumbs = sqlescape(json_encode($thumbs));
 			$list_thumb_margin = intval($list_thumb_margin);
 
 			sqlquery("INSERT INTO bigtree_resources (`file`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");
@@ -1095,8 +1095,8 @@
 				die("You don't have permission to make a folder here.");
 			}
 
-			$parent = mysql_real_escape_string($parent);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
+			$parent = sqlescape($parent);
+			$name = sqlescape(htmlspecialchars($name));
 
 			sqlquery("INSERT INTO bigtree_resource_folders (`name`,`parent`) VALUES ('$name','$parent')");
 			return sqlid();
@@ -1117,14 +1117,14 @@
 			// Avoid _SESSION hijacking.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = mysql_real_escape_string(htmlspecialchars($val));
+					$$key = sqlescape(htmlspecialchars($val));
 				}
 			}
 
 			// We don't want this encoded since it's a WYSIWYG field.
-			$description = mysql_real_escape_string($data["description"]);
+			$description = sqlescape($data["description"]);
 			// We don't want this encoded since it's JSON
-			$options = mysql_real_escape_string($data["options"]);
+			$options = sqlescape($data["options"]);
 
 			// See if there's already a setting with this ID
 			$r = sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$id'"));
@@ -1156,7 +1156,7 @@
 
 			$tag = strtolower(html_entity_decode($tag));
 			// Check if the tag exists already.
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".mysql_real_escape_string($tag)."'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 
 			if (!$f) {
 				$meta = metaphone($tag);
@@ -1167,7 +1167,7 @@
 					$route = $oroute."-".$x;
 					$x++;
 				}
-				sqlquery("INSERT INTO bigtree_tags (`tag`,`metaphone`,`route`) VALUES ('".mysql_real_escape_string($tag)."','$meta','$route')");
+				sqlquery("INSERT INTO bigtree_tags (`tag`,`metaphone`,`route`) VALUES ('".sqlescape($tag)."','$meta','$route')");
 				$id = sqlid();
 			} else {
 				$id = $f["id"];
@@ -1239,15 +1239,15 @@
 				}
 			}
 
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$module = mysql_real_escape_string($module);
-			$resources = mysql_real_escape_string(json_encode($clean_resources));
-			$image = mysql_real_escape_string($image);
-			$level = mysql_real_escape_string($level);
-			$callouts_enabled = mysql_real_escape_string($callouts_enabled);
-			$routed = mysql_real_escape_string($routed);
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$description = sqlescape(htmlspecialchars($description));
+			$module = sqlescape($module);
+			$resources = sqlescape(json_encode($clean_resources));
+			$image = sqlescape($image);
+			$level = sqlescape($level);
+			$callouts_enabled = sqlescape($callouts_enabled);
+			$routed = sqlescape($routed);
 
 			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`image`,`description`,`level`,`callouts_enabled`,`routed`) VALUES ('$id','$name','$module','$resources','$image','$description','$level','$callouts_enabled','$routed')");
 		}
@@ -1270,7 +1270,7 @@
 			// Safely go through the post data
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = mysql_real_escape_string($val);
+					$$key = sqlescape($val);
 				}
 			}
 
@@ -1280,7 +1280,7 @@
 				return false;
 			}
 
-			$permissions = mysql_real_escape_string(json_encode($data["permissions"]));
+			$permissions = sqlescape(json_encode($data["permissions"]));
 
 			// If the user is trying to create a developer user and they're not a developer, then… no.
 			if ($level > $this->Level) {
@@ -1289,7 +1289,7 @@
 
 			// Hash the password.
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
+			$password = sqlescape($phpass->HashPassword($data["password"]));
 
 			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
 			$id = sqlid();
@@ -1309,7 +1309,7 @@
 		*/
 
 		function deleteCallout($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 		}
@@ -1323,7 +1323,7 @@
 		*/
 
 		function deleteFeed($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_feeds WHERE id = '$id'");
 		}
 
@@ -1338,7 +1338,7 @@
 		function deleteFieldType($id) {
 			unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
-			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".mysql_real_escape_string($id)."'");
+			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 		}
 
 		/*
@@ -1350,7 +1350,7 @@
 		*/
 
 		function deleteModule($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 
 			// Get info and delete the class.
 			$module = $this->getModule($id);
@@ -1384,7 +1384,7 @@
 		*/
 
 		function deleteModuleAction($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 
 			$a = $this->getModuleAction($id);
 			if ($a["form"]) {
@@ -1411,7 +1411,7 @@
 		*/
 
 		function deleteModuleForm($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_forms WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE form = '$id'");
 		}
@@ -1425,7 +1425,7 @@
 		*/
 
 		function deleteModuleGroup($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_groups WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_modules SET `group` = '0' WHERE `group` = '$id'");
 		}
@@ -1439,7 +1439,7 @@
 		*/
 
 		function deleteModuleView($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_views WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE view = '$id'");
 		}
@@ -1459,13 +1459,13 @@
 		function deletePage($page) {
 			global $cms;
 
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 
 			$r = $this->getPageAccessLevel($page);
 			if ($r == "p" && $this->canModifyChildren($cms->getPage($page))) {
 				// If the page isn't numeric it's most likely prefixed by the "p" so it's pending.
 				if (!is_numeric($page)) {
-					sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".mysql_real_escape_string(substr($page,1))."'");
+					sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'");
 					$this->growl("Pages","Deleted Page");
 					$this->track("bigtree_pages","p$page","deleted-pending");
 				} else {
@@ -1509,7 +1509,7 @@
 		*/
 
 		function deletePageDraft($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			// Get the version, check if the user has access to the page the version refers to.
 			$access = $this->getPageAccessLevel($id);
 			if ($access != "p") {
@@ -1550,7 +1550,7 @@
 		*/
 
 		function deletePendingChange($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '$id'");
 		}
 
@@ -1563,7 +1563,7 @@
 		*/
 
 		function deleteSetting($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
 		}
 
@@ -1576,7 +1576,7 @@
 		*/
 
 		function deleteTemplate($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_templates WHERE id = '$id'");
 		}
 
@@ -1593,7 +1593,7 @@
 		*/
 
 		function deleteUser($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			// If this person has higher access levels than the person trying to update them, fail.
 			$current = $this->getUser($id);
 			if ($current["level"] > $this->Level) {
@@ -1620,7 +1620,7 @@
 		*/
 
 		function doesModuleEditActionExist($module) {
-			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".mysql_real_escape_string($module)."' AND route = 'edit'"));
+			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".sqlescape($module)."' AND route = 'edit'"));
 		}
 
 		/*
@@ -1635,7 +1635,7 @@
 		*/
 
 		function doesModuleLandingActionExist($module) {
-			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".mysql_real_escape_string($module)."' AND route = ''"));
+			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".sqlescape($module)."' AND route = ''"));
 		}
 
 		/*
@@ -1722,13 +1722,13 @@
 		*/
 
 		function forgotPassword($email) {
-			$email = mysql_real_escape_string($email);
+			$email = sqlescape($email);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
 			if (!$f) {
 				return false;
 			}
 
-			$hash = mysql_real_escape_string(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
+			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$f["id"]."'");
 
 			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".ADMIN_ROOT."login/reset-password/$hash/","From: no-reply@bigtreecms.com");
@@ -1924,7 +1924,7 @@
 
 		function getAutoModuleActions($module) {
 			$items = array();
-			$id = mysql_real_escape_string($module);
+			$id = sqlescape($module);
 			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$id' AND (form != 0 OR view != 0) AND in_nav = 'on' ORDER BY position DESC, id ASC");
 			while ($f = sqlfetch($q)) {
 				if ($f["form"]) {
@@ -2108,7 +2108,7 @@
 		*/
 
 		function getCallout($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '$id'"));
 			$item["resources"] = json_decode($item["resources"],true);
 			return $item;
@@ -2217,7 +2217,7 @@
 			// We're going to generate a list of pages the user cares about first to get their paths.
 			$where = array();
 			foreach ($user["alerts"] as $alert => $status) {
-				$where[] = "id = '".mysql_real_escape_string($alert)."'";
+				$where[] = "id = '".sqlescape($alert)."'";
 			}
 			if (!count($where)) {
 				return false;
@@ -2229,7 +2229,7 @@
 				$paths = array();
 				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
 				while ($f = sqlfetch($q)) {
-					$paths[] = "path = '".mysql_real_escape_string($f["path"])."' OR path LIKE '".mysql_real_escape_string($f["path"])."/%'";
+					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
 				}
 				// Find all the pages that are old that contain our paths
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
@@ -2274,7 +2274,7 @@
 		*/
 
 		function getFieldType($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '$id'"));
 			if (!$item) {
 				return false;
@@ -2359,7 +2359,7 @@
 
 		function getMessages($user = false) {
 			if ($user) {
-				$user = mysql_real_escape_string($user);
+				$user = sqlescape($user);
 			} else {
 				$user = $this->ID;
 			}
@@ -2397,7 +2397,7 @@
 		*/
 
 		function getMessage($id) {
-			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".mysql_real_escape_string($id)."'"));
+			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
 			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
 				$this->stop("This message was not sent by you, or to you.");
 			}
@@ -2416,7 +2416,7 @@
 		*/
 
 		function getModule($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '$id'"));
 			if (!$module) {
 				return false;
@@ -2438,7 +2438,7 @@
 		*/
 
 		function getModuleAction($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE id = '$id'"));
 		}
 
@@ -2455,8 +2455,8 @@
 		*/
 
 		function getModuleActionByRoute($module,$route) {
-			$module = mysql_real_escape_string($module);
-			$route = mysql_real_escape_string($route);
+			$module = sqlescape($module);
+			$route = sqlescape($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
 		}
 
@@ -2473,9 +2473,9 @@
 
 		function getModuleActionForForm($form) {
 			if (is_array($form)) {
-				$form = mysql_real_escape_string($form["id"]);
+				$form = sqlescape($form["id"]);
 			} else {
-				$form = mysql_real_escape_string($form);
+				$form = sqlescape($form);
 			}
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form'"));
 		}
@@ -2493,9 +2493,9 @@
 
 		function getModuleActionForView($view) {
 			if (is_array($view)) {
-				$view = mysql_real_escape_string($view["id"]);
+				$view = sqlescape($view["id"]);
 			} else {
-				$view = mysql_real_escape_string($view);
+				$view = sqlescape($view);
 			}
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '$view'"));
 		}
@@ -2513,9 +2513,9 @@
 
 		function getModuleActions($module) {
 			if (is_array($module)) {
-				$module = mysql_real_escape_string($module["id"]);
+				$module = sqlescape($module["id"]);
 			} else {
-				$module = mysql_real_escape_string($module);
+				$module = sqlescape($module);
 			}
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' ORDER BY position DESC, id ASC");
@@ -2537,7 +2537,7 @@
 		*/
 
 		function getModuleByRoute($route) {
-			$route = mysql_real_escape_string($route);
+			$route = sqlescape($route);
 			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE route = '$route'"));
 			if (!$module) {
 				return false;
@@ -2581,7 +2581,7 @@
 		*/
 
 		function getModuleGroup($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE id = '$id'"));
 		}
 
@@ -2602,7 +2602,7 @@
 
 
 		function getModuleGroupByName($name) {
-			$name = mysql_real_escape_string(strtolower($name));
+			$name = sqlescape(strtolower($name));
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE LOWER(name) = '$name'"));
 		}
 
@@ -2622,7 +2622,7 @@
 		*/
 
 		function getModuleGroupByRoute($route) {
-			$name = mysql_real_escape_string($route);
+			$name = sqlescape($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '$route'"));
 		}
 
@@ -2659,9 +2659,9 @@
 
 		function getModuleNavigation($module) {
 			if (is_array($module)) {
-				$module = mysql_real_escape_string($module["id"]);
+				$module = sqlescape($module["id"]);
 			} else {
-				$module = mysql_real_escape_string($module);
+				$module = sqlescape($module);
 			}
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND in_nav = 'on' ORDER BY position DESC, id ASC");
@@ -2709,9 +2709,9 @@
 
 		function getModulesByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
 			if (is_array($group)) {
-				$group = mysql_real_escape_string($group["id"]);
+				$group = sqlescape($group["id"]);
 			} else {
-				$group = mysql_real_escape_string($group);
+				$group = sqlescape($group);
 			}
 			$items = array();
 			if ($group) {
@@ -2811,7 +2811,7 @@
 			}
 			
 			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".mysql_real_escape_string($page)."'"));
+			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
 			$parent = $parent["parent"];
 			
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
@@ -2861,7 +2861,7 @@
 		*/
 
 		function getPageChanges($page) {
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 			$c = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
 			if (!$c) {
 				return false;
@@ -2883,7 +2883,7 @@
 		*/
 
 		function getPageChildren($page,$sort = "nav_title ASC") {
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page' AND archived != 'on' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -2931,7 +2931,7 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string(strtolower($part));
+					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(`value`) LIKE '%$part%')";
 				}
 				// If we're not a developer, leave out locked settings
@@ -2984,7 +2984,7 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string(strtolower($part));
+					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
 				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
@@ -3013,7 +3013,7 @@
 		*/
 
 		function getPageRevision($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_page_revisions WHERE id = '$id'"));
 			return $item;
 		}
@@ -3030,7 +3030,7 @@
 		*/
 
 		function getPageRevisions($page) {
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 
 			// Get all previous revisions, add them to the saved or unsaved list
 			$unsaved = array();
@@ -3130,7 +3130,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".mysql_real_escape_string($page["title"])."' AND id != '".$page["id"]."'"));
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".$page["id"]."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
@@ -3265,7 +3265,7 @@
 		*/
 
 		function getPendingChange($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
 			if (!$item) {
 				return false;
@@ -3423,7 +3423,7 @@
 			} else {
 				$page = array();
 				// Get the page.
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".mysql_real_escape_string(substr($id,1))."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
 				if ($f) {
 					$f["id"] = $id;
 				} else {
@@ -3476,7 +3476,7 @@
 			if (is_array($folder)) {
 				$folder = $folder["id"];
 			}
-			$folder = mysql_real_escape_string($folder);
+			$folder = sqlescape($folder);
 
 			$folders = array();
 			$resources = array();
@@ -3512,7 +3512,7 @@
 		*/
 
 		function getResourceByFile($file) {
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".mysql_real_escape_string($file)."'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."'"));
 			if (!$item) {
 				return false;
 			}
@@ -3536,7 +3536,7 @@
 		*/
 
 		function getResourceFolder($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '$id'"));
 		}
 
@@ -3553,7 +3553,7 @@
 
 		function getResourceFolderBreadcrumb($folder,$crumb = array()) {
 			if (!is_array($folder)) {
-				$folder = sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '".mysql_real_escape_string($folder)."'"));
+				$folder = sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '".sqlescape($folder)."'"));
 			}
 
 			if ($folder) {
@@ -3581,7 +3581,7 @@
 
 		function getResourceFolderChildren($id) {
 			$items = array();
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE parent = '$id' ORDER BY name ASC");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
@@ -3625,7 +3625,7 @@
 
 				// If a folder entry wasn't passed in, we need it to find its parent.
 				if (!is_array($folder)) {
-					$folder = sqlfetch(sqlquery("SELECT parent FROM bigtree_resource_folders WHERE id = '".mysql_real_escape_string($id)."'"));
+					$folder = sqlfetch(sqlquery("SELECT parent FROM bigtree_resource_folders WHERE id = '".sqlescape($id)."'"));
 				}
 				// If we couldn't find the folder anymore, just say they can consume.
 				if (!$folder) {
@@ -3670,7 +3670,7 @@
 
 		function getSetting($id) {
 			global $bigtree;
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			if (!$f) {
@@ -3681,7 +3681,7 @@
 				$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
 			}
 			if ($f["encrypted"]) {
-				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
+				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 				$f["value"] = $v["value"];
 			}
 			$f["value"] = json_decode($f["value"],true);
@@ -3739,7 +3739,7 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string(strtolower($part));
+					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(value) LIKE '%$part%')";
 				}
 				// Administrator
@@ -3780,7 +3780,7 @@
 		*/
 
 		function getTag($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
 		}
 
@@ -3797,13 +3797,13 @@
 
 		function getTagsForPage($page) {
 			if (is_array($page)) {
-				$page = mysql_real_escape_string($page["id"]);
+				$page = sqlescape($page["id"]);
 			} else {
-				$page = mysql_real_escape_string($page);
+				$page = sqlescape($page);
 			}
 
 			$tags = array();
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.tag = bigtree_tags.id AND bigtree_tags_rel.entry = '$page' AND bigtree_tags_rel.module = '0' ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.entry = '$page' AND bigtree_tags_rel.`table` = 'bigtree_pages' ORDER BY bigtree_tags.tag");
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
 			}
@@ -3854,7 +3854,7 @@
 		*/
 
 		function getUser($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '$id'"));
 			if ($item["level"] > 0) {
 				$permissions = array();
@@ -3882,7 +3882,7 @@
 		*/
 
 		function getUserByEmail($email) {
-			$email = mysql_real_escape_string($email);
+			$email = sqlescape($email);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
 		}
 
@@ -3898,7 +3898,7 @@
 		*/
 
 		function getUserByHash($hash) {
-			$hash = mysql_real_escape_string($hash);
+			$hash = sqlescape($hash);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
 		}
 
@@ -3941,7 +3941,7 @@
 				$qparts = explode(" ",$query);
 				$qp = array();
 				foreach ($qparts as $part) {
-					$part = mysql_real_escape_string(strtolower($part));
+					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
 				$q = sqlquery("SELECT id FROM bigtree_users WHERE ".implode(" AND ",$qp));
@@ -3970,7 +3970,7 @@
 		*/
 
 		function growl($title,$message,$type = "success") {
-			$_SESSION["bigtree"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
+			$_SESSION["bigtree_admin"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
 		/*
@@ -3999,7 +3999,7 @@
 
 		function ignore404($id) {
 			$this->requireLevel(1);
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("UPDATE bigtree_404s SET ignored = 'on' WHERE id = '$id'");
 		}
 
@@ -4065,8 +4065,8 @@
 
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
 			global $breadcrumb,$www_root,$admin_root,$cms,$admin,$bigtree;
-			$table = mysql_real_escape_string($table);
-			$id = mysql_real_escape_string($id);
+			$table = sqlescape($table);
+			$id = sqlescape($id);
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
@@ -4101,20 +4101,20 @@
 
 		function login($email,$password,$stay_logged_in = false) {
 			global $path;
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".mysql_real_escape_string($email)."'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($email)."'"));
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
 				if ($stay_logged_in) {
-					setcookie('bigtree[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
-					setcookie('bigtree[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
+					setcookie('bigtree_admin[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
+					setcookie('bigtree_admin[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 				}
 
-				$_SESSION["bigtree"]["id"] = $f["id"];
-				$_SESSION["bigtree"]["email"] = $f["email"];
-				$_SESSION["bigtree"]["level"] = $f["level"];
-				$_SESSION["bigtree"]["name"] = $f["name"];
-				$_SESSION["bigtree"]["permissions"] = json_decode($f["permissions"],true);
+				$_SESSION["bigtree_admin"]["id"] = $f["id"];
+				$_SESSION["bigtree_admin"]["email"] = $f["email"];
+				$_SESSION["bigtree_admin"]["level"] = $f["level"];
+				$_SESSION["bigtree_admin"]["name"] = $f["name"];
+				$_SESSION["bigtree_admin"]["permissions"] = json_decode($f["permissions"],true);
 				
 				if (isset($_SESSION["bigtree_login_redirect"])) {
 					BigTree::redirect($_SESSION["bigtree_login_redirect"]);
@@ -4133,9 +4133,9 @@
 		*/
 
 		function logout() {
-			setcookie("bigtree[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			setcookie("bigtree[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			unset($_SESSION["bigtree"]);
+			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			setcookie("bigtree_admin[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			unset($_SESSION["bigtree_admin"]);
 			BigTree::redirect(ADMIN_ROOT);
 		}
 
@@ -4174,7 +4174,7 @@
 				return false;
 			}
 			$read_by = str_replace("|".$this->ID."|","",$message["read_by"])."|".$this->ID."|";
-			sqlquery("UPDATE bigtree_messages SET read_by = '".mysql_real_escape_string($read_by)."' WHERE id = '".$message["id"]."'");
+			sqlquery("UPDATE bigtree_messages SET read_by = '".sqlescape($read_by)."' WHERE id = '".$message["id"]."'");
 			return true;
 		}
 
@@ -4191,8 +4191,8 @@
 		*/
 
 		function moduleActionExists($module,$route) {
-			$module = mysql_real_escape_string($module);
-			$route = mysql_real_escape_string($route);
+			$module = sqlescape($module);
+			$route = sqlescape($route);
 			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
 			if ($f) {
 				return true;
@@ -4225,8 +4225,8 @@
 		*/
 
 		function refreshLock($table,$id) {
-			$id = mysql_real_escape_string($id);
-			$table = mysql_real_escape_string($table);
+			$id = sqlescape($id);
+			$table = sqlescape($table);
 			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE `table` = '$table' AND item_id = '$id' AND user = '".$this->ID."'");
 		}
 
@@ -4315,13 +4315,13 @@
 		*/
 
 		function saveCurrentPageRevision($page,$description) {
-			$page = mysql_real_escape_string($page);
-			$description = mysql_real_escape_string($description);
+			$page = sqlescape($page);
+			$description = sqlescape($description);
 
 			// Get the current page.
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
 			foreach ($current as $key => $val) {
-				$$key = mysql_real_escape_string($val);
+				$$key = sqlescape($val);
 			}
 
 			// Copy it to the saved versions
@@ -4346,7 +4346,7 @@
 			$items = array();
 
 			if ($query) {
-				$s = mysql_real_escape_string(strtolower($query));
+				$s = sqlescape(strtolower($query));
 				if ($type == "301") {
 					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
 				} elseif ($type == "ignored") {
@@ -4385,11 +4385,14 @@
 		*/
 
 		function searchPages($query,$fields = array("nav_title"),$max = 10) {
+			// Since we're in JSON we have to do stupid things to the /s for URL searches.
+			$query = str_replace('/','\\\/',$query);
+			
 			$results = array();
 			$terms = explode(" ",$query);
 
 			foreach ($terms as $term) {
-				$term = mysql_real_escape_string(strtolower($term));
+				$term = sqlescape(strtolower($term));
 				$or_parts = array();
 				foreach ($fields as $field) {
 					$or_parts[] = "LOWER(`$field`) LIKE '%$term%'";
@@ -4417,7 +4420,7 @@
 		*/
 
 		function searchResources($query, $sort = "date DESC") {
-			$query = mysql_real_escape_string(strtolower($query));
+			$query = sqlescape(strtolower($query));
 			$folders = array();
 			$resources = array();
 			$permission_cache = array();
@@ -4493,8 +4496,8 @@
 
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
-			$id = mysql_real_escape_string($id);
-			$url = mysql_real_escape_string($url);
+			$id = sqlescape($id);
+			$url = sqlescape($url);
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 		}
 
@@ -4508,8 +4511,8 @@
 		*/
 
 		function setCalloutPosition($id,$position) {
-			$id = mysql_real_escape_string($id);
-			$position = mysql_real_escape_string($position);
+			$id = sqlescape($id);
+			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_callouts SET position = '$position' WHERE id = '$id'");
 		}
 
@@ -4523,8 +4526,8 @@
 		*/
 
 		function setModuleActionPosition($id,$position) {
-			$id = mysql_real_escape_string($id);
-			$position = mysql_real_escape_string($position);
+			$id = sqlescape($id);
+			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_module_actions SET position = '$position' WHERE id = '$id'");
 		}
 
@@ -4538,8 +4541,8 @@
 		*/
 
 		function setModuleGroupPosition($id,$position) {
-			$id = mysql_real_escape_string($id);
-			$position = mysql_real_escape_string($position);
+			$id = sqlescape($id);
+			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_module_groups SET position = '$position' WHERE id = '$id'");
 		}
 
@@ -4553,8 +4556,8 @@
 		*/
 
 		function setModulePosition($id,$position) {
-			$id = mysql_real_escape_string($id);
-			$position = mysql_real_escape_string($position);
+			$id = sqlescape($id);
+			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_modules SET position = '$position' WHERE id = '$id'");
 		}
 
@@ -4568,8 +4571,8 @@
 		*/
 
 		function setPagePosition($id,$position) {
-			$id = mysql_real_escape_string($id);
-			$position = mysql_real_escape_string($position);
+			$id = sqlescape($id);
+			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_pages SET position = '$position' WHERE id = '$id'");
 		}
 
@@ -4599,8 +4602,8 @@
 		*/
 
 		function setTemplatePosition($id,$position) {
-			$id = mysql_real_escape_string($id);
-			$position = mysql_real_escape_string($position);
+			$id = sqlescape($id);
+			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_templates SET position = '$position' WHERE id = '$id'");
 		}
 
@@ -4616,7 +4619,7 @@
 		*/
 
 		function settingExists($id) {
-			return sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '".mysql_real_escape_string($id)."'"));
+			return sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '".sqlescape($id)."'"));
 		}
 
 		/*
@@ -4669,7 +4672,7 @@
 			}
 
 			// Save tags separately
-			$tags = mysql_real_escape_string(json_encode($changes["_tags"]));
+			$tags = sqlescape(json_encode($changes["_tags"]));
 			unset($changes["_tags"]);
 
 			// Unset the trunk flag if the user isn't a developer
@@ -4703,7 +4706,7 @@
 
 				// If this is a pending page, just replace all the changes
 				if ($pending) {
-					$changes = mysql_real_escape_string(json_encode($changes));
+					$changes = sqlescape(json_encode($changes));
 				// Otherwise, we need to check what's changed.
 				} else {
 					$original_changes = json_decode($existing_pending_change["changes"],true);
@@ -4721,10 +4724,10 @@
 						}
 					}
 
-					$changes = mysql_real_escape_string(json_encode($original_changes));
+					$changes = sqlescape(json_encode($original_changes));
 				}
 
-				$comments = mysql_real_escape_string(json_encode($comments));
+				$comments = sqlescape(json_encode($comments));
 				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', tags_changes = '$tags', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
 
 				$this->track("bigtree_pages",$page,"updated-draft");
@@ -4743,7 +4746,7 @@
 					}
 				}
 
-				$changes = mysql_real_escape_string(json_encode($original_changes));
+				$changes = sqlescape(json_encode($original_changes));
 				if ($type == "DELETE") {
 					sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','DELETE','Page Deletion Pending')");
 				} else {
@@ -4769,9 +4772,9 @@
 		function track($table,$entry,$type) {
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (isset($this->ID)) {
-				$table = mysql_real_escape_string($table);
-				$entry = mysql_real_escape_string($entry);
-				$type = mysql_real_escape_string($type);
+				$table = sqlescape($table);
+				$entry = sqlescape($entry);
+				$type = sqlescape($type);
 				sqlquery("INSERT INTO bigtree_audit_trail (`table`,`user`,`entry`,`date`,`type`) VALUES ('$table','".$this->ID."','$entry',NOW(),'$type')");
 			}
 		}
@@ -4792,9 +4795,9 @@
 			global $cms;
 
 			if (is_array($page)) {
-				$page = mysql_real_escape_string($page["id"]);
+				$page = sqlescape($page["id"]);
 			} else {
-				$page = mysql_real_escape_string($page);
+				$page = sqlescape($page);
 			}
 			$access = $this->getPageAccessLevel($page);
 			if ($access == "p" && $this->canModifyChildren($cms->getPage($page))) {
@@ -4832,7 +4835,7 @@
 		*/
 
 		function ungrowl() {
-			unset($_SESSION["bigtree"]["flash"]);
+			unset($_SESSION["bigtree_admin"]["flash"]);
 		}
 
 		/*
@@ -4893,7 +4896,7 @@
 
 		function unignore404($id) {
 			$this->requireLevel(1);
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("UPDATE bigtree_404s SET ignored = '' WHERE id = '$id'");
 		}
 
@@ -4907,7 +4910,7 @@
 		*/
 
 		function unlock($table,$id) {
-			sqlquery("DELETE FROM bigtree_locks WHERE `table` = '".mysql_real_escape_string($table)."' AND item_id = '".mysql_real_escape_string($id)."'");
+			sqlquery("DELETE FROM bigtree_locks WHERE `table` = '".sqlescape($table)."' AND item_id = '".sqlescape($id)."'");
 		}
 
 		/*
@@ -4940,13 +4943,13 @@
 				}
 			}
 
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$level = mysql_real_escape_string($level);
-			$resources = mysql_real_escape_string(json_encode($r));
-			$display_default = mysql_real_escape_string($display_default);
-			$display_field = mysql_real_escape_string($display_field);
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$description = sqlescape(htmlspecialchars($description));
+			$level = sqlescape($level);
+			$resources = sqlescape(json_encode($r));
+			$display_default = sqlescape($display_default);
+			$display_field = sqlescape($display_field);
 
 			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default' WHERE id = '$id'");
 		}
@@ -4963,7 +4966,7 @@
 		function updateChildPagePaths($page) {
 			global $cms;
 
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 			$q = sqlquery("SELECT id,path FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
 				$oldpath = $f["path"];
@@ -4998,13 +5001,13 @@
 			}
 
 			// Fix stuff up for the db.
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$table = mysql_real_escape_string($table);
-			$type = mysql_real_escape_string($type);
-			$options = mysql_real_escape_string(json_encode($options));
-			$fields = mysql_real_escape_string(json_encode($fields));
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$description = sqlescape(htmlspecialchars($description));
+			$table = sqlescape($table);
+			$type = sqlescape($type);
+			$options = sqlescape(json_encode($options));
+			$fields = sqlescape(json_encode($fields));
 
 			sqlquery("UPDATE bigtree_feeds SET name = '$name', description = '$description', `table` = '$table', type = '$type', fields = '$fields', options = '$options' WHERE id = '$id'");
 		}
@@ -5023,12 +5026,12 @@
 		*/
 
 		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$pages = mysql_real_escape_string($pages);
-			$modules = mysql_real_escape_string($modules);
-			$callouts = mysql_real_escape_string($callouts);
-			$settings = mysql_real_escape_string($settings);
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$pages = sqlescape($pages);
+			$modules = sqlescape($modules);
+			$callouts = sqlescape($callouts);
+			$settings = sqlescape($settings);
 
 			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
 		}
@@ -5046,11 +5049,11 @@
 		*/
 
 		function updateModule($id,$name,$group,$class,$permissions) {
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$group = mysql_real_escape_string($group);
-			$class = mysql_real_escape_string($class);
-			$permissions = mysql_real_escape_string(json_encode($permissions));
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$group = sqlescape($group);
+			$class = sqlescape($class);
+			$permissions = sqlescape(json_encode($permissions));
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
@@ -5071,12 +5074,12 @@
 		*/
 
 		function updateModuleAction($id,$name,$route,$in_nav,$icon,$level) {
-			$id = mysql_real_escape_string($id);
-			$route = mysql_real_escape_string(htmlspecialchars($route));
-			$in_nav = mysql_real_escape_string($in_nav);
-			$icon = mysql_real_escape_string($icon);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$level = mysql_real_escape_string($level);
+			$id = sqlescape($id);
+			$route = sqlescape(htmlspecialchars($route));
+			$in_nav = sqlescape($in_nav);
+			$icon = sqlescape($icon);
+			$name = sqlescape(htmlspecialchars($name));
+			$level = sqlescape($level);
 
 			$item = $this->getModuleAction($id);
 
@@ -5107,21 +5110,21 @@
 		*/
 
 		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false) {
-			$id = mysql_real_escape_string($id);
-			$title = mysql_real_escape_string(htmlspecialchars($title));
-			$table = mysql_real_escape_string($table);
-			$fields = mysql_real_escape_string(json_encode($fields));
-			$preprocess - mysql_real_escape_string(htmlspecialchars($preprocess));
-			$callback - mysql_real_escape_string($callback);
-			$default_position - mysql_real_escape_string($default_position);
-			$return_view = $return_view ? "'".mysql_real_escape_string($return_view)."'" : "NULL";
+			$id = sqlescape($id);
+			$title = sqlescape(htmlspecialchars($title));
+			$table = sqlescape($table);
+			$fields = sqlescape(json_encode($fields));
+			$preprocess - sqlescape($preprocess);
+			$callback - sqlescape($callback);
+			$default_position - sqlescape($default_position);
+			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 
 			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view WHERE id = '$id'");
 
 			$action = $this->getModuleActionForForm($id);
 			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);
 			if ($suffix != $oroute) {
-				$suffix = mysql_real_escape_string($suffix);
+				$suffix = sqlescape($suffix);
 				sqlquery("UPDATE bigtree_module_actions SET route = 'add-$suffix' WHERE module = '".$action["module"]."' AND route = 'add-$oroute'");
 				sqlquery("UPDATE bigtree_module_actions SET route = 'edit-$suffix' WHERE module = '".$action["module"]."' AND route = 'edit-$oroute'");
 			}
@@ -5139,14 +5142,14 @@
 		function updateModuleGroup($id,$name,$in_nav) {
 			global $cms;
 
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
 
 			// Get a unique route
 			$x = 2;
 			$route = $cms->urlify($name);
 			$oroute = $route;
-			$q = sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '" . mysql_real_escape_string($route) . "'");
+			$q = sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '" . sqlescape($route) . "'");
 			while ($g = sqlfetch($q)) {
 				if ($g["id"] != $id) {
 					$route = $oroute."-".$x;
@@ -5155,7 +5158,7 @@
 			}
 
 			// Just to be safe
-			$route = mysql_real_escape_string($route);
+			$route = sqlescape($route);
 
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route', in_nav = '$in_nav' WHERE id = '$id'");
 		}
@@ -5181,16 +5184,16 @@
 		*/
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
-			$id = mysql_real_escape_string($id);
-			$title = mysql_real_escape_string(htmlspecialchars($title));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$table = mysql_real_escape_string($table);
-			$type = mysql_real_escape_string($type);
-			$options = mysql_real_escape_string(json_encode($options));
-			$fields = mysql_real_escape_string(json_encode($fields));
-			$actions = mysql_real_escape_string(json_encode($actions));
-			$suffix = mysql_real_escape_string($suffix);
-			$preview_url = mysql_real_escape_string(htmlspecialchars($this->makeIPL($preview_url)));
+			$id = sqlescape($id);
+			$title = sqlescape(htmlspecialchars($title));
+			$description = sqlescape(htmlspecialchars($description));
+			$table = sqlescape($table);
+			$type = sqlescape($type);
+			$options = sqlescape(json_encode($options));
+			$fields = sqlescape(json_encode($fields));
+			$actions = sqlescape(json_encode($actions));
+			$suffix = sqlescape($suffix);
+			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
 		}
@@ -5205,8 +5208,8 @@
 		*/
 
 		function updateModuleViewFields($view,$fields) {
-			$view = mysql_real_escape_string($view);
-			$fields = mysql_real_escape_string(json_encode($fields));
+			$view = sqlescape($view);
+			$fields = sqlescape(json_encode($fields));
 			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '$view'");
 		}
 
@@ -5223,14 +5226,14 @@
 		function updatePage($page,$data) {
 			global $cms;
 
-			$page = mysql_real_escape_string($page);
+			$page = sqlescape($page);
 
 			// Save the existing copy as a draft, remove drafts for this page that are one month old or older.
 			sqlquery("DELETE FROM bigtree_page_revisions WHERE page = '$page' AND updated_at < '".date("Y-m-d",strtotime("-31 days"))."' AND saved != 'on'");
 			// Get the current copy
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
 			foreach ($current as $key => $val) {
-				$$key = mysql_real_escape_string($val);
+				$$key = sqlescape($val);
 			}
 			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
 			$template_data = $cms->getTemplate($template);
@@ -5247,9 +5250,9 @@
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
 					if (is_array($val)) {
-						$$key = mysql_real_escape_string(json_encode($val));
+						$$key = sqlescape(json_encode($val));
 					} else {
-						$$key = mysql_real_escape_string($val);
+						$$key = sqlescape($val);
 					}
 				}
 			}
@@ -5258,17 +5261,17 @@
 			if ($this->Level < 2) {
 				$trunk = $current["trunk"];
 			} else {
-				$trunk = mysql_real_escape_string($data["trunk"]);
+				$trunk = sqlescape($data["trunk"]);
 			}
 
 			// If this is top level nav and the user isn't a developer, use what the current state is.
 			if (!$current["parent"] && $this->Level < 2) {
-				$in_nav = mysql_real_escape_string($current["in_nav"]);
+				$in_nav = sqlescape($current["in_nav"]);
 			} else {
-				$in_nav = mysql_real_escape_string($data["in_nav"]);
+				$in_nav = sqlescape($data["in_nav"]);
 			}
 
-			$redirect_lower = mysql_real_escape_string($data["redirect_lower"]);
+			$redirect_lower = sqlescape($data["redirect_lower"]);
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
 			if ($external) {
@@ -5372,10 +5375,10 @@
 			}
 
 			// Handle tags
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '0' AND entry = '$page'");
+			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = '$page'");
 			if (is_array($data["_tags"])) {
 				foreach ($data["_tags"] as $tag) {
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ('0','$page','$tag')");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('bigtree_pages','$page','$tag')");
 				}
 			}
 
@@ -5396,8 +5399,8 @@
 		*/
 
 		function updatePageParent($page,$parent) {
-			$page = mysql_real_escape_string($page);
-			$parent = mysql_real_escape_string($parent);
+			$page = sqlescape($page);
+			$parent = sqlescape($parent);
 
 			if ($this->Level < 1) {
 				$this->stop("You are not allowed to move pages.");
@@ -5405,10 +5408,10 @@
 
 			// Get the existing path so we can create a route history
 			$current = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '$page'"));
-			$old_path = mysql_real_escape_string($current["path"]);
+			$old_path = sqlescape($current["path"]);
 
 			sqlquery("UPDATE bigtree_pages SET parent = '$parent' WHERE id = '$page'");
-			$path = mysql_real_escape_string($this->getFullNavigationPath($page));
+			$path = sqlescape($this->getFullNavigationPath($page));
 
 			// Set the route history
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '$old_path'");
@@ -5440,7 +5443,7 @@
 			}
 
 			// Save the version's description and saved status
-			$description = mysql_real_escape_string(htmlspecialchars($description));
+			$description = sqlescape(htmlspecialchars($description));
 			sqlquery("UPDATE bigtree_page_revisions SET saved = 'on', saved_description = '$description' WHERE id = '".$revision["id"]."'");
 		}
 
@@ -5456,10 +5459,10 @@
 		*/
 
 		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
-			$id = mysql_real_escape_string($id);
-			$changes = mysql_real_escape_string(json_encode($changes));
-			$mtm_changes = mysql_real_escape_string(json_encode($mtm_changes));
-			$tags_changes = mysql_real_escape_string(json_encode($tags_changes));
+			$id = sqlescape($id);
+			$changes = sqlescape(json_encode($changes));
+			$mtm_changes = sqlescape(json_encode($mtm_changes));
+			$tags_changes = sqlescape(json_encode($tags_changes));
 
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
 		}
@@ -5477,15 +5480,15 @@
 
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = mysql_real_escape_string($val);
+					$$key = sqlescape($val);
 				}
 			}
 
-			$id = mysql_real_escape_string($this->ID);
+			$id = sqlescape($this->ID);
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
+				$password = sqlescape($phpass->HashPassword($data["password"]));
 				sqlquery("UPDATE bigtree_users SET `password` = '$password', `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
 			} else {
 				sqlquery("UPDATE bigtree_users SET `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
@@ -5502,8 +5505,8 @@
 		*/
 
 		function updateResource($id,$name) {
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($title));
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($title));
 			sqlquery("UPDATE bigtree_resources SET name = '$name' WHERE id = '$id'");
 		}
 
@@ -5524,19 +5527,19 @@
 
 			// Get the existing setting information.
 			$existing = $this->getSetting($old_id);
-			$old_id = mysql_real_escape_string($old_id);
+			$old_id = sqlescape($old_id);
 
 			// Globalize the data and clean it up.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = mysql_real_escape_string(htmlspecialchars($val));
+					$$key = sqlescape(htmlspecialchars($val));
 				}
 			}
 
 			// We don't want this encoded since it's a WYSIWYG field.
-			$description = mysql_real_escape_string($data["description"]);
+			$description = sqlescape($data["description"]);
 			// We don't want this encoded since it's JSON
-			$options = mysql_real_escape_string($data["options"]);
+			$options = sqlescape($data["options"]);
 
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && $this->settingExists($id)) {
@@ -5547,10 +5550,10 @@
 
 			// If encryption status has changed, update the value
 			if ($existing["encrypted"] && !$encrypted) {
-				sqlquery("UPDATE bigtree_settings SET value = AES_DECRYPT(value,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
+				sqlquery("UPDATE bigtree_settings SET value = AES_DECRYPT(value,'".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			}
 			if (!$existing["encrypted"] && $encrypted) {
-				sqlquery("UPDATE bigtree_settings SET value = AES_ENCRYPT(value,'".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
+				sqlquery("UPDATE bigtree_settings SET value = AES_ENCRYPT(value,'".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			}
 
 			// Audit trail.
@@ -5571,12 +5574,12 @@
 		function updateSettingValue($id,$value) {
 			global $bigtree;
 			$item = $this->getSetting($id);
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 
-			$value = mysql_real_escape_string(json_encode($value));
+			$value = sqlescape(json_encode($value));
 
 			if ($item["encrypted"]) {
-				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".mysql_real_escape_string($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
+				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
@@ -5619,14 +5622,14 @@
 				}
 			}
 
-			$id = mysql_real_escape_string($id);
-			$name = mysql_real_escape_string(htmlspecialchars($name));
-			$description = mysql_real_escape_string(htmlspecialchars($description));
-			$module = mysql_real_escape_string($module);
-			$resources = mysql_real_escape_string(json_encode($clean_resources));
-			$image = mysql_real_escape_string($image);
-			$level = mysql_real_escape_string($level);
-			$callouts_enabled = mysql_real_escape_string($callouts_enabled);
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
+			$description = sqlescape(htmlspecialchars($description));
+			$module = sqlescape($module);
+			$resources = sqlescape(json_encode($clean_resources));
+			$image = sqlescape($image);
+			$level = sqlescape($level);
+			$callouts_enabled = sqlescape($callouts_enabled);
 
 			sqlquery("UPDATE bigtree_templates SET resources = '$resources', image = '$image', name = '$name', module = '$module', description = '$description', level = '$level', callouts_enabled = '$callouts_enabled' WHERE id = '$id'");
 		}
@@ -5645,10 +5648,10 @@
 
 		function updateUser($id,$data) {
 			global $bigtree;
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 
 			// See if there's an email collission
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '".mysql_real_escape_string($data["email"])."' AND id != '$id'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($data["email"])."' AND id != '$id'"));
 			if ($r) {
 				return false;
 			}
@@ -5667,16 +5670,16 @@
 
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = mysql_real_escape_string($val);
+					$$key = sqlescape($val);
 				}
 			}
 
-			$permissions = mysql_real_escape_string(json_encode($data["permissions"]));
-			$alerts = mysql_real_escape_string(json_encode($data["alerts"]));
+			$permissions = sqlescape(json_encode($data["permissions"]));
+			$alerts = sqlescape(json_encode($data["alerts"]));
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = mysql_real_escape_string($phpass->HashPassword($data["password"]));
+				$password = sqlescape($phpass->HashPassword($data["password"]));
 				sqlquery("UPDATE bigtree_users SET `email` = '$email', `password` = '$password', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
 			} else {
 				sqlquery("UPDATE bigtree_users SET `email` = '$email', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
@@ -5699,9 +5702,9 @@
 		function updateUserPassword($id,$password) {
 			global $bigtree;
 
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = mysql_real_escape_string($phpass->HashPassword($password));
+			$password = sqlescape($phpass->HashPassword($password));
 			sqlquery("UPDATE bigtree_users SET password = '$password' WHERE id = '$id'");
 		}
 	}

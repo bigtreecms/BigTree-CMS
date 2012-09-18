@@ -1,5 +1,5 @@
 <?
-	$form = BigTreeAutoModule::getForm($bigtree["commands"][0]);;
+	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 
 	$action = $admin->getModuleActionForForm($form["id"]);
@@ -37,7 +37,7 @@
 				<? if ($route) { ?>
 				<fieldset>
 					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" value="<?=$route?>" />
+					<input type="text" name="suffix" value="<?=htmlspecialchars($route)?>" />
 				</fieldset>
 				<? } ?>
 
@@ -63,12 +63,12 @@
 
 				<fieldset>
 					<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
-					<input type="text" name="preprocess" value="<?=$form["preprocess"]?>" />
+					<input type="text" name="preprocess" value="<?=htmlspecialchars($form["preprocess"])?>" />
 				</fieldset>
 
 				<fieldset>
 					<label>Function Callback <small>(passes in ID and parsed post data, and publish state)</small></label>
-					<input type="text" name="callback" value="<?=$form["callback"]?>" />
+					<input type="text" name="callback" value="<?=htmlspecialchars($form["callback"])?>" />
 				</fieldset>
 			</div>
 		</section>

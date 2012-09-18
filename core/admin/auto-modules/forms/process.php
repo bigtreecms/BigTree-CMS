@@ -5,7 +5,7 @@
 	// If there's a preprocess function for this module, let's get'r'done.
 	$preprocess_changes = array();
 	if ($form["preprocess"]) {
-		$function = '$preprocess_changes = '.htmlspecialchars_decode($form["preprocess"]).'($_POST);';
+		$function = '$preprocess_changes = '.$form["preprocess"].'($_POST);';
 		eval($function);
 		// Update the $_POST
 		if (is_array($preprocess_changes)) {
@@ -159,7 +159,7 @@
 
 		// If there's a callback function for this module, let's get'r'done.
 		if ($form["callback"]) {
-			$function = htmlspecialchars_decode($form["callback"]).'($edit_id,$item,$published);';
+			$function = $form["callback"].'($edit_id,$item,$published);';
 			eval($function);
 		}
 

@@ -23,7 +23,7 @@
 	}
 
 	if (count($errors)) {
-		$_SESSION["bigtree"]["developer"]["saved_view"] = $_POST;
+		$_SESSION["bigtree_admin"]["developer"]["saved_view"] = $_POST;
 ?>
 <h1><span class="modules"></span>View Creation Error</h1>
 <div class="form_container">
@@ -70,18 +70,18 @@
 		$view_id = $admin->createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
 
-		$mod = $admin->getModule($module);
+		$module_info = $admin->getModule($module);
 ?>
 <h1><span class="modules"></span>Created View</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<section>
 		<h3 class="action_title">View <?=$title?></h3>
-		<p>Your view for <?=$mod["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
+		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
 	</section>
 	<footer>
-		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp;
-		<a href="<?=$developer_root?>modules/forms/add/<?=end($bigtree["path"])?>/<?=urlencode($table)?>/<?=urlencode($title)?>/<?=urlencode($suffix)?>/<?=$view_id?>/" class="button blue">Add Form</a></p>
+		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp;
+		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&suffix=<?=urlencode($suffix)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
 	</footer>
 </div>
 <?

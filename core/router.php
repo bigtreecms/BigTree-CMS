@@ -14,55 +14,55 @@
 					$mtime = $m;
 				}
 			}
-		}
-		// If we have a newer Javascript file to include or we haven't cached yet, do it now.
-		if (!file_exists($cfile) || $mtime > $last_modified) {
-			$data = "";
-			if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
-				foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
-					$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
+			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
+			if (!file_exists($cfile) || $mtime > $last_modified) {
+				$data = "";
+				if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
+					foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
+						$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
+					}
 				}
-			}
-			// Replace www_root/ and Minify
-			$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-			if (is_array($_GET)) {
-				foreach ($_GET as $key => $val) {
-					if ($key != "bigtree_htaccess_url") {
+				// Replace www_root/ and Minify
+				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
+				if (is_array($_GET)) {
+					foreach ($_GET as $key => $val) {
+						if ($key != "bigtree_htaccess_url") {
+							$data = str_replace('$'.$key,$val,$data);
+						}
+					}
+				}
+				if (is_array($bigtree["config"]["js"]["vars"])) {
+					foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key,$val,$data);
 					}
 				}
-			}
-			if (is_array($bigtree["config"]["js"]["vars"])) {
-				foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
-					$data = str_replace('$'.$key,$val,$data);
+				if ($bigtree["config"]["js"]["minify"]) {
+					$data = JSMin::minify($data);
+				}
+				file_put_contents($cfile,$data);
+				header("Content-type: text/javascript");
+				die($data);
+			} else {
+				// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
+				if (function_exists("apache_request_headers")) {
+					$headers = apache_request_headers();
+					$ims = $headers["If-Modified-Since"];
+				} else {
+					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+				}
+				
+				if (!$ims || strtotime($ims) != $last_modified) {
+					header("Content-type: text/javascript");
+					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+					die(file_get_contents($cfile));
+				} else {
+					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+					die();
 				}
 			}
-			if ($bigtree["config"]["js"]["minify"]) {
-				$data = JSMin::minify($data);
-			}
-			file_put_contents($cfile,$data);
-			header("Content-type: text/javascript");
-			die($data);
 		} else {
-			// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
-			if (function_exists("apache_request_headers")) {
-				$headers = apache_request_headers();
-				$ims = $headers["If-Modified-Since"];
-			} else {
-				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
-			}
-			
-			if (!$ims) {
-				header("Content-type: text/javascript");
-				die(file_get_contents($cfile));
-			} elseif (strtotime($ims) == $last_modified) {
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-				die();
-			} else {
-				header("Content-type: text/javascript");
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-				die(file_get_contents($cfile));
-			}
+			header("HTTP/1.0 404 Not Found");
+			die();
 		}
 	}
 
@@ -81,67 +81,67 @@
 					$mtime = $m;
 				}
 			}
-		}
-		// If we have a newer CSS file to include or we haven't cached yet, do it now.
-		if (!file_exists($cfile) || $mtime > $last_modified) {
-			$data = "";
-			if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
-				// if we need LESS
-				if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-					require_once(SERVER_ROOT."core/inc/utils/less-compiler.inc.php");
-					$less_compiler = new lessc();
-				}
-				foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
-					$style = file_get_contents(SITE_ROOT."css/$style_file");
-					if (strpos($style_file, "less") > -1) {
-						// convert LESS
-						$style = $less_compiler->parse($style);
-					} else {
-						// normal CSS
-						if ($bigtree["config"]["css"]["prefix"]) {
-							// Replace CSS3 easymode
-							$style = BigTree::formatCSS3($style);
-						}
+			// If we have a newer CSS file to include or we haven't cached yet, do it now.
+			if (!file_exists($cfile) || $mtime > $last_modified) {
+				$data = "";
+				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+					// if we need LESS
+					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
+						require_once(SERVER_ROOT."core/inc/utils/less-compiler.inc.php");
+						$less_compiler = new lessc();
 					}
-					$data .= $style."\n";
+					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
+						$style = file_get_contents(SITE_ROOT."css/$style_file");
+						if (strpos($style_file, "less") > -1) {
+							// convert LESS
+							$style = $less_compiler->parse($style);
+						} else {
+							// normal CSS
+							if ($bigtree["config"]["css"]["prefix"]) {
+								// Replace CSS3 easymode
+								$style = BigTree::formatCSS3($style);
+							}
+						}
+						$data .= $style."\n";
+					}
+				}
+				// Should only loop once, not with every file
+				if (is_array($bigtree["config"]["css"]["vars"])) {
+					foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
+						$data = str_replace('$'.$key,$val,$data);
+					}
+				}
+				// Replace roots
+				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
+				if ($bigtree["config"]["css"]["minify"]) {
+					require_once(SERVER_ROOT."core/inc/utils/CSSMin.php");			
+					$minifier = new CSSMin;
+					$data = $minifier->run($data);
+				}	
+				file_put_contents($cfile,$data);
+				header("Content-type: text/css");
+				die($data);
+			} else {
+				// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
+				if (function_exists("apache_request_headers")) {
+					$headers = apache_request_headers();
+					$ims = $headers["If-Modified-Since"];
+				} else {
+					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+				}
+				
+				if (!$ims || strtotime($ims) != $last_modified) {
+					header("Content-type: text/css");
+					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+					die(file_get_contents($cfile));
+				} else {
+					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+					die();
 				}
 			}
-			// Should only loop once, not with every file
-			if (is_array($bigtree["config"]["css"]["vars"])) {
-				foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
-					$data = str_replace('$'.$key,$val,$data);
-				}
-			}
-			// Replace roots
-			$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-			if ($bigtree["config"]["css"]["minify"]) {
-				require_once(SERVER_ROOT."core/inc/utils/CSSMin.php");			
-				$minifier = new CSSMin;
-				$data = $minifier->run($data);
-			}	
-			file_put_contents($cfile,$data);
-			header("Content-type: text/css");
-			die($data);
 		} else {
-			// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
-			if (function_exists("apache_request_headers")) {
-				$headers = apache_request_headers();
-				$ims = $headers["If-Modified-Since"];
-			} else {
-				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
-			}
-			
-			if (!$ims) {
-				header("Content-type: text/css");
-				die(file_get_contents($cfile));
-			} elseif (strtotime($ims) == $last_modified) {
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
-				die();
-			} else {
-				header("Content-type: text/css");
-				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-				die(file_get_contents($cfile));
-			}
+			header("HTTP/1.0 404 Not Found");
+			die();
 		}
 	}
 	
@@ -151,7 +151,7 @@
 	
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax") {
-		bigtree_setup_sql_connection();
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$x = 1;
 		$ajax_path = "";
 		while ($x < count($bigtree["path"]) - 1) {
@@ -205,7 +205,7 @@
 
 	// See if we're previewing changes.
 	$bigtree["preview"] = false;
-	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree"]["id"]) {
+	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree_admin"]["id"]) {
 		$npath = array();
 		foreach ($bigtree["path"] as $item) {
 			if ($item != "_preview") {
@@ -220,7 +220,7 @@
 		unset($npath);
 	}
 	
-	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree"]["id"]) {
+	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
 		$commands = $bigtree["commands"]; // Backwards compatibility
@@ -235,7 +235,7 @@
 		$cms->drawXMLSitemap();
 	}
 	if ($bigtree["path"][0] == "feeds") {
-		bigtree_setup_sql_connection();
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$route = $bigtree["path"][1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
@@ -403,7 +403,7 @@
 	}
 	
 	// Load the BigTree toolbar if you're logged in to the admin.
-	if ($bigtree["page"]["id"] && !$cms->Secure && isset($_COOKIE["bigtree"]["email"]) && !$_SESSION["bigtree"]["id"]) {
+	if ($bigtree["page"]["id"] && !$cms->Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
 		include BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -413,7 +413,7 @@
 		}
 	}
 	
-	if (isset($bigtree["page"]) && $_SESSION["bigtree"]["id"] && !$cms->Secure) {
+	if (isset($bigtree["page"]) && $_SESSION["bigtree_admin"]["id"] && !$cms->Secure) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? "false" : "true";
 		$show_preview_bar = "false";
 		$return_link = "";
@@ -423,7 +423,7 @@
 			$return_link = $_SERVER["HTTP_REFERER"];
 		}
 				
-		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'js/bar.js"></script></body>',$bigtree["content"]);
+		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree_admin"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'js/bar.js"></script></body>',$bigtree["content"]);
 		$bigtree["config"]["cache"] = false;
 	}
 	

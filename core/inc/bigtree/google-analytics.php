@@ -98,9 +98,9 @@
 				
 				// Sometimes Google has slightly different routes like "cheese" and "cheese/" so we need to add these page views together.
 				if (in_array($clean_path,$used_paths)) {
-					sqlquery("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + ".mysql_real_escape_string($metrics["pageviews"]).") WHERE `path` = '".mysql_real_escape_string($clean_path)."'");
+					sqlquery("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + ".sqlescape($metrics["pageviews"]).") WHERE `path` = '".sqlescape($clean_path)."'");
 				} else {
-					sqlquery("UPDATE bigtree_pages SET ga_page_views = ".mysql_real_escape_string($metrics["pageviews"])." WHERE `path` = '".mysql_real_escape_string($clean_path)."'");
+					sqlquery("UPDATE bigtree_pages SET ga_page_views = ".sqlescape($metrics["pageviews"])." WHERE `path` = '".sqlescape($clean_path)."'");
 					$used_paths[] = $clean_path;
 				}
 			}

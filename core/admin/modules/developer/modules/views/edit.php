@@ -6,7 +6,7 @@
 	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
 	$breadcrumb[] = array("title" => "Edit View", "link" => "#");
 	
-	BigTree::globalizeArray($view,array("htmlspecialchars"));
+	BigTree::globalizeArray($view);
 ?>
 <h1><span class="modules"></span>Edit View</h1>
 <? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
@@ -22,7 +22,7 @@
 			</div>
 			<fieldset>
 				<label>Add/Edit Suffix</label>
-				<input type="text" name="suffix" value="<?=$suffix?>" />
+				<input type="text" name="suffix" value="<?=htmlspecialchars($suffix)?>" />
 			</fieldset>
 			<? } ?>
 			
@@ -51,7 +51,7 @@
 			
 			<div class="right">
 				<fieldset>
-					<label>Page Description <small>(instructions for the user)</small></label>
+					<label>Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
 				</fieldset>
 			</div>

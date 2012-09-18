@@ -14,11 +14,11 @@
 			</section>
 		</footer>
 		<?
-			if (isset($_SESSION["bigtree"]["flash"])) {
+			if (isset($_SESSION["bigtree_admin"]["flash"])) {
 		?>
-		<script type="text/javascript">BigTree.growl("<?=htmlspecialchars($_SESSION["bigtree"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree"]["flash"]["type"])?>");</script>
+		<script type="text/javascript">BigTree.growl("<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["type"])?>");</script>
 		<?
-				unset($_SESSION["bigtree"]["flash"]);
+				unset($_SESSION["bigtree_admin"]["flash"]);
 			}
 		?>
  	</body>

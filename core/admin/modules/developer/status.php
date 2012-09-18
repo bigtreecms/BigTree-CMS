@@ -17,7 +17,7 @@
 		);
 	}
 	
-	$writable_directors = array(
+	$writable_directories = array(
 		"cache/",
 		"custom/inc/modules/",
 		"templates/routed/",
@@ -25,6 +25,16 @@
 		"templates/callouts/",
 		"site/files/"
 	);
+	
+	foreach ($writable_directories as $directory) {
+		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
+		    $warnings[] = array(
+		    	"parameter" => "Directory Permissions Error",
+		    	"rec" => "Make ".SERVER_ROOT.$directory." writable.",
+		    	"status" => "bad"
+		    );
+		}
+	}
 	
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
 	$forms = $admin->getModuleForms();

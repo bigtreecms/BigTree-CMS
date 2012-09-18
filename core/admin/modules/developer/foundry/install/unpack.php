@@ -67,31 +67,31 @@
 		$data = json_decode($parts[1],true);
 		
 		if ($type == "Template") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A template already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the template will be overwritten.";
 			}
 		}
 		if ($type == "Callout") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A sidelet already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the sidelet will be overwritten.";
 			}
 		}
 		if ($type == "Setting") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A setting already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the setting will be overwritten.";
 			}
 		}
 		if ($type == "Feed") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".mysql_real_escape_string($data["route"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".sqlescape($data["route"])."'"));
 			if ($r) {
 				$warnings[] = "A feed already exists with the route &ldquo;".$data["route"]."&rdquo; &mdash; the feed will be overwritten.";
 			}
 		}
 		 if ($type == "FieldType") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A field type already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the field type will be overwritten.";
 			}

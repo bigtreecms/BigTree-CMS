@@ -270,17 +270,17 @@
 					src = data.video.sources[2];
 					if (src)
 						setVal('video_altsource2', src.src);
-                } else if (data.type == 'audio') {
-                    if (data.video.sources[0])
-                        setVal('src', data.video.sources[0].src);
-                    
-                    src = data.video.sources[1];
-                    if (src)
-                        setVal('audio_altsource1', src.src);
-                    
-                    src = data.video.sources[2];
-                    if (src)
-                        setVal('audio_altsource2', src.src);
+				} else if (data.type == 'audio') {
+					if (data.video.sources[0])
+						setVal('src', data.video.sources[0].src);
+					
+					src = data.video.sources[1];
+					if (src)
+						setVal('audio_altsource1', src.src);
+					
+					src = data.video.sources[2];
+					if (src)
+						setVal('audio_altsource2', src.src);
 				} else {
 					// Check flash vars
 					if (data.type == 'flash') {
@@ -340,25 +340,25 @@
 					src = getVal("video_altsource2");
 					if (src)
 						data.video.sources[2] = {src : src};
-                } else if (data.type == 'audio') {
-                    if (!data.video.sources)
-                        data.video.sources = [];
-                    
-                    data.video.sources[0] = {src : src};
-                    
-                    src = getVal("audio_altsource1");
-                    if (src)
-                        data.video.sources[1] = {src : src};
-                    
-                    src = getVal("audio_altsource2");
-                    if (src)
-                        data.video.sources[2] = {src : src};
+				} else if (data.type == 'audio') {
+					if (!data.video.sources)
+						data.video.sources = [];
+					
+					data.video.sources[0] = {src : src};
+					
+					src = getVal("audio_altsource1");
+					if (src)
+						data.video.sources[1] = {src : src};
+					
+					src = getVal("audio_altsource2");
+					if (src)
+						data.video.sources[2] = {src : src};
 				} else
 					data.params.src = src;
 
 				// Set default size
-                setVal('width', data.width || (data.type == 'audio' ? 300 : 320));
-                setVal('height', data.height || (data.type == 'audio' ? 32 : 240));
+				setVal('width', data.width || (data.type == 'audio' ? 300 : 320));
+				setVal('height', data.height || (data.type == 'audio' ? 32 : 240));
 			}
 		},
 
@@ -387,16 +387,16 @@
 		},
 
 		beforeResize : function() {
-            this.width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
-            this.height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
+			this.width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
+			this.height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
 		},
 
 		changeSize : function(type) {
 			var width, height, scale, size;
 
 			if (get('constrain').checked) {
-                width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
-                height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
+				width = parseInt(getVal('width') || (this.data.type == 'audio' ? "300" : "320"), 10);
+				height = parseInt(getVal('height') || (this.data.type == 'audio' ? "32" : "240"), 10);
 
 				if (type == 'width') {
 					this.height = Math.round((width / this.width) * height);

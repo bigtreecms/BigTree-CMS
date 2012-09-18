@@ -18,7 +18,7 @@
 			
 		function getAuthor($author) {
 			if (!is_array($author)) {
-				$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE id = '".mysql_real_escape_string($author)."'"));
+				$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE id = '".sqlescape($author)."'"));
 			}
 			
 			if (!$author) {
@@ -46,7 +46,7 @@
 		*/
 		
 		function getAuthorByRoute($route) {
-			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE route = '".mysql_real_escape_string($route)."'"));
+			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE route = '".sqlescape($route)."'"));
 			if (!$author) {
 				return false;
 			}
@@ -65,7 +65,7 @@
 		*/
 		
 		function getAuthorByUserId($id) {
-			return sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".mysql_real_escape_string($id)."'"));
+			return sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".sqlescape($id)."'"));
 		}
 		
 		/*
@@ -120,7 +120,7 @@
 		*/
 		
 		function getCategory($id) {
-			return sqlfetch(sqlquery("SELECT * FROM btx_dogwood_categories WHERE id = '".mysql_real_escape_string($id)."'"));
+			return sqlfetch(sqlquery("SELECT * FROM btx_dogwood_categories WHERE id = '".sqlescape($id)."'"));
 		}
 		
 		/*
@@ -135,7 +135,7 @@
 		*/
 		
 		function getCategoryByRoute($route) {
-			return sqlfetch(sqlquery("SELECT * FROM btx_dogwood_categories WHERE route = '".mysql_real_escape_string($route)."'"));
+			return sqlfetch(sqlquery("SELECT * FROM btx_dogwood_categories WHERE route = '".sqlescape($route)."'"));
 		}
 		
 		/*
@@ -235,7 +235,7 @@
 				$author = $author["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE author = '".mysql_real_escape_string($author)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."' ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -264,7 +264,7 @@
 				$category = $category["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".mysql_real_escape_string($category)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."' ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -321,7 +321,7 @@
 				$tag = $tag["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT p.* FROM btx_dogwood_posts as p, bigtree_tags_rel as rel WHERE p.id = rel.entry AND rel.tag = '".mysql_real_escape_string($tag)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."' ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -344,7 +344,7 @@
 			
 			// If we passed in a post array, we're just going to decode it, otherwise fetch it based on ID.
 			if (!is_array($post)) {
-				$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".mysql_real_escape_string($post)."'"));
+				$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".sqlescape($post)."'"));
 			}
 			
 			if (!$post) {
@@ -379,7 +379,7 @@
 		*/
 		
 		function getPostByRoute($route) {
-			$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE route = '".mysql_real_escape_string($route)."'"));
+			$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE route = '".sqlescape($route)."'"));
 			if (!$post) {
 				return false;
 			}
@@ -414,7 +414,7 @@
 			if (is_array($author)) {
 				$author = $author["id"];
 			}
-			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE author = '".mysql_real_escape_string($author)."'"));
+			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."'"));
 			return $f["count"];
 		}
 		
@@ -433,7 +433,7 @@
 			if (is_array($category)) {
 				$category = $category["id"];
 			}
-			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".mysql_real_escape_string($category)."'"));
+			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."'"));
 		}
 		
 		/*
@@ -470,7 +470,7 @@
 			if (is_array($tag)) {
 				$tag = $tag["id"];
 			}
-			return sqlrows(sqlquery("SELECT p.id FROM btx_dogwood_posts as p, bigtree_tags_rel as rel WHERE p.id = rel.entry AND rel.tag = '".mysql_real_escape_string($tag)."'"));
+			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."'"));
 		}
 		
 		/*
@@ -485,7 +485,7 @@
 		*/
 		
 		function getRawPost($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '$id'"));
 			return $post;
 		}
@@ -527,10 +527,9 @@
 		*/
 		
 		function getRelatedPosts($post,$limit = 5) {
-			$module = $this->getModuleId();
 			$tags = $this->getTagsForPost($post);
 			foreach ($tags as $tag) {
-				$q = sqlquery("SELECT p.* FROM btx_dogwood_posts as p, bigtree_tags_rel as rel WHERE p.id = rel.entry AND rel.tag = ".mysql_real_escape_string($tag["id"]));
+				$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag["id"])."'");
 				while ($f = sqlfetch($q)) {
 					if (!isset($posts[$f["id"]])) {
 						$f["relevance"] = 1;
@@ -573,7 +572,7 @@
 			$q = explode(" ",$query);
 			$qparts = array("1");
 			foreach ($q as $i) {
-				$i = mysql_real_escape_string($i);
+				$i = sqlescape($i);
 				$qparts[] = "(title LIKE '%$i%' OR blurb LIKE '%$i%' OR content LIKE '%$i%')";
 			}
 			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)." ORDER BY date DESC LIMIT $begin,$per_page");
@@ -598,7 +597,7 @@
 			$q = explode(" ",$query);
 			$qparts = array("1");
 			foreach ($q as $i) {
-				$i = mysql_real_escape_string($i);
+				$i = sqlescape($i);
 				$qparts[] = "(title LIKE '%$i%' OR blurb LIKE '%$i%' OR content LIKE '%$i%')";
 			}
 			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)));
@@ -620,10 +619,9 @@
 			if (is_array($post)) {
 				$post = $post["id"];
 			}
-			$post = mysql_real_escape_string($post);
-			$module = $this->getModuleId();
+			$post = sqlescape($post);
 			
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '$module' AND bigtree_tags_rel.entry = '$post' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.entry = '$post' ORDER BY bigtree_tags.tag");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
@@ -640,8 +638,7 @@
 		*/
 		
 		function getUsedTags() {
-			$module = $this->getModuleId();
-			$q = sqlquery("SELECT DISTINCT t.* FROM bigtree_tags as t, bigtree_tags_rel as rel WHERE rel.module = $module AND rel.tag = t.id ORDER BY t.tag ASC");
+			$q = sqlquery("SELECT DISTINCT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' ORDER BY bigtree_tags.tag ASC");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
@@ -661,18 +658,18 @@
 			if ($data["id"]) {
 				if (!is_numeric($data["id"])) {
 					// We need to figure out the pending data, get the author from there and return it.
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".mysql_real_escape_string(substr($data["id"],1))."'"));
+					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($data["id"],1))."'"));
 					$c = json_decode($f["changes"],true);
 					return array("author" => $c["author"]);
 				} else {
 					// Get the active entry's author
-					$f = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+					$f = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".sqlescape($data["id"])."'"));
 					return array("author" => $f["author"]);
 				}
 			}
 
 			// Get author info based on who's logged in doing this update.
-			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".mysql_real_escape_string($admin->ID)."'"));
+			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".sqlescape($admin->ID)."'"));
 			if (!$author) {
 				$author = array("id" => 0);
 			}
@@ -690,18 +687,18 @@
 			// If they already have an author ID, we don't want to change it, but still need to return the current value for permission's sake.
 				if (!is_numeric($data["id"])) {
 					// We need to figure out the pending data, get the author from there and return it.
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".mysql_real_escape_string(substr($data["id"],1))."'"));
+					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($data["id"],1))."'"));
 					$c = json_decode($f["changes"],true);
 					return array("author" => $c["author"]);
 				} else {
 					// Get the active entry's author
-					$f = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+					$f = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".sqlescape($data["id"])."'"));
 					return array("author" => $f["author"]);
 				}
 			}
 
 			// Get author info based on who's logged in doing this update.
-			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".mysql_real_escape_string($admin->ID)."'"));
+			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".sqlescape($admin->ID)."'"));
 			if (!$author) {
 				$author = array("id" => 0);
 			}

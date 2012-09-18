@@ -1,7 +1,7 @@
 <?
 	header("Content-type: text/javascript");
 	
-	$id = mysql_real_escape_string($_GET["id"]);
+	$id = sqlescape($_GET["id"]);
 	// Grab View Data
 	$view = BigTreeAutoModule::getView($_GET["view"]);
 	$table = $view["table"];

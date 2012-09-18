@@ -3,8 +3,8 @@
 	
 	// Let's see if the ID has already been used.
 	if ($cms->getTemplate($id)) {
-		$_SESSION["bigtree"]["admin_saved"] = $_POST;
-		$_SESSION["bigtree"]["admin_error"] = true;
+		$_SESSION["bigtree_admin"]["admin_saved"] = $_POST;
+		$_SESSION["bigtree_admin"]["admin_error"] = true;
 		BigTree::redirect("../add/");
 	}
 	
@@ -12,7 +12,7 @@
 		$image = BigTree::getAvailableFileName(SERVER_ROOT."custom/admin/images/templates/",$_FILES["image"]["name"]);
 		move_uploaded_file($_FILES["image"]["tmp_name"],SERVER_ROOT."custom/admin/images/templates/".$image);
 		chmod(SERVER_ROOT."custom/admin/images/templates/".$image,0777);
-		$image = mysql_real_escape_string($image);
+		$image = sqlescape($image);
 	} elseif ($existing_image) {
 		$image = $existing_image;
 	} else {

@@ -17,4 +17,4 @@
 	}
 
 ?>
-$("<?=$field?>").value = "<?=mysql_real_escape_string(json_encode($items))?>";
+$("<?=$field?>").value = "<?=sqlescape(json_encode($items))?>";

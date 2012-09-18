@@ -13,16 +13,22 @@
 <h1><span class="settings"></span>Edit Setting</h1>
 <? include BigTree::path("admin/layouts/_tinymce.php"); ?>
 <div class="form_container">
-	<? if ($item["encrypted"]) { ?>
-	<header><p>This setting is encrypted.  The current value cannot be shown.</p></header>
-	<? } ?>
+	<header><h2><?=$item["name"]?></h2></header>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
-				// Draw the setting description
-				echo $item["description"];
+				if ($item["encrypted"]) {
+			?>
+			<div class="alert">
+				<span></span>
+				<p>This setting is encrypted.  The current value cannot be shown.</p>
+			</div>
+			<?
+				}
 				
+				echo $item["description"];
+			
 				// Setup field related nonsense.
 				$bigtree["datepickers"] = array();
 				$bigtree["timepickers"] = array();
@@ -35,13 +41,13 @@
 				$label_validation_class = "";
 				$input_validation_class = "";
 				if (isset($options["validation"]) && $options["validation"]) {
-				    if (strpos($options["validation"],"required") !== false) {
-				    	$label_validation_class = ' class="required"';
-				    }
-				    $input_validation_class = ' class="'.$options["validation"].'"';
+					if (strpos($options["validation"],"required") !== false) {
+						$label_validation_class = ' class="required"';
+					}
+					$input_validation_class = ' class="'.$options["validation"].'"';
 				}
 				
-				$title = $item["name"];
+				$title = "";
 				$value = $item["value"];
 				$key = $item["id"];
 				

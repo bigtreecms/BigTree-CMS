@@ -1,5 +1,5 @@
 /*---------------------------
-     BigTree CMS 4.0 CSS
+	 BigTree CMS 4.0 CSS
 ---------------------------*/
 
 /*-----------------------------------------------------------------------------------
@@ -488,7 +488,7 @@
 	.table > summary .more { background: #F4F4F4; border-radius: 11px; box-shadow: 0px 1px 0 #AFAFAF; color: #666; float: right; font-size: 12px; height: 22px; line-height: 22px; margin: 2px -8px 0 0; padding: 0 15px; text-shadow: 0 1px 0 #FFF; transition: background 0.2s; }
 	.table > summary .more:hover { background: #fff; }
 	.table > summary h2.full { float: none; user-select: none; }
-	.table > header { background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
+	.table > header { background-gradient: #9A9A9A #AFAFAF; background-position: 0px 0px; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
@@ -521,7 +521,9 @@
 	
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }
 	.table .no_content p { line-height: 35px; }
-	.table .changes_awaiting { height: auto; line-height: 15px; padding: 10px 0 10px 20px; text-align: left; user-select: none; width: 938px; }
+	.table .changes_awaiting { height: auto; line-height: 15px; padding: 18px 0 10px 20px; text-align: left; user-select: none; width: 938px; }
+	.table .changes_awaiting a { background: #EEE; border-radius: 15px; box-shadow: 0px 1px 0 #AFAFAF; color: #666; float: left; font-size: 12px; line-height: 16px; margin: 0 10px 10px 0; padding: 3px 15px; text-shadow: 0 1px 0 #FFF; transition: background 0.2s; }
+	.table .changes_awaiting a:hover { background: #F4F4F4; }
 	
 	/* Pages Specific */
 	.table .pages_title { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 712px; }
@@ -559,7 +561,7 @@
 	.table .status_scheduled { color: #436D86; font-size: 9px; }
 	.table .status_expired { color: #CC3B46; font-size: 9px; }
 
-	.table .integrity_progress { float: right; }
+	.table .integrity_progress { float: right; background-gradient: #CCCCCC #FFFFFF; border-left: 1px solid #AAA; margin: 0 -20px 0 0; padding: 0px 20px;  }
 	.table .integrity_progress .complete { color: green; }
 	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 938px; }
 
@@ -625,8 +627,9 @@
 
 /* Form Control Widget Styles */
 	.photo_gallery_widget { background: #FFF; border: 1px solid #CCC; border-radius: 3px; overflow: hidden; }
-	.photo_gallery_widget ul { overflow: hidden; padding: 20px 20px 10px 20px; }
-	.photo_gallery_widget li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 3px; cursor: move; float: left; height: 100px; margin: 0 10px 10px 0; padding: 5px; text-align: center; }
+	.photo_gallery_widget ul { overflow: hidden; padding: 16px 16px 6px 16px; }
+	.photo_gallery_widget li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 3px; cursor: move; float: left; margin: 0 10px 10px 0; overflow: hidden; padding: 5px; text-align: center; }
+	.photo_gallery_widget li:nth-child(9n) { margin-right: 0; }
 	.photo_gallery_widget li a { margin: 5px 5px 0 0; }
 	.photo_gallery_widget li a:last-child { margin: 5px 0 0 0; }
 	.photo_gallery_widget figure { background: #CCC; height: 75px; margin: 0; width: 75px; }
@@ -662,7 +665,7 @@
 	.analytics_columns li:last-child { margin-right: 0; width: 306px; }
 
 	.graph { display: block; margin: 0 0 0 -1px; overflow: hidden; padding: 0 0 0 1px; text-align: center; width: 919px; }
-	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -880px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
+	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -860px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
 	.graph .bar.first { margin-left: 0; }
 	.graph .bar.last { margin-right: 0; }
 	.graph .date { color: #333; display: block; float: left; font-size: 10px; margin: 7px 4px 0 2px; text-align: center; width: 60px; }
@@ -697,9 +700,9 @@
 	.view_paging li:last-child a span { background: url(../images/icon-sprite.png) no-repeat -137px -125px; width: 6px; height: 9px; display: block; }
 
 	.image_list { margin-bottom: -10px; overflow: hidden; }
-	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; height: 145px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
+	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	.image_list li.non_draggable { cursor: default; }
-	.image_list li a { cursor: pointer; height: 28px; margin: 0 3px 0 0; }
+	.image_list li a { cursor: pointer; margin: 0 3px 0 0; }
 	.image_list li a.image { background: #CCC; display: block; height: 108px; margin: 0 0 5px 0; transition: background 0.2s; width: 108px; }
 	.image_list li a.image:hover { background: #DDD; }
 	.image_list li a.image img { max-height: 108px; max-width: 108px; }
@@ -789,10 +792,10 @@
 
 /* Advanced Search Page */
 	.adv_search { margin: 0 0 15px 0; overflow: hidden; }
-	.adv_search h3 { margin: 12px 0 0 460px; position: absolute; }
-	.adv_search input[type=search] { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; height: 24px; margin: 5px 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 400px; }
+	.adv_search h3 { margin: 11px 0 0 460px; position: absolute; }
+	.adv_search input[type=search] { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 5px 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 400px; }
 	.adv_search input[type=search]:focus { border-color: #AAA; }
-	.adv_search input[type=submit] { height: 16px; margin: 10px 0 0 -27px; position: absolute; user-select: none; width: 16px; background: url(../images/icon-sprite.png) no-repeat -96px 0px; border: none; text-indent: -1000px; padding: 0; }
+	.adv_search input[type=submit] { float: left; height: 16px; margin: 10px 0 0 -27px; user-select: none; width: 16px; background: url(../images/icon-sprite.png) no-repeat -96px 0px; border: none; text-indent: -1000px; padding: 0; }
 	.adv_search_page_results li { border-bottom: 1px solid #DCDCDC; margin: 0 0 15px 0; padding: 0 0 15px 0; }
 	.adv_search_page_results li:last-child { border: 0; margin: 0; padding: 0; }
 	.adv_search_page_results strong a { color: #5185a2; display: block; font-size: 14px; margin: 0 0 5px 0; }
@@ -902,7 +905,7 @@
 	.developer_action_list li a.active span { opacity: 1; }
 	.developer_action_list input { display: none; }
 
-	.developer_icon_list li { float: left; margin: 0 5px 0 0; }
+	.developer_icon_list li { float: left; margin: 0 5px 5px 0; }
 	.developer_icon_list li a { background: #FCFCFC; border: 1px solid #CCC; border-radius: 3px; display: block; height: 16px; padding: 5px; width: 16px; }
 	.developer_icon_list li a span { opacity: 0.5; }
 	.developer_icon_list li a.active, .developer_icon_list li a:hover { background: #FFF; border-color: #AAA; box-shadow: 0 0 2px #CCC; }
@@ -1125,7 +1128,7 @@
 	.icon_small_up { background-position: -448px -140px; }
 	.icon_small_computer { background-position: -464px -140px; }
 	.icon_small_picture { background-position: -480px -140px; }
-	.icon_small_package_export { background-position: -496px -140px; }
+	.icon_small_gear { background-position: -496px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
@@ -1253,7 +1256,7 @@
 	.multi_widget footer .button .icon_small { height: 16px; margin-top: 6px; }
 	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
 	.multi_widget li p { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; }
-	.multi_widget li a { float: right; margin: 0 0 0 10px; }
+	.multi_widget li a { float: right; margin: 5px 0 0 10px; }
 	.multi_widget li:nth-child(even) { background: #F8F8F8; }
 	.multi_widget .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }

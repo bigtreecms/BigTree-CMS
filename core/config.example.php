@@ -13,6 +13,7 @@
 	$bigtree["config"]["db"]["name"] = "[db]";
 	$bigtree["config"]["db"]["user"] = "[user]";
 	$bigtree["config"]["db"]["password"] = "[password]";
+	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
 	
 	// Separate write database info (for load balanced setups)
 	$bigtree["config"]["db_write"]["host"] = "[write_host]";

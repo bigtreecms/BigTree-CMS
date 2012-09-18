@@ -10,7 +10,7 @@
 	
 		foreach ($row as $position => $id) {
 			if (is_numeric($id)) {
-				sqlquery("UPDATE `$table` SET position = '".(count($row)-$position)."' WHERE id = '".mysql_real_escape_string($id)."'");
+				sqlquery("UPDATE `$table` SET position = '".(count($row)-$position)."' WHERE id = '".sqlescape($id)."'");
 				BigTreeAutoModule::recacheItem($id,$table);
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($row)-$position));

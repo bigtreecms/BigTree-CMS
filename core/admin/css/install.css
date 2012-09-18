@@ -86,9 +86,9 @@
 	.form_error label { color: #990000; }
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { background: #FCE8E8; border-color: #990000; }
 	
-	input[type=submit], a.button { background: #BBB url(../images/button-bg.png) repeat-x; border: 1px solid #CCCCCC; border-radius: 5px; color: #333; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; padding: 10px 18px 12px 18px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); transition: background-color 0.2s, border-color 0.2s; }
-	input[type=submit].blue, a.button.blue { background: #3E667D url(../images/button-bg-dark.png) repeat-x; border: 1px solid #243D4C; color: #FFF; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); }
-	input[type=submit].blue:hover, a.button.blue:hover { background-color: #4f829f; }
+	input[type=submit], a.button { background: #BBB url(../images/row-bg-sprite.png) repeat-x 0px -188px; border: 1px solid #CCCCCC; border-radius: 5px; color: #333; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; padding: 10px 18px 12px 18px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); transition: background-color 0.2s, border-color 0.2s; user-select: none; }
+	input[type=submit]:hover, a.button:hover { background-color: #D3D3D3; }
+	input[type=submit].blue, a.button.blue { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -224px; border: 1px solid #243D4C; color: #FFF; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); }
 	
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {

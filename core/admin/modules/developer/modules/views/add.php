@@ -1,17 +1,17 @@
 <?
-	$id = $bigtree["commands"][0];
-	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
-	$title = htmlspecialchars(implode("/",array_slice($bigtree["commands"],2)));
+	$id = $_GET["module"];
+	$table = isset($_GET["table"]) ? $_GET["table"] : "";
+	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
 	
-	$mod = $admin->getModule($id);
+	$module = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
 
-	$breadcrumb[] = array("title" => $mod["name"], "link" => "developer/modules/edit/".$module["id"]."/");
+	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
 	$breadcrumb[] = array("title" => "Add View", "link" => "#");
 	
-	if (isset($_SESSION["bigtree"]["developer"]["saved_view"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["saved_view"],array("htmlspecialchars"));
-		unset($_SESSION["bigtree"]["developer"]["saved_view"]);
+	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
+		unset($_SESSION["bigtree_admin"]["developer"]["saved_view"]);
 	} else {
 		// Stop notices
 		$description = $type = $preview_url = "";
@@ -62,7 +62,7 @@
 			
 			<div class="right">
 				<fieldset>
-					<label>Page Description <small>(instructions for the user)</small></label>
+					<label>Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
 				</fieldset>
 			</div>

@@ -10,4 +10,4 @@
 	}
 
 ?>
-$("#<?=$field?>").value = "<?=mysql_real_escape_string(json_encode($ids))?>";
+$("#<?=$field?>").value = "<?=sqlescape(json_encode($ids))?>";

@@ -530,7 +530,7 @@ class lessc {
 	 * Values in lessphp are typed by being wrapped in arrays, their format is
 	 * typically:
 	 *
-	 *     array(type, contents [, additional_contents]*)
+	 *	 array(type, contents [, additional_contents]*)
 	 *
 	 * The input is expected to be reduced. This function will not work on
 	 * things like expressions and variables.
@@ -659,8 +659,8 @@ class lessc {
 	}
 
 	function lib_argb($color){
-            return $this->lib_rgbahex($color);
-        }
+			return $this->lib_rgbahex($color);
+		}
 
 	// utility func to unquote a string
 	function lib_e($arg) {
@@ -1683,8 +1683,8 @@ class lessc_parser {
 	 * ambiguous.
 	 *
 	 * Consider:
-	 *     property1: 10 -5; // is two numbers, 10 and -5
-	 *     property2: (10 -5); // should evaluate to 5
+	 *	 property1: 10 -5; // is two numbers, 10 and -5
+	 *	 property2: (10 -5); // should evaluate to 5
 	 */
 	protected $inParens = false;
 

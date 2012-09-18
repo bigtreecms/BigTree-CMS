@@ -45,7 +45,7 @@
 			} else {
 				if (substr($value,0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
-					$resource = mysql_real_escape_string(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($value,11)));
+					$resource = sqlescape(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($value,11)));
 					
 					$r = $admin->getResourceByFile($resource);
 					$r["file"] = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$r["file"]);
@@ -61,6 +61,12 @@
 					
 						if (is_array($options["crops"])) {
 							foreach ($options["crops"] as $crop) {
+								// Make a square if the user forgot to enter one of the crop dimensions.
+								if (!$crop["height"]) {
+									$crop["height"] = $crop["width"];
+								} elseif (!$crop["width"]) {
+									$crop["width"] = $crop["height"];
+								}
 								$crops[] = array(
 									"image" => $local_copy,
 									"directory" => $options["directory"],

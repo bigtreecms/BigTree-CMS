@@ -38,5 +38,5 @@
 	// Create the table.
 	sqlquery("CREATE TABLE `$table` (`id` int(11) NOT NULL auto_increment, PRIMARY KEY  (`id`)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin");
 	
-	BigTree::redirect("../form/$id/$table/");
+	BigTree::redirect("../form/?table=".urlencode($table)."&module=$id");
 ?>
