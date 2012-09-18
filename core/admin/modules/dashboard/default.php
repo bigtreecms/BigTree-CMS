@@ -120,9 +120,18 @@
 		<li>
 			<section class="changes_awaiting">
 				<p>You have the following changes pending your approval:</p>
-				<? foreach ($change_modules as $m => $cm) { ?>
-				<p>&mdash; <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><?=$cm["title"]?></a></p>
-				<? } ?>
+				<?
+					foreach ($change_modules as $m => $cm) {
+						if ($m == 0) {
+							$icon = "page";
+						} else {
+							$icon = "gear";
+						}
+				?>
+				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></a>
+				<?
+					}
+				?>
 			</section>
 		</li>
 		<?
