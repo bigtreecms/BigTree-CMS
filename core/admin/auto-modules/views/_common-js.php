@@ -5,11 +5,6 @@
 		clearTimeout(searchTimer);
 		searchTimer = setTimeout("_local_search();",400);
 	});
-	
-	$(".icon_edit").live("click",function() {
-		document.location.href = "<?=$mpage."edit".$suffix?>/" + BigTree.CleanHref($(this).attr("href")) + "/";
-		return false;
-	});
 			
 	$(".icon_delete").live("click",function() {
 		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {

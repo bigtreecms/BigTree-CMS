@@ -127,21 +127,36 @@
 		if ($edit_id) {
 			$admin->unlock($table,$edit_id);
 		}
-
+		
+		// Figure out if we should return to a view with search results / page / sorting preset.
+		if (isset($_POST["_bigtree_return_view_data"])) {
+			$return_view_data = unserialize(base64_decode($_POST["_bigtree_return_view_data"]));
+			if (!$form["return_view"] || $form["return_view"] == $return_view_data["view"]) {
+				$redirect_append = array();
+				unset($return_view_data["view"]); // We don't need the view passed back.
+				foreach ($return_view_data as $key => $val) {
+					$redirect_append[] = "$key=".urlencode($val);
+				}
+				$redirect_append = "?".implode("&",$redirect_append);
+			}
+		} else {
+			$redirect_append = "";
+		}
+		
 		// Get the redirect location.
 		if ($form["return_view"]) {
 			$a = $admin->getModuleActionForView($form["return_view"]);
 			if ($a["route"]) {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/".$a["route"]."/";
+				$redirect_url = ADMIN_ROOT.$module["route"]."/".$a["route"]."/".$redirect_append;
 			} else {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/";
+				$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 			}
 		} else {
 			$pieces = explode("-",$action["route"]);
 			if (count($pieces) == 2) {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/";
+				$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/".$redirect_append;
 			} else {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/";
+				$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 			}
 		}
 

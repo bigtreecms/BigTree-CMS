@@ -8,9 +8,11 @@
 	$module_id = BigTreeAutoModule::getModuleForView($view);
 	$permission = $admin->getAccessLevel($module_id);
 	$module = $admin->getModule($module_id);
+	$mpage = ADMIN_ROOT.$module["route"]."/";
 
 	// Defaults
 	$search = isset($_POST["search"]) ? $_POST["search"] : "";
+	$search = isset($_GET["search"]) ? $_GET["search"] : $search;
 	$suffix = $suffix ? "-".$suffix : "";
 	$draggable = (isset($options["draggable"]) && $options["draggable"]) ? true : false;
 	$view["options"]["per_page"] = 10000;
@@ -26,6 +28,10 @@
 	if ($view["preview_url"]) {
 		$actions["preview"] = "on";
 	}
+	
+	
+	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
+	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "search" => $search)));
 	
 	// Cache the data in case it's not there.
 	BigTreeAutoModule::cacheViewData($view);
@@ -115,6 +121,8 @@
 					
 					if ($action == "preview") {
 						$link = rtrim($view["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+					} elseif ($action == "edit") {
+						$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
 					} else {
 						$link = "#".$item["id"];
 					}

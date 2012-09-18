@@ -1,9 +1,18 @@
 <div class="form_container">
 	<form method="post" action="process/" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
-		<? if (isset($item)) { ?>
+		<?
+			if (isset($item)) {
+		?>
 		<input type="hidden" name="id" value="<?=htmlspecialchars($item_id)?>" />
-		<? } ?>
+		<?
+			}	
+			if (isset($_GET["view_data"])) {
+		?>
+		<input type="hidden" name="_bigtree_return_view_data" value="<?=htmlspecialchars($_GET["view_data"])?>" />
+		<?	
+			}
+		?>
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<?
