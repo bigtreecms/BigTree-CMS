@@ -5114,7 +5114,7 @@
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
-			$preprocess - sqlescape(htmlspecialchars($preprocess));
+			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
