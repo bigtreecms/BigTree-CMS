@@ -41,7 +41,7 @@
 				<validate>
 		*/
 		
-		public function errorMessage($data,$type) {
+		static function errorMessage($data,$type) {
 			$parts = explode(" ",$type);
 			// Not required and it's blank
 			$message = "This field ";
@@ -210,7 +210,7 @@
 				<errorMessage>
 		*/
 		
-		public function validate($data,$type) {
+		static function validate($data,$type) {
 			$parts = explode(" ",$type);
 			// Not required and it's blank
 			if (!in_array("required",$parts) && !$data) {
