@@ -9,9 +9,9 @@
 		<p>Including external links will take <strong>significantly longer</strong> the integrity check and <strong>may throw false positives</strong>.</p>
 	</section>
 	<footer>
-		<a href="external/" class="button"><span class="icon_small icon_small_world"></span>Include External Links</a>
+		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/check/?external=true" class="button"><span class="icon_small icon_small_world"></span>Include External Links</a>
 		&nbsp;
-		<a href="internal/" class="button"><span class="icon_small icon_small_server"></span>Only Internal Links</a>
+		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/check/?external=false" class="button"><span class="icon_small icon_small_server"></span>Only Internal Links</a>
 	</footer>
 </div>
 

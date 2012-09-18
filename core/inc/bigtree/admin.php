@@ -331,7 +331,7 @@
 				external - Whether to check external links (slow) or not
 
 			Returns:
-				An array of errors.
+				An array containing two possible keys (a and img) which each could contain an array of errors.
 		*/
 
 		function checkHTML($relative_path,$html,$external = false) {
@@ -349,8 +349,9 @@
 				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
-						if (strpos($href,"#") !== false)
+						if (strpos($href,"#") !== false) {
 							$href = substr($href,0,strpos($href,"#")-1);
+						}
 						if (!$this->urlExists($href)) {
 							$errors["a"][] = $href;
 						}
@@ -405,7 +406,7 @@
 					}
 				}
 			}
-			return array($errors);
+			return $errors;
 		}
 
 		/*
@@ -2462,7 +2463,7 @@
 
 		/*
 			Function: getModuleActionForForm
-				Returns the related module action for an auto module form.
+				Returns the related module action for an auto module form. Prioritizes edit action over add.
 
 			Parameters:
 				form - The id of a form or a form entry.
@@ -2477,7 +2478,7 @@
 			} else {
 				$form = sqlescape($form);
 			}
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form'"));
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form' ORDER BY route DESC"));
 		}
 
 		/*

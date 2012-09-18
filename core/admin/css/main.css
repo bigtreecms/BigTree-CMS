@@ -204,7 +204,7 @@
 	.currently_wrapper { height: 100px; overflow: hidden; width: 150px; }
 	.currently img { width: 150px; }
 	.currently label { background: rgba(0,0,0,0.5); color: #EEE; display: block; font-size: 10px; height: 20px; line-height: 20px; margin: -20px 0 0 0; padding: 0 5px; position: relative; width: 140px; }
-	.currently .remove_resource { background: url(../images/icon-sprite.png) -336px -140px; display: block; height: 16px; margin: -4px 0 -10px 139px; position: relative; width: 16px; }
+	.currently .remove_resource { background: url(../images/icon-sprite.png) -336px -140px; display: block; height: 16px; margin: -3px 0 -10px 139px; position: relative; width: 16px; }
 	.currently_file { font-size: 10px; margin: 15px 0 0 0; }
 	.currently_file a { background: #990000; border-radius: 10px; color: #FFF; display: inline-block; margin: 0 0 0 10px; padding: 2px 10px; }
 
@@ -490,7 +490,7 @@
 	.table > summary h2.full { float: none; user-select: none; }
 	.table > header { background-gradient: #9A9A9A #AFAFAF; background-position: 0px 0px; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
-	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
+	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
 	.table > ul { background: #FFF; overflow: hidden; }
 	.table > ul:last-child { border-radius: 0px 0px 5px 5px; }
@@ -561,9 +561,9 @@
 	.table .status_scheduled { color: #436D86; font-size: 9px; }
 	.table .status_expired { color: #CC3B46; font-size: 9px; }
 
-	.table .integrity_progress { float: right; background-gradient: #CCCCCC #FFFFFF; border-left: 1px solid #AAA; margin: 0 -20px 0 0; padding: 0px 20px;  }
-	.table .integrity_progress .complete { color: green; }
-	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 938px; }
+	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 958px; }
+	.table .integrity_errors span { margin: 8px 8px 0 0; }
+	.table .integrity_progress { float: right; height: 37px; line-height: 35px; }
 
 	.table .analytics_metric_name { padding: 0 0 0 20px; text-align: left; width: 668px; }
 	.table .analytics_visit_count { width: 135px; }
@@ -1129,6 +1129,8 @@
 	.icon_small_computer { background-position: -464px -140px; }
 	.icon_small_picture { background-position: -480px -140px; }
 	.icon_small_gear { background-position: -496px -140px; }
+	.icon_small_done { background-position: -512px -140px; }
+	.icon_small_warning { background-position: -528px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
