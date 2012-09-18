@@ -62,7 +62,7 @@
 			
 			<div class="right">
 				<fieldset>
-					<label>Page Description <small>(instructions for the user)</small></label>
+					<label>Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
 				</fieldset>
 			</div>
