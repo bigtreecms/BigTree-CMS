@@ -685,7 +685,7 @@
 			foreach ($tags as $tag) {
 				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 				if ($tdat) {
-					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND module = '0'");
+					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = 'bigtree_pages'");
 					while ($f = sqlfetch($q)) {
 						$id = $f["entry"];
 						if (in_array($id,$results)) {
@@ -818,7 +818,7 @@
 			if (!is_numeric($page)) {
 				$page = $page["id"];
 			}
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '0' AND bigtree_tags_rel.entry = '$page' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND bigtree_tags_rel.entry = '$page' ORDER BY bigtree_tags.tag");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;

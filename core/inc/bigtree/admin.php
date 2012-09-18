@@ -944,7 +944,7 @@
 			// Handle tags
 			if (is_array($data["_tags"])) {
 				foreach ($data["_tags"] as $tag) {
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ('0','$id','$tag')");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('bigtree_pages','$id','$tag')");
 				}
 			}
 
@@ -3803,7 +3803,7 @@
 			}
 
 			$tags = array();
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.tag = bigtree_tags.id AND bigtree_tags_rel.entry = '$page' AND bigtree_tags_rel.module = '0' ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.entry = '$page' AND bigtree_tags_rel.`table` = 'bigtree_pages' ORDER BY bigtree_tags.tag");
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
 			}
@@ -5375,10 +5375,10 @@
 			}
 
 			// Handle tags
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '0' AND entry = '$page'");
+			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = '$page'");
 			if (is_array($data["_tags"])) {
 				foreach ($data["_tags"] as $tag) {
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ('0','$page','$tag')");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('bigtree_pages','$page','$tag')");
 				}
 			}
 

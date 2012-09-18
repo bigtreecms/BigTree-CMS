@@ -300,7 +300,7 @@
 					}
 				}
 			}
-			sqlquery("INSERT INTO $table (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
 			$id = sqlid();
 
 			// Handle many to many
@@ -318,12 +318,11 @@
 			}
 
 			// Handle the tags
-			$mid = sqlescape($module["id"]);
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '$mid' AND entry = '$id'");
+			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			if (is_array($tags)) {
 				foreach ($tags as $tag) {
-					sqlquery("DELETE FROM bigtree_tags_rel WHERE module = $mid AND entry = $id AND tag = $tag");
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ($mid,$id,$tag)");
+					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
 			}
 			
@@ -389,7 +388,7 @@
 			global $admin;
 			
 			$id = sqlescape($id);
-			sqlquery("DELETE FROM $table WHERE id = '$id'");
+			sqlquery("DELETE FROM `$table` WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'");
 			self::uncacheItem($id,$table);
 			
@@ -599,7 +598,7 @@
 				$status = "pending";
 			// Otherwise it's a live entry
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM $table WHERE id = '$id'"));
+				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 				if (!$item) {
 					return false;
 				}
@@ -622,7 +621,7 @@
 					}
 				// If there's no pending changes, just pull the tags
 				} else {
-					$tags = self::getTagsForEntry($module["id"],$id);
+					$tags = self::getTagsForEntry($table,$id);
 				}
 			}
 			
@@ -758,16 +757,16 @@
 				Returns the tags for an entry.
 				
 			Parameters:
-				module - The module id for the entry.
+				table - The table the entry is in.
 				id - The id of the entry.
 			
 			Returns:
 				An array ot tags from bigtree_tags.
 		*/
 		
-		static function getTagsForEntry($module,$id) {
+		static function getTagsForEntry($table,$id) {
 			$tags = array();
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '$module' AND bigtree_tags_rel.entry = '$id' AND bigtree_tags_rel.tag = bigtree_tags.id ORDER BY bigtree_tags.tag ASC");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags_rel.tag = bigtree_tags.id WHERE bigtree_tags_rel.`table` = '".sqlescape($table)."' AND bigtree_tags_rel.entry = '$id' ORDER BY bigtree_tags.tag ASC");
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
 			}
@@ -993,7 +992,7 @@
 					}
 				}
 			}
-			sqlquery("INSERT INTO $table (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
 			$id = sqlid();
 
 			// Handle many to many
@@ -1011,12 +1010,11 @@
 			}
 
 			// Handle the tags
-			$mid = sqlescape($module["id"]);
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '$mid' AND entry = '$id'");
+			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			if (!empty($tags)) {
 				foreach ($tags as $tag) {
-					sqlquery("DELETE FROM bigtree_tags_rel WHERE module = $mid AND entry = $id AND tag = $tag");
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ($mid,$id,$tag)");
+					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
 			}
 			
@@ -1061,7 +1059,7 @@
 		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin;
 
-			$original = sqlfetch(sqlquery("SELECT * FROM $table WHERE id = '$id'"));
+			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
 				if ($val === "NULL")
 					$data[$key] = "";
@@ -1145,7 +1143,7 @@
 		static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin,$module;
 			$table_description = BigTree::describeTable($table);
-			$query = "UPDATE $table SET";
+			$query = "UPDATE `$table` SET";
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
 					if (is_array($val)) {
@@ -1179,12 +1177,11 @@
 			}
 
 			// Handle the tags
-			$mid = sqlescape($module["id"]);
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE module = '$mid' AND entry = '$id'");
+			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			if (!empty($tags)) {
 				foreach ($tags as $tag) {
-					sqlquery("DELETE FROM bigtree_tags_rel WHERE module = $mid AND entry = $id AND tag = $tag");
-					sqlquery("INSERT INTO bigtree_tags_rel (`module`,`entry`,`tag`) VALUES ($mid,$id,$tag)");
+					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
+					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
 			}
 			

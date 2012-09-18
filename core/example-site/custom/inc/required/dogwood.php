@@ -321,7 +321,7 @@
 				$tag = $tag["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT p.* FROM btx_dogwood_posts as p, bigtree_tags_rel as rel WHERE p.id = rel.entry AND rel.tag = '".sqlescape($tag)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."' ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -470,7 +470,7 @@
 			if (is_array($tag)) {
 				$tag = $tag["id"];
 			}
-			return sqlrows(sqlquery("SELECT p.id FROM btx_dogwood_posts as p, bigtree_tags_rel as rel WHERE p.id = rel.entry AND rel.tag = '".sqlescape($tag)."'"));
+			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."'"));
 		}
 		
 		/*
@@ -527,10 +527,9 @@
 		*/
 		
 		function getRelatedPosts($post,$limit = 5) {
-			$module = $this->getModuleId();
 			$tags = $this->getTagsForPost($post);
 			foreach ($tags as $tag) {
-				$q = sqlquery("SELECT p.* FROM btx_dogwood_posts as p, bigtree_tags_rel as rel WHERE p.id = rel.entry AND rel.tag = ".sqlescape($tag["id"]));
+				$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag["id"])."'");
 				while ($f = sqlfetch($q)) {
 					if (!isset($posts[$f["id"]])) {
 						$f["relevance"] = 1;
@@ -621,9 +620,8 @@
 				$post = $post["id"];
 			}
 			$post = sqlescape($post);
-			$module = $this->getModuleId();
 			
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '$module' AND bigtree_tags_rel.entry = '$post' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.entry = '$post' ORDER BY bigtree_tags.tag");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
@@ -640,8 +638,7 @@
 		*/
 		
 		function getUsedTags() {
-			$module = $this->getModuleId();
-			$q = sqlquery("SELECT DISTINCT t.* FROM bigtree_tags as t, bigtree_tags_rel as rel WHERE rel.module = $module AND rel.tag = t.id ORDER BY t.tag ASC");
+			$q = sqlquery("SELECT DISTINCT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' ORDER BY bigtree_tags.tag ASC");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;

@@ -184,4 +184,21 @@
 		/// Remove locked column from pages.
 		sqlquery("ALTER TABLE `bigtree_pages` DROP COLUMN `locked`");
 	}
+	
+	// BigTree 4.0RC2 update -- REVISION 9
+	function _local_bigtree_update_9() {
+		sqlquery("ALTER TABLE `bigtree_tags_rel` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `module`");
+		// Figure out the table for all the modules and change the tags to be related to the table instead of the module.
+		$q = sqlquery("SELECT * FROM bigtree_modules");
+		while ($f = sqlfetch($q)) {
+			if (class_exists($f["class"])) {
+				@eval('$test = new '.$f["class"].';');
+				$table = mysql_real_escape_string($test->Table);
+				sqlquery("UPDATE `bigtree_tags_rel` SET `table` = '$table' WHERE module = '".$f["id"]."'");
+			}
+		}
+		sqlquery("UPDATE `bigtree_tags_rel` SET `table` = 'bigtree_pages' WHERE module = 0");
+		// And drop the module column.
+		sqlquery("ALTER TABLE `bigtree_tags_rel` DROP COLUMN `module`");
+	}
 ?>

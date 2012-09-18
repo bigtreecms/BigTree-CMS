@@ -487,7 +487,7 @@
 			foreach ($tags as $tag) {
 				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 				if ($tdat) {
-					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND module = '".$this->$Module."'");
+					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = '".sqlescape($this->Table)."'");
 					while ($f = sqlfetch($q)) {
 						$id = $f["entry"];
 						if (in_array($id,$results)) {
@@ -539,7 +539,9 @@
 				$item = $item["id"];
 			}
 			
-			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '".$this->Module."' AND bigtree_tags_rel.entry = '$item' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
+			$item = sqlescape($item);
+			
+			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = '".sqlescape($this->Table)."' AND bigtree_tags_rel.entry = '$item' ORDER BY bigtree_tags.tag");
 
 			$tags = array();
 			while ($f = sqlfetch($q)) {
