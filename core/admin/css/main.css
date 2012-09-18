@@ -521,7 +521,9 @@
 	
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }
 	.table .no_content p { line-height: 35px; }
-	.table .changes_awaiting { height: auto; line-height: 15px; padding: 10px 0 10px 20px; text-align: left; user-select: none; width: 938px; }
+	.table .changes_awaiting { height: auto; line-height: 15px; padding: 18px 0 10px 20px; text-align: left; user-select: none; width: 938px; }
+	.table .changes_awaiting a { background: #EEE; border-radius: 15px; box-shadow: 0px 1px 0 #AFAFAF; color: #666; float: left; font-size: 12px; line-height: 16px; margin: 0 10px 10px 0; padding: 3px 15px; text-shadow: 0 1px 0 #FFF; transition: background 0.2s; }
+	.table .changes_awaiting a:hover { background: #F4F4F4; }
 	
 	/* Pages Specific */
 	.table .pages_title { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 712px; }
@@ -1125,6 +1127,7 @@
 	.icon_small_up { background-position: -448px -140px; }
 	.icon_small_computer { background-position: -464px -140px; }
 	.icon_small_picture { background-position: -480px -140px; }
+	.icon_small_gear { background-position: -496px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
