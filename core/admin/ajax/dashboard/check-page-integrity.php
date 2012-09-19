@@ -18,25 +18,17 @@
 			$htmlerrors[] = $admin->checkHTML($cms->getLink($id),$data,$external);
 		}
 	}
-	$errorhtml = "";
-	$errors = 0;
 	
 	foreach ($htmlerrors as $key => $val) {
-		foreach ($val as $tkey => $type) {
-			$x = 0;
-			foreach ($type as $ti => $types) {
-				if ($ti == "img")
-					$ti = "Image";
-				else
-					$ti = "Link";
-				foreach ($types as $error) {
-					$errorhtml .= '<li><section class="integrity_errors">Broken '.$ti.': '.$error.' &mdash; <a href="'.ADMIN_ROOT.'pages/edit/'.$id.'/" target="_blank">'.$page["nav_title"].'</a></section></li>';
-					$x++;
-					$errors++;
-				}
+		foreach ($val as $type => $errors) {
+			if ($type == "img") {
+				$ti = "Image";
+			} else {
+				$ti = "Link";
+			}
+			foreach ($errors as $error) {
+				echo '<li><section class="integrity_errors"><span class="icon_small icon_small_warning"></span> Broken '.$ti.': '.$error.' on page &ldquo;'.$page["nav_title"].'&rdquo; &mdash; <a href="'.ADMIN_ROOT.'pages/edit/'.$id.'/" target="_blank">Click Here To Edit</a></section></li>';
 			}
 		}
 	}
-	
-	echo $errorhtml;
 ?>

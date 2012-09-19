@@ -1,5 +1,5 @@
 <?
-	$id = $_GET["module"]
+	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 
 	$module = $admin->getModule($id);
