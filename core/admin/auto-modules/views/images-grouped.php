@@ -154,7 +154,7 @@
 	$(".image_list").each(function() {
 		if ($(this).attr("id")) {
 			$(this).sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/?view=<?=$view["id"]?>&table_name=" + $(this).attr("id") + "&sort=" + escape($(this).sortable("serialize")));;
+				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/",  { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
 			},this)});
 		}
 	});
