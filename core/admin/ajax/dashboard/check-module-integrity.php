@@ -44,7 +44,7 @@
 				$ti = "Link";
 			}
 			foreach ($errors as $error) {
-				echo '<li><section class="integrity_errors"><span class="icon_small icon_small_warning"></span> Broken '.$ti.': '.$error.' in field &ldquo;'.$form["fields"][$field]["title"].'&rdquo; &mdash; <a href="'.ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$_GET["id"].'/" target="_blank">Click Here To Edit</a></section></li>';
+				echo '<li><section class="integrity_errors"><span class="icon_small icon_small_warning"></span> Broken '.$ti.': '.$error.' in field &ldquo;'.$form["fields"][$field]["title"].'&rdquo; <a href="'.ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$_GET["id"].'/" target="_blank">Edit</a></section></li>';
 			}
 		}
 	}
