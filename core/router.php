@@ -87,7 +87,7 @@
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// if we need LESS
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-						require_once(SERVER_ROOT."core/inc/utils/less-compiler.inc.php");
+						require_once(SERVER_ROOT."core/inc/lib/less-compiler.inc.php");
 						$less_compiler = new lessc();
 					}
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
@@ -114,7 +114,7 @@
 				// Replace roots
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
 				if ($bigtree["config"]["css"]["minify"]) {
-					require_once(SERVER_ROOT."core/inc/utils/CSSMin.php");			
+					require_once(SERVER_ROOT."core/inc/lib/CSSMin.php");			
 					$minifier = new CSSMin;
 					$data = $minifier->run($data);
 				}	
