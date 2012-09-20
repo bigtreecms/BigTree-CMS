@@ -674,6 +674,9 @@
 	.graph .date.last { margin-right: 0; }
 	.graph .date.first { margin-left: 0; }
 	
+	#analytics_profiles_loading { line-height: 16px; }
+	#analytics_profiles_loading img { float: left; margin: 0 10px 0 0; }
+	
 /* Modules */
 	.table section.modules { border-radius: 0px 0px 5px 5px; overflow: hidden; padding-bottom: 10px; }
 	.table section.modules_no_header { border-radius: 5px; }

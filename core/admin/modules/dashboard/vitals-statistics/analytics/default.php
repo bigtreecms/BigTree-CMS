@@ -6,7 +6,7 @@
 	$cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
 	
 	if (!$cache) {
-		BigTree::redirect("setup/");
+		BigTree::redirect($mroot."cache/");
 	}
 	
 	$two_week_visits = $cache["two_week"];
