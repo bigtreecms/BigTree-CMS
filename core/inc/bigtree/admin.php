@@ -1337,8 +1337,9 @@
 		*/
 
 		function deleteFieldType($id) {
-			unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
-			unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
+			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 		}
 
