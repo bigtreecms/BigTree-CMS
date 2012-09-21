@@ -201,4 +201,9 @@
 		// And drop the module column.
 		sqlquery("ALTER TABLE `bigtree_tags_rel` DROP COLUMN `module`");
 	}
+	
+	// BigTree 4.0RC2 update -- REVISION 10
+	function _local_bigtree_update_10() {
+		sqlquery("ALTER TABLE `bigtree_modules` ADD COLUMN `icon` VARCHAR(255) NOT NULL AFTER `class`");
+	}
 ?>

@@ -64,6 +64,9 @@
 				"class" => "icon_delete"
 			)
 		);
+		
+		// !Icon Classes
+		var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
 
 		/*
 			Constructor:
@@ -622,12 +625,13 @@
 				class - The module class to create.
 				table - The table this module relates to.
 				permissions - The group-based permissions.
+				icon - The icon to use.
 
 			Returns:
 				The new module id.
 		*/
 
-		function createModule($name,$group,$class,$table,$permissions) {
+		function createModule($name,$group,$class,$table,$permissions,$icon) {
 			global $cms;
 
 			// Find an available module route.
@@ -675,8 +679,9 @@
 			$class = sqlescape($class);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$gbp = sqlescape(json_encode($permissions));
+			$icon = sqlescape($icon);
 
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group,'$gbp')");
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('$name','$route','$class','$icon',$group,'$gbp')");
 			$id = sqlid();
 
 			if ($class) {
@@ -5048,15 +5053,18 @@
 				group - The group for the module.
 				class - The module class to create.
 				permissions - The group-based permissions.
+				icon - The icon to use.
 		*/
 
-		function updateModule($id,$name,$group,$class,$permissions) {
+		function updateModule($id,$name,$group,$class,$permissions,$icon) {
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
 			$group = sqlescape($group);
 			$class = sqlescape($class);
 			$permissions = sqlescape(json_encode($permissions));
-			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', `gbp` = '$permissions' WHERE id = '$id'");
+			$icon = sqlescape($icon);
+			
+			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
 			unlink(SERVER_ROOT."cache/module-class-list.btc");

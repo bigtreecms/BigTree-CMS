@@ -16,10 +16,10 @@
 		</select>
 	</fieldset>
 	<fieldset>
-		<label class="required">Image</label>
+		<label class="required">Icon</label>
 		<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
 		<ul class="developer_icon_list">
-			<? foreach ($classes as $class) { ?>
+			<? foreach ($admin->IconClasses as $class) { ?>
 			<li>
 				<a href="#<?=$class?>"<? if ($class == $item["class"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 			</li>

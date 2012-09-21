@@ -41,11 +41,25 @@
 					<label class="required">Class Name <small>(will create a class file in custom/inc/modules/)</small></label>
 					<input name="class" type="text" class="required" />
 				</fieldset>
-				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" />
-					<label class="for_checkbox">Enable Advanced Permissions <small>(allows setting permissions on grouped views)</small></label>
-				</fieldset>
 			</div>
+			
+			<br class="clear" />
+			<fieldset>
+		        <label class="required">Icon</label>
+		        <input type="hidden" name="icon" id="selected_icon" value="gear" />
+		        <ul class="developer_icon_list">
+		        	<? foreach ($admin->IconClasses as $class) { ?>
+		        	<li>
+		        		<a href="#<?=$class?>"<? if ($class == "gear") { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        	</li>
+		        	<? } ?>
+		        </ul>
+		    </fieldset>
+
+			<fieldset>
+			    <input type="checkbox" name="gbp[enabled]" id="gbp_on" />
+			    <label class="for_checkbox">Enable Advanced Permissions <small>(allows setting permissions on grouped views)</small></label>
+			</fieldset>
 		</section>
 		<section class="sub" id="gbp" style="display: none;">
 			<div class="left">

@@ -667,7 +667,7 @@
 	.analytics_columns li:last-child { margin-right: 0; width: 306px; }
 
 	.graph { display: block; margin: 0 0 0 -1px; overflow: hidden; padding: 0 0 0 1px; text-align: center; width: 919px; }
-	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -860px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
+	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -865px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
 	.graph .bar.first { margin-left: 0; }
 	.graph .bar.last { margin-right: 0; }
 	.graph .date { color: #333; display: block; float: left; font-size: 10px; margin: 7px 4px 0 2px; text-align: center; width: 60px; }
@@ -685,6 +685,7 @@
 	.table p.module:nth-child(even) { margin-right: 0; }
 	.table p.module a { color: #333; display: block; font-size: 15px; height: 35px; line-height: 35px; margin: 0; padding: 0 0 0 10px; }
 	.table p.module a.add { float: right; height: 16px; padding: 9px 10px 10px; width: 16px; }
+	.table p.module .module_name .icon_small { float: left; margin: 9px 5px 0 0; }
 	
 	.table p.module { background: #fff; border-color: #D7D7D7; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); text-shadow: 0 1px 0 rgba(255, 255, 255, 1); }
 	.table p.module:hover { background-gradient: #eaf5fc #ffffff; border-color: #D4D4D4; box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); }
@@ -1136,6 +1137,26 @@
 	.icon_small_gear { background-position: -496px -140px; }
 	.icon_small_done { background-position: -512px -140px; }
 	.icon_small_warning { background-position: -528px -140px; }
+	.icon_small_news { background-position: -544px -140px; }
+	.icon_small_events { background-position: -560px -140px; }
+	.icon_small_blog { background-position: -576px -140px; }
+	.icon_small_form { background-position: -592px -140px; }
+	.icon_small_category { background-position: -608px -140px; }
+	.icon_small_map { background-position: -624px -140px; }
+	.icon_small_user { background-position: -640px -140px; }
+	.icon_small_twitter { background-position: -656px -140px; }
+	.icon_small_facebook { background-position: -672px -140px; }
+	.icon_small_question { background-position: -688px -140px; }
+	.icon_small_sports { background-position: -704px -140px; }
+	.icon_small_credit_card { background-position: -720px -140px; }
+	.icon_small_cart { background-position: -736px -140px; }
+	.icon_small_cash_register { background-position: -752px -140px; }
+	.icon_small_lock_key { background-position: -768px -140px; }
+	.icon_small_bar_graph { background-position: -784px -140px; }
+	.icon_small_comments { background-position: -800px -140px; }
+	.icon_small_email { background-position: -816px -140px; }
+	.icon_small_pencil { background-position: -832px -140px; }
+	.icon_small_weather { background-position: -848px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }

@@ -15,14 +15,21 @@
 ?>
 <div class="table">
 	<section class="modules modules_no_header">
-		<? foreach ($modules as $module) { ?>
+		<?
+			foreach ($modules as $module) {
+				if (!$module["icon"]) {
+					$module["icon"] = "gear";
+				}
+		?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<? } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?=$module["name"]?></a>
 		</p>
-		<? } ?>
+		<?
+			}
+		?>
 	</section>
 </div>
 <?
@@ -40,14 +47,17 @@
 <div class="table">
 	<summary><h2><?=$group["name"]?></h2></summary>
 	<section class="modules">
-		<? 
-			foreach ($modules as $module) { 
+		<?
+			foreach ($modules as $module) {
+				if (!$module["icon"]) {
+					$module["icon"] = "gear";
+				}
 		?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<? } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?=$module["name"]?></a>
 		</p>
 		<? 
 				$module_count++;
@@ -65,14 +75,17 @@
 <div class="table">
 	<summary><h2>Ungrouped</h2></summary>
 	<section class="modules">
-		<? 
-			foreach ($misc as $module) { 
+		<?
+			foreach ($misc as $module) {
+				if (!$module["icon"]) {
+					$module["icon"] = "gear";
+				}
 		?>
 		<p class="module">
 			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<? } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?=$module["name"]?></a>
 		</p>
 		<? 
 				$module_count++;

@@ -32,7 +32,7 @@
 				$change_modules[0] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
-				$change_modules[$c["module"]] = array("title" => $module["name"], "count" => 1);
+				$change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
 			}
 		} else {
 			$change_modules[$c["module"]]["count"]++;
@@ -124,6 +124,8 @@
 					foreach ($change_modules as $m => $cm) {
 						if ($m == 0) {
 							$icon = "page";
+						} elseif ($cm["icon"]) {
+							$icon = $cm["icon"];
 						} else {
 							$icon = "gear";
 						}
