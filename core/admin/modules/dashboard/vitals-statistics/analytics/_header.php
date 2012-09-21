@@ -19,6 +19,6 @@
 	);
 	
 	$settings = $cms->getSetting("bigtree-internal-google-analytics");
-	$token = $settings["token"];
+	$token = isset($settings["token"]) ? $settings["token"] : "";
 	$profile = isset($settings["profile"]) ? $settings["profile"] : "";
 ?>

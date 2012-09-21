@@ -14,16 +14,16 @@
 	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
 </h1>
 <div class="form_container">
-	<? if ($settings["token"]) { ?>
+	<? if ($token) { ?>
 	<form method="post" action="<?=$mroot?>set-profile/" class="module">
 		<section>
 			<?
-				$client->setAccessToken($settings["token"]);
+				$client->setAccessToken($token);
 				$analytics = new apiAnalyticsService($client);
 				$accounts = $analytics->management_accounts->listManagementAccounts();
 			?>
 			<fieldset>
-				<label>Profile</label>
+				<label>Choose A Profile From The List Below</label>
 				<?
 					$property_lookup = array();
 					foreach ($accounts->items as $account) {
