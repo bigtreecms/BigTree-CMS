@@ -119,6 +119,12 @@
 			header("Content-type: text/css");
 		} elseif (substr($bigtree["path"][$x],-3,3) == "htm" || substr($bigtree["path"][$x],-4,4) == "html") {
 			header("Content-type: text/html");
+		} elseif (substr($bigtree["path"][$x],-3,3) == "png") {
+			header("Content-type: image/png");
+		} elseif (substr($bigtree["path"][$x],-3,3) == "gif") {
+			header("Content-type: image/gif");
+		} elseif (substr($bigtree["path"][$x],-3,3) == "jpg") {
+			header("Content-type: image/jpeg");
 		} else {
 			header("Content-type: text/javascript");
 		}
