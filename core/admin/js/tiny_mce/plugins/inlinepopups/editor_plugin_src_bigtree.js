@@ -196,7 +196,7 @@
 
 			if (!f.type) {
 				DOM.add(id + '_content', 'iframe', {id : id + '_ifr', src : 'javascript:""', frameBorder : 0, style : 'border:0;width:10px;height:10px'});
-				DOM.setStyles(id + '_ifr', {width : f.width, height : f.height});
+				DOM.setStyles(id + '_ifr', {width : f.width + 10, height : f.height});
 				DOM.setAttrib(id + '_ifr', 'src', u);
 			} else {
 				DOM.add(id + '_wrapper', 'a', {id : id + '_ok', 'class' : 'mceButton mceOk', href : 'javascript:;', onmousedown : 'return false;'}, 'Ok');
