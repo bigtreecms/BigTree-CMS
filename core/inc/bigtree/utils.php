@@ -1165,8 +1165,7 @@
 					$tagname = str_replace(">","",$tagexp[0]);
 		
 					// If it's a self contained <br /> tag or similar, don't add it to open tags.
-					if ($tagexp[1] != "/") {
-		
+					if ($tagexp[1] != "/" && $tagexp[1] != "/>") {
 						// See if we're opening or closing a tag.
 						if (substr($tagname,0,1) == "/") {
 							$tagname = str_replace("/","",$tagname);
