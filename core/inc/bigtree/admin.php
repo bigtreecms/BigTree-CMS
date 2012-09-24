@@ -84,8 +84,8 @@
 					$this->Permissions = json_decode($f["permissions"],true);
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
-				$user = mysql_escape_string($_COOKIE["bigtree_admin"]["email"]);
-				$pass = mysql_escape_string($_COOKIE["bigtree_admin"]["password"]);
+				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
+				$pass = sqlescape($_COOKIE["bigtree_admin"]["password"]);
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user' AND password = '$pass'"));
 				if ($f) {
 					$this->ID = $f["id"];

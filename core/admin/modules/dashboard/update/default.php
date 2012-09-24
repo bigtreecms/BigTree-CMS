@@ -193,7 +193,7 @@
 		while ($f = sqlfetch($q)) {
 			if (class_exists($f["class"])) {
 				@eval('$test = new '.$f["class"].';');
-				$table = mysql_real_escape_string($test->Table);
+				$table = sqlescape($test->Table);
 				sqlquery("UPDATE `bigtree_tags_rel` SET `table` = '$table' WHERE module = '".$f["id"]."'");
 			}
 		}
