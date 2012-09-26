@@ -947,9 +947,9 @@
 	.bigtree_dialog_form h4 { border-bottom: 1px solid #eee; color: #333; font-size: 17px; font-weight: normal; margin: 0 0 15px; padding: 10px 0; }
 	.bigtree_dialog_form h4:first-child { margin-top: -10px; }
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
-	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; }
+	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
-	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email] { display: block; width: 418px; }
+	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email], .bigtree_dialog_form input[type=password], .bigtree_dialog_form input[type=url] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
 	.bigtree_dialog_form input.date_picker { width: 180px; }
 	.bigtree_dialog_form input.time_picker { width: 180px; }
