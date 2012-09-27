@@ -5059,12 +5059,12 @@
 		function updateModule($id,$name,$group,$class,$permissions,$icon) {
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
-			$group = sqlescape($group);
+			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$class = sqlescape($class);
 			$permissions = sqlescape(json_encode($permissions));
 			$icon = sqlescape($icon);
 			
-			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
 			unlink(SERVER_ROOT."cache/module-class-list.btc");
