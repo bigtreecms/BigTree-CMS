@@ -589,7 +589,7 @@
 	#tag_results li:nth-child(odd) a { background: #F3F3F3; }
 	#tag_results li:last-child a { border-bottom: none; }
 	#tag_results li.selected a { background: #E0EAF0; }
-	#tag_list { float: right; padding: 5px 0 0 0; width: 645px; }
+	#tag_list { float: right; padding: 28px 0 0 0; width: 645px; }
 	#tag_list li { float: left; margin: 0 5px 5px 0; }
 	#tag_list li a { background: #E3E3E3; border-radius: 10px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); color: #555; display: block; font-size: 10px; height: 19px; line-height: 20px; padding: 0 10px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
 	#tag_list li a:hover { }
