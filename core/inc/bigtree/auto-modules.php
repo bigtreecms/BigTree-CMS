@@ -648,9 +648,8 @@
 		*/
 
 		static function getRelatedFormForView($view) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
-			$f["fields"] = json_decode($f["fields"],true);
-			return $f;
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
+			return self::getForm($f["id"]);
 		}
 		
 		/*
@@ -665,8 +664,8 @@
 		*/
 
 		static function getRelatedViewForForm($form) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
-			return $f;
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+			return self::getView($f["id"]);
 		}
 		
 		/*
