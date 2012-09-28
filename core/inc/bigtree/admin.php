@@ -1307,6 +1307,21 @@
 		}
 
 		/*
+			Function: delete404
+				Deletes a 404 error.
+				Checks permissions.
+
+			Parameters:
+				id - The id of the reported 404.
+		*/
+
+		function delete404($id) {
+			$this->requireLevel(1);
+			$id = sqlescape($id);
+			sqlquery("DELETE FROM bigtree_404s WHERE id = '$id'");
+		}
+		
+		/*
 			Function: deleteCallout
 				Deletes a callout and removes its file.
 
@@ -4344,38 +4359,46 @@
 			Parameters:
 				type - The type of results (301, 404, or ignored).
 				query - The search query.
+				page - The page to return.
 
 			Returns:
 				An array of entries from bigtree_404s.
 		*/
 
-		function search404s($type,$query = "") {
+		function search404s($type,$query = "",$page = 0) {
 			$items = array();
 
 			if ($query) {
 				$s = sqlescape(strtolower($query));
 				if ($type == "301") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != ''";
 				} elseif ($type == "ignored") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') ORDER BY requests DESC LIMIT 50");
+					$where = "ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%')";
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = ''";
 				}
 			} else {
 				if ($type == "301") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND redirect_url != ''";
 				} elseif ($type == "ignored") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored != ''";
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND redirect_url = ''";
 				}
 			}
-
+			
+			// Get the page count
+			$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_404s WHERE $where"));
+			$pages = ceil($f["count"] / 20);
+			$pages = ($pages < 1) ? 1 : $pages;
+			
+			// Get the results
+			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".($page * 20).",20");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
 
-			return $items;
+			return array($pages,$items);
 		}
 
 		/*

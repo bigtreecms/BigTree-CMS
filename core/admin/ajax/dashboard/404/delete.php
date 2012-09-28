@@ -1,4 +1,4 @@
 <?
 	header("Content-type: text/javascript");
-	$admin->unignore404($_POST["id"]);
+	$admin->delete404($_POST["id"]);
 ?>

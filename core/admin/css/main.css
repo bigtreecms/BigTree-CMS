@@ -543,9 +543,9 @@
 	.table .active_draft { background: #D2DEE6; border-radius: 3px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); color: #315264; float: right; font-size: 10px; height: 20px; line-height: 22px; margin: 7px 20px 0 0; text-align: center; text-shadow: 0 1px 0 rgba(255,255,255,0.75); text-transform: uppercase; width: 55px; }
 
 	.table .requests_404 { text-align: center; width: 90px; }
-	.table .url_404 { text-align: left; white-space: nowrap; width: 503px; }
-	.table .redirect_404 { text-align: left; width: 300px; }
-	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 277px; }
+	.table .url_404 { text-align: left; white-space: nowrap; width: 370px; }
+	.table .redirect_404 { text-align: left; width: 368px; }
+	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 345px; }
 	.table .ignore_404 { width: 65px; }
 
 	.table .site_status_message { padding: 0 0 0 20px; text-align: left; width: 300px; }
