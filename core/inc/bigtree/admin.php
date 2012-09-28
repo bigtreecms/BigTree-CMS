@@ -3338,7 +3338,7 @@
 					$ok = true;
 				// Check permissions on a page if it's a page.
 				} elseif ($f["table"] == "bigtree_pages") {
-					$r = $this->getPageAccessLevel($id);
+					$r = $this->getPageAccessLevelByUser($id,$user["id"]);
 					// If we're a publisher, this is ours!
 					if ($r == "p") {
 						$ok = true;
