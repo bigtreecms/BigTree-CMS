@@ -13,7 +13,7 @@
 			Constructor:
 				Pass $debug as true to bypass cache.
 		*/
-		public function __construct($debug = false) {
+		function __construct($debug = false) {
 			global $cms;
 			
 			$this->max_cache_age = 60 * 5; // 5 mins
@@ -34,7 +34,7 @@
 			Function: clearActiveUsername
 				Clears the default username for <user> and <timeline>
 		*/
-		public function clearActiveUsername($username) {
+		function clearActiveUsername($username) {
 			sqlquery("DELETE FROM bigtree_settings WHERE id = 'btx-twitter-active-username'");
 			$this->clearCache();
 		}
@@ -43,7 +43,7 @@
 			Function: parseTimeline
 				Parses timeline JSON to return a nicely formatted PHP array.
 		*/
-		public function parseTimeline($timeline) {
+		function parseTimeline($timeline) {
 			if (!is_array($timeline)) {
 				$timeline = json_decode($timeline, true);
 			}
@@ -87,7 +87,7 @@
 			Function: relativeTime
 				Turns a timestamp into "… hours ago" type timestamp.
 		*/
-		public function relativeTime($time) {
+		function relativeTime($time) {
 			$delta = strtotime(date('r')) - strtotime($time);
 			
 			if ($delta < 2 * $this->MINUTE) {
@@ -115,7 +115,7 @@
 			Function: replaceLinks
 				Replaces links to other twitter users and hash tags with links to twitter.
 		*/
-		public function replaceLinks($text) {
+		function replaceLinks($text) {
 			// RANDOM LINKS
 			$text = preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@", '<a href="\0" target="_blank">\0</a>', $text);
 			// USERS
@@ -129,7 +129,7 @@
 			Function: search
 				Searches for tweets.
 		*/
-		public function search($query = false, $count = false) {
+		function search($query = false, $count = false) {
 			if (!$query) {
 				return false;
 			}
@@ -146,7 +146,7 @@
 			Function: setActiveUsername
 				Sets the default Twitter username for <user> and <timeline>
 		*/
-		public function setActiveUsername($username) {
+		function setActiveUsername($username) {
 			global $admin; 
 			
 			if (!$username) {
@@ -172,7 +172,7 @@
 			Function: timeline
 				Returns the tweets for a given (or default) user.
 		*/		
-		public function timeline($username = false, $count = false) {
+		function timeline($username = false, $count = false) {
 			if (!$username) {
 				if (!$this->active_username) {
 					return false;
@@ -192,7 +192,7 @@
 			Function: user
 				Returns user information for the provided (or default) user.
 		*/		
-		public function user($username = false) {
+		function user($username = false) {
 			if (!$username) {
 				if (!$this->active_username) {
 					return false;

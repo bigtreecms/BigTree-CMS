@@ -589,7 +589,7 @@
 	#tag_results li:nth-child(odd) a { background: #F3F3F3; }
 	#tag_results li:last-child a { border-bottom: none; }
 	#tag_results li.selected a { background: #E0EAF0; }
-	#tag_list { float: right; padding: 5px 0 0 0; width: 645px; }
+	#tag_list { float: right; padding: 28px 0 0 0; width: 645px; }
 	#tag_list li { float: left; margin: 0 5px 5px 0; }
 	#tag_list li a { background: #E3E3E3; border-radius: 10px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); color: #555; display: block; font-size: 10px; height: 19px; line-height: 20px; padding: 0 10px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
 	#tag_list li a:hover { }
@@ -947,9 +947,9 @@
 	.bigtree_dialog_form h4 { border-bottom: 1px solid #eee; color: #333; font-size: 17px; font-weight: normal; margin: 0 0 15px; padding: 10px 0; }
 	.bigtree_dialog_form h4:first-child { margin-top: -10px; }
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
-	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; }
+	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
-	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email] { display: block; width: 418px; }
+	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email], .bigtree_dialog_form input[type=password], .bigtree_dialog_form input[type=url] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
 	.bigtree_dialog_form input.date_picker { width: 180px; }
 	.bigtree_dialog_form input.time_picker { width: 180px; }
