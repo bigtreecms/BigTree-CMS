@@ -31,3 +31,6 @@
 		<input type="checkbox" name="in_nav" <? if ($item["in_nav"]) { ?>checked="checked" <? } ?>/>
 	</fieldset>
 </section>
+<script type="text/javascript">
+	new BigTreeFormValidator("form.module");
+</script>
