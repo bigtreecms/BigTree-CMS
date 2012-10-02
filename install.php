@@ -276,7 +276,11 @@
 		if ($x > 1) {
 			$bigtree["path"] = array_slice($bigtree["path"],$x - 1);
 		}
-		include "../core/admin/router.php";
+		if (file_exists("../custom/admin/router.php")) {
+			include "../custom/admin/router.php";
+		} else {
+			include "../core/admin/router.php";
+		}
 		die();
 	}
 	
