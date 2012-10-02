@@ -49,7 +49,7 @@
 				<? if ($edit_action_exists) { ?>
 				<fieldset>
 					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" <? if (isset($_GET["suffix"])) { ?>value="<?=$_GET["suffix"]?>" <? } ?>/>
+					<input type="text" name="suffix" class="required" <? if (isset($_GET["suffix"])) { ?>value="<?=$_GET["suffix"]?>" <? } ?>/>
 				</fieldset>
 				<? } ?>
 
