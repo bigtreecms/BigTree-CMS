@@ -609,12 +609,12 @@
 			if (strlen($clean_name) > 50) {
 				$clean_name = substr($clean_name,0,50);
 			}
-			$file = $clean_name.".".$parts["extension"];
+			$file = $clean_name.".".strtolower($parts["extension"]);
 			
 			// Just find a good filename that isn't used now.
 			$x = 2;
 			while (file_exists($directory.$file)) {
-				$file = $clean_name."-$x.".$parts["extension"];
+				$file = $clean_name."-$x.".strtolower($parts["extension"]);
 				$x++;
 			}
 			return $file;
