@@ -263,10 +263,10 @@
 		$in_admin = false;
 	} else {
 		foreach ($parts_of_admin as $part) {
-		    if ($part != $bigtree["path"][$x])	{
-		    	$in_admin = false;
-		    }
-		    $x++;
+			if ($part != $bigtree["path"][$x])	{
+				$in_admin = false;
+			}
+			$x++;
 		}
 	}
 	
@@ -323,10 +323,10 @@
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
   # force deflate for mangled headers developer.yahoo.com/blogs/ydn/posts/2010/12/pushing-beyond-gzipping/
   <IfModule mod_setenvif.c>
-    <IfModule mod_headers.c>
-      SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
-      RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
-    </IfModule>
+	<IfModule mod_headers.c>
+	  SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
+	  RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+	</IfModule>
   </IfModule>
   
   # html, txt, css, js, json, xml, htc:
@@ -334,7 +334,7 @@
    FilterDeclare   COMPRESS
    FilterProvider  COMPRESS  DEFLATE resp=Content-Type /text/(html|css|javascript|plain|x(ml|-component))/
    FilterProvider  COMPRESS  DEFLATE resp=Content-Type /application/(javascript|json|xml|x-javascript)/
-   FilterChain     COMPRESS
+   FilterChain	 COMPRESS
    FilterProtocol  COMPRESS  change=yes;byteranges=no
  </IfModule>
  
@@ -370,7 +370,7 @@
 
 <IfModule mod_headers.c>
   <FilesMatch "\.(ttf|otf|eot|woff)$">
-    Header set Access-Control-Allow-Origin "*"
+	Header set Access-Control-Allow-Origin "*"
   </FilesMatch>
 </IfModule>
 
@@ -449,19 +449,19 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree 4.0RC1</title>
+		<title>Install BigTree 4.0RC2</title>
 		<?php if ($installed) { ?>
-		<link rel="stylesheet" href="<?=$www_root?>admin/css/install.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="<?=$www_root?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
-		<link rel="stylesheet" href="core/admin/css/install.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
 		<script type="text/javascript" src="core/admin/js/lib.js"></script>
-		<script type="text/javascript" src="core/admin/js/install.js"></script>
+		<script type="text/javascript" src="core/admin/js/main.js"></script>
 		<?php } ?>
 	</head>
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree 4.0RC1 Installed</h1>
+			<h1>BigTree 4.0RC2 Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
@@ -490,7 +490,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree 4.0b7</h1>
+			<h1>Install BigTree 4.0RC2</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
@@ -652,5 +652,16 @@ RewriteRule (.*) site/$1 [L]');
 			<a href="http://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
 			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?php echo date("Y") ?> Fastspot</a>
 		</div>
+		<script type="text/javascript">
+		    $(document).ready(function() {
+		    	$("#loadbalanced").on("change", function() {
+		    		if ($(this).is(':checked')) {
+		    			$("#loadbalanced_settings").css({ display: "block" });
+		    		} else {
+		    			$("#loadbalanced_settings").css({ display: "none" });
+		    		}
+		    	});
+		    });
+		</script>
 	</body>
 </html>

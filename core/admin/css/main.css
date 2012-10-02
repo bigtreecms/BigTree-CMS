@@ -1376,7 +1376,40 @@
 	#bigtree_foundry_browser_window .browser_pane li.selected { background-gradient: #d6eefc #eaf5fc; }
 	#bigtree_foundry_browser_window .browser_pane .button { float: right; margin: 5px 5px 0 0; }
 	
-	
+/*---------------------------
+	Install Styles
+---------------------------*/
+	body.install { background: url(../images/login-bg.png), url(../images/login-pattern-bg.png); background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
+	.install_wrapper { margin: 0 auto; padding: 75px 0 25px; width: 650px; }
+	.install_wrapper hr { border: 1px solid #fff; border-top-color: #eee; margin: 20px 0; }
+	.install_wrapper h1 { color: #FFF; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; text-shadow: 0 1px 0 #000; }
+	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 1); overflow: hidden; padding: 30px 0 0; }
+	.install_wrapper h2 { color: #444; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; text-shadow: 0 1px 0 #FFF; }
+	.install_wrapper h2 span { background: url(../images/icon-sprite.png) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
+	.install_wrapper h2.getting_started span { background-position: -390px -175px; }
+	.install_wrapper h2.database span { background-position: -365px -175px; }
+	.install_wrapper h2.security span { background-position: -340px -175px; }
+	.install_wrapper h2.account span { background-position: -315px -175px; }
+	.install_wrapper h2.example span { background-position: -290px -175px; }
+	.install_wrapper h2.routing span { background-position: -265px -175px; }
+	.install_wrapper fieldset { margin: 0; padding: 0 30px; }
+	.install_wrapper fieldset.left { float: left; margin: 0; padding: 0 0 0 30px; width: auto; }
+	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
+	.install_wrapper label { color: #666; display: block; font-size: 13px; margin: 0 0 12px 0; }
+	.install_wrapper input.text { border: 1px solid #CCC; border-radius: 3px; color: #666; display: block; height: 32px; margin: 0 0 20px 0; padding: 0 10px; width: 260px !important; }
+	.install_wrapper input.text:last-child { margin: 0; }
+	.install_wrapper p { clear: both; color: #666; font-size: 13px; line-height: 1.3; margin: 0; }
+	.install_wrapper p small { color: #999; display: block; float: left; font-size: 10px; text-transform: uppercase; width: 100px; }
+	.install_wrapper fieldset.lower { background: #F5F5F5; border-top: 1px solid #E5E5E5; margin: 30px 0 0; padding: 25px 30px; }
+	.install_wrapper .forgot_password { color: #666; float: right; line-height: 36px; }
+	.install_wrapper .forgot_password:hover { color: #3E667D; }
+	.install_wrapper .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_wrapper .warning_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_wrapper .delete_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 10px 0 0 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_logo { background: url(../images/icon-sprite.png) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
+	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 100px; }
+	.install_copyright:hover { color: #ccc; }
+
 /*-----------------------------
 	Internet Explorer Fixes
 -----------------------------*/
@@ -1401,7 +1434,7 @@
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
 	
-		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
+		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle, .install_wrapper h2 span, .install_logo { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
 		
 		/* Icons */
 		*[class*='icon_'] { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
