@@ -548,7 +548,6 @@ RewriteRule (.*) site/$1 [L]');
 				</fieldset>
 				
 				<div id="loadbalanced_settings"<?php if (!$loadbalanced) { ?> style="display: none;"<?php } ?>>
-					<br class="clear" />
 					<hr />
 					
 					<h2 class="database"><span></span>Write Database Properties</h2>
@@ -574,9 +573,9 @@ RewriteRule (.*) site/$1 [L]');
 						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($password) ?>" tabindex="9" />
 					</fieldset>
 					<br class="clear" />
+					<br />
 				</div>
 				
-				<br class="clear" />
 				<hr />
 				
 				<h2 class="security"><span></span>Site Security</h2>
@@ -594,7 +593,6 @@ RewriteRule (.*) site/$1 [L]');
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
 				
-				<br class="clear" />
 				<hr />
 				
 				<h2 class="account"><span></span>Administrator Account</h2>
@@ -632,7 +630,6 @@ RewriteRule (.*) site/$1 [L]');
 					</select>
 				</fieldset>
 				
-				<br class="clear" />
 				<br />
 				<hr />
 				
@@ -645,9 +642,7 @@ RewriteRule (.*) site/$1 [L]');
 					<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if ($install_example_site) { ?> checked="checked"<?php } ?> tabindex="14" />
 					<label class="for_checkbox">Install Example Site</label>
 				</fieldset>
-				
-				<br class="clear" />
-				
+								
 				<fieldset class="lower">
 					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
 				</fieldset>
