@@ -39,7 +39,7 @@
 				</fieldset>
 				<fieldset>
 					<label class="required">Class Name <small>(will create a class file in custom/inc/modules/)</small></label>
-					<input name="class" type="text" class="required" />
+					<input name="class" type="text" />
 				</fieldset>
 			</div>
 			
