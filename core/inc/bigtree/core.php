@@ -537,17 +537,24 @@
 			
 			Paramaters:
 				path - An array of path elements from a URL
+				previewing - Whether we are previewing or not.
 			
 			Returns:
 				An array containing the page ID and any additional commands.
 		*/
 		
-		function getNavId($path) {
+		function getNavId($path,$previewing = false) {
 			$commands = array();
+			
+			if (!$previewing) {
+				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
+			} else {
+				$publish_at = "";
+			}
 			
 			// See if we have a straight up perfect match to the path.
 			$spath = implode("/",$path);
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)"));
+			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
 			if ($f) {
 				return array($f["id"],$commands,$f["routed"]);
 			}
@@ -559,7 +566,7 @@
 				$commands[] = $path[count($path)-$x];
 				$spath = implode("/",array_slice($path,0,-1 * $x));
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)"));
+				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
 				if ($f) {
 					return array($f["id"],array_reverse($commands),"on");
 				}
