@@ -105,7 +105,11 @@
 					if ($ga_on) {
 			?>
 			<section class="pages_views">
+				<? if ($item["template"]) { ?>
 				<?=number_format($item["ga_page_views"])?>
+				<? } else { ?>
+				&mdash;
+				<? } ?>
 			</section>
 			<?
 					}
