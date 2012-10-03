@@ -726,6 +726,12 @@
 			}
 			
 			$value = json_decode($f["value"],true);
+
+			// Don't try to do translations and such if it's a system value.
+			if ($f["system"]) {
+				return $value;
+			}
+			
 			if (is_array($value)) {
 				return BigTree::untranslateArray($value);
 			} else {

@@ -10,18 +10,10 @@
 	<form method="post" action="<?=$developer_root?>modules/groups/update/<?=$id?>/" class="module">
 		<header><h2>Group Details</h2></header>
 		<section>
-			<div class="left">
-				<fieldset>
-					<label class="required">Name</label>
-					<input type="text" name="name" value="<?=htmlspecialchars_decode($group["name"])?>" class="required" />
-				</fieldset>
-			</div>
-			<div class="left">
-				<br />
-				<fieldset class="visible clear">
-					<input type="checkbox" name="in_nav" <? if ($group["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="6" /> <label class="for_checkbox">Visible In Dropdown</label>
-				</fieldset>
-			</div>
+			<fieldset>
+			    <label class="required">Name</label>
+			    <input type="text" name="name" value="<?=htmlspecialchars_decode($group["name"])?>" class="required" />
+			</fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />

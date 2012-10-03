@@ -206,4 +206,12 @@
 	function _local_bigtree_update_10() {
 		sqlquery("ALTER TABLE `bigtree_modules` ADD COLUMN `icon` VARCHAR(255) NOT NULL AFTER `class`");
 	}
+	
+	// BigTree 4.0RC2 update -- REVISION 11
+	function _local_bigtree_update_11() {
+		// Got rid of the dropdown for Modules.
+		sqlquery("ALTER TABLE `bigtree_module_groups` DROP COLUMN `in_nav`");
+		// New Analytics stuff requires that we redo everything.
+		sqlquery("UPDATE `bigtree_settings` SET value = '' WHERE id = 'bigtree-internal-google-analytics'");
+	}
 ?>
