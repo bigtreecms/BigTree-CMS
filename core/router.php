@@ -267,7 +267,7 @@
 	}
 	
 	if (!$navid) {
-		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"]);
+		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
 	}
 	
