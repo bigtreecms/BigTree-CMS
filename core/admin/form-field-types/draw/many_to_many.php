@@ -46,6 +46,8 @@
 	$clean_key = str_replace(array("[","]"),"_",$key);
 	
 	$x = 0;
+	
+	if (count($list)) {
 ?>
 <fieldset id="<?=$clean_key?>">
 	<? if ($title) { ?><label><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
@@ -80,3 +82,6 @@
 <script type="text/javascript">
 	new BigTreeManyToMany("<?=$clean_key?>",<?=$x?>,"<?=$key?>",<?=($sortable ? "true" : "false")?>);
 </script>
+<?
+	}
+?>

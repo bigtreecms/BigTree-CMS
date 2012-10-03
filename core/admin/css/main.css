@@ -543,9 +543,9 @@
 	.table .active_draft { background: #D2DEE6; border-radius: 3px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); color: #315264; float: right; font-size: 10px; height: 20px; line-height: 22px; margin: 7px 20px 0 0; text-align: center; text-shadow: 0 1px 0 rgba(255,255,255,0.75); text-transform: uppercase; width: 55px; }
 
 	.table .requests_404 { text-align: center; width: 90px; }
-	.table .url_404 { text-align: left; white-space: nowrap; width: 503px; }
-	.table .redirect_404 { text-align: left; width: 300px; }
-	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 277px; }
+	.table .url_404 { text-align: left; white-space: nowrap; width: 370px; }
+	.table .redirect_404 { text-align: left; width: 368px; }
+	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 345px; }
 	.table .ignore_404 { width: 65px; }
 
 	.table .site_status_message { padding: 0 0 0 20px; text-align: left; width: 300px; }
@@ -589,7 +589,7 @@
 	#tag_results li:nth-child(odd) a { background: #F3F3F3; }
 	#tag_results li:last-child a { border-bottom: none; }
 	#tag_results li.selected a { background: #E0EAF0; }
-	#tag_list { float: right; padding: 5px 0 0 0; width: 645px; }
+	#tag_list { float: right; padding: 28px 0 0 0; width: 645px; }
 	#tag_list li { float: left; margin: 0 5px 5px 0; }
 	#tag_list li a { background: #E3E3E3; border-radius: 10px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); color: #555; display: block; font-size: 10px; height: 19px; line-height: 20px; padding: 0 10px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
 	#tag_list li a:hover { }
@@ -667,12 +667,15 @@
 	.analytics_columns li:last-child { margin-right: 0; width: 306px; }
 
 	.graph { display: block; margin: 0 0 0 -1px; overflow: hidden; padding: 0 0 0 1px; text-align: center; width: 919px; }
-	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -860px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
+	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -865px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }
 	.graph .bar.first { margin-left: 0; }
 	.graph .bar.last { margin-right: 0; }
 	.graph .date { color: #333; display: block; float: left; font-size: 10px; margin: 7px 4px 0 2px; text-align: center; width: 60px; }
 	.graph .date.last { margin-right: 0; }
 	.graph .date.first { margin-left: 0; }
+	
+	#analytics_profiles_loading { line-height: 16px; }
+	#analytics_profiles_loading img { float: left; margin: 0 10px 0 0; }
 	
 /* Modules */
 	.table section.modules { border-radius: 0px 0px 5px 5px; overflow: hidden; padding-bottom: 10px; }
@@ -682,6 +685,7 @@
 	.table p.module:nth-child(even) { margin-right: 0; }
 	.table p.module a { color: #333; display: block; font-size: 15px; height: 35px; line-height: 35px; margin: 0; padding: 0 0 0 10px; }
 	.table p.module a.add { float: right; height: 16px; padding: 9px 10px 10px; width: 16px; }
+	.table p.module .module_name .icon_small { float: left; margin: 9px 5px 0 0; }
 	
 	.table p.module { background: #fff; border-color: #D7D7D7; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); text-shadow: 0 1px 0 rgba(255, 255, 255, 1); }
 	.table p.module:hover { background-gradient: #eaf5fc #ffffff; border-color: #D4D4D4; box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); }
@@ -943,9 +947,9 @@
 	.bigtree_dialog_form h4 { border-bottom: 1px solid #eee; color: #333; font-size: 17px; font-weight: normal; margin: 0 0 15px; padding: 10px 0; }
 	.bigtree_dialog_form h4:first-child { margin-top: -10px; }
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
-	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; }
+	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
-	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email] { display: block; width: 418px; }
+	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email], .bigtree_dialog_form input[type=password], .bigtree_dialog_form input[type=url] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
 	.bigtree_dialog_form input.date_picker { width: 180px; }
 	.bigtree_dialog_form input.time_picker { width: 180px; }
@@ -991,7 +995,7 @@
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
 /* List Options Widget */
-	.bigtree_dialog_form fieldset.list_options_widget { margin: 0 0 15px 0; overflow: hidden; }
+	.bigtree_dialog_form fieldset.list_options_widget { margin: 0 0 17px 0; overflow: hidden; }
 	.bigtree_dialog_form .list_options_widget summary { font-size: 12px; font-weight: bold; overflow: hidden; padding: 0 0 5px 15px; }
 	.bigtree_dialog_form .list_options_widget span { float: left; margin: 0 10px 0 0; }
 	.bigtree_dialog_form .list_options_widget input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; }
@@ -1007,8 +1011,8 @@
 	.bigtree_dialog_form .list_options_widget_1 select { width: 409px; }
 	.bigtree_dialog_form .list_options_widget_2 select { width: 198px; }
 	.bigtree_dialog_form .list_options_widget_3 select { width: 129px; }
-	.bigtree_dialog_form .list_options_widget .icon_sort { background-position: -421px 2px; height: 20px; margin: 0 2px 0 0; width: 13px; }
-	.bigtree_dialog_form .list_options_widget .delete { display: inline-block; padding: 3px 0 0 2px; }
+	.bigtree_dialog_form .list_options_widget .icon_sort { height: 22px; width: 22px; margin: -1px 0 0 -5px; }
+	.bigtree_dialog_form .list_options_widget .delete { display: inline-block; margin: 3px 0 0 2px; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { height: 22px; margin: 0 0 5px 0; width: 100%; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder:last-child { margin: 0; }
 	.bigtree_dialog_form .list_options_widget_3 .delete { padding: 3px 0 0 1px; }
@@ -1093,6 +1097,8 @@
 	.icon_message { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -600px -80px; }
 	.icon_dialog_add { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -624px -80px; } 
 	.icon_drag { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -648px -80px; cursor: move; }
+	.icon_repeat { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -672px -80px; }
+	.icon_repeat_on { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -696px -80px; }
 	
 	.disabled_icon { cursor: default; opacity: 0.3; }
 
@@ -1133,6 +1139,26 @@
 	.icon_small_gear { background-position: -496px -140px; }
 	.icon_small_done { background-position: -512px -140px; }
 	.icon_small_warning { background-position: -528px -140px; }
+	.icon_small_news { background-position: -544px -140px; }
+	.icon_small_events { background-position: -560px -140px; }
+	.icon_small_blog { background-position: -576px -140px; }
+	.icon_small_form { background-position: -592px -140px; }
+	.icon_small_category { background-position: -608px -140px; }
+	.icon_small_map { background-position: -624px -140px; }
+	.icon_small_user { background-position: -640px -140px; }
+	.icon_small_twitter { background-position: -656px -140px; }
+	.icon_small_facebook { background-position: -672px -140px; }
+	.icon_small_question { background-position: -688px -140px; }
+	.icon_small_sports { background-position: -704px -140px; }
+	.icon_small_credit_card { background-position: -720px -140px; }
+	.icon_small_cart { background-position: -736px -140px; }
+	.icon_small_cash_register { background-position: -752px -140px; }
+	.icon_small_lock_key { background-position: -768px -140px; }
+	.icon_small_bar_graph { background-position: -784px -140px; }
+	.icon_small_comments { background-position: -800px -140px; }
+	.icon_small_email { background-position: -816px -140px; }
+	.icon_small_pencil { background-position: -832px -140px; }
+	.icon_small_weather { background-position: -848px -140px; }
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
@@ -1350,7 +1376,41 @@
 	#bigtree_foundry_browser_window .browser_pane li.selected { background-gradient: #d6eefc #eaf5fc; }
 	#bigtree_foundry_browser_window .browser_pane .button { float: right; margin: 5px 5px 0 0; }
 	
-	
+/*---------------------------
+	Install Styles
+---------------------------*/
+	body.install { background: url(../images/login-bg.png), url(../images/login-pattern-bg.png); background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
+	.install_wrapper { margin: 0 auto; padding: 75px 0 25px; width: 650px; }
+	.install_wrapper hr { border: 1px solid #fff; border-top-color: #eee; margin: 20px 0; }
+	.install_wrapper h1 { color: #FFF; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; text-shadow: 0 1px 0 #000; }
+	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 1); overflow: hidden; padding: 30px 0 0; }
+	.install_wrapper h2 { color: #444; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; text-shadow: 0 1px 0 #FFF; }
+	.install_wrapper h2 span { background: url(../images/icon-sprite.png) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
+	.install_wrapper h2.getting_started span { background-position: -390px -175px; }
+	.install_wrapper h2.database span { background-position: -365px -175px; }
+	.install_wrapper h2.security span { background-position: -340px -175px; }
+	.install_wrapper h2.account span { background-position: -315px -175px; }
+	.install_wrapper h2.example span { background-position: -290px -175px; }
+	.install_wrapper h2.routing span { background-position: -265px -175px; }
+	.install_wrapper fieldset { margin: 0; padding: 0 30px; }
+	.install_wrapper fieldset.left { float: left; margin: 0; padding: 0 0 0 30px; width: auto; }
+	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
+	.install_wrapper label { color: #666; display: block; font-size: 13px; margin: 0 0 12px 0; }
+	.install_wrapper input.text { border: 1px solid #CCC; border-radius: 3px; color: #666; display: block; height: 32px; margin: 0 0 20px 0; padding: 0 10px; width: 260px !important; }
+	.install_wrapper input.text:last-child { margin: 0; }
+	.install_wrapper p { clear: both; color: #666; font-size: 13px; line-height: 1.3; margin: 0; }
+	.install_wrapper p small { color: #999; display: block; float: left; font-size: 10px; text-transform: uppercase; width: 100px; }
+	.install_wrapper fieldset.lower { background: #F5F5F5; border-top: 1px solid #E5E5E5; margin: 20px 0 0; padding: 25px 30px; }
+	.install_wrapper .forgot_password { color: #666; float: right; line-height: 36px; }
+	.install_wrapper .forgot_password:hover { color: #3E667D; }
+	.install_wrapper .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_wrapper .warning_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_wrapper .delete_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 10px 0 0 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_logo { background: url(../images/icon-sprite.png) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
+	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 100px; }
+	.install_copyright:hover { color: #ccc; }
+	.install_wrapper ul { list-style: disc inside; line-height: 160%; margin: 20px 0; }
+
 /*-----------------------------
 	Internet Explorer Fixes
 -----------------------------*/
@@ -1375,7 +1435,7 @@
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
 	
-		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
+		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle, .install_wrapper h2 span, .install_logo { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
 		
 		/* Icons */
 		*[class*='icon_'] { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }

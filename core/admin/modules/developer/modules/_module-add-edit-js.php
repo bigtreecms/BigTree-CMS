@@ -16,4 +16,12 @@
 			new BigTreeSelect(goingToPop.find("select").get(0));
 		});
 	}
+	
+	$(".developer_icon_list a").click(function() {
+		$(".developer_icon_list a").removeClass("active");
+		$(this).addClass("active");
+		$("#selected_icon").val($(this).attr("href").substr(1));
+		
+		return false;
+	});
 </script>

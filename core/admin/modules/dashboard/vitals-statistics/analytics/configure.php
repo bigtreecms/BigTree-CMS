@@ -7,10 +7,6 @@
 </h1>
 <?
 	} else {
-		if (!$user || !$pass || !$profile) {
-			BigTree::redirect($mroot."setup/");
-		}
-		
 		$breadcrumb[] = array("link" => "dashboard/analytics/configure/", "title" => "Configure");
 ?>
 <h1>
@@ -18,62 +14,104 @@
 	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
 </h1>
 <div class="form_container">
-	<form method="post" action="<?=$mroot?>authenticate/" class="module">
+	<? if ($token) { ?>
+	<form method="post" action="<?=$mroot?>set-profile/" class="module">
 		<section>
-			<? if ($user && false) { ?>
-			<p class="error_message">Your Google Analytics password has changed, please login again.</p>
-			<? } ?>
-			<p>Edit your Google Analytics email address and password below, or disconnect your account from BigTree.</p>
-			<br />
-			<? if (end($bigtree["path"]) == "error") { ?>
-			<p class="error_message">Google Login Failed.</p>
-			<? } ?>
-			<div class="left">
-				<fieldset>
-					<label>Email Address</label>
-				<input type="text" name="email" value="<?=$user?>" />
-				</fieldset>
-				<fieldset>
-					<label>Password</label>
-					<input type="password" name="password" value="<?=$pass?>" />
-				</fieldset>
-				<fieldset>
-				<label>Active Profile</label>
+			<?
+				$client->setAccessToken($token);
+				$analytics = new apiAnalyticsService($client);
+				$accounts = $analytics->management_accounts->listManagementAccounts();
+			?>
+			<fieldset>
+				<label>Choose A Profile From The List Below</label>
 				<?
-					$ga = new BigTreeGoogleAnalytics;
-					$accounts = $ga->getAvailableProfiles();
-					foreach ($accounts as $account => $profiles) {
-						foreach ($profiles as $pro) {
-							if ($pro["id"] == $profile) {
-				?>
-				<p>
-					<strong><?=$account?> &mdash; <?=$pro["title"]?></strong> <a href="<?=$mroot?>choose-profile">(Change)</a>
-				</p>
-				<?
-							}
+					$property_lookup = array();
+					foreach ($accounts->items as $account) {
+						$properties = $analytics->management_webproperties->listManagementWebproperties($account->id);
+						foreach ($properties->items as $property) {
+							$property_lookup[] = array("account" => $account->id, "account_name" => $account->name, "property" => $property->id);
 						}
+					}
+					
+					if (count($property_lookup)) {
+				?>
+				<div id="analytics_profiles_loading"><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> Loading Profiles: <span id="current_property">0</span> of <?=count($property_lookup)?> complete</div>
+				<script type="text/javascript">
+					var properties = <?=json_encode($property_lookup)?>;
+					var current_property = 0;
+					var profiles = [];
+					
+					function getProfile() {
+						$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/analytics/get-management-profiles/", { type: "POST", data: { account: properties[current_property].account, property: properties[current_property].property }, success: function(response) {
+							
+							for (i in response) {
+								profiles[profiles.length] = { account: properties[current_property].account_name, name: response[i].name, id: response[i].id };
+							}
+							
+							current_property++;
+							$("#current_property").html(current_property);
+							if (current_property < properties.length) {
+								getProfile();
+							} else {
+								html = '<select name="profile">';
+								for (i in profiles) {
+									p = profiles[i];
+									html += '<option value="' + p.id + '">' + htmlspecialchars(p.account) + ' &mdash; ' + htmlspecialchars(p.name) + '</option>';
+								}
+								html += '</select>';
+								$("#analytics_profiles_loading").html(html);
+								BigTreeCustomControls();
+								$("#set_button").show();
+							}
+						}});
+					}
+					
+					getProfile();
+				</script>
+				<?
+					} else {
+				?>
+				<p class="error_message">No profiles were found in your Google Analytics account.</p>
+				<?  	
 					}
 				?>
 			</fieldset>
-			</div>
 		</section>
 		<footer>
-			<input type="submit" value="Re-Authenticate" class="blue" />
+			<input type="submit" value="Set Profile" class="blue" id="set_button" style="display: none;" />
 			<a href="<?=$mroot?>disconnect/" class="button" id="ga_disconnect">Disconnect</a>
 		</footer>
-		<script>
-			$(document).ready(function() {
-				$("#ga_disconnect").click(function() {
-					var href = $(this).attr("href");
-					var popup = new BigTreeDialog("Disconnect Google Analytics","Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.",function() {
-						window.location.href = href;
-					},"delete",false,"Disconnect");
-					return false;
-				});
-			});
-		</script>
 	</form>
+	
+	<? } else { ?>
+	<form method="get" action="<?=$mroot?>set-token/" class="module">	
+		<section>
+			<p>To connect Google Analytics you will need to login to your Google Analytics account by clicking the Authenticate button below. Once you have logged in you will be taken to a screen with a code in a box. Copy that code into the field that appears below to allow BigTree to access your Google Analytics information.</p>
+			<fieldset>
+				<input type="text" name="code" placeholder="Enter Code Here" />
+			</fieldset>
+		</section>
+		<footer>
+			<a href="<?=$client->createAuthUrl()?>" class="button" id="google_button" target="_blank">Authenticate</a>
+			<input type="submit" class="button blue" id="profile_button" value="Save Code" style="display: none;" />
+		</footer>
+	</form>
+	<? } ?>		
 </div>
+<script>
+	$("#google_button").click(function() {
+		$(this).hide();
+		$("#profile_button").show();
+	});
+	
+	$("#ga_disconnect").click(function() {
+		var href = $(this).attr("href");
+		var popup = new BigTreeDialog("Disconnect Google Analytics","Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.",function() {
+			window.location.href = href;
+		},"delete",false,"Disconnect");
+		return false;
+	});
+</script>
 <?
 	}
 ?>

@@ -63,7 +63,8 @@
 			if ($route != $oroute) {
 				$route_match["custom/admin/$oroute/"] = "custom/admin/$route/";
 			}
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class','$group_id','$gbp')");
+			$group_insert = $group_id ? "'$group_id'" : "NULL";
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group_insert,'$gbp')");
 			$module_match[$id] = sqlid();
 			$module_id = sqlid();
 		}
@@ -79,7 +80,8 @@
 		
 		// Import a Module Form
 		if ($type == "ModuleForm") {
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`,`return_view`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position','$return_view')");
+			$return_view = $return_view ? "'".$return_view."'" : "NULL";
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`,`return_view`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position',$return_view)");
 			$last_form_id = sqlid();
 		}
 		
@@ -176,5 +178,6 @@
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
+	
 	BigTree::redirect(ADMIN_ROOT."developer/foundry/install/complete/");
 ?>

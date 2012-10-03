@@ -11,5 +11,5 @@
 	}
 	
 	$admin->growl("Analytics","Profile Set");
-	BigTree::redirect($mroot);	
+	BigTree::redirect($mroot."cache/");	
 ?>

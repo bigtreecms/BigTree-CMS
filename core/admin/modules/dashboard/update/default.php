@@ -193,12 +193,17 @@
 		while ($f = sqlfetch($q)) {
 			if (class_exists($f["class"])) {
 				@eval('$test = new '.$f["class"].';');
-				$table = mysql_real_escape_string($test->Table);
+				$table = sqlescape($test->Table);
 				sqlquery("UPDATE `bigtree_tags_rel` SET `table` = '$table' WHERE module = '".$f["id"]."'");
 			}
 		}
 		sqlquery("UPDATE `bigtree_tags_rel` SET `table` = 'bigtree_pages' WHERE module = 0");
 		// And drop the module column.
 		sqlquery("ALTER TABLE `bigtree_tags_rel` DROP COLUMN `module`");
+	}
+	
+	// BigTree 4.0RC2 update -- REVISION 10
+	function _local_bigtree_update_10() {
+		sqlquery("ALTER TABLE `bigtree_modules` ADD COLUMN `icon` VARCHAR(255) NOT NULL AFTER `class`");
 	}
 ?>

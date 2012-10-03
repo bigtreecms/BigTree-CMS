@@ -4,16 +4,15 @@
 			Cachable Module; Simple text based cacheing of cURLed data 
 	*/
 	
-	class BTXCacheableModule extends BigTreeModule {
+	class BTXCacheableModule {
 		
-		var $version = "0.1";
 		var $curl_options = array();
 		
 		/*
 			Constructor
 				Setting $debug to true forces through cache.
 		*/
-		public function __construct($debug = false) {
+		function __construct($debug = false) {
 			$this->debug = $debug;
 			$this->cache_root = SERVER_ROOT . "cache/custom/";
 			$this->cache_base = $this->cache_root . $this->cache_prefix;
@@ -28,7 +27,7 @@
 			Function: cacheAge
 				Return cache filetime; "0" if file does not exist
 		*/
-		public function cacheAge($file) {
+		function cacheAge($file) {
 			return file_exists($file) ? filemtime($file) : 0;
 		}
 		
@@ -36,7 +35,7 @@
 			Function: cacheCurl
 				cURL w/ Caching; allows for custom formatter (must be class method)
 		*/
-		public function cacheCurl($curl_url, $cache_file, $formatter = false, $is_xml = false) {
+		function cacheCurl($curl_url, $cache_file, $formatter = false, $is_xml = false) {
 			$cache_age = $this->cacheAge($cache_file);
 			
 			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
@@ -63,7 +62,7 @@
 			Function: clearCache
 				Clear cahced files; empty filename clears all
 		*/
-		public function clearCache($cache_file = false) {
+		function clearCache($cache_file = false) {
 			if ($cache_file === false) {
 				$dir = opendir($this->cache_root);
 				while ($file = readdir($dir)) {

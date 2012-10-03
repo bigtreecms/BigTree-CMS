@@ -58,4 +58,6 @@
 	}
 	
 	_local_hooks();
+	
+	new BigTreeFormValidator("form.module");
 </script>	

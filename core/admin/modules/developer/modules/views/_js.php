@@ -20,4 +20,6 @@
 			$("#fields").show();
 		}
 	});
+	
+	new BigTreeFormValidator("form.module");
 </script>

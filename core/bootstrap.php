@@ -25,7 +25,7 @@
 	}
 	
 	// Connect to MySQL and include the shorterner functions
-	include BigTree::path("inc/utils/mysql.inc.php");
+	include BigTree::path("inc/bigtree/sql.php");
 	
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
@@ -51,18 +51,18 @@
 	// Lazy loading of modules
 	$bigtree["module_list"] = $cms->ModuleClassList;
 	$bigtree["other_classes"] = array(
-		"CSSMin" => "inc/utils/CSSMin.php",
-		"htmlMimeMail" => "inc/utils/html-mail.inc.php",
-		"JSMin" => "inc/utils/JSMin.php",
-		"PasswordHash" => "inc/utils/PasswordHash.php",
-		"TextStatistics" => "inc/utils/text-statistics.php",
+		"CSSMin" => "inc/lib/CSSMin.php",
+		"htmlMimeMail" => "inc/lib/html-mail.inc.php",
+		"JSMin" => "inc/lib/JSMin.php",
+		"PasswordHash" => "inc/lib/PasswordHash.php",
+		"TextStatistics" => "inc/lib/text-statistics.php",
 		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
 		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
 		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
-		"S3" => "inc/utils/amazon-s3.php",
-		"CF_Authentication" => "inc/utils/rackspace-cloud.php"
+		"S3" => "inc/lib/amazon-s3.php",
+		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);
 	
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {

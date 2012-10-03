@@ -55,10 +55,24 @@
 					<label>Class Name <small>(only change this if you renamed your class manually)</small></label>
 					<input name="class" type="text" value="<?=htmlspecialchars($module["class"])?>" />
 				</fieldset>
-				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
-				</fieldset>
 			</div>
+			
+			<br class="clear" />
+			<fieldset>
+		        <label class="required">Icon</label>
+		        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
+		        <ul class="developer_icon_list">
+		        	<? foreach ($admin->IconClasses as $class) { ?>
+		        	<li>
+		        		<a href="#<?=$class?>"<? if ($class == $module["icon"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        	</li>
+		        	<? } ?>
+		        </ul>
+		    </fieldset>
+			
+			<fieldset>
+				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
+			</fieldset>
 		</section>
 		<section class="sub" id="gbp"<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> style="display: none;"<? } ?>>
 			<div class="left">

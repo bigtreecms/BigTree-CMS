@@ -650,9 +650,8 @@
 		*/
 
 		static function getRelatedFormForView($view) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
-			$f["fields"] = json_decode($f["fields"],true);
-			return $f;
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
+			return self::getForm($f["id"]);
 		}
 		
 		/*
@@ -667,8 +666,8 @@
 		*/
 
 		static function getRelatedViewForForm($form) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
-			return $f;
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+			return self::getView($f["id"]);
 		}
 		
 		/*
@@ -1096,7 +1095,13 @@
 				}
 				$comments = sqlescape(json_encode($comments));
 				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
-				self::recacheItem($id,$table);
+				
+				// If the id has a "p" it's still pending and we need to recache over the pending one.
+				if (substr($id,0,1) == "p") {
+					self::recacheItem(substr($id,1),$table,true);
+				} else {
+					self::recacheItem($id,$table);					
+				}
 				
 				if ($admin) {
 					$admin->track($table,$id,"updated-draft");

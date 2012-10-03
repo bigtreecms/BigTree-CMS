@@ -2,8 +2,8 @@
 	// - MySQL Call Wrapper Functions -
 	// Support for splitting reads/writes and handling error throwing automatically.
 
-	$sqlerrors = array();
-	$sqlqueries = array();
+	$bigtree["sql"]["errors"] = array();
+	$bigtree["sql"]["queries"] = array();
 	
 	if (isset($bigtree["config"]["sql_interface"]) && $bigtree["config"]["sql_interface"] == "mysqli") {
 	
@@ -37,7 +37,11 @@
 		
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 			function sqlquery($query,$connection = false,$type = "read") {
-				global $sqlerrors,$bigtree;
+				global $bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$bigtree["sql"]["queries"][] = $query;
+				}
 				
 				if (!$connection) {
 					$commands = explode(" ",$query);
@@ -59,7 +63,7 @@
 				$e = $connection->error;
 				if ($e) {
 					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($sqlerrors,$sqlerror);
+					array_push($bigtree["sql"]["errors"],$sqlerror);
 					return false;
 				}
 				
@@ -67,7 +71,11 @@
 			}
 		} else {
 			function sqlquery($query,$connection = false) {
-				global $sqlerrors,$bigtree;
+				global $bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$bigtree["sql"]["queries"][] = $query;
+				}
 				
 				if (!$connection) {
 					$connection = &$bigtree["mysql_read_connection"];
@@ -81,7 +89,7 @@
 				$e = $connection->error;
 				if ($e) {
 					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($sqlerrors,$sqlerror);
+					array_push($bigtree["sql"]["errors"],$sqlerror);
 					return false;
 				}
 				
@@ -106,9 +114,9 @@
 			global $bigtree;
 			// If the query is boolean, it's probably a "false" from a failed sql query.
 			if (is_bool($query) && !$ignore_errors) {
-				global $sqlerrors;
+				global $bigtree["sql"]["errors"];
 				if ($bigtree["config"]["debug"]) {
-					throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
+					throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
 				}
 				return false;
 			} else {
@@ -180,7 +188,11 @@
 		
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 			function sqlquery($query,$connection = false,$type = "read") {
-				global $sqlerrors,$bigtree;
+				global $bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$bigtree["sql"]["queries"][] = $query;
+				}
 				
 				if (!$connection) {
 					$commands = explode(" ",$query);
@@ -202,7 +214,7 @@
 				$e = mysql_error();
 				if ($e) {
 					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($sqlerrors,$sqlerror);
+					array_push($bigtree["sql"]["errors"],$sqlerror);
 					return false;
 				}
 				
@@ -210,7 +222,11 @@
 			}
 		} else {
 			function sqlquery($query,$connection = false) {
-				global $sqlerrors,$bigtree;
+				global $bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$bigtree["sql"]["queries"][] = $query;
+				}
 				
 				if (!$connection) {
 					$connection = &$bigtree["mysql_read_connection"];
@@ -224,7 +240,7 @@
 				$e = mysql_error();
 				if ($e) {
 					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($sqlerrors,$sqlerror);
+					array_push($bigtree["sql"]["errors"],$sqlerror);
 					return false;
 				}
 				
@@ -250,9 +266,9 @@
 			
 			// If the query is boolean, it's probably a "false" from a failed sql query.
 			if (is_bool($query) && !$ignore_errors) {
-				global $sqlerrors;
+				global $bigtree["sql"]["errors"];
 				if ($bigtree["config"]["debug"]) {
-					throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$sqlerrors[count($sqlerrors)-1]);
+					throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
 				}
 				return false;
 			} else {

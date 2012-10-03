@@ -28,3 +28,6 @@
 		</footer>
 	</form>
 </div>
+<script type="text/javascript">
+	new BigTreeFormValidator("form.module");
+</script>

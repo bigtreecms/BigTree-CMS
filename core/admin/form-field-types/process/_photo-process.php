@@ -135,15 +135,17 @@
 					);
 				// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
 				} elseif ($iheight == $cheight && $iwidth == $cwidth) {
+					// See if we want thumbnails
 					if (is_array($crop["thumbs"])) {
 						foreach ($crop["thumbs"] as $thumb) {
+							// Create a temporary thumbnail of the image on the server before moving it to it's destination.
 							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 							BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
 							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 							$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
 						}
 					}
-		
+					
 					$upload_service->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$options["directory"],false);
 				}
 			}

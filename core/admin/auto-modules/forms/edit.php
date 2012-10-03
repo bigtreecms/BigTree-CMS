@@ -11,8 +11,12 @@
 		
 	if (!$data) {
 ?>
-<h1><span class="error"></span>Error</h1>
-<p class="error">The item you are trying to edit no longer exists.</p>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>The item you are trying to edit no longer exists.</p>
+	</section>
+</div>
 <?
 	} else {
 		$view = BigTreeAutoModule::getRelatedViewForForm($form);				

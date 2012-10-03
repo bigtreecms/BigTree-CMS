@@ -24,7 +24,7 @@
 		</fieldset>
 		<fieldset>
 			<label class="required">Default Display Label <small>(displays if no resources are assigned as "Label")</small></label>
-			<input type="text" class="required" name="display_default" value="<?=$display_default?>" />
+			<input type="text" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
 	<div class="right">

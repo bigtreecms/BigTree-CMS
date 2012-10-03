@@ -9,7 +9,7 @@
 		$group = $group_existing;
 	}
 	
-	$id = $admin->createModule($name,$group,$class,$table,$gbp);
+	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon);
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");

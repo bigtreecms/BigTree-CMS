@@ -103,8 +103,8 @@
 	?>
 </script>
 <?
-	$mce_width = 400;
-	$mce_height = 150;
+	$mce_width = 440;
+	$mce_height = 200;
 	
 	if (count($bigtree["html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific.php");

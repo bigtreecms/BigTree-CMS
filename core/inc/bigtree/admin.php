@@ -64,6 +64,9 @@
 				"class" => "icon_delete"
 			)
 		);
+		
+		// !Icon Classes
+		var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
 
 		/*
 			Constructor:
@@ -81,8 +84,8 @@
 					$this->Permissions = json_decode($f["permissions"],true);
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
-				$user = mysql_escape_string($_COOKIE["bigtree_admin"]["email"]);
-				$pass = mysql_escape_string($_COOKIE["bigtree_admin"]["password"]);
+				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
+				$pass = sqlescape($_COOKIE["bigtree_admin"]["password"]);
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user' AND password = '$pass'"));
 				if ($f) {
 					$this->ID = $f["id"];
@@ -622,12 +625,13 @@
 				class - The module class to create.
 				table - The table this module relates to.
 				permissions - The group-based permissions.
+				icon - The icon to use.
 
 			Returns:
 				The new module id.
 		*/
 
-		function createModule($name,$group,$class,$table,$permissions) {
+		function createModule($name,$group,$class,$table,$permissions,$icon) {
 			global $cms;
 
 			// Find an available module route.
@@ -675,8 +679,9 @@
 			$class = sqlescape($class);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$gbp = sqlescape(json_encode($permissions));
+			$icon = sqlescape($icon);
 
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group,'$gbp')");
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('$name','$route','$class','$icon',$group,'$gbp')");
 			$id = sqlid();
 
 			if ($class) {
@@ -1302,6 +1307,21 @@
 		}
 
 		/*
+			Function: delete404
+				Deletes a 404 error.
+				Checks permissions.
+
+			Parameters:
+				id - The id of the reported 404.
+		*/
+
+		function delete404($id) {
+			$this->requireLevel(1);
+			$id = sqlescape($id);
+			sqlquery("DELETE FROM bigtree_404s WHERE id = '$id'");
+		}
+		
+		/*
 			Function: deleteCallout
 				Deletes a callout and removes its file.
 
@@ -1337,8 +1357,9 @@
 		*/
 
 		function deleteFieldType($id) {
-			unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
-			unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
+			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 		}
 
@@ -3332,7 +3353,7 @@
 					$ok = true;
 				// Check permissions on a page if it's a page.
 				} elseif ($f["table"] == "bigtree_pages") {
-					$r = $this->getPageAccessLevel($id);
+					$r = $this->getPageAccessLevelByUser($id,$user["id"]);
 					// If we're a publisher, this is ours!
 					if ($r == "p") {
 						$ok = true;
@@ -4338,38 +4359,46 @@
 			Parameters:
 				type - The type of results (301, 404, or ignored).
 				query - The search query.
+				page - The page to return.
 
 			Returns:
 				An array of entries from bigtree_404s.
 		*/
 
-		function search404s($type,$query = "") {
+		function search404s($type,$query = "",$page = 0) {
 			$items = array();
 
 			if ($query) {
 				$s = sqlescape(strtolower($query));
 				if ($type == "301") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != ''";
 				} elseif ($type == "ignored") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') ORDER BY requests DESC LIMIT 50");
+					$where = "ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%')";
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = ''";
 				}
 			} else {
 				if ($type == "301") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND redirect_url != '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND redirect_url != ''";
 				} elseif ($type == "ignored") {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored != '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored != ''";
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' ORDER BY requests DESC LIMIT 50");
+					$where = "ignored = '' AND redirect_url = ''";
 				}
 			}
-
+			
+			// Get the page count
+			$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_404s WHERE $where"));
+			$pages = ceil($f["count"] / 20);
+			$pages = ($pages < 1) ? 1 : $pages;
+			
+			// Get the results
+			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".($page * 20).",20");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
 
-			return $items;
+			return array($pages,$items);
 		}
 
 		/*
@@ -5047,15 +5076,18 @@
 				group - The group for the module.
 				class - The module class to create.
 				permissions - The group-based permissions.
+				icon - The icon to use.
 		*/
 
-		function updateModule($id,$name,$group,$class,$permissions) {
+		function updateModule($id,$name,$group,$class,$permissions,$icon) {
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
-			$group = sqlescape($group);
+			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$class = sqlescape($class);
 			$permissions = sqlescape(json_encode($permissions));
-			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = '$group', class = '$class', `gbp` = '$permissions' WHERE id = '$id'");
+			$icon = sqlescape($icon);
+			
+			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
 			unlink(SERVER_ROOT."cache/module-class-list.btc");
