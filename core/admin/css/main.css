@@ -794,7 +794,7 @@
 	
 /* Settings Stuff */
 	.table .settings_name { padding: 0 20px; text-align: left; width: 250px; }
-	.table .settings_value { text-align: left; width: 606px; }
+	.table .settings_value { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 606px; }
 
 /* Advanced Search Page */
 	.adv_search { margin: 0 0 15px 0; overflow: hidden; }
