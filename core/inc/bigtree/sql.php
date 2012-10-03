@@ -37,7 +37,11 @@
 		
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 			function sqlquery($query,$connection = false,$type = "read") {
-				global $sqlerrors,$bigtree;
+				global $sqlqueries,$sqlerrors,$bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$sqlqueries[] = $query;
+				}
 				
 				if (!$connection) {
 					$commands = explode(" ",$query);
@@ -67,7 +71,11 @@
 			}
 		} else {
 			function sqlquery($query,$connection = false) {
-				global $sqlerrors,$bigtree;
+				global $sqlqueries,$sqlerrors,$bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$sqlqueries[] = $query;
+				}
 				
 				if (!$connection) {
 					$connection = &$bigtree["mysql_read_connection"];
@@ -180,7 +188,11 @@
 		
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 			function sqlquery($query,$connection = false,$type = "read") {
-				global $sqlerrors,$bigtree;
+				global $sqlqueries,$sqlerrors,$bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$sqlqueries[] = $query;
+				}
 				
 				if (!$connection) {
 					$commands = explode(" ",$query);
@@ -210,7 +222,11 @@
 			}
 		} else {
 			function sqlquery($query,$connection = false) {
-				global $sqlerrors,$bigtree;
+				global $sqlqueries,$sqlerrors,$bigtree;
+				
+				if ($bigtree["config"]["debug"]) {
+					$sqlqueries[] = $query;
+				}
 				
 				if (!$connection) {
 					$connection = &$bigtree["mysql_read_connection"];
