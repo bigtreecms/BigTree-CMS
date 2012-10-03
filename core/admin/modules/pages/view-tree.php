@@ -1,5 +1,6 @@
 <?
-	$ga_on = $cms->getSetting("bigtree-internal-google-analytics-profile");
+	$ga = $cms->getSetting("bigtree-internal-google-analytics");
+	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
 	
 	$parent = is_array($bigtree["commands"]) ? end($bigtree["commands"]) : 0;
 	$page = $cms->getPage($parent,false);
