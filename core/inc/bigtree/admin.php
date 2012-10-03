@@ -3690,7 +3690,7 @@
 		*/
 
 		function getSetting($id) {
-			global $bigtree;
+			global $bigtree,$cms;
 			$id = sqlescape($id);
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
@@ -3698,14 +3698,19 @@
 				return false;
 			}
 
-			foreach ($f as $key => $val) {
-				$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
-			}
 			if ($f["encrypted"]) {
 				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 				$f["value"] = $v["value"];
 			}
+			
 			$f["value"] = json_decode($f["value"],true);
+			
+			if (is_array($f["value"])) {
+				$f["value"] = BigTree::untranslateArray($f["value"]);
+			} else {
+				$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+			}
+			
 			return $f;
 		}
 
