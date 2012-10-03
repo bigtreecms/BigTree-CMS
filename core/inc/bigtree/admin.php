@@ -776,13 +776,12 @@
 
 			Parameters:
 				name - The name of the group.
-				in_nav - Whether to show the group in the dropdown navigation
 
 			Returns:
 				The id of the newly created group.
 		*/
 
-		function createModuleGroup($name,$in_nav) {
+		function createModuleGroup($name) {
 			global $cms;
 
 			$name = sqlescape($name);
@@ -799,7 +798,7 @@
 			// Just to be safe
 			$route = sqlescape($route);
 
-			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`,`in_nav`) VALUES ('$name','$route','$in_nav')");
+			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`) VALUES ('$name','$route')");
 			return sqlid();
 		}
 
@@ -5172,7 +5171,7 @@
 				name - The name of the module group.
 		*/
 
-		function updateModuleGroup($id,$name,$in_nav) {
+		function updateModuleGroup($id,$name) {
 			global $cms;
 
 			$id = sqlescape($id);
@@ -5182,18 +5181,17 @@
 			$x = 2;
 			$route = $cms->urlify($name);
 			$oroute = $route;
-			$q = sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '" . sqlescape($route) . "'");
-			while ($g = sqlfetch($q)) {
-				if ($g["id"] != $id) {
-					$route = $oroute."-".$x;
-					$x++;
-				}
+			$existing = $this->getModuleGroupByRoute($route);
+			while ($existing && $existing["id"] != $id) {
+				$route = $oroute."-".$x;
+				$existing = $this->getModuleGroupByRoute($route);
+				$x++;
 			}
 
 			// Just to be safe
 			$route = sqlescape($route);
 
-			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route', in_nav = '$in_nav' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route' WHERE id = '$id'");
 		}
 
 		/*

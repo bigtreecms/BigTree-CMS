@@ -1,19 +1,4 @@
-<?
-	$mgroups = array();
-	$module_groups = $admin->getModuleGroups();
-	foreach ($module_groups as $mg) {
-		if ($mg["in_nav"]) {
-			$modules = $admin->getModulesByGroup($mg["id"]);
-			$children = array();
-			foreach ($modules as $m) {
-				$children[] = array("link" => $m["route"], "title" => $m["name"], "access" => 0);
-			}
-			if (count($children)) {
-				$mgroups[] = array("link" => $mg["route"], "title" => $mg["name"], "access" => 0, "group" => true, "children" => $children);
-			}
-		}
-	}
-	
+<?	
 	$nav = array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
 			array("link" => "", "title" => "Overview", "access" => 0),
@@ -22,7 +7,7 @@
 			array("link" => "vitals-statistics", "title" => "Vitals &amp; Statistics", "access" => 1)
 		)),
 		array("link" => "pages", "title" => "Pages", "access" => 0),
-		array("link" => "modules", "title" => "Modules", "access" => 0, "children" => $mgroups),
+		array("link" => "modules", "title" => "Modules", "access" => 0),
 		array("link" => "users", "title" => "Users", "access" => 1),
 		array("link" => "settings", "title" => "Settings", "access" => 1),
 		array("link" => "developer", "title" => "Developer", "access" => 2, "children" => array(
