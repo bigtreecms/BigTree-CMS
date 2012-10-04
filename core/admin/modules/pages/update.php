@@ -68,6 +68,8 @@
 		if ($_POST["return_to_front"]) {
 			$pd = $cms->getPage($page);
 			$return_page = WWW_ROOT.$pd["path"]."/";
+		} elseif (end($bigtree["path"]) == "preview") {
+			$return_page = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
 		} else {
 			$return_page = ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/";
 		}
@@ -77,7 +79,7 @@
 	} else {
 		if (end($bigtree["path"]) == "preview") {
 			$admin->ungrowl();
-			BigTree::redirect($cms->getPreviewLink($page)."?bigtree_preview_bar=true");
+			BigTree::redirect($cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/"));
 		} elseif ($_POST["return_to_front"]) {
 			$admin->ungrowl();
 			if ($page == 0) {
