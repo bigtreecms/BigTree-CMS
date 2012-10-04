@@ -24,7 +24,8 @@
 			$pdata["id"] = $page;
 		} else {
 			$r = $admin->getPageAccessLevel($page);
-			$pdata = $admin->getPendingPage($page);
+			// Get pending page data with resources decoded and tags.
+			$pdata = $cms->getPendingPage($page,true,true);
 			$tags = $pdata["tags"];
 			if ($admin->getPageChanges($page)) {
 				$show_revert = true;

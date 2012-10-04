@@ -1,7 +1,8 @@
 <?
 	$page = end($bigtree["path"]);
 	
-	$pdata = $admin->getPendingPage($page);
+	// Get page data with resources decoded and tags.
+	$pdata = $cms->getPendingPage($page,true,true);
 	
 	if ($page[0] == "p") {
 		$r = $admin->getPageAccessLevel($pdata["parent"]);

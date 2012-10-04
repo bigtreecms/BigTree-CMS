@@ -1,7 +1,7 @@
 <?
 	$live_url = false;
 	$preview_url = false;
-	$page_data = $admin->getPendingPage(is_array($page) ? $page["id"] : $page);
+	$page_data = $cms->getPendingPage(is_array($page) ? $page["id"] : $page);
 	$age = floor((time() - strtotime($page_data["updated_at"])) / (60 * 60 * 24));
 	$seo = $admin->getPageSEORating($page_data,$page_data["resources"]);
 	if (isset($page_data["id"]) && is_numeric($page_data["id"])) {
