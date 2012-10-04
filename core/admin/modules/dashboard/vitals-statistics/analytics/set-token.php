@@ -3,7 +3,7 @@
 	
 	// Check this code with Google.
 	try {
-		$token = $client->authenticate();
+		$token = $analytics->Client->authenticate();
 		$settings = $cms->getSetting("bigtree-internal-google-analytics");
 		
 		// If we don't have the setting yet, create it.

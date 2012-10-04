@@ -18,16 +18,14 @@
 	<form method="post" action="<?=$mroot?>set-profile/" class="module">
 		<section>
 			<?
-				$client->setAccessToken($token);
-				$analytics = new apiAnalyticsService($client);
-				$accounts = $analytics->management_accounts->listManagementAccounts();
+				$accounts = $analytics->API->management_accounts->listManagementAccounts();
 			?>
 			<fieldset>
 				<label>Choose A Profile From The List Below</label>
 				<?
 					$property_lookup = array();
 					foreach ($accounts->items as $account) {
-						$properties = $analytics->management_webproperties->listManagementWebproperties($account->id);
+						$properties = $analytics->API->management_webproperties->listManagementWebproperties($account->id);
 						foreach ($properties->items as $property) {
 							$property_lookup[] = array("account" => $account->id, "account_name" => $account->name, "property" => $property->id);
 						}
@@ -92,7 +90,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<a href="<?=$client->createAuthUrl()?>" class="button" id="google_button" target="_blank">Authenticate</a>
+			<a href="<?=$analytics->Client->createAuthUrl()?>" class="button" id="google_button" target="_blank">Authenticate</a>
 			<input type="submit" class="button blue" id="profile_button" value="Save Code" style="display: none;" />
 		</footer>
 	</form>
