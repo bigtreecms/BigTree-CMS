@@ -166,11 +166,7 @@
 			while ($f = sqlfetch($q)) {
 				if ($f["template"] || strpos($f["external"],$GLOBALS["domain"])) {	
 					if (!$f["template"]) {
-						if (substr($f["external"],0,6) == "ipl://") {
-							$link = $this->getInternalPageLink($f["external"]);
-						} else {
-							$link = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
-						}
+						$link = $this->getInternalPageLink($f["external"]);
 					} else {
 						$link = WWW_ROOT.$f["path"].(($f["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
 					}
@@ -306,7 +302,7 @@
 			$item["options"] = json_decode($item["options"],true);
 			if (is_array($item["options"])) {
 				foreach ($item["options"] as &$option) {
-					$option = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$option);
+					$option = $this->replaceRelativeRoots($option);
 				}
 			}
 			$item["fields"] = json_decode($item["fields"],true);
@@ -364,7 +360,7 @@
 		
 		function getInternalPageLink($ipl) {
 			if (substr($ipl,0,6) != "ipl://") {
-				return str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$ipl);
+				return $this->replaceRelativeRoots($ipl);
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
@@ -462,11 +458,7 @@
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
 				if ($f["external"] && $f["template"] == "") {
-					if (substr($f["external"],0,6) == "ipl://") {
-						$link = $this->getInternalPageLink($f["external"]);
-					} else {
-						$link = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$f["external"]);
-					}
+					$link = $this->getInternalPageLink($f["external"]);
 					if ($f["new_window"] == "Yes") {
 						$new_window = true;
 					}
@@ -995,6 +987,21 @@
 		}
 		
 		/*
+			Function: replaceHardRoots
+				Replaces all hard roots in a URL with relative ones (i.e. {wwwroot}).
+
+			Parameters:
+				string - A string with hard roots.
+
+			Returns:
+				A string with relative roots.
+		*/
+
+		function replaceHardRoots($string) {
+			return str_replace(array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),array("{adminroot}","{wwwroot}","{staticroot}"),$string);
+		}
+
+		/*
 			Function: replaceInternalPageLinks
 				Replaces the internal page links in an HTML block with hard links.
 			
@@ -1014,13 +1021,28 @@
 			if (substr($html,0,6) == "ipl://") {
 				$html = $this->getInternalPageLink($html);
 			} else {
-				$html = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstatic%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$html);
+				$html = $this->replaceRelativeRoots($html);
 				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',create_function('$matches','global $cms; return \'="\'.$cms->getInternalPageLink($matches[1]).\'"\';'),$html);
 			}
 
 			return $html;
 		}
 		
+		/*
+			Function: replaceRelativeRoots
+				Replaces all relative roots in a URL (i.e. {wwwroot}) with hard links.
+
+			Parameters:
+				string - A string with relative roots.
+
+			Returns:
+				A string with hard links.
+		*/
+
+		function replaceRelativeRoots($string) {
+			return str_replace(array("{adminroot}","{wwwroot}","{staticroot}"),array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),$string);
+		}
+
 		/*
 			Function: urlify
 				Turns a string into one suited for URL routes.

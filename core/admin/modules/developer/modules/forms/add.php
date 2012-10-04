@@ -75,6 +75,11 @@
 				<? } ?>
 
 				<fieldset>
+					<label>Return URL <small>(you may specify an optional return URL to override returning to the default view)</small></label>
+					<input type="text" name="return_url" />
+				</fieldset>
+
+				<fieldset>
 					<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
 					<input type="text" name="preprocess" />
 				</fieldset>

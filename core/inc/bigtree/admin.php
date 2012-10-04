@@ -182,7 +182,7 @@
 			} else {
 				$html = preg_replace_callback('/href="([^"]*)"/',create_function('$matches','
 					global $cms;
-					$href = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$matches[1]);
+					$href = $cms->replaceRelativeRoots($matches[1]);
 					if (strpos($href,WWW_ROOT) !== false) {
 						$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$href),"/"));
 						list($navid,$commands) = $cms->getNavId($command);
@@ -191,10 +191,10 @@
 							$href = "ipl://".$navid."//".base64_encode(json_encode($commands));
 						}
 					}
-					$href = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$href);
+					$href = $cms->replaceHardRoots($href);
 					return \'href="\'.$href.\'"\';'
 				),$html);
-				$html = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$html);
+				$html = $this->replaceHardRoots($html);
 			}
 			return $html;
 		}
@@ -511,7 +511,7 @@
 			$options = json_decode($options,true);
 			if (is_array($options)) {
 				foreach ($options as &$option) {
-					$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
+					$option = $this->replaceHardRoots($option);
 				}
 			}
 
@@ -752,12 +752,13 @@
 				callback - Optional callback function to run after the form processes.
 				default_position - Default position for entries to the form (if the view is positioned).
 				return_view - The view to return to after completing the form.
+				return_url - The alternative URL to return to after completing the form.
 
 			Returns:
 				The new form id.
 		*/
 
-		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false) {
+		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "") {
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
@@ -765,8 +766,9 @@
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
+			$return_url = sqlescape($this->makeIPL($return_url));
 
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view)");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url')");
 			return sqlid();
 		}
 
@@ -1921,7 +1923,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
+				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				$nav[] = $nav_item;
 			}
 			return $nav;
@@ -2361,7 +2363,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
+				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				$nav[] = $nav_item;
 			}
 			return $nav;
@@ -2768,7 +2770,7 @@
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
 			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$nav_item["external"]);
+				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
 					$nav_item["children"] = $this->getNaturalNavigationByParent($f["id"],$levels - 1);
 				}
@@ -2979,7 +2981,7 @@
 			$items = array();
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
-					$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
+					$f[$key] = $this->replaceRelativeRoots($val);
 				}
 				$f["value"] = json_decode($f["value"],true);
 				if ($f["encrypted"] == "on") {
@@ -3474,10 +3476,10 @@
 			if (!$item) {
 				return false;
 			}
-			$item["file"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["file"]);
+			$item["file"] = $this->replaceRelativeRoots($item["file"]);
 			$item["thumbs"] = json_decode($item["thumbs"],true);
 			foreach ($item["thumbs"] as &$thumb) {
-				$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
+				$thumb = $this->replaceRelativeRoots($thumb);
 			}
 			return $item;
 		}
@@ -3674,7 +3676,7 @@
 			}
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
-					$f[$key] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$val);
+					$f[$key] = $this->replaceRelativeRoots($val);
 				}
 				$f["value"] = json_decode($f["value"],true);
 				if ($f["encrypted"] == "on") {
@@ -4092,7 +4094,7 @@
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			list($navid,$commands) = $cms->getNavId($command);
 			if (!$navid) {
-				return str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$url);
+				return $this->replaceHardRoots($url);
 			}
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
 		}
@@ -4156,7 +4158,7 @@
 			Function: refreshLock
 				Refreshes a lock.
 
-			Paramters:
+			Parameters:
 				table - The table for the lock.
 				id - The id of the item.
 		*/
@@ -4165,6 +4167,38 @@
 			$id = sqlescape($id);
 			$table = sqlescape($table);
 			sqlquery("UPDATE bigtree_locks SET last_accessed = NOW() WHERE `table` = '$table' AND item_id = '$id' AND user = '".$this->ID."'");
+		}
+
+		/*
+			Function: replaceHardRoots
+				Replaces all hard roots in a URL with relative ones (i.e. {wwwroot}).
+
+			Parameters:
+				string - A string with hard roots.
+
+			Returns:
+				A string with relative roots.
+		*/
+
+		function replaceHardRoots($string) {
+			global $cms;
+			return $cms->replaceHardRoots($string);
+		}
+
+		/*
+			Function: replaceRelativeRoots
+				Replaces all relative roots in a URL (i.e. {wwwroot}) with hard links.
+
+			Parameters:
+				string - A string with relative roots.
+
+			Returns:
+				A string with hard links.
+		*/
+
+		function replaceRelativeRoots($string) {
+			global $cms;
+			return $cms->replaceRelativeRoots($string);
 		}
 
 		/*
@@ -4942,7 +4976,7 @@
 		function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
 			$options = json_decode($options,true);
 			foreach ($options as &$option) {
-				$option = str_replace(array(WWW_ROOT,STATIC_ROOT),array("{wwwroot}","{staticroot}"),$option);
+				$option = $this->replaceHardRoots($option);
 			}
 
 			// Fix stuff up for the db.
@@ -5055,9 +5089,10 @@
 				default_position - Default position for entries to the form (if the view is positioned).
 				suffix - Optional add/edit suffix for the form.
 				return_view - The view to return to when the form is completed.
+				return_url - The alternative URL to return to when the form is completed.
 		*/
 
-		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false) {
+		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false,$return_url = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
@@ -5066,8 +5101,9 @@
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
+			$return_url = sqlescape($this->makeIPL($return_url));
 
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view, return_url = '$return_url' WHERE id = '$id'");
 
 			$action = $this->getModuleActionForForm($id);
 			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);

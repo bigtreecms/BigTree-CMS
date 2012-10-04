@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
 	define("BIGTREE_VERSION","4.0RC2");
-	define("BIGTREE_REVISION",11);
+	define("BIGTREE_REVISION",12);
 
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
@@ -141,9 +141,6 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
-
-	$admin_root = $bigtree["config"]["admin_root"];
-	define("ADMIN_ROOT",$admin_root);
 
 	$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	ob_start();

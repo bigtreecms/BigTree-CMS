@@ -7,6 +7,7 @@
 	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
 	$www_root = $bigtree["config"]["www_root"];
+	$admin_root = $bigtree["config"]["admin_root"];
 	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
 	$secure_root = str_replace("http://","https://",$www_root);
 	
@@ -16,7 +17,8 @@
 	define("DOMAIN",$domain);
 	define("SERVER_ROOT",$server_root);
 	define("SITE_ROOT",$site_root);
-	
+	define("ADMIN_ROOT",$admin_root);
+
 	// Include required utility functions
 	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
 		include SERVER_ROOT."custom/inc/bigtree/utils.php";
