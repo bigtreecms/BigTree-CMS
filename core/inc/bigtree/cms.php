@@ -4,9 +4,6 @@
 			The primary interface to BigTree that is used by the front end of the site for pulling settings, navigation, and page content.
 	*/
 
-	include BigTree::path("inc/bigtree/modules.php");
-	include BigTree::path("inc/bigtree/forms.php");
-
 	class BigTreeCMS {
 	
 		var $iplCache = array();

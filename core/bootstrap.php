@@ -40,7 +40,7 @@
 	}
 	
 	// Load Up BigTree!
-	include BigTree::path("inc/bigtree/core.php");
+	include BigTree::path("inc/bigtree/cms.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
 		include BIGTREE_CUSTOM_BASE_CLASS_PATH;
 		eval('$cms = new '.BIGTREE_CUSTOM_BASE_CLASS.';');
@@ -56,11 +56,13 @@
 		"JSMin" => "inc/lib/JSMin.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
-		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
-		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
-		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
+		"BigTreeForms" => "inc/bigtree/forms.php",
+		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
+		"BigTreeModule" => "inc/bigtree/modules.php",
+		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
+		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);
