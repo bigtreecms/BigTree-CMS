@@ -11,7 +11,8 @@
 		$r = $admin->getPageAccessLevel($pdata["parent"]);
 	} else {
 		$r = $admin->getPageAccessLevel($page);
-		$pdata = $admin->getPendingPage($page);
+		// Get pending page data with resources decoded and tags.
+		$pdata = $cms->getPendingPage($page,true,true);
 	}
 	
 	// Work out the permissions	

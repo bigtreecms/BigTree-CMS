@@ -608,17 +608,43 @@
 			
 			Parameters:
 				child - The ID of the page.
-				decode - Whether to decode resources and callouts or not (setting to false saves processing time)
+				decode - Whether to decode resources and callouts or not (setting to false saves processing time, defaults true).
+				return_tags - Whether to return tags for the page (defaults false).
 			
 			Returns:
 				A page array from the database.
 		*/
 		
-		function getPendingPage($id,$decode = true) {
-			// If the id starts with "p" the page has no published copy.
-			if ($id[0] == "p") {
+		function getPendingPage($id,$decode = true,$return_tags = false) {
+			// Numeric id means the page is live.
+			if (is_numeric($id)) {
+				$page = $this->getPage($id);
+				if (!$page) {
+					return false;
+				}
+				// If we're looking for tags, apply them to the page.
+				if ($return_tags) {
+					$page["tags"] = $this->getTagsForPage($id);
+				}
+				// Get pending changes for this page.
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
+			
+			// If it's prefixed with a "p" then it's a pending entry.
+			} else {
+				// Set the page to empty, we're going to loop through the change later and apply the fields.
 				$page = array();
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
+				// Get the changes.
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
+				if ($f) {
+					$f["id"] = $id;
+				} else {
+					return false;
+				}
+			}
+
+			// If we have changes, apply them.
+			if ($f) {
+				$page["updated_at"] = $f["date"];
 				$changes = json_decode($f["changes"],true);
 				foreach ($changes as $key => $val) {
 					if ($key == "external") {
@@ -626,22 +652,20 @@
 					}
 					$page[$key] = $val;
 				}
-			// It has a published copy, grab that first.
-			} else {
-				$page = $this->getPage($id);
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$id'"));
-				if ($f) {
-					// Apply each of the changes over the published version.
-					$changes = json_decode($f["changes"],true);
-					foreach ($changes as $key => $val) {
-						if ($key == "external") {
-							$val = $this->getInternalPageLink($val);
+				if ($return_tags) {
+					// Decode the tag changes, apply them back.
+					$tags = array();
+					$tags_changes = json_decode($f["tags_changes"],true);
+					if (is_array($tags_changes)) {
+						foreach ($tags_changes as $tag) {
+							$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$tag'"));
 						}
-						$page[$key] = $val;
 					}
+					$page["tags"] = $tags;
 				}
 			}
 			
+			// Turn resource entities into arrays that have been IPL decoded.
 			if ($decode) {
 				if (isset($page["resources"]) && is_array($page["resources"])) {
 					$page["resources"] = $this->decodeResources($page["resources"]);	
@@ -650,6 +674,7 @@
 					$page["callouts"] = $this->decodeCallouts($page["callouts"]);
 				}
 			}
+
 			return $page;
 		}
 		
@@ -831,7 +856,7 @@
 			if (!is_numeric($page)) {
 				$page = $page["id"];
 			}
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND bigtree_tags_rel.entry = '$page' ORDER BY bigtree_tags.tag");
+			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND bigtree_tags_rel.entry = '".sqlescape($page)."' ORDER BY bigtree_tags.tag");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;

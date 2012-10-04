@@ -3415,73 +3415,6 @@
 		}
 
 		/*
-			Function: getPendingPage
-				Returns a page from the database with all its pending changes applied.
-
-			Parameters:
-				id - The ID of the live page or the ID of a pending page with "p" preceding the ID.
-
-			Returns:
-				A decoded page array with pending changes applied and related tags.
-
-			See Also:
-				<BigTreeCMS.getPage>
-		*/
-
-		function getPendingPage($id) {
-			global $cms;
-
-			// Get the live page.
-			if (is_numeric($id)) {
-				global $cms;
-				$page = $cms->getPage($id);
-				if (!$page) {
-					return false;
-				}
-				$page["tags"] = $this->getTagsForPage($id);
-				// Get pending changes for this page.
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
-			} else {
-				$page = array();
-				// Get the page.
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
-				if ($f) {
-					$f["id"] = $id;
-				} else {
-					return false;
-				}
-			}
-
-			// Sweep through pending changes and apply them to the page
-			if ($f) {
-				$page["updated_at"] = $f["date"];
-				$changes = json_decode($f["changes"],true);
-				foreach ($changes as $key => $val) {
-					if ($key == "external") {
-						$val = $cms->getInternalPageLink($val);
-					}
-					// Decode the changes' IPLs.
-					if (is_array($val)) {
-						$val = BigTree::untranslateArray($val);
-					}
-					$page[$key] = $val;
-				}
-				// Decode the tag changes, apply them back.
-				$tags = array();
-				$temp_tags = json_decode($f["tags_changes"],true);
-				if (is_array($temp_tags)) {
-					foreach ($temp_tags as $tag) {
-						$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$tag'"));
-					}
-				}
-				$page["tags"] = $tags;
-				// Say that changes exist
-				$page["changes_applied"] = true;
-			}
-			return $page;
-		}
-
-		/*
 			Function: getContentsOfResourceFolder
 				Returns a list of resources and subfolders in a folder (based on user permissions).
 
@@ -3808,32 +3741,6 @@
 		function getTag($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
-		}
-
-		/*
-			Function: getTagsForPage
-				Returns a list of tags a page is tagged with.
-
-			Parameters:
-				page - Either a page id or a page entry.
-
-			Returns:
-				An array of tags.
-		*/
-
-		function getTagsForPage($page) {
-			if (is_array($page)) {
-				$page = sqlescape($page["id"]);
-			} else {
-				$page = sqlescape($page);
-			}
-
-			$tags = array();
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.entry = '$page' AND bigtree_tags_rel.`table` = 'bigtree_pages' ORDER BY bigtree_tags.tag");
-			while ($f = sqlfetch($q)) {
-				$tags[] = $f;
-			}
-			return $tags;
 		}
 
 		/*
