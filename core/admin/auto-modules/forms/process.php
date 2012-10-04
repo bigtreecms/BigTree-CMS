@@ -152,7 +152,7 @@
 				$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 			}
 		} else {
-			$pieces = explode("-",$action["route"]);
+			$pieces = explode("-",$bigtree["module_action"]["route"]);
 			if (count($pieces) == 2) {
 				$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/".$redirect_append;
 			} else {

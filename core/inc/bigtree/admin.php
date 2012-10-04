@@ -2477,7 +2477,11 @@
 
 		function getModuleActionByRoute($module,$route) {
 			$module = sqlescape($module);
-			$route = sqlescape($route);
+			if (is_numeric(end($route))) {
+				$route = array_slice($route,0,-1);
+			}
+			$route = sqlescape(implode("/",$route));
+
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
 		}
 

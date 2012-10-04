@@ -1,6 +1,6 @@
 <?
 	include BigTree::path("admin/auto-modules/_setup.php");
-	$view = BigTreeAutoModule::getView($action["view"]);
+	$view = BigTreeAutoModule::getView($bigtree["module_action"]["view"]);
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {

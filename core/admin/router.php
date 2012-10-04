@@ -286,13 +286,13 @@
 				$bigtree["path"][2] = "";
 			}
 
-			$action = $admin->getModuleActionByRoute($module["id"],$bigtree["path"][2]);
+			$bigtree["module_action"] = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
 
 			$inc_dir = str_replace("../",SERVER_ROOT,$inc_dir);
 
-			if ($module && ($action["view"] || $action["form"])) {
-				if ($action["form"]) {
-					$edit_id = isset($bigtree["path"][3]) ? $bigtree["path"][3] : "";
+			if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
+				if ($bigtree["module_action"]["form"]) {
+					$edit_id = is_numeric(end($bigtree["path"])) ? end($bigtree["path"]) : "";
 					include BigTree::path("admin/auto-modules/form.php");
 				} else {
 					include BigTree::path("admin/auto-modules/view.php");
