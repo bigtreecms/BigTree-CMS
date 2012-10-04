@@ -148,8 +148,6 @@
 	$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	ob_start();
 	session_start();
-	include BigTree::path("inc/bigtree/admin.php");
-	include BigTree::path("inc/bigtree/auto-modules.php");
 
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 		eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
