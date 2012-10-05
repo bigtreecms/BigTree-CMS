@@ -2482,9 +2482,20 @@
 			if (is_numeric(end($route))) {
 				$route = array_slice($route,0,-1);
 			}
-			$route = sqlescape(implode("/",$route));
 
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
+			$commands = array();
+			$action = false;
+			while (count($route) && !$action) {
+				$route_string = sqlescape(implode("/",$route));
+				$action = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route_string'"));
+				if ($action) {
+					return array("action" => $action, "commands" => array_reverse($commands));
+				}
+				$commands[] = end($route);
+				$route = array_slice($route,0,-1);
+			}
+			
+			return false;
 		}
 
 		/*

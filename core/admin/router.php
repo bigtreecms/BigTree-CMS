@@ -283,7 +283,11 @@
 				$bigtree["path"][2] = "";
 			}
 
-			$bigtree["module_action"] = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+			$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+			if ($route_response) {
+				$bigtree["module_action"] = $route_response["action"];
+				$bigtree["commands"] = $route_response["commands"];
+			}
 
 			$inc_dir = str_replace("../",SERVER_ROOT,$inc_dir);
 
