@@ -1,3 +1,10 @@
+<?
+	// Check whether our database is running the latest revision of BigTree or not.
+	$current_revision = $cms->getSetting("bigtree-internal-revision");
+	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
+		BigTree::redirect(ADMIN_ROOT."dashboard/update/");
+	}
+?>
 <h1><span class="developer"></span>Developer</h1>
 
 <div class="table">
