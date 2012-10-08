@@ -485,7 +485,20 @@
 			$groups = array();
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'";
 			if (isset($view["options"]["ot_sort_field"]) && $view["options"]["ot_sort_field"]) {
-				$query .= " ORDER BY group_sort_field ".$view["options"]["ot_sort_direction"];
+				// We're going to determine whether the group sort field is numeric or not first.
+				$is_numeric = true;
+				$q = sqlquery("SELECT DISTINCT(group_sort_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'");
+				while ($f = sqlfetch($q)) {
+					if (!is_numeric($f["group_sort_field"])) {
+						$is_numeric = false;
+					}
+				}
+				// If all of the groups are numeric we'll cast the sorting field as decimal so it's not interpretted as a string.
+				if ($is_numeric) {
+					$query .= " ORDER BY CAST(group_sort_field AS DECIMAL) ".$view["options"]["ot_sort_direction"];
+				} else {
+					$query .= " ORDER BY group_sort_field ".$view["options"]["ot_sort_direction"];
+				}
 			} else {
 				$query .= " ORDER BY group_field";
 			}

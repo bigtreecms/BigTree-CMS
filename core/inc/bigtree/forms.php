@@ -166,8 +166,8 @@
 				<sanitizeFormDataForDB>
 		*/
 		
-		private function sanitizeInteger($val) {
-			if ($val !== 0 && !$val) {
+		private function sanitizeInteger($val,$allow_null) {
+			if ($val !== 0 && !$val && $allow_null == "YES") {
 				return "NULL";	
 			} else {
 				return intval(str_replace(array(",","$"),"",$val));
