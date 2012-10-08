@@ -15,9 +15,9 @@
 	$admin->emailDailyDigest();
 	
 	// Cache Google Analytics Information
-	$ga = new BigTreeGoogleAnalytics;
-	if ($ga->AuthToken && $ga->Profile) {
-		$ga->cacheInformation();
+	$analytics = new BigTreeGoogleAnalytics;
+	if ($analytics->API && $analytics->Profile) {
+		$analytics->cacheInformation();
 	}
 	
 	// Let the CMS know we're running cron properly

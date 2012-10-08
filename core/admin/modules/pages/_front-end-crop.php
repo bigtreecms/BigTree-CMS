@@ -11,7 +11,7 @@
 			<form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/">
 				<div class="overflow">
 					<p>You have <?=count($crops)?> image<? if (count($crops) > 1) { ?>s<? } ?> that need<? if (count($crops) == 1) { ?>s<? } ?> to be cropped.</p>
-					<input type="hidden" name="retpage" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />
+					<input type="hidden" name="return_page" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />
 					<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
 					<section class="cropper">
 						<ul id="cropper">

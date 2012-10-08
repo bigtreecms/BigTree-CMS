@@ -12,7 +12,7 @@
 			$parent = $cc["parent"];
 		}
 		
-		$bc = $cms->getBreadcrumbByPage($cms->getPage($parent));
+		$bc = $cms->getBreadcrumbByPage($cms->getPage($parent),true);
 		$breadcrumb = array(
 			array("link" => "pages/", "title" => "Pages"),
 			array("link" => "pages/view-tree/0/", "title" => "Home")

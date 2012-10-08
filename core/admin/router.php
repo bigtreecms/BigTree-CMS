@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
 	define("BIGTREE_VERSION","4.0RC2");
-	define("BIGTREE_REVISION",11);
+	define("BIGTREE_REVISION",12);
 
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
@@ -142,14 +142,9 @@
 		include "../core/bootstrap.php";
 	}
 
-	$admin_root = $bigtree["config"]["admin_root"];
-	define("ADMIN_ROOT",$admin_root);
-
 	$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	ob_start();
 	session_start();
-	include BigTree::path("inc/bigtree/admin.php");
-	include BigTree::path("inc/bigtree/auto-modules.php");
 
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 		eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
@@ -288,13 +283,17 @@
 				$bigtree["path"][2] = "";
 			}
 
-			$action = $admin->getModuleActionByRoute($module["id"],$bigtree["path"][2]);
+			$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+			if ($route_response) {
+				$bigtree["module_action"] = $route_response["action"];
+				$bigtree["commands"] = $route_response["commands"];
+			}
 
 			$inc_dir = str_replace("../",SERVER_ROOT,$inc_dir);
 
-			if ($module && ($action["view"] || $action["form"])) {
-				if ($action["form"]) {
-					$edit_id = isset($bigtree["path"][3]) ? $bigtree["path"][3] : "";
+			if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
+				if ($bigtree["module_action"]["form"]) {
+					$edit_id = is_numeric(end($bigtree["path"])) ? end($bigtree["path"]) : "";
 					include BigTree::path("admin/auto-modules/form.php");
 				} else {
 					include BigTree::path("admin/auto-modules/view.php");

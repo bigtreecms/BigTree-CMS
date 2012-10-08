@@ -153,7 +153,8 @@
 		*/
 		
 		function sqlescape($string) {
-			return mysqli_real_escape_string($string);
+			global $bigtree;
+			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
 		}
 	} else {
 		function bigtree_setup_sql_connection($read_write = "read") {

@@ -1,7 +1,7 @@
 <?
 	include BigTree::path("admin/auto-modules/_setup.php");
 	
-	$form = BigTreeAutoModule::getForm($action["form"]);
+	$form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
 	
 	$action = end($bigtree["path"]);
 	

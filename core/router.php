@@ -437,10 +437,10 @@
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? "false" : "true";
 		$show_preview_bar = "false";
 		$return_link = "";
-		if ($_GET["bigtree_preview_bar"]) {
+		if ($_GET["bigtree_preview_return"]) {
 			$show_bar_default = "false";
 			$show_preview_bar = "true";
-			$return_link = $_SERVER["HTTP_REFERER"];
+			$return_link = $_GET["bigtree_preview_return"];
 		}
 				
 		$bigtree["content"] = str_replace('</body>','<script type="text/javascript">var bigtree_is_previewing = '.(BIGTREE_PREVIEWING ? "true" : "false").'; var bigtree_current_page_id = '.$bigtree["page"]["id"].'; var bigtree_bar_show = '.$show_bar_default.'; var bigtree_user_name = "'.$_SESSION["bigtree_admin"]["name"].'"; var bigtree_preview_bar_show = '.$show_preview_bar.'; var bigtree_return_link = "'.$return_link.'";</script><script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'js/bar.js"></script></body>',$bigtree["content"]);

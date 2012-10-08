@@ -7,6 +7,7 @@
 	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
 	$www_root = $bigtree["config"]["www_root"];
+	$admin_root = $bigtree["config"]["admin_root"];
 	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
 	$secure_root = str_replace("http://","https://",$www_root);
 	
@@ -16,7 +17,8 @@
 	define("DOMAIN",$domain);
 	define("SERVER_ROOT",$server_root);
 	define("SITE_ROOT",$site_root);
-	
+	define("ADMIN_ROOT",$admin_root);
+
 	// Include required utility functions
 	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
 		include SERVER_ROOT."custom/inc/bigtree/utils.php";
@@ -40,7 +42,7 @@
 	}
 	
 	// Load Up BigTree!
-	include BigTree::path("inc/bigtree/core.php");
+	include BigTree::path("inc/bigtree/cms.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
 		include BIGTREE_CUSTOM_BASE_CLASS_PATH;
 		eval('$cms = new '.BIGTREE_CUSTOM_BASE_CLASS.';');
@@ -56,11 +58,13 @@
 		"JSMin" => "inc/lib/JSMin.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
-		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
-		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
-		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
+		"BigTreeForms" => "inc/bigtree/forms.php",
+		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
+		"BigTreeModule" => "inc/bigtree/modules.php",
+		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
+		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);

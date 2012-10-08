@@ -457,11 +457,16 @@
 		*/
 
 		static function getForm($id) {
+			global $cms;
+
 			if (is_array($id)) {
 				$id = $id["id"];
 			}
+
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '$id'"));
 			$f["fields"] = json_decode($f["fields"],true);
+			$f["return_url"] = $cms->getInternalPageLink($f["return_url"]);
+
 			return $f;
 		}
 		

@@ -1,8 +1,8 @@
 <?
-	include "_setup.php";
 	header("Content-type: text/json");
-	
-	$profiles = $analytics->management_profiles->listManagementProfiles($_POST["account"], $_POST["property"]);
+	$analytics = new BigTreeGoogleAnalytics;
+		
+	$profiles = $analytics->API->management_profiles->listManagementProfiles($_POST["account"], $_POST["property"]);
 	$response = array();
 	
 	if (is_array($profiles->items)) {

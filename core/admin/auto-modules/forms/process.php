@@ -151,13 +151,10 @@
 			} else {
 				$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 			}
+		} elseif ($form["return_url"]) {
+			$redirect_url = $form["return_url"].$redirect_append;
 		} else {
-			$pieces = explode("-",$action["route"]);
-			if (count($pieces) == 2) {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/view-".$pieces[1]."/".$redirect_append;
-			} else {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
-			}
+			$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 		}
 
 		if (end($bigtree["path"]) == "preview") {

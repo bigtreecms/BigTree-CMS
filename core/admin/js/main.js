@@ -300,10 +300,10 @@ var BigTreeSelect = Class.extend({
 				
 				
 				if (option.attr("selected")) {
-					html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
+					html += '<a class="active" href="#" data-value="' + val + '">' + text + '</a>';		
 					selected_option = text;
 				} else {
-					html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
+					html += '<a href="#" data-value="' + val + '">' + text + '</a>';
 				}
 			}
 		}
