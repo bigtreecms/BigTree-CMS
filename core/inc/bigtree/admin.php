@@ -1745,6 +1745,8 @@
 		*/
 
 		function forgotPassword($email) {
+			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
+
 			$email = sqlescape($email);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
 			if (!$f) {
@@ -1754,7 +1756,7 @@
 			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$f["id"]."'");
 
-			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".ADMIN_ROOT."login/reset-password/$hash/","From: no-reply@bigtreecms.com");
+			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".ADMIN_ROOT."login/reset-password/$hash/","From: no-reply@$no_reply_domain");
 			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
 		}
 
