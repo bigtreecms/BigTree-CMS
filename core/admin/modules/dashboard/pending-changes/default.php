@@ -94,10 +94,12 @@
 	<header>
 		<span class="changes_author">Author</span>
 		<?
-			foreach ($view["fields"] as $field) {
+			if (is_array($view["fields"])) {
+				foreach ($view["fields"] as $field) {
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
 		<?
+				}
 			}
 			
 			if ($view["preview_url"]) {
@@ -124,14 +126,16 @@
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<?
-				foreach ($view["fields"] as $field => $data) {
+				if (is_array($view["fields"])) {
+					foreach ($view["fields"] as $field => $data) {
 			?>
 			<section class="view_column" style="width: <?=$data["width"]?>px">
 				<?=$item[$field]?>
 			</section>
 			<?
+					}
 				}
-				
+					
 				if ($view["preview_url"]) {
 			?>
 			<section class="changes_action"><a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a></section>

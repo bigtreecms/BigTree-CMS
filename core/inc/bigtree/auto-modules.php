@@ -919,18 +919,19 @@
 			$f["options"] = json_decode($f["options"],true);
 			
 			$fields = json_decode($f["fields"],true);
-			$first = current($fields);
-			// Three or four actions, depending on preview availability.
-			if ($f["preview_url"]) {
-				$available = 578;
-			} else {
-				$available = 633;
+			if (is_array($fields)) {
+				// Three or four actions, depending on preview availability.
+				if ($f["preview_url"]) {
+					$available = 578;
+				} else {
+					$available = 633;
+				}
+				$percol = floor($available / count($fields));
+				foreach ($fields as $key => $field) {
+					$fields[$key]["width"] = $percol - 20;
+				}
+				$f["fields"] = $fields;
 			}
-			$percol = floor($available / count($fields));
-			foreach ($fields as $key => $field) {
-				$fields[$key]["width"] = $percol - 20;
-			}
-			$f["fields"] = $fields;
 
 			return $f;
 		}

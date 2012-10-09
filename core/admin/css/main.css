@@ -505,9 +505,9 @@
 	.table > ul li.active section { text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.4); }
 	.table > ul li.ui-sortable-helper { border: 1px solid #E5E5E5; border-width: 1px 0; height: 34px; opacity: 1; }
 	.table > ul .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
-	.table > ul.secondary { border-top: 1px solid #EEE; }
-	.table li:nth-of-type(odd) { background: #FFF; }
-	.table li:nth-of-type(even) { background: #FAFAFA; }
+	.table > ul.secondary { border-top: 1px solid #CCC; }
+	.table > ul li:nth-of-type(odd) { background: #FFF; }
+	.table > ul li:nth-of-type(even) { background: #FAFAFA; }
 
 	.table section a { margin: 5px 0 0 0; }
 	.table section .disabled_icon { margin: 5px 0 0 0; }
