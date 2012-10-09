@@ -195,6 +195,8 @@
 	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
 	form .triplets fieldset:last-child { margin: 0; }
+	form .triplets .select > span { width: 224px !important; }
+	form .triplets .select .select_options { width: 278px !important; }
 
 	.image_field .file_wrapper { float: left; }
 	.image_field .or { float: left; height: 30px; line-height: 30px; padding: 0 10px; }
