@@ -2563,6 +2563,28 @@
 		}
 
 		/*
+			Function: getModuleByClass
+				Returns a module entry for the given class name.
+
+			Parameters:
+				class - A module class.
+
+			Returns:
+				A module entry with the "gbp" column decoded or false if a module was not found.
+		*/
+
+		function getModuleByClass($class) {
+			$class = sqlescape($class);
+			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE class = '$class'"));
+			if (!$module) {
+				return false;
+			}
+
+			$module["gbp"] = json_decode($module["gbp"],true);
+			return $module;
+		}
+
+		/*
 			Function: getModuleByRoute
 				Returns a module entry for the given route.
 

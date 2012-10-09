@@ -293,7 +293,11 @@
 
 			if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
 				if ($bigtree["module_action"]["form"]) {
-					$edit_id = is_numeric(end($bigtree["path"])) ? end($bigtree["path"]) : "";
+					if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
+						$edit_id = end($bigtree["commands"]);
+					} else {
+						$edit_id = "";
+					}
 					include BigTree::path("admin/auto-modules/form.php");
 				} else {
 					include BigTree::path("admin/auto-modules/view.php");
