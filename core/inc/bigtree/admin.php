@@ -2482,10 +2482,6 @@
 
 		function getModuleActionByRoute($module,$route) {
 			$module = sqlescape($module);
-			if (is_numeric(end($route))) {
-				$route = array_slice($route,0,-1);
-			}
-
 			$commands = array();
 			$action = false;
 			while (count($route) && !$action) {

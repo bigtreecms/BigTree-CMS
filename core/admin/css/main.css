@@ -701,7 +701,7 @@
 	.table .view_status { width: 70px; }
 
 	.view_paging { background: #F4F4F4; border-radius: 11px; box-shadow: 0 1px 0 #AFAFAF; float: right; height: 22px; margin: 7px -10px 0 0; user-select: none; }
-	.view_paging li { float: left; }
+	.view_paging li { background: transparent !important; float: left; }
 	.view_paging li a { border-right: 1px solid #D1D1D1; color: #666; display: block; font-size: 12px; height: 22px; line-height: 22px; padding: 0 10px; transition: background-color 0.2s; }
 	.view_paging li a:hover, .view_paging li a.active { background-color: #FFF; }
 	.view_paging li:first-child a { border-radius: 11px 0 0 11px; text-indent: -1000px; width: 6px; padding-top: 7px; height: 15px; }
