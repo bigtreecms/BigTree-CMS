@@ -1,3 +1,7 @@
+<?
+	$forms = $admin->getModuleForms();
+	$views = $admin->getModuleViews();
+?>
 <section>
 	<fieldset>
 		<label class="required">Name</label>
@@ -7,14 +11,34 @@
 		<label>Route</label>
 		<input type="text" name="route" value="<?=$item["route"]?>" />
 	</fieldset>
-	<fieldset>
-		<label>Access Level</label>
-		<select name="level">
-			<option value="0">Normal User</option>
-			<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-			<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
-		</select>
-	</fieldset>
+	<div class="triplets">
+		<fieldset>
+			<label>Access Level</label>
+			<select name="level">
+				<option value="0">Normal User</option>
+				<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
+				<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
+			</select>
+		</fieldset>
+		<fieldset>
+			<label>Form</label>
+			<select name="form"<? if ($item["view"]) { ?> disabled="disabled"<? } ?>>
+				<option value="">&mdash;</option>
+				<? foreach ($forms as $form) { ?>
+				<option value="<?=$form["id"]?>"<? if ($form["id"] == $item["form"]) { ?> selected="selected"<? } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
+				<? } ?>
+			</select>
+		</fieldset>
+		<fieldset>
+			<label>View</label>
+			<select name="view"<? if ($item["form"]) { ?> disabled="disabled"<? } ?>>
+				<option value="">&mdash;</option>
+				<? foreach ($views as $view) { ?>
+				<option value="<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>><?=$view["title"]?> (<?=$view["table"]?>)</option>
+				<? } ?>
+			</select>
+		</fieldset>
+	</div>
 	<fieldset>
 		<label class="required">Icon</label>
 		<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
@@ -33,4 +57,18 @@
 </section>
 <script type="text/javascript">
 	new BigTreeFormValidator("form.module");
+	$("select[name=form]").change(function() {
+		if ($(this).val()) {
+			$("select[name=view]").get(0).customControl.disable();
+		} else {
+			$("select[name=view]").get(0).customControl.enable();
+		}
+	});
+	$("select[name=view]").change(function() {
+		if ($(this).val()) {
+			$("select[name=form]").get(0).customControl.disable();
+		} else {
+			$("select[name=form]").get(0).customControl.enable();
+		}
+	});
 </script>

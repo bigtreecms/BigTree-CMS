@@ -331,6 +331,11 @@ var BigTreeSelect = Class.extend({
 		$(element).after(div);
 		
 		this.Container = div;
+
+		// See if this select is disabled
+		if (this.Element.attr("disabled")) {
+			this.Container.addClass("disabled");
+		}
 		
 		// Observe focus on the select that's been hidden.
 		this.Element.focus($.proxy(this.focus,this));
@@ -339,16 +344,93 @@ var BigTreeSelect = Class.extend({
 		this.Element.on("closeNow",$.proxy(this.close,this));
 	},
 	
-	focus: function() {
-		this.Container.addClass("focused");
-		this.KeyBindDown = $.proxy(this.keydown,this);
-		this.Element.keydown(this.KeyBindDown);
-	},
-	
 	blur: function() {
 		this.Container.removeClass("focused");
 		this.Element.unbind("keydown");
 	},
+
+	click: function() {
+		if (!this.Open) {
+			$("select").not(this.Element).trigger("closeNow");
+			this.Element.focus();
+			
+			// Check if we're in a sortable row and disable it's relative position if so.
+			li = this.Element.parent("li");
+			if (li.length) {
+				if (li.css("position") == "relative") {
+					li.css("position","");
+					this.WasRelative = true;
+				}
+			}
+			
+			dList = this.Container.find(".select_options");
+			this.Open = true;
+			dList.show();
+			this.Container.addClass("open");
+			this.BoundWindowClick = $.proxy(this.close,this);
+			$("body").click(this.BoundWindowClick);
+			
+			// Find out if we're in a dialog and have an overflow
+			overflow = this.Container.parents(".overflow");
+			if (overflow.length) {				
+				// WebKit needs fixin.
+				if ($.browser.webkit) {
+					dList.css("marginTop",-1 * overflow.scrollTop() + "px");
+				}
+				
+				// When someone scrolls the overflow, close the select or the dropdown will detach.
+				this.BoundOverflowScroll = $.proxy(this.close,this);
+				setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
+			} else {
+				// If the select drops below the visible area, scroll down a bit.
+				dOffset = dList.offset().top + dList.height();
+				toScroll = dOffset - window.scrollY - $(window).height();
+				if (toScroll > 0) {
+					$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
+				}
+			}
+		} else {
+			this.close();
+		}
+
+		return false;
+	},
+	
+	close: function() {
+		this.Open = false;
+		this.Container.removeClass("open");
+		this.Container.find(".select_options").hide();
+		$("body").unbind("click",this.BoundWindowClick);
+		
+		if (this.BoundOverflowScroll) {
+			this.Container.parents(".overflow").unbind("scroll",this.BoundOverflowScroll);
+			this.BoundOverflowScroll = false;
+		}
+		
+		// Reset relative position if applicable
+		if (this.WasRelative) {
+			this.Element.parent("li").css("position", "relative");
+			this.WasRelative = false;
+		}
+		
+		return false;
+	},
+
+	disable: function() {
+		this.Element.attr("disabled","disabled");
+		this.Container.addClass("disabled");
+	},
+
+	enable: function() {
+		this.Element.attr("disabled","");
+		this.Container.removeClass("disabled");
+	},
+
+	focus: function() {
+		this.Container.addClass("focused");
+		this.KeyBindDown = $.proxy(this.keydown,this);
+		this.Element.keydown(this.KeyBindDown);
+	},	
 	
 	keydown: function(ev) {
 		// The original select element that's hidden off screen.
@@ -419,73 +501,6 @@ var BigTreeSelect = Class.extend({
 		if (ev.keyCode != 9) {
 			return false;
 		}
-	},
-	
-	click: function() {
-		if (!this.Open) {
-			$("select").not(this.Element).trigger("closeNow");
-			this.Element.focus();
-			
-			// Check if we're in a sortable row and disable it's relative position if so.
-			li = this.Element.parent("li");
-			if (li.length) {
-				if (li.css("position") == "relative") {
-					li.css("position","");
-					this.WasRelative = true;
-				}
-			}
-			
-			dList = this.Container.find(".select_options");
-			this.Open = true;
-			dList.show();
-			this.Container.addClass("open");
-			this.BoundWindowClick = $.proxy(this.close,this);
-			$("body").click(this.BoundWindowClick);
-			
-			// Find out if we're in a dialog and have an overflow
-			overflow = this.Container.parents(".overflow");
-			if (overflow.length) {				
-				// WebKit needs fixin.
-				if ($.browser.webkit) {
-					dList.css("marginTop",-1 * overflow.scrollTop() + "px");
-				}
-				
-				// When someone scrolls the overflow, close the select or the dropdown will detach.
-				this.BoundOverflowScroll = $.proxy(this.close,this);
-				setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
-			} else {
-				// If the select drops below the visible area, scroll down a bit.
-				dOffset = dList.offset().top + dList.height();
-				toScroll = dOffset - window.scrollY - $(window).height();
-				if (toScroll > 0) {
-					$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
-				}
-			}
-		} else {
-			this.close();
-		}
-
-		return false;
-	},
-	
-	close: function() {
-		this.Open = false;
-		this.Container.removeClass("open");
-		this.Container.find(".select_options").hide();
-		$("body").unbind("click",this.BoundWindowClick);
-		
-		if (this.BoundOverflowScroll) {
-			this.Container.parents(".overflow").unbind("scroll",this.BoundOverflowScroll);
-			this.BoundOverflowScroll = false;
-		}
-		
-		// Reset relative position if applicable
-		if (this.WasRelative) {
-			this.Element.parent("li").css("position", "relative");
-			this.WasRelative = false;
-		}
-		
-		return false;
 	},
 	
 	select: function(event) {

@@ -7,6 +7,8 @@
 	$actions = $admin->getModuleActions($id);
 	$views = array();
 	$forms = array();
+	$actions_in_nav = array();
+	$actions_not_in_nav = array();
 	foreach ($actions as $action) {
 		if ($action["view"]) {
 			$view = BigTreeAutoModule::getView($action["view"]);
@@ -19,6 +21,11 @@
 			if (!in_array($form,$forms)) {
 				$forms[] = $form;
 			}
+		}
+		if ($action["in_nav"]) {
+			$actions_in_nav[] = $action;
+		} else {
+			$actions_not_in_nav[] = $action;
 		}
 	}
 	
@@ -191,8 +198,11 @@
 		<span class="view_action">Edit</span>
 		<span class="view_action">Delete</span>
 	</header>
+	<?
+		if (count($actions_in_nav)) {
+	?>
 	<ul id="actions">
-		<? foreach ($actions as $action) { ?>
+		<? foreach ($actions_in_nav as $action) { ?>
 		<li id="row_<?=$action["id"]?>">
 			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=$developer_root?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
@@ -200,6 +210,22 @@
 		</li>
 		<? } ?>
 	</ul>
+	<?
+		}
+		if (count($actions_not_in_nav)) {
+	?>
+	<ul<? if (count($actions_in_nav)) { ?> class="secondary"<? } ?>>
+		<? foreach ($actions_not_in_nav as $action) { ?>
+		<li>
+			<section class="developer_templates_name"><?=$action["name"]?></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+	<?
+		}
+	?>
 </div>
 
 <? include BigTree::path("admin/modules/developer/modules/_module-add-edit-js.php") ?>
