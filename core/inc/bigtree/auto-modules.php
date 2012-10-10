@@ -1079,10 +1079,12 @@
 
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
-				if ($val === "NULL")
+				if ($val === "NULL") {
 					$data[$key] = "";
-				if ($original[$key] == $val)
+				}
+				if ($original && $original[$key] === $val) {
 					unset($data[$key]);
+				}
 			}
 			$changes = sqlescape(json_encode($data));
 			$many_data = sqlescape(json_encode($many_to_many));
