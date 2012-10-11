@@ -61,8 +61,9 @@
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS_PATH",false);
 	
-	
+	// ------------------------------
 	// BigTree Resource Configuration
+	// ------------------------------
 	
 	// Array containing all JS files to minify; key = name of compiled file
 	// example: $bigtree["config"]["js"]["site"] compiles all JS files into "site.js"
@@ -97,4 +98,16 @@
 	
 	// Flag for CSS minification 
 	$bigtree["config"]["css"]["minify"] = false;
+	
+	// --------------------------
+	// Placeholder Image Defaults
+	// --------------------------
+
+	// Add your own key to the "placeholder" array to create more placeholder image templates.	
+	$bigtree["config"]["placeholder"]["default"] = array( 
+		"background_color" => "CCCCCC",
+		"text_color" => "666666",
+		"image" => false,
+		"text" => false
+	);
 ?>
