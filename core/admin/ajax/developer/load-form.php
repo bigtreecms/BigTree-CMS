@@ -41,6 +41,10 @@
 				if (strpos($title,"URL") !== false) {
 					$subtitle = "Include http://";
 				}
+
+				if ($column["name"] == "route") {
+					$type = "route";
+				}
 				
 				if (strpos($title,"File") !== false || strpos($title,"PDF") !== false) {
 					$type = "upload";
