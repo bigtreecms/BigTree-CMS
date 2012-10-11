@@ -64,7 +64,7 @@
 				$route_match["custom/admin/$oroute/"] = "custom/admin/$route/";
 			}
 			$group_insert = $group_id ? "'$group_id'" : "NULL";
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$route','$class',$group_insert,'$gbp')");
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`icon`,`gbp`) VALUES ('$name','$route','$class',$group_insert,'$icon','$gbp')");
 			$module_match[$id] = sqlid();
 			$module_id = sqlid();
 		}
