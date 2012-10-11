@@ -588,6 +588,53 @@
 		}
 		
 		/*
+			Function: geocodeAddress
+				Returns a latitude and longitude for a given address.
+				Caches results in a BigTree setting.
+			
+			Parameters:
+				address - The address to geocode.
+			
+			Returns:
+				An associative array with "lat" and "lon" keys.
+		*/
+		
+		static function geocodeAddress($address) {
+			global $cms,$admin;
+			
+			// Clean up the address and get our cache key
+			$address = trim(strip_tags($address));
+			$cache_key = base64_encode($address);
+			
+			// See if the setting exists, if it does grab it, otherwise create it.
+			if (!$admin) {
+				$admin = new BigTreeAdmin;
+			}
+			if (!$admin->settingExists("bigtree-internal-geocoded-addresses")) {
+				$admin->createSetting(array("id" => "bigtree-internal-geocoded-addresses", "system" => "on"));
+			}
+			$cache = $cms->getSetting("bigtree-internal-geocoded-addresses");
+			if (isset($cache[$cache_key])) {
+				return $cache[$cache_key];
+			}
+			
+			// It's not in the cache, ask Google for it.
+			$file = utf8_encode(BigTree::curl("http://maps.google.com/maps/geo?q=".urlencode($address)."&output=xml"));
+			try {
+				$xml = new SimpleXMLElement($file);
+				$coords = explode(",", $xml->Response->Placemark->Point->coordinates);
+				$geo = array("lat" => $coords[1], "lon" => $coords[0]);
+			} catch (Exception $e) {
+				$geo = false;
+			}
+			
+			// Add the result to the cache and return it.
+			$cache[$cache_key] = $geo;
+			$admin->updateSettingValue("bigtree-internal-geocoded-addresses",$cache);
+			return $geo;
+		}
+		
+		/*
 			Function: getAvailableFileName
 				Gets a web safe available file name in a given directory.
 			
