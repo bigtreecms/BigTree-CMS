@@ -145,6 +145,26 @@
 		}
 	}
 	
+	// Serve Placeholder Image
+	if ($bigtree["path"][0] == "placeholder") {
+		if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][1]])) {
+			$style = $bigtree["path"][1];
+			$size = explode("x", strtolower($bigtree["path"][2]));
+		} else {
+			$style = "default";
+			$size = explode("x", strtolower($bigtree["path"][1]));
+		}
+		//print_r($size);
+		if (count($size) == 2) {
+			$bg_color = $bigtree["config"]["placeholder"][$style]["background_color"];
+			$text_color = $bigtree["config"]["placeholder"][$style]["text_color"];
+			$image = $bigtree["config"]["placeholder"][$style]["image"];
+			$text = $bigtree["config"]["placeholder"][$style]["text"];
+			BigTree::placeholder($size[0], $size[1], $bg_color, $text_color, $image, $text);
+			die();
+		}
+	}
+	
 	// Start output buffering and sessions
 	ob_start();
 	session_start();
