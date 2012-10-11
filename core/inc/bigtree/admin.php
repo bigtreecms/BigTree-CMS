@@ -714,10 +714,10 @@
 				route - The action route.
 				in_nav - Whether the action is in the navigation.
 				icon - The icon class for the action.
-				form - Optional auto module form id.
-				view - Optional auto module view id.
+				form - The associated form.
+				view - The associated view.
 				level - The required access level.
-				position - The position in the list of actions.
+				position - The position in navigation.
 		*/
 
 		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0,$position = 0) {
@@ -726,9 +726,10 @@
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
 			$name = sqlescape(htmlspecialchars($name));
-			$form = sqlescape($form);
-			$view = sqlescape($view);
+			$form = $form ? "'".sqlescape($form)."'" : "NULL";
+			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			$level = sqlescape($level);
+			$position = sqlescape($position);
 
 			$oroute = $route;
 			$x = 2;
@@ -737,7 +738,7 @@
 				$x++;
 			}
 
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level','$form','$view','$position')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,'$position')");
 		}
 
 		/*
@@ -2481,10 +2482,6 @@
 
 		function getModuleActionByRoute($module,$route) {
 			$module = sqlescape($module);
-			if (is_numeric(end($route))) {
-				$route = array_slice($route,0,-1);
-			}
-
 			$commands = array();
 			$action = false;
 			while (count($route) && !$action) {
@@ -2566,6 +2563,28 @@
 		}
 
 		/*
+			Function: getModuleByClass
+				Returns a module entry for the given class name.
+
+			Parameters:
+				class - A module class.
+
+			Returns:
+				A module entry with the "gbp" column decoded or false if a module was not found.
+		*/
+
+		function getModuleByClass($class) {
+			$class = sqlescape($class);
+			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE class = '$class'"));
+			if (!$module) {
+				return false;
+			}
+
+			$module["gbp"] = json_decode($module["gbp"],true);
+			return $module;
+		}
+
+		/*
 			Function: getModuleByRoute
 				Returns a module entry for the given route.
 
@@ -2591,13 +2610,16 @@
 			Function: getModuleForms
 				Gets all module forms.
 
+			Parameters:
+				sort - The field to sort by.
+
 			Returns:
 				An array of entries from bigtree_module_forms with "fields" decoded.
 		*/
 
-		function getModuleForms() {
+		function getModuleForms($sort = "title") {
 			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_forms");
+			$q = sqlquery("SELECT * FROM bigtree_module_forms ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				$f["fields"] = json_decode($f["fields"],true);
 				$items[] = $f;
@@ -2763,6 +2785,26 @@
 				if ($this->checkAccess($f["id"]) || !$auth) {
 					$items[$f["id"]] = $f;
 				}
+			}
+			return $items;
+		}
+
+		/*
+			Function: getModuleViews
+				Returns a list of all entries in the bigtree_module_views table.
+
+			Parameters:
+				sort - The column to sort by.
+
+			Returns:
+				An array of view entries with "fields" decoded.
+		*/
+		function getModuleViews($sort = "title") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$f["fields"] = json_decode($f["fields"],true);
+				$items[] = $f;
 			}
 			return $items;
 		}
@@ -5065,16 +5107,22 @@
 				route - The action route.
 				in_nav - Whether the action is in the navigation.
 				icon - The icon class for the action.
+				form - The associated form.
+				view - The associated view.
 				level - The required access level.
+				position - The position in navigation.
 		*/
 
-		function updateModuleAction($id,$name,$route,$in_nav,$icon,$level) {
+		function updateModuleAction($id,$name,$route,$in_nav,$icon,$form,$view,$level,$position) {
 			$id = sqlescape($id);
 			$route = sqlescape(htmlspecialchars($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
 			$name = sqlescape(htmlspecialchars($name));
 			$level = sqlescape($level);
+			$form = $form ? "'".sqlescape($form)."'" : "NULL";
+			$view = $view ? "'".sqlescape($view)."'" : "NULL";
+			$position = sqlescape($position);
 
 			$item = $this->getModuleAction($id);
 
@@ -5085,7 +5133,7 @@
 				$x++;
 			}
 
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view WHERE id = '$id'");
 		}
 
 		/*
@@ -5238,6 +5286,12 @@
 			}
 			// Copy it to the saved versions
 			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`callouts`,`author`,`updated_at`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$callouts','$last_edited_by','$updated_at')");
+			// Count the page revisions
+			$r = sqlrows(sqlquery("SELECT id FROM bigtree_page_revisions WHERE page = '$page' AND saved = ''"));
+			// If we have more than 10, delete any that are more than a month old
+			if ($r > 10) {
+				sqlquery("DELETE FROM bigtree_page_revisions WHERE updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND saved = ''");
+			}
 
 			// Remove this page from the cache
 			$this->unCache($page);

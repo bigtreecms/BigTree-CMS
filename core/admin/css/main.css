@@ -164,6 +164,7 @@
 	.radio_button a.checked.focused { background-position: -304px -124px; }
 
 	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
+	.select.disabled { opacity: 0.5; }
 	.select .handle { float: right; background: url(../images/icon-sprite.png) -340px -105px; width: 34px; height: 30px; }
 	.select span { display: block; padding: 0 44px 0 10px; text-overflow: ellipsis; white-space: nowrap; }
 	.select .group { padding: 5px 10px; font-size: 10px; line-height: 15px; color: #666; background: #F6F6F6; }
@@ -195,6 +196,8 @@
 	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
 	form .triplets fieldset:last-child { margin: 0; }
+	form .triplets .select > span { width: 224px !important; }
+	form .triplets .select .select_options { width: 278px !important; }
 
 	.image_field .file_wrapper { float: left; }
 	.image_field .or { float: left; height: 30px; line-height: 30px; padding: 0 10px; }
@@ -495,8 +498,6 @@
 	.table > ul { background: #FFF; overflow: hidden; }
 	.table > ul:last-child { border-radius: 0px 0px 5px 5px; }
 	.table > ul li { border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
-	.table > ul li:nth-of-type(odd) { background: #FFF; }
-	.table > ul li:nth-of-type(even) { background: #FAFAFA; }
 	.table > ul li section { float: left; height: 35px; padding: 0; text-align: center; }
 	.table > ul li:first-of-type { border-color: transparent; }
 	.table > ul li:last-of-type { border-radius: 0px 0px 5px 5px; }
@@ -504,6 +505,9 @@
 	.table > ul li.active section { text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.4); }
 	.table > ul li.ui-sortable-helper { border: 1px solid #E5E5E5; border-width: 1px 0; height: 34px; opacity: 1; }
 	.table > ul .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
+	.table > ul.secondary { border-top: 1px solid #CCC; }
+	.table > ul li:nth-of-type(odd) { background: #FFF; }
+	.table > ul li:nth-of-type(even) { background: #FAFAFA; }
 
 	.table section a { margin: 5px 0 0 0; }
 	.table section .disabled_icon { margin: 5px 0 0 0; }
@@ -697,7 +701,7 @@
 	.table .view_status { width: 70px; }
 
 	.view_paging { background: #F4F4F4; border-radius: 11px; box-shadow: 0 1px 0 #AFAFAF; float: right; height: 22px; margin: 7px -10px 0 0; user-select: none; }
-	.view_paging li { float: left; }
+	.view_paging li { background: transparent !important; float: left; }
 	.view_paging li a { border-right: 1px solid #D1D1D1; color: #666; display: block; font-size: 12px; height: 22px; line-height: 22px; padding: 0 10px; transition: background-color 0.2s; }
 	.view_paging li a:hover, .view_paging li a.active { background-color: #FFF; }
 	.view_paging li:first-child a { border-radius: 11px 0 0 11px; text-indent: -1000px; width: 6px; padding-top: 7px; height: 15px; }

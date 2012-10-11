@@ -62,7 +62,7 @@
 				<? } ?>
 
 				<fieldset>
-					<label>Return URL <small>(an optional return URL to override the default view)</small></label>
+					<label>Return URL <small>(an optional return URL to override the default return view)</small></label>
 					<input type="text" name="return_url" value="<?=htmlspecialchars($form["return_url"])?>" />
 				</fieldset>
 

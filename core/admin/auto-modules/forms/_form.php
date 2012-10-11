@@ -65,7 +65,7 @@
 				</fieldset>
 			</div>
 			<script type="text/javascript">
-				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo $item["id"]; } else { echo "false"; } ?>,"bigtree_tag_browser");
+				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$item_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
 			</script>
 		</section>
 		<footer>

@@ -75,7 +75,7 @@
 				<? } ?>
 
 				<fieldset>
-					<label>Return URL <small>(you may specify an optional return URL to override returning to the default view)</small></label>
+					<label>Return URL <small>(an optional return URL to override the default return view)</small></label>
 					<input type="text" name="return_url" />
 				</fieldset>
 

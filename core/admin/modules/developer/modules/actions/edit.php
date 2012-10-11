@@ -9,6 +9,7 @@
 <? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/actions/update/<?=$item["id"]?>/" class="module">
+		<input type="hidden" name="position" value="<?=$item["position"]?>" />
 		<? include BigTree::path("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
