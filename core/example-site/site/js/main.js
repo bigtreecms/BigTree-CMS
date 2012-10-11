@@ -2,22 +2,8 @@
 window.innerShiv=(function(){var d,r;return function(h,u){if(!d){d=document.createElement('div');r=document.createDocumentFragment();/*@cc_on d.style.display = 'none'@*/}var e=d.cloneNode(true);/*@cc_on document.body.appendChild(e);@*/e.innerHTML=h.replace(/^\s\s*/, '').replace(/\s\s*$/, '');/*@cc_on document.body.removeChild(e);@*/if(u===false){return e.childNodes;}var f=r.cloneNode(true),i=e.childNodes.length;while(i--){f.appendChild(e.firstChild);}return f;}}());
 
 var Site = {
-	currentPrefix: "",
 	
 	init: function() {
-		if ($.browser.webkit) {
-			Site.currentPrefix = "-webkit-";
-		}
-		if ($.browser.mozilla) {
-			Site.currentPrefix = "-moz-";
-		}
-		if ($.browser.msie) {
-			Site.currentPrefix = "-ms-";
-		}
-		if ($.browser.opera) {
-			Site.currentPrefix = "-o-";
-		}
-		
 		Site.$body = $("body");
 		Site.homeFeature = new HomeFeature($("#feature"));
 		Site.twitterTimeline = new TwitterTimeline($(".twitter_timeline"));

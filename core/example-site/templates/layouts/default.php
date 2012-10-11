@@ -11,10 +11,7 @@
 			<nav class="subnav">
 				<a href="#" class="nav_label">Navigation</a>
 				<div class="nav_options">
-					<?
-						// Found in /custom/inc/required/utils.php
-						recurseNav($nav);
-					?>
+					<? include "_subnav.php" ?>
 				</div>
 			</nav>
 		</div>
