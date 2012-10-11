@@ -1043,14 +1043,6 @@
 			// Fill image
 			imagefill($image, 0, 0, $bg_color); 
 			
-			// Add text if provided or default to size
-			if ($text != "") {
-				$font = BigTree::path("inc/lib/fonts/arial.ttf");
-				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
-				$textpos = imageTTFBbox($fontsize, 0, $font, $text); 
-				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
-			}
-			
 			// Add icon if provided
 			if ($icon_path) {
 				$icon_size = getimagesize($icon_path);
@@ -1063,9 +1055,14 @@
 				imagesavealpha($icon, true);
 				imagealphablending($icon, true);
 				imagecopyresampled($image, $icon, $icon_x, $icon_y, 0, 0, $icon_width, $icon_height, $icon_width, $icon_height);
+			// Add text if provided or default to size
+			} elseif ($text) {
+				$font = BigTree::path("inc/lib/fonts/arial.ttf");
+				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
+				$textpos = imageTTFBbox($fontsize, 0, $font, $text); 
+				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
 			}
-			
-			
+		
 			// Serve image and die
 			header("Content-Type: image/png"); 
 			imagepng($image);   

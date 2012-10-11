@@ -1230,6 +1230,9 @@
 
 			$file_contents .= '	*/
 ?>';
+			if (!count($clean_resources)) {
+				$file_contents = "";
+			}
 
 			if ($routed == "on") {
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id)) {
@@ -1256,6 +1259,9 @@
 			$level = sqlescape($level);
 			$callouts_enabled = sqlescape($callouts_enabled);
 			$routed = sqlescape($routed);
+
+			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
+			sqlquery("UPDATE bigtree_templates SET position = position + 1");
 
 			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`image`,`description`,`level`,`callouts_enabled`,`routed`) VALUES ('$id','$name','$module','$resources','$image','$description','$level','$callouts_enabled','$routed')");
 		}
