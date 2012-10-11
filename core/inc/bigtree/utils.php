@@ -623,7 +623,7 @@
 			try {
 				$xml = new SimpleXMLElement($file);
 				$coords = explode(",", $xml->Response->Placemark->Point->coordinates);
-				$geo = array("lat" => $coords[1], "lon" => $coords[0]);
+				$geo = array("latitude" => $coords[1], "longitude" => $coords[0]);
 			} catch (Exception $e) {
 				$geo = false;
 			}

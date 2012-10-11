@@ -11,8 +11,7 @@
 	// Trim just the address
 	$start = strpos($footerAddress, "<span>") + 6;
 	$end = strpos($footerAddress, "</span>");
-	$geoAddress = substr($footerAddress, $start, ($end - $start));
-	$geoAddress = geocodeAddress($geoAddress);
+	$geoAddress = BigTree::geocodeAddress(substr($footerAddress, $start, ($end - $start)));
 ?>
 		<footer id="footer">
 			<div class="row_12 contain">
