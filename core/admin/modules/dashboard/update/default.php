@@ -220,4 +220,10 @@
 		// Add the return_url column to bigtree_module_forms.
 		sqlquery("ALTER TABLE `bigtree_module_forms` ADD COLUMN `return_url` VARCHAR(255) NOT NULL AFTER `return_view`");
 	}
+
+	// BigTree 4.0RC2 update -- REVISION 13
+	function _local_bigtree_update_13() {
+		// Delete the "package" column from templates.
+		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `package`");
+	}
 ?>

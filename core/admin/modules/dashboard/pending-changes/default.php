@@ -64,8 +64,8 @@
 			<section class="changes_page"><?=$page["nav_title"]?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_approve icon_approve_on"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_deny"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_deny"></a></section>
 		</li>
 		<?		
 			}
@@ -143,8 +143,8 @@
 				}
 			?>
 			<section class="changes_action"><a href="<?=$edit_link.$item["id"]?>/" class="icon_edit"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_approve icon_approve_on"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_deny"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a></section>
 		</li>
 		<?
 			}
@@ -159,14 +159,14 @@
 	$(".icon_approve").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.growl("Pending Changes","Approved Change");
+		BigTree.growl($(this).attr("data-module"),"Approved Change");
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.growl("Pending Changes","Rejected Change");
+		BigTree.growl($(this).attr("data-module"),"Rejected Change");
 		return false;
 	});
 </script>
