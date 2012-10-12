@@ -119,7 +119,7 @@
 				return false;
 			}
 			// is_readable doesn't work on URLs
-			if (substr($from,0,7) != "http://") && substr($from,0,8) != "https://") && !is_readable($from)) {
+			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
 				return false;
 			}
 			$pathinfo = self::pathInfo($to);
