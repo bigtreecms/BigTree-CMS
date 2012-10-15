@@ -977,7 +977,7 @@
 	.bigtree_dialog_form .image_attr ul li.up { height: 17px; width: 19px; padding: 2px 0 0 3px; }
 	.bigtree_dialog_form .image_attr ul li.up span { margin: 0; }
 	.bigtree_dialog_form .image_attr ul li.del { width: 22px; text-align: center; }
-	.bigtree_dialog_form .image_attr ul li.del a { background: url(../images/icons-sprite.png) -336px -140px; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
+	.bigtree_dialog_form .image_attr ul li.del a { background: url(../images/icon-sprite.png) -336px -140px; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
 	.bigtree_dialog_form .image_attr ul li.thumbnail { width: 22px; text-align: center; }
 	.bigtree_dialog_form .image_attr ul li.thumbnail a { background: url(../images/icon-sprite.png) -480px -140px; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
 	.bigtree_dialog_form .image_attr ul li.colormode { width: 22px; text-align: center; }
