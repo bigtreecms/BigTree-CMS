@@ -57,6 +57,8 @@
 	$package_name = $lines[0];
 	$package_info = $lines[1];
 	
+	$instructions = array();
+	$install_code = false;
 	$errors = array();
 	$warnings = array();
 	next($lines);
@@ -66,6 +68,14 @@
 		$type = $parts[0];
 		$data = json_decode($parts[1],true);
 		
+		if ($type == "Instructions") {
+			$instructions = $data;
+		}
+
+		if ($type == "InstallCode") {
+			$install_code = $data;
+		}
+
 		if ($type == "Template") {
 			$r = sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
@@ -125,6 +135,25 @@
 	</header>
 	<section>
 		<?
+			if (count($instructions) && $instructions["pre"]) {
+		?>
+		<h3>Instructions</h3>
+		<p><?=nl2br(htmlspecialchars(base64_decode($instructions["pre"])))?></p>
+		<br />
+		<hr />
+		<?
+			}
+
+			if ($install_code) {
+		?>
+		<h3>Post Install Code</h3>
+		<p>The following code will be run after the package is finished installing:</p>
+		<pre><code class="language-php"><?=htmlspecialchars(ltrim(rtrim(base64_decode($install_code),"?>"),"<?"))?></code></pre>
+		<br /><br />
+		<hr />
+		<?
+			}
+
 			if (count($warnings)) {
 		?>
 		<h3>Warnings</h3>

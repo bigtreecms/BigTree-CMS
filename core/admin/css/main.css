@@ -898,7 +898,7 @@
 	.developer .form_table .developer_view_parser { padding: 0 0 0 10px; text-align: left; width: 480px; }
 	.developer .form_table .developer_view_parser input { width: 458px; }
 
-	.developer form .right textarea { height: 135px; }
+	.developer form .right textarea, .developer form .left textarea { height: 135px; }
 
 	fieldset.developer_module_group input { float: left; width: 410px; }
 	fieldset.developer_module_group > span { float: left; height: 32px; line-height: 32px; padding: 0 10px; }
@@ -1256,7 +1256,7 @@
 	.ui-datepicker-rtl .ui-datepicker-group-last .ui-datepicker-header { border-left-width: 1px; border-right-width: 0; }
 	.ui-datepicker-rtl .ui-datepicker-group-middle .ui-datepicker-header { border-left-width: 1px; border-right-width: 0; }
 	
-/* TIMPICKER */
+/* Time Picker */
 	.ui-timepicker-div { margin-top: -1px; }
 	.ui-timepicker-div .ui-widget-header { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -224px; color: #fff; height: 22px; line-height: 1.2; padding: 3px 0; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8); }
 	.ui-timepicker-div dl { border: 1px solid #AAA; border-width: 1px 1px 0; overflow: hidden; padding: 10px 15px 0 10px; text-align: left; }
@@ -1271,7 +1271,7 @@
 	.ui-datepicker .ui-timepicker-div table { border: none; color: #ccc; margin: 4px 0 5px; text-transform: uppercase; }
 	.bigtree_dialog_form .ui-datepicker-close { display: none; }
 	
-/* SLIDER */
+/* Slider */
 	.ui-slider { position: relative; text-align: left; }
 	.ui-slider .ui-slider-handle { cursor: default; height: 1.2em; position: absolute; width: 1.2em; z-index: 2; }
 	.ui-slider .ui-slider-range { background-position: 0 0; border: 0; display: block; font-size: .7em; position: absolute; z-index: 1; }
@@ -1280,6 +1280,31 @@
 	.ui-slider-horizontal .ui-slider-range { height: 100%; top: 0; }
 	.ui-slider-horizontal .ui-slider-range-min { left: 0; }
 	.ui-slider-horizontal .ui-slider-range-max { right: 0; }
+	
+/* Prism.JS Styles */
+	code[class*="language-"],
+pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: none; -o-tab-size: 4; -webkit-hyphens: none; color: black; direction: ltr; font-family: Consolas, Monaco, 'Andale Mono', monospace; hyphens: none; tab-size: 4; text-align: left; text-shadow: 0 1px white; white-space: pre; word-spacing: normal; }
+
+	/* Code blocks */
+	pre[class*="language-"] { margin: .5em 0; overflow: auto; padding: 1em; }
+	
+	:not(pre) > code[class*="language-"],
+	pre[class*="language-"] { background: #f5f2f0; }
+	
+	/* Inline code */
+	:not(pre) > code[class*="language-"] { border-radius: .3em; padding: .1em; }
+	.token.comment, .token.prolog, .token.doctype, .token.cdata { color: slategray; }
+	.token.punctuation { color: #999; }
+	.namespace { opacity: .7; }
+	.token.property, .token.tag, .token.boolean, .token.number { color: #905; }
+	.token.selector, .token.attr-name, .token.string { color: #690; }
+	.token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string { background: hsla(0,0%,100%,.5); color: #a67f59; }
+	.token.atrule, .token.attr-value, .token.keyword, .token.function, .token.constant { color: #07a; }
+	.token.deliminator { font-weight: bold; }
+	.token.regex, .token.important, .token.variable { color: #e90; }
+	.token.important { font-weight: bold; }
+	.token.entity { cursor: help; }
+
 	
 /* Array of Items / Many to Many Widget */
 	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; }

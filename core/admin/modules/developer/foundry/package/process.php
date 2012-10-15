@@ -34,6 +34,8 @@
 	
 	$index = $package_name."\n";
 	$index .= "Packaged for BigTree ".BIGTREE_VERSION." by ".$created_by."\n";
+	$index .= "Instructions::||BTX||::".json_encode(array("pre" => base64_encode($pre_instructions), "post" => base64_encode($post_instructions)))."\n";
+	$index .= "InstallCode::||BTX||::".json_encode(base64_encode($install_code))."\n";
 	
 	if ($module) {
 		$modules = array($admin->getModule($module));
