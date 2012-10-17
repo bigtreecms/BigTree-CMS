@@ -746,7 +746,7 @@ function md5(a){var b;var c=function(a,b){return a<<b|a>>>32-b};var d=function(a
  */
 $.cookie=function(f,e,j){if(arguments.length>1&&(!/Object/.test(Object.prototype.toString.call(e))||e===null||e===undefined)){j=$.extend({},j);if(e===null||e===undefined){j.expires=-1}if(typeof j.expires==="number"){var g=j.expires,h=j.expires=new Date();h.setDate(h.getDate()+g)}e=String(e);return(document.cookie=[encodeURIComponent(f),"=",j.raw?e:encodeURIComponent(e),j.expires?"; expires="+j.expires.toUTCString():"",j.path?"; path="+j.path:"",j.domain?"; domain="+j.domain:"",j.secure?"; secure":""].join(""))}j=e||{};var a=j.raw?function(i){return i}:decodeURIComponent;var b=document.cookie.split("; ");for(var d=0,c;c=b[d]&&b[d].split("=");d++){if(a(c[0])===f){return a(c[1]||"")}}return null};
 
-**
+/**
  * Prism: Lightweight, robust, elegant syntax highlighting
  * MIT license http://www.opensource.org/licenses/mit-license.php/
  * @author Lea Verou http://lea.verou.me
