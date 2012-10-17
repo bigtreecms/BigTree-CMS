@@ -34,6 +34,8 @@
 	
 	$index = $package_name."\n";
 	$index .= "Packaged for BigTree ".BIGTREE_VERSION." by ".$created_by."\n";
+	$index .= "Instructions::||BTX||::".json_encode(array("pre" => base64_encode($pre_instructions), "post" => base64_encode($post_instructions)))."\n";
+	$index .= "InstallCode::||BTX||::".json_encode(base64_encode($install_code))."\n";
 	
 	if ($module) {
 		$modules = array($admin->getModule($module));
@@ -49,6 +51,9 @@
 	@unlink(SERVER_ROOT."cache/package.tar.gz");
 	mkdir(SERVER_ROOT."cache/packager");
 	$x = 0;
+
+	$used_forms = array();
+	$used_views = array();
 	
 	if (isset($modules) && is_array($modules)) {
 		foreach ($modules as $item) {
@@ -58,13 +63,15 @@
 			$actions = $admin->getModuleActions($item["id"]);
 			foreach ($actions as $a) {
 				// If there's an auto module, include it as well.
-				if ($a["form"]) {
+				if ($a["form"] && !in_array($a["form"],$used_forms)) {
 					$form = BigTreeAutoModule::getForm($a["form"]);
 					$index .= "ModuleForm::||BTX||::".json_encode($form)."\n";
+					$used_forms[] = $a["form"];
 				}
-				if ($a["view"]) {
+				if ($a["view"] && !in_array($a["view"],$used_views)) {
 					$view = BigTreeAutoModule::getView($a["view"]);
 					$index .= "ModuleView::||BTX||::".json_encode($view)."\n";
+					$used_views[] = $a["view"];
 				}
 				// Draw Action after the form/view since we'll need to know the form/view ID to create the action.
 				$index .= "Action::||BTX||::".json_encode($a)."\n";

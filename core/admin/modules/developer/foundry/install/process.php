@@ -9,6 +9,12 @@
 	$package_tables = array();
 	$module_match = array();
 	$route_match = array();
+	
+	// Instructions and Install Code defaults
+	$instructions = false;
+	$install_code = false;
+	unset($_SESSION["bigtree_admin"]["package_error"]);
+	unset($_SESSION["bigtree_admin"]["package_instructions"]);	
 		
 	// Saved information for managing these packages later.
 	$savedData["tables"] = array();
@@ -39,6 +45,14 @@
 					}
 				}
 			}
+		}
+		
+		if ($type == "Instructions") {
+			$instructions = $data;
+		}
+
+		if ($type == "InstallCode") {
+			$install_code = $data;
 		}
 		
 		if ($type == "Group") {
@@ -81,7 +95,7 @@
 		// Import a Module Form
 		if ($type == "ModuleForm") {
 			$return_view = $return_view ? "'".$return_view."'" : "NULL";
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`,`return_view`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position',$return_view)");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`,`return_view`,`return_url`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position',$return_view,'$return_url')");
 			$last_form_id = sqlid();
 		}
 		
@@ -178,6 +192,19 @@
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
+	
+	if ($install_code) {
+		try {
+			eval(ltrim(rtrim(base64_decode($install_code),"?>"),"<?"));
+		} catch (Exception $e) {
+			$_SESSION["bigtree_admin"]["package_code"] = ltrim(rtrim(base64_decode($install_code),"?>"),"<?");
+			$_SESSION["bigtree_admin"]["package_error"] = $e;
+		}
+	}
+	
+	if (count($instructions) && $instructions["post"]) {
+		$_SESSION["bigtree_admin"]["package_instructions"] = $instructions["post"];
+	}
 	
 	BigTree::redirect(ADMIN_ROOT."developer/foundry/install/complete/");
 ?>

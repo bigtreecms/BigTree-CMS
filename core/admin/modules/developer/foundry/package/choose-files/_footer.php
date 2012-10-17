@@ -196,6 +196,22 @@
 				<label>Created By</label>
 				<input type="text" name="created_by" value="<?=$admin->Name?>" />
 			</fieldset>
+			<div class="left">
+				<fieldset>
+					<label>Pre-Install Instructions</label>
+					<textarea name="pre_instructions"></textarea>
+				</fieldset>
+			</div>
+			<div class="right">
+				<fieldset>
+					<label>Post-Install Instructions</label>
+					<textarea name="post_instructions"></textarea>
+				</fieldset>
+			</div>
+			<fieldset>
+				<label>PHP Install Code (runs after successful install)</label>
+				<textarea name="install_code"></textarea>
+			</fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Build Package" />
