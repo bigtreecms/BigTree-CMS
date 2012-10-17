@@ -23,7 +23,7 @@
 	}
 
 	// This is an update to an existing entry.
-	if ($change["item_id"]) {
+	if ($change["item_id"] > -1) {
 		if ($change["table"] == "bigtree_pages") {
 			$page_data = $cms->getPendingPage($change["item_id"]);
 			$admin->updatePage($change["item_id"],$page_data);

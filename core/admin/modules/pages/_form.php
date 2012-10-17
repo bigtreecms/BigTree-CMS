@@ -42,6 +42,8 @@
 		<section id="template_tab" style="display: none;">
 			<? include BigTree::path("admin/modules/pages/tabs/template.php") ?>
 		</section>
+		<? } else { ?>
+		<input type="hidden" name="template" id="template" value="<?=$pdata["template"]?>" />
 		<? } ?>
 		<section id="content_tab"<? if ($action == "create") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/content.php") ?>
@@ -63,8 +65,12 @@
 			<?
 					}
 				} else {
+					if ($page != 0) {
 			?>
 			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
+			<?
+					}
+			?>
 			<input type="submit" name="ptype" value="Save"<? if (!$publisher) { ?> class="blue"<? } ?> />
 			<?
 					if ($publisher) {
