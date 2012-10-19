@@ -57,6 +57,16 @@
 
 		return false;
 	});
+
+	// Handle making sure IDs get tacked on to the display field radio buttons.
+	$("input[name=display_field]").live("click",function() {
+		// Get the id field
+		id = $(this).parents("li").find("input").eq(0).val();
+		$(this).val(id);
+	});
+	$(".developer_resource_callout_id input").live("change",function() {
+		$(this).parents("li").find("input[type=radio]").val($(this).val());
+	});
 	
 	$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 </script>
