@@ -17,10 +17,11 @@
 		$sort = "id DESC";
 	}
 	list($sort_column,$sort_direction) = explode(" ",$sort);
+	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 ?>
 <div class="table auto_modules">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="Search" />
+		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=htmlspecialchars($search)?>" />
 		<span class="form_search_icon"></span>
 		<ul id="view_paging" class="view_paging"></ul>
 	</summary>
