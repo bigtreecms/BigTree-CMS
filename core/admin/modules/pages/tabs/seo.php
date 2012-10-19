@@ -1,3 +1,4 @@
+<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <fieldset>
 	<label>URL Route <small>(leave blank to auto generate)</small></label>
 	<input type="text" name="route" value="<?=$pdata["route"]?>" tabindex="2" />

@@ -120,6 +120,13 @@
 	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$pdata["id"]?>' } });",60000);
 	<? } ?>
 	
-	new BigTreeFormValidator("#page_form");
+	new BigTreeFormValidator("#page_form",function(errors) {
+		// Hide all the pages tab sections
+		$("#page_form > section").hide();
+		// Unset all the active states on tabs
+		$(".form_container nav a").removeClass("active");
+		// Figure out what section the first error occurred in and show that section.
+		$(".form_container nav a[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+	});
 </script>
 <script type="text/javascript" src="<?=ADMIN_ROOT?>js/pages.js"></script>

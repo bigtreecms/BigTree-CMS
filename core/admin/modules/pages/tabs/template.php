@@ -12,6 +12,7 @@
 		$callouts_enabled = $items[0]["callouts_enabled"];
 	}
 ?>
+<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <fieldset>
 	<label>Flexible Templates</label>
 	<?

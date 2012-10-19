@@ -1887,13 +1887,18 @@ var BigTreeFieldSelect = Class.extend({
 // !BigTreeFormValidator
 var BigTreeFormValidator = Class.extend({
 	form: false,
+	callback: false,
 	
-	init: function(selector) {
+	init: function(selector,callback) {
 		this.form = $(selector);
 		this.form.submit($.proxy(this.validateForm,this));
+		if (callback) {
+			this.callback = callback;
+		}
 	},
 	
 	validateForm: function(event,in_dialog) {
+		errors = [];
 		this.form.find(".form_error").removeClass("form_error");
 		this.form.find(".form_error_reason").remove();
 		
@@ -1909,6 +1914,7 @@ var BigTreeFormValidator = Class.extend({
 				val = $(this).val();
 			}
 			if (!val) {
+				errors[errors.length] = $(this);
 				$(this).parents("fieldset").addClass("form_error");
 				$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 				$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
@@ -1917,6 +1923,7 @@ var BigTreeFormValidator = Class.extend({
 		
 		this.form.find("input.numeric").each(function() {
 			if (isNaN($(this).val())) {
+				errors[errors.length] = $(this);
 				$(this).parents("fieldset").addClass("form_error");
 				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be Numeric</span>'));
 			}
@@ -1926,6 +1933,7 @@ var BigTreeFormValidator = Class.extend({
 			reg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 			val = $(this).val();
 			if (val && !reg.test(val)) {
+				errors[errors.length] = $(this);
 				$(this).parents("fieldset").addClass("form_error");
 				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be An Email Address</span>'));
 			}
@@ -1935,6 +1943,7 @@ var BigTreeFormValidator = Class.extend({
 			reg = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
 			val = $(this).val();
 			if (val && !reg.test(val)) {
+				errors[errors.length] = $(this);
 				$(this).parents("fieldset").addClass("form_error");
 				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
 			}
@@ -1946,6 +1955,9 @@ var BigTreeFormValidator = Class.extend({
 				$("html, body").animate({ scrollTop: $(".form_container").offset().top }, 200);
 			} else {
 				this.form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
+			}
+			if (this.callback) {
+				this.callback(errors);
 			}
 			return false;
 		} else {
