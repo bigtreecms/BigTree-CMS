@@ -987,13 +987,13 @@
 
 		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
 			$table = sqlescape($table);
-			$item_id = sqlescape($item_id);
+			$item_id = ($item_id !== false) ? "'".sqlescape($item_id)."'" : "NULL";
 			$changes = sqlescape(json_encode($changes));
 			$mtm_changes = sqlescape(json_encode($mtm_changes));
 			$tags_changes = sqlescape(json_encode($tags_changes));
 			$module = sqlescape($module);
 
-			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`) VALUES ('".$this->ID."',NOW(),'$table','$item_id','$changes','$mtm_changes','$tags_changes','$module')");
+			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`) VALUES ('".$this->ID."',NOW(),'$table',$item_id,'$changes','$mtm_changes','$tags_changes','$module')");
 			return sqlid();
 		}
 

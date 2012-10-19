@@ -226,4 +226,12 @@
 		// Delete the "package" column from templates.
 		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `package`");
 	}
+
+	// BigTree 4.0RC2 update -- REVISION 14
+	function _local_bigtree_update_14() {
+		// Allow NULL as an option for the item_id in bigtree_pending_changes
+		sqlquery("ALTER TABLE `bigtree_pending_changes` CHANGE `item_id` `item_id` INT(11) UNSIGNED DEFAULT NULL");
+		// Fix anything that had a 0 before as the item_id and wasn't pages.
+		sqlquery("UPDATE `bigtree_pending_changes` SET item_id = NULL WHERE item_id = 0 AND `table` != 'bigtree_pages'");
+	}
 ?>
