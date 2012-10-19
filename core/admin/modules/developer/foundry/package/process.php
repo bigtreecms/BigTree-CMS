@@ -131,7 +131,7 @@
 		}
 	}
 	
-	// Get the included tables now... yep.
+	// Get the included tables now...
 	if (isset($tables) && is_array($tables)) {
 		// We need to rearrange the tables array so that ones that have foreign keys fall at the end.
 		$rearranged_tables = array();
@@ -143,8 +143,19 @@
 			if (!count($i["foreign_keys"])) {
 				$rearranged_tables[] = $t;
 			} else {
-				$table_info[$t] = $i;
-				$pending_tables[] = $t;
+				// See if the other tables are all bigtree_ ones.
+				$just_bigtree_keys = true;
+				foreach ($i["foreign_keys"] as $key) {
+					if (substr($key["other_table"],0,8) != "bigtree_") {
+						$just_bigtree_keys = false;
+					}
+				}
+				if ($just_bigtree_keys) {
+					$rearranged_tables[] = $t;
+				} else {
+					$table_info[$t] = $i;
+					$pending_tables[] = $t;
+				}
 			}
 		}
 		// We're going to loop the number of times there are tables so we don't loop forever
