@@ -9,5 +9,5 @@
 	}
 
 	$admin->growl("Users","Added User");
-	BigTree::redirect(ADMIN_ROOT."users/edit/$id/new/");
+	BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
 ?>
