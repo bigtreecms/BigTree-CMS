@@ -196,7 +196,7 @@
 </div>
 
 <? if ($positioned) { ?>
-<fieldset>
+<fieldset class="last">
 	<label>Default Position <small>For New Entries</small></label>
 	<select name="default_position">
 		<option>Bottom</option>

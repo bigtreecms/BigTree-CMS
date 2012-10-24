@@ -51,6 +51,8 @@
 						$tabindex++;
 					}
 				}
+
+				if ($form["tagging"]) {
 			?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
@@ -67,6 +69,9 @@
 			<script type="text/javascript">
 				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$item_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
 			</script>
+			<?
+				}
+			?>
 		</section>
 		<footer>
 			<? if (isset($view) && $view["preview_url"]) { ?>

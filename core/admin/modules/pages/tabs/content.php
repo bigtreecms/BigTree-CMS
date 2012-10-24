@@ -5,6 +5,7 @@
 	<? include BigTree::path("admin/ajax/pages/get-template-form.php") ?>
 </div>
 
+<? if (!$cms->getSetting("bigtree-internal-disable-page-tagging")) { ?>
 <div class="tags" id="bigtree_tag_browser">
 	<fieldset>
 		<label>Tags<span></span></label>
@@ -23,3 +24,4 @@
 		<ul id="tag_results" style="display: none;"></ul>
 	</fieldset>
 </div>
+<? } ?>

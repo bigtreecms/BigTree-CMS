@@ -40,7 +40,7 @@
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/forms/create/<?=$module["id"]?>/" class="module">
 		<section>
-			<div class="left">
+			<div class="left last">
 				<fieldset>
 					<label class="required">Item Title <small>(for example, "Question" as in "Adding Question")</small></label>
 					<input type="text" class="required" name="title" value="<?=$title?>" />
@@ -60,9 +60,14 @@
 						<? BigTree::getTableSelectOptions($table); ?>
 					</select>
 				</fieldset>
+
+				<fieldset>
+					<input type="checkbox" name="tagging" />
+					<label class="for_checkbox">Enable Tagging</label>
+				</fieldset>
 			</div>
 
-			<div class="right">
+			<div class="right last">
 				<? if ($available_views) { ?>
 				<fieldset>
 					<label>Return View <small>(after the form is submitted, it will return to this view)</small></label>

@@ -234,4 +234,15 @@
 		// Fix anything that had a 0 before as the item_id and wasn't pages.
 		sqlquery("UPDATE `bigtree_pending_changes` SET item_id = NULL WHERE item_id = 0 AND `table` != 'bigtree_pages'");
 	}
+
+	// BigTree 4.0RC2 update -- REVISION 15
+	function _local_bigtree_update_15() {
+		// Adds the setting to disable tagging in pages
+		global $admin;
+		$admin->createSetting(array("id" => "bigtree-internal-disable-page-tagging", "type" => "checkbox", "name" => "Disable Tags in Pages"));
+		// Adds a column to module forms to disable tagging.
+		sqlquery("ALTER TABLE `bigtree_module_forms` ADD COLUMN `tagging` CHAR(2) NOT NULL AFTER `return_url`");
+		// Default to tagging being on since it wasn't an option to turn it off previously.
+		sqlquery("UPDATE `bigtree_module_forms` SET `tagging` = 'on'");
+	}
 ?>
