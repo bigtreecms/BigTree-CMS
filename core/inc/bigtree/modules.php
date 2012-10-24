@@ -626,8 +626,8 @@
 		
 		function search($query,$sortby = false,$limit = false) {
 			$table_description = BigTree::describeTable($this->Table);
-			
-			foreach ($table_description["columns"] as $field) {
+
+			foreach ($table_description["columns"] as $field => $parameters) {
 				$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
 			}
 			
