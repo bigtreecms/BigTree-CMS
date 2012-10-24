@@ -754,12 +754,13 @@
 				default_position - Default position for entries to the form (if the view is positioned).
 				return_view - The view to return to after completing the form.
 				return_url - The alternative URL to return to after completing the form.
+				tagging - Whether or not to enable tagging.
 
 			Returns:
 				The new form id.
 		*/
 
-		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "") {
+		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
@@ -768,8 +769,9 @@
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
+			$tagging = $tagging ? "on" : "";
 
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url')");
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`,`tagging`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url','$tagging')");
 			return sqlid();
 		}
 
@@ -5157,9 +5159,10 @@
 				suffix - Optional add/edit suffix for the form.
 				return_view - The view to return to when the form is completed.
 				return_url - The alternative URL to return to when the form is completed.
+				tagging - Whether or not to enable tagging.
 		*/
 
-		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false,$return_url = "") {
+		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false,$return_url = "",$tagging = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
@@ -5169,8 +5172,9 @@
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
+			$tagging = $tagging ? "on" : "";
 
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view, return_url = '$return_url' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging' WHERE id = '$id'");
 
 			$action = $this->getModuleActionForForm($id);
 			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);
