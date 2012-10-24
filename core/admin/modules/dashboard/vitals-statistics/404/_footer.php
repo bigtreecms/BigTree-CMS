@@ -20,7 +20,7 @@
 			id = $(this).attr("href").substr(1);
 			$(this).parents("li").remove();
 			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/ignore/", { data: { id: id }, type: "POST" });
-			BigTree.growl("Ignored 404","404 Report");
+			BigTree.growl("404 Report","Ignored 404");
 			
 			return false;
 		});
@@ -29,7 +29,7 @@
 			id = $(this).attr("href").substr(1);
 			$(this).parents("li").remove();
 			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/unignore/", { data: { id: id }, type: "POST" });
-			BigTree.growl("Unignored 404","404 Report");
+			BigTree.growl("404 Report","Unignored 404");
 			
 			return false;
 		});
@@ -39,7 +39,7 @@
 				id = $(this).attr("href").substr(1);
 				$(this).parents("li").remove();
 				$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
-				BigTree.growl("Deleted 404","404 Report");
+				BigTree.growl("404 Report","Deleted 404");
 			},this),"delete",false,"OK");
 			
 			return false;

@@ -427,6 +427,16 @@
 		}
 
 		/*
+			Function: clearDead404s
+				Removes all 404s that don't have 301 redirects.
+		*/
+
+		function clearDead404s() {
+			sqlquery("DELETE FROM bigtree_404s WHERE redirect_url = ''");
+			$this->growl("404 Report","Cleared 404s");
+		}
+
+		/*
 			Function: createCallout
 				Creates a callout and its files.
 
