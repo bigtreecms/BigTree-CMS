@@ -693,7 +693,7 @@
 	.table p.module:hover { background-gradient: #eaf5fc #ffffff; border-color: #D4D4D4; box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); }
 
 	.table .view_column { overflow: hidden; padding: 0 0 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
-	.table .view_column a { color: #FFF; display: block; }
+	.table .view_column a { color: #FFF; display: block; overflow: hidden; text-overflow: ellipsis; }
 	.table .view_column a em { font-size: 7px; padding: 0 0 0 5px; }
 	.table .view_action { width: 62px; }
 	.table .view_status { width: 70px; }
