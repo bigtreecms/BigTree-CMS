@@ -1,5 +1,6 @@
 <?
 	$page = $cms->getPage(end($bigtree["path"]));
+	$module_title = $page["nav_title"]." — Pages";
 	
 	// Don't let them move the homepage.
 	if ($page["id"] == 0) {

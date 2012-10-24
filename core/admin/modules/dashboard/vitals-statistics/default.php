@@ -1,4 +1,7 @@
-<?
+<?	
+	// Set the page title.
+	$module_title = "Vitals & Statistics";
+	
 	$breadcrumb[] = array("link" => "dashboard/vitals-statistics/", "title" => "Vitals &amp; Statistics");
 ?>
 <h1>

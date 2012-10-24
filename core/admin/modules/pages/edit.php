@@ -13,6 +13,8 @@
 		$r = $admin->getPageAccessLevel($page);
 	}
 
+	$module_title = $pdata["nav_title"]." — Pages";
+
 	$resources = $pdata["resources"];
 	$callouts = $pdata["callouts"];
 	

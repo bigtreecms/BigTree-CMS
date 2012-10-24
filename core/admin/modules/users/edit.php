@@ -1,4 +1,6 @@
 <?
+	$module_title = "Edit User";
+	
 	$breadcrumb[] = array("link" => "#", "title" => "Edit User");
 	
 	$user = $admin->getUser(end($bigtree["commands"]));

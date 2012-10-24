@@ -1,4 +1,7 @@
 <?
+	// Set the page title.
+	$module_title = "Ignored 404s";
+
 	$total = $admin->get404Total("ignored");
 	$type = "ignored";
 	$breadcrumb[] = array("link" => "dashboard/vitals-statistics/404/ignored/", "title" => "Ignored 404s");

@@ -1,3 +1,7 @@
+<?
+	// Set the page title.
+	$module_title = "Clear 404s";
+?>
 <h1>
 	<span class="page_404"></span>Clear 404s
 	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>

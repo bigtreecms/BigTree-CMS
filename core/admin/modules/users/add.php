@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add User";
 	$breadcrumb[] = array("link" => "users/add/", "title" => "Add User");
 	
 	$e = false;

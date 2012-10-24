@@ -8,12 +8,13 @@
 	
 	// Setup the page breadcrumb
 	if ($parent && $page) {
-
+		$module_title = $page["nav_title"]." — Pages";
 	} else {
 		$breadcrumb = array(
 			array("link" => "pages/", "title" => "Pages"),
 			array("link" => "pages/view-tree/0/", "title" => "Home")
 		);
+		$module_title = "Pages";
 	}
 	
 	function local_drawPageTree($nav,$title,$subtitle,$class,$draggable = false) {

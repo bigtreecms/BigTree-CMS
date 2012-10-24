@@ -44,7 +44,7 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
 	<head>
 		<meta charset="utf-8" />
-		<title><? if (isset($module_title)) { ?><?=$module_title?> | <? } ?><?=$site["nav_title"]?> Admin</title>
+		<title><? if (isset($module_title)) { ?><?=htmlspecialchars(htmlspecialchars_decode($module_title))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
 		<? if (isset($css) && is_array($css)) { foreach ($css as $style) { ?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />

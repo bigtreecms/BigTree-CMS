@@ -1,4 +1,7 @@
 <?
+	// Set the page title.
+	$module_title = "Active 404s";
+	
 	$total = $admin->get404Total("404");
 	$breadcrumb[] = array("link" => "dashboard/vitals-statistics/404/", "title" => "Active 404s");
 	$type = "404";

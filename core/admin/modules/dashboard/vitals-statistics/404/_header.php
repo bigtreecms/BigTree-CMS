@@ -1,8 +1,5 @@
 <?
-	if (!$admin->Level) {
-		die();
-	}
-	
+	$admin->requireLevel(1);
 	$breadcrumb = array(
 		array("link" => "dashboard/", "title" => "Dashboard"),
 		array("link" => "dashboard/vitals-statistics/", "title" => "Vitals &amp; Statistics"),

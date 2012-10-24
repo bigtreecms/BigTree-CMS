@@ -9,6 +9,8 @@
 	} else {
 		die("You do not have access to this page.");
 	}
+
+	$module_title = "Add Page";
 	
 	$tags = array();
 ?>

@@ -5,6 +5,7 @@
 		$admin->stop("You must be a publisher to manage revisions.");
 	}
 	$pdata = $cms->getPage($page);
+	$module_title = $pdata["nav_title"]." — Pages";
 	
 	if (!$pdata) {
 ?>

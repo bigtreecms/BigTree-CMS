@@ -1,4 +1,7 @@
 <?
+	// Set the page title.
+	$module_title = "301 Redirects";
+
 	$total = $admin->get404Total("301");
 	$type = "301";
 	$breadcrumb[] = array("link" => "dashboard/vitals-statistics/404/301/", "title" => "301 Redirects");

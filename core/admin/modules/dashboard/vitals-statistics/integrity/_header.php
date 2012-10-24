@@ -1,6 +1,8 @@
 <?
+	// Set the page title.
+	$module_title = "Site Integrity Check";
+
 	$admin->requireLevel(1);
-	
 	$breadcrumb = array(
 		array("link" => "dashboard/", "title" => "Dashboard"),
 		array("link" => "dashboard/vitals-statistics/", "title" => "Vitals &amp; Statistics"),

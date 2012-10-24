@@ -1,4 +1,7 @@
 <?
+	// Set the page title.
+	$module_title = "Pending Changes";
+
 	$breadcrumb[] = array("title" => "Pending Changes", "link" => "#");
 
 	// Get pending changes.
@@ -28,6 +31,16 @@
 	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
 </h1>
 <?
+	if (!count($changes)) {
+?>
+<div class="form_container">
+	<section>
+		<p>You have no changes awaiting approval.</p>
+	</section>
+</div>
+<?
+	}
+
 	if (count($pages)) {
 ?>
 <a name="0"></a>
