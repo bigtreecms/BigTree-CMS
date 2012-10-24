@@ -3036,18 +3036,18 @@
 				}
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked != 'on' AND system != 'on' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system != 'on' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
 				}
 			} else {
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked != 'on' AND system != 'on' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system != 'on' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
 				}
 			}
 
@@ -3743,9 +3743,9 @@
 		function getSettings($sort = "name ASC") {
 			$items = array();
 			if ($this->Level < 2) {
-				$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked != 'on' AND system != 'on' ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY $sort");
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_settings WHERE system != 'on' ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY $sort");
 			}
 			while ($f = sqlfetch($q)) {
 				foreach ($f as $key => $val) {
@@ -3782,18 +3782,18 @@
 				}
 				// Administrator
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system != 'on' AND locked != 'on' AND ".implode(" AND ",$qp));
+					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = '' AND locked = '' AND ".implode(" AND ",$qp));
 				// Developer
 				} else {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system != 'on' AND ".implode(" AND ",$qp));
+					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = '' AND ".implode(" AND ",$qp));
 				}
 			} else {
 				// Administrator
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system != 'on' AND locked != 'on'");
+					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = '' AND locked = ''");
 				// Developer
 				} else {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system != 'on'");
+					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = ''");
 				}
 			}
 
