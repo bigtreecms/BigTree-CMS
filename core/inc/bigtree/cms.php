@@ -406,9 +406,16 @@
 		*/
 		
 		function getLink($id) {
+			global $bigtree;
+			// Homepage, just return the web root.
 			if ($id == 0) {
 				return WWW_ROOT;
 			}
+			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
+			if ($bigtree["page"]["id"] == $id) {
+				return WWW_ROOT.$bigtree["page"]["path"]."/";
+			}
+			// Otherwise we'll grab the page path from the db.
 			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
 			return WWW_ROOT.$f["path"]."/";
 		}
