@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Callout";
 	$breadcrumb[] = array("title" => "Add Callout", "link" => "#");
 	$resources = array();
 	

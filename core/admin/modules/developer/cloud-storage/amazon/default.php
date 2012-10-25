@@ -1,4 +1,5 @@
 <?
+	$module_title = "Amazon S3";
 	$breadcrumb[] = array("title" => "Upload Service", "link" => "developer/cload-storage/");
 	$breadcrumb[] = array("title" => "Amazon S3", "link" => "#");
 	

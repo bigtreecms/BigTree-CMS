@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Module Action";
 	$item = $admin->getModuleAction(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 	$module = $admin->getModule($module);

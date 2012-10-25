@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Feed";
 	$breadcrumb[] = array("title" => "Edit Feed", "link" => "#");
 	
 	$item = $cms->getFeed(end($bigtree["commands"]));

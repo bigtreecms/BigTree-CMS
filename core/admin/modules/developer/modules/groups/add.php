@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Module Group";
 	$breadcrumb[] = array("title" => "Add Group", "link" => "developer/modules/groups/add/");
 ?>
 <h1><span class="modules"></span>Add Group</h1>

@@ -1,4 +1,5 @@
 <?
+	$module_title = "Create Package";
 	$breadcrumb[] = array("title" => "Create Package", "link" => "#");
 	
 	function gatherModuleInformation($mid) {

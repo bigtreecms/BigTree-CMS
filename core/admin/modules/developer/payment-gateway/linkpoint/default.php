@@ -1,4 +1,5 @@
 <?
+	$module_title = "LinkPoint / First Data";
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 	$breadcrumb[] = array("title" => "First Data / LinkPoint", "link" => "#");
 ?>

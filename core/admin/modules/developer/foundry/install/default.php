@@ -1,4 +1,5 @@
 <?
+	$module_title = "Install Package";
 	$breadcrumb[] = array("title" => "Upload Package", "link" => "#");
 ?>
 <h1><span class="package"></span>Install Package</h1>

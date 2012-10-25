@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Field Type";
 	$breadcrumb[] = array("title" => "Add Field Type", "link" => "#");
 	
 	// Stop notices

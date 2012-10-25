@@ -1,4 +1,5 @@
 <?
+	$module_title = "Payment Gateway";
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 ?>
 <h1><span class="payment"></span>Payment Gateway</h1>

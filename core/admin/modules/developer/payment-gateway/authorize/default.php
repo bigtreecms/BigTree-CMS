@@ -1,4 +1,5 @@
 <?
+	$module_title = "Authorize.Net";
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 	$breadcrumb[] = array("title" => "Authorize.Net", "link" => "#");
 ?>

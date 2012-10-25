@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Template";
 	$breadcrumb[] = array("title" => "Edit Template", "link" => "#");
 	$template = $cms->getTemplate(end($bigtree["path"]));
 	BigTree::globalizeArray($template);

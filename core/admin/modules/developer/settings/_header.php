@@ -1,4 +1,5 @@
 <?
+	$module_title = "Settings";
 	$t = $admin->getCachedFieldTypes();
 	$types = $t["settings"];
 

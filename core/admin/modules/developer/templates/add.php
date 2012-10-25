@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Template";
 	$resources = array();
 	
 	// Clear out notices

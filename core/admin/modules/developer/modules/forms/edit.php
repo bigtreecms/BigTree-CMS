@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Module Form";
 	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 

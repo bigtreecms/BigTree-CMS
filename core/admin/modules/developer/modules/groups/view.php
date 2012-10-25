@@ -1,4 +1,5 @@
 <?
+	$module_title = "Module Groups";
 	$groups = $admin->getModuleGroups();
 ?>
 <h1><span class="modules"></span>Groups</h1>

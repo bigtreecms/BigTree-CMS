@@ -1,4 +1,5 @@
 <?
+	$module_title = "Local Storage";
 	$breadcrumb[] = array("title" => "Upload Service", "link" => "developer/cload-storage/");
 	$breadcrumb[] = array("title" => "Local Storage", "link" => "#");
 	

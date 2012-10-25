@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Module View";
 	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";

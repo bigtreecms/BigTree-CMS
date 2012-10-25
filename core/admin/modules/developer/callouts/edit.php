@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Callout";
 	$breadcrumb[] = array("title" => "Edit Callout", "link" => "#");
 	$callout = $cms->getCallout(end($bigtree["path"]));
 	

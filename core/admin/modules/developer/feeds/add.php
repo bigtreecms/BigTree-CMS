@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Feed";
 	$breadcrumb[] = array("title" => "Add Feed", "link" => "#");
 ?>
 <h1><span class="feeds"></span>Add Feed</h1>

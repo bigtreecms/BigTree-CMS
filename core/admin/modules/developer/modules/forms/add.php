@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Module Form";
 	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 

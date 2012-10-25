@@ -1,4 +1,5 @@
 <?	
+	$module_title = "Edit Module View";
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	$action = $admin->getModuleActionForView(end($bigtree["path"]));
 	$module = $admin->getModule($action["module"]);

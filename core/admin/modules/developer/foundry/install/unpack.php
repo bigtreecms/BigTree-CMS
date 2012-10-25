@@ -1,4 +1,5 @@
 <?
+	$module_title = "Install Package";
 	$breadcrumb[] = array("title" => "Unpacked Package", "link" => "#");
 	
 	// Make sure an upload succeeded

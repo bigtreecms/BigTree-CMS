@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Field Type";
 	$breadcrumb[] = array("title" => "Edit Field Type", "link" => "#");
 	
 	$type = $admin->getFieldType(end($bigtree["commands"]));

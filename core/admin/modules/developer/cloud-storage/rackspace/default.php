@@ -1,4 +1,5 @@
 <?
+	$module_title = "Rackspace Cloud";
 	$breadcrumb[] = array("title" => "Upload Service", "link" => "developer/cload-storage/");
 	$breadcrumb[] = array("title" => "Rackspace Cloud Files", "link" => "#");
 	

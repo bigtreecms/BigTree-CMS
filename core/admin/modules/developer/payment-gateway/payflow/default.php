@@ -1,4 +1,5 @@
 <?
+	$module_title = "Payflow Gateway";
 	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
 	$breadcrumb[] = array("title" => "PayPal Payflow Gateway", "link" => "#");
 ?>

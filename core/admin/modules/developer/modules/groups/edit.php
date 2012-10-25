@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Module Group";
 	$id = end($bigtree["path"]);
 	$breadcrumb[] = array("title" => "Edit Group", "link" => "developer/modules/groups/edit/$id/");
 	$group = $admin->getModuleGroup($id);

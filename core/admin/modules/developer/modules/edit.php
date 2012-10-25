@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Module";
 	$id = end($bigtree["path"]);
 	$breadcrumb[] = array("title" => "Edit Module", "link" => "#");
 	

@@ -1,4 +1,5 @@
 <?
+	$module_title = "Cloud Storage";
 	$service = new BigTreeUploadService;
 	$breadcrumb[] = array("title" => "Upload Service", "link" => "#");
 	

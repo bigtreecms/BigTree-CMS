@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Module";
 	$breadcrumb[] = array("title" => "Add Module", "link" => "developer/modules/add/");
 	$groups = $admin->getModuleGroups();
 	

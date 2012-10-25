@@ -1,4 +1,5 @@
 <?
+	$module_title = "Edit Setting";
 	$breadcrumb[] = array("title" => "Add Setting", "link" => "#");
 	
 	$item = $admin->getSetting(end($bigtree["path"]));

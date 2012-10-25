@@ -1,4 +1,5 @@
 <?
+	$module_title = "Style Module View";
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 ?>
 <h1><span class="modules"></span>Tweak View Styles</h1>

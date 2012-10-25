@@ -1,4 +1,5 @@
 <?
+	$module_title = "Add Setting";
 	$breadcrumb[] = array("title" => "Add Setting", "link" => "#");
 	
 	// Stop notices
