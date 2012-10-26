@@ -40,8 +40,8 @@
 		$ups["service"] = "";
 	}
 
-	$admin->updateSettingValue("bigtree-internal-upload-service",json_encode($ups));	
-	
+	$admin->updateSettingValue("bigtree-internal-upload-service",$ups);	
+
 	$admin->growl("Developer","Updated Amazon S3 Keys");
 	BigTree::redirect($developer_root);
 ?>
