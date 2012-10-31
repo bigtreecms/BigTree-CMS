@@ -7,26 +7,18 @@
 		"link" = Link - Text
 	*/
 ?>
-<div class="callout grey_block">
-	<h4><?=$callout["title"]?></h4>
-	<? 
-		if ($callout["image"]) { 
-			$lrg = BigTree::prefixFile($callout["image"], "lrg_");
-			$med = BigTree::prefixFile($callout["image"], "med_");
-			$sm = BigTree::prefixFile($callout["image"], "sm_");
-	?>
+<div class="callout grey_block<? if (!$bigtree["page"]["id"]) { ?> row_12<? } ?>">
+	<? if ($callout["image"]) { ?>
 	<figure>
-		<img src="<?=$lrg?>" alt="Flexible Callout: <?=$callout["title"]?>"  class="responder" data-xlarge="<?=$lrg?>" data-large="<?=$med?>" data-medium="<?=$sm?>" data-small="<?=$sm?>" />
+		<img src="<?=$callout["image"]?>" alt="" />
+		<? if ($callout["caption"]) { ?>
+		<figcaption><?=$callout["caption"]?></figcaption>
+		<? } ?>
 	</figure>
-	<? 
-		}
-		
-		echo $callout["description"];
-	
-		if ($callout["link"]) { 
-	?>
+	<? } ?>
+	<h4><?=$callout["title"]?></h4>
+	<?=$callout["description"]?>
+	<? if ($callout["link"]) { ?>
 	<a href="<?=$callout["link"]?>" class="more">Learn More</a>
-	<? 
-		} 
-	?>
+	<? } ?>
 </div>

@@ -143,6 +143,8 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	#footer .copyright { border-top: 1px solid #eee; margin: 3% 0 0; text-align: center; }
 	#footer .copyright p { color: #999; font-family: 'OpenSans', sans-serif; font-size: 11px; margin: 26px 0; }
 	
+	/* Homepage Styles */
+
 	#feature { border-bottom: 1px dotted #222; height: 625px; overflow: hidden; position: relative; width: 100%; }
 	#feature .background { background: #222; height: 100%; width: 100%; }
 	#feature .images { left: 50%; position: absolute; top: 0; z-index: 1; }
@@ -191,16 +193,11 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.large #feature .image { left: -500px; }
 	.medium #feature .image { left: -375px; }
 	.small #feature .image { left: -250px; }
+
+	.home_callouts { margin: 6% 0 0 0; }
 	
-	.griddle .intro { overflow: visible; }
-	.intro_block { background: #F9F9F9; margin: 6% -1.5% 0; overflow: hidden; padding: 4% 1.5%; width: 103%; }
-	.intro_block figure img { width: 100%; }
-	.intro_block figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
-	.intro_block figcaption a { color: #666; }
-	.intro_block figcaption a:hover { color: #222; }
-	.intro_block .more { color: #222; }
-	.intro_block .more:hover { border-color: #000; color: #000; }
-	
+	/* Twitter Callout */
+
 	.twitter_timeline { position: relative; -webkit-tap-highlight-color: rgba(255,255,255,0); }
 	.twitter_timeline header { margin: 6% 0 0; }
 	.twitter_timeline h3 { font-size: 18px; float: left; margin: 0 10px 0 0; text-transform: uppercase; }
@@ -231,25 +228,45 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.twitter_timeline .previous.disabled { background-position: 0 center; }
 	.twitter_timeline .next { background-position: -60px center; }
 	.twitter_timeline .next.disabled { background-position: -40px center; }
+
+	.sidebar .twitter_timeline .timeline { width: 100%; position: static; }
+	.sidebar .twitter_timeline .timeline .tweet { width: 100%; margin: 0 0 15px 0; padding: 0 0 15px 0; border-bottom: 1px dotted #AAA; }
+	.sidebar .twitter_timeline hr { margin: 20px 0; }
+	.sidebar .twitter_timeline .triggers { display: none; }
+	.sidebar .twitter_timeline p, .sidebar .twitter_timeline h3 { float: none; }
+	.sidebar .twitter_timeline h3 { margin: 0 0 10px 0; }
+	.sidebar .twitter_timeline header { margin: 0; }
+	.sidebar .twitter_timeline .viewport { height: auto; }
+	.sidebar .twitter_timeline .timeline p { margin: 0 0 10px 0; }
 	
-	.split { width: 49%; }
-	
+	/* Flexible Callout */
+
+	.callout { background: #F9F9F9; padding: 20px; margin: 0 0 20px 0; }
+	.callout p { font-size: 12px; }
+	.callout img { margin: 0 0 10px 0; max-width: 100%; }
+	.callout .more { color: #222; font-size: 11px; }
+	.callout .more:hover { border-color: #000; color: #000; }
+	.callout figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
+
+	.home_callouts .callout { padding: 2.5%; }
+	.home_callouts .callout figure { float: left; width: 40%; margin: 0 3% 0 0; }
+	.home_callouts .callout h4 { margin: 0 3% 2% 0; font-size: 34px; }
+	.home_callouts .callout p { margin: 0 3% 2% 0; font-size: 15px; }
+	.home_callouts .callout img { margin: 0; }
+	.home_callouts .callout .more { font-size: 10px; }
+
+	/* Sub Page Styles */
+
 	#subpage { margin: 130px auto 50px; }
-	
+	.split { width: 49%; }
+
 	.content { padding-left: 20px; }
 	.content a { border-bottom: 1px dotted #999; }
 	.content a:hover { border-color: #222; }
 	.content figure { float: right; width: 300px; margin: 0 0 20px 20px; }
 	.content figure img { width: 100%; }
 	.content figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
-	
-	.sidebar {  }
-	.callout { background: #F9F9F9; padding: 20px; }
-	.callout p { font-size: 12px; }
-	.callout img { margin: 0 0 3%; max-width: 100%; }
-	.callout .more { color: #222; font-size: 11px; }
-	.callout .more:hover { border-color: #000; color: #000; }
-	
+
 	.subnav { font-weight: 600; }
 	.subnav ul { margin: 0 0 20px; }
 	.subnav ul ul { clear: both; margin: 0 0 0 6%; }
@@ -260,6 +277,8 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.subnav strong, .subnav a.nav_label { background: #F9F9F9; color: #222; display: block; font-size: 16px; line-height: 1; margin: 0 -5% 3%; padding: 8% 5%; text-transform: uppercase; width: 110%; }
 	.subnav a.nav_label { display: none; }
 	
+	/* Blog Styles */
+
 	.blog .content { padding: 0; }
 	.blog h1 { margin: 0 0 3%; }
 	.blog h2 { margin: 0 0 2%; }
@@ -298,6 +317,8 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 	.blog .dogwood_search .query { width: 66.4%; margin: 2% 1% 2% 5%; }
 	.blog .dogwood_search .submit { width: 20%; margin: 2% 5% 2% 0; }
 	
+	/* Responsive Styles */
+
 	@media screen and (min-width: 1220px) {
 		#feature .descriptions { width: 31.25%; }
 		#feature .description { padding: 50px 8% 30px; }
@@ -344,10 +365,7 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		#feature .credit:hover .credit_label { display: block; }
 		#feature .credit:hover .credit_text { display: none; }
 		
-		.griddle .intro_block { margin: 10% -3.5% 0; overflow: hidden; padding: 5% 3.5%; width: 107%; }
-		.griddle .intro_block .cell_5 { width: 97.9166666666666667%; }
-		.griddle .intro_block .cell_7 { width: 97.9166666666666667%; }
-		.intro_block figure { margin-bottom: 20px; }
+		.home_callouts .callout figure { float: none; margin: 0 0 10px 0; width: 100%; }
 		
 		.twitter_timeline header { margin: 10% 0 0; }
 		.twitter_timeline .timeline article { padding-right: 10px; width: 230px; margin: 0 5px; }
@@ -405,6 +423,8 @@ input[type="file"] > input[type="button"]::-moz-focus-inner {border:0;padding:0;
 		#feature .triggers { top: 18px; }
 		
 		#feature .next, #feature .previous { top: 0; }
+
+		.home_callouts .callout h4 { font-size: 24px; }
 		
 		.twitter_timeline .timeline article { padding-right: 15px; width: 294px; margin: 0 4px 0 3px; }
 		.twitter_timeline p { width: 80%; }
