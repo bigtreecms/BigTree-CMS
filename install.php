@@ -428,6 +428,7 @@ RewriteRule (.*) site/$1 [L]');
 		"main.js"',$config_data);
 			$config_data = str_replace('// "style_sheet.css"','"griddle.css",
 		"master.css"',$config_data);
+			$config_data = str_replace('$bigtree["config"]["css"]["prefix"] = false;','$bigtree["config"]["css"]["prefix"] = true;',$config_data);
 			file_put_contents("templates/config.php",$config_data);
 		}
 
@@ -647,20 +648,20 @@ RewriteRule (.*) site/$1 [L]');
 					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
 				</fieldset>
 			</form>
+		    <script type="text/javascript">
+		        $(document).ready(function() {
+		        	$("#loadbalanced").on("change", function() {
+		        		if ($(this).is(':checked')) {
+		        			$("#loadbalanced_settings").css({ display: "block" });
+		        		} else {
+		        			$("#loadbalanced_settings").css({ display: "none" });
+		        		}
+		        	});
+		        });
+		    </script>
 			<?php } ?>
 			<a href="http://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
 			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?php echo date("Y") ?> Fastspot</a>
 		</div>
-		<script type="text/javascript">
-		    $(document).ready(function() {
-		    	$("#loadbalanced").on("change", function() {
-		    		if ($(this).is(':checked')) {
-		    			$("#loadbalanced_settings").css({ display: "block" });
-		    		} else {
-		    			$("#loadbalanced_settings").css({ display: "none" });
-		    		}
-		    	});
-		    });
-		</script>
 	</body>
 </html>
