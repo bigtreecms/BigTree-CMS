@@ -285,7 +285,7 @@
 	}
 	
 	// We\'re not in the admin, see if caching is enabled and serve up a cached page if it exists
-	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
+	if ($bigtree["config"]["cache"] && (!$bigtree["config"]["dont_show_admin_cache"] || !$_SESSION["bigtree_admin"]["id"]) && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
 		$curl = $_GET["bigtree_htaccess_url"];
 		if (!$curl) {
 			$curl = "home";
