@@ -176,7 +176,7 @@
 
 		function autoIPL($html) {
 			// If this string is actually just a URL, IPL it.
-			if (substr($html,0,7) == "http://" || substr($html,0,8) == "https://") {
+			if ((substr($html,0,7) == "http://" || substr($html,0,8) == "https://") && strpos($html,"\n") === false && strpos($html,"\r") === false) {
 				$html = $this->makeIPL($html);
 			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
 			} else {
