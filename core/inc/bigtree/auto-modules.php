@@ -863,7 +863,7 @@
 			}
 			
 			while ($f = sqlfetch($q)) {
-				$items[] = $f;
+				$items[$f["id"]] = $f;
 			}
 			
 			return $items;

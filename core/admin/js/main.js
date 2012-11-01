@@ -111,6 +111,21 @@ $(document).ready(function() {
 		}
 		new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
 	});
+
+	// Image views
+	$(".image_list img").load(function() {
+		w = $(this).width();
+		h = $(this).height();
+		if (w > h) {
+			perc = 108 / w;
+			h = perc * h;
+			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
+		} else {
+			style = { margin: "0px" };
+		}
+		
+		$(this).css(style);
+	});
 });
 
 function BigTreeCustomControls() {

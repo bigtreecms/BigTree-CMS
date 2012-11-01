@@ -90,6 +90,7 @@
 	
 	foreach ($modules as $mod) {
 		$view = BigTreeAutoModule::getViewForTable($mod["table"]);
+		$view_data = BigTreeAutoModule::getViewData($view);
 		$edit_link = ADMIN_ROOT.$mod["route"]."/edit";
 		if ($view["suffix"]) {
 			$edit_link .= "-$suffix";
@@ -104,6 +105,37 @@
 			<?=$mod["name"]?>
 		</h2>
 	</summary>
+	<? if ($view["type"] == "images" || $view["type"] == "images-grouped") { ?>
+	<section>
+		<ul class="image_list">
+			<?
+				foreach ($mod["changes"] as $change) {
+					if ($change["item_id"]) {
+						$item = $view_data[$change["item_id"]];
+					} else {
+						$item = $view_data["p".$change["id"]];
+					}
+					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
+					if ($view["options"]["prefix"]) {
+						$image = BigTree::prefixFile($image,$view["options"]["prefix"]);
+					}
+
+			?>
+			<li class="non_draggable">
+				<p><?=$change["user"]["name"]?></p>
+				<a class="image" href="<?=$edit_link.$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
+				<? if ($view["preview_url"]) { ?>
+				<a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
+				<? } ?>
+				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a>
+				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a>
+			</li>
+			<?
+				}
+			?>
+		</ul>
+	</section>
+	<? } else { ?>
 	<header>
 		<span class="changes_author">Author</span>
 		<?
@@ -129,21 +161,21 @@
 		<?
 			foreach ($mod["changes"] as $change) {
 				if ($change["item_id"]) {
-					$item = BigTreeAutoModule::getPendingItem($change["table"],$change["item_id"]);
-					$item = $item["item"];
+					$item = $view_data[$change["item_id"]];
 				} else {
-					$item = json_decode($change["changes"],true);
-					$item["id"] = "p".$change["id"];
+					$item = $view_data["p".$change["id"]];
 				}
 		?>
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<?
 				if (is_array($view["fields"])) {
+					$x = 0;
 					foreach ($view["fields"] as $field => $data) {
+						$x++;
 			?>
 			<section class="view_column" style="width: <?=$data["width"]?>px">
-				<?=$item[$field]?>
+				<?=$item["column$x"]?>
 			</section>
 			<?
 					}
@@ -163,6 +195,7 @@
 			}
 		?>
 	</ul>
+	<? } ?>
 </div>
 <?
 	}

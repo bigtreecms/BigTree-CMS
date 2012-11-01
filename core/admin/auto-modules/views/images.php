@@ -144,20 +144,6 @@
 		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
 	}});
 	<? } ?>
-	 
-	$(".image_list img").load(function() {
-		w = $(this).width();
-		h = $(this).height();
-		if (w > h) {
-			perc = 108 / w;
-			h = perc * h;
-			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
-		} else {
-			style = { margin: "0px" };
-		}
-		
-		$(this).css(style);
-	});
 	
 	// Stop disabled edit action from working.
 	$(".image_list a.image_disabled").click(function() {
