@@ -87,8 +87,8 @@
 		
 		static function cacheRecord($item,$view,$parsers,$poplists) {
 			global $cms;
-			// Setup the fields and VALUES to INSERT INTO the cache table.
 			
+			// Setup the fields and VALUES to INSERT INTO the cache table.
 			$status = "l";
 			$pending_owner = 0;
 			if ($item["bigtree_changes"]) {
@@ -187,8 +187,7 @@
 		
 		static function cacheViewData($view) {
 			// See if we already have cached data.
-			$r = sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"));
-			if ($r) {
+			if (sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"))) {
 				return false;
 			}
 			
@@ -236,7 +235,7 @@
 				self::cacheRecord($item,$view,$parsers,$poplists);
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '".$view["table"]."' AND item_id = '0'");
+			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '".$view["table"]."' AND item_id IS NULL");
 			while ($f = sqlfetch($q)) {
 				$item = json_decode($f["changes"],true);
 				$item["bigtree_pending"] = true;
