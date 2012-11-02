@@ -10,15 +10,15 @@
 <h1>
 	<span class="modules"></span><?=$view["title"]?>
 	<? if (isset($subnav) && count($subnav)) { ?>
-	<div class="jump_group">
+	<nav class="jump_group">
 		<span class="icon"></span>
-		<div class="dropdown">
+		<nav class="dropdown">
 			<strong><?=$mgroup["name"]?></strong>
 			<? foreach ($subnav as $link) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$link["link"]?>"><?=$link["title"]?></a>
 			<? } ?>
-		</div>
-	</div>
+		</nav>
+	</nav>
 	<? } ?>
 </h1>
 <?

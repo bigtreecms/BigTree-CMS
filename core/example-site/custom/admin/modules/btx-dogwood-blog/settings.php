@@ -30,15 +30,15 @@
 <h1>
 	<span class="modules"></span>Blog Settings
 	<? if (count($subnav)) { ?>
-	<div class="jump_group">
+	<nav class="jump_group">
 		<span class="icon"></span>
-		<div class="dropdown">
+		<nav class="dropdown">
 			<strong><?=$mgroup["name"]?></strong>
 			<? foreach ($subnav as $link) { ?>
 			<a href="<?=$admin_root?><?=$link["link"]?>"><?=$link["title"]?></a>
 			<? } ?>
-		</div>
-	</div>
+		</nav>
+	</nav>
 	<? } ?>
 </h1>
 <nav class="sub">
