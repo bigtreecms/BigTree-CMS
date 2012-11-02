@@ -1,5 +1,6 @@
 <h1>
-	<span class="dashboard"></span>Overview
+	<span class="dashboard"></span>
+	Overview
 	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
 </h1>
 <?
@@ -103,7 +104,7 @@
 	}
 ?>
 
-<div class="table">
+<div class="table pending_changes_table">
 	<summary>
 		<h2 class="full">
 			<span class="pending"></span>

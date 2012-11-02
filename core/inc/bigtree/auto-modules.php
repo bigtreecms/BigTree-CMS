@@ -915,9 +915,12 @@
 		*/
 		
 		static function getViewForTable($table) {
+			global $cms;
+			
 			$table = sqlescape($table);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
 			$f["options"] = json_decode($f["options"],true);
+			$f["preview_url"] = $cms->replaceInternalPageLinks($f["preview_url"]);
 			
 			$fields = json_decode($f["fields"],true);
 			if (is_array($fields)) {
@@ -1170,7 +1173,7 @@
 		static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin,$module;
 			$table_description = BigTree::describeTable($table);
-			$query = "UPDATE `$table` SET";
+			$query = "UPDATE `$table` SET ";
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
 					if (is_array($val)) {

@@ -6,4 +6,4 @@
 		<li><a href="<?=$mroot?>keywords/"<? if (end($bigtree["path"]) == "keywords") { ?> class="active"<? } ?>><span class="icon_small icon_small_key"></span>Keywords</a></li>
 		<li><a href="<?=$mroot?>configure/"<? if (end($bigtree["path"]) == "configure") { ?> class="active"<? } ?>><span class="icon_small icon_small_setup"></span>Configure</a></li>
 	</ul>
-</div>
+</nav>

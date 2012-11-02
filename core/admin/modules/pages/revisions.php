@@ -73,7 +73,7 @@
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 18)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft">Active</span></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
-			<section class="pages_edit"></span>
+			<section class="pages_edit"></section>
 		</li>
 		<? foreach ($revisions["unsaved"] as $r) { ?>
 		<li>
@@ -81,7 +81,7 @@
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 18)?>" alt="" /></span><?=$r["name"]?></section>
 			<section class="pages_delete"><a href="#<?=$r["id"]?>" class="icon_save"></a></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
-			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></span>
+			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -100,7 +100,7 @@
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
 			<section class="pages_draft_description"><?=$r["saved_description"]?></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
-			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></span>
+			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>

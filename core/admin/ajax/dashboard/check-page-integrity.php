@@ -10,12 +10,14 @@
 	$template = $cms->getTemplate($page["template"]);
 	$resources = $page["resources"];
 	$htmlerrors = array();
-	foreach ($template["resources"] as $resource) {
-		$rid = $resource["id"];
-		$data = false;
-		if ($resource["type"] == "html") {
-			$data = $resources[$rid];
-			$htmlerrors[] = $admin->checkHTML($cms->getLink($id),$data,$external);
+	if (is_array($template["resources"])) {
+		foreach ($template["resources"] as $resource) {
+		    $rid = $resource["id"];
+		    $data = false;
+		    if ($resource["type"] == "html") {
+		    	$data = $resources[$rid];
+		    	$htmlerrors[] = $admin->checkHTML($cms->getLink($id),$data,$external);
+		    }
 		}
 	}
 	
@@ -27,7 +29,7 @@
 				$ti = "Link";
 			}
 			foreach ($errors as $error) {
-				echo '<li><section class="integrity_errors"><span class="icon_small icon_small_warning"></span> Broken '.$ti.': '.$error.' on page &ldquo;'.$page["nav_title"].'&rdquo; <a href="'.ADMIN_ROOT.'pages/edit/'.$id.'/" target="_blank">Edit</a></section></li>';
+				echo '<li><section class="integrity_errors"><a href="'.ADMIN_ROOT.'pages/edit/'.$id.'/" target="_blank">Edit</a><span class="icon_small icon_small_warning"></span> Broken '.$ti.': '.$error.' on page &ldquo;'.$page["nav_title"].'&rdquo;</section></li>';
 			}
 		}
 	}

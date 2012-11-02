@@ -343,7 +343,7 @@
 			}
 			$errors = array();
 			$doc = new DOMDocument();
-			$doc->loadHTML($html);
+			@$doc->loadHTML($html); // Silenced because the HTML could be invalid.
 			// Check A tags.
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {

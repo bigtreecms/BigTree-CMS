@@ -8,7 +8,7 @@
 <? if (!$cms->getSetting("bigtree-internal-disable-page-tagging")) { ?>
 <div class="tags" id="bigtree_tag_browser">
 	<fieldset>
-		<label>Tags<span></span></label>
+		<label><span></span>Tags</label>
 		<ul id="tag_list">
 			<?
 				if (is_array($pdata["tags"])) {

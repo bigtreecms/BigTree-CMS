@@ -101,7 +101,7 @@
 ?>
 <div class="set">
 	<div class="data">
-		<header>Views<small>Growth</small></header>
+		<header><small>Growth</small>Views</header>
 		<p class="percentage <?=$view_class?>"><?=$view_growth?></p>
 		<label>Present</label>
 		<p class="value"><?=number_format($current["views"])?></p>
@@ -111,7 +111,7 @@
 </div>
 <div class="set">
 	<div class="data">
-		<header>Visits<small>Growth</small></header>
+		<header><small>Growth</small>Visits</header>
 		<p class="percentage <?=$visit_class?>"><?=$visits_growth?></p>
 		<label>Present</label>
 		<p class="value"><?=number_format($current["visits"])?></p>
@@ -121,7 +121,7 @@
 </div>
 <div class="set">
 	<div class="data">
-		<header>Average Time on Site<small>Growth</small></header>
+		<header><small>Growth</small>Average Time on Site</header>
 		<p class="percentage <?=$time_class?>"><?=$time_growth?></p>
 		<label>Present</label>
 		<p class="value"><?=$c_time?></p>
@@ -131,7 +131,7 @@
 </div>
 <div class="set">
 	<div class="data">
-		<header>Bounce Rate<small>Growth</small></header>
+		<header><small>Growth</small>Bounce Rate</header>
 		<p class="percentage <?=$bounce_class?>"><?=$bounce_growth?></p>
 		<label>Present</label>
 		<p class="value"><?=number_format($current["bounce_rate"],2)?>%</p>
@@ -190,7 +190,7 @@
 		<summary>Current Quarter <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<? _local_compareData($cache["quarter"],$cache["year_ago_quarter"]); ?>
 	</li>
-	<li>
+	<li class="last">
 		<summary>Current Year <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<? _local_compareData($cache["year"],$cache["year_ago_year"]); ?>
 	</li>

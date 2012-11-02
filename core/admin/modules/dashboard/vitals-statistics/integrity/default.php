@@ -10,7 +10,6 @@
 	</section>
 	<footer>
 		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/check/?external=true" class="button"><span class="icon_small icon_small_world"></span>Include External Links</a>
-		&nbsp;
 		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/check/?external=false" class="button"><span class="icon_small icon_small_server"></span>Only Internal Links</a>
 	</footer>
 </div>

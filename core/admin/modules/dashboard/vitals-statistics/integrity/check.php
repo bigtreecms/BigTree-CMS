@@ -25,10 +25,10 @@
 	<header>
 		<span class="integrity_errors">Errors</span>
 	</header>
-	<header class="group">Pages <span class="integrity_progress" id="pages_progress">0%</span></header>
+	<header class="group"><span class="integrity_progress" id="pages_progress">0%</span>Pages</header>
 	<ul id="pages_updates"></ul>
 	<? foreach ($modules as $module) { ?>
-	<header class="group"><?=$module["module_name"]?><span class="integrity_progress" id="module_<?=$module["id"]?>_progress">0%</span></header>
+	<header class="group"><span class="integrity_progress" id="module_<?=$module["id"]?>_progress">0%</span><?=$module["module_name"]?></header>
 	<ul id="module_<?=$module["id"]?>_updates"></ul>
 	<? } ?>
 </div>
