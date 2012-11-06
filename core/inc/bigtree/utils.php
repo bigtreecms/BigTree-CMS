@@ -360,35 +360,106 @@
 				$column = array();
 				$line = rtrim(trim($line),",");
 				if (substr($line,0,3) == "KEY") { // Keys
-					$parts = explode(" ",$line);
+					$line = substr($line,5); // Take away "KEY `"
+					// Get the key's name.
+					$key_name = self::nextSQLColumnDefinition($line);
+					// Get the key's content
+					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 4); // Skip ` (`
+					$line = substr(rtrim($line,","),0,-1); // Remove trailing , and )
 					$key_parts = array();
-					$kp = explode(",",ltrim(rtrim($parts[2],")"),"("));
-					foreach ($kp as $p) {
-						$key_parts[] = trim($p,"`");
+					$part = true;
+					while ($line && $part) {
+						$part = self::nextSQLColumnDefinition($line);
+						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						if ($part) {
+							$key_parts[] = $part;
+						}
 					}
-					$result["indexes"][trim($parts[1],"`")] = $key_parts;
+					$result["indexes"][$key_name] = $key_parts;
 				} elseif (substr($line,0,7) == "PRIMARY") { // Primary Keys
-					$parts = explode(" ",$line);
+					$line = substr($line,14); // Take away PRIMARY KEY (`
 					$key_parts = array();
-					$kp = explode(",",ltrim(rtrim($parts[2],")"),"("));
-					foreach ($kp as $p) {
-						$key_parts[] = trim($p,"`");
+					$part = true;
+					while ($line && $part) {
+						$part = self::nextSQLColumnDefinition($line);
+						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						if ($part) {
+							$key_parts[] = $part;
+						}
 					}
 					$result["primary_key"] = $key_parts;
 				} elseif (substr($line,0,10) == "CONSTRAINT") { // Foreign Keys
-					$parts = explode(" ",$line);
-					$key_name = trim($parts[1],"`");
-					$local_column = trim(ltrim(rtrim($parts[4],")"),"("),"`");
-					$other_table = trim($parts[6],"`");
-					$other_column = trim(ltrim(rtrim($parts[7],")"),"("),"`");
-					$result["foreign_keys"][$key_name] = array("name" => $key_name, "local_column" => $local_column, "other_table" => $other_table, "other_column" => $other_column);
-					if (count($parts) > 9) {
-						$result["foreign_keys"][$key_name]["on_".strtolower($parts[9])] = implode(" ",array_slice($parts,10));
+					$line = substr($line,12); // Remove CONSTRAINT `
+					$key_name = self::nextSQLColumnDefinition($line);
+					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
+					
+					// Get local reference columns
+					$local_columns = array();
+					$part = true;
+					$end = false;
+					while (!$end && $part) {
+						$part = self::nextSQLColumnDefinition($line);
+						$line = substr($line,strlen($part) + 1); // Take off the trailing `
+						if (substr($line,0,1) == ")") {
+							$end = true;
+						} else {
+							$line = substr($line,2); // Skip the ,` 
+						}
+						$local_columns[] = $part;
+					}
+
+					// Get other table name
+					$line = substr($line,14); // Skip ) REFERENCES `
+					$other_table = self::nextSQLColumnDefinition($line);
+					$line = substr($line,strlen($other_table) + substr_count($other_table,"`") + 4); // Remove ` (`
+
+					// Get other table columns
+					$other_columns = array();
+					$part = true;
+					$end = false;
+					while (!$end && $part) {
+						$part = self::nextSQLColumnDefinition($line);
+						$line = substr($line,strlen($part) + 1); // Take off the trailing `
+						if (substr($line,0,1) == ")") {
+							$end = true;
+						} else {
+							$line = substr($line,2); // Skip the ,` 
+						}
+						$other_columns[] = $part;
+					}
+
+					$line = substr($line,2); // Remove ) 
+					
+					// Setup our keys
+					$result["foreign_keys"][$key_name] = array("name" => $key_name, "local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
+
+					// Figure out all the on delete, on update stuff
+					$pieces = explode(" ",$line);
+					$on_hit = false;
+					$current_key = "";
+					$current_val = "";
+					foreach ($pieces as $piece) {
+						if ($on_hit) {
+							$current_key = strtolower("on_".$piece);
+							$on_hit = false;
+						} elseif ($piece == "ON") {
+							if ($current_key) {
+								$result["foreign_keys"][$key_name][$current_key] = $current_val;
+								$current_key = "";
+								$current_Val = "";
+							}
+							$on_hit = true;
+						} else {
+							$current_val = trim($current_val." ".$piece);
+						}
+					}
+					if ($current_key) {
+						$result["foreign_keys"][$key_name][$current_key] = $current_val;
 					}
 				} elseif (substr($line,0,1) == "`") { // Column Definition
 					$line = substr($line,1); // Get rid of the first `
-					$key = substr($line,0,strpos($line,"`")); // Get the key name.
-					$line = substr($line,strlen($key) + 2); // Take away the key from the line.
+					$key = self::nextSQLColumnDefinition($line); // Get the column name.
+					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ",$line);
@@ -951,6 +1022,31 @@
 			}
 			unlink($from);
 			return true;
+		}
+
+		/*
+			Function: nextSQLColumnDefinition
+				Private function to return the next column name from a string.
+		*/
+		private static function nextSQLColumnDefinition($string) {
+			$key_name = "";
+			$i = 0;
+			$found_key = false;
+			// Apparently we can have a backtick ` in a column name... ugh.
+			while (!$found_key && $i < strlen($string)) {
+				$char = substr($string,$i,1);
+				$second_char = substr($string,$i + 1,1);
+				if ($char != "`" || $second_char == "`") {
+					$key_name .= $char;
+					if ($char == "`") { // Skip the next one, this was just an escape character.
+						$i++;
+					}
+				} else {
+					$found_key = true;
+				}
+				$i++;
+			}
+			return $key_name;
 		}
 		
 		/*
