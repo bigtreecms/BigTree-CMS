@@ -739,7 +739,8 @@
 			// Get the correct column name for sorting
 			if (strpos($sort,"`") !== false) {
 				$sort_field = BigTree::nextSQLColumnDefinition(substr($sort,1));
-				$sort_direction = end(explode(" ",$sort));
+				$sort_pieces = explode(" ",$sort);
+				$sort_direction = end($sort_pieces);
 			} else {
 				list($sort_field,$sort_direction) = explode(" ",$sort);
 			}

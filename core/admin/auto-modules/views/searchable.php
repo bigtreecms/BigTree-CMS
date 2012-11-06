@@ -16,7 +16,12 @@
 	} else {
 		$sort = "id DESC";
 	}
-	list($sort_column,$sort_direction) = explode(" ",$sort);
+	// Retrieve the column and the sort direction from the consolidated ORDER BY statement.
+	$sort = ltrim($sort,"`");
+	$sort_column = BigTree::nextSQLColumnDefinition($sort);
+	$sort_pieces = explode(" ",$sort);
+	$sort_direction = end($sort_pieces);
+	// See if we're searching for anything.
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 ?>
 <div class="table auto_modules">
