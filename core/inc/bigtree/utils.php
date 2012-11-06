@@ -1026,9 +1026,16 @@
 
 		/*
 			Function: nextSQLColumnDefinition
-				Private function to return the next column name from a string.
+				Return the next SQL name definition from a string.
+
+			Parameters:
+				string - A string with the name definition being terminated by a single `
+
+			Returns:
+				A string.
 		*/
-		private static function nextSQLColumnDefinition($string) {
+				
+		static function nextSQLColumnDefinition($string) {
 			$key_name = "";
 			$i = 0;
 			$found_key = false;

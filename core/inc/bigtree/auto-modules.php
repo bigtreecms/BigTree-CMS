@@ -737,23 +737,23 @@
 			$results = array();
 			
 			// Get the correct column name for sorting
-			if (count(explode(" ",$sort)) < 3) {
+			if (strpos($sort,"`") !== false) {
+				$sort_field = BigTree::nextSQLColumnDefinition(substr($sort,1));
+				$sort_direction = end(explode(" ",$sort));
+			} else {
 				list($sort_field,$sort_direction) = explode(" ",$sort);
-				$sort_field = str_replace("`", "", $sort_field);
-				if ($sort_field != "id") {
-					$x = 0;
-					foreach ($view["fields"] as $field => $options) {
-						$x++;
-						if ($field == $sort_field) {
-							$sort_field = "column$x";
-						}
+			}
+			
+			if ($sort_field != "id") {
+				$x = 0;
+				foreach ($view["fields"] as $field => $options) {
+					$x++;
+					if ($field == $sort_field) {
+						$sort_field = "column$x";
 					}
-				} else {
-					$sort_field = "CONVERT(id,UNSIGNED)";
 				}
 			} else {
-				$sort_field = $sort;
-				$sort_direction = "";
+				$sort_field = "CONVERT(id,UNSIGNED)";
 			}
 			
 			if ($page === "all") {
