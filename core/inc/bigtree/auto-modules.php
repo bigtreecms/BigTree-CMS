@@ -106,6 +106,13 @@
 			$position = isset($item["position"]) ? $item["position"] : 0;
 
 			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'$position'","'$approved'","'$archived'","'$featured'","'".$pending_owner."'");
+
+			// Figure out which column we're going to use to sort the view.
+			if ($view["options"]["sort"]) {
+				$sort_field = BigTree::nextSQLColumnDefinition(ltrim($view["options"]["sort"],"`"));
+			} else {
+				$sort_field = false;
+			}
 			
 			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
 			if (isset($view["options"]["group_field"]) && $view["options"]["group_field"]) {
@@ -171,6 +178,11 @@
 						}
 						$x++;
 					}
+				}
+
+				if ($sort_field) {
+					$fields[] = "`sort_field`";
+					$vals[] = "'".mysql_real_escape_string($item[$sort_field])."'";
 				}
 				
 				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
@@ -737,11 +749,11 @@
 			$results = array();
 			
 			// Get the correct column name for sorting
-			if (strpos($sort,"`") !== false) {
+			if (strpos($sort,"`") !== false) { // New formatting
 				$sort_field = BigTree::nextSQLColumnDefinition(substr($sort,1));
 				$sort_pieces = explode(" ",$sort);
 				$sort_direction = end($sort_pieces);
-			} else {
+			} else { // Old formatting
 				list($sort_field,$sort_direction) = explode(" ",$sort);
 			}
 			
@@ -752,6 +764,10 @@
 					if ($field == $sort_field) {
 						$sort_field = "column$x";
 					}
+				}
+				// If we didn't find a column, let's assume it's the default sort field.
+				if (substr($sort_field,0,6) != "column") {
+					$sort_field = "sort_field";
 				}
 			} else {
 				$sort_field = "CONVERT(id,UNSIGNED)";

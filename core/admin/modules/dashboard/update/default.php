@@ -245,4 +245,12 @@
 		// Default to tagging being on since it wasn't an option to turn it off previously.
 		sqlquery("UPDATE `bigtree_module_forms` SET `tagging` = 'on'");
 	}
+
+	// BigTree 4.0RC2 update -- REVISION 16
+	function _local_bigtree_update_16() {
+		// Adds a sort column to the view cache
+		sqlquery("ALTER TABLE `bigtree_module_view_cache` ADD COLUMN `sort_field` VARCHAR(255) NOT NULL AFTER `group_field`");
+		// Force all the views to update their cache.
+		sqlquery("TRUNCATE TABLE `bigtree_module_view_cache`");
+	}
 ?>
