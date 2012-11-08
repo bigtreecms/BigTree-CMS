@@ -143,10 +143,10 @@
 			if (!count($i["foreign_keys"])) {
 				$rearranged_tables[] = $t;
 			} else {
-				// See if the other tables are all bigtree_ ones.
+				// See if the other tables are all bigtree_ ones or the key points to itself.
 				$just_bigtree_keys = true;
 				foreach ($i["foreign_keys"] as $key) {
-					if (substr($key["other_table"],0,8) != "bigtree_") {
+					if (substr($key["other_table"],0,8) != "bigtree_" && $key["other_table"] != $table) {
 						$just_bigtree_keys = false;
 					}
 				}
