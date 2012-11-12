@@ -267,7 +267,7 @@
 	
 	// Pre-init a bunch of vars to keep away notices.
 	$bigtree["layout"] = "default";
-	if ($navid) {
+	if ($navid !== false) {
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
 			$bigtree["page"] = $cms->getPendingPage($navid);
@@ -357,27 +357,6 @@
 		} else {
 			BigTree::redirect($bigtree["page"]["external"]);
 		}
-	// Load the home page if there are no routes.
-	} elseif (!$_GET["bigtree_htaccess_url"] || empty($bigtree["path"][0])) {
-		$bigtree["page"] = $cms->getPage(0);
-		$bigtree["resources"] = $bigtree["page"]["resources"];
-		$bigtree["callouts"] = $bigtree["page"]["callouts"];
-		
-		/* Backwards Compatibility */
-		$page = $bigtree["page"];
-		$resources = $bigtree["resources"];
-		$callouts = $bigtree["callouts"];
-
-		// Quick access to resources
-		if (is_array($bigtree["resources"])) {
-			foreach ($bigtree["resources"] as $key => $val) {
-				if (substr($key,0,1) != "_" && $key != "bigtree") { // Don't allow for SESSION or COOKIE injection and don't overwrite $bigtree
-					$$key = $bigtree["resources"][$key];
-				}
-			}
-		}
-		
-		include "../templates/basic/".$bigtree["page"]["template"].".php";
 	// Check for standard sitemap
 	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {
 		include "../templates/basic/_sitemap.php";
