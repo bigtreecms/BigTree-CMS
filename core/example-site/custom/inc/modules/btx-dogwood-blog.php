@@ -572,8 +572,8 @@
 			$q = explode(" ",$query);
 			$qparts = array("1");
 			foreach ($q as $i) {
-				$i = sqlescape($i);
-				$qparts[] = "(title LIKE '%$i%' OR blurb LIKE '%$i%' OR content LIKE '%$i%')";
+				$i = sqlescape(strtolower($i));
+				$qparts[] = "(LOWER(title) LIKE '%$i%' OR LOWER(blurb) LIKE '%$i%' OR LOWER(content) LIKE '%$i%')";
 			}
 			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)." ORDER BY date DESC LIMIT $begin,$per_page");
 			while ($f = sqlfetch($q)) {
@@ -597,8 +597,8 @@
 			$q = explode(" ",$query);
 			$qparts = array("1");
 			foreach ($q as $i) {
-				$i = sqlescape($i);
-				$qparts[] = "(title LIKE '%$i%' OR blurb LIKE '%$i%' OR content LIKE '%$i%')";
+				$i = sqlescape(strtolower($i));
+				$qparts[] = "(LOWER(title) LIKE '%$i%' OR LOWER(blurb) LIKE '%$i%' OR LOWER(content) LIKE '%$i%')";
 			}
 			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)));
 			return $f["count"];
