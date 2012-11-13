@@ -22,7 +22,7 @@
 						$i = 0;
 						foreach ($categories as $category) {
 							$i++; 
-							$link = $blog_link . "category/" . $category["route"] . "/";
+							$link = $blog_link."category/".$category["route"]."/";
 					?>
 					<li<? if ($i == count($categories)) { ?> class="last"<? } ?>><a href="<?=$link?>"<? if (strpos($currentPage,$link) !== false) { ?> class="active"<? } ?>><?=$category["title"]?></a></li>
 					<?
@@ -40,7 +40,7 @@
 						$i = 0;
 						foreach ($authors as $author) {
 							$i++;
-							$link = $blog_link . "author/" . $author["route"] . "/";
+							$link = $blog_link."author/".$author["route"]."/";
 					?>
 					<li<? if ($i == count($authors)) { ?> class="last"<? } ?>><a href="<?=$link?>"<? if (strpos($currentPage,$link) !== false) { ?> class="active"<? } ?>><?=$author["name"]?></a></li>
 					<?
@@ -59,7 +59,7 @@
 						foreach ($archives as $archive) { 
 							$i++;
 							$month = date("F Y", strtotime($archive));
-							$link = $blog_link . "month/" . strtolower($month) . "/";
+							$link = $blog_link."month/".date("Y-m",strtotime($archive))."/";
 					?>
 					<li<? if ($i == count($archives)) { ?> class="last"<? } ?>><a href="<?=$link?>"<? if (strpos($currentPage,$link) !== false) { ?> class="active"<? } ?>><?=$month?></a></li>
 					<?

@@ -1083,7 +1083,7 @@
 				file - The full file path.
 			
 			Returns:
-				Everything PHP's pathinfo() returns (with "filename" even when PHP doesn't suppor it).
+				Everything PHP's pathinfo() returns (with "filename" even when PHP doesn't support it).
 			
 			See Also:
 				<http://php.net/manual/en/function.pathinfo.php>
