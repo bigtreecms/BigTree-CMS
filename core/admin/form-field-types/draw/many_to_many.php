@@ -41,6 +41,7 @@
 	
 	if (isset($options["mtm-list-parser"])) {
 		eval('$list = '.$options["mtm-list-parser"].'($list);');
+		eval('$entries = '.$options["mtm-list-parser"].'($entries);');
 	}
 	
 	$clean_key = str_replace(array("[","]"),"_",$key);
