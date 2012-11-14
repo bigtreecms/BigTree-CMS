@@ -73,7 +73,7 @@
 		<footer>
 			<select>
 				<? foreach ($list as $k => $v) { ?>
-				<option value="<?=htmlspecialchars($k)?>"><?=htmlspecialchars(BigTree::trimLength(strip_tags($v),50))?></option>
+				<option value="<?=htmlspecialchars($k)?>"><?=htmlspecialchars(BigTree::trimLength(strip_tags($v),100))?></option>
 				<? } ?>
 			</select>
 			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
