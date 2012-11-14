@@ -772,6 +772,11 @@
 			} else {
 				$sort_field = "CONVERT(id,UNSIGNED)";
 			}
+
+			if (strtolower($sort) == "position desc, id asc") {
+				$sort_field = "position DESC, id ASC";
+				$sort_direction = "";
+			}
 			
 			if ($page === "all") {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
