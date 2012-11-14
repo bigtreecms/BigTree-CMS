@@ -1320,6 +1320,8 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.multi_widget li:nth-child(even) { background: #F8F8F8; }
 	.multi_widget .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
+	.many_to_many footer .select > span { max-width: 679px !important; }
+	.many_to_many footer .select .select_options { max-width: 733px !important; }
 	
 /* ToolTip */
 	.tooltip { position: absolute; }
