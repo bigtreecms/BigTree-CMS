@@ -1,5 +1,9 @@
 <?
 	$cache_root = SERVER_ROOT."cache/unpack/".end($bigtree["path"])."/";
+	if (!file_exists($cache_root)) {
+		$cache_root = mkdir($cache_root);
+		chmod($cache_root,0777);
+	}
 	$index = file_get_contents($cache_root."index.btx");
 	$lines = explode("\n",$index);
 	$module_name = $lines[0];
