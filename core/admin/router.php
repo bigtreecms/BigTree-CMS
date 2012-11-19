@@ -350,7 +350,7 @@
 		$admin->emailDailyDigest();
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalytics;
-		if ($ga->AuthToken) {
+		if ($ga->Profile) {
 			$ga->cacheInformation();
 		}
 		// Update the setting.
