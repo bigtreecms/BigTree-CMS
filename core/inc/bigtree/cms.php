@@ -568,7 +568,7 @@
 				}
 			}
 			
-			return false;
+			return array(false,false,false);
 		}
 		
 		/*
