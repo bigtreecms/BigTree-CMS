@@ -3,7 +3,7 @@
 	
 	$breadcrumb[] = array("link" => "dashboard/analytics/", "title" => "Traffic Report");
 	
-	$cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
+	$cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
 	
 	if (!$cache) {
 		BigTree::redirect($mroot."cache/");

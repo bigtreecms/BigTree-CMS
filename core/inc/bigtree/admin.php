@@ -3695,13 +3695,14 @@
 
 			Parameters:
 				id - The id of the setting to return.
+				decode - Whether to decode the array or not. Large data sets may want to set this to false if there aren't internal page links.
 
 			Returns:
 				A setting entry with its value properly decoded and decrypted.
 				Returns false if the setting could not be found.
 		*/
 
-		function getSetting($id) {
+		function getSetting($id,$decode = true) {
 			global $bigtree,$cms;
 			$id = sqlescape($id);
 
@@ -3717,10 +3718,12 @@
 			
 			$f["value"] = json_decode($f["value"],true);
 			
-			if (is_array($f["value"])) {
-				$f["value"] = BigTree::untranslateArray($f["value"]);
-			} else {
-				$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+			if ($decode) {
+				if (is_array($f["value"])) {
+					$f["value"] = BigTree::untranslateArray($f["value"]);
+				} else {
+					$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+				}
 			}
 			
 			return $f;
@@ -5643,7 +5646,7 @@
 
 		function updateSettingValue($id,$value) {
 			global $bigtree;
-			$item = $this->getSetting($id);
+			$item = $this->getSetting($id,false);
 			$id = sqlescape($id);
 
 			$value = sqlescape(json_encode($value));
@@ -5653,7 +5656,7 @@
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
-
+			
 			// Audit trail
 			$this->track("bigtree_settings",$id,"updated-value");
 		}
