@@ -619,16 +619,21 @@
 				query - A string to search for.
 				sortby - A MySQL sort parameter.
 				limit - Max entries to return.
+				case_sensitive - Case sensitivity (defaults to false).
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function search($query,$sortby = false,$limit = false) {
+		function search($query,$sortby = false,$limit = false,$case_sensitive = false) {
 			$table_description = BigTree::describeTable($this->Table);
 
 			foreach ($table_description["columns"] as $field => $parameters) {
-				$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
+				if ($case_sensitive) {
+					$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
+				} else {
+					$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
+				}
 			}
 			
 			return $this->fetch($sortby,$limit,implode(" OR ",$where));
