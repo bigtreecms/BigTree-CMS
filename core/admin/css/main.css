@@ -269,12 +269,21 @@
 	nav.main li a.active { background-gradient: #436D86 #578FB1; border-color: #436D86; color: #FFF; position: relative; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.7); }
 	nav.main li:hover { z-index: 4; }
 	nav.main li:hover a { background-gradient: #243D4C #35576B; border-color: #243D4C; color: #FFF; text-shadow: 0 -1px 0 rgba(0, 0, 0, 1); }
+	
 	nav.main li a span { background: url(../images/icon-sprite.png) no-repeat; display: block; float: left; height: 16px; margin: 10px 8px 0 0; width: 16px; }
 	nav.main li a span.pages { background-position: -16px 0; margin-right: 7px; }
 	nav.main li a span.modules { background-position: -32px 0; }
 	nav.main li a span.users { background-position: -48px 0; }
 	nav.main li a span.settings { background-position: -64px 0; }
 	nav.main li a span.developer { background-position: -80px 0; }
+	
+	nav.main li:hover a span.dashboard, nav.main li.active a span.dashboard { background-position: -120px 0; }
+	nav.main li:hover a span.pages, nav.main li.active a span.pages { background-position: -136px 0; }
+	nav.main li:hover a span.modules, nav.main li.active a span.modules { background-position: -152px 0; }
+	nav.main li:hover a span.users, nav.main li.active a span.users { background-position: -168px 0; }
+	nav.main li:hover a span.settings, nav.main li.active a span.settings { background-position: -184px 0; }
+	nav.main li:hover a span.developer, nav.main li.active a span.developer { background-position: -200px 0; }
+	
 	nav.main li ul { background: #243D4C; border: none; border-radius: 0px 0px 3px 3px; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.75); display: none; float: none; min-width: 175px; padding: 8px 8px 7px 8px; position: absolute; z-index: 1; }
 	nav.main li:hover ul { display: block; }
 	nav.main li li { background: #243D4C; border: none; float: none; }
