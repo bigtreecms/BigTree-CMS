@@ -17,5 +17,5 @@
 	$admin->updateTemplate($id,$name,$description,$level,$module,$image,$callouts_enabled,$resources);
 	
 	$admin->growl("Developer","Updated Template");
-	BigTree::redirect($developer_root."templates/view/");
+	BigTree::redirect($developer_root."templates/");
 ?>

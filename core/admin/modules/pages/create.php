@@ -2,13 +2,17 @@
 	// Initiate the Upload Service class.
 	$upload_service = new BigTreeUploadService;
 	
-	$r = $admin->getPageAccessLevel($_POST["parent"]); 
-	if ($r == "p") {
-		$publisher = true;
-	} elseif ($r == "e") {
-		$publisher = false;
-	} else {
-		die("You do not have access to create a child for this page.");
+	$access_level = $admin->getPageAccessLevel($_POST["parent"]); 
+	if ($access_level != "p" && $access_level != "e") {
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>You do not have access to create a child for this page.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	$resources = array();
@@ -20,7 +24,7 @@
 	// Parse callouts
 	include BigTree::path("admin/modules/pages/_callout-parse.php");	
 	
-	if ($publisher && $_POST["ptype"] == "Create & Publish") {
+	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.
 		$page = $admin->createPage($_POST);
 		$admin->growl("Pages","Created & Published Page");

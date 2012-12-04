@@ -942,14 +942,14 @@
 			
 			Parameters:
 				email - User's email address.
-				size - Image size; defaults to 28
+				size - Image size; defaults to 56
 				default - Default profile image; defaults to BigTree icon
 				rating - Defaults to "pg"
 		*/
 		
-		static function gravatar($email = "", $size = 28, $default = false, $rating = "pg") {
+		static function gravatar($email = "", $size = 56, $default = false, $rating = "pg") {
 			if (!$default) {
-				$default = ADMIN_ROOT . "images/icon_default_gravatar.jpg";
+				$default = "http://www.bigtreecms.org/images/bigtree-gravatar.png";
 			}
 			return "http://www.gravatar.com/avatar/" . md5(strtolower($email)) . "?s=" . $size . "&d=" . urlencode($default) . "&rating=" . $rating;
 		}
@@ -1283,6 +1283,59 @@
 			}
 			header("Location: ".$url);
 			die();
+		}
+
+		/*
+			Function: route
+				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
+				Used by the CMS for routing ajax and modules.
+
+			Parameters:
+				directory - Root directory to begin looking in.
+				path - An array of routes.
+
+			Returns:
+				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
+		*/
+
+		static function route($directory,$path) {
+			$commands = array();
+			$inc_file = $directory;
+			$inc_dir = $directory;
+			$ended = false;
+			$found_file = false;
+			foreach ($path as $piece) {
+				// We're done, everything is a command now.
+				if ($ended) {
+					$commands[] = $piece;
+				// Keep looking for directories.
+				} elseif (is_dir($inc_dir.$piece)) {
+					$inc_file .= $piece."/";
+					$inc_dir .= $piece."/";
+				// File exists, we're ending now.
+				} elseif (file_exists($inc_file.$piece.".php")) {
+					$inc_file .= $piece.".php";
+					$ended = true;
+					$found_file = true;
+				// Couldn't find a file or directory.
+				} else {
+					$ended = true;
+				}
+			}
+
+			if (!$found_file) {
+				// If we have default in the routed directory, use it.
+				if (file_exists($inc_dir."default.php")) {
+					$inc_file = $inc_dir."default.php";
+				// See if we can change the directory name into .php file in case the directory is empty but we have .php
+				} elseif (file_exists(rtrim($inc_dir,"/").".php")) {
+					$inc_file = rtrim($inc_dir,"/").".php";
+				// We couldn't route anywhere apparently.
+				} else {
+					return array(false,false);
+				}
+			}
+			return array($inc_file,$commands);
 		}
 		
 		/*

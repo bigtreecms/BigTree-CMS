@@ -1,7 +1,4 @@
-<?
-	$module_title = "Create Package";
-	$breadcrumb[] = array("title" => "Create Package", "link" => "#");
-	
+<?	
 	function gatherModuleInformation($mid) {
 		global $admin,$cms,$tables,$templates,$settings,$feeds,$class_files,$required_files,$other_files;
 		$m = $admin->getModule($mid);

@@ -13,10 +13,6 @@
 	    }
 	}
 ?>
-<h1>
-	<span class="integrity"></span>Site Integrity Check
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
 <div class="table">
 	<summary>
 		<div class="integrity_progress"></div>
@@ -54,7 +50,7 @@
 				} else {
 					$("#pages_progress").addClass("complete");
 					if (!$("#pages_updates").html()) {
-						$("#pages_updates").append($('<li><section class="integrity_errors">No errors found in Pages.</section></li>'));
+						$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
 					}
 					download_module(0);
 				}

@@ -1,5 +1,4 @@
 <?
-	$module_title = "Add Module View";
 	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
@@ -18,8 +17,6 @@
 		$description = $type = $preview_url = "";
 	}
 ?>
-<h1><span class="modules"></span>Add View</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
 <div class="form_container">
 
 	<form method="post" action="<?=$developer_root?>modules/views/create/<?=$id?>/" class="module">

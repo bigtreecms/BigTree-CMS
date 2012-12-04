@@ -21,7 +21,15 @@
 	} elseif ($r == "e") {
 		$publisher = false;
 	} else {
-		die("You do not have access to update this page.");
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>You do not have access to this page.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	$resources = array();

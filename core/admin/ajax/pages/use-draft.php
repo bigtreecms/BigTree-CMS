@@ -3,7 +3,15 @@
 	$revision = $admin->getPageRevision($_GET["id"]);
 	$access = $admin->getPageAccessLevel($revision["page"]);
 	if ($access != "p") {
-		$admin->stop("You must be a publisher to manage revisions.");
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>You must be a publisher to manage revisions.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	foreach ($revision as $key => $val) {

@@ -1,9 +1,4 @@
 <?
-	$breadcrumb = array(
-		array("link" => "developer/", "title" => "Developer"),
-		array("link" => "developer/status/", "title" => "Site Status")
-	);
-
 	//!BigTree Warnings
 	$warnings = array();
 	
@@ -96,9 +91,11 @@
 	
 	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
-<h1><span class="vitals"></span>Site Status</h1>
-<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
-
+<div class="form_container">
+	<section>
+		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
+	</section>
+</div>
 <? if (count($warnings)) { ?>
 <div class="table">
 	<summary>

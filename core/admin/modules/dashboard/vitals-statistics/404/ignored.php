@@ -1,17 +1,9 @@
 <?
-	// Set the page title.
-	$module_title = "Ignored 404s";
-
+	$admin->requireLevel(1);
 	$total = $admin->get404Total("ignored");
 	$type = "ignored";
-	$breadcrumb[] = array("link" => "dashboard/vitals-statistics/404/ignored/", "title" => "Ignored 404s");
 	$delete_action = "unignore";
 ?>
-<h1>
-	<span class="page_404"></span>Ignored 404s
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
-<? include BigTree::path("admin/modules/dashboard/vitals-statistics/404/_nav.php") ?>
 <div class="table">
 	<summary>
 		<input type="search" class="form_search" placeholder="Search" id="404_search" />

@@ -9,7 +9,7 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
 	<head>
 		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="robots" content="noindex,nofollow" />
 		<title><?=$site["nav_title"]?> Login</title>
 		<link rel="stylesheet" href="<?=$root?>css/main.css" type="text/css" media="screen" charset="utf-8" />
 		<script type="text/javascript" src="<?=$root?>js/lib.js"></script>

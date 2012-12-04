@@ -1,28 +1,21 @@
 <?
-	$module_title = "Module Groups";
 	$groups = $admin->getModuleGroups();
 ?>
-<h1><span class="modules"></span>Groups</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="table">
 	<summary>
 		<h2>Module Groups</h2>
 	</summary>
 	<header>
-		<span class="developer_templates_name" style="width: 704px;">Group Name</span>
-		<span class="developer_templates_name" style="width: 100px;">In Dropdown</span>
+		<span class="developer_templates_name">Group Name</span>
 		<span class="view_action">Edit</span>
 		<span class="view_action">Delete</span>
 	</header>
 	<ul id="groups">
 		<? foreach ($groups as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
-			<section class="developer_templates_name" style="width: 704px;">
+			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
 				<?=$item["name"]?>
-			</section>
-			<section class="developer_templates_name" style="width: 100px;">
-				<? if ($item["in_nav"] == "on") { echo 'Yes'; } else { echo 'No'; } ?>
 			</section>
 			<section class="view_action">
 				<a href="<?=$section_root?>edit/<?=$item["id"]?>/" class="icon_edit"></a>

@@ -1,9 +1,20 @@
-<?
-	$module_title = "Edit User";
-	
-	$breadcrumb[] = array("link" => "#", "title" => "Edit User");
-	
+<?	
 	$user = $admin->getUser(end($bigtree["commands"]));
+
+	// Stop if this is a 404 or the user is editing someone higher than them.
+	if (!$user || $user["level"] > $admin->Level) {
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>The user you are trying to edit no longer exists or you are not allowed to edit this user.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
+	}
+
+	$gravatar_email = $user["email"];
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 	
 	if (!$permissions) {
@@ -96,8 +107,6 @@
 	
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
-<h1><span class="gravatar"><img src="<?=BigTree::gravatar($user["email"])?>" alt="" /></span>Edit User</h1>
-<? include BigTree::path("admin/modules/users/_nav.php"); ?>
 <div class="form_container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
 		<input type="hidden" name="id" value="<?=$user["id"]?>" />
@@ -107,7 +116,7 @@
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?> style="position: relative;">
 					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
 					<input type="text" class="required email" name="email" value="<?=$email?>" tabindex="1" />
-					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
+					<span class="gravatar"<? if ($email) { ?> style="display: block;"<? } ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
@@ -362,7 +371,7 @@
 	$(document).ready(function() {
 		$("input.email").blur(function() {
 			var email = md5($(this).val().trim());
-			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=18&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
 	});
 </script>

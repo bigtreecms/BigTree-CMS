@@ -1,40 +1,4 @@
 <?
-	$breadcrumb = array(array("link" => "modules/","title" => "Modules"));
-	$module_title = "Modules";
-	
-	if ($bigtree["path"][2]) {
-		$group = $admin->getModuleGroupByRoute($bigtree["path"][2]);
-		$modules = $admin->getModulesByGroup($group["id"]);
-		
-		$module_title = "Modules: " . $group["name"];
-		$breadcrumb[] = array("link" => "modules/".$group["route"]."/","title" => $group["name"]);
-?>
-<h1><span class="modules"></span>Modules: <?=$group["name"]?></h1>
-<?
-	if (count($modules)) {
-?>
-<div class="table">
-	<section class="modules modules_no_header">
-		<?
-			foreach ($modules as $module) {
-		?>
-		<p class="module">
-			<? if ($admin->moduleActionExists($module["id"],"add")) { ?>
-			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
-			<? } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><? if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><? } ?><?=$module["name"]?></a>
-		</p>
-		<?
-			}
-		?>
-	</section>
-</div>
-<?
-		}
-	} else {
-?>
-<h1><span class="modules"></span>Modules</h1>
-<?
 		$module_count = 0;
 		$groups = $admin->getModuleGroups();
 		foreach ($groups as $group) {
@@ -97,5 +61,4 @@
 </div>
 <?
 		}
-	}
 ?>

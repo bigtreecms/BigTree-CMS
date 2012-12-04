@@ -1,14 +1,5 @@
 <?
-	// Set the page title.
-	$module_title = "Clear 404s";
-?>
-<h1>
-	<span class="page_404"></span>Clear 404s
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
-<?
-	include BigTree::path("admin/modules/dashboard/vitals-statistics/404/_nav.php");
-
+	$admin->requireLevel(1);
 	if (isset($_POST["clear"])) {
 		$admin->clearDead404s();
 		BigTree::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/");

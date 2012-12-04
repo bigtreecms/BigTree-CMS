@@ -1,5 +1,4 @@
 <?
-	$admin->requireLevel(1);
 	$success = $admin->updateUser($_POST["id"],$_POST);
 	
 	if (!$success) {

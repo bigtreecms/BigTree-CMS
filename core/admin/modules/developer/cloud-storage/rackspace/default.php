@@ -1,32 +1,9 @@
 <?
-	$module_title = "Rackspace Cloud";
-	$breadcrumb[] = array("title" => "Upload Service", "link" => "developer/cload-storage/");
-	$breadcrumb[] = array("title" => "Rackspace Cloud Files", "link" => "#");
-	
-	$current_service = $cms->getSetting("bigtree-internal-upload-service");
-
 	$keys = $cms->getSetting("bigtree-internal-rackspace-keys");
-	if (is_array($keys)) {
-		foreach ($keys as $k => $v) {
-			$$k = htmlspecialchars($v);
-		}
-	}
-	
-	$csl = array(
-		"local" => "Local Storage",
-		"s3" => "Amazon S3",
-		"rackspace" => "Rackspace Cloud Files"
-	);
-	
-	if (!$current_service) {
-		$current_service = "local";
-	}
+	BigTree::globalizeArray($keys,array("htmlspecialchars"));
 ?>
-<h1><span class="rackspace"></span>Rackspace Cloud Files</h1>
 <div class="form_container">
-	<header><h2>Rackspace Cloud Files Settings</h2></header>
-	<aside>Your current upload service is: <strong><?=$csl[$current_service["service"]]?></strong></aside>
-	<form method="post" action="update/" class="module">
+	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/rackspace/update/" class="module">
 		<section>
 			<div class="alert">
 				<p>To enable usage of Rackspace Cloud Files for all BigTree uploads enter your access keys below.<br />Please note that this change is not retroactive -- only future uploads will be stored on Rackspace Cloud Files.</p>

@@ -6,23 +6,6 @@
 	if ($view["preview_url"]) {
 		$view["actions"]["preview"] = "on";
 	}
-?>
-<h1>
-	<span class="modules"></span><?=$view["title"]?>
-	<? if (isset($subnav) && count($subnav)) { ?>
-	<nav class="jump_group">
-		<span class="icon"></span>
-		<nav class="dropdown">
-			<strong><?=$mgroup["name"]?></strong>
-			<? foreach ($subnav as $link) { ?>
-			<a href="<?=ADMIN_ROOT?><?=$link["link"]?>"><?=$link["title"]?></a>
-			<? } ?>
-		</nav>
-	</nav>
-	<? } ?>
-</h1>
-<?
-	include BigTree::path("admin/auto-modules/_nav.php");
 
 	if ($view["description"]) {
 		echo "<p>".$view["description"]."</p>";

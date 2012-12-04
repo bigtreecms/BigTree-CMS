@@ -2442,8 +2442,11 @@
 
 		function getMessage($id) {
 			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
+			if (!$message) {
+				return false;
+			}
 			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
-				$this->stop("This message was not sent by you, or to you.");
+				return false;
 			}
 			return $message;
 		}
@@ -2499,6 +2502,10 @@
 		*/
 
 		function getModuleActionByRoute($module,$route) {
+			// For landing routes.
+			if (!count($route)) {
+				$route = array("");
+			}
 			$module = sqlescape($module);
 			$commands = array();
 			$action = false;
@@ -3868,6 +3875,9 @@
 		function getUser($id) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '$id'"));
+			if (!$item) {
+				return false;
+			}
 			if ($item["level"] > 0) {
 				$permissions = array();
 				$q = sqlquery("SELECT * FROM bigtree_modules");

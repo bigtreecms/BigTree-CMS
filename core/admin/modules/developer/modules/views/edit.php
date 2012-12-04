@@ -1,17 +1,10 @@
 <?	
-	$module_title = "Edit Module View";
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	$action = $admin->getModuleActionForView(end($bigtree["path"]));
 	$module = $admin->getModule($action["module"]);
 
-	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
-	$breadcrumb[] = array("title" => "Edit View", "link" => "#");
-	
 	BigTree::globalizeArray($view);
 ?>
-<h1><span class="modules"></span>Edit View</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
-
 <div class="form_container">
 	
 	<form method="post" action="<?=$developer_root?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">

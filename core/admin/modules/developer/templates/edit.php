@@ -1,13 +1,8 @@
 <?
-	$module_title = "Edit Template";
-	$breadcrumb[] = array("title" => "Edit Template", "link" => "#");
 	$template = $cms->getTemplate(end($bigtree["path"]));
 	BigTree::globalizeArray($template);
 	$show_error = false;
 ?>
-<h1><span class="templates"></span>Edit Template</h1>
-<? include BigTree::path("admin/modules/developer/templates/_nav.php") ?>
-
 <div class="form_container">
 	<form method="post" action="<?=$section_root?>update/" enctype="multipart/form-data" class="module">
 		<input type="hidden" name="id" value="<?=$template["id"]?>" />

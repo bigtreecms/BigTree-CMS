@@ -2,5 +2,5 @@
 	$admin->deleteFieldType(end($bigtree["path"]));
 	
 	$admin->growl("Developer","Deleted Field Type");
-	BigTree::redirect("../../view/");
+	BigTree::redirect($developer_root."field-types/");
 ?>

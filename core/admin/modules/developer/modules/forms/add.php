@@ -1,5 +1,4 @@
 <?
-	$module_title = "Add Module Form";
 	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 
@@ -30,14 +29,7 @@
 
 
 	$title = htmlspecialchars(urldecode($title));
-
-	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/$id/");
-	$breadcrumb[] = array("title" => "Add Form", "link" => "#");
 ?>
-
-<h1><span class="modules"></span>Add Form</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/forms/create/<?=$module["id"]?>/" class="module">
 		<section>

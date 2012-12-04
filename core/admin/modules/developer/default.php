@@ -5,8 +5,6 @@
 		BigTree::redirect(ADMIN_ROOT."dashboard/update/");
 	}
 ?>
-<h1><span class="developer"></span>Developer</h1>
-
 <div class="table">
 	<summary><h2>Create</h2></summary>
 	<section>

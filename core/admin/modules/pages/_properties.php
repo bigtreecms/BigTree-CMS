@@ -1,21 +1,20 @@
 <?
 	$live_url = false;
 	$preview_url = false;
-	$page_data = $cms->getPendingPage(is_array($page) ? $page["id"] : $page);
-	$age = floor((time() - strtotime($page_data["updated_at"])) / (60 * 60 * 24));
-	$seo = $admin->getPageSEORating($page_data,$page_data["resources"]);
-	if (isset($page_data["id"]) && is_numeric($page_data["id"])) {
-		if ($page_data["id"] == 0) {
+	$age = floor((time() - strtotime($page["updated_at"])) / (60 * 60 * 24));
+	$seo = $admin->getPageSEORating($page,$page["resources"]);
+	if (isset($page["id"]) && is_numeric($page["id"])) {
+		if ($page["id"] == 0) {
 			$live_url = WWW_ROOT;
 		} else {
-			$live_url = WWW_ROOT.$page_data["path"]."/";
+			$live_url = WWW_ROOT.$page["path"]."/";
 		}
-		if (isset($page_data["changes_applied"])) {
+		if (isset($page["changes_applied"])) {
 			$status = "Changes Pending";
-			if ($page_data["id"] == 0) {
+			if ($page["id"] == 0) {
 				$preview_url = WWW_ROOT."_preview/";
 			} else {
-				$preview_url = WWW_ROOT."_preview/".$page_data["path"]."/";
+				$preview_url = WWW_ROOT."_preview/".$page["path"]."/";
 			}
 		} else {
 			$status = "Published";

@@ -44,6 +44,7 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en"> <!--<![endif]-->
 	<head>
 		<meta charset="utf-8" />
+		<meta name="robots" content="noindex,nofollow" />
 		<title><? if (isset($module_title)) { ?><?=htmlspecialchars(htmlspecialchars_decode($module_title))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
 		<? if (isset($css) && is_array($css)) { foreach ($css as $style) { ?>
@@ -65,7 +66,7 @@
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
-				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 14)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
+				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site">View Site</a>
 			</section>
@@ -73,7 +74,7 @@
 		<nav class="main">
 			<section>
 				<ul>
-					<?						
+					<?
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"]) {
 					?>
@@ -119,22 +120,3 @@
 		<div class="body">
 			<div class="wrapper">
 				<aside id="growl"></aside>
-				<? if (count($breadcrumb)) { ?>
-				<ul class="breadcrumb">
-					<?
-						$x = 0;
-						foreach ($breadcrumb as $item) {
-							$x++;
-							
-					?>
-					<li<? if ($x == 1) { ?> class="first"<? } ?>><a href="<? if ($item["link"] == "#") { ?>#<? } else { ?><?=ADMIN_ROOT?><?=$item["link"]?><? } ?>"<? if ($x == count($breadcrumb)) { ?> class="last"<? } ?>><?=$item["title"]?></a></li>
-					<?
-							if ($x != count($breadcrumb)) {
-					?>
-					<li>&rsaquo;</li>
-					<?		
-							}
-						}
-					?>
-				</ul>
-				<? } ?>

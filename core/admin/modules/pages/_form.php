@@ -1,4 +1,5 @@
 <?
+	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
 	$hide_template_tab = false;
 	if (is_array($template_data) && $template_data["level"] > $admin->Level) {
 		$hide_template_tab = true;
@@ -28,12 +29,7 @@
 		<input type="hidden" name="return_to_front" value="true" />
 		<? } ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
-		
-		<? if (isset($pdata)) { ?>
-		<input type="hidden" name="page" value="<?=$pdata["id"]?>" />
-		<? } else { ?>
-		<input type="hidden" name="parent" value="<?=$parent?>" />
-		<? } ?>
+		<input type="hidden" name="<? if ($action == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$page["id"]?>" />
 		
 		<section id="properties_tab"<? if ($action == "update") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/properties.php") ?>
@@ -43,7 +39,7 @@
 			<? include BigTree::path("admin/modules/pages/tabs/template.php") ?>
 		</section>
 		<? } else { ?>
-		<input type="hidden" name="template" id="template" value="<?=$pdata["template"]?>" />
+		<input type="hidden" name="template" id="template" value="<?=$page["template"]?>" />
 		<? } ?>
 		<section id="content_tab"<? if ($action == "create") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/content.php") ?>
@@ -57,9 +53,9 @@
 			<?
 				if ($action == "create") {
 			?>
-			<input type="submit" name="ptype" value="Create" <? if (!$publisher) { ?>class="blue" <? } ?>/>
+			<input type="submit" name="ptype" value="Create" <? if ($access_level != "p") { ?>class="blue" <? } ?>/>
 			<?
-					if ($publisher) {
+					if ($access_level == "p") {
 			?>
 			<input type="submit" name="ptype" value="Create &amp; Publish" class="blue" />
 			<?
@@ -71,9 +67,9 @@
 			<?
 					}
 			?>
-			<input type="submit" name="ptype" value="Save"<? if (!$publisher) { ?> class="blue"<? } ?> />
+			<input type="submit" name="ptype" value="Save"<? if ($access_level != "p") { ?> class="blue"<? } ?> />
 			<?
-					if ($publisher) {
+					if ($access_level == "p") {
 			?>
 			<input type="submit" name="ptype" value="Save &amp; Publish" class="blue" />
 			<?
@@ -111,13 +107,13 @@
 		return false;
 	});
 
-	var template = "<?=$pdata["template"]?>";
+	var template = "<?=$page["template"]?>";
 	<? if ($action == "create") { ?>
 	var page = false;
 	<? } else { ?>
-	var page = "<?=$pdata["id"]?>";
-	var page_updated_at = "<?=$pdata["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$pdata["id"]?>' } });",60000);
+	var page = "<?=$page["id"]?>";
+	var page_updated_at = "<?=$page["updated_at"]?>";
+	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$page["id"]?>' } });",60000);
 	<? } ?>
 	
 	new BigTreeFormValidator("#page_form",function(errors) {

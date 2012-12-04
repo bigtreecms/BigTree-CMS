@@ -29,7 +29,15 @@
 	
 	// First we need to package the file so they can download it manually if they wish.
 	if (!is_writable(SERVER_ROOT."cache/")) {
-		die("Please make the cache/ directory writable.");
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>Your cache/ directory must be writable.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	$index = $package_name."\n";

@@ -1,7 +1,4 @@
 <?
-	$module_title = "Edit Setting";
-	$breadcrumb[] = array("title" => "Add Setting", "link" => "#");
-	
 	$item = $admin->getSetting(end($bigtree["path"]));
 	BigTree::globalizeArray($item,array("htmlspecialchars"));
 	
@@ -17,9 +14,6 @@
 		$e = false;
 	}
 ?>
-<h1><span class="settings"></span>Edit Setting</h1>
-<? include BigTree::path("admin/modules/developer/settings/_nav.php") ?>
-
 <div class="form_container">
 	<form class="module" method="post" action="<?=$section_root?>update/<?=$item["id"]?>/">
 		<? include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>

@@ -1,14 +1,14 @@
 <?
 	$items = $admin->getBasicTemplates();
-	if (isset($pdata["id"])) {
-		if ($pdata["template"] && $pdata["template"] != "!") {
-			$td = $cms->getTemplate($pdata["template"]);
-			$callouts_enabled = $td["callouts_enabled"];
+	if (isset($page["template"])) {
+		if ($page["template"] && $page["template"] != "!") {
+			$template_details = $cms->getTemplate($page["template"]);
+			$callouts_enabled = $template_details["callouts_enabled"];
 		} else {
 			$callouts_enabled = false;
 		}
 	} else {
-		$pdata["template"] = $items[0]["id"];
+		$page["template"] = $items[0]["id"];
 		$callouts_enabled = $items[0]["callouts_enabled"];
 	}
 ?>
@@ -27,7 +27,7 @@
 				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
-	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?><? if ($x > $last_row) { ?> last_row<? } ?>">
+	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $page["template"]) { ?> active<? } ?><? if ($x > $last_row) { ?> last_row<? } ?>">
 		<img src="<?=$image?>" alt="" width="32" height="32" />
 		<p><?=$item["name"]?></p>
 	</a>
@@ -36,7 +36,7 @@
 	?>
 </fieldset>
 
-<input type="hidden" name="template" id="template" value="<?=$pdata["template"]?>" />
+<input type="hidden" name="template" id="template" value="<?=$page["template"]?>" />
 <hr />
 	
 <fieldset>
@@ -51,7 +51,7 @@
 				$image = ADMIN_ROOT."images/templates/".$item["image"];
 			}
 	?>
-	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $pdata["template"]) { ?> active<? } ?><? if ($x > $last_row) { ?> last_row<? } ?>">
+	<a href="#<?=$item["id"]?>" class="box_select<? if ($item["id"] == $page["template"]) { ?> active<? } ?><? if ($x > $last_row) { ?> last_row<? } ?>">
 		<img src="<?=$image?>" alt="" width="32" height="32" />
 		<p><?=$item["name"]?></p>
 	</a>
@@ -65,10 +65,10 @@
 <div class="left">
 	<fieldset>
 		<label>External Link <small>(include http://)</small></label>
-		<input type="text" name="external" value="<?=$pdata["external"]?>" id="external_link" tabindex="1" <? if ($pdata["template"] == "") { ?> class="active"<? } ?>/>
+		<input type="text" name="external" value="<?=$page["external"]?>" id="external_link" tabindex="1" <? if ($page["template"] == "") { ?> class="active"<? } ?>/>
 	</fieldset>
 	<fieldset>
-		<input type="checkbox" name="redirect_lower" <? if ($pdata["template"] == "!") { ?>checked="checked" <? } ?>tabindex="3" /><label class="for_checkbox">Redirect Lower</label>
+		<input type="checkbox" name="redirect_lower" <? if ($page["template"] == "!") { ?>checked="checked" <? } ?>tabindex="3" /><label class="for_checkbox">Redirect Lower</label>
 	</fieldset>
 </div>
 <div class="right">
@@ -76,7 +76,7 @@
 		<label>Open In New Window?</label>
 		<select name="new_window" tabindex="2">
 			<option value="">No</option>
-			<option value="Yes"<? if ($pdata["new_window"] == "Yes") { ?> selected="selected"<? } ?>>Yes</option>
+			<option value="Yes"<? if ($page["new_window"] == "Yes") { ?> selected="selected"<? } ?>>Yes</option>
 		</select>
 	</fieldset>
 </div>

@@ -1,13 +1,8 @@
-<?
-	$module_title = "Add Callout";
-	$breadcrumb[] = array("title" => "Add Callout", "link" => "#");
-	$resources = array();
-	
+<?	
 	// Stop notices
 	$id = $name = $description = $display_default = $level = "";
+	$resources = array();
 ?>
-<h1><span class="callouts"></span>Add Callout</h1>
-<? include BigTree::path("admin/modules/developer/callouts/_nav.php") ?>
 <div class="form_container">
 	<form method="post" action="<?=$section_root?>create/" enctype="multipart/form-data" class="module">
 		<? include BigTree::path("admin/modules/developer/callouts/_form-content.php") ?>

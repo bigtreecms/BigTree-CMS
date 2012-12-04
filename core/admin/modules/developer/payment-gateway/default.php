@@ -1,9 +1,26 @@
 <?
-	$module_title = "Payment Gateway";
-	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
-?>
-<h1><span class="payment"></span>Payment Gateway</h1>
+	if (!$admin->settingExists("bigtree-internal-payment-gateway")) {
+		$admin->createSetting(array(
+			"id" => "bigtree-internal-payment-gateway",
+			"system" => "on",
+			"encrypted" => "on"
+		));
+		$admin->updateSettingValue("bigtree-internal-payment-gateway",array("service" => "", "settings" => array()));
+	}
+	$gateway = $cms->getSetting("bigtree-internal-payment-gateway");
 
+	if ($gateway["service"] == "authorize.net") {
+		$currently = "Authorize.Net";
+	} elseif ($gateway["service"] == "paypal") {
+		$currently = "PayPal Payments Pro";
+	} elseif ($gateway["service"] == "payflow") {
+		$currently = "PayPal Payflow Gateway";
+	} elseif ($gateway["service"] == "linkpoint") {
+		$currently = "First Data / LinkPoint";
+	} else {
+		$currently = "None";
+	}
+?>
 <div class="table">
 	<summary><h2>Currently Using<small><?=$currently?></small></h2></summary>
 	<section>

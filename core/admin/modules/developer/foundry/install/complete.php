@@ -1,6 +1,4 @@
 <?
-	$breadcrumb[] = array("title" => "Package Installed", "link" => "#");
-	
 	if (isset($_SESSION["bigtree_admin"]["package_instructions"])) {
 		$instructions = $_SESSION["bigtree_admin"]["package_instructions"];
 		unset($_SESSION["bigtree_admin"]["package_instructions"]);
@@ -17,7 +15,6 @@
 		$error = false;
 	}
 ?>
-<h1><span class="package"></span>Package Installed</h1>
 <div class="form_container">
 	<section>
 		<? if ($instructions) { ?>

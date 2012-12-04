@@ -1,73 +1,16 @@
 <?
-	$page = end($bigtree["path"]);
+	$resources = $page["resources"];
+	$callouts = $page["callouts"];
 	
-	// Get page data with resources decoded and tags.
-	$pdata = $cms->getPendingPage($page,true,true);
-	
-	if ($page[0] == "p") {
-		$r = $admin->getPageAccessLevel($pdata["parent"]);
-		if ($pdata) {
-			$pdata["id"] = $page;
-		}
-	} else {
-		$r = $admin->getPageAccessLevel($page);
-	}
-
-	$module_title = $pdata["nav_title"]." — Pages";
-
-	$resources = $pdata["resources"];
-	$callouts = $pdata["callouts"];
-	
-	if (!isset($pdata["id"])) {
-		$breadcrumb = array(
-			array("link" => "pages/", "title" => "Pages"),
-			array("link" => "pages/view-tree/0/", "title" => "Home")
-		);
-?>
-<div class="form_container">
-	<section>
-		<h3>Error</h3>
-		<p>The page you are trying to edit no longer exists.</p>
-	</section>
-</div>
-<?
-		$admin->stop();
-	}
-		
-	if ($r == "p") {
-		$publisher = true;
-	} elseif ($r == "e") {
-		$publisher = false;
-	} else {
-		die("You do not have access to this page.");
-	}
-	
-	if ($page == 0) {
-?>
-<h1><span class="home"></span>Home</h1>
-<?
-	} else {
-?>
-<h1><span class="edit_page"></span><?=$pdata["nav_title"]?></h1>
-<?
-	}
-	
-	include BigTree::path("admin/modules/pages/_nav.php");
+	// Show the properties section
 	include BigTree::path("admin/modules/pages/_properties.php");
-	
 	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$force);
-	
-	// SEO Checks
-	$seo = $admin->getPageSEORating($pdata,$resources);
-	$seo_rating = $seo["score"];
-	$seo_recommendations = $seo["recommendations"];
-	$seo_color = $seo["color"];
+	$lock_id = $admin->lockCheck("bigtree_pages",$page["id"],"admin/modules/pages/_locked.php",$force);
 	
 	// Grab template information
-	$template_data = $cms->getTemplate($pdata["template"]);
+	$template_data = $cms->getTemplate($page["template"]);
 	
 	$action = "update";
 	include BigTree::path("admin/modules/pages/_form.php");

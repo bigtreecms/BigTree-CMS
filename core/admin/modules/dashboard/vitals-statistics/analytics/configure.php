@@ -1,18 +1,14 @@
 <?
 	if ($admin->Level < 1) {
 ?>
-<h1>
-	<span class="analytics"></span>Analytics: Access Denied
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
+<div class="form_container">
+	<section>
+		<p>You are not authorized to view this section.</p>
+	</section>
+</div>
 <?
 	} else {
-		$breadcrumb[] = array("link" => "dashboard/analytics/configure/", "title" => "Configure");
 ?>
-<h1>
-	<span class="analytics"></span>Configure
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
 <div class="form_container">
 	<? if ($token) { ?>
 	<form method="post" action="<?=$mroot?>set-profile/" class="module">

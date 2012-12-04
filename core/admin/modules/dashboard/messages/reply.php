@@ -1,6 +1,20 @@
 <?
 	// Make sure the user has the right to see this message
-	$parent = $admin->getMessage(end($bigtree["path"]));	
+	$parent = $admin->getMessage(end($bigtree["path"]));
+
+	// If the original message doesn't exist or you don't have access to it.
+	if (!$parent) {
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>This message either does not exist or you do not have permission to view it.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
+	}
+
 	$users = $admin->getUsers();
 		
 	if (isset($_SESSION["saved_message"])) {
@@ -29,11 +43,6 @@
 		}
 	}
 ?>
-<h1>
-	<span class="reply_message"></span>Reply To Message
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
-<? include "_nav.php" ?>
 <div class="form_container">
 	<form method="post" action="<?=ADMIN_ROOT?>dashboard/messages/create-reply/" id="message_form">
 		<input type="hidden" name="response_to" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />

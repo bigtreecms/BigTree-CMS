@@ -1,6 +1,4 @@
 <?
-	$breadcrumb[] = array("title" => "System Update", "link" => "#");
-
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	// If we recently upgraded...
 	if ($current_revision < BIGTREE_REVISION) {
@@ -15,7 +13,6 @@
 
 			$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
 ?>
-<h1><span class="developer"></span>System Update</h1>
 <div class="form_container">
 	<form method="post" action="">
 		<section>
@@ -43,7 +40,6 @@
 				BigTree::redirect(ADMIN_ROOT."dashboard/");
 			}
 ?>
-<h1><span class="developer"></span>System Update</h1>
 <div class="form_container">
 	<form method="post" action="">
 		<section>
@@ -62,8 +58,6 @@
 		}
 	} else {
 ?>
-
-<h1><span class="developer"></span>System Update</h1>
 <div class="form_container">
 	<section>
 		<p>BigTree is up to date.</p>

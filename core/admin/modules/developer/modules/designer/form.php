@@ -16,8 +16,6 @@
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 ?>
-<h1><span class="modules"></span>Module Designer</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<header>
 		<p>Step 2: Creating Your Form</p>

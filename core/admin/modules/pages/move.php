@@ -1,11 +1,11 @@
 <?
-	$page = $cms->getPage(end($bigtree["path"]));
-	$module_title = $page["nav_title"]." — Pages";
-	
 	// Don't let them move the homepage.
 	if ($page["id"] == 0) {
-		BigTree::redirect("../../edit/0/");
+		BigTree::redirect(ADMIN_ROOT."pages/edit/0/");
 	}
+
+	// Make sure the user is an admin.
+	$admin->requireLevel(1);
 	
 	// Get all the ancestors
 	$bc = $cms->getBreadcrumbByPage($page);
@@ -41,8 +41,6 @@
 		}
 	}
 ?>
-<h1><span class="move_page"></span><?=$page["nav_title"]?></h1>
-<? include BigTree::path("admin/modules/pages/_nav.php") ?>
 <div class="form_container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
 		<input type="hidden" name="page" value="<?=$page["id"]?>" />

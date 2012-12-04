@@ -1,8 +1,3 @@
-<h1>
-	<span class="integrity"></span>Site Integrity Check
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
-
 <div class="form_container">
 	<section>
 		<p>The site integrity check will search your site for broken/dead links and alert you to their presence should they exist.</p>

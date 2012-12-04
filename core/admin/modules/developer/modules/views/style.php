@@ -1,10 +1,6 @@
 <?
-	$module_title = "Style Module View";
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
-?>
-<h1><span class="modules"></span>Tweak View Styles</h1>
-<?
-	include BigTree::path("admin/modules/developer/modules/_nav.php");
+
 	if ($view == "images" || $view == "images-group") {
 ?>
 <p>The view type does not have any style settings.</p>

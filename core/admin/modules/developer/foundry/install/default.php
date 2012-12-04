@@ -1,8 +1,3 @@
-<?
-	$module_title = "Install Package";
-	$breadcrumb[] = array("title" => "Upload Package", "link" => "#");
-?>
-<h1><span class="package"></span>Install Package</h1>
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>foundry/install/unpack/" enctype="multipart/form-data">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />

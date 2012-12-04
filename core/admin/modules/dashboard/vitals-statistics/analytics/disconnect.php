@@ -1,5 +1,4 @@
 <?
-	
 	$admin->updateSettingValue("bigtree-internal-google-analytics",array());
 	$admin->updateSettingValue("bigtree-internal-google-analytics-cache","");
 	
@@ -7,5 +6,4 @@
 	$admin->growl("Analytics","Disconnected");
 	
 	BigTree::redirect($mroot);
-	
 ?>

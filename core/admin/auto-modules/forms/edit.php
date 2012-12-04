@@ -1,6 +1,4 @@
-<h1><span class="modules"></span>Edit <?=$form["title"]?></h1>
 <?
-	include BigTree::path("admin/auto-modules/_nav.php");
 	$item_id = end($bigtree["path"]);
 	
 	// Check for a page lock

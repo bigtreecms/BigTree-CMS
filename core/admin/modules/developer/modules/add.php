@@ -1,14 +1,9 @@
 <?
-	$module_title = "Add Module";
-	$breadcrumb[] = array("title" => "Add Module", "link" => "developer/modules/add/");
 	$groups = $admin->getModuleGroups();
 	
 	// Stop notices
 	$gbp = array();
 ?>
-
-<h1><span class="modules"></span>Add Module</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<form method="post" action="<?=$section_root?>create/" class="module">
 		<section>

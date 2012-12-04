@@ -1,8 +1,6 @@
 <?
 	$groups = $admin->getModuleGroups();
 ?>
-<h1><span class="modules"></span>Module Designer</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<header>
 		<p>The module designer will guide you through making a module without needing access to the database or knowledge of database table creation.</p>

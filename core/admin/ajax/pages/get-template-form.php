@@ -2,7 +2,7 @@
 	if (isset($_POST["template"])) {
 		$template = $_POST["template"];
 	} else {
-		$template = $pdata["template"];
+		$template = $page["template"];
 	}
 	
 	if (isset($_POST["page"])) {

@@ -1,13 +1,7 @@
 <?
-	$module_title = "Edit Feed";
-	$breadcrumb[] = array("title" => "Edit Feed", "link" => "#");
-	
 	$item = $cms->getFeed(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 ?>
-<h1><span class="feeds"></span>Edit Feed</h1>
-<? include BigTree::path("admin/modules/developer/feeds/_nav.php") ?>
-
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>feeds/update/<?=$id?>/" class="module">
 		<? include BigTree::path("admin/modules/developer/feeds/_form-content.php") ?>

@@ -1,7 +1,4 @@
 <?
-	$module_title = "Add Field Type";
-	$breadcrumb[] = array("title" => "Add Field Type", "link" => "#");
-	
 	// Stop notices
 	$id = $name = $pages = $modules = $callouts = $settings = "";
 	if (isset($_SESSION["bigtree_admin"]["admin_saved"])) {
@@ -16,9 +13,6 @@
 		$e = false;
 	}
 ?>
-<h1><span class="field_types"></span>Add Field Type</h1>
-<? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
-
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>field-types/create/" enctype="multipart/form-data" class="module">
 		<section>

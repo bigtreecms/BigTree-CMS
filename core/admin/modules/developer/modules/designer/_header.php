@@ -1,7 +1,4 @@
 <?
-	$module_title = "Module Designer";
-	$breadcrumb[] = array("title" => "Modules", "link" => "developer/modules/");
-	$breadcrumb[] = array("title" => "Designer", "link" => "developer/modules/designer/");
 	$section_root = $developer_root."modules/";
 	
 	if (isset($_SESSION["developer"]["saved_module"])) {

@@ -2,9 +2,9 @@
 	if (!count($_POST["send_to"]) || !$_POST["subject"] || !$_POST["message"]) {
 		$_SESSION["saved_message"] = $_POST;
 		if (strpos("reply-all",$_SERVER["HTTP_REFERER"])) {
-			BigTree::redirect("../reply-all/".$_POST["response_to"]."/");
+			BigTree::redirect(ADMIN_ROOT."dashboard/messages/reply-all/".$_POST["response_to"]."/");
 		} else {
-			BigTree::redirect("../reply/".$_POST["response_to"]."/");
+			BigTree::redirect(ADMIN_ROOT."dashboard/messages/reply/".$_POST["response_to"]."/");
 		}
 	}
 	
@@ -15,5 +15,5 @@
 	$admin->createMessage($_POST["subject"],$_POST["message"],$_POST["send_to"],$_POST["response_to"]);
 	
 	$admin->growl("Message Center","Replied To Message");
-	BigTree::redirect("../");
+	BigTree::redirect(ADMIN_ROOT."dashboard/messages/");
 ?>

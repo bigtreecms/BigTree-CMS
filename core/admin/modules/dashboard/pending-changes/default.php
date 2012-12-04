@@ -1,9 +1,4 @@
 <?
-	// Set the page title.
-	$module_title = "Pending Changes";
-
-	$breadcrumb[] = array("title" => "Pending Changes", "link" => "#");
-
 	// Get pending changes.
 	$changes = $admin->getPendingChanges();
 	
@@ -25,12 +20,7 @@
 			}
 		}
 	}
-?>
-<h1>
-	<span class="pending"></span>Pending Changes
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
-<?
+
 	if (!count($changes)) {
 ?>
 <div class="form_container">

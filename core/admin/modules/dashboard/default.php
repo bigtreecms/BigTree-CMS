@@ -1,18 +1,9 @@
-<h1>
-	<span class="dashboard"></span>
-	Overview
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
 <?
-	// Set the page title.
-	$module_title = "Dashboard";
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
 		BigTree::redirect(ADMIN_ROOT."dashboard/update/");
 	}
-	
-	$breadcrumb[] = array("title" => "Overview", "link" => "#");
 	
 	// Get all the messages we've received.
 	$messages = $admin->getMessages();
@@ -170,7 +161,7 @@
 				foreach ($unread as $item) {
 		?>
 		<li>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>

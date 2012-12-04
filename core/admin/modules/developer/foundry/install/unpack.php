@@ -1,7 +1,4 @@
 <?
-	$module_title = "Install Package";
-	$breadcrumb[] = array("title" => "Unpacked Package", "link" => "#");
-	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
 	if ($error == 1 || $error == 2) {
@@ -22,7 +19,15 @@
 	}
 	
 	if (!is_writable(SERVER_ROOT."cache/")) {
-		die("<p>Your cache/ directory must be writable.</p>");
+?>
+<div class="form_container">
+	<section>
+		<h3>Error</h3>
+		<p>Your cache/ directory must be writable.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	// Setup the cache root.
@@ -126,7 +131,6 @@
 	}
 	
 ?>
-<h1><span class="package"></span>Unpacked Package</h1>
 <div class="form_container">
 	<header>
 		<h2>

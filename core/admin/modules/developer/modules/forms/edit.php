@@ -1,5 +1,4 @@
 <?
-	$module_title = "Edit Module Form";
 	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 
@@ -19,13 +18,7 @@
 	} else {
 		$available_views = false;
 	}
-
-	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
-	$breadcrumb[] = array("title" => "Edit Form", "link" => "#");
 ?>
-<h1><span class="modules"></span>Edit Form</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/forms/update/<?=$form["id"]?>/" class="module">
 		<section>

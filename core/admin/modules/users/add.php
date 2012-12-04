@@ -1,7 +1,4 @@
-<?
-	$module_title = "Add User";
-	$breadcrumb[] = array("link" => "users/add/", "title" => "Add User");
-	
+<?	
 	$e = false;
 
 	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
@@ -17,8 +14,6 @@
 		$level = 0;
 	}
 ?>
-<h1><span class="users"></span>Add User</h3>
-<? include BigTree::path("admin/modules/users/_nav.php"); ?>
 <div class="form_container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/create/" method="post">	
 		<section>
@@ -27,7 +22,7 @@
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?> style="position: relative;">
 					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use</span><? } ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
-					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
+					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
@@ -73,7 +68,7 @@
 	$(document).ready(function() {
 		$("input.email").blur(function() {
 			var email = md5($(this).val().trim());
-			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=18&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
 	});
 </script>

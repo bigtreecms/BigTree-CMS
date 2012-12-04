@@ -1,10 +1,5 @@
-<h1>
-	<span class="messages"></span>Message Center
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
 <?
-	include "_nav.php";
-	
+	$message_root = ADMIN_ROOT."dashboard/messages/";
 	// Get all the messages we've sent or received.  We're going to paginate them in a hidden type fashion and just load them all at once.
 	$messages = $admin->getMessages();
 	$unread = $messages["unread"];
@@ -47,11 +42,11 @@
 					$x++;
 		?>
 		<li class="page_<?=$page?>"<? if ($page > 0) { ?> style="display: none;"<? } ?>>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="view/<?=$item["id"]?>/" class="icon_message"></a></section>
+			<section class="messages_view"><a href="<?=$message_root?>view/<?=$item["id"]?>/" class="icon_message"></a></section>
 		</li>
 		<?
 				}
@@ -91,11 +86,11 @@
 					$x++;
 		?>
 		<li class="page_<?=$page?>"<? if ($page > 0) { ?> style="display: none;"<? } ?>>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="view/<?=$item["id"]?>/" class="icon_message"></a></section>
+			<section class="messages_view"><a href="<?=$message_root?>view/<?=$item["id"]?>/" class="icon_message"></a></section>
 		</li>
 		<?
 				}
@@ -146,7 +141,7 @@
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="view/<?=$item["id"]?>/" class="icon_message"></a></section>
+			<section class="messages_view"><a href="<?=$message_root?>view/<?=$item["id"]?>/" class="icon_message"></a></section>
 		</li>
 		<?
 				}

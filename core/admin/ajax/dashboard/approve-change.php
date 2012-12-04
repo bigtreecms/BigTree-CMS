@@ -19,7 +19,7 @@
 	
 	// If they're not a publisher, they have no business here.
 	if ($permission_level != "p") {
-		die("Not going to happen.");
+		die("Permission denied.");
 	}
 
 	// This is an update to an existing entry.

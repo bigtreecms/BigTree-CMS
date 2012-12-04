@@ -3,6 +3,115 @@
 	define("BIGTREE_VERSION","4.0RC2");
 	define("BIGTREE_REVISION",16);
 
+	// BigTree Admin Nav Tree
+	$bigtree["nav_tree"] = array(
+		"dashboard" => array("title" => "Dashboard","link" => "dashboard","icon" => "dashboard","related" => true,"children" => array(
+			array("title" => "Pending Changes","link" => "dashboard/pending-changes","icon" => "pending","hidden" => true),
+			"messages" => array("title" => "Message Center","link" => "dashboard/messages","icon" => "messages","hidden" => true,"children" => array(
+				array("title" => "View Messages","link" => "dashboard/messages","icon" => "messages","nav_icon" => "list"),
+				array("title" => "New Message","link" => "dashboard/messages/new","icon" => "add_message","nav_icon" => "add")
+			)),
+			array("title" => "Vitals & Statistics","link" => "dashboard/vitals-statistics","icon" => "vitals","related" => true,"hidden" => true,"children" => array(
+				array("title" => "Analytics","link" => "dashboard/vitals-statistics/analytics","hidden" => true,"icon" => "analytics","children" => array(
+					array("title" => "Statistics","link" => "dashboard/vitals-statistics/analytics","nav_icon" => "bar_graph"),
+					array("title" => "Service Providers","link" => "dashboard/vitals-statistics/analytics/service-providers","nav_icon" => "network"),
+					array("title" => "Traffic Sources","link" => "dashboard/vitals-statistics/analytics/traffic-sources","nav_icon" => "car"),
+					array("title" => "Keywords","link" => "dashboard/vitals-statistics/analytics/keywords","nav_icon" => "key"),
+					array("title" => "Configure","link" => "dashboard/vitals-statistics/analytics/configure","nav_icon" => "setup","level" => 1),
+					array("title" => "Caching Data","link" => "dashboard/vitals-statistics/analytics/cache","hidden" => true)
+				)),
+				array("title" => "404 Report","link" => "dashboard/vitals-statistics/404","hidden" => true,"level" => 1,"icon" => "page_404","children" => array(
+					array("title" => "Active 404s","link" => "dashboard/vitals-statistics/404","nav_icon" => "error"),
+					array("title" => "Ignored 404s","link" => "dashboard/vitals-statistics/404/ignored","nav_icon" => "ignored"),
+					array("title" => "301 Redirects","link" => "dashboard/vitals-statistics/404/301","nav_icon" => "redirect"),
+					array("title" => "Clear 404s","link" => "dashboard/vitals-statistics/404/clear","nav_icon" => "delete")
+				)),
+				array("title" => "Site Integrity","link" => "dashboard/vitals-statistics/integrity","icon" => "integrity","hidden" => true,"level" => 1)
+			)),
+			array("title" => "System Update","link" => "dashboard/update","icon" => "developer","hidden" => true,"level" => 1)
+		)),
+		"pages" => array("title" => "Pages","link" => "pages","icon" => "page","nav_icon" => "pages","children" => array(
+			"view-tree" => array("title" => "View Subpages","link" => "pages/view-tree/{id}","nav_icon" => "list"),
+			array("title" => "Add Subpage","link" => "pages/add/{id}","icon" => "add_page","nav_icon" => "add"),
+			array("title" => "Edit Page","link" => "pages/edit/{id}","icon" => "edit_page","nav_icon" => "edit"),
+			"revisions" => array("title" => "Revisions","link" => "pages/revisions/{id}","icon" => "page_versions","nav_icon" => "refresh"),
+			"move" => array("title" => "Move Page","link" => "pages/move/{id}","icon" => "move_page","nav_icon" => "truck","level" => 1)
+		)),
+		"modules" => array("title" => "Modules","link" => "modules","icon" => "modules","children" => array()),
+		"users" => array("title" => "Users","link" => "users","icon" => "users","level" => 1,"children" => array(
+			array("title" => "View Users","link" => "users","nav_icon" => "list"),
+			array("title" => "Add User","link" => "users/add","nav_icon" => "add"),
+			array("title" => "Edit User","link" => "users/edit","icon" => "gravatar","hidden" => true),
+			array("title" => "Profile","link" => "users/profile","icon" => "gravatar","hidden" => true)
+		)),
+		"settings" => array("title" => "Settings","link" => "settings","icon" => "settings","children" => array(
+			array("title" => "Edit Setting","link" => "settings/edit","hidden" => true)
+		)),
+		"developer" => array("title" => "Developer","link" => "developer","icon" => "developer","nav_icon" => "developer","level" => 2,"related" => true,"children" => array(
+			array("title" => "Templates","link" => "developer/templates","icon" => "templates","hidden" => true,"children" => array(
+				array("title" => "View Templates","link" => "developer/templates","nav_icon" => "list"),
+				array("title" => "Add Template","link" => "developer/templates/add","nav_icon" => "add"),
+				array("title" => "Edit Template","link" => "developer/templates/edit","hidden" => true)
+			)),
+			array("title" => "Modules","link" => "developer/modules","icon" => "modules","hidden" => true,"children" => array(
+				array("title" => "View Modules","link" => "developer/modules","nav_icon" => "list"),
+				array("title" => "Add Module","link" => "developer/modules/add","nav_icon" => "add"),
+				array("title" => "Module Designer","link" => "developer/modules/designer","nav_icon" => "edit"),
+				array("title" => "View Groups","link" => "developer/modules/groups","nav_icon" => "list"),
+				array("title" => "Add Group","link" => "developer/modules/groups/add","nav_icon" => "add"),
+				array("title" => "Edit Module","link" => "developer/modules/edit","hidden" => true),
+				array("title" => "Edit Group","link" => "developer/modules/groups/edit","hidden" => true),
+				array("title" => "Module Created","link" => "developer/modules/create","hidden" => true),
+				array("title" => "Add View","link" => "developer/modules/views/add","hidden" => true),
+				array("title" => "Edit View","link" => "developer/modules/views/edit","hidden" => true),
+				array("title" => "Style View","link" => "developer/modules/views/style","hidden" => true),
+				array("title" => "Add Form","link" => "developer/modules/forms/add","hidden" => true),
+				array("title" => "Edit Form","link" => "developer/modules/forms/edit","hidden" => true),
+				array("title" => "Add Action","link" => "developer/modules/actions/add","hidden" => true),
+				array("title" => "Edit Action","link" => "developer/modules/actions/edit","hidden" => true)
+			)),
+			array("title" => "Callouts","link" => "developer/callouts","icon" => "callouts","hidden" => true,"children" => array(
+				array("title" => "View Callouts","link" => "developer/callouts","nav_icon" => "list"),
+				array("title" => "Add Callout","link" => "developer/callouts/add","nav_icon" => "add"),
+				array("title" => "Edit Callout","link" => "developer/callouts/edit","hidden" => true)
+			)),
+			array("title" => "Field Types","link" => "developer/field-types","icon" => "field_types","hidden" => true,"children" => array(
+				array("title" => "View Field Types","link" => "developer/field-types","nav_icon" => "list"),
+				array("title" => "Add Field Type","link" => "developer/field-types/add","nav_icon" => "add"),
+				array("title" => "Edit Field Type","link" => "developer/field-types/edit","hidden" => true),
+				array("title" => "Field Type Created","link" => "developer/field-types/new","hidden" => true)
+			)),
+			array("title" => "Feeds","link" => "developer/feeds","icon" => "feeds","hidden" => true,"children" => array(
+				array("title" => "View Feeds","link" => "developer/feeds","nav_icon" => "list"),
+				array("title" => "Add Feed","link" => "developer/feeds/add","nav_icon" => "add"),
+				array("title" => "Edit Feed","link" => "developer/feeds/edit","hidden" => true),
+				array("title" => "Created Feed","link" => "developer/feeds/create","hidden" => true)
+			)),
+			array("title" => "Settings","link" => "developer/settings","icon" => "settings","hidden" => true,"children" => array(
+				array("title" => "View Settings","link" => "developer/settings","nav_icon" => "list"),
+				array("title" => "Add Setting","link" => "developer/settings/add","nav_icon" => "add"),
+				array("title" => "Edit Setting","link" => "developer/settings/edit","hidden" => true)
+			)),
+			array("title" => "Foundry","link" => "developer/foundry","icon" => "package","hidden" => true,"children" => array(
+				array("title" => "Install Package","link" => "developer/foundry/install","hidden" => true),
+				array("title" => "Unpacked Package","link" => "developer/foundry/install/unpack","hidden" => true),
+				array("title" => "Package Installed","link" => "developer/foundry/install/complete","hidden" => true)
+			)),
+			array("title" => "Cloud Storage","link" => "developer/cloud-storage","icon" => "cloud","hidden" => true,"children" => array(
+				array("title" => "Local Storage","link" => "developer/cloud-storage/local","icon" => "local_storage","hidden" => true),
+				array("title" => "Amazon S3","link" => "developer/cloud-storage/amazon","icon" => "amazon","hidden" => true),
+				array("title" => "Rackspace Cloud","link" => "developer/cloud-storage/rackspace","icon" => "rackspace","hidden" => true)
+			)),
+			array("title" => "Payment Gateway","link" => "developer/payment-gateway","icon" => "payment","hidden" => true,"children" => array(
+				array("title" => "Authorize.Net","link" => "developer/payment-gateway/authorize","icon" => "authorize","hidden" => true),
+				array("title" => "PayPal Payments Pro","link" => "developer/payment-gateway/paypal","icon" => "paypal","hidden" => true),
+				array("title" => "PayPal Payflow Gateway","link" => "developer/payment-gateway/payflow","icon" => "payflow","hidden" => true),
+				array("title" => "First Data / LinkPoint","link" => "developer/payment-gateway/linkpoint","icon" => "linkpoint","hidden" => true)
+			)),
+			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
+		))
+	);
+
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
 		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
@@ -11,7 +120,7 @@
 	// Make sure no notice gets thrown for $bigtree["path"] being too small.
 	$bigtree["path"] = array_pad($bigtree["path"],2,"");
 
-	// If they're requesting images, css, or js, just give it to them.
+	// Images.
 	if ($bigtree["path"][1] == "images") {
 		$x = 2;
 		$ipath = "";
@@ -50,6 +159,7 @@
 		die();
 	}
 
+	// CSS
 	if ($bigtree["path"][1] == "css") {
 		if (file_exists("../custom/inc/bigtree/utils.php")) {
 			include "../custom/inc/bigtree/utils.php";
@@ -83,6 +193,7 @@
 		die();
 	}
 
+	// JavaScript
 	if ($bigtree["path"][1] == "js") {
 		$pms = ini_get('post_max_size');
 		$mul = substr($pms,-1);
@@ -134,201 +245,202 @@
 		die();
 	}
 
-	// Otherwise start the admin routing
-
+	// Bootstrap BigTree Environment
 	if (file_exists("../custom/bootstrap.php")) {
 		include "../custom/bootstrap.php";
 	} else {
 		include "../core/bootstrap.php";
 	}
 
+	// Connect to MySQL and begin sessions and output buffering.
 	$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	ob_start();
 	session_start();
 
+	// Instantiate the $admin var with either a custom class or the normal BigTreeAdmin.
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 		eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
 	} else {
 		$admin = new BigTreeAdmin;
 	}
 
-	if (!isset($bigtree["path"][1])) {
-		$bigtree["path"][1] = "";
-	}
-
+	// Load the default layout.
 	$bigtree["layout"] = "default";
-	$inc_dir = "";
 
+	// If we're not logged in and we're not trying to login, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 		BigTree::redirect(ADMIN_ROOT."login/");
-	} else {
-		// We're logged in, let's go somewhere.
-		if (!$bigtree["path"][1]) {
-			BigTree::redirect(ADMIN_ROOT."dashboard/");
-		// We're hitting an ajax page.
-		} elseif ($bigtree["path"][1] == "ajax") {
-			$x = 2;
-			$ajpath = "";
-			while ($x < count($bigtree["path"]) - 1) {
-				$ajpath .= $bigtree["path"][$x]."/";
-				$x++;
-			}
+	}
 
-			// Permissions!
-			$module = $admin->getModuleByRoute($bigtree["path"][2]);
-			if ($module && !$admin->checkAccess($module["id"])) {
-				include BigTree::path("admin/ajax/login.php");
-				die();
-			}
+	// Redirect to dashboard by default if we're not requesting anything.
+	if (!$bigtree["path"][1]) {
+		BigTree::redirect(ADMIN_ROOT."dashboard/");
+	}
 
-			$autoModule = new BigTreeAutoModule;
+	// See if we're requesting something in /ajax/
+	if ($bigtree["path"][1] == "ajax") {
+		// If the current user isn't allowed in the module for the ajax, stop them.
+		$module = $admin->getModuleByRoute($bigtree["path"][2]);
+		if ($module && !$admin->checkAccess($module["id"])) {
+			die("Permission denied to module: ".$module["name"]);
+		}
 
-			$bigtree["path"][$x] = str_replace(".php","",$bigtree["path"][$x]);
+		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",array_slice($bigtree["path"],2));
+		if (!$inc) {
+			list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",array_slice($bigtree["path"],2));
+		}
+		if (!file_exists($inc)) {
+			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+			die("File not found.");
+		}
+		$bigtree["commands"] = $commands;
 
-			include BigTree::path("admin/ajax/".$ajpath.$bigtree["path"][$x].".php");
-			die();
-		// We've actually chosen a section now.
-		} else {
-			$ispage = false;
-			$inc = false;
-			// Check if it's a module or a normal page.
-			if (is_dir("../custom/admin/modules/".$bigtree["path"][1])) {
-				if (!isset($bigtree["path"][2])) {
-					$inc = "../custom/admin/modules/".$bigtree["path"][1]."/default.php";
-				} else {
-					$inc = "../custom/admin/modules/".$bigtree["path"][1]."/";
-					$inc_dir = $inc;
-					$x = 1;
-					$y = 1;
-					while ($x < count($bigtree["path"])) {
-						if (is_dir($inc.$bigtree["path"][$x])) {
-							$inc .= $bigtree["path"][$x]."/";
-							$inc_dir .= $bigtree["path"][$x]."/";
-							$y++;
-						} elseif (file_exists($inc.$bigtree["path"][$x].".php")) {
-							$inc .= $bigtree["path"][$x].".php";
-							$y++;
-						}
-						$x++;
-					}
-					if (substr($inc,-4,4) != ".php") {
-						if (file_exists($inc.end($bigtree["path"]).".php")) {
-							$inc .= end($bigtree["path"]).".php";
-						} else {
-							$inc .= "default.php";
-						}
-					}
-					$bigtree["commands"] = array_slice($bigtree["path"],$y+1);
-					$commands = $bigtree["commands"]; // Backwards compatibility
+		// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
+		$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
+		// Include all headers in the module directory in the order they occur.
+		$inc_path = "";
+		$headers = $footers = array();
+		foreach ($pieces as $piece) {
+			if (substr($piece,0,-4) != ".php") {
+				$inc_path .= $piece."/";
+				$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
+				$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
+				if (file_exists($header)) {
+					$headers[] = $header;
 				}
-			}
-			if (($inc && !file_exists($inc)) || (!$inc && is_dir("../core/admin/modules/".$bigtree["path"][1]))) {
-				if (!isset($bigtree["path"][2])) {
-					$inc = "../core/admin/modules/".$bigtree["path"][1]."/default.php";
-				} else {
-					$inc = "../core/admin/modules/".$bigtree["path"][1]."/";
-					$inc_dir = $inc;
-					$x = 1;
-					$y = 1;
-					while ($x < count($bigtree["path"])) {
-						if (is_dir($inc.$bigtree["path"][$x])) {
-							$inc .= $bigtree["path"][$x]."/";
-							$inc_dir .= $bigtree["path"][$x]."/";
-							$y++;
-						} elseif (file_exists($inc.$bigtree["path"][$x].".php")) {
-							$inc .= $bigtree["path"][$x].".php";
-							$y++;
-						}
-						$x++;
-					}
-					if (substr($inc,-4,4) != ".php") {
-						if (file_exists($inc.end($bigtree["path"]).".php")) {
-							$inc .= end($bigtree["path"]).".php";
-						} else {
-							$inc .= "default.php";
-						}
-					}
-					$bigtree["commands"] = array_slice($bigtree["path"],$y+1);
-					$commands = $bigtree["commands"]; // Backwards compatibility
+				if (file_exists($footer)) {
+					$footers[] = $footer;
 				}
-			// It's a normal page.
-			} elseif (!$inc) {
-				if (file_exists("../custom/admin/pages/".$bigtree["path"][1].".php")) {
-					$inc = "../custom/admin/pages/".$bigtree["path"][1].".php";
-				} elseif (file_exists("../core/admin/pages/".$bigtree["path"][1].".php")) {
-					$inc = "../core/admin/pages/".$bigtree["path"][1].".php";
-				}
-				$ispage = true;
-			}
-
-			// Permissions!
-			if (!$ispage || !$inc) {
-				$module = $admin->getModuleByRoute($bigtree["path"][1]);
-				$module_title = $module["name"];
-				if ($module && !$admin->checkAccess($module["id"])) {
-					ob_clean();
-					include BigTree::path("admin/pages/_denied.php");
-					$bigtree["content"] = ob_get_clean();
-					include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
-					die();
-				}
-			}
-
-			// Ok, if this inc is real, let's include it -- otherwise see if it's an auto-module action.
-			if (isset($bigtree["path"][1])) {
-				$module = $admin->getModuleByRoute($bigtree["path"][1]);
-			}
-			if (!isset($bigtree["path"][2])) {
-				$bigtree["path"][2] = "";
-			}
-
-			$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
-			if ($route_response) {
-				$bigtree["module_action"] = $route_response["action"];
-				$bigtree["commands"] = $route_response["commands"];
-			}
-
-			$inc_dir = str_replace("../",SERVER_ROOT,$inc_dir);
-
-			if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
-				if ($bigtree["module_action"]["form"]) {
-					if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
-						$edit_id = end($bigtree["commands"]);
-					} else {
-						$edit_id = "";
-					}
-					include BigTree::path("admin/auto-modules/form.php");
-				} else {
-					include BigTree::path("admin/auto-modules/view.php");
-				}
-			} elseif (file_exists($inc)) {
-				// Include the top level module header.
-				if (!$ispage && file_exists(BigTree::path("admin/modules/".$bigtree["path"][1]."/_header.php"))) {
-					include BigTree::path("admin/modules/".$bigtree["path"][1]."/_header.php");
-				}
-
-				// Include the routed directory's module header if it's not the same one.
-				if (!$ispage && file_exists($inc_dir."_header.php") && BigTree::path("admin/modules/".$bigtree["path"][1]."/_header.php") != ($inc_dir."_header.php")) {
-					include $inc_dir."_header.php";
-				}
-
-				// Include the routed file.
-				include $inc;
-
-				// Include the routed directory's footer if it's not the same as the top level footer.
-				if (!$ispage && file_exists($inc_dir."_footer.php") && BigTree::path("admin/modules/".$bigtree["path"][1]."/_footer.php") != ($inc_dir."_footer.php")) {
-					include $inc_dir."_footer.php";
-				}
-
-				// Include the top level module footer.
-				if (!$ispage && file_exists(BigTree::path("admin/modules/".$bigtree["path"][1]."/_footer.php"))) {
-					include BigTree::path("admin/modules/".$bigtree["path"][1]."/_footer.php");
-				}
-			} else {
-				include BigTree::path("admin/pages/_404.php");
 			}
 		}
+		// Draw the headers.
+		foreach ($headers as $header) {
+			include $header;
+		}
+		// Draw the main page.
+		include $inc;
+		// Draw the footers.
+		$footers = array_reverse($footers);
+		foreach ($footers as $footer) {
+			include $footer;
+		}
+		die();
+	}	
+	
+	// Normal page routing.
+	$ispage = false;
+	$inc = false;
+	$primary_route = $bigtree["path"][1];
+
+	// Check custom
+	list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",array_slice($bigtree["path"],1));
+	// Check core
+	if (!$inc) {
+		list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",array_slice($bigtree["path"],1));
+	}
+	// Check pages
+	if (!$inc) {
+		$inc = BigTree::path("admin/pages/$primary_route.php");
+		if (file_exists($inc)) {
+			$ispage = true;
+		} else {
+			$inc = false;
+		}
+	}
+
+	// If this is a module or an auto module, check permissions on it.
+	if (!$ispage || !$inc) {
+		$module = $admin->getModuleByRoute($primary_route);
+		// If this is a module and the user doesn't have access, include the denied page and stop.
+		if ($module && !$admin->checkAccess($module["id"])) {
+			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+		} elseif ($module) {
+			// Append module navigation.
+			$actions = $admin->getModuleActions($module);
+		
+			// Append module info to the admin nav to draw the headers and breadcrumb and such.
+			$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
+			foreach ($actions as $action) {
+				$hidden = $action["in_nav"] ? false : true;
+				$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];
+				$bigtree["nav_tree"]["auto-module"]["children"][] = array("title" => $action["name"],"link" => $route,"nav_icon" => $action["class"],"hidden" => $hidden,"level" => $action["level"]);
+			}
+
+			// Bring in related modules if this one is in a group.
+			if ($module["group"]) {
+				$related_modules = $admin->getModulesByGroup($module["group"]);
+				$related_group = $admin->getModuleGroup($module["group"]);
+				if (count($related_modules) > 1) {
+					$bigtree["related_modules"] = array();
+					$bigtree["related_group"] = $related_group["name"];
+					foreach ($related_modules as $rm) {
+						$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
+					}
+				}
+			}
+
+			// Give modules their information.
+			$bigtree["module"] = $module;
+			define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+		}
+
+		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+		if ($route_response) {
+			$bigtree["module_action"] = $route_response["action"];
+			$bigtree["commands"] = $route_response["commands"];
+		}
+
+		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
+			if ($bigtree["module_action"]["form"]) {
+				if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
+					$edit_id = end($bigtree["commands"]);
+				} else {
+					$edit_id = "";
+				}
+				include BigTree::path("admin/auto-modules/form.php");
+			} else {
+				include BigTree::path("admin/auto-modules/view.php");
+			}
+		} elseif ($inc) {
+			// Setup the commands array.
+			$bigtree["commands"] = $commands;
+			// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
+			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
+			// Include all headers in the module directory in the order they occur.
+			$inc_path = "";
+			$headers = $footers = array();
+			foreach ($pieces as $piece) {
+				if (substr($piece,0,-4) != ".php") {
+					$inc_path .= $piece."/";
+					$header = BigTree::path("admin/modules/".$inc_path."_header.php");
+					$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
+					if (file_exists($header)) {
+						$headers[] = $header;
+					}
+					if (file_exists($footer)) {
+						$footers[] = $footer;
+					}
+				}
+			}
+			// Draw the headers.
+			foreach ($headers as $header) {
+				include $header;
+			}
+			// Draw the main page.
+			include $inc;
+			// Draw the footers.
+			$footers = array_reverse($footers);
+			foreach ($footers as $footer) {
+				include $footer;
+			}
+		} else {
+			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+			include BigTree::path("admin/pages/_404.php");
+		}
+	// If we have a page, just include it.
+	} else {
+		include $inc;
 	}
 
 	$bigtree["content"] = ob_get_clean();

@@ -1,6 +1,4 @@
 <?
-	$breadcrumb[] = array("title" => "Created Modules", "link" => "#");
-
 	BigTree::globalizePOSTVars();
 	
 	if ($group_new) {
@@ -13,10 +11,9 @@
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");
-		BigTree::redirect("../view/");
+		BigTree::redirect($developer_root."modules/");
 	}
 ?>
-<h1><span class="modules"></span>Module Created</h1>
 <div class="form_container">
 	<section>
 		<h3 class="action_title"><?=$name?></h3>

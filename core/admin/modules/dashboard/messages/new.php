@@ -14,11 +14,6 @@
 		unset($_SESSION["saved_message"]);
 	}
 ?>
-<h1>
-	<span class="add_message"></span>New Message
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
-<? include "_nav.php" ?>
 <div class="form_container">
 	<form method="post" action="../create/" id="message_form">
 		<? if (count($users) > 1) { ?>

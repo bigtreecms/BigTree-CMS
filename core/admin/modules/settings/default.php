@@ -1,5 +1,4 @@
-<h1><span class="settings"></span>Settings</h1>
-
+<? $admin->requireLevel(1) ?>
 <div class="table">
 	<summary>
 		<input type="search" name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" />

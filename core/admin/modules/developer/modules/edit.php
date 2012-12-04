@@ -1,8 +1,5 @@
 <?
-	$module_title = "Edit Module";
-	$id = end($bigtree["path"]);
-	$breadcrumb[] = array("title" => "Edit Module", "link" => "#");
-	
+	$id = end($bigtree["path"]);	
 	$module = $admin->getModule($id);
 	
 	$actions = $admin->getModuleActions($id);
@@ -34,9 +31,6 @@
 	
 	$groups = $admin->getModuleGroups();
 ?>
-
-<h1><span class="modules"></span><?=$module["name"]?></h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
 		<section>

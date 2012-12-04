@@ -1,13 +1,8 @@
 <?
-	$breadcrumb[] = array("title" => "Profile", "link" => "#");
 	$user = $admin->getUser($admin->ID);
-	foreach ($user as $key => $val) {
-		if (!is_array($val)) {
-			$$key = htmlspecialchars($val);
-		}
-	}
+	$gravatar_email = $user["email"];
+	BigTree::globalizeArray($user,array("htmlspecialchars"));
 ?>
-<h1><span class="users"></span>Profile</h1>
 <div class="form_container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/profile/update/" method="post">
 		<section>

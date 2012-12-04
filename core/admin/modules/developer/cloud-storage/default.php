@@ -1,7 +1,5 @@
 <?
-	$module_title = "Cloud Storage";
 	$service = new BigTreeUploadService;
-	$breadcrumb[] = array("title" => "Upload Service", "link" => "#");
 	
 	if ($service->Service == "s3") {
 		$currently = "Amazon S3";
@@ -11,8 +9,6 @@
 		$currently = "Local Storage";
 	}
 ?>
-<h1><span class="cloud"></span>Cloud Storage</h1>
-
 <div class="table">
 	<summary><h2>Currently Using<small><?=$currently?></small></h2></summary>
 	<section>

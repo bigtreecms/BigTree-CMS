@@ -1,14 +1,4 @@
-<?
-	include BigTree::path($relative_path."_check.php");
-	
-	$breadcrumb[] = array("link" => "dashboard/analytics/", "title" => "Traffic Report");
-	
-	$cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
-	
-	if (!$cache) {
-		BigTree::redirect($mroot."cache/");
-	}
-	
+<?	
 	$two_week_visits = $cache["two_week"];
 	$graph_min = min($two_week_visits);
 	$graph_max = max($two_week_visits) - $graph_min;
@@ -142,11 +132,6 @@
 <?
 	}
 ?>
-<h1>
-	<span class="analytics"></span>Traffic Report
-	<? include BigTree::path("admin/modules/dashboard/vitals-statistics/_jump.php"); ?>
-</h1>
-<? include BigTree::path($relative_path."_nav.php"); ?>
 <div class="table">
 	<summary>
 		<h2>Two Week Heads-Up <small>(visits)</small></h2>

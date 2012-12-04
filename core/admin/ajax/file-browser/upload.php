@@ -1,7 +1,7 @@
 <?
 	$perm = $admin->getResourceFolderPermission($_POST["folder"]);
 	if ($perm != "p") {
-		die("You don't have permission to make a folder here.");
+		die("Permission denied.");
 	}
 	
 	$folder = sqlescape($_POST["folder"]);

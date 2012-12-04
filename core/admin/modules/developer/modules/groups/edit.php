@@ -1,12 +1,7 @@
 <?
-	$module_title = "Edit Module Group";
 	$id = end($bigtree["path"]);
-	$breadcrumb[] = array("title" => "Edit Group", "link" => "developer/modules/groups/edit/$id/");
 	$group = $admin->getModuleGroup($id);
 ?>
-<h1><span class="modules"></span>Edit Group</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-
 <div class="form_container">
 	<form method="post" action="<?=$developer_root?>modules/groups/update/<?=$id?>/" class="module">
 		<header><h2>Group Details</h2></header>
