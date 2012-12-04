@@ -1367,9 +1367,9 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.tooltip_left .arrow { background-position: -462px -105px; float: right; height: 21px; margin: 18px 0 0 0; width: 10px; }
 	
 /* Groups */
-	.jump_group { display: inline-block; position: relative; z-index: 1; }
+	.jump_group { display: inline-block; position: relative; z-index: 3; }
 	.jump_group .icon { background: url(../images/icon-sprite.png) -240px -105px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; display: block; height: 19px; width: 19px; }
-	.jump_group .dropdown { background: #DADADA url(../images/row-bg-sprite.png) repeat-x 0px -337px; border: 1px solid #ccc; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); color: #FFF; display: none; left: 0; min-width: 150px; padding: 5px; position: absolute; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); top: 0; }
+	.jump_group .dropdown { background: #DADADA url(../images/row-bg-sprite.png) repeat-x 0px -337px; border: 1px solid #ccc; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); color: #FFF; display: none; left: 0; min-width: 150px; padding: 5px; position: absolute; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); top: 0; z-index: 3; }
 	.jump_group:hover .dropdown { display: block; }
 	.jump_group .dropdown strong { color: #666; display: block; font-size: 10px; font-weight: normal; line-height: 1; padding: 7px 7px 5px; text-shadow: 0px 1px 0 rgba(255, 255, 255, 0.75); text-transform: uppercase; }
 	.jump_group .dropdown a { background: transparent; border-radius: 3px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0); color: #333; display: block; font-size: 12px; line-height: 16px; margin: 0 0 1px; padding: 4px 7px; text-shadow: 0px 1px 0 rgba(255, 255, 255, 0.5); transition: background-color 0.2s, box-shadow 0.2s; }
