@@ -269,12 +269,21 @@
 	nav.main li a.active { background-gradient: #436D86 #578FB1; border-color: #436D86; color: #FFF; position: relative; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.7); }
 	nav.main li:hover { z-index: 4; }
 	nav.main li:hover a { background-gradient: #243D4C #35576B; border-color: #243D4C; color: #FFF; text-shadow: 0 -1px 0 rgba(0, 0, 0, 1); }
+	
 	nav.main li a span { background: url(../images/icon-sprite.png) no-repeat; display: block; float: left; height: 16px; margin: 10px 8px 0 0; width: 16px; }
 	nav.main li a span.pages { background-position: -16px 0; margin-right: 7px; }
 	nav.main li a span.modules { background-position: -32px 0; }
 	nav.main li a span.users { background-position: -48px 0; }
 	nav.main li a span.settings { background-position: -64px 0; }
 	nav.main li a span.developer { background-position: -80px 0; }
+	
+	nav.main li:hover a span.dashboard, nav.main li.active a span.dashboard { background-position: -120px 0; }
+	nav.main li:hover a span.pages, nav.main li.active a span.pages { background-position: -136px 0; }
+	nav.main li:hover a span.modules, nav.main li.active a span.modules { background-position: -152px 0; }
+	nav.main li:hover a span.users, nav.main li.active a span.users { background-position: -168px 0; }
+	nav.main li:hover a span.settings, nav.main li.active a span.settings { background-position: -184px 0; }
+	nav.main li:hover a span.developer, nav.main li.active a span.developer { background-position: -200px 0; }
+	
 	nav.main li ul { background: #243D4C; border: none; border-radius: 0px 0px 3px 3px; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.75); display: none; float: none; min-width: 175px; padding: 8px 8px 7px 8px; position: absolute; z-index: 1; }
 	nav.main li:hover ul { display: block; }
 	nav.main li li { background: #243D4C; border: none; float: none; }
@@ -1130,10 +1139,10 @@
 	.icon_small_car { background-position: -272px -140px; }	
 	.icon_small_key { background-position: -288px -140px; }
 	.icon_small_reply { background-position: -304px -140px; }
-	.icon_small_reply_all { background-position: -320px -140px; }
+	.icon_small_reply_all { background-position: -304px -152px; }
 	.icon_small_delete { background-position: -336px -140px; }
-	.icon_small_folder { background-position: -352px -140px; }
-	.icon_small_calendar, .icon_small_calendar2 { background-position: -368px -140px; }	
+	.icon_small_folder { background-position: -352px -139px; }
+	.icon_small_calendar, .icon_small_calendar2 { background-position: -368px -139px; }	
 	.icon_small_search, .icon_small_search2 { background-position: -384px -140px; }
 	.icon_small_setup { background-position: -400px -140px; }
 	.icon_small_page { background-position: -416px -140px; }
@@ -1164,6 +1173,21 @@
 	.icon_small_email { background-position: -816px -140px; }
 	.icon_small_pencil { background-position: -832px -140px; }
 	.icon_small_weather { background-position: -848px -140px; }
+	.icon_small_pin { background-position: -321px -154px; }
+	.icon_small_planet { background-position: -338px -155px; }
+	.icon_small_mug { background-position: -354px -154px; }
+	.icon_small_atom { background-position: -370px -154px; }
+	.icon_small_shovel { background-position: -384px -154px; }
+	.icon_small_cone { background-position: -400px -155px; }
+	.icon_small_lifesaver { background-position: -416px -155px; }
+	.icon_small_target { background-position: -432px -155px; }
+	.icon_small_ribbon { background-position: -448px -155px; }
+	.icon_small_dice { background-position: -464px -155px; }
+	.icon_small_ticket { background-position: -480px -155px; }
+	.icon_small_camera { background-position: -495px -156px; }
+	.icon_small_video { background-position: -511px -155px; }
+	.icon_small_pallet { background-position: -526px -155px; }
+	
 	
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }

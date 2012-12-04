@@ -66,7 +66,126 @@
 		);
 		
 		// !Icon Classes
-		var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
+		//var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
+		
+		var $IconClasses =  array(
+			"gear",
+			"truck",
+			"token",
+			"export",
+			"redirect",
+			"help",
+			"error",
+			"ignored",
+			"world",
+			"server",
+			"clock",
+			"network",
+			"car",
+			"key",
+			"folder",
+			"calendar",
+			"search",
+			"setup",
+			"page",
+			"computer",
+			"picture",
+			"news",
+			"events",
+			"blog",
+			"form",
+			"category",
+			"map",
+			"user",
+			"question",
+			"sports",
+			"credit_card",
+			"cart",
+			"cash_register",
+			"lock_key",
+			"bar_graph",
+			"comments",
+			"email",
+			"weather",
+			"pin",
+			"planet",
+			"mug",
+			"atom",
+			"shovel",
+			"cone",
+			"lifesaver",
+			"target",
+			"ribbon",
+			"dice",
+			"ticket",
+			"pallet",
+			"camera",
+			"video",
+			"twitter",
+			"facebook"
+		);
+		
+		var $ActionClasses =  array(
+			"add",
+			"delete",
+			"list",
+			"edit",
+			"refresh",
+			"gear",
+			"truck",
+			"token",
+			"export",
+			"redirect",
+			"help",
+			"error",
+			"ignored",
+			"world",
+			"server",
+			"clock",
+			"network",
+			"car",
+			"key",
+			"folder",
+			"calendar",
+			"search",
+			"setup",
+			"page",
+			"computer",
+			"picture",
+			"news",
+			"events",
+			"blog",
+			//"form",
+			"category",
+			"map",
+			"user",
+			"question",
+			"sports",
+			"credit_card",
+			"cart",
+			"cash_register",
+			"lock_key",
+			"bar_graph",
+			"comments",
+			"email",
+			"weather",
+			"pin",
+			"planet",
+			"mug",
+			"atom",
+			"shovel",
+			"cone",
+			"lifesaver",
+			"target",
+			"ribbon",
+			"dice",
+			"ticket",
+			"pallet"
+			//"camera",
+			//"video",
+			//"twitter",
+			//"facebook",
+		);
 
 		/*
 			Constructor:
@@ -1684,9 +1803,12 @@
 			Function: emailDailyDigest
 				Sends out a daily digest email to all who have subscribed.
 		*/
-
+		
 		function emailDailyDigest() {
 			global $bigtree;
+			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
+			$site_title = $home_page["nav_title"];
+			$image_root = $bigtree["config"]["admin_root"]."images/email/";
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$bigtree["config"]["domain"]);
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
@@ -1698,53 +1820,79 @@
 				// Start building the email
 				$body = "";
 
+				// Alerts
 				if (is_array($alerts) && count($alerts)) {
-					$body .= "Content Age Alerts\n";
-					$body .= "------------------\n\n";
-
 					foreach ($alerts as $alert) {
-						$body .= $alert["nav_title"]." - ".$alert["current_age"]." Days Old\n";
-						$body .= $bigtree["config"]["www_root"].$alert["path"]."/\n";
-						$body .= $bigtree["config"]["admin_root"]."pages/edit/".$alert["id"]."/\n\n";
+						$body_alerts .= '<tr>';
+						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$alert["nav_title"].'</td>';
+						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 20px 10px 15px; text-align: right;">'.$alert["current_age"].' Days</td>';
+						
+						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$bigtree["config"]["www_root"].$alert["path"].'/"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>';
+						
+						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$bigtree["config"]["admin_root"]."pages/edit/".$alert["id"].'/"><img src="'.$image_root.'edit.gif" alt="Edit" /></a></td>';
+						$body_alerts .= '</tr>';
 					}
+				} else {
+					$body_alerts .= '<tr>';
+					$body_alerts = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Content Age Alerts</p></td>';
+					$body_alerts .= '</tr>';
 				}
 
+				// Changes
 				if (count($changes)) {
-					$body .= "Pending Changes\n";
-					$body .= "---------------\n\n";
-
 					foreach ($changes as $change) {
+						$body_changes .= '<tr>';
+						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["user"]["name"].'</td>';
 						if ($change["title"]) {
-							$body .= $change["title"];
+							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Pages</td>';
 						} else {
-							$body .= $change["mod"]["name"]." - ";
-
-							if ($change["type"] == "NEW") {
-								$body .= "Addition";
-							} elseif ($change["type"] == "EDIT") {
-								$body .= "Edit";
-							}
+							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
 						}
-						$body .= "\n".$change["user"]["name"]." has submitted this change request.\n";
-						$body .= $this->getChangeEditLink($change)."\n\n";
-
+						if ($change["type"] == "NEW") {
+							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
+						} elseif ($change["type"] == "EDIT") {
+							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
+						}
+						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$this->getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
+						$body_changes .= '</tr>';
 					}
+				} else {
+					$body_changes .= '<tr>';
+					$body_changes = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Pending Changes</p></td>';
+					$body_changes .= '</tr>';
 				}
 
+				// Messages
 				if (count($unread)) {
-					$body .= "Unread Messages\n";
-					$body .= "---------------\n\n";
-
 					foreach ($unread as $message) {
-						$body .= $message["sender_name"]." - ".date("n/j/y @ g:ia",strtotime($message["date"]))." - ".$message["subject"]."\n";
+						$body_messages .= '<tr>';
+						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>';
+						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>';
+						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia",strtotime($message["date"])).'</td>';
+						$body_messages .= '</tr>';
 					}
+				} else {
+					$body_messages .= '<tr>';
+					$body_messages = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Unread Messages</p></td>';
+					$body_messages .= '</tr>';
 				}
 
-				if ($body) {
-					$header =  "BigTree Daily Digest\n";
-					$header .= "====================\n";
-					$header .= $bigtree["config"]["admin_root"]."\n\n";
-					mail($user["email"],"BigTree Daily Digest",$header.$body,"From: BigTree CMS <no-reply@$no_reply_domain>");
+				// Send it
+				if ((is_array($alerts) && count($alerts)) || count($changes) || count($unread)) {
+					$body = file_get_contents(BigTree::path("admin/email/daily-digest.html"));
+					$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
+					$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
+					$body = str_ireplace("{site_title}", $site_title, $body);
+					$body = str_ireplace("{date}", date("F j, Y",time()), $body);
+					$body = str_ireplace("{content_alerts}", $body_alerts, $body);
+					$body = str_ireplace("{pending_changes}", $body_changes, $body);
+					$body = str_ireplace("{unread_messages}", $body_messages, $body);
+
+					$headers  = "MIME-Version: 1.0 \r\n";
+					$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
+					$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
+
+					mail($user["name"]." <".$user["email"].">",$site_title." Daily Digest",$body,$headers);
 				}
 			}
 		}
@@ -1764,19 +1912,37 @@
 		*/
 
 		function forgotPassword($email) {
+			global $bigtree;
+			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
+			$site_title = $home_page["nav_title"];
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
 
 			$email = sqlescape($email);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
-			if (!$f) {
+			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
+			if (!$user) {
 				return false;
 			}
 
 			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
-			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$f["id"]."'");
+			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
+			
+			$reset_link = ADMIN_ROOT."login/reset-password/$hash/";
+			
+			$body = file_get_contents(BigTree::path("admin/email/reset-password.html"));
+			$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
+			$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
+			$body = str_ireplace("{site_title}", $site_title, $body);
+			$body = str_ireplace("{reset_link}", $reset_link, $body);
 
-			mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".ADMIN_ROOT."login/reset-password/$hash/","From: no-reply@$no_reply_domain");
+			$headers  = "MIME-Version: 1.0 \r\n";
+			$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
+			$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
+
+			mail($user["name"]." <".$user["email"].">","Reset Your Password",$body,$headers);
 			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
+
+			//mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".,"From: no-reply@$no_reply_domain");
+			
 		}
 
 		/*
@@ -2266,8 +2432,9 @@
 			if (!count($where)) {
 				return false;
 			}
+			
 			// If we care about the whole tree, skip the madness.
-			if ($alerts[0] == "on") {
+			if ($user["alerts"][0] == "on") {
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
 			} else {
 				$paths = array();
@@ -3702,13 +3869,14 @@
 
 			Parameters:
 				id - The id of the setting to return.
+				decode - Whether to decode the array or not. Large data sets may want to set this to false if there aren't internal page links.
 
 			Returns:
 				A setting entry with its value properly decoded and decrypted.
 				Returns false if the setting could not be found.
 		*/
 
-		function getSetting($id) {
+		function getSetting($id,$decode = true) {
 			global $bigtree,$cms;
 			$id = sqlescape($id);
 
@@ -3724,10 +3892,12 @@
 			
 			$f["value"] = json_decode($f["value"],true);
 			
-			if (is_array($f["value"])) {
-				$f["value"] = BigTree::untranslateArray($f["value"]);
-			} else {
-				$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+			if ($decode) {
+				if (is_array($f["value"])) {
+					$f["value"] = BigTree::untranslateArray($f["value"]);
+				} else {
+					$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+				}
 			}
 			
 			return $f;
@@ -5653,7 +5823,7 @@
 
 		function updateSettingValue($id,$value) {
 			global $bigtree;
-			$item = $this->getSetting($id);
+			$item = $this->getSetting($id,false);
 			$id = sqlescape($id);
 
 			$value = sqlescape(json_encode($value));
@@ -5663,7 +5833,7 @@
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
-
+			
 			// Audit trail
 			$this->track("bigtree_settings",$id,"updated-value");
 		}

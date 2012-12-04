@@ -154,6 +154,9 @@
 		
 		function sqlescape($string) {
 			global $bigtree;
+			if ($bigtree["mysql_read_connection"] === "disconnected") {
+				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+			}
 			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
 		}
 	} else {

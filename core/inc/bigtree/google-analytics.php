@@ -42,22 +42,8 @@
 		*/
 		
 		function cacheInformation() {
-			global $admin;
-			// Let's cache this sucker in bigtree_settings now as an internal setting.
-			if (!$admin) {
-				$admin = new BigTreeAdmin;
-			}
-			// If we don't have a cache setting, create one.
-			if (!$admin->settingExists("bigtree-internal-google-analytics-cache")) {
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-google-analytics-cache",
-					"name" => "BigTree's Internal Google Analytics Data Cache",
-					"system" => "on"
-				));
-			}
-
 			$cache = array();
-	
+			
 			// First we're going to update the monthly view counts for all pages.
 			$response = $this->API->data_ga->get("ga:".$this->Profile,date('Y-m-d',strtotime('1 month ago')),date("Y-m-d"),"ga:pageviews",array("dimensions" => "ga:pagePath", "sort" => "ga:pagePath", "max-results" => 100000));
 			$used_paths = array();
@@ -73,6 +59,7 @@
 					$used_paths[] = $clean_path;
 				}
 			}
+			
 			
 			// Service Provider report
 			$response = $this->API->data_ga->get("ga:".$this->Profile,date('Y-m-d',strtotime('1 month ago')),date("Y-m-d"),"ga:pageviews,ga:visits",array("dimensions" => "ga:networkLocation", "sort" => "-ga:pageviews", "max-results" => 100000));
@@ -114,7 +101,7 @@
 				$cache["two_week"][$item[0]] = $item[1];
 			}
 			
-			$admin->updateSettingValue("bigtree-internal-google-analytics-cache",$cache);
+			file_put_contents(SERVER_ROOT."cache/analytics.cache",json_encode($cache));
 		}
 		
 		/*
