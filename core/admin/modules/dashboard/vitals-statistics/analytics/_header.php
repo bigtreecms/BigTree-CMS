@@ -12,7 +12,11 @@
 		BigTree::redirect($mroot."configure/");
 	}
 
-	$cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
+	if (file_exists(SERVER_ROOT."cache/analytics.cache")) {
+		$cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
+	} else {
+		$cache = false;
+	}
 	
 	if (!$cache && end($bigtree["path"]) != "configure") {
 		BigTree::redirect($mroot."cache/");
