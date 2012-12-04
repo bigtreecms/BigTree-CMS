@@ -34,7 +34,11 @@
 	}
 	
 	// Get Google Analytics Traffic
-	$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
+	if (file_exists(SERVER_ROOT."cache/analytics.cache")) {
+		$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
+	} else {
+		$ga_cache = false;
+	}
 	// Only show this thing if they have Google Analytics setup already
 	if ($ga_cache && count($ga_cache["two_week"])) {
 		$visits = $ga_cache["two_week"];
