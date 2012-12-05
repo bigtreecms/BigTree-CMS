@@ -36,7 +36,7 @@
 		// Get all related feeds.
 		foreach ($tables as $tinfo) {
 			list($table,$type) = explode("#",$tinfo);
-			$q = sqlquery("select * from bigtree_feeds where `table` = '$table'");
+			$q = sqlquery("SELECT * FROM bigtree_feeds WHERE `table` = '$table'");
 			while ($f = sqlfetch($q)) {
 				$feeds[$f["id"]] = $f["name"];
 			}
