@@ -260,10 +260,10 @@
 	header.main div { background: url(../images/icon-sprite.png) -225px -125px; float: right; height: 10px; margin: 22px 5px; width: 10px; }
 	
 /* Main Navigation */
-	nav.main { background: #FFF; box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.75); height: 36px; min-width: 960px; position: relative; z-index: 2; }
+	nav.main { background: #FFF; box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.75); height: 36px; min-width: 960px; position: relative; z-index: 4; }
 	nav.main section { margin: 0 auto; width: 960px; }
 	nav.main ul { border-right: 1px solid #DCDCDC; float: left; user-select: none; }
-	nav.main li { background: #FFF; float: left; margin-right: -1px; position: relative; z-index: 2; }
+	nav.main li { background: #FFF; float: left; margin-right: -1px; position: relative; z-index: 4; }
 	nav.main li a { border: 1px solid #DCDCDC; border-width: 0 1px; color: #333; display: block; font-size: 14px; height: 36px; line-height: 38px; padding: 0 20px 0 18px; position: relative; transition: background-color 0.2s; width: auto; z-index: 2; }
 	nav.main li.active { z-index: 3; }
 	nav.main li a.active { background-gradient: #436D86 #578FB1; border-color: #436D86; color: #FFF; position: relative; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.7); }
