@@ -1,7 +1,4 @@
 <?	
-	$breadcrumb = array(array("link" => "search/","title" => "Advanced Search"));
-	$module_title = "Advanced Search";
-	
 	$total_results = 0;
 	$results = array();
 	
@@ -70,7 +67,6 @@
 		}
 	}
 ?>
-<h1>Advanced Search</h1>
 <form class="adv_search" method="get" action="<?=ADMIN_ROOT?>search/">
 	<h3><?=number_format($total_results)?> Search results for &ldquo;<?=end($bigtree["path"])?>&rdquo;</h3>
 	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($_GET["query"])?>" />

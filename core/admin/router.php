@@ -32,8 +32,8 @@
 		)),
 		"pages" => array("title" => "Pages","link" => "pages","icon" => "page","nav_icon" => "pages","children" => array(
 			"view-tree" => array("title" => "View Subpages","link" => "pages/view-tree/{id}","nav_icon" => "list"),
-			array("title" => "Add Subpage","link" => "pages/add/{id}","icon" => "add_page","nav_icon" => "add"),
-			array("title" => "Edit Page","link" => "pages/edit/{id}","icon" => "edit_page","nav_icon" => "edit"),
+			"add" => array("title" => "Add Subpage","link" => "pages/add/{id}","icon" => "add_page","nav_icon" => "add"),
+			"edit" => array("title" => "Edit Page","link" => "pages/edit/{id}","icon" => "edit_page","nav_icon" => "edit"),
 			"revisions" => array("title" => "Revisions","link" => "pages/revisions/{id}","icon" => "page_versions","nav_icon" => "refresh"),
 			"move" => array("title" => "Move Page","link" => "pages/move/{id}","icon" => "move_page","nav_icon" => "truck","level" => 1)
 		)),
@@ -65,8 +65,10 @@
 				array("title" => "Add View","link" => "developer/modules/views/add","hidden" => true),
 				array("title" => "Edit View","link" => "developer/modules/views/edit","hidden" => true),
 				array("title" => "Style View","link" => "developer/modules/views/style","hidden" => true),
+				array("title" => "Created View","link" => "developer/modules/views/create","hidden" => true),
 				array("title" => "Add Form","link" => "developer/modules/forms/add","hidden" => true),
 				array("title" => "Edit Form","link" => "developer/modules/forms/edit","hidden" => true),
+				array("title" => "Created Form","link" => "developer/modules/forms/create","hidden" => true),
 				array("title" => "Add Action","link" => "developer/modules/actions/add","hidden" => true),
 				array("title" => "Edit Action","link" => "developer/modules/actions/edit","hidden" => true)
 			)),
@@ -109,7 +111,9 @@
 				array("title" => "First Data / LinkPoint","link" => "developer/payment-gateway/linkpoint","icon" => "linkpoint","hidden" => true)
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
-		))
+		)),
+		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
+		"credits" => array("title" => "Thank You","link" => "credits","icon" => "credits","hidden" => true)
 	);
 
 	// Set static root for those without it

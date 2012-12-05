@@ -21,8 +21,6 @@
 
 	$module_info = $admin->getModule($module);
 ?>
-<h1><span class="modules"></span>Created Form</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
 <div class="form_container">
 	<section>
 		<h3 class="action_title">Add/Edit <?=$title?></h3>

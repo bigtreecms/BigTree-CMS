@@ -1,5 +1,6 @@
-<?
-	$breadcrumb = array(array("link" => "#","title" => "404 - Page Not Found"));
-?>
-<h1>Page Not Found</h1>
-<p>You've encountered a missing page. Please check the URL you have entered and try again.</p>
+<h1><span class="page_404"></span>Page Not Found</h1>
+<div class="form_container">
+	<section>
+		<p>You've encountered a missing page. Please check the URL you have entered and try again.</p>
+	</section>
+</div>

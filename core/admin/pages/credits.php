@@ -1,9 +1,3 @@
-<?
-	$breadcrumb = array(
-		array("link" => "credits/", "title" => "Credits")
-	);
-?>
-<h1>Thank You</h1>
 <div class="form_container">
 	<section>
 		<p>

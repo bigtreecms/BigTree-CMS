@@ -4,7 +4,10 @@
 ?>
 <div class="form_container">
 	<section>
-		<h3>Error</h3>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
 		<p>Revisions do not function on unpublished pages.</p>
 	</section>
 </div>
@@ -17,7 +20,10 @@
 ?>
 <div class="form_container">
 	<section>
-		<h3>Error</h3>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
 		<p>You must be a publisher to manage revisions.</p>
 	</section>
 </div>

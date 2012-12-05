@@ -192,7 +192,8 @@
 					$failed_tables[] = $table;
 				}
 			}
-			$admin->stop('<h1><span class="package"></span>Package Creation Failed</h1><div class="form_container"><section><p>The following tables have missing foreign key constraints: '.implode(", ",$failed_tables).'</p></section></div>');
+			$admin->stop('<div class="form_container"><section><div class="alert">
+			<span></span><h3>Creation Failed</h3></div><p>The following tables have missing foreign key constraints: '.implode(", ",$failed_tables).'</p></section></div>');
 		}
 		
 		foreach ($rearranged_tables as $t) {
@@ -270,7 +271,6 @@
 	// Move the file into place.
 	BigTree::moveFile(SERVER_ROOT."cache/package.tar.gz",SITE_ROOT."files/".$package_file);
 ?>
-<h1><span class="package"></span>Download Package</h1>
 <div class="form_container">
 	<section>
 		<p>Package created successfully.  You may download it <a href="<?=WWW_ROOT?>files/<?=$package_file?>">by clicking here</a>.</p>

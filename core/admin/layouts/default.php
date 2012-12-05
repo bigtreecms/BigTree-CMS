@@ -58,6 +58,9 @@
 	?>
 </ul>
 <div id="page">
+	<?
+		if ($bigtree["page"]["title"]) {
+	?>
 	<h1>
 		<span class="<?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($gravatar_email)?>" alt="" /><? } ?></span>
 		<?
@@ -91,6 +94,8 @@
 		?>
 	</h1>
 	<?
+		}
+
 		$show_nav = false;
 		foreach ($bigtree["page"]["navigation"] as $item) {
 			if (!$item["hidden"]) {

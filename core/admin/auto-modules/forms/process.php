@@ -180,25 +180,32 @@
 				$suffix = $view["suffix"] ? "-".$view["suffix"] : "";
 				$edit_link = ADMIN_ROOT.$module["route"]."/edit$suffix/$edit_id/";
 ?>
-<h1>Errors Occurred</h1>
-<div class="table">
-	<summary>
-		<p>Your submission had <?=count($fails)?> error<? if (count($fails) != 1) { ?>s<? } ?>.</p>
-	</summary>
-	<header>
-		<span class="view_column" style="width: 250px;">Field</span>
-		<span class="view_column" style="width: 668px;">Error</span>
-	</header>
-	<ul>
-		<? foreach ($fails as $fail) { ?>
-		<li>
-			<section class="view_column" style="width: 250px;"><?=$fail["field"]?></section>
-			<section class="view_column" style="width: 668px;"><?=$fail["error"]?></section>
-		</li>
-		<? } ?>
-	</ul>
+<div class="form_container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<p>Your submission had <?=count($fails)?> error<? if (count($fails) != 1) { ?>s<? } ?>.</p>
+		</div>
+		<div class="table error_table">
+			<header>
+				<span class="view_column field">Field</span>
+				<span class="view_column error">Error</span>
+			</header>
+			<ul>
+				<? foreach ($fails as $fail) { ?>
+				<li>
+					<section class="view_column field"><?=$fail["field"]?></section>
+					<section class="view_column error"><?=$fail["error"]?></section>
+				</li>
+				<? } ?>
+			</ul>
+		</div>
+	</section>
+	<footer>
+		<a href="<?=$redirect_url?>" class="button blue">Continue</a> &nbsp; <a href="<?=$edit_link?>" class="button">Edit Entry</a> &nbsp; <a href="#" class="delete button red">Delete Entry</a>
+	</footer>
 </div>
-<a href="<?=$redirect_url?>" class="button blue">Continue</a> &nbsp; <a href="<?=$edit_link?>" class="button">Edit Entry</a> &nbsp; <a href="#" class="delete button red">Delete Entry</a>
+
 <script type="text/javascript">
 	$(".delete").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$edit_id?>", {

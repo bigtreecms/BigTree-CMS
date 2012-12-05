@@ -376,6 +376,7 @@
 	.form_container .alert > span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
 	.form_container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; display: block; }
 	.form_container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
+	.form_container .alert h3 { line-height: 32px; margin: 0; }
 	.form_container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	#callout_resources .error_message { width: 420px; }
 	.form_container .template_message { user-select: none; }
@@ -593,6 +594,13 @@
 	.table .changes_author { padding: 0 0 0 20px; text-align: left; width: 140px; }
 	.table .changes_action { padding: 0 20px 0 0; text-align: center; width: 35px; }
 
+/* Error Table Styles */
+	
+	div.error_table { margin: -31px -30px; border-left: none; border-right: none; border-radius: 0; box-shadow: none; }
+	div.error_table .field { width: 230px; padding: 0 0 0 40px; }
+	div.error_table .error { width: 648px; padding: 0 0 0 40px; }
+
+/* Tags */
 	.form_container .tags, .form_container .sub_section { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
 	.sub_section fieldset:last-of-type { margin: 0; }
 	.form_container .tags input { float: left; margin: 0; width: 215px; }
