@@ -7,8 +7,7 @@
 	$profile = isset($settings["profile"]) ? $settings["profile"] : "";
 	$analytics = new BigTreeGoogleAnalytics;
 
-	
-	if ((!$token || !$profile) && end($bigtree["path"]) != "configure") {
+	if ((!$token || !$profile) && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-profile" && end($bigtree["path"]) != "set-token") {
 		BigTree::redirect($mroot."configure/");
 	}
 
@@ -18,7 +17,7 @@
 		$cache = false;
 	}
 	
-	if (!$cache && end($bigtree["path"]) != "configure") {
+	if (!$cache && end($bigtree["path"]) != "cache" && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-profile" && end($bigtree["path"]) != "set-token") {
 		BigTree::redirect($mroot."cache/");
 	}
 ?>

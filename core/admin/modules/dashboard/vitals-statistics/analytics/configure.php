@@ -100,7 +100,7 @@
 	
 	$("#ga_disconnect").click(function() {
 		var href = $(this).attr("href");
-		var popup = new BigTreeDialog("Disconnect Google Analytics","Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.",function() {
+		var popup = new BigTreeDialog("Disconnect Google Analytics","<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",function() {
 			window.location.href = href;
 		},"delete",false,"Disconnect");
 		return false;
