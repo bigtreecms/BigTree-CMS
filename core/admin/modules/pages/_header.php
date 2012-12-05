@@ -1,6 +1,7 @@
 <?
 	$proot = ADMIN_ROOT."pages/";
 	$id = end($bigtree["commands"]);
+	$action = $bigtree["path"][count($bigtree["path"]) - 2];
 
 	// Get the end command as the current working page and get the current user's access level.
 	if (is_numeric($id)) {
@@ -13,11 +14,14 @@
 	}
 
 	// Stop the user if they don't have access to this page.
-	if (!$access_level) {	
+	if (!$access_level && $id && $action != "view-tree") {
 ?>
 <div class="form_container">
 	<section>
-		<h3>Error</h3>
+		<div class="alert">
+			<span></span>
+			<h3>Access Denied</h3>
+		</div>
 		<p>You do not have access to this page.</p>
 	</section>
 </div>
@@ -55,6 +59,11 @@
 	if (!is_numeric($page["id"]) || $access_level != "p") {
 		unset($pages_nav["children"]["move"]);
 		unset($pages_nav["children"]["revisions"]);
+	}
+	// If the user doesn't have access to this page, take away the nav for it.
+	if (!$access_level) {
+		unset($pages_nav["children"]["add"]);
+		unset($pages_nav["children"]["edit"]);
 	}
 
 	// If we can't find the parent or the current page, stop.
