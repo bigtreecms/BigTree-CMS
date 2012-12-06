@@ -47,12 +47,12 @@
 		<meta name="robots" content="noindex,nofollow" />
 		<title><? if (isset($module_title)) { ?><?=htmlspecialchars(htmlspecialchars_decode($module_title))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<? if (isset($css) && is_array($css)) { foreach ($css as $style) { ?>
+		<? if (isset($bigtree["css"]) && is_array($bigtree["css"])) { foreach ($bigtree["css"] as $style) { ?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
 		<? } } ?>
 		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<? if (isset($js) && is_array($js)) { foreach ($js as $script) { ?>
+		<? if (isset($bigtree["js"]) && is_array($bigtree["js"])) { foreach ($bigtree["js"] as $script) { ?>
 		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
 		<? } } ?>
 		<!--[if lt IE 9]>
