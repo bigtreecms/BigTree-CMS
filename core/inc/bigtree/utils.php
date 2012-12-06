@@ -1173,15 +1173,15 @@
 			$height = ($height > 2000) ? 2000 : $height;
 			
 			// Check colors
-			$bg_color = ($bg_color === false) ? "CCCCCC" : ltrim($bg_color,"#");
-			$text_color = ($text_color === false) ? "666666" : ltrim($text_color,"#");
+			$bg_color = (!$bg_color && $bg_color != "000" && $bg_color != "000000") ? "CCCCCC" : ltrim($bg_color,"#");
+			$text_color = (!$text_color  && $text_color != "000" && $text_color != "000000") ? "666666" : ltrim($text_color,"#");
 			
 			// Set text
 			$text = $text_string;
-			if ($icon_path != false) {
+			if ($icon_path) {
 				$text = "";
 			} else {
-				if ($text_string == false) {
+				if (!$text_string) {
 					$text = $width . " X " . $height;
 				}
 			}
