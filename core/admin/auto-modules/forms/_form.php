@@ -1,10 +1,11 @@
 <div class="form_container">
-	<form method="post" action="process/" enctype="multipart/form-data" class="module" id="auto_module_form">
+	<form method="post" action="<?=ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/process/"?>" enctype="multipart/form-data" class="module" id="auto_module_form">
+		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<?
 			if (isset($item)) {
 		?>
-		<input type="hidden" name="id" value="<?=htmlspecialchars($item_id)?>" />
+		<input type="hidden" name="id" value="<?=htmlspecialchars($edit_id)?>" />
 		<?
 			}	
 			if (isset($_GET["view_data"])) {
@@ -67,7 +68,7 @@
 				</fieldset>
 			</div>
 			<script type="text/javascript">
-				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$item_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
+				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$edit_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
 			</script>
 			<?
 				}
@@ -123,7 +124,8 @@
 	new BigTreeFormValidator("#auto_module_form");
 	
 	$(".save_and_preview").click(function() {
-		$(this).parents("form").attr("action","process/preview/").submit();
+		$("#preview_field").val("true");
+		$(this).parents("form").submit();
 
 		return false;
 	});

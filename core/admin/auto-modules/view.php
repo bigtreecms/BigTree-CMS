@@ -16,8 +16,6 @@
 <?
 	}
 
-	$maction = $action;
-
 	$action_names = array(
 		"approve" => "Approve/Deny",
 		"edit" => "Edit",
@@ -27,6 +25,4 @@
 	);
 	
 	include BigTree::path("admin/auto-modules/views/".$view["type"].".php");
-
-	$action = $maction;
 ?>

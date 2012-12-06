@@ -1,11 +1,9 @@
 <?
-	$item_id = end($bigtree["path"]);
-	
 	// Check for a page lock
-	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$admin->lockCheck($form["table"],$item_id,"admin/auto-modules/forms/_locked.php",$force);
+	$force = isset($_GET["force"]) ? true : false;
+	$admin->lockCheck($form["table"],$edit_id,"admin/auto-modules/forms/_locked.php",$force);
 
-	$data = BigTreeAutoModule::getPendingItem($form["table"],$item_id);
+	$data = BigTreeAutoModule::getPendingItem($form["table"],$edit_id);
 		
 	if (!$data) {
 ?>
@@ -35,5 +33,5 @@
 	}
 ?>
 <script type="text/javascript">
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: '<?=$form["table"]?>', id: '<?=$item_id?>' } });",60000);
+	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: '<?=$form["table"]?>', id: '<?=$edit_id?>' } });",60000);
 </script>

@@ -397,10 +397,12 @@
 
 		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
 			if ($bigtree["module_action"]["form"]) {
+				// If the last command is numeric then we're editing something.
 				if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
 					$edit_id = end($bigtree["commands"]);
+				// Otherwise we're adding something, at least most likely.
 				} else {
-					$edit_id = "";
+					$edit_id = false;
 				}
 				include BigTree::path("admin/auto-modules/form.php");
 			} else {

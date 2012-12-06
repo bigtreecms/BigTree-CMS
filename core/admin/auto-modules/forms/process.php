@@ -157,7 +157,7 @@
 			$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 		}
 
-		if (end($bigtree["path"]) == "preview") {
+		if ($_POST["_bigtree_preview"]) {
 			$admin->ungrowl();
 			$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
 		}
