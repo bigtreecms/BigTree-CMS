@@ -7,7 +7,13 @@
 	}
 
 	if ($view["description"]) {
-		echo "<p>".$view["description"]."</p>";
+?>
+<div class="form_container">
+	<section>
+		<p><?=$view["description"]?></p>
+	</section>
+</div>
+<?
 	}
 
 	$maction = $action;
