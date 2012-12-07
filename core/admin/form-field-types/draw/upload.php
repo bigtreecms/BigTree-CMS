@@ -47,7 +47,7 @@
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<? if ($preview_image) { ?>
-			<img src="<?=$preview_image?>" alt="" />
+			<img src="<?=htmlspecialchars($preview_image)?>" alt="" />
 			<? } ?>
 		</div>
 		<label>CURRENT</label>

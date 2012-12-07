@@ -165,5 +165,7 @@
 				unlink($temp_copy);
 			}
 		}
+	} else {
+		$value = $data["currently_$key"];
 	}
 ?>
