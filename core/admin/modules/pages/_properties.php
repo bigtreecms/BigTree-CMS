@@ -20,7 +20,7 @@
 			$status = "Published";
 		}
 	} else {
-		$preview_url = WWW_ROOT."_preview-pending/".$page."/";
+		$preview_url = WWW_ROOT."_preview-pending/".$page["id"]."/";
 		$status = "Unpublished";
 	}
 	
