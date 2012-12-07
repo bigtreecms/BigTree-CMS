@@ -27,202 +27,161 @@
 		}
 	}
 
+	// If permission check fails, stop and throw the denied page.
 	if (!$permission || $permission == "n") {
-		include BigTree::path("admin/auto-modules/forms/_denied.php");
-	} else {
-		// Initiate the Upload Service class.
-		$upload_service = new BigTreeUploadService;
-		// Make sure we have permission to this module before update.
-		$fields = $form["fields"];
-		$crops = array();
-		$many_to_many = array();
-		$fails = array();
+		$admin->stop(file_get_contents(BigTree::path("admin/auto-modules/forms/_denied.php")));
+	}
 
-		// Let us figure out what was posted and get the data...!
-		$item = array();
+	// Initiate the Upload Service class.
+	$upload_service = new BigTreeUploadService;
+	// Make sure we have permission to this module before update.
+	$fields = $form["fields"];
+	$crops = array();
+	$many_to_many = array();
+	$fails = array();
 
-		$data = $_POST;
-		$file_data = $_FILES;
+	// Let us figure out what was posted and get the data...!
+	$item = array();
 
-		foreach ($fields as $key => $options) {
-			$type = $options["type"];
-			$tpath = BigTree::path("admin/form-field-types/process/$type.php");
+	$data = $_POST;
+	$file_data = $_FILES;
 
-			$no_process = false;
-			// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-			if (file_exists($tpath)) {
-				include $tpath;
-			} else {
-				$value = htmlspecialchars($data[$key]);
-			}
+	foreach ($fields as $key => $options) {
+		$type = $options["type"];
+		$tpath = BigTree::path("admin/form-field-types/process/$type.php");
 
-			if (!BigTreeForms::validate($value,$options["validation"])) {
-				$error = $options["error_message"] ? $options["error_message"] : BigTreeForms::errorMessage($value,$options["validation"]);
-				$fails[] = array(
-					"field" => $options["title"],
-					"error" => $error
-				);
-			}
-
-			$value = $admin->autoIPL($value);
-
-			if (!$no_process) {
-				$item[$key] = $value;
+		$no_process = false;
+		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
+		if (file_exists($tpath)) {
+			include $tpath;
+		} else {
+			$value = htmlspecialchars($data[$key]);
+		}
+		if (!BigTreeForms::validate($value,$options["validation"])) {
+			$error = $options["error_message"] ? $options["error_message"] : BigTreeForms::errorMessage($value,$options["validation"]);
+			$fails[] = array(
+				"field" => $options["title"],
+				"error" => $error
+			);
+		}
+		$value = $admin->autoIPL($value);
+		if (!$no_process) {
+			$item[$key] = $value;
+		}
+	}
+	// See if we added anything in pre-processing that wasn't a field in the form.
+	if (is_array($preprocess_changes)) {
+		foreach ($preprocess_changes as $key => $val) {
+			if (!isset($item[$key])) {
+				$item[$key] = $val;
 			}
 		}
-
-		// See if we added anything in pre-processing that wasn't a field in the form.
-		if (is_array($preprocess_changes)) {
-			foreach ($preprocess_changes as $key => $val) {
-				if (!isset($item[$key])) {
-					$item[$key] = $val;
-				}
-			}
-		}
-
-		// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-		$formParser = new BigTreeForms($form["table"]);
-		$item = $formParser->sanitizeFormDataForDB($item);
-		$tags = $_POST["_tags"];
-		$resources = $_POST["_resources"];
-
-		$edit_id = $_POST["id"] ? $_POST["id"] : false;
-		$new_id = false;
-
-		$table = $form["table"];
-		// Let's stick it in the database or whatever!
-		if ($permission == "e" || $data_action == "save") {
-			// We're an editor
-			if ($edit_id) {
-				BigTreeAutoModule::submitChange($module["id"],$table,$edit_id,$item,$many_to_many,$tags);
-				$admin->growl($module["name"],"Saved ".$form["title"]." Draft");
-			} else {
-				$edit_id = "p".BigTreeAutoModule::createPendingItem($module["id"],$table,$item,$many_to_many,$tags);
-				$admin->growl($module["name"],"Created ".$form["title"]." Draft");
-			}
-
-			if ($edit_id && is_numeric($edit_id)) {
-				$published = true;
-			} else {
-				$published = false;
-			}
-		} elseif ($permission == "p" && $data_action == "publish") {
-			// We're a publisher
-			if ($edit_id) {
-				if (substr($edit_id,0,1) == "p") {
-					$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
-					$admin->growl($module["name"],"Updated & Published ".$form["title"]);
-				} else {
-					BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
-					$admin->growl($module["name"],"Updated ".$form["title"]);
-				}
-			} else {
-				$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
-				$admin->growl($module["name"],"Created ".$form["title"]);
-			}
-			$published = true;
-		}
-
-		// Kill off any applicable locks to the entry
+	}
+	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
+	$formParser = new BigTreeForms($form["table"]);
+	$item = $formParser->sanitizeFormDataForDB($item);
+	$tags = $_POST["_tags"];
+	$resources = $_POST["_resources"];
+	$edit_id = $_POST["id"] ? $_POST["id"] : false;
+	$new_id = false;
+	$table = $form["table"];
+	// Let's stick it in the database or whatever!
+	if ($permission == "e" || $data_action == "save") {
+		// We're an editor
 		if ($edit_id) {
-			$admin->unlock($table,$edit_id);
+			BigTreeAutoModule::submitChange($module["id"],$table,$edit_id,$item,$many_to_many,$tags);
+			$admin->growl($module["name"],"Saved ".$form["title"]." Draft");
+		} else {
+			$edit_id = "p".BigTreeAutoModule::createPendingItem($module["id"],$table,$item,$many_to_many,$tags);
+			$admin->growl($module["name"],"Created ".$form["title"]." Draft");
 		}
-		
-		// Figure out if we should return to a view with search results / page / sorting preset.
-		if (isset($_POST["_bigtree_return_view_data"])) {
-			$return_view_data = unserialize(base64_decode($_POST["_bigtree_return_view_data"]));
-			if (!$form["return_view"] || $form["return_view"] == $return_view_data["view"]) {
-				$redirect_append = array();
-				unset($return_view_data["view"]); // We don't need the view passed back.
-				foreach ($return_view_data as $key => $val) {
-					$redirect_append[] = "$key=".urlencode($val);
-				}
-				$redirect_append = "?".implode("&",$redirect_append);
+		if ($edit_id && is_numeric($edit_id)) {
+			$published = true;
+		} else {
+			$published = false;
+		}
+	} elseif ($permission == "p" && $data_action == "publish") {
+		// We're a publisher
+		if ($edit_id) {
+			if (substr($edit_id,0,1) == "p") {
+				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
+				$admin->growl($module["name"],"Updated & Published ".$form["title"]);
+			} else {
+				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
+				$admin->growl($module["name"],"Updated ".$form["title"]);
 			}
 		} else {
-			$redirect_append = "";
+			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
+			$admin->growl($module["name"],"Created ".$form["title"]);
 		}
-		
-		// Get the redirect location.
-		if ($form["return_view"]) {
-			$a = $admin->getModuleActionForView($form["return_view"]);
-			if ($a["route"]) {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/".$a["route"]."/".$redirect_append;
-			} else {
-				$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
+		$published = true;
+	}
+	// Kill off any applicable locks to the entry
+	if ($edit_id) {
+		$admin->unlock($table,$edit_id);
+	}
+	
+	// Figure out if we should return to a view with search results / page / sorting preset.
+	if (isset($_POST["_bigtree_return_view_data"])) {
+		$return_view_data = unserialize(base64_decode($_POST["_bigtree_return_view_data"]));
+		if (!$form["return_view"] || $form["return_view"] == $return_view_data["view"]) {
+			$redirect_append = array();
+			unset($return_view_data["view"]); // We don't need the view passed back.
+			foreach ($return_view_data as $key => $val) {
+				$redirect_append[] = "$key=".urlencode($val);
 			}
-		} elseif ($form["return_url"]) {
-			$redirect_url = $form["return_url"].$redirect_append;
+			$redirect_append = "?".implode("&",$redirect_append);
+		}
+	} else {
+		$redirect_append = "";
+	}
+	
+	// Get the redirect location.
+	if ($form["return_view"]) {
+		$a = $admin->getModuleActionForView($form["return_view"]);
+		if ($a["route"]) {
+			$redirect_url = ADMIN_ROOT.$module["route"]."/".$a["route"]."/".$redirect_append;
 		} else {
 			$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 		}
-
-		if ($_POST["_bigtree_preview"]) {
-			$admin->ungrowl();
-			$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
-		}
-
-		// Check to see if this is a positioned element, if it is and the form is selected to move to the top, update the record.
-		$table_description = BigTree::describeTable($table);
-		if (isset($table_description["columns"]["position"]) && $form["default_position"] == "Top" && !$_POST["id"]) {
-			$max = sqlrows(sqlquery("SELECT id FROM `$table`"));
-			BigTreeAutoModule::updateItem($table,$edit_id,array("position" => $max));
-		}
-
-		// If there's a callback function for this module, let's get'r'done.
-		if ($form["callback"]) {
-			$function = $form["callback"].'($edit_id,$item,$published);';
-			eval($function);
-		}
-
-		if (count($crops) == 0) {
-			if (count($fails)) {
-				$suffix = $view["suffix"] ? "-".$view["suffix"] : "";
-				$edit_link = ADMIN_ROOT.$module["route"]."/edit$suffix/$edit_id/";
-?>
-<div class="form_container">
-	<section>
-		<div class="alert">
-			<span></span>
-			<p>Your submission had <?=count($fails)?> error<? if (count($fails) != 1) { ?>s<? } ?>.</p>
-		</div>
-		<div class="table error_table">
-			<header>
-				<span class="view_column field">Field</span>
-				<span class="view_column error">Error</span>
-			</header>
-			<ul>
-				<? foreach ($fails as $fail) { ?>
-				<li>
-					<section class="view_column field"><?=$fail["field"]?></section>
-					<section class="view_column error"><?=$fail["error"]?></section>
-				</li>
-				<? } ?>
-			</ul>
-		</div>
-	</section>
-	<footer>
-		<a href="<?=$redirect_url?>" class="button blue">Continue</a> &nbsp; <a href="<?=$edit_link?>" class="button">Edit Entry</a> &nbsp; <a href="#" class="delete button red">Delete Entry</a>
-	</footer>
-</div>
-
-<script type="text/javascript">
-	$(".delete").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$edit_id?>", {
-			complete: function() {
-				document.location = '<?=$redirect_url?>';
-			}
-		});
-
-		return false;
-	});
-</script>
-<?
-			} else {
-				BigTree::redirect($redirect_url);
-			}
-		} else {
-			include BigTree::path("admin/auto-modules/forms/_crop.php");
-		}
+	} elseif ($form["return_url"]) {
+		$redirect_url = $form["return_url"].$redirect_append;
+	} else {
+		$redirect_url = ADMIN_ROOT.$module["route"]."/".$redirect_append;
 	}
+	if ($_POST["_bigtree_preview"]) {
+		$admin->ungrowl();
+		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
+	}
+	// Check to see if this is a positioned element, if it is and the form is selected to move to the top, update the record.
+	$table_description = BigTree::describeTable($table);
+	if (isset($table_description["columns"]["position"]) && $form["default_position"] == "Top" && !$_POST["id"]) {
+		$max = sqlrows(sqlquery("SELECT id FROM `$table`"));
+		BigTreeAutoModule::updateItem($table,$edit_id,array("position" => $max));
+	}
+	// If there's a callback function for this module, let's get'r'done.
+	if ($form["callback"]) {
+		$function = $form["callback"].'($edit_id,$item,$published);';
+		eval($function);
+	}
+
+	// Put together saved form information for the error or crop page in case we need it.
+	$suffix = $view["suffix"] ? "-".$view["suffix"] : "";
+	$edit_link = ADMIN_ROOT.$module["route"]."/edit$suffix/$edit_id/";
+	$_SESSION["bigtree_admin"]["form_data"] = array(
+		"view" => $view,
+		"id" => $edit_id,
+		"return_link" => $redirect_url,
+		"edit_link" => $edit_link,
+		"fails" => $fails,
+		"crops" => $crops
+	);
+	
+	if (count($fails)) {
+		BigTree::redirect($form_root."error/");
+	} elseif (count($crops)) {
+		BigTree::redirect($form_root."crop/");
+	}
+
+	BigTree::redirect($redirect_url);
 ?>

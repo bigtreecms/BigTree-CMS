@@ -36,6 +36,13 @@
 		$breadcrumb = $bigtree["breadcrumb"];
 	}
 
+	// Allow individual pages to override the automatic navigation.
+	if (isset($bigtree["page_override"])) {
+		foreach ($bigtree["page_override"] as $key => $val) {
+			$bigtree["page"][$key] = $val;
+		}
+	}
+
 	include BigTree::path("admin/layouts/_header.php");
 ?>
 <ul class="breadcrumb">

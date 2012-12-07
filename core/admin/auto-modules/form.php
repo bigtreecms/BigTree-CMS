@@ -1,5 +1,6 @@
 <?
 	$form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
+	$form_root = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
 	$action = $bigtree["commands"][0];
 

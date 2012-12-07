@@ -1,6 +1,4 @@
 <?	
-	$breadcrumb[] = array("title" => "Download Package", "link" => "#");
-	
 	// Function used for template directory inclusion:
 	function _local_recurseFileDirectory($directory) {
 		global $x,$index,$tname,$dir;

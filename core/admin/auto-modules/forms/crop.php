@@ -1,11 +1,16 @@
-<script src="<?=ADMIN_ROOT?>js/jcrop.min.js" type="text/javascript"></script>
-<h1><span class="crop"></span>Crop Images</h1>
+<?
+	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	// Load the cropper Javascript.
+	$bigtree["js"][] = "jcrop.min.js";
+	// Override the default H1
+	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");
+?>
 <div class="form_container">
 	<header>
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
-	<form method="post" action="<?=ADMIN_ROOT?>pages/process-crops/" id="crop_form" class="module">
-		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_page)?>" />
+	<form method="post" action="<?=$form_root?>process-crops/<? if ($page) { echo $page["id"]."/"; } ?>" id="crop_form" class="module">
+		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
 		<section class="cropper">
 			<ul id="cropper">
@@ -46,7 +51,7 @@
 							$box_margin = floor(($preview_height - $box_height) / 2);
 							$preview_margin = 0;
 						}
-						
+												
 						// If we're doing a retina crop, make the initial crop area fit the retina version.
 						if ($crop["retina"] && $width >= $cwidth * 2 && $height >= $cheight * 2) {
 							$initial_width = $min_width * 2;

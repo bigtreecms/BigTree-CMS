@@ -1,8 +1,6 @@
 <?
 	BigTree::globalizePOSTVars();
 
-	$breadcrumb[] = array("title" => "Created View", "href" => "#");
-
 	$options = json_decode($options,true);
 
 	$table_description = @BigTree::describeTable($table);

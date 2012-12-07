@@ -1,6 +1,9 @@
 <div class="form_container">
-	<header><h2><strong>Error</strong></h2></header>
 	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
 		<p>
 			You do not have permission to edit this entry.
 		</p>

@@ -32,13 +32,20 @@
 		$page = "p".$admin->createPendingPage($_POST);
 		$admin->growl("Pages","Created Page Draft");
 	}
+
+	$_SESSION["bigtree_admin"]["form_data"] = array(
+		"page" => $page,
+		"return_link" => ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/",
+		"edit_link" => ADMIN_ROOT."pages/edit/$page/",
+		"fails" => $fails,
+		"crops" => $crops
+	);
 	
-	if (count($crops)) {
-		$return_page = ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/";
-		include BigTree::path("admin/modules/pages/_crop.php");
-	} elseif (count($fails)) {
-		include BigTree::path("admin/modules/pages/_failed.php");
-	} else {
-		BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");
+	if (count($fails)) {
+		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
+	} elseif (count($crops)) {
+		BigTree::redirect(ADMIN_ROOT."pages/crop/$page/");
 	}
+
+	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");
 ?>

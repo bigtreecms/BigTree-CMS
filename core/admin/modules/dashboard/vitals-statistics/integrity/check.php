@@ -1,4 +1,5 @@
 <?
+	$admin->requireLevel(1);
 	$pages = $admin->getPageIds();
 	$modules = $admin->getModuleForms();
 	// Get the ids of items that are in each module.

@@ -6,9 +6,6 @@
 	$module = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
 
-	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
-	$breadcrumb[] = array("title" => "Add View", "link" => "#");
-	
 	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree_admin"]["developer"]["saved_view"]);
