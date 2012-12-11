@@ -31,6 +31,11 @@
 		$module_title = $bigtree["page"]["title"];
 	}
 
+	// If we're in a module, add "Modules" to the beginning of the breadcrumb
+	if (defined("MODULE_ROOT")) {
+		$breadcrumb = array_merge(array(array("title" => "Modules","link" => "modules")),$breadcrumb);
+	}
+
 	// Replace breadcrumb with a custom one if it exists
 	if (is_array($bigtree["breadcrumb"]) && count($bigtree["breadcrumb"])) {
 		$breadcrumb = $bigtree["breadcrumb"];
