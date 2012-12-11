@@ -728,6 +728,7 @@
 	.view_paging li.first a span { background: url(../images/icon-sprite.png) no-repeat -137px -116px; width: 6px; height: 9px; display: block; }
 	.view_paging li.last a { border-radius: 0 11px 11px 0; border-right: none; text-indent: -1000px; width: 6px; padding-top: 7px; height: 15px; }
 	.view_paging li.last a span { background: url(../images/icon-sprite.png) no-repeat -137px -125px; width: 6px; height: 9px; display: block; }
+	.view_paging li.ellipsis a { padding: 0px 5px; }
 
 	.image_list { margin-bottom: -10px; overflow: hidden; }
 	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
