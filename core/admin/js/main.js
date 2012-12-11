@@ -2140,7 +2140,7 @@ var BigTree = {
 		});
 
 		return li;
-	}
+	},
 
 	growltimer: false,
 	growling: false,
