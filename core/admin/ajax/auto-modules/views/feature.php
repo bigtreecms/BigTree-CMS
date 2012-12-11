@@ -3,9 +3,9 @@
 
 	if ($item["featured"]) {
 		if ($perm != "p") {
-			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
+			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
-			echo 'BigTree.growl("'.$module["name"].'","Item is now unfeatured.");';
+			echo 'BigTree.Growl("'.$module["name"].'","Item is now unfeatured.");';
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET featured = '' WHERE id = '$id'");
 			} else {
@@ -14,9 +14,9 @@
 		}
 	} else {
 		if ($perm != "p") {
-			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
+			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
-			echo 'BigTree.growl("'.$module["name"].'","Item is now featured.");';
+			echo 'BigTree.Growl("'.$module["name"].'","Item is now featured.");';
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET featured = 'on' WHERE id = '$id'");
 			} else {

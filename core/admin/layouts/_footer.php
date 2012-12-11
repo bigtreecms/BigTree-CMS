@@ -16,7 +16,7 @@
 		<?
 			if (isset($_SESSION["bigtree_admin"]["flash"])) {
 		?>
-		<script type="text/javascript">BigTree.growl("<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["type"])?>");</script>
+		<script type="text/javascript">BigTree.Growl("<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["type"])?>");</script>
 		<?
 				unset($_SESSION["bigtree_admin"]["flash"]);
 			}

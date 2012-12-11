@@ -147,13 +147,13 @@
 			new BigTreeDialog("Delete Revision",'<p class="confirm">Are you sure you want to delete this revision?</p>',$.proxy(function() {
 				$.ajax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.CleanHref($(this).attr("href")));
 				$(this).parents("li").remove();
-				BigTree.growl("Pages","Deleted Revision");
+				BigTree.Growl("Pages","Deleted Revision");
 			},this),"delete",false,"OK");
 		} else {
 			new BigTreeDialog("Delete Draft",'<p class="confirm">Are you sure you want to delete this draft?</p>',$.proxy(function() {
 				$.ajax($(this).attr("href"));
 				$(this).parents("li").remove();
-				BigTree.growl("Pages","Deleted Draft");
+				BigTree.Growl("Pages","Deleted Draft");
 			},this),"delete",false,"OK");
 		}
 		

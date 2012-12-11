@@ -19,4 +19,4 @@
 	}
 	$admin->updateSettingValue($key,$value);
 ?>
-BigTree.growl("Settings","Setting Updated");
+BigTree.Growl("Settings","Setting Updated");

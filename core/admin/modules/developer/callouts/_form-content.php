@@ -35,7 +35,7 @@
 	</div>
 </section>
 <section class="sub">
-	<label>Resources <small>(please note that "type", "display_field" and "display_default" are all reserved IDs &mdash; any resources with these IDs will be removed)</small></label>
+	<label>Resources <small>("type", "display_field", "display_title", and "display_default" are all reserved IDs &mdash; any resources with these IDs will be removed)</small></label>
 	<div class="form_table">
 		<header>
 			<a href="#" class="add_resource add"><span></span>Add Resource</a>

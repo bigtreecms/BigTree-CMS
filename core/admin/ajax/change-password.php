@@ -3,7 +3,7 @@
 	
 	$user = $admin->getUserByEmail($_POST["user"]);
 	if (!$user) {
-		die('BigTree.growl("Password Request","No user was found for the email address you provided.");');
+		die('BigTree.Growl("Password Request","No user was found for the email address you provided.");');
 	}
 	
 	$hash = $admin->setPasswordHashForUser($user);
@@ -12,4 +12,4 @@
 	
 	mail($f["email"],$site["title"]." Password Change Request","Hello ".$f["name"].",\n\nTo change your password for the ".$site["title"]." Admin, please click the link below.\n\n".$change_link."\n\n-- BigTree CMS --","From: no-reply@".str_replace(array("http://","www."),"",DOMAIN));
 ?>
-BigTree.growl("Password Change","Instructions have been emailed to you.");
+BigTree.Growl("Password Change","Instructions have been emailed to you.");

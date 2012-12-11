@@ -119,46 +119,18 @@ $(document).ready(function() {
 			new BigTreeDialog("Add Callout",response.responseText,function(e) {		
 				e.preventDefault();
 				
-				last_dialog = $(".bigtree_dialog_form").last();
-
-				// Validate required fields.
-				v = new BigTreeFormValidator(last_dialog);
-				if (!v.validateForm(false,true)) {
+				li = BigTree.GetCallout();
+				if (!li) {
 					return false;
 				}
-				
-				li = $('<li>');
-				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-				
-				callout_number = last_dialog.find("input.callout_count").val();
-				callout_desc = "";
-				callout_desc_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-				if (callout_desc_field.is('select')) {
-					callout_desc = callout_desc_field.find("option:selected").text();
-				} else {
-					callout_desc = callout_desc_field.val();
-				}
-				if ($.trim(callout_desc) == "") {
-					callout_desc = last_dialog.find(".display_default").val();
-				}
-				last_dialog.find("input, textarea, select").each(function() {
-					if ($(this).attr("type") != "submit") {
-						if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
-							var mce = tinyMCE.get($(this).attr("id"));
-							if (mce) {
-								mce.save();
-								tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-							}
-						}
-						$(this).hide();
-						li.append($(this));
-					}
-				});
+
+				// Add the callout and hide the dialog.
 				$("#bigtree_callouts ul").append(li);
 				last_dialog.parents("div").remove();
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
+				// Fill out the callout description.
 				li.find("h4").html(callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
@@ -177,41 +149,11 @@ $(document).ready(function() {
 			new BigTreeDialog("Edit Callout",response.responseText,function(e) {
 				e.preventDefault();
 				
-				last_dialog = $(".bigtree_dialog_form").last();
-				
-				// Validate required fields.
-				v = new BigTreeFormValidator(last_dialog);
-				if (!v.validateForm(false,true)) {
+				li = BigTree.GetCallout();
+				if (!li) {
 					return false;
 				}
-				
-				li = $('<li>');
-				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-				
-				callout_number = last_dialog.find("input.callout_count").val();
-				callout_desc = "";
-				callout_desc_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-				if (callout_desc_field.is('select')) {
-					callout_desc = callout_desc_field.find("option:selected").text();
-				} else {
-					callout_desc = callout_desc_field.val();
-				}
-				if ($.trim(callout_desc) == "") {
-					callout_desc = last_dialog.find(".display_default").val();
-				}
-				last_dialog.find("input, textarea, select").each(function() {
-					if ($(this).attr("type") != "submit") {
-						if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
-							var mce = tinyMCE.get($(this).attr("id"));
-							if (mce) {
-								mce.save();
-								tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-							}
-						}
-						$(this).hide();
-						li.append($(this));
-					}
-				});
+
 				active_callout_edit.replaceWith(li);
 				last_dialog.parents("div").remove();
 				last_dialog.remove();
