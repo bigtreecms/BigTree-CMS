@@ -2232,12 +2232,18 @@ var BigTree = {
 		}
 		
 		content = '<li class="first"><a href="#' + prev_page + '"><span>&laquo;</span></a></li>';
+		if (start_page > 0) {
+			content += '<li class="ellipsis">...</li>';
+		}
 		for (i = start_page; i < end_page; i++) {
 			content += '<li><a href="#' + i + '"';
 			if (i == current_page) {
 				content += ' class="active"';
 			}
 			content += '>' + (i + 1) + '</a></li>';
+		}
+		if (end_page < pages) {
+			content += '<li class="ellipsis">...</li>';
 		}
 		content += '<li class="last"><a href="#' + next_page + '"><span>&raquo;</span></a></li>';
 		
