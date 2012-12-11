@@ -24,7 +24,9 @@
 	$bigtree["page"] = array("navigation" => array(),"related" => array());
 	$breadcrumb = array();
 	$current_path = implode("/",array_slice($bigtree["path"],1));
-	_local_findPath($bigtree["nav_tree"],$current_path);
+	if (!defined("BIGTREE_ACCESS_DENIED")) {
+		_local_findPath($bigtree["nav_tree"],$current_path);
+	}
 
 	// Set the page title if it hasn't been set
 	if (!$module_title) {

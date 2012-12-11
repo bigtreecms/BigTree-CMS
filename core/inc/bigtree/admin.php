@@ -4517,11 +4517,8 @@
 			if ($this->Level > 0)
 				return "p";
 			if (!isset($this->Permissions[$module]) || $this->Permissions[$module] == "") {
-				ob_clean();
-				include BigTree::path("admin/pages/_denied.php");
-				$content = ob_get_clean();
-				include BigTree::path("admin/layouts/default.php");
-				die();
+				define("BIGTREE_ACCESS_DENIED",true);
+				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 			}
 			return $this->Permissions[$module];
 		}
@@ -4538,11 +4535,8 @@
 		function requireLevel($level) {
 			global $admin,$cms,$admin_root,$css,$js,$site;
 			if (!isset($this->Level) || $this->Level < $level) {
-				ob_clean();
-				include BigTree::path("admin/pages/_denied.php");
-				$content = ob_get_clean();
-				include BigTree::path("admin/layouts/default.php");
-				die();
+				define("BIGTREE_ACCESS_DENIED",true);
+				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 			}
 		}
 
