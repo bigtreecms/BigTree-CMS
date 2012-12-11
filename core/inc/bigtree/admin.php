@@ -614,6 +614,9 @@
 				chmod(SERVER_ROOT."templates/callouts/".$id.".php",0777);
 			}
 
+			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
+			sqlquery("UPDATE bigtree_callouts SET position = position + 1");
+
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
 		}
 
