@@ -23,10 +23,22 @@
 	}
 	
 	if (count($errors)) {
-		echo "<h3>Editing Module View</h3>";
-		foreach ($errors as $error) {
-			echo "<p>".$error."</p>";
-		}
+?>
+<div class="container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Update Failed</h3>
+		</div>
+		<? foreach ($errors as $error) { ?>
+		<p><?=$error?></p>
+		<? } ?>
+	</section>
+	<footer>
+		<a href="javascript: history.back();" class="button white">Back</a>
+	</footer>
+</div>
+<?
 	} else {
 		// Clean up actions
 		$clean_actions = array();
