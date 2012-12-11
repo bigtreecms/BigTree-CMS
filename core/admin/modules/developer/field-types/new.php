@@ -1,7 +1,7 @@
 <?
 	$file = end($bigtree["path"]).".php";
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>Your new field type is setup and ready to use.</p>
 		<ul class="styled clear">

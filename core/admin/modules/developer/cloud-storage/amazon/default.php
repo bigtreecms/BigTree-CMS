@@ -2,7 +2,7 @@
 	$keys = $cms->getSetting("bigtree-internal-s3-keys");
 	BigTree::globalizeArray($keys,array("htmlspecialchars"));
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/amazon/update/" class="module">
 		<section>
 			<div class="alert">

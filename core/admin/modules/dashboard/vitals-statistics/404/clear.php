@@ -6,7 +6,7 @@
 	} else {
 ?>
 <form method="post" action="">
-	<div class="form_container">
+	<div class="container">
 		<section>
 			<p>Are you sure you want to clear out all existing 404s that do not have associated 301 redirects?</p>
 		</section>

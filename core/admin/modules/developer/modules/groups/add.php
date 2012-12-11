@@ -1,4 +1,4 @@
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/groups/create/" class="module">
 		<header><h2>Group Details</h2></header>
 		<section>

@@ -2,7 +2,7 @@
 	$id = end($bigtree["path"]);
 	$group = $admin->getModuleGroup($id);
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/groups/update/<?=$id?>/" class="module">
 		<header><h2>Group Details</h2></header>
 		<section>

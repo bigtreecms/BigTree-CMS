@@ -31,7 +31,7 @@
 	
 	$groups = $admin->getModuleGroups();
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
 		<section>
 			<div class="left">

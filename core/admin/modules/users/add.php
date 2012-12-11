@@ -14,7 +14,7 @@
 		$level = 0;
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/create/" method="post">	
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>

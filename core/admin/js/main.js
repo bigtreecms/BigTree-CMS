@@ -1428,7 +1428,7 @@ var BigTreeFormNavBar = {
 	
 	init: function() {
 		// Calculate the width of the navigate
-		calc_nav_container = $(".form_container nav .more div");
+		calc_nav_container = $(".container nav .more div");
 		nav_width = calc_nav_container.width();
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
@@ -1437,7 +1437,7 @@ var BigTreeFormNavBar = {
 			page_count = 0;
 			current_width = 0;
 			current_page = $('<div class="nav_page active">');
-			nav_items = $(".form_container nav a");
+			nav_items = $(".container nav a");
 			for (x = 0; x < nav_items.length; x++) {
 				item = nav_items.eq(x);
 				width = item.width() + 47;
@@ -1967,7 +1967,7 @@ var BigTreeFormValidator = Class.extend({
 		if (this.form.find(".form_error").length) {
 			this.form.find(".error_message").show();
 			if (!in_dialog) {
-				$("html, body").animate({ scrollTop: $(".form_container").offset().top }, 200);
+				$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
 			} else {
 				this.form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
 			}

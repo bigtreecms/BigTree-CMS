@@ -3,7 +3,7 @@
 	$id = $name = $description = $display_default = $level = "";
 	$resources = array();
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$section_root?>create/" enctype="multipart/form-data" class="module">
 		<? include BigTree::path("admin/modules/developer/callouts/_form-content.php") ?>
 		<footer>

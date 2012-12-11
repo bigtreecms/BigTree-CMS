@@ -5,7 +5,7 @@
 		$hide_template_tab = true;
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<div class="sticky_controls">
 			<div class="shadow">
@@ -81,22 +81,22 @@
 </div>
 
 <script type="text/javascript">
-	$(".form_container nav a").click(function() {		
-		t = $(".form_container").offset().top;
+	$(".container nav a").click(function() {		
+		t = $(".container").offset().top;
 		if (window.scrollY > t) {
 			$('html, body').animate({
-				scrollTop: $(".form_container").offset().top
+				scrollTop: $(".container").offset().top
 			}, 200);
 		}
 		
 		href = $(this).attr("href").substr(1);
-		$(".form_container > form > section").hide();
-		$(".form_container nav a").removeClass("active");
+		$(".container > form > section").hide();
+		$(".container nav a").removeClass("active");
 		$(this).addClass("active");
 		$("#" + href).show();
 		
 		// Manage the "Next" buttons
-		nav = $(".form_container nav a");
+		nav = $(".container nav a");
 		index = nav.index(this);
 		if (index == nav.length - 1) {
 			$(".next").hide();
@@ -120,9 +120,9 @@
 		// Hide all the pages tab sections
 		$("#page_form > section").hide();
 		// Unset all the active states on tabs
-		$(".form_container nav a").removeClass("active");
+		$(".container nav a").removeClass("active");
 		// Figure out what section the first error occurred in and show that section.
-		$(".form_container nav a[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+		$(".container nav a[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
 	});
 </script>
 <script type="text/javascript" src="<?=ADMIN_ROOT?>js/pages.js"></script>

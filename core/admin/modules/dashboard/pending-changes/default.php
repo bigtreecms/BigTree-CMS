@@ -23,7 +23,7 @@
 
 	if (!count($changes)) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>You have no changes awaiting approval.</p>
 	</section>

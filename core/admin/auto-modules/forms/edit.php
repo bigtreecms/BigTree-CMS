@@ -7,7 +7,7 @@
 		
 	if (!$data) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>The item you are trying to edit no longer exists.</p>

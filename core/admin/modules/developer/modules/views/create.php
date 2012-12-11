@@ -23,7 +23,7 @@
 	if (count($errors)) {
 		$_SESSION["bigtree_admin"]["developer"]["saved_view"] = $_POST;
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>
@@ -73,7 +73,7 @@
 
 		$module_info = $admin->getModule($module);
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3 class="action_title">View <?=$title?></h3>
 		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>

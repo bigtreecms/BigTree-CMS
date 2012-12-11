@@ -28,7 +28,7 @@
 	// First we need to package the file so they can download it manually if they wish.
 	if (!is_writable(SERVER_ROOT."cache/")) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>Your cache/ directory must be writable.</p>
@@ -190,7 +190,7 @@
 					$failed_tables[] = $table;
 				}
 			}
-			$admin->stop('<div class="form_container"><section><div class="alert">
+			$admin->stop('<div class="container"><section><div class="alert">
 			<span></span><h3>Creation Failed</h3></div><p>The following tables have missing foreign key constraints: '.implode(", ",$failed_tables).'</p></section></div>');
 		}
 		
@@ -269,7 +269,7 @@
 	// Move the file into place.
 	BigTree::moveFile(SERVER_ROOT."cache/package.tar.gz",SITE_ROOT."files/".$package_file);
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>Package created successfully.  You may download it <a href="<?=WWW_ROOT?>files/<?=$package_file?>">by clicking here</a>.</p>
 	</section>

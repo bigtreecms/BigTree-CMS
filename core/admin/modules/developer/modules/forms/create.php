@@ -21,7 +21,7 @@
 
 	$module_info = $admin->getModule($module);
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3 class="action_title">Add/Edit <?=$title?></h3>
 		<p>Your form has been created. If you were creating a module from scratch, the process is now complete.</p>

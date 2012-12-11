@@ -19,7 +19,7 @@
 		$available_views = false;
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/forms/update/<?=$form["id"]?>/" class="module">
 		<section>
 			<div class="left last">

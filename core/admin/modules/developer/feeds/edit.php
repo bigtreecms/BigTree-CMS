@@ -2,7 +2,7 @@
 	$item = $cms->getFeed(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>feeds/update/<?=$id?>/" class="module">
 		<? include BigTree::path("admin/modules/developer/feeds/_form-content.php") ?>
 		<footer>

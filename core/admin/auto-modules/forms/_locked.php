@@ -2,7 +2,7 @@
 	$user = $admin->getUser($f["user"]);
 	$view_data = isset($_GET["view_data"]) ? "&view_data=".$_GET["view_data"] : "";
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>

@@ -5,7 +5,7 @@
 	$id = $name = $pages = $modules = $callouts = $settings = "";
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>field-types/update/" enctype="multipart/form-data" class="module">
 		<input type="hidden" name="id" value="<?=$id?>" />
 		<section>

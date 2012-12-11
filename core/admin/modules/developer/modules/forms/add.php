@@ -30,7 +30,7 @@
 
 	$title = htmlspecialchars(urldecode($title));
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/forms/create/<?=$module["id"]?>/" class="module">
 		<section>
 			<div class="left last">

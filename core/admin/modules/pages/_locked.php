@@ -1,7 +1,7 @@
 <?
 	$user = $admin->getUser($f["user"]);
 ?>
-<div class="form_container">
+<div class="container">
 	<header><h2><strong>Warning:</strong> This page is currently locked.</h2></header>
 	<section>
 		<p>

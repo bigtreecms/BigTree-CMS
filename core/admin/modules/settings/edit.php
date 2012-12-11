@@ -4,7 +4,7 @@
 
 	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>The setting you are trying to edit no longer exists or you do not have permission to edit it.</p>
@@ -20,7 +20,7 @@
 	
 	include BigTree::path("admin/layouts/_tinymce.php");
 ?>
-<div class="form_container">
+<div class="container">
 	<header><h2><?=$item["name"]?></h2></header>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />

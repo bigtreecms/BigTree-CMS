@@ -8,7 +8,7 @@
 
 	if ($view["description"]) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p><?=$view["description"]?></p>
 	</section>

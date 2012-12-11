@@ -13,7 +13,7 @@
 
 			$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="">
 		<section>
 			<p>Your update is complete.</p>
@@ -40,7 +40,7 @@
 				BigTree::redirect(ADMIN_ROOT."dashboard/");
 			}
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="">
 		<section>
 			<p>BigTree has been updated to <?=BIGTREE_VERSION?>.</p>
@@ -58,7 +58,7 @@
 		}
 	} else {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>BigTree is up to date.</p>
 	</section>

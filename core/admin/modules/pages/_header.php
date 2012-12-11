@@ -16,7 +16,7 @@
 	// Stop the user if they don't have access to this page.
 	if (!$access_level && $id && $action != "view-tree") {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>
@@ -75,7 +75,7 @@
 		$pages_nav["children"]["view-tree"]["icon"] = "page";
 		$pages_nav["children"]["view-tree"]["title_override"] = "Error";
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>The page you are trying to access no longer exists.</p>

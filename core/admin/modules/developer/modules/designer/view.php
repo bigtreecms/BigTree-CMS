@@ -13,7 +13,7 @@
 	}
 	$title = htmlspecialchars($title);
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<p>Step 3: Creating Your View</p>
 	</header>

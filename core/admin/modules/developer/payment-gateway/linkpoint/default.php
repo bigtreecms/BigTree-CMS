@@ -1,4 +1,4 @@
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/linkpoint/update/" class="module" enctype="multipart/form-data">
 		<section>
 			<div class="alert">

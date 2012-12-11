@@ -2,7 +2,7 @@
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>
@@ -18,7 +18,7 @@
 	// Make sure the user is a publisher.
 	if ($access_level != "p") {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>

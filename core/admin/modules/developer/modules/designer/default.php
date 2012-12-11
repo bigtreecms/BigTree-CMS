@@ -1,7 +1,7 @@
 <?
 	$groups = $admin->getModuleGroups();
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<p>The module designer will guide you through making a module without needing access to the database or knowledge of database table creation.</p>
 	</header>

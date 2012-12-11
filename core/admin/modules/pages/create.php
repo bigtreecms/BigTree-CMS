@@ -5,7 +5,7 @@
 	$access_level = $admin->getPageAccessLevel($_POST["parent"]); 
 	if ($access_level != "p" && $access_level != "e") {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>You do not have access to create a child for this page.</p>

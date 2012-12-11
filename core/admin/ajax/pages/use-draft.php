@@ -4,7 +4,7 @@
 	$access = $admin->getPageAccessLevel($revision["page"]);
 	if ($access != "p") {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>You must be a publisher to manage revisions.</p>

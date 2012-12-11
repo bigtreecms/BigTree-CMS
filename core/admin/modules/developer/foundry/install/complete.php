@@ -15,7 +15,7 @@
 		$error = false;
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<? if ($instructions) { ?>
 		<h3>Instructions</h3>

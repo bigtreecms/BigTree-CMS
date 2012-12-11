@@ -41,7 +41,7 @@
 		}
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
 		<input type="hidden" name="page" value="<?=$page["id"]?>" />
 		<section>

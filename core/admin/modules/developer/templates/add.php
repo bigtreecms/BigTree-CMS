@@ -13,7 +13,7 @@
 		$show_error = true;
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>templates/create/" enctype="multipart/form-data" class="module">
 		<? include BigTree::path("admin/modules/developer/templates/_form-content.php") ?>
 		<footer>

@@ -12,7 +12,7 @@
 	// Override the default H1
 	$bigtree["page_override"] = array("title" => "Errors Occurred","icon" => "page_404");
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>

@@ -1,4 +1,4 @@
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/authorize/update/" class="module">
 		<section>
 			<div class="alert">

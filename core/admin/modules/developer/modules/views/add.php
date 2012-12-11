@@ -14,7 +14,7 @@
 		$description = $type = $preview_url = "";
 	}
 ?>
-<div class="form_container">
+<div class="container">
 
 	<form method="post" action="<?=$developer_root?>modules/views/create/<?=$id?>/" class="module">
 		<section>

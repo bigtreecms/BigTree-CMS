@@ -1,7 +1,7 @@
 <?
 	$module = $admin->getModule($_GET["module"]);
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<h2>Module Complete</h2>
 	</header>

@@ -3,7 +3,7 @@
 	$gravatar_email = $user["email"];
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 ?>
-<div class="form_container">
+<div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/profile/update/" method="post">
 		<section>
 			<div class="left">

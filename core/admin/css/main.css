@@ -145,7 +145,7 @@
 	.form_error .defaultSkin .mceIframeContainer { border-color: #990000; }
 	
 	#message_path_row, .defaultSkin .mceListBox .mceText, .defaultSkin .mceMenuItemTitle span.mceText, .defaultSkin .mce_p span.mceText, .defaultSkin .mce_h2 span.mceText,.defaultSkin .mce_h3 span.mceText, .defaultSkin .mce_h4 span.mceText { user-select: none; }
-	.form_container .defaultSkin .mceStatusbar { background: #CCC url(../images/row-bg-sprite.png) repeat-x 0px -188px; }
+	.container .defaultSkin .mceStatusbar { background: #CCC url(../images/row-bg-sprite.png) repeat-x 0px -188px; }
 
 	.checkbox { float: left; margin: 0 7px 0 0; }
 	.checkbox a { background: url(../images/icon-sprite.png) -150px -105px; cursor: pointer; display: block; height: 16px; width: 16px; }
@@ -211,15 +211,15 @@
 	.currently_file { font-size: 10px; margin: 15px 0 0 0; }
 	.currently_file a { background: #990000; border-radius: 10px; color: #FFF; display: inline-block; margin: 0 0 0 10px; padding: 2px 10px; }
 
-	.form_container .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
-	.form_container .input_name input { width: 200px; }
-	.form_container .input_name label { font-size: 11px; line-height: 11px; margin: 0; }
-	.form_container .input_address_city input { width: 200px; }
-	.form_container .input_address_zip input { width: 150px; }
-	.form_container .text_input .input_phone_3 { margin: 0; }
-	.form_container .input_phone_3 input { float: left; text-align: center; width: 30px; }
-	.form_container .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
-	.form_container .input_phone_4 input { text-align: center; width: 40px; }
+	.container .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
+	.container .input_name input { width: 200px; }
+	.container .input_name label { font-size: 11px; line-height: 11px; margin: 0; }
+	.container .input_address_city input { width: 200px; }
+	.container .input_address_zip input { width: 150px; }
+	.container .text_input .input_phone_3 { margin: 0; }
+	.container .input_phone_3 input { float: left; text-align: center; width: 30px; }
+	.container .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
+	.container .input_phone_4 input { text-align: center; width: 40px; }
 
 	#bigtree_tag_browser { margin: 30px -30px -30px; }
 	#bigtree_tag_browser label { display: inline-block; }
@@ -350,39 +350,39 @@
 	footer.main .fastspot a:hover { color: #999; }
 	
 /* Form Container Styles */
-	.form_container { background: #FFF; border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; margin: 0 0 25px 0; overflow: hidden; }
-	.form_container header { background: url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; height: 45px; overflow: hidden; }
-	.form_container header p { color: #666; font-size: 12px; line-height: 45px; padding: 0 15px; text-shadow: 0 1px 0 #FFF; }
-	.form_container header h2 { line-height: 45px; padding: 0 15px; }
-	.form_container header h2.cropper span { background-image: none; display: block; float: left; height: auto; margin: 0 8px 0 0; width: auto; }
-	.form_container header h2.cropper span.count { background: #3E667D; border-radius: 100%; box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.25); color: #fff; font-weight: bold; height: 30px; line-height: 32px; margin: 7px 8px 0 0; text-align: center; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); width: 30px; }
-	.form_container header .back { background: #EEE; border-radius: 15px; box-shadow: 0px 1px 1px #AAA; color: #333; float: right; font-size: 12px; margin: 9px 10px 0 0; padding: 7px 15px; transition: background-color 0.2s; }
-	.form_container header .back:hover { background: #F6F6F6; }
-	.form_container nav { overflow: hidden; padding: 13px 0 0 15px; user-select: none; width: 928px; }
-	.form_container nav.left { float: left; width: auto; }
-	.form_container nav a { background: #ddd; border: 1px solid #D4D4D4; border-radius: 3px 3px 0 0; border-top-color: #B9B9B9; border-width: 1px 1px 0 1px; color: #737373; display: block; float: left; line-height: 31px; margin: 0 5px 0 0; padding: 0 20px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
-	.form_container nav a:hover { background: #EEE; color: #333; }
-	.form_container nav a.active { background: #FFF; border-color: #CCC; color: #333; padding: 0 20px; }
-	.form_container nav .more { width: 10000px; }
-	.form_container nav .more div { float: left; }
-	.form_container nav .more .nav_page { width: 928px; }
-	.form_container nav .more_nav { font-weight: bold; padding: 0 15px; text-align: center; }
-	.form_container aside { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; overflow: hidden; padding: 0 0 0 15px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35); }
-	.form_container section { overflow: hidden; padding: 30px; }
-	.form_container section.sub { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; }
-	.form_container footer { background-gradient: #DFDFDF #F5F5F5; border-radius: 0 0 5px 5px; border-top: 1px solid #CCC; overflow: hidden; padding: 30px; }
-	.form_container footer .button, .form_container footer input { float: left; margin: 0 15px 0 0; }
-	.form_container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 0 -30px 30px -30px; width: 958px; }
-	.form_container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }
-	.form_container .alert > span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
-	.form_container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; display: block; }
-	.form_container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
-	.form_container .alert h3 { line-height: 32px; margin: 0; }
-	.form_container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.container { background: #FFF; border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; margin: 0 0 25px 0; overflow: hidden; }
+	.container header { background: url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; height: 45px; overflow: hidden; }
+	.container header p { color: #666; font-size: 12px; line-height: 45px; padding: 0 15px; text-shadow: 0 1px 0 #FFF; }
+	.container header h2 { line-height: 45px; padding: 0 15px; }
+	.container header h2.cropper span { background-image: none; display: block; float: left; height: auto; margin: 0 8px 0 0; width: auto; }
+	.container header h2.cropper span.count { background: #3E667D; border-radius: 100%; box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.25); color: #fff; font-weight: bold; height: 30px; line-height: 32px; margin: 7px 8px 0 0; text-align: center; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); width: 30px; }
+	.container header .back { background: #EEE; border-radius: 15px; box-shadow: 0px 1px 1px #AAA; color: #333; float: right; font-size: 12px; margin: 9px 10px 0 0; padding: 7px 15px; transition: background-color 0.2s; }
+	.container header .back:hover { background: #F6F6F6; }
+	.container nav { overflow: hidden; padding: 13px 0 0 15px; user-select: none; width: 928px; }
+	.container nav.left { float: left; width: auto; }
+	.container nav a { background: #ddd; border: 1px solid #D4D4D4; border-radius: 3px 3px 0 0; border-top-color: #B9B9B9; border-width: 1px 1px 0 1px; color: #737373; display: block; float: left; line-height: 31px; margin: 0 5px 0 0; padding: 0 20px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
+	.container nav a:hover { background: #EEE; color: #333; }
+	.container nav a.active { background: #FFF; border-color: #CCC; color: #333; padding: 0 20px; }
+	.container nav .more { width: 10000px; }
+	.container nav .more div { float: left; }
+	.container nav .more .nav_page { width: 928px; }
+	.container nav .more_nav { font-weight: bold; padding: 0 15px; text-align: center; }
+	.container aside { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; overflow: hidden; padding: 0 0 0 15px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35); }
+	.container section { overflow: hidden; padding: 30px; }
+	.container section.sub { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; }
+	.container footer { background-gradient: #DFDFDF #F5F5F5; border-radius: 0 0 5px 5px; border-top: 1px solid #CCC; overflow: hidden; padding: 30px; }
+	.container footer .button, .container footer input { float: left; margin: 0 15px 0 0; }
+	.container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 0 -30px 30px -30px; width: 958px; }
+	.container .alert { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #CCC; margin: -15px 0 30px -30px; overflow: hidden; padding: 0 30px 15px 30px; width: 898px; }
+	.container .alert > span { background: url(../images/icon-sprite.png) -384px -16px; float: left; width: 32px; height: 32px; margin: 0 10px 0 0; }
+	.container .alert label { color: #999; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; display: block; }
+	.container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
+	.container .alert h3 { line-height: 32px; margin: 0; }
+	.container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	#callout_resources .error_message { width: 420px; }
-	.form_container .template_message { user-select: none; }
-	.form_container .template_message p { line-height: 13px; margin: 3px 0 0 0; }
-	.form_container .template_message img { float: left; margin: 0 10px 0 0; }
+	.container .template_message { user-select: none; }
+	.container .template_message p { line-height: 13px; margin: 3px 0 0 0; }
+	.container .template_message img { float: left; margin: 0 10px 0 0; }
 
 	.form_table { border: 1px solid #CCC; border-radius: 2px; margin: 0 0 25px 0; overflow: hidden; }
 	.form_table:last-child { margin: 0; }
@@ -412,7 +412,7 @@
 	.field_selector .current { border-left: 1px solid #CCC; float: left; height: 21px; margin: 0 -5px 0 5px; overflow: hidden; user-select: none; }
 	.field_selector .current a { display: block; font-size: 12px; height: 21px; padding: 0 10px; }
 	.field_selector .add_field { background: url(../images/icon-sprite.png) no-repeat -32px -140px; float: left; height: 16px; margin: 2px 0 0 0; width: 16px; }
-	.form_container .field_selector p { background: #FFF; color: #333; cursor: pointer; line-height: 21px; margin: 0; padding: 0 0 0 10px; }
+	.container .field_selector p { background: #FFF; color: #333; cursor: pointer; line-height: 21px; margin: 0; padding: 0 0 0 10px; }
 	.field_selector .handle { background: url(../images/icon-sprite.png) no-repeat -475px -105px; cursor: pointer; height: 21px; width: 24px; float: right; }
 	.field_selector .dd { background: #FFF; border: 1px solid #CCC; border-radius: 0px 0px 3px 3px; display: none; position: absolute; margin: 22px 0 0 0; }
 	.field_selector .dd a { color: #333; display: block; font-size: 12px; height: 21px; line-height: 21px; padding: 0 34px 0 10px; }
@@ -489,7 +489,7 @@
 
 /* Table Styles */
 	div.table { border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; margin: 0 0 20px 0; overflow: hidden; }
-	.table > summary, .form_container > summary { background: #e2e2e2 url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 15px; }
+	.table > summary, .container > summary { background: #e2e2e2 url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 15px; }
 	.table > summary input { float: left; margin: 5px 25px 0 -10px; }
 	.table > summary p { color: #666; font-size: 12px; line-height: 37px; text-shadow: 0 1px 0 #FFF; }
 	.table > summary.taller { height: 45px; line-height: 45px; }
@@ -602,9 +602,9 @@
 	div.error_table .error { width: 648px; padding: 0 0 0 40px; }
 
 /* Tags */
-	.form_container .tags, .form_container .sub_section { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
+	.container .tags, .container .sub_section { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
 	.sub_section fieldset:last-of-type { margin: 0; }
-	.form_container .tags input { float: left; margin: 0; width: 215px; }
+	.container .tags input { float: left; margin: 0; width: 215px; }
 
 	#tag_results { background: #FFF; border: 1px solid #CCC; margin: 31px 0 0 0; position: absolute; width: 235px; z-index: 2; }
 	#tag_results li a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 11px; padding: 3px 10px; }
@@ -1528,7 +1528,7 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
 	
-		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .form_container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle, .install_wrapper h2 span, .install_logo { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
+		nav.main li a span, nav.main form input[type=submit], h1 > span, h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle, .install_wrapper h2 span, .install_logo { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
 		
 		/* Icons */
 		*[class*='icon_'] { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }

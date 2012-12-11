@@ -20,7 +20,7 @@
 	
 	if (!is_writable(SERVER_ROOT."cache/")) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>Your cache/ directory must be writable.</p>
@@ -131,7 +131,7 @@
 	}
 	
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<h2>
 			<?=$package_name?>

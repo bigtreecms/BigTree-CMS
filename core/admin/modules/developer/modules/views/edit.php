@@ -5,7 +5,7 @@
 
 	BigTree::globalizeArray($view);
 ?>
-<div class="form_container">
+<div class="container">
 	
 	<form method="post" action="<?=$developer_root?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
 		<section>

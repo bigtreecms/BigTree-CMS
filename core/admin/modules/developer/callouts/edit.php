@@ -4,7 +4,7 @@
 	
 	$resources = json_decode($callout["resources"],true);
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$section_root?>update/" enctype="multipart/form-data" class="module">
 		<input type="hidden" name="id" value="<?=$callout["id"]?>" />
 		<? include BigTree::path("admin/modules/developer/callouts/_form-content.php") ?>

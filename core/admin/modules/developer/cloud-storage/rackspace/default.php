@@ -2,7 +2,7 @@
 	$keys = $cms->getSetting("bigtree-internal-rackspace-keys");
 	BigTree::globalizeArray($keys,array("htmlspecialchars"));
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/rackspace/update/" class="module">
 		<section>
 			<div class="alert">

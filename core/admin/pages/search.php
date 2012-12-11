@@ -73,7 +73,7 @@
 	<input type="submit" />
 </form>
 
-<div class="form_container">
+<div class="container">
 	<header>
 		<nav>
 			<div class="more">
@@ -119,11 +119,11 @@
 	</div>
 </div>
 <script type="text/javascript">
-	$(".form_container nav a").click(function() {
+	$(".container nav a").click(function() {
 		$(".content_container .content").hide();
 		href = "content_" + $(this).attr("href").substr(1);
 		if ($(href)) {
-			$(".form_container nav a").removeClass("active");
+			$(".container nav a").removeClass("active");
 			$(this).addClass("active");
 			$("#" + href).show();
 		}

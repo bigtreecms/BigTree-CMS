@@ -22,7 +22,7 @@
 		$publisher = false;
 	} else {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<div class="alert">
 			<span></span>

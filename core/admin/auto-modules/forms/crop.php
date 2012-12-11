@@ -5,7 +5,7 @@
 	// Override the default H1
 	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>

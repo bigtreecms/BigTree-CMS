@@ -5,7 +5,7 @@
 	// If the original message doesn't exist or you don't have access to it.
 	if (!$parent) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>This message either does not exist or you do not have permission to view it.</p>
@@ -43,7 +43,7 @@
 		}
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>dashboard/messages/create-reply/" id="message_form">
 		<input type="hidden" name="response_to" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>

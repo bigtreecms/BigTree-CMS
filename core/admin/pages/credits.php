@@ -1,4 +1,4 @@
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>
 			BigTree wouldn't have been possible without the tireless work of the open source community - and as our way of saying thanks, we decided to open it up. We'd also like to take a moment to thank those who's work is included in BigTree.

@@ -4,7 +4,7 @@
 
 	if (!$message) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>This message either does not exist or you do not have permission to view it.</p>
@@ -38,7 +38,7 @@
 	$sender_name = $u["name"];
 	$sender_gravatar = $u["email"];
 ?>
-<div class="form_container">
+<div class="container">
 	<summary>
 		<h2><span class="unread"></span> <?=$message["subject"]?></h2>
 	</summary>

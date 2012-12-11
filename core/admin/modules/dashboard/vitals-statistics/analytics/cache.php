@@ -1,4 +1,4 @@
-<div class="form_container">
+<div class="container">
 	<section>
 		<p><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> &nbsp; Please wait while we retrieve your Google Analytics information.</p>
 	</section>
@@ -9,7 +9,7 @@
 			document.location.href = "<?=$mroot?>";
 		} else {
 			BigTree.growl("Analytics","Caching Failed",5000,"error");
-			$(".form_container section p").html('Caching failed. Please return to the configuration screen by <a href="../configure/">clicking here</a>.');
+			$(".container section p").html('Caching failed. Please return to the configuration screen by <a href="../configure/">clicking here</a>.');
 		}
 	}});
 </script>

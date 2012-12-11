@@ -16,7 +16,7 @@
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<p>Step 2: Creating Your Form</p>
 	</header>

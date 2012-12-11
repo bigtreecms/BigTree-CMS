@@ -1,4 +1,4 @@
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>foundry/install/unpack/" enctype="multipart/form-data">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<section>

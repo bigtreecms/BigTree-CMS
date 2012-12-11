@@ -72,9 +72,9 @@ $(document).ready(function() {
 	
 	// Walk through each step of page creation.
 	$(".next").click(function() {
-		nav = $(".form_container nav a");
+		nav = $(".container nav a");
 		
-		tab = $(".form_container nav a.active");
+		tab = $(".container nav a.active");
 		tab.removeClass("active");
 		next = tab.next("a").addClass("active");
 		

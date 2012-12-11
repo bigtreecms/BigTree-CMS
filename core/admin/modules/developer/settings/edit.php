@@ -14,7 +14,7 @@
 		$e = false;
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form class="module" method="post" action="<?=$section_root?>update/<?=$item["id"]?>/">
 		<? include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>
 		<footer>

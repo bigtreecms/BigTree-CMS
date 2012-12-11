@@ -1,7 +1,7 @@
 <?
 	if ($admin->Level < 1) {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>You are not authorized to view this section.</p>
 	</section>
@@ -9,7 +9,7 @@
 <?
 	} else {
 ?>
-<div class="form_container">
+<div class="container">
 	<? if ($token) { ?>
 	<form method="post" action="<?=$mroot?>set-profile/" class="module">
 		<section>

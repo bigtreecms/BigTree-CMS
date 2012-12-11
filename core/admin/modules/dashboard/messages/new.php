@@ -14,7 +14,7 @@
 		unset($_SESSION["saved_message"]);
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="../create/" id="message_form">
 		<? if (count($users) > 1) { ?>
 		<section>

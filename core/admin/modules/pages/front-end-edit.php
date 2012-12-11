@@ -38,7 +38,7 @@
 			$publisher = false;
 		} else {
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3>Error</h3>
 		<p>You do not have access to this page.</p>

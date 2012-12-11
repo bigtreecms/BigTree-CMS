@@ -14,7 +14,7 @@
 		BigTree::redirect($developer_root."modules/");
 	}
 ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3 class="action_title"><?=$name?></h3>
 		<p>If you plan on programming this module manually, you can leave now. Otherwise, click the continue button below to setup the module's landing page.</p>
