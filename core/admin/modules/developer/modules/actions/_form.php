@@ -43,7 +43,7 @@
 		<label class="required">Icon</label>
 		<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
 		<ul class="developer_icon_list">
-			<? foreach ($admin->IconClasses as $class) { ?>
+			<? foreach ($admin->ActionClasses as $class) { ?>
 			<li>
 				<a href="#<?=$class?>"<? if ($class == $item["class"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 			</li>
