@@ -2123,6 +2123,7 @@ var BigTree = {
 		}
 		if ($.trim(callout_desc) == "") {
 			callout_desc = last_dialog.find(".display_default").val();
+		}
 		
 		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
 		last_dialog.find("input, textarea, select").each(function() {
