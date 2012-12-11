@@ -379,7 +379,6 @@
 	.container .alert p { color: #666; font-size: 13px; line-height: 32px; margin: 0; }
 	.container .alert h3 { line-height: 32px; margin: 0; }
 	.container .error_message, #callout_resources .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
-	#callout_resources .error_message { width: 420px; }
 	.container .template_message { user-select: none; }
 	.container .template_message p { line-height: 13px; margin: 3px 0 0 0; }
 	.container .template_message img { float: left; margin: 0 10px 0 0; }
@@ -632,7 +631,10 @@
 
 	#callout_type { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_resources { height: 250px; margin: -20px; overflow: auto; padding: 20px; width: 450px; }
-
+	#callout_resources .select > span { max-width: 384px !important; }
+	#callout_resources .select .select_options { max-width: 438px !important; }
+	#callout_resources .error_message { width: 420px; }
+	
 	.page_url { float: right; padding: 8px 10px 0 0; }
 	.page_url a { color: #333; }
 	.page_url img { float: left; margin: 0 7px 0 0; }
