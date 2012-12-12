@@ -15,25 +15,11 @@
 			<a href="http://www.tinymce.com/" target="_blank">http://www.tinymce.com/</a>
 		</p>
 		<br />
-		<h3 class="action_title">Fugue Icons</h3>
+		<h3 class="action_title">Icon Sweets</h3>
 		<p class="clear">
-			Yusuke Kamiyamane (CC 3.0)
+			<a href="http://www.twitter.com/yummygum" target="_blank">@yummygum</a> (free, commercial/non-commercial)
 			<br />
-			<a href="http://p.yusukekamiyamane.com/" target="_blank">http://p.yusukekamiyamane.com/</a>
-		</p>
-		<br />
-		<h3 class="action_title">Danish Royalty Free</h3>
-		<p class="clear">
-			Jonas Rask Design
-			<br />
-			<a href="http://jonasraskdesign.com/" target="_blank">http://jonasraskdesign.com/</a>
-		</p>
-		<br />
-		<h3 class="action_title">The Crystal Project</h3>
-		<p class="clear">
-			Everaldo Coelho (LGPL)
-			<br />
-			<a href="http://www.everaldo.com/crystal/" target="_blank">http://www.everaldo.com/crystal/</a>
+			<a href="http://iconsweets.com/" target="_blank">http://iconsweets.com/</a>
 		</p>
 	</section>
 	
