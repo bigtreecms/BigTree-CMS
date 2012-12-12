@@ -1124,6 +1124,7 @@
 	.icon_draft { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -576px -80px; }
 	.icon_message { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -600px -80px; }
 	.icon_dialog_add { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -624px -80px; } 
+	.icon_dialog_edit { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -264px -80px; }
 	.icon_drag { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -648px -80px; cursor: move; }
 	.icon_repeat { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -672px -80px; }
 	.icon_repeat_on { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -696px -80px; }
