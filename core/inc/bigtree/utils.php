@@ -335,7 +335,6 @@
 			
 			Parameters:
 				table - The table name.
-				db - (optionally) a different database than the currently selected one.
 			
 			Returns:
 				An array of table information.
@@ -347,12 +346,12 @@
 			$result["foreign_keys"] = array();
 			$result["primary_key"] = false;
 			
-			if ($db) {
-				$q = mysql_db_query($db,"SHOW CREATE TABLE `$table`");
-			} else {
-				$q = sqlquery("SHOW CREATE TABLE `$table`");
+			// Make sure we don't throw an exception if the table doesn't exist.
+			if (!self::tableExists($table)) {
+				return false;
 			}
-			$f = sqlfetch($q);
+
+			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
 			$lines = explode("\n",$f["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines,1,-1);
@@ -751,6 +750,10 @@
 		
 		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
 			$table_description = self::describeTable($table);
+			if (!$table_description) {
+				echo '<option>ERROR: Table Missing</option>';
+				return;
+			}
 			echo '<option></option>';
 			foreach ($table_description["columns"] as $col) {
 				if ($sorting) {
