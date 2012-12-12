@@ -442,6 +442,7 @@
 			}
 		} else {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+			define("BIGTREE_404",true);
 			include BigTree::path("admin/pages/_404.php");
 		}
 	// If we have a page, just include it.

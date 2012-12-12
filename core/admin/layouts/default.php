@@ -73,7 +73,7 @@
 </ul>
 <div id="page">
 	<?
-		if ($bigtree["page"]["title"]) {
+		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
 	?>
 	<h1>
 		<span class="<?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($gravatar_email)?>" alt="" /><? } ?></span>
@@ -116,7 +116,7 @@
 				$show_nav = true;
 			}
 		}
-		if ($show_nav) {
+		if ($show_nav && !defined("BIGTREE_404")) {
 	?>
 	<nav class="sub">
 		<ul>
