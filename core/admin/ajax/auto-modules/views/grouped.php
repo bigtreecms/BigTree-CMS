@@ -23,6 +23,9 @@
 	} else {
 		$sort = "id DESC";
 	}
+	if ($draggable) {
+		$sort = "position DESC, id ASC";
+	}
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
@@ -63,12 +66,15 @@
 </header>
 <?	
 	$gc = 0;
-	foreach ($groups as $group => $title) {		
-		if ($draggable) {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC",$group,$module);
+	foreach ($groups as $group => $title) {
+		// If the group title contains the search phrase, show everything in that group.
+		if (!$search || strpos(strtolower($title),strtolower($search)) !== false) {
+			$search_in = "";
 		} else {
-			$r = BigTreeAutoModule::getSearchResults($view,0,$search,$sort,$group,$module);
+			$search_in = $search;
 		}
+		
+		$r = BigTreeAutoModule::getSearchResults($view,0,$search_in,$sort,$group,$module);
 		
 		if (count($r["results"])) {
 			$gc++;
