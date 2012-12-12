@@ -358,6 +358,16 @@ var BigTreeSelect = Class.extend({
 		// Custom event to force open lists closed when another select opens.
 		this.Element.on("closeNow",$.proxy(this.close,this));
 	},
+
+	add: function(value,text) {
+		// Add to the actual select.
+		op = new Option(text,value);
+		this.Element.options[this.Element.options.length] = op;
+		// Add to the styled select.
+		a = $('<a href="#">' + text + '</a>');
+		a.attr("data-value",value);
+		this.Container.find(".select_options").append(a);
+	},
 	
 	blur: function() {
 		this.Container.removeClass("focused");
@@ -515,6 +525,29 @@ var BigTreeSelect = Class.extend({
 		// Stop the event if it's not a tab.
 		if (ev.keyCode != 9) {
 			return false;
+		}
+	},
+
+	remove: function(value) {
+		// Remove it from the actual select.
+		ops = this.Element.find("option");
+		for (i = 0; i < ops.length; i++) {
+			if (ops.eq(i).val() == value) {
+				ops.eq(i).remove();
+			}
+		}
+		// Remove it from the styled one.
+		as = this.Container.find(".select_options a");
+		for (i = 0; i < as.length; i++) {
+			if (as.eq(i).attr("data-value") == value) {
+				text_was = as.eq(i).html();
+				as.eq(i).remove();
+			}
+		}
+		// If the current selected state is the value we're removing, switch to the first available.
+		sel = this.Container.find("span").eq(0);
+		if (sel.html() == text_was) {
+			sel.html(this.Container.find(".select_options a").eq(0).html());
 		}
 	},
 	
@@ -1795,15 +1828,25 @@ var BigTreeManyToMany = Class.extend({
 		}
 		li.find("p").html(text);
 		li.find("input").val(val);
+
+		// Remove the option from the select.
+		select.customControl.remove(val);
 		
 		this.field.find("ul").append(li);
 		this.count++;
+		// Hide the instructions saying there haven't been any items tagged.
+		this.field.find("section").hide();
+
 		return false;
 	},
 	
 	deleteItem: function() {
 		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {
-			$(this).parents("li").remove();		
+			// If this is the last item we're removing, show the instructions again.
+			if ($(this).parents("ul").find("li").length == 1) {
+				$(this).parents("fieldset").find("section").show();
+			}
+			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 
 		return false;
