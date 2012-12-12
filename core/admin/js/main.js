@@ -243,12 +243,13 @@ var BigTreeSelect = Class.extend({
 		
 		$(element).css({ position: "absolute", left: "-1000000px" });
 		div = $("<div>").addClass("select");
-		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "16px", "white-space": "nowrap" });
+		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
 		maxwidth = 0;
 		
 		html = "";
 		selected = "";
+		selected_option = "";
 		
 		// Need to find all children since we have to account for options in and out of optgroups
 		first_level = $(element).children();
@@ -278,7 +279,7 @@ var BigTreeSelect = Class.extend({
 					// Get the size of this text.
 					tester.html(text);
 					width = tester.width();
-					if (width > maxwidth) {
+					if (width + 20 > maxwidth) {
 						maxwidth = width + 20;
 					}
 					
@@ -306,7 +307,7 @@ var BigTreeSelect = Class.extend({
 				tester.html(text);
 				width = tester.width();
 				if (width > maxwidth) {
-					maxwidth = width + 20;
+					maxwidth = width;
 				}
 				
 				if (y == 1) {
@@ -324,19 +325,16 @@ var BigTreeSelect = Class.extend({
 		}
 		
 		div.html('<div class="handle"></div><span>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
-		
+
 		spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
 		if ($(element).parent().get(0).tagName.toLowerCase() == "section") {
 			sectionwidth = $(element).parent().width();
 			if (sectionwidth < (maxwidth + 56)) {
-				spanwidth = sectionwidth - 56;
+				spanwidth = sectionwidth - 80;
+				div.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
 			}
-			// Account for the handle.
-			spanwidth -= 24;
-			div.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
 		}
-		
 		
 		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
 		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
