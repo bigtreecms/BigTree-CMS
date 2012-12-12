@@ -18,9 +18,27 @@
 	} else {
 		$available_views = false;
 	}
+	
+	if (!BigTree::tableExists($table)) {
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>modules/forms/update/<?=$form["id"]?>/" class="module">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
+		<p>The table for this form (<?=$table?>) no longer exists.</p>
+	</section>
+	<footer>
+		<a href="javascript:history.go(-1);" class="button">Back</a>
+		<a href="<?=$section_root?>delete/<?=$view["id"]?>/" class="button red">Delete Form</a>
+	</footer>
+</div>
+<?
+	} else {
+?>
+<div class="container">
+	<form method="post" action="<?=$section_root?>update/<?=$form["id"]?>/" class="module">
 		<section>
 			<div class="left last">
 				<fieldset>
@@ -84,5 +102,7 @@
 		</footer>
 	</form>
 </div>
-
-<? include BigTree::path("admin/modules/developer/modules/forms/_js.php") ?>
+<?
+		include BigTree::path("admin/modules/developer/modules/forms/_js.php");
+	}
+?>

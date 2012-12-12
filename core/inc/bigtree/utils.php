@@ -1337,7 +1337,25 @@
 			}
 			return array($inc_file,$commands);
 		}
-		
+
+		/*
+			Function: tableExists
+				Determines whether a SQL table exists.
+
+			Parameters:
+				table - The table name.
+
+			Returns:
+				true if table exists, otherwise false.
+		*/
+
+		static function tableExists($table) {
+			$r = sqlrows(sqlquery("SHOW TABLES LIKE '".sqlescape($table)."'"));
+			if ($r) {
+				return true;
+			}
+			return false;
+		}
 		/*
 			Function: touchFile
 				touch()s a file even if the directory for it doesn't exist yet.

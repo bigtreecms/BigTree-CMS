@@ -4,9 +4,26 @@
 	$module = $admin->getModule($action["module"]);
 
 	BigTree::globalizeArray($view);
+
+	if (!BigTree::tableExists($table)) {
 ?>
 <div class="container">
-	
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
+		<p>The table for this view (<?=$table?>) no longer exists.</p>
+	</section>
+	<footer>
+		<a href="javascript:history.go(-1);" class="button">Back</a>
+		<a href="<?=$section_root?>delete/<?=$view["id"]?>/" class="button red">Delete View</a>
+	</footer>
+</div>
+<?
+	} else {
+?>
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
 		<section>
 			<? if ($action["route"]) { ?>
@@ -63,5 +80,7 @@
 		</footer>
 	</form>
 </div>
-
-<? include BigTree::path("admin/modules/developer/modules/views/_js.php") ?>
+<?
+		include BigTree::path("admin/modules/developer/modules/views/_js.php");
+	}
+?>
