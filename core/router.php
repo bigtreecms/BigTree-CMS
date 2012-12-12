@@ -89,12 +89,13 @@
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
 						require_once(SERVER_ROOT."core/inc/lib/less-compiler.inc.php");
 						$less_compiler = new lessc();
+						$less_compiler->setImportDir(array(SITE_ROOT."css/"));
 					}
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
 						$style = file_get_contents(SITE_ROOT."css/$style_file");
 						if (strpos($style_file, "less") > -1) {
 							// convert LESS
-							$style = $less_compiler->parse($style);
+							$style = $less_compiler->compile($style);
 						} else {
 							// normal CSS
 							if ($bigtree["config"]["css"]["prefix"]) {
