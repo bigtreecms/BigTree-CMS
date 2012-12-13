@@ -69,6 +69,7 @@
 	h1 .add_message { background-position: -256px -48px; }
 	h1 .reply_message { background-position: -288px -48px; }
 	h1 .search { background-position: -195px -48px; }
+	h1 .credits { background-position: -338px -48px; }
 
 	h2 { color: rgba(51,51,51,0.9); float: left; font-size: 18px; font-weight: normal; height: 32px; line-height: 30px; padding: 5px 0 0 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h2 small { color: #999999; display: inline-block; font-size: 13px; padding: 0 0 0 10px; }

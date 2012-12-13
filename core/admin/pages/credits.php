@@ -15,11 +15,9 @@
 			<a href="http://www.tinymce.com/" target="_blank">http://www.tinymce.com/</a>
 		</p>
 		<br />
-		<h3 class="action_title">Icon Sweets</h3>
+		<h3 class="action_title">Pictos</h3>
 		<p class="clear">
-			<a href="http://www.twitter.com/yummygum" target="_blank">@yummygum</a> (free, commercial/non-commercial)
-			<br />
-			<a href="http://iconsweets.com/" target="_blank">http://iconsweets.com/</a>
+			<a href="http://pictos.cc/" target="_blank">http://pictos.cc/</a> (paid, royalty free)
 		</p>
 	</section>
 	
