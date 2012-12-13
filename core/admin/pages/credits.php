@@ -34,11 +34,11 @@
 			<a href="https://github.com/tapmodo/Jcrop" target="_blank">https://github.com/tapmodo/Jcrop</a>
 		</p>
 		<br />
-		<h3 class="action_title">Icon Sweets</h3>
+		<h3 class="action_title">Pictos Icons</h3>
 		<p class="clear">
-			<a href="http://www.twitter.com/yummygum" target="_blank">@yummygum</a> (free, commercial/non-commercial)
+			Drew Wilson (paid, royalty-free &mdash; not for re-use outside BigTree admin area without personal license)
 			<br />
-			<a href="http://iconsweets.com/" target="_blank">http://iconsweets.com/</a>
+			<a href="http://pictos.cc/" target="_blank">http://pictos.cc/</a>
 		</p>
 		<br />
 		<h3 class="action_title">Google Client API Libraries</h3>

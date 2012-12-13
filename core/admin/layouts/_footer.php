@@ -9,7 +9,9 @@
 					<p>
 						Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> Fastspot
 					</p>
-					<? /* <a href="<?=ADMIN_ROOT?>credits/">Credits</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp; */ ?><a href="http://www.bigtreecms.org/" target="_blank">Support</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;<a href="http://www.fastspot.com/agency/contact/" target="_blank">Contact Us</a>
+					<a href="<?=ADMIN_ROOT?>credits/">Credits &amp; Licenses</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+					<a href="http://www.bigtreecms.org/" target="_blank">Support</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+					<a href="http://www.fastspot.com/agency/contact/" target="_blank">Contact Us</a>
 				</article>
 			</section>
 		</footer>

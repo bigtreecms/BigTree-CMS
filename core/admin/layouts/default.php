@@ -60,7 +60,7 @@
 			
 	?>
 	<li<? if ($x == 1) { ?> class="first"<? } ?>>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/"<? if ($x == count($breadcrumb)) { ?> class="last"<? } ?>><?=$item["title"]?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/"<? if ($x == count($breadcrumb)) { ?> class="last"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode($item["title"]))?></a>
 	</li>
 	<?
 			if ($x != count($breadcrumb)) {
@@ -78,7 +78,7 @@
 	<h1>
 		<span class="<?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($gravatar_email)?>" alt="" /><? } ?></span>
 		<?
-			echo str_replace("View ","",$bigtree["page"]["title"]);
+			echo htmlspecialchars(htmlspecialchars_decode(str_replace("View ","",$bigtree["page"]["title"])));
 
 			// If we're in a module and have related modules, use them for the related nav.
 			if (isset($bigtree["related_modules"])) {

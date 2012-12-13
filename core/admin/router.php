@@ -113,7 +113,7 @@
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
-		"credits" => array("title" => "Thank You","link" => "credits","icon" => "credits","hidden" => true)
+		"credits" => array("title" => "Credits & Licenses","link" => "credits","icon" => "credits","hidden" => true)
 	);
 
 	// Set static root for those without it
