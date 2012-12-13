@@ -167,50 +167,42 @@
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax") {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
-		$x = 1;
-		$ajax_path = "";
-		while ($x < count($bigtree["path"]) - 1) {
-			$ajax_path .= $bigtree["path"][$x]."/";
-			$x++;
+
+		list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/ajax/",array_slice($bigtree["path"],1));
+		if (!file_exists($inc)) {
+			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+			die("File not found.");
 		}
-		if (file_exists("../templates/ajax/".$ajax_path.$bigtree["path"][$x].".php")) {
-			$bigtree["commands"] = array();
-			$commands = array(); // Backwards compatibility
-			include "../templates/ajax/".$ajax_path.$bigtree["path"][$x].".php";
-		} else {
-			$inc = "../templates/ajax/".$bigtree["path"][1]."/";
-			$inc_dir = $inc;
-			$x = 1;
-			$y = 1;
-			while ($x < count($bigtree["path"])) {
-				if (is_dir($inc.$bigtree["path"][$x])) {
-					$inc .= $bigtree["path"][$x]."/";
-					$inc_dir .= $bigtree["path"][$x]."/";
-					$y++;
-				} elseif (file_exists($inc.$bigtree["path"][$x].".php")) {
-					$inc .= $bigtree["path"][$x].".php";
-					$y++;
+		$bigtree["commands"] = $commands;
+
+		// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/ajax.
+		$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
+		// Include all headers in the module directory in the order they occur.
+		$inc_path = "";
+		$headers = $footers = array();
+		foreach ($pieces as $piece) {
+			if (substr($piece,0,-4) != ".php") {
+				$inc_path .= $piece."/";
+				$header = SERVER_ROOT."templates/ajax/".$inc_path."_header.php";
+				$footer = SERVER_ROOT."templates/ajax/".$inc_path."_footer.php";
+				if (file_exists($header)) {
+					$headers[] = $header;
 				}
-				$x++;
-			}
-			if (substr($inc,-4,4) != ".php") {
-				if (file_exists($inc.end($bigtree["path"]).".php")) {
-					$inc .= end($bigtree["path"]).".php";
-				} else {
-					$inc .= "default.php";
+				if (file_exists($footer)) {
+					$footers[] = $footer;
 				}
 			}
-			
-			// Clean up
-			unset($inc_dir,$ajax_path,$x);
-			
-			$bigtree["commands"] = array_slice($bigtree["path"],$y+1);
-			$commands = $bigtree["commands"]; // Backwards compatibility
-			if (file_exists($inc)) {
-				include $inc;
-			} else {
-				include str_replace("/default.php",".php",$inc);
-			}
+		}
+		// Draw the headers.
+		foreach ($headers as $header) {
+			include $header;
+		}
+		// Draw the main page.
+		include $inc;
+		// Draw the footers.
+		$footers = array_reverse($footers);
+		foreach ($footers as $footer) {
+			include $footer;
 		}
 		die();
 	}
@@ -230,16 +222,17 @@
 		$bigtree["path"] = $npath;
 		$bigtree["preview"] = true;
 		$bigtree["config"]["cache"] = false;
+		header("X-Robots-Tag: noindex");
 		
 		// Clean up
 		unset($npath);
 	}
-	
 	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
 		$commands = $bigtree["commands"]; // Backwards compatibility
 		$navid = $bigtree["path"][1];
+		header("X-Robots-Tag: noindex");
 	}
 	
 	// So we don't lose this.
@@ -302,57 +295,38 @@
 		
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
-			// We need to figure out how far down the directory structure to route the,.	
-			$inc = "../templates/routed/".$bigtree["page"]["template"]."/";
-			$inc_dir = $inc;
-			$module_commands = array();
-			$ended = false;
-			foreach ($bigtree["commands"] as $command) {
-				if (!$ended && is_dir($inc.$command)) {
-					$inc = $inc.$command."/";
-				} elseif (!$ended && file_exists($inc.$command.".php")) {
-					$inc_dir = $inc;
-					$inc = $inc.$command.".php";
-					$ended = true;
-				} elseif (!$ended) {
-					$ended = true;
-					$module_commands[] = $command;
-					$inc_dir = $inc;
-					$inc = $inc."default.php";
-				} else {
-					$module_commands[] = $command;
+			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",array_slice($bigtree["path"],1));			
+			$bigtree["commands"] = $commands;
+			
+			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
+			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
+			// Include all headers in the module directory in the order they occur.
+			$inc_path = "";
+			$headers = $footers = array();
+			foreach ($pieces as $piece) {
+				if (substr($piece,0,-4) != ".php") {
+					$inc_path .= $piece."/";
+					$header = SERVER_ROOT."templates/routed/".$inc_path."_header.php";
+					$footer = SERVER_ROOT."templates/routed/".$inc_path."_footer.php";
+					if (file_exists($header)) {
+						$headers[] = $header;
+					}
+					if (file_exists($footer)) {
+						$footers[] = $footer;
+					}
 				}
 			}
-			if (!$ended) {
-				$inc_dir = $inc;
-				$inc = $inc."default.php";
+			// Draw the headers.
+			foreach ($headers as $header) {
+				include $header;
 			}
-			
-			$bigtree["commands"] = $module_commands;
-			$commands = $bigtree["commands"]; // Backwards compatibility
-			
-			// Include the module's header
-			if (file_exists("../templates/routed/".substr($bigtree["page"]["template"],7)."/_header.php")) {
-				include_once "../templates/routed/".substr($bigtree["page"]["template"],7)."/_header.php";
-			}
-			
-			// Include the sub-module's header if it exists.
-			if (file_exists($inc_dir."_header.php")) {
-				include_once $inc_dir."_header.php";
-			}
-			
+			// Draw the main page.
 			include $inc;
-
-			// Include the sub-module's footer if it exists.
-			if (file_exists($inc_dir."_footer.php")) {
-				include_once $inc_dir."_footer.php";
+			// Draw the footers.
+			$footers = array_reverse($footers);
+			foreach ($footers as $footer) {
+				include $footer;
 			}
-			
-			// Include the module's footer
-			if (file_exists("../templates/routed/".substr($bigtree["page"]["template"],7)."/_footer.php")) {
-				include_once "../templates/routed/".substr($bigtree["page"]["template"],7)."/_footer.php";
-			}
-
 		} elseif ($bigtree["page"]["template"]) {
 			include "../templates/basic/".$bigtree["page"]["template"].".php";
 		} else {

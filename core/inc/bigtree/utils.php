@@ -1322,6 +1322,7 @@
 					$found_file = true;
 				// Couldn't find a file or directory.
 				} else {
+					$commands[] = $piece;
 					$ended = true;
 				}
 			}
