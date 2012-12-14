@@ -65,7 +65,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: search, type: "<?=$type?>", page: mpage });
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: search, type: "<?=$type?>", page: mpage }, hookResults);
 
 		return false;
 	});
