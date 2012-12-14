@@ -234,15 +234,16 @@
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 									<?
 												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
-													$categories = array();
-													$ot = sqlescape($gbp["other_table"]);
-													$tf = sqlescape($gbp["title_field"]);
-													if ($tf && $ot) {
-														$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
+													if (BigTree::tableExists($gbp["other_table"])) {
+														$categories = array();
+														$ot = sqlescape($gbp["other_table"]);
+														$tf = sqlescape($gbp["title_field"]);
+														if ($tf && $ot) {
+															$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 									?>
 									<ul class="depth_2" style="display: none;">
 										<?
-													while ($c = sqlfetch($q)) {
+															while ($c = sqlfetch($q)) {
 										?>
 										<li>
 											<span class="depth"></span>
@@ -252,10 +253,11 @@
 											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <? if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 										</li>
 										<?
-														}
+															}
 										?>
 									</ul>
 									<?
+														}
 													}
 												}
 											}
