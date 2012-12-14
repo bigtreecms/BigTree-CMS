@@ -27,7 +27,9 @@
 		// Let's relate the foreign keys based on the local column so we can check easier.
 		$foreign_keys = array();
 		foreach ($table_info["foreign_keys"] as $key) {
-			$foreign_keys[$key["local_column"]] = $key;
+			if (count($key["local_columns"]) == 1) {
+				$foreign_keys[$key["local_columns"][0]] = $key;
+			}
 		}
 		foreach ($table_info["columns"] as $column) {
 			if (!in_array($column["name"],$reserved)) {
@@ -93,7 +95,7 @@
 				}
 				
 				// Database populated list for foreign keys.
-				if (substr($column["type"],-3,3) == "int" && isset($foreign_keys[$column["name"]]) && $foreign_keys[$column["name"]]["other_column"] == "id") {
+				if (substr($column["type"],-3,3) == "int" && isset($foreign_keys[$column["name"]]) && implode("",$foreign_keys[$column["name"]]["other_columns"]) == "id") {
 					$type = "list";
 					// Describe this other table
 					$other_table = BigTree::describeTable($foreign_keys[$column["name"]]["other_table"]);
@@ -130,9 +132,6 @@
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 ?>
-
-
-
 <label>Fields</label>
 
 <div class="form_table">
