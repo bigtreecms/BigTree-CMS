@@ -219,6 +219,18 @@
 				unset($user,$pass,$f);
 			}
 
+			// Check the permissions to see if we should show the pages tab.
+			if (!$this->Level) {
+				$this->HidePages = true;
+				foreach ($this->Permissions["page"] as $k => $v) {
+					if ($v != "n" && $v != "i") {
+						$this->HidePages = false;
+					}
+				}
+			} else {
+				$this->HidePages = false;
+			}
+
 			// Update the reserved top level routes with the admin's route
 			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
 			$this->ReservedTLRoutes[] = $ar[0];

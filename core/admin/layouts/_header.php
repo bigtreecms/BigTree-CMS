@@ -76,7 +76,7 @@
 				<ul>
 					<?
 						foreach ($nav as $item) {
-							if ($admin->Level >= $item["access"]) {
+							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
 					?>
 					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>>
 						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
