@@ -953,6 +953,7 @@
 	input.field_type_version:first-of-type { margin-left: 0px; }
 
 	#gbp div { overflow: hidden; }
+	#gbp .select div { overflow: auto; }
 	#gbp article { float: left; margin: 15px 0 0 0; width: 449px; }
 	
 /*---------------------------
