@@ -4,15 +4,7 @@
 	$errors = array();
 	
 	// Check if the table exists
-	$table_exists = false;
-	$q = sqlquery("SHOW TABLES");
-	while ($f = sqlfetch($q)) {
-		$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-		if ($tname == $table) {
-			$table_exists = true;
-		}
-	}
-	if ($table_exists) {
+	if (BigTree::tableExists($table)) {
 		$errors["table"] = "The table you chose already exists.";
 	}
 	

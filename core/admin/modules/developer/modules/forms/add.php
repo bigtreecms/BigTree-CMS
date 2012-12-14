@@ -17,16 +17,7 @@
 	}
 
 	// Find out if we have more than one view. If so, give them an option of which one to return to.
-	if (sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".$module["id"]."' AND view != 0")) > 1) {
-		$available_views = array();
-		$q = sqlquery("SELECT bigtree_module_views.id,bigtree_module_actions.name FROM bigtree_module_views JOIN bigtree_module_actions ON bigtree_module_views.id = bigtree_module_actions.view WHERE bigtree_module_actions.module = '".$module["id"]."'");
-		while ($f = sqlfetch($q)) {
-			$available_views[] = $f;
-		}
-	} else {
-		$available_views = false;
-	}
-
+	$available_views = $admin->getModuleViews("action_name",$module["id"]);
 
 	$title = htmlspecialchars(urldecode($title));
 ?>
@@ -61,12 +52,12 @@
 			</div>
 
 			<div class="right last">
-				<? if ($available_views) { ?>
+				<? if (count($available_views) > 1) { ?>
 				<fieldset>
 					<label>Return View <small>(after the form is submitted, it will return to this view)</small></label>
 					<select name="return_view">
 						<? foreach ($available_views as $view) { ?>
-						<option value="<?=$view["id"]?>"<? if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["name"]?></option>
+						<option value="<?=$view["id"]?>"<? if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["action_name"]?></option>
 						<? } ?>
 					</select>
 				</fieldset>

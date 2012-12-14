@@ -7,7 +7,7 @@
 			$oroute = $cms->urlify(strip_tags($data[$options["source"]]));
 			$value = $oroute;
 			$x = 2;
-			while (sqlrows(sqlquery("SELECT * FROM ".$form["table"]." WHERE `$key` = '".sqlescape($value)."' AND id != '".$_POST["id"]."'"))) {
+			while (sqlrows(sqlquery("SELECT * FROM `".$form["table"]."` WHERE `$key` = '".sqlescape($value)."' AND id != '".sqlescape($_POST["id"])."'"))) {
 				$value = $oroute."-".$x;
 				$x++;
 			}

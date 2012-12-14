@@ -12,12 +12,12 @@
 			$used[] = $key;
 		}
 		// Figure out the fields we're not using so we can offer them back.
-		$q = sqlquery("DESCRIBE $table");
-		while ($f = sqlfetch($q)) {
-			if (!in_array($f["Field"],$reserved) && !in_array($f["Field"],$used)) {
-				$unused[] = array("field" => $f["Field"], "title" => ucwords(str_replace("_"," ",$f["Field"])));
+		$table_description = BigTree::describeTable($table);
+		foreach ($table_description["columns"] as $column => $details) {
+			if (!in_array($column,$reserved) && !in_array($column,$used)) {
+				$unused[] = array("field" => $column, "title" => ucwords(str_replace("_"," ",$column)));
 			}
-			if ($f["Field"] == "position") {
+			if ($column == "position") {
 				$positioned = true;
 			}
 		}

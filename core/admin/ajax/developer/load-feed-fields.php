@@ -7,11 +7,11 @@
 	$unused = array();
 	
 	$tblfields = array();
-	$q = sqlquery("DESCRIBE $table");
-	while ($f = sqlfetch($q)) {
-		$tblfields[] = $f["Field"];
+	$table_description = BigTree::describeTable($table);
+	foreach ($table_description["columns"] as $column => $details) {
+		$tblfields[] = $column;
 	}
-	
+
 	if (isset($fields)) {
 		foreach ($fields as $key => $field) {
 			$used[] = $key;
