@@ -48,7 +48,7 @@
 		$child["link"] = str_replace("{id}",end($bigtree["commands"]),$child["link"]);
 	}
 	// Replace the home icon if it's not the parent page.
-	if (!$parent) {
+	if (!$id) {
 		$pages_nav["children"]["view-tree"]["icon"] = "home";
 		$pages_nav["children"]["view-tree"]["title_override"] = "Home";
 		unset($pages_nav["children"]["move"]);
