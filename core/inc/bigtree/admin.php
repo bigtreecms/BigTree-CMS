@@ -155,7 +155,7 @@
 			"news",
 			"events",
 			"blog",
-			//"form",
+			"form",
 			"category",
 			"map",
 			"user",
@@ -180,11 +180,11 @@
 			"ribbon",
 			"dice",
 			"ticket",
-			"pallet"
-			//"camera",
-			//"video",
-			//"twitter",
-			//"facebook",
+			"pallet",
+			"camera",
+			"video",
+			"twitter",
+			"facebook"
 		);
 
 		/*
@@ -1787,6 +1787,18 @@
 		}
 
 		/*
+			Function: disconnectGoogleAnalytics
+				Turns of Google Analytics settings in BigTree and deletes cached information.
+		*/
+
+		function disconnectGoogleAnalytics() {
+			$this->updateSettingValue("bigtree-internal-google-analytics",array());
+			unlink(SERVER_ROOT."cache/analytics.cache");
+			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
+			$this->growl("Analytics","Disconnected");
+		}
+
+		/*
 			Function: doesModuleEditActionExist
 				Determines whether there is already an edit action for a module.
 
@@ -3004,13 +3016,19 @@
 
 			Parameters:
 				sort - The column to sort by.
+				module - Specific module to pull views for (defaults to all modules).
 
 			Returns:
 				An array of view entries with "fields" decoded.
 		*/
-		function getModuleViews($sort = "title") {
+		function getModuleViews($sort = "title",$module = false) {
 			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
+			if ($module !== false) {
+				$module = sqlescape($module);
+				$q = sqlquery("SELECT bigtree_module_views.*,bigtree_module_actions.name as `action_name` FROM bigtree_module_views JOIN bigtree_module_actions ON bigtree_module_views.id = bigtree_module_actions.view WHERE bigtree_module_actions.module = '$module'");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
+			}
 			while ($f = sqlfetch($q)) {
 				$f["fields"] = json_decode($f["fields"],true);
 				$items[] = $f;
