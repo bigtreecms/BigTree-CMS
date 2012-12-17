@@ -222,9 +222,11 @@
 			// Check the permissions to see if we should show the pages tab.
 			if (!$this->Level) {
 				$this->HidePages = true;
-				foreach ($this->Permissions["page"] as $k => $v) {
-					if ($v != "n" && $v != "i") {
-						$this->HidePages = false;
+				if (is_array($this->Permissions["page"])) {
+					foreach ($this->Permissions["page"] as $k => $v) {
+					    if ($v != "n" && $v != "i") {
+					    	$this->HidePages = false;
+					    }
 					}
 				}
 			} else {
