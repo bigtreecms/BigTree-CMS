@@ -401,10 +401,9 @@
 	// Write to the cache
 	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE")) {
 		$cache = ob_get_flush();
-		$curl = $_GET["bigtree_htaccess_url"];
-		if (!$curl) {
-			$curl = "home";
+		if (!$bigtree["page"]["path"]) {
+			$bigtree["page"]["path"] = "!";
 		}
-		file_put_contents("../cache/".base64_encode($curl),$cache);
+		file_put_contents("../cache/".base64_encode($bigtree["page"]["path"]).".page",$cache);
 	}
 ?>

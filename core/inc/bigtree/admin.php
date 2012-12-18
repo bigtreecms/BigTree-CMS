@@ -5181,9 +5181,16 @@
 		function unCache($page) {
 			global $cms;
 			if (is_array($page)) {
-				$file = SERVER_ROOT."cache/".base64_encode($page["path"]."/");
+				if (!$page["path"]) {
+					$page["path"] = "!";
+				}
+				$file = SERVER_ROOT."cache/".base64_encode($page["path"]."/").".page";
 			} else {
-				$file = SERVER_ROOT."cache/".base64_encode(str_replace(WWW_ROOT,"",$cms->getLink($page)));
+				if ($page == 0) {
+					$file = SERVER_ROOT."cache/".base64_encode("!").".page";
+				} else {
+					$file = SERVER_ROOT."cache/".base64_encode(str_replace(WWW_ROOT,"",$cms->getLink($page))).".page";
+				}
 			}
 			if (file_exists($file)) {
 				@unlink($file);

@@ -61,6 +61,9 @@
 					$preview_link = WWW_ROOT."_preview-pending/".$change["id"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/p".$change["id"]."/";
 				}
+				if ($change["item_id"] == 0) {
+					$page["nav_title"] = "Home";
+				}
 		?>
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
@@ -164,7 +167,7 @@
 					foreach ($view["fields"] as $field => $data) {
 						$x++;
 			?>
-			<section class="view_column" style="width: <?=$data["width"]?>px">
+			<section class="view_column" style="width: <?=$data["width"]?>px;">
 				<?=$item["column$x"]?>
 			</section>
 			<?
