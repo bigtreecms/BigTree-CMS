@@ -4939,7 +4939,7 @@
 			global $cms,$admin,$www_root,$admin_root,$site,$breadcrumb,$bigtree;
 			echo $message;
 			$bigtree["content"] = ob_get_clean();
-			include BigTree::path("admin/layouts/default.php");
+			include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
 			die();
 		}
 

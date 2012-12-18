@@ -29,8 +29,8 @@
 					</div>
 				</div>
 				<footer>
-					<a href="<?=ADMIN_ROOT?>pages/front-end-edit/<?=$page?>/" class="button blue">Go Back</a>
 					<a href="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" class="button white">Ignore</a>				
+					<a href="<?=ADMIN_ROOT?>pages/front-end-edit/<?=$page?>/" class="button blue">Go Back</a>
 				</footer>
 			</div>
 		</div>

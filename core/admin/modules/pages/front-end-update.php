@@ -1,8 +1,9 @@
 <?
+	$bigtree["layout"] = "front-end";
 	// Initiate the Upload Service class.
 	$upload_service = new BigTreeUploadService;
 
-	$page = end($bigtree["path"]);
+	$page = $_POST["page"];
 	
 	if ($page[0] == "p") {
 		$change_id = substr($page,1);
@@ -11,7 +12,7 @@
 		$r = $admin->getPageAccessLevel($pdata["parent"]);
 	} else {
 		$r = $admin->getPageAccessLevel($page);
-		// Get pending page data with decoded resources and tags.
+		// Get pending page data with resources decoded and tags.
 		$pdata = $cms->getPendingPage($page,true,true);
 	}
 	
@@ -24,7 +25,10 @@
 ?>
 <div class="container">
 	<section>
-		<h3>Error</h3>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
 		<p>You do not have access to this page.</p>
 	</section>
 </div>
@@ -36,6 +40,7 @@
 	$crops = array();
 	$fails = array();
 	
+	// Save the template since we're not passing in the full update data.
 	$_POST["template"] = $pdata["template"];
 	
 	// Parse resources
@@ -79,9 +84,7 @@
 		include BigTree::path("admin/modules/pages/_front-end-failed.php");
 	} else {
 ?>
-<script type="text/javascript">parent.bigtree_bar_refresh("<?=$refresh_link?>");</script>
+<script type="text/javascript">parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>
 <?
 	}
-	
-	die();
 ?>
