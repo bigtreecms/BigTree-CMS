@@ -71,7 +71,7 @@
 	</div>
 	<footer>
 		<a class="button bigtree_dialog_close" href="#">Cancel</a>
-		<input type="submit" class="button<? if ($access_level != "p") { ?> blue<? } ?>" name="ptype" value="Save" />
+		<input type="submit" class="button<? if ($access_level != "p") { ?> blue<? } ?>" name="ptype" value="Save &amp; Preview" />
 		<? if ($access_level == "p") { ?>
 		<input type="submit" class="button blue" name="ptype" value="Save &amp; Publish" />
 		<? } ?>
