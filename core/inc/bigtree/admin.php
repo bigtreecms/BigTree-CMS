@@ -214,6 +214,7 @@
 					$this->Permissions = json_decode($f["permissions"],true);
 					$_SESSION["bigtree_admin"]["id"] = $f["id"];
 					$_SESSION["bigtree_admin"]["email"] = $f["email"];
+					$_SESSION["bigtree_admin"]["name"] = $f["name"];
 				}
 				// Clean up
 				unset($user,$pass,$f);
