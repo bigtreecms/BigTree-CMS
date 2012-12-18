@@ -2,8 +2,11 @@
 	$user = $admin->getUser($f["user"]);
 ?>
 <div class="container">
-	<header><h2><strong>Warning:</strong> This page is currently locked.</h2></header>
 	<section>
+		<div class="alert">
+			<span></span>
+			<h3>LOCKED</h3>
+		</div>
 		<p>
 			<strong><?=$user["name"]?></strong> currently has this page locked for editing.  It was last accessed by <strong><?=$user["name"]?></strong> on <strong><?=date("F j, Y @ g:ia",strtotime($f["last_accessed"]))?></strong>.<br />
 		If you would like to edit this page anyway, please click "Unlock" below.  Otherwise, click "Cancel".
