@@ -330,7 +330,29 @@
 			include $footer;
 		}
 		die();
-	}	
+	}
+
+	// Execute cron tab functions if they haven't been run in 24 hours
+	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
+		$admin->createSetting(array(
+			"id" => "bigtree-internal-cron-last-run",
+			"system" => "on"
+		));
+	}
+
+	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
+	// It's been more than 24 hours since we last ran cron.
+	if ((time() - $last_check) > (24 * 60 * 60)) {
+		// Email the daily digest
+		$admin->emailDailyDigest();
+		// Cache google analytics
+		$ga = new BigTreeGoogleAnalytics;
+		if ($ga->API && $ga->Profile) {
+			$ga->cacheInformation();
+		}
+		// Update the setting.
+		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
+	}
 	
 	// Normal page routing.
 	$ispage = false;
@@ -453,26 +475,4 @@
 	$bigtree["content"] = ob_get_clean();
 
 	include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
-
-	// Execute cron tab functions if they haven't been run in 24 hours
-	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-cron-last-run",
-			"system" => "on"
-		));
-	}
-
-	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
-	// It's been more than 24 hours since we last ran cron.
-	if ((time() - $last_check) > (24 * 60 * 60)) {
-		// Email the daily digest
-		$admin->emailDailyDigest();
-		// Cache google analytics
-		$ga = new BigTreeGoogleAnalytics;
-		if ($ga->API && $ga->Profile) {
-			$ga->cacheInformation();
-		}
-		// Update the setting.
-		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
-	}
 ?>
