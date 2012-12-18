@@ -295,7 +295,8 @@
 		
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",array_slice($bigtree["path"],1));			
+			$path_components = explode("/",str_replace($bigtree["page"]["path"]."/","",implode("/",$bigtree["path"])));
+			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
 			$bigtree["commands"] = $commands;
 			
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
