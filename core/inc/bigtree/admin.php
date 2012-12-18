@@ -4802,7 +4802,7 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
-			$url = sqlescape($url);
+			$url = sqlescape(htmlspecialchars($url));
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 		}
 

@@ -948,7 +948,7 @@
 		
 		function handle404($url) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-			$url = sqlescape(rtrim($url,"/"));
+			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
 			
 			if ($f["redirect_url"]) {
