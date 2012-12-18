@@ -1023,6 +1023,7 @@
 	.bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }
 	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-right: 10px; }
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
+	.bigtree_dialog_window.front_end_editor fieldset { width: auto; }
 	
 /* List Options Widget */
 	.bigtree_dialog_form fieldset.list_options_widget { margin: 0 0 17px 0; overflow: hidden; }

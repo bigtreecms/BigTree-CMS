@@ -1,5 +1,6 @@
 <?
 	header("Content-type: text/javascript");
+	$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
 ?>
 var BigTreeBar = {
 
@@ -53,7 +54,11 @@ var BigTreeBar = {
 		bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
 		
-		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=$_GET["current_page_id"]?>/?return=front">Edit in BigTree</a><a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=$_GET["username"]?></span>';
+		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
+		<? if ($permission) { ?>
+		bigtree_bar_html += '<a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=$_GET["current_page_id"]?>/?return=front">Edit in BigTree</a>';
+		<? } ?>
+		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=$_GET["username"]?></span>';
 		<? if ($_GET["previewing"]) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
 		<? } ?>
