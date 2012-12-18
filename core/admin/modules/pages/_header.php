@@ -14,7 +14,7 @@
 	}
 
 	// Stop the user if they don't have access to this page.
-	if (!$access_level && $action != "view-tree") {
+	if (!$access_level && $id !== false && $action != "view-tree") {
 ?>
 <div class="container">
 	<section>
