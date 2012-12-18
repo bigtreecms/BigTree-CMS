@@ -5339,6 +5339,7 @@
 			$settings = sqlescape($settings);
 
 			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
+			unlink(SERVER_ROOT."cache/form-field-types.btc");
 		}
 
 		/*

@@ -190,8 +190,9 @@
 		}
 	}
 	
-	// Clear module class cache
+	// Clear module class cache and field type cache.
 	unlink(SERVER_ROOT."cache/module-class-list.btc");
+	unlink(SERVER_ROOT."cache/form-field-types.btc");
 	
 	$data = unserialize($_POST["details"]);
 	
