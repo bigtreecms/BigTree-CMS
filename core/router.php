@@ -295,7 +295,10 @@
 		
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
-			$path_components = explode("/",str_replace($bigtree["page"]["path"]."/","",implode("/",$bigtree["path"])));
+			$path_components = explode("/",str_replace($bigtree["page"]["path"]."/","",implode("/",$bigtree["path"])."/"));
+			if (end($path_components) === "") {
+				array_pop($path_components);
+			}
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
 			$bigtree["commands"] = $commands;
 			
