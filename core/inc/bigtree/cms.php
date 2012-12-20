@@ -624,7 +624,7 @@
 				}
 				// Get pending changes for this page.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
-			
+
 			// If it's prefixed with a "p" then it's a pending entry.
 			} else {
 				// Set the page to empty, we're going to loop through the change later and apply the fields.
@@ -640,6 +640,7 @@
 
 			// If we have changes, apply them.
 			if ($f) {
+				$page["changes_applied"] = true;
 				$page["updated_at"] = $f["date"];
 				$changes = json_decode($f["changes"],true);
 				foreach ($changes as $key => $val) {
