@@ -25,9 +25,18 @@
 	</header>
 	<? include BigTree::path("admin/layouts/_tinymce.php"); ?>
 	<form method="post" class="module" action="<?=ADMIN_ROOT?>pages/<?=$action?>/" enctype="multipart/form-data" id="page_form">
-		<? if (isset($_GET["return"]) && $_GET["return"] == "front") { ?>
+		<?
+			if (isset($_GET["return"]) && $_GET["return"] == "front") {
+		?>
 		<input type="hidden" name="return_to_front" value="true" />
-		<? } ?>
+		<?
+			}
+			if (isset($_GET["return_to_self"])) {
+		?>
+		<input type="hidden" name="return_to_self" value="true" />
+		<?
+			}
+		?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="<? if ($action == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$page["id"]?>" />
 		

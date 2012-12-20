@@ -47,6 +47,8 @@
 	foreach ($pages_nav["children"] as &$child) {
 		$child["link"] = str_replace("{id}",end($bigtree["commands"]),$child["link"]);
 	}
+	// Pass the current page into $_GET vars for the edit.
+	$pages_nav["children"]["edit"]["get_vars"] = array("return_to_self" => true);
 	// Replace the home icon if it's not the parent page.
 	if (!$id) {
 		$pages_nav["children"]["view-tree"]["icon"] = "home";
@@ -65,6 +67,7 @@
 		unset($pages_nav["children"]["add"]);
 		unset($pages_nav["children"]["edit"]);
 	}
+
 
 	// If we can't find the parent or the current page, stop.
 	if (!$page) {

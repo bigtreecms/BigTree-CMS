@@ -84,6 +84,8 @@
 		}
 	} elseif (end($bigtree["path"]) == "preview") {
 		$redirect_url = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
+	} elseif ($_POST["return_to_self"]) {
+		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["id"]."/";
 	} else {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/";
 	}

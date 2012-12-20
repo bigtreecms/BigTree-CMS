@@ -65,7 +65,7 @@
 				<? if ($access_level == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
 				<span class="icon_sort"></span>
 				<? } ?>
-				<? if ($class != "archived") { ?>
+				<? if ($class != "archived" && is_numeric($item["id"])) { ?>
 				<a href="<?=$proot?>view-tree/<?=$item["id"]?>/"><?=$item["title"]?></a>
 				<? } else { ?>
 				<?=$item["title"]?>				

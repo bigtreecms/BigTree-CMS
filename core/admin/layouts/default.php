@@ -138,8 +138,15 @@
 				// Draw the nav.
 				foreach ($bigtree["page"]["navigation"] as $item) {
 					if (!$item["hidden"] && (!$item["level"] || $item["level"] <= $admin->Level)) {
+						$get_string = "";
+						if (is_array($item["get_vars"]) && count($item["get_vars"])) {
+							$get_string = "?";
+							foreach ($item["get_vars"] as $key => $val) {
+								$get_string .= "$key=".urlencode($val)."&";
+							}
+						}
 			?>
-			<li><a href="<?=ADMIN_ROOT.$item["link"]?>/"<? if ($active_item == $item) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a></li>
+			<li><a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<? if ($active_item == $item) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a></li>
 			<?
 					}
 				}
