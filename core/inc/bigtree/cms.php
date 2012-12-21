@@ -688,7 +688,7 @@
 		
 		function getPreviewLink($id) {
 			if ($id == 0) {
-				return WWW_ROOT;
+				return WWW_ROOT."_preview/";
 			} elseif (substr($id,0,1) == "p") {
 				return WWW_ROOT."_preview-pending/".substr($id,1)."/";
 			} else {
