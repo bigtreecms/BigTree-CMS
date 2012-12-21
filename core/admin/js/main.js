@@ -19,6 +19,10 @@ $(document).ready(function() {
 	}).blur(function() {
 		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").fadeOut(200, function() { $(this).html(\"\"); });", 300);
 	});
+	$("nav.main .advanced_search").live("click",function() {
+		$("#quick_search_results").parents().submit();
+		return false;
+	});
 	
 	// !BigTree Link Finder
 	$("#link_finder").keyup(function() {

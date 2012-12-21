@@ -305,6 +305,9 @@
 	#quick_search_results li:nth-child(even) a { background: #F3F3F3; }
 	#quick_search_results li:last-child a { border-bottom: none; border-width: 0; }
 	#quick_search_results li a:hover { background: #d6eefc; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); border-left: none; border-right: none; }
+	#quick_search_results .advanced_search { background-gradient: #436D86 #578FB1; border-bottom: none; border-top: 1px solid #DDD; color: #FFF; }
+	#quick_search_results a.no_results { border-top: none; }
+	#quick_search_results p.no_results { background: #FFF; }
 
 	#growl { margin: -10px 8px 0 707px; position: absolute; width: 245px; }
 	#growl article { background: url(../images/growl-bg.png); border-bottom: 1px solid #222; border-radius: 4px; box-shadow: 0px 2px 4px rgba(0,0,0,0.5); margin: 5px 0 0 0; overflow: hidden; padding: 15px; }
