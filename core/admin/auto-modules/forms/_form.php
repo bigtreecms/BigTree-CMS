@@ -81,10 +81,8 @@
 				Save &amp; Preview
 			</a>
 			<? } ?>
-			<input type="submit" class="button<? if ($permission_level == "e") { ?> blue<? } ?>" tabindex="<?=$tabindex?>" value="Save" name="save" />
-			<? if ($permission_level == "p") { ?>
-			<input type="submit" class="button blue" tabindex="<?=($tabindex + 1)?>" value="Save & Publish" name="save_and_publish" />
-			<? } ?>
+			<input type="submit" class="button<? if ($permission_level != "p") { ?> blue<? } ?>" tabindex="<?=$tabindex?>" value="Save" name="save" />
+			<input type="submit" class="button blue" tabindex="<?=($tabindex + 1)?>" value="Save & Publish" name="save_and_publish" <? if ($permission_level != "p") { ?>style="display: none;" <? } ?>/>
 		</footer>
 	</form>
 </div>
@@ -129,4 +127,20 @@
 
 		return false;
 	});
+
+	<? if ($permission_level == "p" || !$edit_id) { ?>
+	$(".gbp_select").change(function() {
+		access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
+		if (access_level == "p") {
+			$("input[name=save]").removeClass("blue");
+			$("input[name=save_and_publish]").show();
+		} else {
+			$("input[name=save]").addClass("blue");
+			$("input[name=save_and_publish]").hide();
+		}
+	});
+	$(window).load(function() {
+		$(".gbp_select").trigger("change");
+	});
+	<? } ?>
 </script>

@@ -343,28 +343,31 @@
 				group - A group id.
 
 			Returns:
-				true if the user can access this group, otherwise false.
+				The permission level if the user can access this group, otherwise false.
 		*/
 
 		function canAccessGroup($module,$group) {
 			if ($this->Level > 0) {
-				return true;
+				return "p";
 			}
 
 			$id = $module["id"];
+			$level = false;
 
 			if ($this->Permissions["module"][$id] && $this->Permissions["module"][$id] != "n") {
-				return true;
+				$level = $this->Permissions["module"][$id];
 			}
 
 			if (is_array($this->Permissions["module_gbp"][$id])) {
 				$gp = $this->Permissions["module_gbp"][$id][$group];
-				if ($gp && $gp != "n") {
-					return true;
+				if ($gp != "n") {
+					if ($gp == "p" || !$level) {
+						$level = $gp;
+					}
 				}
 			}
 
-			return false;
+			return $level;
 		}
 
 		/*
