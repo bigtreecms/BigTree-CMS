@@ -2230,11 +2230,19 @@
 			}
 
 			if (is_array($this->Permissions["module_gbp"][$id])) {
-				$gv = $item["gbp_field"];
-				$gp = $this->Permissions["module_gbp"][$id][$gv];
+				$current_gbp_value = $item["gbp_field"];
+				$original_gbp_value = $item["published_gbp_field"];
 
-				if ($gp != "n") {
-					return $gp;
+				$access_level = $this->Permissions["module_gbp"][$id][$current_gbp_value];
+				if ($access_level != "n") {
+					$original_access_level = $this->Permissions["module_gbp"][$id][$original_gbp_value];
+					if ($original_access_level != "p") {
+						$access_level = $original_access_level;
+					}
+				}
+
+				if ($access_level != "n") {
+					return $access_level;
 				}
 			}
 

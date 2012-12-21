@@ -4,6 +4,7 @@
 	$admin->lockCheck($form["table"],$edit_id,"admin/auto-modules/forms/_locked.php",$force);
 
 	$data = BigTreeAutoModule::getPendingItem($form["table"],$edit_id);
+	$original_item = BigTreeAutoModule::getItem($form["table"],$edit_id);
 		
 	if (!$data) {
 ?>
@@ -19,6 +20,12 @@
 		$item = $data["item"];
 		
 		$permission_level = $admin->getAccessLevel($module,$item,$form["table"]);
+		if ($permission_level != "n") {
+			$original_permission_level = $admin->getAccessLevel($module,$original_item["item"],$form["table"]);
+			if ($original_permission_level != "p") {
+				$permission_level = $original_permission_level;
+			}
+		}
 		
 		if (!$permission_level || $permission_level == "n") {
 			include BigTree::path("admin/auto-modules/forms/_denied.php");

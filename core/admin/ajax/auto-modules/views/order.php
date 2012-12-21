@@ -2,10 +2,10 @@
 	// Grab View Data
 	$view = BigTreeAutoModule::getView($_POST["view"]);
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForView($view));
-	$perm = $admin->getAccessLevel($module);
+	$access_level = $admin->getAccessLevel($module);
 	$table = $view["table"];
 	
-	if ($perm == "p") {
+	if ($access_level == "p") {
 		parse_str($_POST["sort"]);
 	
 		foreach ($row as $position => $id) {

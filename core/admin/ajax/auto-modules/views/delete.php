@@ -1,7 +1,7 @@
 <?
 	include "_setup.php";
 	
-	if ($perm != "p") {
+	if ($access_level != "p") {
 		echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to delete this item.");';
 	} else {
 		echo 'BigTree.Growl("'.$module["name"].'","Deleted item."); $("#row_'.$_GET["id"].'").remove();';

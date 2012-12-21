@@ -18,12 +18,18 @@
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$permission = $admin->getAccessLevel($module,$_POST,$form["table"]);
 	if ($_POST["id"] && $permission && $permission != "n") {
+		$original_item = BigTreeAutoModule::getItem($form["table"],$_POST["id"]);
 		$existing_item = BigTreeAutoModule::getPendingItem($form["table"],$_POST["id"]);
 		$previous_permission = $admin->getAccessLevel($module,$existing_item["item"],$form["table"]);
+		$original_permission = $admin->getAccessLevel($module,$original_item["item"],$form["table"]);
 
 		// If the current permission is e or p, drop it down to e if the old one was e.
 		if ($previous_permission != "p") {
 			$permission = $previous_permission;
+		}
+		// Check the original. If we're not already at "you're not allowed" then apply the original permission.
+		if ($permission != "n" && $original_permission != "p") {
+			$permission = $original_permission;
 		}
 	}
 

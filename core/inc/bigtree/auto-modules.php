@@ -23,6 +23,7 @@
 		static function cacheNewItem($id,$table,$pending = false,$recache = false) {
 			if (!$pending) {
 				$item = sqlfetch(sqlquery("SELECT `$table`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `$table` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `$table`.id AND bigtree_pending_changes.table = '$table') WHERE `$table`.id = '$id'"));
+				$original_item = $item;
 				if ($item["bigtree_changes"]) {
 					$changes = json_decode($item["bigtree_changes"],true);
 					foreach ($changes as $key => $change) {
@@ -35,6 +36,7 @@
 				$item["bigtree_pending"] = true;
 				$item["bigtree_pending_owner"] = $f["user"];
 				$item["id"] = "p".$f["id"];
+				$original_item = $item;
 			}
 			
 			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
@@ -69,7 +71,7 @@
 						}
 					}
 					
-					self::cacheRecord($item,$view,$parsers,$poplists);
+					self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
 				}
 			}
 		}
@@ -83,9 +85,10 @@
 				view - The related view entry.
 				parsers - An array of manual parsers set in the view.
 				poplists - An array of populated lists that relate to the item.
+				original_item - The item without pending changes applied for GBP.
 		*/
 		
-		static function cacheRecord($item,$view,$parsers,$poplists) {
+		static function cacheRecord($item,$view,$parsers,$poplists,$original_item) {
 			global $cms;
 			
 			// Setup the fields and VALUES to INSERT INTO the cache table.
@@ -139,6 +142,8 @@
 			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
 				$fields[] = "gbp_field";
 				$vals[] = "'".sqlescape($item[$view["gbp"]["group_field"]])."'";
+				$fields[] = "published_gbp_field";
+				$vals[] = "'".sqlescape($original_item[$view["gbp"]["group_field"]])."'";
 			}
 			
 			// Run parsers
@@ -237,6 +242,7 @@
 			// Cache all records that are published (and include their pending changes)
 			$q = sqlquery("SELECT `".$view["table"]."`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND bigtree_pending_changes.table = '".$view["table"]."')");
 			while ($item = sqlfetch($q)) {
+				$original_item = $item;
 				if ($item["bigtree_changes"]) {
 					$changes = json_decode($item["bigtree_changes"],true);
 					foreach ($changes as $key => $change) {
@@ -244,7 +250,7 @@
 					}
 				}	
 
-				self::cacheRecord($item,$view,$parsers,$poplists);
+				self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
 			}
 
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '".$view["table"]."' AND item_id IS NULL");
@@ -254,7 +260,7 @@
 				$item["bigtree_pending_owner"] = $f["user"];
 				$item["id"] = "p".$f["id"];
 				
-				self::cacheRecord($item,$view,$parsers,$poplists);
+				self::cacheRecord($item,$view,$parsers,$poplists,$item);
 			}
 			
 			return true;
@@ -548,6 +554,48 @@
 			
 			return $groups;
 		}
+
+		/*
+			Function: getItem
+				Returns an entry from a table with all its related information.
+				If a pending ID is passed in (prefixed with a p) getPendingItem is called instead.
+
+			Parameters:
+				table - The table to pull the entry from.
+				id - The id of the entry.
+
+			Returns:
+				An array with the following key/value pairs:
+				"item" - The entry from the table with pending changes already applied.
+				"tags" - A list of tags for the entry.
+				
+				Returns false if the entry could not be found.
+		*/
+
+		static function getItem($table,$id) {
+			global $cms;
+
+			// The entry is pending if there's a "p" prefix on the id
+			if (substr($id,0,1) == "p") {
+				return self::getPendingItem($table,$id);
+			}
+			// Otherwise it's a live entry
+			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			if (!$item) {
+				return false;
+			}
+			$tags = self::getTagsForEntry($table,$id);
+
+			// Process the internal page links, turn json_encoded arrays into arrays.
+			foreach ($item as $key => $val) {
+				if (is_array(json_decode($val,true))) {
+					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
+				} else {
+					$item[$key] = $cms->replaceInternalPageLinks($val);
+				}
+			}
+			return array("item" => $item, "tags" => $tags);
+		}
 		
 		/*
 			Function: getModuleForForm
@@ -596,7 +644,7 @@
 				id - The id of the entry.
 			
 			Returns:
-				An array with the follow elements:
+				An array with the following key/value pairs:
 				"item" - The entry from the table with pending changes already applied.
 				"mtm" - A list of many to many pending changes.
 				"tags" - A list of tags for the entry.

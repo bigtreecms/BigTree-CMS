@@ -2,7 +2,7 @@
 	include "_setup.php";
 	
 	if ($item["approved"]) {
-		if ($perm != "p") {
+		if ($access_level != "p") {
 			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
 			echo 'BigTree.Growl("'.$module["name"].'","Item is now unapproved.");';
@@ -13,7 +13,7 @@
 			}
 		}
 	} else {
-		if ($perm != "p") {
+		if ($access_level != "p") {
 			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
 			echo 'BigTree.Growl("'.$module["name"].'","Item is now approved.");';

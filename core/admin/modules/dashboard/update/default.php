@@ -247,4 +247,12 @@
 		// Force all the views to update their cache.
 		sqlquery("TRUNCATE TABLE `bigtree_module_view_cache`");
 	}
+
+	// BigTree 4.0RC2 update -- REVISION 18
+	function _local_bigtree_update_18() {
+		// Adds a sort column to the view cache
+		sqlquery("ALTER TABLE `bigtree_module_view_cache` ADD COLUMN `published_gbp_field` TEXT NOT NULL AFTER `gbp_field`");
+		// Force all the views to update their cache.
+		sqlquery("TRUNCATE TABLE `bigtree_module_view_cache`");
+	}
 ?>
