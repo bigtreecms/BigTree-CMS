@@ -290,9 +290,10 @@
 			die("Permission denied to module: ".$module["name"]);
 		}
 
-		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",array_slice($bigtree["path"],2));
+		$ajax_path = array_slice($bigtree["path"],2);
+		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
 		if (!$inc) {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",array_slice($bigtree["path"],2));
+			list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
 		}
 		if (!file_exists($inc)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
@@ -359,11 +360,17 @@
 	$inc = false;
 	$primary_route = $bigtree["path"][1];
 
+	$module_path = array_slice($bigtree["path"],1);
 	// Check custom
-	list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",array_slice($bigtree["path"],1));
+	list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
 	// Check core
 	if (!$inc) {
-		list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",array_slice($bigtree["path"],1));
+		list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+	}
+	if (count($commands)) {
+		$bigtree["module_path"] = array_slice($module_path,1,-1 * count($commands));
+	} else {
+		$bigtree["module_path"] = array_slice($module_path,1);
 	}
 	// Check pages
 	if (!$inc) {

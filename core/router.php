@@ -301,6 +301,11 @@
 			}
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
 			$bigtree["commands"] = $commands;
+			if (count($commands)) {
+				$bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
+			} else {
+				$bigtree["module_path"] = array_slice($path_components,0);
+			}
 			
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
 			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
