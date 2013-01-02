@@ -344,15 +344,20 @@
 	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
 	// It's been more than 24 hours since we last ran cron.
 	if ((time() - $last_check) > (24 * 60 * 60)) {
+		// Update the setting.
+		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
 		// Email the daily digest
 		$admin->emailDailyDigest();
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalytics;
 		if ($ga->API && $ga->Profile) {
-			$ga->cacheInformation();
+			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
+			try {
+				$ga->cacheInformation();
+			} catch (Exception $e) {
+				// We should log this in 4.1
+			}
 		}
-		// Update the setting.
-		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
 	}
 	
 	// Normal page routing.
