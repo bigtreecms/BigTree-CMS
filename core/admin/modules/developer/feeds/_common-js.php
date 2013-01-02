@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 
 	$("#feed_table").change(function(event,data) {

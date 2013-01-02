@@ -14,6 +14,6 @@
 </div>
 
 <? include BigTree::path("admin/modules/developer/templates/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	var resource_count = <?=$x?>;
 </script>

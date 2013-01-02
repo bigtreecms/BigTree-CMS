@@ -50,10 +50,10 @@
 		<? if (isset($bigtree["css"]) && is_array($bigtree["css"])) { foreach ($bigtree["css"] as $style) { ?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
 		<? } } ?>
-		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/lib.js"></script>
-		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/main.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<? if (isset($bigtree["js"]) && is_array($bigtree["js"])) { foreach ($bigtree["js"] as $script) { ?>
-		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
+		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
 		<? } } ?>
 		<!--[if lt IE 9]>
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>

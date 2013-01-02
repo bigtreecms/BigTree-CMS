@@ -135,7 +135,7 @@
 <?
 		if ($draggable && $access_level) {
 ?>
-<script type="text/javascript">
+<script>
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page["id"]?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});

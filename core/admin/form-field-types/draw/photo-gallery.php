@@ -55,7 +55,7 @@
 		</footer>
 	</div>
 </fieldset>
-<script type="text/javascript">
+<script>
 	test = new BigTreePhotoGallery("pgw_<?=$cms->urlify($key)?>","<?=$key?>",<?=$pgw_current?>);
 	$("#pgw_<?=$cms->urlify($key)?> img").load(function() {
 		w = $(this).width();

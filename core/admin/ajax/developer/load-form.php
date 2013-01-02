@@ -204,7 +204,7 @@
 </fieldset>
 <? } ?>
 
-<script type="text/javascript">
+<script>
 	mtm_count = <?=$mtm_count?>;
 	
 	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {

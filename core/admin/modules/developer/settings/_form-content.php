@@ -36,7 +36,7 @@
 		<textarea name="description" id="setting_description"><?=$description?></textarea>
 	</fieldset>
 </section>
-<script type="text/javascript">
+<script>
 	$(".icon_settings").live("click",function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
 			new BigTreeDialog("Settings Options",response.responseText,function(data) {

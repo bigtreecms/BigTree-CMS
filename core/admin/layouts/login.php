@@ -12,8 +12,8 @@
 		<meta name="robots" content="noindex,nofollow" />
 		<title><?=$site["nav_title"]?> Login</title>
 		<link rel="stylesheet" href="<?=$root?>css/main.css" type="text/css" media="screen" charset="utf-8" />
-		<script type="text/javascript" src="<?=$root?>js/lib.js"></script>
-		<script type="text/javascript" src="<?=$root?>js/main.js"></script>
+		<script src="<?=$root?>js/lib.js"></script>
+		<script src="<?=$root?>js/main.js"></script>
 	</head>
 	<body class="login">
 		<div class="login_wrapper">

@@ -2,7 +2,7 @@
 	// If we've enabled Disqus in the admin for commenting we're either going to load the comment counts for a post list or show the comment thread on the detail page.
 	if ($settings["disqus"]) {
 ?>
-<script type="text/javascript">
+<script>
 	var disqus_shortname = '<?=$settings["disqus"]?>';
 	<?
 		// Draw the comment thread if we're on the detail page

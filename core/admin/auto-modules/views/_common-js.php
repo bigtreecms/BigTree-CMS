@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	var deleteConfirm,deleteTimer,deleteId,searchTimer;
 
 	$("#search").keyup(function() {

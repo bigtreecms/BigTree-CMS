@@ -1,4 +1,6 @@
-<script type="text/javascript" src="<?=ADMIN_ROOT?>js/jcrop.min.js"></script>
+<?
+	$bigtree["js"][] = "jcrop.min.js";
+?>
 <h2>Crop Images</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/">
 	<div class="overflow">
@@ -56,7 +58,7 @@
 					<input type="hidden" name="y[]" id="y<?=$x?>" />
 					<input type="hidden" name="width[]" id="width<?=$x?>" />
 					<input type="hidden" name="height[]" id="height<?=$x?>" />
-					<script type="text/javascript">
+					<script>
 						$(document).ready(function() {
 							$("#cropImage<?=$x?>").Jcrop({
 								minSize: [<?=$min_width?>,<?=$min_height?>],
@@ -85,7 +87,7 @@
 		<input type="submit" class="blue" value="Crop Image" />			
 	</footer>
 </form>
-<script type="text/javascript">
+<script>
 	var current = 1;
 	var max = <?=count($crops)?>;
 	

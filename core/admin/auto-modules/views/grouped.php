@@ -14,7 +14,7 @@
 </div>
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	function _local_search() {
 		$("#table_contents").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/grouped/", { view: <?=$view["id"]?>, search: $("#search").val() }, _local_refreshSort);
 	}

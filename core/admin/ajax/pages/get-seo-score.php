@@ -19,7 +19,7 @@
 	$goal_text .= '<p><a href="'.$wiki.'SEO" target="wiki">Learn More About SEO Goals</a></p>';
 ?>
 <?=$goal_text?>
-<script type="text/javascript">
+<script>
 	$("li.seo_info p").html('<strong style="color: <?=$seo_color?>"><?=$seo_rating?>%</strong> SEO Rating');
 	$(".seo_goals").html("<?=str_replace('"','\"',$goal_text)?>");
 </script>

@@ -45,7 +45,7 @@
 	}
 ?>
 
-<script type="text/javascript">
+<script>
 	var dragging = false;
 	var growing = false;
 	var shrinking = false;

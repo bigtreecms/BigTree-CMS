@@ -303,7 +303,7 @@
 	</form>
 </div>
 
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 	
 	$(".user_permissions header a").click(function() {		

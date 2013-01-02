@@ -14,7 +14,7 @@
 		<a class="button blue" href="?force=true">Unlock</a>
 	</footer>
 </form>
-<script type="text/javascript">
+<script>
 	$("footer .cancel").click(function() {
 		parent.bigtree_bar_cancel();
 		

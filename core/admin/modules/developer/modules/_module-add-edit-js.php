@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 	
 	var gbp_count = <?=count($gbp)?>;

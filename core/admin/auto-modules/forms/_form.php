@@ -67,7 +67,7 @@
 					<ul id="tag_results" style="display: none;"></ul>
 				</fieldset>
 			</div>
-			<script type="text/javascript">
+			<script>
 				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$edit_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
 			</script>
 			<?
@@ -88,7 +88,7 @@
 </div>
 <?
 	if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
-		include BigTree::path("admin/layouts/_tinymce.php"); 
+		$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 
 		if (count($bigtree["html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific.php");
@@ -98,7 +98,7 @@
 		}
 	}
 ?>
-<script type="text/javascript">
+<script>
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>

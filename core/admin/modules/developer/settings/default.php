@@ -29,7 +29,7 @@
 	</ul>
 </div>
 
-<script type="text/javascript">	
+<script>	
 	$(".icon_delete").click(function() {
 		new BigTreeDialog("Delete Setting",'<p class="confirm">Are you sure you want to delete this setting?',$.proxy(function() {
 			document.location.href = $(this).attr("href");

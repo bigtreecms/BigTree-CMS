@@ -138,7 +138,7 @@
 </div>
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	<? if ($permission == "p" && $draggable) { ?>
 	$("#image_list").sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });

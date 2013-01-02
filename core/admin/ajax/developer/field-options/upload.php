@@ -140,7 +140,7 @@
 	</fieldset>
 </div>
 
-<script type="text/javascript">
+<script>
 	$("#image_uploader_enabled").click(function() {
 		$("#image_uploader_options").toggle();
 	});

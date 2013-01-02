@@ -81,5 +81,5 @@
 		<?=$bigtree["content"]?>
 	</div>
 </div>
-<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4ff2070613781eec"></script>
+<script src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4ff2070613781eec"></script>
 <? include "_footer.php" ?>

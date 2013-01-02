@@ -1,1 +1,0 @@
-<script type="text/javascript" src="<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js"></script>

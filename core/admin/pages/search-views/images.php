@@ -47,7 +47,7 @@
 		</ul>
 	</section>
 </div>
-<script type="text/javascript">
+<script>
 	var deleteConfirm,deleteTimer,deleteId;
 	
 	$("#image_list_<?=$view["id"]?> .icon_edit").click(function() {

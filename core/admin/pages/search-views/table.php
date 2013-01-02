@@ -75,7 +75,7 @@
 	</ul>
 </div>
 
-<script type="text/javascript">
+<script>
 	var deleteConfirm,deleteTimer,deleteId;
 
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {

@@ -16,7 +16,7 @@
 	</ul>
 </div>
 
-<script type="text/javascript">
+<script>
 	var current_page = 0;
 	var sort = "name";
 	var sortdir = "ASC";

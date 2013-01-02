@@ -20,7 +20,7 @@
 	<? include BigTree::path("admin/ajax/pages/callout-resources.php") ?>
 </div>
 
-<script type="text/javascript">
+<script>
 	BigTreeCustomControls();
 	
 	$("#callout_type select").change(function(event,data) {

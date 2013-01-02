@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	$("#form_table").change(function(event,data) {
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value }, _local_hooks);
 		$("#create").show();

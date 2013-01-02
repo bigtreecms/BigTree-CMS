@@ -72,7 +72,7 @@
 </div>
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	var mpage = 0;
 	var sort = "<?=$sort_column?>";
 	var sortdir = "<?=$sort_direction?>";

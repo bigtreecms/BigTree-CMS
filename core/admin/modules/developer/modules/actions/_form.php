@@ -55,7 +55,7 @@
 		<input type="checkbox" name="in_nav" <? if ($item["in_nav"]) { ?>checked="checked" <? } ?>/>
 	</fieldset>
 </section>
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 	$("select[name=form]").change(function() {
 		if ($(this).val()) {

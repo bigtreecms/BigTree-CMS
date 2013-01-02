@@ -30,7 +30,7 @@
 	<? } ?>
 </div>
 
-<script type="text/javascript">
+<script>
 	var pages = [<? echo implode(",",$pages) ?>];
 	var modules = <?=json_encode($modules)?>;
 	

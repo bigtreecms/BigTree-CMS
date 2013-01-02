@@ -149,7 +149,7 @@
 		?>
 	</ul>
 </div>
-<script type="text/javascript">
+<script>
 	var pages_of_messages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
 	
 	BigTree.SetPageCount("#unread_paging",<?=$unread_pages?>,0);

@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	$("#view_table").change(function(event,data) {
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value);
 	});

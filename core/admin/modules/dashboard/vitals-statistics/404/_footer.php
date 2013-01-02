@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	var update_timer;
 	var search_timer;
 	var search = "";

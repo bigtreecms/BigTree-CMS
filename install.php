@@ -461,8 +461,8 @@ RewriteRule (.*) site/$1 [L]');
 		<link rel="stylesheet" href="<?=$www_root?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
 		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
-		<script type="text/javascript" src="core/admin/js/lib.js"></script>
-		<script type="text/javascript" src="core/admin/js/main.js"></script>
+		<script src="core/admin/js/lib.js"></script>
+		<script src="core/admin/js/main.js"></script>
 		<?php } ?>
 	</head>
 	<body class="install">
@@ -650,7 +650,7 @@ RewriteRule (.*) site/$1 [L]');
 					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
 				</fieldset>
 			</form>
-		    <script type="text/javascript">
+		    <script>
 		        $(document).ready(function() {
 		        	$("#loadbalanced").on("change", function() {
 		        		if ($(this).is(':checked')) {

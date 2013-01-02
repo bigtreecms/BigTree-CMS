@@ -41,7 +41,7 @@
 	</ul>
 </div>
 
-<script type="text/javascript">
+<script>
 	$("#group_<?=$g["id"]?>").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-modules/", { type: "POST", data: { sort: $("#group_<?=$g["id"]?>").sortable("serialize") } });
 	}});
@@ -86,7 +86,7 @@
 	}
 ?>
 
-<script type="text/javascript">
+<script>
 	$("#group_0").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-modules/", { type: "POST", data: { sort: $("#group_0").sortable("serialize") } });
 	}});
