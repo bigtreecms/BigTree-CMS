@@ -87,7 +87,8 @@
 			$cache["year_ago_year"] = $this->parseNode($this->API->data_ga->get("ga:".$this->Profile,date('Y-01-01',strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),"ga:pageviews,ga:visits,ga:bounces,ga:timeOnSite",array("dimensions" => "ga:browser", "max-results" => 100000)));
 			
 			// Quarterly Report
-			$current_quarter_month = date("m") - date("m") % 3;
+			$quarters = array(1,3,6,9);
+			$current_quarter_month = $quarters[floor((date("m") - 1) / 3)];
 			$cache["quarter"] = $this->parseNode($this->API->data_ga->get("ga:".$this->Profile,date("Y-".str_pad($current_quarter_month,2,"0",STR_PAD_LEFT)."-01"),date("Y-m-d"),"ga:pageviews,ga:visits,ga:bounces,ga:timeOnSite",array("dimensions" => "ga:browser", "max-results" => 100000)));
 			$cache["year_ago_quarter"] = $this->parseNode($this->API->data_ga->get("ga:".$this->Profile,date("Y-".str_pad($current_quarter_month,2,"0",STR_PAD_LEFT)."-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),"ga:pageviews,ga:visits,ga:bounces,ga:timeOnSite",array("dimensions" => "ga:browser", "max-results" => 100000)));
 						
