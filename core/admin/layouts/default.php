@@ -50,7 +50,16 @@
 		}
 	}
 
-	include BigTree::path("admin/layouts/_header.php");
+	// If this is a "Partial" page request then we're going to deliver JSON and let JavaScript construct it.
+	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
+		ob_start();
+		foreach ($breadcrumb as &$item) {
+			$item["title"] = htmlspecialchars(htmlspecialchars_decode($item["title"]));
+		}
+		unset($item);
+	// Otherwise, full page render, so include the header and draw the breadcrumb.
+	} else {
+		include BigTree::path("admin/layouts/_header.php");
 ?>
 <ul class="breadcrumb">
 	<?
@@ -71,6 +80,9 @@
 		}
 	?>
 </ul>
+<?
+	}
+?>
 <div id="page">
 	<?
 		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
@@ -159,4 +171,19 @@
 		echo $bigtree["content"];
 	?>
 </div>
-<? include BigTree::path("admin/layouts/_footer.php") ?>
+<?
+	// Send JSON if we're doing a partial.
+	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
+		header("Content-type: text/json");
+		$site = $cms->getPage(0,false);
+		$title = $module_title ? $module_title." | ".$site["nav_title"]." Admin" : $site["nav_title"]." Admin";
+		echo json_encode(array(
+			"breadcrumb" => $breadcrumb,
+			"title" => $title,
+			"page" => ob_get_clean()
+		));
+	// Otherwise include the footer
+	} else {
+		include BigTree::path("admin/layouts/_footer.php");
+	}
+?>

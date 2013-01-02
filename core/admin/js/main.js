@@ -130,6 +130,9 @@ $(document).ready(function() {
 		
 		$(this).css(style);
 	});
+
+	// Quick Loader
+	BigTreeQuickLoader.init();
 });
 
 function BigTreeCustomControls() {
@@ -2327,3 +2330,105 @@ var BigTree = {
 		return windowHeight;
 	}
 }
+
+// !BigTree Quick Loader, adapted from Ben Plum's cool Proto jQuery Plugin @ https://github.com/benplum/Pronto
+var BigTreeQuickLoader = {
+
+	init: function() {
+		var supported = window.history && window.history.pushState && window.history.replaceState;
+		if (!supported) {
+			return;
+		}
+		
+		history.replaceState({
+			url: window.location.href,
+			data: {
+				"title": $("head").find("title").text(),
+				"breadcrumb": $("ul.breadcrumb").html(),
+				"page": $("#page").html()
+			}
+		}, "state-" + window.location.href, window.location.href);
+		
+		$(window).on("popstate", this.pop);
+		$("body").on("click","a",this.click);
+
+		this.url = window.location.href;
+	},
+
+	click: function(e) {
+		var link = e.currentTarget;
+		
+		// Ignore everything but normal clicks
+		if ((e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) ||
+			(window.location.protocol !== link.protocol || window.location.host !== link.host) ||
+			(link.hash && link.href.replace(link.hash, '') === window.location.href.replace(location.hash, '') || link.href === window.location.href + '#')) {
+			return;
+		}
+		
+		e.preventDefault();
+		e.stopPropagation();
+		
+		BigTreeQuickLoader.request(link.href);
+	},
+
+	request: function(url) {
+		// Call new content
+		$.ajax({
+			url: url,
+			headers: { "BigTree-Partial": "True" },
+			dataType: "json",
+			success: function(response) {
+				BigTreeQuickLoader.render(url,response,true);
+			},
+			error: function(response) {
+				window.location.href = url;
+			}
+		});
+	},
+
+	pop: function(e) {
+		var state = e.originalEvent.state;
+		if (state !== null && (state.url !== BigTreeQuickLoader.url)) {
+			BigTreeQuickLoader.render(state.url, state.data, false);
+		}
+	},
+	
+	render: function(url,data,push) {
+		$(window).scrollTop(0);
+		
+		if (typeof data.breadcrumb === "string") {
+			breadcrumb = data.breadcrumb;
+		} else {
+			breadcrumb = "";
+			for (i = 0; i < data.breadcrumb.length; i++) {
+				crumb = data.breadcrumb[i];
+				if (i == data.breadcrumb.length - 1) {
+					breadcrumb += '<li><a href="admin_root/' + crumb.link + '/" class="last">' + crumb.title + '</a></li>';
+				} else {
+					if (i == 0) {
+						breadcrumb += '<li class="first">';
+					} else {
+						breadcrumb += '<li>';
+					}
+					breadcrumb += '<a href="admin_root/' + crumb.link + '/">' + crumb.title + '</a></li><li>&rsaquo;</li>';	
+				}
+			}
+		}
+
+		document.title = data.title;
+		$("#page").html(data.page);
+		$("ul.breadcrumb").html(breadcrumb);
+
+		BigTreeCustomControls();
+		
+		// Push new states to the stack
+		if (push) {
+			history.pushState({
+				url: url,
+				data: data
+			}, "state-" + url, url);
+		}
+		
+		BigTreeQuickLoader.url = url;
+	}
+};
