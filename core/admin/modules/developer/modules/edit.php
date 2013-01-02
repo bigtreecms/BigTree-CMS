@@ -225,7 +225,7 @@
 
 <? include BigTree::path("admin/modules/developer/modules/_module-add-edit-js.php") ?>
 
-<script type="text/javascript">
+<script>
 	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-actions/", { type: "POST", data: { sort: $("#actions").sortable("serialize") } }); 
 	}});

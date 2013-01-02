@@ -122,7 +122,7 @@
 	</ul>
 </fieldset>
 
-<script type="text/javascript">
+<script>
 	var current_editing_key;
 	
 	$(".form_table .icon_delete").live("click",function() {

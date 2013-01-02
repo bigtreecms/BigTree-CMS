@@ -57,7 +57,7 @@
 	<a href="#" class="button">Cancel</a>
 </div>
 
-<script type="text/javascript">
+<script>
 	$("#bigtree_foundry_browser_window .navigation_pane a").click(function(ev) {
 		directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
 		$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { directory: directory });

@@ -121,6 +121,6 @@
 <?
 	}
 ?>
-<script type="text/javascript">
+<script>
 	BigTree.SetPageCount("#view_paging",<?=$pages?>,<?=$page?>);
 </script>

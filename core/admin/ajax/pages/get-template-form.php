@@ -131,13 +131,13 @@
 	</ul>
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
 </div>
-<script type="text/javascript">
+<script>
 	var callout_count = <?=count($callouts)?>;
 </script>
 <?
 	}
 ?>
-<script type="text/javascript">
+<script>
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>

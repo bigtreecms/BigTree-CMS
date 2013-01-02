@@ -42,7 +42,7 @@
 	</footer>
 </div>
 
-<script type="text/javascript">
+<script>
 	$(".delete").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$id?>", {
 			complete: function() {

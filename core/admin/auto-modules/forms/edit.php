@@ -39,6 +39,6 @@
 		}
 	}
 ?>
-<script type="text/javascript">
+<script>
 	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: '<?=$form["table"]?>', id: '<?=$edit_id?>' } });",60000);
 </script>

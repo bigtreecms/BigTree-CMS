@@ -67,7 +67,7 @@
 		}
 	?>
 </div>
-<script type="text/javascript">
+<script>
 	<? if ($perm == "p") { ?>
 	BigTreeFileManager.enableCreate();
 	<? } else { ?>

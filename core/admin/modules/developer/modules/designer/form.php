@@ -58,7 +58,7 @@
 	</form>
 </div>
 
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 
 	var current_editing_key;

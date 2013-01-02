@@ -2,7 +2,7 @@
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["template"];
 ?>
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 	
 	var current_editing_key;

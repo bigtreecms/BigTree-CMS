@@ -1,6 +1,7 @@
 <?
-	// Include pages.js
+	// Include pages.js and TinyMCE
 	$bigtree["js"][] = "pages.js";
+	$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 	
 	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
 	$hide_template_tab = false;
@@ -26,7 +27,6 @@
 			</div>
 		</div>
 	</header>
-	<? include BigTree::path("admin/layouts/_tinymce.php"); ?>
 	<form method="post" class="module" action="<?=ADMIN_ROOT?>pages/<?=$action?>/" enctype="multipart/form-data" id="page_form">
 		<?
 			if (isset($_GET["return"]) && $_GET["return"] == "front") {
@@ -92,7 +92,7 @@
 	</form>
 </div>
 
-<script type="text/javascript">
+<script>
 	$(".container nav a").click(function() {		
 		t = $(".container").offset().top;
 		if (window.scrollY > t) {

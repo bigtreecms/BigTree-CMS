@@ -13,7 +13,7 @@
 	<br />
 </div>
 
-<script type="text/javascript">
+<script>
 	var _local_table;
 	
 	BigTreeCustomControls();

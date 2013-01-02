@@ -7,7 +7,7 @@
 	</head>
 	<body style="background: transparent;">
 		<p class="file_browser_response">Successfully Created Folder</p>
-		<script type="text/javascript">
+		<script>
 			parent.BigTreeFileManager.finishedUpload();
 		</script>
 	</body>

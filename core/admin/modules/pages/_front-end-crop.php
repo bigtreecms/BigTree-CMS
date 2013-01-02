@@ -58,7 +58,7 @@
 					<input type="hidden" name="y[]" id="y<?=$x?>" />
 					<input type="hidden" name="width[]" id="width<?=$x?>" />
 					<input type="hidden" name="height[]" id="height<?=$x?>" />
-					<script type="text/javascript">
+					<script>
 						$(document).ready(function() {
 							$("#cropImage<?=$x?>").Jcrop({
 								minSize: [<?=$min_width?>,<?=$min_height?>],
@@ -87,7 +87,7 @@
 		<input type="submit" class="blue" value="Crop Image" />			
 	</footer>
 </form>
-<script type="text/javascript">
+<script>
 	var current = 1;
 	var max = <?=count($crops)?>;
 	

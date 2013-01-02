@@ -47,7 +47,7 @@
 <attach event="onpropertychange" onevent="checkPropertyChange()" />
 <attach event="ondetach" onevent="restore()" />
 <attach event="onresize" for="window" onevent="update()" />
-<script type="text/javascript">
+<script>
 //<![CDATA[
 
 var viewportwidth = (typeof window.innerWidth != 'undefined' ? window.innerWidth : element.document.documentElement.clientWidth);

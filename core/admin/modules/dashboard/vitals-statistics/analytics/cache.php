@@ -3,7 +3,7 @@
 		<p><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> &nbsp; Please wait while we retrieve your Google Analytics information.</p>
 	</section>
 </div>
-<script type="text/javascript">
+<script>
 	$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/analytics/cache/", { success: function(response) {
 		if (response) {
 			document.location.href = "<?=$mroot?>";

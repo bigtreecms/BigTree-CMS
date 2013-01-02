@@ -11,7 +11,7 @@
 	</form>
 </div>
 
-<script type="text/javascript">
+<script>
 	$(".developer_icon_list a").click(function() {
 		$(".developer_icon_list a").removeClass("active");
 		$(this).addClass("active");

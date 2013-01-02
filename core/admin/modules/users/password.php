@@ -40,7 +40,7 @@
 	
 	<input type="submit" class="button white" value="Update" />
 </form>
-<script type="text/javascript">
+<script>
 	$("form.module").submit(function() {
 		BigTree.ClearFieldAlerts();
 		newp = $("input[name=new_password]");

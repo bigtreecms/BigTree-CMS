@@ -84,7 +84,7 @@
 		include BigTree::path("admin/modules/pages/_front-end-failed.php");
 	} else {
 ?>
-<script type="text/javascript">parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>
+<script>parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>
 <?
 	}
 ?>

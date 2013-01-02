@@ -101,10 +101,10 @@
 </div>
 <?
 	$bigtree["html_fields"] = array("message");
-	include BigTree::path("admin/layouts/_tinymce.php");
+	$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 ?>
-<script type="text/javascript">
+<script>
 	new BigTreeManyToMany("send_to",<?=$x?>,"send_to",false);
 	new BigTreeFormValidator("#message_form");
 </script>

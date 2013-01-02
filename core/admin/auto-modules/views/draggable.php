@@ -35,7 +35,7 @@
 </div>
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	function _local_search() {
 		$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: <?=$view["id"]?>, search: $("#search").val() }, _local_createSortable);
 	}

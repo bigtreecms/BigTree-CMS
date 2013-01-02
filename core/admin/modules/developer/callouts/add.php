@@ -13,6 +13,6 @@
 </div>
 
 <? include BigTree::path("admin/modules/developer/callouts/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	var resource_count = <?=$x?>;
 </script>

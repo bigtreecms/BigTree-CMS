@@ -43,6 +43,6 @@
 		</footer>
 	</div>
 </fieldset>
-<script type="text/javascript">
+<script>
 	new BigTreeArrayOfItems("<?=$clean_key?>",<?=$x?>,"<?=$key?>",<?=json_encode($aoi_fields)?>);
 </script>

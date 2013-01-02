@@ -118,7 +118,7 @@
 		<? } ?>	
 	</div>
 </div>
-<script type="text/javascript">
+<script>
 	$(".container nav a").click(function() {
 		$(".content_container .content").hide();
 		href = "content_" + $(this).attr("href").substr(1);

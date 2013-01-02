@@ -15,7 +15,7 @@
 	</ul>
 </div>
 
-<script type="text/javascript">
+<script>
 	var deleteTimer,searchTimer;
 	
 	$("#query").keyup(function() {

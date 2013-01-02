@@ -22,12 +22,12 @@
 		</footer>
 	</form>
 </div>
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 </script>
 <?
 	$bigtree["html_fields"] = array("setting_description");
-	include BigTree::path("admin/layouts/_tinymce.php");
+	$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 	
 	unset($module);

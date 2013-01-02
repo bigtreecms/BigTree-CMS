@@ -1,4 +1,4 @@
-<script type="text/javascript">
+<script>
 	var crop_count = <?=$cx?>;
 	var thumb_count = <?=$tx?>;
 	var crop_thumb_count = <?=$ctx?>;

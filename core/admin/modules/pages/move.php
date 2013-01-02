@@ -69,7 +69,7 @@
 	</form>
 </div>
 
-<script type="text/javascript">
+<script>
 	$(".move_page .title").click(function() {		
 		$(".move_page .title").removeClass("active");
 		$(this).addClass("active");

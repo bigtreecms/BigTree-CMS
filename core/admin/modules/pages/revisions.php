@@ -119,7 +119,7 @@
 		<? } ?>
 	</ul>
 </div>
-<script type="text/javascript">
+<script>
 	var active_draft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
 	var page = "<?=$page["id"]?>";
 	var page_updated_at = "<?=$page["updated_at"]?>";

@@ -49,7 +49,7 @@
 		}
 	}
 ?>
-<script type="text/javascript">
+<script>
 	BigTreeCustomControls();
 	
 	$(".table_select").change(function() {

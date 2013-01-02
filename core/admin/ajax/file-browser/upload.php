@@ -113,7 +113,7 @@
 	</head>
 	<body style="background: transparent;">
 		<p class="file_browser_response">Successfully Uploaded</p>
-		<script type="text/javascript">
+		<script>
 			parent.BigTreeFileManager.finishedUpload("<?=$file?>","<?=$type?>","<?=$iwidth?>","<?=$iheight?>");
 		</script>
 	</body>

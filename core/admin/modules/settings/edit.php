@@ -17,8 +17,6 @@
 	if ($item["encrypted"]) {
 		$item["value"] = "";
 	}
-	
-	include BigTree::path("admin/layouts/_tinymce.php");
 ?>
 <div class="container">
 	<header><h2><?=$item["name"]?></h2></header>
@@ -71,7 +69,7 @@
 	if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
 		$mce_width = 898;
 		$mce_height = 365;
-		include BigTree::path("admin/layouts/_tinymce.php"); 
+		$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 				
 		if (count($bigtree["html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific.php");
@@ -82,7 +80,7 @@
 	}
 	
 ?>
-<script type="text/javascript">
+<script>
 	new BigTreeFormValidator("form.module");
 	
 	<?

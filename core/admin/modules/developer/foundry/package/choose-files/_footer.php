@@ -219,7 +219,7 @@
 	</form>
 </div>
 
-<script type="text/javascript">
+<script>
 	$(".add_table a").click(function(ev) {
 		li = $("<li>");
 		table = $("#add_table").val();

@@ -66,7 +66,7 @@
 	<br />
 </div>
 
-<script type="text/javascript">	
+<script>	
 	$("#field_list_types").change(function() {
 		$(".list_type_options").hide();
 		if ($(this).val() == "static") {

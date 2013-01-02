@@ -36,7 +36,7 @@
 		$crumb_contents .= '<li><a href="#'.$crumb["id"].'">'.$crumb["name"].'</a></li>';
 	}
 ?>
-<script type="text/javascript">
+<script>
 	<? if ($perm == "p") { ?>
 	BigTreeFileManager.enableCreate();
 	<? } else { ?>

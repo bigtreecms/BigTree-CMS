@@ -53,7 +53,7 @@
 			
 			//$no_inline = true;
 			if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
-				include BigTree::path("admin/layouts/_tinymce.php");
+				$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 				if (count($bigtree["html_fields"])) {
 					include BigTree::path("admin/layouts/_tinymce_specific.php");
 				}
@@ -78,7 +78,7 @@
 	</footer>
 </form>
 		
-<script type="text/javascript">
+<script>
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>

@@ -96,7 +96,7 @@
 		</footer>
 	</div>
 </fieldset>
-<script type="text/javascript">
+<script>
 	new BigTreeManyToMany("<?=$clean_key?>",<?=$x?>,"<?=$key?>",<?=($sortable ? "true" : "false")?>);
 </script>
 <?

@@ -149,7 +149,7 @@
 </div>
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
-<script type="text/javascript">
+<script>
 	<? if ($permission == "p" && $draggable) { ?>
 	$(".image_list").each(function() {
 		if ($(this).attr("id")) {

@@ -30,7 +30,7 @@
 					if (count($property_lookup)) {
 				?>
 				<div id="analytics_profiles_loading"><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> Loading Profiles: <span id="current_property">0</span> of <?=count($property_lookup)?> complete</div>
-				<script type="text/javascript">
+				<script>
 					var properties = <?=json_encode($property_lookup)?>;
 					var current_property = 0;
 					var profiles = [];
