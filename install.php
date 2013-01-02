@@ -386,6 +386,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
+RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]
 
 php_flag short_open_tag On
 php_flag magic_quotes_gpc Off');
@@ -398,7 +399,8 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
-RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]');
+RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
+RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 		} else {
 			bt_touch_writable("index.php",'<? header("Location: site/index.php/"); ?>');
 		}
