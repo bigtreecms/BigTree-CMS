@@ -5,6 +5,5 @@
 		"rss2" => "RSS 2.0"
 	);
 
-	$breadcrumb[] = array("title" => "Feeds", "link" => "developer/feeds/");
 	$section_root = $developer_root."feeds/";
 ?>

@@ -1,12 +1,5 @@
-<?
-	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
-	$breadcrumb[] = array("title" => "First Data / LinkPoint", "link" => "#");
-?>
-<h1><span class="icon_developer_payment_linkpoint"></span>First Data / LinkPoint</h1>
-<div class="form_container">
-	<header><h2>First Data / LinkPoint Settings</h2></header>
-	<aside>Your current upload service is: <strong><?=$currently?></strong></aside>
-	<form method="post" action="update/" class="module" enctype="multipart/form-data">
+<div class="container">
+	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/linkpoint/update/" class="module" enctype="multipart/form-data">
 		<section>
 			<div class="alert">
 				<p>To enable usage of First Data / LinkPoint as your payment gateway, enter your access information below.</p>

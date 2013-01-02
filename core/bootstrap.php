@@ -3,9 +3,11 @@
 
 	// Set some config vars automatically and setup some globals.
 	$domain = rtrim($bigtree["config"]["domain"],"/");
-	$server_root = str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
+	// This is set now in index.php but is left for backwards compatibility.
+	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
 	$www_root = $bigtree["config"]["www_root"];
+	$admin_root = $bigtree["config"]["admin_root"];
 	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
 	$secure_root = str_replace("http://","https://",$www_root);
 	
@@ -15,7 +17,8 @@
 	define("DOMAIN",$domain);
 	define("SERVER_ROOT",$server_root);
 	define("SITE_ROOT",$site_root);
-	
+	define("ADMIN_ROOT",$admin_root);
+
 	// Include required utility functions
 	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
 		include SERVER_ROOT."custom/inc/bigtree/utils.php";
@@ -24,7 +27,7 @@
 	}
 	
 	// Connect to MySQL and include the shorterner functions
-	include BigTree::path("inc/utils/mysql.inc.php");
+	include BigTree::path("inc/bigtree/sql.php");
 	
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
@@ -39,7 +42,7 @@
 	}
 	
 	// Load Up BigTree!
-	include BigTree::path("inc/bigtree/core.php");
+	include BigTree::path("inc/bigtree/cms.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
 		include BIGTREE_CUSTOM_BASE_CLASS_PATH;
 		eval('$cms = new '.BIGTREE_CUSTOM_BASE_CLASS.';');
@@ -50,18 +53,20 @@
 	// Lazy loading of modules
 	$bigtree["module_list"] = $cms->ModuleClassList;
 	$bigtree["other_classes"] = array(
-		"CSSMin" => "inc/utils/CSSMin.php",
-		"htmlMimeMail" => "inc/utils/html-mail.inc.php",
-		"JSMin" => "inc/utils/JSMin.php",
-		"PasswordHash" => "inc/utils/PasswordHash.php",
-		"TextStatistics" => "inc/utils/text-statistics.php",
-		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
-		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
+		"CSSMin" => "inc/lib/CSSMin.php",
+		"htmlMimeMail" => "inc/lib/html-mail.inc.php",
+		"JSMin" => "inc/lib/JSMin.php",
+		"PasswordHash" => "inc/lib/PasswordHash.php",
+		"TextStatistics" => "inc/lib/text-statistics.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
-		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
-		"S3" => "inc/utils/amazon-s3.php",
-		"CF_Authentication" => "inc/utils/rackspace-cloud.php"
+		"BigTreeForms" => "inc/bigtree/forms.php",
+		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
+		"BigTreeModule" => "inc/bigtree/modules.php",
+		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
+		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
+		"S3" => "inc/lib/amazon-s3.php",
+		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);
 	
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -77,6 +82,9 @@
 			include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
 		} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
 			include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
+		} else {
+			// Clear the module class list just in case we're missing something.
+			unlink(SERVER_ROOT."cache/module-class-list.btc");
 		}
 	}
 	
@@ -84,7 +92,7 @@
 	$d = opendir(SERVER_ROOT."custom/inc/required/");
 	$custom_required_includes = array();
 	while ($f = readdir($d)) {
-		if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
+		if (substr($f,0,1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
 			$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$f";
 		}
 	}

@@ -1,14 +1,10 @@
 <?
-	$breadcrumb[] = array("title" => "Add Module", "link" => "developer/modules/add/");
 	$groups = $admin->getModuleGroups();
 	
 	// Stop notices
 	$gbp = array();
 ?>
-
-<h1><span class="icon_developer_modules"></span>Add Module</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$section_root?>create/" class="module">
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
@@ -39,13 +35,27 @@
 				</fieldset>
 				<fieldset>
 					<label class="required">Class Name <small>(will create a class file in custom/inc/modules/)</small></label>
-					<input name="class" type="text" class="required" />
-				</fieldset>
-				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" />
-					<label class="for_checkbox">Enable Advanced Permissions <small>(allows setting permissions on grouped views)</small></label>
+					<input name="class" type="text" />
 				</fieldset>
 			</div>
+			
+			<br class="clear" />
+			<fieldset>
+		        <label class="required">Icon</label>
+		        <input type="hidden" name="icon" id="selected_icon" value="gear" />
+		        <ul class="developer_icon_list">
+		        	<? foreach ($admin->IconClasses as $class) { ?>
+		        	<li>
+		        		<a href="#<?=$class?>"<? if ($class == "gear") { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        	</li>
+		        	<? } ?>
+		        </ul>
+		    </fieldset>
+
+			<fieldset>
+			    <input type="checkbox" name="gbp[enabled]" id="gbp_on" />
+			    <label class="for_checkbox">Enable Advanced Permissions <small>(allows setting permissions on grouped views)</small></label>
+			</fieldset>
 		</section>
 		<section class="sub" id="gbp" style="display: none;">
 			<div class="left">

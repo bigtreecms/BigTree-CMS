@@ -12,7 +12,7 @@
 	if (!$_POST["query"] && $_POST["folder"] > 0) {
 		$folder = $admin->getResourceFolder($_POST["folder"]);
 ?>
-<a href="#<?=$folder["parent"]?>" class="file folder"><span class="file_type file_type_folder file_type_folder_back"></span> Back</a>
+<a href="#<?=$folder["parent"]?>" class="file folder back"><span class="icon_small icon_small_back"></span>Back</a>
 <?	
 	}
 	
@@ -20,16 +20,13 @@
 	
 		foreach ($items["folders"] as $folder) {
 ?>
-<a href="#<?=$folder["id"]?>" class="file folder<? if ($folder["permission"] == "n") { ?> disabled<? } ?>"><span class="file_type file_type_folder"></span> <?=$folder["name"]?></a>
+<a href="#<?=$folder["id"]?>" class="file folder<? if ($folder["permission"] == "n") { ?> disabled<? } ?>"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></a>
 <?
 		}
 	
 		foreach ($items["resources"] as $resource) {
-			if ($resource["is_image"]) {
-				$resource["type"] = "image";
-			}
 ?>
-<a href="<?=$resource["file"]?>" class="file"><span class="file_type file_type_<?=$resource["type"]?>"></span> <?=$resource["name"]?></a>
+<a href="<?=$resource["file"]?>" class="file"><span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span> <?=$resource["name"]?></a>
 <?
 		}
 	}

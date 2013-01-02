@@ -1,19 +1,19 @@
 <?
-	include BigTree::path("admin/auto-modules/_setup.php");
+	$form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
+	$form_root = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
-	$form = BigTreeAutoModule::getForm($action["form"]);
-	
-	$action = end($bigtree["path"]);
-	
-	if ($action == "process" || $action == "preview") {
-		include BigTree::path("admin/auto-modules/forms/process.php");
-	} elseif ($action == "process-crops") {
-		include BigTree::path("admin/auto-modules/forms/process-crops.php");
-	} elseif (isset($_GET["force"])) {
-		include BigTree::path("admin/auto-modules/forms/unlock.php");
-	} elseif ($edit_id) {
-		include BigTree::path("admin/auto-modules/forms/edit.php");
+	$action = $bigtree["commands"][0];
+
+	if (!$action || is_numeric($action)) {
+		if ($edit_id) {
+			if (isset($_GET["force"])) {
+				$admin->unlock($form["table"],$edit_id);
+			}
+			include BigTree::path("admin/auto-modules/forms/edit.php");
+		} else {
+			include BigTree::path("admin/auto-modules/forms/add.php");
+		}
 	} else {
-		include BigTree::path("admin/auto-modules/forms/add.php");
+		include BigTree::path("admin/auto-modules/forms/$action.php");
 	}
 ?>

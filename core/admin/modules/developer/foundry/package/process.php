@@ -1,6 +1,4 @@
 <?	
-	$breadcrumb[] = array("title" => "Download Package", "link" => "#");
-	
 	// Function used for template directory inclusion:
 	function _local_recurseFileDirectory($directory) {
 		global $x,$index,$tname,$dir;
@@ -29,11 +27,21 @@
 	
 	// First we need to package the file so they can download it manually if they wish.
 	if (!is_writable(SERVER_ROOT."cache/")) {
-		die("Please make the cache/ directory writable.");
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>Your cache/ directory must be writable.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	$index = $package_name."\n";
 	$index .= "Packaged for BigTree ".BIGTREE_VERSION." by ".$created_by."\n";
+	$index .= "Instructions::||BTX||::".json_encode(array("pre" => base64_encode($pre_instructions), "post" => base64_encode($post_instructions)))."\n";
+	$index .= "InstallCode::||BTX||::".json_encode(base64_encode($install_code))."\n";
 	
 	if ($module) {
 		$modules = array($admin->getModule($module));
@@ -49,6 +57,9 @@
 	@unlink(SERVER_ROOT."cache/package.tar.gz");
 	mkdir(SERVER_ROOT."cache/packager");
 	$x = 0;
+
+	$used_forms = array();
+	$used_views = array();
 	
 	if (isset($modules) && is_array($modules)) {
 		foreach ($modules as $item) {
@@ -58,13 +69,15 @@
 			$actions = $admin->getModuleActions($item["id"]);
 			foreach ($actions as $a) {
 				// If there's an auto module, include it as well.
-				if ($a["form"]) {
-					$form = $autoModule->getForm($a["form"]);
+				if ($a["form"] && !in_array($a["form"],$used_forms)) {
+					$form = BigTreeAutoModule::getForm($a["form"]);
 					$index .= "ModuleForm::||BTX||::".json_encode($form)."\n";
+					$used_forms[] = $a["form"];
 				}
-				if ($a["view"]) {
-					$view = $autoModule->getView($a["view"]);
+				if ($a["view"] && !in_array($a["view"],$used_views)) {
+					$view = BigTreeAutoModule::getView($a["view"]);
 					$index .= "ModuleView::||BTX||::".json_encode($view)."\n";
+					$used_views[] = $a["view"];
 				}
 				// Draw Action after the form/view since we'll need to know the form/view ID to create the action.
 				$index .= "Action::||BTX||::".json_encode($a)."\n";
@@ -124,9 +137,64 @@
 		}
 	}
 	
-	// Get the included tables now... yep.
+	// Get the included tables now...
 	if (isset($tables) && is_array($tables)) {
+		// We need to rearrange the tables array so that ones that have foreign keys fall at the end.
+		$rearranged_tables = array();
+		$pending_tables = array();
+		$table_info = array();
 		foreach ($tables as $t) {
+			list($table,$type) = explode("#",$t);
+			$i = BigTree::describeTable($table);
+			if (!count($i["foreign_keys"])) {
+				$rearranged_tables[] = $t;
+			} else {
+				// See if the other tables are all bigtree_ ones or the key points to itself.
+				$just_bigtree_keys = true;
+				foreach ($i["foreign_keys"] as $key) {
+					if (substr($key["other_table"],0,8) != "bigtree_" && $key["other_table"] != $table) {
+						$just_bigtree_keys = false;
+					}
+				}
+				if ($just_bigtree_keys) {
+					$rearranged_tables[] = $t;
+				} else {
+					$table_info[$t] = $i;
+					$pending_tables[] = $t;
+				}
+			}
+		}
+		// We're going to loop the number of times there are tables so we don't loop forever
+		for ($i = 0; $i < count($pending_tables); $i++) {
+			$t = $pending_tables[$i];
+			$keys = $table_info[$t]["foreign_keys"];
+			$ok = true;
+			foreach ($keys as $key) {
+				// If we haven't already found this foreign key table and it's not related to BigTree's core tables, we're not including it yet.
+				if (!in_array($key["other_table"]."#data",$rearranged_tables) &&!in_array($key["other_table"]."#structure",$rearranged_tables) && substr($key["other_table"],0,8) != "bigtree_") {
+					$ok = false;
+				}
+			}
+			// If we've already got the table for this one's foreign keys, add it to the rearranged tables if we haven't already.
+			if ($ok && !in_array($t,$rearranged_tables)) {
+				$rearranged_tables[] = $t;
+			}
+		}
+		
+		// If we have less rearranged tables than pending tables we're missing a table dependancy.
+		if (count($rearranged_tables) != count($tables)) {
+			$failed_tables = array();
+			foreach ($tables as $t) {
+				if (!in_array($t,$rearranged_tables)) {
+					list($table,$type) = explode("#",$t);
+					$failed_tables[] = $table;
+				}
+			}
+			$admin->stop('<div class="container"><section><div class="alert">
+			<span></span><h3>Creation Failed</h3></div><p>The following tables have missing foreign key constraints: '.implode(", ",$failed_tables).'</p></section></div>');
+		}
+		
+		foreach ($rearranged_tables as $t) {
 			$x++;
 			list($table,$type) = explode("#",$t);
 			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
@@ -146,7 +214,7 @@
 					$values = array();
 					foreach ($f as $key => $val) {
 						$fields[] = "`$key`";
-						$values[] = '"'.mysql_real_escape_string(str_replace(array("\r","\n")," ",$val)).'"';
+						$values[] = '"'.sqlescape(str_replace(array("\r","\n")," ",$val)).'"';
 					}
 					$create .= "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).");\n";
 				}
@@ -194,16 +262,15 @@
 	exec("cd $dir; tar -zcf ".SERVER_ROOT."cache/package.tar.gz *");
 	
 	// Create the saved copy of this creation.
-	BigTree::globalizePOSTVars(array("mysql_real_escape_string"));
+	BigTree::globalizePOSTVars(array("sqlescape"));
 	
 	$package_file = BigTree::getAvailableFileName(SITE_ROOT."files/",$cms->urlify($package_name).".tgz");
 	
 	// Move the file into place.
 	BigTree::moveFile(SERVER_ROOT."cache/package.tar.gz",SITE_ROOT."files/".$package_file);
 ?>
-<h1><span class="package"></span>Download Package</h1>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>Package created successfully.  You may download it <a href="<?=WWW_ROOT?>files/<?=$package_file?>">by clicking here</a>.</p>
 	</section>
-</form>
+</div>

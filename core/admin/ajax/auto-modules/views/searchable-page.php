@@ -13,9 +13,13 @@
 	BigTree::globalizeArray($view);
 
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
+	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
 	
 	if (isset($_GET["sort"])) {
 		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
+		
+		// Append information to the end of an edit string so that we can return to the same set of search results after submitting a form.
+		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "sort" => $_GET["sort"], "sort_direction" => $_GET["sort_direction"], "search" => $search, "page" => $page)));
 	} else {
 		if (isset($options["sort_column"])) {
 			$sort = $options["sort_column"]." ".$options["sort_direction"];
@@ -24,6 +28,9 @@
 		} else {
 			$sort = "id DESC";
 		}
+		
+		// Same thing we were going to do above but omit the sort stuff.
+		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "search" => $search, "page" => $page)));
 	}
 	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
@@ -38,8 +45,7 @@
 	// If this is a second view inside a module, we might need a suffix for edits.
 	$suffix = $suffix ? "-".$suffix : "";
 	
-	// Handle how many pages we have and what page we're on.
-	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
+	// Handle how many pages we have and get our results.
 	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,false,$module);
 	$pages = $data["pages"];
 	$items = $data["results"];
@@ -91,6 +97,8 @@
 				
 				if ($action == "preview") {
 					$link = rtrim($view["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+				} elseif ($action == "edit") {
+					$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
 				} else {
 					$link = "#".$item["id"];
 				}

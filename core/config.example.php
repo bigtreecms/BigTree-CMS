@@ -13,6 +13,7 @@
 	$bigtree["config"]["db"]["name"] = "[db]";
 	$bigtree["config"]["db"]["user"] = "[user]";
 	$bigtree["config"]["db"]["password"] = "[password]";
+	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
 	
 	// Separate write database info (for load balanced setups)
 	$bigtree["config"]["db_write"]["host"] = "[write_host]";
@@ -27,8 +28,9 @@
 	$bigtree["config"]["static_root"] = "[staticroot]";
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
-	// Email used for default form mailers	
-	$bigtree["config"]["contact_email"] = "[email]";
+	// Default Image Quality Presets
+	$bigtree["config"]["image_quality"] = 90;
+	$bigtree["config"]["retina_image_quality"] = 25;
 	
 	// The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
 	$bigtree["config"]["password_depth"] = 8;
@@ -40,9 +42,12 @@
 	// Custom Output Filter Function
 	$bigtree["config"]["output_filter"] = false;
 	
-	// Enable Simple Caching (incomplete)
+	// Enable Simple Caching
 	$bigtree["config"]["cache"] = false;
+	// Use X-Sendfile headers to deliver cached files (more memory efficient, but your web server must support X-Sendfile headers) -- https://tn123.org/mod_xsendfile/
 	$bigtree["config"]["xsendfile"] = false;
+	// Set to false to serve cached files to users that are logged into the admin, true to always show fresh versions to logged in users.
+	$bigtree["config"]["dont_show_admin_cache"] = true;
 	
 	// ReCAPTCHA Keys
 	$bigtree["config"]["recaptcha"]["private"] = "6LcjTrwSAAAAADnHAf1dApaNCX1ODNuEBP1YdMdJ";
@@ -59,8 +64,9 @@
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS_PATH",false);
 	
-	
+	// ------------------------------
 	// BigTree Resource Configuration
+	// ------------------------------
 	
 	// Array containing all JS files to minify; key = name of compiled file
 	// example: $bigtree["config"]["js"]["site"] compiles all JS files into "site.js"
@@ -95,4 +101,16 @@
 	
 	// Flag for CSS minification 
 	$bigtree["config"]["css"]["minify"] = false;
+	
+	// --------------------------
+	// Placeholder Image Defaults
+	// --------------------------
+
+	// Add your own key to the "placeholder" array to create more placeholder image templates.	
+	$bigtree["config"]["placeholder"]["default"] = array( 
+		"background_color" => "CCCCCC",
+		"text_color" => "666666",
+		"image" => false,
+		"text" => false
+	);
 ?>

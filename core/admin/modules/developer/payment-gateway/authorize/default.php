@@ -1,12 +1,5 @@
-<?
-	include BigTree::path("admin/modules/developer/payment-gateway/_common.php");
-	$breadcrumb[] = array("title" => "Authorize.Net", "link" => "#");
-?>
-<h1><span class="icon_developer_payment_authorize"></span>Authorize.Net</h1>
-<div class="form_container">
-	<header><h2>Authorize.Net Settings</h2></header>
-	<aside>Your current upload service is: <strong><?=$currently?></strong></aside>
-	<form method="post" action="update/" class="module">
+<div class="container">
+	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/authorize/update/" class="module">
 		<section>
 			<div class="alert">
 				<p>To enable usage of Authorize.Net as your payment gateway, enter your access information below.</p>

@@ -1,16 +1,11 @@
 <?
-	$breadcrumb[] = array("title" => "Edit Field Type", "link" => "#");
-	
 	$type = $admin->getFieldType(end($bigtree["commands"]));
 
 	// Stop notices
 	$id = $name = $pages = $modules = $callouts = $settings = "";
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
-<h1><span class="icon_developer_field_types"></span>Edit Field Type</h1>
-<? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
-
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>field-types/update/" enctype="multipart/form-data" class="module">
 		<input type="hidden" name="id" value="<?=$id?>" />
 		<section>

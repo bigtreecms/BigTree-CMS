@@ -1,6 +1,20 @@
 <?
-	// Make sure the user has the right to see this message
+	// Get the message. It'll return false if the user isn't a sender/recipient.
 	$message = $admin->getMessage(end($bigtree["path"]));
+
+	if (!$message) {
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>This message either does not exist or you do not have permission to view it.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
+	}
+
+	// Mark the message read by you.
 	$admin->markMessageRead($message["id"]);
 	
 	// Get the list of recipients to determine the names and also to tell _nav whether to show "Reply All"
@@ -24,12 +38,7 @@
 	$sender_name = $u["name"];
 	$sender_gravatar = $u["email"];
 ?>
-<h1>
-	<span class="messages"></span>Message Center
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
-<? include "_nav.php" ?>
-<div class="form_container">
+<div class="container">
 	<summary>
 		<h2><span class="unread"></span> <?=$message["subject"]?></h2>
 	</summary>

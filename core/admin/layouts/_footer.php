@@ -9,16 +9,18 @@
 					<p>
 						Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> Fastspot
 					</p>
-					<? /* <a href="<?=ADMIN_ROOT?>credits/">Credits</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp; */ ?><a href="http://www.bigtreecms.org/" target="_blank">Support</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;<a href="http://www.fastspot.com/agency/contact/" target="_blank">Contact Us</a>
+					<a href="<?=ADMIN_ROOT?>credits/">Credits &amp; Licenses</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+					<a href="http://www.bigtreecms.org/" target="_blank">Support</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+					<a href="http://www.fastspot.com/agency/contact/" target="_blank">Contact Us</a>
 				</article>
 			</section>
 		</footer>
 		<?
-			if (isset($_SESSION["bigtree"]["flash"])) {
+			if (isset($_SESSION["bigtree_admin"]["flash"])) {
 		?>
-		<script type="text/javascript">BigTree.growl("<?=htmlspecialchars($_SESSION["bigtree"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree"]["flash"]["type"])?>");</script>
+		<script type="text/javascript">BigTree.Growl("<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["type"])?>");</script>
 		<?
-				unset($_SESSION["bigtree"]["flash"]);
+				unset($_SESSION["bigtree_admin"]["flash"]);
 			}
 		?>
  	</body>

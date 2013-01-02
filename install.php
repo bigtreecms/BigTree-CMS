@@ -3,6 +3,17 @@
 	ini_set("log_errors",false);
 	error_reporting(0); 
 	
+	// Allow for passing in $_POST via command line for automatic installs.
+	if (isset($argv) && count($argv) > 1) {
+		// Cut off the first argument.
+		$vars = array_slice($argv, 1);
+		// Loop through the variables passed in.
+		foreach ($vars as $v) {
+			list($key,$val) = explode("=",$v);
+			$_POST[$key] = $val;
+		}
+	}
+	
 	//!Server Parameters
 	$warnings = array();
 	if (!extension_loaded('json')) {
@@ -20,8 +31,8 @@
 	if (!ini_get('short_open_tag')) {
 		$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
 	}
-	if (!extension_loaded('gd') && !extension_loaded('imagick')) {
-		$warnings[] = "PHP does not have GD or ImageMagick enabled. This will severely limit your ability to do anything with images in BigTree.";
+	if (!extension_loaded('gd')) {
+		$warnings[] = "PHP does not have the GD library enabled. This will severely limit your ability to do anything with images in BigTree.";
 	}
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize is currently less than 4MB. 8MB or higher is recommended.";
@@ -87,22 +98,23 @@
 			"[domain]",
 			"[wwwroot]",
 			"[staticroot]",
-			"[resourceroot]",
 			"[email]",
 			"[settings_key]",
 			"[force_secure_login]",
 			"[routing]"
 		);
 		
-		$domain = "http://".$_SERVER["HTTP_HOST"];
-		if ($routing == "basic") {
-			$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
-			$www_root = $static_root."index.php/";
-		} else {
-			$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
-			$static_root = $www_root;
-		}
-		$resource_root = str_replace("http://www.","http://",$www_root);
+		// Let domain/www_root/static_root be set by post for command line installs
+		if (!isset($domain)) {
+			$domain = "http://".$_SERVER["HTTP_HOST"];
+			if ($routing == "basic") {
+				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$www_root = $static_root."index.php/";
+			} else {
+				$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+				$static_root = $www_root;
+			}
+		}	
 		
 		$replace = array(
 			$host,
@@ -116,7 +128,6 @@
 			$domain,
 			$www_root,
 			$static_root,
-			$resource_root,
 			$cms_user,
 			$settings_key,
 			(isset($force_secure_login)) ? "true" : "false",
@@ -133,7 +144,7 @@
 		
 		mysql_query("UPDATE bigtree_pages SET id = '0' WHERE id = '1'");
 		
-		include "core/inc/utils/PasswordHash.php";
+		include "core/inc/lib/PasswordHash.php";
 		$phpass = new PasswordHash(8, TRUE);
 		$enc_pass = mysql_real_escape_string($phpass->HashPassword($cms_pass));
 		mysql_query("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
@@ -203,8 +214,8 @@
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
-		bt_touch_writable("templates/basic/_404.php");
-		bt_touch_writable("templates/basic/_sitemap.php");
+		bt_touch_writable("templates/basic/_404.php","<h1>404 - Page Not Found</h1>");
+		bt_touch_writable("templates/basic/_sitemap.php","<h1>Sitemap</h1>");
 		bt_touch_writable("templates/basic/home.php");
 		bt_touch_writable("templates/basic/content.php",'<h1><?=$page_header?></h1>
 <?=$page_content?>');
@@ -223,6 +234,9 @@
 	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\\", "/"));
 	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
 	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
+
+	// For shared core setups
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));
 	
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {
@@ -249,10 +263,10 @@
 		$in_admin = false;
 	} else {
 		foreach ($parts_of_admin as $part) {
-		    if ($part != $bigtree["path"][$x])	{
-		    	$in_admin = false;
-		    }
-		    $x++;
+			if ($part != $bigtree["path"][$x])	{
+				$in_admin = false;
+			}
+			$x++;
 		}
 	}
 	
@@ -262,28 +276,32 @@
 		if ($x > 1) {
 			$bigtree["path"] = array_slice($bigtree["path"],$x - 1);
 		}
-		include "../core/admin/router.php";
+		if (file_exists("../custom/admin/router.php")) {
+			include "../custom/admin/router.php";
+		} else {
+			include "../core/admin/router.php";
+		}
 		die();
 	}
 	
 	// We\'re not in the admin, see if caching is enabled and serve up a cached page if it exists
 	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
-		$curl = $_GET["bigtree_htaccess_url"];
-		if (!$curl) {
-			$curl = "home";
+		$cache_location = $_GET["bigtree_htaccess_url"];
+		if (!$cache_location) {
+			$cache_location = "!";
 		}
-		$file = "../cache/".base64_encode($curl);
+		$file = "../cache/".base64_encode($cache_location).".page";
 		// If the file is at least 5 minutes fresh, serve it up.
 		clearstatcache();
 		if (file_exists($file) && filemtime($file) > (time()-300)) {
 			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
 			if ($bigtree["config"]["xsendfile"]) {
-				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($curl));
+				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\", "/"))."cache/".base64_encode($cache_location).".page");
 				header("Content-Type: text/html");
 				die();
 			// Fall back on file_get_contents otherwise.
 			} else {
-				die(file_get_contents("../cache/".base64_encode($curl)));
+				die(file_get_contents($file));
 			}
 		}
 	}
@@ -309,10 +327,10 @@
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
   # force deflate for mangled headers developer.yahoo.com/blogs/ydn/posts/2010/12/pushing-beyond-gzipping/
   <IfModule mod_setenvif.c>
-    <IfModule mod_headers.c>
-      SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
-      RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
-    </IfModule>
+	<IfModule mod_headers.c>
+	  SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
+	  RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+	</IfModule>
   </IfModule>
   
   # html, txt, css, js, json, xml, htc:
@@ -320,7 +338,7 @@
    FilterDeclare   COMPRESS
    FilterProvider  COMPRESS  DEFLATE resp=Content-Type /text/(html|css|javascript|plain|x(ml|-component))/
    FilterProvider  COMPRESS  DEFLATE resp=Content-Type /application/(javascript|json|xml|x-javascript)/
-   FilterChain     COMPRESS
+   FilterChain	 COMPRESS
    FilterProtocol  COMPRESS  change=yes;byteranges=no
  </IfModule>
  
@@ -356,7 +374,7 @@
 
 <IfModule mod_headers.c>
   <FilesMatch "\.(ttf|otf|eot|woff)$">
-    Header set Access-Control-Allow-Origin "*"
+	Header set Access-Control-Allow-Origin "*"
   </FilesMatch>
 </IfModule>
 
@@ -405,9 +423,12 @@ RewriteRule (.*) site/$1 [L]');
 			// Update the config file with CSS/Javascript for the example site.
 			$config_data = str_replace($find,$replace,file_get_contents("templates/config.php")); 
 			$config_data = str_replace('// "javascript_file.js"','"jquery-1.7.1.min.js",
+		"jquery.ba-dotimeout.min.js",
+		"jquery.breakpoints.js",
 		"main.js"',$config_data);
-			$config_data = str_replace('// "style_sheet.css"','"grid.css",
+			$config_data = str_replace('// "style_sheet.css"','"griddle.css",
 		"master.css"',$config_data);
+			$config_data = str_replace('$bigtree["config"]["css"]["prefix"] = false;','$bigtree["config"]["css"]["prefix"] = true;',$config_data);
 			file_put_contents("templates/config.php",$config_data);
 		}
 
@@ -433,19 +454,19 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree 4.0b7</title>
+		<title>Install BigTree 4.0RC2</title>
 		<?php if ($installed) { ?>
-		<link rel="stylesheet" href="<?=$www_root?>admin/css/install.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="<?=$www_root?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
-		<link rel="stylesheet" href="core/admin/css/install.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
 		<script type="text/javascript" src="core/admin/js/lib.js"></script>
-		<script type="text/javascript" src="core/admin/js/install.js"></script>
+		<script type="text/javascript" src="core/admin/js/main.js"></script>
 		<?php } ?>
 	</head>
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree 4.0b7 Installed</h1>
+			<h1>BigTree 4.0RC2 Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
@@ -474,7 +495,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree 4.0b7</h1>
+			<h1>Install BigTree 4.0RC2</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
@@ -528,7 +549,6 @@ RewriteRule (.*) site/$1 [L]');
 				</fieldset>
 				
 				<div id="loadbalanced_settings"<?php if (!$loadbalanced) { ?> style="display: none;"<?php } ?>>
-					<br class="clear" />
 					<hr />
 					
 					<h2 class="database"><span></span>Write Database Properties</h2>
@@ -554,9 +574,9 @@ RewriteRule (.*) site/$1 [L]');
 						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($password) ?>" tabindex="9" />
 					</fieldset>
 					<br class="clear" />
+					<br />
 				</div>
 				
-				<br class="clear" />
 				<hr />
 				
 				<h2 class="security"><span></span>Site Security</h2>
@@ -574,7 +594,6 @@ RewriteRule (.*) site/$1 [L]');
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
 				
-				<br class="clear" />
 				<hr />
 				
 				<h2 class="account"><span></span>Administrator Account</h2>
@@ -612,7 +631,6 @@ RewriteRule (.*) site/$1 [L]');
 					</select>
 				</fieldset>
 				
-				<br class="clear" />
 				<br />
 				<hr />
 				
@@ -625,13 +643,22 @@ RewriteRule (.*) site/$1 [L]');
 					<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if ($install_example_site) { ?> checked="checked"<?php } ?> tabindex="14" />
 					<label class="for_checkbox">Install Example Site</label>
 				</fieldset>
-				
-				<br class="clear" />
-				
+								
 				<fieldset class="lower">
 					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
 				</fieldset>
 			</form>
+		    <script type="text/javascript">
+		        $(document).ready(function() {
+		        	$("#loadbalanced").on("change", function() {
+		        		if ($(this).is(':checked')) {
+		        			$("#loadbalanced_settings").css({ display: "block" });
+		        		} else {
+		        			$("#loadbalanced_settings").css({ display: "none" });
+		        		}
+		        	});
+		        });
+		    </script>
 			<?php } ?>
 			<a href="http://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
 			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?php echo date("Y") ?> Fastspot</a>

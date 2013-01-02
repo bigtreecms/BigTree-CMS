@@ -1,6 +1,4 @@
 <?
-	$breadcrumb[] = array("title" => "Pending Changes", "link" => "#");
-
 	// Get pending changes.
 	$changes = $admin->getPendingChanges();
 	
@@ -22,19 +20,24 @@
 			}
 		}
 	}
+
+	if (!count($changes)) {
 ?>
-<h1>
-	<span class="pending"></span>Pending Changes
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
+<div class="container">
+	<section>
+		<p>You have no changes awaiting approval.</p>
+	</section>
+</div>
 <?
+	}
+
 	if (count($pages)) {
 ?>
 <a name="0"></a>
 <div class="table">
 	<summary>
 		<h2 class="full">
-			<span class="pending"></span>
+			<span class="pages"></span>
 			Pages
 		</h2>
 	</summary>
@@ -58,14 +61,17 @@
 					$preview_link = WWW_ROOT."_preview-pending/".$change["id"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/p".$change["id"]."/";
 				}
+				if ($change["item_id"] == 0) {
+					$page["nav_title"] = "Home";
+				}
 		?>
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<section class="changes_page"><?=$page["nav_title"]?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_approve icon_approve_on"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_deny"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_deny"></a></section>
 		</li>
 		<?		
 			}
@@ -77,6 +83,7 @@
 	
 	foreach ($modules as $mod) {
 		$view = BigTreeAutoModule::getViewForTable($mod["table"]);
+		$view_data = BigTreeAutoModule::getViewData($view);
 		$edit_link = ADMIN_ROOT.$mod["route"]."/edit";
 		if ($view["suffix"]) {
 			$edit_link .= "-$suffix";
@@ -87,17 +94,50 @@
 <div class="table">
 	<summary>
 		<h2 class="full">
-			<span class="pending"></span>
+			<span class="modules"></span>
 			<?=$mod["name"]?>
 		</h2>
 	</summary>
+	<? if ($view["type"] == "images" || $view["type"] == "images-grouped") { ?>
+	<section>
+		<ul class="image_list">
+			<?
+				foreach ($mod["changes"] as $change) {
+					if ($change["item_id"]) {
+						$item = $view_data[$change["item_id"]];
+					} else {
+						$item = $view_data["p".$change["id"]];
+					}
+					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
+					if ($view["options"]["prefix"]) {
+						$image = BigTree::prefixFile($image,$view["options"]["prefix"]);
+					}
+
+			?>
+			<li class="non_draggable">
+				<p><?=$change["user"]["name"]?></p>
+				<a class="image" href="<?=$edit_link.$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
+				<? if ($view["preview_url"]) { ?>
+				<a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
+				<? } ?>
+				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a>
+				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a>
+			</li>
+			<?
+				}
+			?>
+		</ul>
+	</section>
+	<? } else { ?>
 	<header>
 		<span class="changes_author">Author</span>
 		<?
-			foreach ($view["fields"] as $field) {
+			if (is_array($view["fields"])) {
+				foreach ($view["fields"] as $field) {
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
 		<?
+				}
 			}
 			
 			if ($view["preview_url"]) {
@@ -114,24 +154,26 @@
 		<?
 			foreach ($mod["changes"] as $change) {
 				if ($change["item_id"]) {
-					$item = BigTreeAutoModule::getPendingItem($change["table"],$change["item_id"]);
-					$item = $item["item"];
+					$item = $view_data[$change["item_id"]];
 				} else {
-					$item = json_decode($change["changes"],true);
-					$item["id"] = "p".$change["id"];
+					$item = $view_data["p".$change["id"]];
 				}
 		?>
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<?
-				foreach ($view["fields"] as $field => $data) {
+				if (is_array($view["fields"])) {
+					$x = 0;
+					foreach ($view["fields"] as $field => $data) {
+						$x++;
 			?>
-			<section class="view_column" style="width: <?=$data["width"]?>px">
-				<?=$item[$field]?>
+			<section class="view_column" style="width: <?=$data["width"]?>px;">
+				<?=$item["column$x"]?>
 			</section>
 			<?
+					}
 				}
-				
+					
 				if ($view["preview_url"]) {
 			?>
 			<section class="changes_action"><a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a></section>
@@ -139,13 +181,14 @@
 				}
 			?>
 			<section class="changes_action"><a href="<?=$edit_link.$item["id"]?>/" class="icon_edit"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_approve icon_approve_on"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" class="icon_deny"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a></section>
+			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a></section>
 		</li>
 		<?
 			}
 		?>
 	</ul>
+	<? } ?>
 </div>
 <?
 	}
@@ -155,14 +198,14 @@
 	$(".icon_approve").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.growl("Pending Changes","Approved Change");
+		BigTree.Growl($(this).attr("data-module"),"Approved Change");
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.growl("Pending Changes","Rejected Change");
+		BigTree.Growl($(this).attr("data-module"),"Rejected Change");
 		return false;
 	});
 </script>

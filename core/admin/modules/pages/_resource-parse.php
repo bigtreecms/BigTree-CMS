@@ -30,6 +30,6 @@
 			$resources[$key] = $value;
 		}
 	}
-	
+
 	$_POST["resources"] = $resources;
 ?>

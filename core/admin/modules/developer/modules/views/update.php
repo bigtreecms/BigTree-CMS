@@ -1,11 +1,14 @@
 <?	
 	BigTree::globalizePOSTVars();
 	
-	$columns = sqlcolumns($table);
+	$table_description = BigTree::describeTable($table);
+	$columns = $table_description["columns"];
+	
+	$options = json_decode($options, true);
 	
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $type == "images" || $type == "images-group") && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	
@@ -20,10 +23,22 @@
 	}
 	
 	if (count($errors)) {
-		echo "<h3>Editing Module View</h3>";
-		foreach ($errors as $error) {
-			echo "<p>".$error."</p>";
-		}
+?>
+<div class="container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Update Failed</h3>
+		</div>
+		<? foreach ($errors as $error) { ?>
+		<p><?=$error?></p>
+		<? } ?>
+	</section>
+	<footer>
+		<a href="javascript: history.back();" class="button white">Back</a>
+	</footer>
+</div>
+<?
 	} else {
 		// Clean up actions
 		$clean_actions = array();
@@ -55,6 +70,11 @@
 			$keys_match = false;
 		}
 		
+		// Check preview field
+		if ((!$old_view["preview_url"] && $preview_url) || ($old_view["preview_url"] && !$preview_url)) {
+			$keys_match = false;
+		}
+		
 		if (!$keys_match || ($old_view["type"] == "searchable" && $type != "searchable") || ($type == "searchable" && $old_view["type"] != "searchable")) {
 			foreach ($fields as $key => $field) {
 				unset($fields[$key]["width"]);
@@ -62,12 +82,11 @@
 		}
 		
 		// Let's update the view
-		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix,$preview_url);
+		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");
-		header("Location: ".$developer_root."modules/edit/".$action["module"]."/");
 		BigTreeAutoModule::clearCache(end($bigtree["path"]));
-		die();
+		BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
 	}
 ?>

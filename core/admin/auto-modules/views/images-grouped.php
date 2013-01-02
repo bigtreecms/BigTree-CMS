@@ -44,7 +44,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
-				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($view["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
 					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
@@ -102,7 +102,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($view["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
 					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
@@ -154,23 +154,14 @@
 	$(".image_list").each(function() {
 		if ($(this).attr("id")) {
 			$(this).sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/?view=<?=$view["id"]?>&table_name=" + $(this).attr("id") + "&sort=" + escape($(this).sortable("serialize")));;
+				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/",  { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $(this).sortable("serialize") } });
 			},this)});
 		}
 	});
 	<? } ?>
-	 
-	$(".image_list img").load(function() {
-		w = $(this).width();
-		h = $(this).height();
-		if (w > h) {
-			perc = 108 / w;
-			h = perc * h;
-			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
-		} else {
-			style = { margin: "0px" };
-		}
-		
-		$(this).css(style);
+	
+	// Stop disabled edit action from working.
+	$(".image_list a.image_disabled").click(function() {
+		return false;
 	});
 </script>

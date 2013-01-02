@@ -15,16 +15,21 @@
 	}
 	
 	$module = $admin->getModule($module_id);
+	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
 	// Retrieve our results.
-	if (isset($_POST["search"]) && $_POST["search"]) {
+	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
+		$search = isset($_GET["search"]) ? $_GET["search"] : $_POST["search"];
 		$view["options"]["per_page"] = 10000000;
-		$r = BigTreeAutoModule::getSearchResults($view,0,$_POST["search"],"position DESC, id ASC",false,$module);
+		$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC",false,$module);
 		$items = $r["results"];
 	} else {
 		$items = BigTreeAutoModule::getViewData($view,"position DESC, id ASC","both",$module);
-		$_POST["search"] = "";
+		$search = "";
 	}
+	
+	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
+	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "search" => $search)));
 	
 	foreach ($items as $item) {
 		// Stop the item status notice
@@ -50,7 +55,7 @@
 			$value = $item["column$x"];
 	?>
 	<section class="view_column" style="width: <?=$field["width"]?>px;">
-		<? if ($x == 1 && $permission == "p" && !$_POST["search"]) { ?>
+		<? if ($x == 1 && $permission == "p" && !$search) { ?>
 		<span class="icon_sort"></span>
 		<? } ?>
 		<?=$value?>
@@ -75,6 +80,8 @@
 				
 				if ($action == "preview") {
 					$link = rtrim($view["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+				} elseif ($action == "edit") {
+					$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
 				} else {
 					$link = "#".$item["id"];
 				}

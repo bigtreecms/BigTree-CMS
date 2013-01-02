@@ -3,13 +3,13 @@
 	$types = $cached_types["template"];
 ?>
 <section>
-	<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="left">
 		<? if (!isset($template)) { ?>
-		<fieldset>
-			<label class="required">ID</label>
-			<input type="text" class="required" name="id" />
+		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
+			<label class="required">ID<? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
+			<input type="text" class="required" name="id" value="<?=$id?>" />
 		</fieldset>
 		<? } ?>
 		<fieldset>
@@ -49,31 +49,41 @@
 			<select name="module">
 				<option></option>
 				<?
-					$modules = $admin->getModules("name ASC");
-					foreach ($modules as $m) {
+					$groups = $admin->getModuleGroups("name ASC");
+					$groups[] = array("id" => "0", "name" => "Ungrouped");
+					foreach ($groups as $g) {
+						$modules = $admin->getModulesByGroup($g["id"],"name ASC");
+						if (count($modules)) {
 				?>
-				<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
+				<optgroup label="<?=$g["name"]?>">
+					<?
+							foreach ($modules as $m) {
+					?>
+					<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
+					<?
+							}
+					?>
+				</optgroup>
 				<?
+						}
 					}
 				?>
 			</select>	
 		</fieldset>
 		
 		<fieldset>
-			<label>Image <small>(upload an image of ~32x32 pixels or a choose a default)</small></label>
+			<label>Image <small>(upload an image of 32x32 or 64x64 pixels or a choose an existing image)</small></label>
 			<input type="file" name="image" />
 			<input type="hidden" name="existing_image" id="existing_image" />
-		</fieldset>
-		
-		<fieldset>
+
 			<ul class="template_image_list">
 				<?
 					$o = opendir(SERVER_ROOT."core/admin/images/templates/");
 					while ($file = readdir($o)) {
-						if ($file != "." && $file != "..") {
+						if (substr($file,0,1) != ".") {
 							$all[] = $file;
 				?>
-				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" /></a></li>
+				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" width="32" height="32" /></a></li>
 				<?
 						}
 					}
@@ -98,8 +108,7 @@
 			<span class="developer_resource_title">Title</span>
 			<span class="developer_resource_subtitle">Subtitle</span>
 			<span class="developer_resource_type">Type</span>
-			<span class="developer_resource_action">Edit</span>
-			<span class="developer_resource_action">Delete</span>
+			<span class="developer_resource_action right">Delete</span>
 		</div>
 		<ul id="resource_table">
 			<?
@@ -121,15 +130,13 @@
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
 						<? foreach ($types as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($v)?></option>
+						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v?></option>
 						<? } ?>
 					</select>
-				</section>
-				<section class="developer_resource_action">
-					<a href="#" class="icon_edit" name="<?=$x?>"></a>
+					<a href="#" class="icon_settings" name="<?=$x?>"></a>
 					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource))?>" id="options_<?=$x?>" />
 				</section>
-				<section class="developer_resource_action">
+				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>

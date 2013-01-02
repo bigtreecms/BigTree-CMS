@@ -1,14 +1,13 @@
 <?
 	BigTree::globalizePOSTVars();
 
-	$breadcrumb[] = array("title" => "Created View", "href" => "#");
-
 	$options = json_decode($options,true);
-	
-	$columns = @sqlcolumns($table);
+
+	$table_description = @BigTree::describeTable($table);
+	$columns = $table_description["columns"];
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $options["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	if (isset($actions["archive"]) && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
@@ -20,13 +19,16 @@
 	if (isset($actions["feature"]) && !(($columns["featured"]["type"] == "char" || $columns["featured"]["type"] == "varchar") && $columns["featured"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'featured' that is char(2) in order to use the feature function.";
 	}
-	
+
 	if (count($errors)) {
-		$_SESSION["bigtree"]["developer"]["saved_view"] = $_POST;
+		$_SESSION["bigtree_admin"]["developer"]["saved_view"] = $_POST;
 ?>
-<h1><span class="icon_developer_modules"></span>View Creation Error</h1>
-<div class="form_container">
+<div class="container">
 	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Creation Failed</h3>
+		</div>
 		<? foreach ($errors as $error) { ?>
 		<p><?=$error?></p>
 		<? } ?>
@@ -47,12 +49,12 @@
 			}
 		}
 		$actions = $clean_actions;
-		
+
 		$module = end($bigtree["path"]);
-		
+
 		// Silence notices
 		$suffix = isset($suffix) ? $suffix : "";
-		
+
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$landing_exists = $admin->doesModuleLandingActionExist($module);
 		if ($landing_exists) {
@@ -64,23 +66,21 @@
 		} else {
 			$route = "";
 		}
-				
+
 		// Let's create the view
 		$view_id = $admin->createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
-		
-		$mod = $admin->getModule($module);
+
+		$module_info = $admin->getModule($module);
 ?>
-<h1><span class="icon_developer_modules"></span>Created View</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<h3 class="action_title">View <?=$title?></h3>
-		<p>Your view for <?=$mod["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
+		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
 	</section>
 	<footer>
-		<a href="<?=ADMIN_ROOT?><?=$mod["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp; 
-		<a href="<?=$developer_root?>modules/forms/add/<?=end($bigtree["path"])?>/<?=urlencode($table)?>/<?=urlencode($title)?>/<?=urlencode($suffix)?>/" class="button blue">Add Form</a></p>
+		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp;
+		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&suffix=<?=urlencode($suffix)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
 	</footer>
 </div>
 <?

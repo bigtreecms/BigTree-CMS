@@ -4,13 +4,7 @@
 	$settings = $cms->getSetting("bigtree-internal-google-analytics");
 	$settings["profile"] = $_POST["profile"];
 	$admin->updateSettingValue("bigtree-internal-google-analytics",$settings);
-		
-	$ga = new BigTreeGoogleAnalytics;
-	if ($ga->AuthToken) {
-		$ga->cacheInformation();
-	}
 	
 	$admin->growl("Analytics","Profile Set");
-	header("Location: ".$mroot);	
-	die();
+	BigTree::redirect($mroot."cache/");	
 ?>

@@ -1,10 +1,7 @@
 <?
-	$breadcrumb[] = array("title" => "Created Field Type", "link" => "#");
 	$file = end($bigtree["path"]).".php";
 ?>
-<h1><span class="icon_developer_field_types"></span>Field Type Created</h1>
-<? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
-<div class="form_container">
+<div class="container">
 	<section>
 		<p>Your new field type is setup and ready to use.</p>
 		<ul class="styled clear">

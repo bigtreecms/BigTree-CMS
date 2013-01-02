@@ -13,10 +13,14 @@
 </fieldset>
 <?
 	} else {
-		if ($options["preview_prefix"]) {
-			$preview_image = BigTree::prefixFile($value,$options["preview_prefix"]);
+		if ($value) {
+			if ($options["preview_prefix"]) {
+				$preview_image = BigTree::prefixFile($value,$options["preview_prefix"]);
+			} else {
+				$preview_image = $value;
+			}
 		} else {
-			$preview_image = $value;
+			$preview_image = false;
 		}
 		
 		$button_options = array(
@@ -36,13 +40,15 @@
 	<input<?=$input_validation_class?> type="file" tabindex="<?=$tabindex?>" name="<?=$key?>" id="field_<?=$key?>" />
 	<? if (!isset($no_file_browser) || !$no_file_browser) { ?>
 	<span class="or">OR</span>
-	<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images_small"></span>Browse</a>
+	<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
 	<? } ?>
 	<br class="clear" />
 	<div class="currently" id="field_currently_<?=$key?>"<? if (!$value) { ?> style="display: none;"<? } ?>>
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
-			<img src="<?=$preview_image?>" alt="" />
+			<? if ($preview_image) { ?>
+			<img src="<?=htmlspecialchars($preview_image)?>" alt="" />
+			<? } ?>
 		</div>
 		<label>CURRENT</label>
 		<input type="hidden" name="<?=$currently_key?>" value="<?=htmlspecialchars($value)?>" />

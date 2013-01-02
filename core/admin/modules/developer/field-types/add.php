@@ -1,24 +1,19 @@
 <?
-	$breadcrumb[] = array("title" => "Add Field Type", "link" => "#");
-	
 	// Stop notices
 	$id = $name = $pages = $modules = $callouts = $settings = "";
-	if (isset($_SESSION["bigtree"]["admin_saved"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["admin_saved"],array("htmlspecialchars"));
-		unset($_SESSION["bigtree"]["admin_saved"]);
+	if (isset($_SESSION["bigtree_admin"]["admin_saved"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["admin_saved"],array("htmlspecialchars"));
+		unset($_SESSION["bigtree_admin"]["admin_saved"]);
 	}
 	
-	if (isset($_SESSION["bigtree"]["admin_error"])) {
-		$e = $_SESSION["bigtree"]["admin_error"];
-		unset($_SESSION["bigtree"]["admin_error"]);
+	if (isset($_SESSION["bigtree_admin"]["admin_error"])) {
+		$e = $_SESSION["bigtree_admin"]["admin_error"];
+		unset($_SESSION["bigtree_admin"]["admin_error"]);
 	} else {
 		$e = false;
 	}
 ?>
-<h1><span class="icon_developer_field_types"></span>Add Field Type</h1>
-<? include BigTree::path("admin/modules/developer/field-types/_nav.php") ?>
-
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>field-types/create/" enctype="multipart/form-data" class="module">
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>

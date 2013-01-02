@@ -5,5 +5,6 @@
 		"other-id" => $options["mtm-other-id"],
 		"data" => $data[$key]
 	);	
+
+	$no_process = true;
 ?>
-<? $no_process = true; ?>

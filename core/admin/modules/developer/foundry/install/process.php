@@ -1,5 +1,9 @@
 <?
 	$cache_root = SERVER_ROOT."cache/unpack/".end($bigtree["path"])."/";
+	if (!file_exists($cache_root)) {
+		$cache_root = mkdir($cache_root);
+		chmod($cache_root,0777);
+	}
 	$index = file_get_contents($cache_root."index.btx");
 	$lines = explode("\n",$index);
 	$module_name = $lines[0];
@@ -9,6 +13,12 @@
 	$package_tables = array();
 	$module_match = array();
 	$route_match = array();
+	
+	// Instructions and Install Code defaults
+	$instructions = false;
+	$install_code = false;
+	unset($_SESSION["bigtree_admin"]["package_error"]);
+	unset($_SESSION["bigtree_admin"]["package_instructions"]);	
 		
 	// Saved information for managing these packages later.
 	$savedData["tables"] = array();
@@ -32,13 +42,21 @@
 				if (substr($key,0,1) != "_") {
 					if ($key != "type") {
 						if (is_array($val)) {
-							$$key = mysql_real_escape_string(json_encode($val,true));
+							$$key = sqlescape(json_encode($val,true));
 						} else {
-							$$key = mysql_real_escape_string($val);
+							$$key = sqlescape($val);
 						}
 					}
 				}
 			}
+		}
+		
+		if ($type == "Instructions") {
+			$instructions = $data;
+		}
+
+		if ($type == "InstallCode") {
+			$install_code = $data;
 		}
 		
 		if ($type == "Group") {
@@ -63,7 +81,8 @@
 			if ($route != $oroute) {
 				$route_match["custom/admin/$oroute/"] = "custom/admin/$route/";
 			}
-			sqlquery("INSERT INTO bigtree_modules (`name`,`description`,`image`,`route`,`class`,`group`,`gbp`) VALUES ('$name','$description','$image','$route','$class','$group_id','$gbp')");
+			$group_insert = $group_id ? "'$group_id'" : "NULL";
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`icon`,`gbp`) VALUES ('$name','$route','$class',$group_insert,'$icon','$gbp')");
 			$module_match[$id] = sqlid();
 			$module_id = sqlid();
 		}
@@ -79,7 +98,8 @@
 		
 		// Import a Module Form
 		if ($type == "ModuleForm") {
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position')");
+			$return_view = $return_view ? "'".$return_view."'" : "NULL";
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`positioning`,`default_position`,`return_view`,`return_url`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position',$return_view,'$return_url')");
 			$last_form_id = sqlid();
 		}
 		
@@ -99,16 +119,17 @@
 		// Import a Callout
 		if ($type == "Callout") {
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`) VALUES ('$id','$name','$description','$resources','$level')");
+			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`) VALUES ('$id','$name','$description','$display_default','$display_field','$resources','$level')");
 			$savedData["callouts"][] = $id;
 		}
 		
 		// Import a Setting
 		if ($type == "Setting") {
-			if ($data["module"])
+			if ($data["module"]) {
 				$module = $module_match[$module];
+			}
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
-			sqlquery("INSERT INTO bigtree_settings (`id`,`value`,`type`,`name`,`description`,`locked`,`system`,`encrypted`) VALUES ('$id','$value','".$data["type"]."','$name','$description','$locked','$system','$encrypted')");
+			sqlquery("INSERT INTO bigtree_settings (`id`,`value`,`type`,`name`,`description`,`options`,`locked`,`system`,`encrypted`) VALUES ('$id','$value','".$data["type"]."','$name','$description','$options','$locked','$system','$encrypted')");
 			$savedData["settings"][] = $id;
 		}
 		
@@ -117,6 +138,13 @@
 			sqlquery("DELETE FROM bigtree_feeds WHERE route = '$route'");
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','".$data["type"]."','$table','$fields','$options')");
 			$savedData["feeds"][] = $route;
+		}
+		
+		// Import a Field Type
+		if ($type == "FieldType") {
+			sqlquery("DELETE FROM bigtree_field_types WHERE id = '$id'");
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
+			$savedData["field_types"][] = $id;
 		}
 		
 		// Import a File
@@ -162,12 +190,26 @@
 		}
 	}
 	
-	// Clear module class cache
+	// Clear module class cache and field type cache.
 	unlink(SERVER_ROOT."cache/module-class-list.btc");
+	unlink(SERVER_ROOT."cache/form-field-types.btc");
 	
 	$data = unserialize($_POST["details"]);
 	
 	$admin->growl("Developer","Installed Package");
-	header("Location: ".ADMIN_ROOT."developer/foundry/install/complete/");
-	die();
+	
+	if ($install_code) {
+		try {
+			eval(ltrim(rtrim(base64_decode($install_code),"?>"),"<?"));
+		} catch (Exception $e) {
+			$_SESSION["bigtree_admin"]["package_code"] = ltrim(rtrim(base64_decode($install_code),"?>"),"<?");
+			$_SESSION["bigtree_admin"]["package_error"] = $e;
+		}
+	}
+	
+	if (count($instructions) && $instructions["post"]) {
+		$_SESSION["bigtree_admin"]["package_instructions"] = $instructions["post"];
+	}
+	
+	BigTree::redirect(ADMIN_ROOT."developer/foundry/install/complete/");
 ?>

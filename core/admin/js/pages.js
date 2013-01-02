@@ -72,9 +72,9 @@ $(document).ready(function() {
 	
 	// Walk through each step of page creation.
 	$(".next").click(function() {
-		nav = $(".form_container nav a");
+		nav = $(".container nav a");
 		
-		tab = $(".form_container nav a.active");
+		tab = $(".container nav a.active");
 		tab.removeClass("active");
 		next = tab.next("a").addClass("active");
 		
@@ -116,48 +116,22 @@ $(document).ready(function() {
 	// Callouts
 	$("#bigtree_callouts .add_callout").click(function() {
 		$.ajax("admin_root/ajax/pages/add-callout/", { type: "POST", data: { count: callout_count }, complete: function(response) {
-			new BigTreeDialog("Add Callout",response.responseText,function() {		
-				last_dialog = $(".bigtree_dialog_form").last();
-
-				// Validate required fields.
-				v = new BigTreeFormValidator(last_dialog);
-				if (!v.validateForm(false,true)) {
+			new BigTreeDialog("Add Callout",response.responseText,function(e) {		
+				e.preventDefault();
+				
+				li = BigTree.GetCallout();
+				if (!li) {
 					return false;
 				}
-				
-				li = $('<li>');
-				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
-				
-				callout_number = last_dialog.find("input.callout_count").val();
-				callout_desc = "";
-				callout_desc_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-				if (callout_desc_field.is('select')) {
-					callout_desc = callout_desc_field.find("option:selected").text();
-				} else {
-					callout_desc = callout_desc_field.val();
-				}
-				if ($.trim(callout_desc) == "") {
-					callout_desc = last_dialog.find(".display_default").val();
-				}
-				last_dialog.find("input, textarea, select").each(function() {
-					if ($(this).attr("type") != "submit") {
-						if ($(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
-							var mce = tinyMCE.get($(this).attr("id"));
-							if (mce) {
-								mce.save();
-								tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-							}
-						}
-						$(this).hide();
-						li.append($(this));
-					}
-				});
+
+				// Add the callout and hide the dialog.
 				$("#bigtree_callouts ul").append(li);
 				last_dialog.parents("div").remove();
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
-				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
+				// Fill out the callout description.
+				li.find("h4").html(callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
 				
@@ -168,52 +142,24 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	$("#bigtree_callouts").on("click",".icon_edit_small",function() {
+	$("#bigtree_callouts").on("click",".icon_edit",function() {
 		active_callout_edit = $(this).parents("li");
 		
 		$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: callout_count, data: active_callout_edit.find(".callout_data").val() }, complete: function(response) {
-			new BigTreeDialog("Edit Callout",response.responseText,function() {
-				last_dialog = $(".bigtree_dialog_form").last();
+			new BigTreeDialog("Edit Callout",response.responseText,function(e) {
+				e.preventDefault();
 				
-				// Validate required fields.
-				v = new BigTreeFormValidator(last_dialog);
-				if (!v.validateForm(false,true)) {
+				li = BigTree.GetCallout();
+				if (!li) {
 					return false;
 				}
-				
-				li = $('<li>');
-				li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><a href="#" class="icon_delete_small"></a></div>');
-				
-				callout_number = last_dialog.find("input.callout_count").val();
-				callout_desc = "";
-				callout_desc_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-				if (callout_desc_field.is('select')) {
-					callout_desc = callout_desc_field.find("option:selected").text();
-				} else {
-					callout_desc = callout_desc_field.val();
-				}
-				if ($.trim(callout_desc) == "") {
-					callout_desc = last_dialog.find(".display_default").val();
-				}
-				last_dialog.find("input, textarea, select").each(function() {
-					if ($(this).attr("type") != "submit") {
-						if ($(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
-							var mce = tinyMCE.get($(this).attr("id"));
-							if (mce) {
-								mce.save();
-								tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-							}
-						}
-						$(this).hide();
-						li.append($(this));
-					}
-				});
+
 				active_callout_edit.replaceWith(li);
 				last_dialog.parents("div").remove();
 				last_dialog.remove();
 				$(".bigtree_dialog_overlay").last().remove();
 				
-				li.find("h4").html('<span class="icon_sort"></span>' + callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
+				li.find("h4").html(callout_desc + '<input type="hidden" name="callouts[' + callout_number + '][display_title]" value="' + htmlspecialchars(callout_desc) + '" />');
 				
 				callout_count++;
 				
@@ -224,14 +170,14 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	$("#bigtree_callouts").on("click",".icon_delete_small",function() {
+	$("#bigtree_callouts").on("click",".icon_delete",function() {
 		new BigTreeDialog("Delete Callout", '<p class="confirm">Are you sure you want to delete this callout?</p>', $.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 		return false;
 	});
 	
-	$("#bigtree_callouts ul").sortable({ containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+	$("#bigtree_callouts ul").sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 });
 
 function checkTemplate() {

@@ -27,7 +27,7 @@
 	</select>
 </fieldset>
 <?
-	} elseif ($t == "textarea" || $t == "upload" || $t == "html" || $t == "list") {
+	} elseif ($t == "textarea" || $t == "upload" || $t == "html" || $t == "list" || $t == "time" || $t == "date" || $t == "datetime") {
 ?>
 <fieldset>
 	<input type="checkbox" name="validation" value="required"<? if ($validation == "required") { ?> checked="checked"<? } ?> />

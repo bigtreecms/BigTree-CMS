@@ -1,7 +1,20 @@
+<?	
+	$user = $admin->getUser(end($bigtree["commands"]));
+
+	// Stop if this is a 404 or the user is editing someone higher than them.
+	if (!$user || $user["level"] > $admin->Level) {
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>The user you are trying to edit no longer exists or you are not allowed to edit this user.</p>
+	</section>
+</div>
 <?
-	$breadcrumb[] = array("link" => "#", "title" => "Edit User");
-	
-	$user = $admin->getUser($bigtree["commands"][0]);
+		$admin->stop();
+	}
+
+	$gravatar_email = $user["email"];
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 	
 	if (!$permissions) {
@@ -81,10 +94,10 @@
 	
 	$e = false;
 
-	if (isset($_SESSION["bigtree"]["update_user"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["update_user"],array("htmlspecialchars"));
+	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
 		$e = true;
-		unset($_SESSION["bigtree"]["update_user"]);
+		unset($_SESSION["bigtree_admin"]["update_user"]);
 	}
 	
 	// Prevent a notice on alerts
@@ -94,17 +107,16 @@
 	
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
-<h1><span class="gravatar"><img src="<?=BigTree::gravatar($user["email"])?>" alt="" /></span>Edit User</h1>
-<? include BigTree::path("admin/modules/users/_nav.php"); ?>
-<div class="form_container">
-	<form class="module" action="<?=ADMIN_ROOT?>users/update/<?=$bigtree["path"][3]?>/" method="post">
+<div class="container">
+	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
+		<input type="hidden" name="id" value="<?=$user["id"]?>" />
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?> style="position: relative;">
 					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
 					<input type="text" class="required email" name="email" value="<?=$email?>" tabindex="1" />
-					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 18)?>" alt="" /></span>
+					<span class="gravatar"<? if ($email) { ?> style="display: block;"<? } ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
@@ -222,15 +234,16 @@
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 									<?
 												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
-													$categories = array();
-													$ot = mysql_real_escape_string($gbp["other_table"]);
-													$tf = mysql_real_escape_string($gbp["title_field"]);
-													if ($tf && $ot) {
-														$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
+													if (BigTree::tableExists($gbp["other_table"])) {
+														$categories = array();
+														$ot = sqlescape($gbp["other_table"]);
+														$tf = sqlescape($gbp["title_field"]);
+														if ($tf && $ot) {
+															$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 									?>
 									<ul class="depth_2" style="display: none;">
 										<?
-													while ($c = sqlfetch($q)) {
+															while ($c = sqlfetch($q)) {
 										?>
 										<li>
 											<span class="depth"></span>
@@ -240,10 +253,11 @@
 											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <? if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 										</li>
 										<?
-														}
+															}
 										?>
 									</ul>
 									<?
+														}
 													}
 												}
 											}
@@ -321,8 +335,10 @@
 		return false;
 	});
 	
+	// Observe content alert checkboxes
 	$("input[type=checkbox]").on("click",function() {
-		if ($(this).attr("checked")) {
+		// This is kind of backwards since it gets fired before the checkbox gets its checked status.
+		if (!$(this).attr("checked")) {
 			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
 				$(this).attr("checked","checked").attr("disabled","disabled");
 				this.customControl.Link.addClass("checked").addClass("disabled");
@@ -357,7 +373,7 @@
 	$(document).ready(function() {
 		$("input.email").blur(function() {
 			var email = md5($(this).val().trim());
-			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=18&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
 	});
 </script>

@@ -1,8 +1,8 @@
-<h1><span class="settings"></span>Settings</h1>
-
+<? $admin->requireLevel(1) ?>
 <div class="table">
 	<summary>
 		<input type="search" name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" />
+		<span class="form_search_icon"></span>
 		<ul id="view_paging" class="view_paging"></ul>
 	</summary>
 	<header>
@@ -28,4 +28,14 @@
 	function _local_search() {
 		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=0&query=" + escape($("#query").val()));
 	}
+	
+	$("#view_paging a").live("click",function() {
+		mpage = BigTree.CleanHref($(this).attr("href"));
+		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
+			return false;
+		}
+		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=" + mpage + "&query=" + escape($("#query").val()));
+
+		return false;
+	});
 </script>

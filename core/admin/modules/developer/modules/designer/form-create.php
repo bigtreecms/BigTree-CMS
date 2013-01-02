@@ -8,8 +8,7 @@
 	if (!count($_POST["titles"]) || empty($_POST["titles"])) {
 		$_SESSION["developer"]["designer_errors"]["fields"] = true;
 		$_SESSION["developer"]["saved_module"] = $_POST;
-		header("Location: ".$_SERVER["HTTP_REFERER"]);
-		die();
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
 	foreach ($_POST["titles"] as $key => $ft) {
@@ -62,6 +61,5 @@
 	$admin->createModuleAction($module,"Add ".$_POST["title"],"add","on","add",$form_id);
 	$admin->createModuleAction($module,"Edit ".$_POST["title"],"edit","","edit",$form_id);
 	
-	header("Location: ../view/$module/".$_POST["table"]."/".urlencode(htmlspecialchars($_POST["title"]))."/");
-	die();
+	BigTree::redirect($developer_root."modules/designer/view/?module=$module&table=".urlencode($_POST["table"])."&title=".urlencode($_POST["title"]));
 ?>

@@ -1,10 +1,6 @@
 <?
-	$breadcrumb = array(
-		array("link" => "developer/", "title" => "Developer"),
-		array("link" => "developer/status/", "title" => "Site Status")
-	);
-
 	//!BigTree Warnings
+	$warnings = array();
 	
 	// Check for Google Analytics
 	$content = @file_get_contents(WWW_ROOT);
@@ -16,7 +12,7 @@
 		);
 	}
 	
-	$writable_directors = array(
+	$writable_directories = array(
 		"cache/",
 		"custom/inc/modules/",
 		"templates/routed/",
@@ -24,6 +20,16 @@
 		"templates/callouts/",
 		"site/files/"
 	);
+	
+	foreach ($writable_directories as $directory) {
+		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
+		    $warnings[] = array(
+		    	"parameter" => "Directory Permissions Error",
+		    	"rec" => "Make ".SERVER_ROOT.$directory." writable.",
+		    	"status" => "bad"
+		    );
+		}
+	}
 	
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
 	$forms = $admin->getModuleForms();
@@ -66,12 +72,7 @@
 	$magic_quotes_runtime = !get_magic_quotes_runtime() ? "good" : "bad";
 	$file_uploads = ini_get('file_uploads') ? "good" : "bad";
 	$short_tags = ini_get('short_open_tag') ? "good" : "bad";
-	$gd = extension_loaded('gd') ? "good" : "bad";
-	if ($gd == "good") {
-		$image_support = extension_loaded('imagick') ? "good" : "ok";
-	} else {
-		$image_support = extension_loaded("imagick") ? "good" : "bad";
-	}
+	$image_support = extension_loaded('gd') ? "good" : "bad";
 	
 	$ftp = function_exists("ftp_connect") ? "good" : "ok";
 	
@@ -88,14 +89,14 @@
 	$mem_limit = ini_get("memory_limit");
 	$memory_limit = (intval($mem_limit) > 32) ? "good" : "bad";
 	
-	$apache_modules = apache_get_modules();
-	$mod_rewrite = in_array('mod_rewrite', $apache_modules) ? "good" : "bad";
-	
 	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
-<h1><span class="developer"></span>Site Status</h1>
-<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
-
+<div class="container">
+	<section>
+		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
+	</section>
+</div>
+<? if (count($warnings)) { ?>
 <div class="table">
 	<summary>
 		<h2 class="no_icon">Warnings</h2>
@@ -115,6 +116,7 @@
 		<? } ?>
 	</ul>
 </div>
+<? } ?>
 <div class="table">
 	<summary>
 		<h2 class="no_icon">Server Parameters</h2>
@@ -172,13 +174,8 @@
 		</li>
 		<li>
 			<section class="site_status_message">Image Processing</section>
-			<section class="site_status_action">Either ImageMagick (recommended - green) or GD (yellow) is required</section>
+			<section class="site_status_action">GD library support is required</section>
 			<section class="site_status_status <?=$image_support?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">URL Rewrite Support</section>
-			<section class="site_status_action">mod_rewrite for Apache is required</section>
-			<section class="site_status_status <?=$mod_rewrite?>"></section>
 		</li>
 		<li>
 			<section class="site_status_message">External URL Opening</section>

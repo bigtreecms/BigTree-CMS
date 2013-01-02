@@ -1,9 +1,7 @@
 <?
 	$groups = $admin->getModuleGroups();
 ?>
-<h1><span class="icon_developer_modules"></span>Module Designer</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<p>The module designer will guide you through making a module without needing access to the database or knowledge of database table creation.</p>
 	</header>
@@ -38,6 +36,18 @@
 					<input name="class" class="required" type="text" value="<?=$class?>" />
 				</fieldset>
 			</div>
+			<br class="clear" />
+			<fieldset>
+		        <label class="required">Icon</label>
+		        <input type="hidden" name="icon" id="selected_icon" value="gear" />
+		        <ul class="developer_icon_list">
+		        	<? foreach ($admin->IconClasses as $class) { ?>
+		        	<li>
+		        		<a href="#<?=$class?>"<? if ($class == "gear") { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        	</li>
+		        	<? } ?>
+		        </ul>
+		    </fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Continue" />

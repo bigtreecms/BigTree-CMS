@@ -9,9 +9,8 @@
 		$group = $group_existing;
 	}
 	
-	$admin->updateModule($id,$name,$group,$class,$gbp);	
+	$admin->updateModule($id,$name,$group,$class,$gbp,$icon);	
 
 	$admin->growl("Developer","Updated Module");
-	header("Location: ".$developer_root."modules/view/");
-	die();	
+	BigTree::redirect($developer_root."modules/");
 ?>

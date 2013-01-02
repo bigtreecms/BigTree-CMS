@@ -19,13 +19,13 @@
 	
 	// If they're not a publisher, they have no business here.
 	if ($permission_level != "p") {
-		die("Not going to happen.");
+		die("Permission denied.");
 	}
 
 	// This is an update to an existing entry.
-	if ($change["item_id"]) {
+	if (!is_null($change["item_id"])) {
 		if ($change["table"] == "bigtree_pages") {
-			$page_data = $admin->getPendingPage($change["item_id"]);
+			$page_data = $cms->getPendingPage($change["item_id"]);
 			$admin->updatePage($change["item_id"],$page_data);
 		} else {
 			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$changes["mtm_changes"],$changes["tags_changes"]);

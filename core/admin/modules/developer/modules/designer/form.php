@@ -1,9 +1,9 @@
 <?
-	$mod = $admin->getModule($bigtree["commands"][0]);
-	$table = $bigtree["commands"][1];
+	$module = $admin->getModule($_GET["module"]);
+	$table = $_GET["table"];
 	
 	if (!$title) {
-		$title = $mod["name"];
+		$title = $module["name"];
 		if (substr($title,-3,3) == "ies") {
 			$title = substr($title,0,-3)."y";
 		} else {
@@ -16,14 +16,12 @@
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 ?>
-<h1><span class="icon_developer_modules"></span>Module Designer</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<p>Step 2: Creating Your Form</p>
 	</header>
 	<form method="post" action="<?=$developer_root?>modules/designer/form-create/" class="module">
-		<input type="hidden" name="module" value="<?=$mod["id"]?>" />
+		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>
 			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
@@ -67,7 +65,7 @@
 	var mtm_count = 0;
 	var key = 0;
 	
-	$(".icon_edit").live("click",function() {
+	$(".icon_settings").live("click",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
@@ -101,7 +99,7 @@
 		key++;
 		
 		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="" class="required" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=htmlspecialchars($v)?></option><? } ?></select></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="" class="required" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		_local_hooks();
@@ -111,7 +109,7 @@
 	
 	$(".add_geocoding").click(function() {
 		li = $('<li id="row_geocoding">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="hidden" name="subtitles[geocoding]" value="" />&nbsp;</section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" />&nbsp;</section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="hidden" name="subtitles[geocoding]" value="" />&nbsp;</section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" />&nbsp;<a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
 		
 		$("#resource_table").append(li);
 		_local_hooks();
@@ -123,7 +121,7 @@
 		mtm_count++;
 			
 		li = $('<li id="mtm_row_' + mtm_count + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><p>Many To Many</p></section><section class="developer_resource_action"><a href="#" class="options icon_edit" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><p>Many To Many</p><a href="#" class="options icon_settings" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		_local_hooks();

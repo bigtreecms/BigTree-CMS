@@ -1,24 +1,31 @@
-<h1><span class="modules"></span>Edit <?=$form["title"]?></h1>
 <?
-	include BigTree::path("admin/auto-modules/_nav.php");
-	$item_id = end($bigtree["path"]);
-	
 	// Check for a page lock
-	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$admin->lockCheck($form["table"],$item_id,"admin/auto-modules/forms/_locked.php",$force);
+	$force = isset($_GET["force"]) ? true : false;
+	$admin->lockCheck($form["table"],$edit_id,"admin/auto-modules/forms/_locked.php",$force);
 
-	$data = BigTreeAutoModule::getPendingItem($form["table"],$item_id);
+	$data = BigTreeAutoModule::getPendingItem($form["table"],$edit_id);
+	$original_item = BigTreeAutoModule::getItem($form["table"],$edit_id);
 		
 	if (!$data) {
 ?>
-<h1><span class="error"></span>Error</h1>
-<p class="error">The item you are trying to edit no longer exists.</p>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>The item you are trying to edit no longer exists.</p>
+	</section>
+</div>
 <?
 	} else {
 		$view = BigTreeAutoModule::getRelatedViewForForm($form);				
 		$item = $data["item"];
 		
 		$permission_level = $admin->getAccessLevel($module,$item,$form["table"]);
+		if ($permission_level != "n") {
+			$original_permission_level = $admin->getAccessLevel($module,$original_item["item"],$form["table"]);
+			if ($original_permission_level != "p") {
+				$permission_level = $original_permission_level;
+			}
+		}
 		
 		if (!$permission_level || $permission_level == "n") {
 			include BigTree::path("admin/auto-modules/forms/_denied.php");
@@ -32,3 +39,6 @@
 		}
 	}
 ?>
+<script type="text/javascript">
+	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: '<?=$form["table"]?>', id: '<?=$edit_id?>' } });",60000);
+</script>

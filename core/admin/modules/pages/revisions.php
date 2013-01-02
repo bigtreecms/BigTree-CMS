@@ -1,38 +1,53 @@
 <?
-	$page = end($bigtree["path"]);
-	$access = $admin->getPageAccessLevel($page);
-	if ($access != "p") {
-		$admin->stop("You must be a publisher to manage revisions.");
-	}
-	$pdata = $cms->getPage($page);
-	
-	if (!$pdata) {
+	// Make sure this is a live page.
+	if (!is_numeric($page["id"])) {
 ?>
-<h1><span class="error"></span>Error</h1>
-<p class="error">The page you are trying to edit no longer exists.</p>
+<div class="container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
+		<p>Revisions do not function on unpublished pages.</p>
+	</section>
+</div>
 <?
 		$admin->stop();
 	}
+
+	// Make sure the user is a publisher.
+	if ($access_level != "p") {
 ?>
-<h1><span class="refresh"></span><?=$pdata["nav_title"]?></h1>	
+<div class="container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
+		<p>You must be a publisher to manage revisions.</p>
+	</section>
+</div>
 <?
-	include BigTree::path("admin/modules/pages/_nav.php");
+		$admin->stop();
+	}
 	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$lock_id = $admin->lockCheck("bigtree_pages",$page,"admin/modules/pages/_locked.php",$force);
+	$lock_id = $admin->lockCheck("bigtree_pages",$page["id"],"admin/modules/pages/_locked.php",$force);
 	
 	// See if there's a draft copy.
-	$draft = $admin->getPageChanges($pdata["id"]);
+	$draft = $admin->getPageChanges($page["id"]);
 	
 	// Get the current published copy.  We're going to just pull a few columns or I'd use getPage here.
-	$current_author = $admin->getUser($pdata["last_edited_by"]);
+	$current_author = $admin->getUser($page["last_edited_by"]);
 	
 	// Get all revisions
-	$revisions = $admin->getPageRevisions($page);
+	$revisions = $admin->getPageRevisions($page["id"]);
+
+	include BigTree::path("admin/modules/pages/_properties.php");
 ?>
 <div class="table">
-	<summary><h2><span class="visible"></span>Unpublished Drafts</h2></summary>
+	<summary><h2><span class="pages"></span>Unpublished Drafts</h2></summary>
 	<header>
 		<span class="pages_last_edited">Last Edited</span>
 		<span class="pages_draft_author">Draft Author</span>
@@ -47,10 +62,10 @@
 		?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($draft["date"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($draft_author["email"], 18)?>" alt="" /></span><?=$draft_author["name"]?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($draft_author["email"], 36)?>" alt="" /></span><?=$draft_author["name"]?></section>
 			<section class="pages_publish"><a class="icon_publish" href="#"></a></section>
-			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$pdata["id"]?>/"></a></section>
-			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$pdata["id"]?>"></a></section>
+			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page["id"]?>/"></a></section>
+			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page["id"]?>"></a></section>
 		</li>
 		<?
 			}
@@ -68,19 +83,19 @@
 	</header>
 	<ul>
 		<li class="active">
-			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($pdata["updated_at"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 18)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft">Active</span></section>
+			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($page["updated_at"]))?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft">Active</span></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
-			<section class="pages_edit"></span>
+			<section class="pages_edit"></section>
 		</li>
 		<? foreach ($revisions["unsaved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 18)?>" alt="" /></span><?=$r["name"]?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 36)?>" alt="" /></span><?=$r["name"]?></section>
 			<section class="pages_delete"><a href="#<?=$r["id"]?>" class="icon_save"></a></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
-			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></span>
+			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -99,15 +114,15 @@
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
 			<section class="pages_draft_description"><?=$r["saved_description"]?></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
-			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></span>
+			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
 </div>
 <script type="text/javascript">
 	var active_draft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
-	var page = "<?=$pdata["id"]?>";
-	var page_updated_at = "<?=$pdata["updated_at"]?>";
+	var page = "<?=$page["id"]?>";
+	var page_updated_at = "<?=$page["updated_at"]?>";
 	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
 	
 	$(".icon_save").click(function() {
@@ -116,7 +131,7 @@
 			if (BigTree.CleanHref($(this).attr("href"))) {
 				id = BigTree.CleanHref($(this).attr("href"));
 			} else {
-				id = "c<?=$page?>";
+				id = "c<?=$page["id"]?>";
 			}
 			$.ajax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }, complete: function() {
 				//window.location.reload();
@@ -132,13 +147,13 @@
 			new BigTreeDialog("Delete Revision",'<p class="confirm">Are you sure you want to delete this revision?</p>',$.proxy(function() {
 				$.ajax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.CleanHref($(this).attr("href")));
 				$(this).parents("li").remove();
-				BigTree.growl("Pages","Deleted Revision");
+				BigTree.Growl("Pages","Deleted Revision");
 			},this),"delete",false,"OK");
 		} else {
 			new BigTreeDialog("Delete Draft",'<p class="confirm">Are you sure you want to delete this draft?</p>',$.proxy(function() {
 				$.ajax($(this).attr("href"));
 				$(this).parents("li").remove();
-				BigTree.growl("Pages","Deleted Draft");
+				BigTree.Growl("Pages","Deleted Draft");
 			},this),"delete",false,"OK");
 		}
 		

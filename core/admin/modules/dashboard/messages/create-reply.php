@@ -2,11 +2,10 @@
 	if (!count($_POST["send_to"]) || !$_POST["subject"] || !$_POST["message"]) {
 		$_SESSION["saved_message"] = $_POST;
 		if (strpos("reply-all",$_SERVER["HTTP_REFERER"])) {
-			header("Location: ../reply-all/".$_POST["response_to"]."/");
+			BigTree::redirect(ADMIN_ROOT."dashboard/messages/reply-all/".$_POST["response_to"]."/");
 		} else {
-			header("Location: ../reply/".$_POST["response_to"]."/");
+			BigTree::redirect(ADMIN_ROOT."dashboard/messages/reply/".$_POST["response_to"]."/");
 		}
-		die();
 	}
 	
 	// Make sure the user has the right to see this message
@@ -16,6 +15,5 @@
 	$admin->createMessage($_POST["subject"],$_POST["message"],$_POST["send_to"],$_POST["response_to"]);
 	
 	$admin->growl("Message Center","Replied To Message");
-	header("Location: ../");
-	die();
+	BigTree::redirect(ADMIN_ROOT."dashboard/messages/");
 ?>

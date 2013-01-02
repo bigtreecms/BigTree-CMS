@@ -12,6 +12,12 @@
 	$x = 0;
 	
 	$clean_key = str_replace(array("[","]"),"_",$key);
+	
+	// We recreate the field array because Chrome doesn't like to do for loops properly when the numeric keys are out of order.
+	$aoi_fields = array();
+	foreach ($options["fields"] as $f) {
+		$aoi_fields[] = $f;
+	}
 ?>
 <fieldset id="<?=$clean_key?>">
 	<? if ($title) { ?><label><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
@@ -38,5 +44,5 @@
 	</div>
 </fieldset>
 <script type="text/javascript">
-	new BigTreeArrayOfItems("<?=$clean_key?>",<?=$x?>,"<?=$key?>",<?=json_encode($options["fields"])?>);
+	new BigTreeArrayOfItems("<?=$clean_key?>",<?=$x?>,"<?=$key?>",<?=json_encode($aoi_fields)?>);
 </script>

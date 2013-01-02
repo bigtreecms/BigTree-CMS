@@ -7,11 +7,11 @@
 
 	$used = array();
 	$unused = array();
-	
+
 	$tblfields = array();
-	$q = sqlquery("DESCRIBE $table");
-	while ($f = sqlfetch($q)) {
-		$tblfields[] = $f["Field"];
+	$table_description = BigTree::describeTable($table);
+	foreach ($table_description["columns"] as $column => $details) {
+		$tblfields[] = $column;
 	}
 	
 	if (isset($fields)) {
@@ -139,7 +139,7 @@
 	});
 		
 	
-	$(".developer_action_list .action").click(function() {
+	$(".developer_action_list").on("click",".action",function() {
 		if ($(this).hasClass("active")) {
 			$(this).removeClass("active");
 			$(this).prev("input").attr("checked",false);

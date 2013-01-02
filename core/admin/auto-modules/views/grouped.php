@@ -1,10 +1,12 @@
 <?
 	$m = BigTreeAutoModule::getModuleForView($view);
 	$perm = $admin->getAccessLevel($m);
+	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="Search" />
+		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=$search?>" />
+		<span class="form_search_icon"></span>
 	</summary>
 	<article class="table" id="table_contents">
 		<? include BigTree::path("admin/ajax/auto-modules/views/grouped.php") ?>

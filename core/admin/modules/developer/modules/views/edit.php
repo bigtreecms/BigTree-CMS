@@ -3,26 +3,37 @@
 	$action = $admin->getModuleActionForView(end($bigtree["path"]));
 	$module = $admin->getModule($action["module"]);
 
-	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
-	$breadcrumb[] = array("title" => "Edit View", "link" => "#");
-	
-	BigTree::globalizeArray($view,array("htmlspecialchars"));
-?>
-<h1><span class="icon_developer_modules"></span>Edit View</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
+	BigTree::globalizeArray($view);
 
-<div class="form_container">
-	
+	if (!BigTree::tableExists($table)) {
+?>
+<div class="container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
+		<p>The table for this view (<?=$table?>) no longer exists.</p>
+	</section>
+	<footer>
+		<a href="javascript:history.go(-1);" class="button">Back</a>
+		<a href="<?=$section_root?>delete/<?=$view["id"]?>/" class="button red">Delete View</a>
+	</footer>
+</div>
+<?
+	} else {
+?>
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
 		<section>
 			<? if ($action["route"]) { ?>
 			<div class="alert">
-				<img src="<?=ADMIN_ROOT?>images/alert.png" alt="" />
+				<span></span>
 				<p><strong>This is not the default view:</strong>  You may specify an action suffix below.</p>
 			</div>
 			<fieldset>
 				<label>Add/Edit Suffix</label>
-				<input type="text" name="suffix" value="<?=$suffix?>" />
+				<input type="text" name="suffix" value="<?=htmlspecialchars($suffix)?>" />
 			</fieldset>
 			<? } ?>
 			
@@ -51,7 +62,7 @@
 			
 			<div class="right">
 				<fieldset>
-					<label>Page Description <small>(instructions for the user)</small></label>
+					<label>Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
 				</fieldset>
 			</div>
@@ -69,5 +80,7 @@
 		</footer>
 	</form>
 </div>
-
-<? include BigTree::path("admin/modules/developer/modules/views/_js.php") ?>
+<?
+		include BigTree::path("admin/modules/developer/modules/views/_js.php");
+	}
+?>

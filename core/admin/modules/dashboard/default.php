@@ -1,16 +1,9 @@
-<h1>
-	<span class="dashboard"></span>Overview
-	<? include BigTree::path("admin/modules/dashboard/_nav.php") ?>
-</h1>
 <?
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		header("Location: ".ADMIN_ROOT."dashboard/update/");
-		die();
+		BigTree::redirect(ADMIN_ROOT."dashboard/update/");
 	}
-	
-	$breadcrumb[] = array("title" => "Overview", "link" => "#");
 	
 	// Get all the messages we've received.
 	$messages = $admin->getMessages();
@@ -33,7 +26,7 @@
 				$change_modules[0] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
-				$change_modules[$c["module"]] = array("title" => $module["name"], "count" => 1);
+				$change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
 			}
 		} else {
 			$change_modules[$c["module"]]["count"]++;
@@ -41,7 +34,11 @@
 	}
 	
 	// Get Google Analytics Traffic
-	$ga_cache = $cms->getSetting("bigtree-internal-google-analytics-cache");
+	if (file_exists(SERVER_ROOT."cache/analytics.cache")) {
+		$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
+	} else {
+		$ga_cache = false;
+	}
 	// Only show this thing if they have Google Analytics setup already
 	if ($ga_cache && count($ga_cache["two_week"])) {
 		$visits = $ga_cache["two_week"];
@@ -55,7 +52,7 @@
 <div class="table">
 	<summary>
 		<h2 class="full">
-			<span class="world"></span>
+			<span class="analytics"></span>
 			Recent Traffic <small>Visits In The Past Two Weeks</small>
 			<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="more">View Analytics</a>
 		</h2>
@@ -102,7 +99,7 @@
 	}
 ?>
 
-<div class="table">
+<div class="table pending_changes_table">
 	<summary>
 		<h2 class="full">
 			<span class="pending"></span>
@@ -121,9 +118,20 @@
 		<li>
 			<section class="changes_awaiting">
 				<p>You have the following changes pending your approval:</p>
-				<? foreach ($change_modules as $m => $cm) { ?>
-				<p>&mdash; <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><?=$cm["title"]?></a></p>
-				<? } ?>
+				<?
+					foreach ($change_modules as $m => $cm) {
+						if ($m == 0) {
+							$icon = "page";
+						} elseif ($cm["icon"]) {
+							$icon = $cm["icon"];
+						} else {
+							$icon = "gear";
+						}
+				?>
+				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></a>
+				<?
+					}
+				?>
 			</section>
 		</li>
 		<?
@@ -157,7 +165,7 @@
 				foreach ($unread as $item) {
 		?>
 		<li>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 18)?>" alt="" /></span><?=$item["sender_name"]?></section>
+			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
 			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>

@@ -11,7 +11,8 @@
 		$r = $admin->getPageAccessLevel($pdata["parent"]);
 	} else {
 		$r = $admin->getPageAccessLevel($page);
-		$pdata = $admin->getPendingPage($page);
+		// Get pending page data with resources decoded and tags.
+		$pdata = $cms->getPendingPage($page,true,true);
 	}
 	
 	// Work out the permissions	
@@ -20,7 +21,18 @@
 	} elseif ($r == "e") {
 		$publisher = false;
 	} else {
-		die("You do not have access to update this page.");
+?>
+<div class="container">
+	<section>
+		<div class="alert">
+			<span></span>
+			<h3>Error</h3>
+		</div>
+		<p>You do not have access to this page.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	$resources = array();
@@ -63,31 +75,34 @@
 		$pdata["parent"] = 0;
 	}
 	
-	if (count($crops)) {
-		if ($_POST["return_to_front"]) {
-			$pd = $cms->getPage($page);
-			$return_page = WWW_ROOT.$pd["path"]."/";
+	if ($_POST["return_to_front"]) {
+		$pd = $cms->getPage($page);
+		if ($pd["id"]) {
+			$redirect_url = WWW_ROOT.$pd["path"]."/";
 		} else {
-			$return_page = ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/";
+			$redirect_url = WWW_ROOT;
 		}
-		include BigTree::path("admin/modules/pages/_crop.php");
-	} elseif (count($fails)) {
-		include BigTree::path("admin/modules/pages/_failed.php");
+	} elseif (end($bigtree["path"]) == "preview") {
+		$redirect_url = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
+	} elseif ($_POST["return_to_self"]) {
+		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["id"]."/";
 	} else {
-		if (end($bigtree["path"]) == "preview") {
-			$admin->ungrowl();
-			header("Location: ".$cms->getPreviewLink($page)."?bigtree_preview_bar=true");
-		} elseif ($_POST["return_to_front"]) {
-			$admin->ungrowl();
-			if ($page == 0) {
-				header("Location: ".WWW_ROOT);
-			} else {
-				$pd = $cms->getPage($page);
-				header("Location: ".WWW_ROOT.$pd["path"]."/");
-			}
-		} else {
-			header("Location: ".ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/");
-		}
-		die();
+		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/";
 	}
+
+	$_SESSION["bigtree_admin"]["form_data"] = array(
+		"page" => $page,
+		"return_link" => $redirect_url,
+		"edit_link" => ADMIN_ROOT."pages/edit/$page/",
+		"fails" => $fails,
+		"crops" => $crops
+	);
+	
+	if (count($fails)) {
+		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
+	} elseif (count($crops)) {
+		BigTree::redirect(ADMIN_ROOT."pages/crop/$page/");
+	}
+
+	BigTree::redirect($redirect_url);
 ?>

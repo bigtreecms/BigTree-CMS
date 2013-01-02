@@ -1,7 +1,7 @@
 <?
 	// Stop notices
-	$data["fields"] = isset($data["fields"]) ? $data["fields"] : array();
-	
+	$data["fields"] = isset($data["fields"]) ? $data["fields"] : array(array("key" => "","title" => "","type" => "text"));
+
 	$types = array(
 		"text" => "Text",
 		"textarea" => "Text Area",

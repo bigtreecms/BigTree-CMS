@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Daily Digest</title>
+	</head>
+	<body style="background: #111; margin: 0; padding: 0;">
+		<center style="background: #eee url({admin_root}images/email/bg.gif) repeat center top; padding: 0 0 50px;">
+			<table cellspacing="0" cellpadding="0" width="550">
+				<tr>
+					<td style="font-family: Helvetica, Arial, sans-serif; padding: 40px 0 20px;">
+						<h1 style="color: #333; font-size: 32px; font-weight: normal; float: left; margin: 0;">Daily Digest</h1>
+						<h3 style="color: #999; font-size: 14px; font-weight: normal; float: right; margin: 15px 0 0; text-transform: uppercase;">{date}</h3>
+					</td>
+				</tr>
+			</table>
+			<div style="background: #fff; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 3px #ccc; padding: 25px; width: 500px;">
+				<table cellspacing="0" cellpadding="0" width="500">
+					<tr>
+						<td style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; padding: 0;">
+							
+							<p style="color: #666; font-size: 14px;">
+								All recent activity on the site <a href="{www_root}" style="color: #578FB1;">{site_title}</a>.
+							</p>
+							<hr style="border: 1px solid #fff; border-top-color: #eee;" />
+							
+							<div style="margin: 20px 0 30px;">
+								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
+								<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+									<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+										<tr>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px;">Page</th>
+											<th style="font-weight: normal; padding: 4px 20px 3px 15px; text-align: right; width: 50px;">Age</th>
+											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">View</th>
+											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">Edit</th>
+										</tr>
+									</thead>
+									<tbody style="color: #333; font-size: 13px;">
+										{content_alerts}
+									</tbody>
+								</table>
+							</div>
+							
+							<div style="margin: 20px 0 30px;">
+								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Pending Changes</h3>
+								<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+									<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+										<tr>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;">Author</th>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;">Module</th>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px;">Type</th>
+											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">View</th>
+										</tr>
+									</thead>
+									<tbody style="color: #333; font-size: 13px;">
+										{pending_changes}
+									</tbody>
+								</table>
+							</div>
+							
+							<div style="margin: 20px 0 30px;">
+								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
+								<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+									<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+										<tr>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;">Sender</th>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;">Subject</th>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px;">Date</th>
+										</tr>
+									</thead>
+									<tbody style="color: #333; font-size: 13px;">
+										{unread_messages}
+									</tbody>
+								</table>
+							</div>
+							
+							
+							<hr style="border: 1px solid #fff; border-top-color: #eee;" />
+							<p style="color: #666; font-size: 12px; line-height: 1.4;">
+								You are receiving this because the address is linked to an account on <a href="{www_root}" style="color: #578FB1;">{site_title}</a>.
+								<br />
+								You can change your email preferences in the <a href="{admin_root}" style="color: #578FB1;">admin area</a>.
+							</p>
+							
+						</td>
+					</tr>
+				</table>
+			</div>
+		</center>
+		<div style="border-top: 3px solid #fff; box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.25); width: 100%;">
+			<div style="margin: 0 auto; padding: 25px; width: 550px;">
+				<a href="http://www.bigtreecms.org/"><img src="{admin_root}images/email/logo.gif" alt="BigTree CMS" /></a>
+			</div>
+		</div>
+	</body>
+</html>

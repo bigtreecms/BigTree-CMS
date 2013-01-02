@@ -1,34 +1,20 @@
 <?
-	include BigTree::path("admin/auto-modules/_setup.php");
-	$view = BigTreeAutoModule::getView($action["view"]);
+	$view = BigTreeAutoModule::getView($bigtree["module_action"]["view"]);
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($view["preview_url"]) {
 		$view["actions"]["preview"] = "on";
 	}
-?>
-<h1>
-	<span class="modules"></span><?=$view["title"]?>
-	<? if (isset($subnav) && count($subnav)) { ?>
-	<div class="jump_group">
-		<span class="icon"></span>
-		<div class="dropdown">
-			<strong><?=$mgroup["name"]?></strong>
-			<? foreach ($subnav as $link) { ?>
-			<a href="<?=ADMIN_ROOT?><?=$link["link"]?>"><?=$link["title"]?></a>
-			<? } ?>
-		</div>
-	</div>
-	<? } ?>
-</h1>
-<?
-	include BigTree::path("admin/auto-modules/_nav.php");
 
 	if ($view["description"]) {
-		echo "<p>".$view["description"]."</p>";
+?>
+<div class="container">
+	<section>
+		<p><?=$view["description"]?></p>
+	</section>
+</div>
+<?
 	}
-
-	$maction = $action;
 
 	$action_names = array(
 		"approve" => "Approve/Deny",
@@ -39,6 +25,4 @@
 	);
 	
 	include BigTree::path("admin/auto-modules/views/".$view["type"].".php");
-
-	$action = $maction;
 ?>

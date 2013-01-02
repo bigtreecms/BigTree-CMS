@@ -1,22 +1,11 @@
 <?
-	$ga_on = $cms->getSetting("bigtree-internal-google-analytics-profile");
+	// Check to see if we're using Google Analytics.
+	$ga = $cms->getSetting("bigtree-internal-google-analytics");
+	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
 	
-	$parent = is_array($bigtree["commands"]) ? end($bigtree["commands"]) : 0;
-	$page = $cms->getPage($parent,false);
-	$parent_access = $admin->getPageAccessLevel($parent);
-	
-	// Setup the page breadcrumb
-	if ($parent && $page) {
-
-	} else {
-		$breadcrumb = array(
-			array("link" => "pages/", "title" => "Pages"),
-			array("link" => "pages/view-tree/0/", "title" => "Home")
-		);
-	}
-	
+	// Handy function to show the trees without repeating so much code.
 	function local_drawPageTree($nav,$title,$subtitle,$class,$draggable = false) {
-		global $proot,$admin,$cms,$ga_on,$parent_access,$parent;
+		global $proot,$admin,$cms,$ga_on,$access_level,$page;
 ?>
 <div class="table">
 	<summary>
@@ -73,10 +62,10 @@
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 			<section class="pages_title<? if ($class == "archived") { ?>_widest<? } elseif (!$ga_on) { ?>_wider<? } ?>">
-				<? if ($parent_access == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
+				<? if ($access_level == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
 				<span class="icon_sort"></span>
 				<? } ?>
-				<? if ($class != "archived") { ?>
+				<? if ($class != "archived" && is_numeric($item["id"])) { ?>
 				<a href="<?=$proot?>view-tree/<?=$item["id"]?>/"><?=$item["title"]?></a>
 				<? } else { ?>
 				<?=$item["title"]?>				
@@ -104,7 +93,11 @@
 					if ($ga_on) {
 			?>
 			<section class="pages_views">
+				<? if ($item["template"]) { ?>
 				<?=number_format($item["ga_page_views"])?>
+				<? } else { ?>
+				&mdash;
+				<? } ?>
 			</section>
 			<?
 					}
@@ -113,7 +106,7 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($parent != 0 || $admin->Level > 1) && $admin->canModifyChildren($item)) { ?>
+				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page["id"] != 0 || $admin->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="Archive Page" class="icon_archive"></a>
 				<? } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Pending Page" class="icon_delete"></a>
@@ -140,46 +133,29 @@
 	</ul>
 </div>
 <?
-		if ($draggable && $parent_access) {
+		if ($draggable && $access_level) {
 ?>
 <script type="text/javascript">
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$parent?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page["id"]?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});
 </script>
 <?
 		}
 	}
 
-	if (!$page) {
-?>
-<h1><span class="error"></span>Error</h1>
-<p class="error">The page you are trying to view no longer exists.</p>
-<?
-		$admin->stop();
-	}
-?>
-<h1>
-	<? if (!$parent) { ?>
-	<span class="home"></span>Home
-	<? } else { ?>
-	<span class="page"></span><?=$page["nav_title"]?>
-	<? } ?>
-</h1>
-<?
-	include BigTree::path("admin/modules/pages/_nav.php");
 	include BigTree::path("admin/modules/pages/_properties.php");
 ?>
 <h3>Subpages</h3>
 <?
-	$nav_visible = array_merge($admin->getNaturalNavigationByParent($parent,1),$admin->getPendingNavigationByParent($parent));
-	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($parent),$admin->getPendingNavigationByParent($parent,""));	
-	$nav_archived = $admin->getArchivedNavigationByParent($parent);
+	$nav_visible = array_merge($admin->getNaturalNavigationByParent($page["id"],1),$admin->getPendingNavigationByParent($page["id"]));
+	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page["id"]),$admin->getPendingNavigationByParent($page["id"],""));	
+	$nav_archived = $admin->getArchivedNavigationByParent($page["id"]);
 	
 	if (count($nav_visible) || count($nav_hidden) || count($nav_archived)) {
 		// Drag Visible Pages
 		if (count($nav_visible)) {
-			local_drawPageTree($nav_visible,"Visible","","visible",true);
+			local_drawPageTree($nav_visible,"Visible","","pages",true);
 		}
 		
 		// Draw Hidden Pages
@@ -193,7 +169,7 @@
 		}
 	} else {
 ?>
-	<p>Create new subpages by clicking the "Add Subpage" button above.</p>
+<p>Create new subpages by clicking the "Add Subpage" button above.</p>
 <?	
 	}
 ?>

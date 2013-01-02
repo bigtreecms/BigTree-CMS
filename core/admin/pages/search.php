@@ -1,18 +1,17 @@
-<?
-	if ($_POST["query"]) {
-		header("Location: ".urlencode($_POST["query"])."/");
-		die();
-	}
-	
-	$breadcrumb = array(array("link" => "search/","title" => "Advanced Search"), array("link" => "search/".urlencode(end($bigtree["path"]))."/", "title" => "Query: &ldquo;".end($bigtree["path"])."&rdquo;"));
-	$module_title = "Advanced Search";
-	
+<?	
 	$total_results = 0;
 	$results = array();
-	$w = "'%".mysql_real_escape_string(end($bigtree["path"]))."%'";
+	
+	$search_term = $_GET["query"];
+	// If this is a link, see if it's internal.
+	if (substr($search_term,0,7) == "http://" || substr($search_term,0,8) == "https://") {
+		$search_term = $admin->makeIPL($search_term);
+	}
+	
+	$w = "'%".sqlescape($search_term)."%'";
 	
 	// Get the "Pages" results.
-	$r = $admin->searchPages(end($bigtree["path"]),array("title","resources","meta_keywords","meta_description","nav_title"),"50");
+	$r = $admin->searchPages($search_term,array("title","resources","meta_keywords","meta_description","nav_title"),"50");
 	$pages = array();
 	foreach ($r as $f) {
 		$res = json_decode($f["resources"],true);
@@ -43,15 +42,16 @@
 				$view = BigTreeAutoModule::getView($action["view"]);
 				$m_results = array();
 				
-				$qcolumns = sqlcolumns($view["table"]);
+				$table_description = BigTree::describeTable($view["table"]);
 				$qparts = array();
-				foreach ($qcolumns as $column => $data) {
+				foreach ($table_description["columns"] as $column => $data) {
 					$qparts[] = "`$column` LIKE $w";
 				}
 				
 				// Get matching results
 				$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
-				while ($r = sqlfetch($qs)) {
+				// Ignore SQL failures because we might have bad collation.
+				while ($r = sqlfetch($qs,true)) {
 					$m_results[] = $r;
 					$total_results++;
 				}
@@ -67,14 +67,13 @@
 		}
 	}
 ?>
-<h1>Advanced Search</h1>
-<form class="adv_search" method="post" action="<?=ADMIN_ROOT?>search/">
+<form class="adv_search" method="get" action="<?=ADMIN_ROOT?>search/">
 	<h3><?=number_format($total_results)?> Search results for &ldquo;<?=end($bigtree["path"])?>&rdquo;</h3>
-	<input type="image" src="<?=ADMIN_ROOT?>images/quick-search-icon.png" />
-	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
+	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($_GET["query"])?>" />
+	<input type="submit" />
 </form>
 
-<div class="form_container">
+<div class="container">
 	<header>
 		<nav>
 			<div class="more">
@@ -120,11 +119,11 @@
 	</div>
 </div>
 <script type="text/javascript">
-	$(".form_container nav a").click(function() {
+	$(".container nav a").click(function() {
 		$(".content_container .content").hide();
 		href = "content_" + $(this).attr("href").substr(1);
 		if ($(href)) {
-			$(".form_container nav a").removeClass("active");
+			$(".container nav a").removeClass("active");
 			$(this).addClass("active");
 			$("#" + href).show();
 		}

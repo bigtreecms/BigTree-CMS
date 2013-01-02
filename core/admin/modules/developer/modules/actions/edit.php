@@ -1,14 +1,11 @@
 <?
-	$item = $admin->getModuleAction($bigtree["commands"][0]);
+	$item = $admin->getModuleAction(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 	$module = $admin->getModule($module);
-	$breadcrumb[] = array("title" => $module["name"], "link" => "developer/modules/edit/".$module["id"]."/");
-	$breadcrumb[] = array("title" => "Edit Action", "link" => "#");
 ?>
-<h1><span class="icon_developer_modules"></span>Edit Action</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/actions/update/<?=$item["id"]?>/" class="module">
+		<input type="hidden" name="position" value="<?=$item["position"]?>" />
 		<? include BigTree::path("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />

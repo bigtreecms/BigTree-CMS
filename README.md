@@ -20,6 +20,76 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0RC1
+- NEW: Retina Display asset support (create 2x images at lower quality when capable)
+- NEW: Forms can now manually specify a return view.
+- NEW: Image quality settings can now be set in /templates/config.php for both retina images and regular images (previously BigTree always used 90%).
+- NEW: Crops and thumbnails can now be given grayscale treatment.
+- UPDATED: Custom <select>s now support <optgroup>
+- UPDATED: Thumbnails of cropped images now re-crop from the original image to preserve quality.
+- UPDATED: Template add/edit now groups Related Modules in <optgroups> for easier choosing of modules with the same name.
+- FIXED: Form's action routes not updating if suffix changed.
+- FIXED: Searchable view sorting.
+- FIXED: Template creation now throws an error message if you try to use an existing ID.
+- FIXED: # being thrown if you click on an already active tab in Pages. Now scrolls to the top.
+- FIXED: Regular user permissions that totally got screwed in beta 7.
+- FIXED: Trunk support in BigTreeCMS::getToplevelNavigationIdByPage
+- FIXED: Duplicate entries sometimes occurring in sitemap.xml
+- FIXED: Warning being thrown for output filters being false in router.
+- FIXED: Terminology on Callout add/edit page. Fixed options button being in the wrong place as well. Fixed doubled radio buttons.
+- FIXED: Group based permissions being checked off for modules where it was null.
+- FIXED: Options button in Module Designer.
+- FIXED: Image Views ignoring the "Edit" function being deactivated.
+- FIXED: Admin not redirecting to the requested page if it was requested when you weren't logged in. (Now returns to the requested page after login).
+- FIXED: Dialogs not re-centering if their height changed.
+- FIXED: Template tab in Pages now hides if a user doesn't have access to the template that is currently set (i.e. the template is Administrator or Developer only).
+- FIXED: Auto Modules now properly refresh their locks on content every minute.
+- FIXED: Double encoding of the names of Field Types (leading to &amp; showing up).
+- FIXED: Missing image when adding an image to a photo gallery for the first time.
+- FIXED: Packaging a module with tables that had foreign keys not being packaged in the proper order (leading to failed creation of tables due to foreign key constraints).
+- RETURNED: Support for /sitemap/ defaulting to /templates/basic/_sitemap.php
+- REMOVED: Imagick support. GD support remains.
+
+### 4.0b7
+- NEW: Redesigned sample site that provides more in depth examples of using BigTree
+- NEW: Field Types are now able to be used in Settings
+- NEW: Gravatar support for users
+- NEW: Date Time Picker support
+- NEW: BigTree::describeTable method for a faster way to get SQL table columns
+- NEW: Foreign key constraints are now recognized when creating a form and are automatically created to be database populated lists.
+- NEW: ENUM columns are now recognized when creating a form and are automatically created to be static lists.
+- NEW: BigTreeModule::getSitemap method to allow for drawing sitemap branches from a module class.
+- UPDATED: LESS Compiler to 0.3.5
+- UPDATED: Authentication no longer caches permissions via sessions.
+- UPDATED: New installs now set SERVER_ROOT in /site/index.php to allow for sym-linked /core/ folders.
+- UPDATED: Install.php can now accept command line options instead of $_POST vars for automated installs.
+- UPDATED: New installs will receive indexes and foreign key constraints on bigtree core tables.
+- UPDATED: Retina assets for custom controls.
+- UPDATED: CSS parsing to include root variable auto replacing (www_root/ admin_root/ static_root/ etc).
+- FIXED: Custom select boxes now blur other select boxes when clicked.
+- FIXED: Custom select boxes now scroll the window down to show their full drop down when low on the page.
+- FIXED: A bug with SEO scoring unique titles improperly.
+- FIXED: Turning on notices when debugging a custom module shouldn't break the whole admin now.
+- FIXED: Bug related to locked pages/entries.
+- FIXED: Searching users, settings, and resources is no longer case sensitive
+- FIXED: Missing jump dropdown in Dashboard areas.
+- FIXED: Searching auto modules is no longer case sensitive
+- FIXED: Missing "custom" fields in view options, field options, other dialogs
+- FIXED: Default templates using $content instead of $bigtree["content"]
+- FIXED: Google Analytics setup failing to store encrypted information properly in the database.
+- FIXED: Dialogs now stay centered on the screen when the browser resizes.
+- FIXED: Bug that caused image resources to use {wwwroot} over {staticroot}
+- FIXED: Empty module groups are no longer shown in the Modules dropdown
+- FIXED: File Browser "Cancel" button not closing the window when packaging a module.
+- FIXED: The front end editor now alerts a user if there is no editable content.
+- FIXED: Custom selects misbehaving in dialogs
+- FIXED: Sorting via fields not using backticks (`) around column names
+- FIXED: RSS 2 feeds not really being RSS 2.0
+- FIXED: Warning that could show when preprocessing functions didn't return an array
+- FIXED: A rare bug where creating a new item in a module before the module's view was cached would make the existing items never cache.
+- REMOVED: Custom JavaScript and CSS in Auto Module forms.
+- REMOVED: Uncached ability in Auto Module views.
+
 ### 4.0b6
 - NEW: BigTree now allows for usage of index.php routing WITHOUT .htaccess / mod_rewrite
 - NEW: BigTree::unzip function (preparing for the future)

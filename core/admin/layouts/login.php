@@ -1,3 +1,6 @@
+<?
+	$root = str_replace(array("http://","https://"),"//",ADMIN_ROOT);
+?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
 <!--[if IE 7 ]>	<html lang="en" class="no-js ie7"> <![endif]-->
@@ -6,11 +9,11 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
 	<head>
 		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="robots" content="noindex,nofollow" />
 		<title><?=$site["nav_title"]?> Login</title>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" charset="utf-8" />
-		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/lib.js"></script>
-		<script type="text/javascript" src="<?=ADMIN_ROOT?>js/main.js"></script>
+		<link rel="stylesheet" href="<?=$root?>css/main.css" type="text/css" media="screen" charset="utf-8" />
+		<script type="text/javascript" src="<?=$root?>js/lib.js"></script>
+		<script type="text/javascript" src="<?=$root?>js/main.js"></script>
 	</head>
 	<body class="login">
 		<div class="login_wrapper">

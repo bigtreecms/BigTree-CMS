@@ -32,7 +32,7 @@
 			$kparts = array();
 			$x = 0;
 			while ($x < count($keys)) {
-				$kparts[] = "`".$keys[$x]."` = '".mysql_real_escape_string($vals[$x])."'";
+				$kparts[] = "`".$keys[$x]."` = '".sqlescape($vals[$x])."'";
 				$x++;
 			}
 			$query .= implode(" AND ",$kparts);
@@ -51,7 +51,7 @@
 			$query .= implode(",",$kparts).") VALUES (";
 
 			foreach ($vals as $val) {
-				$vparts[] = "'".mysql_real_escape_string($val)."'";
+				$vparts[] = "'".sqlescape($val)."'";
 			}
 			
 			$query .= implode(",",$vparts).")";
@@ -115,7 +115,7 @@
 		*/
 		
 		function delete($id) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$id'");
 			BigTreeAutoModule::uncacheItem($id,$this->Table);
@@ -185,7 +185,7 @@
 			global $cms;
 			
 			if (!is_array($item)) {
-				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '".mysql_real_escape_string($item)."'"));
+				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '".sqlescape($item)."'"));
 			}
 			
 			if (!$item) {
@@ -287,7 +287,7 @@
 		*/
 		
 		function getByRoute($route) {
-			$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE route = '".mysql_real_escape_string($route)."'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE route = '".sqlescape($route)."'"));
 
 			if (!$item) {
 				return false;
@@ -332,11 +332,11 @@
 		
 		function getMatching($fields,$values,$sortby = false,$limit = false) {
 			if (!is_array($fields)) {
-				$where = "`$fields` = '".mysql_real_escape_string($values)."'";
+				$where = "`$fields` = '".sqlescape($values)."'";
 			} else {
 				$x = 0;
 				while ($x < count($fields)) {
-					$where[] = "`".$fields[$x]."` = '".mysql_real_escape_string($values[$x])."'";
+					$where[] = "`".$fields[$x]."` = '".sqlescape($values[$x])."'";
 					$x++;
 				}
 				$where = implode(" AND ",$where);
@@ -426,7 +426,7 @@
 		function getPending($id) {
 			global $cms;
 			
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			
 			if (substr($id,0,1) == "p") {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
@@ -485,9 +485,9 @@
 			$results = array();
 			$relevance = array();
 			foreach ($tags as $tag) {
-				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".mysql_real_escape_string($tag)."'"));
+				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 				if ($tdat) {
-					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND module = '".$this->$Module."'");
+					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = '".sqlescape($this->Table)."'");
 					while ($f = sqlfetch($q)) {
 						$id = $f["entry"];
 						if (in_array($id,$results)) {
@@ -508,6 +508,22 @@
 		}
 		
 		/*
+			Function: getSitemap
+				An optional function to override in your module class.
+				Provides additional sitemap children when <BigTreeCMS.getNavByParent> is called on a page with a template that uses this module.
+			
+			Parameters:
+				page - The page data for the current page the user is on.
+			
+			Returns:
+				An array of arrays with "title" and "link" key/value pairs. Should not be a multi level array.
+		*/
+		
+		function getSitemap($page) {
+			return array();
+		}
+		
+		/*
 			Function: getTagsForItem
 				Returns a list of tags the given table entry has been tagged with.
 			
@@ -523,7 +539,9 @@
 				$item = $item["id"];
 			}
 			
-			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel WHERE bigtree_tags_rel.module = '".$this->Module."' AND bigtree_tags_rel.entry = '$item' AND bigtree_tags.id = bigtree_tags_rel.tag ORDER BY bigtree_tags.tag");
+			$item = sqlescape($item);
+			
+			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = '".sqlescape($this->Table)."' AND bigtree_tags_rel.entry = '$item' ORDER BY bigtree_tags.tag");
 
 			$tags = array();
 			while ($f = sqlfetch($q)) {
@@ -601,16 +619,21 @@
 				query - A string to search for.
 				sortby - A MySQL sort parameter.
 				limit - Max entries to return.
+				case_sensitive - Case sensitivity (defaults to false).
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function search($query,$sortby = false,$limit = false) {
-			$fields = sqlcolumns($this->Table);
-			
-			foreach ($fields as $field) {
-				$where[] = "`$field` LIKE '%".mysql_real_escape_string($query)."%'";
+		function search($query,$sortby = false,$limit = false,$case_sensitive = false) {
+			$table_description = BigTree::describeTable($this->Table);
+
+			foreach ($table_description["columns"] as $field => $parameters) {
+				if ($case_sensitive) {
+					$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
+				} else {
+					$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
+				}
 			}
 			
 			return $this->fetch($sortby,$limit,implode(" OR ",$where));
@@ -706,19 +729,19 @@
 		*/
 		
 		function update($id,$keys,$vals) {
-			$id = mysql_real_escape_string($id);
+			$id = sqlescape($id);
 			$query = "UPDATE `".$this->Table."` SET ";
 			
 			if (is_array($keys)) {
 				$kparts = array();
 				foreach ($keys as $key) {
-					$kparts[] = "`".$key."` = '".mysql_real_escape_string(current($vals))."'";
+					$kparts[] = "`".$key."` = '".sqlescape(current($vals))."'";
 					next($vals);
 				}
 			
 				$query .= implode(", ",$kparts)." WHERE id = '$id'";
 			} else {
-				$query = "UPDATE `".$this->Table."` SET `$keys` = '".mysql_real_escape_string($vals)."' WHERE id = '$id'";
+				$query = "UPDATE `".$this->Table."` SET `$keys` = '".sqlescape($vals)."' WHERE id = '$id'";
 			}
 			
 			sqlquery($query);

@@ -1,0 +1,1 @@
+<? BigTree::redirect(ADMIN_ROOT."developer/foundry/install/") ?>

@@ -1,19 +1,23 @@
 <?
+	// Loop through all the fields to build the address
 	$fields = explode(",",$options["fields"]);
 	$location = array();
 	foreach ($fields as $field) {
 		$location[] = $data[trim($field)];
 	}
-	$location = urlencode(trim(implode(", ",$location)));
 	
-	$file = utf8_encode(file_get_contents("http://maps.google.com/maps/geo?q=$location&output=xml&key=".$bigtree["config"]["google_maps_key"]));
-	$xml = new SimpleXMLElement($file);
-	try {
-		$coords = explode(",",$xml->Response->Placemark->Point->coordinates);
-		$item["latitude"] = $coords[1];
-		$item["longitude"] = $coords[0];
-	} catch (Exception $e) {
+	// Geocode
+	$geo = BigTree::geocodeAddress(implode(", ",$location));
+	
+	// If it's false, we didn't get anything.
+	if (!$geo) {
+		$item["latitude"] = false;
+		$item["longitude"] = false;
+	} else {
+		$item["latitude"] = $geo["latitude"];
+		$item["longitude"] = $geo["longitude"];
 	}
 	
+	// This field doesn't have it's own key to process.
 	$no_process = true;
 ?>

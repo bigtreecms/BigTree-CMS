@@ -1,31 +1,46 @@
 <?
-	$breadcrumb[] = array("link" => "settings/edit/".end($bigtree["path"])."/", "title" => "Edit Setting");
-	
+	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
+
+	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>The setting you are trying to edit no longer exists or you do not have permission to edit it.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
+	}
+
 	if ($item["encrypted"]) {
 		$item["value"] = "";
 	}
 	
-	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
-		die("<p>Unauthorized request.</p>");
-	}
+	include BigTree::path("admin/layouts/_tinymce.php");
 ?>
-<h1><span class="settings"></span>Edit Setting</h1>
-<? include BigTree::path("admin/layouts/_tinymce.php"); ?>
-<div class="form_container">
-	<? if ($item["encrypted"]) { ?>
-	<header><p>This setting is encrypted.  The current value cannot be shown.</p></header>
-	<? } ?>
+<div class="container">
+	<header><h2><?=$item["name"]?></h2></header>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
-				// Draw the setting description
-				echo $item["description"];
+				if ($item["encrypted"]) {
+			?>
+			<div class="alert">
+				<span></span>
+				<p>This setting is encrypted. The current value cannot be shown.</p>
+			</div>
+			<?
+				}
 				
+				echo $item["description"];
+			
 				// Setup field related nonsense.
 				$bigtree["datepickers"] = array();
 				$bigtree["timepickers"] = array();
+				$bigtree["datetimepickers"] = array();
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
 				
@@ -34,13 +49,13 @@
 				$label_validation_class = "";
 				$input_validation_class = "";
 				if (isset($options["validation"]) && $options["validation"]) {
-				    if (strpos($options["validation"],"required") !== false) {
-				    	$label_validation_class = ' class="required"';
-				    }
-				    $input_validation_class = ' class="'.$options["validation"].'"';
+					if (strpos($options["validation"],"required") !== false) {
+						$label_validation_class = ' class="required"';
+					}
+					$input_validation_class = ' class="'.$options["validation"].'"';
 				}
 				
-				$title = $item["name"];
+				$title = "";
 				$value = $item["value"];
 				$key = $item["id"];
 				
@@ -80,6 +95,12 @@
 		foreach ($bigtree["timepickers"] as $id) {
 	?>
 	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	<?
+		}
+		
+		foreach ($bigtree["datetimepickers"] as $id) {
+	?>
+	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 	<?
 		}
 	?>

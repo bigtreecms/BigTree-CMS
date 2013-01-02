@@ -17,8 +17,8 @@
 		
 		ul = $('<ul class="image_attr_thumbs_' + count + '">');
 		
-		li_pre = $('<li>');
-		li_pre.html('<input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][prefix]" value="" />');
+		li_pre = $('<li class="thumbed">');
+		li_pre.html('<span class="icon_small icon_small_picture"></span><input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][prefix]" value="" />');
 		ul.append(li_pre);
 		
 		li_width = $('<li>');
@@ -30,13 +30,29 @@
 		ul.append(li_height);
 		
 		li_up = $('<li class="up">');
+		li_up.html('<span class="icon_small icon_small_up"></span>');
 		ul.append(li_up);
 		
+		li_color = $('<li class="colormode">');
+		li_color.html('<input type="hidden" name="crops[' + count + '][thumbs][' + crop_thumb_count + '][grayscale]" value="" /><a href="#" title="Switch Color Mode"></a>');
+		ul.append(li_color);
+		
 		li_del = $('<li class="del">');
-		li_del.html('<a href="#"></a>');
+		li_del.html('<a href="#" title="Remove"></a>');
 		ul.append(li_del);
 	
 		$(this).parents("ul").after(ul);
+		
+		return false;
+	});
+	
+	$(".image_attr").on("click",".colormode a",function() {
+		$(this).toggleClass("gray");
+		if ($(this).hasClass("gray")) {
+			$(this).prev("input").val("on");
+		} else {
+			$(this).prev("input").val("");			
+		}
 		
 		return false;
 	});
@@ -67,11 +83,15 @@
 		ul.append(li_height);
 		
 		li_thumb = $('<li class="thumbnail">');
-		li_thumb.html('<a href="#' + crop_count + '"></a>');
+		li_thumb.html('<a href="#' + crop_count + '" title="Create Thumbnail of Crop"></a>');
 		ul.append(li_thumb);
 		
+		li_color = $('<li class="colormode">');
+		li_color.html('<input type="hidden" name="crops[' + crop_count + '][grayscale]" value="" /><a href="#" title="Switch Color Mode"></a>');
+		ul.append(li_color);
+		
 		li_del = $('<li class="del">');
-		li_del.html('<a href="#' + crop_count + '"></a>');
+		li_del.html('<a href="#' + crop_count + '" title="Remove"></a>');
 		ul.append(li_del);
 		
 		$("#pop_crop_list").append(ul);
@@ -103,6 +123,10 @@
 		li_height = $('<li>');
 		li_height.html('<input type="text" name="thumbs[' + thumb_count + '][height]" value="" />');
 		ul.append(li_height);
+		
+		li_color = $('<li class="colormode">');
+		li_color.html('<input type="hidden" name="thumbs[' + thumb_count + '][grayscale]" value="" /><a href="#" title="Switch Color Mode"></a>');
+		ul.append(li_color);
 		
 		li_del = $('<li class="del">');
 		li_del.html('<a href="#"></a>');

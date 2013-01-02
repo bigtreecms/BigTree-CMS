@@ -1,7 +1,7 @@
 <script type="text/javascript">
-	var current_editing_id = "";
 	var update_timer;
 	var search_timer;
+	var search = "";
 	
 	function hookResults() {
 		$(".autosave").keyup(function(ev) {
@@ -16,11 +16,30 @@
 			save404();
 		});
 	
+		$(".icon_archive").click(function() {
+			id = $(this).attr("href").substr(1);
+			$(this).parents("li").remove();
+			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/ignore/", { data: { id: id }, type: "POST" });
+			BigTree.Growl("404 Report","Ignored 404");
+			
+			return false;
+		});
+		
+		$(".icon_restore").click(function() {
+			id = $(this).attr("href").substr(1);
+			$(this).parents("li").remove();
+			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/unignore/", { data: { id: id }, type: "POST" });
+			BigTree.Growl("404 Report","Unignored 404");
+			
+			return false;
+		});
+		
 		$(".icon_delete").click(function() {
-			new BigTreeDialog("<?=ucwords($delete_action)?> 404",'<p class="confirm">Are you sure you want to <?=$delete_action?> this 404?',$.proxy(function() {
+			new BigTreeDialog("<?=ucwords($delete_action)?> 404",'<p class="confirm">Are you sure you want to delete this 404?',$.proxy(function() {
 				id = $(this).attr("href").substr(1);
 				$(this).parents("li").remove();
-				$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/<?=$delete_action?>/", { data: { id: id }, type: "POST" });
+				$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
+				BigTree.Growl("404 Report","Deleted 404");
 			},this),"delete",false,"OK");
 			
 			return false;
@@ -33,11 +52,22 @@
 	
 	function search404() {
 		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>" }, hookResults);
+		search = $("#404_search").val();
 	}
 	
 	$("#404_search").keyup(function() {
 		clearTimeout(search_timer);
 		search_timer = setTimeout("search404();",400);
+	});
+	
+	$("#view_paging a").live("click",function() {
+		mpage = BigTree.CleanHref($(this).attr("href"));
+		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
+			return false;
+		}
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: search, type: "<?=$type?>", page: mpage }, hookResults);
+
+		return false;
 	});
 	
 	hookResults();

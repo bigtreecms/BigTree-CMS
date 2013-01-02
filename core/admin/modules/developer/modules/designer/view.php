@@ -1,28 +1,27 @@
 <?
-	$mod = $bigtree["commands"][0];
-	$table = $bigtree["commands"][1];
+	$module = $admin->getModule($_GET["module"]);
+	$table = $_GET["table"];
 	if (!$title) {
-		$title = (substr($bigtree["commands"][2],-1,1) != "s") ? $bigtree["commands"][2]."s" : $bigtree["commands"][2];
+		// Get the title from the route
+		$title = $_GET["title"];
+		// Add an s to the name (i.e. View Goods)
+		$title = (substr($title,-1,1) != "s") ? $title."s" : $title;
+		// If it ends in ys like Buddys then change it to Buddies
 		if (substr($title,-2) == "ys") {
 			$title = substr($title,0,-2)."ies";
 		}
 	}
-	$title = htmlspecialchars(urldecode($title));
-	$title = urldecode($title);
-	
-	$mdata = $admin->getModule($mod);
+	$title = htmlspecialchars($title);
 ?>
-<h1><span class="icon_developer_modules"></span>Module Designer</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<header>
 		<p>Step 3: Creating Your View</p>
 	</header>
 	<form method="post" action="<?=$developer_root?>modules/designer/view-create/" class="module">
-		<input type="hidden" name="module" value="<?=$mod?>" />
+		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>
-			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please ensure you have entered an Item Title and one or more Fields.</p>
 			
 			<div class="left">
 				<fieldset>

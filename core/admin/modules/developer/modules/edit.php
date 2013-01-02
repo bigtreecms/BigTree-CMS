@@ -1,12 +1,12 @@
 <?
-	$id = end($bigtree["path"]);
-	$breadcrumb[] = array("title" => "Edit Module", "link" => "#");
-	
-	$mod = $admin->getModule($id);
+	$id = end($bigtree["path"]);	
+	$module = $admin->getModule($id);
 	
 	$actions = $admin->getModuleActions($id);
 	$views = array();
 	$forms = array();
+	$actions_in_nav = array();
+	$actions_not_in_nav = array();
 	foreach ($actions as $action) {
 		if ($action["view"]) {
 			$view = BigTreeAutoModule::getView($action["view"]);
@@ -20,22 +20,24 @@
 				$forms[] = $form;
 			}
 		}
+		if ($action["in_nav"]) {
+			$actions_in_nav[] = $action;
+		} else {
+			$actions_not_in_nav[] = $action;
+		}
 	}
 	
-	$gbp = is_array($mod["gbp"]) ? $mod["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
+	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
 	
 	$groups = $admin->getModuleGroups();
 ?>
-
-<h1><span class="icon_developer_modules"></span><?=$mod["name"]?></h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php"); ?>
-<div class="form_container">
+<div class="container">
 	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
 		<section>
 			<div class="left">
 				<fieldset>
 					<label class="required">Name</label>
-					<input name="name" type="text" value="<?=$mod["name"]?>" class="required" />
+					<input name="name" type="text" value="<?=$module["name"]?>" class="required" />
 				</fieldset>
 			</div>
 			<br class="clear" /><br />
@@ -46,21 +48,35 @@
 				<select name="group_existing">
 					<option value="0"></option>
 					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group["id"] == $mod["group"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($group["name"])?></option>
+					<option value="<?=$group["id"]?>"<? if ($group["id"] == $module["group"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($group["name"])?></option>
 					<? } ?>
 				</select>
 			</fieldset>
 			<div class="left">
 				<fieldset>
 					<label>Class Name <small>(only change this if you renamed your class manually)</small></label>
-					<input name="class" type="text" value="<?=htmlspecialchars($mod["class"])?>" />
-				</fieldset>
-				<fieldset>
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"])) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
+					<input name="class" type="text" value="<?=htmlspecialchars($module["class"])?>" />
 				</fieldset>
 			</div>
+			
+			<br class="clear" />
+			<fieldset>
+		        <label class="required">Icon</label>
+		        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
+		        <ul class="developer_icon_list">
+		        	<? foreach ($admin->IconClasses as $class) { ?>
+		        	<li>
+		        		<a href="#<?=$class?>"<? if ($class == $module["icon"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        	</li>
+		        	<? } ?>
+		        </ul>
+		    </fieldset>
+			
+			<fieldset>
+				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/><label class="for_checkbox">Enable Advanced Permissions</label>
+			</fieldset>
 		</section>
-		<section class="sub" id="gbp"<? if (!isset($gbp["enabled"])) { ?> style="display: none;"<? } ?>>
+		<section class="sub" id="gbp"<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> style="display: none;"<? } ?>>
 			<div class="left">
 				<fieldset>
 					<label>Grouping Name <small>(i.e. "Category")</small></label>
@@ -119,8 +135,8 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>modules/views/add/<?=$mod["id"]?>/" class="add"><span></span>Add</a>
-		<h2>Module Views <small><?=$mod["name"]?></small></h2>
+		<a href="<?=$developer_root?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<h2>Module Views <small><?=$module["name"]?></small></h2>
 	</summary>
 	<header>
 		<span class="developer_view_name">View Name</span>
@@ -136,11 +152,11 @@
 				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
 				<a href="<?=$developer_root?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
 				<? } else { ?>
-				<span class="icon_preview disabled_icon"></span>
+				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
 				<? } ?>
 			</section>
 			<section class="view_action"><a href="<?=$developer_root?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/views/delete/<?=$id?>/<?=$view["id"]?>/" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -148,8 +164,8 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>modules/forms/add/<?=$mod["id"]?>/" class="add"><span></span>Add</a>
-		<h2>Module Forms <small><?=$mod["name"]?></small></h2>
+		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<h2>Module Forms <small><?=$module["name"]?></small></h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Form Name</span>
@@ -161,7 +177,7 @@
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=$developer_root?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/forms/delete/<?=$id?>/<?=$form["id"]?>/" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -169,23 +185,42 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>modules/actions/add/<?=$mod["id"]?>/" class="add"><span></span>Add</a>
-		<h2>Module Actions <small><?=$mod["name"]?></small></h2>
+		<a href="<?=$developer_root?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
+		<h2>Module Actions <small><?=$module["name"]?></small></h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Action</span>
 		<span class="view_action">Edit</span>
 		<span class="view_action">Delete</span>
 	</header>
+	<?
+		if (count($actions_in_nav)) {
+	?>
 	<ul id="actions">
-		<? foreach ($actions as $action) { ?>
+		<? foreach ($actions_in_nav as $action) { ?>
 		<li id="row_<?=$action["id"]?>">
 			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=$developer_root?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/actions/delete/<?=$id?>/<?=$action["id"]?>/" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
+	<?
+		}
+		if (count($actions_not_in_nav)) {
+	?>
+	<ul<? if (count($actions_in_nav)) { ?> class="secondary"<? } ?>>
+		<? foreach ($actions_not_in_nav as $action) { ?>
+		<li>
+			<section class="developer_templates_name"><?=$action["name"]?></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=$developer_root?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+	<?
+		}
+	?>
 </div>
 
 <? include BigTree::path("admin/modules/developer/modules/_module-add-edit-js.php") ?>

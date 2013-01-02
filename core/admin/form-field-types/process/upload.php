@@ -45,7 +45,7 @@
 			} else {
 				if (substr($value,0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
-					$resource = mysql_real_escape_string(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($value,11)));
+					$resource = sqlescape(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($value,11)));
 					
 					$r = $admin->getResourceByFile($resource);
 					$r["file"] = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$r["file"]);
@@ -61,9 +61,16 @@
 					
 						if (is_array($options["crops"])) {
 							foreach ($options["crops"] as $crop) {
+								// Make a square if the user forgot to enter one of the crop dimensions.
+								if (!$crop["height"]) {
+									$crop["height"] = $crop["width"];
+								} elseif (!$crop["width"]) {
+									$crop["width"] = $crop["height"];
+								}
 								$crops[] = array(
 									"image" => $local_copy,
 									"directory" => $options["directory"],
+									"retina" => $options["retina"],
 									"name" => $pinfo["basename"],
 									"width" => $crop["width"],
 									"height" => $crop["height"],
@@ -76,7 +83,7 @@
 						if (is_array($options["thumbs"])) {
 							foreach ($options["thumbs"] as $thumb) {
 								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-								BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
+								BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$options["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 								$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
 							}
@@ -85,6 +92,8 @@
 					} else {
 						$value = str_replace(SITE_ROOT,"{staticroot}",$r["file"]);
 					}
+				} else {
+					$value = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$value);
 				}
 			}
 		}

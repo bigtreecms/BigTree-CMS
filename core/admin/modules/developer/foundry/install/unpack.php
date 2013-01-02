@@ -1,6 +1,4 @@
 <?
-	$breadcrumb[] = array("title" => "Unpacked Package", "link" => "#");
-	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
 	if ($error == 1 || $error == 2) {
@@ -10,20 +8,26 @@
 	}
 	
 	if ($error) {
-		header("Location: ".$developer_root."foundry/install/");
-		die();
+		BigTree::redirect($developer_root."foundry/install/");
 	}
 	
 	// We've at least got the file now, unpack it and see what's going on.
 	$file = $_FILES["file"]["tmp_name"];
 	if (!$file) {
 		$_SESSION["upload_error"] = "File upload failed.";
-		header("Location: ".$developer_root."foundry/install/");
-		die();
+		BigTree::redirect($developer_root."foundry/install/");
 	}
 	
 	if (!is_writable(SERVER_ROOT."cache/")) {
-		die("<p>Your cache/ directory must be writable.</p>");
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>Your cache/ directory must be writable.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	// Setup the cache root.
@@ -44,16 +48,14 @@
 	if (!function_exists("exec")) {
 		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "PHP does not allow exec(). Packages can not be installed.";
-		header("Location: ".$developer_root."foundry/install/");
-		die();
+		BigTree::redirect($developer_root."foundry/install/");
 	}
 	
 	exec("cd $cache_root; tar zxvf $local_copy");
 	if (!file_exists($cache_root."index.btx")) {
 		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The uploaded file is not a valid BigTree Package or is corrupt.";
-		header("Location: ".$developer_root."foundry/install/");
-		die();
+		BigTree::redirect($developer_root."foundry/install/");
 	}
 	
 	$index = file_get_contents($cache_root."index.btx");
@@ -61,6 +63,8 @@
 	$package_name = $lines[0];
 	$package_info = $lines[1];
 	
+	$instructions = array();
+	$install_code = false;
 	$errors = array();
 	$warnings = array();
 	next($lines);
@@ -70,32 +74,40 @@
 		$type = $parts[0];
 		$data = json_decode($parts[1],true);
 		
+		if ($type == "Instructions") {
+			$instructions = $data;
+		}
+
+		if ($type == "InstallCode") {
+			$install_code = $data;
+		}
+
 		if ($type == "Template") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A template already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the template will be overwritten.";
 			}
 		}
 		if ($type == "Callout") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A sidelet already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the sidelet will be overwritten.";
 			}
 		}
 		if ($type == "Setting") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A setting already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the setting will be overwritten.";
 			}
 		}
 		if ($type == "Feed") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".mysql_real_escape_string($data["route"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".sqlescape($data["route"])."'"));
 			if ($r) {
 				$warnings[] = "A feed already exists with the route &ldquo;".$data["route"]."&rdquo; &mdash; the feed will be overwritten.";
 			}
 		}
 		 if ($type == "FieldType") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".mysql_real_escape_string($data["id"])."'"));
+			$r = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".sqlescape($data["id"])."'"));
 			if ($r) {
 				$warnings[] = "A field type already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the field type will be overwritten.";
 			}
@@ -119,8 +131,7 @@
 	}
 	
 ?>
-<h1><span class="package"></span>Unpacked Package</h1>
-<div class="form_container">
+<div class="container">
 	<header>
 		<h2>
 			<?=$package_name?>
@@ -129,6 +140,25 @@
 	</header>
 	<section>
 		<?
+			if (count($instructions) && $instructions["pre"]) {
+		?>
+		<h3>Instructions</h3>
+		<p><?=nl2br(htmlspecialchars(base64_decode($instructions["pre"])))?></p>
+		<br />
+		<hr />
+		<?
+			}
+
+			if ($install_code) {
+		?>
+		<h3>Post Install Code</h3>
+		<p>The following code will be run after the package is finished installing:</p>
+		<pre><code class="language-php"><?=htmlspecialchars(ltrim(rtrim(base64_decode($install_code),"?>"),"<?"))?></code></pre>
+		<br /><br />
+		<hr />
+		<?
+			}
+
 			if (count($warnings)) {
 		?>
 		<h3>Warnings</h3>

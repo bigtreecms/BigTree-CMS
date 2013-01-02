@@ -20,7 +20,7 @@
 			global $cms;
 			$pgs = $cms->getSetting("bigtree-internal-payment-gateway");
 			// If for some reason the setting doesn't exist, make one.
-			$this->Service = $pgs["service"];
+			$this->Service = isset($pgs["service"]) ? $pgs["service"] : false;
 			if ($this->Service == "authorize.net") {
 				$this->setupAuthorize($pgs["settings"]);
 			} elseif ($this->Service == "paypal") {

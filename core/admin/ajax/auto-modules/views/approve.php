@@ -2,10 +2,10 @@
 	include "_setup.php";
 	
 	if ($item["approved"]) {
-		if ($perm != "p") {
-			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
+		if ($access_level != "p") {
+			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
-			echo 'BigTree.growl("'.$module["name"].'","Item is now unapproved.");';
+			echo 'BigTree.Growl("'.$module["name"].'","Item is now unapproved.");';
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET approved = '' WHERE id = '$id'");
 			} else {
@@ -13,10 +13,10 @@
 			}
 		}
 	} else {
-		if ($perm != "p") {
-			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
+		if ($access_level != "p") {
+			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
-			echo 'BigTree.growl("'.$module["name"].'","Item is now approved.");';
+			echo 'BigTree.Growl("'.$module["name"].'","Item is now approved.");';
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET approved = 'on' WHERE id = '$id'");
 			} else {

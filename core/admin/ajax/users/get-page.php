@@ -3,16 +3,18 @@
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
 	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
+	$sort_by = isset($_GET["sort"]) ? $_GET["sort"] : "name";
+	$sort_dir = isset($_GET["sort_direction"]) ? $_GET["sort_direction"] : "ASC";
 
 	$pages = $admin->getUsersPageCount($query);
-	$results = $admin->getPageOfUsers($page,$query);
+	$results = $admin->getPageOfUsers($page,$query,"`$sort_by` $sort_dir");
 	
 	foreach ($results as $item) {
 ?>
 <li id="row_<?=$item["id"]?>">
-	<section class="users_name"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 18)?>" alt="" /></span><?=$item["name"]?></section>
-	<section class="users_email"><?=$item["email"]?></section>
-	<section class="users_company"><?=$item["company"]?></section>
+	<section class="view_column users_name"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 36)?>" alt="" /></span><?=$item["name"]?></section>
+	<section class="view_column users_email"><?=$item["email"]?></section>
+	<section class="view_column users_company"><?=$item["company"]?></section>
 	<section class="view_action">
 		<? if ($admin->Level >= $item["level"]) { ?>
 		<a href="<?=ADMIN_ROOT?>users/edit/<?=$item["id"]?>/" class="icon_edit"></a>

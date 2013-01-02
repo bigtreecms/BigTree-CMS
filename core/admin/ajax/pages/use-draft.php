@@ -3,7 +3,15 @@
 	$revision = $admin->getPageRevision($_GET["id"]);
 	$access = $admin->getPageAccessLevel($revision["page"]);
 	if ($access != "p") {
-		$admin->stop("You must be a publisher to manage revisions.");
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>You must be a publisher to manage revisions.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
 	}
 	
 	foreach ($revision as $key => $val) {
@@ -37,6 +45,5 @@
 	}
 	
 	$admin->growl("Pages","Loaded Saved Revision");
-	header("Location: ".ADMIN_ROOT."pages/edit/".$revision["page"]."/");
-	die();
+	BigTree::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");
 ?>

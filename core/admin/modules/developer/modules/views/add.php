@@ -1,31 +1,26 @@
 <?
-	$id = $bigtree["commands"][0];
-	$table = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : "";
-	$title = isset($bigtree["commands"][2]) ? htmlspecialchars(urldecode($bigtree["commands"][2])) : "";
+	$id = $_GET["module"];
+	$table = isset($_GET["table"]) ? $_GET["table"] : "";
+	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
 	
-	$mod = $admin->getModule($id);
+	$module = $admin->getModule($id);
 	$landing_exists = $admin->doesModuleLandingActionExist($id);
 
-	$breadcrumb[] = array("title" => $mod["name"], "link" => "developer/modules/edit/".$module["id"]."/");
-	$breadcrumb[] = array("title" => "Add View", "link" => "#");
-	
-	if (isset($_SESSION["bigtree"]["developer"]["saved_view"])) {
-		BigTree::globalizeArray($_SESSION["bigtree"]["developer"]["saved_view"],array("htmlspecialchars"));
-		unset($_SESSION["bigtree"]["developer"]["saved_view"]);
+	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
+		unset($_SESSION["bigtree_admin"]["developer"]["saved_view"]);
 	} else {
 		// Stop notices
 		$description = $type = $preview_url = "";
 	}
 ?>
-<h1><span class="icon_developer_modules"></span>Add View</h1>
-<? include BigTree::path("admin/modules/developer/modules/_nav.php") ?>
-<div class="form_container">
+<div class="container">
 
 	<form method="post" action="<?=$developer_root?>modules/views/create/<?=$id?>/" class="module">
 		<section>
 			<? if ($landing_exists) { ?>
 			<div class="alert">
-				<img src="<?=ADMIN_ROOT?>images/alert.png" alt="" />
+				<span></span>
 				<p><strong>Default View Taken:</strong> If this view is for a different edit action, please specify the suffix below (i.e. edit-group's suffix is "group").</p>
 			</div>
 			<fieldset>
@@ -62,7 +57,7 @@
 			
 			<div class="right">
 				<fieldset>
-					<label>Page Description <small>(instructions for the user)</small></label>
+					<label>Description <small>(instructions for the user)</small></label>
 					<textarea name="description" ><?=$description?></textarea>
 				</fieldset>
 			</div>

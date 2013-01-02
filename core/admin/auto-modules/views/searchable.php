@@ -6,18 +6,28 @@
 	
 	$suffix = $suffix ? "-".$suffix : "";
 	
-	if (isset($options["sort_column"])) {
-	    $sort = $options["sort_column"]." ".$options["sort_direction"];
+	
+	if (isset($_GET["sort"])) {
+		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
+	} elseif (isset($options["sort_column"])) {
+		$sort = $options["sort_column"]." ".$options["sort_direction"];
 	} elseif (isset($options["sort"])) {
-	    $sort = $options["sort"];
+		$sort = $options["sort"];
 	} else {
-	    $sort = "id DESC";
+		$sort = "id DESC";
 	}
-	list($sort_column,$sort_direction) = explode(" ",$sort);
+	// Retrieve the column and the sort direction from the consolidated ORDER BY statement.
+	$sort = ltrim($sort,"`");
+	$sort_column = BigTree::nextSQLColumnDefinition($sort);
+	$sort_pieces = explode(" ",$sort);
+	$sort_direction = end($sort_pieces);
+	// See if we're searching for anything.
+	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 ?>
 <div class="table auto_modules">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="Search" />
+		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=htmlspecialchars($search)?>" />
+		<span class="form_search_icon"></span>
 		<ul id="view_paging" class="view_paging"></ul>
 	</summary>
 	<header>
@@ -35,11 +45,11 @@
 					}
 				} else {
 					$active = "";
-					$sort_direction = "ASC";
+					$s_direction = "ASC";
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$sort_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
 		<?
 			}
 		?>
