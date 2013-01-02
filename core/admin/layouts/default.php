@@ -57,6 +57,9 @@
 			$item["title"] = htmlspecialchars(htmlspecialchars_decode($item["title"]));
 		}
 		unset($item);
+		// We're going to fake include the header to get the active nav state.
+		include BigTree::path("admin/layouts/_header.php");
+		ob_clean();
 	// Otherwise, full page render, so include the header and draw the breadcrumb.
 	} else {
 		include BigTree::path("admin/layouts/_header.php");
@@ -180,7 +183,8 @@
 		echo json_encode(array(
 			"breadcrumb" => $breadcrumb,
 			"title" => $title,
-			"page" => ob_get_clean()
+			"page" => ob_get_clean(),
+			"active_nav" => $active_nav_element
 		));
 	// Otherwise include the footer
 	} else {

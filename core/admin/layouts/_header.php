@@ -75,10 +75,13 @@
 			<section>
 				<ul>
 					<?
+						$active_nav_element = 0;
+						$x = -1;
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
+								$x++;
 					?>
-					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>>
+					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { $active_nav_element = $x; ?> class="active"<? } ?>>
 						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>

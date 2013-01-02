@@ -2345,7 +2345,8 @@ var BigTreeQuickLoader = {
 			data: {
 				"title": $("head").find("title").text(),
 				"breadcrumb": $("ul.breadcrumb").html(),
-				"page": $("#page").html()
+				"page": $("#page").html(),
+				"active_nav": $("nav.main li").index(".active")
 			}
 		}, "state-" + window.location.href, window.location.href);
 		
@@ -2418,6 +2419,8 @@ var BigTreeQuickLoader = {
 		document.title = data.title;
 		$("#page").html(data.page);
 		$("ul.breadcrumb").html(breadcrumb);
+		$("nav.main li, nav.main li > a").removeClass("active");
+		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
 
 		BigTreeCustomControls();
 		
