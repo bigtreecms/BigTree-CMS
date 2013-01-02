@@ -1,4 +1,6 @@
-<script type="text/javascript" src="<?=ADMIN_ROOT?>js/jcrop.min.js"></script>
+<?
+	$bigtree["js"][] = "jcrop.min.js";
+?>
 <h2>Crop Images</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/">
 	<div class="overflow">
