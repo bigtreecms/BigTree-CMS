@@ -223,7 +223,7 @@
 	?>
 </div>
 
-<? include BigTree::path("admin/modules/developer/modules/_module-add-edit-js.php") ?>
+<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>
 
 <script>
 	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
