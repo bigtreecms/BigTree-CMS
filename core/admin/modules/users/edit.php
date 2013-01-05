@@ -20,18 +20,37 @@
 	if (!$permissions) {
 		$permissions = array(
 			"page" => array(),
-			"module" => array()
+			"module" => array(),
+			"resources" => array()
 		);
+	}
+
+	// We need to gather all the page levels that should be expanded (anything that isn't "inherit" should have its parents pre-opened)
+	$page_ids = array();
+	foreach ($permissions["page"] as $id => $permission) {
+		if ($permission != "i") {
+			$page_ids[] = $id;
+		}
+	}
+	$pre_opened_parents = $admin->getPageParents($page_ids);
+
+	// Gather up the parents for resource folders that should be open by default.
+	$pre_opened_folders = array();
+	foreach ($permissions["resources"] as $id => $permission) {
+		if ($permission != "i") {
+			$folder = $admin->getResourceFolder($id);
+			$pre_opened_folders[] = $folder["parent"];
+		}
 	}
 	
 	function _local_userDrawNavLevel($parent,$depth,$alert_above = false,$children = false) {
-		global $permissions,$alerts,$admin,$user;
+		global $permissions,$alerts,$admin,$user,$pre_opened_parents;
 		if (!$children) {
 			$children = $admin->getPageChildren($parent);
 		}
 		if (count($children)) {
 ?>
-<ul class="depth_<?=$depth?>"<? if ($depth > 2) { ?> style="display: none;"<? } ?>>
+<ul class="depth_<?=$depth?>"<? if ($depth > 2 && !in_array($parent,$pre_opened_parents)) { ?> style="display: none;"<? } ?>>
 	<?
 			foreach ($children as $f) {
 				$grandchildren = $admin->getPageChildren($f["id"]);
@@ -39,7 +58,7 @@
 	?>
 	<li>
 		<span class="depth"></span>
-		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>" href="#"><?=$f["nav_title"]?></a>
+		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?><? if (in_array($f["id"],$pre_opened_parents)) { ?> expanded<? } ?>" href="#"><?=$f["nav_title"]?></a>
 		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ((isset($alerts[$f["id"]]) && $alerts[$f["id"]] == "on") || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
@@ -64,20 +83,20 @@
 	}
 	
 	function _local_userDrawFolderLevel($parent,$depth,$children = false) {
-		global $permissions,$alerts,$admin;
+		global $permissions,$alerts,$admin,$pre_opened_folders;
 		if (!$children) {
 			$children = $admin->getResourceFolderChildren($parent);
 		}
 		if (count($children)) {
 ?>
-<ul class="depth_<?=$depth?>"<? if ($depth > 2) { ?> style="display: none;"<? } ?>>
+<ul class="depth_<?=$depth?>"<? if ($depth > 2 && !in_array($parent,$pre_opened_folders)) { ?> style="display: none;"<? } ?>>
 	<?
 			foreach ($children as $f) {
 				$grandchildren = $admin->getResourceFolderChildren($f["id"]);
 	?>
 	<li>
 		<span class="depth"></span>
-		<a class="permission_label folder_label<? if (!count($grandchildren)) { ?> disabled<? } ?>" href="#"><?=$f["name"]?></a>
+		<a class="permission_label folder_label<? if (!count($grandchildren)) { ?> disabled<? } ?><? if (in_array($f["id"],$pre_opened_folders)) { ?> expanded<? } ?>" href="#"><?=$f["name"]?></a>
 		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="p" <? if ($permissions["resources"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
 		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="e" <? if ($permissions["resources"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
 		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="n" <? if ($permissions["resources"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
@@ -225,10 +244,20 @@
 												if (!is_array($gbp)) {
 													$gbp = array();
 												}
+
+												// Determine whether we have access to anything in this section (default to open) or not (default to closed)
+												$closed = true;
+												if (is_array($permissions["module_gbp"][$m["id"]])) {
+													foreach ($permissions["module_gbp"][$m["id"]] as $id => $permission) {
+														if ($permission != "n") {
+															$closed = false;
+														}
+													}
+												}
 								?>
 								<li>
 									<span class="depth"></span>
-									<a class="permission_label permission_label_wider<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> disabled<? } ?>" href="#"><?=$m["name"]?></a>
+									<a class="permission_label permission_label_wider<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> disabled<? } ?><? if (!$closed) { ?>  expanded<? } ?>" href="#"><?=$m["name"]?></a>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
@@ -241,7 +270,7 @@
 														if ($tf && $ot) {
 															$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 									?>
-									<ul class="depth_2" style="display: none;">
+									<ul class="depth_2"<? if ($closed) { ?> style="display: none;"<? } ?>>
 										<?
 															while ($c = sqlfetch($q)) {
 										?>

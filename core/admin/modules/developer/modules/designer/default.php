@@ -54,6 +54,4 @@
 		</footer>
 	</form>
 </div>
-<script>
-	new BigTreeFormValidator("form.module");
-</script>
+<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>

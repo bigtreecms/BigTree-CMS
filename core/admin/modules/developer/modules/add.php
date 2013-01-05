@@ -97,4 +97,4 @@
 		</footer>
 	</form>
 </div>
-<? include BigTree::path("admin/modules/developer/modules/_module-add-edit-js.php") ?>
+<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>

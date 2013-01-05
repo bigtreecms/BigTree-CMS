@@ -3539,6 +3539,34 @@
 		}
 
 		/*
+			Function: getPageParents
+				Gets a list of parent IDs for a list of page IDs.
+				This strange function is mainly used for the User Permissions edit screen.
+
+			Parameters:
+				pages - An array of page IDs.
+
+			Returns:
+				An array of parent IDs.
+		*/
+
+		function getPageParents($pages) {
+			$parents = array();
+			$page_query = array();
+			foreach ($pages as $id) {
+				$id = sqlescape($id);
+				$page_query[] = "id = '$id'";
+			}
+			if (count($page_query)) {
+				$q = sqlquery("SELECT parent FROM bigtree_pages WHERE ".implode(" OR ",$page_query));
+				while ($f = sqlfetch($q)) {
+					$parents[] = $f["parent"];
+				}
+			}
+			return $parents;
+		}
+
+		/*
 			Function: getPageRevision
 				Returns a version of a page from the bigtree_page_revisions table.
 
