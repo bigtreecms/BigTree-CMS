@@ -180,11 +180,23 @@
 		header("Content-type: text/json");
 		$site = $cms->getPage(0,false);
 		$title = $module_title ? $module_title." | ".$site["nav_title"]." Admin" : $site["nav_title"]." Admin";
+		if (is_array($bigtree["js"])) {
+			foreach ($bigtree["js"] as &$script) {
+				$script = ADMIN_ROOT."js/$script";
+			}
+		}
+		if (is_array($bigtree["css"])) {
+			foreach ($bigtree["css"] as &$style) {
+				$style = ADMIN_ROOT."css/$style";
+			}
+		}
 		echo json_encode(array(
 			"breadcrumb" => $breadcrumb,
 			"title" => $title,
 			"page" => ob_get_clean(),
-			"active_nav" => $active_nav_element
+			"active_nav" => $active_nav_element,
+			"scripts" => $bigtree["js"],
+			"css" => $bigtree["css"]
 		));
 	// Otherwise include the footer
 	} else {

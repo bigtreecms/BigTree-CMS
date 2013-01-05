@@ -2339,6 +2339,21 @@ var BigTreeQuickLoader = {
 		if (!supported) {
 			return;
 		}
+
+		scripts = [];
+		$("head > script").each(function() {
+			src = $(this).attr("src");
+			if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
+				scripts[scripts.length] = src;
+			}
+		});
+		css = [];
+		$("head > link[rel=stylesheet]").each(function() {
+			src = $(this).attr("href");
+			if (src != "admin_root/css/main.css") {
+				css[css.length] = src;
+			}
+		});
 		
 		history.replaceState({
 			url: window.location.href,
@@ -2346,7 +2361,9 @@ var BigTreeQuickLoader = {
 				"title": $("head").find("title").text(),
 				"breadcrumb": $("ul.breadcrumb").html(),
 				"page": $("#page").html(),
-				"active_nav": $("nav.main li").index(".active")
+				"active_nav": $("nav.main li").index(".active"),
+				"scripts": scripts,
+				"css": css
 			}
 		}, "state-" + window.location.href, window.location.href);
 		
@@ -2372,28 +2389,13 @@ var BigTreeQuickLoader = {
 		BigTreeQuickLoader.request(link.href);
 	},
 
-	request: function(url) {
-		// Call new content
-		$.ajax({
-			url: url,
-			headers: { "BigTree-Partial": "True" },
-			dataType: "json",
-			success: function(response) {
-				BigTreeQuickLoader.render(url,response,true);
-			},
-			error: function(response) {
-				window.location.href = url;
-			}
-		});
-	},
-
 	pop: function(e) {
 		var state = e.originalEvent.state;
 		if (state !== null && (state.url !== BigTreeQuickLoader.url)) {
 			BigTreeQuickLoader.render(state.url, state.data, false);
 		}
 	},
-	
+
 	render: function(url,data,push) {
 		$(window).scrollTop(0);
 		
@@ -2416,6 +2418,51 @@ var BigTreeQuickLoader = {
 			}
 		}
 
+		// Remove all scripts that aren't in this new found awesome-sauce
+		scripts_to_load = data.scripts;
+		$("head > script").each(function() {
+			src = $(this).attr("src");
+			if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
+				// If we already have it included, don't reload it
+				if (data.scripts.indexOf(src) > -1) {
+					scripts_to_load[data.scripts.indexOf(src)] = null;
+				// If it's not in our new list of scripts, remove it from the page
+				} else {
+					$(this).remove();
+				}
+			}
+		});
+		if (scripts_to_load) {
+			for (i = 0; i < scripts_to_load.length; i++) {
+				src = scripts_to_load[i];
+				if (src) {
+					script = $("head").append($('<script src="' + src + '">'));
+				}
+			}
+		}
+		// Remove all CSS that isn't in this new found awesome-sauce
+		css_to_load = data.css;
+		$("head > link[rel=stylesheet]").each(function() {
+			src = $(this).attr("href");
+			if (src != "admin_root/css/main.css") {
+				// If we already have it included, don't reload it
+				if (data.css.indexOf(src) > -1) {
+					css_to_load[data.css.indexOf(src)] = null;
+				// If it's not in our new list of css, remove it from the page
+				} else {
+					$(this).remove();
+				}
+			}
+		});
+		if (css_to_load) {
+			for (i = 0; i < css_to_load.length; i++) {
+				src = css_to_load[i];
+				if (src) {
+					css = $("head").append($('<link rel="stylesheet" type="text/css" media="screen" href="' + src + '">'));
+				}
+			}
+		}
+
 		document.title = data.title;
 		$("#page").html(data.page);
 		$("ul.breadcrumb").html(breadcrumb);
@@ -2433,5 +2480,20 @@ var BigTreeQuickLoader = {
 		}
 		
 		BigTreeQuickLoader.url = url;
+	},
+
+	request: function(url) {
+		// Call new content
+		$.ajax({
+			url: url,
+			headers: { "BigTree-Partial": "True" },
+			dataType: "json",
+			success: function(response) {
+				BigTreeQuickLoader.render(url,response,true);
+			},
+			error: function(response) {
+				window.location.href = url;
+			}
+		});
 	}
 };
