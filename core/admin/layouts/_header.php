@@ -52,6 +52,7 @@
 		<? } } ?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js"></script>
 		<? if (isset($bigtree["js"]) && is_array($bigtree["js"])) { foreach ($bigtree["js"] as $script) { ?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
 		<? } } ?>

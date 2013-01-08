@@ -77,7 +77,6 @@
 </div>
 <?
 	$bigtree["html_fields"] = array("message");
-	$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 ?>
 <script>

@@ -1,7 +1,6 @@
 <?
-	// Include pages.js and TinyMCE
+	// Include pages.js
 	$bigtree["js"][] = "pages.js";
-	$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 	
 	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
 	$hide_template_tab = false;

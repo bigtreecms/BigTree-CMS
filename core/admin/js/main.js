@@ -2420,41 +2420,42 @@ var BigTreeQuickLoader = {
 
 		// Remove all scripts that aren't in this new found awesome-sauce
 		scripts_to_load = data.scripts;
-		$("head > script").each(function() {
-			src = $(this).attr("src");
-			if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
-				// If we already have it included, don't reload it
-				if (data.scripts.indexOf(src) > -1) {
-					scripts_to_load[data.scripts.indexOf(src)] = null;
-				// If it's not in our new list of scripts, remove it from the page
-				} else {
-					$(this).remove();
-				}
-			}
-		});
 		if (scripts_to_load) {
+			$("head > script").each(function() {
+				src = $(this).attr("src");
+				if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
+					// If we already have it included, don't reload it
+					if (data.scripts.indexOf(src) > -1) {
+						scripts_to_load[data.scripts.indexOf(src)] = null;
+					// If it's not in our new list of scripts, remove it from the page
+					} else {
+						$(this).remove();
+					}
+				}
+			});
 			for (i = 0; i < scripts_to_load.length; i++) {
 				src = scripts_to_load[i];
 				if (src) {
+					console.log("appending" + src);
 					script = $("head").append($('<script src="' + src + '">'));
 				}
 			}
 		}
 		// Remove all CSS that isn't in this new found awesome-sauce
 		css_to_load = data.css;
-		$("head > link[rel=stylesheet]").each(function() {
-			src = $(this).attr("href");
-			if (src != "admin_root/css/main.css") {
-				// If we already have it included, don't reload it
-				if (data.css.indexOf(src) > -1) {
-					css_to_load[data.css.indexOf(src)] = null;
-				// If it's not in our new list of css, remove it from the page
-				} else {
-					$(this).remove();
-				}
-			}
-		});
 		if (css_to_load) {
+			$("head > link[rel=stylesheet]").each(function() {
+				src = $(this).attr("href");
+				if (src != "admin_root/css/main.css") {
+					// If we already have it included, don't reload it
+					if (data.css.indexOf(src) > -1) {
+						css_to_load[data.css.indexOf(src)] = null;
+					// If it's not in our new list of css, remove it from the page
+					} else {
+						$(this).remove();
+					}
+				}
+			});
 			for (i = 0; i < css_to_load.length; i++) {
 				src = css_to_load[i];
 				if (src) {

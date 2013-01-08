@@ -69,7 +69,6 @@
 	if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
 		$mce_width = 898;
 		$mce_height = 365;
-		$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 				
 		if (count($bigtree["html_fields"])) {
 			include BigTree::path("admin/layouts/_tinymce_specific.php");

@@ -26,7 +26,6 @@
 </script>
 <?
 	$bigtree["html_fields"] = array("setting_description");
-	$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 	include BigTree::path("admin/layouts/_tinymce_specific.php");
 	
 	unset($module);
