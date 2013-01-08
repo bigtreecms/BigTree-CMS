@@ -162,7 +162,7 @@ BigTreeBar.head.appendChild(BigTreeBar.css);
 // Add the bar tab
 BigTreeBar.tab = document.createElement("a");
 BigTreeBar.tab.innerHTML = '<span></span>';
-BigTreeBar.tab.setAttribute("id","BigTreeBar.tab");
+BigTreeBar.tab.setAttribute("id","bigtree_bar_tab");
 BigTreeBar.tab.setAttribute("href","#");
 BigTreeBar.tab.onclick = BigTreeBar.show;
 BigTreeBar.body.appendChild(BigTreeBar.tab);
