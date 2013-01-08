@@ -2331,7 +2331,7 @@ var BigTree = {
 	}
 }
 
-// !BigTree Quick Loader, adapted from Ben Plum's cool Proto jQuery Plugin @ https://github.com/benplum/Pronto
+// !BigTree Quick Loader, adapted from Ben Plum's cool Pronto jQuery Plugin @ https://github.com/benplum/Pronto
 var BigTreeQuickLoader = {
 
 	init: function() {
