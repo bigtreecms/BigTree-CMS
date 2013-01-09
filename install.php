@@ -296,7 +296,7 @@
 		if (file_exists($file) && filemtime($file) > (time()-300)) {
 			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
 			if ($bigtree["config"]["xsendfile"]) {
-				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\", "/"))."cache/".base64_encode($cache_location).".page");
+				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($cache_location).".page");
 				header("Content-Type: text/html");
 				die();
 			// Fall back on file_get_contents otherwise.
