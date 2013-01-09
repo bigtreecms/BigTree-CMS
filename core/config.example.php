@@ -28,6 +28,10 @@
 	$bigtree["config"]["static_root"] = "[staticroot]";
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
+	// Current Environment
+	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
+	$bigtree["config"]["environment_live_url"] = ""; // Site URL
+	
 	// Default Image Quality Presets
 	$bigtree["config"]["image_quality"] = 90;
 	$bigtree["config"]["retina_image_quality"] = 25;

@@ -298,6 +298,11 @@
 	nav.main form input[type=search].focus { border-color: #AAA; }
 	nav.main form input[type=submit] { height: 16px; margin: 10px 0 0 198px; position: absolute; user-select: none; width: 16px; background: url(../images/icon-sprite.png) no-repeat -96px 0px; border: none; text-indent: -1000px; padding: 0; }
 
+	.environment_alert { background-gradient: #F39222 #FEA641; box-shadow: 0 0 3px rgba(0, 0, 0, 0.5); border-radius: 0 0 3px 3px; border: 1px solid #DB821D; color: #61390D; float: right; margin: -16px 0 0; padding: 2px 6px 1px 10px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25); text-transform: uppercase; }
+	.environment_alert span { float: left; font-size: 11px; line-height: 29px; }
+	.environment_alert a { background: rgba(255, 255, 255, 0.6); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); border-radius: 10px; display: block; float: right; color: #61390D; font-size: 10px; height: 20px; line-height: 20px; padding: 0 12px; margin: 4px 0 0 10px; text-transform: uppercase; transition: background-color 0.2s; }
+	.environment_alert a:hover { background: rgba(255, 255, 255, 0.75); }
+
 	#quick_search_results { background: #FFF; border: 1px solid #aaa; box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25); margin: -6px 0 0 11px; position: absolute; user-select: none; width: 200px; z-index: 2; }
 	#quick_search_results p { background: #eaf5fc; border-bottom: 1px solid #aaa; color: #666; font-size: 10px; margin: 0; padding: 3px 10px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); }
 	#quick_search_results li, #quick_search_results ul { border: none; float: none; margin: 0; padding: 0; }

@@ -119,4 +119,9 @@
 		</nav>
 		<div class="body">
 			<div class="wrapper">
+				<? if ($bigtree["config"]["environment"] == "dev") { ?>
+				<div class="environment_alert">
+					<span><strong>Development Site</strong> &middot; Changes Will Not Effect Live Site!</span> <? if ($bigtree["config"]["environment_live_url"] != "") { echo '<a href="'.$bigtree["config"]["environment_live_url"].'admin/">Go Live</a>'; } ?>
+				</div>
+				<? } ?>
 				<aside id="growl"></aside>
