@@ -151,7 +151,7 @@
 		
 		function getFeaturedPosts($limit = 5) {
 			$posts = array();
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE featured = 'on' ORDER BY date DESC LIMIT $limit");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE featured = 'on' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $limit");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -181,7 +181,7 @@
 		
 		function getMonths() {
 			$months = array();
-			$q = sqlquery("SELECT DISTINCT(DATE_FORMAT(date,'%Y-%m-01')) AS month FROM btx_dogwood_posts ORDER BY date DESC");
+			$q = sqlquery("SELECT DISTINCT(DATE_FORMAT(date,'%Y-%m-01')) AS month FROM btx_dogwood_posts WHERE (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC");
 			while ($f = sqlfetch($q)) {
 				$months[] = $f["month"];
 			}
@@ -206,7 +206,7 @@
 		function getPageOfPosts($page,$per_page = 5) {
 			$posts = array();
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -235,7 +235,7 @@
 				$author = $author["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -264,7 +264,7 @@
 				$category = $category["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -292,7 +292,7 @@
 			$start = date("Y-m-01 00:00:00",strtotime($month));
 			$end = date("Y-m-t 23:59:59",strtotime($month));
 			$begin = $page * $per_page;
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE date >= '$start' AND date <= '$end' ORDER BY date DESC LIMIT $begin,$per_page");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE date >= '$start' AND date <= '$end' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $begin,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -321,7 +321,7 @@
 				$tag = $tag["id"];
 			}
 			$start = $page * $per_page;
-			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."' ORDER BY date DESC LIMIT $start,$per_page");
+			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -379,7 +379,7 @@
 		*/
 		
 		function getPostByRoute($route) {
-			$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE route = '".sqlescape($route)."'"));
+			$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE route = '".sqlescape($route)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')"));
 			if (!$post) {
 				return false;
 			}
@@ -395,7 +395,7 @@
 		*/
 		
 		function getPostCount() {
-			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts"));
+			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')"));
 			return $f["count"];
 		}
 		
@@ -414,7 +414,7 @@
 			if (is_array($author)) {
 				$author = $author["id"];
 			}
-			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."'"));
+			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')"));
 			return $f["count"];
 		}
 		
@@ -433,7 +433,7 @@
 			if (is_array($category)) {
 				$category = $category["id"];
 			}
-			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."'"));
+			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')"));
 		}
 		
 		/*
@@ -450,7 +450,7 @@
 		function getPostCountInMonth($month) {
 			$start = date("Y-m-01 00:00:00",strtotime($month));
 			$end = date("Y-m-t 23:59:59",strtotime($month));
-			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE date >= '$start' AND date <= '$end'"));
+			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE date >= '$start' AND date <= '$end' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')"));
 			return $f["count"];
 		}
 		
@@ -470,7 +470,7 @@
 			if (is_array($tag)) {
 				$tag = $tag["id"];
 			}
-			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."'"));
+			return sqlrows(sqlquery("SELECT btx_dogwood_posts.id FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')"));
 		}
 		
 		/*
@@ -506,7 +506,7 @@
 		
 		function getRecentPosts($count = 8) {
 			$posts = array();
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts ORDER BY date DESC LIMIT $count");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $count");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -529,7 +529,7 @@
 		function getRelatedPosts($post,$limit = 5) {
 			$tags = $this->getTagsForPost($post);
 			foreach ($tags as $tag) {
-				$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag["id"])."'");
+				$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag["id"])."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')");
 				while ($f = sqlfetch($q)) {
 					if (!isset($posts[$f["id"]])) {
 						$f["relevance"] = 1;
@@ -575,7 +575,7 @@
 				$i = sqlescape(strtolower($i));
 				$qparts[] = "(LOWER(title) LIKE '%$i%' OR LOWER(blurb) LIKE '%$i%' OR LOWER(content) LIKE '%$i%')";
 			}
-			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)." ORDER BY date DESC LIMIT $begin,$per_page");
+			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)." AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $begin,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
 			}
@@ -600,6 +600,7 @@
 				$i = sqlescape(strtolower($i));
 				$qparts[] = "(LOWER(title) LIKE '%$i%' OR LOWER(blurb) LIKE '%$i%' OR LOWER(content) LIKE '%$i%')";
 			}
+			$qparts[] = "(publish_date IS NULL OR publish_date <= '".date("Y-m-d")."')";
 			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM btx_dogwood_posts WHERE ".implode(" AND ",$qparts)));
 			return $f["count"];
 		}
@@ -638,7 +639,7 @@
 		*/
 		
 		function getUsedTags() {
-			$q = sqlquery("SELECT DISTINCT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' ORDER BY bigtree_tags.tag ASC");
+			$q = sqlquery("SELECT DISTINCT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY bigtree_tags.tag ASC");
 			$tags = array();
 			while ($f = sqlfetch($q)) {
 				$tags[] = $f;
