@@ -105,6 +105,16 @@
 	
 	// Flag for CSS minification 
 	$bigtree["config"]["css"]["minify"] = false;
+
+	// Additional CSS Files For the Admin to Load
+	$bigtree["config"]["admin_css"] = array(
+		// "whatever.css"
+	);
+
+	// Additional JavaScript Files For the Admin to Load
+	$bigtree["config"]["admin_js"] = array(
+		// "whatever.js"
+	);
 	
 	// --------------------------
 	// Placeholder Image Defaults
