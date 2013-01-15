@@ -52,6 +52,10 @@
 				$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
 				// Ignore SQL failures because we might have bad collation.
 				while ($r = sqlfetch($qs,true)) {
+					foreach ($r as &$piece) {
+						$piece = $cms->replaceInternalPageLinks($piece);
+					}
+					unset($piece);
 					$m_results[] = $r;
 					$total_results++;
 				}
@@ -78,15 +82,25 @@
 		<nav>
 			<div class="more">
 				<div>
-					<? $x = 0; foreach ($results as $key => $r) { $x++; ?>
+					<?
+						$x = 0;
+						foreach ($results as $key => $r) {
+							$x++;
+					?>
 					<a<? if ($x == 1) { ?> class="active"<? } ?> href="#<?=$cms->urlify($key)?>"><?=htmlspecialchars($key)?></a>
-					<? } ?>
+					<?
+						}
+					?>
 				</div>
 			</div>
 		</nav>
 	</header>
 	<div class="content_container">
-		<? $x = 0; foreach ($results as $key => $set) { $x++; ?>
+		<?
+			$x = 0;
+			foreach ($results as $key => $set) {
+				$x++;
+		?>
 		<section class="content" id="content_<?=$cms->urlify($key)?>"<? if ($x != 1) { ?> style="display: none;"<? } ?>>
 			<?
 				if ($key != "Pages") {
@@ -115,7 +129,9 @@
 				}
 			?>
 		</section>
-		<? } ?>	
+		<?
+			}
+		?>	
 	</div>
 </div>
 <script>

@@ -14,7 +14,7 @@
 		$fields[$key]["width"] = $percol - 20;
 	}
 	
-	$items = BigTreeAutoModule::parseViewData($view["id"],$items);
+	$items = BigTreeAutoModule::parseViewData($view,$items);
 ?>
 <div class="table" style="margin: 0;">
 	<header>
