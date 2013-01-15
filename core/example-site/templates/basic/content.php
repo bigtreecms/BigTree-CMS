@@ -11,7 +11,7 @@
 	<h1><?=$page_header?></h1>
 	<? if ($photo_file) { ?>
 	<figure>
-		<img src="<?=$photo_file?>" alt="Content Image" />
+		<img src="<?=$photo_file?>" alt="" width="300" height="300" />
 		<? if ($photo_caption) { ?>
 		<figcaption><?=$photo_caption?></figcaption>
 		<? } ?>
