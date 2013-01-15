@@ -329,6 +329,57 @@
 		}
 		
 		/*
+			Function: getPendingPostAndTags
+				Returns a post with all pending changes attached and content decoded with author information.
+			
+			Parameters:
+				post - The post ID or pending post ID prefixed with a "p".
+			
+			Returns:
+				An associative array containing the decoded post array with author information in "post" and tags in "tags".
+		*/
+		
+		function getPendingPostAndTags($post) {
+			if (is_numeric($post)) {
+				$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '$post'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'btx_dogwood_posts' AND item_id = '".$post["id"]."'"));
+				if (is_array($f)) {
+					$changes = json_decode($f["changes"],true);
+					if (is_array($changes)) {
+						foreach ($changes as $key => $val) {
+							$post[$key] = $val;
+						}
+					}
+					
+					$tags = array();
+					$t = json_decode($f["tags_changes"],true);
+					if (is_array($t)) {
+						foreach ($t as $i) {
+							$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$i'"));
+						}
+					}
+				} else {
+					$tags = $this->getTagsForPost($post);
+				}
+				$post = $this->getPost($post);
+				return array("post" => $post, "tags" => $tags);
+			} else {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".mysql_real_escape_string(substr($post,1))."'"));
+				$post = json_decode($f["changes"],true);
+				$post = $this->getPost($post);
+
+				$t = json_decode($f["tags_changes"],true);
+				$tags = array();
+				$t = json_decode($f["tags_changes"],true);
+				foreach ($t as $i) {
+				    $tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$i'"));
+				}
+				
+				return array("post" => $post, "tags" => $tags);
+			}
+		}
+
+		/*
 			Function: getPost
 				Returns a post with content decoded and author information.
 			

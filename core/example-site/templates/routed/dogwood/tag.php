@@ -1,12 +1,12 @@
 <?
-	$tag = $cms->getTagByRoute($commands[0]);
+	$tag = $cms->getTagByRoute($bigtree["commands"][0]);
 	// If this isn't a valid tag, throw a 404.
 	if (!$tag) {
 		$cms->catch404();
 	}
 	
-	if (is_numeric(end($commands))) {
-		$current_page = end($commands);
+	if (is_numeric(end($bigtree["commands"]))) {
+		$current_page = end($bigtree["commands"]);
 	} else {
 		$current_page = 0;
 	}

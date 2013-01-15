@@ -1,7 +1,7 @@
 <?
-	$month = $commands[0];
-	if (is_numeric(end($commands))) {
-		$current_page = end($commands);
+	$month = $bigtree["commands"][0];
+	if (is_numeric(end($bigtree["commands"]))) {
+		$current_page = end($bigtree["commands"]);
 	} else {
 		$current_page = 0;
 	}

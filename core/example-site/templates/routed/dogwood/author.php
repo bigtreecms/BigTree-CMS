@@ -1,12 +1,12 @@
 <?
-	$author = $dogwood->getAuthorByRoute($commands[0]);
+	$author = $dogwood->getAuthorByRoute($bigtree["commands"][0]);
 	// If the author wasn't found throw a 404.	
 	if (!$author) {
 		$cms->catch404();
 	}
 
-	if (is_numeric(end($commands))) {
-		$current_page = end($commands);
+	if (is_numeric(end($bigtree["commands"]))) {
+		$current_page = end($bigtree["commands"]);
 	} else {
 		$current_page = 0;
 	}

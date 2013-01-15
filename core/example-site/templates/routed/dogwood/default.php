@@ -2,11 +2,11 @@
 	$total_pages = ceil($dogwood->getPostCount() / 5);
 	$total_pages = $total_pages ? $total_pages : 1;
 
-	if (is_numeric(end($commands))) {
-		$current_page = end($commands);
+	if (is_numeric(end($bigtree["commands"]))) {
+		$current_page = end($bigtree["commands"]);
 		// Only show the "Page X" if it's not the first page.
-		if (end($commands)) {
-			$local_title = "Page ".(end($commands)+1);
+		if (end($bigtree["commands"])) {
+			$local_title = "Page ".(end($bigtree["commands"])+1);
 		}
 	} else {
 		$current_page = 0;

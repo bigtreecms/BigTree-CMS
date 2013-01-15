@@ -1,12 +1,12 @@
 <?
-	$category = $dogwood->getCategoryByRoute($commands[0]);
+	$category = $dogwood->getCategoryByRoute($bigtree["commands"][0]);
 	// If this category doesn't exist, throw a 404 error.
 	if (!$category) {
 		$cms->catch404();
 	}
 	
-	if (is_numeric(end($commands))) {
-		$current_page = end($commands);
+	if (is_numeric(end($bigtree["commands"]))) {
+		$current_page = end($bigtree["commands"]);
 	} else {
 		$current_page = 0;
 	}

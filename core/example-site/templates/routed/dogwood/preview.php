@@ -1,12 +1,11 @@
 <?
-	// Tell the footer to draw the comment thread if we're using Disqus
-	$post_detail = true;
-	// We've appended the route to the URL, so we're going to grab the last route of the URL and look it up.
-	$post = $dogwood->getPostByRoute(end($bigtree["commands"]));
-	// Get tags related to this post
-	$tags = $dogwood->getTagsForPost($post);
+	// We've appended either the pending ID (p1234) or actual ID (1234) to the first command.
+	$details = $dogwood->getPendingPostAndTags(end($bigtree["commands"]));
+	$post = $details["post"];
+	$tags = $details["tags"];
+
 	// Set the page title
-	$local_title = $post["title"];
+	$local_title = "PREVIEW OF: ".$post["title"];
 ?>
 <article class="row post post_page wysiwyg">
 	<div class="cell_11">
@@ -60,22 +59,5 @@
 				<a class="addthis_button_tweet"></a>
 			</div>
 		</div>
-	</div>
-	<div class="cell_12 comments">
-		<?
-			// If we've set our Disqus short name in the admin, draw the Disqus thread container.
-			if ($settings["disqus"]) {
-		?>
-		<div id="disqus_thread"></div>
-		<?
-			// If we haven't, let them know they can set it up.
-			} else {
-		?>
-		<p class="disqus_notice">
-			Enable comments by entering your <a href="http://www.disqus.com/" target="_blank">Disqus</a> shortname in the blog settings.
-		</p>
-		<?
-			}
-		?>
 	</div>
 </article>

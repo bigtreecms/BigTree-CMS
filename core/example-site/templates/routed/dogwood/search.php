@@ -5,8 +5,8 @@
 	}
 
 	// Pull the query and current page
-	$query = $commands[0];
-	$current_page = isset($commands[1]) ? $commands[1] : 0;
+	$query = $bigtree["commands"][0];
+	$current_page = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : 0;
 
 	// Grab a page of results
 	$posts = $dogwood->getSearchPageOfPosts($query,$current_page,5);
