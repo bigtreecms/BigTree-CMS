@@ -336,7 +336,8 @@
 
 /* Main Content Area */
 	.body { background: #ededed url(../images/bg.png); min-width: 960px; }
-	.body .wrapper { margin: 0 auto; min-height: 400px; overflow: hidden; padding: 15px 5px 30px; width: 960px; }
+	.body .wrapper { margin: 0 auto; min-height: 400px; padding: 15px 5px 30px; width: 960px; }
+	.body .wrapper:before, .body .wrapper:after { content: "."; display: block; height: 0; overflow: hidden; }
 
 	.breadcrumb { margin: 0 0 15px 0; overflow: hidden; user-select: none; }
 	.breadcrumb li { color: #777; float: left; font-size: 11px; margin: 0 5px 0 0; }
@@ -1504,6 +1505,7 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.ie nav.main li:hover a { -ms-filter: none; background: #243D4C; filter: none; }
 	.ie nav.main li li a:hover { background: #406980; }
 	.ie body.login { background: #333; }
+	.ie .body .wrapper { overflow: hidden; }
 	.ie .table > summary .more { border: 1px solid #CCC; }
 	.ie .table .changes_awaiting a { border: 1px solid #AFAFAF; }
 	.ie .table .redirect_404 input { height: 12px; }
