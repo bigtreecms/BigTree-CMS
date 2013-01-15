@@ -27,19 +27,23 @@
 
 	// We need to gather all the page levels that should be expanded (anything that isn't "inherit" should have its parents pre-opened)
 	$page_ids = array();
-	foreach ($permissions["page"] as $id => $permission) {
-		if ($permission != "i") {
-			$page_ids[] = $id;
+	if (is_array($permissions["page"])) {
+		foreach ($permissions["page"] as $id => $permission) {
+			if ($permission != "i") {
+				$page_ids[] = $id;
+			}
 		}
 	}
 	$pre_opened_parents = $admin->getPageParents($page_ids);
 
 	// Gather up the parents for resource folders that should be open by default.
 	$pre_opened_folders = array();
-	foreach ($permissions["resources"] as $id => $permission) {
-		if ($permission != "i") {
-			$folder = $admin->getResourceFolder($id);
-			$pre_opened_folders[] = $folder["parent"];
+	if (is_array($permissions["resources"])) {
+		foreach ($permissions["resources"] as $id => $permission) {
+			if ($permission != "i") {
+				$folder = $admin->getResourceFolder($id);
+				$pre_opened_folders[] = $folder["parent"];
+			}
 		}
 	}
 	
