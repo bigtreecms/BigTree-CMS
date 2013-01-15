@@ -9,7 +9,7 @@
 	<header>
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
-	<form method="post" action="<?=$form_root?>process-crops/<? if ($page) { echo $page["id"]."/"; } ?>" id="crop_form" class="module">
+	<form method="post" action="<?=$form_root?>process-crops/<? if (is_array($page)) { echo $page["id"]."/"; } else if (is_numeric($page)) { echo $page; } ?>" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
 		<section class="cropper">

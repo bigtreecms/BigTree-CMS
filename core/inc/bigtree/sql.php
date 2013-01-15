@@ -157,6 +157,9 @@
 			if ($bigtree["mysql_read_connection"] === "disconnected") {
 				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 			}
+			if (!is_string($string) && !is_numeric($string) && $string) {
+				throw new Exception("sqlescape expects a string");
+			}
 			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
 		}
 	} else {
@@ -310,6 +313,9 @@
 		*/
 		
 		function sqlescape($string) {
+			if (!is_string($string) && !is_numeric($string) && $string) {
+				throw new Exception("sqlescape expects a string");
+			}
 			return mysql_real_escape_string($string);
 		}
 	}
