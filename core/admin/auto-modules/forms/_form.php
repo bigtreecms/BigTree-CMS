@@ -1,5 +1,5 @@
 <div class="container">
-	<form method="post" action="<?=$form_root?>process/" enctype="multipart/form-data" class="module" id="auto_module_form">
+	<form method="post" action="<?=$bigtree["form_root"]?>process/" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<?

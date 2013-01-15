@@ -368,11 +368,12 @@
 				$post = json_decode($f["changes"],true);
 				$post = $this->getPost($post);
 
-				$t = json_decode($f["tags_changes"],true);
 				$tags = array();
 				$t = json_decode($f["tags_changes"],true);
-				foreach ($t as $i) {
-				    $tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$i'"));
+				if (is_array($t)) {
+					foreach ($t as $i) {
+					    $tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$i'"));
+					}
 				}
 				
 				return array("post" => $post, "tags" => $tags);

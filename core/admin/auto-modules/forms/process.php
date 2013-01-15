@@ -157,7 +157,7 @@
 	}
 	if ($_POST["_bigtree_preview"]) {
 		$admin->ungrowl();
-		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
+		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
 	}
 	// Check to see if this is a positioned element, if it is and the form is selected to move to the top, update the record.
 	$table_description = BigTree::describeTable($table);
@@ -184,9 +184,9 @@
 	);
 	
 	if (count($fails)) {
-		BigTree::redirect($form_root."error/");
+		BigTree::redirect($bigtree["form_root"]."error/");
 	} elseif (count($crops)) {
-		BigTree::redirect($form_root."crop/");
+		BigTree::redirect($bigtree["form_root"]."crop/");
 	}
 
 	BigTree::redirect($redirect_url);
