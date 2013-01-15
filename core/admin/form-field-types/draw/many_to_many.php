@@ -44,7 +44,7 @@
 	}
 	
 	// If we have a parser, send a list of the entries and available items through it.
-	if (isset($options["mtm-list-parser"])) {
+	if (isset($options["mtm-list-parser"]) && $options["mtm-list-parser"]) {
 		eval('$list = '.$options["mtm-list-parser"].'($list,true);');
 		eval('$entries = '.$options["mtm-list-parser"].'($entries,false);');
 	}
