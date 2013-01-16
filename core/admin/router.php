@@ -269,7 +269,9 @@
 	}
 
 	// Connect to MySQL and begin sessions and output buffering.
-	$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+	if (!$bigtree["mysql_read_connection"]) {
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+	}
 	ob_start();
 	session_start();
 
