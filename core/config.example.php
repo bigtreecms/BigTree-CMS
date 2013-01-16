@@ -50,8 +50,6 @@
 	$bigtree["config"]["cache"] = false;
 	// Use X-Sendfile headers to deliver cached files (more memory efficient, but your web server must support X-Sendfile headers) -- https://tn123.org/mod_xsendfile/
 	$bigtree["config"]["xsendfile"] = false;
-	// Set to false to serve cached files to users that are logged into the admin, true to always show fresh versions to logged in users.
-	$bigtree["config"]["dont_show_admin_cache"] = true;
 	
 	// ReCAPTCHA Keys
 	$bigtree["config"]["recaptcha"]["private"] = "6LcjTrwSAAAAADnHAf1dApaNCX1ODNuEBP1YdMdJ";

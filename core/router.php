@@ -268,7 +268,7 @@
 		} else {
 			$bigtree["page"] = $cms->getPage($navid);
 		}
-		
+		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
 		
