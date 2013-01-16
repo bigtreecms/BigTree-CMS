@@ -20,6 +20,151 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0RC2
+- ADDED: 404 Report now has paging and delete functionality.
+- ADDED: Foreign key constraints to tables.
+- ADDED: Module Views now pass their state information to forms so that when you return from the form you are where you left off.
+- ADDED: Site Integrity Check now also checks module content.
+- ADDED: More icons to choose from for module actions.
+- ADDED: SQL queries are now logged to $bigtree["sql"]["queries"] when debug mode is on.
+- ADDED: Support for module actions that contain /s in them so they can pretend to be in a subdirectory of custom modules.
+- ADDED: Module Actions add/edit can now specify a form / view.
+- ADDED: Placeholder image functionality.
+- ADDED: BigTree::geocodeAddress
+- ADDED: The ability to package instructions and post-install PHP code when importing a package.
+- ADDED: You can now turn on/off tagging in modules and pages.
+- ADDED: Delete All function for 404s without redirects entered.
+- ADDED: Page titles should now reflect better where you are in the admin.
+- ADDED: New, prettier email templates for daily digest / forgot password.
+- ADDED: Searching in a grouped view now includes items in a group where the group name matches your query.
+- ADDED: $bigtree["page"]["link"] now contains the equivalent of $cms->getLink($bigtree["page"]["id"]);
+- ADDED: Default configuration variables to show a Development Area flag with a link to the website.
+- ADDED: Default configuration variables to preload the admin with JS and CSS ($bigtree["config"]["admin_css"] and $bigtree["config"]["admin_js"] arrays)
+- UPDATED: Consolidated a lot of images into a single sprite for faster loading of the admin.
+- UPDATED: New glyph-based icon set and 2x image set for retina-capable displays.
+- UPDATED: Google Analytics was completely revamped since RC1's authentication feeds were deprecated.
+- UPDATED: Newer versions of TinyMCE and related plugins.
+- UPDATED: The example site is updated to support "callouts" on the homepage for extensibility and also has had its code cleaned up.
+- UPDATED: LESS compiler to support @import
+- UPDATED: Credits page to be more comprehensive - linked it up in the footer.
+- UPDATED: Example site blog now supports previewing.
+- UPDATED: Adding a Geocoding or Many to Many to a form now automatically brings up the settings dialog.
+- FIXED: BigTreeAutoModule's getViewForTable should be static.
+- FIXED: "route" being limited to 30 characters in bigtree_pages.
+- FIXED: View Columns should no longer break if they were styled and a Preview button was added.
+- FIXED: Parameters for BigTreeCMS's getBreadcrumb function were wrong.
+- FIXED: BigTree admin's login page should now load resources over HTTPS if force_secure_login is set in the config.
+- FIXED: Documentation bugs
+- FIXED: File Extensions not being set in the database correctly for things uploaded to the File Manager.
+- FIXED: Issue with hidden resources in Callouts.
+- FIXED: Users section should now have sortable columns and paging should now work properly.
+- FIXED: Permission issue with drag and drop.
+- FIXED: A bug with Array of Items in Chrome.
+- FIXED: Site Status crashing if PHP was running as CGI.
+- FIXED: Several Module import/export issues.
+- FIXED: Date/Time picker styles in WebKit browsers.
+- FIXED: Thumbnail images in dialog pop-ups.
+- FIXED: Misbehavior of the Field Selector for Module Forms.
+- FIXED: Unintended creation of orphaned temporary images.
+- FIXED: Views crashing if all the columns were removed.
+- FIXED: Inclusion of hidden files in /custom/inc/required/
+- FIXED: Poor english in some places.
+- FIXED: CSS and JavaScript not getting Last-Modified headers causing redownloads each time.
+- FIXED: Administrators not being able to archive top level hidden pages.
+- FIXED: Random CSS/JS cache files being created. Only combinations set in the config will create them now.
+- FIXED: Missing "default to now" option for Date & Time picker.
+- FIXED: Date & Time picker showing a default date of 1969.
+- FIXED: Missing "Required" option for Date/Time/Date & Time pickers.
+- FIXED: Custom view actions not being able to be disabled after added.
+- FIXED: Content Alert inheritance buttons in user editor.
+- FIXED: Double encoding of html special characters in module views.
+- FIXED: Odd encoding issue on pre/post process module form functions.
+- FIXED: Site Status now properly checks all directories for writability.
+- FIXED: Some BigTreeForms methods being public instead of static.
+- FIXED: Sorting in grouped image views.
+- FIXED: BigTreeAdmin::deleteFieldType now properly removes the options file.
+- FIXED: A bug in BigTree::trimLength
+- FIXED: Improper headers being sent for images served through TinyMCE's javascript folder.
+- FIXED: A bug with the view cache and pending entries.
+- FIXED: Many to Many bugging out if there were no possible relationships to be made.
+- FIXED: Fields not being validated when creating a form / action / view.
+- FIXED: Settings not translating properly.
+- FIXED: Not being able to preview an expired or publish-in-the-future page.
+- FIXED: Save & Preview not working in Pages when there were crops.
+- FIXED: Front end cropping not closing the window properly.
+- FIXED: Breadcrumb breaking in Pages if trunk was set.
+- FIXED: Int fields that were empty and didn't accept NULL being butchered.
+- FIXED: Forgot Password email coming from @bigtreecms.com
+- FIXED: Group sorting when it was sorting by numeric values.
+- FIXED: Page revisions never falling off after 10 / more than a month old.
+- FIXED: BigTreeSelect not recognizing when a <select> was disabled.
+- FIXED: Numeric commands not being passed to module actions.
+- FIXED: Various issues related to pending changes.
+- FIXED: Grouped view items where the item's group is missing.
+- FIXED: Template creation no longer creates a "Resources Available" comment if none are available.
+- FIXED: Columns named "route" should now be assumed as the Generated Route field type.
+- FIXED: BigTree::copyFile so that it supports URLs for the source.
+- FIXED: An issue with module forms doubling when exporting a module.
+- FIXED: An issue where adding a new resource to a callout wouldn't let you save it's radio button value.
+- FIXED: A text overflow issue on view columns.
+- FIXED: BigTreeModule::search method.
+- FIXED: BigTreeCMS::getLink now recognizes if you're requesting the current page's link and doesn't ask the database for it.
+- FIXED: Amazon S3 storage settings not sticking properly.
+- FIXED: Caching of unpublished view items.
+- FIXED: BigTreeAdmin::autoIPL issue with URLs where text followed.
+- FIXED: Lots of issues with tables where column names contained spaces or `
+- FIXED: Column sorting in searchable views.
+- FIXED: Problems caused by the column set to sort by wasn't included in the view.
+- FIXED: IE10 background gradient support.
+- FIXED: Failed photo uploads causing the field to be filled with the value of the previous field.
+- FIXED: View paging not making sense if there were more than ~5 pages.
+- FIXED: Admin crashing if the table for a form/view was deleted when trying to edit them.
+- FIXED: Crashes in database populated lists when the table it pulled from was deleted.
+- FIXED: Front end editor should no longer show Edit if the user doesn't have access to edit the page.
+- FIXED: Editing a page should now return you to the page you were previously on instead of always its parent.
+- FIXED: Quick Search is now more clear about the existence of Advanced Search.
+- FIXED: Previewing the homepage.
+- FIXED: Issues where a person with different group based permissions on a single module could escalate their editor/publisher rights.
+- FIXED: Improper calculation of quarterly reporting for Google Analytics.
+- FIXED: Issues with Analytics crashing the cron update so that it never sends Daily Digest email updates.
+- FIXED: Demo site should now properly respect publish dates on blog entries.
+- FIXED: Double encoding of relationships in Many to Many fields.
+- FIXED: Adding Geocoding to forms.
+- FIXED: Images not showing up in advanced search.
+- CHANGED: Page Header and Page Content are no longer required fields in the example site's Content template.
+- CHANGED: Simple HTML WYSIWYG no longer has the Code option.
+- CHANGED: Passing of information in Developer section from using commands to GET to be more clear.
+- CHANGED: Admin area now uses $_SESSION["bigtree_admin"] instead of $_SESSION["bigtree"] to avoid register_globals breaking front ends.
+- CHANGED: BigTree now defaults to MySQLi instead of MySQL.
+- CHANGED: BigTree now uses sqlescape() instead of mysql_real_escape_string so that it can cooperate with MySQLi and MySQL.
+- CHANGED: Improved the layout of Site Integrity Check
+- CHANGED: Crops will now be a square if only one dimension was entered.
+- CHANGED: Display of editing a Setting.
+- CHANGED: If a class is not found when auto loading, it will clear the module class list cache file in case it's out of date.
+- CHANGED: sqlfetch() calls will no longer throw an exception if you don't have debug on.
+- CHANGED: Tagging now associates by table instead of module.
+- CHANGED: SQL commands are now in /core/inc/bigtree/sql.php, moved most of /core/inc/utils/ into /core/inc/lib/ to be more accurate in the naming.
+- CHANGED: Installer now uses the main admin's css/js instead of a custom subset.
+- CHANGED: Several items that were always included in bootstrap are now auto loaded when needed.
+- CHANGED: Consolidated code for replacing relative/hard roots.
+- CHANGED: Approving a change now growls the proper module name.
+- CHANGED: If an error is thrown in Pages, the tab is now switched to the first tab that contains an error.
+- CHANGED: Routing now supports unlimited depth levels of _header and _footer and routing code has been consolidated and optimized.
+- CHANGED: Many to Many's list parser function now parses both the list of available relationships as well as the list of existing relationships.
+- CHANGED: BigTreeModule::search is now case insensitive by default.
+- CHANGED: New default layout for the admin includes H1s, breadcrumb, and navigation for modules. THIS MAY CAUSE BACKWARDS COMPATIBILITY ISSUES WITH CUSTOM MODULES THAT DRAW IT ON THEIR OWN.
+- CHANGED: Including custom CSS and JavaScript in the admin is now done through $bigtree["css"] and $bigtree["js"] instead of $css and $js — THIS IS A BACKWARDS COMPATIBILITY BREAK FOR CUSTOM MODULES.
+- CHANGED: form_container class name is now container - THIS IS A BACKWARDS COMPATIBILITY BREAK FOR CUSTOM MODULES. 
+- CHANGED: Cropping code is now consolidated across modules/pages.
+- CHANGED: Pages tab should no longer be in the header if a user has no pages access.
+- CHANGED: BigTreeBar javascript is now namespaced better in a JavaScript object.
+- CHANGED: Users with Group Based publisher permission can now publish their entry if they choose a group they have publish access to without first saving it.
+- CHANGED: Switching a select that affects the group based permissions of an entry now changes the button actions at the bottom of the form.
+- CHANGED: The permissions tree in the User editor should auto-expand down to where specific permissions have been set.
+- CHANGED: SQL connection parameters are now removed after the connection is made for security when debugging the $bigtree environment variable.
+- REMOVED: Dropdown of modules from the main header.
+- REMOVED: getPendingPage and getTagsForPage from BigTreeAdmin since they were redundant with BigTreeCMS's implmentation.
+
 ### 4.0RC1
 - NEW: Retina Display asset support (create 2x images at lower quality when capable)
 - NEW: Forms can now manually specify a return view.
