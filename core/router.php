@@ -181,7 +181,7 @@
 		$inc_path = "";
 		$headers = $footers = array();
 		foreach ($pieces as $piece) {
-			if (substr($piece,0,-4) != ".php") {
+			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
 				$header = SERVER_ROOT."templates/ajax/".$inc_path."_header.php";
 				$footer = SERVER_ROOT."templates/ajax/".$inc_path."_footer.php";
@@ -313,7 +313,7 @@
 			$inc_path = "";
 			$headers = $footers = array();
 			foreach ($pieces as $piece) {
-				if (substr($piece,0,-4) != ".php") {
+				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
 					$header = SERVER_ROOT."templates/routed/".$inc_path."_header.php";
 					$footer = SERVER_ROOT."templates/routed/".$inc_path."_footer.php";

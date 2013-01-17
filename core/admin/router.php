@@ -321,7 +321,7 @@
 		$inc_path = "";
 		$headers = $footers = array();
 		foreach ($pieces as $piece) {
-			if (substr($piece,0,-4) != ".php") {
+			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
 				$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
 				$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
@@ -466,7 +466,7 @@
 			$inc_path = "";
 			$headers = $footers = array();
 			foreach ($pieces as $piece) {
-				if (substr($piece,0,-4) != ".php") {
+				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
 					$header = BigTree::path("admin/modules/".$inc_path."_header.php");
 					$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
