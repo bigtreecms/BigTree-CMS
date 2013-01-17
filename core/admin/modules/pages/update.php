@@ -75,15 +75,19 @@
 		$pdata["parent"] = 0;
 	}
 	
-	if ($_POST["return_to_front"]) {
-		$pd = $cms->getPage($page);
-		if ($pd["id"]) {
-			$redirect_url = WWW_ROOT.$pd["path"]."/";
-		} else {
-			$redirect_url = WWW_ROOT;
-		}
-	} elseif (end($bigtree["path"]) == "preview") {
+	if (end($bigtree["path"]) == "preview") {
 		$redirect_url = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
+	} elseif ($_POST["return_to_front"]) {
+		if ($_POST["ptype"] != "Save & Publish") {
+			$redirect_url = $cms->getPreviewLink($page);
+		} else {
+			$pd = $cms->getPage($page);
+			if ($pd["id"]) {
+				$redirect_url = WWW_ROOT.$pd["path"]."/";
+			} else {
+				$redirect_url = WWW_ROOT;
+			}
+		}
 	} elseif ($_POST["return_to_self"]) {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["id"]."/";
 	} else {
