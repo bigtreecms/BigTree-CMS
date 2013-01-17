@@ -14,14 +14,14 @@
 				$connection = new mysqli($bigtree["config"]["db"]["host"],$bigtree["config"]["db"]["user"],$bigtree["config"]["db"]["password"],$bigtree["config"]["db"]["name"]);
 				$connection->query("SET NAMES 'utf8'");
 				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db"]["user"]);
-				unset($bigtree["config"]["db"]["password"]);
+				// unset($bigtree["config"]["db"]["user"]);
+				// unset($bigtree["config"]["db"]["password"]);
 			} else {
 				$connection = new mysqli($bigtree["config"]["db_write"]["host"],$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"],$bigtree["config"]["db_write"]["name"]);
 				$connection->query("SET NAMES 'utf8'");
 				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db_write"]["user"]);
-				unset($bigtree["config"]["db_write"]["password"]);
+				// unset($bigtree["config"]["db_write"]["user"]);
+				// unset($bigtree["config"]["db_write"]["password"]);
 			}
 			return $connection;
 		}
@@ -177,15 +177,15 @@
 				mysql_select_db($bigtree["config"]["db"]["name"],$connection);
 				mysql_query("SET NAMES 'utf8'",$connection);
 				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db"]["user"]);
-				unset($bigtree["config"]["db"]["password"]);
+				// unset($bigtree["config"]["db"]["user"]);
+				// unset($bigtree["config"]["db"]["password"]);
 			} else {
 				$connection = mysql_connect($bigtree["config"]["db_write"]["host"],$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"]);
 				mysql_select_db($bigtree["config"]["db_write"]["name"],$connection);
 				mysql_query("SET NAMES 'utf8'",$connection);
 				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db_write"]["user"]);
-				unset($bigtree["config"]["db_write"]["password"]);
+				// unset($bigtree["config"]["db_write"]["user"]);
+				// unset($bigtree["config"]["db_write"]["password"]);
 			}
 			return $connection;
 		}
