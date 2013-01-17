@@ -4,6 +4,7 @@
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/pages.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js"></script>
 		<style type="text/css">
 			#mceModalBlocker { display: none !important; }
 		</style>
