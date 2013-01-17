@@ -131,6 +131,8 @@ Changelog
 - FIXED: Double encoding of relationships in Many to Many fields.
 - FIXED: Adding Geocoding to forms.
 - FIXED: Images not showing up in advanced search.
+- FIXED: Preview/Save & Preview when editing from a link on the front end of the site.
+- FIXED: Generated Route field type did not work if the column's name was something other than "route"
 - CHANGED: Page Header and Page Content are no longer required fields in the example site's Content template.
 - CHANGED: Simple HTML WYSIWYG no longer has the Code option.
 - CHANGED: Passing of information in Developer section from using commands to GET to be more clear.
@@ -161,7 +163,6 @@ Changelog
 - CHANGED: Users with Group Based publisher permission can now publish their entry if they choose a group they have publish access to without first saving it.
 - CHANGED: Switching a select that affects the group based permissions of an entry now changes the button actions at the bottom of the form.
 - CHANGED: The permissions tree in the User editor should auto-expand down to where specific permissions have been set.
-- CHANGED: SQL connection parameters are now removed after the connection is made for security when debugging the $bigtree environment variable.
 - REMOVED: Dropdown of modules from the main header.
 - REMOVED: getPendingPage and getTagsForPage from BigTreeAdmin since they were redundant with BigTreeCMS's implmentation.
 
