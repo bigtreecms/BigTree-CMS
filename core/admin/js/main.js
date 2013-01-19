@@ -1552,7 +1552,7 @@ var BigTreeArrayOfItems = Class.extend({
 				html += '<label>' + f.title + '</label>';
 			}
 			
-			if (f.type == "text") {
+			if (f.type == "text" || !f.type) {
 				html += '<input type="text" name="' + f.key + '" />';
 			} else if (f.type == "textarea") {
 				html += '<textarea name="' + f.key + '"></textarea>';
@@ -1622,7 +1622,7 @@ var BigTreeArrayOfItems = Class.extend({
 				html += '<label>' + f.title + '</label>';
 			}
 			
-			if (f.type == "text") {
+			if (f.type == "text" || !f.type) {
 				html += '<input type="text" name="' + f.key + '" value="' + v + '" />';
 			} else if (f.type == "textarea") {
 				html += '<textarea name="' + f.key + '">' + v + '</textarea>';
