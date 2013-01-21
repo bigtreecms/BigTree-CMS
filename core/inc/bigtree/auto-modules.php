@@ -233,7 +233,7 @@
 			// See if we need to modify the cache table to add more fields.
 			$field_count = count($view["fields"]);
 			$table_description = BigTree::describeTable("bigtree_module_view_cache");
-			$cc = count($table_description["columns"]) - 11;
+			$cc = count($table_description["columns"]) - 13;
 			while ($field_count > $cc) {
 				$cc++;
 				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
