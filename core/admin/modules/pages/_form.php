@@ -73,12 +73,8 @@
 			<?
 					}
 				} else {
-					if ($page != 0) {
 			?>
 			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
-			<?
-					}
-			?>
 			<input type="submit" name="ptype" value="Save"<? if ($access_level != "p") { ?> class="blue"<? } ?> />
 			<?
 					if ($access_level == "p") {
