@@ -381,7 +381,7 @@
 	
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
 	if (isset($bigtree["page"]) && !$cms->Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
-		include BigTree::path("inc/bigtree/admin.php");
+		include_once BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 			eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
