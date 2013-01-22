@@ -364,7 +364,7 @@
 				$post = $this->getPost($post);
 				return array("post" => $post, "tags" => $tags);
 			} else {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".mysql_real_escape_string(substr($post,1))."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($post,1))."'"));
 				$post = json_decode($f["changes"],true);
 				$post = $this->getPost($post);
 

@@ -187,7 +187,7 @@
 
 				if ($sort_field) {
 					$fields[] = "`sort_field`";
-					$vals[] = "'".mysql_real_escape_string($item[$sort_field])."'";
+					$vals[] = "'".sqlescape($item[$sort_field])."'";
 				}
 				
 				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
