@@ -133,6 +133,7 @@ Changelog
 - FIXED: Images not showing up in advanced search.
 - FIXED: Preview/Save & Preview when editing from a link on the front end of the site.
 - FIXED: Generated Route field type did not work if the column's name was something other than "route"
+- FIXED: Not being able to save & preview the homepage.
 - CHANGED: Page Header and Page Content are no longer required fields in the example site's Content template.
 - CHANGED: Simple HTML WYSIWYG no longer has the Code option.
 - CHANGED: Passing of information in Developer section from using commands to GET to be more clear.
@@ -163,6 +164,7 @@ Changelog
 - CHANGED: Users with Group Based publisher permission can now publish their entry if they choose a group they have publish access to without first saving it.
 - CHANGED: Switching a select that affects the group based permissions of an entry now changes the button actions at the bottom of the form.
 - CHANGED: The permissions tree in the User editor should auto-expand down to where specific permissions have been set.
+- CHANGED: Page Paradigm now more semantic. Calls to paged methods now start at 1 for the first page instead of 0. — THIS IS A BACKWARDS COMPATIBILITY BREAK FOR BigTreeModule::getPage
 - REMOVED: Dropdown of modules from the main header.
 - REMOVED: getPendingPage and getTagsForPage from BigTreeAdmin since they were redundant with BigTreeCMS's implmentation.
 
