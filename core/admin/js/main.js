@@ -2241,58 +2241,54 @@ var BigTree = {
 	},
 	
 	SetPageCount: function(selector,pages,current_page) {
+		// We have to have at least one page.
 		if (pages == 0) {
 			pages = 1;
 		}
 		
-		if (current_page == 0) {
-			prev_page = 0;
+		// Figure out what previous and next buttons should do.
+		if (current_page == 1) {
+			prev_page = 1;
 		} else {
 			prev_page = current_page - 1;
 		}
-		if (current_page == (pages - 1)) {
-			next_page = current_page;
+		if (current_page == pages) {
+			next_page = pages;
 		} else {
 			next_page = current_page + 1;
 		}
 		
-		if (current_page < 3) {
-			diff = 5 - current_page;
-			start_page = 0;
-			end_page = current_page + diff;
-		} else if (pages > 10) {
-			start_page = current_page - 2;
-			end_page = current_page + 3;
+		// If we have 10 or less pages, just draw them all.
+		if (pages < 11) {
+			start_page = 1;
+			end_page = pages;
+		// Otherwise we need to figure out where we are...
 		} else {
-			start_page = 0;
-			end_page = pages;
+			if (current_page < 7) {
+				start_page = 1;
+				end_page = 9;
+			} else if (current_page > pages - 7) {
+				start_page = pages - 9;
+				end_page = pages;
+			} else {
+				start_page = current_page - 4;
+				end_page = current_page + 5;
+			}
 		}
-		
-		if (start_page < 0) {
-			start_page = 0;
-		}
-		
-		if (end_page > pages) {
-			end_page = pages;
-		}
-		
-		if (start_page > 5 && (end_page - start_page) < 5) {
-			start_page = end_page - 5;
-		}
-		
+
 		content = '<li class="first"><a href="#' + prev_page + '"><span>&laquo;</span></a></li>';
-		if (start_page > 0) {
+		if (start_page > 1) {
 			content += '<li class="ellipsis"><a href="#0">…</a></li>';
 		}
-		for (i = start_page; i < end_page; i++) {
+		for (i = start_page; i <= end_page; i++) {
 			content += '<li><a href="#' + i + '"';
 			if (i == current_page) {
 				content += ' class="active"';
 			}
-			content += '>' + (i + 1) + '</a></li>';
+			content += '>' + i + '</a></li>';
 		}
 		if (end_page < pages) {
-			content += '<li class="ellipsis"><a href="#' + (pages - 1) + '">…</a></li>';
+			content += '<li class="ellipsis"><a href="#' + pages + '">…</a></li>';
 		}
 		content += '<li class="last"><a href="#' + next_page + '"><span>&raquo;</span></a></li>';
 		

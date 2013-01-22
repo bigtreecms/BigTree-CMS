@@ -17,7 +17,7 @@
 </div>
 
 <script>
-	var current_page = 0;
+	var current_page = 1;
 	var sort = "name";
 	var sortdir = "ASC";
 	var search = "";
@@ -31,7 +31,7 @@
 	});
 
 	function _local_search() {
-		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=1&query=" + escape($("#query").val()));
 	}
 	
 	$(".icon_delete").live("click",function() {
@@ -66,7 +66,7 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(sortdir.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=1&query=" + escape($("#query").val()));
 		return false;
 	});
 	

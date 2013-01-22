@@ -152,9 +152,9 @@
 <script>
 	var pages_of_messages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
 	
-	BigTree.SetPageCount("#unread_paging",<?=$unread_pages?>,0);
-	BigTree.SetPageCount("#read_paging",<?=$read_pages?>,0);
-	BigTree.SetPageCount("#sent_paging",<?=$sent_pages?>,0);
+	BigTree.SetPageCount("#unread_paging",<?=$unread_pages?>,1);
+	BigTree.SetPageCount("#read_paging",<?=$read_pages?>,1);
+	BigTree.SetPageCount("#sent_paging",<?=$sent_pages?>,1);
 	
 	$(".view_paging a").live("click",function() {
 		page = parseInt($(this).attr("href").substr(1));

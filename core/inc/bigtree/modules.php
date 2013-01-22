@@ -366,7 +366,7 @@
 				Returns a page of entries from the table.
 			
 			Parameters:
-				page - The page to return.  0 is the first page.
+				page - The page to return.
 				orderby - The MySQL sort order.
 				where - Optional MySQL WHERE conditions.
 				perpage - The number of results per page.
@@ -378,8 +378,8 @@
 				<getPageCount>
 		*/
 		
-		function getPage($page = 0,$orderby = "id ASC", $where = false, $perpage = 15) {
-			return $this->fetch($orderby,($page * $perpage).", $perpage",$where);
+		function getPage($page = 1,$orderby = "id ASC", $where = false, $perpage = 15) {
+			return $this->fetch($orderby,(($page - 1) * $perpage).", $perpage",$where);
 		}
 		
 		/*

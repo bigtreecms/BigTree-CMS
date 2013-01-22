@@ -3245,7 +3245,7 @@
 				If the calling user is a developer, returns locked settings, otherwise they are left out.
 		*/
 
-		function getPageOfSettings($page = 0,$query = "") {
+		function getPageOfSettings($page = 1,$query = "") {
 			global $cms;
 			// If we're querying...
 			if ($query) {
@@ -3257,18 +3257,18 @@
 				}
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 				}
 			} else {
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".(($page - 1 ) * $this->PerPage).",".$this->PerPage);
 				}
 			}
 
@@ -3299,7 +3299,7 @@
 				An array of entries from bigtree_users.
 		*/
 
-		function getPageOfUsers($page = 0,$query = "",$sort = "name ASC") {
+		function getPageOfUsers($page = 1,$query = "",$sort = "name ASC") {
 			// If we're searching.
 			if ($query) {
 				$qparts = explode(" ",$query);
@@ -3308,10 +3308,10 @@
 					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
-				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 			// If we're grabbing anyone.
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 			}
 
 			$items = array();

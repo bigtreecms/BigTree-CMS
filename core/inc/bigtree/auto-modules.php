@@ -763,7 +763,7 @@
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		static function getSearchResults($view,$page = 0,$query = "",$sort = "id DESC",$group = false, $module = false) {
+		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false, $module = false) {
 			global $last_query,$admin;
 			
 			// Check to see if we've cached this table before.
@@ -829,7 +829,7 @@
 			if ($page === "all") {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
 			} else {
-				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".($page * $per_page).",$per_page");
+				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
 			}
 			
 			while ($f = sqlfetch($q)) {

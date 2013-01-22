@@ -61,11 +61,11 @@
 	});
 	
 	$("#view_paging a").live("click",function() {
-		mpage = BigTree.CleanHref($(this).attr("href"));
+		current_page = BigTree.CleanHref($(this).attr("href"));
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: search, type: "<?=$type?>", page: mpage }, hookResults);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: search, type: "<?=$type?>", page: current_page }, hookResults);
 
 		return false;
 	});

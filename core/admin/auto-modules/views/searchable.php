@@ -73,20 +73,20 @@
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
-	var mpage = 0;
+	var current_page = 1;
 	var sort = "<?=$sort_column?>";
 	var sortdir = "<?=$sort_direction?>";
 	var search = "";
 	
 	function _local_search() {
 		search = escape($("#search").val());
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=0&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=1&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
 	}
 	
 	$(".sort_column").live("click",function() {
 		sortdir = BigTree.CleanHref($(this).attr("href"));
 		sort = $(this).attr("name");
-		mpage = 0;
+		current_page = 1;
 		if ($(this).hasClass("asc") || $(this).hasClass("desc")) {
 			$(this).toggleClass("asc").toggleClass("desc");
 			if (sortdir == "DESC") {
@@ -107,16 +107,16 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(sortdir.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + current_page);
 		return false;
 	});
 	
 	$("#view_paging a").live("click",function() {
-		mpage = BigTree.CleanHref($(this).attr("href"));
+		current_page = BigTree.CleanHref($(this).attr("href"));
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + mpage);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + current_page);
 
 		return false;
 	});
