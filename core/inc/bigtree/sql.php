@@ -325,6 +325,10 @@
 		*/
 		
 		function sqlescape($string) {
+			global $bigtree;
+			if ($bigtree["mysql_read_connection"] === "disconnected") {
+				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+			}
 			if (!is_string($string) && !is_numeric($string) && $string) {
 				throw new Exception("sqlescape expects a string");
 			}
