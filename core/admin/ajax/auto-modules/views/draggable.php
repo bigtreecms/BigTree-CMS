@@ -21,7 +21,7 @@
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
 		$search = isset($_GET["search"]) ? $_GET["search"] : $_POST["search"];
 		$view["options"]["per_page"] = 10000000;
-		$r = BigTreeAutoModule::getSearchResults($view,0,$search,"position DESC, id ASC",false,$module);
+		$r = BigTreeAutoModule::getSearchResults($view,1,$search,"position DESC, id ASC",false,$module);
 		$items = $r["results"];
 	} else {
 		$items = BigTreeAutoModule::getViewData($view,"position DESC, id ASC","both",$module);
