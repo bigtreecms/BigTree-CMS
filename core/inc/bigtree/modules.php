@@ -379,6 +379,9 @@
 		*/
 		
 		function getPage($page = 1,$orderby = "id ASC", $where = false, $perpage = 15) {
+			if ($page < 1) {
+				$page = 1;
+			}
 			return $this->fetch($orderby,(($page - 1) * $perpage).", $perpage",$where);
 		}
 		
