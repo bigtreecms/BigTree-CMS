@@ -6,7 +6,7 @@
 
 	// Pull the query and current page
 	$query = $bigtree["commands"][0];
-	$current_page = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : 0;
+	$current_page = isset($bigtree["commands"][1]) ? $bigtree["commands"][1] : 1;
 
 	// Grab a page of results
 	$posts = $dogwood->getSearchPageOfPosts($query,$current_page,5);
@@ -36,7 +36,7 @@
 	<?
 		}
 	
-		if ($current_page > 0) {
+		if ($current_page > 1) {
 	?>
 	<a class="dogwood_newer_posts" href="<?=$blog_link?>search/<?=urlencode($query)?>/<?=($current_page - 1)?>/">&laquo; Newer Posts</a>
 	<?

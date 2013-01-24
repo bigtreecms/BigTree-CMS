@@ -8,7 +8,7 @@
 	if (is_numeric(end($bigtree["commands"]))) {
 		$current_page = end($bigtree["commands"]);
 	} else {
-		$current_page = 0;
+		$current_page = 1;
 	}
 
 	$posts = $dogwood->getPageOfPostsWithTag($current_page, $tag["id"], 5);
@@ -38,7 +38,7 @@
 	<?
 		}
 	
-		if ($current_page > 0) {
+		if ($current_page > 1) {
 	?>
 	<a class="dogwood_newer_posts" href="<?=$blog_link?>tag/<?=$tag["route"]?>/<?=($current_page - 1)?>/">&laquo; Newer Posts</a>
 	<?

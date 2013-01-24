@@ -4679,7 +4679,7 @@
 				An array of entries from bigtree_404s.
 		*/
 
-		function search404s($type,$query = "",$page = 0) {
+		function search404s($type,$query = "",$page = 1) {
 			$items = array();
 
 			if ($query) {
@@ -4707,7 +4707,7 @@
 			$pages = ($pages < 1) ? 1 : $pages;
 			
 			// Get the results
-			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".($page * 20).",20");
+			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
