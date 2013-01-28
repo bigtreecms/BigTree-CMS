@@ -27,36 +27,25 @@
 		*/
 		
 		function add($keys,$vals) {
-			/* Prevent Duplicates! */
-			$query = "SELECT id FROM `".$this->Table."` WHERE ";
-			$kparts = array();
+			$existing_parts = $key_parts = $value_parts = array();
 			$x = 0;
+			// Get a bunch of query parts.
 			while ($x < count($keys)) {
-				$kparts[] = "`".$keys[$x]."` = '".sqlescape($vals[$x])."'";
+				$existing_parts[] = "`".$keys[$x]."` = '".sqlescape($vals[$x])."'";
+				$key_parts[] = "`".$keys[$x]."`";
+				$value_parts[] = "'".sqlescape($vals[$x])."'";
 				$x++;
 			}
-			$query .= implode(" AND ",$kparts);
-			if (sqlrows(sqlquery($query))) {
-				return false;
-			}
-			/* Done preventing dupes! */
-			
-			$query = "INSERT INTO `".$this->Table."` (";
-			$kparts = array();
-			$vparts = array();
-			foreach ($keys as $key) {
-				$kparts[] = "`".$key."`";
-			}
-			
-			$query .= implode(",",$kparts).") VALUES (";
 
-			foreach ($vals as $val) {
-				$vparts[] = "'".sqlescape($val)."'";
+			// Prevent Duplicates
+			$row = sqlfetch(sqlquery("SELECT id FROM `".$this->Table."` WHERE ".implode(" AND ",$existing_parts)." LIMIT 1"));
+			// If it's the same as an existing entry, return that entry's id
+			if ($row) {
+				return $row["id"];
 			}
 			
-			$query .= implode(",",$vparts).")";
-			sqlquery($query);
-			
+			// Add the entry and cache it.
+			sqlquery("INSERT INTO `".$this->Table."` (".implode(",",$key_parts).") VALUES (".implode(",",$value_parts).")");
 			$id = sqlid();
 			BigTreeAutoModule::cacheNewItem($id,$this->Table);
 			
