@@ -209,15 +209,7 @@
 		*/
 
 		function getAll($sort = false) {
-			$order_by = $sort ? "ORDER BY $sort" : "";
-			$items = array();
-			
-			$q = sqlquery("SELECT * FROM `".$this->Table."` $order_by");
-			while ($f = sqlfetch($q)) {
-				$items[] = $this->get($f);
-			}
-			
-			return $items;
+			return $this->fetch($sort);
 		}
 		
 		/*
@@ -315,14 +307,14 @@
 			Parameters:
 				fields - Either a single field key or an array of field keys (if you pass an array you must pass an array for values as well)
 				values - Either a signle field value or an array of field values (if you pass an array you must pass an array for fields as well)
-				sort - The sort order (in MySQL syntax, i.e. "id DESC")
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function getMatching($fields,$values,$sort = false,$limit = false) {
+		function getMatching($fields,$values,$sortby = false,$limit = false) {
 			if (!is_array($fields)) {
 				$where = "`$fields` = '".sqlescape($values)."'";
 			} else {
@@ -333,15 +325,8 @@
 				}
 				$where = implode(" AND ",$where);
 			}
-
-			$order_by = $sort ? "ORDER BY $sort" : "";
-			$limit = $limit ? "LIMIT $limit" : "";
-			$q = sqlquery("SELECT * FROM `".$this->Table."` WHERE $where $order_by $limit");
-			while ($f = sqlfetch($q)) {
-				$items[] = $this->get($f);
-			}
-
-			return $items;
+			
+			return $this->fetch($sortby,$limit,$where);
 		}
 		
 		/*
@@ -469,7 +454,45 @@
 				$f = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` ORDER BY RAND() LIMIT 1"));
 				return $this->get($f);
 			}
-			return $this->fetch("rand()",$count);
+			return $this->fetch("RAND()",$count);
+		}
+
+		/*
+			Function: getRecent
+				Returns an array of entries from the table that have passed.
+			
+			Parameters:
+				count - Number of entries to return.
+				field - Field to use for the date check.
+			
+			Returns:
+				An array of entries from the table.
+			
+			See Also:
+				<getRecentFeatured>
+		*/
+		
+		function getRecent($count = 5, $field = "date") {
+			return $this->fetch("$field DESC",$count,"`$field` <= '".date("Y-m-d")."'");
+		}
+
+		/*
+			Function: getRecentFeatured
+				Returns an array of entries from the table that have passed and are featured.
+			
+			Parameters:
+				count - Number of entries to return.
+				field - Field to use for the date check.
+			
+			Returns:
+				An array of entries from the table.
+			
+			See Also:
+				<getRecent>
+		*/
+		
+		function getRecentFeatured($count = 5, $field = "date") {
+			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'");
 		}
 		
 		/*
