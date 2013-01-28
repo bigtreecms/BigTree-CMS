@@ -95,7 +95,7 @@
 				Deletes an entry from the table.
 			
 			Parameters:
-				id - The "id" of the entry to delete.
+				item - The id of the entry to delete or the entry itself.
 			
 			See Also:
 				<add>
@@ -103,11 +103,14 @@
 				<update>
 		*/
 		
-		function delete($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$id'");
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$id'");
-			BigTreeAutoModule::uncacheItem($id,$this->Table);
+		function delete($item) {
+			if (is_array($item)) {
+				$item = $item["id"];
+			}
+			$item = sqlescape($item);
+			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$item'");
+			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$item'");
+			BigTreeAutoModule::uncacheItem($item,$this->Table);
 		}
 		
 		/*
@@ -226,7 +229,7 @@
 		*/
 		
 		function getAllPositioned() {
-			return $this->fetch("position DESC, id ASC");
+			return $this->getAll("position DESC, id ASC");
 		}
 		
 		/*
@@ -312,14 +315,14 @@
 			Parameters:
 				fields - Either a single field key or an array of field keys (if you pass an array you must pass an array for values as well)
 				values - Either a signle field value or an array of field values (if you pass an array you must pass an array for fields as well)
-				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				sort - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function getMatching($fields,$values,$sortby = false,$limit = false) {
+		function getMatching($fields,$values,$sort = false,$limit = false) {
 			if (!is_array($fields)) {
 				$where = "`$fields` = '".sqlescape($values)."'";
 			} else {
@@ -330,8 +333,15 @@
 				}
 				$where = implode(" AND ",$where);
 			}
-			
-			return $this->fetch($sortby,$limit,$where);
+
+			$order_by = $sort ? "ORDER BY $sort" : "";
+			$limit = $limit ? "LIMIT $limit" : "";
+			$q = sqlquery("SELECT * FROM `".$this->Table."` WHERE $where $order_by $limit");
+			while ($f = sqlfetch($q)) {
+				$items[] = $this->get($f);
+			}
+
+			return $items;
 		}
 		
 		/*
