@@ -314,7 +314,7 @@
 	#quick_search_results a.no_results { border-top: none; }
 	#quick_search_results p.no_results { background: #FFF; }
 
-	#growl { margin: -10px 8px 0 707px; position: absolute; width: 245px; }
+	#growl { margin: -10px 8px 0 707px; position: absolute; width: 245px; z-index: 1000; }
 	#growl article { background: url(../images/growl-bg.png); border-bottom: 1px solid #222; border-radius: 4px; box-shadow: 0px 2px 4px rgba(0,0,0,0.5); margin: 5px 0 0 0; overflow: hidden; padding: 15px; }
 	#growl article span { display: inline-block; }
 	#growl article .close { background: url(../images/icon-sprite.png) -136px -106px; height: 10px; margin: -9px 0 0 214px; position: absolute; width: 10px; }
