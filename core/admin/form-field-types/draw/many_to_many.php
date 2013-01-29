@@ -21,7 +21,7 @@
 	// No pending data, let's query the connecting table directly for the entries.
 	} else {
 		if ($sortable) {
-			$q = sqlquery("SELECT * FROM `".$options["mtm-connecting-table"]."` WHERE `".$options["mtm-my-id"]."` = '$edit_id' ORDER BY `position`");
+			$q = sqlquery("SELECT * FROM `".$options["mtm-connecting-table"]."` WHERE `".$options["mtm-my-id"]."` = '$edit_id' ORDER BY `position` DESC");
 		} else {
 			$q = sqlquery("SELECT * FROM `".$options["mtm-connecting-table"]."` WHERE `".$options["mtm-my-id"]."` = '$edit_id'");
 		}

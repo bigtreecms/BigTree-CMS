@@ -324,12 +324,14 @@
 			foreach ($many_to_many as $mtm) {
 				$table_description = BigTree::describeTable($mtm["table"]);
 				if (is_array($mtm["data"])) {
+					$x = count($mtm["data"]);
 					foreach ($mtm["data"] as $position => $item) {
 						if (isset($table_description["columns"]["position"])) {
-							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
+							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 						}
+						$x--;
 					}
 				}
 			}
@@ -1091,12 +1093,14 @@
 			foreach ($many_to_many as $mtm) {
 				$table_description = BigTree::describeTable($mtm["table"]);
 				if (!empty($mtm["data"])) {
+					$x = count($mtm["data"]);
 					foreach ($mtm["data"] as $position => $item) {
 						if (isset($table_description["columns"]["position"])) {
-							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
+							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 						}
+						$x--;
 					}
 				}
 			}
@@ -1265,12 +1269,14 @@
 					sqlquery("DELETE FROM `".$mtm["table"]."` WHERE `".$mtm["my-id"]."` = '$id'");
 					$table_description = BigTree::describeTable($mtm["table"]);
 					if (is_array($mtm["data"])) {
-						foreach ($mtm["data"] as $position => $item) {
+						$x = count($mtm["data"]);
+						foreach ($mtm["data"] as $item) {
 							if (isset($table_description["columns"]["position"])) {
-								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
+								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 							} else {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 							}
+							$x--;
 						}
 					}
 				}
