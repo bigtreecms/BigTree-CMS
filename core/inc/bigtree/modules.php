@@ -27,36 +27,25 @@
 		*/
 		
 		function add($keys,$vals) {
-			/* Prevent Duplicates! */
-			$query = "SELECT id FROM `".$this->Table."` WHERE ";
-			$kparts = array();
+			$existing_parts = $key_parts = $value_parts = array();
 			$x = 0;
+			// Get a bunch of query parts.
 			while ($x < count($keys)) {
-				$kparts[] = "`".$keys[$x]."` = '".sqlescape($vals[$x])."'";
+				$existing_parts[] = "`".$keys[$x]."` = '".sqlescape($vals[$x])."'";
+				$key_parts[] = "`".$keys[$x]."`";
+				$value_parts[] = "'".sqlescape($vals[$x])."'";
 				$x++;
 			}
-			$query .= implode(" AND ",$kparts);
-			if (sqlrows(sqlquery($query))) {
-				return false;
-			}
-			/* Done preventing dupes! */
-			
-			$query = "INSERT INTO `".$this->Table."` (";
-			$kparts = array();
-			$vparts = array();
-			foreach ($keys as $key) {
-				$kparts[] = "`".$key."`";
-			}
-			
-			$query .= implode(",",$kparts).") VALUES (";
 
-			foreach ($vals as $val) {
-				$vparts[] = "'".sqlescape($val)."'";
+			// Prevent Duplicates
+			$row = sqlfetch(sqlquery("SELECT id FROM `".$this->Table."` WHERE ".implode(" AND ",$existing_parts)." LIMIT 1"));
+			// If it's the same as an existing entry, return that entry's id
+			if ($row) {
+				return $row["id"];
 			}
 			
-			$query .= implode(",",$vparts).")";
-			sqlquery($query);
-			
+			// Add the entry and cache it.
+			sqlquery("INSERT INTO `".$this->Table."` (".implode(",",$key_parts).") VALUES (".implode(",",$value_parts).")");
 			$id = sqlid();
 			BigTreeAutoModule::cacheNewItem($id,$this->Table);
 			
@@ -106,7 +95,7 @@
 				Deletes an entry from the table.
 			
 			Parameters:
-				id - The "id" of the entry to delete.
+				item - The id of the entry to delete or the entry itself.
 			
 			See Also:
 				<add>
@@ -114,11 +103,14 @@
 				<update>
 		*/
 		
-		function delete($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$id'");
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$id'");
-			BigTreeAutoModule::uncacheItem($id,$this->Table);
+		function delete($item) {
+			if (is_array($item)) {
+				$item = $item["id"];
+			}
+			$item = sqlescape($item);
+			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$item'");
+			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$item'");
+			BigTreeAutoModule::uncacheItem($item,$this->Table);
 		}
 		
 		/*
@@ -217,15 +209,7 @@
 		*/
 
 		function getAll($sort = false) {
-			$order_by = $sort ? "ORDER BY $sort" : "";
-			$items = array();
-			
-			$q = sqlquery("SELECT * FROM `".$this->Table."` $order_by");
-			while ($f = sqlfetch($q)) {
-				$items[] = $this->get($f);
-			}
-			
-			return $items;
+			return $this->fetch($sort);
 		}
 		
 		/*
@@ -237,7 +221,7 @@
 		*/
 		
 		function getAllPositioned() {
-			return $this->fetch("position DESC, id ASC");
+			return $this->getAll("position DESC, id ASC");
 		}
 		
 		/*
@@ -470,7 +454,45 @@
 				$f = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` ORDER BY RAND() LIMIT 1"));
 				return $this->get($f);
 			}
-			return $this->fetch("rand()",$count);
+			return $this->fetch("RAND()",$count);
+		}
+
+		/*
+			Function: getRecent
+				Returns an array of entries from the table that have passed.
+			
+			Parameters:
+				count - Number of entries to return.
+				field - Field to use for the date check.
+			
+			Returns:
+				An array of entries from the table.
+			
+			See Also:
+				<getRecentFeatured>
+		*/
+		
+		function getRecent($count = 5, $field = "date") {
+			return $this->fetch("$field DESC",$count,"`$field` <= '".date("Y-m-d")."'");
+		}
+
+		/*
+			Function: getRecentFeatured
+				Returns an array of entries from the table that have passed and are featured.
+			
+			Parameters:
+				count - Number of entries to return.
+				field - Field to use for the date check.
+			
+			Returns:
+				An array of entries from the table.
+			
+			See Also:
+				<getRecent>
+		*/
+		
+		function getRecentFeatured($count = 5, $field = "date") {
+			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'");
 		}
 		
 		/*
