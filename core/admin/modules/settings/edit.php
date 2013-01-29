@@ -20,7 +20,8 @@
 ?>
 <div class="container">
 	<header><h2><?=$item["name"]?></h2></header>
-	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post">	
+	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />	
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
