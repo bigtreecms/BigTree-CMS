@@ -4337,6 +4337,8 @@
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
+				$locked_by = $this->getUser($f["user"]);
+				$last_accessed = $f["last_accessed"];
 				include BigTree::path($include);
 				if ($in_admin) {
 					$this->stop();
