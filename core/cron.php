@@ -1,7 +1,7 @@
 <?
-	$root_path = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
-	include $root_path."templates/config.php";
-	include $root_path."core/bootstrap.php";
+	$server_root = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
+	include $server_root."templates/config.php";
+	include $server_root."core/bootstrap.php";
 	
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include BigTree::path(BIGTREE_CUSTOM_ADMIN_CLASS_PATH);
