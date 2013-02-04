@@ -99,7 +99,7 @@ $(document).ready(function() {
 	
 	$(".save_and_preview").click(function() {
 		sform = $(this).parents("form");
-		sform.attr("action","admin_root/pages/update/preview/");
+		sform.attr("action","admin_root/pages/update/?preview=true");
 		sform.submit();
 		
 		return false;

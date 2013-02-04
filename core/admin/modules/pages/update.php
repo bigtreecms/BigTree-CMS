@@ -75,7 +75,7 @@
 		$pdata["parent"] = 0;
 	}
 	
-	if (end($bigtree["path"]) == "preview") {
+	if (isset($_GET["preview"])) {
 		$redirect_url = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
 	} elseif ($_POST["return_to_front"]) {
 		if ($_POST["ptype"] != "Save & Publish") {
