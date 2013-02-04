@@ -23,7 +23,7 @@
 		// It's a regular file
 		if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 			$type = "file";
-			$file = $upload_service->upload($temp_name,$f["name"],$options["directory"]);
+			$file = $upload_service->upload($temp_name,$f["name"],"files/resources/");
 			
 			$admin->createResource($folder,$file,$f["name"],$extension);
 		// It's an image
