@@ -1845,7 +1845,7 @@
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$bigtree["config"]["domain"]);
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
-				$changes = $this->getPendingChanges($user["id"]);
+				$changes = $this->getPublishableChanges($user["id"]);
 				$alerts = $this->getContentAlerts($user["id"]);
 				$messages = $this->getMessages($user["id"]);
 				$unread = $messages["unread"];
@@ -3624,7 +3624,7 @@
 		}
 
 		/*
-			Function: getPendingChanges
+			Function: getPublishableChanges
 				Returns a list of changes that the logged in user has access to publish.
 
 			Parameters:
@@ -3634,7 +3634,7 @@
 				An array of changes sorted by most recent.
 		*/
 
-		function getPendingChanges($user = false) {
+		function getPublishableChanges($user = false) {
 			if (!$user) {
 				$user = $this->getUser($this->ID);
 			} else {
@@ -3707,6 +3707,42 @@
 					$f["user"] = $user;
 					$changes[] = $f;
 				}
+			}
+
+			return $changes;
+		}
+
+		/*
+			Function: getPendingChanges
+				Returns a list of changes that the logged in user has created.
+
+			Parameters:
+				user - The user id to retrieve changes for. Defaults to the logged in user.
+
+			Returns:
+				An array of changes sorted by most recent.
+		*/
+
+		function getPendingChanges($user = false) {
+			if (is_array($user)) {
+				$user = $user["id"];
+			} elseif (!$user) {
+				$user = $this->ID;
+			}
+
+			$changes = array();
+			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE user = '".sqlescape($user)."' ORDER BY date DESC");
+
+			while ($f = sqlfetch($q)) {
+				if (!$f["item_id"]) {
+					$id = "p".$f["id"];
+				} else {
+					$id = $f["item_id"];
+				}
+				
+				$mod = $this->getModule($f["module"]);
+				$f["mod"] = $mod;
+				$changes[] = $f;
 			}
 
 			return $changes;

@@ -547,6 +547,7 @@
 	.table .changes_awaiting { height: auto; line-height: 15px; padding: 18px 0 10px 20px; text-align: left; user-select: none; width: 938px; }
 	.table .changes_awaiting a { background: #EEE; border-radius: 15px; box-shadow: 0px 1px 0 #AFAFAF; color: #666; float: left; font-size: 12px; line-height: 16px; margin: 0 10px 10px 0; padding: 3px 15px; text-shadow: 0 1px 0 #FFF; transition: background 0.2s; }
 	.table .changes_awaiting a:hover { background: #F4F4F4; }
+	.table .changes_awaiting div { float: left; font-size: 12px; line-height: 16px; margin: 0 10px 10px 0; }
 	.pending_changes_table > ul li { height: auto; overflow: hidden; }
 	
 	/* Pages Specific */
@@ -602,6 +603,7 @@
 	
 	.table .changes_page { padding: 0 0 0 20px; text-align: left; width: 558px; }
 	.table .changes_author { padding: 0 0 0 20px; text-align: left; width: 140px; }
+	.table .changes_entry { padding: 0 0 0 20px; text-align: left; width: 668px; }
 	.table .changes_action { padding: 0 20px 0 0; text-align: center; width: 35px; }
 
 /* Error Table Styles */

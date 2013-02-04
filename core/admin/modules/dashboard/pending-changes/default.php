@@ -1,6 +1,6 @@
 <?
-	// Get pending changes.
-	$changes = $admin->getPendingChanges();
+	// Get pending changes awaiting this user's approval.
+	$changes = $admin->getPublishableChanges();
 	
 	// Go through and get all the modules and pages, separate them out.
 	$modules = array();
@@ -25,7 +25,7 @@
 ?>
 <div class="container">
 	<section>
-		<p>You have no changes awaiting approval.</p>
+		<p>You have no changes awaiting your approval.</p>
 	</section>
 </div>
 <?
