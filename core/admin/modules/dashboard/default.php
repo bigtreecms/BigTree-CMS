@@ -161,7 +161,7 @@
 
 			if (!count($my_changes)) {
 		?>
-		<li><section class="no_content"><p>There are no changes awaiting your approval.</p></section></li>
+		<li><section class="no_content"><p>You have no changes awaiting a publisher's approval.</p></section></li>
 		<?
 			} else {
 		?>
