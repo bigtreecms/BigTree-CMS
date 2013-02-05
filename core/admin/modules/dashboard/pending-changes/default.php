@@ -52,17 +52,17 @@
 	<ul>
 		<?
 			foreach ($pages as $change) {
-				if ($change["item_id"]) {
+				if (is_numeric($change["item_id"])) {
 					$page = $cms->getPendingPage($change["item_id"]);
 					$preview_link = WWW_ROOT."_preview/".$page["path"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/".$change["item_id"]."/";
+					if (!$change["item_id"]) {
+						$page["nav_title"] = "Home";
+					}
 				} else {
 					$page = $cms->getPendingPage("p".$change["id"]);
-					$preview_link = WWW_ROOT."_preview-pending/".$change["id"]."/";
+					$preview_link = WWW_ROOT."_preview-pending/p".$change["id"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/p".$change["id"]."/";
-				}
-				if ($change["item_id"] == 0) {
-					$page["nav_title"] = "Home";
 				}
 		?>
 		<li>
