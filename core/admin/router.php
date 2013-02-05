@@ -1,6 +1,6 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.0RC2");
+	define("BIGTREE_VERSION","4.0RC3");
 	define("BIGTREE_REVISION",18);
 
 	// BigTree Admin Nav Tree
