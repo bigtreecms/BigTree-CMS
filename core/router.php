@@ -399,7 +399,10 @@
 			$show_preview_bar = true;
 			$return_link = $_GET["bigtree_preview_return"];
 		}
-				
+		// Pending Pages don't have their ID set.
+		if (!isset($bigtree["page"]["id"])) {
+			$bigtree["page"]["id"] = $bigtree["page"]["page"];
+		}
 		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&current_page_id='.$bigtree["page"]["id"].'&show_bar='.$show_bar_default.'&username='.$_SESSION["bigtree_admin"]["name"].'&show_preview='.$show_preview_bar.'&return_link='.$return_link.'"></script></body>',$bigtree["content"]);
 		$bigtree["config"]["cache"] = false;
 	}
