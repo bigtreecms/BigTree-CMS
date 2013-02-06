@@ -1272,7 +1272,23 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
-			global $status_codes;
+			$status_codes = array(
+				"200" => "OK",
+				"300" => "Multiple Choices",
+				"301" => "Moved Permanently",
+				"302" => "Found",
+				"304" => "Not Modified",
+				"307" => "Temporary Redirect",
+				"400" => "Bad Request",
+				"401" => "Unauthorized",
+				"403" => "Forbidden",
+				"404" => "Not Found",
+				"410" => "Gone",
+				"500" => "Internal Server Error",
+				"501" => "Not Implemented",
+				"503" => "Service Unavailable",
+				"550" => "Permission denied"
+			);
 			if (!$url) {
 				return false;
 			}
@@ -1703,23 +1719,4 @@
 	$country_list = array("United States","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombi","Comoros","Congo (Brazzaville)","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor (Timor Timur)","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia, The","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea, North","Korea, South","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepa","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia and Montenegro","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
 
 	$month_list = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
-	
-	$status_codes = array(
-		"200" => "OK",
-		"300" => "Multiple Choices",
-		"301" => "Moved Permanently",
-		"302" => "Found",
-		"304" => "Not Modified",
-		"307" => "Temporary Redirect",
-		"400" => "Bad Request",
-		"401" => "Unauthorized",
-		"403" => "Forbidden",
-		"404" => "Not Found",
-		"410" => "Gone",
-		"500" => "Internal Server Error",
-		"501" => "Not Implemented",
-		"503" => "Service Unavailable",
-		"550" => "Permission denied"
-	);
-	
 ?>

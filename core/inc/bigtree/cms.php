@@ -75,7 +75,8 @@
 			}
 			// If it's in the old routing table, send them to the new page.
 			if ($found) {
-				BigTree::redirect(WWW_ROOT.str_replace($old,$new,$_GET["bigtree_htaccess_url"]),"301");
+				$new_url = $new.substr($_GET["bigtree_htaccess_url"],strlen($old));
+				BigTree::redirect(WWW_ROOT.$new_url,"301");
 			}
 		}
 		
