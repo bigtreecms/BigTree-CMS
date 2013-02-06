@@ -812,12 +812,12 @@
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
-						$sort_field = "column$x";
+						$sort_field = "LOWER(column$x)";
 					}
 				}
 				// If we didn't find a column, let's assume it's the default sort field.
 				if (substr($sort_field,0,6) != "column") {
-					$sort_field = "sort_field";
+					$sort_field = "LOWER(sort_field)";
 				}
 			} else {
 				$sort_field = "CONVERT(id,UNSIGNED)";
