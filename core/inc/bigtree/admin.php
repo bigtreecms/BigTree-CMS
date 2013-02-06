@@ -6082,8 +6082,8 @@
 				}
 			}
 
-			$permissions = sqlescape(json_encode($data["permissions"]));
-			$alerts = sqlescape(json_encode($data["alerts"]));
+			$permissions = sqlescape(json_encode($data["permissions"],JSON_FORCE_OBJECT));
+			$alerts = sqlescape(json_encode($data["alerts"],JSON_FORCE_OBJECT));
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);

@@ -687,10 +687,10 @@
 		*/
 		
 		function getPreviewLink($id) {
-			if ($id == 0) {
+			if (substr($id,0,1) == "p") {
+				return WWW_ROOT."_preview-pending/$id/";
+			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
-			} elseif (substr($id,0,1) == "p") {
-				return WWW_ROOT."_preview-pending/".substr($id,1)."/";
 			} else {
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
 				return WWW_ROOT."_preview/".$f["path"]."/";
