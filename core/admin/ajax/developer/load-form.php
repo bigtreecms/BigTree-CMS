@@ -41,7 +41,7 @@
 				$options = array();
 				
 				if (strpos($title,"URL") !== false) {
-					$subtitle = "Include http://";
+					$subtitle = "(include http://)";
 				}
 
 				if ($column["name"] == "route") {
