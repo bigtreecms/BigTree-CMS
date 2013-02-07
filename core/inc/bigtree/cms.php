@@ -456,8 +456,9 @@
 			}
 			
 			$in_nav = $only_hidden ? "" : "on";
+			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
 			
-			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY position DESC, id ASC");
+			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY " . $sort);
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
