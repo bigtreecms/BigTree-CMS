@@ -3701,10 +3701,8 @@
 
 				// We're a publisher, get the info about the change and put it in the change list.
 				if ($ok) {
-					$mod = $this->getModule($f["module"]);
-					$user = $this->getUser($f["user"]);
-					$f["mod"] = $mod;
-					$f["user"] = $user;
+					$f["mod"] = $this->getModule($f["module"]);
+					$f["user"] = $this->getUser($f["user"]);
 					$changes[] = $f;
 				}
 			}
