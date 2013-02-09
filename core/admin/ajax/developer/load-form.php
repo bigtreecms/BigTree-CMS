@@ -157,13 +157,14 @@
 				<input type="text" name="titles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["title"]?>"<? } ?> />
 			</section>
 			<section class="developer_resource_form_subtitle">
-				<input type="text" name="subtitles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
+				<input type="text" name="subtitles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
 			</section>
 			<section class="developer_resource_type">
 				<?
 					if ($field["type"] == "geocoding") {
 				?>
 				<input type="hidden" name="type[geocoding]" value="geocoding" id="type_geocoding" />
+				<span class="resource_name">Geocoding</span>
 				<?
 					} elseif ($field["type"] == "many_to_many") {
 						$mtm_count++;
