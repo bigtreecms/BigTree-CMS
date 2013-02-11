@@ -856,8 +856,6 @@ var BigTreePhotoGallery = Class.extend({
 var BigTreeTagAdder = {
 	
 	element: false,
-	entry: false,
-	module: false,
 	searching: false,
 	selected: -1,
 	dropdown: false,
@@ -865,8 +863,6 @@ var BigTreeTagAdder = {
 	
 	init: function(module,entry,element) {
 		this.element = $(element);
-		this.entry = entry;
-		this.module = module;
 		// Setup delete hooks on existing tags
 		$("#tag_list a").click(this.deleteHook);		
 
@@ -944,7 +940,7 @@ var BigTreeTagAdder = {
 		el = ev.target;
 		tag = el.innerHTML.replace("<span>","").replace("</span>","");
 		if (tag) {
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { module: BigTreeTagAdder.module, entry: BigTreeTagAdder.entry, tag: tag }, success: BigTreeTagAdder.addedTag });
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: BigTreeTagAdder.addedTag });
 		}
 		return false;
 	},
@@ -952,7 +948,7 @@ var BigTreeTagAdder = {
 	addTag: function(ev) {
 		tag = $("#tag_entry").val();
 		if (tag) {
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { module: BigTreeTagAdder.module, entry: BigTreeTagAdder.entry, tag: tag }, success: BigTreeTagAdder.addedTag });
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: BigTreeTagAdder.addedTag });
 		}
 	},
 	

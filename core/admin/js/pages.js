@@ -92,7 +92,7 @@ $(document).ready(function() {
 	$("#publish_at, #expire_at").datepicker({ duration: 200, showAnim: "slideDown" });
 	
 	// Tagger
-	BigTreeTagAdder.init(0,false,"bigtree_tag_browser");
+	BigTreeTagAdder.init("bigtree_tag_browser");
 	
 	// Watch for changes in the template, update the Content tab.
 	checkTimer = setInterval(checkTemplate,500);

@@ -68,7 +68,7 @@
 				</fieldset>
 			</div>
 			<script>
-				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$edit_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
+				BigTreeTagAdder.init("bigtree_tag_browser");
 			</script>
 			<?
 				}
