@@ -66,7 +66,7 @@ var BigTreeBar = {
 		
 		BigTreeBar.body.appendChild(bigtree_bar);
 		
-		document.getElementById("bigtree_bar_close").onclick = function() {
+		document.getElementById("bigtree_bar_close").onclick = function(e) {
 			if (document.getElementById("bigtree_bar_overlay")) {
 				BigTreeBar.body.removeChild(document.getElementById("bigtree_bar_overlay"));
 			}
@@ -80,6 +80,8 @@ var BigTreeBar = {
 			document.getElementsByTagName('body')[0].className = bodyClass;
 			
 			BigTreeBar.createCookie("hide_bigtree_bar","on",365);
+			
+			BigTreeBar.dispatch("closebigtreebar");
 			
 			return false;
 		};
@@ -103,6 +105,8 @@ var BigTreeBar = {
 			
 			return false;
 		};
+		
+		BigTreeBar.dispatch("openbigtreebar");
 		
 		return false;
 	},
@@ -146,6 +150,12 @@ var BigTreeBar = {
 			windowWidth = document.body.clientWidth;
 		}
 		return windowWidth;
+	},
+	
+	dispatch: function(evtName) {
+		var evt = document.createEvent("Event");
+		evt.initEvent(evtName, true, true); 
+		document.dispatchEvent(evt);
 	}
 };
 
