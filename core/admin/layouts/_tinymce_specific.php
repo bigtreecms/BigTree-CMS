@@ -31,7 +31,7 @@
 			relative_urls: false,
 			remove_script_host: false,
 			gecko_spellcheck: true,
-			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align],iframe[src|class|width|height|name|align|style]"
+			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align],iframe[src|class|width|height|name|align|style],figure[class],figcaption[class]"
 			<? if (isset($mce_width)) { ?>,width: "<?=$mce_width?>"<? } ?>
 			<? if (isset($mce_height)) { ?>,height: "<?=$mce_height?>"<? } ?>
 		});
