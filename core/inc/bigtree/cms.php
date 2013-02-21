@@ -953,7 +953,10 @@
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
-			
+			if (!$url) {
+				return true;
+			}
+
 			if ($f["redirect_url"]) {
 				if ($f["redirect_url"] == "/") {
 					$f["redirect_url"] = "";
@@ -968,16 +971,13 @@
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
 				BigTree::redirect($redirect,"301");
 			} else {
-				$referer = $_SERVER["HTTP_REFERER"];
-				$requester = $_SERVER["REMOTE_ADDR"];
-
 				if ($f) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
 				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('".sqlescape(rtrim($_GET["bigtree_htaccess_url"],"/"))."','1')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('$url','1')");
 				}
-				return true;
 				define("BIGTREE_DO_NOT_CACHE",true);
+				return true;
 			}
 			
 			return false;
