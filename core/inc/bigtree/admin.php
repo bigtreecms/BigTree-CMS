@@ -1972,10 +1972,7 @@
 			$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
 
 			mail($user["name"]." <".$user["email"].">","Reset Your Password",$body,$headers);
-			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
-
-			//mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".,"From: no-reply@$no_reply_domain");
-			
+			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");		
 		}
 
 		/*

@@ -207,6 +207,11 @@
 		die();
 	}
 
+	// Sitemap setup
+	if ($bigtree["path"][0] == "sitemap.xml") {
+		$cms->drawXMLSitemap();
+	}
+
 	// Tell the browser we're serving HTML
 	header("Content-type: text/html");
 
@@ -238,10 +243,7 @@
 	// So we don't lose this.
 	define("BIGTREE_PREVIEWING",$bigtree["preview"]);
 	
-	// Sitemap setup
-	if ($bigtree["path"][0] == "sitemap.xml") {
-		$cms->drawXMLSitemap();
-	}
+	
 	if ($bigtree["path"][0] == "feeds") {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$route = $bigtree["path"][1];
@@ -254,6 +256,7 @@
 		}
 	}
 	
+	// If we haven't already received our nav id through previewing...
 	if (!$navid) {
 		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
