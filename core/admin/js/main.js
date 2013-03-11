@@ -364,7 +364,7 @@ var BigTreeSelect = Class.extend({
 	add: function(value,text) {
 		// Add to the actual select.
 		op = new Option(text,value);
-		this.Element.options[this.Element.options.length] = op;
+		this.Element[0].options[this.Element[0].options.length] = op;
 		// Add to the styled select.
 		a = $('<a href="#">' + text + '</a>');
 		a.attr("data-value",value);

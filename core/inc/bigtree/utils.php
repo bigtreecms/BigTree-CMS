@@ -690,11 +690,14 @@
 			}
 			
 			// It's not in the cache, ask Google for it.
-			$file = utf8_encode(BigTree::curl("http://maps.google.com/maps/geo?q=".urlencode($address)."&output=xml"));
+			// Updated for GMAPS API v3
+			$file = utf8_encode(BigTree::curl("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false"));
 			try {
-				$xml = new SimpleXMLElement($file);
-				$coords = explode(",", $xml->Response->Placemark->Point->coordinates);
-				$geo = array("latitude" => $coords[1], "longitude" => $coords[0]);
+				if (is_string($file)) {
+					$file = json_decode($file, true);
+				}
+				$latlng = $file["results"][0]["geometry"]["location"];
+				$geo = array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
 			} catch (Exception $e) {
 				$geo = false;
 			}
