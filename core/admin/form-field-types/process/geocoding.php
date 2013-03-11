@@ -17,7 +17,7 @@
 		$item["latitude"] = $geo["latitude"];
 		$item["longitude"] = $geo["longitude"];
 	}
-	
+		
 	// This field doesn't have it's own key to process.
 	$no_process = true;
 ?>
