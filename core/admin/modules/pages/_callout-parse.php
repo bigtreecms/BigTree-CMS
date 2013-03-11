@@ -37,8 +37,9 @@
 						$value = htmlspecialchars($data[$key]);
 					}
 					$value = $admin->autoIPL($value);
-					if (!$no_process)
+					if (!$no_process) {
 						$callout[$key] = $value;
+					}
 				}
 				$callout["type"] = $data["type"];
 				$callout["display_title"] = $data["display_title"];
