@@ -36,7 +36,11 @@
 					} else {
 						$value = htmlspecialchars($data[$key]);
 					}
-					$value = $admin->autoIPL($value);
+					if (is_array($value)) {
+						$value = BigTree::translateArray($value);	
+					} else {
+						$value = $admin->autoIPL($value);
+					}
 					if (!$no_process) {
 						$callout[$key] = $value;
 					}
