@@ -15,6 +15,9 @@
 	$writable_directories = array(
 		"cache/",
 		"custom/inc/modules/",
+		"custom/admin/ajax/developer/field-options/",
+		"custom/admin/form-field-types/draw/",
+		"custom/admin/form-field-types/process/",
 		"templates/routed/",
 		"templates/basic/",
 		"templates/callouts/",
