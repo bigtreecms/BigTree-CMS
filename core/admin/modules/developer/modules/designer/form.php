@@ -65,7 +65,7 @@
 	var mtm_count = 0;
 	var key = 0;
 	
-	$(".icon_settings").live("click",function() {
+	$(".form_table").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
@@ -76,10 +76,8 @@
 		}});
 		
 		return false;
-	});
-		
-	$(".icon_delete").live("click",function() {
-		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
+	}).on("click",".icon_delete",function() {
+		new BigTreeDialog("Delete Field",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
 			li = $(this).parents("li");
 			title = li.find("input").val();
 			if (title) {

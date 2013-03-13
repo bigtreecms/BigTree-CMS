@@ -29,7 +29,7 @@
 		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=1&query=" + escape($("#query").val()));
 	}
 	
-	$("#view_paging a").live("click",function() {
+	$(".table").on("click","#view_paging a",function() {
 		current_page = BigTree.CleanHref($(this).attr("href"));
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;

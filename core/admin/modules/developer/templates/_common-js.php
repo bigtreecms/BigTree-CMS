@@ -15,7 +15,7 @@
 		return false;
 	});
 	
-	$(".icon_settings").live("click",function() {
+	$(".form_table").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
@@ -26,9 +26,7 @@
 		}});
 		
 		return false;
-	});
-
-	$(".icon_delete").live("click",function() {
+	}).on("click",".icon_delete",function() {
 		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this resource?',$.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
