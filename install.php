@@ -1,4 +1,39 @@
 <?php
+	// Setup SQL functions for MySQL extension if we have it.
+	if (function_exists("mysql_connect")) {
+		function sqlconnect($server,$user,$password) {
+			return mysql_connect($server,$user,$password);
+		}
+
+		function sqlselectdb($con,$db) {
+			return mysql_select_db($con,$db);
+		}
+
+		function sqlquery($query) {
+			return mysql_query($query);
+		}
+
+		function sqlescape($string) {
+			return mysql_real_escape_string($string);
+		}
+	// Otherwise Use MySQLi
+	} else {
+		function sqlconnect($server,$user,$password) {
+			return mysqli_connect($server,$user,$password);
+		}
+
+		function sqlselectdb($con,$db) {
+			return mysqli_select_db($con,$db);
+		}
+
+		function sqlquery($query) {
+			return mysqli_query($query);
+		}
+
+		function sqlescape($string) {
+			return mysqli_real_escape_string($string);
+		}
+	}
 	// Turn off errors
 	ini_set("log_errors",false);
 	error_reporting(0); 
@@ -19,7 +54,7 @@
 	if (!extension_loaded('json')) {
 		$warnings[] = "JSON Extension is missing (this could affect API and Foundry usage).";
 	}
-	if (!extension_loaded("mysql")) {
+	if (!extension_loaded("mysql") && !extension_loaded("mysqli")) {
 		$warnings[] = "MySQL Extension is missing (this is a FATAL ERROR).";
 	}
 	if (get_magic_quotes_gpc()) {
@@ -70,14 +105,14 @@
 		$error = "Please make the current working directory writable.";
 	} elseif (count($_POST)) {
 		if ($write_host && $write_user && $write_password) {
-			$con = @mysql_connect($write_host,$write_user,$write_password,$db);
+			$con = @sqlconnect($write_host,$write_user,$write_password);
 		} else {
-			$con = @mysql_connect($host,$user,$password);
+			$con = @sqlconnect($host,$user,$password);
 		}
 		if (!$con) {
 			$error = "Could not connect to database.";
 		} else {
-			$select = mysql_select_db($db, $con);
+			$select = sqlselectdb($db, $con);
 			if (!$select) {
 				$error = "Could not select database &ldquo;$db&rdquo;.";
 			}
@@ -138,16 +173,16 @@
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
 			if ($query != "") {
-				$q = mysql_query($query);
+				$q = sqlquery($query);
 			}
 		}
 		
-		mysql_query("UPDATE bigtree_pages SET id = '0' WHERE id = '1'");
+		sqlquery("UPDATE bigtree_pages SET id = '0' WHERE id = '1'");
 		
 		include "core/inc/lib/PasswordHash.php";
 		$phpass = new PasswordHash(8, TRUE);
-		$enc_pass = mysql_real_escape_string($phpass->HashPassword($cms_pass));
-		mysql_query("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
+		$enc_pass = sqlescape($phpass->HashPassword($cms_pass));
+		sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
 		
 		function bt_mkdir_writable($dir) {
 			global $root;
@@ -416,7 +451,7 @@ RewriteRule (.*) site/$1 [L]');
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
 				if ($query != "") {
-					$q = mysql_query($query);
+					$q = sqlquery($query);
 				}
 			}
 			
