@@ -956,7 +956,7 @@
 	.developer_icon_list li a span { opacity: 0.5; }
 	.developer_icon_list li a.active, .developer_icon_list li a:hover { background: #FFF; border-color: #AAA; box-shadow: 0 0 2px #CCC; }
 	.developer_icon_list li a.active span, .developer_icon_list li a:hover span { opacity: 1; }
-	.developer_icon_list .icon_small_help { cursor: default; }
+	.developer_icon_list .icon_small_help { cursor: pointer; }
 
 	.developer_field_types_usage li { margin: 0 0 10px 0; overflow: hidden; }
 	.developer_field_types_usage li:last-child { margin: 0; }
