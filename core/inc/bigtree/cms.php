@@ -950,7 +950,6 @@
 		*/
 		
 		function handle404($url) {
-			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
 			if (!$url) {
@@ -971,6 +970,7 @@
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
 				BigTree::redirect($redirect,"301");
 			} else {
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 				if ($f) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
 				} else {
