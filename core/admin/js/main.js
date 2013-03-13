@@ -342,7 +342,7 @@ var BigTreeSelect = Class.extend({
 		
 		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
 		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
-		div.find("a").click($.proxy(this.select,this));
+		div.on("click","a",$.proxy(this.select,this));
 		div.find(".handle").click($.proxy(this.click,this));
 		
 		$(element).after(div);
@@ -1844,7 +1844,12 @@ var BigTreeManyToMany = Class.extend({
 			if ($(this).parents("ul").find("li").length == 1) {
 				$(this).parents("fieldset").find("section").show();
 			}
-			$(this).parents("li").remove();
+			li = $(this).parents("li");
+			val = li.find("input").val();
+			text = li.find("p").html();
+			sel = $(this).parents("fieldset").find("select");
+			$(this).parents("fieldset").find("select")[0].customControl.add(val,text);
+			li.remove();
 		},this),"delete",false,"OK");
 
 		return false;
