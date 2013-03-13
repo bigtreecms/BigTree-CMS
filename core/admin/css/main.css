@@ -1058,7 +1058,6 @@
 	.bigtree_dialog_form .list_options_widget .delete { display: inline-block; margin: 3px 0 0 2px; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { height: 22px; margin: 0 0 5px 0; width: 100%; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder:last-child { margin: 0; }
-	.bigtree_dialog_form .list_options_widget_3 .delete { padding: 3px 0 0 1px; }
 
 /*---------------------------
 	BigTree File Browser
