@@ -1921,11 +1921,12 @@
 					$body = str_ireplace("{pending_changes}", $body_changes, $body);
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 
-					$headers  = "MIME-Version: 1.0 \r\n";
-					$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
-					$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
-
-					mail($user["name"]." <".$user["email"].">",$site_title." Daily Digest",$body,$headers);
+					$mailer = new htmlMimeMail();
+					$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
+					$mailer->setSubject("$site_title Daily Digest");
+					$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
+					$mailer->setHtml($body,"");
+					$mailer->send(array($user["email"]));
 				}
 			}
 		}
@@ -1945,7 +1946,6 @@
 		*/
 
 		function forgotPassword($email) {
-			global $bigtree;
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
@@ -1961,18 +1961,22 @@
 			
 			$reset_link = ADMIN_ROOT."login/reset-password/$hash/";
 			
-			$body = file_get_contents(BigTree::path("admin/email/reset-password.html"));
-			$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
-			$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
-			$body = str_ireplace("{site_title}", $site_title, $body);
-			$body = str_ireplace("{reset_link}", $reset_link, $body);
+			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
+			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
+			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
+			$html = str_ireplace("{site_title}",$site_title,$html);
+			$html = str_ireplace("{reset_link}",$reset_link,$html);
+			
+			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
 
-			$headers  = "MIME-Version: 1.0 \r\n";
-			$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
-			$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
-
-			mail($user["name"]." <".$user["email"].">","Reset Your Password",$body,$headers);
-			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");		
+			$mailer = new htmlMimeMail();
+			$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
+			$mailer->setSubject("Reset Your Password");
+			$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
+			$mailer->setHtml($html,$text);
+			$mailer->send(array($user["email"]));
+			
+			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
 		}
 
 		/*
