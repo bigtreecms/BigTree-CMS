@@ -20,26 +20,9 @@
 						<td style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.6; padding: 0;">
 							
 							<p style="color: #666; font-size: 14px;">
-								All recent activity on the site <a href="{www_root}" style="color: #578FB1;">{site_title}</a>.
+								Issues requiring your attention on <a href="{www_root}" style="color: #578FB1;">{site_title}</a>.
 							</p>
 							<hr style="border: 1px solid #fff; border-top-color: #eee;" />
-							
-							<div style="margin: 20px 0 30px;">
-								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
-								<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-									<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-										<tr>
-											<th style="font-weight: normal; padding: 4px 0 3px 15px;">Page</th>
-											<th style="font-weight: normal; padding: 4px 20px 3px 15px; text-align: right; width: 50px;">Age</th>
-											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">View</th>
-											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">Edit</th>
-										</tr>
-									</thead>
-									<tbody style="color: #333; font-size: 13px;">
-										{content_alerts}
-									</tbody>
-								</table>
-							</div>
 							
 							<div style="margin: 20px 0 30px;">
 								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Pending Changes</h3>
@@ -57,7 +40,7 @@
 									</tbody>
 								</table>
 							</div>
-							
+
 							<div style="margin: 20px 0 30px;">
 								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
 								<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
@@ -73,7 +56,23 @@
 									</tbody>
 								</table>
 							</div>
-							
+
+							<div style="margin: 20px 0 30px;">
+								<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
+								<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+									<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+										<tr>
+											<th style="font-weight: normal; padding: 4px 0 3px 15px;">Page</th>
+											<th style="font-weight: normal; padding: 4px 20px 3px 15px; text-align: right; width: 50px;">Age</th>
+											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">View</th>
+											<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;">Edit</th>
+										</tr>
+									</thead>
+									<tbody style="color: #333; font-size: 13px;">
+										{content_alerts}
+									</tbody>
+								</table>
+							</div>
 							
 							<hr style="border: 1px solid #fff; border-top-color: #eee;" />
 							<p style="color: #666; font-size: 12px; line-height: 1.4;">
