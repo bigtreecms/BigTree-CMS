@@ -5979,6 +5979,11 @@
 			$item = $this->getSetting($id,false);
 			$id = sqlescape($id);
 
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = $this->autoIPL($value);
+			}
 			$value = sqlescape(json_encode($value));
 
 			if ($item["encrypted"]) {
