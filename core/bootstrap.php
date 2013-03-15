@@ -65,6 +65,7 @@
 		"BigTreeModule" => "inc/bigtree/modules.php",
 		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
+		"BigTreeTwitterAPI" => "inc/bigtree/twitter.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);

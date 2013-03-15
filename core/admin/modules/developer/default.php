@@ -60,7 +60,11 @@
 			<span class="analytics"></span>
 			<p>Analytics</p>
 		</a>
-		<a class="box_select" href="status/">
+		<a class="box_select" href="twitter/">
+			<span class="twitter"></span>
+			<p>Twitter API</p>
+		</a>
+		<a class="box_select last" href="status/">
 			<span class="vitals"></span>
 			<p>Site Status</p>
 		</a>
