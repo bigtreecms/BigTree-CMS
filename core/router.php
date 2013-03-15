@@ -268,6 +268,9 @@
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
 			$bigtree["page"] = $cms->getPendingPage($navid);
+			// If we're previewing pending changes, the template's routed-ness may have changed.
+			$template = $cms->getTemplate($bigtree["page"]["template"]);
+			$routed = $template["routed"];
 		} else {
 			$bigtree["page"] = $cms->getPage($navid);
 		}

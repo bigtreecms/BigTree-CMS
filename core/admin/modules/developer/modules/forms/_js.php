@@ -4,7 +4,7 @@
 		$("#create").show();
 	});
 	
-	$(".icon_settings").live("click",function() {
+	$(".form_table").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
@@ -15,9 +15,7 @@
 		}});
 		
 		return false;
-	});
-		
-	$(".icon_delete").live("click",function() {
+	}).on("click",".icon_delete",function() {
 		li = $(this).parents("li");
 		title = li.find("input").val();
 		if (title) {

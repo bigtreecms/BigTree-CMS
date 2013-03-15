@@ -40,15 +40,14 @@
 		function catch404() {
 			global $cms,$bigtree;
 			
-			if ($this->handle404(str_ireplace(WWW_ROOT, "", BigTree::currentURL()))) {
-				$bigtree["layout"] = "default"; //reset layout
+			if ($this->handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+				$bigtree["layout"] = "default";
 				ob_start();
 				include "../templates/basic/_404.php";
 				$bigtree["content"] = ob_get_clean();
 				ob_start();
 				include "../templates/layouts/".$bigtree["layout"].".php";
-				$bigtree["content"] = ob_get_clean();
-				die($bigtree["content"]);
+				die();
 			}
 		}
 		
@@ -950,7 +949,6 @@
 		*/
 		
 		function handle404($url) {
-			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
 			if (!$url) {
@@ -970,7 +968,9 @@
 				
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
 				BigTree::redirect($redirect,"301");
+				return false;
 			} else {
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 				if ($f) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
 				} else {
@@ -979,8 +979,6 @@
 				define("BIGTREE_DO_NOT_CACHE",true);
 				return true;
 			}
-			
-			return false;
 		}
 		
 		/*

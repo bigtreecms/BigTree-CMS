@@ -61,7 +61,7 @@
 	$x = 0;
 	
 	// Only show the field if there are items that could be tagged.
-	if (count($list)) {
+	if (count($list) || count($entries)) {
 ?>
 <fieldset id="<?=$clean_key?>">
 	<? if ($title) { ?><label><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>

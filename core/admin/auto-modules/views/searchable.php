@@ -83,7 +83,7 @@
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=1&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
 	}
 	
-	$(".sort_column").live("click",function() {
+	$(".table").on("click",".sort_column",function() {
 		sortdir = BigTree.CleanHref($(this).attr("href"));
 		sort = $(this).attr("name");
 		current_page = 1;
@@ -109,9 +109,7 @@
 		}
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + current_page);
 		return false;
-	});
-	
-	$("#view_paging a").live("click",function() {
+	}).on("click","#view_paging a",function() {
 		current_page = BigTree.CleanHref($(this).attr("href"));
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;

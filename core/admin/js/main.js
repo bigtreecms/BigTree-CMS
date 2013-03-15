@@ -19,7 +19,7 @@ $(document).ready(function() {
 	}).blur(function() {
 		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").fadeOut(200, function() { $(this).html(\"\"); });", 300);
 	});
-	$("nav.main .advanced_search").live("click",function() {
+	$("nav.main").on("click",".advanced_search",function() {
 		$("#quick_search_results").parents().submit();
 		return false;
 	});
@@ -66,7 +66,7 @@ $(document).ready(function() {
 	});
 	
 	// Removeable Resources
-	$(".remove_resource").live("click",function() {
+	$(".container").on("click",".remove_resource",function() {
 		p = $(this).parent();
 		if (p.hasClass("currently_file")) {
 			p.remove();
@@ -74,10 +74,8 @@ $(document).ready(function() {
 			p.hide().find("input, img").remove();
 		}
 		return false;
-	});
-	
+	}).on("click",".form_image_browser",function() {
 	// Form Image Browser
-	$(".form_image_browser").live("click",function() {
 		options = eval('(' + $(this).attr("name") + ')');
 		field = $(this).attr("href").substr(1);
 		BigTreeFileManager.formOpen("image",field,options);
@@ -342,7 +340,7 @@ var BigTreeSelect = Class.extend({
 		
 		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
 		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
-		div.find("a").click($.proxy(this.select,this));
+		div.on("click","a",$.proxy(this.select,this));
 		div.find(".handle").click($.proxy(this.click,this));
 		
 		$(element).after(div);
@@ -1844,7 +1842,12 @@ var BigTreeManyToMany = Class.extend({
 			if ($(this).parents("ul").find("li").length == 1) {
 				$(this).parents("fieldset").find("section").show();
 			}
-			$(this).parents("li").remove();
+			li = $(this).parents("li");
+			val = li.find("input").val();
+			text = li.find("p").html();
+			sel = $(this).parents("fieldset").find("select");
+			$(this).parents("fieldset").find("select")[0].customControl.add(val,text);
+			li.remove();
 		},this),"delete",false,"OK");
 
 		return false;

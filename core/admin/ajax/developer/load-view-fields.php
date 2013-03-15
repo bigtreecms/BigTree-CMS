@@ -125,7 +125,7 @@
 <script>
 	var current_editing_key;
 	
-	$(".form_table .icon_delete").live("click",function() {
+	$(".form_table").on("click",".icon_delete",function() {
 		tf = $(this).parents("li").find("section").find("input");
 		
 		title = tf.val();

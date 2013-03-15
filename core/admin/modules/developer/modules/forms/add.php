@@ -12,6 +12,9 @@
 		} else {
 			$title = rtrim($title,"s");
 		}
+		if (strtolower($_GET["title"]) == "news") {
+			$title = $_GET["title"];
+		}
 	} else {
 		$title = "";
 	}

@@ -156,7 +156,7 @@
 	BigTree.SetPageCount("#read_paging",<?=$read_pages?>,1);
 	BigTree.SetPageCount("#sent_paging",<?=$sent_pages?>,1);
 	
-	$(".view_paging a").live("click",function() {
+	$(".table").on("click",".view_paging a",function() {
 		page = parseInt($(this).attr("href").substr(1));
 		$(this).parents("summary").siblings("ul").find("li").hide().filter(".page_" + page).show();
 		$(this).parents("ul").find(".active").removeClass("active");

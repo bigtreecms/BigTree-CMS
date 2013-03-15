@@ -9,6 +9,7 @@
 		var $Service = "";
 		var $S3,$S3Buckets,$S3BucketData;
 		var $RSAuth,$RSConn,$RSContainers,$RSContainerData;
+		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
 		
 		/*
 			Constructor:
@@ -143,6 +144,11 @@
 		*/
 		
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+			// If the file name ends in a disabled extension, fail.
+			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
+				$this->DisabledFileError = true;
+				return false;
+			}
 			if ($this->Service == "local") {
 				if (!$relative_path) {
 					$relative_path = "files/";
@@ -310,6 +316,11 @@
 		*/
 		
 		function upload($local_file,$file_name,$relative_path,$remove_original = true) {
+			// If the file name ends in a disabled extension, fail.
+			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
+				$this->DisabledFileError = true;
+				return false;
+			}
 			if ($this->Service == "local") {
 				if (!$relative_path) {
 					$relative_path = "files/";

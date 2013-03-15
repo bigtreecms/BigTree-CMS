@@ -320,7 +320,7 @@
 	#growl article span { display: inline-block; }
 	#growl article .close { background: url(../images/icon-sprite.png) -136px -106px; height: 10px; margin: -9px 0 0 214px; position: absolute; width: 10px; }
 	#growl article section { float: right; width: 170px; }
-	#growl article section h3 { color: #fff; font-size: 13px; line-height: 13px; margin: 0 0 5px 0; text-shadow: 0 -1px 0 rgba(0,0,0,0.75); }
+	#growl article section h3 { color: #fff; font-size: 13px; line-height: 17px; margin: -2px 0 3px 0; text-shadow: 0 -1px 0 rgba(0,0,0,0.75); }
 	#growl article section p { color: #eee; font-size: 12px; margin: 0; padding: 0; text-shadow: 0 -1px 0 rgba(0,0,0,0.75); }
 	
 	.icon_growl_success { background: url(../images/icon-sprite.png) 0px -106px; height: 34px; width: 34px; }
@@ -957,7 +957,7 @@
 	.developer_icon_list li a span { opacity: 0.5; }
 	.developer_icon_list li a.active, .developer_icon_list li a:hover { background: #FFF; border-color: #AAA; box-shadow: 0 0 2px #CCC; }
 	.developer_icon_list li a.active span, .developer_icon_list li a:hover span { opacity: 1; }
-	.developer_icon_list .icon_small_help { cursor: default; }
+	.developer_icon_list .icon_small_help { cursor: pointer; }
 
 	.developer_field_types_usage li { margin: 0 0 10px 0; overflow: hidden; }
 	.developer_field_types_usage li:last-child { margin: 0; }
@@ -1059,7 +1059,6 @@
 	.bigtree_dialog_form .list_options_widget .delete { display: inline-block; margin: 3px 0 0 2px; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { height: 22px; margin: 0 0 5px 0; width: 100%; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder:last-child { margin: 0; }
-	.bigtree_dialog_form .list_options_widget_3 .delete { padding: 3px 0 0 1px; }
 
 /*---------------------------
 	BigTree File Browser

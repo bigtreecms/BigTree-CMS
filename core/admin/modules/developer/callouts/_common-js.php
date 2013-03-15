@@ -22,7 +22,7 @@
 		return false;
 	});
 	
-	$(".icon_settings").live("click",function() {
+	$(".form_table").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
@@ -33,14 +33,19 @@
 		}});
 		
 		return false;
-	});
-	
-	$(".icon_delete").live("click",function() {
+	}).on("click",".icon_delete",function() {
 		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this resource?',$.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 		
 		return false;
+	}).on("click","input[name=display_field]",function() {
+	// Handle making sure IDs get tacked on to the display field radio buttons.
+		// Get the id field
+		id = $(this).parents("li").find("input").eq(0).val();
+		$(this).val(id);
+	}).on("change",".developer_resource_callout_id input",function() {
+		$(this).parents("li").find("input[type=radio]").val($(this).val());
 	});
 		
 	$(".add_resource").click(function() {
@@ -56,16 +61,6 @@
 		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
 		return false;
-	});
-
-	// Handle making sure IDs get tacked on to the display field radio buttons.
-	$("input[name=display_field]").live("click",function() {
-		// Get the id field
-		id = $(this).parents("li").find("input").eq(0).val();
-		$(this).val(id);
-	});
-	$(".developer_resource_callout_id input").live("change",function() {
-		$(this).parents("li").find("input[type=radio]").val($(this).val());
 	});
 	
 	$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
