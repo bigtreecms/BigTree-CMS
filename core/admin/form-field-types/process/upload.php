@@ -19,7 +19,11 @@
 			$value = $upload_service->upload($temp_name,$name,$options["directory"]);
 			
 			if (!$value) {
-				$fails[] = array("field" => $options["title"], "error" => "Could not upload file.  The target directory is not writable.");
+				if ($upload_service->DisabledFileError) {
+					$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The file extension is not allowed.");
+				} else {
+					$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The destination is not writable.");
+				}
 			}
 		} else {
 			if ($error == 1 || $error == 2) {

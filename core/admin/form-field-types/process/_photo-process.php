@@ -100,7 +100,11 @@
  		
  		// If the upload service didn't return a value, we failed to upload it for one reason or another.
  		if (!$value) {
-			$fails[] = array("field" => $options["title"], "error" => "Could not upload file.  The destination is not writable.");
+ 			if ($upload_service->DisabledFileError) {
+				$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The file extension is not allowed.");
+			} else {
+				$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The destination is not writable.");
+			}
 			unlink($temp_copy);
 			unlink($first_copy);
 			$failed = true;
