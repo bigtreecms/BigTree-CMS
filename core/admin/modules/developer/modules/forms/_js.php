@@ -4,7 +4,7 @@
 		$("#create").show();
 	});
 	
-	$(".form_table").on("click",".icon_settings",function() {
+	$("#field_area").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
 		current_editing_key = key;
 		
