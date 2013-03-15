@@ -61,6 +61,7 @@
 	h1 .authorize, .box_select .authorize { background-position: -800px -16px; }
 	h1 .linkpoint, .box_select .linkpoint { background-position: -832px -16px; }
 	h1 .payflow, .box_select .payflow { background-position: -864px -16px; }
+	h1 .twitter, .box_select .twitter { background-position: -380px -47px; }
 	h1 .crop { background-position: -896px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
