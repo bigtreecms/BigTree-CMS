@@ -1308,6 +1308,46 @@
 		}
 
 		/*
+			Function: relativeTime
+				Turns a timestamp into "… hours ago" formatting.
+
+			Parameters:
+				time - A date/time stamp understandable by strtotime
+
+			Returns:
+				A string describing how long ago the passed time was.
+		*/
+
+		static function relativeTime($time) {
+			$second = 1;
+			$minute = 60;
+			$hour = 3600;
+			$day = 86400;
+			$month = 2592000;			
+			$delta = strtotime(date('r')) - strtotime($time);
+			
+			if ($delta < 2 * $minute) {
+				return "1 min ago";
+			} elseif ($delta < 45 * $minute) {
+				return floor($delta / $minute) . " min ago";
+			} elseif ($delta < 90 * $minute) {
+				return "1 hour ago";
+			} elseif ($delta < 24 * $hour) {
+				return floor($delta / $hour) . " hours ago";
+			} elseif ($delta < 48 * $hour) {
+				return "yesterday";
+			} elseif ($delta < 30 * $day) {
+				return floor($delta / $day) . " days ago";
+			} elseif ($delta < 12 * $month) {
+				$months = floor($delta / $day / 30);
+				return $months <= 1 ? "1 month ago" : $months . " months ago";
+			} else {
+				$years = floor($delta / $day / 365);
+				return $years <= 1 ? "1 year ago" : $years . " years ago";
+			}
+		}
+
+		/*
 			Function: route
 				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
 				Used by the CMS for routing ajax and modules.

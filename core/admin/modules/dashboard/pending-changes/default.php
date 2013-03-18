@@ -44,6 +44,8 @@
 	<header>
 		<span class="changes_author">Author</span>
 		<span class="changes_page">Page</span>
+		<span class="changes_type">Type</span>
+		<span class="changes_time">Updated</span>
 		<span class="changes_action">Preview</a></span>
 		<span class="changes_action">Edit</a></span>
 		<span class="changes_action">Approve</span>
@@ -68,6 +70,8 @@
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<section class="changes_page"><?=$page["nav_title"]?></section>
+			<section class="changes_type"><? if (is_numeric($change["item_id"])) { ?>EDIT<? } else { ?><span class="new">NEW</span><? } ?></section>
+			<section class="changes_time"><?=BigTree::relativeTime($change["date"])?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>
