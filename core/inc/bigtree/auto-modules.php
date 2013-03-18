@@ -767,6 +767,9 @@
 		
 		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false, $module = false) {
 			global $last_query,$admin;
+
+			// We're going to read the original table so we know whether the column we're sorting by is numeric.
+			$tableInfo = BigTree::describeTable($view["table"]);
 			
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
@@ -808,6 +811,15 @@
 			}
 			
 			if ($sort_field != "id") {
+				$convert_numeric = false;
+				$columnInfo = $tableInfo["columns"][$sort_field];
+				if ($columnInfo) {
+					$t = $columnInfo["type"];
+					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
+						$convert_numeric = true;
+					}
+				}
+				if ($tableInfo["columns"])
 				$x = 0;
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
@@ -818,6 +830,9 @@
 				// If we didn't find a column, let's assume it's the default sort field.
 				if (substr($sort_field,6,6) != "column") {
 					$sort_field = "LOWER(sort_field)";
+				}
+				if ($convert_numeric) {
+					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
 				}
 			} else {
 				$sort_field = "CONVERT(id,UNSIGNED)";
