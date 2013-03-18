@@ -1265,10 +1265,9 @@
 /* jQuery Date Picker */
 	.ui-datepicker { background: #FFF; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25); display: none; width: 202px; }
 	.ui-datepicker .ui-datepicker-header { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -225px; color: #FFF; padding: 3px 0; position: relative; }
-	.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { display: block; font-size: 11px; height: 1.8em; line-height: 22px; position: absolute; top: 3px; width: auto; }
-	.ui-datepicker .ui-datepicker-prev { color: #FFF; left: 8px; }
-	.ui-datepicker .ui-datepicker-next { color: #FFF; right: 8px; }
-	/* .ui-datepicker .ui-datepicker-prev span, .ui-datepicker .ui-datepicker-next span { display: block; } */
+	.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { cursor: pointer; display: block; font-size: 11px; height: 1.8em; line-height: 22px; padding: 0px 8px; position: absolute; top: 3px; width: auto; }
+	.ui-datepicker .ui-datepicker-prev { color: #FFF; left: 0px; }
+	.ui-datepicker .ui-datepicker-next { color: #FFF; right: 0px; }
 	.ui-datepicker .ui-datepicker-title { line-height: 1.8em; margin: 0 2.3em; text-align: center; }
 	.ui-datepicker .ui-datepicker-title select { font-size: 1em; margin: 1px 0; }
 	.ui-datepicker select.ui-datepicker-month-year { width: 100%; }
@@ -1535,6 +1534,7 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.ie7 #template_tab .select { width: 150px; }
 	.ie7 #template_tab .checkbox { margin: 15px 0 0 0; }
 	.ie7 #template_tab .for_checkbox { margin: 15px 0 0 15px; }
+	.ie7 .ui-datepicker .ui-datepicker-prev span, .ie7 .ui-datepicker .ui-datepicker-next span { display: block; }
 	
 	/* IE 8 */
 	.ie8 body.login { background-image: url(../images/login-bg.png) repeat-x bottom left; }
@@ -1545,7 +1545,8 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.ie8 .table p.module { width: 447px; }
 	.ie8 .file_wrapper input { -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; }
 	.ie8 #file_browser .header input { height: 12px; }
-
+	.ie8 .ui-datepicker .ui-datepicker-prev span, .ie8 .ui-datepicker .ui-datepicker-next span { display: block; }
+	
 
 /* Retina Assets */
 	@media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
