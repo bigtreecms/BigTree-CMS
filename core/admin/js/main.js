@@ -1832,22 +1832,25 @@ var BigTreeManyToMany = Class.extend({
 		this.count++;
 		// Hide the instructions saying there haven't been any items tagged.
 		this.field.find("section").hide();
+		this.field.trigger("addedItem", { element: li });
 
 		return false;
 	},
 	
 	deleteItem: function() {
 		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {
+			fieldset = $(this).parents("fieldset");
 			// If this is the last item we're removing, show the instructions again.
 			if ($(this).parents("ul").find("li").length == 1) {
-				$(this).parents("fieldset").find("section").show();
+				fieldset.find("section").show();
 			}
 			li = $(this).parents("li");
 			val = li.find("input").val();
 			text = li.find("p").html();
-			sel = $(this).parents("fieldset").find("select");
-			$(this).parents("fieldset").find("select")[0].customControl.add(val,text);
+			fieldset.find("select")[0].customControl.add(val,text);
 			li.remove();
+			fieldset.trigger("removedItem", { value: val, description: text });
+
 		},this),"delete",false,"OK");
 
 		return false;
