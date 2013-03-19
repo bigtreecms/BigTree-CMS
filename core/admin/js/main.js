@@ -1829,10 +1829,10 @@ var BigTreeManyToMany = Class.extend({
 		select.customControl.remove(val);
 		
 		this.field.find("ul").append(li);
+		this.field.trigger("addedItem", { element: li, index: this.count });
 		this.count++;
 		// Hide the instructions saying there haven't been any items tagged.
 		this.field.find("section").hide();
-		this.field.trigger("addedItem", { element: li });
 
 		return false;
 	},
