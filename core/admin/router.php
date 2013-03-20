@@ -110,8 +110,13 @@
 				array("title" => "PayPal Payflow Gateway","link" => "developer/payment-gateway/payflow","icon" => "payflow","hidden" => true),
 				array("title" => "First Data / LinkPoint","link" => "developer/payment-gateway/linkpoint","icon" => "linkpoint","hidden" => true)
 			)),
-			array("title" => "Twitter API","link" => "developer/twitter","icon" => "twitter","hidden" => true, "children" => array(
-				array("title" => "Configure","link" => "developer/twitter/configure","nav_icon" => "setup","level" => 1)
+			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
+				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/twitter/configure","nav_icon" => "setup","level" => 1)
+				)),
+				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/instagram/configure","nav_icon" => "setup","level" => 1)
+				)),
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),
