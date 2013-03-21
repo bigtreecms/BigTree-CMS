@@ -7,7 +7,13 @@
 	$unused = array();
 	
 	$tblfields = array();
-	$table_description = BigTree::describeTable($table);
+
+	// To tolerate someone selecting the blank spot again when creating a feed.
+	if ($table) {
+		$table_description = BigTree::describeTable($table);
+	} else {
+		$table_description = array("columns" => array());
+	}
 	foreach ($table_description["columns"] as $column => $details) {
 		$tblfields[] = $column;
 	}
@@ -30,6 +36,8 @@
 			$fields[$f] = array("title" => ucwords(str_replace(array("-","_")," ",$title)));
 		}
 	}
+
+	if (count($fields)) {
 ?>
 <fieldset>
 	<label>Fields <small>(For RSS feeds, you do not need to manage this section.  Please edit the feed options to assign fields to RSS entries.)</small></label>
@@ -107,3 +115,10 @@
 	});
 
 </script>
+<?
+	} else {
+?>
+<p>Please choose a table to populate this area.</p>
+<?
+	}
+?>
