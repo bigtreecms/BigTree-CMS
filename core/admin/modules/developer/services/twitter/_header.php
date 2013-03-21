@@ -1,7 +1,7 @@
 <?	
 
-	$relative_path = "admin/developer/twitter/";
-	$mroot = ADMIN_ROOT."developer/twitter/";
+	$relative_path = "admin/developer/services/twitter/";
+	$mroot = ADMIN_ROOT."developer/services/twitter/";
 	$callback = $mroot . "return/";
 	
 	session_start();
