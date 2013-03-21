@@ -23,7 +23,12 @@
 		}
 	} else {
 		$fields = array();
-		$table_info = BigTree::describeTable($table);
+		// To tolerate someone selecting the blank spot again when creating a form.
+		if ($table) {
+			$table_info = BigTree::describeTable($table);
+		} else {
+			$table_info = array("foreign_keys" => array(), "columns" => array());
+		}
 		// Let's relate the foreign keys based on the local column so we can check easier.
 		$foreign_keys = array();
 		foreach ($table_info["foreign_keys"] as $key) {
@@ -131,6 +136,7 @@
 	
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
+	if (count($fields)) {
 ?>
 <label>Fields</label>
 
@@ -220,3 +226,10 @@
 		_local_hooks();
 	});
 </script>
+<?
+	} else {
+?>
+<p>Please choose a table to populate this area.</p>
+<?
+	}
+?>

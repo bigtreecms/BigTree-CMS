@@ -26,7 +26,7 @@
 		$options["list"] = $list;
 	} elseif ($options["list_type"] == "state") {
 		$list = array();
-		foreach ($state_list as $a => $s) {
+		foreach (BigTree::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
 				"description" => $s
@@ -35,7 +35,7 @@
 		$options["list"] = $list;
 	} elseif ($options["list_type"] == "country") {
 		$list = array();
-		foreach ($country_list as $c) {
+		foreach (BigTree::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
 				"description" => $c

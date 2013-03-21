@@ -33,7 +33,7 @@
 		if ($item) {
 			include BigTree::path("admin/ajax/developer/load-feed-fields.php");
 		} else {
-			echo "<p>Choose a Data Table to populate fields.</p>";
+			echo "<p>Please choose a table to populate this area.</p>";
 		}
 	?>
 </section>
