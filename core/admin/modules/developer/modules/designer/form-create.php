@@ -36,16 +36,16 @@
 		
 		// Figure out what to make the MySQL field.
 		$a = "ADD COLUMN $field_name ";
-		if ($t == "text" || $t == "list" || $t == "upload" || $t == "route") {
-			$a .= "VARCHAR(255)";
-		} elseif ($t == "textarea" || $t == "html" || $t == "photo-gallery" || $t == "array" || $t == "custom") {
+		if ($t == "textarea" || $t == "html" || $t == "photo-gallery" || $t == "array") {
 			$a .= "TEXT";
-		} elseif ($t == "checkbox") {
-			$a .= "CHAR(2)";
 		} elseif ($t == "date") {
 			$a .= "DATE";
 		} elseif ($t == "time") {
 			$a .= "TIME";
+		} elseif ($t == "datetime") {
+			$a .= "DATETIME";
+		} else {
+			$a .= "VARCHAR(255)";
 		}
 		$adds[] = $a;
 	}
