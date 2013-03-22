@@ -1,7 +1,7 @@
 <?
 	// Once a user posts their query we redirect to a bookmarkable link (that is safe to go back to)
 	if ($_POST["query"]) {
-		BigTree::redirect($blog_link."search/".urlencode($_POST["query"])."/0/");
+		BigTree::redirect($blog_link."search/".urlencode($_POST["query"])."/1/");
 	}
 
 	// Pull the query and current page
