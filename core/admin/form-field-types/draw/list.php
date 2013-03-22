@@ -1,25 +1,31 @@
 <?
+	$db_error = false;
 	$is_group_based_perm = false;
 	if ($options["list_type"] == "db") {
-		$other_table = $options["pop-table"];
-		$other_id = $options["pop-id"];
-		$other_title = $options["pop-description"];
-		$other_sort = $options["pop-sort"];
-	
-		$q = sqlquery("SELECT `id`,`$other_title` FROM `$other_table` ORDER BY $other_sort");
+		$list_table = $options["pop-table"];
+		$list_id = $options["pop-id"];
+		$list_title = $options["pop-description"];
+		$list_sort = $options["pop-sort"];
+		
 		$list = array();
-	
-		if ($module && $module["gbp"]["enabled"] && $form["table"] == $module["gbp"]["table"] && $key == $module["gbp"]["group_field"]) {
-			$is_group_based_perm = true;
-			while ($f = sqlfetch($q)) {
-				$access_level = $admin->canAccessGroup($module,$f["id"]);
-				if ($access_level) {
-					$list[] = array("value" => $f["id"],"description" => $f[$other_title],"access_level" => $access_level);
-				}
-			}
+		// If debug is on we're going to check if the tables exists...
+		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
+			$db_error = true;
 		} else {
-			while ($f = sqlfetch($q)) {
-				$list[] = array("value" => $f["id"],"description" => $f[$other_title]);
+			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
+		
+			if ($module && $module["gbp"]["enabled"] && $form["table"] == $module["gbp"]["table"] && $key == $module["gbp"]["group_field"]) {
+				$is_group_based_perm = true;
+				while ($f = sqlfetch($q)) {
+					$access_level = $admin->canAccessGroup($module,$f["id"]);
+					if ($access_level) {
+						$list[] = array("value" => $f["id"],"description" => $f[$list_title],"access_level" => $access_level);
+					}
+				}
+			} else {
+				while ($f = sqlfetch($q)) {
+					$list[] = array("value" => $f["id"],"description" => $f[$list_title]);
+				}
 			}
 		}
 		
@@ -46,6 +52,9 @@
 ?>
 <fieldset>
 	<? if ($title) { ?><label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
+	<? if ($db_error) { ?>
+	<p class="error_message">The table for this field no longer exists (<?=htmlspecialchars($list_table)?>).</p>
+	<? } else { ?>
 	<select<?=$input_validation_class?> name="<?=$key?>" tabindex="<?=$tabindex?>" id="field_<?=$key?>"<? if ($is_group_based_perm) { ?> class="gbp_select"<? } ?>>
 		<? if ($options["allow-empty"] != "No") { ?>
 		<option></option>
@@ -54,4 +63,5 @@
 		<option value="<?=$option["value"]?>"<? if ($value == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=BigTree::trimLength($option["description"], 100)?></option>
 		<? } ?>
 	</select>
+<? } ?>
 </fieldset>
