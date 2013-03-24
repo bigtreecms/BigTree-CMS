@@ -7,8 +7,8 @@
 	}
 
 	$posts = $dogwood->getPageOfPostsInMonth($current_page,$month,5);
-	if ($current_page) {
-		$local_title = "Page ".($current_page + 1)." of stories posted in " . date("F Y",strtotime($month));	
+	if ($current_page > 1) {
+		$local_title = "Page ".$current_page." of stories posted in " . date("F Y",strtotime($month));	
 	} else {
 		$local_title = "Posted in ".date("F Y",strtotime($month));
 	}

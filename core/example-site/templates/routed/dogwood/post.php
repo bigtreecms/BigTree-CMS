@@ -3,6 +3,9 @@
 	$post_detail = true;
 	// We've appended the route to the URL, so we're going to grab the last route of the URL and look it up.
 	$post = $dogwood->getPostByRoute(end($bigtree["commands"]));
+	if (!$post) {
+		$cms->catch404();
+	}
 	// Get tags related to this post
 	$tags = $dogwood->getTagsForPost($post);
 	// Set the page title

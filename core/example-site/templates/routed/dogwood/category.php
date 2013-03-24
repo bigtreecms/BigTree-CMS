@@ -13,8 +13,8 @@
 
 	$posts = $dogwood->getPageOfPostsInCategory($current_page,$category,5);
 	
-	if ($current_page) {
-		$local_title = "Page ".($current_page + 1)." of stories posted in " . $category["title"];
+	if ($current_page > 1) {
+		$local_title = "Page ".$current_page." of stories posted in " . $category["title"];
 	} else {
 		$local_title = "Posted in " . $category["title"];		
 	}

@@ -12,8 +12,8 @@
 	}
 
 	$posts = $dogwood->getPageOfPostsWithTag($current_page, $tag["id"], 5);
-	if ($current_page) {
-		$local_title = "Page ".($current_page + 1)." of posts tagged &quot;".$tag["tag"]."&quot;";		
+	if ($current_page > 1) {
+		$local_title = "Page ".$current_page." of posts tagged &quot;".$tag["tag"]."&quot;";		
 	} else {	
 		$local_title = "Tagged &quot;".$tag["tag"]."&quot;";
 	}

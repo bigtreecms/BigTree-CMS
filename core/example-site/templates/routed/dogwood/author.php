@@ -12,8 +12,8 @@
 	}
 
 	$posts = $dogwood->getPageOfPostsByAuthor($current_page,$author,5);
-	if ($current_page) {
-		$local_title = "Page ".($current_page + 1)." of stories posted by " . $author["name"];
+	if ($current_page > 1) {
+		$local_title = "Page ".$current_page." of stories posted by " . $author["name"];
 	} else {
 		$local_title = "Posted by " . $author["name"];
 	}

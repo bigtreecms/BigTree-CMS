@@ -4,12 +4,12 @@
 
 	if (is_numeric(end($bigtree["commands"]))) {
 		$current_page = end($bigtree["commands"]);
-		// Only show the "Page X" if it's not the first page.
-		if (end($bigtree["commands"])) {
-			$local_title = "Page ".(end($bigtree["commands"])+1);
-		}
 	} else {
 		$current_page = 1;
+	}
+	
+	if ($current_page > 1) {
+		$local_title = "Page ".$current_page;
 	}
 
 	$posts = $dogwood->getPageOfPosts($current_page,5);

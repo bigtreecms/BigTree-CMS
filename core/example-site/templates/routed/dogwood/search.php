@@ -10,8 +10,8 @@
 
 	// Grab a page of results
 	$posts = $dogwood->getSearchPageOfPosts($query,$current_page,5);
-	if ($current_page) {
-		$local_title = "Page ".($current_page + 1)." of search results for &quot;" . htmlspecialchars($query) . "&quot;";	
+	if ($current_page > 1) {
+		$local_title = "Page ".$current_page." of search results for &quot;" . htmlspecialchars($query) . "&quot;";	
 	} else {
 		$local_title = "Search results for &quot;" . htmlspecialchars($query) . "&quot;";
 	}
