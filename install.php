@@ -461,7 +461,7 @@ RewriteRule (.*) site/$1 [L]');
 		"jquery.ba-dotimeout.min.js",
 		"jquery.breakpoints.js",
 		"main.js"',$config_data);
-			$config_data = str_replace('// "style_sheet.css"','"griddle.css",
+			$config_data = str_replace('// "style_sheet.css"','"gridlock.css",
 		"master.css"',$config_data);
 			$config_data = str_replace('$bigtree["config"]["css"]["prefix"] = false;','$bigtree["config"]["css"]["prefix"] = true;',$config_data);
 			file_put_contents("templates/config.php",$config_data);

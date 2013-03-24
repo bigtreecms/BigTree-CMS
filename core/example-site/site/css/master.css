@@ -239,18 +239,21 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 	.content figure img { width: 100%; }
 	.content figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
 
-	.subnav { font-weight: 600; }
-	.subnav ul { margin: 0 0 20px; }
-	.subnav ul ul { clear: both; margin: 0 0 0 6%; }
-	.subnav li { border-bottom: 1px dotted #222; color: #222; display: block; overflow: hidden; padding: 7% 0; }
-	.subnav .last { border: none; }
-	.subnav a { display: block; float: left; font-size: 12px; letter-spacing: 0.05em; padding: 2% 5%; }
-	.subnav a.active { background: #222; color: #fff; }
+	.subnav { font-weight: 600; margin: 0 0 20px; }
+	.subnav li { border-bottom: 1px dotted #222; color: #222; display: block; overflow: hidden; padding: 0; }
+	.subnav ul ul .last { border: none; }
+	.subnav a { display: block; font-size: 12px; letter-spacing: 0.05em; padding: 10px; }
+	.subnav a.active, .subnav .sub_current a { background: #222; color: #fff; }
+	.subnav .sub_current ul a { background: transparent; color: #222; padding: 10px 10px 10px 25px; }
+	.subnav .sub_current ul ul a { padding-left: 40px; }
+	.subnav .sub_current ul ul ul a { padding-left: 55px; }
+	.subnav .sub_current ul a.active { background: #ECECEC; }
 	.subnav strong, .subnav a.nav_label { background: #F9F9F9; color: #222; display: block; font-size: 16px; line-height: 1; margin: 0 -5% 3%; padding: 8% 5%; text-transform: uppercase; width: 110%; }
 	.subnav a.nav_label { display: none; }
 	
 	/* Blog Styles */
 
+	.blognav ul { margin: 0 0 30px 0; }
 	.blog .content { padding: 0; }
 	.blog h1 { margin: 0 0 3%; }
 	.blog h2 { margin: 0 0 2%; }
@@ -323,7 +326,7 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 		h1 { font-size: 44px; }
 		
 		#header { height: auto; }
-		#header .cell_5, #header .cell_7 { text-align: center; width: 97.9166666666666667%; }
+		#header .mobile-3 { text-align: center; }
 		#header .branding { float: none; line-height: 1.4; margin: 10px 0 0; }
 		#header nav { float: none; overflow: hidden; padding: 0 0 12px; text-align: center; }
 		#header nav a { display: inline-block; float: none; margin: 0 10px; padding: 0 0 5px; }

@@ -7,7 +7,7 @@
 		"link" = Link - Text
 	*/
 ?>
-<div class="callout grey_block<? if (!$bigtree["page"]["id"]) { ?> row_12<? } ?>">
+<div class="callout grey_block<? if (!$bigtree["page"]["id"]) { ?> desktop-12<? } ?>">
 	<? if ($callout["image"]) { ?>
 	<figure>
 		<img src="<?=$callout["image"]?>" alt="" />
