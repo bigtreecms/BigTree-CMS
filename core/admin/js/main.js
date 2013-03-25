@@ -751,11 +751,13 @@ var BigTreePhotoGallery = Class.extend({
 	key: false,
 	fileInput: false,
 	activeCaption: false,
+	disableCaptions: false,
 	
-	init: function(container,key,counter) {
+	init: function(container,key,counter,disable_captions) {
 		this.key = key;
 		this.container = $("#" + container);
 		this.counter = counter;
+		this.disableCaptions = disable_captions;
 		this.fileInput = this.container.find("footer input");
 		this.fileInput.on("change",$.proxy(this.addPhoto,this));
 		
@@ -769,7 +771,11 @@ var BigTreePhotoGallery = Class.extend({
 		if (!this.fileInput.val()) {
 			return false;
 		}
-		new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+		if (!this.disableCaptions) {
+			new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+		} else {
+			this.saveNewFile({ caption: "" });
+		}
 		return false;
 	},
 	
@@ -794,7 +800,11 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		if (this.disableCaptions) {
+			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_delete"></a>');
+		} else {
+			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		}
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);
