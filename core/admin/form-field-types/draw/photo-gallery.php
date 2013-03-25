@@ -51,7 +51,6 @@
 			<input<?=$input_validation_class?> type="file" tabindex="<?=$tabindex?>" name="<?=$key?>[<?=$pgw_current?>][image]" id="field_<?=$key?>" />
 			<span class="or">OR</span>
 			<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
-			<a href="#" class="button blue add_photo">Add Photo</a>
 		</footer>
 	</div>
 </fieldset>

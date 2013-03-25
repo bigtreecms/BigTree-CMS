@@ -756,8 +756,8 @@ var BigTreePhotoGallery = Class.extend({
 		this.key = key;
 		this.container = $("#" + container);
 		this.counter = counter;
-		this.container.find(".add_photo").click($.proxy(this.addPhoto,this));
 		this.fileInput = this.container.find("footer input");
+		this.fileInput.on("change",$.proxy(this.addPhoto,this));
 		
 		this.container.find("ul").sortable({ items: "li" });
 		this.container.on("click",".icon_delete",this.deletePhoto);
@@ -774,7 +774,7 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	deletePhoto: function() {
-		new BigTreeDialog("Delete Photo",'<p class="confirm">Are you sure you want to delete this photo?</p>',$.proxy(function() {
+		new BigTreeDialog("Remove Photo",'<p class="confirm">Are you sure you want to remove this photo?</p>',$.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 		
