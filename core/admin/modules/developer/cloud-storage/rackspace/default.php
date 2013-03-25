@@ -1,6 +1,9 @@
 <?
 	$ups = $cms->getSetting("bigtree-internal-upload-service");
-	BigTree::globalizeArray($keys,array("htmlspecialchars"));
+	if ($ups["rackspace"]["keys"]) {
+		$api_key = htmlspecialchars($ups["rackspace"]["keys"]["api_key"]);
+		$username = htmlspecialchars($ups["rackspace"]["keys"]["username"]);
+	}
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/rackspace/update/" class="module">
@@ -10,11 +13,11 @@
 			</div>	
 			<fieldset>
 				<label>API Key</label>
-				<input type="text" name="api_key" value="<?=htmlspecialchars($ups["rackspace"]["keys"]["api_key"])?>" />
+				<input type="text" name="api_key" value="<?=$api_key?>" />
 			</fieldset>
 			<fieldset>
 				<label>Username</label>
-				<input type="text" name="username" value="<?=htmlspecialchars($ups["rackspace"]["keys"]["username"]?>" />
+				<input type="text" name="username" value="<?=$username?>" />
 			</fieldset>
 		</section>
 		<footer>
