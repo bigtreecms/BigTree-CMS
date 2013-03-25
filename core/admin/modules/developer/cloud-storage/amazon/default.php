@@ -16,6 +16,10 @@
 				<label>Secret Access Key</label>
 				<input type="text" name="secret_access_key" value="<?=htmlspecialchars($ups["s3"]["keys"]["secret_access_key"])?>" />
 			</fieldset>
+			<fieldset>
+				<label>Bucket Name <small>(if this is left empty, BigTree will create its own)</small></label>
+				<input type="text" name="bucket" value="<?=htmlspecialchars($ups["s3"]["bucket"])?>" />
+			</fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
