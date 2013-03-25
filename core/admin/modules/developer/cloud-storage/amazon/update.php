@@ -1,25 +1,6 @@
 <?
-	$keys = json_encode(array("access_key_id" => $_POST["access_key_id"], "secret_access_key" => $_POST["secret_access_key"]));
-	
-	// If we've never used S3 before, setup our settings for it.
-	if (!$admin->settingExists("bigtree-internal-s3-keys")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-s3-keys",
-			"system" => "on",
-			"encrypted" => "on"
-		));
-	}
-	if (!$admin->settingExists("bigtree-internal-s3-buckets")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-s3-buckets",
-			"system" => "on"
-		));
-	}
-	
-	$admin->updateSettingValue("bigtree-internal-s3-keys",$keys);
-	
 	$ups = $cms->getSetting("bigtree-internal-upload-service");
-	
+
 	// Check if we have optipng installed.
 	if (file_exists("/usr/bin/optipng")) {
 		$ups["optipng"] = "/usr/bin/optipng";
@@ -36,6 +17,7 @@
 	
 	if ($_POST["access_key_id"] && $_POST["secret_access_key"]) {
 		$ups["service"] = "s3";
+		$ups["s3"]["keys"] = array("access_key_id" => $_POST["access_key_id"], "secret_access_key" => $_POST["secret_access_key"]);
 	} else {
 		$ups["service"] = "";
 	}

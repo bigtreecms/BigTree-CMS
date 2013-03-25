@@ -1,5 +1,5 @@
 <?
-	$keys = $cms->getSetting("bigtree-internal-s3-keys");
+	$ups = $cms->getSetting("bigtree-internal-upload-service");
 	BigTree::globalizeArray($keys,array("htmlspecialchars"));
 ?>
 <div class="container">
@@ -10,11 +10,11 @@
 			</div>	
 			<fieldset>
 				<label>Access Key ID</label>
-				<input type="text" name="access_key_id" value="<?=$access_key_id?>" />
+				<input type="text" name="access_key_id" value="<?=htmlspecialchars($ups["s3"]["keys"]["access_key_id"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Secret Access Key</label>
-				<input type="text" name="secret_access_key" value="<?=$secret_access_key?>" />
+				<input type="text" name="secret_access_key" value="<?=htmlspecialchars($ups["s3"]["keys"]["secret_access_key"])?>" />
 			</fieldset>
 		</section>
 		<footer>
