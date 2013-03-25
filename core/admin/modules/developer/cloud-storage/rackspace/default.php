@@ -1,5 +1,5 @@
 <?
-	$keys = $cms->getSetting("bigtree-internal-rackspace-keys");
+	$ups = $cms->getSetting("bigtree-internal-upload-service");
 	BigTree::globalizeArray($keys,array("htmlspecialchars"));
 ?>
 <div class="container">
@@ -10,11 +10,11 @@
 			</div>	
 			<fieldset>
 				<label>API Key</label>
-				<input type="text" name="api_key" value="<?=$api_key?>" />
+				<input type="text" name="api_key" value="<?=htmlspecialchars($ups["rackspace"]["keys"]["api_key"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Username</label>
-				<input type="text" name="username" value="<?=$username?>" />
+				<input type="text" name="username" value="<?=htmlspecialchars($ups["rackspace"]["keys"]["username"]?>" />
 			</fieldset>
 		</section>
 		<footer>
