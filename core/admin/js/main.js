@@ -173,14 +173,13 @@ var BigTreeCheckbox = Class.extend({
 	init: function(element,text) {
 		this.Element = $(element);
 		
-		label = this.Element.next("label");
 		div = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
 		a.click($.proxy(this.click,this));
-		label.click($.proxy(this.click,this));
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
 			a.addClass("checked");
@@ -669,6 +668,7 @@ var BigTreeRadioButton = Class.extend({
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
 			a.addClass("checked");
@@ -714,10 +714,8 @@ var BigTreeRadioButton = Class.extend({
 		} else {
 			this.Link.addClass("checked");
 			this.Element.attr("checked",true);
-			$('input[name="' + this.Element.attr("name") + '"]').each(function() {
-				if (!this.checked) {
-					this.customControl.Link.removeClass("checked");
-				}
+			$('input[name="' + this.Element.attr("name") + '"]').not(this.Element).each(function() {
+				this.customControl.Link.removeClass("checked");
 			});
 		}
 		this.Element.trigger("click");

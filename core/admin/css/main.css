@@ -173,7 +173,7 @@
 	.select .group { padding: 5px 10px; font-size: 10px; line-height: 15px; color: #666; background: #F6F6F6; }
 	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
-	.select a:last-child { border-radius: 0px 0px 3px 3px; }
+	.select a:last-child { border-radius: 0px 0px 2px 2px; }
 	.select a.active { background: #E0EAF0; }
 	.select a:hover { background: #EEE; }
 	.select a.optgroup { padding: 5px 20px; }
