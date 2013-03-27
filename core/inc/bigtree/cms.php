@@ -505,11 +505,17 @@
 							@eval('$module = new '.$f["class"].';');
 							$modNav = $module->getNav($f);
 							// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+							$module_nav = array();
 							foreach ($modNav as $item) {
 								$item["parent"] = $f["id"];
 								$item["id"] = "module_nav_".$module_nav_count;
-								$nav[] = $item;
+								$module_nav[] = $item;
 								$module_nav_count++;
+							}
+							if ($module->NavPosition == "top") {
+								$nav = array_merge($module_nav,$nav);
+							} else {
+								$nav = array_merge($nav,$module_nav);
 							}
 						}
 					}
@@ -519,7 +525,11 @@
 					// If the class exists, instantiate it and call it.
 					if ($f["class"] && class_exists($f["class"])) {
 						@eval('$module = new '.$f["class"].';');
-						$nav += $module->getNav($f);
+						if ($module->NavPosition == "top") {
+							$nav = array_merge($module->getNav($f),$nav);
+						} else {
+							$nav = array_merge($nav,$module->getNav($f));
+						}
 					}
 				}
 			}
