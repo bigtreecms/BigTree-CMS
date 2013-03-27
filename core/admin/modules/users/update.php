@@ -1,4 +1,7 @@
 <?
+	$perms = json_decode($_POST["permissions"],true);
+	$_POST["permissions"] = array("page" => $perms["Page"],"module" => $perms["Module"],"resources" => $perms["Resource"],"module_gbp" => $perms["ModuleGBP"]);
+	$_POST["alerts"] = json_decode($_POST["alerts"],true);
 	$success = $admin->updateUser($_POST["id"],$_POST);
 	
 	if (!$success) {
