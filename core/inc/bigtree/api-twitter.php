@@ -4,11 +4,14 @@
 			
 	*/
 	
+	require_once BigTree::path("inc/lib/oauth_client.php");
+	
 	class BigTreeTwitterAPI {
 		
 		var $debug = false;
 		var $Client;
 		var $Connected = false;
+		var $URL = "https://api.twitter.com/1.1/";
 		
 		/*
 			Constructor:
@@ -17,14 +20,20 @@
 		function __construct($debug = false) {
 			global $cms,$admin;
 			
-			include BigTree::path("inc/lib/twitter/twitteroauth.php");
-			
 			$this->debug = $debug;
 			$this->settings = $cms->getSetting("bigtree-internal-twitter-api");
 			
+			$this->Client = new oauth_client_class;
+			$this->Client->server = 'Twitter';
+			$this->Client->client_id = $this->settings["key"]; 
+			$this->Client->client_secret = $this->settings["secret"];
+			$this->Client->access_token = $this->settings["token"]; 
+			$this->Client->access_token_secret = $this->settings["token_secret"];
+			
+			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/twitter/return/";
+			
 			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"] && $this->settings["token_secret"]) {
 				$this->Connected = true;
-				$this->Client = new TwitterOAuth($this->settings["key"], $this->settings["secret"], $this->settings["token"], $this->settings["token_secret"]);
 			}
 			
 			$this->max_cache_age = 60 * 60; // 1 hour
@@ -38,14 +47,20 @@
 		}
 		
 		/*
-			get:
+			get: 
 				
 		*/
 		function get($endpoint = false, $params = array()) {
 			if (!$this->Connected || !$endpoint) {
 				return false;
 			}
-			return $this->Client->get($endpoint, $params);
+			
+			//CallAPI($url, $method, $parameters, $options, &$response);
+			if ($this->Client->CallAPI($this->URL.$endpoint, 'GET', $params, array('FailOnAccessError' => true), $response)) {
+				return $response;
+			} else {
+				return false;
+			}
 		}
 		
 		/*
@@ -65,6 +80,62 @@
 				$response = $this->get('statuses/user_timeline', array(
 					"screen_name" => $user_name,
 					"count" => $limit
+				));
+				
+				$response = json_encode($response);
+				$this->cacheData($response, $cache_file);
+			} else {
+				$response = file_get_contents($cache_file);
+			}
+			
+			return json_decode($response, true);
+		}
+		
+		/*
+			search:
+				
+		*/
+		function search($query = false, $limit = 10) {
+			if (!$this->Connected) {
+				return false;
+			}
+			
+			$cache_file = $this->cache_base . $query . "-search.btx";
+			$cache_age = $this->cacheAge($cache_file);
+			
+			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
+				$response = $this->get('search/tweets', array(
+					"q" => $query,
+					"count" => $limit,
+					"result_type" => "recent"
+				));
+				
+				$response = json_encode($response->statuses);
+				$this->cacheData($response, $cache_file);
+			} else {
+				$response = file_get_contents($cache_file);
+			}
+			
+			return json_decode($response, true);
+		}
+		
+		
+		/*
+			user:
+				
+		*/
+		function user($user_name = false) {
+			if (!$this->Connected) {
+				return false;
+			}
+			
+			$user_name = ($user_name) ? $user_name : $this->settings["user_name"];
+			$cache_file = $this->cache_base . $user_name . "-user.btx";
+			$cache_age = $this->cacheAge($cache_file);
+			
+			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
+				$response = $this->get('users/show', array(
+					"screen_name" => $user_name
 				));
 				
 				$response = json_encode($response);

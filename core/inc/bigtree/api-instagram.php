@@ -69,6 +69,37 @@
 			return json_decode($response, true);
 		}
 		
+		/*
+			search:
+				
+		*/
+		function search($query = false, $limit = 10) {
+			if (!$this->Connected) {
+				return false;
+			}
+			
+			if (substr($query, 0, 1) == "#") {
+				$query = substr($query, 1);
+			}
+			
+			$cache_file = $this->cache_base . $query . "-search.btx";
+			$cache_age = $this->cacheAge($cache_file);
+			
+			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
+				$response = $this->Client->getTagMedia($query);
+				
+				if ($response->meta->code == 200) {
+					$response = json_encode($response->data);
+					$this->cacheData($response, $cache_file);
+					
+				}
+			} else {
+				$response = file_get_contents($cache_file);
+			}
+			
+			return @array_slice(json_decode($response, true), 0, $limit);
+		}
+		
 		
 		/*
 			Function: cacheAge

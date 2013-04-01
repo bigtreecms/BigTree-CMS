@@ -5,7 +5,8 @@
 	$callback = $mroot . "return/";
 	
 	session_start();
-	include BigTree::path("inc/lib/twitter/twitteroauth.php");
+	
+	$twitterAPI = new BigTreeTwitterAPI();
 	
 	$settings = $cms->getSetting("bigtree-internal-twitter-api");
 	$key = isset($settings["key"]) ? $settings["key"] : "";
