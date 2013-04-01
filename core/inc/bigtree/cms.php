@@ -31,6 +31,53 @@
 			
 			$this->ModuleClassList = $items;
 		}
+
+		/*
+			Function: cacheGet
+				Retrieves data from BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data.
+
+			Returns:
+				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
+		*/
+
+		function cacheGet($identifier,$key) {
+			$identifier = sqlescape($identifier);
+			$key = sqlescape($key);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier', `key` = '$key'"));
+			if (!$f) {
+				return false;
+			}
+			return json_decode($f["value"]);
+		}
+
+		/*
+			Function: cachePut
+				Puts data into BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data.
+				value - The data to store.
+
+			Returns:
+				True if successful, false if the indentifier/key combination already exists.
+		*/
+
+		function cachePut($identifier,$key,$value) {
+			$identifier = sqlescape($identifier);
+			$key = sqlescape($key);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier', `key` = '$key'"));
+			if ($f) {
+				return false;
+			}
+			$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));
+			sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
+			return true;
+		}
 		
 		/*
 			Function: catch404

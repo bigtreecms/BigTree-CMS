@@ -5988,7 +5988,7 @@
 			} else {
 				$value = $this->autoIPL($value);
 			}
-			$value = sqlescape(json_encode($value));
+			$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));
 
 			if ($item["encrypted"]) {
 				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
