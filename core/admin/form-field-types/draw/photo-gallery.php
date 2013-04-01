@@ -1,13 +1,13 @@
 <?
 	if (is_string($value)) {
-		$pgw_data = json_decode($value,true);	
+		$photos = json_decode($value,true);	
 	} elseif (is_array($value)) {
-		$pgw_data = $value;
+		$photos = $value;
 	} else {
-		$pgw_data = array();
+		$photos = array();
 	}
-	$pgw_max = count($pgw_data);
-	$pgw_current = 0;
+	$max = count($photos);
+	$current = 0;
 	
 	$button_options = array(
 		"minWidth" => $options["min_width"],
@@ -24,39 +24,41 @@
 	<div class="photo_gallery_widget" id="pgw_<?=$cms->urlify($key)?>">
 		<ul id="list_pgw_<?=$cms->urlify($key)?>">
 			<?
-				if (is_array($pgw_data)) {
-					foreach ($pgw_data as $pd) {
+				if (is_array($photos)) {
+					foreach ($photos as $photo) {
 						if ($options["preview_prefix"]) {
-							$pinfo = BigTree::pathInfo($pd["image"]);
+							$pinfo = BigTree::pathInfo($photo["image"]);
 							$preview_image = $pinfo["dirname"]."/".$options["preview_prefix"].$pinfo["basename"];
 						} else {
-							$preview_image = $pd["image"];
+							$preview_image = $photo["image"];
 						}
 			?>
 			<li>
 				<figure>
 					<img src="<?=$preview_image?>" alt="" />
 				</figure>
-				<input type="hidden" name="<?=$key?>[<?=$pgw_current?>][image]" value="<?=$pd["image"]?>" />
-				<input type="hidden" name="<?=$key?>[<?=$pgw_current?>][caption]" value="<?=$pd["caption"]?>" class="caption" />
-				<a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>
+				<input type="hidden" name="<?=$key?>[<?=$current?>][image]" value="<?=$photo["image"]?>" />
+				<input type="hidden" name="<?=$key?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
+				<? if (!$options["disable_captions"]) { ?>
+				<a href="#" class="icon_edit"></a>
+				<? } ?>
+				<a href="#" class="icon_delete"></a>
 			</li>
 			<?
-						$pgw_current++;
+						$current++;
 					}
 				}
 			?>
 		</ul>
 		<footer class="image_field">
-			<input<?=$input_validation_class?> type="file" tabindex="<?=$tabindex?>" name="<?=$key?>[<?=$pgw_current?>][image]" id="field_<?=$key?>" />
+			<input<?=$input_validation_class?> type="file" tabindex="<?=$tabindex?>" name="<?=$key?>[<?=$current?>][image]" id="field_<?=$key?>" />
 			<span class="or">OR</span>
 			<a href="#field_currently_<?=$key?>" name="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
-			<a href="#" class="button blue add_photo">Add Photo</a>
 		</footer>
 	</div>
 </fieldset>
 <script>
-	test = new BigTreePhotoGallery("pgw_<?=$cms->urlify($key)?>","<?=$key?>",<?=$pgw_current?>);
+	test = new BigTreePhotoGallery("pgw_<?=$cms->urlify($key)?>","<?=$key?>",<?=$current?><? if ($options["disable_captions"]) { ?>,true<? } ?>);
 	$("#pgw_<?=$cms->urlify($key)?> img").load(function() {
 		w = $(this).width();
 		h = $(this).height();

@@ -18,6 +18,10 @@
 	}
 ?>
 <fieldset>
+	<input type="checkbox" name="disable_captions" <? if ($data["disable_captions"]) { ?>checked="checked" <? } ?>/>
+	<label class="for_checkbox">Disable Captions</label>
+</fieldset>
+<fieldset>
 	<label>Minimum Width <small>(numeric value in pixels)</small></label>
 	<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />
 </fieldset>

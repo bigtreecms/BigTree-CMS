@@ -31,6 +31,58 @@
 			
 			$this->ModuleClassList = $items;
 		}
+
+		/*
+			Function: cacheGet
+				Retrieves data from BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data.
+
+			Returns:
+				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
+		*/
+
+		function cacheGet($identifier,$key) {
+			$identifier = sqlescape($identifier);
+			$key = sqlescape($key);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			if (!$f) {
+				return false;
+			}
+			return json_decode($f["value"]);
+		}
+
+		/*
+			Function: cachePut
+				Puts data into BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data.
+				value - The data to store.
+				replace - Whether to replace an existing value (defaults to true).
+
+			Returns:
+				True if successful, false if the indentifier/key combination already exists and replace was set to false.
+		*/
+
+		function cachePut($identifier,$key,$value,$replace = true) {
+			$identifier = sqlescape($identifier);
+			$key = sqlescape($key);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			if ($f && !$replace) {
+				return false;
+			}
+			$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));
+			if ($f) {
+				sqlquery("UPDATE bigtree_caches SET `value` = '$value' WHERE `identifier` = '$identifier' AND `key` = '$key'");
+			} else {
+				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
+			}
+			return true;
+		}
 		
 		/*
 			Function: catch404
@@ -505,11 +557,17 @@
 							@eval('$module = new '.$f["class"].';');
 							$modNav = $module->getNav($f);
 							// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+							$module_nav = array();
 							foreach ($modNav as $item) {
 								$item["parent"] = $f["id"];
 								$item["id"] = "module_nav_".$module_nav_count;
-								$nav[] = $item;
+								$module_nav[] = $item;
 								$module_nav_count++;
+							}
+							if ($module->NavPosition == "top") {
+								$nav = array_merge($module_nav,$nav);
+							} else {
+								$nav = array_merge($nav,$module_nav);
 							}
 						}
 					}
@@ -519,7 +577,11 @@
 					// If the class exists, instantiate it and call it.
 					if ($f["class"] && class_exists($f["class"])) {
 						@eval('$module = new '.$f["class"].';');
-						$nav += $module->getNav($f);
+						if ($module->NavPosition == "top") {
+							$nav = array_merge($module->getNav($f),$nav);
+						} else {
+							$nav = array_merge($nav,$module->getNav($f));
+						}
 					}
 				}
 			}

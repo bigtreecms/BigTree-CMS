@@ -1,25 +1,6 @@
 <?
-	$keys = array("api_key" => $_POST["api_key"], "username" => $_POST["username"]);
-	// If we've never used S3 before, setup our settings for it.
-	if (!$admin->settingExists("bigtree-internal-rackspace-keys")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-rackspace-keys",
-			"system" => "on",
-			"encrypted" => "on"
-		));
-	}
-	if (!$admin->settingExists("bigtree-internal-rackspace-containers")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-rackspace-containers",
-			"system" => "on"
-		));
-	}
-	
-	$admin->updateSettingValue("bigtree-internal-rackspace-keys",$keys);
-	
 	$ups = $cms->getSetting("bigtree-internal-upload-service");
-	
-	
+
 	// Check if we have optipng installed.
 	if (file_exists("/usr/bin/optipng")) {
 		$ups["optipng"] = "/usr/bin/optipng";
@@ -36,6 +17,7 @@
 	
 	if ($_POST["api_key"] && $_POST["username"]) {
 		$ups["service"] = "rackspace";
+		$ups["rackspace"]["keys"] = array("api_key" => $_POST["api_key"], "username" => $_POST["username"]);
 	} else {
 		$ups["service"] = "";
 	}

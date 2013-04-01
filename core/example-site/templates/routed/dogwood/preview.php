@@ -8,36 +8,34 @@
 	$local_title = "PREVIEW OF: ".$post["title"];
 ?>
 <article class="row post post_page wysiwyg">
-	<div class="cell_11">
-		<h1><?=$post["title"]?></h1>
-		<div class="meta">
-			By <a href="<?=$blog_link?>author/<?=$post["author"]["route"]?>/" class="author"><?=$post["author"]["name"]?></a> on <span class="date"><?=date("F j, Y",strtotime($post["date"]))?></span>
-		</div>
-		<?
-			// If there's an image, draw it.
-			if ($post["image"]) {
-		?>
-		<figure class="image">
-			<img src="<?=$post["image"]?>" alt="Image" />
-			<figcaption class="caption"><?=$post["caption"]?></figcaption>
-		</figure>
-		<?
-			}
-			
-			// Echo the full blog post.
-			echo $post["content"];
-			
-			// If we have tags on the post, draw them.
-			if (count($tags)) {
-				$tag_links = array();
-				foreach ($tags as $tag) {
-					$tag_links[] = '<a href="'.$blog_link.'tag/'.$tag["route"].'/">'.$tag["tag"].'</a>';
-				}
-				echo '<p>Tagged: '.implode(", ",$tag_links).'</p>';
-			}
-		?>
+	<h1><?=$post["title"]?></h1>
+	<div class="meta">
+		By <a href="<?=$blog_link?>author/<?=$post["author"]["route"]?>/" class="author"><?=$post["author"]["name"]?></a> on <span class="date"><?=date("F j, Y",strtotime($post["date"]))?></span>
 	</div>
-	<div class="cell_12 author_info clear">
+	<?
+		// If there's an image, draw it.
+		if ($post["image"]) {
+	?>
+	<figure class="image">
+		<img src="<?=$post["image"]?>" alt="Image" />
+		<figcaption class="caption"><?=$post["caption"]?></figcaption>
+	</figure>
+	<?
+		}
+		
+		// Echo the full blog post.
+		echo $post["content"];
+		
+		// If we have tags on the post, draw them.
+		if (count($tags)) {
+			$tag_links = array();
+			foreach ($tags as $tag) {
+				$tag_links[] = '<a href="'.$blog_link.'tag/'.$tag["route"].'/">'.$tag["tag"].'</a>';
+			}
+			echo '<p>Tagged: '.implode(", ",$tag_links).'</p>';
+		}
+	?>
+	<section class="author_info clear">
 		<div class="split left">
 			<a href="<?=$blog_link?>author/<?=$post["author"]["route"]?>/">
 				<? 
@@ -52,12 +50,5 @@
 				<?=$post["author"]["title"]?>
 			</a>
 		</div>
-		<div class="sharing split right">
-			<? /* Add This Sharing Widgets */ ?>
-			<div class="addthis_toolbox addthis_default_style right">
-				<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
-				<a class="addthis_button_tweet"></a>
-			</div>
-		</div>
-	</div>
+	</section>
 </article>

@@ -173,14 +173,13 @@ var BigTreeCheckbox = Class.extend({
 	init: function(element,text) {
 		this.Element = $(element);
 		
-		label = this.Element.next("label");
 		div = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
 		a.click($.proxy(this.click,this));
-		label.click($.proxy(this.click,this));
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
 			a.addClass("checked");
@@ -219,10 +218,12 @@ var BigTreeCheckbox = Class.extend({
 		if (!this.Element.attr("disabled")) {
 			if (this.Link.hasClass("checked")) {
 				this.Link.removeClass("checked");
+				this.Element.attr("checked",false);
 			} else {
 				this.Link.addClass("checked");
+				this.Element.attr("checked","checked");
 			}
-			this.Element.trigger("click");
+			this.Element.triggerHandler("click");
 		}
 		return false;
 	}
@@ -326,7 +327,7 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.html('<div class="handle"></div><span>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
+		div.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
 
 		spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
@@ -338,7 +339,7 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
+		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click($.proxy(this.click,this));
 		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
 		div.on("click","a",$.proxy(this.select,this));
 		div.find(".handle").click($.proxy(this.click,this));
@@ -517,7 +518,7 @@ var BigTreeSelect = Class.extend({
 			if (navigator.userAgent.indexOf("Firefox") == -1) {
 				el.selectedIndex = index;
 			}
-			this.Container.find("span").html(el.options[index].text);
+			this.Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
 			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 			return false;
 		}
@@ -547,14 +548,14 @@ var BigTreeSelect = Class.extend({
 		// If the current selected state is the value we're removing, switch to the first available.
 		sel = this.Container.find("span").eq(0);
 		if (sel.html() == text_was) {
-			sel.html(this.Container.find(".select_options a").eq(0).html());
+			sel.html('<figure class="handle"></figure>' + this.Container.find(".select_options a").eq(0).html());
 		}
 	},
 	
 	select: function(event) {
 		el = $(event.target);
 		this.Element.val(el.attr("data-value"));
-		this.Container.find("span").html(el.html());
+		this.Container.find("span").html('<figure class="handle"></figure>' + el.html());
 		this.Container.find("a").removeClass("active");
 		el.addClass("active");
 		
@@ -669,6 +670,7 @@ var BigTreeRadioButton = Class.extend({
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
 			a.addClass("checked");
@@ -714,13 +716,12 @@ var BigTreeRadioButton = Class.extend({
 		} else {
 			this.Link.addClass("checked");
 			this.Element.attr("checked",true);
-			$('input[name="' + this.Element.attr("name") + '"]').each(function() {
-				if (!this.checked) {
-					this.customControl.Link.removeClass("checked");
-				}
+			$('input[name="' + this.Element.attr("name") + '"]').not(this.Element).each(function() {
+				this.customControl.Link.removeClass("checked");
+				$(this).trigger("change");
 			});
 		}
-		this.Element.trigger("click");
+		this.Element.triggerHandler("click");
 		return false;
 	},
 	
@@ -751,13 +752,15 @@ var BigTreePhotoGallery = Class.extend({
 	key: false,
 	fileInput: false,
 	activeCaption: false,
+	disableCaptions: false,
 	
-	init: function(container,key,counter) {
+	init: function(container,key,counter,disable_captions) {
 		this.key = key;
 		this.container = $("#" + container);
 		this.counter = counter;
-		this.container.find(".add_photo").click($.proxy(this.addPhoto,this));
+		this.disableCaptions = disable_captions;
 		this.fileInput = this.container.find("footer input");
+		this.fileInput.on("change",$.proxy(this.addPhoto,this));
 		
 		this.container.find("ul").sortable({ items: "li" });
 		this.container.on("click",".icon_delete",this.deletePhoto);
@@ -769,12 +772,16 @@ var BigTreePhotoGallery = Class.extend({
 		if (!this.fileInput.val()) {
 			return false;
 		}
-		new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+		if (!this.disableCaptions) {
+			new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+		} else {
+			this.saveNewFile({ caption: "" });
+		}
 		return false;
 	},
 	
 	deletePhoto: function() {
-		new BigTreeDialog("Delete Photo",'<p class="confirm">Are you sure you want to delete this photo?</p>',$.proxy(function() {
+		new BigTreeDialog("Remove Photo",'<p class="confirm">Are you sure you want to remove this photo?</p>',$.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 		
@@ -794,7 +801,11 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		if (this.disableCaptions) {
+			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_delete"></a>');
+		} else {
+			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		}
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);

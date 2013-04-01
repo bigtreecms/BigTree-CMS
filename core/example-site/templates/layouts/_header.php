@@ -31,13 +31,13 @@
 			<link rel="stylesheet" href="<?=STATIC_ROOT?>css/ie.css" type="text/css" media="all" />
 		<![endif]-->
 	</head>
-	<body class="griddle">
+	<body class="gridlock">
 		<header id="header">
-			<div class="row_12 contain">
-				<div class="cell_5">
+			<div class="row">
+				<div class="desktop-5 mobile-3">
 					<a href="<?=WWW_ROOT?>" class="branding"><?=$site_title?></a>
 				</div>
-				<div class="cell_7">
+				<div class="desktop-7 mobile-3">
 					<nav>
 						<? foreach ($nav as $item) { ?>
 						<a href="<?=$item["link"]?>"<? if (strpos($current_page,$item["link"]) !== false) { ?> class="active"<? } ?>><?=$item["title"]?></a>

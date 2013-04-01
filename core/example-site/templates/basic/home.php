@@ -20,8 +20,8 @@
 ?>
 <section id="feature">
 	<div class="background" style="background-color: #<?=$features[0]["background"]?>">
-		<div class="row_12 content">
-			<div class="descriptions cell_5 right" style="background-color: #<?=$features[0]["background"]?>">
+		<div class="row content">
+			<div class="descriptions desktop-5 right" style="background-color: #<?=$features[0]["background"]?>">
 				<menu class="triggers">
 					<? for ($i = 0, $count = count($features); $i < $count; $i++) { ?>
 					<span<? if ($i == 0) { ?> class="active"<? } ?>><? echo ($i + 1) ?></span>

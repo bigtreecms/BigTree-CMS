@@ -1,6 +1,9 @@
 <?
-	$keys = $cms->getSetting("bigtree-internal-rackspace-keys");
-	BigTree::globalizeArray($keys,array("htmlspecialchars"));
+	$ups = $cms->getSetting("bigtree-internal-upload-service");
+	if ($ups["rackspace"]["keys"]) {
+		$api_key = htmlspecialchars($ups["rackspace"]["keys"]["api_key"]);
+		$username = htmlspecialchars($ups["rackspace"]["keys"]["username"]);
+	}
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/rackspace/update/" class="module">

@@ -5,7 +5,7 @@
 /*-----------------------------------------------------------------------------------
   Global Reset v0.2 (based on http://meyerweb.com/eric/tools/css/reset/ - v1.0 | 20080212)
 -----------------------------------------------------------------------------------*/
- 	html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, code, em, img, small, strike, strong, sub, sup, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td { background: transparent; border: 0; font-size: 100%; margin: 0; outline: 0; padding: 0; }
+ 	html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, code, em, img, small, strike, strong, sub, sup, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, figure, figcaption { background: transparent; border: 0; font-size: 100%; margin: 0; outline: 0; padding: 0; }
  	img { vertical-align: middle; }
 	body { background: #111; color: #666; font-family: Helvetica, sans-serif; font-size: 12px; line-height: 1; }
 	ul { list-style: none; }
@@ -168,12 +168,12 @@
 
 	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
 	.select.disabled { opacity: 0.5; }
-	.select .handle { float: right; background: url(../images/icon-sprite.png) -340px -105px; width: 34px; height: 30px; }
-	.select span { display: block; padding: 0 44px 0 10px; text-overflow: ellipsis; white-space: nowrap; }
+	.select .handle { float: right; background: url(../images/icon-sprite.png) -340px -105px; width: 34px; height: 30px; position: absolute; z-index: 2; right: 0; }
+	.select span { display: block; padding: 0 44px 0 10px; text-overflow: ellipsis; white-space: nowrap; position: relative; overflow: hidden; }
 	.select .group { padding: 5px 10px; font-size: 10px; line-height: 15px; color: #666; background: #F6F6F6; }
 	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
-	.select a:last-child { border-radius: 0px 0px 3px 3px; }
+	.select a:last-child { border-radius: 0px 0px 2px 2px; }
 	.select a.active { background: #E0EAF0; }
 	.select a:hover { background: #EEE; }
 	.select a.optgroup { padding: 5px 20px; }

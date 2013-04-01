@@ -8,6 +8,7 @@
 	
 		var $Table = "";
 		var $Module = "";
+		var $NavPosition = "bottom";
 		
 		/*
 			Function: add

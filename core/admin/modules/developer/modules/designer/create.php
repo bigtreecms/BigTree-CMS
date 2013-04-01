@@ -28,7 +28,7 @@
 	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon);
 	
 	// Create the table.
-	sqlquery("CREATE TABLE `$table` (`id` int(11) NOT NULL auto_increment, PRIMARY KEY  (`id`)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin");
+	sqlquery("CREATE TABLE `$table` (`id` int(11) NOT NULL auto_increment, PRIMARY KEY  (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
 	
 	BigTree::redirect($developer_root."modules/designer/form/?table=".urlencode($table)."&module=$id");
 ?>

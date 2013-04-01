@@ -665,51 +665,18 @@
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
-				Caches results in a BigTree setting.
+				This method is deprecated and exists only for backwards compatibility (BigTreeGeocodingService should be used directly).
 			
 			Parameters:
 				address - The address to geocode.
 			
 			Returns:
-				An associative array with "lat" and "lon" keys.
+				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
 		
 		static function geocodeAddress($address) {
-			global $cms,$admin;
-			
-			// Clean up the address and get our cache key
-			$address = trim(strip_tags($address));
-			$cache_key = base64_encode($address);
-			
-			// See if the setting exists, if it does grab it, otherwise create it.
-			if (!$admin) {
-				$admin = new BigTreeAdmin;
-			}
-			if (!$admin->settingExists("bigtree-internal-geocoded-addresses")) {
-				$admin->createSetting(array("id" => "bigtree-internal-geocoded-addresses", "system" => "on"));
-			}
-			$cache = $cms->getSetting("bigtree-internal-geocoded-addresses");
-			if (isset($cache[$cache_key])) {
-				return $cache[$cache_key];
-			}
-			
-			// It's not in the cache, ask Google for it.
-			// Updated for GMAPS API v3
-			$file = utf8_encode(BigTree::curl("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false"));
-			try {
-				if (is_string($file)) {
-					$file = json_decode($file, true);
-				}
-				$latlng = $file["results"][0]["geometry"]["location"];
-				$geo = array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
-			} catch (Exception $e) {
-				$geo = false;
-			}
-			
-			// Add the result to the cache and return it.
-			$cache[$cache_key] = $geo;
-			$admin->updateSettingValue("bigtree-internal-geocoded-addresses",$cache);
-			return $geo;
+			$geocoder = new BigTreeGeocodingService;
+			return $geocoder->geocode($address);
 		}
 		
 		/*
