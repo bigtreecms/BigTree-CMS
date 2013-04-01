@@ -62,20 +62,25 @@
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data.
 				value - The data to store.
+				replace - Whether to replace an existing value (defaults to true).
 
 			Returns:
-				True if successful, false if the indentifier/key combination already exists.
+				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		function cachePut($identifier,$key,$value) {
+		function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier', `key` = '$key'"));
-			if ($f) {
+			if ($f && !$replace) {
 				return false;
 			}
 			$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));
-			sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
+			if ($f) {
+				sqlquery("UPDATE bigtree_caches SET `value` = '$value' WHERE `identifier` = '$identifier' AND `key` = '$key'");
+			} else {
+				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
+			}
 			return true;
 		}
 		
