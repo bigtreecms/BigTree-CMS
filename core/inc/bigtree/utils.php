@@ -1438,7 +1438,7 @@
 		*/
 		
 		static function translateArray($array) {
-			global $admin;
+			$admin = new BigTreeAdmin;
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = self::translateArray($piece);
