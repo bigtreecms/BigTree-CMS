@@ -14,11 +14,12 @@
 		*/
 		
 		function __construct() {
-			global $cms,$admin;
+			global $cms;
 			$geo_service = $cms->getSetting("bigtree-internal-geocoding-service");
 			// If for some reason the setting doesn't exist, make one.
 			if (!is_array($geo_service) || !$geo_service["service"]) {
 				$this->Service = "google";
+				$admin = new BigTreeAdmin;
 				$admin->createSetting(array(
 					"id" => "bigtree-internal-geocoding-service",
 					"encrypted" => "on",
