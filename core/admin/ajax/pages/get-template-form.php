@@ -78,6 +78,7 @@
 	if (count($bigtree["simple_html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 	}
+	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 	
 	if ($tdata["callouts_enabled"]) {
 ?>
@@ -163,4 +164,6 @@
 	<?
 		}
 	?>
+
+	BigTree.TinyMCEFields = <?=json_encode($bigtree["tinymce_fields"])?>;
 </script>

@@ -51,7 +51,7 @@
 			if (!$f) {
 				return false;
 			}
-			return json_decode($f["value"]);
+			return json_decode($f["value"],true);
 		}
 
 		/*

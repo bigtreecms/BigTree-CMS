@@ -184,6 +184,13 @@ function checkTemplate() {
 	tval = $("input[name=template]");
 	if (tval.length) {
 		if (template != tval.val()) {
+			// Unload all TinyMCE fields.
+			if (tinyMCE) {
+				for (id in BigTree.TinyMCEFields) {
+					tinyMCE.execCommand('mceFocus', false, BigTree.TinyMCEFields[id]);
+					tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[id]);
+				}
+			}
 			template = tval.val();
 			if (page !== false) {
 				$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: page, template: template });
