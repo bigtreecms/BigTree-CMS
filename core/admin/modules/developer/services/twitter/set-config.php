@@ -2,17 +2,27 @@
 	
 	$admin->requireLevel(1);
 	
-	if (!$settings) {
-		$admin->createSetting(array("id" => "bigtree-internal-twitter-api", "name" => "Twitter API", "description" => "", "type" => "", "locked" => "on", "module" => "", "encrypted" => "", "system" => "on"));
+	if (!$_POST["key"] && !$_POST["key"]) {
+		BigTree::redirect($mroot . "configure/");
 	}
-	$settings = array(
-		"key" => $_POST["key"],
-		"secret" => $_POST["secret"]
-	);
 	
-	$admin->updateSettingValue("bigtree-internal-twitter-api", $settings);
+	$twitterAPI->settings["key"] = $_POST["key"];
+	$twitterAPI->settings["secret"] = $_POST["secret"];
 	
-	$admin->growl("Twitter API","Consumer Values Updated");
+	// RESET VALS
+	$twitterAPI->settings["token"] = "";
+	$twitterAPI->settings["token_secret"] = "";
+	$twitterAPI->settings["user_id"] = "";
+	$twitterAPI->settings["user_name"] = "";
+	$twitterAPI->settings["user_image"] = "";
+	
+	$twitterAPI->saveSettings();
+	
+	// CLEAR OLD ATTEMPTS
+	unset($_SESSION['OAUTH_STATE']);
+	unset($_SESSION['OAUTH_ACCESS_TOKEN']);
+	
+	$admin->growl("Twitter API", "Consumer Values Saved");
 	BigTree::redirect($mroot . "connect/");
 	
 ?>

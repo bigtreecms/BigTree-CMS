@@ -1,17 +1,17 @@
 <?
 	/*
-		Class: BigTreeTwitterAPI
+		Class: BigTreeGooglePlusAPI
 	*/
 	
 	require_once BigTree::path("inc/lib/oauth_client.php");
 	
-	class BigTreeTwitterAPI {
+	class BigTreeGooglePlusAPI {
 		
 		var $debug = false;
 		var $Client;
 		var $Connected = false;
-		var $URL = "https://api.twitter.com/1.1/";
-		var $SettingsKey = "bigtree-internal-twitter-api";
+		var $URL = "https://www.googleapis.com/plus/v1/";
+		var $SettingsKey = "bigtree-internal-googleplus-api";
 		
 		/*
 			Constructor:
@@ -26,7 +26,7 @@
 				if ($admin) {
 					$admin->createSetting(array(
 						"id" => $this->SettingsKey, 
-						"name" => "Twitter API", 
+						"name" => "Google+ API", 
 						"description" => "", 
 						"type" => "", 
 						"locked" => "on", 
@@ -39,16 +39,22 @@
 			
 			// Build API client
 			$this->Client = new oauth_client_class;
-			$this->Client->server = 'Twitter';
+			$this->Client->server = 'Google';
+			$this->Client->offline = true;
 			$this->Client->client_id = $this->settings["key"]; 
 			$this->Client->client_secret = $this->settings["secret"];
 			$this->Client->access_token = $this->settings["token"]; 
-			$this->Client->access_token_secret = $this->settings["token_secret"];
+			$this->Client->token_expiry = $this->settings["access_token_expiry"];
+			$this->Client->refresh_token = $this->settings["refresh_token"];
 			
-			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/twitter/return/";
+			// Scope
+			$this->Client->scope = "https://www.googleapis.com/auth/plus.me https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile";
+			//'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+			
+			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/googleplus/return/";
 			
 			// Check if we're conected
-			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"] && $this->settings["token_secret"]) {
+			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"]) {
 				$this->Connected = true;
 			}
 			
@@ -58,7 +64,7 @@
 			// Set cache stuffs
 			$this->max_cache_age = 60 * 60; // 1 hour
 			$this->cache_root = SERVER_ROOT . "cache/custom/";
-			$this->cache_base = $this->cache_root . "twitter-";
+			$this->cache_base = $this->cache_root . "googleplus-";
 			
 			if (!is_dir($this->cache_root)) {
 				mkdir($this->cache_root);
@@ -86,7 +92,7 @@
 				return false;
 			}
 			
-			if ($this->Client->CallAPI($this->URL.$endpoint.".json", 'GET', $params, array('FailOnAccessError' => true), $response)) {
+			if ($this->Client->CallAPI($this->URL.$endpoint, 'GET', $params, array('FailOnAccessError' => true), $response)) {
 				return $response;
 			} else {
 				return false;
@@ -159,42 +165,42 @@
 		
 		
 		/*
-			Function: getTimeline
-				Return tweets
+			Function: getActivities
+				Return posts
 		*/
-		function getTimeline($user_name = false, $limit = 10, $params = array()) {
-			$user_name = ($user_name) ? $user_name : $this->settings["user_name"];
-			$cache_file = $this->cache_base . $user_name . "-timeline.btx";
+		function getActivities($user_id = false, $limit = 10, $params = array()) {
+			$user_id = ($user_id) ? $user_id : $this->settings["user_id"];
+			$cache_file = $this->cache_base . $user_id . "-timeline.btx";
 			
-			return $this->getCached('statuses/user_timeline', array_merge($params, array(
-				"screen_name" => $user_name,
-				"count" => $limit
-			)), $cache_file);
+			return $this->getCached("people/".$user_id."/activities/public", $params, $cache_file);
 		}
 		
 		/*
 			Function: search 
 				Search for tweets and junk
 		*/
-		function search($query = false, $limit = 10, $params = array()) {
+/*
+		function search($query = false, $limit = 10) {
 			if (!$this->Connected) {
 				return false;
 			}
 			
 			$cache_file = $this->cache_base . $query . "-search.btx";
 			
-			return $this->getCached('search/tweets', array_merge($params, array(
+			return $this->getCached('search/tweets', array(
 				"q" => $query,
 				"count" => $limit,
 				"result_type" => "recent"
-			)), $cache_file);
+			), $cache_file);
 		}
+*/
 		
 		/*
 			Function: user 
 				Return user info, including last tweet
 		*/
-		function user($user_name = false, $params = array()) {
+/*
+		function user($user_name = false) {
 			if (!$this->Connected) {
 				return false;
 			}
@@ -202,9 +208,10 @@
 			$user_name = ($user_name) ? $user_name : $this->settings["user_name"];
 			$cache_file = $this->cache_base . $user_name . "-user.btx";
 			
-			return $this->getCached('users/show', array_merge($params, array(
+			return $this->getCached('users/show', array(
 				"screen_name" => $user_name
-			)), $cache_file);
+			), $cache_file);
 		}
+*/
 	}
 ?>

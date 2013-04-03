@@ -1,11 +1,14 @@
 <?
 	
-	if ($twitterAPI->Client->Initialize()) {
-		if ($twitterAPI->Client->Process()) {
-			if ($twitterAPI->Client->access_token) {
-				echo 'yay';
-			}
-		}
+	$ok = false;
+	
+	if ($twitterAPI->Client->Process()) {
+		$ok = true;
+	}
+	
+	if (!$ok) {
+		$admin->growl("Twitter API", "API Error");
+		BigTree::redirect($mroot . "connect/");
 	}
 
 ?>

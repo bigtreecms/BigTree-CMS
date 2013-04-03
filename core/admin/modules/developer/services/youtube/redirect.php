@@ -2,13 +2,13 @@
 	
 	$ok = false;
 	
-	if ($instagramAPI->Client->Process()) {
+	if ($youtubeAPI->Client->Process()) {
 		$ok = true;
 	}
 	
 	if (!$ok) {
-		$admin->growl("Instagram API", "API Error");
+		$admin->growl("YouTube API", "API Error");
 		BigTree::redirect($mroot . "connect/");
 	}
-	
+
 ?>
