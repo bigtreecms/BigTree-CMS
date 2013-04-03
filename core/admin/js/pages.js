@@ -27,8 +27,7 @@ $(document).ready(function() {
 	
 	// If the redirect lower checkbox is checked, remove selected template, otherwise reset it
 	$("input[name=redirect_lower]").click(function() {
-		// For some reason the click is firing before the checked status changes, so we're doing the opposite of what makes sense.
-		if (!$(this).attr("checked")) {
+		if ($(this).attr("checked")) {
 			rememberedTemplate = $("#template").val();
 			rememberedExternal = $("#external_link").val();
 			$(".box_select").removeClass("active");
