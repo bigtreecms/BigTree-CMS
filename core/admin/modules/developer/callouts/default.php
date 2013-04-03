@@ -1,7 +1,7 @@
 <?
 	$callouts = $admin->getCallouts();
 	
-	// Need to create a ridiculous hack because jQuery's sortable is retarded.
+	// Need to create a ridiculous hack because jQuery's sortable is dumb.
 	$x = 0;
 	$rel_table = array();
 ?>
@@ -30,7 +30,9 @@
 				<a href="<?=$section_root?>delete/<?=$callout["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?
+			}
+		?>
 	</ul>
 </div>
 
