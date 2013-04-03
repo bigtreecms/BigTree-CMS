@@ -4,11 +4,15 @@
 			
 	*/
 	
+	require_once BigTree::path("inc/lib/oauth_client.php");
+	
 	class BigTreeInstagramAPI {
 		
 		var $debug = false;
 		var $Client;
 		var $Connected = false;
+		var $URL = "https://api.instagram.com/v1/";
+		var $SettingsKey = "bigtree-internal-instagram-api";
 		
 		/*
 			Constructor:
@@ -17,20 +21,43 @@
 		function __construct($debug = false) {
 			global $cms,$admin;
 			
-			include BigTree::path("inc/lib/instagram/instagram.class.php");
-			
 			$this->debug = $debug;
-			$this->settings = $cms->getSetting("bigtree-internal-instagram-api");
+			$this->settings = $cms->getSetting($this->SettingsKey);
 			
-			if ($this->settings["id"] && $this->settings["secret"] && $this->settings["token"]) {
-				$this->Connected = true;
-				$this->Client = new Instagram(array(
-					"apiKey" => $this->settings["id"], 
-					"apiSecret" => $this->settings["secret"]
-				));
-				$this->Client->setAccessToken($this->settings["token"]);
+			if (!$this->settings) {
+				if ($admin) {
+					$admin->createSetting(array(
+						"id" => $this->SettingsKey, 
+						"name" => "Instagram API", 
+						"description" => "", 
+						"type" => "", 
+						"locked" => "on", 
+						"module" => "", 
+						"encrypted" => "", 
+						"system" => "on"
+					));
+				}
 			}
 			
+			// Build API client
+			$this->Client = new oauth_client_class;
+			$this->Client->server = 'Instagram';
+			$this->Client->client_id = $this->settings["key"]; 
+			$this->Client->client_secret = $this->settings["secret"];
+			$this->Client->access_token = $this->settings["token"]; 
+			$this->Client->scope = $this->settings["scope"];
+			
+			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/instagram/return/";
+			
+			// Check if we're conected
+			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"]) {
+				$this->Connected = true;
+			}
+			
+			// Init Client
+			$this->Client->Initialize();
+			
+			// Set cache stuffs
 			$this->max_cache_age = 60 * 60; // 1 hour
 			$this->cache_root = SERVER_ROOT . "cache/custom/";
 			$this->cache_base = $this->cache_root . "instagram-";
@@ -42,64 +69,55 @@
 		}
 		
 		/*
-			getPhotos:
-				
+			Function: saveSettings
+				Update API settings
 		*/
-		function getPhotos($user_id = false, $limit = 10) {
-			if (!$this->Connected) {
+		function saveSettings() {
+			global $admin;
+			if ($admin) {
+				$admin->updateSettingValue($this->SettingsKey, $this->settings);
+			}
+		}
+		
+		/*
+			Function: get
+				Make API call
+		*/
+		function get($endpoint = false, $params = array()) {
+			if (!$this->Connected || !$endpoint) {
 				return false;
 			}
 			
-			$user_id = ($user_id) ? $user_id : $this->settings["user_id"];
-			$cache_file = $this->cache_base . $user_id . "-photos.btx";
+			if ($this->Client->CallAPI($this->URL.$endpoint, 'GET', $params, array('FailOnAccessError' => true), $response)) {
+				return $response;
+			} else {
+				return false;
+			}
+		}
+		
+		
+		/*
+			Function: getCached
+				Return cached version, if it exists
+		*/
+		function getCached($endpoint = false, $params = array(), $cache_file) {
+			if (!$this->Connected || !$endpoint) {
+				return false;
+			}
+			
 			$cache_age = $this->cacheAge($cache_file);
 			
 			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
-				$response = $this->Client->getUserMedia($user_id, $limit);
+				$response = $this->get($endpoint, $params);
 				
-				if ($response->meta->code == 200) {
-					$response = json_encode($response->data);
-					$this->cacheData($response, $cache_file);
-					
-				}
+				$response = json_encode($response);
+				$this->cacheData($response, $cache_file);
 			} else {
 				$response = file_get_contents($cache_file);
 			}
 			
 			return json_decode($response, true);
 		}
-		
-		/*
-			search:
-				
-		*/
-		function search($query = false, $limit = 10) {
-			if (!$this->Connected) {
-				return false;
-			}
-			
-			if (substr($query, 0, 1) == "#") {
-				$query = substr($query, 1);
-			}
-			
-			$cache_file = $this->cache_base . $query . "-search.btx";
-			$cache_age = $this->cacheAge($cache_file);
-			
-			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
-				$response = $this->Client->getTagMedia($query);
-				
-				if ($response->meta->code == 200) {
-					$response = json_encode($response->data);
-					$this->cacheData($response, $cache_file);
-					
-				}
-			} else {
-				$response = file_get_contents($cache_file);
-			}
-			
-			return @array_slice(json_decode($response, true), 0, $limit);
-		}
-		
 		
 		/*
 			Function: cacheAge
@@ -136,6 +154,42 @@
 			} else {
 				unlink($this->cache_root . $cache_file);
 			}
+		}
+		
+		
+		// SERVICE SPECIFIC -----
+		
+		
+		/*
+			getPhotos:
+				
+		*/
+		function getPhotos($user_id = false, $limit = 10, $params = array()) {
+			if (!$this->Connected) {
+				return false;
+			}
+			
+			$user_id = ($user_id) ? $user_id : $this->settings["user_id"];
+			$cache_file = $this->cache_base . $user_id . "-photos.btx";
+			
+			return $this->getCached('users/'.$user_id.'/media/recent?count='.$limit, array_merge($params, array()), $cache_file);
+		}
+		
+		/*
+			tagged:
+				
+		*/
+		function tagged($tag = false, $limit = 10, $params = array()) {
+			if (!$this->Connected) {
+				return false;
+			}
+			
+			if (substr($tag, 0, 1) == "#") {
+				$tag = substr($tag, 1);
+			}
+			$cache_file = $this->cache_base . $tag . "-tagged.btx";
+			
+			return $this->getCached('tags/'.$tag.'/media/recent?count='.$limit, array_merge($params, array()), $cache_file);
 		}
 	}
 ?>

@@ -6,15 +6,18 @@
 	
 	session_start();
 	
+	// SET UP API
 	$twitterAPI = new BigTreeTwitterAPI();
 	
-	$settings = $cms->getSetting("bigtree-internal-twitter-api");
-	$key = isset($settings["key"]) ? $settings["key"] : "";
-	$secret = isset($settings["secret"]) ? $settings["secret"] : "";
-	$token = isset($settings["token"]) ? $settings["token"] : "";
+	$configPaths = array(
+		"configure",
+		"set-config",
+		"connect",
+		"redirect",
+		"return"
+	);
 	
-	
-	if ((!$key || !$secret || !$token) && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-config" && end($bigtree["path"]) != "connect" && end($bigtree["path"]) != "redirect" && end($bigtree["path"]) != "return") {
+	if (!$twitterAPI->Connected && !in_array(end($bigtree["path"]), $configPaths)) {
 		BigTree::redirect($mroot . "configure/");
 	}
 	

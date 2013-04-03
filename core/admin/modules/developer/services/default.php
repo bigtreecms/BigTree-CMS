@@ -18,5 +18,10 @@
 			<p>Instagram</p>
 		</a>
 		
+		<a class="box_select" href="googleplus/">
+			<span class="googleplus"></span>
+			<p>Google+</p>
+		</a>
+		
 	</section>
 </div>

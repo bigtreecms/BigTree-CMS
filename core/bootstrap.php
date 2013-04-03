@@ -68,6 +68,8 @@
 		"BigTreeGeocodingService" => "inc/bigtree/geocoding-service.php",
 		"BigTreeTwitterAPI" => "inc/bigtree/api-twitter.php",
 		"BigTreeInstagramAPI" => "inc/bigtree/api-instagram.php",
+		"BigTreeGooglePlusAPI" => "inc/bigtree/api-googleplus.php",
+		"BigTreeYouTubeAPI" => "inc/bigtree/api-youtube.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);
