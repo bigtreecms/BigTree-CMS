@@ -117,6 +117,12 @@
 				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true, "children" => array(
 					array("title" => "Configure","link" => "developer/services/instagram/configure","nav_icon" => "setup","level" => 1)
 				)),
+				array("title" => "Google+ API","link" => "developer/services/googleplus","icon" => "googleplus","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/googleplus/configure","nav_icon" => "setup","level" => 1)
+				)),
+				array("title" => "YouTube API","link" => "developer/services/youtube","icon" => "youtube","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/youtube/configure","nav_icon" => "setup","level" => 1)
+				)),
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),
@@ -313,10 +319,18 @@
 		}
 
 		$ajax_path = array_slice($bigtree["path"],2);
+		// Check custom
 		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
-		if (!$inc) {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+		// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+		if (!$inc || count($commands)) {
+			list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+			// If we either never found the custom file or if there are more routes found in the core file use the core.
+			if (!$inc || ($inc && count($core_commands) < count($commands))) {
+				$inc = $core_inc;
+				$commands = $core_commands;
+			}
 		}
+
 		if (!file_exists($inc)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
@@ -390,9 +404,14 @@
 	$module_path = array_slice($bigtree["path"],1);
 	// Check custom
 	list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
-	// Check core
-	if (!$inc) {
-		list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+	// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+	if (!$inc || count($commands)) {
+		list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+		// If we either never found the custom file or if there are more routes found in the core file use the core.
+		if (!$inc || ($inc && count($core_commands) < count($commands))) {
+			$inc = $core_inc;
+			$commands = $core_commands;
+		}
 	}
 	if (count($commands)) {
 		$bigtree["module_path"] = array_slice($module_path,1,-1 * count($commands));
