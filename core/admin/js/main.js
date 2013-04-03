@@ -340,7 +340,7 @@ var BigTreeSelect = Class.extend({
 		}
 		
 		div.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click($.proxy(this.click,this));
-		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
+		div.find(".select_options").css({ width: (maxwidth + 64) + "px" });
 		div.on("click","a",$.proxy(this.select,this));
 		div.find(".handle").click($.proxy(this.click,this));
 		
