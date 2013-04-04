@@ -602,6 +602,7 @@
 	.table .integrity_errors span { margin: 8px 8px 0 0; }
 	.table .integrity_errors a { float: right; padding: 0px 30px; height: 35px; background: #EEE; border-left: 1px solid #DDD; margin: 0 20px 0 0; }
 	.table .integrity_errors a:hover { background: #F3F3F3; }
+	.table .integrity_errors p { width: 830px; height: 35px; line-height: 35px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.table .integrity_progress { float: right; font-size: 12px !important; height: 37px; line-height: 35px; }
 
 	.table .analytics_metric_name { padding: 0 0 0 20px; text-align: left; width: 668px; }
