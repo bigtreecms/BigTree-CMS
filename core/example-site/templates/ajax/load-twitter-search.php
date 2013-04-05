@@ -1,7 +1,7 @@
 <?
 	$twitterAPI = new BTXTwitterAPI;
 	$twitterTimeline = $twitterAPI->search($_GET["search"]);
-	if ($_GET["sidebar"]) {
+	if ($_GET["sidebar"] && $_GET["sidebar"] != "false") {
 		$twitterTimeline["results"] = array_slice($twitterTimeline["results"],0,4);
 	}
 	

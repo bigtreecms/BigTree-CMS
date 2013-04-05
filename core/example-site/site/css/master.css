@@ -114,8 +114,7 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 	#header nav a:hover, #header nav a.active { border-color: #fff; }
 	.bigtree_bar_open #header { top: 40px; }
 	
-	#footer { background: #F9F9F9; }
-	#footer .row_12 { padding: 3% 0; }
+	#footer { background: #F9F9F9; padding: 3% 0; }
 	#footer h6 { font-weight: bold; margin: 5% 0; }
 	#footer p { font-size: 13px; margin-top: 3%; }
 	#footer img { margin: 5% 5% 0 0; max-width: 100%; }
@@ -220,7 +219,8 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 	.callout .more:hover { border-color: #000; color: #000; }
 	.callout figcaption { display: block; font-family: 'OpenSans', sans-serif; font-size: 11px; font-style: italic; line-height: 1.2; margin: 5px 0 0; }
 
-	.home_callouts .callout { padding: 2.5%; }
+	.home_callouts .callout { padding: 0; }
+	.home_callouts .callout .desktop-12 { padding: 3% 2.5%; }
 	.home_callouts .callout figure { float: left; margin: 0 3% 0 0; width: 40%; }
 	.home_callouts .callout h4 { font-size: 34px; margin: 0 3% 2% 0; }
 	.home_callouts .callout p { font-size: 15px; margin: 0 3% 2% 0; }
