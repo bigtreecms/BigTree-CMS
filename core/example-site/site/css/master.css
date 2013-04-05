@@ -248,7 +248,7 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 	.subnav .sub_current ul ul a { padding-left: 40px; }
 	.subnav .sub_current ul ul ul a { padding-left: 55px; }
 	.subnav .sub_current ul a.active { background: #ECECEC; }
-	.subnav strong, .subnav a.nav_label { background: #F9F9F9; color: #222; display: block; font-size: 16px; line-height: 1; margin: 0 -5% 3%; padding: 8% 5%; text-transform: uppercase; width: 110%; }
+	.subnav strong, .subnav a.nav_label { background: #F9F9F9; color: #222; display: block; font-size: 16px; line-height: 1; margin: 0 0 3%; padding: 8% 5%; text-transform: uppercase; }
 	.subnav a.nav_label { display: none; }
 	
 	/* Blog Styles */

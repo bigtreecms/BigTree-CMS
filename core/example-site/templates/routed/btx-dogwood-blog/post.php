@@ -8,7 +8,7 @@
 	// Set the page title
 	$local_title = $post["title"];
 ?>
-<article class="row post post_page wysiwyg">
+<article class="post post_page wysiwyg">
 	<h1><?=$post["title"]?></h1>
 	<div class="meta">
 		By <a href="<?=$blog_link?>author/<?=$post["author"]["route"]?>/" class="author"><?=$post["author"]["name"]?></a> on <span class="date"><?=date("F j, Y",strtotime($post["date"]))?></span>
