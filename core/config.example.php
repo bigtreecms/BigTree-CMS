@@ -55,9 +55,6 @@
 	$bigtree["config"]["recaptcha"]["private"] = "6LcjTrwSAAAAADnHAf1dApaNCX1ODNuEBP1YdMdJ";
 	$bigtree["config"]["recaptcha"]["public"] = "6LcjTrwSAAAAAKvNG6n0YtCROEWGllOu-dS5M5oj";
 	
-	// Google Maps Key for Geocoding
-	$bigtree["config"]["google_maps_key"] = "";
-	
 	// Base classes for BigTree.  If you want to extend / overwrite core features of the CMS, change these to your new class names
 	// Set BIGTREE_CUSTOM_BASE_CLASS_PATH to the directory path (relative to /core/) of the file that will extend BigTreeCMS
 	// Set BIGTREE_CUSTOM_ADMIN_CLASS_PATH to the directory path (relative to /core/) of the file that will extend BigTreeAdmin
