@@ -325,7 +325,7 @@
 		if (!$inc || count($commands)) {
 			list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
 			// If we either never found the custom file or if there are more routes found in the core file use the core.
-			if (!$inc || ($inc && count($core_commands) < count($commands))) {
+			if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 				$inc = $core_inc;
 				$commands = $core_commands;
 			}
@@ -408,7 +408,7 @@
 	if (!$inc || count($commands)) {
 		list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
 		// If we either never found the custom file or if there are more routes found in the core file use the core.
-		if (!$inc || ($inc && count($core_commands) < count($commands))) {
+		if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 			$inc = $core_inc;
 			$commands = $core_commands;
 		}
