@@ -967,7 +967,7 @@
 			// Thanks to Klinky on Stack Overflow for this: http://stackoverflow.com/users/187537/klinky
 			// Convert megabytes to bytes.
 			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
-			list($source_width,$source_height) = getimagesize($filename);
+			list($source_width,$source_height) = getimagesize($source);
 			// 3 bytes per pixel, GD internally takes ~67% more memory
 			$source_size = ceil($source_width * $source_height * 3 * 1.68); 
 			$target_size = ceil($width * $height * 3 * 1.68);
