@@ -48,6 +48,9 @@
 				newfile - The location to save the new cropped image.
 				cw - The crop width.
 				ch - The crop height.
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function centerCrop($file, $newfile, $cw, $ch) {
@@ -62,11 +65,11 @@
 				$nw = $w * $v;
 				$x = ceil(($nw - $cw) / 2 * $w / $nw);
 				$y = 0;
-				self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
 			} else {
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
-				self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
 			}
 		}
 		
@@ -151,6 +154,9 @@
 				height - The height to crop from the original image.
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
@@ -215,6 +221,9 @@
 				maxheight - The maximum height of the new image (0 for no max).
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false) {
