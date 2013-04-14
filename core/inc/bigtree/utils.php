@@ -155,6 +155,11 @@
 		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
+
+			// If we don't have the memory available, fail gracefully.
+			if (!self::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
+				return false;
+			}
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
@@ -224,6 +229,11 @@
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 				$result_width *= 2;
 				$result_height *= 2;
+			}
+
+			// If we don't have the memory available, fail gracefully.
+			if (!self::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
+				return false;
 			}
 
 			$thumbnailed_image = imagecreatetruecolor($result_width, $result_height);
