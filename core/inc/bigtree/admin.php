@@ -4272,7 +4272,7 @@
 		*/
 
 		function growl($title,$message,$type = "success") {
-			$_SESSION["bigtree_admin"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
+			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
 		/*
