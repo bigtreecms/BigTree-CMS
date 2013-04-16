@@ -1,4 +1,10 @@
 <?
+	// See if we've hit post_max_size
+	if (!$_POST["_bigtree_post_check"]) {
+		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+	}
+	
 	$view = BigTreeAutoModule::getRelatedViewForForm($form);
 	$data_action = ($_POST["save_and_publish"] || $_POST["save_and_publish_x"] || $_POST["save_and_publish_y"]) ? "publish" : "save";
 

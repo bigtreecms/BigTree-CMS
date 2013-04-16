@@ -2021,6 +2021,7 @@ var BigTreeFormValidator = Class.extend({
 		});
 		
 		if (this.form.find(".form_error").length) {
+			this.form.find(".warning_message").hide();
 			this.form.find(".error_message").show();
 			if (!in_dialog) {
 				$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
