@@ -21,7 +21,8 @@
 <div class="container">
 	<header><h2><?=$item["name"]?></h2></header>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
-		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />	
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
+		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?
@@ -33,7 +34,14 @@
 			</div>
 			<?
 				}
-				
+		
+				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
+					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
+			?>
+			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+			<?
+				}
+
 				echo $item["description"];
 			
 				// Setup field related nonsense.

@@ -6,13 +6,14 @@
 	
 	$folder = sqlescape($_POST["folder"]);
 	$f = $_FILES["file"];
+	$error = false;
 	if ($f["error"]) {
 		if ($f["error"] == 2 || $f["error"] == 1) {
 			$error = "File Too Large";
 		} else {
 			$error = "Upload Failed";
 		}
-	} else {
+	} elseif ($f["tmp_name"]) {
 		$upload_service = new BigTreeUploadService;
 		$temp_name = $f["tmp_name"];
 		
@@ -105,6 +106,8 @@
 			
 			$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
 		}
+	} else {
+		$error = "Upload Failed";
 	}
 ?>
 <html>
@@ -112,7 +115,7 @@
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" />
 	</head>
 	<body style="background: transparent;">
-		<p class="file_browser_response">Successfully Uploaded</p>
+		<p class="file_browser_response"><? if ($error) { echo $error; } else { echo "Successfully Uploaded"; } ?></p>
 		<script>
 			parent.BigTreeFileManager.finishedUpload("<?=$file?>","<?=$type?>","<?=$iwidth?>","<?=$iheight?>");
 		</script>
