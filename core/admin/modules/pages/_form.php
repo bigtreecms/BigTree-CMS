@@ -115,13 +115,12 @@
 		return false;
 	});
 
-	var template = "<?=$page["template"]?>";
+	BigTreePages.currentTemplate = "<?=$page["template"]?>";
 	<? if ($action == "create") { ?>
-	var page = false;
+	BigTreePages.currentPage = false;
 	<? } else { ?>
-	var page = "<?=$page["id"]?>";
-	var page_updated_at = "<?=$page["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$page["id"]?>' } });",60000);
+	BigTreePages.currentPage = "<?=$page["id"]?>";
+	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$page["id"]?>' } });",60000);
 	<? } ?>
 	
 	new BigTreeFormValidator("#page_form",function(errors) {

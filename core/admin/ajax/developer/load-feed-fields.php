@@ -70,8 +70,6 @@
 </fieldset>
 
 <script>
-	var current_editing_key;
-	
 	$(".form_table").on("click",".icon_delete",function() {
 		tf = $(this).parents("li").find("section").find("input");
 		
@@ -85,10 +83,10 @@
 		return false;
 	});		
 	
-	function _local_hooks() {
+	BigTree.localHooks = function() {
 		$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	}
-	_local_hooks();
+	BigTree.localHooks();
 
 	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
 		title = el.title;
@@ -100,7 +98,7 @@
 		
 			fs.removeCurrent();
 			$("#sort_table").append(li);
-			_local_hooks();
+			BigTree.localHooks();
 		} else {
 			new BigTreeDialog("Add Custom Column",'<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset><label>Column Title</label><input type="text" name="title" /></fieldset>',function(data) {
 				key = htmlspecialchars(data.key);
@@ -109,7 +107,7 @@
 				li = $('<li id="row_' + key + '">');
 				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
 				$("#sort_table").append(li);
-				_local_hooks();
+				BigTree.localHooks();
 			});
 		}
 	});

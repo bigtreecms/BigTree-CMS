@@ -76,8 +76,6 @@
 </div>
 
 <script>
-	var deleteConfirm,deleteTimer,deleteId;
-
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {
 		document.location.href = "<?=$mpage."edit".$suffix?>/" + $(this).attr("href").substr(1) + "/";
 		return false;

@@ -212,7 +212,7 @@
 <? } ?>
 
 <script>
-	mtm_count = <?=$mtm_count?>;
+	BigTree.localMTMCount = <?=$mtm_count?>;
 	
 	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
 		title = el.title;
@@ -223,7 +223,7 @@
 		
 		$("#resource_table").append(li);
 		fs.removeCurrent();
-		_local_hooks();
+		BigTree.localHooks();
 	});
 </script>
 <?

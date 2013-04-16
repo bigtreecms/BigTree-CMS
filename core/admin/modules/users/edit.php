@@ -407,7 +407,6 @@
 	$("#permission_section input[type=radio]").on("click",function() {
 		category = $(this).attr("data-category");
 		key = $(this).attr("data-key");
-		console.log(category,key);
 		if (category == "ModuleGBP") {
 			sub = $(this).attr("data-sub-key");
 			BigTreeUserForm.Permissions[category][key][sub] = $(this).attr("value");
@@ -437,8 +436,7 @@
 	
 	$(document).ready(function() {
 		$("input.email").blur(function() {
-			var email = md5($(this).val().trim());
-			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + md5($(this).val().trim()) + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
 	});
 </script>

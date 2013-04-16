@@ -61,6 +61,8 @@
 			// Geocode
 			if ($this->Service == "google") {
 				$geocode = $this->geocodeGoogle($address);
+			} elseif ($this->Service == "yahoo") {
+				$geocode = $this->geocodeYahoo($address);
 			}
 
 			if (!$geocode) {
@@ -82,10 +84,33 @@
 					$response = json_decode($response, true);
 				}
 				$latlng = $response["results"][0]["geometry"]["location"];
-				$geo = array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
+				return array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
 			} catch (Exception $e) {
-				$geo = false;
+				return false;
 			}
-			return $geo;
+			return false;
+		}
+
+		/*
+			Function: geocodeYahoo
+				Private function for using Yahoo as the geocoder.
+		*/
+
+		private function geocodeYahoo($address) {
+			$response = BigTree::curl("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.sqlescape($address).'"'));
+			try {
+				if (is_string($response)) {
+					$response = json_decode($response, true);
+				}
+				$lat = $response["query"]["results"]["Result"]["latitude"];
+				$lon = $response["query"]["results"]["Result"]["longitude"];
+				if ($lat && $lon) {
+					return array("latitude" => $lat, "longitude" => $lon);
+				} else {
+					return false;
+				}
+			} catch (Exception $e) {
+				return false;
+			}
 		}
 	}

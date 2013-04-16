@@ -64,17 +64,17 @@
 								minSize: [<?=$min_width?>,<?=$min_height?>],
 								aspectRatio: <?=($min_width / $min_height)?>,
 								setSelect: [<?=$initial_x?>,<?=$initial_y?>,<?=($initial_x+$min_width)?>,<?=($initial_y+$min_height)?>],
-								onSelect: _local_showPreview<?=$x?>,
-								onChange: _local_showPreview<?=$x?>
+								onSelect: BigTree.localShowPreview<?=$x?>,
+								onChange: BigTree.localShowPreview<?=$x?>
 							});
 						});
 						
-						function _local_showPreview<?=$x?>(coords) {
+						BigTree.localShowPreview<?=$x?> = function(coords) {
 							$("#x<?=$x?>").val(Math.round(coords.x * <?=($width/$box_width)?>));
 							$("#y<?=$x?>").val(Math.round(coords.y * <?=($height/$box_height)?>));
 							$("#width<?=$x?>").val(Math.round(coords.w * <?=($width/$box_width)?>));
 							$("#height<?=$x?>").val(Math.round(coords.h * <?=($height/$box_height)?>));
-						}
+						};
 					</script>
 				</li>
 				<?
@@ -88,14 +88,14 @@
 	</footer>
 </form>
 <script>
-	var current = 1;
-	var max = <?=count($crops)?>;
+	BigTree.localCurrentCrop = 1;
+	BigTree.localMaxCrops = <?=count($crops)?>;
 	
 	$("#crop_form").submit(function() {
-		if (current != max) {
-			$("#cropper li").eq(current-1).hide();
-			$("#cropper li").eq(current).show();
-			current++;
+		if (BigTree.localCurrentCrop != BigTree.localMaxCrops) {
+			$("#cropper li").eq(BigTree.localCurrentCrop - 1).hide();
+			$("#cropper li").eq(BigTree.localCurrentCrop).show();
+			BigTree.localCurrentCrop++;
 			return false;
 		}
 	});

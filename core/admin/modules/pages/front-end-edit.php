@@ -108,6 +108,5 @@
 		return false;
 	});
 	
-	var page = "<?=$page["id"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
+	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
 </script>

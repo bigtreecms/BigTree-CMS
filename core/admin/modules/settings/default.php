@@ -16,25 +16,23 @@
 </div>
 
 <script>
-	var deleteTimer,searchTimer;
+	BigTree.localSearchTimer = false;
+	BigTree.localSearch = function() {
+		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=1&query=" + escape($("#query").val()));
+	};
 	
 	$("#query").keyup(function() {
-		if (searchTimer) {
-			clearTimeout(searchTimer);
+		if (BigTree.localSearchTimer) {
+			clearTimeout(BigTree.localSearchTimer);
 		}
-		searchTimer = setTimeout("_local_search()",400);
+		BigTree.localSearchTimer = setTimeout("BigTree.localSearch()",400);
 	});
 
-	function _local_search() {
-		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=1&query=" + escape($("#query").val()));
-	}
-	
 	$(".table").on("click","#view_paging a",function() {
-		current_page = BigTree.CleanHref($(this).attr("href"));
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=" + current_page + "&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=" + BigTree.CleanHref($(this).attr("href")) + "&query=" + escape($("#query").val()));
 
 		return false;
 	});

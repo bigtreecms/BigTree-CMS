@@ -5,13 +5,11 @@
 <script>
 	new BigTreeFormValidator("form.module");
 	
-	var current_editing_key;
-	var resource_count = 0;
+	BigTree.currentFieldKey = false;
+	BigTree.resourceCount = 0;
 	
 	$("#resource_table").on("blur", ".developer_resource_id input", function() {
-		var id = $(this).val();
-		var parent = $(this).parents("li");
-		parent.find(".developer_resource_display_title input").val(id);
+		$(this).parents("li").find(".developer_resource_display_title input").val($(this).val());
 	});
 	
 	$(".template_image_list a").click(function() {
@@ -24,11 +22,11 @@
 	
 	$(".form_table").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
-		current_editing_key = key;
+		BigTree.currentFieldKey = key;
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + BigTree.currentFieldKey, { type: "POST", data: data });
 			});
 		}});
 		
@@ -49,10 +47,10 @@
 	});
 		
 	$(".add_resource").click(function() {
-		resource_count++;
+		BigTree.resourceCount++;
 		
-		li = $('<li id="row_' + resource_count + '">');
-		li.html('<section class="developer_resource_callout_id"><span class="icon_sort"></span><input type="text" name="resources[' + resource_count + '][id]" value="" /></section><section class="developer_resource_callout_title"><input type="text" name="resources[' + resource_count + '][title]" value="" /></section><section class="developer_resource_callout_subtitle"><input type="text" name="resources[' + resource_count + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + resource_count + '][type]" id="type_' + resource_count + '" class="custom_control"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + resource_count + '"></a><input type="hidden" name="resources[' + resource_count + '][options]" value="" id="options_' + resource_count + '" /></section><section class="developer_resource_display_title"><input type="radio" name="display_field" value="" id="display_title_' + resource_count + '" class="custom_control" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
+		li = $('<li id="row_' + BigTree.resourceCount + '">');
+		li.html('<section class="developer_resource_callout_id"><span class="icon_sort"></span><input type="text" name="resources[' + BigTree.resourceCount + '][id]" value="" /></section><section class="developer_resource_callout_title"><input type="text" name="resources[' + BigTree.resourceCount + '][title]" value="" /></section><section class="developer_resource_callout_subtitle"><input type="text" name="resources[' + BigTree.resourceCount + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + BigTree.resourceCount + '][type]" id="type_' + BigTree.resourceCount + '" class="custom_control"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + BigTree.resourceCount + '"></a><input type="hidden" name="resources[' + BigTree.resourceCount + '][options]" value="" id="options_' + BigTree.resourceCount + '" /></section><section class="developer_resource_display_title"><input type="radio" name="display_field" value="" id="display_title_' + BigTree.resourceCount + '" class="custom_control" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
 
 		$("#resource_table").append(li);
 		li.find("select").get(0).customControl = new BigTreeSelect(li.find("select").get(0));

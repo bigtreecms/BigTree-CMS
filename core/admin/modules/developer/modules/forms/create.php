@@ -7,12 +7,14 @@
 	$default_position = isset($default_position) ? $default_position : "";
 
 	$fields = array();
-	foreach ($_POST["type"] as $key => $val) {
-		$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
-		$field["type"] = $val;
-		$field["title"] = htmlspecialchars($_POST["titles"][$key]);
-		$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
-		$fields[$key] = $field;
+	if (is_array($_POST["type"])) {
+		foreach ($_POST["type"] as $key => $val) {
+			$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
+			$field["type"] = $val;
+			$field["title"] = htmlspecialchars($_POST["titles"][$key]);
+			$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
+			$fields[$key] = $field;
+		}
 	}
 
 	$form_id = $admin->createModuleForm($title,$table,$fields,$preprocess,$callback,$default_position,$return_view,$return_url,$tagging);

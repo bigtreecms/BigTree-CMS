@@ -6,7 +6,7 @@
 	}
 ?>
 <div class="table">
-	<summary><h2>Service APIs</h2></summary>
+	<summary><h2>Social APIs</h2></summary>
 	<section>
 		<a class="box_select" href="twitter/">
 			<span class="twitter"></span>

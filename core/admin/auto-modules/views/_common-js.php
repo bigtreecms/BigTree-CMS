@@ -1,9 +1,9 @@
 <script>
-	var deleteConfirm,deleteTimer,deleteId,searchTimer;
+	BigTree.localSearchTimer = false;
 
 	$("#search").keyup(function() {
-		clearTimeout(searchTimer);
-		searchTimer = setTimeout("_local_search();",400);
+		clearTimeout(BigTree.localSearchTimer);
+		BigTree.localSearchTimer = setTimeout("BigTree.localSearch();",400);
 	});
 	
 	$(".table").on("click",".icon_delete",function() {

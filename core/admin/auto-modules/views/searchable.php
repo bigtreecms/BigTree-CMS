@@ -73,48 +73,44 @@
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
-	var current_page = 1;
-	var sort = "<?=$sort_column?>";
-	var sortdir = "<?=$sort_direction?>";
-	var search = "";
-	
-	function _local_search() {
-		search = escape($("#search").val());
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&page=1&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search);
-	}
+	BigTree.localSortColumn = "<?=$sort_column?>";
+	BigTree.localSortDirection = "<?=$sort_direction?>";
+	BigTree.localSearchQuery = "";
+	BigTree.localSearch = function() {
+		BigTree.localSearchQuery = escape($("#search").val());
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + BigTree.localSearchQuery);
+	};
 	
 	$(".table").on("click",".sort_column",function() {
-		sortdir = BigTree.CleanHref($(this).attr("href"));
-		sort = $(this).attr("name");
-		current_page = 1;
+		BigTree.localSortDirection = BigTree.CleanHref($(this).attr("href"));
+		BigTree.localSortColumn = $(this).attr("name");
 		if ($(this).hasClass("asc") || $(this).hasClass("desc")) {
 			$(this).toggleClass("asc").toggleClass("desc");
-			if (sortdir == "DESC") {
+			if (BigTree.localSortDirection == "DESC") {
 				$(this).attr("href","ASC");
-				sortdir = "ASC";
+				BigTree.localSortDirection = "ASC";
 		   		$(this).find("em").html("&#9650;");
 			} else {
 				$(this).attr("href","DESC");
-				sortdir = "DESC";
+				BigTree.localSortDirection = "DESC";
 		   		$(this).find("em").html("&#9660;");
 			}
 		} else {
-			if (sortdir == "ASC") {
+			if (BigTree.localSortDirection == "ASC") {
 				dchar = "&#9650;";
 			} else {
 				dchar = "&#9660;";
 			}
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
-			$(this).addClass(sortdir.toLowerCase()).find("em").html(dchar);
+			$(this).addClass(BigTree.localSortDirection.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + current_page);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + BigTree.localSearchQuery + "&page=1");
 		return false;
 	}).on("click","#view_paging a",function() {
-		current_page = BigTree.CleanHref($(this).attr("href"));
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(sort) + "&sort_direction=" + escape(sortdir) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + search + "&page=" + current_page);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$view["id"]?>&module=<?=$module["route"]?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.CleanHref($(this).attr("href")));
 
 		return false;
 	});

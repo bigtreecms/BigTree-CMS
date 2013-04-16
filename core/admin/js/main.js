@@ -1,5 +1,3 @@
-var stickyControls,stickyControlsTop,stickyControlsStuck = false;
-
 $(document).ready(function() {
 
 	BigTreeCustomControls();
@@ -37,23 +35,23 @@ $(document).ready(function() {
 	});
 	
 	// !BigTree Sticky Controls
-	stickyControls = $(".sticky_controls");
-	if (stickyControls.length) {
-		stickyControlsTop = stickyControls.offset().top;
+	BigTree.stickyControls = $(".sticky_controls");
+	if (BigTree.stickyControls.length) {
+		BigTree.stickyControlsTop = BigTree.stickyControls.offset().top;
 		
-		if (window.scrollY >= stickyControlsTop && !stickyControlsStuck) {
-			stickyControlsStuck = true;
-			stickyControls.addClass("stuck");
+		if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
+			BigTree.stickyControlsStuck = true;
+			BigTree.stickyControls.addClass("stuck");
 		}
 		
 		$(window).scroll(function() {
-			if (window.scrollY >= stickyControlsTop && !stickyControlsStuck) {
-				stickyControlsStuck = true;
-				stickyControls.addClass("stuck");
+			if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
+				BigTree.stickyControlsStuck = true;
+				BigTree.stickyControls.addClass("stuck");
 			}
-			if (window.scrollY < stickyControlsTop && stickyControlsStuck) {
-				stickyControlsStuck = false;
-				stickyControls.removeClass("stuck");
+			if (window.scrollY < BigTree.stickyControlsTop && BigTree.stickyControlsStuck) {
+				BigTree.stickyControlsStuck = false;
+				BigTree.stickyControls.removeClass("stuck");
 			}
 		});
 	}
@@ -2153,52 +2151,12 @@ var BigTreeFoundryBrowser = Class.extend({
 
 // !BigTree Object
 var BigTree = {
+	stickyControls: false,
+	stickyControlsTop: false,
+	stickyControlsStuck: false,
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);
-	},
-
-	GetCallout: function() {
-		last_dialog = $(".bigtree_dialog_form").last();
-
-		// Validate required fields.
-		v = new BigTreeFormValidator(last_dialog);
-		if (!v.validateForm(false,true)) {
-			return false;
-		}
-		
-		li = $('<li>');
-		li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-		
-		callout_number = last_dialog.find("input.callout_count").val();
-		// Try our best to find some way to describe the callout
-		callout_desc = "";
-		callout_desc_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-		if (callout_desc_field.is('select')) {
-			callout_desc = callout_desc_field.find("option:selected").text();
-		} else {
-			callout_desc = callout_desc_field.val();
-		}
-		if ($.trim(callout_desc) == "") {
-			callout_desc = last_dialog.find(".display_default").val();
-		}
-		
-		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
-		last_dialog.find("input, textarea, select").each(function() {
-			if ($(this).attr("type") != "submit") {
-				if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
-					var mce = tinyMCE.get($(this).attr("id"));
-					if (mce) {
-						mce.save();
-						tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-					}
-				}
-				$(this).hide();
-				li.append($(this));
-			}
-		});
-
-		return li;
 	},
 
 	growltimer: false,
