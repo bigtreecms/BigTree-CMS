@@ -848,7 +848,7 @@
 	.user_permissions section ul.depth_10 li .folder_label { width: 486px; }
 	
 /* Settings Stuff */
-	.table .settings_name { padding: 0 20px; text-align: left; width: 250px; white-space: nowrap; text-overflow: ellipsis; }
+	.table .settings_name { padding: 0 20px; text-align: left; width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 	.table .settings_value { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 606px; }
 
 /* Advanced Search Page */
