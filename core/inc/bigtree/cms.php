@@ -270,6 +270,7 @@
 			
 			Returns:
 				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
+				If a trunk is hit, $this->BreadCrumb trunk is set to the trunk.
 			
 			See Also:
 				<getBreadcrumb>
@@ -293,6 +294,7 @@
 			while ($f = sqlfetch($q)) {
 				if ($f["trunk"]) {
 					$trunk_hit = true;
+					$this->BreadcrumbTrunk = $f;
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
