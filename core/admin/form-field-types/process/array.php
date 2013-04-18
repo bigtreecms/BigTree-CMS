@@ -1,6 +1,10 @@
 <?
 	$value = array();
 	foreach ($data[$key] as $item) {
-		$value[] = json_decode($item,true);
+		if (is_string($item)) {
+			$value[] = json_decode($item,true);
+		} else {
+			$value[] = $item;
+		}
 	}
 ?>
