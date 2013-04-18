@@ -28,7 +28,7 @@
 					$options["directory"] = "files/pages/";
 					
 					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-					if (is_array(json_decode($data[$key],true))) {
+					if (is_string($data[$key]) && is_array(json_decode($data[$key],true))) {
 						$data[$key] = json_decode($data[$key],true);
 					}
 
