@@ -314,7 +314,7 @@
 						$query_vals[] = $val;
 					} else {
 						if (!is_string($val)) {
-							$val = json_encode($val);
+							$val = json_encode(BigTree::translateArray($val));
 						}
 						$query_vals[] = "'".sqlescape($val)."'";
 					}
@@ -378,6 +378,9 @@
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
+				}
+				if (is_array($val)) {
+					$data[$key] = BigTree::translateArray($val);
 				}
 			}
 
@@ -1272,7 +1275,7 @@
 						$query .= "`$key` = $val,";
 					} else {
 						if (!is_string($val)) {
-							$val = json_encode($val);
+							$val = json_encode(BigTree::translateArray($val));
 						}
 						$query .= "`$key` = '".sqlescape($val)."',";
 					}
@@ -1335,6 +1338,9 @@
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
 			$changes = json_decode($item["changes"],true);
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			}
 			$changes[$field] = $value;
 			$changes = sqlescape(json_encode($changes));
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes' WHERE id = '$id'");

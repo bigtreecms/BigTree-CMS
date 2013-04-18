@@ -41,12 +41,13 @@
 					} else {
 						$value = htmlspecialchars($data[$key]);
 					}
-					if (is_array($value)) {
-						$value = BigTree::translateArray($value);	
-					} else {
-						$value = $admin->autoIPL($value);
-					}
+					
 					if (!$no_process) {
+						if (is_array($value)) {
+							$value = BigTree::translateArray($value);	
+						} else {
+							$value = $admin->autoIPL($value);
+						}
 						$callout[$key] = $value;
 					}
 				}
