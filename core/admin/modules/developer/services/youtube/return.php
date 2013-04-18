@@ -5,9 +5,6 @@
 	
 	if ($youtubeAPI->Client->Process()) {
 		
-		print_r($youtubeAPI->Client->access_token);
-		die();
-		
 		if ($youtubeAPI->Client->access_token) {
 			//$youtubeAPI->Client->CallAPI('https://www.googleapis.com/oauth2/v1/userinfo', "GET", array(), array('FailOnAccessError'=>true), $user);
 			

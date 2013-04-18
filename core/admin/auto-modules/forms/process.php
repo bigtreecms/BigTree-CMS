@@ -76,11 +76,16 @@
 				"error" => $error
 			);
 		}
-		$value = $admin->autoIPL($value);
 		if (!$no_process) {
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = $admin->autoIPL($value);
+			}
 			$item[$key] = $value;
 		}
 	}
+
 	// See if we added anything in pre-processing that wasn't a field in the form.
 	if (is_array($preprocess_changes)) {
 		foreach ($preprocess_changes as $key => $val) {
