@@ -313,6 +313,9 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
+						if (!is_string($val)) {
+							$val = json_encode($val);
+						}
 						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
@@ -1265,12 +1268,12 @@
 			$query = "UPDATE `$table` SET ";
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
-					if (is_array($val)) {
-						$val = json_encode($val);
-					}
 					if ($val === "NULL" || $val == "NOW()") {
 						$query .= "`$key` = $val,";
 					} else {
+						if (!is_string($val)) {
+							$val = json_encode($val);
+						}
 						$query .= "`$key` = '".sqlescape($val)."',";
 					}
 				}
