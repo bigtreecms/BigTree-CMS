@@ -1,10 +1,5 @@
 <?
-	$entries = array();
-	if (is_array($value)) {
-		foreach ($value as $item) {
-			$entries[] = json_decode($item);
-		}
-	}
+	$entries = is_array($value) ? $value : array();
 	$x = 0;
 	
 	$clean_key = str_replace(array("[","]"),"_",$key);
