@@ -1,13 +1,9 @@
 <?
-	if (is_string($value)) {
-		$entries = json_decode($value,true);
-		if (!is_array($entries)) {
-			$entries = array();
+	$entries = array();
+	if (is_array($value)) {
+		foreach ($value as $item) {
+			$entries[] = json_decode($item);
 		}
-	} elseif (is_array($value)) {
-		$entries = $value;
-	} else {
-		$entries = array();
 	}
 	$x = 0;
 	

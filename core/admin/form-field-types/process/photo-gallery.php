@@ -83,7 +83,7 @@
 			}
 		}
 		
-		$value = json_encode(BigTree::translateArray($photo_gallery));
+		$value = $photo_gallery;
 	} else {
 		$value = $data[$key];
 	}
