@@ -46,10 +46,10 @@
 	});
 	
 	$(".add_many_to_many").click(function() {
-		mtm_count++;
+		BigTree.localMTMCount++;
 			
-		li = $('<li id="mtm_row_' + mtm_count + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><span class="resource_name">Many To Many</span><a href="#" class="options icon_settings" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
+		li = $('<li id="mtm_row_' + BigTree.localMTMCount + '">');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + BigTree.localMTMCount + ']" id="type_mtm_' + BigTree.localMTMCount + '" type="hidden" value="many_to_many" /><span class="resource_name">Many To Many</span><a href="#" class="options icon_settings" name="mtm_' + BigTree.localMTMCount + '"></a><input type="hidden" name="options[mtm_' + BigTree.localMTMCount + ']" value="" id="options_mtm_' + BigTree.localMTMCount + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + BigTree.localMTMCount + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		BigTree.localHooks();
