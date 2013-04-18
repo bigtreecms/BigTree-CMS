@@ -151,7 +151,7 @@
 		*/
 		
 		private function sanitizeFloat($val,$allow_null) {
-			if ($val !== 0 && !$val) {
+			if ($val !== 0 && !$val && $allow_null == "YES") {
 				return "NULL";	
 			} else {
 				return floatval(str_replace(array(",","$"),"",$val));

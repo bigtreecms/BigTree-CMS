@@ -6,17 +6,19 @@
 		$location[] = $data[trim($field)];
 	}
 	
-	// Geocode
-	$geocoder = new BigTreeGeocodingService;
-	$result = $geocoder->geocode(implode(", ",$location));
-	
-	// If it's false, we didn't get anything.
-	if (!$result) {
-		$item["latitude"] = false;
-		$item["longitude"] = false;
-	} else {
-		$item["latitude"] = $result["latitude"];
-		$item["longitude"] = $result["longitude"];
+	if (trim($location)) {
+		// Geocode
+		$geocoder = new BigTreeGeocodingService;
+		$result = $geocoder->geocode(implode(", ",$location));
+		
+		// If it's false, we didn't get anything.
+		if (!$result) {
+			$item["latitude"] = false;
+			$item["longitude"] = false;
+		} else {
+			$item["latitude"] = $result["latitude"];
+			$item["longitude"] = $result["longitude"];
+		}
 	}
 		
 	// This field doesn't have it's own key to process.
