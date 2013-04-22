@@ -6,6 +6,7 @@
 	new BigTreeFormValidator("form.module");
 	
 	BigTree.localCurrentField = false;
+	BigTree.localResourceCount = <?=$x?>;
 	
 	$(".template_image_list a").click(function() {
 		$(".template_image_list a.active").removeClass("active");
