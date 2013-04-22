@@ -84,7 +84,7 @@
 		}
 		
 		$value = $photo_gallery;
-	} else {
-		$value = $data[$key];
+	} elseif (is_string($data[$key])) {
+		$value = json_decode($data[$key],true);
 	}
 ?>
