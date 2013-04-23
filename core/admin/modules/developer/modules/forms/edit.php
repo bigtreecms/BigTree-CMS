@@ -23,7 +23,7 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=$section_root?>delete/<?=$view["id"]?>/" class="button red">Delete Form</a>
+		<a href="<?=$section_root?>delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
 	</footer>
 </div>
 <?
