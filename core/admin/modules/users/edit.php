@@ -339,6 +339,10 @@
 </div>
 
 <script>
+	<?
+		// We prefer to keep these as objects as arrays can break numeric-ness, but we need PHP 5.3
+		if (strnatcmp(phpversion(),'5.3') >= 0) {
+	?>
 	var BigTreeUserForm = {
 		Alerts: <?=json_encode($alerts,JSON_FORCE_OBJECT)?>,
 		Permissions: {
@@ -347,7 +351,22 @@
 			ModuleGBP: <?=json_encode($permissions["module_gbp"],JSON_FORCE_OBJECT)?>,
 			Resource: <?=json_encode($permissions["resources"],JSON_FORCE_OBJECT)?>
 		}
-	};	
+	};
+	<?
+		} else {
+	?>
+	var BigTreeUserForm = {
+		Alerts: <?=json_encode($alerts)?>,
+		Permissions: {
+			Page: <?=json_encode($permissions["page"])?>,
+			Module: <?=json_encode($permissions["module"])?>,
+			ModuleGBP: <?=json_encode($permissions["module_gbp"])?>,
+			Resource: <?=json_encode($permissions["resources"])?>
+		}
+	};
+	<?
+		}
+	?>
 
 	new BigTreeFormValidator("form.module");
 	$("form.module").submit(function(ev) {

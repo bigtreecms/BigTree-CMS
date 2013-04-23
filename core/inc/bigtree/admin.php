@@ -5988,7 +5988,13 @@
 			} else {
 				$value = $this->autoIPL($value);
 			}
-			$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));
+
+			// Prefer to keep this an object, but we need PHP 5.3
+			if (strnatcmp(phpversion(),'5.3') >= 0) {
+				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
+			} else {
+				$value = sqlescape(json_encode($value));
+			}
 
 			if ($item["encrypted"]) {
 				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
