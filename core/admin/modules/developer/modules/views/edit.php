@@ -17,7 +17,7 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=$section_root?>delete/<?=$view["id"]?>/" class="button red">Delete View</a>
+		<a href="<?=$section_root?>delete/<?=$view["id"]?>/?module=<?=$action["module"]?>" class="button red">Delete View</a>
 	</footer>
 </div>
 <?
