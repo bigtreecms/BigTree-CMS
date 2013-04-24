@@ -1,17 +1,17 @@
 <?
 	/*
-		Class: BigTreeYouTubeAPI
+		Class: BigTreeFlickrAPI
 	*/
 	
 	require_once BigTree::path("inc/lib/oauth_client.php");
 	
-	class BigTreeYouTubeAPI {
+	class BigTreeFlickrAPI {
 		
 		var $debug = false;
 		var $Client;
 		var $Connected = false;
-		var $URL = "http://gdata.youtube.com/feeds/api/";
-		var $SettingsKey = "bigtree-internal-youtube-api";
+		var $URL = "http://api.flickr.com/services/rest/";
+		var $SettingsKey = "bigtree-internal-flickr-api";
 		
 		/*
 			Constructor:
@@ -26,7 +26,7 @@
 				if ($admin) {
 					$admin->createSetting(array(
 						"id" => $this->SettingsKey, 
-						"name" => "YouTube API", 
+						"name" => "Flickr API", 
 						"description" => "", 
 						"type" => "", 
 						"locked" => "on", 
@@ -39,18 +39,16 @@
 			
 			// Build API client
 			$this->Client = new oauth_client_class;
-			$this->Client->server = 'Google';
-			$this->Client->offline = true;
+			$this->Client->server = 'Flickr';
 			$this->Client->client_id = $this->settings["key"]; 
 			$this->Client->client_secret = $this->settings["secret"];
 			$this->Client->access_token = $this->settings["token"]; 
-			$this->Client->access_token_expiry = $this->settings["token_expiry"];
-			$this->Client->refresh_token = $this->settings["refresh_token"];
+			$this->Client->access_token_secret = $this->settings["token_secret"]; 
 			
 			// Scope
-			$this->Client->scope = "https://gdata.youtube.com";
+			$client->scope = 'read';
 			
-			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/youtube/return/";
+			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/flickr/return/";
 			
 			// Check if we're conected
 			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"]) {
@@ -63,7 +61,7 @@
 			// Set cache stuffs
 			$this->max_cache_age = 60 * 60; // 1 hour
 			$this->cache_root = SERVER_ROOT . "cache/custom/";
-			$this->cache_base = $this->cache_root . "youtube-";
+			$this->cache_base = $this->cache_root . "flickr-";
 			
 			if (!is_dir($this->cache_root)) {
 				mkdir($this->cache_root);
@@ -87,9 +85,14 @@
 				Make API call
 		*/
 		function get($endpoint = false, $params = array()) {
-			if (!$this->Connected || !$endpoint) {
+			if (!$this->Connected/*  || !$endpoint */) {
 				return false;
 			}
+			
+			$params = array_merge($params, array(
+				'format' => 'json',
+				'nojsoncallback' => '1'
+			));
 			
 			if ($this->Client->CallAPI($this->URL.$endpoint, 'GET', $params, array('FailOnAccessError' => true), $response)) {
 				return $response;
@@ -104,7 +107,7 @@
 				Return cached version, if it exists
 		*/
 		function getCached($endpoint = false, $params = array(), $cache_file) {
-			if (!$this->Connected || !$endpoint) {
+			if (!$this->Connected/*  || !$endpoint */) {
 				return false;
 			}
 			
@@ -164,14 +167,52 @@
 		
 		
 		/*
-			Function: getVideos
-				Return videos
+			Function: getImages
+				Return images
 		*/
-		function getVideos($user_id = false, $limit = 10, $params = array()) {
+		function getImages($user_id = false, $limit = 10, $params = array()) {
 			$user_id = ($user_id) ? $user_id : $this->settings["user_id"];
-			$cache_file = $this->cache_base . $user_id . "-videos.btx";
+			$cache_file = $this->cache_base . $user_id . "-images.btx";
 			
-			return $this->getCached("users/".$user_id."/uploads?v=2&alt=json", $params, $cache_file);
+			$params = array_merge($params, array(
+				"method" => "flickr.people.getPhotos",
+				"user_id" => $user_id,
+				"extras" => "description,date_upload,date_taken,"
+			));
+			
+			return $this->getCached("", $params, $cache_file);
+		}
+		
+		
+		/*
+			Function: getUserId
+				Return user id for username
+		*/
+		function getUserId($user_name = false, $limit = 10, $params = array()) {
+			if (!$user_name) {
+				return false;
+			}
+			
+			$params = array_merge($params, array(
+				"method" => "flickr.people.findByUsername",
+				"username" => $user_name
+			));
+			
+			return $this->get("", $params);
+		}
+		
+		
+		// FORMAT AN IMAGE URL
+		static function imageURL($data, $size = false) {
+			//http://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
+			return "http://farm" . $data["farm"] . ".staticflickr.com/" . $data["server"] . "/" . $data["id"] . "_" . $data["secret"] . ($size ? "_".$size : "") . ".jpg";
+		}
+		// FORMAT AN IMAGE LINK
+		static function imageLink($user_id = false, $photo_id = false) {
+			if (!$user_id || !$photo_id) {
+				return false;
+			}
+			return "http://www.flickr.com/photos/" . $user_id . "/" . $photo_id;
 		}
 		
 		/*

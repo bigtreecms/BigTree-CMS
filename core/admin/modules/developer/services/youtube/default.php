@@ -1,5 +1,3 @@
-<?
-?>
 <div class="container">
 	<section>
 		<p>Currently connected to your account:</p>

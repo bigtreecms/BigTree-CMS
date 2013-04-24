@@ -23,5 +23,15 @@
 			<p>Google+</p>
 		</a>
 		
+		<a class="box_select" href="youtube/">
+			<span class="youtube"></span>
+			<p>YouTube</p>
+		</a>
+		
+		<a class="box_select" href="flickr/">
+			<span class="flickr"></span>
+			<p>Flickr</p>
+		</a>
+		
 	</section>
 </div>

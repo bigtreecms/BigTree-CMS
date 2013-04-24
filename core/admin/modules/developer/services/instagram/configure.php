@@ -8,11 +8,11 @@
 			<hr />
 			<fieldset>
 				<label>Client ID</label>
-				<input type="text" name="key" />
+				<input type="text" name="key" autocomplete="off" />
 			</fieldset>
 			<fieldset>
 				<label>Client Secret</label>
-				<input type="text" name="secret" />
+				<input type="text" name="secret" autocomplete="off" />
 			</fieldset>
 			<fieldset>
 				<label>Scope <small><a href="http://instagram.com/developer/authentication/#scope" target="_blank">Learn More</a></small></label>

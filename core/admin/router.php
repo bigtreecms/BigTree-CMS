@@ -123,6 +123,9 @@
 				array("title" => "YouTube API","link" => "developer/services/youtube","icon" => "youtube","hidden" => true, "children" => array(
 					array("title" => "Configure","link" => "developer/services/youtube/configure","nav_icon" => "setup","level" => 1)
 				)),
+				array("title" => "Flickr API","link" => "developer/services/flickr","icon" => "flickr","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/flickr/configure","nav_icon" => "setup","level" => 1)
+				))
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),

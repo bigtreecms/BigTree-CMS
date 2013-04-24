@@ -1004,6 +1004,21 @@
 		}
 		
 		/*
+			Function: isExternalLink
+				Check if URL is external, relative to site root
+			
+			Parameters:
+				url - The URL to test.
+
+			Returns:
+				true if link is external
+		*/
+		
+		static function isExternalLink($url) {
+			return (strpos($url, "http") == 0 && strpos($url, WWW_ROOT) === false);
+		}
+		
+		/*
 			Function: makeDirectory
 				Makes a directory (and all applicable parent directories).
 				Sets permissions to 777.

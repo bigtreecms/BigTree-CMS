@@ -2,7 +2,7 @@
 /*
  * oauth_client.php
  *
- * @(#) $Id: oauth_client.php,v 1.56 2013/03/29 08:09:42 mlemos Exp $
+ * @(#) $Id: oauth_client.php,v 1.58 2013/04/11 09:33:16 mlemos Exp $
  *
  */
 
@@ -12,7 +12,7 @@
 
 	<package>net.manuellemos.oauth</package>
 
-	<version>@(#) $Id: oauth_client.php,v 1.56 2013/03/29 08:09:42 mlemos Exp $</version>
+	<version>@(#) $Id: oauth_client.php,v 1.58 2013/04/11 09:33:16 mlemos Exp $</version>
 	<copyright>Copyright © (C) Manuel Lemos 2012</copyright>
 	<title>OAuth client</title>
 	<author>Manuel Lemos</author>
@@ -681,7 +681,7 @@ class oauth_client_class
 */
 	var $response_status = 0;
 
-	var $oauth_user_agent = 'PHP-OAuth-API (http://www.phpclasses.org/oauth-api $Revision: 1.56 $)';
+	var $oauth_user_agent = 'PHP-OAuth-API (http://www.phpclasses.org/oauth-api $Revision: 1.58 $)';
 	var $session_started = false;
 
 	Function SetError($error)
@@ -1001,6 +1001,8 @@ class oauth_client_class
 		$http->log_debug = true;
 		$http->sasl_authenticate = 0;
 		$http->user_agent = $this->oauth_user_agent;
+		$http->redirection_limit = (IsSet($options['FollowRedirection']) ? intval($options['FollowRedirection']) : 0);
+		$http->follow_redirect = ($http->redirection_limit != 0);
 		if($this->debug)
 			$this->OutputDebug('Accessing the '.$options['Resource'].' at '.$url);
 		$post_files = array();
@@ -1402,6 +1404,9 @@ class oauth_client_class
 				<purpose>Associative array with additional options to configure
 					the request. Currently it supports the following
 					options:<paragraphbreak />
+					<stringvalue>2Legged</stringvalue>: boolean option that
+						determines if the API request should be 2 legged. The default
+						value is <tt><booleanvalue>0</booleanvalue></tt>.<paragraphbreak />
 					<stringvalue>Accept</stringvalue>: content type value of the
 						Accept HTTP header to be sent in the API call HTTP request.
 						Some APIs require that a certain value be sent to specify
@@ -1435,6 +1440,15 @@ class oauth_client_class
 						determine that a POST request should pass the request values
 						in the URI. The default value is
 						<booleanvalue>0</booleanvalue>.<paragraphbreak />
+					<stringvalue>FollowRedirection</stringvalue>: limit number of
+						times that HTTP response redirects will be followed. If it is
+						set to <integervalue>0</integervalue>, redirection responses
+						fail in error. The default value is
+						<integervalue>0</integervalue>.<paragraphbreak />
+					<stringvalue>RequestBody</stringvalue>: request body data of a
+						custom type. The <stringvalue>RequestContentType</stringvalue>
+						option must be specified, so the
+						<stringvalue>RequestBody</stringvalue> option is considered.<paragraphbreak />
 					<stringvalue>RequestContentType</stringvalue>: content type that
 						should be used to send the request values. It can be either
 						<stringvalue>application/x-www-form-urlencoded</stringvalue>
@@ -1500,7 +1514,7 @@ class oauth_client_class
 		{
 			case 1:
 				$oauth = array(
-					'oauth_token'=>$this->access_token
+					'oauth_token'=>((IsSet($options['2Legged']) && $options['2Legged']) ? '' : $this->access_token)
 				);
 				break;
 

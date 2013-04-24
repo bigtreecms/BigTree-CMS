@@ -39,12 +39,13 @@
 			
 			// Build API client
 			$this->Client = new oauth_client_class;
+			
 			$this->Client->server = 'Google';
 			$this->Client->offline = true;
 			$this->Client->client_id = $this->settings["key"]; 
 			$this->Client->client_secret = $this->settings["secret"];
 			$this->Client->access_token = $this->settings["token"]; 
-			$this->Client->token_expiry = $this->settings["access_token_expiry"];
+			$this->Client->access_token_expiry = $this->settings["token_expiry"];
 			$this->Client->refresh_token = $this->settings["refresh_token"];
 			
 			// Scope
@@ -110,7 +111,6 @@
 			}
 			
 			$cache_age = $this->cacheAge($cache_file);
-			
 			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
 				$response = $this->get($endpoint, $params);
 				
@@ -128,6 +128,7 @@
 				Return cache filetime; "0" if file does not exist
 		*/
 		public function cacheAge($file) {
+			clearstatcache();
 			return file_exists($file) ? filemtime($file) : 0;
 		}
 		

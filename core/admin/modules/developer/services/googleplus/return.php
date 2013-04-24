@@ -10,7 +10,7 @@
 			// UPDATE SETTINGS
 			$googleplusAPI->settings["token"] = $googleplusAPI->Client->access_token;
 			
-			$googleplusAPI->settings["access_token_expiry"] = $googleplusAPI->Client->access_token_expiry;
+			$googleplusAPI->settings["token_expiry"] = $googleplusAPI->Client->access_token_expiry;
 			$googleplusAPI->settings["refresh_token"] = $googleplusAPI->Client->refresh_token;
 			
 			$googleplusAPI->settings["user_id"] = $user->id;

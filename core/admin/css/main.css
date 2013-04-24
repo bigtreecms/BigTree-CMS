@@ -65,6 +65,8 @@
 	h1 .twitter, .box_select .twitter { background-position: -414px -47px; }
 	h1 .instagram, .box_select .instagram { background-position: -453px -47px; }
 	h1 .googleplus, .box_select .googleplus { background-position: -486px -47px; }
+	h1 .youtube, .box_select .youtube { background-position: -658px -47px; }
+	h1 .flickr, .box_select .flickr { background-position: -523px -47px; }
 	h1 .crop { background-position: -896px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }

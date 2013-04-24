@@ -4,19 +4,18 @@
 	$ok = false;
 	
 	if ($youtubeAPI->Client->Process()) {
-		
 		if ($youtubeAPI->Client->access_token) {
-			//$youtubeAPI->Client->CallAPI('https://www.googleapis.com/oauth2/v1/userinfo', "GET", array(), array('FailOnAccessError'=>true), $user);
+			$youtubeAPI->Client->CallAPI('https://gdata.youtube.com/feeds/api/users/default?v=2&alt=json', "GET", array(), array('FailOnAccessError'=>true), $user);
 			
 			// UPDATE SETTINGS
 			$youtubeAPI->settings["token"] = $youtubeAPI->Client->access_token;
 			
-			$youtubeAPI->settings["access_token_expiry"] = $youtubeAPI->Client->access_token_expiry;
+			$youtubeAPI->settings["token_expiry"] = $youtubeAPI->Client->access_token_expiry;
 			$youtubeAPI->settings["refresh_token"] = $youtubeAPI->Client->refresh_token;
 			
-			$youtubeAPI->settings["user_id"] = $user->id;
-			$youtubeAPI->settings["user_name"] = $user->name;
-			$youtubeAPI->settings["user_image"] = $user->picture;
+			$youtubeAPI->settings["user_id"] = $user->entry->author[0]->{'yt$userId'}->{'$t'};
+			$youtubeAPI->settings["user_name"] = $user->entry->author[0]->name->{'$t'};
+			$youtubeAPI->settings["user_image"] = $user->entry->{'media$thumbnail'}->url;
 			
 			$youtubeAPI->saveSettings();
 			
