@@ -313,7 +313,7 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
-						if (!is_string($val)) {
+						if (is_array($val)) {
 							$val = json_encode(BigTree::translateArray($val));
 						}
 						$query_vals[] = "'".sqlescape($val)."'";
@@ -1274,7 +1274,7 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query .= "`$key` = $val,";
 					} else {
-						if (!is_string($val)) {
+						if (is_array($val)) {
 							$val = json_encode(BigTree::translateArray($val));
 						}
 						$query .= "`$key` = '".sqlescape($val)."',";
