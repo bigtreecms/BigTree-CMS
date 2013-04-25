@@ -111,6 +111,9 @@ $(document).ready(function() {
 	});
 
 	BigTree.FormHooks(".container form");
+
+	// Quick Loader
+	BigTreeQuickLoader.init();
 });
 
 function BigTreeCustomControls() {
@@ -2300,3 +2303,171 @@ var BigTree = {
 		return windowHeight;
 	}
 }
+
+// !BigTree Quick Loader, adapted from Ben Plum's cool Pronto jQuery Plugin @ https://github.com/benplum/Pronto
+var BigTreeQuickLoader = {
+
+	init: function() {
+		var supported = window.history && window.history.pushState && window.history.replaceState;
+		if (!supported) {
+			return;
+		}
+
+		scripts = [];
+		$("head > script").each(function() {
+			src = $(this).attr("src");
+			if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
+				scripts[scripts.length] = src;
+			}
+		});
+		css = [];
+		$("head > link[rel=stylesheet]").each(function() {
+			src = $(this).attr("href");
+			if (src != "admin_root/css/main.css") {
+				css[css.length] = src;
+			}
+		});
+		
+		history.replaceState({
+			url: window.location.href,
+			data: {
+				"title": $("head").find("title").text(),
+				"breadcrumb": $("ul.breadcrumb").html(),
+				"page": $("#page").html(),
+				"active_nav": $("nav.main li").index(".active"),
+				"scripts": scripts,
+				"css": css
+			}
+		}, "state-" + window.location.href, window.location.href);
+		
+		$(window).on("popstate", this.pop);
+		$("body").on("click","a",this.click);
+
+		this.url = window.location.href;
+	},
+
+	click: function(e) {
+		var link = e.currentTarget;
+		
+		// Ignore everything but normal clicks
+		if ((e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) ||
+			(window.location.protocol !== link.protocol || window.location.host !== link.host) ||
+			(link.hash && link.href.replace(link.hash, '') === window.location.href.replace(location.hash, '') || link.href === window.location.href + '#')) {
+			return;
+		}
+		
+		e.preventDefault();
+		e.stopPropagation();
+		
+		BigTreeQuickLoader.request(link.href);
+	},
+
+	pop: function(e) {
+		var state = e.originalEvent.state;
+		if (state !== null && (state.url !== BigTreeQuickLoader.url)) {
+			BigTreeQuickLoader.render(state.url, state.data, false);
+		}
+	},
+
+	render: function(url,data,push) {
+		$(window).scrollTop(0);
+		
+		if (typeof data.breadcrumb === "string") {
+			breadcrumb = data.breadcrumb;
+		} else {
+			breadcrumb = "";
+			for (i = 0; i < data.breadcrumb.length; i++) {
+				crumb = data.breadcrumb[i];
+				if (i == data.breadcrumb.length - 1) {
+					breadcrumb += '<li><a href="admin_root/' + crumb.link + '/" class="last">' + crumb.title + '</a></li>';
+				} else {
+					if (i == 0) {
+						breadcrumb += '<li class="first">';
+					} else {
+						breadcrumb += '<li>';
+					}
+					breadcrumb += '<a href="admin_root/' + crumb.link + '/">' + crumb.title + '</a></li><li>&rsaquo;</li>';	
+				}
+			}
+		}
+
+		// Remove all scripts that aren't in this new found awesome-sauce
+		scripts_to_load = data.scripts;
+		if (scripts_to_load) {
+			$("head > script").each(function() {
+				src = $(this).attr("src");
+				if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
+					// If we already have it included, don't reload it
+					if (data.scripts.indexOf(src) > -1) {
+						scripts_to_load[data.scripts.indexOf(src)] = null;
+					// If it's not in our new list of scripts, remove it from the page
+					} else {
+						$(this).remove();
+					}
+				}
+			});
+			for (i = 0; i < scripts_to_load.length; i++) {
+				src = scripts_to_load[i];
+				if (src) {
+					console.log("appending" + src);
+					script = $("head").append($('<script src="' + src + '">'));
+				}
+			}
+		}
+		// Remove all CSS that isn't in this new found awesome-sauce
+		css_to_load = data.css;
+		if (css_to_load) {
+			$("head > link[rel=stylesheet]").each(function() {
+				src = $(this).attr("href");
+				if (src != "admin_root/css/main.css") {
+					// If we already have it included, don't reload it
+					if (data.css.indexOf(src) > -1) {
+						css_to_load[data.css.indexOf(src)] = null;
+					// If it's not in our new list of css, remove it from the page
+					} else {
+						$(this).remove();
+					}
+				}
+			});
+			for (i = 0; i < css_to_load.length; i++) {
+				src = css_to_load[i];
+				if (src) {
+					css = $("head").append($('<link rel="stylesheet" type="text/css" media="screen" href="' + src + '">'));
+				}
+			}
+		}
+
+		document.title = data.title;
+		$("#page").html(data.page);
+		$("ul.breadcrumb").html(breadcrumb);
+		$("nav.main li, nav.main li > a").removeClass("active");
+		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
+
+		BigTreeCustomControls();
+		
+		// Push new states to the stack
+		if (push) {
+			history.pushState({
+				url: url,
+				data: data
+			}, "state-" + url, url);
+		}
+		
+		BigTreeQuickLoader.url = url;
+	},
+
+	request: function(url) {
+		// Call new content
+		$.ajax({
+			url: url,
+			headers: { "BigTree-Partial": "True" },
+			dataType: "json",
+			success: function(response) {
+				BigTreeQuickLoader.render(url,response,true);
+			},
+			error: function(response) {
+				window.location.href = url;
+			}
+		});
+	}
+};
