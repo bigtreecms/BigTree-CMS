@@ -66,7 +66,6 @@
 		);
 		
 		// !Icon Classes
-		//var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
 		
 		var $IconClasses =  array(
 			"gear",
@@ -2282,41 +2281,11 @@
 					"custom" => "Custom Function"
 				);
 
-				$types["template"] = array(
+				$types["template"] = $types["callout"] = $types["setting"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
 					"html" => "HTML Area",
 					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
-				);
-
-				$types["callout"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
-				);
-
-				$types["settings"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"menu" => "Menu",
 					"list" => "List",
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
