@@ -56,7 +56,6 @@
 		name = $(this).attr("name");
 		table = $(this).val();
 		$(".pop-dependant").each(function(el) {
-			console.log($(this));
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {
 					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("data-name"), BigTreeCustomControls);

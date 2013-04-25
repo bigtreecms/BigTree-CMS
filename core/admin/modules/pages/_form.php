@@ -40,6 +40,7 @@
 			}
 		?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
+		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="<? if ($action == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$page["id"]?>" />
 		
 		<section id="properties_tab"<? if ($action == "update") { ?> style="display: none;"<? } ?>>
@@ -72,12 +73,8 @@
 			<?
 					}
 				} else {
-					if ($page != 0) {
 			?>
 			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
-			<?
-					}
-			?>
 			<input type="submit" name="ptype" value="Save"<? if ($access_level != "p") { ?> class="blue"<? } ?> />
 			<?
 					if ($access_level == "p") {
@@ -118,13 +115,12 @@
 		return false;
 	});
 
-	var template = "<?=$page["template"]?>";
+	BigTreePages.currentTemplate = "<?=$page["template"]?>";
 	<? if ($action == "create") { ?>
-	var page = false;
+	BigTreePages.currentPage = false;
 	<? } else { ?>
-	var page = "<?=$page["id"]?>";
-	var page_updated_at = "<?=$page["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$page["id"]?>' } });",60000);
+	BigTreePages.currentPage = "<?=$page["id"]?>";
+	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$page["id"]?>' } });",60000);
 	<? } ?>
 	
 	new BigTreeFormValidator("#page_form",function(errors) {

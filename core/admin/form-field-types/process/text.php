@@ -16,7 +16,7 @@
 			$value = $data[$key];
 		}
 	} elseif ($st == "address" || $st == "name") {
-		$value = json_encode($data[$key]);
+		$value = $data[$key];
 	} else {
 		$value = $data[$key];
 	}

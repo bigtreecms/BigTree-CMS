@@ -6,6 +6,10 @@
 	*/
 	
 	class BigTree {
+
+		static $StateList = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
+		static $CountryList = array("United States","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombi","Comoros","Congo (Brazzaville)","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor (Timor Timur)","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia, The","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea, North","Korea, South","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepa","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia and Montenegro","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
+		static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
 	
 		/*
 			Function: apiEncode
@@ -65,6 +69,9 @@
 				newfile - The location to save the new cropped image.
 				cw - The crop width.
 				ch - The crop height.
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function centerCrop($file, $newfile, $cw, $ch) {
@@ -79,11 +86,11 @@
 				$nw = $w * $v;
 				$x = ceil(($nw - $cw) / 2 * $w / $nw);
 				$y = 0;
-				self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
 			} else {
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
-				self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
 			}
 		}
 		
@@ -168,10 +175,18 @@
 				height - The height to crop from the original image.
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
+
+			// If we don't have the memory available, fail gracefully.
+			if (!self::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
+				return false;
+			}
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
@@ -227,6 +242,9 @@
 				maxheight - The maximum height of the new image (0 for no max).
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false) {
@@ -241,6 +259,11 @@
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 				$result_width *= 2;
 				$result_height *= 2;
+			}
+
+			// If we don't have the memory available, fail gracefully.
+			if (!self::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
+				return false;
 			}
 
 			$thumbnailed_image = imagecreatetruecolor($result_width, $result_height);
@@ -682,48 +705,18 @@
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
-				Caches results in a BigTree setting.
+				This method is deprecated and exists only for backwards compatibility (BigTreeGeocodingService should be used directly).
 			
 			Parameters:
 				address - The address to geocode.
 			
 			Returns:
-				An associative array with "lat" and "lon" keys.
+				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
 		
 		static function geocodeAddress($address) {
-			global $cms,$admin;
-			
-			// Clean up the address and get our cache key
-			$address = trim(strip_tags($address));
-			$cache_key = base64_encode($address);
-			
-			// See if the setting exists, if it does grab it, otherwise create it.
-			if (!$admin) {
-				$admin = new BigTreeAdmin;
-			}
-			if (!$admin->settingExists("bigtree-internal-geocoded-addresses")) {
-				$admin->createSetting(array("id" => "bigtree-internal-geocoded-addresses", "system" => "on"));
-			}
-			$cache = $cms->getSetting("bigtree-internal-geocoded-addresses");
-			if (isset($cache[$cache_key])) {
-				return $cache[$cache_key];
-			}
-			
-			// It's not in the cache, ask Google for it.
-			$file = utf8_encode(BigTree::curl("http://maps.google.com/maps/geo?q=".urlencode($address)."&output=xml"));
-			try {
-				$xml = new SimpleXMLElement($file);
-				$coords = explode(",", $xml->Response->Placemark->Point->coordinates);
-				$geo = array("latitude" => $coords[1], "longitude" => $coords[0]);
-			} catch (Exception $e) {
-				$geo = false;
-			}
-			
-			// Add the result to the cache and return it.
-			$cache[$cache_key] = $geo;
-			$admin->updateSettingValue("bigtree-internal-geocoded-addresses",$cache);
-			return $geo;
+			$geocoder = new BigTreeGeocodingService;
+			return $geocoder->geocode($address);
 		}
 		
 		/*
@@ -978,7 +971,34 @@
 			return "http://www.gravatar.com/avatar/" . md5(strtolower($email)) . "?s=" . $size . "&d=" . urlencode($default) . "&rating=" . $rating;
 		}
 		
-		
+		/*
+			Function: imageManipulationMemoryAvailable
+				Checks whether there is enough memory available to perform an image manipulation.
+
+			Parameters:
+				source - The source image file
+				width - The width of the new image to be created
+				height - The height of the new image to be created
+
+			Returns:
+				true if the image can be created, otherwise false.
+		*/
+
+		static function imageManipulationMemoryAvailable($source,$width,$height) {
+			// Thanks to Klinky on Stack Overflow for this: http://stackoverflow.com/users/187537/klinky
+			// Convert megabytes to bytes.
+			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
+			list($source_width,$source_height) = getimagesize($source);
+			// 3 bytes per pixel, GD internally takes ~67% more memory
+			$source_size = ceil($source_width * $source_height * 3 * 1.68); 
+			$target_size = ceil($width * $height * 3 * 1.68);
+			// Give 10K memory for the methods that will perform the operation.
+			$memory_usage = $source_size + $target_size + memory_get_usage() + 10 * 1024;
+			if ($memory_usage > $available_memory) {
+				return false;
+			}
+			return true;
+		}
 		
 		/*
 			Function: isDirectoryWritable
@@ -990,6 +1010,7 @@
 			Returns:
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
+
 		static function isDirectoryWritable($path) {
 			if (is_writable($path)) {
 				return true;
@@ -1001,6 +1022,21 @@
 				return self::isDirectoryWritable($path);
 			}
 			return is_writable($path);
+		}
+		
+		/*
+			Function: isExternalLink
+				Check if URL is external, relative to site root
+			
+			Parameters:
+				url - The URL to test.
+
+			Returns:
+				true if link is external
+		*/
+		
+		static function isExternalLink($url) {
+			return (strpos($url, "http") == 0 && strpos($url, WWW_ROOT) === false);
 		}
 		
 		/*
@@ -1293,7 +1329,23 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
-			global $status_codes;
+			$status_codes = array(
+				"200" => "OK",
+				"300" => "Multiple Choices",
+				"301" => "Moved Permanently",
+				"302" => "Found",
+				"304" => "Not Modified",
+				"307" => "Temporary Redirect",
+				"400" => "Bad Request",
+				"401" => "Unauthorized",
+				"403" => "Forbidden",
+				"404" => "Not Found",
+				"410" => "Gone",
+				"500" => "Internal Server Error",
+				"501" => "Not Implemented",
+				"503" => "Service Unavailable",
+				"550" => "Permission denied"
+			);
 			if (!$url) {
 				return false;
 			}
@@ -1307,6 +1359,46 @@
 			}
 			header("Location: ".$url);
 			die();
+		}
+
+		/*
+			Function: relativeTime
+				Turns a timestamp into "… hours ago" formatting.
+
+			Parameters:
+				time - A date/time stamp understandable by strtotime
+
+			Returns:
+				A string describing how long ago the passed time was.
+		*/
+
+		static function relativeTime($time) {
+			$second = 1;
+			$minute = 60;
+			$hour = 3600;
+			$day = 86400;
+			$month = 2592000;			
+			$delta = strtotime(date('r')) - strtotime($time);
+			
+			if ($delta < 2 * $minute) {
+				return "1 min ago";
+			} elseif ($delta < 45 * $minute) {
+				return floor($delta / $minute) . " min ago";
+			} elseif ($delta < 90 * $minute) {
+				return "1 hour ago";
+			} elseif ($delta < 24 * $hour) {
+				return floor($delta / $hour) . " hours ago";
+			} elseif ($delta < 48 * $hour) {
+				return "yesterday";
+			} elseif ($delta < 30 * $day) {
+				return floor($delta / $day) . " days ago";
+			} elseif ($delta < 12 * $month) {
+				$months = floor($delta / $day / 30);
+				return $months <= 1 ? "1 month ago" : $months . " months ago";
+			} else {
+				$years = floor($delta / $day / 365);
+				return $years <= 1 ? "1 year ago" : $years . " years ago";
+			}
 		}
 
 		/*
@@ -1429,7 +1521,7 @@
 		*/
 		
 		static function translateArray($array) {
-			global $admin;
+			$admin = new BigTreeAdmin;
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = self::translateArray($piece);
@@ -1718,29 +1810,4 @@
 	if (!function_exists("mb_strtolower")) {
 		function mb_strtolower($string) { return strtolower($string); }
 	}
-
-	$state_list = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
-
-	$country_list = array("United States","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombi","Comoros","Congo (Brazzaville)","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor (Timor Timur)","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia, The","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea, North","Korea, South","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepa","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia and Montenegro","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
-
-	$month_list = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
-	
-	$status_codes = array(
-		"200" => "OK",
-		"300" => "Multiple Choices",
-		"301" => "Moved Permanently",
-		"302" => "Found",
-		"304" => "Not Modified",
-		"307" => "Temporary Redirect",
-		"400" => "Bad Request",
-		"401" => "Unauthorized",
-		"403" => "Forbidden",
-		"404" => "Not Found",
-		"410" => "Gone",
-		"500" => "Internal Server Error",
-		"501" => "Not Implemented",
-		"503" => "Service Unavailable",
-		"550" => "Permission denied"
-	);
-	
 ?>

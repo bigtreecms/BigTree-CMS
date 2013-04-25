@@ -1,4 +1,7 @@
 <?
+	if (!$_SESSION["bigtree_admin"]["form_data"]) {
+		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
+	}
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 	// Load the cropper Javascript.
 	$bigtree["js"][] = "jcrop.min.js";
@@ -9,7 +12,7 @@
 	<header>
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
-	<form method="post" action="<?=$form_root?>process-crops/<? if ($page) { echo $page["id"]."/"; } ?>" id="crop_form" class="module">
+	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<? if (is_array($page)) { echo $page["id"]; } elseif (is_numeric($page)) { echo $page; } ?>/" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
 		<section class="cropper">
@@ -92,16 +95,16 @@
 								minSize: [<?=$min_width?>,<?=$min_height?>],
 								aspectRatio: <?=($min_width / $min_height)?>,
 								setSelect: [<?=$initial_x?>,<?=$initial_y?>,<?=($initial_x + $initial_width)?>,<?=($initial_y + $initial_height)?>],
-								onSelect: _local_showPreview<?=$x?>,
-								onChange: _local_showPreview<?=$x?>
+								onSelect: BigTree.localShowPreview<?=$x?>,
+								onChange: BigTree.localShowPreview<?=$x?>
 							});
 						});
 						
-						function _local_showPreview<?=$x?>(coords) {
-							var rx = <?=$box_width?> / coords.w;
-							var ry = <?=$box_height?> / coords.h;
-							var bx = <?=$preview_width?> / coords.w;
-							var by = <?=$preview_height?> / coords.h;
+						BigTree.localShowPreview<?=$x?> = function(coords) {
+							rx = <?=$box_width?> / coords.w;
+							ry = <?=$box_height?> / coords.h;
+							bx = <?=$preview_width?> / coords.w;
+							by = <?=$preview_height?> / coords.h;
 						
 							$("#preview_<?=$x?> img").css({
 								width: Math.round(rx * <?=$preview_width?>) + 'px',
@@ -114,7 +117,7 @@
 							$("#y<?=$x?>").val(Math.round(coords.y * <?=($height/$box_height)?>));
 							$("#width<?=$x?>").val(Math.round(coords.w * <?=($width/$box_width)?>));
 							$("#height<?=$x?>").val(Math.round(coords.h * <?=($height/$box_height)?>));
-						}
+						};
 					</script>
 				</li>
 			<?
@@ -128,15 +131,15 @@
 	</form>
 </div>
 <script>
-	var current = 1;
-	var max = <?=count($crops)?>;
+	BigTree.currentCrop = 1;
+	BigTree.maxCrops = <?=count($crops)?>;
 	
 	$("#crop_form").submit(function() {
-		if (current != max) {
-			$("#cropper li").eq(current-1).hide();
-			$("#cropper li").eq(current).show();
-			current++;
-			$("h2.cropper .current").html(current);
+		if (BigTree.currentCrop != BigTree.maxCrops) {
+			$("#cropper li").eq(BigTree.currentCrop - 1).hide();
+			$("#cropper li").eq(BigTree.currentCrop).show();
+			BigTree.currentCrop++;
+			$("h2.cropper .current").html(BigTree.currentCrop);
 			return false;
 		}
 	});

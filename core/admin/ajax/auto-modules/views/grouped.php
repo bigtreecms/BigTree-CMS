@@ -74,7 +74,7 @@
 			$search_in = $search;
 		}
 		
-		$r = BigTreeAutoModule::getSearchResults($view,0,$search_in,$sort,$group,$module);
+		$r = BigTreeAutoModule::getSearchResults($view,1,$search_in,$sort,$group,$module);
 		
 		if (count($r["results"])) {
 			$gc++;

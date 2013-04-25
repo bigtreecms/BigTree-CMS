@@ -14,7 +14,7 @@
 		$fields[$key]["width"] = $percol - 20;
 	}
 	
-	$items = BigTreeAutoModule::parseViewData($view["id"],$items);
+	$items = BigTreeAutoModule::parseViewData($view,$items);
 ?>
 <div class="table" style="margin: 0;">
 	<header>
@@ -76,8 +76,6 @@
 </div>
 
 <script>
-	var deleteConfirm,deleteTimer,deleteId;
-
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {
 		document.location.href = "<?=$mpage."edit".$suffix?>/" + $(this).attr("href").substr(1) + "/";
 		return false;

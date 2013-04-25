@@ -66,7 +66,6 @@
 		);
 		
 		// !Icon Classes
-		//var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
 		
 		var $IconClasses =  array(
 			"gear",
@@ -1993,7 +1992,7 @@
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$bigtree["config"]["domain"]);
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
-				$changes = $this->getPendingChanges($user["id"]);
+				$changes = $this->getPublishableChanges($user["id"]);
 				$alerts = $this->getContentAlerts($user["id"]);
 				$messages = $this->getMessages($user["id"]);
 				$unread = $messages["unread"];
@@ -2069,11 +2068,12 @@
 					$body = str_ireplace("{pending_changes}", $body_changes, $body);
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 
-					$headers  = "MIME-Version: 1.0 \r\n";
-					$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
-					$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
-
-					mail($user["name"]." <".$user["email"].">",$site_title." Daily Digest",$body,$headers);
+					$mailer = new htmlMimeMail();
+					$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
+					$mailer->setSubject("$site_title Daily Digest");
+					$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
+					$mailer->setHtml($body,"");
+					$mailer->send(array($user["email"]));
 				}
 			}
 		}
@@ -2093,7 +2093,6 @@
 		*/
 
 		function forgotPassword($email) {
-			global $bigtree;
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
@@ -2109,21 +2108,22 @@
 			
 			$reset_link = ADMIN_ROOT."login/reset-password/$hash/";
 			
-			$body = file_get_contents(BigTree::path("admin/email/reset-password.html"));
-			$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
-			$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
-			$body = str_ireplace("{site_title}", $site_title, $body);
-			$body = str_ireplace("{reset_link}", $reset_link, $body);
-
-			$headers  = "MIME-Version: 1.0 \r\n";
-			$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
-			$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
-
-			mail($user["name"]." <".$user["email"].">","Reset Your Password",$body,$headers);
-			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
-
-			//mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".,"From: no-reply@$no_reply_domain");
+			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
+			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
+			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
+			$html = str_ireplace("{site_title}",$site_title,$html);
+			$html = str_ireplace("{reset_link}",$reset_link,$html);
 			
+			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
+
+			$mailer = new htmlMimeMail();
+			$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
+			$mailer->setSubject("Reset Your Password");
+			$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
+			$mailer->setHtml($html,$text);
+			$mailer->send(array($user["email"]));
+			
+			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
 		}
 
 		/*
@@ -2470,41 +2470,11 @@
 					"custom" => "Custom Function"
 				);
 
-				$types["template"] = array(
+				$types["template"] = $types["callout"] = $types["setting"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
 					"html" => "HTML Area",
 					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
-				);
-
-				$types["callout"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
-				);
-
-				$types["settings"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"menu" => "Menu",
 					"list" => "List",
 					"checkbox" => "Checkbox",
 					"date" => "Date Picker",
@@ -3461,7 +3431,7 @@
 				If the calling user is a developer, returns locked settings, otherwise they are left out.
 		*/
 
-		function getPageOfSettings($page = 0,$query = "") {
+		function getPageOfSettings($page = 1,$query = "") {
 			global $cms;
 			// If we're querying...
 			if ($query) {
@@ -3473,18 +3443,18 @@
 				}
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 				}
 			} else {
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".($page*$this->PerPage).",".$this->PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".(($page - 1 ) * $this->PerPage).",".$this->PerPage);
 				}
 			}
 
@@ -3515,7 +3485,7 @@
 				An array of entries from bigtree_users.
 		*/
 
-		function getPageOfUsers($page = 0,$query = "",$sort = "name ASC") {
+		function getPageOfUsers($page = 1,$query = "",$sort = "name ASC") {
 			// If we're searching.
 			if ($query) {
 				$qparts = explode(" ",$query);
@@ -3524,10 +3494,10 @@
 					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
-				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 			// If we're grabbing anyone.
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".($page * $this->PerPage).",".$this->PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".(($page - 1) * $this->PerPage).",".$this->PerPage);
 			}
 
 			$items = array();
@@ -3840,7 +3810,7 @@
 		}
 
 		/*
-			Function: getPendingChanges
+			Function: getPublishableChanges
 				Returns a list of changes that the logged in user has access to publish.
 
 			Parameters:
@@ -3850,7 +3820,7 @@
 				An array of changes sorted by most recent.
 		*/
 
-		function getPendingChanges($user = false) {
+		function getPublishableChanges($user = false) {
 			if (!$user) {
 				$user = $this->getUser($this->ID);
 			} else {
@@ -3917,12 +3887,46 @@
 
 				// We're a publisher, get the info about the change and put it in the change list.
 				if ($ok) {
-					$mod = $this->getModule($f["module"]);
-					$user = $this->getUser($f["user"]);
-					$f["mod"] = $mod;
-					$f["user"] = $user;
+					$f["mod"] = $this->getModule($f["module"]);
+					$f["user"] = $this->getUser($f["user"]);
 					$changes[] = $f;
 				}
+			}
+
+			return $changes;
+		}
+
+		/*
+			Function: getPendingChanges
+				Returns a list of changes that the logged in user has created.
+
+			Parameters:
+				user - The user id to retrieve changes for. Defaults to the logged in user.
+
+			Returns:
+				An array of changes sorted by most recent.
+		*/
+
+		function getPendingChanges($user = false) {
+			if (is_array($user)) {
+				$user = $user["id"];
+			} elseif (!$user) {
+				$user = $this->ID;
+			}
+
+			$changes = array();
+			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE user = '".sqlescape($user)."' ORDER BY date DESC");
+
+			while ($f = sqlfetch($q)) {
+				if (!$f["item_id"]) {
+					$id = "p".$f["id"];
+				} else {
+					$id = $f["item_id"];
+				}
+				
+				$mod = $this->getModule($f["module"]);
+				$f["mod"] = $mod;
+				$changes[] = $f;
 			}
 
 			return $changes;
@@ -4453,7 +4457,7 @@
 		*/
 
 		function growl($title,$message,$type = "success") {
-			$_SESSION["bigtree_admin"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
+			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
 		/*
@@ -4553,6 +4557,8 @@
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
+				$locked_by = $this->getUser($f["user"]);
+				$last_accessed = $f["last_accessed"];
 				include BigTree::path($include);
 				if ($in_admin) {
 					$this->stop();
@@ -4895,7 +4901,7 @@
 				An array of entries from bigtree_404s.
 		*/
 
-		function search404s($type,$query = "",$page = 0) {
+		function search404s($type,$query = "",$page = 1) {
 			$items = array();
 
 			if ($query) {
@@ -4923,7 +4929,7 @@
 			$pages = ($pages < 1) ? 1 : $pages;
 			
 			// Get the results
-			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".($page * 20).",20");
+			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
@@ -6184,7 +6190,18 @@
 			$item = $this->getSetting($id,false);
 			$id = sqlescape($id);
 
-			$value = sqlescape(json_encode($value));
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = $this->autoIPL($value);
+			}
+
+			// Prefer to keep this an object, but we need PHP 5.3
+			if (strnatcmp(phpversion(),'5.3') >= 0) {
+				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
+			} else {
+				$value = sqlescape(json_encode($value));
+			}
 
 			if ($item["encrypted"]) {
 				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
@@ -6282,8 +6299,8 @@
 				}
 			}
 
-			$permissions = sqlescape(json_encode($data["permissions"]));
-			$alerts = sqlescape(json_encode($data["alerts"]));
+			$permissions = sqlescape(json_encode($data["permissions"],JSON_FORCE_OBJECT));
+			$alerts = sqlescape(json_encode($data["alerts"],JSON_FORCE_OBJECT));
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);

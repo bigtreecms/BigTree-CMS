@@ -21,7 +21,7 @@
 	// No pending data, let's query the connecting table directly for the entries.
 	} else {
 		if ($sortable) {
-			$q = sqlquery("SELECT * FROM `".$options["mtm-connecting-table"]."` WHERE `".$options["mtm-my-id"]."` = '$edit_id' ORDER BY `position`");
+			$q = sqlquery("SELECT * FROM `".$options["mtm-connecting-table"]."` WHERE `".$options["mtm-my-id"]."` = '$edit_id' ORDER BY `position` DESC");
 		} else {
 			$q = sqlquery("SELECT * FROM `".$options["mtm-connecting-table"]."` WHERE `".$options["mtm-my-id"]."` = '$edit_id'");
 		}
@@ -44,9 +44,9 @@
 	}
 	
 	// If we have a parser, send a list of the entries and available items through it.
-	if (isset($options["mtm-list-parser"])) {
-		eval('$list = '.$options["mtm-list-parser"].'($list);');
-		eval('$entries = '.$options["mtm-list-parser"].'($entries);');
+	if (isset($options["mtm-list-parser"]) && $options["mtm-list-parser"]) {
+		eval('$list = '.$options["mtm-list-parser"].'($list,true);');
+		eval('$entries = '.$options["mtm-list-parser"].'($entries,false);');
 	}
 
 	// Remove items from the list that have already been tagged.
@@ -61,7 +61,7 @@
 	$x = 0;
 	
 	// Only show the field if there are items that could be tagged.
-	if (count($list)) {
+	if (count($list) || count($entries)) {
 ?>
 <fieldset id="<?=$clean_key?>">
 	<? if ($title) { ?><label><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
@@ -89,7 +89,7 @@
 		<footer>
 			<select>
 				<? foreach ($list as $k => $v) { ?>
-				<option value="<?=htmlspecialchars($k)?>"><?=htmlspecialchars(BigTree::trimLength(strip_tags($v),100))?></option>
+				<option value="<?=htmlspecialchars(htmlspecialchars_decode($k))?>"><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags($v),100)))?></option>
 				<? } ?>
 			</select>
 			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>

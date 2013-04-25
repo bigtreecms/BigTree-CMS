@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.0RC2");
-	define("BIGTREE_REVISION",18);
+	define("BIGTREE_VERSION","4.0RC3");
+	define("BIGTREE_REVISION",19);
 
 	// BigTree Admin Nav Tree
 	$bigtree["nav_tree"] = array(
@@ -109,6 +109,23 @@
 				array("title" => "PayPal Payments Pro","link" => "developer/payment-gateway/paypal","icon" => "paypal","hidden" => true),
 				array("title" => "PayPal Payflow Gateway","link" => "developer/payment-gateway/payflow","icon" => "payflow","hidden" => true),
 				array("title" => "First Data / LinkPoint","link" => "developer/payment-gateway/linkpoint","icon" => "linkpoint","hidden" => true)
+			)),
+			array("title" => "Social APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
+				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/twitter/configure","nav_icon" => "setup","level" => 1)
+				)),
+				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/instagram/configure","nav_icon" => "setup","level" => 1)
+				)),
+				array("title" => "Google+ API","link" => "developer/services/googleplus","icon" => "googleplus","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/googleplus/configure","nav_icon" => "setup","level" => 1)
+				)),
+				array("title" => "YouTube API","link" => "developer/services/youtube","icon" => "youtube","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/youtube/configure","nav_icon" => "setup","level" => 1)
+				)),
+				array("title" => "Flickr API","link" => "developer/services/flickr","icon" => "flickr","hidden" => true, "children" => array(
+					array("title" => "Configure","link" => "developer/services/flickr/configure","nav_icon" => "setup","level" => 1)
+				))
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),
@@ -256,8 +273,22 @@
 		include "../core/bootstrap.php";
 	}
 
+	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
+	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
+		$bigtree["js"] = $bigtree["config"]["admin_js"];
+	} else {
+		$bigtree["js"] = array();
+	}
+	if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
+		$bigtree["css"] = $bigtree["config"]["admin_css"];
+	} else {
+		$bigtree["css"] = array();
+	}
+
 	// Connect to MySQL and begin sessions and output buffering.
-	$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+	if (!$bigtree["mysql_read_connection"]) {
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+	}
 	ob_start();
 	session_start();
 
@@ -291,10 +322,18 @@
 		}
 
 		$ajax_path = array_slice($bigtree["path"],2);
+		// Check custom
 		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
-		if (!$inc) {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+		// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+		if (!$inc || count($commands)) {
+			list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+			// If we either never found the custom file or if there are more routes found in the core file use the core.
+			if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
+				$inc = $core_inc;
+				$commands = $core_commands;
+			}
 		}
+
 		if (!file_exists($inc)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
@@ -307,7 +346,7 @@
 		$inc_path = "";
 		$headers = $footers = array();
 		foreach ($pieces as $piece) {
-			if (substr($piece,0,-4) != ".php") {
+			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
 				$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
 				$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
@@ -368,9 +407,14 @@
 	$module_path = array_slice($bigtree["path"],1);
 	// Check custom
 	list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
-	// Check core
-	if (!$inc) {
-		list($inc,$commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+	// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+	if (!$inc || count($commands)) {
+		list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+		// If we either never found the custom file or if there are more routes found in the core file use the core.
+		if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
+			$inc = $core_inc;
+			$commands = $core_commands;
+		}
 	}
 	if (count($commands)) {
 		$bigtree["module_path"] = array_slice($module_path,1,-1 * count($commands));
@@ -452,7 +496,7 @@
 			$inc_path = "";
 			$headers = $footers = array();
 			foreach ($pieces as $piece) {
-				if (substr($piece,0,-4) != ".php") {
+				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
 					$header = BigTree::path("admin/modules/".$inc_path."_header.php");
 					$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");

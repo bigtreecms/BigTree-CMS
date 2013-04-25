@@ -31,6 +31,65 @@
 			
 			$this->ModuleClassList = $items;
 		}
+
+		/*
+			Function: cacheGet
+				Retrieves data from BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data.
+
+			Returns:
+				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
+		*/
+
+		function cacheGet($identifier,$key) {
+			$identifier = sqlescape($identifier);
+			$key = sqlescape($key);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			if (!$f) {
+				return false;
+			}
+			return json_decode($f["value"],true);
+		}
+
+		/*
+			Function: cachePut
+				Puts data into BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data.
+				value - The data to store.
+				replace - Whether to replace an existing value (defaults to true).
+
+			Returns:
+				True if successful, false if the indentifier/key combination already exists and replace was set to false.
+		*/
+
+		function cachePut($identifier,$key,$value,$replace = true) {
+			$identifier = sqlescape($identifier);
+			$key = sqlescape($key);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			if ($f && !$replace) {
+				return false;
+			}
+
+			// Prefer to keep this an object, but we need PHP 5.3
+			if (strnatcmp(phpversion(),'5.3') >= 0) {
+				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
+			} else {
+				$value = sqlescape(json_encode($value));
+			}
+			
+			if ($f) {
+				sqlquery("UPDATE bigtree_caches SET `value` = '$value' WHERE `identifier` = '$identifier' AND `key` = '$key'");
+			} else {
+				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
+			}
+			return true;
+		}
 		
 		/*
 			Function: catch404
@@ -40,15 +99,14 @@
 		function catch404() {
 			global $cms,$bigtree;
 			
-			if ($this->handle404(str_ireplace(WWW_ROOT, "", BigTree::currentURL()))) {
-				$bigtree["layout"] = "default"; //reset layout
+			if ($this->handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+				$bigtree["layout"] = "default";
 				ob_start();
 				include "../templates/basic/_404.php";
 				$bigtree["content"] = ob_get_clean();
 				ob_start();
 				include "../templates/layouts/".$bigtree["layout"].".php";
-				$bigtree["content"] = ob_get_clean();
-				die($bigtree["content"]);
+				die();
 			}
 		}
 		
@@ -75,7 +133,8 @@
 			}
 			// If it's in the old routing table, send them to the new page.
 			if ($found) {
-				BigTree::redirect(WWW_ROOT.str_replace($old,$new,$_GET["bigtree_htaccess_url"]),"301");
+				$new_url = $new.substr($_GET["bigtree_htaccess_url"],strlen($old));
+				BigTree::redirect(WWW_ROOT.$new_url,"301");
 			}
 		}
 		
@@ -159,7 +218,7 @@
 		
 		function drawXMLSitemap() {
 			header("Content-type: text/xml");
-			echo '<?xml version="1.0" encoding="UTF-8"?>';
+			echo '<?xml version="1.0" encoding="UTF-8" ?>';
 			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
 			$q = sqlquery("SELECT id,template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
 
@@ -218,6 +277,7 @@
 			
 			Returns:
 				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
+				If a trunk is hit, $this->BreadCrumb trunk is set to the trunk.
 			
 			See Also:
 				<getBreadcrumb>
@@ -241,6 +301,7 @@
 			while ($f = sqlfetch($q)) {
 				if ($f["trunk"]) {
 					$trunk_hit = true;
+					$this->BreadcrumbTrunk = $f;
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
@@ -455,8 +516,9 @@
 			}
 			
 			$in_nav = $only_hidden ? "" : "on";
+			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
 			
-			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY position DESC, id ASC");
+			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY $sort");
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
@@ -504,11 +566,17 @@
 							@eval('$module = new '.$f["class"].';');
 							$modNav = $module->getNav($f);
 							// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+							$module_nav = array();
 							foreach ($modNav as $item) {
 								$item["parent"] = $f["id"];
 								$item["id"] = "module_nav_".$module_nav_count;
-								$nav[] = $item;
+								$module_nav[] = $item;
 								$module_nav_count++;
+							}
+							if ($module->NavPosition == "top") {
+								$nav = array_merge($module_nav,$nav);
+							} else {
+								$nav = array_merge($nav,$module_nav);
 							}
 						}
 					}
@@ -518,7 +586,11 @@
 					// If the class exists, instantiate it and call it.
 					if ($f["class"] && class_exists($f["class"])) {
 						@eval('$module = new '.$f["class"].';');
-						$nav += $module->getNav($f);
+						if ($module->NavPosition == "top") {
+							$nav = array_merge($module->getNav($f),$nav);
+						} else {
+							$nav = array_merge($nav,$module->getNav($f));
+						}
 					}
 				}
 			}
@@ -687,10 +759,10 @@
 		*/
 		
 		function getPreviewLink($id) {
-			if ($id == 0) {
+			if (substr($id,0,1) == "p") {
+				return WWW_ROOT."_preview-pending/$id/";
+			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
-			} elseif (substr($id,0,1) == "p") {
-				return WWW_ROOT."_preview-pending/".substr($id,1)."/";
 			} else {
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
 				return WWW_ROOT."_preview/".$f["path"]."/";
@@ -948,10 +1020,12 @@
 		*/
 		
 		function handle404($url) {
-			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
-			
+			if (!$url) {
+				return true;
+			}
+
 			if ($f["redirect_url"]) {
 				if ($f["redirect_url"] == "/") {
 					$f["redirect_url"] = "";
@@ -965,20 +1039,17 @@
 				
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
 				BigTree::redirect($redirect,"301");
+				return false;
 			} else {
-				$referer = $_SERVER["HTTP_REFERER"];
-				$requester = $_SERVER["REMOTE_ADDR"];
-
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 				if ($f) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
 				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('".sqlescape(rtrim($_GET["bigtree_htaccess_url"],"/"))."','1')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('$url','1')");
 				}
-				return true;
 				define("BIGTREE_DO_NOT_CACHE",true);
+				return true;
 			}
-			
-			return false;
 		}
 		
 		/*

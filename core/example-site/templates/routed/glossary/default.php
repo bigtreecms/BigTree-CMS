@@ -9,8 +9,8 @@
 	$term = false;
 	
 	// If we have a URL route, grab a term for it.
-	if (isset($commands[0])) {
-		$term = $glossaryMod->getByRoute($commands[0]);
+	if (isset($bigtree["commands"][0])) {
+		$term = $glossaryMod->getByRoute($bigtree["commands"][0]);
 	}
 	
 	// If we don't have a term, redirect with a 301 to the first approved term.

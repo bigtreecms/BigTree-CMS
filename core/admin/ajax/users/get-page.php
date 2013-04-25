@@ -2,7 +2,7 @@
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
-	$page = isset($_GET["page"]) ? $_GET["page"] : 0;
+	$page = isset($_GET["page"]) ? $_GET["page"] : 1;
 	$sort_by = isset($_GET["sort"]) ? $_GET["sort"] : "name";
 	$sort_dir = isset($_GET["sort_direction"]) ? $_GET["sort_direction"] : "ASC";
 

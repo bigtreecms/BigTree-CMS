@@ -1,14 +1,5 @@
 <?
-	if (is_string($value)) {
-		$entries = json_decode($value,true);
-		if (!is_array($entries)) {
-			$entries = array();
-		}
-	} elseif (is_array($value)) {
-		$entries = $value;
-	} else {
-		$entries = array();
-	}
+	$entries = is_array($value) ? $value : array();
 	$x = 0;
 	
 	$clean_key = str_replace(array("[","]"),"_",$key);

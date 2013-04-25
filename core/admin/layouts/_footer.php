@@ -16,11 +16,11 @@
 			</section>
 		</footer>
 		<?
-			if (isset($_SESSION["bigtree_admin"]["flash"])) {
+			if (isset($_SESSION["bigtree_admin"]["growl"])) {
 		?>
-		<script>BigTree.Growl("<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["title"])?>","<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["flash"]["type"])?>");</script>
+		<script>BigTree.Growl("<?=htmlspecialchars(htmlspecialchars_decode($_SESSION["bigtree_admin"]["growl"]["title"]))?>","<?=htmlspecialchars(htmlspecialchars_decode($_SESSION["bigtree_admin"]["growl"]["message"]))?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["growl"]["type"])?>");</script>
 		<?
-				unset($_SESSION["bigtree_admin"]["flash"]);
+				unset($_SESSION["bigtree_admin"]["growl"]);
 			}
 		?>
  	</body>

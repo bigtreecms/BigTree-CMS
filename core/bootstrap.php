@@ -65,6 +65,12 @@
 		"BigTreeModule" => "inc/bigtree/modules.php",
 		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
 		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
+		"BigTreeGeocodingService" => "inc/bigtree/geocoding-service.php",
+		"BigTreeTwitterAPI" => "inc/bigtree/api-twitter.php",
+		"BigTreeInstagramAPI" => "inc/bigtree/api-instagram.php",
+		"BigTreeGooglePlusAPI" => "inc/bigtree/api-googleplus.php",
+		"BigTreeYouTubeAPI" => "inc/bigtree/api-youtube.php",
+		"BigTreeFlickrAPI" => "inc/bigtree/api-flickr.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
 	);

@@ -1,5 +1,3 @@
-var stickyControls,stickyControlsTop,stickyControlsStuck = false;
-
 $(document).ready(function() {
 
 	BigTreeCustomControls();
@@ -19,7 +17,7 @@ $(document).ready(function() {
 	}).blur(function() {
 		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").fadeOut(200, function() { $(this).html(\"\"); });", 300);
 	});
-	$("nav.main .advanced_search").live("click",function() {
+	$("nav.main").on("click",".advanced_search",function() {
 		$("#quick_search_results").parents().submit();
 		return false;
 	});
@@ -37,23 +35,23 @@ $(document).ready(function() {
 	});
 	
 	// !BigTree Sticky Controls
-	stickyControls = $(".sticky_controls");
-	if (stickyControls.length) {
-		stickyControlsTop = stickyControls.offset().top;
+	BigTree.stickyControls = $(".sticky_controls");
+	if (BigTree.stickyControls.length) {
+		BigTree.stickyControlsTop = BigTree.stickyControls.offset().top;
 		
-		if (window.scrollY >= stickyControlsTop && !stickyControlsStuck) {
-			stickyControlsStuck = true;
-			stickyControls.addClass("stuck");
+		if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
+			BigTree.stickyControlsStuck = true;
+			BigTree.stickyControls.addClass("stuck");
 		}
 		
 		$(window).scroll(function() {
-			if (window.scrollY >= stickyControlsTop && !stickyControlsStuck) {
-				stickyControlsStuck = true;
-				stickyControls.addClass("stuck");
+			if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
+				BigTree.stickyControlsStuck = true;
+				BigTree.stickyControls.addClass("stuck");
 			}
-			if (window.scrollY < stickyControlsTop && stickyControlsStuck) {
-				stickyControlsStuck = false;
-				stickyControls.removeClass("stuck");
+			if (window.scrollY < BigTree.stickyControlsTop && BigTree.stickyControlsStuck) {
+				BigTree.stickyControlsStuck = false;
+				BigTree.stickyControls.removeClass("stuck");
 			}
 		});
 	}
@@ -63,25 +61,6 @@ $(document).ready(function() {
 		if ($(this).attr("href") == "#") {
 			return false;
 		}
-	});
-	
-	// Removeable Resources
-	$(".remove_resource").live("click",function() {
-		p = $(this).parent();
-		if (p.hasClass("currently_file")) {
-			p.remove();
-		} else {
-			p.hide().find("input, img").remove();
-		}
-		return false;
-	});
-	
-	// Form Image Browser
-	$(".form_image_browser").live("click",function() {
-		options = eval('(' + $(this).attr("name") + ')');
-		field = $(this).attr("href").substr(1);
-		BigTreeFileManager.formOpen("image",field,options);
-		return false;
 	});
 	
 	// Growl Hooks
@@ -131,8 +110,7 @@ $(document).ready(function() {
 		$(this).css(style);
 	});
 
-	// Quick Loader
-	BigTreeQuickLoader.init();
+	BigTree.FormHooks(".container form");
 });
 
 function BigTreeCustomControls() {
@@ -178,14 +156,13 @@ var BigTreeCheckbox = Class.extend({
 	init: function(element,text) {
 		this.Element = $(element);
 		
-		label = this.Element.next("label");
 		div = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
 		a.click($.proxy(this.click,this));
-		label.click($.proxy(this.click,this));
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
 			a.addClass("checked");
@@ -224,10 +201,12 @@ var BigTreeCheckbox = Class.extend({
 		if (!this.Element.attr("disabled")) {
 			if (this.Link.hasClass("checked")) {
 				this.Link.removeClass("checked");
+				this.Element.attr("checked",false);
 			} else {
 				this.Link.addClass("checked");
+				this.Element.attr("checked","checked");
 			}
-			this.Element.trigger("click");
+			this.Element.triggerHandler("click");
 		}
 		return false;
 	}
@@ -331,7 +310,7 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.html('<div class="handle"></div><span>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
+		div.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
 
 		spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
@@ -343,9 +322,9 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.find("span").css({ width: spanwidth + "px", height: "30px" }).html(selected_option).click($.proxy(this.click,this));
-		div.find(".select_options").css({ width: (maxwidth + 54) + "px" });
-		div.find("a").click($.proxy(this.select,this));
+		div.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click($.proxy(this.click,this));
+		div.find(".select_options").css({ width: (maxwidth + 64) + "px" });
+		div.on("click","a",$.proxy(this.select,this));
 		div.find(".handle").click($.proxy(this.click,this));
 		
 		$(element).after(div);
@@ -367,7 +346,7 @@ var BigTreeSelect = Class.extend({
 	add: function(value,text) {
 		// Add to the actual select.
 		op = new Option(text,value);
-		this.Element.options[this.Element.options.length] = op;
+		this.Element[0].options[this.Element[0].options.length] = op;
 		// Add to the styled select.
 		a = $('<a href="#">' + text + '</a>');
 		a.attr("data-value",value);
@@ -522,7 +501,7 @@ var BigTreeSelect = Class.extend({
 			if (navigator.userAgent.indexOf("Firefox") == -1) {
 				el.selectedIndex = index;
 			}
-			this.Container.find("span").html(el.options[index].text);
+			this.Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
 			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 			return false;
 		}
@@ -552,14 +531,14 @@ var BigTreeSelect = Class.extend({
 		// If the current selected state is the value we're removing, switch to the first available.
 		sel = this.Container.find("span").eq(0);
 		if (sel.html() == text_was) {
-			sel.html(this.Container.find(".select_options a").eq(0).html());
+			sel.html('<figure class="handle"></figure>' + this.Container.find(".select_options a").eq(0).html());
 		}
 	},
 	
 	select: function(event) {
 		el = $(event.target);
 		this.Element.val(el.attr("data-value"));
-		this.Container.find("span").html(el.html());
+		this.Container.find("span").html('<figure class="handle"></figure>' + el.html());
 		this.Container.find("a").removeClass("active");
 		el.addClass("active");
 		
@@ -674,6 +653,7 @@ var BigTreeRadioButton = Class.extend({
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
 			a.addClass("checked");
@@ -719,13 +699,12 @@ var BigTreeRadioButton = Class.extend({
 		} else {
 			this.Link.addClass("checked");
 			this.Element.attr("checked",true);
-			$('input[name="' + this.Element.attr("name") + '"]').each(function() {
-				if (!this.checked) {
-					this.customControl.Link.removeClass("checked");
-				}
+			$('input[name="' + this.Element.attr("name") + '"]').not(this.Element).each(function() {
+				this.customControl.Link.removeClass("checked");
+				$(this).trigger("change");
 			});
 		}
-		this.Element.trigger("click");
+		this.Element.triggerHandler("click");
 		return false;
 	},
 	
@@ -756,17 +735,19 @@ var BigTreePhotoGallery = Class.extend({
 	key: false,
 	fileInput: false,
 	activeCaption: false,
+	disableCaptions: false,
 	
-	init: function(container,key,counter) {
+	init: function(container,key,counter,disable_captions) {
 		this.key = key;
 		this.container = $("#" + container);
 		this.counter = counter;
-		this.container.find(".add_photo").click($.proxy(this.addPhoto,this));
+		this.disableCaptions = disable_captions;
 		this.fileInput = this.container.find("footer input");
 		
-		this.container.find("ul").sortable({ items: "li" });
+		this.container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 		this.container.on("click",".icon_delete",this.deletePhoto);
 		this.container.on("click",".icon_edit",$.proxy(this.editPhoto,this));
+		this.container.on("change","input[type=file]",$.proxy(this.addPhoto,this));
 		this.container.find(".form_image_browser").click($.proxy(this.openFileManager,this));
 	},
 	
@@ -774,12 +755,16 @@ var BigTreePhotoGallery = Class.extend({
 		if (!this.fileInput.val()) {
 			return false;
 		}
-		new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+		if (!this.disableCaptions) {
+			new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+		} else {
+			this.saveNewFile({ caption: "" });
+		}
 		return false;
 	},
 	
 	deletePhoto: function() {
-		new BigTreeDialog("Delete Photo",'<p class="confirm">Are you sure you want to delete this photo?</p>',$.proxy(function() {
+		new BigTreeDialog("Remove Photo",'<p class="confirm">Are you sure you want to remove this photo?</p>',$.proxy(function() {
 			$(this).parents("li").remove();
 		},this),"delete",false,"OK");
 		
@@ -799,7 +784,11 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		if (this.disableCaptions) {
+			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_delete"></a>');
+		} else {
+			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		}
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);
@@ -859,8 +848,6 @@ var BigTreePhotoGallery = Class.extend({
 var BigTreeTagAdder = {
 	
 	element: false,
-	entry: false,
-	module: false,
 	searching: false,
 	selected: -1,
 	dropdown: false,
@@ -868,8 +855,6 @@ var BigTreeTagAdder = {
 	
 	init: function(module,entry,element) {
 		this.element = $(element);
-		this.entry = entry;
-		this.module = module;
 		// Setup delete hooks on existing tags
 		$("#tag_list a").click(this.deleteHook);		
 
@@ -947,7 +932,7 @@ var BigTreeTagAdder = {
 		el = ev.target;
 		tag = el.innerHTML.replace("<span>","").replace("</span>","");
 		if (tag) {
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { module: BigTreeTagAdder.module, entry: BigTreeTagAdder.entry, tag: tag }, success: BigTreeTagAdder.addedTag });
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: BigTreeTagAdder.addedTag });
 		}
 		return false;
 	},
@@ -955,7 +940,7 @@ var BigTreeTagAdder = {
 	addTag: function(ev) {
 		tag = $("#tag_entry").val();
 		if (tag) {
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { module: BigTreeTagAdder.module, entry: BigTreeTagAdder.entry, tag: tag }, success: BigTreeTagAdder.addedTag });
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: BigTreeTagAdder.addedTag });
 		}
 	},
 	
@@ -1033,6 +1018,8 @@ var BigTreeDialog = Class.extend({
 		
 		// Set a timer to watch for a change in the dialog height
 		this.heightWatchTimer = setInterval($.proxy(this.WatchHeight,this),250);
+
+		BigTree.FormHooks(".bigtree_dialog_form");
 	},
 	
 	CheckForEsc: function(e) {
@@ -1555,7 +1542,7 @@ var BigTreeArrayOfItems = Class.extend({
 				html += '<label>' + f.title + '</label>';
 			}
 			
-			if (f.type == "text") {
+			if (f.type == "text" || !f.type) {
 				html += '<input type="text" name="' + f.key + '" />';
 			} else if (f.type == "textarea") {
 				html += '<textarea name="' + f.key + '"></textarea>';
@@ -1625,7 +1612,7 @@ var BigTreeArrayOfItems = Class.extend({
 				html += '<label>' + f.title + '</label>';
 			}
 			
-			if (f.type == "text") {
+			if (f.type == "text" || !f.type) {
 				html += '<input type="text" name="' + f.key + '" value="' + v + '" />';
 			} else if (f.type == "textarea") {
 				html += '<textarea name="' + f.key + '">' + v + '</textarea>';
@@ -1838,6 +1825,7 @@ var BigTreeManyToMany = Class.extend({
 		select.customControl.remove(val);
 		
 		this.field.find("ul").append(li);
+		this.field.trigger("addedItem", { element: li, index: this.count });
 		this.count++;
 		// Hide the instructions saying there haven't been any items tagged.
 		this.field.find("section").hide();
@@ -1847,11 +1835,18 @@ var BigTreeManyToMany = Class.extend({
 	
 	deleteItem: function() {
 		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {
+			fieldset = $(this).parents("fieldset");
 			// If this is the last item we're removing, show the instructions again.
 			if ($(this).parents("ul").find("li").length == 1) {
-				$(this).parents("fieldset").find("section").show();
+				fieldset.find("section").show();
 			}
-			$(this).parents("li").remove();
+			li = $(this).parents("li");
+			val = li.find("input").val();
+			text = li.find("p").html();
+			fieldset.find("select")[0].customControl.add(val,text);
+			li.remove();
+			fieldset.trigger("removedItem", { value: val, description: text });
+
 		},this),"delete",false,"OK");
 
 		return false;
@@ -2013,6 +2008,7 @@ var BigTreeFormValidator = Class.extend({
 		});
 		
 		if (this.form.find(".form_error").length) {
+			this.form.find(".warning_message").hide();
 			this.form.find(".error_message").show();
 			if (!in_dialog) {
 				$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
@@ -2143,52 +2139,30 @@ var BigTreeFoundryBrowser = Class.extend({
 
 // !BigTree Object
 var BigTree = {
+	stickyControls: false,
+	stickyControlsTop: false,
+	stickyControlsStuck: false,
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);
 	},
 
-	GetCallout: function() {
-		last_dialog = $(".bigtree_dialog_form").last();
-
-		// Validate required fields.
-		v = new BigTreeFormValidator(last_dialog);
-		if (!v.validateForm(false,true)) {
-			return false;
-		}
-		
-		li = $('<li>');
-		li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-		
-		callout_number = last_dialog.find("input.callout_count").val();
-		// Try our best to find some way to describe the callout
-		callout_desc = "";
-		callout_desc_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-		if (callout_desc_field.is('select')) {
-			callout_desc = callout_desc_field.find("option:selected").text();
-		} else {
-			callout_desc = callout_desc_field.val();
-		}
-		if ($.trim(callout_desc) == "") {
-			callout_desc = last_dialog.find(".display_default").val();
-		}
-		
-		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
-		last_dialog.find("input, textarea, select").each(function() {
-			if ($(this).attr("type") != "submit") {
-				if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
-					var mce = tinyMCE.get($(this).attr("id"));
-					if (mce) {
-						mce.save();
-						tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-					}
-				}
-				$(this).hide();
-				li.append($(this));
+	FormHooks: function(selector) {
+		$(selector).on("click",".remove_resource",function() {
+			p = $(this).parent();
+			if (p.hasClass("currently_file")) {
+				p.remove();
+			} else {
+				p.hide().find("input, img").remove();
 			}
+			return false;
+		}).on("click",".form_image_browser",function() {
+		// Form Image Browser
+			options = eval('(' + $(this).attr("name") + ')');
+			field = $(this).attr("href").substr(1);
+			BigTreeFileManager.formOpen("image",field,options);
+			return false;
 		});
-
-		return li;
 	},
 
 	growltimer: false,
@@ -2244,58 +2218,54 @@ var BigTree = {
 	},
 	
 	SetPageCount: function(selector,pages,current_page) {
+		// We have to have at least one page.
 		if (pages == 0) {
 			pages = 1;
 		}
 		
-		if (current_page == 0) {
-			prev_page = 0;
+		// Figure out what previous and next buttons should do.
+		if (current_page == 1) {
+			prev_page = 1;
 		} else {
 			prev_page = current_page - 1;
 		}
-		if (current_page == (pages - 1)) {
-			next_page = current_page;
+		if (current_page == pages) {
+			next_page = pages;
 		} else {
 			next_page = current_page + 1;
 		}
 		
-		if (current_page < 3) {
-			diff = 5 - current_page;
-			start_page = 0;
-			end_page = current_page + diff;
-		} else if (pages > 10) {
-			start_page = current_page - 2;
-			end_page = current_page + 3;
+		// If we have 10 or less pages, just draw them all.
+		if (pages < 11) {
+			start_page = 1;
+			end_page = pages;
+		// Otherwise we need to figure out where we are...
 		} else {
-			start_page = 0;
-			end_page = pages;
+			if (current_page < 7) {
+				start_page = 1;
+				end_page = 9;
+			} else if (current_page > pages - 7) {
+				start_page = pages - 9;
+				end_page = pages;
+			} else {
+				start_page = current_page - 4;
+				end_page = current_page + 5;
+			}
 		}
-		
-		if (start_page < 0) {
-			start_page = 0;
-		}
-		
-		if (end_page > pages) {
-			end_page = pages;
-		}
-		
-		if (start_page > 5 && (end_page - start_page) < 5) {
-			start_page = end_page - 5;
-		}
-		
+
 		content = '<li class="first"><a href="#' + prev_page + '"><span>&laquo;</span></a></li>';
-		if (start_page > 0) {
-			content += '<li class="ellipsis"><a href="#0">…</a></li>';
+		if (start_page > 1) {
+			content += '<li class="ellipsis"><a href="#1">…</a></li>';
 		}
-		for (i = start_page; i < end_page; i++) {
+		for (i = start_page; i <= end_page; i++) {
 			content += '<li><a href="#' + i + '"';
 			if (i == current_page) {
 				content += ' class="active"';
 			}
-			content += '>' + (i + 1) + '</a></li>';
+			content += '>' + i + '</a></li>';
 		}
 		if (end_page < pages) {
-			content += '<li class="ellipsis"><a href="#' + (pages - 1) + '">…</a></li>';
+			content += '<li class="ellipsis"><a href="#' + pages + '">…</a></li>';
 		}
 		content += '<li class="last"><a href="#' + next_page + '"><span>&raquo;</span></a></li>';
 		
@@ -2330,171 +2300,3 @@ var BigTree = {
 		return windowHeight;
 	}
 }
-
-// !BigTree Quick Loader, adapted from Ben Plum's cool Pronto jQuery Plugin @ https://github.com/benplum/Pronto
-var BigTreeQuickLoader = {
-
-	init: function() {
-		var supported = window.history && window.history.pushState && window.history.replaceState;
-		if (!supported) {
-			return;
-		}
-
-		scripts = [];
-		$("head > script").each(function() {
-			src = $(this).attr("src");
-			if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
-				scripts[scripts.length] = src;
-			}
-		});
-		css = [];
-		$("head > link[rel=stylesheet]").each(function() {
-			src = $(this).attr("href");
-			if (src != "admin_root/css/main.css") {
-				css[css.length] = src;
-			}
-		});
-		
-		history.replaceState({
-			url: window.location.href,
-			data: {
-				"title": $("head").find("title").text(),
-				"breadcrumb": $("ul.breadcrumb").html(),
-				"page": $("#page").html(),
-				"active_nav": $("nav.main li").index(".active"),
-				"scripts": scripts,
-				"css": css
-			}
-		}, "state-" + window.location.href, window.location.href);
-		
-		$(window).on("popstate", this.pop);
-		$("body").on("click","a",this.click);
-
-		this.url = window.location.href;
-	},
-
-	click: function(e) {
-		var link = e.currentTarget;
-		
-		// Ignore everything but normal clicks
-		if ((e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) ||
-			(window.location.protocol !== link.protocol || window.location.host !== link.host) ||
-			(link.hash && link.href.replace(link.hash, '') === window.location.href.replace(location.hash, '') || link.href === window.location.href + '#')) {
-			return;
-		}
-		
-		e.preventDefault();
-		e.stopPropagation();
-		
-		BigTreeQuickLoader.request(link.href);
-	},
-
-	pop: function(e) {
-		var state = e.originalEvent.state;
-		if (state !== null && (state.url !== BigTreeQuickLoader.url)) {
-			BigTreeQuickLoader.render(state.url, state.data, false);
-		}
-	},
-
-	render: function(url,data,push) {
-		$(window).scrollTop(0);
-		
-		if (typeof data.breadcrumb === "string") {
-			breadcrumb = data.breadcrumb;
-		} else {
-			breadcrumb = "";
-			for (i = 0; i < data.breadcrumb.length; i++) {
-				crumb = data.breadcrumb[i];
-				if (i == data.breadcrumb.length - 1) {
-					breadcrumb += '<li><a href="admin_root/' + crumb.link + '/" class="last">' + crumb.title + '</a></li>';
-				} else {
-					if (i == 0) {
-						breadcrumb += '<li class="first">';
-					} else {
-						breadcrumb += '<li>';
-					}
-					breadcrumb += '<a href="admin_root/' + crumb.link + '/">' + crumb.title + '</a></li><li>&rsaquo;</li>';	
-				}
-			}
-		}
-
-		// Remove all scripts that aren't in this new found awesome-sauce
-		scripts_to_load = data.scripts;
-		if (scripts_to_load) {
-			$("head > script").each(function() {
-				src = $(this).attr("src");
-				if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
-					// If we already have it included, don't reload it
-					if (data.scripts.indexOf(src) > -1) {
-						scripts_to_load[data.scripts.indexOf(src)] = null;
-					// If it's not in our new list of scripts, remove it from the page
-					} else {
-						$(this).remove();
-					}
-				}
-			});
-			for (i = 0; i < scripts_to_load.length; i++) {
-				src = scripts_to_load[i];
-				if (src) {
-					console.log("appending" + src);
-					script = $("head").append($('<script src="' + src + '">'));
-				}
-			}
-		}
-		// Remove all CSS that isn't in this new found awesome-sauce
-		css_to_load = data.css;
-		if (css_to_load) {
-			$("head > link[rel=stylesheet]").each(function() {
-				src = $(this).attr("href");
-				if (src != "admin_root/css/main.css") {
-					// If we already have it included, don't reload it
-					if (data.css.indexOf(src) > -1) {
-						css_to_load[data.css.indexOf(src)] = null;
-					// If it's not in our new list of css, remove it from the page
-					} else {
-						$(this).remove();
-					}
-				}
-			});
-			for (i = 0; i < css_to_load.length; i++) {
-				src = css_to_load[i];
-				if (src) {
-					css = $("head").append($('<link rel="stylesheet" type="text/css" media="screen" href="' + src + '">'));
-				}
-			}
-		}
-
-		document.title = data.title;
-		$("#page").html(data.page);
-		$("ul.breadcrumb").html(breadcrumb);
-		$("nav.main li, nav.main li > a").removeClass("active");
-		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
-
-		BigTreeCustomControls();
-		
-		// Push new states to the stack
-		if (push) {
-			history.pushState({
-				url: url,
-				data: data
-			}, "state-" + url, url);
-		}
-		
-		BigTreeQuickLoader.url = url;
-	},
-
-	request: function(url) {
-		// Call new content
-		$.ajax({
-			url: url,
-			headers: { "BigTree-Partial": "True" },
-			dataType: "json",
-			success: function(response) {
-				BigTreeQuickLoader.render(url,response,true);
-			},
-			error: function(response) {
-				window.location.href = url;
-			}
-		});
-	}
-};

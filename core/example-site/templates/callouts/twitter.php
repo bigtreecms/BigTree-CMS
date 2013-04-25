@@ -8,8 +8,8 @@
 	if ($callout["timeline"] || $callout["query"]) {
 ?>
 <section class="twitter_timeline loading">
-	<div class="row_12">
-		<header class="cell_12">
+	<div class="row">
+		<header class="desktop-12">
 			<? if ($callout["query"]) { ?>
 			<h3>"<?=$callout["query"]?>"</h3>
 			<p>Random, un-curated posts on <a href="http://www.twitter.com/" target="_blank">Twitter</a> about "<?=$callout["query"]?>"</p>
@@ -20,7 +20,7 @@
 			<hr />
 		</header>
 	</div>
-	<div class="row_12 viewport">
+	<div class="row viewport">
 		<div class="timeline">
 			Loading...
 		</div>

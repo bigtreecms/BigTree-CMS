@@ -83,8 +83,8 @@
 			}
 		}
 		
-		$value = json_encode(BigTree::translateArray($photo_gallery));
-	} else {
-		$value = $data[$key];
+		$value = $photo_gallery;
+	} elseif (is_string($data[$key])) {
+		$value = json_decode($data[$key],true);
 	}
 ?>

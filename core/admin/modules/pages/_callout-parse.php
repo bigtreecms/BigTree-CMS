@@ -27,6 +27,11 @@
 					$type = $options["type"];
 					$options["directory"] = "files/pages/";
 					
+					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
+					if (is_string($data[$key]) && is_array(json_decode($data[$key],true))) {
+						$data[$key] = json_decode($data[$key],true);
+					}
+
 					$tpath = BigTree::path("admin/form-field-types/process/$type.php");
 				
 					$no_process = false;
@@ -36,9 +41,15 @@
 					} else {
 						$value = htmlspecialchars($data[$key]);
 					}
-					$value = $admin->autoIPL($value);
-					if (!$no_process)
+					
+					if (!$no_process) {
+						if (is_array($value)) {
+							$value = BigTree::translateArray($value);	
+						} else {
+							$value = $admin->autoIPL($value);
+						}
 						$callout[$key] = $value;
+					}
 				}
 				$callout["type"] = $data["type"];
 				$callout["display_title"] = $data["display_title"];

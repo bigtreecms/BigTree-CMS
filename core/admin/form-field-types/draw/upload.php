@@ -31,7 +31,7 @@
 			"previewPrefix" => $options["preview_prefix"]
 		);
 		if ($value) {
-			$buttion_options["preview"] = true;
+			$button_options["preview"] = true;
 		}
 		$button_options = htmlspecialchars(json_encode($button_options));
 ?>

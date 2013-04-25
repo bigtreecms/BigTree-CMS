@@ -36,11 +36,11 @@
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
-	function _local_search() {
-		$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: <?=$view["id"]?>, search: $("#search").val() }, _local_createSortable);
-	}
-	
-	function _local_createSortable() {
+	BigTree.localSearch = function() {
+		$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: <?=$view["id"]?>, search: $("#search").val() }, BigTree.localCreateSortable);
+	};
+
+	BigTree.localCreateSortable = function() {
 		<? if ($permission == "p") { ?>
 		if ($("#search").val() == "") {
 			$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
@@ -48,7 +48,7 @@
 			}});
 		}
 		<? } ?>
-	}
+	};
 	
-	_local_createSortable();
+	BigTree.localCreateSortable();
 </script>

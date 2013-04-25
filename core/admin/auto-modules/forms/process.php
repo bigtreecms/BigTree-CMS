@@ -1,4 +1,10 @@
 <?
+	// See if we've hit post_max_size
+	if (!$_POST["_bigtree_post_check"]) {
+		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+	}
+	
 	$view = BigTreeAutoModule::getRelatedViewForForm($form);
 	$data_action = ($_POST["save_and_publish"] || $_POST["save_and_publish_x"] || $_POST["save_and_publish_y"]) ? "publish" : "save";
 
@@ -70,11 +76,16 @@
 				"error" => $error
 			);
 		}
-		$value = $admin->autoIPL($value);
 		if (!$no_process) {
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = $admin->autoIPL($value);
+			}
 			$item[$key] = $value;
 		}
 	}
+
 	// See if we added anything in pre-processing that wasn't a field in the form.
 	if (is_array($preprocess_changes)) {
 		foreach ($preprocess_changes as $key => $val) {
@@ -157,7 +168,7 @@
 	}
 	if ($_POST["_bigtree_preview"]) {
 		$admin->ungrowl();
-		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_bar=true";
+		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
 	}
 	// Check to see if this is a positioned element, if it is and the form is selected to move to the top, update the record.
 	$table_description = BigTree::describeTable($table);
@@ -184,9 +195,9 @@
 	);
 	
 	if (count($fails)) {
-		BigTree::redirect($form_root."error/");
+		BigTree::redirect($bigtree["form_root"]."error/");
 	} elseif (count($crops)) {
-		BigTree::redirect($form_root."crop/");
+		BigTree::redirect($bigtree["form_root"]."crop/");
 	}
 
 	BigTree::redirect($redirect_url);

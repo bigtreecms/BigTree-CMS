@@ -219,7 +219,7 @@
 		$inc_path = "";
 		$headers = $footers = array();
 		foreach ($pieces as $piece) {
-			if (substr($piece,0,-4) != ".php") {
+			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
 				$header = SERVER_ROOT."templates/ajax/".$inc_path."_header.php";
 				$footer = SERVER_ROOT."templates/ajax/".$inc_path."_footer.php";
@@ -243,6 +243,11 @@
 			include $footer;
 		}
 		die();
+	}
+
+	// Sitemap setup
+	if ($bigtree["path"][0] == "sitemap.xml") {
+		$cms->drawXMLSitemap();
 	}
 
 	// Tell the browser we're serving HTML
@@ -276,10 +281,7 @@
 	// So we don't lose this.
 	define("BIGTREE_PREVIEWING",$bigtree["preview"]);
 	
-	// Sitemap setup
-	if ($bigtree["path"][0] == "sitemap.xml") {
-		$cms->drawXMLSitemap();
-	}
+	
 	if ($bigtree["path"][0] == "feeds") {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$route = $bigtree["path"][1];
@@ -292,6 +294,7 @@
 		}
 	}
 	
+	// If we haven't already received our nav id through previewing...
 	if (!$navid) {
 		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
@@ -303,10 +306,13 @@
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
 			$bigtree["page"] = $cms->getPendingPage($navid);
+			// If we're previewing pending changes, the template's routed-ness may have changed.
+			$template = $cms->getTemplate($bigtree["page"]["template"]);
+			$routed = $template["routed"];
 		} else {
 			$bigtree["page"] = $cms->getPage($navid);
 		}
-		
+		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
 		
@@ -333,7 +339,7 @@
 		
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
-			$path_components = explode("/",str_replace($bigtree["page"]["path"]."/","",implode("/",$bigtree["path"])."/"));
+			$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
 			if (end($path_components) === "") {
 				array_pop($path_components);
 			}
@@ -351,7 +357,7 @@
 			$inc_path = "";
 			$headers = $footers = array();
 			foreach ($pieces as $piece) {
-				if (substr($piece,0,-4) != ".php") {
+				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
 					$header = SERVER_ROOT."templates/routed/".$inc_path."_header.php";
 					$footer = SERVER_ROOT."templates/routed/".$inc_path."_footer.php";
@@ -419,7 +425,7 @@
 	
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
 	if (isset($bigtree["page"]) && !$cms->Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
-		include BigTree::path("inc/bigtree/admin.php");
+		include_once BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 			eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
@@ -437,7 +443,10 @@
 			$show_preview_bar = true;
 			$return_link = $_GET["bigtree_preview_return"];
 		}
-				
+		// Pending Pages don't have their ID set.
+		if (!isset($bigtree["page"]["id"])) {
+			$bigtree["page"]["id"] = $bigtree["page"]["page"];
+		}
 		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.$bigtree["config"]["admin_root"].'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&current_page_id='.$bigtree["page"]["id"].'&show_bar='.$show_bar_default.'&username='.$_SESSION["bigtree_admin"]["name"].'&show_preview='.$show_preview_bar.'&return_link='.$return_link.'"></script></body>',$bigtree["content"]);
 		$bigtree["config"]["cache"] = false;
 	}

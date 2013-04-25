@@ -255,4 +255,10 @@
 		// Force all the views to update their cache.
 		sqlquery("TRUNCATE TABLE `bigtree_module_view_cache`");
 	}
+
+	// BigTree 4.0RC3 update -- REVISION 19
+	function _local_bigtree_update_19() {
+		// Add the new caches table
+		sqlquery("CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(255) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+	}
 ?>

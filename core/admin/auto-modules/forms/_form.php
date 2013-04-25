@@ -1,7 +1,8 @@
 <div class="container">
-	<form method="post" action="<?=$form_root?>process/" enctype="multipart/form-data" class="module" id="auto_module_form">
+	<form method="post" action="<?=$bigtree["form_root"]?>process/" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
+		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<?
 			if (isset($item)) {
 		?>
@@ -17,6 +18,12 @@
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<?
+				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
+					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
+			?>
+			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+			<?
+				}
 				$bigtree["datepickers"] = array();
 				$bigtree["timepickers"] = array();
 				$bigtree["datetimepickers"] = array();
@@ -68,7 +75,7 @@
 				</fieldset>
 			</div>
 			<script>
-				BigTreeTagAdder.init(<?=$module["id"]?>,<? if (isset($item)) { echo '"'.$edit_id.'"'; } else { echo "false"; } ?>,"bigtree_tag_browser");
+				BigTreeTagAdder.init("bigtree_tag_browser");
 			</script>
 			<?
 				}

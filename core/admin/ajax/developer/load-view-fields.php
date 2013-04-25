@@ -9,7 +9,12 @@
 	$unused = array();
 
 	$tblfields = array();
-	$table_description = BigTree::describeTable($table);
+	// To tolerate someone selecting the blank spot again when creating a view.
+	if ($table) {
+		$table_description = BigTree::describeTable($table);
+	} else {
+		$table_description = array("columns" => array());
+	}
 	foreach ($table_description["columns"] as $column => $details) {
 		$tblfields[] = $column;
 	}
@@ -32,6 +37,7 @@
 	$types = $cached_types["module"];
 	
 	$unused[] = array("field" => "-- Custom --", "title" => "");
+	if (count($tblfields)) {
 ?>
 <fieldset id="fields"<? if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<? } ?>>
 	<label>Fields</label>
@@ -61,16 +67,11 @@
 					}			
 				// Otherwise we're loading a new data set based on a table.
 				} else {
-					if (!isset($table)) {
-						$table = $_POST["table"];
-					}
-					$q = sqlquery("describe ".$table);
-					while ($f = sqlfetch($q)) {
-						if (!in_array($f["Field"],$reserved)) {
-							$key = $f["Field"];
+					foreach ($tblfields as $key) {
+						if (!in_array($key,$reserved)) {
 			?>
 			<li id="row_<?=$key?>">
-				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(ucwords(str_replace("_"," ",$f["Field"])))?>" /></section>
+				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(ucwords(str_replace("_"," ",$key)))?>" /></section>
 				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
@@ -123,9 +124,7 @@
 </fieldset>
 
 <script>
-	var current_editing_key;
-	
-	$(".form_table .icon_delete").live("click",function() {
+	$(".form_table").on("click",".icon_delete",function() {
 		tf = $(this).parents("li").find("section").find("input");
 		
 		title = tf.val();
@@ -161,11 +160,11 @@
 		return false;
 	});
 	
-	function _local_hooks() {
+	BigTree.localHooks = function() {
 		$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-	}
+	};
 	
-	_local_hooks();
+	BigTree.localHooks();
 	
 	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
 		title = el.title;
@@ -177,7 +176,7 @@
 		
 			fs.removeCurrent();
 			$("#sort_table").append(li);
-			_local_hooks();
+			BigTree.localHooks();
 		} else {
 			new BigTreeDialog("Add Custom Column",'<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset><label>Column Title</label><input type="text" name="title" /></fieldset>',function(data) {
 				key = htmlspecialchars(data.key);
@@ -186,8 +185,15 @@
 				li = $('<li id="row_' + key + '">');
 				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
 				$("#sort_table").append(li);
-				_local_hooks();
+				BigTree.localHooks();
 			});
 		}
 	});
 </script>
+<?
+	} else {
+?>
+<p>Please choose a table to populate this area.</p>
+<?
+	}
+?>

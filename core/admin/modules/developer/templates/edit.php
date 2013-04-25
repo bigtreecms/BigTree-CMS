@@ -15,5 +15,5 @@
 
 <? include BigTree::path("admin/modules/developer/templates/_common-js.php") ?>
 <script>
-	var resource_count = <?=$x?>;
+	BigTree.localResourceCount = <?=$x?>;
 </script>

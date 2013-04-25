@@ -23,6 +23,7 @@
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
 				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
 				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
+				array("link" => "developer/services", "title" => "Social APIs", "access" => 2),
 				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1)
 			))
 		))
@@ -57,7 +58,7 @@
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
 		<? } } ?>
 		<!--[if lt IE 9]>
-		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
 	</head>
 	<body class="bigtree">
@@ -123,4 +124,9 @@
 		</nav>
 		<div class="body">
 			<div class="wrapper">
+				<? if ($bigtree["config"]["environment"] == "dev") { ?>
+				<div class="environment_alert">
+					<span><strong>Development Site</strong> &middot; Changes Will Not Effect Live Site!</span> <? if ($bigtree["config"]["environment_live_url"] != "") { echo '<a href="'.$bigtree["config"]["environment_live_url"].'admin/">Go Live</a>'; } ?>
+				</div>
+				<? } ?>
 				<aside id="growl"></aside>

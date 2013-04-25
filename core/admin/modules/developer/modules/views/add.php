@@ -69,7 +69,7 @@
 		</section>
 		<section class="sub" id="field_area">
 			<? if (!$table) { ?>
-			<p>Please choose a view table to populate this area.</p>
+			<p>Please choose a table to populate this area.</p>
 			<? } else { ?>
 			<? include BigTree::path("admin/ajax/developer/load-view-fields.php") ?>
 			<? } ?>

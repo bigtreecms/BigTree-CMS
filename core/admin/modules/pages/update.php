@@ -1,4 +1,10 @@
 <?
+	// See if we've hit post_max_size
+	if (!$_POST["_bigtree_post_check"]) {
+		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+	}
+	
 	// Initiate the Upload Service class.
 	$upload_service = new BigTreeUploadService;
 
@@ -75,15 +81,19 @@
 		$pdata["parent"] = 0;
 	}
 	
-	if ($_POST["return_to_front"]) {
-		$pd = $cms->getPage($page);
-		if ($pd["id"]) {
-			$redirect_url = WWW_ROOT.$pd["path"]."/";
-		} else {
-			$redirect_url = WWW_ROOT;
-		}
-	} elseif (end($bigtree["path"]) == "preview") {
+	if (isset($_GET["preview"])) {
 		$redirect_url = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
+	} elseif ($_POST["return_to_front"]) {
+		if ($_POST["ptype"] != "Save & Publish") {
+			$redirect_url = $cms->getPreviewLink($page);
+		} else {
+			$pd = $cms->getPage($page);
+			if ($pd["id"]) {
+				$redirect_url = WWW_ROOT.$pd["path"]."/";
+			} else {
+				$redirect_url = WWW_ROOT;
+			}
+		}
 	} elseif ($_POST["return_to_self"]) {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["id"]."/";
 	} else {

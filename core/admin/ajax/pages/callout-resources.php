@@ -1,4 +1,5 @@
 <?
+	define("BIGTREE_CALLOUT_RESOURCES",true);
 	if (isset($_POST["data"])) {
 		$resources = json_decode(base64_decode($_POST["data"]),true);
 		foreach ($resources as &$val) {

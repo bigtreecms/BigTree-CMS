@@ -28,6 +28,10 @@
 	$bigtree["config"]["static_root"] = "[staticroot]";
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
+	// Current Environment
+	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
+	$bigtree["config"]["environment_live_url"] = ""; // Site URL
+	
 	// Default Image Quality Presets
 	$bigtree["config"]["image_quality"] = 90;
 	$bigtree["config"]["retina_image_quality"] = 25;
@@ -46,15 +50,10 @@
 	$bigtree["config"]["cache"] = false;
 	// Use X-Sendfile headers to deliver cached files (more memory efficient, but your web server must support X-Sendfile headers) -- https://tn123.org/mod_xsendfile/
 	$bigtree["config"]["xsendfile"] = false;
-	// Set to false to serve cached files to users that are logged into the admin, true to always show fresh versions to logged in users.
-	$bigtree["config"]["dont_show_admin_cache"] = true;
 	
 	// ReCAPTCHA Keys
 	$bigtree["config"]["recaptcha"]["private"] = "6LcjTrwSAAAAADnHAf1dApaNCX1ODNuEBP1YdMdJ";
 	$bigtree["config"]["recaptcha"]["public"] = "6LcjTrwSAAAAAKvNG6n0YtCROEWGllOu-dS5M5oj";
-	
-	// Google Maps Key for Geocoding
-	$bigtree["config"]["google_maps_key"] = "";
 	
 	// Base classes for BigTree.  If you want to extend / overwrite core features of the CMS, change these to your new class names
 	// Set BIGTREE_CUSTOM_BASE_CLASS_PATH to the directory path (relative to /core/) of the file that will extend BigTreeCMS
@@ -101,6 +100,16 @@
 	
 	// Flag for CSS minification 
 	$bigtree["config"]["css"]["minify"] = false;
+
+	// Additional CSS Files For the Admin to Load
+	$bigtree["config"]["admin_css"] = array(
+		// "whatever.css"
+	);
+
+	// Additional JavaScript Files For the Admin to Load
+	$bigtree["config"]["admin_js"] = array(
+		// "whatever.js"
+	);
 	
 	// --------------------------
 	// Placeholder Image Defaults

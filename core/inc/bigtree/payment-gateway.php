@@ -926,8 +926,6 @@
 			
 			$response = $this->sendLinkPoint($params);
 			
-			print_r($response);
-			
 			// Setup response messages.
 			$this->Transaction = strval($response->r_ordernum);
 			$this->Message = strval($response->r_error);

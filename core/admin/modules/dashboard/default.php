@@ -11,8 +11,8 @@
 	$read = $messages["read"];
 	$sent = $messages["sent"];
 	
-	// Get pending changes.
-	$changes = $admin->getPendingChanges();
+	// Get publishable changes.
+	$changes = $admin->getPublishableChanges();
 	// Figure out what module each of the changes is for.
 	$change_modules = array();
 	foreach ($changes as $c) {
@@ -32,7 +32,29 @@
 			$change_modules[$c["module"]]["count"]++;
 		}
 	}
-	
+
+	// Get the current user's changes.
+	$my_changes = $admin->getPendingChanges();
+	// Figure out what module each of the changes is for.
+	$my_change_modules = array();
+	foreach ($my_changes as $c) {
+		// If we didn't get the info for this module already, get it.
+		if (!$c["module"]) {
+			$c["module"] = 0;
+		}
+		if (!array_key_exists($c["module"],$my_change_modules)) {
+			// Pages
+			if ($c["module"] == 0) {
+				$my_change_modules[0] = array("title" => "Pages", "count" => 1);
+			} else {
+				$module = $admin->getModule($c["module"]);
+				$my_change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
+			}
+		} else {
+			$my_change_modules[$c["module"]]["count"]++;
+		}
+	}
+
 	// Get Google Analytics Traffic
 	if (file_exists(SERVER_ROOT."cache/analytics.cache")) {
 		$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
@@ -103,15 +125,15 @@
 	<summary>
 		<h2 class="full">
 			<span class="pending"></span>
-			Pending Changes <small>Recent Changes Awaiting Approval</small>
+			Pending Changes <small>Awaiting Approval</small>
 			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="more">View All Pending Changes</a>
 		</h2>
 	</summary>
 	<ul>
 		<?
-			if (count($changes) == 0) {
+			if (!count($changes)) {
 		?>
-		<li><section class="no_content"><p>No changes awaiting approval</p></section></li>
+		<li><section class="no_content"><p>There are no changes awaiting your approval.</p></section></li>
 		<?	
 			} else {
 		?>
@@ -129,6 +151,34 @@
 						}
 				?>
 				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></a>
+				<?
+					}
+				?>
+			</section>
+		</li>
+		<?
+			}
+
+			if (!count($my_changes)) {
+		?>
+		<li><section class="no_content"><p>You have no changes awaiting a publisher's approval.</p></section></li>
+		<?
+			} else {
+		?>
+		<li>
+			<section class="changes_awaiting">
+				<p>You have the following changes pending a publisher's approval:</p>
+				<?
+					foreach ($my_change_modules as $m => $cm) {
+						if ($m == 0) {
+							$icon = "page";
+						} elseif ($cm["icon"]) {
+							$icon = $cm["icon"];
+						} else {
+							$icon = "gear";
+						}
+				?>
+				<div><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></div>
 				<?
 					}
 				?>

@@ -33,6 +33,14 @@
 	<label>Template</label>
 	<p><? if ($template == "") { ?>External Link<? } elseif ($template == "!") { ?>Redirect Lower<? } else { ?><?=str_replace("Module - ","",$tdata["name"])?><? } ?></p>
 </div>
+<?
+	if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
+		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
+?>
+<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+<?
+	}
+?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <?
 	$tabindex = 1;
@@ -78,6 +86,7 @@
 	if (count($bigtree["simple_html_fields"])) {
 		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 	}
+	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 	
 	if ($tdata["callouts_enabled"]) {
 ?>
@@ -132,7 +141,7 @@
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
 </div>
 <script>
-	var callout_count = <?=count($callouts)?>;
+	BigTreePages.calloutCount = <?=count($callouts)?>;
 </script>
 <?
 	}
@@ -163,4 +172,6 @@
 	<?
 		}
 	?>
+
+	BigTree.TinyMCEFields = <?=json_encode($bigtree["tinymce_fields"])?>;
 </script>

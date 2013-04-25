@@ -1,14 +1,16 @@
 <?
-	// Need this for existing callout stuff.
+	$value = array();
+	// New data, normal module / page data.
 	if (is_array($data[$key])) {
-		$entries = array();
-		foreach ($data[$key] as $k => $v) {
-			if (is_numeric($k)) {
-				$entries[] = json_decode($v,true);
+		foreach ($data[$key] as $i) {
+			if (is_string($i)) {
+				$value[] = json_decode($i,true);
+			} else {
+				$value[] = $i;
 			}
 		}
-		$value = json_encode(BigTree::translateArray($entries));
-	} else {
-		$value = $data[$key];
+	// Callouts are going to keep this as a string.
+	} elseif (is_string($data[$key])) {
+		$value = json_decode($data[$key],true);
 	}
 ?>

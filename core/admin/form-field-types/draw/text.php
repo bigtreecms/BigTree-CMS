@@ -12,6 +12,15 @@
 	<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=$value?>" id="field_<?=$key?>" />
 	<?
 		} elseif ($st == "name") {
+			// To prevent warnings we'll try to extract a first name / last name from a string.
+			if (!is_array($value)) {
+				if ($value) {
+					$temp = explode(" ",$value);
+					$value = array("first_name" => $temp[0],"last_name" => end($temp));
+				} else {
+					$value = array("first_name" => "","last_name" => "");
+				}
+			}
 	?>
 	<section class="input_name">
 		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[first_name]" value="<?=$value["first_name"]?>" id="field_<?=$key?>_first_name" placeholder="First" />
@@ -22,6 +31,10 @@
 	<?
 			$tabindex++;
 		} elseif ($st == "address") {
+			// Prevent warnings.
+			if (!is_array($value)) {
+				$value = array("street" => "", "city" => "", "state" => "", "zip" => "", "country" => "");
+			}
 	?>
 	<section class="input_address_street">
 		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[street]" value="<?=$value["street"]?>" id="field_<?=$key?>_street" placeholder="Street Address" />
@@ -32,7 +45,7 @@
 	<section class="input_address_state">
 		<select<?=$input_validation_class?> name="<?=$key?>[state]" id="field_<?=$key?>_state" tabindex="<?=($tabindex + 2)?>">
 			<option value="">Select a State</option>
-			<? foreach ($state_list as $a => $s) { ?>
+			<? foreach (BigTree::$StateList as $a => $s) { ?>
 			<option value="<?=$a?>"<? if ($a == $value["state"]) { ?> selected="selected"<? } ?>><?=$s?></option>
 			<? } ?>
 		</select>
@@ -42,7 +55,7 @@
 	</section>
 	<section class="input_address_country">
 		<select<?=$input_validation_class?> name="<?=$key?>[country]" id="field_<?=$key?>_country" tabindex="<?=($tabindex + 4)?>">
-			<? foreach ($country_list as $c) { ?>
+			<? foreach (BigTree::$CountryList as $c) { ?>
 			<option value="<?=$c?>"<? if ($c == $value["country"]) { ?> selected="selected"<? } ?>><?=$c?></option>
 			<? } ?>
 		</select>

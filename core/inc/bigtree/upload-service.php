@@ -7,8 +7,9 @@
 	class BigTreeUploadService {
 		
 		var $Service = "";
-		var $S3,$S3Buckets,$S3BucketData;
+		var $S3,$S3Data,$S3Files;
 		var $RSAuth,$RSConn,$RSContainers,$RSContainerData;
+		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
 		
 		/*
 			Constructor:
@@ -35,6 +36,7 @@
 				$this->jpegtran = $ups["jpegtran"];
 				$this->RackspaceData = $ups["rackspace"];
 				$this->S3Data = $ups["s3"];
+				$this->S3Files = array();
 			}
 		}
 		
@@ -82,15 +84,18 @@
 			global $cms;
 			
 			if (!$this->S3) {
-				$keys = $this->S3Data["keys"];
-				$this->S3 = new S3($keys["access_key_id"],$keys["secret_access_key"]);
+				$this->S3 = new S3($this->S3Data["keys"]["access_key_id"],$this->S3Data["keys"]["secret_access_key"],true);
 			}
 			
-			$bucket = substr($file_location,7,strpos($file_location,".")-7);
-			
-			$file_location = strrev($file_location);
-			$file = strrev(substr($file_location,0,strpos($file_location,"/")));
-			
+			// Take apart the file location since it's a full path.
+			if (substr($file_location,0,7) == "http://") {
+				$file_location = substr($file_location,7); // Cut off http://
+			} else {
+				$file_location = substr($file_location,8); // Cut off https://				
+			}
+			$file_location = substr($file_location,strpos($file_location,"/") + 1); // Cut off up to the first /.
+			$bucket = substr($file_location,0,strpos($file_location,"/")); // Get the bucket.
+			$file = substr($file_location,strlen($bucket) + 1); // Get the file.
 			$this->S3->deleteObject($bucket,$file);
 		}
 		
@@ -143,6 +148,11 @@
 		*/
 		
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+			// If the file name ends in a disabled extension, fail.
+			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
+				$this->DisabledFileError = true;
+				return false;
+			}
 			if ($this->Service == "local") {
 				if (!$relative_path) {
 					$relative_path = "files/";
@@ -192,35 +202,21 @@
 			global $cms;
 			
 			if (!$this->S3) {
-				$keys = $this->S3Data["keys"];
-				$this->S3 = new S3($keys["access_key_id"],$keys["secret_access_key"]);
+				$this->S3 = new S3($this->S3Data["keys"]["access_key_id"],$this->S3Data["keys"]["secret_access_key"]);
 			}
 			
-			if (!$this->S3Buckets) {
-				$this->S3Buckets = $this->S3Data["buckets"];
-			}
-			
-			// If we don't have a bucket for this path yet, make one.
-			$bucket = $this->S3Buckets[$relative_path];
-			if (!$bucket) {
-				$bucket = uniqid("bigtree-");
-				$this->S3Buckets[$relative_path] = $bucket;
-				$this->S3->putBucket($bucket,S3::ACL_PUBLIC_READ);
-				$this->saveSettings();
-			}
-			
-			$this->S3->putObjectFile($local_file,$this->S3Buckets[$relative_path],$file_name,S3::ACL_PUBLIC_READ);
+			$destination = rtrim($relative_path,"/")."/".$file_name;
+			$this->S3->putObjectFile($local_file,$this->S3Data["bucket"],$destination,S3::ACL_PUBLIC_READ);
 			
 			// Update the list of files in this bucket locally.
-			$existing_files[$file_name] = true;
-			$this->S3BucketData[$bucket] = $existing_files;
+			$this->S3Files[$destination] = true;
 			
 			// Remove the original file we were uploading.
 			if ($remove_original) {
 				unlink($local_file);
 			}
 			
-			return "http://$bucket.s3.amazonaws.com/$file_name";
+			return "http://s3.amazonaws.com/".$this->S3Data["bucket"]."/$destination";
 		}
 		
 		/*
@@ -286,7 +282,8 @@
 				"service" => $this->Service,
 				"s3" => array(
 					"keys" => $this->S3Data["keys"],
-					"buckets" => $this->S3Buckets
+					"bucket" => $this->S3Data["bucket"],
+					"files" => $this->S3Data["files"]
 				),
 				"rackspace" => array(
 					"keys" => $this->RackspaceData["keys"],
@@ -310,6 +307,11 @@
 		*/
 		
 		function upload($local_file,$file_name,$relative_path,$remove_original = true) {
+			// If the file name ends in a disabled extension, fail.
+			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
+				$this->DisabledFileError = true;
+				return false;
+			}
 			if ($this->Service == "local") {
 				if (!$relative_path) {
 					$relative_path = "files/";
@@ -361,28 +363,12 @@
 			global $cms;
 			
 			if (!$this->S3) {
-				$keys = $this->S3Data["keys"];
-				$this->S3 = new S3($keys["access_key_id"],$keys["secret_access_key"]);
-			}
-			
-			if (!$this->S3Buckets) {
-				$this->S3Buckets = $this->S3Data["buckets"];
-			}
-			
-			// If we don't have a bucket for this path yet, make one.
-			$bucket = $this->S3Buckets[$relative_path];
-			if (!$bucket) {
-				$bucket = uniqid("bigtree-");
-				$this->S3Buckets[$relative_path] = $bucket;
-				$this->S3->putBucket($bucket,S3::ACL_PUBLIC_READ);
-				$this->saveSettings();
+				$this->S3 = new S3($this->S3Data["keys"]["access_key_id"],$this->S3Data["keys"]["secret_access_key"]);
 			}
 			
 			// Check to see if this is a unique file name for this bucket, if not, get one.
-			$existing_files = $this->S3BucketData[$bucket];
-			if (!$existing_files) {
-				$existing_files = $this->S3->getBucket($bucket);
-				$this->S3BucketData[$bucket] = $existing_files;
+			if (!count($this->S3Files)) {
+				$this->S3Files = $this->S3->getBucket($this->S3Data["bucket"]);
 			}
 			
 			// Get a nice clean file name
@@ -395,24 +381,23 @@
 			
 			// Loop until we get a good file name.
 			$x = 2;
-			$original = $file_name;
-			while ($existing_files[$file_name]) {
-				$file_name = $clean_name."-$x.".$parts["extension"];
+			$destination = rtrim($relative_path,"/")."/".$file_name;
+			while ($this->S3Files[$destination]) {
+				$destination = rtrim($relative_path,"/")."/".$clean_name."-$x.".$parts["extension"];
 				$x++;
 			}
 			
-			$this->S3->putObjectFile($local_file,$this->S3Buckets[$relative_path],$file_name,S3::ACL_PUBLIC_READ);
+			$this->S3->putObjectFile($local_file,$this->S3Data["bucket"],$destination,S3::ACL_PUBLIC_READ);
 			
 			// Update the list of files in this bucket locally.
-			$existing_files[$file_name] = true;
-			$this->S3BucketData[$bucket] = $existing_files;
+			$this->S3Files[$destination] = true;
 			
 			// Remove the original file we were uploading.
 			if ($remove_original) {
 				unlink($local_file);
 			}
 			
-			return "http://$bucket.s3.amazonaws.com/$file_name";
+			return "http://s3.amazonaws.com/".$this->S3Data["bucket"]."/$destination";
 		}
 		
 		/*

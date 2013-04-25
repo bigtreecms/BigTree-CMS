@@ -1,18 +1,18 @@
 <script>
-	var update_timer;
-	var search_timer;
-	var search = "";
+	BigTree.localSaveTimer = false;
+	BigTree.localSearchTimer = false;
+	BigTree.localCurrentField = false;
 	
-	function hookResults() {
+	BigTree.localHooks = function() {
 		$(".autosave").keyup(function(ev) {
-			clearTimeout(update_timer);
-			current_editing_id = $(this).attr("name");
+			clearTimeout(BigTree.localSaveTimer);
+			BigTree.localCurrentField = $(this).attr("name");
 			if (ev.keyCode != 9) {
-				update_timer = setTimeout("save404();",500);
+				BigTree.localSaveTimer = setTimeout("BigTree.localSave();",500);
 			}
 		});
 		$(".autosave").blur(function() {
-			current_editing_id = $(this).attr("name");
+			BigTree.localCurrentField = $(this).attr("name");
 			save404();
 		});
 	
@@ -44,31 +44,29 @@
 			
 			return false;
 		});
-	}
+	};
 	
-	function save404() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: current_editing_id, value: $("#404_" + current_editing_id).val() }, type: "POST" });
-	}
-	
-	function search404() {
-		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>" }, hookResults);
-		search = $("#404_search").val();
-	}
+	BigTree.localSave = function() {
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
+	};
+
+	BigTree.localSearch = function() {
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>" }, BigTree.localHooks);
+	};
 	
 	$("#404_search").keyup(function() {
-		clearTimeout(search_timer);
-		search_timer = setTimeout("search404();",400);
+		clearTimeout(BigTree.localSearchTimer);
+		BigTree.localSearchTimer = setTimeout("BigTree.localSearch();",400);
 	});
 	
-	$("#view_paging a").live("click",function() {
-		mpage = BigTree.CleanHref($(this).attr("href"));
+	$(".table").on("click","#view_paging a",function() {
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: search, type: "<?=$type?>", page: mpage }, hookResults);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>", page: BigTree.CleanHref($(this).attr("href")) }, BigTree.localHooks);
 
 		return false;
 	});
 	
-	hookResults();
+	BigTree.localHooks();
 </script>

@@ -12,6 +12,9 @@
 		} else {
 			$title = rtrim($title,"s");
 		}
+		if (strtolower($_GET["title"]) == "news") {
+			$title = $_GET["title"];
+		}
 	} else {
 		$title = "";
 	}
@@ -84,7 +87,7 @@
 				if ($table) {
 					include BigTree::path("admin/ajax/developer/load-form.php");
 				} else {
-					echo "<p>Please choose a table to populate fields.</p>";
+					echo "<p>Please choose a table to populate this area.</p>";
 				}
 			?>
 		</section>

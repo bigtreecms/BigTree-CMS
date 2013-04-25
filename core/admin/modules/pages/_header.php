@@ -5,7 +5,7 @@
 
 	// Get the end command as the current working page and get the current user's access level.
 	if (is_numeric($id)) {
-		$page = $cms->getPendingPage($id);
+		$page = $cms->getPendingPage($id,true,true);
 		$access_level = $admin->getPageAccessLevel($id);
 	} else {
 		$page = $cms->getPendingPage($id,true,true);

@@ -187,7 +187,7 @@
 
 				if ($sort_field) {
 					$fields[] = "`sort_field`";
-					$vals[] = "'".mysql_real_escape_string($item[$sort_field])."'";
+					$vals[] = "'".sqlescape($item[$sort_field])."'";
 				}
 				
 				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
@@ -233,7 +233,7 @@
 			// See if we need to modify the cache table to add more fields.
 			$field_count = count($view["fields"]);
 			$table_description = BigTree::describeTable("bigtree_module_view_cache");
-			$cc = count($table_description["columns"]) - 11;
+			$cc = count($table_description["columns"]) - 13;
 			while ($field_count > $cc) {
 				$cc++;
 				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
@@ -313,6 +313,9 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
+						if (is_array($val)) {
+							$val = json_encode(BigTree::translateArray($val));
+						}
 						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
@@ -324,12 +327,14 @@
 			foreach ($many_to_many as $mtm) {
 				$table_description = BigTree::describeTable($mtm["table"]);
 				if (is_array($mtm["data"])) {
+					$x = count($mtm["data"]);
 					foreach ($mtm["data"] as $position => $item) {
 						if (isset($table_description["columns"]["position"])) {
-							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
+							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 						}
+						$x--;
 					}
 				}
 			}
@@ -373,6 +378,9 @@
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
+				}
+				if (is_array($val)) {
+					$data[$key] = BigTree::translateArray($val);
 				}
 			}
 
@@ -763,8 +771,11 @@
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		static function getSearchResults($view,$page = 0,$query = "",$sort = "id DESC",$group = false, $module = false) {
+		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false, $module = false) {
 			global $last_query,$admin;
+
+			// We're going to read the original table so we know whether the column we're sorting by is numeric.
+			$tableInfo = BigTree::describeTable($view["table"]);
 			
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
@@ -806,16 +817,28 @@
 			}
 			
 			if ($sort_field != "id") {
+				$convert_numeric = false;
+				$columnInfo = $tableInfo["columns"][$sort_field];
+				if ($columnInfo) {
+					$t = $columnInfo["type"];
+					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
+						$convert_numeric = true;
+					}
+				}
+				if ($tableInfo["columns"])
 				$x = 0;
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
-						$sort_field = "column$x";
+						$sort_field = "LOWER(column$x)";
 					}
 				}
 				// If we didn't find a column, let's assume it's the default sort field.
-				if (substr($sort_field,0,6) != "column") {
-					$sort_field = "sort_field";
+				if (substr($sort_field,6,6) != "column") {
+					$sort_field = "LOWER(sort_field)";
+				}
+				if ($convert_numeric) {
+					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
 				}
 			} else {
 				$sort_field = "CONVERT(id,UNSIGNED)";
@@ -829,7 +852,7 @@
 			if ($page === "all") {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
 			} else {
-				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".($page * $per_page).",$per_page");
+				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
 			}
 			
 			while ($f = sqlfetch($q)) {
@@ -1091,12 +1114,14 @@
 			foreach ($many_to_many as $mtm) {
 				$table_description = BigTree::describeTable($mtm["table"]);
 				if (!empty($mtm["data"])) {
+					$x = count($mtm["data"]);
 					foreach ($mtm["data"] as $position => $item) {
 						if (isset($table_description["columns"]["position"])) {
-							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
+							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 						}
+						$x--;
 					}
 				}
 			}
@@ -1246,12 +1271,12 @@
 			$query = "UPDATE `$table` SET ";
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
-					if (is_array($val)) {
-						$val = json_encode($val);
-					}
 					if ($val === "NULL" || $val == "NOW()") {
 						$query .= "`$key` = $val,";
 					} else {
+						if (is_array($val)) {
+							$val = json_encode(BigTree::translateArray($val));
+						}
 						$query .= "`$key` = '".sqlescape($val)."',";
 					}
 				}
@@ -1265,12 +1290,14 @@
 					sqlquery("DELETE FROM `".$mtm["table"]."` WHERE `".$mtm["my-id"]."` = '$id'");
 					$table_description = BigTree::describeTable($mtm["table"]);
 					if (is_array($mtm["data"])) {
-						foreach ($mtm["data"] as $position => $item) {
+						$x = count($mtm["data"]);
+						foreach ($mtm["data"] as $item) {
 							if (isset($table_description["columns"]["position"])) {
-								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$position')");
+								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 							} else {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 							}
+							$x--;
 						}
 					}
 				}
@@ -1311,6 +1338,9 @@
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
 			$changes = json_decode($item["changes"],true);
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			}
 			$changes[$field] = $value;
 			$changes = sqlescape(json_encode($changes));
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes' WHERE id = '$id'");

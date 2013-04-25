@@ -1,10 +1,10 @@
 <?
 	$form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
-	$form_root = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
+	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
 	$action = $bigtree["commands"][0];
 
-	if (!$action || is_numeric($action)) {
+	if (!$action || is_numeric($action) || is_numeric(substr($action,1))) {
 		if ($edit_id) {
 			if (isset($_GET["force"])) {
 				$admin->unlock($form["table"],$edit_id);

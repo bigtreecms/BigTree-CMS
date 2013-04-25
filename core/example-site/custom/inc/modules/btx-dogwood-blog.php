@@ -203,9 +203,9 @@
 				<getPost>
 		*/
 		
-		function getPageOfPosts($page,$per_page = 5) {
+		function getPageOfPosts($page = 1,$per_page = 5) {
 			$posts = array();
-			$start = $page * $per_page;
+			$start = ($page - 1) * $per_page;
 			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
@@ -229,12 +229,12 @@
 				<getPost>
 		*/
 		
-		function getPageOfPostsByAuthor($page,$author,$per_page = 5) {
+		function getPageOfPostsByAuthor($page = 1,$author,$per_page = 5) {
 			$posts = array();
 			if (is_array($author)) {
 				$author = $author["id"];
 			}
-			$start = $page * $per_page;
+			$start = ($page - 1) * $per_page;
 			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE author = '".sqlescape($author)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
@@ -258,12 +258,12 @@
 				<getPost>
 		*/
 		
-		function getPageOfPostsInCategory($page,$category,$per_page = 5) {
+		function getPageOfPostsInCategory($page = 1,$category,$per_page = 5) {
 			$posts = array();
 			if (is_array($category)) {
 				$category = $category["id"];
 			}
-			$start = $page * $per_page;
+			$start = ($page - 1) * $per_page;
 			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN btx_dogwood_post_categories WHERE btx_dogwood_posts.id = btx_dogwood_post_categories.post AND btx_dogwood_post_categories.category = '".sqlescape($category)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
@@ -287,11 +287,11 @@
 				<getPost>
 		*/
 		
-		function getPageOfPostsInMonth($page,$month,$per_page = 5) {
+		function getPageOfPostsInMonth($page = 1,$month,$per_page = 5) {
 			$posts = array();
 			$start = date("Y-m-01 00:00:00",strtotime($month));
 			$end = date("Y-m-t 23:59:59",strtotime($month));
-			$begin = $page * $per_page;
+			$begin = ($page - 1) * $per_page;
 			$q = sqlquery("SELECT * FROM btx_dogwood_posts WHERE date >= '$start' AND date <= '$end' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $begin,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
@@ -315,12 +315,12 @@
 				<getPost>
 		*/
 		
-		function getPageOfPostsWithTag($page, $tag, $per_page = 5) {
+		function getPageOfPostsWithTag($page = 1, $tag, $per_page = 5) {
 			$posts = array();
 			if (is_array($tag)) {
 				$tag = $tag["id"];
 			}
-			$start = $page * $per_page;
+			$start = ($page - 1) * $per_page;
 			$q = sqlquery("SELECT btx_dogwood_posts.* FROM btx_dogwood_posts JOIN bigtree_tags_rel ON btx_dogwood_posts.id = bigtree_tags_rel.entry WHERE bigtree_tags_rel.`table` = 'btx_dogwood_posts' AND bigtree_tags_rel.tag = '".sqlescape($tag)."' AND (publish_date IS NULL OR publish_date <= '".date("Y-m-d")."') ORDER BY date DESC LIMIT $start,$per_page");
 			while ($f = sqlfetch($q)) {
 				$posts[] = $this->getPost($f);
@@ -328,6 +328,58 @@
 			return $posts;
 		}
 		
+		/*
+			Function: getPendingPostAndTags
+				Returns a post with all pending changes attached and content decoded with author information.
+			
+			Parameters:
+				post - The post ID or pending post ID prefixed with a "p".
+			
+			Returns:
+				An associative array containing the decoded post array with author information in "post" and tags in "tags".
+		*/
+		
+		function getPendingPostAndTags($post) {
+			if (is_numeric($post)) {
+				$post = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '$post'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'btx_dogwood_posts' AND item_id = '".$post["id"]."'"));
+				if (is_array($f)) {
+					$changes = json_decode($f["changes"],true);
+					if (is_array($changes)) {
+						foreach ($changes as $key => $val) {
+							$post[$key] = $val;
+						}
+					}
+					
+					$tags = array();
+					$t = json_decode($f["tags_changes"],true);
+					if (is_array($t)) {
+						foreach ($t as $i) {
+							$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$i'"));
+						}
+					}
+				} else {
+					$tags = $this->getTagsForPost($post);
+				}
+				$post = $this->getPost($post);
+				return array("post" => $post, "tags" => $tags);
+			} else {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($post,1))."'"));
+				$post = json_decode($f["changes"],true);
+				$post = $this->getPost($post);
+
+				$tags = array();
+				$t = json_decode($f["tags_changes"],true);
+				if (is_array($t)) {
+					foreach ($t as $i) {
+					    $tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$i'"));
+					}
+				}
+				
+				return array("post" => $post, "tags" => $tags);
+			}
+		}
+
 		/*
 			Function: getPost
 				Returns a post with content decoded and author information.
@@ -566,9 +618,9 @@
 				<getPost>
 		*/
 		
-		function getSearchPageOfPosts($query,$page,$per_page = 5) {
+		function getSearchPageOfPosts($query,$page = 1,$per_page = 5) {
 			$posts = array();
-			$begin = $page * $per_page;
+			$begin = ($page - 1) * $per_page;
 			$q = explode(" ",$query);
 			$qparts = array("1");
 			foreach ($q as $i) {
