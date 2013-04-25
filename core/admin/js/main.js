@@ -744,7 +744,7 @@ var BigTreePhotoGallery = Class.extend({
 		this.disableCaptions = disable_captions;
 		this.fileInput = this.container.find("footer input");
 		
-		this.container.find("ul").sortable({ items: "li" });
+		this.container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 		this.container.on("click",".icon_delete",this.deletePhoto);
 		this.container.on("click",".icon_edit",$.proxy(this.editPhoto,this));
 		this.container.on("change","input[type=file]",$.proxy(this.addPhoto,this));
