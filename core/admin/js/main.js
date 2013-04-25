@@ -63,23 +63,6 @@ $(document).ready(function() {
 		}
 	});
 	
-	// Removeable Resources
-	$(".container").on("click",".remove_resource",function() {
-		p = $(this).parent();
-		if (p.hasClass("currently_file")) {
-			p.remove();
-		} else {
-			p.hide().find("input, img").remove();
-		}
-		return false;
-	}).on("click",".form_image_browser",function() {
-	// Form Image Browser
-		options = eval('(' + $(this).attr("name") + ')');
-		field = $(this).attr("href").substr(1);
-		BigTreeFileManager.formOpen("image",field,options);
-		return false;
-	});
-	
 	// Growl Hooks
 	$("#growl").on("click",".close",function() {
 		$(this).parents("article").remove();
@@ -126,6 +109,8 @@ $(document).ready(function() {
 		
 		$(this).css(style);
 	});
+
+	BigTree.FormHooks(".container form");
 });
 
 function BigTreeCustomControls() {
@@ -1033,6 +1018,8 @@ var BigTreeDialog = Class.extend({
 		
 		// Set a timer to watch for a change in the dialog height
 		this.heightWatchTimer = setInterval($.proxy(this.WatchHeight,this),250);
+
+		BigTree.FormHooks(".bigtree_dialog_form");
 	},
 	
 	CheckForEsc: function(e) {
@@ -2158,6 +2145,24 @@ var BigTree = {
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);
+	},
+
+	FormHooks: function(selector) {
+		$(selector).on("click",".remove_resource",function() {
+			p = $(this).parent();
+			if (p.hasClass("currently_file")) {
+				p.remove();
+			} else {
+				p.hide().find("input, img").remove();
+			}
+			return false;
+		}).on("click",".form_image_browser",function() {
+		// Form Image Browser
+			options = eval('(' + $(this).attr("name") + ')');
+			field = $(this).attr("href").substr(1);
+			BigTreeFileManager.formOpen("image",field,options);
+			return false;
+		});
 	},
 
 	growltimer: false,
