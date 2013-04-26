@@ -1,6 +1,6 @@
-<fieldset>
-	<input<?=$input_validation_class?> type="checkbox" tabindex="<?=$tabindex?>" name="<?=$key?>" id="field_<?=$key?>" <? if ($value) { ?>checked="checked" <? } ?><? if ($options["custom_value"]) { ?> value="<?=htmlspecialchars($options["custom_value"])?>"<? } ?> />
-	<label<?=$label_validation_class?> class="for_checkbox">
-		<? if ($title) { ?><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?><? } ?>		
-	</label>
-</fieldset>
+<input<? if ($field["required"]) { ?> class="required"<? } ?> type="checkbox" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" id="<?=$field["id"]?>" <? if ($field["value"]) { ?>checked="checked" <? } ?><? if ($field["options"]["custom_value"]) { ?> value="<?=htmlspecialchars(htmlspecialchars_decode($field["options"]["custom_value"]))?>"<? } ?> />
+<? if ($field["title"]) { ?>
+<label<? if ($field["required"]) { ?> class="required"<? } ?> class="for_checkbox" for="<?=$field["id"]?>">
+	<?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?>
+</label>
+<? } ?>

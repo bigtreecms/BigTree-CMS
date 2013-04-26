@@ -78,9 +78,9 @@
 			?>
 			<fieldset>
 				<?
-					if ($title) {
+					if ($field["title"] && $item["type"] != "checkbox") {
 				?>
-				<label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label>
+				<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 				<?
 					}
 					include $field_type_path;
