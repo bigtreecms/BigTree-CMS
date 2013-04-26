@@ -52,21 +52,37 @@
 				$bigtree["simple_html_fields"] = array();
 				
 				$options = json_decode($item["options"],true);
+
 				// Setup Validation Classes
 				$label_validation_class = "";
-				$input_validation_class = "";
+				$required = false;
 				if (isset($options["validation"]) && $options["validation"]) {
 					if (strpos($options["validation"],"required") !== false) {
 						$label_validation_class = ' class="required"';
+						$required = true;
 					}
-					$input_validation_class = ' class="'.$options["validation"].'"';
 				}
+
+				$field = array();
+				// Leaving some variable settings for backwards compatibility — removing in 5.0
+				$field["title"] = $title = "";
+				$field["value"] = $value = $item["value"];
+				$field["key"] = $key = $item["id"];
+				$field["options"] = $options;
+				$field["required"] = $required;
+			?>
+			<fieldset>
+				<?
+					if ($title) {
+				?>
+				<label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label>
+				<?
+					}
+					include BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
+				?>
+			</fieldset>
+			<?
 				
-				$title = "";
-				$value = $item["value"];
-				$key = $item["id"];
-				
-				include BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
 			?>
 		</section>
 		<footer>
