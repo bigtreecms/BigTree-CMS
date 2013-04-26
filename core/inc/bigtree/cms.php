@@ -316,7 +316,9 @@
 			if ($mod["class"]) {
 				if (class_exists($mod["class"])) {
 					@eval('$module = new '.$mod["class"].';');
-					$bc = array_merge($bc,$module->getBreadcrumb($page));
+					if (method_exists($module, "getBreadcrumb")) {
+						$bc = array_merge($bc,$module->getBreadcrumb($page));
+					}
 				}
 			}
 			
@@ -564,19 +566,21 @@
 						// If the class exists, instantiate it and call it
 						if ($f["class"] && class_exists($f["class"])) {
 							@eval('$module = new '.$f["class"].';');
-							$modNav = $module->getNav($f);
-							// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-							$module_nav = array();
-							foreach ($modNav as $item) {
-								$item["parent"] = $f["id"];
-								$item["id"] = "module_nav_".$module_nav_count;
-								$module_nav[] = $item;
-								$module_nav_count++;
-							}
-							if ($module->NavPosition == "top") {
-								$nav = array_merge($module_nav,$nav);
-							} else {
-								$nav = array_merge($nav,$module_nav);
+							if (method_exists($module,"getNav")) {
+								$modNav = $module->getNav($f);
+								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+								$module_nav = array();
+								foreach ($modNav as $item) {
+									$item["parent"] = $f["id"];
+									$item["id"] = "module_nav_".$module_nav_count;
+									$module_nav[] = $item;
+									$module_nav_count++;
+								}
+								if ($module->NavPosition == "top") {
+									$nav = array_merge($module_nav,$nav);
+								} else {
+									$nav = array_merge($nav,$module_nav);
+								}
 							}
 						}
 					}
@@ -586,10 +590,12 @@
 					// If the class exists, instantiate it and call it.
 					if ($f["class"] && class_exists($f["class"])) {
 						@eval('$module = new '.$f["class"].';');
-						if ($module->NavPosition == "top") {
-							$nav = array_merge($module->getNav($f),$nav);
-						} else {
-							$nav = array_merge($nav,$module->getNav($f));
+						if (method_exists($module,"getNav")) {
+							if ($module->NavPosition == "top") {
+								$nav = array_merge($module->getNav($f),$nav);
+							} else {
+								$nav = array_merge($nav,$module->getNav($f));
+							}
 						}
 					}
 				}
