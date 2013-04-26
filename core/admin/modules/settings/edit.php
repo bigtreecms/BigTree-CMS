@@ -61,7 +61,7 @@
 				$field["current_value_key"] = $currently_key = "__curent-value__".$item["id"];
 				$field["options"] = $options;
 				$field["required"] = $required;
-				$field["id"] = uniqid("field_",true);
+				$field["id"] = uniqid("field_");
 				$field["tabindex"] = "1";
 
 				// Setup Validation Classes

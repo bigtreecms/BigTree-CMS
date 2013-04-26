@@ -1,27 +1,27 @@
 <?
-	$template_id = $page["template"];
+	$template_id = $bigtree["current_page"]["template"];
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
-		$page = $cms->getPendingPage($_POST["page"]);
-		$resources = $page["resources"];
-		$callouts = $page["callouts"];
-	} elseif (!isset($resources) && !isset($callouts)) {
-		$resources = array();
-		$callouts = array();
+		$bigtree["current_page"] = $cms->getPendingPage($_POST["page"]);
+		$bigtree["resources"] = $bigtree["current_page"]["resources"];
+		$bigtree["callouts"] = $bigtree["current_page"]["callouts"];
+	} elseif (!isset($bigtree["resources"]) && !isset($bigtree["callouts"])) {
+		$bigtree["resources"] = array();
+		$bigtree["callouts"] = array();
 	}
 
-	$template = $cms->getTemplate($template_id);
+	$bigtree["template"] = $cms->getTemplate($template_id);
 
-	if (!$template["image"]) {
+	if (!$bigtree["template"]["image"]) {
 		$image = ADMIN_ROOT."images/templates/page.png";
 	} else {
-		$image = ADMIN_ROOT."images/templates/".$template["image"];
+		$image = ADMIN_ROOT."images/templates/".$bigtree["template"]["image"];
 	}
 ?>
 <div class="alert template_message">
 	<img src="<?=$image?>" alt="" width="32" height="32" />
 	<label>Template</label>
-	<p><? if ($template_id == "") { ?>External Link<? } elseif ($template_id == "!") { ?>Redirect Lower<? } else { ?><?=$template["name"]?><? } ?></p>
+	<p><? if ($template_id == "") { ?>External Link<? } elseif ($template_id == "!") { ?>Redirect Lower<? } else { ?><?=$bigtree["template"]["name"]?><? } ?></p>
 </div>
 <?
 	if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
@@ -39,18 +39,18 @@
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;
-	if (is_array($template["resources"]) && count($template["resources"])) {
-		foreach ($template["resources"] as $resource) {
+	if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
+		foreach ($bigtree["template"]["resources"] as $resource) {
 			$field = array();
 			// Leaving some variable settings for backwards compatibility — removing in 5.0
 			$field["title"] = $title = $resource["title"];
 			$field["subtitle"] = $subtitle = $resource["subtitle"];
 			$field["key"] = $key = "resources[".$resource["id"]."]";
-			$field["value"] = $value = isset($resources[$resource["id"]]) ? $resources[$resource["id"]] : "";
+			$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
 			$field["current_value_key"] = $currently_key = "resources[__curent-value__".$resource["id"]."]";
-			$field["id"] = uniqid("field_",true);
+			$field["id"] = uniqid("field_");
 			$field["tabindex"] = $bigtree["tabindex"];
-			$field["options"] = $resource;
+			$field["options"] = $options = $resource;
 			$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
 
 			// Setup Validation Classes
@@ -95,14 +95,14 @@
 	}
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 	
-	if ($template["callouts_enabled"]) {
+	if ($bigtree["template"]["callouts_enabled"]) {
 ?>
 <div class="sub_section" id="bigtree_callouts">
 	<label>Callouts</label>
 	<ul>
 		<?
 			$x = 0;
-			foreach ($callouts as $callout) {
+			foreach ($bigtree["callouts"] as $callout) {
 				$description = "";
 				$type = $cms->getCallout($callout["type"]);
 				$temp_resources = json_decode($type["resources"],true);
@@ -148,7 +148,7 @@
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
 </div>
 <script>
-	BigTreePages.calloutCount = <?=count($callouts)?>;
+	BigTreePages.calloutCount = <?=count($bigtree["callouts"])?>;
 </script>
 <?
 	}
@@ -157,19 +157,19 @@
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>
-	$("<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
+	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
 	<?
 		}
 		
 		foreach ($bigtree["timepickers"] as $id) {
 	?>
-	$("<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<?
 		}
 		
 		foreach ($bigtree["datetimepickers"] as $id) {
 	?>
-	$("<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 	<?
 		}
 		

@@ -16,7 +16,7 @@
 	}
 
 	// Make sure the user is a publisher.
-	if ($access_level != "p") {
+	if ($bigtree["access_level"] != "p") {
 ?>
 <div class="container">
 	<section>
