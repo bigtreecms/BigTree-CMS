@@ -2277,8 +2277,7 @@
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
-					"route" => "Generated Route",
-					"custom" => "Custom Function"
+					"route" => "Generated Route"
 				);
 
 				$types["template"] = $types["callout"] = $types["setting"] = array(
@@ -2292,8 +2291,7 @@
 					"time" => "Time Picker",
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
+					"array" => "Array of Items"
 				);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
