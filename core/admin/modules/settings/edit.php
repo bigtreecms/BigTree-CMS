@@ -71,6 +71,7 @@
 				$field["options"] = $options;
 				$field["required"] = $required;
 				$field["id"] = uniqid("field_",true);
+				$field["tabindex"] = "1";
 			?>
 			<fieldset>
 				<?
