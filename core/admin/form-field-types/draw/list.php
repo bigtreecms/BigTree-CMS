@@ -44,7 +44,7 @@
 			);
 		}
 	} else {
-		$list = $options["list"];
+		$list = $field["options"]["list"];
 	}
 
 	if ($db_error) {

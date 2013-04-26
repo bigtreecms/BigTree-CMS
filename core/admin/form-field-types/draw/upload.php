@@ -1,4 +1,4 @@
-<div class="image_field">
+<div class="<? if (!isset($field["options"]["image"]) || !$field["options"]["image"]) { ?>upload_field<? } else { ?>image_field<? } ?>">
 	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" id="<?=$field["id"]?>" />
 	<?	
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
