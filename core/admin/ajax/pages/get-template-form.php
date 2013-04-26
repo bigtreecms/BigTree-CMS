@@ -1,11 +1,7 @@
 <?
-	if (isset($_POST["template"])) {
-		$template = $_POST["template"];
-	} else {
-		$template = $page["template"];
-	}
-	
+	$template_id = $page["template"];
 	if (isset($_POST["page"])) {
+		$template_id = $_POST["template"];
 		$page = $cms->getPendingPage($_POST["page"]);
 		$resources = $page["resources"];
 		$callouts = $page["callouts"];
@@ -14,24 +10,18 @@
 		$callouts = array();
 	}
 
-	$tdata = $cms->getTemplate($template);
+	$template = $cms->getTemplate($template_id);
 
-	if (!$tdata["image"]) {
+	if (!$template["image"]) {
 		$image = ADMIN_ROOT."images/templates/page.png";
 	} else {
-		$image = ADMIN_ROOT."images/templates/".$tdata["image"];
+		$image = ADMIN_ROOT."images/templates/".$template["image"];
 	}
-	
-	$bigtree["datepickers"] = array();
-	$bigtree["timepickers"] = array();
-	$bigtree["datetimepickers"] = array();
-	$bigtree["html_fields"] = array();
-	$bigtree["simple_html_fields"] = array();
 ?>
 <div class="alert template_message">
 	<img src="<?=$image?>" alt="" width="32" height="32" />
 	<label>Template</label>
-	<p><? if ($template == "") { ?>External Link<? } elseif ($template == "!") { ?>Redirect Lower<? } else { ?><?=str_replace("Module - ","",$tdata["name"])?><? } ?></p>
+	<p><? if ($template_id == "") { ?>External Link<? } elseif ($template_id == "!") { ?>Redirect Lower<? } else { ?><?=$template["name"]?><? } ?></p>
 </div>
 <?
 	if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
@@ -43,38 +33,55 @@
 ?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <?
-	$tabindex = 1;
-	if (is_array($tdata["resources"]) && count($tdata["resources"])) {
-		foreach ($tdata["resources"] as $options) {
-			$key = $options["id"];
-			$type = $options["type"];
-			$title = $options["title"];
-			$subtitle = $options["subtitle"];
-			if (isset($resources[$key])) {
-				$value = $resources[$key];
-			} else {
-				$value = "";
-			}
-			$options["directory"] = "files/pages/";
-			$currently_key = "resources[currently_$key]";
-			$key = "resources[$key]";
-			
+	$bigtree["datepickers"] = array();
+	$bigtree["timepickers"] = array();
+	$bigtree["datetimepickers"] = array();
+	$bigtree["html_fields"] = array();
+	$bigtree["simple_html_fields"] = array();
+	$bigtree["tabindex"] = 1;
+	if (is_array($template["resources"]) && count($template["resources"])) {
+		foreach ($template["resources"] as $resource) {
+			$field = array();
+			// Leaving some variable settings for backwards compatibility — removing in 5.0
+			$field["title"] = $title = $resource["title"];
+			$field["subtitle"] = $subtitle = $resource["subtitle"];
+			$field["key"] = $key = "resources[".$resource["id"]."]";
+			$field["value"] = $value = isset($resources[$resource["id"]]) ? $resources[$resource["id"]] : "";
+			$field["current_value_key"] = $currently_key = "resources[__curent-value__".$resource["id"]."]";
+			$field["id"] = uniqid("field_",true);
+			$field["tabindex"] = $bigtree["tabindex"];
+			$field["options"] = $resource;
+			$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
+
 			// Setup Validation Classes
 			$label_validation_class = "";
-			$input_validation_class = "";
-			if (isset($options["validation"]) && $options["validation"]) {
-				if (strpos($options["validation"],"required") !== false) {
+			$field["required"] = false;
+			if (isset($resource["validation"]) && $resource["validation"]) {
+				if (strpos($resource["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
+					$field["required"] = true;
 				}
-				$input_validation_class = ' class="'.$options["validation"].'"';
 			}
+			$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 			
-			include BigTree::path("admin/form-field-types/draw/$type.php");
-		
-			$tabindex++;
+			if (file_exists($field_type_path)) {
+?>
+<fieldset>
+	<?
+		if ($field["title"] && $resource["type"] != "checkbox") {
+	?>
+	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+	<?
+		}
+		include $field_type_path;
+	?>
+</fieldset>
+<?
+				$bigtree["tabindex"]++;
+			}
 		}
 	} else {
-		echo '<p>There are no resources for your selected template.</p>';
+		echo '<p>There are no resources for the selected template.</p>';
 	}
 
 	$mce_width = 898;
@@ -88,7 +95,7 @@
 	}
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 	
-	if ($tdata["callouts_enabled"]) {
+	if ($template["callouts_enabled"]) {
 ?>
 <div class="sub_section" id="bigtree_callouts">
 	<label>Callouts</label>

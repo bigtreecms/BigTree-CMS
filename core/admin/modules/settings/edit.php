@@ -53,16 +53,6 @@
 				
 				$options = json_decode($item["options"],true);
 
-				// Setup Validation Classes
-				$label_validation_class = "";
-				$required = false;
-				if (isset($options["validation"]) && $options["validation"]) {
-					if (strpos($options["validation"],"required") !== false) {
-						$label_validation_class = ' class="required"';
-						$required = true;
-					}
-				}
-
 				$field = array();
 				// Leaving some variable settings for backwards compatibility — removing in 5.0
 				$field["title"] = $title = "";
@@ -73,6 +63,16 @@
 				$field["required"] = $required;
 				$field["id"] = uniqid("field_",true);
 				$field["tabindex"] = "1";
+
+				// Setup Validation Classes
+				$label_validation_class = "";
+				$field["required"] = false;
+				if (isset($options["validation"]) && $options["validation"]) {
+					if (strpos($options["validation"],"required") !== false) {
+						$label_validation_class = ' class="required"';
+						$field["required"] = true;
+					}
+				}
 				$field_type_path = BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
 				if (file_exists($field_type_path)) {
 			?>
