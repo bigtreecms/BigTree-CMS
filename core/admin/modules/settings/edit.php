@@ -70,6 +70,7 @@
 				$field["key"] = $key = $item["id"];
 				$field["options"] = $options;
 				$field["required"] = $required;
+				$field["id"] = uniqid("field_",true);
 			?>
 			<fieldset>
 				<?
