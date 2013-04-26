@@ -809,10 +809,10 @@ var BigTreePhotoGallery = Class.extend({
 		// In case they click the span instead of the button.
 		if (!target.attr("href")) {
 			field = target.parent().attr("href").substr(1);	
-			options = eval('(' + target.parent().attr("name") + ')');
+			options = eval('(' + target.parent().attr("data-options") + ')');
 		} else {
 			field = target.attr("href").substr(1);
-			options = eval('(' + target.attr("name") + ')');
+			options = eval('(' + target.attr("data-options") + ')');
 		}
 		BigTreeFileManager.formOpen("photo-gallery",field,options,$.proxy(this.useExistingFile,this));
 		return false;
@@ -1094,7 +1094,6 @@ var BigTreeFileManager = {
 	fieldName: false,
 	minHeight: false,
 	minWidth: false,
-	previewPrefix: false,
 	startSearchTimer: false,
 	titleSaveTimer: false,
 	type: false,
@@ -1235,7 +1234,6 @@ var BigTreeFileManager = {
 		this.currentlyName = field_name;
 		this.currentlyKey = options.currentlyKey;
 		this.fieldName = false;
-		this.previewPrefix = options.previewPrefix;
 		this.callback = callback;
 		this.open(type,options.minWidth,options.minHeight);
 	},
@@ -2158,7 +2156,7 @@ var BigTree = {
 			return false;
 		}).on("click",".form_image_browser",function() {
 		// Form Image Browser
-			options = eval('(' + $(this).attr("name") + ')');
+			options = eval('(' + $(this).attr("data-options") + ')');
 			field = $(this).attr("href").substr(1);
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;

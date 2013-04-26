@@ -1,4 +1,5 @@
 <?
+	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
@@ -23,7 +24,6 @@
 		<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 		<?
 			foreach ($template_data["resources"] as $options) {
-				$no_file_browser = true;
 				$key = $options["id"];
 				$type = $options["type"];
 				$title = $options["title"];

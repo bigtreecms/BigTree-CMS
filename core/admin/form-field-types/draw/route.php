@@ -1,1 +1,0 @@
-<input type="hidden" name="<?=$key?>" value="<? if (!$options["keep_original"] || !$value) { ?>generate<? } ?>" />

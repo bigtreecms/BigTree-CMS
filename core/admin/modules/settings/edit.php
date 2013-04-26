@@ -68,10 +68,13 @@
 				$field["title"] = $title = "";
 				$field["value"] = $value = $item["value"];
 				$field["key"] = $key = $item["id"];
+				$field["current_value_key"] = $currently_key = "__curent-value__".$item["id"];
 				$field["options"] = $options;
 				$field["required"] = $required;
 				$field["id"] = uniqid("field_",true);
 				$field["tabindex"] = "1";
+				$field_type_path = BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
+				if (file_exists($field_type_path)) {
 			?>
 			<fieldset>
 				<?
@@ -80,11 +83,11 @@
 				<label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label>
 				<?
 					}
-					include BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
+					include $field_type_path;
 				?>
 			</fieldset>
 			<?
-				
+				}	
 			?>
 		</section>
 		<footer>
