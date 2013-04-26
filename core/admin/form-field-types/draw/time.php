@@ -9,7 +9,7 @@
 	} else {
 		$bigtree["timepickers"][] = $field["id"];
 ?>
-<input type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<? if ($field["value"]) { echo date("h:i a",strtotime($field["value"])); } ?>" autocomplete="off" id="field_<?=$field["key"]?>" class="time_picker<? if ($field["required"]) { ?> required<? } ?>" />
+<input type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<? if ($field["value"]) { echo date("h:i a",strtotime($field["value"])); } ?>" autocomplete="off" id="<?=$field["id"]?>" class="time_picker<? if ($field["required"]) { ?> required<? } ?>" />
 <span class="icon_small icon_small_clock time_picker_icon"></span>
 <?
 	}

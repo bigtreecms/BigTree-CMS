@@ -1,38 +1,40 @@
-<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" id="<?=$field["id"]?>" />
-<?	
-	if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
-		if ($field["value"]) {
-?>
-<div class="currently_file">
-	<input type="hidden" name="<?=$field["current_value_key"]?>" value="<?=$field["value"]?>" />
-	<strong>Currently:</strong> <?=$field["value"]?> <a href="#" class="remove_resource">Remove</a>
-</div>
-<?
-		}
-	} else {
-		if ($field["value"]) {
-			if ($field["options"]["preview_prefix"]) {
-				$preview_image = BigTree::prefixFile($field["value"],$field["options"]["preview_prefix"]);
-			} else {
-				$preview_image = $field["value"];
+<div class="image_field">
+	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" id="<?=$field["id"]?>" />
+	<?	
+		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
+			if ($field["value"]) {
+	?>
+	<div class="currently_file">
+		<input type="hidden" name="<?=$field["current_value_key"]?>" value="<?=$field["value"]?>" />
+		<strong>Currently:</strong> <?=$field["value"]?> <a href="#" class="remove_resource">Remove</a>
+	</div>
+	<?
 			}
 		} else {
-			$preview_image = false;
-		}
-		
-		// Generate the file manager restrictions
-		$button_options = htmlspecialchars(json_encode(array(
-			"minWidth" => $field["options"]["min_width"],
-			"minHeight" => $field["options"]["min_height"],
-			"currentlyKey" => $field["current_value_key"]
-		)));
-?>
-<div class="image_field">
-	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" />
-	<? if (!defined("BIGTREE_FRONT_END_EDITOR")) { ?>
+			if ($field["value"]) {
+				if ($field["options"]["preview_prefix"]) {
+					$preview_image = BigTree::prefixFile($field["value"],$field["options"]["preview_prefix"]);
+				} else {
+					$preview_image = $field["value"];
+				}
+			} else {
+				$preview_image = false;
+			}
+			
+			// Generate the file manager restrictions
+			$button_options = htmlspecialchars(json_encode(array(
+				"minWidth" => $field["options"]["min_width"],
+				"minHeight" => $field["options"]["min_height"],
+				"currentlyKey" => $field["current_value_key"]
+			)));
+			
+			if (!defined("BIGTREE_FRONT_END_EDITOR")) {
+	?>
 	<span class="or">OR</span>
 	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
-	<? } ?>
+	<?
+			}
+	?>
 	<br class="clear" />
 	<div class="currently" id="<?=$field["id"]?>"<? if (!$field["value"]) { ?> style="display: none;"<? } ?>>
 		<a href="#" class="remove_resource"></a>
@@ -44,7 +46,7 @@
 		<label>CURRENT</label>
 		<input type="hidden" name="<?=$field["current_value_key"]?>" value="<?=$field["value"]?>" />
 	</div>
-</fieldset>
-<?
-	}
-?>
+	<?
+		}
+	?>
+</div>

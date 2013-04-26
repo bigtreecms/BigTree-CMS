@@ -157,19 +157,19 @@
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>
-	$(document.getElementById("<?=$id?>")).datepicker({ duration: 200, showAnim: "slideDown" });
+	$("<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
 	<?
 		}
 		
 		foreach ($bigtree["timepickers"] as $id) {
 	?>
-	$(document.getElementById("<?=$id?>")).timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<?
 		}
 		
 		foreach ($bigtree["datetimepickers"] as $id) {
 	?>
-	$(document.getElementById("<?=$id?>")).datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+	$("<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 	<?
 		}
 		
