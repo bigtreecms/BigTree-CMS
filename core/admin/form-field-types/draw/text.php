@@ -1,6 +1,6 @@
 <div class="text_input">
 	<?
-		$st = isset($options["sub_type"]) ? $options["sub_type"] : false;
+		$st = isset($field["options"]["sub_type"]) ? $field["options"]["sub_type"] : false;
 		if (!$st) {
 	?>
 	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
