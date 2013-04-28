@@ -316,7 +316,7 @@
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
 		// If the current user isn't allowed in the module for the ajax, stop them.
-		$module = $admin->getModuleByRoute($bigtree["path"][2]);
+		$bigtree["current_module"] = $module = $admin->getModuleByRoute($bigtree["path"][2]);
 		if ($module && !$admin->checkAccess($module["id"])) {
 			die("Permission denied to module: ".$module["name"]);
 		}
@@ -433,7 +433,7 @@
 
 	// If this is a module or an auto module, check permissions on it.
 	if (!$ispage || !$inc) {
-		$module = $admin->getModuleByRoute($primary_route);
+		$bigtree["current_module"] = $module = $admin->getModuleByRoute($primary_route);
 		// If this is a module and the user doesn't have access, include the denied page and stop.
 		if ($module && !$admin->checkAccess($module["id"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
@@ -478,10 +478,10 @@
 			if ($bigtree["module_action"]["form"]) {
 				// If the last command is numeric then we're editing something.
 				if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
-					$edit_id = end($bigtree["commands"]);
+					$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
 				// Otherwise we're adding something, at least most likely.
 				} else {
-					$edit_id = false;
+					$bigtree["edit_id"] = $edit_id = false;
 				}
 				include BigTree::path("admin/auto-modules/form.php");
 			} else {
