@@ -49,7 +49,7 @@
 			$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
 			$field["current_value_key"] = $currently_key = "resources[__curent-value__".$resource["id"]."]";
 			$field["id"] = uniqid("field_");
-			$field["tabindex"] = $bigtree["tabindex"];
+			$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 			$field["options"] = $options = $resource;
 			$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
 
