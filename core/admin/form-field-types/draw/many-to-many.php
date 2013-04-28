@@ -16,7 +16,6 @@
 				$entries[$g["id"]] = $g[$field["options"]["mtm-other-descriptor"]];
 			}			
 		}
-	}
 	// No pending data, let's query the connecting table directly for the entries.
 	} else {
 		if ($sortable) {

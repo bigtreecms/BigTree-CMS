@@ -53,6 +53,16 @@
 								$field["required"] = true;
 							}
 						}
+
+						// Backwards compat. with its old naming
+						if ($resource["type"] == "many_to_many") {
+							$resource["type"] = "many-to-many";
+						}
+						// Give many to many its information
+						if ($resource["type"] == "many-to-many") {
+							$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key] : false;
+						}
+
 						$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 						
 						if (file_exists($field_type_path)) {
