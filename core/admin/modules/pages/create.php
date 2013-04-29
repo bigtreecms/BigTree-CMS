@@ -22,8 +22,8 @@
 	}
 	
 	$resources = array();
-	$crops = array();
-	$fails = array();
+	$bigtree["crops"] = array();
+	$bigtree["errors"] = array();
 	
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
@@ -43,13 +43,13 @@
 		"page" => $page,
 		"return_link" => ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/",
 		"edit_link" => ADMIN_ROOT."pages/edit/$page/",
-		"fails" => $fails,
-		"crops" => $crops
+		"errors" => $bigtree["errors"],
+		"crops" => $bigtree["crops"]
 	);
 	
-	if (count($fails)) {
+	if (count($bigtree["errors"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
-	} elseif (count($crops)) {
+	} elseif (count($bigtree["crops"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/crop/$page/");
 	}
 

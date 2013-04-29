@@ -43,8 +43,8 @@
 	}
 	
 	$resources = array();
-	$crops = array();
-	$fails = array();
+	$bigtree["crops"] = array();
+	$bigtree["errors"] = array();
 	
 	// Save the template since we're not passing in the full update data.
 	$_POST["template"] = $pdata["template"];
@@ -84,10 +84,10 @@
 	
 	$admin->unlock("bigtree_pages",$page);
 	
-	if (count($crops)) {
+	if (count($bigtree["crops"])) {
 		include BigTree::path("admin/modules/pages/_front-end-crop.php");
-	} elseif (count($fails)) {
-		include BigTree::path("admin/modules/pages/_front-end-failed.php");
+	} elseif (count($bigtree["errors"])) {
+		include BigTree::path("admin/modules/pages/_front-end-error.php");
 	} else {
 ?>
 <script>parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>
