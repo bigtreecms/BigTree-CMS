@@ -1,35 +1,23 @@
 <?
-	$temp_name = "";
-	$name = "";
-	$error = "";
+	$storage = new BigTreeStorage;
 	
-	if ($file_data != $_FILES) {
-		$temp_name = $file_data["tmp_name"][$key];
-		$name = $file_data["name"][$key];
-		$error = $file_data["error"][$key];
-	} else {
-		$temp_name = $file_data[$key]["tmp_name"];
-		$name = $file_data[$key]["name"];
-		$error = $file_data[$key]["error"];
-	}
-
 	// We're processing a file.
-	if (!$options["image"]) {
-		if ($temp_name) {
-			$value = $upload_service->upload($temp_name,$name,$options["directory"]);
+	if (!$field["options"]["image"]) {
+		if ($field["file_input"]["tmp_name"]) {
+			$value = $storage->upload($field["file_input"]["tmp_name"],$name,$field["options"]["directory"]);
 			
 			if (!$value) {
-				if ($upload_service->DisabledFileError) {
-					$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The file extension is not allowed.");
+				if ($storage->DisabledFileError) {
+					$fails[] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The file extension is not allowed.");
 				} else {
-					$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The destination is not writable.");
+					$fails[] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
 				}
 			}
 		} else {
 			if ($error == 1 || $error == 2) {
-				$fails[] = array("field" => $options["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+				$fails[] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
 			} elseif ($error == 3) {
-				$fails[] = array("field" => $options["title"], "error" => "The file upload failed ($name).");
+				$fails[] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");
 			}
 			
 			$value = $data["currently_$key"];
@@ -42,9 +30,9 @@
 			$value = $data["currently_$key"];
 			
 			if ($error == 1 || $error == 2) {
-				$fails[] = array("field" => $options["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+				$fails[] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
 			} elseif ($error == 3) {
-				$fails[] = array("field" => $options["title"], "error" => "The file upload failed ($name).");		
+				$fails[] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");		
 			// Maybe we used an existing file?
 			} else {
 				if (substr($value,0,11) == "resource://") {
@@ -56,15 +44,15 @@
 					$pinfo = BigTree::pathInfo($r["file"]);					
 					
 					// We're going to need to create a local copy if we need more 
-					if ((is_array($options["crops"]) && count($options["crops"])) || (is_array($options["thumbs"]) && count($options["thumbs"]))) {
+					if ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"]))) {
 						$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
 						file_put_contents($local_copy,file_get_contents($r["file"]));
 						
-						$value = $upload_service->upload($local_copy,$pinfo["basename"],$options["directory"],false);
+						$value = $storage->upload($local_copy,$pinfo["basename"],$field["options"]["directory"],false);
 						$pinfo = BigTree::pathInfo($value);
 					
-						if (is_array($options["crops"])) {
-							foreach ($options["crops"] as $crop) {
+						if (is_array($field["options"]["crops"])) {
+							foreach ($field["options"]["crops"] as $crop) {
 								// Make a square if the user forgot to enter one of the crop dimensions.
 								if (!$crop["height"]) {
 									$crop["height"] = $crop["width"];
@@ -73,8 +61,8 @@
 								}
 								$crops[] = array(
 									"image" => $local_copy,
-									"directory" => $options["directory"],
-									"retina" => $options["retina"],
+									"directory" => $field["options"]["directory"],
+									"retina" => $field["options"]["retina"],
 									"name" => $pinfo["basename"],
 									"width" => $crop["width"],
 									"height" => $crop["height"],
@@ -84,12 +72,12 @@
 							}
 						}
 						
-						if (is_array($options["thumbs"])) {
-							foreach ($options["thumbs"] as $thumb) {
+						if (is_array($field["options"]["thumbs"])) {
+							foreach ($field["options"]["thumbs"] as $thumb) {
 								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-								BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$options["grayscale"]);
+								BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$field["options"]["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
 							}
 						}
 					// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.

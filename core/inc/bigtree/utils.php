@@ -684,7 +684,7 @@
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
-				This method is deprecated and exists only for backwards compatibility (BigTreeGeocodingService should be used directly).
+				This method is deprecated and exists only for backwards compatibility (BigTreeGeocoding should be used directly).
 			
 			Parameters:
 				address - The address to geocode.
@@ -694,7 +694,7 @@
 		*/
 		
 		static function geocodeAddress($address) {
-			$geocoder = new BigTreeGeocodingService;
+			$geocoder = new BigTreeGeocoding;
 			return $geocoder->geocode($address);
 		}
 		

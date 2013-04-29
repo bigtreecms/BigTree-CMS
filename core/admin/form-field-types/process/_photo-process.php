@@ -60,18 +60,18 @@
 		}
 		
 		// Let's crush this png.
-		if ($itype == IMAGETYPE_PNG && $upload_service->optipng) {
+		if ($itype == IMAGETYPE_PNG && $storage->optipng) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".png";
 			move_uploaded_file($temp_name,$first_copy);
 			
-			exec($upload_service->optipng." ".$first_copy);
+			exec($storage->optipng." ".$first_copy);
 		}
 		// Let's crush the gif and see if we can make it a PNG.
-		if ($itype == IMAGETYPE_GIF && $upload_service->optipng) {
+		if ($itype == IMAGETYPE_GIF && $storage->optipng) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
 			move_uploaded_file($temp_name,$first_copy);
 			
-			exec($upload_service->optipng." ".$first_copy);
+			exec($storage->optipng." ".$first_copy);
 			if (file_exists(substr($first_copy,0,-3)."png")) {
 				unlink($first_copy);
 				$first_copy = substr($first_copy,0,-3)."png";
@@ -81,11 +81,11 @@
 			
 		}
 		// Let's trim the jpg.
-		if (!$already_created_first_copy && $itype == IMAGETYPE_JPEG && $upload_service->jpegtran) {
+		if (!$already_created_first_copy && $itype == IMAGETYPE_JPEG && $storage->jpegtran) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
 			move_uploaded_file($temp_name,$first_copy);
 			
-			exec($upload_service->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
+			exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
 			unlink($first_copy);
 			$first_copy = $first_copy."-trimmed";
 		}
@@ -96,11 +96,11 @@
 		BigTree::copyFile($first_copy,$temp_copy);
 		
 		// Upload the original to the proper place.
-		$value = $upload_service->upload($first_copy,$name,$options["directory"]);
+		$value = $storage->upload($first_copy,$name,$options["directory"]);
  		
  		// If the upload service didn't return a value, we failed to upload it for one reason or another.
  		if (!$value) {
- 			if ($upload_service->DisabledFileError) {
+ 			if ($storage->DisabledFileError) {
 				$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The file extension is not allowed.");
 			} else {
 				$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The destination is not writable.");
@@ -146,11 +146,11 @@
 							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 							BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
 							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-							$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
 						}
 					}
 					
-					$upload_service->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$options["directory"],false);
+					$storage->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$options["directory"],false);
 				}
 			}
 			
@@ -160,7 +160,7 @@
 					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 					BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
 					// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-					$upload_service->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+					$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
 				}
 			}
 			

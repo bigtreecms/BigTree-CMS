@@ -4,10 +4,7 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
-	
-	// Initiate the Upload Service class.
-	$upload_service = new BigTreeUploadService;
-	
+		
 	$access_level = $admin->getPageAccessLevel($_POST["parent"]); 
 	if ($access_level != "p" && $access_level != "e") {
 ?>
@@ -24,6 +21,8 @@
 	$resources = array();
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
+	// Initiate the Storage class for backwards compat.
+	$upload_service = new BigTreeStorage;
 	
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");

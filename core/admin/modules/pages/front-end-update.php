@@ -6,8 +6,6 @@
 	}
 	
 	$bigtree["layout"] = "front-end";
-	// Initiate the Upload Service class.
-	$upload_service = new BigTreeUploadService;
 
 	$page = $_POST["page"];
 	
@@ -45,7 +43,9 @@
 	$resources = array();
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
-	
+	// Initiate the Storage class for backwards compat.
+	$upload_service = new BigTreeStorage;
+
 	// Save the template since we're not passing in the full update data.
 	$_POST["template"] = $pdata["template"];
 	

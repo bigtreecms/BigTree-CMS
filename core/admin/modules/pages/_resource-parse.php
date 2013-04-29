@@ -5,6 +5,7 @@
 	// These are left in for backwards compatibility.
 	$data = $_POST["resources"];
 	$file_data = $_FILES["resources"];
+	$upload_service = new BigTreeStorage;
 
 	foreach ($bigtree["template"]["resources"] as $resource) {
 		unset($value); // Backwards compat.

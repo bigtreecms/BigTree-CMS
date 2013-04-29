@@ -1,10 +1,10 @@
 <?
 	/*
-		Class: BigTreeGeocodingService
+		Class: BigTreeGeocoding
 			Geocodes addresses with a variety of services.
 	*/
 	
-	class BigTreeGeocodingService {
+	class BigTreeGeocoding {
 		
 		var $Service = "";
 		

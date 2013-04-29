@@ -44,8 +44,8 @@
 		$admin->stop(file_get_contents(BigTree::path("admin/auto-modules/forms/_denied.php")));
 	}
 
-	// Initiate the Upload Service class.
-	$upload_service = new BigTreeUploadService;
+	// Initiate the storage class as $upload_service for backwards compatibility.
+	$upload_service = new BigTreeStorage;
 	// Make sure we have permission to this module before update.
 	$fields = $bigtree["form"]["fields"];
 	$crops = array();

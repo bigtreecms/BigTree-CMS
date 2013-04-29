@@ -4495,7 +4495,7 @@
 		*/
 
 		function processCrops($crops) {
-			$upload_service = new BigTreeUploadService;
+			$storage = new BigTreeStorage;
 			
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
@@ -4518,9 +4518,9 @@
 					
 					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 					BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
-					$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
+					$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 				}
-				$upload_service->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
+				$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
 			}
 			
 			// Remove all the temporary images

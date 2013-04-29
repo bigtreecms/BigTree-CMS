@@ -10,7 +10,8 @@
 	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
 		$admin->growl("Settings","Access Denied");
 	} else {
-		$upload_service = new BigTreeUploadService;
+		// Init as $upload_service for backwards compat.
+		$upload_service = new BigTreeStorage;
 		// Pretend like we're a normal field
 		$type = $item["type"];
 		$key = $item["id"];

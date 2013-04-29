@@ -8,7 +8,7 @@
 	
 	if (trim($location)) {
 		// Geocode
-		$geocoder = new BigTreeGeocodingService;
+		$geocoder = new BigTreeGeocoding;
 		$result = $geocoder->geocode(implode(", ",$location));
 		
 		// If it's false, we didn't get anything.
