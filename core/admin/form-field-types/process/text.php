@@ -1,23 +1,14 @@
 <?
-	$st = $options["sub_type"];
-	
-	if (is_array($data[$key])) {
-		foreach ($data[$key] as &$v) {
-			$v = htmlspecialchars($v);
+	if (is_array($field["input"])) {
+		foreach ($field["input"] as &$v) {
+			$v = htmlspecialchars(htmlspecialchars_decode($v));
 		}	
-	} else {
-		$data[$key] = htmlspecialchars($data[$key]);
-	}
-	
-	if ($st == "phone") {
-		if (is_array($data[$key])) {
-			$value = $data[$key]["phone_1"]."-".$data[$key]["phone_2"]."-".$data[$key]["phone_3"];
-		} else {
-			$value = $data[$key];
+		if ($field["options"]["sub_type"] == "phone") {
+			$value = $field["input"]["phone_1"]."-".$field["input"]["phone_2"]."-".$field["input"]["phone_3"];
+		} elseif ($field["options"]["sub_type"] == "address" || $field["options"]["sub_type"] == "name") {
+			$field["output"] = $field["input"];
 		}
-	} elseif ($st == "address" || $st == "name") {
-		$value = $data[$key];
 	} else {
-		$value = $data[$key];
+		$field["output"] = htmlspecialchars(htmlspecialchars_decode($field["input"]));
 	}
 ?>

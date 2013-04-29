@@ -1,10 +1,11 @@
 <?
 	// Parse the resources
-	$bigtree["resources"] = array();
+	$bigtree["parsed_data"] = array();
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
-	// These are left in for backwards compatibility.
-	$data = $_POST["resources"];
-	$file_data = $_FILES["resources"];
+	
+	// Duplicate vars and $upload_service in for backwards compat.
+	$bigtree["post_data"] = $data = $_POST["resources"];
+	$bigtree["file_data"] = $file_data = $_FILES["resources"];
 	$upload_service = new BigTreeStorage;
 
 	foreach ($bigtree["template"]["resources"] as $resource) {
@@ -14,6 +15,7 @@
 		$field["options"] = $options = $resource;
 		$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		$field["ignore"] = false;
+		$field["existing_value"] = isset($_POST["resources"]["__curent-value__".$resources["id"]]) ? $_POST["resources"]["__curent-value__".$resources["id"]] : false;
 		$field["input"] = $_POST["resources"][$resource["id"]];
 		// Make sense of file input data
 		if (is_array($_FILES["resources"]["name"][$resource["id"]])) {
@@ -72,10 +74,10 @@
 			} else {
 				$field["output"] = $admin->autoIPL($field["output"]);
 			}
-			$bigtree["resources"][$field["key"]] = $field["output"];
+			$bigtree["parsed_data"][$field["key"]] = $field["output"];
 		}
 	}
 
 	// We save it back to the post array because we're just going to feed the whole post array to createPage / updatePage
-	$_POST["resources"] = $bigtree["resources"];
+	$_POST["resources"] = $bigtree["parsed_data"];
 ?>

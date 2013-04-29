@@ -1,9 +1,9 @@
 <?
 	// Loop through all the fields to build the address
-	$fields = explode(",",$options["fields"]);
+	$fields = explode(",",$field["options"]["fields"]);
 	$location = array();
 	foreach ($fields as $field) {
-		$location[] = $data[trim($field)];
+		$location[] = $bigtree["post_data"][trim($field)];
 	}
 	
 	if (trim($location)) {
@@ -13,14 +13,14 @@
 		
 		// If it's false, we didn't get anything.
 		if (!$result) {
-			$item["latitude"] = false;
-			$item["longitude"] = false;
+			$bigtree["parsed_data"]["latitude"] = false;
+			$bigtree["parsed_data"]["longitude"] = false;
 		} else {
-			$item["latitude"] = $result["latitude"];
-			$item["longitude"] = $result["longitude"];
+			$bigtree["parsed_data"]["latitude"] = $result["latitude"];
+			$bigtree["parsed_data"]["longitude"] = $result["longitude"];
 		}
 	}
 		
 	// This field doesn't have it's own key to process.
-	$no_process = true;
+	$field["ignore"] = true;
 ?>
