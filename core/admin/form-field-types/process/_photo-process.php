@@ -11,19 +11,19 @@
 
 	// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
 	if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
-		$fails[] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
+		$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
 		$failed = true;
 	}
 	
 	// If it's not a valid image, throw it out!
 	if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
-		$fails[] = array("field" => $field["options"]["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
+		$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 		$failed = true;
 	}
 	
 	// See if it's CMYK
 	if ($channels == 4) {
-		$fails[] = array("field" => $field["options"]["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
+		$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
 		$failed = true;
 	}
 
@@ -97,14 +97,14 @@
 		BigTree::copyFile($first_copy,$temp_copy);
 		
 		// Upload the original to the proper place.
-		$field["output"] = $storage->upload($first_copy,$temp_name,$field["options"]["directory"]);
+		$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"]);
  		
  		// If the upload service didn't return a value, we failed to upload it for one reason or another.
  		if (!$field["output"]) {
  			if ($storage->DisabledFileError) {
-				$fails[] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The file extension is not allowed.");
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The file extension is not allowed.");
 			} else {
-				$fails[] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
 			}
 			unlink($temp_copy);
 			unlink($first_copy);

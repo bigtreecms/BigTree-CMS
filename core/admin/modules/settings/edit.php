@@ -58,7 +58,7 @@
 				$field["title"] = $title = "";
 				$field["value"] = $value = $item["value"];
 				$field["key"] = $key = $item["id"];
-				$field["current_value_key"] = $currently_key = "__curent-value__".$item["id"];
+				$field["current_value_key"] = $currently_key = "__current-value__".$item["id"];
 				$field["options"] = $options;
 				$field["required"] = $required;
 				$field["id"] = uniqid("field_");

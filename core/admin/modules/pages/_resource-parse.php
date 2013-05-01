@@ -4,11 +4,10 @@
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
 	$bigtree["file_data"] = BigTree::parsedFilesArray("resources");
 	$bigtree["post_data"] = $_POST["resources"];
-
 	// Duplicate vars and $upload_service in for backwards compat.
 	$data = $_POST["resources"];
 	$file_data = $_FILES["resources"];
-	$upload_service = new BigTreeStorage;
+	$upload_service = new BigTreeUploadService;
 
 	foreach ($bigtree["template"]["resources"] as $resource) {
 		unset($value); // Backwards compat.
@@ -17,7 +16,7 @@
 		$field["options"] = $options = $resource;
 		$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		$field["ignore"] = false;
-		$field["existing_value"] = isset($_POST["resources"]["__curent-value__".$resources["id"]]) ? $_POST["resources"]["__curent-value__".$resources["id"]] : false;
+		$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$resource["id"]]) ? $bigtree["post_data"]["__current-value__".$resource["id"]] : false;
 		$field["input"] = $_POST["resources"][$resource["id"]];
 		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 

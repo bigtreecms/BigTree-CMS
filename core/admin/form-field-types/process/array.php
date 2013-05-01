@@ -4,9 +4,9 @@
 	if (is_array($field["input"])) {
 		foreach ($field["input"] as $i) {
 			if (is_string($i)) {
-				$value[] = json_decode($i,true);
+				$field["output"][] = json_decode($i,true);
 			} else {
-				$value[] = $i;
+				$field["output"][] = $i;
 			}
 		}
 	// Callouts are going to keep this as a string.

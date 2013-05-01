@@ -12,13 +12,13 @@
 			// Otherwise, let's see if we have file information in the files array.
 			} elseif ($field["file_input"][$photo_count]["image"]["name"]) {
 				$name = $field["file_input"][$photo_count]["image"]["name"];
-				$tmp_name = $field["file_input"][$photo_count]["image"]["tmp_name"];
+				$temp_name = $field["file_input"][$photo_count]["image"]["tmp_name"];
 				$error = $field["file_input"][$photo_count]["image"]["error"];
 
 				if ($error == 1 || $error == 2) {
-					$fails[] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+					$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
 				} elseif ($error == 3) {
-					$fails[] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");
+					$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");
 				} else {
 					include BigTree::path("admin/form-field-types/process/_photo-process.php");
 					if (!$failed) {
@@ -75,7 +75,7 @@
 			}
 		}
 		
-		$bigtree["output"] = $photo_gallery;
+		$field["output"] = $photo_gallery;
 	// If the input is a string, it's probably from a callout that was never edited.
 	} elseif (is_string($field["input"])) {
 		$field["output"] = json_decode($field["input"],true);

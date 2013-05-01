@@ -4,7 +4,7 @@
 	// We're processing a file.
 	if (!$field["options"]["image"]) {
 		if ($field["file_input"]["tmp_name"]) {
-			$field["output"] = $storage->upload($field["file_input"]["tmp_name"],$field["file_input"]["name"],$field["options"]["directory"]);
+			$field["output"] = $storage->store($field["file_input"]["tmp_name"],$field["file_input"]["name"],$field["options"]["directory"]);
 			
 			if (!$field["output"]) {
 				if ($storage->DisabledFileError) {
@@ -14,9 +14,9 @@
 				}
 			}
 		} else {
-			if ($error == 1 || $error == 2) {
+			if ($field["file_input"]["error"] == 1 || $field["file_input"]["error"] == 2) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file you uploaded (".$field["file_input"]["name"].") was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
-			} elseif ($error == 3) {
+			} elseif ($field["file_input"]["error"] == 3) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file upload failed (".$field["file_input"]["name"].").");
 			}
 			
@@ -26,14 +26,14 @@
 	} else {
 		if ($field["file_input"]["tmp_name"]) {
 			$name = $field["file_input"]["name"];
-			$tmp_name = $field["file_input"]["tmp_name"];
+			$temp_name = $field["file_input"]["tmp_name"];
 			include BigTree::path("admin/form-field-types/process/_photo-process.php");
 		} else {
 			$field["output"] = $field["existing_value"];
 			
-			if ($error == 1 || $error == 2) {
+			if ($field["file_input"]["error"] == 1 || $field["file_input"]["error"] == 2) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file you uploaded (".$field["file_input"]["name"].") was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
-			} elseif ($error == 3) {
+			} elseif ($field["file_input"]["error"] == 3) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file upload failed (".$field["file_input"]["name"].").");		
 			// Maybe we used an existing file?
 			} else {
@@ -50,7 +50,7 @@
 						$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
 						file_put_contents($local_copy,file_get_contents($resource["file"]));
 						
-						$field["output"] = $storage->upload($local_copy,$pinfo["basename"],$field["options"]["directory"],false);
+						$field["output"] = $storage->store($local_copy,$pinfo["basename"],$field["options"]["directory"],false);
 						$pinfo = BigTree::pathInfo($field["output"]);
 					
 						if (is_array($field["options"]["crops"])) {
