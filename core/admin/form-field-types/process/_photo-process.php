@@ -1,28 +1,29 @@
 <?
+	$storage = new BigTreeStorage;
 	$failed = false;
 		
 	// Let's check the minimum requirements for the image first before we store it anywhere.
-	$image_info = @getimagesize($temp_name);
+	$image_info = @getimagesize($field["file_input"]["tmp_name"]);
 	$iwidth = $image_info[0];
 	$iheight = $image_info[1];
 	$itype = $image_info[2];
 	$channels = $image_info["channels"];
 
 	// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
-	if ((isset($options["min_height"]) && $iheight < $options["min_height"]) || (isset($options["min_width"]) && $iwidth < $options["min_width"])) {
-		$fails[] = array("field" => $options["title"], "error" => "Image uploaded did not meet the minimum size of ".$options["min_width"]."x".$options["min_height"]);
+	if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
+		$fails[] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
 		$failed = true;
 	}
 	
 	// If it's not a valid image, throw it out!
 	if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
-		$fails[] = array("field" => $options["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
+		$fails[] = array("field" => $field["options"]["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 		$failed = true;
 	}
 	
 	// See if it's CMYK
 	if ($channels == 4) {
-		$fails[] = array("field" => $options["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
+		$fails[] = array("field" => $field["options"]["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
 		$failed = true;
 	}
 
@@ -30,11 +31,11 @@
 		// Do EXIF Image Rotation
 		$already_created_first_copy = false;
 		if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
-			$exif = @exif_read_data($temp_name);
+			$exif = @exif_read_data($field["file_input"]["tmp_name"]);
 			$o = $exif['Orientation'];
 			if ($o == 3 || $o == 6 || $o == 8) {
 				$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
-				$source = imagecreatefromjpeg($temp_name);
+				$source = imagecreatefromjpeg($field["file_input"]["tmp_name"]);
 				
 				if ($o == 3) {
 					$source = imagerotate($source,180,0);
@@ -56,34 +57,34 @@
 		$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 		
 		if (!$already_created_first_copy) {
-			$first_copy = $temp_name;
+			$first_copy = $field["file_input"]["tmp_name"];
 		}
 		
 		// Let's crush this png.
 		if ($itype == IMAGETYPE_PNG && $storage->optipng) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".png";
-			move_uploaded_file($temp_name,$first_copy);
+			move_uploaded_file($field["file_input"]["tmp_name"],$first_copy);
 			
 			exec($storage->optipng." ".$first_copy);
 		}
 		// Let's crush the gif and see if we can make it a PNG.
 		if ($itype == IMAGETYPE_GIF && $storage->optipng) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
-			move_uploaded_file($temp_name,$first_copy);
+			move_uploaded_file($field["file_input"]["tmp_name"],$first_copy);
 			
 			exec($storage->optipng." ".$first_copy);
 			if (file_exists(substr($first_copy,0,-3)."png")) {
 				unlink($first_copy);
 				$first_copy = substr($first_copy,0,-3)."png";
-				$name_parts = BigTree::pathInfo($name);
-				$name = $name_parts["filename"].".png";
+				$name_parts = BigTree::pathInfo($field["file_input"]["name"]);
+				$field["file_input"]["name"] = $name_parts["filename"].".png";
 			}
 			
 		}
 		// Let's trim the jpg.
 		if (!$already_created_first_copy && $itype == IMAGETYPE_JPEG && $storage->jpegtran) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
-			move_uploaded_file($temp_name,$first_copy);
+			move_uploaded_file($field["file_input"]["tmp_name"],$first_copy);
 			
 			exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
 			unlink($first_copy);
@@ -96,14 +97,14 @@
 		BigTree::copyFile($first_copy,$temp_copy);
 		
 		// Upload the original to the proper place.
-		$value = $storage->upload($first_copy,$name,$options["directory"]);
+		$field["output"] = $storage->upload($first_copy,$field["file_input"]["tmp_name"],$field["options"]["directory"]);
  		
  		// If the upload service didn't return a value, we failed to upload it for one reason or another.
- 		if (!$value) {
+ 		if (!$field["output"]) {
  			if ($storage->DisabledFileError) {
-				$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The file extension is not allowed.");
+				$fails[] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The file extension is not allowed.");
 			} else {
-				$fails[] = array("field" => $options["title"], "error" => "Could not upload file. The destination is not writable.");
+				$fails[] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
 			}
 			unlink($temp_copy);
 			unlink($first_copy);
@@ -111,10 +112,10 @@
 		// If we did upload it successfully, check on thumbs and crops.
 		} else { 
 			// Get path info on the file.
-			$pinfo = BigTree::pathInfo($value);
+			$pinfo = BigTree::pathInfo($field["output"]);
 		
 			// Handle Crops
-			foreach ($options["crops"] as $crop) {
+			foreach ($field["options"]["crops"] as $crop) {
 				$cwidth = $crop["width"];
 				$cheight = $crop["height"];
 				
@@ -126,10 +127,10 @@
 					} elseif (!$cheight) {
 						$cheight = $cwidth;
 					}
-					$crops[] = array(
+					$bigtree["crops"][] = array(
 						"image" => $temp_copy,
-						"directory" => $options["directory"],
-						"retina" => $options["retina"],
+						"directory" => $field["options"]["directory"],
+						"retina" => $field["options"]["retina"],
 						"name" => $pinfo["basename"],
 						"width" => $cwidth,
 						"height" => $cheight,
@@ -144,23 +145,23 @@
 						foreach ($crop["thumbs"] as $thumb) {
 							// Create a temporary thumbnail of the image on the server before moving it to it's destination.
 							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-							BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
+							BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
 							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
 						}
 					}
 					
-					$storage->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$options["directory"],false);
+					$storage->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 				}
 			}
 			
 			// Handle thumbnailing
-			if (is_array($options["thumbs"])) {
-				foreach ($options["thumbs"] as $thumb) {
+			if (is_array($field["options"]["thumbs"])) {
+				foreach ($field["options"]["thumbs"] as $thumb) {
 					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-					BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$thumb["grayscale"]);
+					BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
 					// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-					$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+					$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
 				}
 			}
 			
@@ -169,7 +170,8 @@
 				unlink($temp_copy);
 			}
 		}
+	// We failed, keep the current value.
 	} else {
-		$value = $data["currently_$key"];
+		$field["output"] = $field["existing_value"];
 	}
 ?>
