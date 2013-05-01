@@ -1,64 +1,56 @@
 <?
+	print_r($field);
+	die();
 	$storage = new BigTreeStorage;
-	
-	if (is_array($data[$key])) {
+
+	// We're going to loop through captions and get the images for them if we have that.
+	if (is_array($field["input"])) {
 		$photo_gallery = array();
-		foreach ($data[$key] as $pcount => $d) {
-			if ($d["image"]) {
-				$d["caption"] = htmlspecialchars($d["caption"]);
-				$photo_gallery[] = $d;
-			} elseif ($file_data[$key]["name"][$pcount]["image"] || $file_data["name"][$key][$pcount]["image"] || (is_array($file_data["image"]) && is_array($file_data["image"]["name"]) && is_array($file_data["image"]["name"][$pcount]) && $file_data["image"]["name"][$pcount]["image"])) {
-				// Uploaded a new photo.
-				
-				if ($file_data[$key]["name"][$pcount]["image"]) {
-					$temp_name = $file_data[$key]["tmp_name"][$pcount]["image"];
-					$name = $file_data[$key]["name"][$pcount]["image"];
-					$error = $file_data[$key]["error"][$pcount]["image"];
-				} elseif ($file_data["name"][$key][$pcount]["image"]) {
-					$temp_name = $file_data["tmp_name"][$key][$pcount]["image"];
-					$name = $file_data["name"][$key][$pcount]["image"];
-					$error = $file_data["error"][$key][$pcount]["image"];
-				} else {
-					$temp_name = $file_data["image"]["tmp_name"][$pcount]["image"];
-					$name = $file_data["image"]["name"][$pcount]["image"];
-					$error = $file_data["image"]["error"][$pcount]["image"];
-				}
-				
+		foreach ($field["input"] as $photo_count => $data) {
+			// If we have image data, it's a previously uploaded image we haven't changed, so just add it back to the photo gallery array.
+			if ($data["image"]) {
+				$data["caption"] = htmlspecialchars(htmlspecialchars_decode($data["caption"]));
+				$photo_gallery[] = $data;
+			// Otherwise, let's see if we have file information in the files array.
+			} elseif ($field["file_inputs"][$photo_count]["name"]["image"]) {
+				$name = $field["file_inputs"][$photo_count]["name"]["image"];
+				$tmp_name = $field["file_inputs"][$photo_count]["tmp_name"]["image"];
+				$error = $field["file_inputs"][$photo_count]["error"]["image"];
+
 				if ($error == 1 || $error == 2) {
-					$fails[] = array("field" => $options["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+					$fails[] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
 				} elseif ($error == 3) {
-					$fails[] = array("field" => $options["title"], "error" => "The file upload failed ($name).");
+					$fails[] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");
 				} else {
 					include BigTree::path("admin/form-field-types/process/_photo-process.php");
-				
 					if (!$failed) {
-						$photo_gallery[] = array("caption" => htmlspecialchars($d["caption"]),"image" => $value);
+						$photo_gallery[] = array("caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])),"image" => $field["output"]);
 					}
 				}
-			} elseif ($d["existing"]) {
-				$d["existing"] = str_replace(WWW_ROOT,SITE_ROOT,$d["existing"]);
-				$pinfo = BigTree::pathInfo($d["existing"]);
+			} elseif ($data["existing"]) {
+				$data["existing"] = str_replace(WWW_ROOT,SITE_ROOT,$data["existing"]);
+				$pinfo = BigTree::pathInfo($data["existing"]);
 				
 				// We're going to need to create a local copy if we need more 
-				if ((is_array($options["crops"]) && count($options["crops"])) || (is_array($options["thumbs"]) && count($options["thumbs"]))) {
+				if ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"]))) {
 					$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
-					file_put_contents($local_copy,file_get_contents($d["existing"]));
+					file_put_contents($local_copy,file_get_contents($data["existing"]));
 					
-					$value = $storage->upload($local_copy,$pinfo["basename"],$options["directory"],false);
-					$pinfo = BigTree::pathInfo($value);
+					$file_name = $storage->upload($local_copy,$pinfo["basename"],$field["options"]["directory"],false);
+					$pinfo = BigTree::pathInfo($file_name);
 				
-					if (is_array($options["crops"])) {
-						foreach ($options["crops"] as $crop) {
+					if (is_array($field["options"]["crops"])) {
+						foreach ($field["options"]["crops"] as $crop) {
 							// Make a square if the user forgot to enter one of the crop dimensions.
 							if (!$crop["height"]) {
 								$crop["height"] = $crop["width"];
 							} elseif (!$crop["width"]) {
 								$crop["width"] = $crop["height"];
 							}
-							$crops[] = array(
+							$bigtree["crops"][] = array(
 								"image" => $local_copy,
-								"directory" => $options["directory"],
-								"retina" => $options["retina"],
+								"directory" => $field["options"]["directory"],
+								"retina" => $field["options"]["retina"],
 								"name" => $pinfo["basename"],
 								"width" => $crop["width"],
 								"height" => $crop["height"],
@@ -68,25 +60,26 @@
 						}
 					}
 					
-					if (is_array($options["thumbs"])) {
-						foreach ($options["thumbs"] as $thumb) {
+					if (is_array($field["options"]["thumbs"])) {
+						foreach ($field["options"]["thumbs"] as $thumb) {
 							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-							BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"],$options["retina"],$options["grayscale"]);
+							BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$field["options"]["grayscale"]);
 							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$options["directory"]);
+							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
 						}
 					}
 					
-					$photo_gallery[] = array("caption" => htmlspecialchars($d["caption"]), "image" => $value);
+					$photo_gallery[] = array("caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])), "image" => $file_name);
 				// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.
 				} else {
-					$photo_gallery[] = array("caption" => htmlspecialchars($d["caption"]), "image" => $r["file"]);
+					$photo_gallery[] = array("caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])), "image" => str_replace(SITE_ROOT,STATIC_ROOT,$data["existing"]));
 				}
 			}
 		}
 		
-		$value = $photo_gallery;
-	} elseif (is_string($data[$key])) {
-		$value = json_decode($data[$key],true);
+		$bigtree["output"] = $photo_gallery;
+	// If the input is a string, it's probably from a callout that was never edited.
+	} elseif (is_string($field["input"])) {
+		$field["output"] = json_decode($field["input"],true);
 	}
 ?>

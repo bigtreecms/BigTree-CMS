@@ -3,7 +3,7 @@
 	$failed = false;
 		
 	// Let's check the minimum requirements for the image first before we store it anywhere.
-	$image_info = @getimagesize($field["file_input"]["tmp_name"]);
+	$image_info = @getimagesize($temp_name);
 	$iwidth = $image_info[0];
 	$iheight = $image_info[1];
 	$itype = $image_info[2];
@@ -31,11 +31,11 @@
 		// Do EXIF Image Rotation
 		$already_created_first_copy = false;
 		if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
-			$exif = @exif_read_data($field["file_input"]["tmp_name"]);
+			$exif = @exif_read_data($temp_name);
 			$o = $exif['Orientation'];
 			if ($o == 3 || $o == 6 || $o == 8) {
 				$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
-				$source = imagecreatefromjpeg($field["file_input"]["tmp_name"]);
+				$source = imagecreatefromjpeg($temp_name);
 				
 				if ($o == 3) {
 					$source = imagerotate($source,180,0);
@@ -57,34 +57,34 @@
 		$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 		
 		if (!$already_created_first_copy) {
-			$first_copy = $field["file_input"]["tmp_name"];
+			$first_copy = $temp_name;
 		}
 		
 		// Let's crush this png.
 		if ($itype == IMAGETYPE_PNG && $storage->optipng) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".png";
-			move_uploaded_file($field["file_input"]["tmp_name"],$first_copy);
+			move_uploaded_file($temp_name,$first_copy);
 			
 			exec($storage->optipng." ".$first_copy);
 		}
 		// Let's crush the gif and see if we can make it a PNG.
 		if ($itype == IMAGETYPE_GIF && $storage->optipng) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
-			move_uploaded_file($field["file_input"]["tmp_name"],$first_copy);
+			move_uploaded_file($temp_name,$first_copy);
 			
 			exec($storage->optipng." ".$first_copy);
 			if (file_exists(substr($first_copy,0,-3)."png")) {
 				unlink($first_copy);
 				$first_copy = substr($first_copy,0,-3)."png";
-				$name_parts = BigTree::pathInfo($field["file_input"]["name"]);
-				$field["file_input"]["name"] = $name_parts["filename"].".png";
+				$name_parts = BigTree::pathInfo($name);
+				$name = $name_parts["filename"].".png";
 			}
 			
 		}
 		// Let's trim the jpg.
 		if (!$already_created_first_copy && $itype == IMAGETYPE_JPEG && $storage->jpegtran) {
 			$first_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
-			move_uploaded_file($field["file_input"]["tmp_name"],$first_copy);
+			move_uploaded_file($temp_name,$first_copy);
 			
 			exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
 			unlink($first_copy);
@@ -97,7 +97,7 @@
 		BigTree::copyFile($first_copy,$temp_copy);
 		
 		// Upload the original to the proper place.
-		$field["output"] = $storage->upload($first_copy,$field["file_input"]["tmp_name"],$field["options"]["directory"]);
+		$field["output"] = $storage->upload($first_copy,$temp_name,$field["options"]["directory"]);
  		
  		// If the upload service didn't return a value, we failed to upload it for one reason or another.
  		if (!$field["output"]) {

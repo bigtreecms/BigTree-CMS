@@ -25,6 +25,8 @@
 	// We're processing an image.
 	} else {
 		if ($field["file_input"]["tmp_name"]) {
+			$name = $field["file_input"]["name"];
+			$tmp_name = $field["file_input"]["tmp_name"];
 			include BigTree::path("admin/form-field-types/process/_photo-process.php");
 		} else {
 			$field["output"] = $field["existing_value"];
@@ -37,16 +39,16 @@
 			} else {
 				if (substr($field["input"],0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
-					$resource = sqlescape(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($field["input"],11)));
+					$resource_location = sqlescape(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($field["input"],11)));
 					
-					$r = $admin->getResourceByFile($resource);
-					$r["file"] = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$r["file"]);
-					$pinfo = BigTree::pathInfo($r["file"]);					
+					$resource = $admin->getResourceByFile($resource_location);
+					$resource["file"] = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$r["file"]);
+					$pinfo = BigTree::pathInfo($resource["file"]);					
 					
 					// We're going to need to create a local copy if we need more 
 					if ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"]))) {
 						$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
-						file_put_contents($local_copy,file_get_contents($r["file"]));
+						file_put_contents($local_copy,file_get_contents($resource["file"]));
 						
 						$field["output"] = $storage->upload($local_copy,$pinfo["basename"],$field["options"]["directory"],false);
 						$pinfo = BigTree::pathInfo($field["output"]);
@@ -82,7 +84,7 @@
 						}
 					// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.
 					} else {
-						$field["output"] = str_replace(SITE_ROOT,"{staticroot}",$r["file"]);
+						$field["output"] = str_replace(SITE_ROOT,"{staticroot}",$resource["file"]);
 					}
 				} else {
 					$field["output"] = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$field["output"]);
