@@ -2,10 +2,12 @@
 	// Parse the resources
 	$bigtree["parsed_data"] = array();
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
-	
+	$bigtree["file_data"] = BigTree::parsedFilesArray("resources");
+	$bigtree["post_data"] = $_POST["resources"];
+
 	// Duplicate vars and $upload_service in for backwards compat.
-	$bigtree["post_data"] = $data = $_POST["resources"];
-	$bigtree["file_data"] = $file_data = $_FILES["resources"];
+	$data = $_POST["resources"];
+	$file_data = $_FILES["resources"];
 	$upload_service = new BigTreeStorage;
 
 	foreach ($bigtree["template"]["resources"] as $resource) {
@@ -17,29 +19,7 @@
 		$field["ignore"] = false;
 		$field["existing_value"] = isset($_POST["resources"]["__curent-value__".$resources["id"]]) ? $_POST["resources"]["__curent-value__".$resources["id"]] : false;
 		$field["input"] = $_POST["resources"][$resource["id"]];
-		// Make sense of file input data
-		if (is_array($_FILES["resources"]["name"][$resource["id"]])) {
-			// If we have an array of files for the key, we loop through them and set "file_inputs" (multiple)
-			$field["file_inputs"] = array();
-			foreach ($_FILES["resources"]["name"][$resource["id"]] as $key => $val) {
-				$field["file_inputs"][] = array(
-					"name" => $_FILES["resources"]["name"][$resource["id"]][$key],
-					"type" => $_FILES["resources"]["type"][$resource["id"]][$key],
-					"tmp_name" => $_FILES["resources"]["tmp_name"][$resource["id"]][$key],
-					"error" => $_FILES["resources"]["error"][$resource["id"]][$key],
-					"size" => $_FILES["resources"]["size"][$resource["id"]][$key]
-				);
-			}
-		} else {
-			// If we have a single file for the key, we simply set its information in "file_input" (singular)
-			$field["file_input"] = array(
-				"name" => $_FILES["resources"]["name"][$resource["id"]],
-				"type" => $_FILES["resources"]["type"][$resource["id"]],
-				"tmp_name" => $_FILES["resources"]["tmp_name"][$resource["id"]],
-				"error" => $_FILES["resources"]["error"][$resource["id"]],
-				"size" => $_FILES["resources"]["size"][$resource["id"]]
-			);
-		}
+		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 
 		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
 		

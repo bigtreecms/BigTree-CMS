@@ -1,6 +1,4 @@
 <?
-	print_r($field);
-	die();
 	$storage = new BigTreeStorage;
 
 	// We're going to loop through captions and get the images for them if we have that.
@@ -12,10 +10,10 @@
 				$data["caption"] = htmlspecialchars(htmlspecialchars_decode($data["caption"]));
 				$photo_gallery[] = $data;
 			// Otherwise, let's see if we have file information in the files array.
-			} elseif ($field["file_inputs"][$photo_count]["name"]["image"]) {
-				$name = $field["file_inputs"][$photo_count]["name"]["image"];
-				$tmp_name = $field["file_inputs"][$photo_count]["tmp_name"]["image"];
-				$error = $field["file_inputs"][$photo_count]["error"]["image"];
+			} elseif ($field["file_input"][$photo_count]["image"]["name"]) {
+				$name = $field["file_input"][$photo_count]["image"]["name"];
+				$tmp_name = $field["file_input"][$photo_count]["image"]["tmp_name"];
+				$error = $field["file_input"][$photo_count]["image"]["error"];
 
 				if ($error == 1 || $error == 2) {
 					$fails[] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
