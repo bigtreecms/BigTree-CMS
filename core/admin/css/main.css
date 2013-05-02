@@ -61,22 +61,30 @@
 	h1 .authorize, .box_select .authorize { background-position: -800px -16px; }
 	h1 .linkpoint, .box_select .linkpoint { background-position: -832px -16px; }
 	h1 .payflow, .box_select .payflow { background-position: -864px -16px; }
-	h1 .api, .box_select .api { background-position: -377px -47px; }
-	h1 .twitter, .box_select .twitter { background-position: -414px -47px; }
-	h1 .instagram, .box_select .instagram { background-position: -453px -47px; }
-	h1 .googleplus, .box_select .googleplus { background-position: -486px -47px; }
-	h1 .youtube, .box_select .youtube { background-position: -658px -47px; }
-	h1 .flickr, .box_select .flickr { background-position: -523px -47px; }
 	h1 .crop { background-position: -896px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
 	h1 .edit_page { background-position: -64px -48px; }
 	h1 .page_versions { background-position: -96px -48px; }
+	h1 .search { background-position: -195px -48px; }
 	h1 .add_message { background-position: -256px -48px; }
 	h1 .reply_message { background-position: -288px -48px; }
-	h1 .search { background-position: -195px -48px; }
-	h1 .credits { background-position: -338px -48px; }
-
+	h1 .credits { background-position: -320px -48px; }
+	h1 .api, .box_select .api { background-position: -352px -48px; }
+	h1 .twitter, .box_select .twitter { background-position: -384px -48px; }
+	h1 .instagram, .box_select .instagram { background-position: -416px -48px; }
+	h1 .googleplus, .box_select .googleplus { background-position: -448px -48px; }
+	h1 .flickr, .box_select .flickr { background-position: -480px -48px; }
+	h1 .facebook, .box_select .facebook { background-position: -512px -48px; }
+	h1 .vimeo, .box_select .vimeo { background-position: -544px -48px; }
+	h1 .soundcloud, .box_select .soundcloud { background-position: -576px -48px; }
+	h1 .youtube, .box_select .youtube { background-position: -608px -48px; }
+	h1 .geocoding, .box_select .geocoding { background-position: -640px -48px; }
+	h1 .yahoo, .box_select .yahoo { background-position: -672px -48px; }
+	h1 .google, .box_select .google { background-position: -704px -48px; }
+	h1 .mapquest, .box_select .mapquest { background-position: -736px -48px; }
+	h1 .bing, .box_select .bing { background-position: -768px -48px; }
+	
 	h2 { color: rgba(51,51,51,0.9); float: left; font-size: 18px; font-weight: normal; height: 32px; line-height: 30px; padding: 5px 0 0 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h2 small { color: #999999; display: inline-block; font-size: 13px; padding: 0 0 0 10px; }
 	h2.no_icon { padding-top: 3px; }
