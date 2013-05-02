@@ -68,12 +68,12 @@
 ?>
 <fieldset>
 	<?
-		if ($field["title"] && $resource["type"] != "checkbox") {
+				if ($field["title"] && $resource["type"] != "checkbox") {
 	?>
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 	<?
-		}
-		include $field_type_path;
+				}
+				include $field_type_path;
 	?>
 </fieldset>
 <?

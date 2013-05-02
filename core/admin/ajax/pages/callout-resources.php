@@ -1,40 +1,36 @@
 <?
 	define("BIGTREE_CALLOUT_RESOURCES",true);
-	if (isset($_POST["data"])) {
-		$resources = json_decode(base64_decode($_POST["data"]),true);
-		foreach ($resources as &$val) {
-			if (is_array($val)) {
-				$val = BigTree::untranslateArray($val);
-			} elseif (is_array(json_decode($val,true))) {
-				$val = BigTree::untranslateArray(json_decode($val,true));
-			} else {
-				$val = $cms->replaceInternalPageLinks($val);
-			}
+	
+	if (isset($_POST["resources"])) {
+		$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
+	}
+	if (isset($_POST["type"])) {
+		$bigtree["resources"]["type"] = $_POST["type"];
+	}
+
+	foreach ($bigtree["resources"] as &$val) {
+		if (is_array($val)) {
+			$val = BigTree::untranslateArray($val);
+		} elseif (is_array(json_decode($val,true))) {
+			$val = BigTree::untranslateArray(json_decode($val,true));
+		} else {
+			$val = $cms->replaceInternalPageLinks($val);
 		}
-		
-		$type = $resources["type"];
 	}
+
+	// If this is a callout change, we need the count because it's not set in add/edit-callout.php
+	$bigtree["callout_count"] = $_POST["count"];
+	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 	
-	if (isset($_POST["count"])) {
-		$count = $_POST["count"];
-	}
-	
-	$type = isset($_POST["type"]) ? $_POST["type"] : $type;
-	
-	$callout = $admin->getCallout($type);
-	
-	if ($callout["description"]) {
+	if ($bigtree["callout"]["description"]) {
 ?>
-<p><?=htmlspecialchars($callout["description"])?></p>
+<p><?=htmlspecialchars(htmlspecialchars_decode($bigtree["callout"]["description"]))?></p>
 <?
 	}
 	
 	echo '<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>';
 	
-	$tabindex = 1000;
-	
-	// Let field types know we're drawing callout resources.
-	$bigtree["in_callout"] = true;
+	$bigtree["tabindex"] = 1000;	
 	$bigtree["datepickers"] = array();
 	$bigtree["datepicker_values"] = array();
 	$bigtree["timepickers"] = array();
@@ -42,34 +38,54 @@
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	
-	if (count($callout["resources"])) {
-		foreach ($callout["resources"] as $options) {
-			$key = "callouts[$count][".$options["id"]."]";
-			$type = $options["type"];
-			$title = $options["title"];
-			$subtitle = $options["subtitle"];
-			$options["directory"] = "files/pages/";
-			$value = $resources[$options["id"]];
-			$currently_key = "callouts[$count][currently_".$options["id"]."]";
-			
+	if (count($bigtree["callout"]["resources"])) {
+		foreach ($bigtree["callout"]["resources"] as $resource) {
+			$field = array();
+			// Leaving some variable settings for backwards compatibility — removing in 5.0
+			$field["title"] = $title = $resource["title"];
+			$field["subtitle"] = $subtitle = $resource["subtitle"];
+			$field["key"] = $key = "callouts[".$bigtree["callout_count"]."][".$resource["id"]."]";
+			$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
+			$field["current_value_key"] = $currently_key = "callouts[".$bigtree["callout_count"]."][__current-value__".$resource["id"]."]";
+			$field["id"] = uniqid("field_");
+			$field["tabindex"] = $tabindex = $bigtree["tabindex"];
+			$field["options"] = $options = $resource;
+			$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
+
 			// Setup Validation Classes
 			$label_validation_class = "";
-			$input_validation_class = "";
-			if ($options["validation"]) {
-				if (strpos($options["validation"],"required") !== false) {
+			$field["required"] = false;
+			if (isset($resource["validation"]) && $resource["validation"]) {
+				if (strpos($resource["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
+					$field["required"] = true;
 				}
-				$input_validation_class = ' class="'.$options["validation"].'"';
 			}
+			$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 			
-			include BigTree::path("admin/form-field-types/draw/$type.php");
-			$tabindex++;
+			if (file_exists($field_type_path)) {
+?>
+<fieldset>
+	<?
+				if ($field["title"] && $resource["type"] != "checkbox") {
+	?>
+	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+	<?
+				}
+				include $field_type_path;
+	?>
+</fieldset>
+<?
+				$bigtree["tabindex"]++;
+			}
 		}
+	} else {
+		echo '<p>There are no resources for the selected callout.</p>';
 	}
 ?>
-<input type="hidden" name="callouts[<?=$count?>][display_default]" class="display_default" value="<?=$callout["display_default"]?>" />
-<input type="hidden" name="callouts[<?=$count?>][display_field]" class="display_field" value="callouts[<?=$count?>][<?=$callout["display_field"]?>]" />
-<input type="hidden" name="callouts[<?=$count?>][callout_count]" class="callout_count" value="<?=$count?>" />
+<input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
+<input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="callouts[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
+<input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][callout_count]" class="callout_count" value="<?=$bigtree["callout_count"]?>" />
 <script>
 	BigTreeCustomControls();
 	
