@@ -17,7 +17,7 @@
 		$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		$field["ignore"] = false;
 		$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$resource["id"]]) ? $bigtree["post_data"]["__current-value__".$resource["id"]] : false;
-		$field["input"] = $_POST["resources"][$resource["id"]];
+		$field["input"] = $bigtree["post_data"][$resource["id"]];
 		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 
 		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
@@ -26,10 +26,10 @@
 		if (file_exists($field_type_path)) {
 			include $field_type_path;
 		} else {
-			if (is_array($_POST["resources"][$field["key"]])) {
-				$field["output"] = $_POST["resources"][$field["key"]];
+			if (is_array($bigtree["post_data"][$field["key"]])) {
+				$field["output"] = $bigtree["post_data"][$field["key"]];
 			} else {
-				$field["output"] = htmlspecialchars(htmlspecialchars_decode($_POST["resources"][$field["key"]]));
+				$field["output"] = htmlspecialchars(htmlspecialchars_decode($bigtree["post_data"][$field["key"]]));
 			}
 		}
 

@@ -326,21 +326,6 @@
 		}
 		
 		/*
-			Function: getCallout
-				Returns a callout template from the database.
-			
-			Parameters:
-				id - The ID of the callout.
-			
-			Returns:
-				A callout template row from the database.
-		*/
-		
-		function getCallout($id) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '$id'"));
-		}
-		
-		/*
 			Function: getFeed
 				Gets a feed's information from the database.
 			

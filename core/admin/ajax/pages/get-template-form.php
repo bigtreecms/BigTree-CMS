@@ -104,11 +104,10 @@
 			$x = 0;
 			foreach ($bigtree["callouts"] as $callout) {
 				$description = "";
-				$type = $cms->getCallout($callout["type"]);
-				$temp_resources = json_decode($type["resources"],true);
+				$type = $admin->getCallout($callout["type"]);
 				$callout_resources = array();
 				// Loop through the resources and set the key to the id.
-				foreach ($temp_resources as $r) {
+				foreach ($type["resources"] as $r) {
 					$callout_resources[$r["id"]] = $r;
 				}
 		?>

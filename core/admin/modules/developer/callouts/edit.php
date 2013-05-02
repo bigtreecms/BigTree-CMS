@@ -1,8 +1,8 @@
 <?
-	$callout = $cms->getCallout(end($bigtree["path"]));	
+	$callout = $admin->getCallout(end($bigtree["path"]));	
 	BigTree::globalizeArray($callout);
 	
-	$resources = json_decode($callout["resources"],true);
+	$resources = $callout["resources"];
 ?>
 <div class="container">
 	<form method="post" action="<?=$section_root?>update/" enctype="multipart/form-data" class="module">

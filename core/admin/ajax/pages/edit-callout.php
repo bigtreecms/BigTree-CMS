@@ -1,12 +1,13 @@
 <?
 	$bigtree["callout_count"] = $_POST["count"];
 	$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
+	$callouts = $admin->getCallouts();
 ?>
 <div id="callout_type">
 	<fieldset>
 		<label>Callout Type</label>
 		<select name="callouts[<?=$bigtree["callout_count"]?>][type]">
-			<? foreach ($items as $item) { ?>
+			<? foreach ($callouts as $item) { ?>
 			<option value="<?=htmlspecialchars($item["id"])?>"<? if ($item["id"] == $bigtree["resources"]["type"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($item["name"])?></option>
 			<? } ?>
 		</select>
