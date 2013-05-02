@@ -113,4 +113,43 @@
 				return false;
 			}
 		}
+
+		/*
+			Function: geocodeYahooBOSS
+				Private function for using Yahoo BOSS (paid version) as the geocoder.
+		*/
+
+		private function geocodeYahooBOSS($address) {
+			$response = BigTree::curl("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.sqlescape($address).'"'));
+			try {
+				if (is_string($response)) {
+					$response = json_decode($response, true);
+				}
+				$lat = $response["query"]["results"]["Result"]["latitude"];
+				$lon = $response["query"]["results"]["Result"]["longitude"];
+				if ($lat && $lon) {
+					return array("latitude" => $lat, "longitude" => $lon);
+				} else {
+					return false;
+				}
+			} catch (Exception $e) {
+				return false;
+			}
+		}
+
+		static function yahooBOSSAuth() {
+			require_once BigTree::path("inc/lib/oauth_client.php");
+
+			$client = new oauth_client_class;
+			$client->server = "Yahoo";
+    		$client->debug = 1;
+		    $client->debug_http = 1;
+			$client->redirect_uri = ADMIN_ROOT."developer/geocoding/yahoo-boss/redirect/";
+			$client->client_id = "dj0yJmk9WFpQM0UxbXNZdHY3JmQ9WVdrOVpIRlBia3hQTjJzbWNHbzlOamMxTVRrNU9EWXkmcz1jb25zdW1lcnNlY3JldCZ4PWU2";
+			$client->client_secret = "cb5ffecfd97536553fd5d0d4c63a85d50098948f";
+			$client->Initialize();
+			print_r($client);
+			$client->Process();
+			print_r($client);
+		}
 	}

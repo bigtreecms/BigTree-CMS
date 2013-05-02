@@ -110,7 +110,13 @@
 				array("title" => "PayPal Payflow Gateway","link" => "developer/payment-gateway/payflow","icon" => "payflow","hidden" => true),
 				array("title" => "First Data / LinkPoint","link" => "developer/payment-gateway/linkpoint","icon" => "linkpoint","hidden" => true)
 			)),
-			array("title" => "Social APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
+			array("title" => "Geocoding","link" => "developer/geocoding","icon" => "geocoding","hidden" => true,"children" => array(
+				array("title" => "Google","link" => "developer/geocoding/google","icon" => "google","hidden" => true),
+				array("title" => "Bing","link" => "developer/geocoding/bing","icon" => "bing","hidden" => true),
+				array("title" => "Yahoo","link" => "developer/geocoding/yahoo","icon" => "yahoo","hidden" => true),
+				array("title" => "MapQuest","link" => "developer/geocoding/mapquest","icon" => "mapquest","hidden" => true)
+			)),
+			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
 				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true, "children" => array(
 					array("title" => "Configure","link" => "developer/services/twitter/configure","nav_icon" => "setup","level" => 1)
 				)),
