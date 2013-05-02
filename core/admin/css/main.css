@@ -84,6 +84,7 @@
 	h1 .google, .box_select .google { background-position: -704px -48px; }
 	h1 .mapquest, .box_select .mapquest { background-position: -736px -48px; }
 	h1 .bing, .box_select .bing { background-position: -768px -48px; }
+	h1 .yahooboss, .box_select .yahooboss { background-position: -800px -48px; }
 	
 	h2 { color: rgba(51,51,51,0.9); float: left; font-size: 18px; font-weight: normal; height: 32px; line-height: 30px; padding: 5px 0 0 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h2 small { color: #999999; display: inline-block; font-size: 13px; padding: 0 0 0 10px; }
