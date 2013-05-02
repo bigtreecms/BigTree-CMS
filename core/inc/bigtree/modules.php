@@ -347,6 +347,25 @@
 		}
 		
 		/*
+			Function: getNonarchived
+				Returns nonarchived entries from the table.
+			
+			Parameters:
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				limit - Max number of entries to return, defaults to all
+			
+			Returns:
+				An array of entries from the table.
+				
+			See Also:
+				<getMatching>
+		*/
+		
+		function getNonarchived($order = false,$limit = false) {
+			return $this->getMatching("archived","",$order,$limit);
+		}
+		
+		/*
 			Function: getPage
 				Returns a page of entries from the table.
 			
