@@ -1,6 +1,6 @@
 <?
 	// Parse the resources
-	$bigtree["parsed_data"] = array();
+	$bigtree["entry"] = array();
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
 	$bigtree["file_data"] = BigTree::parsedFilesArray("resources");
 	$bigtree["post_data"] = $_POST["resources"];
@@ -53,10 +53,10 @@
 			} else {
 				$field["output"] = $admin->autoIPL($field["output"]);
 			}
-			$bigtree["parsed_data"][$field["key"]] = $field["output"];
+			$bigtree["entry"][$field["key"]] = $field["output"];
 		}
 	}
 
 	// We save it back to the post array because we're just going to feed the whole post array to createPage / updatePage
-	$_POST["resources"] = $bigtree["parsed_data"];
+	$_POST["resources"] = $bigtree["entry"];
 ?>

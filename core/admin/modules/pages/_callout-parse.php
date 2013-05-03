@@ -24,7 +24,7 @@
 				}
 				
 				// Setup the new callout for fun-ness.
-				$bigtree["parsed_data"] = array("type" => $data["type"],"display_title" => $data["display_title"]);
+				$bigtree["entry"] = array("type" => $data["type"],"display_title" => $data["display_title"]);
 				$bigtree["callout"] = $admin->getCallout($data["type"]);
 				$bigtree["post_data"] = $_POST["callouts"][$number];
 				$bigtree["file_data"] = $bigtree["callout_file_data"][$number];
@@ -78,10 +78,10 @@
 						} else {
 							$field["output"] = $admin->autoIPL($field["output"]);
 						}
-						$bigtree["parsed_data"][$field["key"]] = $field["output"];
+						$bigtree["entry"][$field["key"]] = $field["output"];
 					}
 				}
-				$bigtree["parsed_callouts"][] = $bigtree["parsed_data"];
+				$bigtree["parsed_callouts"][] = $bigtree["entry"];
 			}
 		}
 	}
