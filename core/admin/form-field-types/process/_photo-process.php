@@ -50,8 +50,6 @@
 				$already_created_first_copy = true;
 			}
 		}
-	
-		$value = "";
 
 		// Make a temporary copy to be used for thumbnails and crops.
 		$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
@@ -151,7 +149,7 @@
 						}
 					}
 					
-					$storage->upload($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+					$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 				}
 			}
 			
@@ -166,7 +164,7 @@
 			}
 			
 			// If we don't have any crops, get rid of the temporary image we made.
-			if (!count($crops)) {
+			if (!count($bigtree["crops"])) {
 				unlink($temp_copy);
 			}
 		}

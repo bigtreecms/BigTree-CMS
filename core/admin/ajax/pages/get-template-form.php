@@ -114,24 +114,23 @@
 		<li>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?
-				$description = $callout["display_title"];
-				foreach ($callout as $r => $v) {
-					if ($callout_resources[$r]["type"] == "upload") {
+				// We're going to loop through the callout array so we don't have to do stupid is_array crap anymore.
+				function _localDrawCalloutLevel($keys,$level) {
+					foreach ($level as $key => $value) {
+						if (is_array($value)) {
+							_localDrawCalloutLevel(array_merge($keys,$key),$value);
+						} else {
+							// We're going to draw both current-value and regular fields since we don't know what the field type might need.
 			?>
-			<input type="file" name="callouts[<?=$x?>][<?=$r?>]" style="display:none;" class="custom_control" />
-			<input type="hidden" name="callouts[<?=$x?>][currently_<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
+			<input type="hidden" name="callouts[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
+			<input type="hidden" name="callouts[<?=implode("][",$keys)?>][__current-value__<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
 			<?
-					} else {
-						if (is_array($v)) {
-							$v = json_encode($v,true);
 						}
-			?>
-			<input type="hidden" name="callouts[<?=$x?>][<?=$r?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($v))?>" />
-			<?
 					}
 				}
+				_localDrawCalloutLevel(array($x),$callout);
 			?>
-			<h4><?=$description?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=$description?>" /></h4>
+			<h4><?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?>" /></h4>
 			<p><?=$type["name"]?></p>
 			<div class="bottom">
 				<span class="icon_drag"></span>

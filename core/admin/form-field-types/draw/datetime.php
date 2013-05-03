@@ -9,7 +9,7 @@
 		if ($field["value"]) {
 			$bigtree["datetimepicker_values"][$field["id"]] = array("date" => date("m/d/Y",strtotime($field["value"])), "time" => date("g:i a",strtotime($field["value"])));
 		} else {
-			$bigtree["datetimepicker_values"][$field["id"]] = array("date" => "", "time" => "");
+			$bigtree["datetimepicker_values"][$field["id"]] = array("date" => date("m/d/Y"), "time" => date("g:i a"));
 		}
 ?>
 <input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />

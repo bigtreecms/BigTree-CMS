@@ -24,7 +24,7 @@
 		// It's a regular file
 		if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 			$type = "file";
-			$file = $storage->upload($temp_name,$f["name"],"files/resources/");
+			$file = $storage->store($temp_name,$f["name"],"files/resources/");
 			
 			$admin->createResource($folder,$file,$f["name"],$extension);
 		// It's an image
@@ -79,14 +79,14 @@
 			list($twidth,$theight) = getimagesize($temp_thumb);
 			$margin = floor((100 - $theight) / 2);
 			
-			$thumb = $storage->upload($temp_thumb,"list_thumb_".$pinfo["basename"],"files/resources/");
+			$thumb = $storage->store($temp_thumb,"list_thumb_".$pinfo["basename"],"files/resources/");
 			$thumbs["bigtree_internal_list"] = $thumb;
 			
 			// Next up is the more info view
 			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 			BigTree::createThumbnail($first_copy,$temp_thumb,190,145);
 			
-			$thumb = $storage->upload($temp_thumb,"detail_thumb_".$pinfo["basename"],"files/resources/");
+			$thumb = $storage->store($temp_thumb,"detail_thumb_".$pinfo["basename"],"files/resources/");
 			$thumbs["bigtree_internal_detail"] = $thumb;
 			
 			// Go through all of the custom thumbs and do the magic.
@@ -96,13 +96,13 @@
 					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 					BigTree::createThumbnail($first_copy,$temp_thumb,$mtt["width"],$mtt["height"]);
 				
-					$thumb = $storage->upload($temp_thumb,$mtt["prefix"].$pinfo["basename"],"files/resources/");
+					$thumb = $storage->store($temp_thumb,$mtt["prefix"].$pinfo["basename"],"files/resources/");
 					$thumbs[$mtk] = $thumb;
 				}
 			}
 		
 			// Upload the original to the proper place.
-			$file = $storage->upload($first_copy,$f["name"],"files/resources/");
+			$file = $storage->store($first_copy,$f["name"],"files/resources/");
 			
 			$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
 		}

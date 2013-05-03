@@ -35,6 +35,8 @@
 	$bigtree["datepicker_values"] = array();
 	$bigtree["timepickers"] = array();
 	$bigtree["timepicker_values"] = array();
+	$bigtree["datetimepickers"] = array();
+	$bigtree["datetimepicker_values"] = array();
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	
@@ -115,6 +117,14 @@
 			}
 	?>
 	$("#<?=$id?>").datepicker({ defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
+	<?
+		}
+
+		foreach ($bigtree["datetimepickers"] as $id) {
+			$time = strtotime($bigtree["datetimepicker_values"][$id]["time"]);
+			$date = date("m/d/Y",strtotime($bigtree["datetimepicker_values"][$id]["date"]));
+	?>
+	$("#<?=$id?>").datetimepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
 	<?
 		}
 	?>
