@@ -2,7 +2,7 @@
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 	
 	if (isset($_POST["resources"])) {
-		$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
+		$bigtree["resources"] = json_decode(base64_decode($_POST["resources"]),true);
 	}
 	if (isset($_POST["type"])) {
 		$bigtree["resources"]["type"] = $_POST["type"];

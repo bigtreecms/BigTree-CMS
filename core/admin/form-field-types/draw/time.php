@@ -1,5 +1,6 @@
 <?
-	if (isset($bigtree["in_callout"])) {
+	// We draw the picker inline for callouts
+	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		$bigtree["timepicker_values"][$field["id"]] = $field["value"];		
 		$bigtree["timepickers"][] = $field["id"];
 ?>

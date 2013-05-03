@@ -2,8 +2,9 @@
 	if (!$field["value"] && isset($field["options"]["default_now"]) && $field["options"]["default_now"]) {
 		$field["value"] = date("m/d/Y g:i a");
 	}
-		
-	if ($bigtree["in_callout"]) {
+	
+	// We draw the picker inline for callouts
+	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		$bigtree["datetimepickers"][] = $field["id"];
 		if ($field["value"]) {
 			$bigtree["datetimepicker_values"][$field["id"]] = array("date" => date("m/d/Y",strtotime($field["value"])), "time" => date("g:i a",strtotime($field["value"])));

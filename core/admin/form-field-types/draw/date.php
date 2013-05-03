@@ -3,7 +3,8 @@
 		$field["value"] = date("m/d/Y");
 	}
 	
-	if ($bigtree["in_callout"]) {
+	// We draw the picker inline for callouts
+	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		$bigtree["datepickers"][] = $field["id"];
 		$bigtree["datepicker_values"][$field["id"]] = $field["value"];	
 ?>
