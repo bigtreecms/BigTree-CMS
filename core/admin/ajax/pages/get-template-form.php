@@ -96,6 +96,20 @@
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 	
 	if ($bigtree["template"]["callouts_enabled"]) {
+		// We're going to loop through the callout array so we don't have to do stupid is_array crap anymore.
+		function _localDrawCalloutLevel($keys,$level) {
+			foreach ($level as $key => $value) {
+				if (is_array($value)) {
+					_localDrawCalloutLevel(array_merge($keys,array($key)),$value);
+				} else {
+					// We're going to draw both current-value and regular fields since we don't know what the field type might need.
+?>
+<input type="hidden" name="callouts[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
+<input type="hidden" name="callouts[<?=implode("][",$keys)?>][__current-value__<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
+<?
+				}
+			}
+		}
 ?>
 <div class="sub_section" id="bigtree_callouts">
 	<label>Callouts</label>
@@ -114,20 +128,6 @@
 		<li>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?
-				// We're going to loop through the callout array so we don't have to do stupid is_array crap anymore.
-				function _localDrawCalloutLevel($keys,$level) {
-					foreach ($level as $key => $value) {
-						if (is_array($value)) {
-							_localDrawCalloutLevel(array_merge($keys,$key),$value);
-						} else {
-							// We're going to draw both current-value and regular fields since we don't know what the field type might need.
-			?>
-			<input type="hidden" name="callouts[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
-			<input type="hidden" name="callouts[<?=implode("][",$keys)?>][__current-value__<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
-			<?
-						}
-					}
-				}
 				_localDrawCalloutLevel(array($x),$callout);
 			?>
 			<h4><?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?>" /></h4>
