@@ -1,10 +1,11 @@
 <?
-	$many_to_many[$key] = array(
-		"table" => $options["mtm-connecting-table"],
-		"my-id" => $options["mtm-my-id"],
-		"other-id" => $options["mtm-other-id"],
-		"data" => $data[$key]
+	$bigtree["many_to_many"][$key] = array(
+		"table" => $field["options"]["mtm-connecting-table"],
+		"my-id" => $field["options"]["mtm-my-id"],
+		"other-id" => $field["options"]["mtm-other-id"],
+		"data" => $field["input"]
 	);	
 
-	$no_process = true;
+	// This field doesn't have it's own key to process.
+	$field["ignore"] = true;
 ?>

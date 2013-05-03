@@ -59,9 +59,9 @@
 		$field["key"] = $key;
 		$field["options"] = $options = $resource;
 		$field["ignore"] = false;
-		$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$resource["id"]]) ? $bigtree["post_data"]["__current-value__".$resource["id"]] : false;
-		$field["input"] = $bigtree["post_data"][$resource["id"]];
-		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
+		$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$key]) ? $bigtree["post_data"]["__current-value__".$key] : false;
+		$field["input"] = $bigtree["post_data"][$key];
+		$field["file_input"] = $bigtree["file_data"][$key];
 
 		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
 		
