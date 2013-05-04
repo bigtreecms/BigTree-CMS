@@ -1,5 +1,5 @@
 <?
-	$bigtree["many_to_many"][$key] = array(
+	$bigtree["many-to-many"][$key] = array(
 		"table" => $field["options"]["mtm-connecting-table"],
 		"my-id" => $field["options"]["mtm-my-id"],
 		"other-id" => $field["options"]["mtm-other-id"],

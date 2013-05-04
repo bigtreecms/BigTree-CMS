@@ -20,9 +20,8 @@
 		$field["input"] = $bigtree["post_data"][$resource["id"]];
 		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 
-		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
-		
 		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
+		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
 		if (file_exists($field_type_path)) {
 			include $field_type_path;
 		} else {

@@ -60,7 +60,7 @@
 						}
 						// Give many to many its information
 						if ($resource["type"] == "many-to-many") {
-							$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key] : false;
+							$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;
 						}
 
 						$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");

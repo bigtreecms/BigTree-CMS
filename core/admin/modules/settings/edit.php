@@ -1,6 +1,7 @@
 <?
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
+	$value = $cms->getSetting(end($bigtree["path"]));
 
 	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
 ?>
@@ -56,7 +57,7 @@
 				$field = array();
 				// Leaving some variable settings for backwards compatibility — removing in 5.0
 				$field["title"] = $title = "";
-				$field["value"] = $value = $item["value"];
+				$field["value"] = $value;
 				$field["key"] = $key = $item["id"];
 				$field["current_value_key"] = $currently_key = "__current-value__".$item["id"];
 				$field["options"] = $options;
@@ -73,6 +74,8 @@
 						$field["required"] = true;
 					}
 				}
+
+				// Draw the field type
 				$field_type_path = BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
 				if (file_exists($field_type_path)) {
 			?>

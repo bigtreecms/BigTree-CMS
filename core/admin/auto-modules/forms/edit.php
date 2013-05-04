@@ -31,7 +31,7 @@
 		if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
 			include BigTree::path("admin/auto-modules/forms/_denied.php");
 		} else {
-			$bigtree["many_to_many"] = $many_to_many = $data["mtm"];
+			$bigtree["many-to-many"] = $many_to_many = $data["mtm"];
 			$bigtree["tags"] = $data["tags"];
 				
 			include BigTree::path("admin/auto-modules/forms/_form.php");

@@ -44,7 +44,7 @@
 	$upload_service = new BigTreeUploadService;
 	
 	$bigtree["crops"] = array();
-	$bigtree["many_to_many"] = array();
+	$bigtree["many-to-many"] = array();
 	$bigtree["errors"] = array();
 	$bigtree["entry"] = array();
 
@@ -63,9 +63,13 @@
 		$field["input"] = $bigtree["post_data"][$key];
 		$field["file_input"] = $bigtree["file_data"][$key];
 
-		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
-		
+		// Backwards compat.
+		if ($resource["type"] == "many_to_many") {
+			$resource["type"] = "many-to-many";
+		}
+
 		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
+		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
 		if (file_exists($field_type_path)) {
 			include $field_type_path;
 		} else {
@@ -120,7 +124,7 @@
 	$new_id = false;
 	$table = $bigtree["form"]["table"];
 	$item = $bigtree["entry"];
-	$many_to_many = $bigtree["many_to_many"];
+	$many_to_many = $bigtree["many-to-many"];
 
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
