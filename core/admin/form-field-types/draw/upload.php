@@ -1,5 +1,5 @@
 <div class="<? if (!isset($field["options"]["image"]) || !$field["options"]["image"]) { ?>upload_field<? } else { ?>image_field<? } ?>">
-	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" id="<?=$field["id"]?>" />
+	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" />
 	<?	
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
 			if ($field["value"]) {
