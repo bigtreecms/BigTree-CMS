@@ -27,49 +27,16 @@
 			} elseif ($data["existing"]) {
 				$data["existing"] = str_replace(WWW_ROOT,SITE_ROOT,$data["existing"]);
 				$pinfo = BigTree::pathInfo($data["existing"]);
+
+				$name = $pinfo["basename"];
+				$temp_name = SITE_ROOT."files/".uniqid("temp-").".img";
+				$error = false;
 				
-				// We're going to need to create a local copy if we need more 
-				if ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"]))) {
-					$local_copy = SITE_ROOT."files/".uniqid("temp-").$pinfo["extension"];
-					file_put_contents($local_copy,file_get_contents($data["existing"]));
-					
-					$file_name = $storage->store($local_copy,$pinfo["basename"],$field["options"]["directory"],false);
-					$pinfo = BigTree::pathInfo($file_name);
+				BigTree::copyFile($data["existing"],$temp_name);
+				include BigTree::path("admin/form-field-types/process/_photo-process.php");
 				
-					if (is_array($field["options"]["crops"])) {
-						foreach ($field["options"]["crops"] as $crop) {
-							// Make a square if the user forgot to enter one of the crop dimensions.
-							if (!$crop["height"]) {
-								$crop["height"] = $crop["width"];
-							} elseif (!$crop["width"]) {
-								$crop["width"] = $crop["height"];
-							}
-							$bigtree["crops"][] = array(
-								"image" => $local_copy,
-								"directory" => $field["options"]["directory"],
-								"retina" => $field["options"]["retina"],
-								"name" => $pinfo["basename"],
-								"width" => $crop["width"],
-								"height" => $crop["height"],
-								"prefix" => $crop["prefix"],
-								"thumbs" => $crop["thumbs"]
-							);
-						}
-					}
-					
-					if (is_array($field["options"]["thumbs"])) {
-						foreach ($field["options"]["thumbs"] as $thumb) {
-							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-							BigTree::createThumbnail($local_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$field["options"]["grayscale"]);
-							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
-						}
-					}
-					
-					$photo_gallery[] = array("caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])), "image" => $file_name);
-				// If we don't have any crops or thumbnails we don't need to change the location of the file, so just use the existing one.
-				} else {
-					$photo_gallery[] = array("caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])), "image" => str_replace(SITE_ROOT,STATIC_ROOT,$data["existing"]));
+				if (!$failed) {	
+					$photo_gallery[] = array("caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])), "image" => $field["output"]);
 				}
 			}
 		}

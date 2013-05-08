@@ -33,10 +33,13 @@
 			if (substr($field["output"],0,11) == "resource://") {
 				// It's technically a new file now, but we pulled it from resources so we might need to crop it.
 				$resource = $admin->getResourceByFile(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($field["output"],11)));
-				$temp_name = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$resource["file"]);
-				$pinfo = BigTree::pathInfo($temp_name);
+				$resource_location = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$resource["file"]);
+				$pinfo = BigTree::pathInfo($resource_location);
 				$name = $pinfo["basename"];
+				$temp_name = SITE_ROOT."files/".uniqid("temp-").".img";
 				$error = false;
+				
+				BigTree::copyFile($resource_location,$temp_name);
 				include BigTree::path("admin/form-field-types/process/_photo-process.php");
 			}
 		}
