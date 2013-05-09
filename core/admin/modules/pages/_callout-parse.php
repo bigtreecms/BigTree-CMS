@@ -37,7 +37,6 @@
 					$field["options"]["directory"] = $options["directory"] = "files/pages/";
 					$field["ignore"] = false;
 					$field["input"] = $bigtree["post_data"][$resource["id"]];
-					$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$resource["id"]]) ? $bigtree["post_data"]["__current-value__".$resource["id"]] : false;
 					$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 					
 					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.

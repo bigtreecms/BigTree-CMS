@@ -170,6 +170,6 @@
 		}
 	// We failed, keep the current value.
 	} else {
-		$field["output"] = $field["existing_value"];
+		$field["output"] = $field["input"];
 	}
 ?>

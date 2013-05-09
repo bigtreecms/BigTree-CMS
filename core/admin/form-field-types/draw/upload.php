@@ -5,7 +5,7 @@
 			if ($field["value"]) {
 	?>
 	<div class="currently_file">
-		<input type="hidden" name="<?=$field["current_value_key"]?>" value="<?=$field["value"]?>" />
+		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 		<strong>Currently:</strong> <?=$field["value"]?> <a href="#" class="remove_resource">Remove</a>
 	</div>
 	<?
@@ -25,7 +25,7 @@
 			$button_options = htmlspecialchars(json_encode(array(
 				"minWidth" => $field["options"]["min_width"],
 				"minHeight" => $field["options"]["min_height"],
-				"currentlyKey" => $field["current_value_key"]
+				"currentlyKey" => $field["key"]
 			)));
 			
 			if (!defined("BIGTREE_FRONT_END_EDITOR")) {
@@ -44,7 +44,7 @@
 			<? } ?>
 		</div>
 		<label>CURRENT</label>
-		<input type="hidden" name="<?=$field["current_value_key"]?>" value="<?=$field["value"]?>" />
+		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 	</div>
 	<?
 		}

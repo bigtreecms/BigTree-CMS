@@ -19,7 +19,7 @@
 				}
 			}
 		} else {
-			$field["output"] = $field["existing_value"];
+			$field["output"] = $field["input"];
 		}
 	// We're processing an image.
 	} else {
@@ -27,7 +27,7 @@
 		if ($temp_name) {
 			include BigTree::path("admin/form-field-types/process/_photo-process.php");
 		} else {
-			$field["output"] = $field["existing_value"];
+			$field["output"] = $field["input"];
 
 			// We're trying to use an image from the Image Browser.
 			if (substr($field["output"],0,11) == "resource://") {

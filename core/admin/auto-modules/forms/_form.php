@@ -39,7 +39,6 @@
 						$field["subtitle"] = $subtitle = $resource["subtitle"];
 						$field["key"] = $key;
 						$field["value"] = $value = isset($bigtree["item"][$key]) ? $bigtree["item"][$key] : "";
-						$field["current_value_key"] = $currently_key = "__current-value__".$key;
 						$field["id"] = uniqid("field_");
 						$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 						$field["options"] = $options = $resource;

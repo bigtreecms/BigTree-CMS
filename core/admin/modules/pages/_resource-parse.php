@@ -16,7 +16,6 @@
 		$field["options"] = $options = $resource;
 		$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		$field["ignore"] = false;
-		$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$resource["id"]]) ? $bigtree["post_data"]["__current-value__".$resource["id"]] : false;
 		$field["input"] = $bigtree["post_data"][$resource["id"]];
 		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 

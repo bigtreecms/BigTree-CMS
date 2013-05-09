@@ -47,7 +47,6 @@
 			$field["subtitle"] = $subtitle = $resource["subtitle"];
 			$field["key"] = $key = "resources[".$resource["id"]."]";
 			$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
-			$field["current_value_key"] = $currently_key = "resources[__current-value__".$resource["id"]."]";
 			$field["id"] = uniqid("field_");
 			$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 			$field["options"] = $options = $resource;
@@ -102,10 +101,8 @@
 				if (is_array($value)) {
 					_localDrawCalloutLevel(array_merge($keys,array($key)),$value);
 				} else {
-					// We're going to draw both current-value and regular fields since we don't know what the field type might need.
 ?>
 <input type="hidden" name="callouts[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
-<input type="hidden" name="callouts[<?=implode("][",$keys)?>][__current-value__<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
 <?
 				}
 			}

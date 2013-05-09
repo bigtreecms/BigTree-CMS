@@ -27,7 +27,6 @@
 		$field["key"] = $key;
 		$field["options"] = $options = json_decode($item["options"],true);
 		$field["ignore"] = false;
-		$field["existing_value"] = isset($bigtree["post_data"]["__current-value__".$key]) ? $bigtree["post_data"]["__current-value__".$key] : false;
 		$field["input"] = $bigtree["post_data"][$key];
 		$field["file_input"] = $bigtree["file_data"][$key];
 
