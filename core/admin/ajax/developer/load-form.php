@@ -156,10 +156,6 @@
 			$mtm_count = 0;
 			foreach ($fields as $key => $field) {
 				$used[] = $key;
-				// Backwards compat.
-				if ($field["type"] == "many_to_many") {
-					$field["type"] = "many-to-many";
-				}
 		?>
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">

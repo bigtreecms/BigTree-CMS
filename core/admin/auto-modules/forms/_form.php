@@ -53,10 +53,6 @@
 							}
 						}
 
-						// Backwards compat. with its old naming
-						if ($resource["type"] == "many_to_many") {
-							$resource["type"] = "many-to-many";
-						}
 						// Give many to many its information
 						if ($resource["type"] == "many-to-many") {
 							$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;

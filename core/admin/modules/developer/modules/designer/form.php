@@ -86,8 +86,7 @@
 			type = li.find(".developer_resource_type").find("input,select").eq(0).val();
 			if (title) {
 				key = $(this).attr("name");
-				/* Backwards Compat */
-				if (key != "geocoding" && type != "many-to-many" && type != "many_to_many") {
+				if (key != "geocoding" && type != "many-to-many") {
 					sel = $("#unused_field").get(0);
 					sel.options[sel.options.length] = new Option(key,title,false,false);
 				}

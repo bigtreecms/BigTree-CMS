@@ -62,11 +62,6 @@
 		$field["input"] = $bigtree["post_data"][$key];
 		$field["file_input"] = $bigtree["file_data"][$key];
 
-		// Backwards compat.
-		if ($resource["type"] == "many_to_many") {
-			$resource["type"] = "many-to-many";
-		}
-
 		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
 		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
 		if (file_exists($field_type_path)) {
