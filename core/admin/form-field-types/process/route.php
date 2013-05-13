@@ -7,12 +7,16 @@
 			$oroute = $cms->urlify(strip_tags($bigtree["post_data"][$field["options"]["source"]]));
 			$field["output"] = $oroute;
 			$x = 2;
-			while (sqlrows(sqlquery("SELECT * FROM `".$form["table"]."` WHERE `$key` = '".sqlescape($value)."' AND id != '".sqlescape($_POST["id"])."'"))) {
+			// We're going to try 1000 times at most so we don't time out
+			while ($x < 1000 && sqlrows(sqlquery("SELECT * FROM `".$bigtree["form"]["table"]."` WHERE `".$field["key"]."` = '".sqlescape($field["output"])."' AND id != '".sqlescape($bigtree["edit_id"])."'"))) {
 				$field["output"] = $oroute."-".$x;
 				$x++;
+			}
+			if ($x == 1000) {
+				$field["output"] = "";
 			}
 		}
 	} else {
 		$field["ignore"] = true;
-	}	
+	}
 ?>
