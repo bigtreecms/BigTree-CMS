@@ -1,8 +1,8 @@
 	<?
-		if ($bigtree["item"][$field["options"]["source"]]) {
+		if ($bigtree["entry"][$field["options"]["source"]]) {
 			include SERVER_ROOT."custom/inc/lib/colors.inc.php";
 
-			$img_source = BigTree::prefixFile($bigtree["item"][$field["options"]["source"]],"t_");
+			$img_source = BigTree::prefixFile($bigtree["entry"][$field["options"]["source"]],"t_");
 			$img_source = str_replace(array(STATIC_ROOT,WWW_ROOT),SITE_ROOT,$img_source);
 			$colors = colorPalette($img_source,10);
 
