@@ -4,7 +4,7 @@
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<?
-			if (isset($bigtree["item"])) {
+			if (isset($bigtree["entry"])) {
 		?>
 		<input type="hidden" name="id" value="<?=htmlspecialchars($bigtree["edit_id"])?>" />
 		<?
@@ -38,7 +38,7 @@
 						$field["title"] = $title = $resource["title"];
 						$field["subtitle"] = $subtitle = $resource["subtitle"];
 						$field["key"] = $key;
-						$field["value"] = $value = isset($bigtree["item"][$key]) ? $bigtree["item"][$key] : "";
+						$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
 						$field["id"] = uniqid("field_");
 						$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 						$field["options"] = $options = $resource;
