@@ -1310,7 +1310,7 @@
 	.jcrop-holder img,img.jcrop-preview{max-width:none;}
 	
 /* jQuery Date Picker */
-	.ui-datepicker { background: #FFF; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25); display: none; width: 202px; }
+	.ui-datepicker { background: #FFF; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25); display: none; width: 202px; z-index: 3 !important; }
 	.ui-datepicker .ui-datepicker-header { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -225px; color: #FFF; padding: 3px 0; position: relative; }
 	.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { cursor: pointer; display: block; font-size: 11px; height: 1.8em; line-height: 22px; padding: 0px 8px; position: absolute; top: 3px; width: auto; }
 	.ui-datepicker .ui-datepicker-prev { color: #FFF; left: 0px; }
