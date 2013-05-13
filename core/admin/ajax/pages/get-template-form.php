@@ -39,6 +39,9 @@
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;
+	// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
+	$bigtree["entry"] = &$bigtree["resources"];
+
 	if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
 		foreach ($bigtree["template"]["resources"] as $resource) {
 			$field = array();
