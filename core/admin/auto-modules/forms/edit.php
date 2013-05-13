@@ -17,7 +17,7 @@
 <?
 	} else {
 		$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);				
-		$bigtree["item"] = $item = $data["item"];
+		$bigtree["entry"] = $item = $data["item"];
 
 		// Check access levels
 		$bigtree["access_level"] = $admin->getAccessLevel($bigtree["current_module"],$item,$bigtree["form"]["table"]);
