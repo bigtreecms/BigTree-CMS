@@ -1,6 +1,7 @@
 <?
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
+	$value = $cms->getSetting(end($bigtree["path"]));
 
 	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
 ?>
@@ -52,21 +53,43 @@
 				$bigtree["simple_html_fields"] = array();
 				
 				$options = json_decode($item["options"],true);
+
+				$field = array();
+				// Leaving some variable settings for backwards compatibility — removing in 5.0
+				$field["title"] = $title = "";
+				$field["value"] = $value;
+				$field["key"] = $key = $item["id"];
+				$field["options"] = $options;
+				$field["required"] = $required;
+				$field["id"] = uniqid("field_");
+				$field["tabindex"] = "1";
+
 				// Setup Validation Classes
 				$label_validation_class = "";
-				$input_validation_class = "";
+				$field["required"] = false;
 				if (isset($options["validation"]) && $options["validation"]) {
 					if (strpos($options["validation"],"required") !== false) {
 						$label_validation_class = ' class="required"';
+						$field["required"] = true;
 					}
-					$input_validation_class = ' class="'.$options["validation"].'"';
 				}
-				
-				$title = "";
-				$value = $item["value"];
-				$key = $item["id"];
-				
-				include BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
+
+				// Draw the field type
+				$field_type_path = BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
+				if (file_exists($field_type_path)) {
+			?>
+			<fieldset>
+				<?
+					if ($field["title"] && $item["type"] != "checkbox") {
+				?>
+				<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+				<?
+					}
+					include $field_type_path;
+				?>
+			</fieldset>
+			<?
+				}	
 			?>
 		</section>
 		<footer>

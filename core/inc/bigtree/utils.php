@@ -684,7 +684,7 @@
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
-				This method is deprecated and exists only for backwards compatibility (BigTreeGeocodingService should be used directly).
+				This method is deprecated and exists only for backwards compatibility (BigTreeGeocoding should be used directly).
 			
 			Parameters:
 				address - The address to geocode.
@@ -694,7 +694,7 @@
 		*/
 		
 		static function geocodeAddress($address) {
-			$geocoder = new BigTreeGeocodingService;
+			$geocoder = new BigTreeGeocoding;
 			return $geocoder->geocode($address);
 		}
 		
@@ -1093,6 +1093,54 @@
 				$i++;
 			}
 			return $key_name;
+		}
+
+		/*
+			Function: parsedFilesArray
+				Parses the $_FILES array and returns an array more like a normal $_POST array.
+			
+			Parameters:
+				part - (Optional) The key of the file tree to return.
+			
+			Returns:
+				A more sensible array, or a piece of that sensible array if "part" is set.
+		*/
+
+		static function parsedFilesArray($part = false) {
+			$clean = array();
+			foreach ($_FILES as $key => $first_level) {
+				// Hurray, we have a first level entry, just save it to the clean array.
+				if (!is_array($first_level["name"])) {
+					$clean[$key] = $first_level;
+				} else {
+					$clean[$key] = self::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+				}
+			}
+			if ($part) {
+				return $clean[$part];
+			}
+			return $clean;
+		}
+
+		/*
+			Function: parseFilesArrayLoop
+				Private method used by parseFilesArray.
+		*/
+
+		private static function parsedFilesArrayLoop($name,$tmp_name,$type,$error,$size) {
+			$array = array();
+			foreach ($name as $k => $v) {
+				if (!is_array($v)) {
+					$array[$k]["name"] = $v;
+					$array[$k]["tmp_name"] = $tmp_name[$k];
+					$array[$k]["type"] = $type[$k];
+					$array[$k]["error"] = $error[$k];
+					$array[$k]["size"] = $size[$k];
+				} else {
+					$array[$k] = self::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+				}
+			}
+			return $array;
 		}
 		
 		/*

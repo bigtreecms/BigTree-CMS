@@ -1,13 +1,14 @@
 <?
 	$db_error = false;
 	$is_group_based_perm = false;
-	if ($options["list_type"] == "db") {
-		$list_table = $options["pop-table"];
-		$list_id = $options["pop-id"];
-		$list_title = $options["pop-description"];
-		$list_sort = $options["pop-sort"];
+	$list = array();
+
+	if ($field["options"]["list_type"] == "db") {
+		$list_table = $field["options"]["pop-table"];
+		$list_id = $field["options"]["pop-id"];
+		$list_title = $field["options"]["pop-description"];
+		$list_sort = $field["options"]["pop-sort"];
 		
-		$list = array();
 		// If debug is on we're going to check if the tables exists...
 		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
 			$db_error = true;
@@ -28,40 +29,45 @@
 				}
 			}
 		}
-		
-		$options["list"] = $list;
-	} elseif ($options["list_type"] == "state") {
-		$list = array();
+	} elseif ($field["options"]["list_type"] == "state") {
 		foreach (BigTree::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
 				"description" => $s
 			);
 		}
-		$options["list"] = $list;
-	} elseif ($options["list_type"] == "country") {
-		$list = array();
+	} elseif ($field["options"]["list_type"] == "country") {
 		foreach (BigTree::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
 				"description" => $c
 			);
 		}
-		$options["list"] = $list;
+	} else {
+		$list = $field["options"]["list"];
+	}
+
+	if ($db_error) {
+?>
+<p class="error_message">The table for this field no longer exists (<?=htmlspecialchars($list_table)?>).</p>
+<?
+	} else {
+		$class = array();
+		if ($is_group_based_perm) {
+			$class[] = "gbp_select";
+		}
+		if ($field["required"]) {
+			$class[] = "required";
+		}
+?>
+<select<? if (count($class)) { ?> class="<?=implode(" ",$class)?>"<? } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
+	<? if ($field["options"]["allow-empty"] != "No") { ?>
+	<option></option>
+	<? } ?>
+	<? foreach ($list as $option) { ?>
+	<option value="<?=$option["value"]?>"<? if ($field["value"] == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags($option["description"]), 100)))?></option>
+	<? } ?>
+</select>
+<?
 	}
 ?>
-<fieldset>
-	<? if ($title) { ?><label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
-	<? if ($db_error) { ?>
-	<p class="error_message">The table for this field no longer exists (<?=htmlspecialchars($list_table)?>).</p>
-	<? } else { ?>
-	<select<?=$input_validation_class?> name="<?=$key?>" tabindex="<?=$tabindex?>" id="field_<?=$key?>"<? if ($is_group_based_perm) { ?> class="gbp_select"<? } ?>>
-		<? if ($options["allow-empty"] != "No") { ?>
-		<option></option>
-		<? } ?>
-		<? foreach ($options["list"] as $option) { ?>
-		<option value="<?=$option["value"]?>"<? if ($value == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=BigTree::trimLength($option["description"], 100)?></option>
-		<? } ?>
-	</select>
-<? } ?>
-</fieldset>

@@ -1,9 +1,9 @@
 <?
-	$service = new BigTreeUploadService;
+	$storage = new BigTreeStorage;
 	
-	if ($service->Service == "s3") {
+	if ($storage->Service == "s3") {
 		$currently = "Amazon S3";
-	} elseif ($service->Service == "rackspace") {
+	} elseif ($storage->Service == "rackspace") {
 		$currently = "Rackspace Cloud Files";
 	} else {
 		$currently = "Local Storage";

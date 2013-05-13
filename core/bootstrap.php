@@ -64,8 +64,9 @@
 		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeModule" => "inc/bigtree/modules.php",
 		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
-		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
-		"BigTreeGeocodingService" => "inc/bigtree/geocoding-service.php",
+		"BigTreeUploadService" => "inc/bigtree/storage.php", // Backwards compat
+		"BigTreeStorage" => "inc/bigtree/storage.php",
+		"BigTreeGeocoding" => "inc/bigtree/geocoding.php",
 		"BigTreeTwitterAPI" => "inc/bigtree/api-twitter.php",
 		"BigTreeInstagramAPI" => "inc/bigtree/api-instagram.php",
 		"BigTreeGooglePlusAPI" => "inc/bigtree/api-googleplus.php",

@@ -714,7 +714,9 @@
 			
 			// Process the internal page links, turn json_encoded arrays into arrays.
 			foreach ($item as $key => $val) {
-				if (is_array(json_decode($val,true))) {
+				if (is_array($val)) {
+					$item[$key] = BigTree::untranslateArray($val);
+				} elseif (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
 					$item[$key] = $cms->replaceInternalPageLinks($val);

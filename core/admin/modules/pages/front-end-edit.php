@@ -1,57 +1,81 @@
 <?
+	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$lock_id = $admin->lockCheck("bigtree_pages",$page["id"],"admin/modules/pages/front-end-locked.php",$force);
+	$admin->lockCheck("bigtree_pages",$bigtree["current_page"]["id"],"admin/modules/pages/front-end-locked.php",$force);
 	
-	// Grab template information
-	$template_data = $cms->getTemplate($page["template"]);
-	
-	$resources = $page["resources"];
-	
+	$bigtree["template"] = $cms->getTemplate($bigtree["current_page"]["template"]);
+	$bigtree["resources"] = $bigtree["current_page"]["resources"];
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["timepickers"] = array();
 	$bigtree["datepickers"] = array();
 	$bigtree["datetimepickers"] = array();
-	$tabindex = 1;
+	$bigtree["tabindex"] = 1;
 ?>
 <h2>Edit Page Content</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
-	<input type="hidden" name="page" value="<?=$page["id"]?>" />
+	<input type="hidden" name="page" value="<?=$bigtree["current_page"]["id"]?>" />
+	<input type="hidden" name="_bigtree_post_check" value="success" />
 	<div class="overflow">
+		<?
+			if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
+				unset($_SESSION["bigtree_admin"]["post_max_hit"]);
+		?>
+		<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+		<?
+			}
+		?>
 		<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 		<?
-			foreach ($template_data["resources"] as $options) {
-				$no_file_browser = true;
-				$key = $options["id"];
-				$type = $options["type"];
-				$title = $options["title"];
-				$subtitle = $options["subtitle"];
-				$value = $resources[$key];
-				$options["directory"] = "files/pages/";
-				$currently_key = "resources[currently_$key]";
-				$key = "resources[$key]";
-				
-				// Setup Validation Classes
-				$label_validation_class = "";
-				$input_validation_class = "";
-				if ($options["validation"]) {
-					if (strpos($options["validation"],"required") !== false) {
-						$label_validation_class = ' class="required"';
+			if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
+				foreach ($bigtree["template"]["resources"] as $resource) {
+					$field = array();
+					// Leaving some variable settings for backwards compatibility — removing in 5.0
+					$field["title"] = $title = $resource["title"];
+					$field["subtitle"] = $subtitle = $resource["subtitle"];
+					$field["key"] = $key = "resources[".$resource["id"]."]";
+					$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
+					$field["id"] = uniqid("field_");
+					$field["tabindex"] = $bigtree["tabindex"];
+					$field["options"] = $options = $resource;
+					$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
+		
+					// Setup Validation Classes
+					$label_validation_class = "";
+					$field["required"] = false;
+					if (isset($resource["validation"]) && $resource["validation"]) {
+						if (strpos($resource["validation"],"required") !== false) {
+							$label_validation_class = ' class="required"';
+							$field["required"] = true;
+						}
 					}
-					$input_validation_class = ' class="'.$options["validation"].'"';
+					$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
+					
+					if (file_exists($field_type_path)) {
+		?>
+		<fieldset>
+			<?
+				if ($field["title"] && $resource["type"] != "checkbox") {
+			?>
+			<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+			<?
 				}
-				
-				include BigTree::path("admin/form-field-types/draw/$type.php");
-		
-				$tabindex++;
+				include $field_type_path;
+			?>
+		</fieldset>
+		<?
+						$bigtree["tabindex"]++;
+					}
+				}
+			} else {
+				echo '<p>There are no resources for the selected template.</p>';
 			}
-		
+
 			$mce_width = 760;
 			$mce_height = 365;
 			
-			//$no_inline = true;
 			if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
 				$bigtree["js"][] = "tiny_mce/tiny_mce.js";
 				if (count($bigtree["html_fields"])) {
@@ -61,18 +85,12 @@
 					include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
 				}
 			}
-			
-			if (!count($template_data["resources"])) {
-		?>
-		<p>This page has no editable content.</p>
-		<?
-			}
 		?>
 	</div>
 	<footer>
 		<a class="button bigtree_dialog_close" href="#">Cancel</a>
-		<input type="submit" class="button<? if ($access_level != "p") { ?> blue<? } ?>" name="ptype" value="Save &amp; Preview" />
-		<? if ($access_level == "p") { ?>
+		<input type="submit" class="button<? if ($bigtree["access_level"] != "p") { ?> blue<? } ?>" name="ptype" value="Save &amp; Preview" />
+		<? if ($bigtree["access_level"] == "p") { ?>
 		<input type="submit" class="button blue" name="ptype" value="Save &amp; Publish" />
 		<? } ?>
 	</footer>
@@ -82,19 +100,19 @@
 	<?
 		foreach ($bigtree["datepickers"] as $id) {
 	?>
-	$(document.getElementById("<?=$id?>")).datepicker({ duration: 200, showAnim: "slideDown" });
+	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
 	<?
 		}
 		
 		foreach ($bigtree["timepickers"] as $id) {
 	?>
-	$(document.getElementById("<?=$id?>")).timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
+	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
 	<?
 		}
 		
 		foreach ($bigtree["datetimepickers"] as $id) {
 	?>
-	$(document.getElementById("<?=$id?>")).datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 	<?
 		}
 	?>
@@ -108,5 +126,5 @@
 		return false;
 	});
 	
-	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
+	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
 </script>

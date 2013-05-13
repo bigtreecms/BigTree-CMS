@@ -460,7 +460,7 @@
 	#link_finder_results a:last-child { border-bottom: none; }
 	#link_finder_results a:hover { background: #E0EAF0; }
 
-	.sticky_controls.stuck { height: 44px; padding: 0 0 5px 0; position: fixed; top: 0; width: 958px; z-index: 2; }
+	.sticky_controls.stuck { height: 44px; padding: 0 0 5px 0; position: fixed; top: 0; width: 958px; z-index: 3; }
 	.sticky_controls.stuck .shadow { background: url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-bottom: 1px solid #CCCCCC; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5); height: 44px; }
 	
 	.sticky_controls.stuck nav { overflow: hidden; padding: 12px 0 0 15px; width: 711px; }
@@ -1064,8 +1064,10 @@
 	.bigtree_dialog_window.front_end_editor .overflow { height: 469px; max-height: none; width: 800px; }
 	.bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }
 	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-right: 10px; }
-	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
+	.bigtree_dialog_window.front_end_editor textarea { width: 760px; }
 	.bigtree_dialog_window.front_end_editor fieldset { width: auto; }
+
+	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
 /* List Options Widget */
 	.bigtree_dialog_form fieldset.list_options_widget { margin: 0 0 17px 0; overflow: hidden; }
@@ -1308,7 +1310,7 @@
 	.jcrop-holder img,img.jcrop-preview{max-width:none;}
 	
 /* jQuery Date Picker */
-	.ui-datepicker { background: #FFF; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25); display: none; width: 202px; }
+	.ui-datepicker { background: #FFF; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25); display: none; width: 202px; z-index: 3 !important; }
 	.ui-datepicker .ui-datepicker-header { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -225px; color: #FFF; padding: 3px 0; position: relative; }
 	.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { cursor: pointer; display: block; font-size: 11px; height: 1.8em; line-height: 22px; padding: 0px 8px; position: absolute; top: 3px; width: auto; }
 	.ui-datepicker .ui-datepicker-prev { color: #FFF; left: 0px; }

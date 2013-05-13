@@ -3,17 +3,17 @@
 	<div class="overflow">
 		<div class="table">
 			<summary>
-				<p>Your submission had <?=count($fails)?> error<? if (count($fails) != 1) { ?>s<? } ?>.</p>
+				<p>Your submission had <?=count($bigtree["errors"])?> error<? if (count($bigtree["errors"]) != 1) { ?>s<? } ?>.</p>
 			</summary>
 			<header>
 				<span class="view_column" style="padding: 0 0 0 20px; width: 250px;">Field</span>
 				<span class="view_column" style="width: 506px;">Error</span>
 			</header>
 			<ul>
-				<? foreach ($fails as $fail) { ?>
+				<? foreach ($bigtree["errors"] as $error) { ?>
 				<li>
-					<section class="view_column" style="padding: 0 0 0 20px; width: 250px;"><?=$fail["field"]?></section>
-					<section class="view_column" style="width: 506px;"><?=$fail["error"]?></section>
+					<section class="view_column" style="padding: 0 0 0 20px; width: 250px;"><?=$error["field"]?></section>
+					<section class="view_column" style="width: 506px;"><?=$error["message"]?></section>
 				</li>
 				<? } ?>
 			</ul>

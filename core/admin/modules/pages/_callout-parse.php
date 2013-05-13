@@ -1,9 +1,14 @@
 <?
-	$callouts = array();
+	$bigtree["parsed_callouts"] = array();
+	$bigtree["callout_file_data"] = BigTree::parsedFilesArray("callouts");
+	// Some backwards compat stuff.
+	$upload_service = new BigTreeUploadService;
+
 	if (count($_POST["callouts"])) {
 		foreach ($_POST["callouts"] as $number => $data) {
-			if ($data["type"] != "") {
-				// Super big hack to get file data in the right place
+			// Make sure there's a callout here...
+			if ($data["type"]) {
+				// Backwards compatibility hacks...
 				if (!is_array($file_data)) {
 					$file_data = array();
 				}
@@ -18,45 +23,66 @@
 					}
 				}
 				
-				$callout = array();
-				$callout_data = $cms->getCallout($data["type"]);
-				$callout_resources = json_decode($callout_data["resources"],true);
+				// Setup the new callout for fun-ness.
+				$bigtree["entry"] = array("type" => $data["type"],"display_title" => $data["display_title"]);
+				$bigtree["callout"] = $admin->getCallout($data["type"]);
+				$bigtree["post_data"] = $_POST["callouts"][$number];
+				$bigtree["file_data"] = $bigtree["callout_file_data"][$number];
 				
-				foreach ($callout_resources as $options) {
-					$key = $options["id"];
-					$type = $options["type"];
-					$options["directory"] = "files/pages/";
+				foreach ($bigtree["callout"]["resources"] as $resource) {
+					unset($value); // Backwards compat.
+					$field = array();
+					$field["key"] = $key = $resource["id"];
+					$field["options"] = $options = $resource;
+					$field["options"]["directory"] = $options["directory"] = "files/pages/";
+					$field["ignore"] = false;
+					$field["input"] = $bigtree["post_data"][$resource["id"]];
+					$field["file_input"] = $bigtree["file_data"][$resource["id"]];
 					
 					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-					if (is_string($data[$key]) && is_array(json_decode($data[$key],true))) {
-						$data[$key] = json_decode($data[$key],true);
+					if (is_string($field["input"]) && is_array(json_decode($field["input"],true))) {
+						$field["input"] = json_decode($field["input"],true);
 					}
 
-					$tpath = BigTree::path("admin/form-field-types/process/$type.php");
-				
-					$no_process = false;
 					// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-					if (file_exists($tpath)) {
-						include $tpath;
+					$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
+					if (file_exists($field_type_path)) {
+						include $field_type_path;
 					} else {
-						$value = htmlspecialchars($data[$key]);
+						if (is_array($bigtree["post_data"][$field["key"]])) {
+							$field["output"] = $bigtree["post_data"][$field["key"]];
+						} else {
+							$field["output"] = htmlspecialchars(htmlspecialchars_decode($bigtree["post_data"][$field["key"]]));
+						}
+					}
+			
+					// Backwards compatibility with older custom field types
+					if (!isset($field["output"]) && isset($value)) {
+						$field["output"] = $value;
 					}
 					
-					if (!$no_process) {
-						if (is_array($value)) {
-							$value = BigTree::translateArray($value);	
+					if (!BigTreeForms::validate($field["output"],$field["options"]["validation"])) {
+						$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeForms::errorMessage($field["output"],$field["options"]["validation"]);
+						$bigtree["errors"][] = array(
+							"field" => $field["options"]["title"],
+							"message" => $error
+						);
+					}
+			
+					if (!$field["ignore"]) {
+						// Translate internal link information to relative links.
+						if (is_array($field["output"])) {
+							$field["output"] = BigTree::translateArray($field["output"]);
 						} else {
-							$value = $admin->autoIPL($value);
+							$field["output"] = $admin->autoIPL($field["output"]);
 						}
-						$callout[$key] = $value;
+						$bigtree["entry"][$field["key"]] = $field["output"];
 					}
 				}
-				$callout["type"] = $data["type"];
-				$callout["display_title"] = $data["display_title"];
-				$callouts[] = $callout;
+				$bigtree["parsed_callouts"][] = $bigtree["entry"];
 			}
 		}
 	}
 		
-	$_POST["callouts"] = $callouts;
+	$_POST["callouts"] = $bigtree["parsed_callouts"];
 ?>

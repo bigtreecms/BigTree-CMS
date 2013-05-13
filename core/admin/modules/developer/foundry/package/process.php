@@ -105,7 +105,7 @@
 	// Get the callouts we're passing in.
 	if (isset($callouts) && is_array($callouts)) {
 		foreach ($callouts as $callout) {
-			$item = $cms->getCallout($callout);
+			$item = $admin->getCallout($callout);
 			$index .= "Callout::||BTX||::".json_encode($item)."\n";
 			$x++;
 			$index .= "File::||BTX||::$x.part.btx::||BTX||::templates/callouts/$callout.php\n";

@@ -156,6 +156,10 @@
 			$mtm_count = 0;
 			foreach ($fields as $key => $field) {
 				$used[] = $key;
+				// Backwards compat.
+				if ($field["type"] == "many_to_many") {
+					$field["type"] = "many-to-many";
+				}
 		?>
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">
@@ -172,11 +176,11 @@
 				<input type="hidden" name="type[geocoding]" value="geocoding" id="type_geocoding" />
 				<span class="resource_name">Geocoding</span>
 				<?
-					} elseif ($field["type"] == "many_to_many") {
+					} elseif ($field["type"] == "many-to-many") {
 						$mtm_count++;
 				?>
 				<span class="resource_name">Many to Many</span>
-				<input type="hidden" name="type[mtm_<?=$mtm_count?>]" value="many_to_many" id="type_mtm_<?=$mtm_count?>" />
+				<input type="hidden" name="type[mtm_<?=$mtm_count?>]" value="many-to-many" id="type_mtm_<?=$mtm_count?>" />
 				<?
 					} else {
 				?>

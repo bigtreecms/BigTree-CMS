@@ -14,7 +14,8 @@
 								$tables[] = $field["pop-table"]."#structure";
 							}
 						}
-						if ($field["type"] == "many_to_many") {
+						// Backwards compat.
+						if ($field["type"] == "many-to-many" || $field["type"] == "many_to_many") {
 							if (!in_array($field["mtm-connecting-table"]."#structure",$tables) && substr($field["mtm-connecting-table"],0,8) != "bigtree_") {
 								$tables[] = $field["mtm-connecting-table"]."#structure";
 							}

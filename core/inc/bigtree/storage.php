@@ -1,10 +1,10 @@
 <?
 	/*
-		Class: BigTreeUploadService
-			Controls where files are uploaded (local and cloud storage)
+		Class: BigTreeStorage
+			Controls where files are stored (local and cloud storage)
 	*/
 	
-	class BigTreeUploadService {
+	class BigTreeStorage {
 		
 		var $Service = "";
 		var $S3,$S3Data,$S3Files;
@@ -18,18 +18,18 @@
 		
 		function __construct() {
 			global $cms,$admin;
-			$ups = $cms->getSetting("bigtree-internal-upload-service");
+			$ups = $cms->getSetting("bigtree-internal-storage");
 			// If for some reason the setting doesn't exist, make one.
 			if (!is_array($ups) || !$ups["service"]) {
 				$this->Service = "local";
 				$this->optipng = false;
 				$this->jpegtran = false;
 				$admin->createSetting(array(
-					"id" => "bigtree-internal-upload-service",
+					"id" => "bigtree-internal-storage",
 					"encrypted" => "on",
 					"system" => "on"
 				));
-				$admin->updateSettingValue("bigtree-internal-upload-service",array("service" => "local"));
+				$admin->updateSettingValue("bigtree-internal-storage",array("service" => "local"));
 			} else {
 				$this->Service = $ups["service"];
 				$this->optipng = $ups["optipng"];
@@ -42,7 +42,7 @@
 		
 		/*
 			Function: delete
-				Deletes a file from the active upload service.
+				Deletes a file from the active storage service.
 			
 			Parameters:
 				file_location - The URL of the file.
@@ -56,7 +56,7 @@
 			} elseif ($this->Service == "rackspace") {
 				return $this->deleteRackspace($file_location);
 			} else {
-				die("BigTree Critical Error: Unknown Upload Service In Effect");
+				die("BigTree Critical Error: Unknown Storage Service In Effect");
 			}
 		}
 		
@@ -135,16 +135,16 @@
 		
 		/*
 			Function: replace
-				Uploads a file to the current upload service and replaces any existing file with the same file_name.
+				Stores a file to the current storage service and replaces any existing file with the same file_name.
 			
 			Parameters:
-				local_file - The absolute path to the local file you wish to upload.
-				file_name - The file name at the upload end point.
+				local_file - The absolute path to the local file you wish to store.
+				file_name - The file name at the storage end point.
 				relative_path - The directory to store the file in (for local files, also used to generate a bucket ID).
 				remove_original - Whether to delete the local_file or not.
 			
 			Returns:
-				The URL to the uploaded file.
+				The URL to the stored file.
 		*/
 		
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
@@ -164,7 +164,7 @@
 			} elseif ($this->Service == "rackspace") {
 				return $this->replaceRackspace($local_file,$file_name,$relative_path,$remove_original);
 			} else {
-				die("BigTree Critical Error: Unknown Upload Service In Effect");
+				die("BigTree Critical Error: Unknown Storage Service In Effect");
 			}
 		}
 		
@@ -211,7 +211,7 @@
 			// Update the list of files in this bucket locally.
 			$this->S3Files[$destination] = true;
 			
-			// Remove the original file we were uploading.
+			// Remove the original file we were storing.
 			if ($remove_original) {
 				unlink($local_file);
 			}
@@ -263,7 +263,7 @@
 			$existing_files[] = $file_name;
 			$this->RSContainerData[$relative_path] = $existing_files;
 			
-			// Remove the original file we were uploading.
+			// Remove the original file we were storing.
 			if ($remove_original) {
 				unlink($local_file);
 			}
@@ -273,12 +273,12 @@
 		
 		/*
 			Function: saveSettings
-				Saves the local data back to the bigtree-internal-upload-service setting.
+				Saves the local data back to the bigtree-internal-storage setting.
 		*/
 		
 		protected function saveSettings() {
 			$admin = new BigTreeAdmin;
-			$admin->updateSettingValue("bigtree-internal-upload-service",array(
+			$admin->updateSettingValue("bigtree-internal-storage",array(
 				"service" => $this->Service,
 				"s3" => array(
 					"keys" => $this->S3Data["keys"],
@@ -293,20 +293,20 @@
 		}
 		
 		/*
-			Function: upload
-				Uploads a file to the current upload service
+			Function: store
+				Stores a file to the current storage service and finds a unique filename if collisions exist.
 			
 			Parameters:
-				local_file - The absolute path to the local file you wish to upload.
-				file_name - The desired file name at the upload end point.
+				local_file - The absolute path to the local file you wish to store.
+				file_name - The desired file name at the storage end point.
 				relative_path - The directory to store the file in (for local files, also used to generate a bucket ID).
 				remove_original - Whether to delete the local_file or not.
 			
 			Returns:
-				The URL to the uploaded file.
+				The URL to the stored file.
 		*/
 		
-		function upload($local_file,$file_name,$relative_path,$remove_original = true) {
+		function store($local_file,$file_name,$relative_path,$remove_original = true) {
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
@@ -317,25 +317,25 @@
 					$relative_path = "files/";
 				}
 				$relative_path = rtrim($relative_path,"/")."/";
-				return $this->uploadLocal($local_file,$file_name,$relative_path,$remove_original);
+				return $this->storeLocal($local_file,$file_name,$relative_path,$remove_original);
 			} elseif ($this->Service == "s3") {
-				return $this->uploadS3($local_file,$file_name,$relative_path,$remove_original);
+				return $this->storeS3($local_file,$file_name,$relative_path,$remove_original);
 			} elseif ($this->Service == "rackspace") {
-				return $this->uploadRackspace($local_file,$file_name,$relative_path,$remove_original);
+				return $this->storeRackspace($local_file,$file_name,$relative_path,$remove_original);
 			} else {
-				die("BigTree Critical Error: Unknown Upload Service In Effect");
+				die("BigTree Critical Error: Unknown Storage Service In Effect");
 			}
 		}
 		
 		/*
-			Function: uploadLocal
-				Private function for the upload call when local storage is active.
+			Function: storeLocal
+				Private function for the store call when local storage is active.
 			
 			See Also:
-				<upload>
+				<store>
 		*/
 		
-		private function uploadLocal($local_file,$file_name,$relative_path,$remove_original) {
+		private function storeLocal($local_file,$file_name,$relative_path,$remove_original) {
 			$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name);
 			
 			if ($remove_original) {
@@ -352,14 +352,14 @@
 		}
 		
 		/*
-			Function: uploadS3
-				Private function for the upload call when Amazon S3 is active.
+			Function: storeS3
+				Private function for the store call when Amazon S3 is active.
 			
 			See Also:
-				<upload>
+				<store>
 		*/
 		
-		private function uploadS3($local_file,$file_name,$relative_path,$remove_original) {
+		private function storeS3($local_file,$file_name,$relative_path,$remove_original) {
 			global $cms;
 			
 			if (!$this->S3) {
@@ -392,7 +392,7 @@
 			// Update the list of files in this bucket locally.
 			$this->S3Files[$destination] = true;
 			
-			// Remove the original file we were uploading.
+			// Remove the original file we were storing.
 			if ($remove_original) {
 				unlink($local_file);
 			}
@@ -401,14 +401,14 @@
 		}
 		
 		/*
-			Function: uploadRackspace
-				Private function for the upload call when Rackspace Cloud Files is active.
+			Function: storeRackspace
+				Private function for the store call when Rackspace Cloud Files is active.
 			
 			See Also:
-				<upload>
+				<store>
 		*/
 		
-		private function uploadRackspace($local_file,$file_name,$relative_path,$remove_original) {
+		private function storeRackspace($local_file,$file_name,$relative_path,$remove_original) {
 			global $cms;
 						
 			if (!$this->Rackspace) {
@@ -467,12 +467,19 @@
 			$existing_files[] = $file_name;
 			$this->RSContainerData[$relative_path] = $existing_files;
 			
-			// Remove the original file we were uploading.
+			// Remove the original file we were storing.
 			if ($remove_original) {
 				unlink($local_file);
 			}
 			
 			return $url."/".$file_name;
+		}
+	}
+
+	// Backwards compatibility
+	class BigTreeUploadService extends BigTreeStorage {
+		function upload($local_file,$file_name,$relative_path,$remove_original = true) {
+			return $this->store($local_file,$file_name,$relative_path,$remove_original);
 		}
 	}
 ?>
