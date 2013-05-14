@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.0RC3");
-	define("BIGTREE_REVISION",19);
+	define("BIGTREE_VERSION","4.0");
+	define("BIGTREE_REVISION",20);
 
 	// BigTree Admin Nav Tree
 	$bigtree["nav_tree"] = array(
