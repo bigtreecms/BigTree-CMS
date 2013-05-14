@@ -91,8 +91,8 @@
 	BigTreeCustomControls();
 	
 	if (!tinyMCE) {
-		tiny = new Element("script");
-		tiny.src = "<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js";
+		tiny = $("<script>");
+		tiny.attr("src","<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js");
 		$("body").append(tiny);
 	}
 	
