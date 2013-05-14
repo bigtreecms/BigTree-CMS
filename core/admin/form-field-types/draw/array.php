@@ -4,8 +4,12 @@
 	
 	// We recreate the field array because Chrome doesn't like to do for loops properly when the numeric keys are out of order.
 	$aoi_fields = array();
-	foreach ($field["options"]["fields"] as $f) {
-		$aoi_fields[] = $f;
+	if (!is_array($field["options"]["fields"]) || !count($field["options"]["fields"])) {
+		trigger_error("Array of Items field type requires at least one field.");
+	} else {
+		foreach ($field["options"]["fields"] as $f) {
+			$aoi_fields[] = $f;
+		}
 	}
 ?>
 <div class="multi_widget" id="<?=$field["id"]?>">
