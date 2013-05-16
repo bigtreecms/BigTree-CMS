@@ -91,5 +91,13 @@
 	new BigTreeManyToMany("<?=$field["id"]?>",<?=$x?>,"<?=$field["key"]?>",<?=($sortable ? "true" : "false")?>);
 </script>
 <?
+	} else {
+?>
+<div class="multi_widget">
+	<section>
+		<p>There are no items available to tag.</p>
+	</section>
+</div>
+<?
 	}
 ?>
