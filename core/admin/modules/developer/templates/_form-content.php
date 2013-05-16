@@ -5,7 +5,7 @@
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
-	<div class="left">
+	<div class="left last">
 		<? if (!isset($template)) { ?>
 		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
 			<label class="required">ID<? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
@@ -24,7 +24,7 @@
 			<input type="checkbox" name="callouts_enabled" <? if ($callouts_enabled) { ?>checked="checked" <? } ?>/> <label class="for_checkbox">Callouts Enabled</label>
 		</fieldset>
 	</div>
-	<div class="right">
+	<div class="right last">
 		<? if (!isset($template)) { ?>
 		<fieldset>
 			<label>Type</label>

@@ -113,38 +113,72 @@ $(document).ready(function() {
 	BigTree.FormHooks(".container form");
 });
 
-function BigTreeCustomControls() {
-	// Setup custom checkboxes
-	$("input[type=checkbox]").each(function() {
-		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeCheckbox(this);
-			$(this).addClass("custom_control");
-		}
-	});
+function BigTreeCustomControls(selector) {
+	if (selector) {
+		// Setup custom checkboxes
+		$(selector).find("input[type=checkbox]").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeCheckbox(this);
+				$(this).addClass("custom_control");
+			}
+		});
+		
+		// Setup custom select boxes
+		$(selector).find("select").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeSelect(this);
+				$(this).addClass("custom_control");
+			}
+		});
+		
+		// Setup custom file boxes.
+		$(selector).find("input[type=file]").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeFileInput(this);
+				$(this).addClass("custom_control");
+			}
+		});
 	
-	// Setup custom select boxes
-	$("select").each(function() {
-		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeSelect(this);
-			$(this).addClass("custom_control");
-		}
-	});
+		// Setup custom radio buttons.
+		$(selector).find("input[type=radio]").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeRadioButton(this);
+				$(this).addClass("custom_control");
+			}
+		});
+	} else {
+		// Setup custom checkboxes
+		$("input[type=checkbox]").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeCheckbox(this);
+				$(this).addClass("custom_control");
+			}
+		});
+		
+		// Setup custom select boxes
+		$("select").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeSelect(this);
+				$(this).addClass("custom_control");
+			}
+		});
+		
+		// Setup custom file boxes.
+		$("input[type=file]").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeFileInput(this);
+				$(this).addClass("custom_control");
+			}
+		});
 	
-	// Setup custom file boxes.
-	$("input[type=file]").each(function() {
-		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeFileInput(this);
-			$(this).addClass("custom_control");
-		}
-	});
-
-	// Setup custom radio buttons.
-	$("input[type=radio]").each(function() {
-		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeRadioButton(this);
-			$(this).addClass("custom_control");
-		}
-	});
+		// Setup custom radio buttons.
+		$("input[type=radio]").each(function() {
+			if (!$(this).hasClass("custom_control")) {
+				this.customControl = new BigTreeRadioButton(this);
+				$(this).addClass("custom_control");
+			}
+		});
+	}
 }
 
 // !BigTreeCheckbox Class
@@ -987,7 +1021,9 @@ var BigTreeDialog = Class.extend({
 			}
 		} else {
 			dialog_window.html('<h2><a href="#" class="icon_delete" class="bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
-		}		
+		}
+
+		BigTreeCustomControls(dialog_window);
 		
 		this.dialogWidth = dialog_window.width();
 		this.dialogHeight = dialog_window.height();
@@ -2253,21 +2289,21 @@ var BigTree = {
 			}
 		}
 
-		content = '<li class="first"><a href="#' + prev_page + '"><span>&laquo;</span></a></li>';
+		content = '<a class="first" href="#' + prev_page + '"><span>&laquo;</span></a>';
 		if (start_page > 1) {
-			content += '<li class="ellipsis"><a href="#1">…</a></li>';
+			content += '<a class="ellipsis" href="#1">…</a>';
 		}
 		for (i = start_page; i <= end_page; i++) {
-			content += '<li><a href="#' + i + '"';
+			content += '<a href="#' + i + '"';
 			if (i == current_page) {
 				content += ' class="active"';
 			}
-			content += '>' + i + '</a></li>';
+			content += '>' + i + '</a>';
 		}
 		if (end_page < pages) {
-			content += '<li class="ellipsis"><a href="#' + pages + '">…</a></li>';
+			content += '<a class="ellipsis" href="#' + pages + '">…</a>';
 		}
-		content += '<li class="last"><a href="#' + next_page + '"><span>&raquo;</span></a></li>';
+		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
 		
 		$(selector).html(content);
 	},

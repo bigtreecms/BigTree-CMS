@@ -30,7 +30,6 @@
 			<label class="for_checkbox">Encrypted</label>
 		</fieldset>
 	</div>
-	<br class="clear" /><br />
 	<fieldset>
 		<label>Description</label>
 		<textarea name="description" id="setting_description"><?=$description?></textarea>

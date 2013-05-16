@@ -2,7 +2,7 @@
 	<summary>
 		<input type="search" name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" />
 		<span class="form_search_icon"></span>
-		<ul id="view_paging" class="view_paging"></ul>
+		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
 	<header>
 		<span class="view_column users_name"><a class="sort_column asc" href="ASC" name="name">Name <em>&#9650;</em></a></span>

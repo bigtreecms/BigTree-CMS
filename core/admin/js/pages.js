@@ -173,7 +173,7 @@ var BigTreePages = {
 			return false;
 		});
 		
-		$("#bigtree_callouts ul").sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+		$("#bigtree_callouts .contain").sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	},
 
 	CheckTemplate: function() {
@@ -189,9 +189,9 @@ var BigTreePages = {
 				}
 				BigTreePages.currentTemplate = tval.val();
 				if (BigTreePages.currentPage !== false) {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTreePages.currentPage, template: BigTreePages.currentTemplate });
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTreePages.currentPage, template: BigTreePages.currentTemplate }, function() { BigTreeCustomControls("#template_type"); });
 				} else {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: BigTreePages.currentTemplate });
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: BigTreePages.currentTemplate }, function() { BigTreeCustomControls("#template_type"); });
 				}
 			}
 		}

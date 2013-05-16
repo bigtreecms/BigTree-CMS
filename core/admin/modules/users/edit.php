@@ -188,11 +188,9 @@
 				<div class="user_permissions form_table">
 					<header<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 						<nav>
-							<ul>
-								<li><a href="#page_permissions" class="active">Pages</a></li>
-								<li><a href="#module_permissions">Modules</a></li>
-								<li><a href="#resource_permissions">Resources</a></li>
-							</ul>
+							<a href="#page_permissions" class="active">Pages</a>
+							<a href="#module_permissions">Modules</a>
+							<a href="#resource_permissions">Resources</a>
 						</nav>
 					</header>
 					<div id="page_permissions">

@@ -3,7 +3,7 @@
 	$types = $cached_types["callout"];
 ?>
 <section>
-	<div class="left">
+	<div class="left last">
 		<? if (!isset($callout)) { ?>
 		<fieldset>
 			<label class="required">ID</label>
@@ -27,7 +27,7 @@
 			<input type="text" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
-	<div class="right">
+	<div class="right last">
 		<fieldset>
 			<label>Description</label>
 			<textarea name="description"><?=$description?></textarea>

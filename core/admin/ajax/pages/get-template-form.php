@@ -117,7 +117,7 @@
 ?>
 <div class="sub_section" id="bigtree_callouts">
 	<label>Callouts</label>
-	<ul>
+	<div class="contain">
 		<?
 			$x = 0;
 			foreach ($bigtree["callouts"] as $callout) {
@@ -129,7 +129,7 @@
 					$callout_resources[$r["id"]] = $r;
 				}
 		?>
-		<li>
+		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?
 				_localDrawCalloutLevel(array($x),$callout);
@@ -141,12 +141,12 @@
 				<a href="#" class="icon_edit"></a>
 				<a href="#" class="icon_delete"></a>
 			</div>
-		</li>
+		</article>
 		<?
 				$x++;
 			}
 		?>
-	</ul>
+	</div>
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
 </div>
 <script>
@@ -172,12 +172,6 @@
 		foreach ($bigtree["datetimepickers"] as $id) {
 	?>
 	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<?
-		}
-		
-		if (isset($_POST["template"])) {
-	?>
-	BigTreeCustomControls();
 	<?
 		}
 	?>

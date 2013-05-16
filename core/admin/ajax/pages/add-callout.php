@@ -23,9 +23,7 @@
 </div>
 
 <script>
-	BigTreeCustomControls();
-	
 	$("#callout_type select").change(function(event,data) {
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/pages/callout-resources/", { type: data.value, count: <?=$bigtree["callout_count"]?> });
+		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/pages/callout-resources/", { type: data.value, count: <?=$bigtree["callout_count"]?> }, BigTreeCustomControls);
 	});
 </script>
