@@ -1329,9 +1329,9 @@
 	.ui-datepicker .ui-datepicker-title select { font-size: 1em; margin: 1px 0; }
 	.ui-datepicker select.ui-datepicker-month-year { width: 100%; }
 	.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year { width: 49%; }
-	.ui-datepicker table { border: 1px solid #AAA; border-collapse: collapse; font-size: 10px; margin: 0; width: 100%; }
-	.ui-datepicker th { background-gradient: #DDDDDD #FFFFFF; border: 0; font-weight: bold; padding: .7em .3em; text-align: center; }
-	.ui-datepicker td { border: 0; line-height: 1.3; padding: 1px; }
+	.ui-datepicker table { border: 1px solid #AAA; border-top: none; border-collapse: collapse; font-size: 10px; margin: 0; width: 100%; }
+	.ui-datepicker table th { border: 0; font-size: 12px; font-weight: bold; padding: .7em .3em; text-align: center; }
+	.ui-datepicker table tr td { background: #FFF; border: 0; line-height: 1.3; padding: 1px; }
 	.ui-datepicker td span, .ui-datepicker td a { display: block; padding: 5px 2px 3px; text-align: center; text-decoration: none; }
 	.ui-datepicker td a:hover { background: #EEE; }
 	.ui-datepicker td a.ui-state-highlight { background: #DDD; color: #2B4757; }
