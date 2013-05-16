@@ -15,10 +15,10 @@
 		} else {
 			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
 		
-			if ($module && $module["gbp"]["enabled"] && $form["table"] == $module["gbp"]["table"] && $key == $module["gbp"]["group_field"]) {
+			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $key == $bigtree["module"]["gbp"]["group_field"]) {
 				$is_group_based_perm = true;
 				while ($f = sqlfetch($q)) {
-					$access_level = $admin->canAccessGroup($module,$f["id"]);
+					$access_level = $admin->canAccessGroup($bigtree["module"],$f["id"]);
 					if ($access_level) {
 						$list[] = array("value" => $f["id"],"description" => $f[$list_title],"access_level" => $access_level);
 					}

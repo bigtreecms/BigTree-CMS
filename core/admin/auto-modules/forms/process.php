@@ -130,6 +130,7 @@
 
 	// Let's stick it in the database or whatever!
 	$data_action = ($_POST["save_and_publish"] || $_POST["save_and_publish_x"] || $_POST["save_and_publish_y"]) ? "publish" : "save";
+	$did_publish = false;
 	// We're an editor or "Save" was chosen
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
 		// We have an existing module entry we're saving a change to.
@@ -149,15 +150,18 @@
 			if (substr($edit_id,0,1) == "p") {
 				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
 				$admin->growl($bigtree["current_module"]["name"],"Updated & Published ".$bigtree["form"]["title"]);
+				$did_publish = true;
 			// Otherwise we're updating something that is already published
 			} else {
 				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
 				$admin->growl($bigtree["current_module"]["name"],"Updated ".$bigtree["form"]["title"]);
+				$did_publish = true;
 			}
 		// We're creating a new published entry.
 		} else {
 			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 			$admin->growl($bigtree["current_module"]["name"],"Created ".$bigtree["form"]["title"]);
+			$did_publish = true;
 		}
 	}
 
@@ -206,7 +210,7 @@
 
 	// If there's a callback function for this module, let's get'r'done.
 	if ($bigtree["form"]["callback"]) {
-		eval($bigtree["form"]["callback"].'($edit_id,$item);');
+		eval($bigtree["form"]["callback"].'($edit_id,$item,$did_publish);');
 	}
 
 	// Put together saved form information for the error or crop page in case we need it.

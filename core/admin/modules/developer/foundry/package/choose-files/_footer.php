@@ -128,9 +128,9 @@
 					</li>
 					<? } ?>
 				</ul>
-				<div class="add_feed adder">
+				<div class="add_field_type adder">
 					<a class="icon_small icon_small_add" href="#"></a>
-					<select class="custom_control" id="add_feed">
+					<select class="custom_control" id="add_field_type">
 						<?
 							$q = sqlquery("select * from bigtree_field_types order by name");
 							while ($f = sqlfetch($q)) {
@@ -266,6 +266,19 @@
 		return false;
 	});
 	
+	$(".add_field_type a").click(function(ev) {
+		if ($("#add_field_type").get(0).selectedIndex < 0) {
+			return false;
+		}
+		li = $("<li>");
+		field_type = $("#add_field_type").val();
+		field_type_text = $("#add_field_type").get(0).options[$("#add_field_type").get(0).selectedIndex].text;
+		li.html('<input type="hidden" name="field_types[]" value="' + field_type + '" /><a href="#" class="icon_small icon_small_delete"></a>' + field_type_text);
+		$(this).parent().parent().find("ul").append(li);
+		packageHooks();
+		return false;
+	});
+
 	$(".add_feed a").click(function(ev) {
 		if ($("#add_feed").get(0).selectedIndex < 0) {
 			return false;
