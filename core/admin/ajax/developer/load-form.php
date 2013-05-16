@@ -140,7 +140,7 @@
 ?>
 <label>Fields</label>
 
-<div class="form_table">
+<div class="form_table<? if (!$positioned) { ?> last<? } ?>">
 	<header>
 		<a href="#" class="add add_geocoding"><span></span>Geocoding</a>
 		<a href="#" class="add add_many_to_many"><span></span>Many-To-Many</a>

@@ -36,7 +36,7 @@
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 	
-	$unused[] = array("field" => "-- Custom --", "title" => "");
+	$unused[] = array("field" => "— Custom —", "title" => "");
 	if (count($tblfields)) {
 ?>
 <fieldset id="fields"<? if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<? } ?>>
@@ -83,7 +83,7 @@
 		</ul>
 	</div>
 </fieldset>
-<fieldset>
+<fieldset class="last">
 	<label>Actions <small>(click to deselect)</small></label>
 	<ul class="developer_action_list">
 		<?

@@ -102,7 +102,7 @@
 <? if (count($warnings)) { ?>
 <div class="table">
 	<summary>
-		<h2 class="no_icon">Warnings</h2>
+		<h2>Warnings</h2>
 	</summary>
 	<header>
 		<span class="site_status_message">Warning</span>
@@ -122,7 +122,7 @@
 <? } ?>
 <div class="table">
 	<summary>
-		<h2 class="no_icon">Server Parameters</h2>
+		<h2>Server Parameters</h2>
 	</summary>
 	<header>
 		<span class="site_status_message">Site Parameter</span>

@@ -13,7 +13,7 @@
 	}
 ?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
-<fieldset>
+<fieldset class="last">
 	<label>Flexible Templates</label>
 	<?
 		$x = 0;
@@ -39,7 +39,7 @@
 <input type="hidden" name="template" id="template" value="<?=$bigtree["current_page"]["template"]?>" />
 <hr />
 	
-<fieldset>
+<fieldset class="last">
 	<label>Special Templates</label>
 	<?
 		$items = $admin->getRoutedTemplates();
@@ -62,7 +62,7 @@
 
 <hr />
 
-<div class="left">
+<div class="left last">
 	<fieldset>
 		<label>External Link <small>(include http://)</small></label>
 		<input type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link" tabindex="1" <? if ($bigtree["current_page"]["template"] == "") { ?> class="active"<? } ?>/>
@@ -71,7 +71,7 @@
 		<input type="checkbox" name="redirect_lower" <? if ($bigtree["current_page"]["template"] == "!") { ?>checked="checked" <? } ?>tabindex="3" /><label class="for_checkbox">Redirect Lower</label>
 	</fieldset>
 </div>
-<div class="right">
+<div class="right last">
 	<fieldset>
 		<label>Open In New Window?</label>
 		<select name="new_window" tabindex="2">

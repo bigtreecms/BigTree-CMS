@@ -61,18 +61,18 @@
 						$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 						
 						if (file_exists($field_type_path)) {
-?>
-<fieldset>
-	<?
-		if ($field["title"] && $resource["type"] != "checkbox") {
-	?>
-	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
-	<?
-		}
-		include $field_type_path;
-	?>
-</fieldset>
-<?
+			?>
+			<fieldset>
+				<?
+					if ($field["title"] && $resource["type"] != "checkbox") {
+				?>
+				<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+				<?
+					}
+					include $field_type_path;
+				?>
+			</fieldset>
+			<?
 							$bigtree["tabindex"]++;
 						}
 					}

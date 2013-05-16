@@ -25,7 +25,7 @@
 ?>
 <div class="container">
 	<section>
-		<h3 class="action_title">Add/Edit <?=$title?></h3>
+		<h3>Add/Edit <?=$title?></h3>
 		<p>Your form has been created. If you were creating a module from scratch, the process is now complete.</p>
 	</section>
 	<footer>

@@ -16,8 +16,6 @@
 <script>
 	BigTree.localTable = false;
 	
-	BigTreeCustomControls();
-	
 	$(".table_select").change(function() {
 		x = 0;
 		BigTree.localTable = $(this).val();

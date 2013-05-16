@@ -49,9 +49,7 @@
 		}
 	}
 ?>
-<script>
-	BigTreeCustomControls();
-	
+<script>	
 	$(".table_select").change(function() {
 		name = $(this).attr("name");
 		table = $(this).val();

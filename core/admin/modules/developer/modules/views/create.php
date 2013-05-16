@@ -75,7 +75,7 @@
 ?>
 <div class="container">
 	<section>
-		<h3 class="action_title">View <?=$title?></h3>
+		<h3>View <?=$title?></h3>
 		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
 	</section>
 	<footer>

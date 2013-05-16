@@ -39,8 +39,8 @@
 
 	if (count($fields)) {
 ?>
-<fieldset>
-	<label>Fields <small>(For RSS feeds, you do not need to manage this section.  Please edit the feed options to assign fields to RSS entries.)</small></label>
+<fieldset class="last">
+	<label>Fields</label>
 
 	<div class="form_table">
 		<header></header>

@@ -1,5 +1,5 @@
 <section>
-	<div class="left">
+	<div class="left last">
 		<fieldset>
 			<label class="required">Name</label>
 			<input type="text" class="required" name="name" value="<?=$name?>" />
@@ -21,7 +21,7 @@
 			<input type="hidden" name="options" id="feed_options" value="<?=htmlspecialchars(json_encode($item["options"]))?>" />
 		</fieldset>
 	</div>
-	<div class="right">
+	<div class="right last">
 		<fieldset>
 			<label>Description</label>
 			<textarea name="description"><?=$description?></textarea>

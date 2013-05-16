@@ -28,7 +28,7 @@
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=htmlspecialchars($search)?>" />
 		<span class="form_search_icon"></span>
-		<ul id="view_paging" class="view_paging"></ul>
+		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
 	<header>
 		<?

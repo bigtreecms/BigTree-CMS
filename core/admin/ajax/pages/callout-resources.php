@@ -87,9 +87,7 @@
 <input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
 <input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="callouts[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
 <input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][callout_count]" class="callout_count" value="<?=$bigtree["callout_count"]?>" />
-<script>
-	BigTreeCustomControls();
-	
+<script>	
 	if (!tinyMCE) {
 		tiny = $("<script>");
 		tiny.attr("src","<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js");
