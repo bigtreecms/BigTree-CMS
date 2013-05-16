@@ -8,7 +8,7 @@
 	$data["crops"] = isset($data["crops"]) ? $data["crops"] : "";
 	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
 	
-	if (!isset($_POST["template"])) {
+	if (!isset($_POST["template"]) && !isset($_POST["callout"])) {
 ?>
 <fieldset>
 	<label>Upload Directory <small>(required, relative to SITE_ROOT)</small></label>
