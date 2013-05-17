@@ -5740,7 +5740,7 @@
 
 			// Create an automatic redirect from the old path to the new one.
 			if ($current["path"] != $path) {
-				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$oldpath','$newpath')");
+				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('".$current["path"]."','$path')");
 
 				// Update all child page routes, ping those engines, clean those caches
 				$this->updateChildPagePaths($page);

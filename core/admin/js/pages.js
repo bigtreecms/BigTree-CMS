@@ -119,19 +119,19 @@ var BigTreePages = {
 				new BigTreeDialog("Add Callout",response.responseText,function(e) {		
 					e.preventDefault();
 					
-					li = BigTreePages.GetCallout();
-					if (!li) {
+					article = BigTreePages.GetCallout();
+					if (!article) {
 						return false;
 					}
 	
 					// Add the callout and hide the dialog.
-					$("#bigtree_callouts ul").append(li);
+					$("#bigtree_callouts .contain").append(article);
 					last_dialog.parents("div").remove();
 					last_dialog.remove();
 					$(".bigtree_dialog_overlay").last().remove();
 					
 					// Fill out the callout description.
-					li.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
+					article.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
 					
 					BigTreePages.calloutCount++;
 					
@@ -141,23 +141,23 @@ var BigTreePages = {
 			
 			return false;
 		}).on("click","#bigtree_callouts .icon_edit",function() {
-			BigTreePages.currentCallout = $(this).parents("li");
+			BigTreePages.currentCallout = $(this).parents("article");
 			
 			$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: BigTreePages.calloutCount, data: BigTreePages.currentCallout.find(".callout_data").val() }, complete: function(response) {
 				new BigTreeDialog("Edit Callout",response.responseText,function(e) {
 					e.preventDefault();
 					
-					li = BigTreePages.GetCallout();
-					if (!li) {
+					article = BigTreePages.GetCallout();
+					if (!article) {
 						return false;
 					}
 	
-					BigTreePages.currentCallout.replaceWith(li);
+					BigTreePages.currentCallout.replaceWith(article);
 					last_dialog.parents("div").remove();
 					last_dialog.remove();
 					$(".bigtree_dialog_overlay").last().remove();
 					
-					li.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
+					article.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
 					
 					BigTreePages.calloutCount++;
 					
@@ -168,7 +168,7 @@ var BigTreePages = {
 			return false;
 		}).on("click","#bigtree_callouts .icon_delete",function() {
 			new BigTreeDialog("Delete Callout", '<p class="confirm">Are you sure you want to delete this callout?</p>', $.proxy(function() {
-				$(this).parents("li").remove();
+				$(this).parents("article").remove();
 			},this),"delete",false,"OK");
 			return false;
 		});
@@ -206,8 +206,8 @@ var BigTreePages = {
 			return false;
 		}
 		
-		li = $('<li>');
-		li.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
+		article = $('<article>');
+		article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
 		
 		BigTreePages.calloutNumber = last_dialog.find("input.callout_count").val();
 		// Try our best to find some way to describe the callout
@@ -233,11 +233,11 @@ var BigTreePages = {
 					}
 				}
 				$(this).hide();
-				li.append($(this));
+				article.append($(this));
 			}
 		});
 
-		return li;
+		return article;
 	}
 };
 
