@@ -980,6 +980,7 @@
 
 	#field_area select { float: right; height: 24px; margin: 5px 10px 0 0; }
 	#field_area hr { margin-top: 30px; }
+	.developer_action_list { list-style: none; margin: 0; }
 	.developer_action_list li { float: left; margin: 0 5px 0 0; }
 	.developer_action_list li a.action { background: #FCFCFC; border: 1px solid #CCC; border-radius: 3px; display: block; height: 36px; text-align: center; transition: background-color 0.2s, box-shadow 0.2s; width: 36px; }
 	.developer_action_list li a.action:hover { background: #EBF2F6; }
