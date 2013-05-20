@@ -173,35 +173,36 @@
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
 		}
+		$bigtree["ajax_inc"] = $inc;
 		$bigtree["commands"] = $commands;
 
 		// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/ajax.
 		$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
 		// Include all headers in the module directory in the order they occur.
 		$inc_path = "";
-		$headers = $footers = array();
+		$bigtree["ajax_headers"] = $bigtree["ajax_footers"] = array();
 		foreach ($pieces as $piece) {
 			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
 				$header = SERVER_ROOT."templates/ajax/".$inc_path."_header.php";
 				$footer = SERVER_ROOT."templates/ajax/".$inc_path."_footer.php";
 				if (file_exists($header)) {
-					$headers[] = $header;
+					$bigtree["ajax_headers"][] = $header;
 				}
 				if (file_exists($footer)) {
-					$footers[] = $footer;
+					$bigtree["ajax_footers"][] = $footer;
 				}
 			}
 		}
 		// Draw the headers.
-		foreach ($headers as $header) {
+		foreach ($bigtree["ajax_headers"] as $header) {
 			include $header;
 		}
 		// Draw the main page.
-		include $inc;
+		include $bigtree["ajax_inc"];
 		// Draw the footers.
-		$footers = array_reverse($footers);
-		foreach ($footers as $footer) {
+		$bigtree["ajax_footers"] = array_reverse($bigtree["ajax_footers"]);
+		foreach ($bigtree["ajax_footers"] as $footer) {
 			include $footer;
 		}
 		die();
@@ -306,40 +307,41 @@
 				array_pop($path_components);
 			}
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+			$bigtree["routed_inc"] = $inc;
 			$bigtree["commands"] = $commands;
 			if (count($commands)) {
-				$bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
+				$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
 			} else {
-				$bigtree["module_path"] = array_slice($path_components,0);
+				$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0);
 			}
 			
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
 			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
 			// Include all headers in the module directory in the order they occur.
 			$inc_path = "";
-			$headers = $footers = array();
+			$bigtree["routed_headers"] = $bigtree["routed_footers"] = array();
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
 					$header = SERVER_ROOT."templates/routed/".$inc_path."_header.php";
 					$footer = SERVER_ROOT."templates/routed/".$inc_path."_footer.php";
 					if (file_exists($header)) {
-						$headers[] = $header;
+						$bigtree["routed_headers"][] = $header;
 					}
 					if (file_exists($footer)) {
-						$footers[] = $footer;
+						$bigtree["routed_footers"][] = $footer;
 					}
 				}
 			}
 			// Draw the headers.
-			foreach ($headers as $header) {
+			foreach ($bigtree["routed_headers"] as $header) {
 				include $header;
 			}
 			// Draw the main page.
-			include $inc;
+			include $bigtree["routed_inc"];
 			// Draw the footers.
-			$footers = array_reverse($footers);
-			foreach ($footers as $footer) {
+			$bigtree["routed_footers"] = array_reverse($bigtree["routed_footers"]);
+			foreach ($bigtree["routed_footers"] as $footer) {
 				include $footer;
 			}
 		} elseif ($bigtree["page"]["template"]) {

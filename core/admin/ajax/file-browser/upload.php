@@ -1,36 +1,55 @@
 <?
-	$perm = $admin->getResourceFolderPermission($_POST["folder"]);
-	if ($perm != "p") {
-		die("Permission denied.");
-	}
-	
 	$folder = sqlescape($_POST["folder"]);
 	$f = $_FILES["file"];
+
+	// If the user doesn't have permission to upload to this folder, throw an error.
+	$perm = $admin->getResourceFolderPermission($folder);
+	if ($perm != "p") {
+		$f["error"] = 9;
+	}
+	
 	$error = false;
+	// Check for file upload errors (or the permission error we faked above)
 	if ($f["error"]) {
 		if ($f["error"] == 2 || $f["error"] == 1) {
-			$error = "File Too Large";
+			$error = "The uploaded file was too large. (".BigTree::formatBytes(BigTree::uploadMaxFileSize())." max)";
+		} elseif ($f["error"] == 9) {
+			$error = "You do not have permission to upload to this folder.";
 		} else {
-			$error = "Upload Failed";
+			$error = "The upload failed (unknown error).";
 		}
+	// File successfully uploaded
 	} elseif ($f["tmp_name"]) {
 		$storage = new BigTreeStorage;
 		$temp_name = $f["tmp_name"];
 		
+		// Get the name and file extension
 		$n = strrev($f["name"]);
 		$extension = strtolower(strrev(substr($n,0,strpos($n,"."))));
 		
+		// See if it's an image
 		list($iwidth,$iheight,$itype,$iattr) = getimagesize($temp_name);
+
 		// It's a regular file
 		if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 			$type = "file";
 			$file = $storage->store($temp_name,$f["name"],"files/resources/");
-			
-			$admin->createResource($folder,$file,$f["name"],$extension);
+			// If we failed, either cloud storage upload failed, directory permissions are bad, or the file type isn't permitted
+			if (!$file) {
+				if ($storage->DisabledFileError) {
+					$error = "The file you uploaded has a disallowed extension: $extension.";
+				} else {
+					$error = "The upload failed (unknown error).";
+				}
+			// Otherwise make the database entry for the file we uplaoded.
+			} else {
+				$admin->createResource($folder,$file,$f["name"],$extension);
+			}
 		// It's an image
 		} else {
 			$type = "image";
 
+			// Do lots of image awesomesauce.
 			$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 			$first_copy = $temp_name;
 			
@@ -103,11 +122,15 @@
 		
 			// Upload the original to the proper place.
 			$file = $storage->store($first_copy,$f["name"],"files/resources/");
-			
-			$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+
+			if (!$file) {
+				$error = "The upload failed (unknown error).";
+			} else {
+				$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+			}
 		}
 	} else {
-		$error = "Upload Failed";
+		$error = "The upload failed (unknown error).";
 	}
 ?>
 <html>
@@ -115,9 +138,12 @@
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" />
 	</head>
 	<body style="background: transparent;">
-		<p class="file_browser_response"><? if ($error) { echo $error; } else { echo "Successfully Uploaded"; } ?></p>
 		<script>
+			<? if ($error) { ?>
+			parent.BigTreeFileManager.uploadError("<?=htmlspecialchars($error)?>");
+			<? } else { ?>
 			parent.BigTreeFileManager.finishedUpload("<?=$file?>","<?=$type?>","<?=$iwidth?>","<?=$iheight?>");
+			<? } ?>
 		</script>
 	</body>
 </html>

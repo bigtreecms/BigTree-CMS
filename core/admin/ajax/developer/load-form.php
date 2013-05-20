@@ -6,6 +6,7 @@
 	$positioned = false;
 	
 	$table = isset($_POST["table"]) ? $_POST["table"] : $table;
+	$table_columns = array();
 
 	if (isset($fields)) {
 		foreach ($fields as $key => $field) {
@@ -20,15 +21,17 @@
 			if ($column == "position") {
 				$positioned = true;
 			}
+			$table_columns[] = $column;
 		}
 	} else {
 		$fields = array();
-		// To tolerate someone selecting the blank spot again when creating a form.
+		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
 			$table_info = BigTree::describeTable($table);
 		} else {
 			$table_info = array("foreign_keys" => array(), "columns" => array());
 		}
+
 		// Let's relate the foreign keys based on the local column so we can check easier.
 		$foreign_keys = array();
 		foreach ($table_info["foreign_keys"] as $key) {
@@ -37,6 +40,7 @@
 			}
 		}
 		foreach ($table_info["columns"] as $column) {
+			$table_columns[] = $column;
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
@@ -155,7 +159,9 @@
 		<?
 			$mtm_count = 0;
 			foreach ($fields as $key => $field) {
-				$used[] = $key;
+				// If this column is no longer in the table, we're going to remove it.
+				if (in_array($key,$table_columns)) {
+					$used[] = $key;
 		?>
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">
@@ -196,6 +202,7 @@
 			</section>
 		</li>
 		<?
+				}
 			}
 		?>
 	</ul>

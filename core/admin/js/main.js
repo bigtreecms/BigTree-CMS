@@ -1477,6 +1477,12 @@ var BigTreeFileManager = {
 		this.currentlyName = false;
 		this.fieldName = win.document.forms[0].elements[field_name];
 		this.open(type,false,false);
+	},
+
+	uploadError: function(message) {
+		$(".bigtree_dialog_form").last().find("footer *").show();
+		$(".bigtree_dialog_form").last().find("p").remove();
+		$(".bigtree_dialog_form").last().find(".overflow").prepend($('<p class="error_message">' + message + '</p>'));
 	}
 };
 
