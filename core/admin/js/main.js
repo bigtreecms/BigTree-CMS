@@ -385,6 +385,30 @@ var BigTreeSelect = Class.extend({
 		a = $('<a href="#">' + text + '</a>');
 		a.attr("data-value",value);
 		this.Container.find(".select_options").append(a);
+
+		// Test the size of this new element and see if we need to increase the width.
+		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
+		$("body").append(tester);
+		tester.html(text);
+		width = tester.width();
+		
+		span = this.Container.find("span");
+
+		// If we're in a section cell we may need to be smaller.
+		if (this.Element.parent().get(0).tagName.toLowerCase() == "section") {
+			sectionwidth = this.Element.parent().width();
+			if (sectionwidth < (width + 56)) {
+				width = sectionwidth - 80;
+				span.css({ overflow: "hidden", padding: "0 0 0 10px" });
+			}
+		}
+
+		if (width > span.width()) {
+			span.css({ width: (width + 10) + "px" });
+			this.Container.find(".select_options").css({ width: (width + 64) + "px" });
+		}
+
+		tester.remove();
 	},
 	
 	blur: function() {
@@ -564,8 +588,13 @@ var BigTreeSelect = Class.extend({
 		}
 		// If the current selected state is the value we're removing, switch to the first available.
 		sel = this.Container.find("span").eq(0);
-		if (sel.html() == text_was) {
-			sel.html('<figure class="handle"></figure>' + this.Container.find(".select_options a").eq(0).html());
+		select_options = this.Container.find(".select_options a");
+		if (select_options.length > 0) {
+			if (sel.html() == '<figure class="handle"></figure>' + text_was) {
+				sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
+			}
+		} else {
+			sel.html('<figure class="handle"></figure>');
 		}
 	},
 	
@@ -1854,6 +1883,9 @@ var BigTreeManyToMany = Class.extend({
 	
 	addItem: function() {
 		select = this.field.find("select").get(0);
+		if (select.selectedIndex < 0) {
+			return false;
+		}
 		val = select.value;
 		text = select.options[select.selectedIndex].text;
 		if (this.sortable) {

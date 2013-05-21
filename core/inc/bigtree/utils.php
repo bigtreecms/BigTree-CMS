@@ -231,7 +231,7 @@
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
+			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight);
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
@@ -785,7 +785,7 @@
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_"))) {
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_")) || $tname == $default) {
 					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
 						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					} else {
@@ -958,16 +958,20 @@
 				source - The source image file
 				width - The width of the new image to be created
 				height - The height of the new image to be created
+				source_width - If we already know the width/height, the source width
+				source_height - If we already know the width/height, the source height
 
 			Returns:
 				true if the image can be created, otherwise false.
 		*/
 
-		static function imageManipulationMemoryAvailable($source,$width,$height) {
+		static function imageManipulationMemoryAvailable($source,$width,$height,$source_width = false,$source_height = false) {
 			// Thanks to Klinky on Stack Overflow for this: http://stackoverflow.com/users/187537/klinky
 			// Convert megabytes to bytes.
 			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
-			list($source_width,$source_height) = getimagesize($source);
+			if (!$source_width || !$source_height) {
+				list($source_width,$source_height) = getimagesize($source);
+			}
 			// 3 bytes per pixel, GD internally takes ~67% more memory
 			$source_size = ceil($source_width * $source_height * 3 * 1.68); 
 			$target_size = ceil($width * $height * 3 * 1.68);

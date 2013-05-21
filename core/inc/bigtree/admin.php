@@ -723,7 +723,10 @@
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<? $value = $data[$key]; ?>');
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
+	// Normal text is always htmlspecialchar encoded so that we don\'t have to do it again on the front end.
+	$field["output"] = htmlspecialchars($field["input"]);
+?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/process/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {

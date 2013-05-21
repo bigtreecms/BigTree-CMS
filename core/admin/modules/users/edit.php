@@ -424,8 +424,14 @@
 	$("#permission_section input[type=radio]").on("click",function() {
 		category = $(this).attr("data-category");
 		key = $(this).attr("data-key");
+		if (!BigTreeUserForm.Permissions[category]) {
+			BigTreeUserForm.Permissions[category] = {};
+		}
 		if (category == "ModuleGBP") {
 			sub = $(this).attr("data-sub-key");
+			if (!BigTreeUserForm.Permissions[category][key]) {
+				BigTreeUserForm.Permissions[category][key] = {};
+			}
 			BigTreeUserForm.Permissions[category][key][sub] = $(this).attr("value");
 		} else {
 			BigTreeUserForm.Permissions[category][key] = $(this).attr("value");
