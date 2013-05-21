@@ -27,6 +27,39 @@
 		$failed = true;
 	}
 
+	// See if we have enough memory for all our crops and thumbnails
+	if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
+		if (is_array($field["options"]["crops"])) {
+			foreach ($field["options"]["crops"] as $crop) {
+				if ($field["options"]["retina"]) {
+					$crop["width"] *= 2;
+					$crop["height"] *= 2;
+				}
+				// We don't want to add multiple errors so we check if we've already failed
+				if (!$failed && !BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"],$iwidth,$iheight)) {
+					$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+					$failed = true;
+				}
+			}
+		}
+		if (is_array($field["options"]["thumbs"])) {
+			foreach ($field["options"]["thumbs"] as $thumb) {
+				// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
+				if (!$failed) {
+					if ($field["options"]["retina"]) {
+						$thumb["width"] *= 2;
+						$thumb["height"] *= 2;
+					}
+					$sizes = BigTree::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
+					if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4],$iwidth,$iheight)) {
+						$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+						$failed = true;
+					}
+				}
+			}
+		}
+	}
+
 	if (!$failed) {	
 		// Do EXIF Image Rotation
 		$already_created_first_copy = false;

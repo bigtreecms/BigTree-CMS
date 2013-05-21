@@ -48,6 +48,18 @@
 		// It's an image
 		} else {
 			$type = "image";
+			
+			// We're going to create a list view and detail view thumbnail plus whatever we're requesting to have through Settings
+			$thumbnails_to_create = array(
+				"bigtree_internal_list" => array("width" => 100, "height" => 100, "prefix" => "bigtree_list_thumb_"),
+				"bigtree_internal_detail" => array("width" => 190, "height" => 145, "prefix" => "bigtree_detail_thumb_")
+			);
+			$more_thumb_types = @json_decode($cms->getSetting("resource-thumbnail-sizes"),true);
+			if (is_array($more_thumb_types)) {
+				foreach ($more_thumb_types as $key => $thumb) {
+					$thumbnails_to_create[$key] = $thumb;
+				}
+			}
 
 			// Do lots of image awesomesauce.
 			$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
@@ -86,47 +98,47 @@
 			}
 			
 			list($iwidth,$iheight,$itype,$iattr) = getimagesize($first_copy);
-			
-			// Now let's make the thumbnails we need for the image manager
-			$thumbs = array();
-			
-			// First up is the list view
-			$pinfo = BigTree::pathInfo($f["name"]);
-			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-			BigTree::createThumbnail($first_copy,$temp_thumb,100,100);
-			
-			list($twidth,$theight) = getimagesize($temp_thumb);
-			$margin = floor((100 - $theight) / 2);
-			
-			$thumb = $storage->store($temp_thumb,"list_thumb_".$pinfo["basename"],"files/resources/");
-			$thumbs["bigtree_internal_list"] = $thumb;
-			
-			// Next up is the more info view
-			$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-			BigTree::createThumbnail($first_copy,$temp_thumb,190,145);
-			
-			$thumb = $storage->store($temp_thumb,"detail_thumb_".$pinfo["basename"],"files/resources/");
-			$thumbs["bigtree_internal_detail"] = $thumb;
-			
-			// Go through all of the custom thumbs and do the magic.
-			$more_thumb_types = json_decode($cms->getSetting("resource-thumbnail-sizes"),true);
-			foreach ($more_thumb_types as $mtk => $mtt) {
-				if ($iwidth > $mtt["width"] || $iheight > $mtt["height"]) {
-					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-					BigTree::createThumbnail($first_copy,$temp_thumb,$mtt["width"],$mtt["height"]);
-				
-					$thumb = $storage->store($temp_thumb,$mtt["prefix"].$pinfo["basename"],"files/resources/");
-					$thumbs[$mtk] = $thumb;
+
+			foreach ($thumbnails_to_create as $thumb) {
+				// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
+				if (!$error) {
+					$sizes = BigTree::getThumbnailSizes($first_copy,$thumb["width"],$thumb["height"]);
+					if (!BigTree::imageManipulationMemoryAvailable($first_copy,$sizes[3],$sizes[4],$iwidth,$iheight)) {
+						$error = "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.";
+						unlink($first_copy);
+					}
 				}
 			}
-		
-			// Upload the original to the proper place.
-			$file = $storage->store($first_copy,$f["name"],"files/resources/");
 
-			if (!$file) {
-				$error = "The upload failed (unknown error).";
-			} else {
-				$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+			if (!$error) {
+				// Now let's make the thumbnails we need for the image manager
+				$thumbs = array();
+				$pinfo = BigTree::pathInfo($f["name"]);
+
+				// Create a bunch of thumbnails
+				foreach ($thumbnails_to_create as $key => $thumb) {
+					if ($iwidth > $thumb["width"] || $iheight > $thumb["height"]) {
+						$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+						BigTree::createThumbnail($first_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
+						
+						if ($key == "bigtree_internal_list") {
+							list($twidth,$theight) = getimagesize($temp_thumb);
+							$margin = floor((100 - $theight) / 2);
+						}
+
+						$file = $storage->store($temp_thumb,$thumb["prefix"].$pinfo["basename"],"files/resources/");
+						$thumbs[$key] = $file;
+					}
+				}
+			
+				// Upload the original to the proper place.
+				$file = $storage->store($first_copy,$f["name"],"files/resources/");
+	
+				if (!$file) {
+					$error = "The upload failed (unknown error).";
+				} else {
+					$admin->createResource($folder,$file,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+				}
 			}
 		}
 	} else {
