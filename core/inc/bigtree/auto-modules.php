@@ -1107,6 +1107,9 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
+						if (is_array($val)) {
+							$val = json_encode(BigTree::translateArray($val));
+						}
 						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
