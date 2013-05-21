@@ -432,11 +432,8 @@
 			
 			}
 			
-			foreach ($item as $key => $val) {
-				$item[$key] = $cms->replaceInternalPageLinks($val);
-			}
-			
-			return $item;
+			// Translate it's roots and return it
+			return $this->get($item);
 		}
 		
 		/*
