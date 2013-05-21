@@ -56,9 +56,9 @@
 		$(".pop-dependant").each(function(el) {
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {
-					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("data-name"), BigTreeCustomControls);
+					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("data-name"));
 				} else {
-					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + table + "&field=" + $(this).attr("data-name"), BigTreeCustomControls);
+					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + table + "&field=" + $(this).attr("data-name"));
 				}
 			}
 		});
