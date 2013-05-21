@@ -385,6 +385,30 @@ var BigTreeSelect = Class.extend({
 		a = $('<a href="#">' + text + '</a>');
 		a.attr("data-value",value);
 		this.Container.find(".select_options").append(a);
+
+		// Test the size of this new element and see if we need to increase the width.
+		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
+		$("body").append(tester);
+		tester.html(text);
+		width = tester.width();
+		
+		span = this.Container.find("span");
+
+		// If we're in a section cell we may need to be smaller.
+		if (this.Element.parent().get(0).tagName.toLowerCase() == "section") {
+			sectionwidth = this.Element.parent().width();
+			if (sectionwidth < (width + 56)) {
+				width = sectionwidth - 80;
+				span.css({ overflow: "hidden", padding: "0 0 0 10px" });
+			}
+		}
+
+		if (width > span.width()) {
+			span.css({ width: (width + 10) + "px" });
+			this.Container.find(".select_options").css({ width: (width + 64) + "px" });
+		}
+
+		tester.remove();
 	},
 	
 	blur: function() {
