@@ -40,7 +40,7 @@
 			}
 		}
 		foreach ($table_info["columns"] as $column) {
-			$table_columns[] = $column;
+			$table_columns[] = $column["name"];
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
@@ -137,7 +137,7 @@
 			}
 		}
 	}
-	
+
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
 	if (count($fields)) {
@@ -160,7 +160,7 @@
 			$mtm_count = 0;
 			foreach ($fields as $key => $field) {
 				// If this column is no longer in the table, we're going to remove it.
-				if (in_array($key,$table_columns)) {
+				if (in_array($key,$table_columns) || $field["type"] == "geocoding" || $field["type"] == "many-to-many") {
 					$used[] = $key;
 		?>
 		<li id="row_<?=$key?>">

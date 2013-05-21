@@ -1269,6 +1269,7 @@ var BigTreeFileManager = {
 	formOpen: function(type,field_name,options,callback) {
 		this.currentlyName = field_name;
 		this.currentlyKey = options.currentlyKey;
+		// We set this because fieldName is used by the TinyMCE hook, I know the naming doesn't make sense.
 		this.fieldName = false;
 		this.callback = callback;
 		this.open(type,options.minWidth,options.minHeight);
