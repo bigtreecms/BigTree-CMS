@@ -564,8 +564,13 @@ var BigTreeSelect = Class.extend({
 		}
 		// If the current selected state is the value we're removing, switch to the first available.
 		sel = this.Container.find("span").eq(0);
-		if (sel.html() == text_was) {
-			sel.html('<figure class="handle"></figure>' + this.Container.find(".select_options a").eq(0).html());
+		select_options = this.Container.find(".select_options a");
+		if (select_options.length > 0) {
+			if (sel.html() == '<figure class="handle"></figure>' + text_was) {
+				sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
+			}
+		} else {
+			sel.html('<figure class="handle"></figure>');
 		}
 	},
 	
@@ -1854,6 +1859,9 @@ var BigTreeManyToMany = Class.extend({
 	
 	addItem: function() {
 		select = this.field.find("select").get(0);
+		if (select.selectedIndex < 0) {
+			return false;
+		}
 		val = select.value;
 		text = select.options[select.selectedIndex].text;
 		if (this.sortable) {
