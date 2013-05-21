@@ -666,6 +666,7 @@
 			$status = "published";
 			$many_to_many = array();
 			$resources = array();
+			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
@@ -683,6 +684,7 @@
 					}
 				}
 				$status = "pending";
+				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
 				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
@@ -722,7 +724,7 @@
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}
 			}
-			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status);
+			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
 		}
 		
 		/*
