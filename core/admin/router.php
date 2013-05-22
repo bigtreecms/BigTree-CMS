@@ -485,9 +485,9 @@
 				// If the last command is numeric then we're editing something.
 				if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
 					$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
-				// Otherwise we're adding something, at least most likely.
+				// Otherwise we're adding something or we're processing something we were editing.
 				} else {
-					$bigtree["edit_id"] = $edit_id = false;
+					$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 				}
 				include BigTree::path("admin/auto-modules/form.php");
 			} else {
