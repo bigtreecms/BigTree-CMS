@@ -1,10 +1,11 @@
 <?
 	/*
 		Class: BTXDogwood
-			Implements the btx_dogwood Blog Engine for BigTree 4.
+			Implements the Dogwood Blog Engine for BigTree 4.
 	*/
 	
-	class BTXDogwood extends BigTreeModule {		
+	class BTXDogwood extends BigTreeModule {
+
 		/*
 			Function: getAuthor
 				Returns an author along with his/her email address.
@@ -86,6 +87,48 @@
 				$items[] = $this->getAuthor($f);
 			}
 			return $items;
+		}
+
+		/*
+			Function: getBreadcrumb
+				Returns a breadcrumb for the current page of the blog.
+
+			Parameters:
+				page - The current page the user is on.
+
+			Returns:
+				An array of breadcrumb entries (link & title keys).
+		*/
+
+		function getBreadcrumb($page) {
+			global $bigtree;
+
+			// If we don't have any parts of the routed path let's just ignore the breadcrumb (seems silly to say Page 2, Page 3)
+			if (!count($bigtree["routed_path"])) {
+				return array();
+			}
+
+			// We're on a detail page.
+			$crumbs = array();
+			$base = WWW_ROOT.$page["path"]."/";
+
+			if ($bigtree["routed_path"][0] == "post") {
+				$post = $this->getPostByRoute($bigtree["commands"][0]);
+				$crumbs[] = array("title" => $post["title"], "link" => $base."post/".$post["route"]."/");
+			} elseif ($bigtree["routed_path"][0] == "category") {
+				$category = $this->getCategoryByRoute($bigtree["commands"][0]);
+				$crumbs[] = array("title" => "Category: ".$category["title"], "link" => $base."category/".$category["route"]."/");
+			} elseif ($bigtree["routed_path"][0] == "author") {
+				$author = $this->getAuthorByRoute($bigtree["commands"][0]);
+				$crumbs[] = array("title" => "Author: ".$author["name"], "link" => $base."author/".$author["route"]."/");
+			} elseif ($bigtree["routed_path"][0] == "month") {
+				$month = date("F Y",strtotime($bigtree["commands"][0]."-01"));
+				$crumbs[] = array("title" => "Archive: ".$month, "link" => $base."month/".$bigtree["commands"][0]."/");
+			} elseif ($bigtree["routed_path"][0] == "search") {
+				$crumbs[] = array("title" => "Search Results: ".htmlspecialchars($bigtree["commands"][0]), "link" => $base."search/".$bigtree["commands"][0]."/1/");
+			}
+
+			return $crumbs;
 		}
 		
 		/*
