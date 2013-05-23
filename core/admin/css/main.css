@@ -652,7 +652,7 @@
 	.sub_section fieldset:last-of-type { margin: 0; }
 	.container .tags input { float: left; margin: 0; width: 215px; }
 
-	#tag_results { background: #FFF; border: 1px solid #CCC; margin: 31px 0 0 0; position: absolute; width: 235px; z-index: 2; }
+	#tag_results { background: #FFF; border: 1px solid #CCC; list-style: none; margin: 31px 0 0 0; position: absolute; width: 235px; z-index: 2; }
 	#tag_results li a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 11px; padding: 3px 10px; }
 	#tag_results li:nth-child(odd) a { background: #F3F3F3; }
 	#tag_results li:last-child a { border-bottom: none; }
@@ -1086,6 +1086,7 @@
 	.bigtree_dialog_form .list_options_widget span { float: left; margin: 0 10px 0 0; }
 	.bigtree_dialog_form .list_options_widget input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; }
 	.bigtree_dialog_form .list_options_widget select { height: 22px; }
+	.bigtree_dialog_form .list_options_widget ul { margin: 0; list-style: none; }
 	.bigtree_dialog_form .list_options_widget li { margin: 0 0 5px 0; overflow: hidden; }
 	.bigtree_dialog_form .list_options_widget li:last-child { margin: 0; }
 	.bigtree_dialog_form .list_options_widget_1 span { width: 405px; }
