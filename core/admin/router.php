@@ -3,9 +3,6 @@
 	define("BIGTREE_VERSION","4.0");
 	define("BIGTREE_REVISION",20);
 
-	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
-
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
 		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
@@ -145,6 +142,9 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
+
+	// Make it easier to extend the nav tree without overwriting important things.
+	include BigTree::path("admin/_nav-tree.php");
 
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
