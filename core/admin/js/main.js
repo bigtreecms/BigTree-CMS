@@ -1459,8 +1459,8 @@ var BigTreeFileManager = {
 	
 	search: function() {
 		query = $("#file_browser_search").val();
-		$("file_browser_info_pane").html("");
-		$("file_browser_selected_file").val("");
+		$("#file_browser_info_pane").html("");
+		$("#file_browser_selected_file").val("");
 		
 		if (BigTreeFileManager.type == "image") {
 			$("#file_browser_contents").load("admin_root/ajax/file-browser/get-images/", { minWidth: this.minWidth, minHeight: this.minHeight, query: query, folder: this.currentFolder }, $.proxy(this.imageBrowserPopulated,this));
