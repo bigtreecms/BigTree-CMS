@@ -22,7 +22,7 @@
 			"expire_at" => "",
 			"max_age" => "",
 			"trunk" => "",
-			"in_nav" => "on",
+			"in_nav" => ($parent_to_check > 0 || $admin->Level > 1) ? "on" : "",
 			"external" => "",
 			"new_window" => "",
 			"resources" => array(),
