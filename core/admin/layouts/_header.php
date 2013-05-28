@@ -23,7 +23,8 @@
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
 				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
 				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
-				array("link" => "developer/services", "title" => "Social APIs", "access" => 2),
+				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
+				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
 				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1)
 			))
 		))

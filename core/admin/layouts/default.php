@@ -2,8 +2,7 @@
 	function _local_findPath($nav,$path,$last_link = "") {
 		global $bigtree,$breadcrumb;
 		foreach ($nav as $item) {
-			// Doing this $last_link thing to make sure the View Whatever... actions don't appear as parents of Add/Edit.
-			if (strpos($path,$item["link"]) === 0 && ($item["link"] != $last_link || $path == $item["link"])) {
+			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
 				$bigtree["page"]["title"] = $item["title"] ? $item["title"] : $bigtree["page"]["title"];
 				$bigtree["page"]["title"] = $item["title_override"] ? $item["title_override"] : $bigtree["page"]["title"];

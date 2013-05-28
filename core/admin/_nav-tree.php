@@ -110,6 +110,7 @@
 				array("title" => "Google","link" => "developer/geocoding/google","icon" => "google","hidden" => true),
 				array("title" => "Bing","link" => "developer/geocoding/bing","icon" => "bing","hidden" => true),
 				array("title" => "Yahoo","link" => "developer/geocoding/yahoo","icon" => "yahoo","hidden" => true),
+				array("title" => "Yahoo BOSS","link" => "developer/geocoding/yahoo-boss","icon" => "yahoo","hidden" => true),
 				array("title" => "MapQuest","link" => "developer/geocoding/mapquest","icon" => "mapquest","hidden" => true)
 			)),
 			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
