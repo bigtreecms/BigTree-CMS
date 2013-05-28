@@ -3037,7 +3037,7 @@
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
-					$nav_item["children"] = $this->getNaturalNavigationByParent($f["id"],$levels - 1);
+					$nav_item["children"] = $this->getNaturalNavigationByParent($nav_item["id"],$levels - 1);
 				}
 				$nav[] = $nav_item;
 			}
