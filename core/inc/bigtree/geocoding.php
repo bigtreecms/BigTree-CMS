@@ -7,6 +7,7 @@
 	class BigTreeGeocoding {
 		
 		var $Service = "";
+		var $Settings = array();
 		
 		/*
 			Constructor:
@@ -28,6 +29,19 @@
 				$admin->updateSettingValue("bigtree-internal-geocoding-service",array("service" => "google"));
 			} else {
 				$this->Service = $geo_service["service"];
+				$this->Settings = $geo_service;
+			}
+			// Yahoo BOSS uses OAuth, so we set that up here.
+			if ($this->Service == "yahoo-boss") {
+				require_once BigTree::path("inc/lib/oauth_client.php");
+				$this->OAuthClient = new oauth_client_class;
+				$this->OAuthClient->server = "Yahoo";
+				$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/geocoding/yahoo-boss/redirect/";
+				$this->OAuthClient->client_id = $this->Settings["yahoo_boss_consumer_key"];
+				$this->OAuthClient->client_secret = $this->Settings["yahoo_boss_consumer_secret"];
+				$this->OAuthClient->access_token = $this->Settings["yahoo_boss_token"]; 
+				$this->OAuthClient->access_token_secret = $this->Settings["yahoo_boss_token_secret"];
+				$this->OAuthClient->Initialize();
 			}
 		}
 
@@ -63,13 +77,42 @@
 				$geocode = $this->geocodeGoogle($address);
 			} elseif ($this->Service == "yahoo") {
 				$geocode = $this->geocodeYahoo($address);
+			} elseif ($this->Service == "yahoo-boss") {
+				$geocode = $this->geocodeYahooBOSS($address);
+			} elseif ($this->Service == "bing") {
+				$geocode = $this->geocodeBing($address);
+			} elseif ($this->Service == "mapquest") {
+				$geocode = $this->geocodeMapQuest($address);
 			}
 
-			if (!$geocode) {
+			if (!$geocode || !$geocode["latitude"]) {
 				return false;
 			}
 			$cms->cachePut("org.bigtreecms.geocoding",$address,$geocode);
 			return $geocode;
+		}
+
+		/*
+			Function: geocodeBing
+				Private function for using Bing as the geocoder.
+		*/
+
+		private function geocodeBing($address) {
+			$response = BigTree::curl("http://dev.virtualearth.net/REST/v1/Locations/".str_replace("?","",str_replace(" ","%20",$address))."?key=".$this->Settings["bing_key"]);
+			try {
+				if (is_string($response)) {
+					$response = json_decode($response,true);
+				}
+				list($latitude,$longitude) = $response["resourceSets"][0]["resources"][0]["point"]["coordinates"];
+				if ($latitude && $longitude) {
+					return array("latitude" => $latitude, "longitude" => $longitude);
+				} else {
+					return false;
+				}
+			} catch (Exception $e) {
+				return false;
+			}
+			return false;
 		}
 
 		/*
@@ -84,7 +127,34 @@
 					$response = json_decode($response, true);
 				}
 				$latlng = $response["results"][0]["geometry"]["location"];
-				return array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
+				if ($latlng["lat"] && $latlng["lng"]) {
+					return array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
+				} else {
+					return false;
+				}
+			} catch (Exception $e) {
+				return false;
+			}
+			return false;
+		}
+
+		/*
+			Function: geocodeMapQuest
+				Private function for using MapQuest as the geocoder.
+		*/
+
+		private function geocodeMapQuest($address) {
+			$response = BigTree::curl("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
+			try {
+				if (is_string($response)) {
+					$response = json_decode($response, true);
+				}
+				$latlng = $response["results"][0]["locations"][0]["latLng"];
+				if ($latlng["lat"] && $latlng["lng"]) {
+					return array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
+				} else {
+					return false;
+				}
 			} catch (Exception $e) {
 				return false;
 			}
@@ -112,6 +182,7 @@
 			} catch (Exception $e) {
 				return false;
 			}
+			return false;
 		}
 
 		/*
@@ -120,13 +191,16 @@
 		*/
 
 		private function geocodeYahooBOSS($address) {
-			$response = BigTree::curl("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.sqlescape($address).'"'));
+			$this->OAuthClient->CallAPI("http://yboss.yahooapis.com/geo/placefinder","GET",array("q" => $address,"flags" => "J"),false,$response);
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);
+					$lat = $response["bossresponse"]["placefinder"]["results"][0]["latitude"];
+					$lon = $response["bossresponse"]["placefinder"]["results"][0]["longitude"];
+				} else {
+					$lat = $response->bossresponse->placefinder->results[0]->latitude;
+					$lon = $response->bossresponse->placefinder->results[0]->longitude;
 				}
-				$lat = $response["query"]["results"]["Result"]["latitude"];
-				$lon = $response["query"]["results"]["Result"]["longitude"];
 				if ($lat && $lon) {
 					return array("latitude" => $lat, "longitude" => $lon);
 				} else {
@@ -135,21 +209,7 @@
 			} catch (Exception $e) {
 				return false;
 			}
-		}
-
-		static function yahooBOSSAuth() {
-			require_once BigTree::path("inc/lib/oauth_client.php");
-
-			$client = new oauth_client_class;
-			$client->server = "Yahoo";
-    		$client->debug = 1;
-		    $client->debug_http = 1;
-			$client->redirect_uri = ADMIN_ROOT."developer/geocoding/yahoo-boss/redirect/";
-			$client->client_id = "dj0yJmk9WFpQM0UxbXNZdHY3JmQ9WVdrOVpIRlBia3hQTjJzbWNHbzlOamMxTVRrNU9EWXkmcz1jb25zdW1lcnNlY3JldCZ4PWU2";
-			$client->client_secret = "cb5ffecfd97536553fd5d0d4c63a85d50098948f";
-			$client->Initialize();
-			print_r($client);
-			$client->Process();
-			print_r($client);
+			return false;
 		}
 	}
+?>
