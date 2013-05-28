@@ -29,7 +29,7 @@
 	input[type=search] { -webkit-appearance: textfield; -webkit-box-sizing: content-box; }
 	input::-webkit-search-decoration, input::-webkit-search-cancel-button { display: none; }
 	
-	h1 { color: #333; font-size: 30px; font-weight: normal; height: 32px; line-height: 36px; margin: 0 0 15px 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
+	h1 { color: #333; font-size: 30px; font-weight: normal; line-height: 36px; margin: 0 0 15px 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h1 span { background: url(../images/icon-sprite.png) no-repeat; float: left; height: 32px; width: 32px; margin: 0 10px 0 0; }
 
 	/* Icons */
