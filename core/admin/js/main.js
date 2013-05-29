@@ -361,8 +361,8 @@ var BigTreeSelect = Class.extend({
 		div.on("click","a",$.proxy(this.select,this));
 		div.find(".handle").click($.proxy(this.click,this));
 		
-		$(element).after(div);
-		
+		// Add it to the DOM
+		$(element).after(div);		
 		this.Container = div;
 
 		// See if this select is disabled
@@ -500,13 +500,18 @@ var BigTreeSelect = Class.extend({
 	},	
 	
 	keydown: function(ev) {
-		// The original select element that's hidden off screen.
-		el = this.Element.get(0);
-		
 		// If a modifier has been pressed, ignore this.
 		if (ev.ctrlKey || ev.altKey || ev.metaKey) {
 			return true;
 		}
+
+		if (ev.keyCode == 13 && this.Open) {
+			this.close();
+			return false;
+		}
+
+		// The original select element that's hidden off screen.
+		el = this.Element.get(0);
 		
 		// Get the original index and save it so we know when it changes.
 		index = el.selectedIndex;
@@ -533,17 +538,7 @@ var BigTreeSelect = Class.extend({
 			// Go through all the options in the select to see if any of them start with the letter that was pressed.
 			for (i = index + 1; i < el.options.length; i++) {
 				text = el.options[i].text;
-				first_letter = text[0].toLowerCase();
-				if (first_letter == letter) {
-					index = i;
-					break;
-				}
-			}
-			
-			// If we were already on that letter, find the next one with that same letter.
-			if (index == oindex) {
-				for (i = 0; i < oindex; i++) {
-					text = el.options[i].text;
+				if (text) {
 					first_letter = text[0].toLowerCase();
 					if (first_letter == letter) {
 						index = i;
@@ -551,16 +546,46 @@ var BigTreeSelect = Class.extend({
 					}
 				}
 			}
+			
+			// If we were already on that letter, find the next one with that same letter.
+			if (index == oindex) {
+				for (i = 0; i < oindex; i++) {
+					text = el.options[i].text;
+					if (text) {
+						first_letter = text[0].toLowerCase();
+						if (first_letter == letter) {
+							index = i;
+							break;
+						}
+					}
+				}
+			}
 		}
 		
 		// We found a new element, fire an event saying the select changed and update the description in the styled dropdown.
 		if (index != oindex) {
-			// For some reason Firefox doesn't care that we stop the event and still changes the index of the hidden select area, so we're not going to update it if we're in Firefox.
-			if (navigator.userAgent.indexOf("Firefox") == -1) {
-				el.selectedIndex = index;
+			// Update the new selected option
+			select_options_container = this.Container.find(".select_options");
+			ops = select_options_container.find("a");
+			ops.eq(oindex).removeClass("active");
+			ops.eq(index).addClass("active");
+
+			// Find out if we can see this option
+			selected_y = (index + 1) * 25;
+			if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
+				select_options_container.animate({ scrollTop: selected_y - select_options_container.height() + "px" }, 250);
+			} else if (selected_y <= select_options_container.scrollTop()) {
+				select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
 			}
+	
+			el.selectedIndex = index;
 			this.Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
 			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
+			
+			// This hack brought to you by Firefox, who ignores the fact that we don't want it handling the change in selectedIndex
+			this.Element.blur();
+			setTimeout($.proxy(function() { this.focus(); },this.Element),50);
+
 			return false;
 		}
 		
@@ -600,13 +625,15 @@ var BigTreeSelect = Class.extend({
 	
 	select: function(event) {
 		el = $(event.target);
+		// Set the <select> to the new value
 		this.Element.val(el.attr("data-value"));
+		// Update the selected state of the custom dropdown
 		this.Container.find("span").html('<figure class="handle"></figure>' + el.html());
 		this.Container.find("a").removeClass("active");
 		el.addClass("active");
-		
+		// Close the dropdown
 		this.close();
-
+		// Tell the <select> it has changed.
 		this.Element.trigger("change", { value: el.attr("data-value"), text: el.innerHTML });
 		return false;
 	}
