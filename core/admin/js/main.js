@@ -189,6 +189,10 @@ var BigTreeCheckbox = Class.extend({
 
 	init: function(element,text) {
 		this.Element = $(element);
+
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		div = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
@@ -260,6 +264,9 @@ var BigTreeSelect = Class.extend({
 	
 	init: function(element) {
 		this.Element = $(element);
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
 		if ($.browser.webkit) {
@@ -670,6 +677,10 @@ var BigTreeFileInput = Class.extend({
 	
 	init: function(element) {
 		this.Element = $(element);
+
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		div = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
 		this.Element.before(div);
@@ -756,6 +767,10 @@ var BigTreeRadioButton = Class.extend({
 
 	init: function(element,text) {
 		this.Element = $(element);
+
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		div = $("<div>").addClass("radio_button");
 		a = $("<a>").attr("href","#radio");
