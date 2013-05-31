@@ -189,6 +189,10 @@ var BigTreeCheckbox = Class.extend({
 
 	init: function(element,text) {
 		this.Element = $(element);
+
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		div = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
@@ -260,8 +264,17 @@ var BigTreeSelect = Class.extend({
 	
 	init: function(element) {
 		this.Element = $(element);
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
-		$(element).css({ position: "absolute", left: "-1000000px" });
+		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
+		if ($.browser.webkit) {
+			$(element).css({ position: "relative", left: "-1000000px", float: "left", width: "1px", marginRight: "-1px" });
+		} else {
+			$(element).css({ position: "absolute", left: "-1000000px" });
+		}
+
 		div = $("<div>").addClass("select");
 		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
@@ -439,15 +452,24 @@ var BigTreeSelect = Class.extend({
 			
 			// Find out if we're in a dialog and have an overflow
 			overflow = this.Container.parents(".overflow");
-			if (overflow.length) {				
-				// WebKit needs fixin.
-				if ($.browser.webkit) {
-					dList.css("marginTop",-1 * overflow.scrollTop() + "px");
-				}
-				
-				// When someone scrolls the overflow, close the select or the dropdown will detach.
-				this.BoundOverflowScroll = $.proxy(this.close,this);
-				setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
+			if (overflow.length) {
+				if (this.Container.parents("#callout_resources").length) {
+					// WebKit needs fixin.
+					if ($.browser.webkit) {
+						dList.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
+					}
+					// When someone scrolls the overflow, close the select or the dropdown will detach.
+					this.BoundCalloutResourcesScroll = $.proxy(this.close,this);
+					setTimeout($.proxy(function() { $("#callout_resources").scroll(this.BoundCalloutResourcesScroll); },this),500);
+				} else {
+					// WebKit needs fixin.
+					if ($.browser.webkit) {
+						dList.css("marginTop",-1 * overflow.scrollTop() + "px");
+					}
+					// When someone scrolls the overflow, close the select or the dropdown will detach.
+					this.BoundOverflowScroll = $.proxy(this.close,this);
+					setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
+				}		
 			} else {
 				// If the select drops below the visible area, scroll down a bit.
 				dOffset = dList.offset().top + dList.height();
@@ -472,6 +494,11 @@ var BigTreeSelect = Class.extend({
 		if (this.BoundOverflowScroll) {
 			this.Container.parents(".overflow").unbind("scroll",this.BoundOverflowScroll);
 			this.BoundOverflowScroll = false;
+		}
+
+		if (this.BoundCalloutResourcesScroll) {
+			$("#callout_resources").unbind("scroll",this.BoundCalloutResourcesScroll);
+			this.BoundCalloutResourcesScroll = false;			
 		}
 		
 		// Reset relative position if applicable
@@ -650,6 +677,10 @@ var BigTreeFileInput = Class.extend({
 	
 	init: function(element) {
 		this.Element = $(element);
+
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		div = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
 		this.Element.before(div);
@@ -736,6 +767,10 @@ var BigTreeRadioButton = Class.extend({
 
 	init: function(element,text) {
 		this.Element = $(element);
+
+		if (this.Element.hasClass("custom_control")) {
+			return false;
+		}
 		
 		div = $("<div>").addClass("radio_button");
 		a = $("<a>").attr("href","#radio");
