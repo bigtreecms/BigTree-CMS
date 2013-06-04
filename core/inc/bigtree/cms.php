@@ -236,9 +236,11 @@
 					$tf = sqlfetch(sqlquery("SELECT bigtree_modules.class AS module_class FROM bigtree_templates JOIN bigtree_modules ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$f["template"]."'"));
 					if ($tf["module_class"]) {
 						$mod = new $tf["module_class"];
-						$subnav = $mod->getSitemap($f);
-						foreach ($subnav as $s) {
-							echo "<url><loc>".$s["link"]."</loc></url>\n";
+						if (method_exists($mod,"getSitemap")) {
+							$subnav = $mod->getSitemap($f);
+							foreach ($subnav as $s) {
+								echo "<url><loc>".$s["link"]."</loc></url>\n";
+							}
 						}
 						$mod = $subnav = null;
 					}
