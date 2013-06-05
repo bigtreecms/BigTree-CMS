@@ -1031,6 +1031,7 @@
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
 	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form fieldset:last-child { margin: 0; }
+	.bigtree_dialog_form fieldset.last { margin: 0; }
 	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
 	.bigtree_dialog_form input[type=text], .bigtree_dialog_form input[type=email], .bigtree_dialog_form input[type=password], .bigtree_dialog_form input[type=url] { display: block; width: 418px; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
@@ -1081,14 +1082,14 @@
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 	
 /* List Options Widget */
-	.bigtree_dialog_form fieldset.list_options_widget { margin: 0 0 17px 0; overflow: hidden; }
+	.bigtree_dialog_form fieldset.list_options_widget { margin: 0 0 10px 0; overflow: hidden; }
+	.bigtree_dialog_form fieldset.list_options_widget:last-child { margin: 0; }
 	.bigtree_dialog_form .list_options_widget summary { font-size: 12px; font-weight: bold; overflow: hidden; padding: 0 0 5px 15px; }
 	.bigtree_dialog_form .list_options_widget span { float: left; margin: 0 10px 0 0; }
 	.bigtree_dialog_form .list_options_widget input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; }
 	.bigtree_dialog_form .list_options_widget select { height: 22px; }
 	.bigtree_dialog_form .list_options_widget ul { margin: 0; list-style: none; }
 	.bigtree_dialog_form .list_options_widget li { margin: 0 0 5px 0; overflow: hidden; }
-	.bigtree_dialog_form .list_options_widget li:last-child { margin: 0; }
 	.bigtree_dialog_form .list_options_widget_1 span { width: 405px; }
 	.bigtree_dialog_form .list_options_widget_2 span { width: 190px; }
 	.bigtree_dialog_form .list_options_widget_3 span { width: 124px; }
@@ -1100,8 +1101,7 @@
 	.bigtree_dialog_form .list_options_widget_3 select { width: 129px; }
 	.bigtree_dialog_form .list_options_widget .icon_sort { height: 22px; width: 22px; margin: -1px 0 0 -5px; }
 	.bigtree_dialog_form .list_options_widget .delete { display: inline-block; margin: 3px 0 0 2px; }
-	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { height: 22px; margin: 0 0 5px 0; width: 100%; }
-	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder:last-child { margin: 0; }
+	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { height: 27px; margin: 0 0 5px 0; width: 100%; }
 
 /*---------------------------
 	BigTree File Browser
