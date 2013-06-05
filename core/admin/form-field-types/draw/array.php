@@ -2,7 +2,7 @@
 	$entries = is_array($field["value"]) ? $field["value"] : array();
 	$x = 0;
 	
-	// We recreate the field array because Chrome doesn't like to do for loops properly when the numeric keys are out of order.
+	// Fix out of order numeric keys
 	$aoi_fields = array();
 	if (!is_array($field["options"]["fields"]) || !count($field["options"]["fields"])) {
 		trigger_error("Array of Items field type requires at least one field.",E_USER_ERROR);
