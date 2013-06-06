@@ -70,9 +70,6 @@
 		$warnings[] = "PHP does not have the GD library enabled. This will severely limit your ability to do anything with images in BigTree.";
 	}
 	if (intval(ini_get('upload_max_filesize')) < 4) {
-		$warnings[] = "Max upload filesize is currently less than 4MB. 8MB or higher is recommended.";
-	}
-	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
 	if (intval(ini_get('post_max_size')) < 4) {
