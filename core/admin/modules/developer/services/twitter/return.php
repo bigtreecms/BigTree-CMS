@@ -1,32 +1,25 @@
 <?
+	$twitter = new BigTreeTwitterAPI;
+	if ($twitter->OAuthClient->Process()) {
+		if ($twitter->OAuthClient->access_token) {
+			// Get user information
+			$twitter->OAuthClient->CallAPI($twitter->URL."account/verify_credentials.json", "GET", array(), array('FailOnAccessError'=>true), $user);
+			// Save token information and some user info for displaying connection info in the admin.
+			$admin->updateSettingValue("bigtree-internal-twitter-api",array(
+				"key" => $twitter->Settings["key"],
+				"secret" => $twitter->Settings["secret"],
+				"token" => $twitter->OAuthClient->access_token,
+				"token_secret" => $twitter->OAuthClient->access_token_secret,
+				"user_id" => $user->id,
+				"user_name" => $user->screen_name,
+				"user_image" => $user->profile_image_url
+			));
 	
-	$admin->requireLevel(1);
-	$ok = false;
-	
-	if ($twitterAPI->Client->Process()) {
-		if ($twitterAPI->Client->access_token) {
-			$twitterAPI->Client->CallAPI($twitterAPI->URL."account/verify_credentials.json", "GET", array(), array('FailOnAccessError'=>true), $user);
-			
-			// UPDATE SETTINGS
-			$twitterAPI->settings["token"] = $twitterAPI->Client->access_token;
-			$twitterAPI->settings["token_secret"] = $twitterAPI->Client->access_token_secret;
-			
-			$twitterAPI->settings["user_id"] = $user->id;
-			$twitterAPI->settings["user_name"] = $user->screen_name;
-			$twitterAPI->settings["user_image"] = $user->profile_image_url;
-			
-			$twitterAPI->saveSettings();
-			
-			$admin->growl("Twitter API","API Connected");
-			BigTree::redirect($mroot);
-			
-			$ok = true;
+			$admin->growl("Twitter API","Connected");
+			BigTree::redirect(DEVELOPER_ROOT."services/twitter/");
 		}
 	}
 	
-	if (!$ok) {
-		$admin->growl("Twitter API","API Error");
-		BigTree::redirect($mroot . "connect/");
-	}
-
+	$admin->growl("Twitter API","Unknown Error");
+	BigTree::redirect(DEVELOPER_ROOT."services/twitter/");
 ?>

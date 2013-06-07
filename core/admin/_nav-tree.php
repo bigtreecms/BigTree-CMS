@@ -114,9 +114,7 @@
 				array("title" => "MapQuest","link" => "developer/geocoding/mapquest","icon" => "mapquest","hidden" => true)
 			)),
 			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
-				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true, "children" => array(
-					array("title" => "Configure","link" => "developer/services/twitter/configure","nav_icon" => "setup","level" => 1)
-				)),
+				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true),
 				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true, "children" => array(
 					array("title" => "Configure","link" => "developer/services/instagram/configure","nav_icon" => "setup","level" => 1)
 				)),

@@ -7,204 +7,170 @@
 	
 	class BigTreeTwitterAPI {
 		
-		var $debug = false;
-		var $Client;
+		var $OAuthClient;
 		var $Connected = false;
 		var $URL = "https://api.twitter.com/1.1/";
-		var $SettingsKey = "bigtree-internal-twitter-api";
+		var $Settings = array();
+		var $Cache = true;
 		
 		/*
 			Constructor:
+				Sets up the Twitter API connections.
+
+			Parameters:
+				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
-		function __construct($debug = false) {
-			global $cms,$admin;
-			
-			$this->debug = $debug;
-			$this->settings = $cms->getSetting($this->SettingsKey);
-			
-			if (!$this->settings) {
-				if ($admin) {
-					$admin->createSetting(array(
-						"id" => $this->SettingsKey, 
-						"name" => "Twitter API", 
-						"description" => "", 
-						"type" => "", 
-						"locked" => "on", 
-						"module" => "", 
-						"encrypted" => "", 
-						"system" => "on"
-					));
-				}
+
+		function __construct($cache = true) {
+			global $cms;
+
+			// If we don't have the setting for the Twitter API, create it.
+			$this->Settings = $cms->getSetting("bigtree-internal-twitter-api");
+			if (!$this->Settings) {
+				$admin = new BigTreeAdmin;
+				$admin->createSetting(array(
+					"id" => "bigtree-internal-twitter-api", 
+					"name" => "Twitter API", 
+					"encrypted" => "on", 
+					"system" => "on"
+				));
 			}
 			
-			// Build API client
-			$this->Client = new oauth_client_class;
-			$this->Client->server = 'Twitter';
-			$this->Client->client_id = $this->settings["key"]; 
-			$this->Client->client_secret = $this->settings["secret"];
-			$this->Client->access_token = $this->settings["token"]; 
-			$this->Client->access_token_secret = $this->settings["token_secret"];
-			
-			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/twitter/return/";
+			// Build OAuth client
+			$this->OAuthClient = new oauth_client_class;
+			$this->OAuthClient->server = "Twitter";
+			$this->OAuthClient->client_id = $this->Settings["key"]; 
+			$this->OAuthClient->client_secret = $this->Settings["secret"];
+			$this->OAuthClient->access_token = $this->Settings["token"]; 
+			$this->OAuthClient->access_token_secret = $this->Settings["token_secret"];
+			$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/services/twitter/return/";
 			
 			// Check if we're conected
-			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"] && $this->settings["token_secret"]) {
+			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"] && $this->Settings["token_secret"]) {
 				$this->Connected = true;
 			}
 			
 			// Init Client
-			$this->Client->Initialize();
-			
-			// Set cache stuffs
-			$this->max_cache_age = 60 * 60; // 1 hour
-			$this->cache_root = SERVER_ROOT . "cache/custom/";
-			$this->cache_base = $this->cache_root . "twitter-";
-			
-			if (!is_dir($this->cache_root)) {
-				mkdir($this->cache_root);
-				chmod($this->cache_root, 0777);
-			}
+			$this->OAuthClient->Initialize();
+
+			$this->Cache = $cache;
 		}
 		
 		/*
-			Function: saveSettings
-				Update API settings
+			Function: callAPI
+				Calls the Twitter API directly with the given API endpoint and parameters.
+				Does not cache information.
+
+			Parameters:
+				endpoint - The Twitter API endpoint to hit.
+				params - The parameters to send to the API (key/value array).
+
+			Returns:
+				Information directly from the API.
 		*/
-		function saveSettings() {
-			global $admin;
-			if ($admin) {
-				$admin->updateSettingValue($this->SettingsKey, $this->settings);
+
+		function callAPI($endpoint,$params = array()) {
+			if (!$this->Connected) {
+				throw Exception("The Twitter API is not connected.");
 			}
-		}
-		
-		/*
-			Function: get
-				Make API call
-		*/
-		function get($endpoint = false, $params = array()) {
-			if (!$this->Connected || !$endpoint) {
-				return false;
-			}
-			
-			if ($this->Client->CallAPI($this->URL.$endpoint.".json", 'GET', $params, array('FailOnAccessError' => true), $response)) {
+
+			if ($this->Client->CallAPI($this->URL.$endpoint.".json","GET",$params,array("FailOnAccessError" => true),$response)) {
 				return $response;
 			} else {
 				return false;
 			}
 		}
-		
-		
+
 		/*
-			Function: getCached
-				Return cached version, if it exists
+			Function: get
+				Calls the OAuth API
 		*/
-		function getCached($endpoint = false, $params = array(), $cache_file) {
-			if (!$this->Connected || !$endpoint) {
+
+		protected function get($endpoint = false, $params = array()) {
+			global $cms;
+
+			if (!$this->Connected) {
+				throw Exception("The Twitter API is not connected.");
+			}
+
+			if ($this->Cache) {
+				$cache_key = md5($endpoint.json_encode($params));
+				$record = $cms->cacheGet("org.bigtreecms.api.twitter",$cache_key,900);
+				if ($record) {
+					return $record;
+				}
+			}
+			
+			if ($this->Client->CallAPI($this->URL.$endpoint.".json","GET",$params,array("FailOnAccessError" => true),$response)) {
+				if ($this->Cache) {
+					$cms->cachePut("org.bigtreecms.api.twitter",$cache_key,$response);
+				}
+				return $response;
+			} else {
 				return false;
 			}
-			
-			$cache_age = $this->cacheAge($cache_file);
-			
-			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
-				$response = $this->get($endpoint, $params);
-				
-				$response = json_encode($response);
-				$this->cacheData($response, $cache_file);
-			} else {
-				$response = file_get_contents($cache_file);
-			}
-			
-			return json_decode($response, true);
 		}
-		
+
 		/*
-			Function: cacheAge
-				Return cache filetime; "0" if file does not exist
+			Function: getSearchResults 
+				Return a list of recent tweets that match the given query.
+
+			Parameters:
+				query - A string to query for
+				limit - The number of tweets to return (defaults to 10)
+				params - Additional parameters (key/value array) to pass to the search/tweets API call.
+
+			Returns:
+				An array of tweets.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/search/tweets
 		*/
-		public function cacheAge($file) {
-			return file_exists($file) ? filemtime($file) : 0;
+
+		function getSearchResults($query = false, $limit = 10, $params = array()) {
+			return $this->get("search/tweets",array_merge($params,array("q" => $query,"count" => $limit,"result_type" => "recent")));
 		}
-		
-		/*
-			Function: cacheData
-				Manually cache a data set
-		*/
-		public function cacheData($data, $cache_file) {
-			if (is_array($data)) {
-				$data = json_encode($data);
-			}
-			file_put_contents($cache_file, $data);
-			chmod($cache_file, 0777);
-		}
-		
-		/*
-			Function: clearCache
-				Clear cahced files; empty filename clears all
-		*/
-		public function clearCache($cache_file = false) {
-			if ($cache_file === false) {
-				$dir = opendir($this->cache_root);
-				while ($file = readdir($dir)) {
-					if (substr($file, 0, strlen($this->cache_prefix)) == $this->cache_prefix) {
-						unlink($this->cache_root . $file);
-					}
-				}
-			} else {
-				unlink($this->cache_root . $cache_file);
-			}
-		}
-		
-		
-		// SERVICE SPECIFIC -----
-		
-		
+	
 		/*
 			Function: getTimeline
-				Return tweets
+				Returns recent tweets from the given user's timeline.
+				If no user is provided the connected user's timeline will be used.
+
+			Parameters:
+				user_name - The user to retrieve tweets for 
+				limit - The number of tweets to return (defaults to 10)
+				params - Additional parameters (key/value array) to pass to the the statuses/user_timeline API call.
+
+			Returns:
+				An array of tweets.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
 		*/
+
 		function getTimeline($user_name = false, $limit = 10, $params = array()) {
-			$user_name = ($user_name) ? $user_name : $this->settings["user_name"];
-			$cache_file = $this->cache_base . $user_name . "-timeline.btx";
-			
-			return $this->getCached('statuses/user_timeline', array_merge($params, array(
-				"screen_name" => $user_name,
-				"count" => $limit
-			)), $cache_file);
+			$user_name = $user_name ? $user_name : $this->Settings["user_name"];
+			return $this->get("statuses/user_timeline",array_merge($params,array("screen_name" => $user_name,"count" => $limit)));
 		}
 		
 		/*
-			Function: search 
-				Search for tweets and junk
+			Function: getUserInfo 
+				Return information about a given Twitter username.
+
+			Parameters:
+				user_name - The "screen name" of the Twitter user to retrieve information for (defaults to the connected user)
+				params - Additional parameters (key/value array) to pass to the users/show API call.
+
+			Returns:
+				An array of user information.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/users/show
 		*/
-		function search($query = false, $limit = 10, $params = array()) {
-			if (!$this->Connected) {
-				return false;
-			}
-			
-			$cache_file = $this->cache_base . $query . "-search.btx";
-			
-			return $this->getCached('search/tweets', array_merge($params, array(
-				"q" => $query,
-				"count" => $limit,
-				"result_type" => "recent"
-			)), $cache_file);
-		}
-		
-		/*
-			Function: user 
-				Return user info, including last tweet
-		*/
-		function user($user_name = false, $params = array()) {
-			if (!$this->Connected) {
-				return false;
-			}
-			
-			$user_name = ($user_name) ? $user_name : $this->settings["user_name"];
-			$cache_file = $this->cache_base . $user_name . "-user.btx";
-			
-			return $this->getCached('users/show', array_merge($params, array(
-				"screen_name" => $user_name
-			)), $cache_file);
+
+		function getUserInfo($user_name = false, $params = array()) {
+			$user_name = $user_name ? $user_name : $this->Settings["user_name"];
+			return $this->get("users/show",array_merge($params,array("screen_name" => $user_name)));
 		}
 	}
 ?>
