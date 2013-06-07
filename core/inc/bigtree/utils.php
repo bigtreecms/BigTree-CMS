@@ -1019,7 +1019,7 @@
 		*/
 		
 		static function isExternalLink($url) {
-			return ((substr($url,0,7) == "http://") || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
+			return ((substr($url,0,7) == "http://" || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
 		}
 		
 		/*
