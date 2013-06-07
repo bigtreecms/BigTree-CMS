@@ -39,15 +39,20 @@
 			Parameters:
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data.
+				max_age - The maximum age (in seconds) for the data, defaults to any age.
 
 			Returns:
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
 		*/
 
-		function cacheGet($identifier,$key) {
+		function cacheGet($identifier,$key,$max_age = false) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			if ($max_age) {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '".date("Y-m-d H:i:s",time() - $max_age)."'"));
+			} else {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			}
 			if (!$f) {
 				return false;
 			}
