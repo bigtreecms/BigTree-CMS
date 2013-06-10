@@ -718,13 +718,38 @@
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<? include BigTree::path("admin/form-field-types/draw/text.php"); ?>');
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
+	/*
+		When drawing a field type you are provided with the $field array with the following keys:
+			"title" — The title given by the developer to draw as the label (drawn automatically)
+			"subtitle" — The subtitle given by the developer to draw as the smaller part of the label (drawn automatically)
+			"key" — The value you should use for the "name" attribute of your form field
+			"value" — The existing value for this form field
+			"id" — A unique ID you can assign to your form field for use in JavaScript
+			"tabindex" — The current tab index you can use for the "tabindex" attribute of your form field
+			"options" — An array of options provided by the developer
+			"required" — A boolean value of whether this form field is required or not
+	*/
+	
+	include BigTree::path("admin/form-field-types/draw/text.php");
+?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
 				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
-	// Normal text is always htmlspecialchar encoded so that we don\'t have to do it again on the front end.
+	/*
+		When processing a field type you are provided with the $field array with the following keys:
+			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
+			"options" — An array of options provided by the developer
+			"input" — The end user\'s $_POST data input for this field
+			"file_input" — The end user\'s uploaded files for this field in a normalized entry from the $_FILES array in the same formatting you\'d expect from "input"
+
+		BigTree expects you to set $field["output"] to the value you wish to store. If you want to ignore this field, set $field["ignore"] to true.
+		Almost all text that is meant for drawing on the front end is expected to be run through PHP\'s htmlspecialchars function as seen in the example below.
+		If you intend to allow HTML tags you will want to run htmlspecialchars in your drawing file on your value and leave it off in the process file.
+	*/
+
 	$field["output"] = htmlspecialchars($field["input"]);
 ?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/process/$file",0777);
