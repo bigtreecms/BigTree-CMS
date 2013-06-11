@@ -125,6 +125,7 @@
 	<?
 		}
 	?>
+	BigTreeCustomControls();
 </script>
 <?
 	$mce_width = 440;
