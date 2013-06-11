@@ -42,9 +42,11 @@
 <fieldset class="last">
 	<label>Special Templates</label>
 	<?
+		$x = 0;
 		$items = $admin->getRoutedTemplates();
 		$last_row = count($items) - (count($items) % 7);
 		foreach ($items as $item) {
+			$x++;
 			if (!$item["image"]) {
 				$image = ADMIN_ROOT."images/templates/page.png";
 			} else {
