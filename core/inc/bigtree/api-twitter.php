@@ -23,6 +23,7 @@
 
 		function __construct($cache = true) {
 			global $cms;
+			$this->Cache = $cache;
 
 			// If we don't have the setting for the Twitter API, create it.
 			$this->Settings = $cms->getSetting("bigtree-internal-twitter-api");
@@ -52,8 +53,6 @@
 			
 			// Init Client
 			$this->OAuthClient->Initialize();
-
-			$this->Cache = $cache;
 		}
 		
 		/*
@@ -71,10 +70,10 @@
 
 		function callAPI($endpoint,$params = array()) {
 			if (!$this->Connected) {
-				throw Exception("The Twitter API is not connected.");
+				throw new Exception("The Twitter API is not connected.");
 			}
 
-			if ($this->Client->CallAPI($this->URL.$endpoint.".json","GET",$params,array("FailOnAccessError" => true),$response)) {
+			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,"GET",$params,array("FailOnAccessError" => true),$response)) {
 				return $response;
 			} else {
 				return false;
@@ -90,7 +89,7 @@
 			global $cms;
 
 			if (!$this->Connected) {
-				throw Exception("The Twitter API is not connected.");
+				throw new Exception("The Twitter API is not connected.");
 			}
 
 			if ($this->Cache) {
@@ -101,7 +100,7 @@
 				}
 			}
 			
-			if ($this->Client->CallAPI($this->URL.$endpoint.".json","GET",$params,array("FailOnAccessError" => true),$response)) {
+			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,"GET",$params,array("FailOnAccessError" => true),$response)) {
 				if ($this->Cache) {
 					$cms->cachePut("org.bigtreecms.api.twitter",$cache_key,$response);
 				}
@@ -128,7 +127,7 @@
 		*/
 
 		function getSearchResults($query = false, $limit = 10, $params = array()) {
-			return $this->get("search/tweets",array_merge($params,array("q" => $query,"count" => $limit,"result_type" => "recent")));
+			return $this->get("search/tweets.json",array_merge($params,array("q" => $query,"count" => $limit,"result_type" => "recent")));
 		}
 	
 		/*
@@ -150,7 +149,7 @@
 
 		function getTimeline($user_name = false, $limit = 10, $params = array()) {
 			$user_name = $user_name ? $user_name : $this->Settings["user_name"];
-			return $this->get("statuses/user_timeline",array_merge($params,array("screen_name" => $user_name,"count" => $limit)));
+			return $this->get("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $limit)));
 		}
 		
 		/*

@@ -1,34 +1,24 @@
 <?
+	$googleplus = new BigTreeGooglePlusAPI;
+	if ($googleplus->OAuthClient->Process()) {
+		if ($googleplus->OAuthClient->access_token) {
+			// Get user information directly from Google's OAuth system
+			$googleplus->OAuthClient->CallAPI('https://www.googleapis.com/oauth2/v1/userinfo', "GET", array(), array('FailOnAccessError'=>true), $user);
+			// Save token information and some user info for displaying connection info in the admin.
+			$admin->updateSettingValue("bigtree-internal-googleplus-api",array(
+				"key" => $googleplus->Settings["key"],
+				"secret" => $googleplus->Settings["secret"],
+				"token" => $googleplus->OAuthClient->access_token,
+				"user_id" => $user->id,
+				"user_name" => $user->name,
+				"user_image" => $user->picture
+			));
 	
-	$admin->requireLevel(1);
-	$ok = false;
-	
-	if ($googleplusAPI->Client->Process()) {
-		if ($googleplusAPI->Client->access_token) {
-			$googleplusAPI->Client->CallAPI('https://www.googleapis.com/oauth2/v1/userinfo', "GET", array(), array('FailOnAccessError'=>true), $user);
-			
-			// UPDATE SETTINGS
-			$googleplusAPI->settings["token"] = $googleplusAPI->Client->access_token;
-			
-			$googleplusAPI->settings["token_expiry"] = $googleplusAPI->Client->access_token_expiry;
-			$googleplusAPI->settings["refresh_token"] = $googleplusAPI->Client->refresh_token;
-			
-			$googleplusAPI->settings["user_id"] = $user->id;
-			$googleplusAPI->settings["user_name"] = $user->name;
-			$googleplusAPI->settings["user_image"] = $user->picture;
-			
-			$googleplusAPI->saveSettings();
-			
-			$admin->growl("Google+ API","API Connected");
-			BigTree::redirect($mroot);
-			
-			$ok = true;
+			$admin->growl("Google+ API","Connected");
+			BigTree::redirect(DEVELOPER_ROOT."services/googleplus/");
 		}
 	}
 	
-	if (!$ok) {
-		$admin->growl("Google+ API","API Error");
-		BigTree::redirect($mroot . "connect/");
-	}
-
+	$admin->growl("Google+ API","Unknown Error");
+	BigTree::redirect(DEVELOPER_ROOT."services/googleplus/");
 ?>

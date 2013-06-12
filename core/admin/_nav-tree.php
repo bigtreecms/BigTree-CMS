@@ -115,18 +115,10 @@
 			)),
 			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
 				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true),
-				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true, "children" => array(
-					array("title" => "Configure","link" => "developer/services/instagram/configure","nav_icon" => "setup","level" => 1)
-				)),
-				array("title" => "Google+ API","link" => "developer/services/googleplus","icon" => "googleplus","hidden" => true, "children" => array(
-					array("title" => "Configure","link" => "developer/services/googleplus/configure","nav_icon" => "setup","level" => 1)
-				)),
-				array("title" => "YouTube API","link" => "developer/services/youtube","icon" => "youtube","hidden" => true, "children" => array(
-					array("title" => "Configure","link" => "developer/services/youtube/configure","nav_icon" => "setup","level" => 1)
-				)),
-				array("title" => "Flickr API","link" => "developer/services/flickr","icon" => "flickr","hidden" => true, "children" => array(
-					array("title" => "Configure","link" => "developer/services/flickr/configure","nav_icon" => "setup","level" => 1)
-				))
+				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true),
+				array("title" => "Google+ API","link" => "developer/services/googleplus","icon" => "googleplus","hidden" => true),
+				array("title" => "YouTube API","link" => "developer/services/youtube","icon" => "youtube","hidden" => true),
+				array("title" => "Flickr API","link" => "developer/services/flickr","icon" => "flickr","hidden" => true)
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),
