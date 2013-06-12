@@ -1471,16 +1471,16 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.jump_group .dropdown a:hover { background: #eee; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1); }
 	
 /* Gravatar */
-	.bigtree .gravatar { background: #fff; border: 1px solid #ccc; border-radius: 2px; display: block; float: left; height: auto; margin-right: 10px; margin-top: 0; padding: 3px; width: auto; }
-	.bigtree .gravatar img { float: left; margin: 0; width: 28px; }
-	.bigtree h1 .gravatar { margin-top: -3px; }
-	.bigtree header.main .gravatar { border-color: #999; box-shadow: 0 0 3px #000; margin: -3px 7px 0 0; overflow: hidden; padding: 0; }
-	.bigtree header.main .gravatar img { width: 14px; }
-	.bigtree .table .gravatar { padding: 2px; margin: 5px 10px 0 0; }
-	.bigtree .table .gravatar img { width: 18px; }
-	.bigtree .table .active .gravatar { border-color: #335B77; }
-	.bigtree fieldset .gravatar { border-color: #DEDEDE; bottom: 4px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); display: none; padding: 2px; position: absolute; right: -6px; }
-	.bigtree fieldset .gravatar img { width: 18px; }
+	.gravatar { background: #fff; border: 1px solid #ccc; border-radius: 2px; display: block; float: left; height: auto; margin-right: 10px; margin-top: 0; padding: 3px; width: auto; }
+	.gravatar img { float: left; margin: 0; width: 28px; }
+	h1 .gravatar { margin-top: -3px; }
+	header.main .gravatar { border-color: #999; box-shadow: 0 0 3px #000; margin: -3px 7px 0 0; overflow: hidden; padding: 0; }
+	header.main .gravatar img { width: 14px; }
+	.table .gravatar { padding: 2px; margin: 5px 10px 0 0; }
+	.table .gravatar img { width: 18px; }
+	.table .active .gravatar { border-color: #335B77; }
+	fieldset .gravatar { border-color: #DEDEDE; bottom: 4px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); display: none; padding: 2px; position: absolute; right: -6px; }
+	fieldset .gravatar img { width: 18px; }
 
 /*---------------------------
 	Module Packager Styles
