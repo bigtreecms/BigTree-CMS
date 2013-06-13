@@ -3,7 +3,8 @@
 	if ($instagram->OAuthClient->Process()) {
 		if ($instagram->OAuthClient->access_token) {
 			// Get user information
-			$user = $instagram->OAuthClient->CallAPI($instagram->URL."users/self");
+			$instagram->Connected = true;
+			$user = $instagram->callAPI("users/self");
 			// Save token information and some user info for displaying connection info in the admin.
 			$admin->updateSettingValue("bigtree-internal-instagram-api",array(
 				"key" => $instagram->Settings["key"],

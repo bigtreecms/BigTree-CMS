@@ -73,7 +73,6 @@
 				throw new Exception("The Google+ API is not connected.");
 			}
 
-			echo $this->URL.$endpoint;
 			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,"GET",$params,array("FailOnAccessError" => true),$response)) {
 				return $response;
 			} else {

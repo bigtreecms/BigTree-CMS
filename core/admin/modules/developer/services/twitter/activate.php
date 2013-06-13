@@ -8,7 +8,13 @@
 	$twitter->OAuthClient->Process();
 
 	if ($twitter->OAuthClient->authorization_error) {
-		$admin->growl("Twitter API","Invalid Secret/Key","error");
+		if ($twitter->OAuthClient->authorization_error == "it was not possible to access the OAuth request token: it was returned an unexpected response status 401 Response: Failed to validate oauth signature and token") {
+			$admin->growl("Twitter API","Invalid Secret/Key","error");
+		} elseif (strpos($twitter->OAuthClient->authorization_error,"Desktop applications only support the oauth_callback value 'oob'") !== false) {
+			$admin->growl("Twitter API","Invalid Callback URL","error");
+		} else {
+			$admin->growl("Twitter API","Unknown Error","error");
+		}
 		BigTree::redirect(DEVELOPER_ROOT."services/twitter/");
 	}
 ?>

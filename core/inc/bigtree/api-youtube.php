@@ -7,91 +7,103 @@
 	
 	class BigTreeYouTubeAPI {
 		
-		var $debug = false;
-		var $Client;
+		var $OAuthClient;
 		var $Connected = false;
-		var $URL = "http://gdata.youtube.com/feeds/api/";
-		var $SettingsKey = "bigtree-internal-youtube-api";
-		
+		var $URL = "https://gdata.youtube.com/feeds/api/";
+		var $Settings = array();
+		var $Cache = true;
+
 		/*
 			Constructor:
+				Sets up the YouTube API connections.
+
+			Parameters:
+				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
+
 		function __construct($debug = false) {
-			global $cms,$admin;
-			
-			$this->debug = $debug;
-			$this->settings = $cms->getSetting($this->SettingsKey);
-			
-			if (!$this->settings) {
-				if ($admin) {
-					$admin->createSetting(array(
-						"id" => $this->SettingsKey, 
-						"name" => "YouTube API", 
-						"description" => "", 
-						"type" => "", 
-						"locked" => "on", 
-						"module" => "", 
-						"encrypted" => "", 
-						"system" => "on"
-					));
-				}
+			global $cms;
+			$this->Cache = $cache;
+
+			// If we don't have the setting for the YouTube API, create it.
+			$this->Settings = $cms->getSetting("bigtree-internal-youtube-api");
+			if (!$this->Settings) {
+				$admin = new BigTreeAdmin;
+				$admin->createSetting(array(
+					"id" => "bigtree-internal-youtube-api", 
+					"name" => "YouTube API", 
+					"encrypted" => "on", 
+					"system" => "on"
+				));
 			}
 			
-			// Build API client
-			$this->Client = new oauth_client_class;
-			$this->Client->server = 'Google';
-			$this->Client->offline = true;
-			$this->Client->client_id = $this->settings["key"]; 
-			$this->Client->client_secret = $this->settings["secret"];
-			$this->Client->access_token = $this->settings["token"]; 
-			$this->Client->access_token_expiry = $this->settings["token_expiry"];
-			$this->Client->refresh_token = $this->settings["refresh_token"];
-			
-			// Scope
-			$this->Client->scope = "https://gdata.youtube.com";
-			
-			$this->Client->redirect_uri = ADMIN_ROOT."developer/services/youtube/return/";
+			// Build OAuth client
+			$this->OAuthClient = new oauth_client_class;
+			$this->OAuthClient->server = "Google";
+			$this->OAuthClient->client_id = $this->Settings["key"]; 
+			$this->OAuthClient->client_secret = $this->Settings["secret"];
+			$this->OAuthClient->access_token = $this->Settings["token"]; 
+			$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/services/youtube/return/";
+			$this->OAuthClient->scope = "https://gdata.youtube.com";
 			
 			// Check if we're conected
-			if ($this->settings["key"] && $this->settings["secret"] && $this->settings["token"]) {
+			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
 				$this->Connected = true;
 			}
 			
 			// Init Client
-			$this->Client->Initialize();
-			
-			// Set cache stuffs
-			$this->max_cache_age = 60 * 60; // 1 hour
-			$this->cache_root = SERVER_ROOT . "cache/custom/";
-			$this->cache_base = $this->cache_root . "youtube-";
-			
-			if (!is_dir($this->cache_root)) {
-				mkdir($this->cache_root);
-				chmod($this->cache_root, 0777);
-			}
+			$this->OAuthClient->Initialize();
 		}
 		
 		/*
-			Function: saveSettings
-				Update API settings
+			Function: callAPI
+				Calls the YouTube API directly with the given API endpoint and parameters.
+				Does not cache information.
+
+			Parameters:
+				endpoint - The YouTube API endpoint to hit.
+				params - The parameters to send to the API (key/value array).
+
+			Returns:
+				Information directly from the API.
 		*/
-		function saveSettings() {
-			global $admin;
-			if ($admin) {
-				$admin->updateSettingValue($this->SettingsKey, $this->settings);
+
+		function callAPI($endpoint,$params = array()) {
+			if (!$this->Connected) {
+				throw new Exception("The YouTube API is not connected.");
 			}
-		}
-		
-		/*
-			Function: get
-				Make API call
-		*/
-		function get($endpoint = false, $params = array()) {
-			if (!$this->Connected || !$endpoint) {
+
+			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,"GET",$params,array("FailOnAccessError" => true),$response)) {
+				return $response;
+			} else {
 				return false;
 			}
+		}
+
+		/*
+			Function: get
+				Calls the OAuth API
+		*/
+
+		protected function get($endpoint = false, $params = array()) {
+			global $cms;
+
+			if (!$this->Connected) {
+				throw new Exception("The YouTube API is not connected.");
+			}
+
+			if ($this->Cache) {
+				$cache_key = md5($endpoint.json_encode($params));
+				$record = $cms->cacheGet("org.bigtreecms.api.youtube",$cache_key,900);
+				if ($record) {
+					return $record;
+				}
+			}
 			
-			if ($this->Client->CallAPI($this->URL.$endpoint, 'GET', $params, array('FailOnAccessError' => true), $response)) {
+			if ($this->OAuthClient->CallAPI($this->URL.$endpoint."?v=2&alt=json","GET",$params,array("FailOnAccessError" => true),$response)) {
+				if ($this->Cache) {
+					$cms->cachePut("org.bigtreecms.api.youtube",$cache_key,$response);
+				}
 				return $response;
 			} else {
 				return false;
@@ -100,117 +112,13 @@
 		
 		
 		/*
-			Function: getCached
-				Return cached version, if it exists
-		*/
-		function getCached($endpoint = false, $params = array(), $cache_file) {
-			if (!$this->Connected || !$endpoint) {
-				return false;
-			}
-			
-			$cache_age = $this->cacheAge($cache_file);
-			
-			if ($cache_age === false || $cache_age < (time() - $this->max_cache_age) || $this->debug) {
-				$response = $this->get($endpoint, $params);
-				
-				$response = json_encode($response);
-				$this->cacheData($response, $cache_file);
-			} else {
-				$response = file_get_contents($cache_file);
-			}
-			
-			return json_decode($response, true);
-		}
-		
-		/*
-			Function: cacheAge
-				Return cache filetime; "0" if file does not exist
-		*/
-		public function cacheAge($file) {
-			return file_exists($file) ? filemtime($file) : 0;
-		}
-		
-		/*
-			Function: cacheData
-				Manually cache a data set
-		*/
-		public function cacheData($data, $cache_file) {
-			if (is_array($data)) {
-				$data = json_encode($data);
-			}
-			file_put_contents($cache_file, $data);
-			chmod($cache_file, 0777);
-		}
-		
-		/*
-			Function: clearCache
-				Clear cahced files; empty filename clears all
-		*/
-		public function clearCache($cache_file = false) {
-			if ($cache_file === false) {
-				$dir = opendir($this->cache_root);
-				while ($file = readdir($dir)) {
-					if (substr($file, 0, strlen($this->cache_prefix)) == $this->cache_prefix) {
-						unlink($this->cache_root . $file);
-					}
-				}
-			} else {
-				unlink($this->cache_root . $cache_file);
-			}
-		}
-		
-		
-		// SERVICE SPECIFIC -----
-		
-		
-		/*
 			Function: getVideos
 				Return videos
 		*/
+
 		function getVideos($user_id = false, $limit = 10, $params = array()) {
-			$user_id = ($user_id) ? $user_id : $this->settings["user_id"];
-			$cache_file = $this->cache_base . $user_id . "-videos.btx";
-			
-			return $this->getCached("users/".$user_id."/uploads?v=2&alt=json", $params, $cache_file);
+			$user_id = $user_id ? $user_id : $this->settings["user_id"];
+			return $this->get("users/$user_id/uploads",$params);
 		}
-		
-		/*
-			Function: search 
-				Search for tweets and junk
-		*/
-/*
-		function search($query = false, $limit = 10) {
-			if (!$this->Connected) {
-				return false;
-			}
-			
-			$cache_file = $this->cache_base . $query . "-search.btx";
-			
-			return $this->getCached('search/tweets', array(
-				"q" => $query,
-				"count" => $limit,
-				"result_type" => "recent"
-			), $cache_file);
-		}
-*/
-		
-		/*
-			Function: user 
-				Return user info, including last tweet
-		*/
-/*
-		function user($user_name = false) {
-			if (!$this->Connected) {
-				return false;
-			}
-			
-			$user_name = ($user_name) ? $user_name : $this->settings["user_name"];
-			$cache_file = $this->cache_base . $user_name . "-user.btx";
-			
-			return $this->getCached('users/show', array(
-				"screen_name" => $user_name
-			), $cache_file);
-		}
-*/
 	}
 ?>
