@@ -4,7 +4,7 @@
 		if ($twitter->OAuthClient->access_token) {
 			// Get user information
 			$twitter->Connected = true;
-			$user = $twitter->callAPI("account/verify_credentials.json");
+			$user = $twitter->callUncached("account/verify_credentials.json");
 			// Save token information and some user info for displaying connection info in the admin.
 			$admin->updateSettingValue("bigtree-internal-twitter-api",array(
 				"key" => $twitter->Settings["key"],

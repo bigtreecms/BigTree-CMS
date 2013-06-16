@@ -1,6 +1,8 @@
 <?
 	/*
 		Class: BigTreeTwitterAPI
+			Twitter API implementation.
+			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
 	
 	require_once BigTree::path("inc/lib/oauth_client.php");
@@ -54,39 +56,27 @@
 			// Init Client
 			$this->OAuthClient->Initialize();
 		}
-		
+
 		/*
-			Function: callAPI
+			Function: call
 				Calls the Twitter API directly with the given API endpoint and parameters.
-				Does not cache information.
+				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
 
 			Parameters:
 				endpoint - The Twitter API endpoint to hit.
 				params - The parameters to send to the API (key/value array).
+				method - HTTP method to call (defaults to GET).
+				options - Additional options to pass to OAuthClient.
 
 			Returns:
-				Information directly from the API.
+				Information directly from the API or the cache.
 		*/
 
-		function callAPI($endpoint,$params = array()) {
-			if (!$this->Connected) {
-				throw new Exception("The Twitter API is not connected.");
-			}
-
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,"GET",$params,array("FailOnAccessError" => true),$response)) {
-				return $response;
-			} else {
-				return false;
-			}
-		}
-
-		/*
-			Function: get
-				Calls the OAuth API
-		*/
-
-		protected function get($endpoint = false, $params = array()) {
+		function call($endpoint = false, $params = array(),$method = "GET",$options = array()) {
 			global $cms;
+			if ($method != "GET") {
+				return $this->callUncached($endpoint,$params,$method);				
+			}
 
 			if (!$this->Connected) {
 				throw new Exception("The Twitter API is not connected.");
@@ -96,18 +86,106 @@
 				$cache_key = md5($endpoint.json_encode($params));
 				$record = $cms->cacheGet("org.bigtreecms.api.twitter",$cache_key,900);
 				if ($record) {
-					return $record;
+					// We re-decode it as an object since that's what we're expecting from Twitter normally.
+					return json_decode(json_encode($record));
 				}
 			}
 			
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,"GET",$params,array("FailOnAccessError" => true),$response)) {
+			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
 				if ($this->Cache) {
 					$cms->cachePut("org.bigtreecms.api.twitter",$cache_key,$response);
 				}
 				return $response;
 			} else {
+				$this->Errors = json_decode($this->OAuthClient->api_error,true);
 				return false;
 			}
+		}
+
+		/*
+			Function: callUncached
+				Calls the Twitter API directly with the given API endpoint and parameters.
+				Does not cache information.
+
+			Parameters:
+				endpoint - The Twitter API endpoint to hit.
+				params - The parameters to send to the API (key/value array).
+				method - HTTP method to call (defaults to GET).
+				options - Additional options to pass to OAuthClient.
+
+			Returns:
+				Information directly from the API.
+		*/
+
+		function callUncached($endpoint,$params = array(),$method = "GET",$options = array()) {
+			if (!$this->Connected) {
+				throw new Exception("The Twitter API is not connected.");
+			}
+
+			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
+				return $response;
+			} else {
+				$this->Errors = json_decode($this->OAuthClient->api_error,true);
+				return false;
+			}
+		}
+
+		/*
+			Function: deleteTweet
+				Deletes a tweet that belongs to the authenticated user.
+
+			Parameters:
+				id - The ID of the tweet to delete.
+
+			Returns:
+				True if successful.
+		*/
+
+		function deleteTweet($id) {
+			$response = $this->callUncached("statuses/destroy/$id.json",array(),"POST");
+			if (!$response) {
+				return false;
+			}
+			return true;
+		}
+
+		/*
+			Function: getConfiguration
+				Sets up information such as the length of reserved characters for URLs and media uploads.
+		*/
+
+		function getConfiguration() {
+			$response = $this->call("help/configuration.json");
+			if ($response) {
+				$this->Configuration = $response;
+			}
+		}
+
+		/*
+			Function: getHomeTimeline
+				Returns recent tweets from the authenticated user and everyone the authenticated user follows.
+
+			Parameters:
+				count - The number of tweets to return (defaults to 10)
+				params - Additional parameters (key/value array) to pass to the the statuses/user_timeline API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline
+		*/
+
+		function getHomeTimeline($count = 10, $params = array()) {
+			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+			if (!$response) {
+				return false;
+			}
+			$tweets = array();
+			foreach ($response as $tweet) {
+				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
+			}
+			return new BigTreeTwitterResultSet($this,"getHomeTimeline",array($count,$params),$tweets);
 		}
 
 		/*
@@ -119,91 +197,123 @@
 				params - Additional parameters (key/value array) to pass to the the statuses/mentions_timeline API call.
 
 			Returns:
-				A BigTreeTwitterResultSet object.
+				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/statuses/mentions_timeline
 		*/
 
 		function getMentions($count = 10,$params = array()) {
-			$response = $this->get("statuses/mentions_timeline.json",array_merge($params,array("count" => $limit)));
+			$response = $this->call("statuses/mentions_timeline.json",array_merge($params,array("count" => $count)));
+			if (!$response) {
+				return false;
+			}
 			$tweets = array();
 			foreach ($response as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
 			return new BigTreeTwitterResultSet($this,"getMentions",array($count,$params),$tweets);
 		}
+
+		/*
+			Function: getTweet
+				Returns a single tweet.
+
+			Parameters:
+				id - The ID of the tweet to return.
+				params - Additional parameters (key/value array) to pass to the the statuses/show API call.
+
+			Returns:
+				A BigTreeTwitterTweet object.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/statuses/show
+		*/
+
+		function getTweet($id,$params = array()) {
+			$response = $this->call("statuses/show.json",array_merge($params,array("id" => $id)));
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterTweet($response,$this);
+		}
 	
 		/*
-			Function: getTimeline
+			Function: getUserTimeline
 				Returns recent tweets from the given user's timeline.
 				If no user is provided the connected user's timeline will be used.
 
 			Parameters:
-				user_name - The user to retrieve tweets for  (defaults to the authenticated user)
-				count - The number of tweets to return (defaults to 10)
+				user_name - The Twitter user to retrieve tweets for.
+				count - The number of tweets to return (defaults to 10).
 				params - Additional parameters (key/value array) to pass to the the statuses/user_timeline API call.
 
 			Returns:
-				An array of tweets.
+				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
 		*/
 
-		function getTimeline($user_name = false, $count = 10, $params = array()) {
-			$user_name = $user_name ? $user_name : $this->Settings["user_name"];
-			$response = $this->get("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+		function getUserTimeline($user_name, $count = 10, $params = array()) {
+			$response = $this->call("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+			if (!$response) {
+				return false;
+			}
 			$tweets = array();
 			foreach ($response as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
-			return new BigTreeTwitterResultSet($this,"getTimeline",array($user_name,$count,$params),$tweets);
+			return new BigTreeTwitterResultSet($this,"getUserTimeline",array($user_name,$count,$params),$tweets);
 		}
 
 		/*
-			Function: getHomeTimeline
-				Returns recent tweets from the given user's timeline.
-				If no user is provided the connected user's timeline will be used.
+			Function: postTweet
+				Post a tweet by the authenticated user.
+				If the tweet content is > 140 characters will fail and return false.
 
 			Parameters:
-				user_name - The user to retrieve tweets for  (defaults to the authenticated user)
-				limit - The number of tweets to return (defaults to 10)
-				params - Additional parameters (key/value array) to pass to the the statuses/user_timeline API call.
+				content - The text to tweet.
+				image - Location of a local image file to upload (optional).
+				params - Additional parameters (key/value array) to pass to the the statuses/update API call.
 
 			Returns:
-				An array of tweets.
+				A BigTreeTwitterTweet object or false if the tweet fails or is too long.
+				$this->TweetLength will be set to the length of the tweet if it is > 140 characters.
 
 			See Also:
-				https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
+				https://dev.twitter.com/docs/api/1.1/post/statuses/update
 		*/
 
-		function getHomeTimeline($user_name = false, $limit = 10, $params = array()) {
-			$user_name = $user_name ? $user_name : $this->Settings["user_name"];
-			$response = $this->get("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $limit)));
-			$tweets = array();
-			foreach ($response as $tweet) {
-				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
+		function postTweet($content,$image = false,$auto_truncate = true,$params = array()) {
+			// Figure out how long our content can be
+			if (!$this->Configuration) {
+				$this->getConfiguration();
 			}
-			return $tweets;
+			// Figure out how many URLs are 
+			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
+			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
+			$media_length = $image ? $this->Configuration->characters_reserved_per_media : 0;
+			$url_length = $http_length + $https_length + $media_length;
+			// Replace URLs so they no longer count toward length
+  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
+  			if (strlen($content_trimmed) + $url_length > 140) {
+  				$this->TweetLength = strlen($content_trimmed) + $url_length;
+  				return false;
+  			}
+			
+			// With image, we call statuses/update_with_media
+			if ($image) {
+				$response = $this->callUncached("statuses/update_with_media.json",array_merge($params,array("status" => $content,"media[]" => $image)),"POST",array("Files" => array("media[]" => array())));
+			} else {
+				$response = $this->callUncached("statuses/update.json",array_merge($params,array("status" => $content)),"POST");
+			}
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterTweet($response,$this);
 		}
-		
-		/*
-			Function: getUserInfo 
-				Return information about a given Twitter username.
 
-			Parameters:
-				user_name - The "screen name" of the Twitter user to retrieve information for (defaults to the connected user)
-				params - Additional parameters (key/value array) to pass to the users/show API call.
-
-			Returns:
-				An array of user information.
-
-			See Also:
-				https://dev.twitter.com/docs/api/1.1/get/users/show
-		*/
-
-		function getUserInfo($user_name = false, $params = array()) {
-			$user_name = $user_name ? $user_name : $this->Settings["user_name"];
-			return $this->get("users/show",array_merge($params,array("screen_name" => $user_name)));
-		}
 	}
 
 	/*
@@ -269,8 +379,8 @@
 			$this->Source = $tweet->source;
 			$this->User = new BigTreeTwitterUser($tweet->user,$api);
 			$this->Place = new BigTreeTwitterPlace($tweet->place,$api);
-			$this->Retweets = $tweet->retweet_count;
-			$this->Favorites = $tweet->favorite_count;
+			$this->RetweetCount = $tweet->retweet_count;
+			$this->FavoriteCount = $tweet->favorite_count;
 			$this->Hashtags = array();
 			if (is_array($tweet->entities->hashtags)) {
 				foreach ($tweet->entities->hashtags as $hashtag) {
@@ -303,11 +413,65 @@
 			$this->Retweeted = $tweet->retweeted;
 			$this->Language = $tweet->lang;
 			if ($tweet->retweeted_status) {
-				$this->Retweet = true;
+				$this->IsRetweet = true;
 				$this->OriginalTweet = new BigTreeTwitterTweet($tweet->retweeted_status,$api);
 			} else {
-				$this->Retweet = false;
+				$this->IsRetweet = false;
 			}
+		}
+
+		/*
+			Function: __toString
+				Returns the Tweet's content when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Content;
+		}
+
+		/*
+			Function: delete
+				Deletes the tweet from Twitter.
+				The authenticated user must own the tweet.
+
+			Returns:
+				True if successful.
+		*/
+
+		function delete() {
+			$response = $this->callUncached("statuses/destroy/".$this->ID.".json",array(),"POST");
+			if (!$response) {
+				return false;
+			}
+			return true;
+		}
+
+		/*
+			Function: retweets
+				Returns retweets of the tweet.
+
+			Parameters:
+				count - The number of retweets to return (defaults to 10, max 100)
+
+			Returns:
+				An array of BigTreeTwitterTweet objects.
+		*/
+
+		function retweets($count = 10) {
+			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
+			if (!$this->RetweetCount) {
+				return array();
+			}
+			if ($this->OriginalTweet) {
+				$response = $this->API->call("statuses/retweets/".$this->OriginalTweet->ID.".json");
+			} else {
+				$response = $this->API->call("statuses/retweets/".$this->ID.".json");
+			}
+			$tweets = array();
+			foreach ($response as $tweet) {
+				$tweets[] = new BigTreeTwitterTweet($tweet,$this->API);
+			}
+			return $tweets;
 		}
 	}
 
