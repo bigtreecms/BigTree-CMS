@@ -180,6 +180,7 @@
 			"dice",
 			"ticket",
 			"pallet",
+			"lightning",
 			"camera",
 			"video",
 			"twitter",
