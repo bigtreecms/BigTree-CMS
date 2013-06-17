@@ -735,9 +735,56 @@
 				return false;
 			}
 		}
-		
+
 		/*
-			Function: doExpressCheckoutPayment
+			Function: paypalExpressCheckoutDetails
+				Returns checkout details for an Express Checkout transaciton.
+				For: PayPal Payments Pro and Payflow Gateway ONLY.
+				
+			Parameters:
+				token - The Express Checkout token returned by PayPal.
+			
+			Returns:
+				An array of buyer information.
+		*/
+		
+		function paypalExpressCheckoutDetails($token) {
+			$params = array();
+			$params["TOKEN"] = $token;
+			
+			// Payflow
+			if ($this->Service == "payflow") {
+				$params["TRXTYPE"] = "S";
+				$params["ACTION"] = "G";
+				$params["TENDER"] = "P";
+				
+				$response = $this->sendPayflow($params);
+				$this->Message = $response["RESPMSG"];				
+				
+				if ($response["RESULT"] == "0") {
+					return $this->urldecode($response);
+				} else {
+					return false;
+				}
+			// PayPal Payments Pro
+			} elseif ($this->Service == "paypal") {
+				$params["METHOD"] = "GetExpressCheckoutDetails";
+				
+				$response = $this->sendPayPal($params);
+				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
+				
+				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
+					return $this->urldecode($response);
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+
+		/*
+			Function: paypalExpressCheckoutProcess
 				Processes an Express Checkout transaction.
 				For: PayPal Payments Pro and Payflow Gateway ONLY.
 				
@@ -750,13 +797,14 @@
 				An array of buyer information.
 		*/
 		
-		function doExpressCheckoutPayment($token,$payer_id,$amount) {
+		function paypalExpressCheckoutProcess($token,$payer_id,$amount) {
 			// Clean up the amount.
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			
 			$params = array();
 			$params["TOKEN"] = $token;
 			$params["PAYERID"] = $payer_id;
+			$params["PAYMENTREQUEST_0_AMT"] = $amount;
 			$params["AMT"] = $amount;
 			
 			// Payflow
@@ -793,46 +841,55 @@
 				return false;
 			}
 		}
-		
+
 		/*
-			Function: getExpressCheckoutDetails
-				Returns checkout details for an Express Checkout transaciton.
+			Function: paypalExpressCheckoutRedirect
+				Sets up a PayPal Express Checkout session and redirects the user to PayPal.
 				For: PayPal Payments Pro and Payflow Gateway ONLY.
-				
+			
 			Parameters:
-				token - The Express Checkout token returned by PayPal.
+				amount - The amount to charge the user.
+				success_url - The URL to return to on successful PayPal login.
+				cancel_rul - The URL to return to if the user cancels payment.
 			
 			Returns:
-				An array of buyer information.
+				false in the event of a failure, otherwise redirects and dies.
 		*/
 		
-		function getExpressCheckoutDetails($token) {
+		function paypalExpressCheckoutRedirect($amount,$success_url,$cancel_url) {
+			// Clean up the amount.
+			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			$params = array();
-			$params["TOKEN"] = $token;
+			
+			$params["PAYMENTREQUEST_0_AMT"] = $amount;
+			$params["AMT"] = $amount;
+			$params["RETURNURL"] = $success_url;
+			$params["CANCELURL"] = $cancel_url;
 			
 			// Payflow
 			if ($this->Service == "payflow") {
 				$params["TRXTYPE"] = "S";
-				$params["ACTION"] = "G";
+				$params["ACTION"] = "S";
 				$params["TENDER"] = "P";
 				
 				$response = $this->sendPayflow($params);
 				$this->Message = $response["RESPMSG"];				
 				
 				if ($response["RESULT"] == "0") {
-					return $this->urldecode($response);
+					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$total_cost&CURRENCYCODE=USD&RETURNURL=$return_urly&CANCELURL=$cancel_url");
 				} else {
 					return false;
 				}
 			// PayPal Payments Pro
 			} elseif ($this->Service == "paypal") {
-				$params["METHOD"] = "GetExpressCheckoutDetails";
+				$params["METHOD"] = "SetExpressCheckout";
+				$params["PAYMENTACTION"] = "Sale";
 				
 				$response = $this->sendPayPal($params);
 				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 				
 				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
-					return $this->urldecode($response);
+					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$total_cost&CURRENCYCODE=USD&RETURNURL=$return_urly&CANCELURL=$cancel_url");
 				} else {
 					return false;
 				}
@@ -1200,61 +1257,6 @@
 				"x_login" => $this->APILogin,
 				"x_tran_key" => $this->TransactionKey
 			);
-		}
-		
-		/*
-			Function: setupExpressCheckout
-				Sets up a PayPal Express Checkout session.
-				For: PayPal Payments Pro and Payflow Gateway ONLY.
-			
-			Parameters:
-				amount - The amount to charge the user.
-				success_url - The URL to return to on successful PayPal login.
-				cancel_rul - The URL to return to if the user cancels payment.
-			
-			Returns:
-				Authorization token for redirect.
-		*/
-		
-		function setupExpressCheckout($amount,$success_url,$cancel_url) {
-			// Clean up the amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
-			$params = array();
-			
-			$params["AMT"] = $amount;
-			$params["RETURNURL"] = $success_url;
-			$params["CANCELURL"] = $cancel_url;
-			
-			// Payflow
-			if ($this->Service == "payflow") {
-				$params["TRXTYPE"] = "S";
-				$params["ACTION"] = "S";
-				$params["TENDER"] = "P";
-				
-				$response = $this->sendPayflow($params);
-				$this->Message = $response["RESPMSG"];				
-				
-				if ($response["RESULT"] == "0") {
-					return $response["TOKEN"];
-				} else {
-					return false;
-				}
-			// PayPal Payments Pro
-			} elseif ($this->Service == "paypal") {
-				$params["METHOD"] = "SetExpressCheckout";
-				$params["PAYMENTACTION"] = "Sale";
-				
-				$response = $this->sendPayPal($params);
-				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
-				
-				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
-					return urldecode($response["TOKEN"]);
-				} else {
-					return false;
-				}
-			} else {
-				return false;
-			}
 		}
 		
 		/*
