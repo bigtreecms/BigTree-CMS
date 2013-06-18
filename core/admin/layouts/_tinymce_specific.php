@@ -17,11 +17,11 @@
 				// If we're drawing callout resources we're going to drop some items since they don't fit.
 				if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 			?>
-			theme_advanced_buttons1: "blockquote,bold,italic,underline,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,bullist,numlist,separator,spellchecker,code",
+			theme_advanced_buttons1: "blockquote,bold,italic,underline,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
 			<?
 				} else {
 			?>
-			theme_advanced_buttons1: "undo,redo,separator,blockquote,bold,italic,underline,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,bullist,numlist,separator,spellchecker,code",
+			theme_advanced_buttons1: "undo,redo,separator,blockquote,bold,italic,underline,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
 			<?
 				}
 			?>
