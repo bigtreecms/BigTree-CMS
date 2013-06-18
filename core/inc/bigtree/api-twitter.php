@@ -97,7 +97,7 @@
 				}
 				return $response;
 			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error,true);
+				$this->Errors = json_decode($this->OAuthClient->api_error);
 				return false;
 			}
 		}
@@ -125,7 +125,7 @@
 			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
 				return $response;
 			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error,true);
+				$this->Errors = json_decode($this->OAuthClient->api_error);
 				return false;
 			}
 		}
@@ -516,7 +516,7 @@
 			$this->API = $api;
 			$this->Content = $tweet->text;
 			$this->ID = $tweet->id;
-			$this->Timestamp = $tweet->created_at;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at));
 			$this->Source = $tweet->source;
 			$this->User = new BigTreeTwitterUser($tweet->user,$api);
 			$this->Place = new BigTreeTwitterPlace($tweet->place,$api);
@@ -668,7 +668,7 @@
 			$this->FollowersCount = $user->followers_count;
 			$this->FriendsCount = $user->friends_count;
 			$this->ListedCount = $user->listed_count;
-			$this->Timestamp = $user->created_at;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($user->created_at));
 			$this->Favorites = $user->favourites_count;
 			$this->Timezone = $user->time_zone;
 			$this->TimezoneOffset = $user->utc_offset;
