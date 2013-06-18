@@ -72,7 +72,7 @@
 				Information directly from the API or the cache.
 		*/
 
-		function call($endpoint = false, $params = array(),$method = "GET",$options = array()) {
+		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
 			global $cms;
 			if ($method != "GET") {
 				return $this->callUncached($endpoint,$params,$method);				
@@ -162,6 +162,32 @@
 		}
 
 		/*
+			Function: getFollowers
+				Returns a page of followers for a given username.
+
+			Parameters:
+				username - The username to return followers for.
+				skip_status - Whether to return the user's current tweet (defaults to true, ignoring it)
+				params - Additional parameters (key/value array) to pass to the the followers/list API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/followers/list
+		*/
+
+		function getFollowers($username,$skip_status = true,$params = array()) {
+			$response = $this->call("followers/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+			$users = array();
+			foreach ($response->users as $user) {
+				$users[] = new BigTreeTwitterUser($user,$this);
+			}
+			$params["cursor"] = $response->next_cursor;
+			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$count,$params),$users);
+		}
+
+		/*
 			Function: getHomeTimeline
 				Returns recent tweets from the authenticated user and everyone the authenticated user follows.
 
@@ -236,6 +262,33 @@
 				return false;
 			}
 			return new BigTreeTwitterTweet($response,$this);
+		}
+
+		/*
+			Function: getUser
+				Returns information about a user.
+
+			Parameters:
+				username - The username ("screen_name") of a Twitter user
+				id - The ID of the Twitter user (replaces username if provided)
+
+			Returns:
+				A BigTreeTwitterUser object.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/users/show
+		*/
+
+		function getUser($username,$id = false) {
+			if ($id) {
+				$response = $this->call("users/show.json",array("id" => $id));
+			} else {
+				$response = $this->call("users/show.json",array("screen_name" => $username));				
+			}
+			if ($response) {
+				return new BigTreeTwitterUser($response,$this);
+			}
+			return false;
 		}
 	
 		/*
@@ -312,6 +365,94 @@
 				return false;
 			}
 			return new BigTreeTwitterTweet($response,$this);
+		}
+
+		/*
+			Function: retweetTweet
+				Causes the authenticated user to retweet a tweet.
+
+			Parameters:
+				id - The ID of the tweet to retweet.
+
+			Returns:
+				True if successful.
+		*/
+
+		function retweetTweet($id) {
+			$response = $this->callUncached("statuses/retweet/$id.json",array(),"POST");
+			if (!$response) {
+				return false;
+			}
+			return true;
+		}
+
+		/*
+			Function: searchTweets
+				Searches Twitter for a given query and returns tweets.
+
+			Parameters:
+				query - String to search for.
+				count - Number of results to return (defaults to 10)
+				type - Whether to return "recent", "popular", or "mixed" results (defaults to recent)
+				latitude - Latitude to search at (optional, for geolocation search)
+				longitude - Longitude to search at (optional, for geolocation search)
+				radius - How far around a given latitutde/longitude to search (in miles or kilometers, i.e. 1mi or 2km)
+				params - Additional parameters (key/value array) to pass to the the search/tweets API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/search/tweets
+		*/
+
+		function searchTweets($query,$count = 10,$type = "recent",$latitude = false,$longitude = false,$radius = false,$params = array()) {
+			// We're saving user_params for pagination
+			$user_params = $params;
+			// Setup default parameters
+			$params["q"] = $query;
+			$params["count"] = $count;
+			$params["result_type"] = $type;
+			if ($latitude) {
+				$params["geocode"] = "$latitude,$longitude,$radius";
+			}
+			$response = $this->call("search/tweets.json",$params);
+			$tweets = array();
+			foreach ($response->statuses as $tweet) {
+				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
+			}
+			return new BigTreeTwitterResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$long,$radius,$user_params),$tweets);
+		}
+
+		/*
+			Function: searchUsers
+				Searches Twitter for a given query and returns users.
+
+			Parameters:
+				query - String to search for.
+				count - Number of results to return (max 20, default 10)
+				params - Additional parameters (key/value array) to pass to the the users/search API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+			
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/users/search
+		*/
+
+		function searchUsers($query,$count = 10,$params = array()) {
+			// Little hack since BigTreeTwitterResultSet expects to use max_id but we're looking for page here, so ask for the next one.
+			if ($params["page"]) {
+				$params["page"]++;
+			} else {
+				$params["page"] = 1;
+			}
+			$response = $this->call("users/search.json",array_merge(array("q" => $query,"count" => $count),$params));
+			$users = array();
+			foreach ($response as $user) {
+				$users[] = new BigTreeTwitterUser($user,$this);
+			}
+			return new BigTreeTwitterResultSet($this,"searchUsers",array($query,$count,$params),$users);
 		}
 
 	}
@@ -439,11 +580,19 @@
 		*/
 
 		function delete() {
-			$response = $this->callUncached("statuses/destroy/".$this->ID.".json",array(),"POST");
-			if (!$response) {
-				return false;
-			}
-			return true;
+			return $this->API->deleteTweet($this->ID);
+		}
+
+		/*
+			Function: retweet
+				Causes the authenticated user to retweet the tweet.
+
+			Returns:
+				True if successful.
+		*/
+
+		function retweet($id = false) {
+			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
 
 		/*
@@ -472,6 +621,23 @@
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this->API);
 			}
 			return $tweets;
+		}
+
+		/*
+			Function: retweeters
+				Returns a list of Twitter user IDs for users who retweeted this tweet.
+
+			Returns:
+				An array of Twitter IDs
+		*/
+
+		function retweeters() {
+			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
+			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
+			if ($response->ids) {
+				return $response->ids;
+			}
+			return false;
 		}
 	}
 
