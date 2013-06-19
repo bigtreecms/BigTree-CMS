@@ -772,21 +772,23 @@
 		
 		function update($id,$keys,$vals) {
 			$id = sqlescape($id);
-			$query = "UPDATE `".$this->Table."` SET ";
-			
+			// Multiple columns to update			
 			if (is_array($keys)) {
-				$kparts = array();
+				$query_parts = array();
 				foreach ($keys as $key) {
-					$kparts[] = "`".$key."` = '".sqlescape(current($vals))."'";
+					$val = current($vals);
+					if (is_array($val)) {
+						$val = json_encode($val);
+					}
+					$query_parts[] = "`$key` = '".sqlescape($val)."'";
 					next($vals);
 				}
 			
-				$query .= implode(", ",$kparts)." WHERE id = '$id'";
+				sqlquery("UPDATE `".$this->Table."` SET ".implode(", ",$query_parts)." WHERE id = '$id'");
+			// Single column to update
 			} else {
-				$query = "UPDATE `".$this->Table."` SET `$keys` = '".sqlescape($vals)."' WHERE id = '$id'";
+				sqlquery("UPDATE `".$this->Table."` SET `$keys` = '".sqlescape($vals)."' WHERE id = '$id'");
 			}
-			
-			sqlquery($query);
 			BigTreeAutoModule::recacheItem($id,$this->Table);
 		}
 	}

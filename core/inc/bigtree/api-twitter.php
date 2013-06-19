@@ -294,7 +294,6 @@
 		/*
 			Function: getUserTimeline
 				Returns recent tweets from the given user's timeline.
-				If no user is provided the connected user's timeline will be used.
 
 			Parameters:
 				user_name - The Twitter user to retrieve tweets for.
@@ -515,25 +514,35 @@
 		function __construct($tweet,&$api) {
 			$this->API = $api;
 			$this->Content = $tweet->text;
-			$this->ID = $tweet->id;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at));
-			$this->Source = $tweet->source;
-			$this->User = new BigTreeTwitterUser($tweet->user,$api);
-			$this->Place = new BigTreeTwitterPlace($tweet->place,$api);
-			$this->RetweetCount = $tweet->retweet_count;
 			$this->FavoriteCount = $tweet->favorite_count;
+			$this->Favorited = $tweet->favorited;
 			$this->Hashtags = array();
 			if (is_array($tweet->entities->hashtags)) {
 				foreach ($tweet->entities->hashtags as $hashtag) {
 					$this->Hashtags[] = $hashtag->text;
 				}
 			}
+			$this->ID = $tweet->id;
+			$this->IsRetweet = $tweet->retweeted_status ? true : false;
+			$this->Language = $tweet->lang;
+			$this->Mentions = array();
+			if (is_array($tweet->entities->user_mentions)) {
+				foreach ($tweet->entities->user_mentions as $mention) {
+					$this->Mentions[] = new BigTreeTwitterUser($mention,$api);
+				}
+			}
+			$this->OriginalTweet = $tweet->retweeted_status ? new BigTreeTwitterTweet($tweet->retweeted_status,$api) : false;
+			$this->Place = new BigTreeTwitterPlace($tweet->place,$api);
+			$this->RetweetCount = $tweet->retweet_count;
+			$this->Retweeted = $tweet->retweeted;
+			$this->Source = $tweet->source;
 			$this->Symbols = array();
 			if (is_array($tweet->entities->symbols)) {
 				foreach ($tweet->entities->symbols as $symbol) {
 					$this->Symbols[] = $symbol->text;
 				}
 			}
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at));
 			$this->URLs = array();
 			if (is_array($tweet->entities->url)) {
 				foreach ($tweet->entities->urls as $url) {
@@ -544,21 +553,7 @@
 					);
 				}
 			}
-			$this->Mentions = array();
-			if (is_array($tweet->entities->user_mentions)) {
-				foreach ($tweet->entities->user_mentions as $mention) {
-					$this->Mentions[] = new BigTreeTwitterUser($mention,$api);
-				}
-			}
-			$this->Favorited = $tweet->favorited;
-			$this->Retweeted = $tweet->retweeted;
-			$this->Language = $tweet->lang;
-			if ($tweet->retweeted_status) {
-				$this->IsRetweet = true;
-				$this->OriginalTweet = new BigTreeTwitterTweet($tweet->retweeted_status,$api);
-			} else {
-				$this->IsRetweet = false;
-			}
+			$this->User = new BigTreeTwitterUser($tweet->user,$api);
 		}
 
 		/*
@@ -658,27 +653,27 @@
 
 		function __construct($user,&$api) {
 			$this->API = $api;
-			$this->ID = $user->id;
-			$this->Name = $user->name;
-			$this->Username = $user->screen_name;
-			$this->Location = $user->location;
 			$this->Description = $user->description;
-			$this->URL = $user->url;
-			$this->Protected = $user->protected;
-			$this->FollowersCount = $user->followers_count;
-			$this->FriendsCount = $user->friends_count;
-			$this->ListedCount = $user->listed_count;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($user->created_at));
 			$this->Favorites = $user->favourites_count;
-			$this->Timezone = $user->time_zone;
-			$this->TimezoneOffset = $user->utc_offset;
-			$this->GeoEnabled = $user->geo_enabled;
-			$this->Verified = $user->verified;
-			$this->TweetCount = $user->statuses_count;
-			$this->Language = $user->lang;
+			$this->FollowersCount = $user->followers_count;
 			$this->Following = $user->following;
+			$this->FriendsCount = $user->friends_count;
+			$this->GeoEnabled = $user->geo_enabled;
+			$this->ID = $user->id;
 			$this->Image = $user->profile_image_url;
 			$this->ImageHTTPS = $user->profile_image_url_https;
+			$this->Language = $user->lang;
+			$this->ListedCount = $user->listed_count;
+			$this->Location = $user->location;
+			$this->Name = $user->name;
+			$this->Protected = $user->protected;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($user->created_at));
+			$this->Timezone = $user->time_zone;
+			$this->TimezoneOffset = $user->utc_offset;
+			$this->TweetCount = $user->statuses_count;
+			$this->Username = $user->screen_name;
+			$this->URL = $user->url;
+			$this->Verified = $user->verified;
 		}
 	}
 
@@ -699,14 +694,14 @@
 
 		function __construct($place,&$api) {
 			$this->API = $api;
-			$this->ID = $place->id;
-			$this->Name = $place->name;
-			$this->FullName = $place->full_name;
+			$this->BoundingBox = $place->bounding_box->coordinates;
 			$this->Country = $place->country;
 			$this->CountryCode = $place->country_code;
-			$this->BoundingBox = $place->bounding_box->coordinates;
-			$this->URL = $place->url;
+			$this->FullName = $place->full_name;
+			$this->ID = $place->id;
+			$this->Name = $place->name;
 			$this->Type = $place->place_type;
+			$this->URL = $place->url;
 		}
 	}
 ?>
