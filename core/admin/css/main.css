@@ -23,7 +23,6 @@
 	header, footer, nav, summary, section, article { display: block; }
 	.clear { clear: both; }
 	.contain { overflow: hidden; }
-	body { overflow-y: scroll; }
 	
 	/* Hack To Stop WebKit From Styling input[type=search] */
 	input[type=search] { -webkit-appearance: textfield; -webkit-box-sizing: content-box; }
