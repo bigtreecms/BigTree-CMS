@@ -22,15 +22,6 @@
 				<label>Client Secret</label>
 				<input type="text" name="secret" value="<?=htmlspecialchars($instagram->Settings["secret"])?>" />
 			</fieldset>
-			<fieldset>
-				<label>Scope <small><a href="http://instagram.com/developer/authentication/#scope" target="_blank">?</a></small></label>
-				<select name="scope">
-					<option value="basic">Basic</option>
-					<option value="comments">Comments</option>
-					<option value="relationships">Relationships</option>
-					<option value="likes">Likes</option>
-				</select>
-			</fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Activate Instagram API" />

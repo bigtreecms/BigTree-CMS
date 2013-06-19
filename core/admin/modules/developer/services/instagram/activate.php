@@ -1,5 +1,5 @@
 <?
-	$admin->updateSettingValue("bigtree-internal-instagram-api",array("key" => $_POST["key"],"secret" => $_POST["secret"],"scope" => $_POST["scope"]));
+	$admin->updateSettingValue("bigtree-internal-instagram-api",array("key" => $_POST["key"],"secret" => $_POST["secret"],"scope" => "basic comments relationships likes"));
 		
 	// Renew the OAuth setup
 	unset($_SESSION['OAUTH_STATE']);
