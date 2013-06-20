@@ -411,7 +411,7 @@
 		if (!isset($bigtree["page"]["id"])) {
 			$bigtree["page"]["id"] = $bigtree["page"]["page"];
 		}
-		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(arry("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&current_page_id='.$bigtree["page"]["id"].'&show_bar='.$show_bar_default.'&username='.$_SESSION["bigtree_admin"]["name"].'&show_preview='.$show_preview_bar.'&return_link='.$return_link.'"></script></body>',$bigtree["content"]);
+		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&current_page_id='.$bigtree["page"]["id"].'&show_bar='.$show_bar_default.'&username='.$_SESSION["bigtree_admin"]["name"].'&show_preview='.$show_preview_bar.'&return_link='.$return_link.'"></script></body>',$bigtree["content"]);
 		$bigtree["config"]["cache"] = false;
 	}
 	
