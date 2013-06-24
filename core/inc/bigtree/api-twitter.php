@@ -131,6 +131,25 @@
 		}
 
 		/*
+			Function: deleteDirectMessage
+				Deletes a direct message that was received by the authenticated user.
+
+			Parameters:
+				id - The ID of the direct message.
+
+			Returns:
+				true if successful.
+		*/
+
+		function deleteDirectMessage($id) {
+			$response = $this->call("direct_messages/destroy.json",array("id" => $id),"POST");
+			if (!$response) {
+				return false;
+			}
+			return true;
+		}
+
+		/*
 			Function: deleteTweet
 				Deletes a tweet that belongs to the authenticated user.
 
@@ -162,6 +181,55 @@
 		}
 
 		/*
+			Function: getDirectMessage
+				Returns a single direct messages for the given ID (must be sent to or by the authenticated user).
+
+			Parameters:
+				id - The ID of the direct message.
+
+			Returns:
+				A BigTreeTwitterDirectMessage object.
+			
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/direct_messages
+		*/
+
+		function getDirectMessage($id) {
+			$response = $this->call("direct_messages/show.json",array("id" => $id));
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterDirectMessage($response,$this);
+		}
+
+		/*
+			Function: getDirectMessages
+				Returns a page of direct messages sent to the authenticated user.
+
+			Parameters:
+				count - Number of results to return (defaults to 10)
+				params - Additional parameters (key/value array) to pass to the the direct_messages API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
+			
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/direct_messages
+		*/
+
+		function getDirectMessages($count = 10,$params = array()) {
+			$response = $this->call("direct_messages.json",array_merge($params,array("count" => $count)));
+			if (!$response) {
+				return false;
+			}
+			$results = array();
+			foreach ($response as $message) {
+				$results[] = new BigTreeTwitterDirectMessage($message,$this);
+			}
+			return new BigTreeTwitterResultSet($this,"getDirectMessages",array($count,$params),$results);
+		}
+
+		/*
 			Function: getFollowers
 				Returns a page of followers for a given username.
 
@@ -179,6 +247,9 @@
 
 		function getFollowers($username,$skip_status = true,$params = array()) {
 			$response = $this->call("followers/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+			if (!$response) {
+				return false;
+			}
 			$users = array();
 			foreach ($response->users as $user) {
 				$users[] = new BigTreeTwitterUser($user,$this);
@@ -239,6 +310,33 @@
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
 			return new BigTreeTwitterResultSet($this,"getMentions",array($count,$params),$tweets);
+		}
+
+		/*
+			Function: getSentDirectMessages
+				Returns a page of direct messages sent by the authenticated user.
+
+			Parameters:
+				count - Number of results to return (defaults to 10)
+				params - Additional parameters (key/value array) to pass to the the direct_messages/sent API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
+			
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/direct_messages
+		*/
+
+		function getSentDirectMessages($count = 10,$params = array()) {
+			$response = $this->call("direct_messages/sent.json",array_merge($params,array("count" => $count)));
+			if (!$response) {
+				return false;
+			}
+			$results = array();
+			foreach ($response as $message) {
+				$results[] = new BigTreeTwitterDirectMessage($message,$this);
+			}
+			return new BigTreeTwitterResultSet($this,"getSentDirectMessages",array($count,$params),$results);
 		}
 
 		/*
@@ -320,7 +418,49 @@
 		}
 
 		/*
-			Function: postTweet
+			Function: sendDirectMessage
+				Sends a direct message by the authenticated user.
+
+			Parameters:
+				recipient_username - The recipient's username.
+				content - The text to tweet.
+				recipient_id - The recipient ID (replaces the recipient_username field).
+
+			Returns:
+				A BigTreeTwitterDirectMessage object or false if the direct message fails or is too long.
+				$this->TweetLength will be set to the length of the tweet if it is > 140 characters.
+		*/
+
+		function sendDirectMessage($recipient_username,$content,$recipient_id = false) {
+			// Figure out how long our content can be
+			if (!$this->Configuration) {
+				$this->getConfiguration();
+			}
+			// Figure out how many URLs are 
+			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
+			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
+			$url_length = $http_length + $https_length;
+			// Replace URLs so they no longer count toward length
+  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
+  			if (strlen($content_trimmed) + $url_length > 140) {
+  				$this->TweetLength = strlen($content_trimmed) + $url_length;
+  				return false;
+  			}
+
+  			if ($recipient_id) {
+  				$response = $this->callUncached("direct_messages/new.json",array("user_id" => $recipient_id,"text" => $content),"POST");
+  			} else {
+  				$response = $this->callUncached("direct_messages/new.json",array("screen_name" => $recipient_username,"text" => $content),"POST");
+  			}
+
+  			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterDirectMessage($response,$this);
+		}
+
+		/*
+			Function: sendTweet
 				Post a tweet by the authenticated user.
 				If the tweet content is > 140 characters will fail and return false.
 
@@ -337,7 +477,7 @@
 				https://dev.twitter.com/docs/api/1.1/post/statuses/update
 		*/
 
-		function postTweet($content,$image = false,$auto_truncate = true,$params = array()) {
+		function sendTweet($content,$image = false,$auto_truncate = true,$params = array()) {
 			// Figure out how long our content can be
 			if (!$this->Configuration) {
 				$this->getConfiguration();
@@ -416,6 +556,9 @@
 				$params["geocode"] = "$latitude,$longitude,$radius";
 			}
 			$response = $this->call("search/tweets.json",$params);
+			if (!$response) {
+				return false;
+			}
 			$tweets = array();
 			foreach ($response->statuses as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
@@ -447,6 +590,9 @@
 				$params["page"] = 1;
 			}
 			$response = $this->call("users/search.json",array_merge(array("q" => $query,"count" => $count),$params));
+			if (!$response) {
+				return false;
+			}
 			$users = array();
 			foreach ($response as $user) {
 				$users[] = new BigTreeTwitterUser($user,$this);
@@ -475,12 +621,12 @@
 
 		function __construct(&$api,$last_call,$params,$results) {
 			$this->API = $api;
-			$this->Results = $results;
 			$this->LastCall = $last_call;
 			$last = end($results);
 			// Set the max_id field on what would be the $params array sent to any call (since it's always last)
 			$params[count($params) - 1]["max_id"] = $last->ID - 1;
 			$this->LastParameters = $params;
+			$this->Results = $results;
 		}
 
 		/*
@@ -703,6 +849,32 @@
 			$this->Name = $place->name;
 			$this->Type = $place->place_type;
 			$this->URL = $place->url;
+		}
+	}
+
+	/*
+		Class: BigTreeTwitterDirectMessage
+	*/
+
+	class BigTreeTwitterDirectMessage {
+
+		/*
+			Constructor:
+				Create a direct message object from Twitter data.
+
+			Parameters:
+				message - Twitter data
+				api - Reference to BigTreeTwitterAPI class instance
+		*/
+
+		function __construct($message,&$api) {
+			$this->API = $api;
+			$this->Content = $message->text;
+			$this->ID = $message->id;
+			$this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://search.twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$message->text)));
+			$this->Recipient = new BigTreeTwitterUser($message->recipient,$api);
+			$this->Sender = new BigTreeTwitterUser($message->sender,$api);
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at));
 		}
 	}
 ?>
