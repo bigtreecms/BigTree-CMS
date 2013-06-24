@@ -876,5 +876,23 @@
 			$this->Sender = new BigTreeTwitterUser($message->sender,$api);
 			$this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at));
 		}
+
+		/*
+			Function: delete
+				Alias for BigTreeTwitterTweet::deleteDirectMessage
+		*/
+
+		function delete() {
+			return $this->API->deleteDirectMessage($this->ID);
+		}
+
+		/*
+			Function: reply
+				Alias for BigTreeTwitterTweet::sendDirectMessage
+		*/
+
+		function reply($content) {
+			return $this->API->sendDirectMessage(false,$content,$this->Sender->ID);
+		}
 	}
 ?>
