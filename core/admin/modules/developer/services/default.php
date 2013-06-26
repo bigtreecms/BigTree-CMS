@@ -11,6 +11,7 @@
 	$google = new BigTreeGooglePlusAPI;
 	$youtube = new BigTreeYouTubeAPI;
 	$flickr = new BigTreeFlickrAPI;
+	$salesforce = new BigTreeSalesforceAPI;
 ?>
 <div class="table">
 	<summary><h2>Configure</h2></summary>
@@ -40,5 +41,9 @@
 			<p>Flickr</p>
 		</a>
 		
+		<a class="box_select<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
+			<span class="cloud"></span>
+			<p>Salesforce</p>
+		</a>
 	</section>
 </div>

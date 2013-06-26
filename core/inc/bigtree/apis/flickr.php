@@ -3,8 +3,6 @@
 		Class: BigTreeFlickrAPI
 	*/
 	
-	require_once BigTree::path("inc/lib/oauth_client.php");
-	
 	class BigTreeFlickrAPI {
 		
 		var $OAuthClient;

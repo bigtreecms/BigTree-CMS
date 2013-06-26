@@ -1,11 +1,9 @@
 <?
 	/*
-		Class: BigTreeGooglePlusAPI
+		Class: BigTreeSalesforceAPI
 	*/
 	
-	require_once BigTree::path("inc/lib/oauth_client.php");
-	
-	class BigTreeGooglePlusAPI {
+	class BigTreeSalesforceAPI {
 		
 		var $OAuthClient;
 		var $Connected = false;

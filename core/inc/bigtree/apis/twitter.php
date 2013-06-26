@@ -5,8 +5,6 @@
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
 	
-	require_once BigTree::path("inc/lib/oauth_client.php");
-	
 	class BigTreeTwitterAPI {
 		
 		var $OAuthClient;
