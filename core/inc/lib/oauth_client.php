@@ -1293,6 +1293,13 @@ class oauth_client_class
 		}
 		else
 			$this->access_token_expiry = '';
+		/* Added for Salesforce */
+		if (isset($response["instance_url"])) {
+			$this->issued_at = $response["issued_at"];
+			$this->instance_url = $response["instance_url"];
+			$this->signature = $response["signature"];
+			$this->scope = $response["scope"];
+		}
 		if(IsSet($response['token_type']))
 		{
 			$this->access_token_type = $response['token_type'];
@@ -1689,6 +1696,12 @@ class oauth_client_class
 				$this->dialog_url = 'https://rightsignature.com/oauth/authorize';
 				$this->access_token_url = 'https://rightsignature.com/oauth/access_token';
 				$this->authorization_header = false;
+				break;
+
+			case 'Salesforce':
+				$this->oauth_version = '2.0';
+				$this->dialog_url = 'https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope={SCOPE}&state={STATE}';
+				$this->access_token_url = 'https://login.salesforce.com/services/oauth2/token';
 				break;
 
 			case 'Scoop.it':
