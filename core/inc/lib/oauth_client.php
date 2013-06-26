@@ -1158,6 +1158,10 @@ class oauth_client_class
 				break;
 		}
 		$arguments['Headers']['Accept'] = (IsSet($options['Accept']) ? $options['Accept'] : '*/*');
+		/* For Salesforce Support */
+		if (isset($this->authorization)) {
+			$authorization = $this->authorization;
+		}
 		if(strlen($authorization))
 			$arguments['Headers']['Authorization'] = $authorization;
 		if(strlen($error = $http->SendRequest($arguments))

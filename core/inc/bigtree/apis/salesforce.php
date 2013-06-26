@@ -46,6 +46,7 @@
 			// Check if we're conected
 			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
 				$this->Connected = true;
+				$this->OAuthClient->authorization = "Authorization: Bearer ".$this->Settings["token"];
 			}
 			
 			// Init Client
