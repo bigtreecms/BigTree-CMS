@@ -32,8 +32,6 @@
 	</form>
 	<?
 		} else {
-			print_r($salesforce->callUncached("services/data/"));
-			print_r($salesforce);
 	?>
 	<section>
 		<p>Currently connected to your account:</p>

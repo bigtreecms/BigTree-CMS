@@ -53,7 +53,7 @@
 			$this->OAuthClient->Initialize();
 
 			// Setup Endpoints
-			$this->URL = $this->Settings["instance"];
+			$this->URL = $this->Settings["instance"]."/services/data/v28.0/";
 		}
 		
 		/*
@@ -127,6 +127,80 @@
 				$this->Errors = json_decode($this->OAuthClient->api_error);
 				return false;
 			}
+		}
+
+		/*
+			Function: getObject
+				Returns a Salesforce object for the given name.
+
+			Parameters:
+				name - The object's name.
+
+			Returns:
+				A BigTreeSalesforceObject object.
+		*/
+
+		function getObject($name) {
+			$response = $this->call("sobjects/$name/");
+			if (!isset($response->objectDescribe)) {
+				return false;
+			}
+			return new BigTreeSalesforceObject($response->objectDescribe,$this);
+		}
+
+		/*
+			Function: getObjects
+				Returns all the available Salesforce objects in your account.
+
+			Returns:
+				An array of BigTreeSalesforceObject objects.
+		*/
+
+		function getObjects() {
+			$response = $this->call("sobjects/");
+			if (!isset($response->sobjects)) {
+				return false;
+			}
+			$objects = array();
+			foreach ($response->sobjects as $object) {
+				$objects[] = new BigTreeSalesforceObject($object,$this);
+			}
+			return $objects;
+		}
+	}
+
+	/*
+		Class: BigTreeSalesforceObject
+	*/
+
+	class BigTreeSalesforceObject {
+
+		/*
+			Constructor:
+				Creates a new BigTreeSalesforceObject
+
+			Parameters:
+				object - Salesforce data
+				api - Reference to BigTreeSalesforceAPI class instance
+		*/
+
+		function __construct($object,&$api) {
+			$this->Activateable = $object->activateable;
+			$this->API = $api;
+			$this->Createable = $object->createable;
+			$this->Deleteable = $object->deleteable;
+			$this->Label = $object->label;
+			$this->LabelPlural = $object->labelPlural;
+			$this->Layoutable = $object->layoutable;
+			$this->Mergeable = $object->mergeable;
+			$this->Name = $object->name;
+			$this->Queryable = $object->queryable;
+			$this->Replicateable = $object->replicateable;
+			$this->Retrieveable = $object->retrieveable;
+			$this->Searchable = $object->searchable;
+			$this->Triggerable = $object->triggerable;
+			$this->Undeleteable = $object->undeleteable;
+			$this->Updateable = $object->updateable;
 		}
 	}
 ?>

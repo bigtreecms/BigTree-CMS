@@ -4,9 +4,6 @@
 		if ($salesforce->OAuthClient->access_token) {
 			$salesforce->Connected = true;
 			
-			print_r($salesforce->OAuthClient);
-			die();
-			
 			// Save token information and some user info for displaying connection info in the admin.
 			$admin->updateSettingValue("bigtree-internal-salesforce-api",array(
 				"key" => $salesforce->Settings["key"],
