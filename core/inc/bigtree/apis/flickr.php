@@ -19,7 +19,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($debug = false) {
+		function __construct($cache = true) {
 			global $cms;
 			$this->Cache = $cache;
 
