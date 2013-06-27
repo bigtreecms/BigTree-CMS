@@ -66,12 +66,13 @@
 				params - The parameters to send to the API (key/value array).
 				method - HTTP method to call (defaults to GET).
 				options - Additional options to pass to OAuthClient.
+				second_try - If we failed the first one with a refresh token, we try a second time then fail out (defaults to false)
 
 			Returns:
 				Information directly from the API or the cache.
 		*/
 
-		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
+		function call($endpoint = false,$params = array(),$method = "GET",$options = array(),$second_try = false) {
 			global $cms;
 			if ($method != "GET") {
 				return $this->callUncached($endpoint,$params,$method);				
@@ -97,6 +98,14 @@
 				return $response;
 			} else {
 				$this->Errors = json_decode($this->OAuthClient->api_error);
+				// May need a refreshed token.
+				if (!$second_try && $this->Errors[0]->errorCode == "INVALID_SESSION_ID") {
+					// Try to refresh the token.
+					if ($this->refreshToken()) {
+						// Call again.
+						return $this->call($endpoint,$params,$method,$options,true);
+					}
+				}
 				return false;
 			}
 		}
@@ -111,12 +120,13 @@
 				params - The parameters to send to the API (key/value array).
 				method - HTTP method to call (defaults to GET).
 				options - Additional options to pass to OAuthClient.
+				second_try - If we failed the first one with a refresh token, we try a second time then fail out (defaults to false)
 
 			Returns:
 				Information directly from the API.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$options = array()) {
+		function callUncached($endpoint,$params = array(),$method = "GET",$options = array(),$second_try = false) {
 			if (!$this->Connected) {
 				throw new Exception("The Salesforce API is not connected.");
 			}
@@ -125,6 +135,14 @@
 				return $response;
 			} else {
 				$this->Errors = json_decode($this->OAuthClient->api_error);
+				// May need a refreshed token.
+				if (!$second_try && $this->Errors[0]->errorCode == "INVALID_SESSION_ID") {
+					// Try to refresh the token.
+					if ($this->refreshToken()) {
+						// Call again.
+						return $this->callUncached($endpoint,$params,$method,$options,true);
+					}
+				}
 				return false;
 			}
 		}
@@ -167,6 +185,35 @@
 			}
 			return $objects;
 		}
+
+		/*
+			Function: refreshToken
+				Refreshes the authorization token.
+		*/
+
+		function refreshToken() {
+			$response = BigTree::cURL("https://login.salesforce.com/services/oauth2/token",array(
+				"grant_type" => "refresh_token",
+				"client_id" => $this->Settings["key"],
+				"client_secret" => $this->Settings["secret"],
+				"refresh_token" => $this->Settings["refresh_token"]
+			));
+			$response = json_decode($response,true);
+			if ($response["access_token"]) {
+				// Update saved settings
+				$this->Settings["token"] = $response["access_token"];
+				$this->Settings["instance"] = $response["instance_url"];
+				$this->Settings["scope"] = $response["scope"];
+				$this->Settings["signature"] = $response["signature"];
+				$admin = new BigTreeAdmin;
+				$admin->updateSettingValue("bigtree-internal-salesforce-api",$this->Settings);
+
+				// Update local token
+				$this->OAuthClient->access_token = $this->Settings["token"];
+				return true;
+			}
+			return false;
+		}
 	}
 
 	/*
@@ -201,6 +248,17 @@
 			$this->Triggerable = $object->triggerable;
 			$this->Undeleteable = $object->undeleteable;
 			$this->Updateable = $object->updateable;
+		}
+
+		/*
+			Function: describe
+				Completely describes the individual metadata at all levels for the specified object.
+				For example, this can be used to retrieve the fields, URLs, and child relationships for the Account object.
+		*/
+
+		function describe() {
+			$response = $this->API->call("sobjects/".$this->Name."/describe/");
+			print_r($response);
 		}
 	}
 ?>
