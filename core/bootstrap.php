@@ -44,7 +44,7 @@
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/cms.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
-		include BIGTREE_CUSTOM_BASE_CLASS_PATH;
+		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
 		eval('$cms = new '.BIGTREE_CUSTOM_BASE_CLASS.';');
 	} else {
 		$cms = new BigTreeCMS;
@@ -80,7 +80,7 @@
 	);
 	
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		$bigtree["other_classes"][BIGTREE_CUSTOM_ADMIN_CLASS] = BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
+		$bigtree["other_classes"][BIGTREE_CUSTOM_ADMIN_CLASS] = SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
 	
 	function __autoload($class) {

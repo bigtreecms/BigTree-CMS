@@ -140,7 +140,7 @@
 			Parameters:
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The file name at the storage end point.
-				relative_path - The directory to store the file in (for local files, also used to generate a bucket ID).
+				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
 			
 			Returns:
@@ -299,7 +299,7 @@
 			Parameters:
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The desired file name at the storage end point.
-				relative_path - The directory to store the file in (for local files, also used to generate a bucket ID).
+				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
 			
 			Returns:
