@@ -453,6 +453,25 @@
 		}
 
 		/*
+			Function: getPlace
+				Returns information about a place.
+
+			Parameters:
+				id - The place ID.
+
+			Returns:
+				A BigTreeTwitterPlace object.
+		*/
+
+		function getPlace($id) {
+			$response = $this->call("geo/id/$id.json");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterPlace($response,$this);
+		}
+
+		/*
 			Function: getSentDirectMessages
 				Returns a page of direct messages sent by the authenticated user.
 
@@ -663,6 +682,35 @@
 				return false;
 			}
 			return true;
+		}
+
+		/*
+			Function: searchPlaces
+				Returns close places for a given latitude/longitude pair.
+
+			Parameters:
+				latitude - Latitutude
+				longitude - Longitude
+				count - The number of results to return (defaults to 20)
+				params - Additional parameters (key/value array) to pass to the the geo/search API call.
+
+			Returns:
+				An array of BigTreeTwitterPlace objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/geo/search
+		*/
+
+		function searchPlaces($latitude,$longitude,$count = 20,$params = array()) {
+			$response = $this->call("geo/search.json",array_merge(array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
+			if (!isset($response->result)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->result->places as $place) {
+				$results[] = new BigTreeTwitterPlace($place,$this);
+			}
+			return $results;
 		}
 
 		/*
