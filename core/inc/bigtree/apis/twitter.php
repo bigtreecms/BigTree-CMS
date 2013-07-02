@@ -1093,6 +1093,15 @@
 		}
 
 		/*
+			Function: __toString
+				Returns the User's username when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Username;
+		}
+
+		/*
 			Function: block
 				Blocks the user.
 
@@ -1173,6 +1182,15 @@
 			$this->Type = $place->place_type;
 			$this->URL = $place->url;
 		}
+
+		/*
+			Function: __toString
+				Returns the Places's name when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Name;
+		}
 	}
 
 	/*
@@ -1198,6 +1216,15 @@
 			$this->Recipient = new BigTreeTwitterUser($message->recipient,$api);
 			$this->Sender = new BigTreeTwitterUser($message->sender,$api);
 			$this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at));
+		}
+
+		/*
+			Function: __toString
+				Returns the Message's content when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Content;
 		}
 
 		/*
