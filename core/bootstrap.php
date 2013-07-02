@@ -79,8 +79,9 @@
 		"oauth_client_class" => "inc/lib/oauth_client.php"
 	);
 	
+	// Just include the admin class if it's custom.
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		$bigtree["other_classes"][BIGTREE_CUSTOM_ADMIN_CLASS] = SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
+		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
 	
 	function __autoload($class) {
