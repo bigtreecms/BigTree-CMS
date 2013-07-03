@@ -51,7 +51,13 @@
 			
 			// Init Client
 			$this->OAuthClient->Initialize();
-
+			
+			// Check test env.
+			if ($this->Settings["test_environment"] == "on") {
+				$this->OAuthClient->dialog_url = str_ireplace("login.", "test.", $this->OAuthClient->dialog_url);
+				$this->OAuthClient->access_token_url = str_ireplace("login.", "test.", $this->OAuthClient->access_token_url);
+			}
+			
 			// Setup Endpoints
 			$this->URL = $this->Settings["instance"]."/services/data/v28.0/";
 		}
@@ -346,7 +352,7 @@
 				$r->CreatedAt = $r->UpdatedAt = date("Y-m-d H:i:s");
 				return $r;				
 			} else {
-				$this->API->Errors[] = json_decode($response);
+				$this->API->Errors[] = (!is_array($response)) ? json_decode($response) : $response;
 				return false;
 			}
 		}

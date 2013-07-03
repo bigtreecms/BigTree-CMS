@@ -19,11 +19,15 @@
 			<hr />
 			<fieldset>
 				<label>Consumer Key</label>
-				<input type="text" name="key" value="<?=htmlspecialchars($twitter->Settings["key"])?>" />
+				<input type="text" name="key" value="<?=htmlspecialchars($salesforce->Settings["key"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Consumer Secret</label>
-				<input type="text" name="secret" value="<?=htmlspecialchars($twitter->Settings["secret"])?>" />
+				<input type="text" name="secret" value="<?=htmlspecialchars($salesforce->Settings["secret"])?>" />
+			</fieldset>
+			<fieldset>
+				<input name="test_environment" type="checkbox" value="on" />
+				<label>Use Test Environment</label>
 			</fieldset>
 		</section>
 		<footer>
@@ -34,11 +38,13 @@
 		} else {
 	?>
 	<section>
-		<p>Currently connected to your account:</p>
+		<p>Currently connected to your account.<? if ($salesforce->Settings["test_environment"] == "on") echo ' (Test Environment - Remember to reconnect to live service before launch)'; ?></p>
 		<div class="api_account_block">
+<!--
 			<img src="<?=$salesforce->Settings["user_image"]?>" class="gravatar" />
 			<strong><?=$salesforce->Settings["user_name"]?></strong>
 			#<?=$salesforce->Settings["user_id"]?>
+-->
 		</div>
 	</section>
 	<footer>

@@ -8,6 +8,7 @@
 			$admin->updateSettingValue("bigtree-internal-salesforce-api",array(
 				"key" => $salesforce->Settings["key"],
 				"secret" => $salesforce->Settings["secret"],
+				"test_environment" => $salesforce->Settings["test_environment"],
 				"token" => $salesforce->OAuthClient->access_token,
 				"refresh_token" => $salesforce->OAuthClient->refresh_token,
 				"issued" => $salesforce->OAuthClient->issued_at,
