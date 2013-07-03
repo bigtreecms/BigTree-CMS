@@ -127,7 +127,7 @@
 			$found = false;
 			$x = count($path);
 			while ($x) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_route_history WHERE old_route = '".implode("/",array_slice($path,0,$x))."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_route_history WHERE old_route = '".sqlescape(implode("/",array_slice($path,0,$x)))."'"));
 				if ($f) {
 					$old = $f["old_route"];
 					$new = $f["new_route"];
