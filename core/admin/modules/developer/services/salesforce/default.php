@@ -27,7 +27,7 @@
 			</fieldset>
 			<fieldset>
 				<input name="test_environment" type="checkbox" value="on" />
-				<label>Use Test Environment</label>
+				<label class="for_checkbox">Use Test Environment</label>
 			</fieldset>
 		</section>
 		<footer>
