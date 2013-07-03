@@ -38,14 +38,13 @@
 		} else {
 	?>
 	<section>
-		<p>Currently connected to your account.<? if ($salesforce->Settings["test_environment"] == "on") echo ' (Test Environment - Remember to reconnect to live service before launch)'; ?></p>
-		<div class="api_account_block">
-<!--
-			<img src="<?=$salesforce->Settings["user_image"]?>" class="gravatar" />
-			<strong><?=$salesforce->Settings["user_name"]?></strong>
-			#<?=$salesforce->Settings["user_id"]?>
--->
-		</div>
+		<p>
+			Currently connected to your account.
+			<? if ($salesforce->Settings["test_environment"] == "on") { ?>
+			<br />
+			<strong>Test Environment</strong> - Remember to reconnect to live service before launch)
+			<? } ?>
+		</p>
 	</section>
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>services/salesforce/disconnect/" class="button red">Disconnect</a>

@@ -1,5 +1,5 @@
 <?
-	$admin->updateSettingValue("bigtree-internal-salesforce-api",array("key" => $_POST["key"],"secret" => $_POST["secret"],"test_environment"=>$_POST["test_environment"]));
+	$admin->updateSettingValue("bigtree-internal-salesforce-api",array("key" => $_POST["key"],"secret" => $_POST["secret"],"test_environment" => $_POST["test_environment"]));
 	
 	// Renew the OAuth setup
 	unset($_SESSION['OAUTH_STATE']);
