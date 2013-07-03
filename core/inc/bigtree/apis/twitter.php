@@ -56,6 +56,25 @@
 		}
 
 		/*
+			Function: block
+				Blocks a given username by the authenticated user.
+
+			Parameters:
+				username - The username to block.
+
+			Returns:
+				A BigTreeTwitterUser object if successful.
+		*/
+
+		function block($username) {
+			$response = $this->call("blocks/create.json",array("screen_name" => $username),"POST");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterUser($response,$this);
+		}
+
+		/*
 			Function: call
 				Calls the Twitter API directly with the given API endpoint and parameters.
 				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
@@ -167,6 +186,73 @@
 		}
 
 		/*
+			Function: favoriteTweet
+				Sets a tweet as a favorite of the authenticated user.
+
+			Parameters:
+				id - The tweet ID.
+
+			Returns:
+				A BigTreeTwitterTweet object if successful.
+		*/
+
+		function favoriteTweet($id) {
+			$response = $this->callUncached("favorites/create.json",array("id" => $id),"POST");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterTweet($response,$this);
+		}
+
+		/*
+			Function: followUser / friendUser
+				Follows/friends a given user by the authenticated user.
+
+			Parameters:
+				username - The username to follow/friend.
+
+			Returns:
+				A BigTreeTwitterUser object on success.
+		*/
+
+		function followUser($username) {
+			$response = $this->call("friendships/create.json",array("screen_name" => $username),"POST");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterUser($response,$this);
+		}
+		function friendUser($username) { return $this->followUser($username); }
+
+		/*
+			Function: getBlockedUsers
+				Returns a page of users that are blocked by the authenticated user.
+
+			Parameters:
+				skip_status - Whether to return the user's current tweet (defaults to true, ignoring it)
+				params - Additional parameters (key/value array) to pass to the the blocks/list API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/blocks/list
+		*/
+
+		function getBlockedUsers($skip_status = true,$params = array()) {
+			$response = $this->call("blocks/list.json",array_merge($params,array("skip_status" => $skip_status)));
+			if (!$response) {
+				return false;
+			}
+			$users = array();
+			foreach ($response->users as $user) {
+				$users[] = new BigTreeTwitterUser($user,$this);
+			}
+			$params["cursor"] = $response->next_cursor;
+			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($username,$count,$params),$users);
+		}
+
+		/*
 			Function: getConfiguration
 				Sets up information such as the length of reserved characters for URLs and media uploads.
 		*/
@@ -228,6 +314,33 @@
 		}
 
 		/*
+			Function: getFavoriteTweets
+				Returns a page of favorite tweets of the authenticated user.
+
+			Parameters:
+				count - Number of results to return (defaults to 10)
+				params - Additional parameters (key/value array) to pass to the the favorites/list API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterTweets objects.
+			
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/favorites/list
+		*/
+
+		function getFavoriteTweets($count = 10,$params = array()) {
+			$response = $this->call("favorites/list.json",array_merge($params,array("count" => $count)));
+			if (!$response) {
+				return false;
+			}
+			$results = array();
+			foreach ($response as $tweet) {
+				$results[] = new BigTreeTwitterTweet($tweet,$this);
+			}
+			return new BigTreeTwitterResultSet($this,"getFavoriteTweets",array($count,$params),$results);
+		}
+
+		/*
 			Function: getFollowers
 				Returns a page of followers for a given username.
 
@@ -254,6 +367,35 @@
 			}
 			$params["cursor"] = $response->next_cursor;
 			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$count,$params),$users);
+		}
+
+		/*
+			Function: getFriends
+				Returns a page of friends (people they follow) for a given username.
+
+			Parameters:
+				username - The username to return followers for.
+				skip_status - Whether to return the user's current tweet (defaults to true, ignoring it)
+				params - Additional parameters (key/value array) to pass to the the friends/list API call.
+
+			Returns:
+				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/friends/list
+		*/
+
+		function getFriends($username,$skip_status = true,$params = array()) {
+			$response = $this->call("friends/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+			if (!$response) {
+				return false;
+			}
+			$users = array();
+			foreach ($response->users as $user) {
+				$users[] = new BigTreeTwitterUser($user,$this);
+			}
+			$params["cursor"] = $response->next_cursor;
+			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$count,$params),$users);
 		}
 
 		/*
@@ -308,6 +450,25 @@
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
 			return new BigTreeTwitterResultSet($this,"getMentions",array($count,$params),$tweets);
+		}
+
+		/*
+			Function: getPlace
+				Returns information about a place.
+
+			Parameters:
+				id - The place ID.
+
+			Returns:
+				A BigTreeTwitterPlace object.
+		*/
+
+		function getPlace($id) {
+			$response = $this->call("geo/id/$id.json");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterPlace($response,$this);
 		}
 
 		/*
@@ -524,6 +685,35 @@
 		}
 
 		/*
+			Function: searchPlaces
+				Returns close places for a given latitude/longitude pair.
+
+			Parameters:
+				latitude - Latitutude
+				longitude - Longitude
+				count - The number of results to return (defaults to 20)
+				params - Additional parameters (key/value array) to pass to the the geo/search API call.
+
+			Returns:
+				An array of BigTreeTwitterPlace objects.
+
+			See Also:
+				https://dev.twitter.com/docs/api/1.1/get/geo/search
+		*/
+
+		function searchPlaces($latitude,$longitude,$count = 20,$params = array()) {
+			$response = $this->call("geo/search.json",array_merge(array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
+			if (!isset($response->result)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->result->places as $place) {
+				$results[] = new BigTreeTwitterPlace($place,$this);
+			}
+			return $results;
+		}
+
+		/*
 			Function: searchTweets
 				Searches Twitter for a given query and returns tweets.
 
@@ -598,6 +788,63 @@
 			return new BigTreeTwitterResultSet($this,"searchUsers",array($query,$count,$params),$users);
 		}
 
+		/*
+			Function: unblockUser
+				Unblocks a given username by the authenticated user.
+
+			Parameters:
+				username - The username to unblock.
+
+			Returns:
+				A BigTreeTwitterUser object if successful.
+		*/
+
+		function unblockUser($username) {
+			$response = $this->call("blocks/destroy.json",array("screen_name" => $username),"POST");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterUser($response,$this);
+		}
+
+		/*
+			Function: unfavoriteTweet
+				Unsets a tweet as a favorite of the authenticated user.
+
+			Parameters:
+				id - The tweet ID.
+
+			Returns:
+				A BigTreeTwitterTweet object if successful.
+		*/
+
+		function unfavoriteTweet($id) {
+			$response = $this->callUncached("favorites/destroy.json",array("id" => $id),"POST");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterTweet($response,$this);
+		}
+
+		/*
+			Function: unfollowUser / unfriendUser
+				Unfollows/unfriends a given user by the authenticated user.
+
+			Parameters:
+				username - The username to follow/friend.
+
+			Returns:
+				A BigTreeTwitterUser object on success.
+		*/
+
+		function unfollowUser($username) {
+			$response = $this->call("friendships/destroy.json",array("screen_name" => $username),"POST");
+			if (!$response) {
+				return false;
+			}
+			return new BigTreeTwitterUser($response,$this);
+		}
+		function unfriendUser($username) { return $this->unfollowUser($username); }
 	}
 
 	/*
@@ -724,6 +971,18 @@
 		}
 
 		/*
+			Function: favorite
+				Favorites the tweet.
+
+			Returns:
+				A BigTreeTwitterTweet object if successful.
+		*/
+
+		function favorite() {
+			return $this->API->favoriteTweet($this->ID);
+		}
+
+		/*
 			Function: retweet
 				Causes the authenticated user to retweet the tweet.
 
@@ -779,6 +1038,18 @@
 			}
 			return false;
 		}
+
+		/*
+			Function: unfavorite
+				Unfavorites the tweet.
+
+			Returns:
+				A BigTreeTwitterTweet object if successful.
+		*/
+
+		function unfavorite() {
+			return $this->API->unfavoriteTweet($this->ID);
+		}
 	}
 
 	/*
@@ -820,6 +1091,69 @@
 			$this->URL = $user->url;
 			$this->Verified = $user->verified;
 		}
+
+		/*
+			Function: __toString
+				Returns the User's username when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Username;
+		}
+
+		/*
+			Function: block
+				Blocks the user.
+
+			Returns:
+				A BigTreeTwitterUser object on success.
+		*/
+
+		function block() {
+			return $this->API->blockUser($this->ID);
+		}
+
+		/*
+			Function: follow / friend
+				Friends/follows the user.
+
+			Returns:
+				A BigTreeTwitterUser object on success.
+		*/
+
+		function follow() {
+			return $this->API->followUser($this->ID);
+		}
+		function friend() {
+			return $this->follow();
+		}
+
+		/*
+			Function: unblock
+				Unblocks the user.
+
+			Returns:
+				A BigTreeTwitterUser object on success.
+		*/
+				
+		function unblock() {
+			return $this->API->unblockUser($this->ID);
+		}
+
+		/*
+			Function: unfollow / unfriend
+				Unfriends/unfollows the user.
+
+			Returns:
+				A BigTreeTwitterUser object on success.
+		*/
+
+		function unfollow() {
+			return $this->API->unfollowUser($this->ID);
+		}
+		function unfriend() {
+			return $this->unfollow();
+		}			
 	}
 
 	/*
@@ -848,6 +1182,15 @@
 			$this->Type = $place->place_type;
 			$this->URL = $place->url;
 		}
+
+		/*
+			Function: __toString
+				Returns the Places's name when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Name;
+		}
 	}
 
 	/*
@@ -873,6 +1216,15 @@
 			$this->Recipient = new BigTreeTwitterUser($message->recipient,$api);
 			$this->Sender = new BigTreeTwitterUser($message->sender,$api);
 			$this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at));
+		}
+
+		/*
+			Function: __toString
+				Returns the Message's content when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Content;
 		}
 
 		/*
