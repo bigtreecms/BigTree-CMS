@@ -91,6 +91,7 @@
 
 		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
 			global $cms;
+			$params["key"] = $this->Settings["token"];
 			if ($method != "GET") {
 				return $this->callUncached($endpoint,$params,$method);				
 			}

@@ -1,14 +1,12 @@
 <?
+	// Save our client key/secret
 	$admin->updateSettingValue("bigtree-internal-youtube-api",array("key" => $_POST["key"],"secret" => $_POST["secret"]));
-		
-	// Renew the OAuth setup
-	unset($_SESSION['OAUTH_STATE']);
-	unset($_SESSION['OAUTH_ACCESS_TOKEN']);
-	$youtube = new BigTreeYouTubeAPI;
-	$youtube->OAuthClient->Process();
-
-	if ($youtube->OAuthClient->authorization_error) {
-		$admin->growl("YouTube API","Invalid Secret/Key","error");
-		BigTree::redirect(DEVELOPER_ROOT."services/youtube/");
-	}
+	// OAuth redirect
+	BigTree::redirect("https://accounts.google.com/o/oauth2/auth".
+		"?client_id=".urlencode($_POST["key"]).
+		"&redirect_uri=".urlencode(ADMIN_ROOT."developer/services/youtube/return/").
+		"&response_type=code".
+		"&scope=".urlencode("https://www.googleapis.com/auth/youtube").
+		"&approval_prompt=force".
+		"&access_type=offline");
 ?>

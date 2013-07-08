@@ -31,7 +31,7 @@
 		} else {
 	?>
 	<section>
-		<p>Currently connected to your account:</p>
+		<p>Currently connected as:</p>
 		<div class="api_account_block">
 			<img src="<?=$instagram->Settings["user_image"]?>" class="gravatar" />
 			<strong><?=$instagram->Settings["user_name"]?></strong>

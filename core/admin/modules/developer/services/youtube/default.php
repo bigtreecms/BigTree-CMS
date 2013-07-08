@@ -32,7 +32,7 @@
 		} else {
 	?>
 	<section>
-		<p>Currently connected to your account:</p>
+		<p>Currently connected as:</p>
 		<div class="api_account_block">
 			<img src="<?=$youtube->Settings["user_image"]?>" class="gravatar" />
 			<strong><?=$youtube->Settings["user_name"]?></strong>
