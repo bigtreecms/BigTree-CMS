@@ -387,7 +387,7 @@
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
 				$perpage = $where;
-				$where = $perpage;
+				$where = $saved;
 			}
 			// Don't try to hit page 0.
 			if ($page < 1) {
@@ -416,7 +416,7 @@
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
 				$perpage = $where;
-				$where = $perpage;
+				$where = $saved;
 			}
 			if ($where) {
 				$query = "SELECT id FROM `".$this->Table."` WHERE $where";
