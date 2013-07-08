@@ -918,6 +918,26 @@
 			$this->IsRetweet = $tweet->retweeted_status ? true : false;
 			$this->Language = $tweet->lang;
 			$this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text)));
+			$this->Media = array();
+			if (is_array($tweet->entities->media)) {
+				foreach ($tweet->entities->media as $media) {
+					$m = new stdClass;
+					$m->DisplayURL = $media->display_url;
+					$m->ID = $media->id;
+					$m->ExpandedURL = $media->expanded_url;
+					$m->SecureURL = $media->media_url_https;
+					foreach ($media->sizes as $size => $info) {
+						$size_key = ucwords($size);
+						$m->Sizes->$size_key->Height = $info->h;
+						$m->Sizes->$size_key->Width = $info->w;
+						$m->Sizes->$size_key->SecureURL = $media->media_url_https.":".$size;
+						$m->Sizes->$size_key->URL = $media->media_url.":".$size;
+					}
+					$m->Type = $media->type;
+					$m->URL = $media->media_url;
+					$this->Media[] = $m;
+				}
+			}
 			$this->Mentions = array();
 			if (is_array($tweet->entities->user_mentions)) {
 				foreach ($tweet->entities->user_mentions as $mention) {
