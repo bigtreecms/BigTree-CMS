@@ -49,25 +49,31 @@
 		}
 	}
 	
-	//!Server Parameters
-	$warnings = array();
+	// Issues that are game enders first.
+	$fails = array();
 	if (!extension_loaded('json')) {
-		$warnings[] = "JSON Extension is missing (this could affect API and Foundry usage).";
+		$fails[] = "PHP does not have the JSON extension installed.";
 	}
 	if (!extension_loaded("mysql") && !extension_loaded("mysqli")) {
-		$warnings[] = "MySQL Extension is missing (this is a FATAL ERROR).";
+		$fails[] = "PHP does not have the MySQL extension installed.";
 	}
+	if (!extension_loaded('gd')) {
+		$fails[] = "PHP does not have the GD extension installed.";
+	}
+	if (!extension_loaded('curl')) {
+		$fails[] = "PHP does not have the cURL extension installed.";
+	}
+	if (!ini_get('file_uploads')) {
+		$fails[] = "PHP does not have file uploads enabled. This will severely limit BigTree's functionality.";
+	}
+
+	// Issues that could cause problems next.
+	$warnings = array();
 	if (get_magic_quotes_gpc()) {
 		$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
 	}
-	if (!ini_get('file_uploads')) {
-		$warnings[] = "PHP does not have file uploads enabled. This will severely limit BigTree's functionality.";
-	}
 	if (!ini_get('short_open_tag')) {
 		$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
-	}
-	if (!extension_loaded('gd')) {
-		$warnings[] = "PHP does not have the GD library enabled. This will severely limit your ability to do anything with images in BigTree.";
 	}
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
@@ -79,10 +85,13 @@
 		$warnings[] = "PHP's memory limit is currently under 32MB. BigTree recommends at least 32MB of memory be available to PHP.";
 	}
 
-	if (function_exists("apache_get_modules")) {
+	// mod_rewrite check
+	$rewrite_enabled = true;
+	if (function_exists("apache_get_modules")) {		
 		$apache_modules = apache_get_modules();
 		if (in_array('mod_rewrite', $apache_modules) === false) {
-			$warnings[] = "BigTree requires Apache to have mod_rewrite installed (this is a FATAL ERROR).";
+			$warnings[] = "Apache's mod_rewrite is not installed. Advanced URL rewrites are not available without it.";
+			$rewrite_enabled = false;
 		}
 	}
 
@@ -486,9 +495,9 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree 4.0RC3</title>
+		<title>Install BigTree 4.0</title>
 		<?php if ($installed) { ?>
-		<link rel="stylesheet" href="<?=$www_root?>admin/css/main.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="<?php echo $www_root ?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
 		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
 		<script src="core/admin/js/lib.js"></script>
@@ -498,14 +507,14 @@ RewriteRule (.*) site/$1 [L]');
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree 4.0RC3 Installed</h1>
+			<h1>BigTree 4.0 Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
 					<p>Your new BigTree site is ready to go! Login to the CMS using your newly created account.</p>
-					<? if ($routing == "basic") { ?>
+					<?php if ($routing == "basic") { ?>
 					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
-					<? } ?>
+					<?php } ?>
 				</fieldset>
 				
 				<hr />
@@ -527,7 +536,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree 4.0RC3</h1>
+			<h1>Install BigTree 4.0</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
@@ -543,12 +552,21 @@ RewriteRule (.*) site/$1 [L]');
 				<?php
 						}
 					}
-					
-					if ($error) {
+					if (count($fails)) {
+						echo '<br />';
+						foreach ($fails as $fail) {
+				?>
+				<p class="error_message clear"><?php echo $fail?></p>
+				<?php
+						}
+						echo '<br /><fieldset class="clear"><p><strong>Please resolve all the errors marked in red above to install BigTree.</strong></p></fieldset><br /><br />';
+					} else {
+						if ($error) {
+							echo '<br />';
 				?>
 				<p class="error_message clear"><?php echo $error?></p>
 				<?php
-					}
+						}
 				?>
 				<hr />
 				
@@ -657,9 +675,11 @@ RewriteRule (.*) site/$1 [L]');
 				</fieldset>
 				<fieldset class="clear">
 					<select name="routing">
-						<option value="basic"<? if (!$routing || $routing == "basic") { ?> selected="selected"<? } ?>>Basic Routing</option>
-						<option value="simple"<? if ($routing == "simple") { ?> selected="selected"<? } ?>>Simple Rewrite Routing</option>
-						<option value="advanced"<? if ($routing == "advanced") { ?> selected="selected"<? } ?>>Advanced Routing</option>
+						<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
+						<?php if ($rewrite_enabled) { ?>
+						<option value="simple"<?php if ($routing == "simple") { ?> selected="selected"<?php } ?>>Simple Rewrite Routing</option>
+						<option value="advanced"<?php if ($routing == "advanced") { ?> selected="selected"<?php } ?>>Advanced Routing</option>
+						<?php } ?>
 					</select>
 				</fieldset>
 				
@@ -679,6 +699,9 @@ RewriteRule (.*) site/$1 [L]');
 				<fieldset class="lower">
 					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
 				</fieldset>
+				<?php
+					}
+				?>
 			</form>
 		    <script>
 		        $(document).ready(function() {
