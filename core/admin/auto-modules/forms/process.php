@@ -8,7 +8,7 @@
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();
 	if ($bigtree["form"]["preprocess"]) {
-		eval('$bigtree["preprocessed"] = '.$bigtree["form"]["preprocess"].'($_POST);');
+		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["preprocess"],$_POST);
 		// Update the $_POST
 		if (is_array($bigtree["preprocessed"])) {
 			foreach ($bigtree["preprocessed"] as $key => $val) {
@@ -210,7 +210,7 @@
 
 	// If there's a callback function for this module, let's get'r'done.
 	if ($bigtree["form"]["callback"]) {
-		eval($bigtree["form"]["callback"].'($edit_id,$item,$did_publish);');
+		call_user_func($bigtree["form"]["callback"],$edit_id,$item,$did_publish);
 	}
 
 	// Put together saved form information for the error or crop page in case we need it.

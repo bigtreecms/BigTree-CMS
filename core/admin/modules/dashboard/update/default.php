@@ -7,7 +7,7 @@
 			while ($current_revision < BIGTREE_REVISION) {
 				$current_revision++;
 				if (function_exists("_local_bigtree_update_".$current_revision)) {
-					eval("_local_bigtree_update_$current_revision();");
+					call_user_func("_local_bigtree_update_$current_revision");
 				}
 			}
 
@@ -186,7 +186,7 @@
 		$q = sqlquery("SELECT * FROM bigtree_modules");
 		while ($f = sqlfetch($q)) {
 			if (class_exists($f["class"])) {
-				@eval('$test = new '.$f["class"].';');
+				$test = new $f["class"];
 				$table = sqlescape($test->Table);
 				sqlquery("UPDATE `bigtree_tags_rel` SET `table` = '$table' WHERE module = '".$f["id"]."'");
 			}

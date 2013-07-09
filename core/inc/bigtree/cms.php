@@ -322,7 +322,7 @@
 			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
 			if ($mod["class"]) {
 				if (class_exists($mod["class"])) {
-					@eval('$module = new '.$mod["class"].';');
+					$module = new $mod["class"];
 					if (method_exists($module, "getBreadcrumb")) {
 						$bc = array_merge($bc,$module->getBreadcrumb($page));
 					}
@@ -557,7 +557,7 @@
 					while ($f = sqlfetch($q)) {
 						// If the class exists, instantiate it and call it
 						if ($f["class"] && class_exists($f["class"])) {
-							@eval('$module = new '.$f["class"].';');
+							$module = new $f["class"];
 							if (method_exists($module,"getNav")) {
 								$modNav = $module->getNav($f);
 								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
@@ -581,7 +581,7 @@
 					$f = sqlfetch(sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND bigtree_pages.id = '$parent'"));
 					// If the class exists, instantiate it and call it.
 					if ($f["class"] && class_exists($f["class"])) {
-						@eval('$module = new '.$f["class"].';');
+						$module = new $f["class"];
 						if (method_exists($module,"getNav")) {
 							if ($module->NavPosition == "top") {
 								$nav = array_merge($module->getNav($f),$nav);

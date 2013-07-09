@@ -45,7 +45,10 @@
 	include BigTree::path("inc/bigtree/cms.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
 		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
-		eval('$cms = new '.BIGTREE_CUSTOM_BASE_CLASS.';');
+		// Can't instantiate class from a constant name, so we use a variable then unset it.
+		$c = BIGTREE_CUSTOM_BASE_CLASS;
+		$cms = new $c;
+		unset($c);
 	} else {
 		$cms = new BigTreeCMS;
 	}

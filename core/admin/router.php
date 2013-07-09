@@ -167,7 +167,10 @@
 
 	// Instantiate the $admin var with either a custom class or the normal BigTreeAdmin.
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
+		// Can't instantiate class from a constant name, so we use a variable then unset it.
+		$c = BIGTREE_CUSTOM_ADMIN_CLASS;
+		$admin = new $c;
+		unset($c);
 	} else {
 		$admin = new BigTreeAdmin;
 	}

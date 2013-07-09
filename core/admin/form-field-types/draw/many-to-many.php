@@ -42,8 +42,8 @@
 	
 	// If we have a parser, send a list of the entries and available items through it.
 	if (isset($field["options"]["mtm-list-parser"]) && $field["options"]["mtm-list-parser"]) {
-		eval('$list = '.$field["options"]["mtm-list-parser"].'($list,true);');
-		eval('$entries = '.$field["options"]["mtm-list-parser"].'($entries,false);');
+		$list = call_user_func($field["options"]["mtm-list-parser"],$list,true);
+		$entries = call_user_func($field["options"]["mtm-list-parser"],$entries,false);
 	}
 
 	// Remove items from the list that have already been tagged.

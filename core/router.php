@@ -390,7 +390,10 @@
 		include_once BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-			eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
+			// Can't instantiate class from a constant name, so we use a variable then unset it.
+			$c = BIGTREE_CUSTOM_ADMIN_CLASS;
+			$admin = new $c;
+			unset($c);
 		} else {
 			$admin = new BigTreeAdmin;
 		}

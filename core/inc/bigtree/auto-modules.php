@@ -163,7 +163,7 @@
 			
 			$cache = true;
 			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
-				@eval('$cache = '.$view["options"]["filter"].'($item);');
+				$cache = call_user_func($view["options"]["filter"],$item);
 			}
 			
 			if ($cache) {

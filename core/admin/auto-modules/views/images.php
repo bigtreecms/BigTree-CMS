@@ -67,7 +67,7 @@
 									$class = $data["class"];
 									$link = $module_page.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
-										eval('$link = '.$data["function"].'($item);');
+										$link = call_user_func($data["function"],$item);
 									}
 								}
 				?>
@@ -118,7 +118,7 @@
 									$class = $data["class"];
 									$link = $module_page.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
-										eval('$link = '.$data["function"].'($item);');
+										$link = call_user_func($data["function"],$item);
 									}
 								}
 				?>
