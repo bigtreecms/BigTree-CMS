@@ -10,7 +10,6 @@
 			include $path;
 		}
 	?>
-	<br />
 </div>
 
 <script>
