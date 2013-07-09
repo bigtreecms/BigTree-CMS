@@ -35,21 +35,6 @@
 	</section>
 	<footer>
 		<a href="<?=$return_link?>" class="button blue">Continue</a> &nbsp; 
-		<a href="<?=$edit_link?>" class="button">Edit</a> &nbsp; 
-		<? if (!$page) { ?>
-		<a href="#" class="delete button red">Delete</a>
-		<? } ?>
+		<a href="<?=$edit_link?>" class="button">Return &amp; Edit</a> &nbsp; 
 	</footer>
 </div>
-
-<script>
-	$(".delete").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=<?=$id?>", {
-			complete: function() {
-				document.location = '<?=$return_link?>';
-			}
-		});
-
-		return false;
-	});
-</script>
