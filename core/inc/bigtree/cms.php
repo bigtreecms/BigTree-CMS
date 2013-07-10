@@ -427,7 +427,7 @@
 				$c = unserialize(base64_decode($ipl[2]));
 			}
 			// If it can't be rectified, we still don't want a warning.
-			if (is_array($c)) {
+			if (is_array($c) && count($c)) {
 				$last = end($c);
 				$commands = implode("/",$c);
 				if (strpos($last,"#") === false && strpos($last,"?") === false) {
