@@ -168,7 +168,7 @@
 				Response body.
 		*/
 
-		function cURL($endpoint,$method,$content,$json = false) {
+		function cURL($endpoint,$method,$content = false,$json = false) {
 			$headers = array("Authorization: Bearer ".$this->Settings["token"]);
 			if ($json) {
 				$headers[] = "Content-type: application/json";
@@ -225,7 +225,7 @@
 		*/
 
 		function refreshToken() {
-			$response = BigTree::cURL("https://login.salesforce.com/services/oauth2/token",array(
+			$response = BigTree::cURL($this->OAuthClient->access_token_url,array(
 				"grant_type" => "refresh_token",
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
@@ -271,8 +271,8 @@
 		function __construct($object,&$api) {
 			$this->Activateable = $object->activateable;
 			$this->API = $api;
-			$this->Createable = $object->createable;
-			$this->Deleteable = $object->deleteable;
+			$this->Creatable = $object->createable;
+			$this->Deletable = $object->deletable;
 			$this->Label = $object->label;
 			$this->LabelPlural = $object->labelPlural;
 			$this->Layoutable = $object->layoutable;
@@ -283,7 +283,7 @@
 			$this->Retrieveable = $object->retrieveable;
 			$this->Searchable = $object->searchable;
 			$this->Triggerable = $object->triggerable;
-			$this->Undeleteable = $object->undeleteable;
+			$this->Undeletable = $object->undeletable;
 			$this->Updateable = $object->updateable;
 			
 			// Find out the fields of this object.
