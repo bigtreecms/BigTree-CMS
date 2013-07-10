@@ -124,6 +124,10 @@
 				// Don't send them as POST content
 				$params = array();
 			}
+			// Send JSON headers if this is a JSON string
+			if (is_string($params) && $params) {
+				$headers[] = "Content-type: application/json";
+			}
 			$response = json_decode(BigTree::cURL($this->URL.$endpoint,$params,array(CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $headers)));
 			if (isset($response->error)) {
 				foreach ($response->error->errors as $error) {
@@ -155,6 +159,104 @@
 		}
 		
 		/*
+			Function: getCategories
+				Returns a list of YouTube categories.
+
+			Parameters:
+				region - ISO 3166 country code (defaults to US)
+
+			Returns:
+				A key/value array of id => category name.
+
+			See Also:
+				http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm
+
+		*/
+
+		function getCategories($region = "US") {
+			$response = $this->call("videoCategories",array("part" => "id,snippet","regionCode" => $region));
+			$categories = array();
+			foreach ($response->items as $item) {
+				$categories[$item->id] = $item->snippet->title;
+			}
+			return $categories;
+		}
+
+		/*
+			Function: getChannel
+				Returns channel information for a given ID or username.
+
+			Parameters:
+				id - The channel ID (optional)
+				username - The channel username (optional)
+
+			Returns:
+				A BigTreeYouTubeChannel object.
+		*/
+
+		function getChannel($id = false,$username = false) {
+			$params = array("part" => "id,snippet,statistics");
+			if ($id) {
+				$params["id"] = $id;
+			} else {
+				$params["forUsername"] = $username; 
+			}
+			$response = $this->call("channels",$params);
+			if (!isset($response->items[0])) {
+				return false;
+			}
+			return new BigTreeYouTubeChannel($response->items[0],$this);
+		}
+
+		/*
+			Function: getSubscribers
+				Returns a list of channels that are subscribed to the authenticated user.
+
+			Parameters:
+				count - The number of results to return per page (defaults to 5, max 50)
+				order - Sort order (options are "alphabetical", "relevance", "unread" — defaults to "relevance")
+
+			Returns:
+				A BigTreeYouTubeResultSet of BigTreeYouTubeSubscription objects.
+		*/
+
+		function getSubscribers($count = 5,$order = "relevance") {
+			$response = $this->call("subscriptions",array("part" => "id,snippet,contentDetails","mySubscribers" => "true","maxResults" => $count,"order" => $order));
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $item) {
+				$results[] = new BigTreeYouTubeSubscription($item,$this);
+			}
+			return new BigTreeYouTubeResultSet($this,"getSubscriptions",array($count,$order),$response,$results);
+		}
+
+		/*
+			Function: getSubscriptions
+				Returns a list of channels the authenticated user is subscribed to.
+
+			Parameters:
+				count - The number of results to return per page (defaults to 5, max 50)
+				order - Sort order (options are "alphabetical", "relevance", "unread" — defaults to "relevance")
+
+			Returns:
+				A BigTreeYouTubeResultSet of BigTreeYouTubeSubscription objects.
+		*/
+
+		function getSubscriptions($count = 5,$order = "relevance") {
+			$response = $this->call("subscriptions",array("part" => "id,snippet,contentDetails","mine" => "true","maxResults" => $count,"order" => $order));
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $item) {
+				$results[] = new BigTreeYouTubeSubscription($item,$this);
+			}
+			return new BigTreeYouTubeResultSet($this,"getSubscriptions",array(),$response,$results);
+		}
+
+		/*
 			Function: getVideo
 				Gets information about a given video ID.
 
@@ -168,10 +270,9 @@
 
 		function getVideo($id,$params = array()) {
 			$response = $this->call("videos",array_merge(array(
-				"part" => "snippet,contentDetails,player,statistics,status,topicDetails,recordingDetails",
+				"part" => "id,snippet,contentDetails,player,statistics,status,topicDetails,recordingDetails",
 				"id" => $id
 			),$params));
-
 			if (isset($response->items) && count($response->items)) {
 				return new BigTreeYouTubeVideo($response->items[0],$this);
 			}
@@ -229,6 +330,35 @@
 				$results[] = new BigTreeYouTubeVideo($video,$this);
 			}
 			return new BigTreeYouTubeResultSet($this,"searchVideos",array($query,$order,$count,$params),$response,$results);
+		}
+
+		/*
+			Function: subscribe
+				Subscribes the authenticated user to a given channel ID.
+
+			Parameters:
+				channel - Channel ID to subscribe to.
+		*/
+
+		function subscribe($channel) {
+			$this->call("subscriptions?part=snippet",json_encode(array("snippet" => array("resourceId" => array("channelId" => $channel)))),"POST");
+		}
+
+		/*
+			Function: unsubscribe
+				Unsubscribes the authenticated user from a given channel ID.
+
+			Parameters:
+				channel - Channel ID to unsubscribe from.
+		*/
+
+		function unsubscribe($channel) {
+			// Get subscription ID
+			$response = $this->call("subscriptions",array("part" => "id","mine" => "true","forChannelId" => $channel));
+			if (!isset($response->items)) {
+				return false;
+			}
+			$this->call("subscriptions?id=".$response->items[0]->id,false,"DELETE");
 		}
 	}
 
@@ -301,7 +431,7 @@
 
 		function __construct($video,&$api) {
 			$duration = explode("M",substr($video->contentDetails->duration,2));
-
+			$this->API = $api;
 			$this->Captioned = $video->contentDetails->caption;
 			$this->CategoryID = $video->snippet->categoryId;
 			$this->ChannelTitle = $video->snippet->channelTitle;
@@ -317,7 +447,7 @@
 			$this->Embed = $video->player->embedHtml;
 			$this->Embeddable = $video->status->embeddable;
 			$this->FavoriteCount = $video->statistics->favoriteCount;
-			$this->ID = $video->id->videoId;
+			$this->ID = $video->id;
 			$this->Image = $video->snippet->thumbnails->high->url;
 			$this->License = $video->status->license;
 			$this->LicensedContent = $video->contentDetails->licensedContent;
@@ -329,6 +459,7 @@
 			$this->Privacy = $video->status->privacyStatus;
 			$this->RecordedTimestamp = $video->recordingDetails->recordingDate ? date("Y-m-d H:i:s",strtotime($video->recordingDetails->recordingDate)) : "";
 			$this->SmallImage = $video->snippet->thumbnails->medium->url;
+			$this->Tags = $video->snippet->tags;
 			$this->ThumbnailImage = $video->snippet->thumbnails->default->url;
 			$this->Timestamp = date("Y-m-d H:i:s",strtotime($video->snippet->publishedAt));
 			$this->Title = $video->snippet->title;
@@ -364,5 +495,107 @@
 		function rate($rating) {
 			return $this->API->rateVideo($this->ID,$rating);
 		}
+
+		/*
+			Function: save
+				Saves changes to "snippet" related properties (video must be owned by the authenticated user)
+				Properties that save are: Title, Description, Tags, CategoryID, Privacy, Embeddable, License
+
+			Returns:
+				true on success.
+		*/
+
+		function save() {
+			$object = json_encode(array(
+				"id" => $this->ID,
+				"snippet" => array(
+					"title" => $this->Title,
+					"description" => $this->Description,
+					"tags" => array_unique($this->Tags),
+					"categoryId" => $this->CategoryID,
+					"privacyStatus" => $this->Privacy,
+					"embeddable" => $this->Embeddable,
+					"license" => $this->License
+				)
+			));
+			$response = $this->API->call("videos?part=snippet",$object,"PUT");
+			if (isset($response->id)) {
+				return true;
+			}
+			return false;
+		}
+	}
+
+	/*
+		Class: BigTreeYouTubeSubscription
+	*/
+
+	class BigTreeYouTubeSubscription {
+
+		function __construct($subscription,&$api) {
+			$this->API = $api;
+
+			$channel = new stdClass;
+			$channel->snippet = $subscription->snippet;
+ 			// Not correct info for the channel so we move it
+ 			$created_at = $channel->snippet->publishedAt;
+ 			unset($channel->snippet->publishedAt);
+			$channel->id = $channel->snippet->resourceId->channelId;
+			$this->Channel = new BigTreeYouTubeChannel($channel,$api);
+
+			$this->ID = $subscription->id;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($created_at));
+		}
+
+		/*
+			Function: delete
+				Removes this subscription from the authenticated user's subscribed channels.
+		*/
+
+		function delete() {
+			$this->API->call("subscriptions?id=".$this->ID,false,"DELETE");
+		}
+	}
+
+	/*
+		Class: BigTreeYouTubeChannel
+	*/
+
+	class BigTreeYouTubeChannel {
+
+		function __construct($channel,&$api) {
+			$this->API = $api;
+			$this->ID = $channel->id;
+			$this->Title = $channel->snippet->title;
+			$this->Description = $channel->snippet->description;
+			$this->Timestamp = $channel->snippet->publishedAt ? date("Y-m-d H:i:s",strtotime($channel->snippet->publishedAt)) : false;
+			foreach ($channel->snippet->thumbnails as $key => $val) {
+				$key = ucwords($key);
+				$this->Images->$key = $val->url;
+			}
+			$this->ViewCount = $channel->statistics->viewCount;
+			$this->CommentCount = $channel->statistics->commentCount;
+			$this->SubscriberCount = $channel->statistics->subscriberCount;
+			$this->VideoCount = $channel->statistics->videoCount;
+		}
+
+		/*
+			Function: subscribe
+				Subscribes the authenticated user to the channel.
+		*/
+
+		function subscribe() {
+			return $this->API->subscribe($this->ID);
+		}
+
+		/*
+			Function: unsubscribe
+				Unsubscribes the authenticated user from the channel.
+		*/
+
+		function unsubscribe() {
+			return $this->API->unsubscribe($this->ID);
+		}
+
 	}
 ?>
