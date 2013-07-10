@@ -140,22 +140,59 @@
 		}
 
 		/*
+			Function: createPlaylist
+				Creates a new playlist for the authenticated user.
+
+			Parameters:
+				title - The title of the playlist
+				description - The description of the playlist (optional)
+				privacy - The privacy status of the playlist (optional, defaults to public)
+				tags - An array of tags to tag to the playlist (optional)
+
+			Returns:
+				A BigTreeYouTubePlaylist object on success.
+		*/
+
+		function createPlaylist($title,$description = "",$privacy = "public",$tags = array()) {
+			$object = json_encode(array(
+				"snippet" => array(
+					"title" => $title,
+					"description" => $description,
+					"tags" => $tags
+				),
+				"status" => array(
+					"privacyStatus" => $privacy,
+				)
+			));
+			$response = $this->call("playlists?part=snippet,status",$object,"POST");
+			if (!isset($response->id)) {
+				return false;
+			}
+			return new BigTreeYouTubePlaylist($response,$this);
+		}
+
+		/*
+			Function: deletePlaylist
+				Deletes a playlist owned by the authenticated user.
+
+			Parameters:
+				id - The ID of the playlist to delete.
+		*/
+
+		function deletePlaylist($id) {
+			$this->call("playlists?id=$id",array(),"DELETE");
+		}
+
+		/*
 			Function: deleteVideo
 				Deletes a video (must be owned by the authenticated user).
 
 			Parameters:
-				id - The video ID to delete.
-
-			Returns:
-				true on success.
+				id - The ID of the video to delete.
 		*/
 
 		function deleteVideo($id) {
-			$response = $this->call("videos?id=$id",array(),"DELETE");
-			if ($response) {
-				return true;
-			}
-			return false;
+			$this->call("videos?id=$id",array(),"DELETE");
 		}
 		
 		/*
@@ -209,27 +246,61 @@
 		}
 
 		/*
-			Function: getSubscribers
-				Returns a list of channels that are subscribed to the authenticated user.
+			Function: getPlaylists
+				Returns playlists for a given channel (or the authenticated user's playlist if user is not specified)
 
 			Parameters:
-				count - The number of results to return per page (defaults to 5, max 50)
-				order - Sort order (options are "alphabetical", "relevance", "unread" — defaults to "relevance")
+				channel - The channel ID to pull playlists for (or false to use the authenticated user's)
+				count - The number of results to return per page (defaults to 50, max 50)
+				params - Additional parameters to pass to the subscriptions API call.
 
 			Returns:
-				A BigTreeYouTubeResultSet of BigTreeYouTubeSubscription objects.
+				A BigTreeYouTubeResultSet of BigTreeYouTubePlaylist objects.
 		*/
 
-		function getSubscribers($count = 5,$order = "relevance") {
-			$response = $this->call("subscriptions",array("part" => "id,snippet,contentDetails","mySubscribers" => "true","maxResults" => $count,"order" => $order));
+		function getPlaylists($channel = false,$count = 50,$params = array()) {
+			if ($channel) {
+				$params["channelId"] = $channel;
+			} else {
+				$params["mine"] = "true";
+			}
+			$params["maxResults"] = $count;
+			$params["part"] = "id,snippet,status";
+
+			$response = $this->call("playlists",$params);
 			if (!isset($response->items)) {
 				return false;
 			}
 			$results = array();
 			foreach ($response->items as $item) {
-				$results[] = new BigTreeYouTubeSubscription($item,$this);
+				$results[] = new BigTreeYouTubePlaylist($item,$this);
 			}
-			return new BigTreeYouTubeResultSet($this,"getSubscriptions",array($count,$order),$response,$results);
+			return new BigTreeYouTubeResultSet($this,"getPlaylists",array($channel,$count),$response,$results);
+		}
+
+		/*
+			Function: getSubscribers
+				Returns a list of channel IDs that are subscribed to the authenticated user.
+
+			Parameters:
+				count - The number of results to return per page (defaults to 50, max 50)
+				order - Sort order (options are "alphabetical", "relevance", "unread" — defaults to "relevance")
+				params - Additional parameters to pass to the subscriptions API call.
+
+			Returns:
+				A BigTreeYouTubeResultSet of channel IDs.
+		*/
+
+		function getSubscribers($count = 50,$order = "relevance",$params = array()) {
+			$response = $this->call("subscriptions",array_merge(array("part" => "id,snippet,contentDetails","mySubscribers" => "true","maxResults" => $count,"order" => $order),$params));
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $item) {
+				$results[] = $item->snippet->channelId;
+			}
+			return new BigTreeYouTubeResultSet($this,"getSubscribers",array($count,$order),$response,$results);
 		}
 
 		/*
@@ -237,15 +308,16 @@
 				Returns a list of channels the authenticated user is subscribed to.
 
 			Parameters:
-				count - The number of results to return per page (defaults to 5, max 50)
+				count - The number of results to return per page (defaults to 50, max 50)
 				order - Sort order (options are "alphabetical", "relevance", "unread" — defaults to "relevance")
+				params - Additional parameters to pass to the videos API call.
 
 			Returns:
 				A BigTreeYouTubeResultSet of BigTreeYouTubeSubscription objects.
 		*/
 
-		function getSubscriptions($count = 5,$order = "relevance") {
-			$response = $this->call("subscriptions",array("part" => "id,snippet,contentDetails","mine" => "true","maxResults" => $count,"order" => $order));
+		function getSubscriptions($count = 50,$order = "relevance") {
+			$response = $this->call("subscriptions",array_merge(array("part" => "id,snippet,contentDetails","mine" => "true","maxResults" => $count,"order" => $order),$params));
 			if (!isset($response->items)) {
 				return false;
 			}
@@ -359,6 +431,40 @@
 				return false;
 			}
 			$this->call("subscriptions?id=".$response->items[0]->id,false,"DELETE");
+		}
+
+		/*
+			Function: updatePlaylist
+				Updates a playlist that is owned by the authenticated user.
+
+			Parameters:
+				id - The ID of the playlist.
+				title - The new title for the playlist.
+				description - The new description for the playlist (optional).
+				privacy - The new privacy status for the playlist (optional, defaults to public).
+				tags - The new tags for the playlist (optional, array).
+
+			Returns:
+				true on success.
+		*/
+
+		function updatePlaylist($id,$title,$description = "",$privacy = "public",$tags = array()) {
+			$object = json_encode(array(
+				"id" => $id,
+				"snippet" => array(
+					"title" => $title,
+					"description" => $description,
+					"tags" => $tags
+				),
+				"status" => array(
+					"privacyStatus" => $privacy,
+				)
+			));
+			$response = $this->call("playlists?part=snippet,status",$object,"PUT");
+			if (!isset($response->id)) {
+				return false;
+			}
+			return true;
 		}
 	}
 
@@ -487,9 +593,6 @@
 
 			Parameters:
 				rating - "like", "dislike", or "none" (for clearing an existing rating)
-
-			Returns:
-				true on success.
 		*/
 
 		function rate($rating) {
@@ -596,6 +699,51 @@
 		function unsubscribe() {
 			return $this->API->unsubscribe($this->ID);
 		}
+	}
 
+	/*
+		Class: BigTreeYouTubePlaylist
+	*/
+
+	class BigTreeYouTubePlaylist {
+
+		function __construct($playlist,&$api) {
+			$this->API = $api;
+			$this->ChannelID = $playlist->snippet->channelId;
+			$this->ChannelTitle = $playlist->snippet->channelTitle;
+			$this->Description = $playlist->snippet->description;
+			$this->ID = $playlist->id;
+			foreach ($playlist->snippet->thumbnails as $key => $val) {
+				$key = ucwords($key);
+				$this->Images->$key = $val->url;
+			}
+			$this->Privacy = $playlist->status->privacyStatus;
+			$this->Tags = $playlist->snippet->tags;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($playlist->snippet->publishedAt));
+			$this->Title = $playlist->snippet->title;
+		}
+
+		/*
+			Function: save
+				Saves the changes made to this playlist (Title, Description, Privacy, Tags)
+				Playlist must be owned by the authenticated user.
+
+			Returns:
+				true if successful.
+		*/
+
+		function save() {
+			return $this->API->updatePlaylist($this->ID,$this->Title,$this->Description,$this->Privacy,$this->Tags);
+		}
+
+		/*
+			Function: delete
+				Deletes the playlist.
+				Playlist must be owned by the authenticated user.
+		*/
+
+		function delete() {
+			return $this->API->deletePlaylist($this->ID);
+		}
 	}
 ?>
