@@ -428,15 +428,15 @@
 			}
 			// If it can't be rectified, we still don't want a warning.
 			if (is_array($c)) {
+				$last = end($c);
 				$commands = implode("/",$c);
+				if (strpos($last,"#") === false && strpos($last,"?") === false) {
+					$commands .= "/";
+				}
 			} else {
 				$commands = "";
 			}
-			
-			if ($commands && strpos($commands,"?") === false) {
-				$commands .= "/";
-			}
-			
+
 			// See if it's in the cache.
 			if (isset($this->iplCache[$navid])) {
 				return $this->iplCache[$navid].$commands;
