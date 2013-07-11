@@ -172,6 +172,51 @@
 		}
 
 		/*
+			Function: createPlaylistItem
+				Adds a video to a playlist.
+				Authenticated user must be the owner of the playlist.
+				*Currently note/start_at/end_at do not seem to be supported by the YouTube API.
+
+			Parameters:
+				playlist - The ID of the playlist to add the video to
+				video - The ID of the video to add
+				position - Position to place the video in the playlist (optional)
+				note - A note to attach to the video (optional)
+				start_at - Time object (stdClass with Hours, Minutes, Seconds properties) to set as the start point for the video (optional)
+				end_at - Time object (stdClass with Hours, Minutes, Seconds properties) to set as the end point for the video (optional)
+
+			Returns:
+				A BigTreeYouTubePlaylistItem object on success.
+		*/
+
+		function createPlaylistItem($playlist,$video,$position = false,$note = false,$start_at = false,$end_at = false) {
+			$object = array(
+				"snippet" => array(
+					"playlistId" => $playlist,
+					"resourceId" => array("kind" => "youtube#video","videoId" => $video)
+				),
+				"contentDetails" => array()
+			);
+			if ($position !== false) {
+				$object["snippet"]["position"] = $position;
+			}
+			if ($note !== false) {
+				$object["contentDetails"]["note"] = $note;
+			}
+			if ($start_at !== false) {
+				$object["contentDetails"]["startAtMs"] = $this->timeJoin($start_at);
+			}
+			if ($end_at !== false) {
+				$object["contentDetails"]["endAtMs"] = $this->timeJoin($end_at);
+			}
+			$response = $this->call("playlistItems?part=snippet,contentDetails,status",json_encode($object),"POST");
+			if (!isset($response->id)) {
+				return false;
+			}
+			return new BigTreeYouTubePlaylistItem($response,$this);
+		}
+
+		/*
 			Function: deletePlaylist
 				Deletes a playlist owned by the authenticated user.
 
@@ -181,6 +226,18 @@
 
 		function deletePlaylist($id) {
 			$this->call("playlists?id=$id",array(),"DELETE");
+		}
+
+		/*
+			Function: deletePlaylistItem
+				Deletes a playlist item owned by the authenticated user.
+
+			Parameters:
+				id - The ID of the playlist item to delete.
+		*/
+
+		function deletePlaylistItem($id) {
+			$this->call("playlistItems?id=$id",array(),"DELETE");
 		}
 
 		/*
@@ -222,6 +279,7 @@
 		/*
 			Function: getChannel
 				Returns channel information for a given ID or username.
+				If neither a username or password is provided, the authenticated user's channel is returned.
 
 			Parameters:
 				id - The channel ID (optional)
@@ -235,14 +293,35 @@
 			$params = array("part" => "id,snippet,statistics");
 			if ($id) {
 				$params["id"] = $id;
-			} else {
+			} elseif ($username) {
 				$params["forUsername"] = $username; 
+			} else {
+				$params["mine"] = "true";
 			}
 			$response = $this->call("channels",$params);
 			if (!isset($response->items[0])) {
 				return false;
 			}
 			return new BigTreeYouTubeChannel($response->items[0],$this);
+		}
+
+		/*
+			Function: getPlaylist
+				Returns a playlist with the given ID.
+
+			Parameters:
+				id - The ID of the playlist to return.
+
+			Returns:
+				A BigTreeYouTubePlaylist object.
+		*/
+
+		function getPlaylist($id) {
+			$response = $this->call("playlists",array("part" => "id,snippet,status","id" => $id));
+			if (!isset($response->items)) {
+				return false;
+			}
+			return new BigTreeYouTubePlaylist($response->items[0],$this);
 		}
 
 		/*
@@ -275,7 +354,32 @@
 			foreach ($response->items as $item) {
 				$results[] = new BigTreeYouTubePlaylist($item,$this);
 			}
-			return new BigTreeYouTubeResultSet($this,"getPlaylists",array($channel,$count),$response,$results);
+			return new BigTreeYouTubeResultSet($this,"getPlaylists",array($channel,$count,$params),$response,$results);
+		}
+
+		/*
+			Function: getPlaylistItems
+				Returns the videos in a given playlist.
+
+			Parameters:
+				playlist - The playlist ID to retrieve videos for.
+				count - The number of results to return per page (defaults to 50, max 50)
+				params - Additional parameters to pass to the playlistItems API call.
+
+			Return:
+				A BigTreeYouTubeResultSet of BigTreeYouTubePlaylistItem objects.
+		*/
+
+		function getPlaylistItems($playlist,$count = 50,$params = array()) {
+			$response = $this->call("playlistItems",array_merge(array("part" => "id,snippet,contentDetails,status","playlistId" => $playlist,"maxResults" => $count),$params));
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $item) {
+				$results[] = new BigTreeYouTubePlaylistItem($item,$this);
+			}
+			return new BigTreeYouTubeResultSet($this,"getPlaylistItems",array($playlist,$count,$params),$response,$results);
 		}
 
 		/*
@@ -300,7 +404,7 @@
 			foreach ($response->items as $item) {
 				$results[] = $item->snippet->channelId;
 			}
-			return new BigTreeYouTubeResultSet($this,"getSubscribers",array($count,$order),$response,$results);
+			return new BigTreeYouTubeResultSet($this,"getSubscribers",array($count,$order,$params),$response,$results);
 		}
 
 		/*
@@ -316,7 +420,7 @@
 				A BigTreeYouTubeResultSet of BigTreeYouTubeSubscription objects.
 		*/
 
-		function getSubscriptions($count = 50,$order = "relevance") {
+		function getSubscriptions($count = 50,$order = "relevance",$params = array()) {
 			$response = $this->call("subscriptions",array_merge(array("part" => "id,snippet,contentDetails","mine" => "true","maxResults" => $count,"order" => $order),$params));
 			if (!isset($response->items)) {
 				return false;
@@ -325,7 +429,7 @@
 			foreach ($response->items as $item) {
 				$results[] = new BigTreeYouTubeSubscription($item,$this);
 			}
-			return new BigTreeYouTubeResultSet($this,"getSubscriptions",array(),$response,$results);
+			return new BigTreeYouTubeResultSet($this,"getSubscriptions",array($count,$order,$params),$response,$results);
 		}
 
 		/*
@@ -417,6 +521,53 @@
 		}
 
 		/*
+			Function: timeJoin
+				Joins a time object made by timeSplit into one readable by the YouTube API.
+		*/
+
+		function timeJoin($time) {
+			$t = "PT";
+			if ($time->Hours) {
+				$t .= $time->Hours."H";
+			}
+			if ($time->Minutes) {
+				$t .= $time->Minutes."M";
+			}
+			return $t.$time->Seconds."S";
+		}
+
+		/*
+			Function: timeSplit
+				Splits a YouTube video time length into an object.
+		*/
+
+		function timeSplit($time) {
+			$t = new stdClass;
+			$t->Hours = 0;
+			$t->Minutes = 0;
+			$t->Seconds = 0;
+
+			// Remove PT
+			$time = substr($time,2);
+			// See if we have hours
+			$h_pos = strpos($time,"H");
+			if ($h_pos !== false) {
+				$t->Hours = substr($time,0,$h_pos);
+				$time = substr($time,$h_pos + 1);
+			}
+			// See if we have minutes
+			$m_pos = strpos($time,"M");
+			if ($m_pos !== false) {
+				$t->Minutes = substr($time,0,$m_pos);
+				$time = substr($time,$m_pos + 1);
+			}
+			// Now seconds
+			$t->Seconds = floatval($time);
+
+			return $t;
+		}
+
+		/*
 			Function: unsubscribe
 				Unsubscribes the authenticated user from a given channel ID.
 
@@ -465,6 +616,202 @@
 				return false;
 			}
 			return true;
+		}
+
+		/*
+			Function: updatePlaylistItem
+				Updates the details of an item in a playlist.
+				Authenticated user must be the owner of the playlist.
+				*Currently note/start_at/end_at do not seem to be supported by the YouTube API.
+
+			Parameters:
+				item - The ID of the playlist item to update
+				playlist - The ID of the playlist this item is in
+				video - The video ID for this playlist item
+				position - Position to place the video in the playlist (optional)
+				note - A note to attach to the video (optional)
+				start_at - Time object (stdClass with Hours, Minutes, Seconds properties) to set as the start point for the video (optional)
+				end_at - Time object (stdClass with Hours, Minutes, Seconds properties) to set as the end point for the video (optional)
+
+			Returns:
+				A BigTreeYouTubePlaylistItem object on success.
+		*/
+
+		function updatePlaylistItem($item,$playlist,$video,$position = false,$note = false,$start_at = false,$end_at = false) {
+			$object = array(
+				"id" => $item,
+				"snippet" => array(
+					"playlistId" => $playlist,
+					"resourceId" => array("kind" => "youtube#video","videoId" => $video)
+				),
+				"contentDetails" => array()
+			);
+			if ($position !== false) {
+				$object["snippet"]["position"] = $position;
+			}
+			if ($note !== false) {
+				$object["contentDetails"]["note"] = $note;
+			}
+			if ($start_at !== false) {
+				$object["contentDetails"]["startAtMs"] = $this->timeJoin($start_at);
+			}
+			if ($end_at !== false) {
+				$object["contentDetails"]["endAtMs"] = $this->timeJoin($end_at);
+			}
+			$response = $this->call("playlistItems?part=snippet,contentDetails,status",json_encode($object),"PUT");
+			if (!isset($response->id)) {
+				return false;
+			}
+			return new BigTreeYouTubePlaylistItem($response,$this);
+		}
+	}
+
+	/*
+		Class: BigTreeYouTubeChannel
+	*/
+
+	class BigTreeYouTubeChannel {
+
+		function __construct($channel,&$api) {
+			$this->API = $api;
+			$this->ID = $channel->id;
+			$this->Title = $channel->snippet->title;
+			$this->Description = $channel->snippet->description;
+			$this->Timestamp = $channel->snippet->publishedAt ? date("Y-m-d H:i:s",strtotime($channel->snippet->publishedAt)) : false;
+			foreach ($channel->snippet->thumbnails as $key => $val) {
+				$key = ucwords($key);
+				$this->Images->$key = $val->url;
+			}
+			$this->ViewCount = $channel->statistics->viewCount;
+			$this->CommentCount = $channel->statistics->commentCount;
+			$this->SubscriberCount = $channel->statistics->subscriberCount;
+			$this->VideoCount = $channel->statistics->videoCount;
+		}
+
+		/*
+			Function: subscribe
+				Subscribes the authenticated user to the channel.
+		*/
+
+		function subscribe() {
+			return $this->API->subscribe($this->ID);
+		}
+
+		/*
+			Function: unsubscribe
+				Unsubscribes the authenticated user from the channel.
+		*/
+
+		function unsubscribe() {
+			return $this->API->unsubscribe($this->ID);
+		}
+	}
+
+	/*
+		Class: BigTreeYouTubePlaylist
+	*/
+
+	class BigTreeYouTubePlaylist {
+
+		function __construct($playlist,&$api) {
+			$this->API = $api;
+			$this->ChannelID = $playlist->snippet->channelId;
+			$this->ChannelTitle = $playlist->snippet->channelTitle;
+			$this->Description = $playlist->snippet->description;
+			$this->ID = $playlist->id;
+			$this->Images = new stdClass;
+			foreach ($playlist->snippet->thumbnails as $key => $val) {
+				$key = ucwords($key);
+				$this->Images->$key = $val->url;
+			}
+			$this->Privacy = $playlist->status->privacyStatus;
+			$this->Tags = $playlist->snippet->tags;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($playlist->snippet->publishedAt));
+			$this->Title = $playlist->snippet->title;
+		}
+
+		/*
+			Function: save
+				Saves the changes made to this playlist (Title, Description, Privacy, Tags)
+				Playlist must be owned by the authenticated user.
+
+			Returns:
+				true if successful.
+		*/
+
+		function save() {
+			return $this->API->updatePlaylist($this->ID,$this->Title,$this->Description,$this->Privacy,$this->Tags);
+		}
+
+		/*
+			Function: delete
+				Deletes the playlist.
+				Playlist must be owned by the authenticated user.
+		*/
+
+		function delete() {
+			return $this->API->deletePlaylist($this->ID);
+		}
+	}
+
+	/*
+		Class: BigTreeYouTubePlaylistItem
+	*/
+
+	class BigTreeYouTubePlaylistItem {
+
+		function __construct($item,&$api) {
+			$this->API = $api;
+			$this->ChannelID = $item->snippet->channelId;
+			$this->ChannelTitle = $item->snippet->channelTitle;
+			$this->Description = $item->snippet->description;
+			$this->ID = $item->id;
+			$this->Images = new stdClass;
+			foreach ($item->snippet->thumbnails as $key => $val) {
+				$key = ucwords($key);
+				$this->Images->$key = $val->url;
+			}
+			$this->Note = $item->contentDetails->note;
+			$this->PlaylistID = $item->snippet->playlistId;
+			$this->Position = $item->snippet->position;
+			$this->Privacy = $item->status->privacyStatus;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($item->snippet->publishedAt));
+			$this->Title = $item->snippet->title;
+			$this->VideoID = $item->snippet->resourceId->videoId;
+			$this->VideoEndAt = $api->timeSplit($item->contentDetails->endAtMs);
+			$this->VideoStartAt = $api->timeSplit($item->contentDetails->startAtMs);
+		}
+
+		/*
+			Function: delete
+				Deletes this item from the playlist.
+				Authenticated user must be the owner of the playlist.
+		*/
+
+		function delete() {
+			return $this->API->deletePlaylistItem($this->ID);
+		}
+
+		/*
+			Function: save
+				Saves changed information (Note, VideoStartAt, VideoEndAt, Position)
+				Authenticated user must be the owner of the playlist.
+		*/
+
+		function save() {
+			return $this->API->updatePlaylistItem($this->ID,$this->PlaylistID,$this->VideoID,$this->Position,$this->Note,$this->API->timeJoin($this->VideoStartAt),$this->API->timeJoin($this->VideoEndAt));
+		}
+
+		/*
+			Function: video
+				Returns more information about this item's video.
+
+			Returns:
+				A BigTreeYouTubeVideo object.
+		*/
+
+		function video() {
+			return $this->API->getVideo($this->VideoID);
 		}
 	}
 
@@ -530,13 +877,43 @@
 	}
 
 	/*
+		Class: BigTreeYouTubeSubscription
+	*/
+
+	class BigTreeYouTubeSubscription {
+
+		function __construct($subscription,&$api) {
+			$this->API = $api;
+
+			$channel = new stdClass;
+			$channel->snippet = $subscription->snippet;
+ 			// Not correct info for the channel so we move it
+ 			$created_at = $channel->snippet->publishedAt;
+ 			unset($channel->snippet->publishedAt);
+			$channel->id = $channel->snippet->resourceId->channelId;
+			$this->Channel = new BigTreeYouTubeChannel($channel,$api);
+
+			$this->ID = $subscription->id;
+			$this->Timestamp = date("Y-m-d H:i:s",strtotime($created_at));
+		}
+
+		/*
+			Function: delete
+				Removes this subscription from the authenticated user's subscribed channels.
+		*/
+
+		function delete() {
+			$this->API->call("subscriptions?id=".$this->ID,false,"DELETE");
+		}
+	}
+
+	/*
 		Class: BigTreeYouTubeVideo
 	*/
 
 	class BigTreeYouTubeVideo {
 
 		function __construct($video,&$api) {
-			$duration = explode("M",substr($video->contentDetails->duration,2));
 			$this->API = $api;
 			$this->Captioned = $video->contentDetails->caption;
 			$this->CategoryID = $video->snippet->categoryId;
@@ -547,26 +924,27 @@
 			$this->Description = $video->snippet->description;
 			$this->Dimension = $video->contentDetails->dimension;
 			$this->DislikeCount = $video->statistics->dislikeCount;
-			$this->Duration = intval($duration[0]) * 60 + intval($duration[1]);
-			$this->DurationMinutes = intval($duration[0]);
-			$this->DurationSeconds = intval($duration[1]);
+			$this->Duration = $api->timeSplit($video->contentDetails->duration);
 			$this->Embed = $video->player->embedHtml;
 			$this->Embeddable = $video->status->embeddable;
 			$this->FavoriteCount = $video->statistics->favoriteCount;
 			$this->ID = $video->id;
-			$this->Image = $video->snippet->thumbnails->high->url;
+			$this->Images = new stdClass;
+			foreach ($video->snippet->thumbnails as $key => $val) {
+				$key = ucwords($key);
+				$this->Images->$key = $val->url;
+			}
 			$this->License = $video->status->license;
 			$this->LicensedContent = $video->contentDetails->licensedContent;
 			$this->LikeCount = $video->statistics->likeCount;
+			$this->Location = new stdClass;
 			$this->Location->Latitude = $video->recordingDetails->location->latitude;
 			$this->Location->Longitude = $video->recordingDetails->location->longitude;
 			$this->Location->Elevation = $video->recordingDetails->location->elevation;
 			$this->Location->Description = $video->recordingDetails->locationDescription;
 			$this->Privacy = $video->status->privacyStatus;
 			$this->RecordedTimestamp = $video->recordingDetails->recordingDate ? date("Y-m-d H:i:s",strtotime($video->recordingDetails->recordingDate)) : "";
-			$this->SmallImage = $video->snippet->thumbnails->medium->url;
 			$this->Tags = $video->snippet->tags;
-			$this->ThumbnailImage = $video->snippet->thumbnails->default->url;
 			$this->Timestamp = date("Y-m-d H:i:s",strtotime($video->snippet->publishedAt));
 			$this->Title = $video->snippet->title;
 			$this->UploadFailureReason = $video->status->failureReason;
@@ -626,124 +1004,6 @@
 				return true;
 			}
 			return false;
-		}
-	}
-
-	/*
-		Class: BigTreeYouTubeSubscription
-	*/
-
-	class BigTreeYouTubeSubscription {
-
-		function __construct($subscription,&$api) {
-			$this->API = $api;
-
-			$channel = new stdClass;
-			$channel->snippet = $subscription->snippet;
- 			// Not correct info for the channel so we move it
- 			$created_at = $channel->snippet->publishedAt;
- 			unset($channel->snippet->publishedAt);
-			$channel->id = $channel->snippet->resourceId->channelId;
-			$this->Channel = new BigTreeYouTubeChannel($channel,$api);
-
-			$this->ID = $subscription->id;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($created_at));
-		}
-
-		/*
-			Function: delete
-				Removes this subscription from the authenticated user's subscribed channels.
-		*/
-
-		function delete() {
-			$this->API->call("subscriptions?id=".$this->ID,false,"DELETE");
-		}
-	}
-
-	/*
-		Class: BigTreeYouTubeChannel
-	*/
-
-	class BigTreeYouTubeChannel {
-
-		function __construct($channel,&$api) {
-			$this->API = $api;
-			$this->ID = $channel->id;
-			$this->Title = $channel->snippet->title;
-			$this->Description = $channel->snippet->description;
-			$this->Timestamp = $channel->snippet->publishedAt ? date("Y-m-d H:i:s",strtotime($channel->snippet->publishedAt)) : false;
-			foreach ($channel->snippet->thumbnails as $key => $val) {
-				$key = ucwords($key);
-				$this->Images->$key = $val->url;
-			}
-			$this->ViewCount = $channel->statistics->viewCount;
-			$this->CommentCount = $channel->statistics->commentCount;
-			$this->SubscriberCount = $channel->statistics->subscriberCount;
-			$this->VideoCount = $channel->statistics->videoCount;
-		}
-
-		/*
-			Function: subscribe
-				Subscribes the authenticated user to the channel.
-		*/
-
-		function subscribe() {
-			return $this->API->subscribe($this->ID);
-		}
-
-		/*
-			Function: unsubscribe
-				Unsubscribes the authenticated user from the channel.
-		*/
-
-		function unsubscribe() {
-			return $this->API->unsubscribe($this->ID);
-		}
-	}
-
-	/*
-		Class: BigTreeYouTubePlaylist
-	*/
-
-	class BigTreeYouTubePlaylist {
-
-		function __construct($playlist,&$api) {
-			$this->API = $api;
-			$this->ChannelID = $playlist->snippet->channelId;
-			$this->ChannelTitle = $playlist->snippet->channelTitle;
-			$this->Description = $playlist->snippet->description;
-			$this->ID = $playlist->id;
-			foreach ($playlist->snippet->thumbnails as $key => $val) {
-				$key = ucwords($key);
-				$this->Images->$key = $val->url;
-			}
-			$this->Privacy = $playlist->status->privacyStatus;
-			$this->Tags = $playlist->snippet->tags;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($playlist->snippet->publishedAt));
-			$this->Title = $playlist->snippet->title;
-		}
-
-		/*
-			Function: save
-				Saves the changes made to this playlist (Title, Description, Privacy, Tags)
-				Playlist must be owned by the authenticated user.
-
-			Returns:
-				true if successful.
-		*/
-
-		function save() {
-			return $this->API->updatePlaylist($this->ID,$this->Title,$this->Description,$this->Privacy,$this->Tags);
-		}
-
-		/*
-			Function: delete
-				Deletes the playlist.
-				Playlist must be owned by the authenticated user.
-		*/
-
-		function delete() {
-			return $this->API->deletePlaylist($this->ID);
 		}
 	}
 ?>
