@@ -905,68 +905,78 @@
 
 		function __construct($tweet,&$api) {
 			$this->API = $api;
-			$this->Content = $tweet->text;
-			$this->FavoriteCount = $tweet->favorite_count;
-			$this->Favorited = $tweet->favorited;
-			$this->Hashtags = array();
-			if (is_array($tweet->entities->hashtags)) {
-				foreach ($tweet->entities->hashtags as $hashtag) {
-					$this->Hashtags[] = $hashtag->text;
+			isset($tweet->text) ? $this->Content = $tweet->text : false;
+			isset($tweet->favorite_count) ? $this->FavoriteCount = $tweet->favorite_count : false;
+			isset($tweet->favorited) ? $this->Favorited = $tweet->favorited : false;
+			if (isset($tweet->entities->hashtags)) {
+				$this->Hashtags = array();
+				if (is_array($tweet->entities->hashtags)) {
+					foreach ($tweet->entities->hashtags as $hashtag) {
+						$this->Hashtags[] = $hashtag->text;
+					}
 				}
 			}
 			$this->ID = $tweet->id;
-			$this->IsRetweet = $tweet->retweeted_status ? true : false;
-			$this->Language = $tweet->lang;
-			$this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text)));
-			$this->Media = array();
-			if (is_array($tweet->entities->media)) {
-				foreach ($tweet->entities->media as $media) {
-					$m = new stdClass;
-					$m->DisplayURL = $media->display_url;
-					$m->ID = $media->id;
-					$m->ExpandedURL = $media->expanded_url;
-					$m->SecureURL = $media->media_url_https;
-					foreach ($media->sizes as $size => $info) {
-						$size_key = ucwords($size);
-						$m->Sizes->$size_key->Height = $info->h;
-						$m->Sizes->$size_key->Width = $info->w;
-						$m->Sizes->$size_key->SecureURL = $media->media_url_https.":".$size;
-						$m->Sizes->$size_key->URL = $media->media_url.":".$size;
+			isset($tweet->retweeted_status) ? ($this->IsRetweet = $tweet->retweeted_status ? true : false) : false;
+			isset($tweet->lang) ? $this->Language = $tweet->lang : false;
+			isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text))) : false;
+			if (isset($tweet->entities->media)) {
+				$this->Media = array();
+				if (is_array($tweet->entities->media)) {
+					foreach ($tweet->entities->media as $media) {
+						$m = new stdClass;
+						$m->DisplayURL = $media->display_url;
+						$m->ID = $media->id;
+						$m->ExpandedURL = $media->expanded_url;
+						$m->SecureURL = $media->media_url_https;
+						foreach ($media->sizes as $size => $info) {
+							$size_key = ucwords($size);
+							$m->Sizes->$size_key->Height = $info->h;
+							$m->Sizes->$size_key->Width = $info->w;
+							$m->Sizes->$size_key->SecureURL = $media->media_url_https.":".$size;
+							$m->Sizes->$size_key->URL = $media->media_url.":".$size;
+						}
+						$m->Type = $media->type;
+						$m->URL = $media->media_url;
+						$this->Media[] = $m;
 					}
-					$m->Type = $media->type;
-					$m->URL = $media->media_url;
-					$this->Media[] = $m;
 				}
 			}
-			$this->Mentions = array();
-			if (is_array($tweet->entities->user_mentions)) {
-				foreach ($tweet->entities->user_mentions as $mention) {
-					$this->Mentions[] = new BigTreeTwitterUser($mention,$api);
+			if (isset($tweet->entities->user_mentions)) {
+				$this->Mentions = array();
+				if (is_array($tweet->entities->user_mentions)) {
+					foreach ($tweet->entities->user_mentions as $mention) {
+						$this->Mentions[] = new BigTreeTwitterUser($mention,$api);
+					}
 				}
 			}
-			$this->OriginalTweet = $tweet->retweeted_status ? new BigTreeTwitterTweet($tweet->retweeted_status,$api) : false;
-			$this->Place = new BigTreeTwitterPlace($tweet->place,$api);
-			$this->RetweetCount = $tweet->retweet_count;
-			$this->Retweeted = $tweet->retweeted;
-			$this->Source = $tweet->source;
-			$this->Symbols = array();
-			if (is_array($tweet->entities->symbols)) {
-				foreach ($tweet->entities->symbols as $symbol) {
-					$this->Symbols[] = $symbol->text;
+			$tweet->retweeted_status ? $this->OriginalTweet = new BigTreeTwitterTweet($tweet->retweeted_status,$api) : false;
+			isset($tweet->place) ? $this->Place = new BigTreeTwitterPlace($tweet->place,$api) : false;
+			isset($tweet->retweet_count) ? $this->RetweetCount = $tweet->retweet_count : false;
+			isset($tweet->retweeted) ? $this->Retweeted = $tweet->retweeted : false;
+			isset($tweet->source) ? $this->Source = $tweet->source : false;
+			if (isset($tweet->entities->symbols)) {
+				$this->Symbols = array();
+				if (is_array($tweet->entities->symbols)) {
+					foreach ($tweet->entities->symbols as $symbol) {
+						$this->Symbols[] = $symbol->text;
+					}
 				}
 			}
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at));
-			$this->URLs = array();
-			if (is_array($tweet->entities->url)) {
-				foreach ($tweet->entities->urls as $url) {
-					$this->URLs[] = (object) array(
-						"URL" => $url->url,
-						"ExpandedURL" => $url->expanded_url,
-						"DisplayURL" => $url->display_url
-					);
+			isset($tweet->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at)) : false;
+			if (isset($tweet->entities->url)) {
+				$this->URLs = array();
+				if (is_array($tweet->entities->url)) {
+					foreach ($tweet->entities->urls as $url) {
+						$this->URLs[] = (object) array(
+							"URL" => $url->url,
+							"ExpandedURL" => $url->expanded_url,
+							"DisplayURL" => $url->display_url
+						);
+					}
 				}
 			}
-			$this->User = new BigTreeTwitterUser($tweet->user,$api);
+			isset($tweet->user) ? $this->User = new BigTreeTwitterUser($tweet->user,$api) : false;
 		}
 
 		/*
@@ -1090,27 +1100,27 @@
 
 		function __construct($user,&$api) {
 			$this->API = $api;
-			$this->Description = $user->description;
-			$this->Favorites = $user->favourites_count;
-			$this->FollowersCount = $user->followers_count;
-			$this->Following = $user->following;
-			$this->FriendsCount = $user->friends_count;
-			$this->GeoEnabled = $user->geo_enabled;
-			$this->ID = $user->id;
-			$this->Image = $user->profile_image_url;
-			$this->ImageHTTPS = $user->profile_image_url_https;
-			$this->Language = $user->lang;
-			$this->ListedCount = $user->listed_count;
-			$this->Location = $user->location;
-			$this->Name = $user->name;
-			$this->Protected = $user->protected;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($user->created_at));
-			$this->Timezone = $user->time_zone;
-			$this->TimezoneOffset = $user->utc_offset;
-			$this->TweetCount = $user->statuses_count;
-			$this->Username = $user->screen_name;
-			$this->URL = $user->url;
-			$this->Verified = $user->verified;
+			isset($user->description) ? $this->Description = $user->description : false;
+			isset($user->favourites_count) ? $this->Favorites = $user->favourites_count : false;
+			isset($user->followers_count) ? $this->FollowersCount = $user->followers_count : false;
+			isset($user->following) ? $this->Following = $user->following : false;
+			isset($user->friends_count) ? $this->FriendsCount = $user->friends_count : false;
+			isset($user->geo_enabled) ? $this->GeoEnabled = $user->geo_enabled : false;
+			isset($user->id) ? $this->ID = $user->id : false;
+			isset($user->profile_image_url) ? $this->Image = $user->profile_image_url : false;
+			isset($user->profile_image_url_https) ? $this->ImageHTTPS = $user->profile_image_url_https : false;
+			isset($user->lang) ? $this->Language = $user->lang : false;
+			isset($user->listed_count) ? $this->ListedCount = $user->listed_count : false;
+			isset($user->location) ? $this->Location = $user->location : false;
+			isset($user->name) ? $this->Name = $user->name : false;
+			isset($user->protected) ? $this->Protected = $user->protected : false;
+			isset($user->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($user->created_at)) : false;
+			isset($user->time_zone) ? $this->Timezone = $user->time_zone : false;
+			isset($user->utc_offset) ? $this->TimezoneOffset = $user->utc_offset : false;
+			isset($user->statuses_count) ? $this->TweetCount = $user->statuses_count : false;
+			isset($user->screen_name) ? $this->Username = $user->screen_name : false;
+			isset($user->url) ? $this->URL = $user->url : false;
+			isset($user->verified) ? $this->Verified = $user->verified : false;
 		}
 
 		/*
@@ -1194,14 +1204,14 @@
 
 		function __construct($place,&$api) {
 			$this->API = $api;
-			$this->BoundingBox = $place->bounding_box->coordinates;
-			$this->Country = $place->country;
-			$this->CountryCode = $place->country_code;
-			$this->FullName = $place->full_name;
-			$this->ID = $place->id;
-			$this->Name = $place->name;
-			$this->Type = $place->place_type;
-			$this->URL = $place->url;
+			isset($place->bounding_box->coordinates) ? $this->BoundingBox = $place->bounding_box->coordinates : false;
+			isset($place->country) ? $this->Country = $place->country : false;
+			isset($place->country_code) ? $this->CountryCode = $place->country_code : false;
+			isset($place->full_name) ? $this->FullName = $place->full_name : false;
+			isset($place->id) ? $this->ID = $place->id : false;
+			isset($place->name) ? $this->Name = $place->name : false;
+			isset($place->place_type) ? $this->Type = $place->place_type : false;
+			isset($place->url) ? $this->URL = $place->url : false;
 		}
 
 		/*
@@ -1231,12 +1241,12 @@
 
 		function __construct($message,&$api) {
 			$this->API = $api;
-			$this->Content = $message->text;
-			$this->ID = $message->id;
-			$this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://search.twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$message->text)));
-			$this->Recipient = new BigTreeTwitterUser($message->recipient,$api);
-			$this->Sender = new BigTreeTwitterUser($message->sender,$api);
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at));
+			isset($message->text) ? $this->Content = $message->text : false;
+			isset($message->id) ? $this->ID = $message->id : false;
+			isset($message->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://search.twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$message->text))) : false;
+			isset($message->recipient) ? $this->Recipient = new BigTreeTwitterUser($message->recipient,$api) : false;
+			isset($message->sender) ? $this->Sender = new BigTreeTwitterUser($message->sender,$api) : false;
+			isset($message->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at)) : false;
 		}
 
 		/*
