@@ -805,10 +805,10 @@
 
 		function __construct($location,$api) {
 			$this->API = $api;
-			isset($location->id) ? : $this->ID = $location->id : false;
-			isset($location->latitude) ? : $this->Latitude = $location->latitude : false;
-			isset($location->longitude) ? : $this->Longitude = $location->longitude : false;
-			isset($location->name) ? : $this->Name = $location->name : false;
+			isset($location->id) ? $this->ID = $location->id : false;
+			isset($location->latitude) ? $this->Latitude = $location->latitude : false;
+			isset($location->longitude) ? $this->Longitude = $location->longitude : false;
+			isset($location->name) ? $this->Name = $location->name : false;
 		}
 
 		/*
@@ -869,6 +869,17 @@
 			isset($media->link) ? $this->URL = $media->link : false;
 			isset($media->user) ? $this->User = new BigTreeInstagramUser($media->user,$api) : false;
 			isset($media->users_in_photo) ? $this->UsersInPhoto = $media->users_in_photo : false;
+			if (isset($media->videos)) {
+				$this->Videos = new stdClass;
+				$this->Videos->Standard = new stdClass;
+				$this->Videos->Standard->URL = $media->videos->standard_resolution->url;
+				$this->Videos->Standard->Height = $media->videos->standard_resolution->height;
+				$this->Videos->Standard->Width = $media->videos->standard_resolution->width;
+				$this->Videos->LowRes = new stdClass;
+				$this->Videos->LowRes->URL = $media->videos->low_resolution->url;
+				$this->Videos->LowRes->Height = $media->videos->low_resolution->height;
+				$this->Videos->LowRes->Width = $media->videos->low_resolution->width;
+			}
 		}
 
 		/*
