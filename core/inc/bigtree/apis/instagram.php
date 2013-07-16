@@ -762,16 +762,17 @@
 
 			Parameters:
 				comment - Instagram data
+				media_id - ID for the media the comment was attached to
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
 		function __construct($comment,$media_id,&$api) {
 			$this->API = $api;
-			$this->Content = $comment->text;
-			$this->ID = $comment->id;
+			isset($comment->text) ? $this->Content = $comment->text : false;
+			isset($comment->id) ? $this->ID = $comment->id : false;
 			$this->MediaID = $media_id;
-			$this->Timestamp = date("Y-m-d H:i:s",$comment->created_time);
-			$this->User = new BigTreeInstagramUser($comment->from,$api);
+			isset($comment->created_time) ? $this->Timestamp = date("Y-m-d H:i:s",$comment->created_time) : false;
+			isset($comment->from) ? $this->User = new BigTreeInstagramUser($comment->from,$api) : false;
 		}
 
 		/*
@@ -804,10 +805,10 @@
 
 		function __construct($location,$api) {
 			$this->API = $api;
-			$this->ID = $location->id;
-			$this->Latitude = $location->latitude;
-			$this->Longitude = $location->longitude;
-			$this->Name = $location->name;
+			isset($location->id) ? : $this->ID = $location->id : false;
+			isset($location->latitude) ? : $this->Latitude = $location->latitude : false;
+			isset($location->longitude) ? : $this->Longitude = $location->longitude : false;
+			isset($location->name) ? : $this->Name = $location->name : false;
 		}
 
 		/*
@@ -838,23 +839,23 @@
 
 		function __construct($media,&$api) {
 			$this->API = $api;
-			$this->Caption = $media->caption ? $media->caption->text : "";
-			$this->Filter = $media->filter;
-			$this->ID = $media->id;
-			$this->Image = $media->images->standard_resolution->url;
-			$this->Liked = $media->user_has_liked;
-			if ($media->likes) {
+			isset($media->caption) ? $this->Caption = $media->caption->text : false;
+			isset($media->filter) ? $this->Filter = $media->filter : false;
+			isset($media->id) ? $this->ID = $media->id : false;
+			isset($media->images->standard_resolution->url) ? $this->Image = $media->images->standard_resolution->url : false;
+			isset($media->user_has_liked) ? $this->Liked = $media->user_has_liked : false;
+			if (isset($media->likes)) {
 				$this->LikesCount = $media->likes->count;
 				$this->Likes = array();
 				foreach ($media->likes->data as $user) {
 					$this->Likes[] = new BigTreeInstagramUser($user,$api);
 				}
 			}
-			if ($media->location) {
+			if (isset($media->location)) {
 				$this->Location = new BigTreeInstagramLocation($media->location,$api);
 			}
-			$this->SmallImage = $media->images->low_resolution->url;
-			if ($media->tags) {
+			isset($media->images->low_resolution->url) ? $this->SmallImage = $media->images->low_resolution->url : false;
+			if (isset($media->tags)) {
 				$this->Tags = array();
 				foreach ($media->tags as $tag_name) {
 					$tag = new BigTreeInstagramTag(false,$api);
@@ -862,12 +863,12 @@
 					$this->Tags[] = $tag;
 				}
 			}
-			$this->ThumbnailImage = $media->images->thumbnail->url;
-			$this->Timestamp = date("Y-m-d H:i:s",$media->created_time);
-			$this->Type = $media->type;
-			$this->URL = $media->link;
-			$this->User = new BigTreeInstagramUser($media->user,$api);
-			$this->UsersInPhoto = $media->users_in_photo;
+			isset($media->images->thumbnail->url) ? $this->ThumbnailImage = $media->images->thumbnail->url : false;
+			isset($media->created_time) ? $this->Timestamp = date("Y-m-d H:i:s",$media->created_time) : false;
+			isset($media->type) ? $this->Type = $media->type : false;
+			isset($media->link) ? $this->URL = $media->link : false;
+			isset($media->user) ? $this->User = new BigTreeInstagramUser($media->user,$api) : false;
+			isset($media->users_in_photo) ? $this->UsersInPhoto = $media->users_in_photo : false;
 		}
 
 		/*
@@ -988,8 +989,8 @@
 
 		function __construct($tag,&$api) {
 			$this->API = $api;
-			$this->MediaCount = $tag->media_count;
-			$this->Name = $tag->name;
+			isset($tag->media_count) ? $this->MediaCount = $tag->media_count : false;
+			isset($tag->name) ? $this->Name = $tag->name : false;
 		}
 
 		/*
@@ -1019,15 +1020,15 @@
 
 		function __construct($user,&$api) {
 			$this->API = $api;
-			$this->Description = $user->bio;
-			$this->FollowersCount = $user->counts->followed_by;
-			$this->FriendsCount = $user->counts->follows;
-			$this->ID = $user->id;
-			$this->Image = $user->profile_picture;
-			$this->MediaCount = $user->counts->media;
-			$this->Name = $user->full_name;
-			$this->URL = $user->website;
-			$this->Username = $user->username;
+			isset($user->bio) ? $this->Description = $user->bio : false;
+			isset($user->counts->followed_by) ? $this->FollowersCount = $user->counts->followed_by : false;
+			isset($user->counts->follows) ? $this->FriendsCount = $user->counts->follows : false;
+			isset($user->id) ? $this->ID = $user->id : false;
+			isset($user->profile_picture) ? $this->Image = $user->profile_picture : false;
+			isset($user->counts->media) ? $this->MediaCount = $user->counts->media : false;
+			isset($user->full_name) ? $this->Name = $user->full_name : false;
+			isset($user->website) ? $this->URL = $user->website : false;
+			isset($user->username) ? $this->Username = $user->username : false;
 		}
 
 		/*
