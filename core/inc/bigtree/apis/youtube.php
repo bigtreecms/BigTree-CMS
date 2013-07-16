@@ -282,14 +282,14 @@
 				If neither a username or password is provided, the authenticated user's channel is returned.
 
 			Parameters:
-				id - The channel ID (optional)
 				username - The channel username (optional)
+				id - The channel ID (optional)
 
 			Returns:
 				A BigTreeYouTubeChannel object.
 		*/
 
-		function getChannel($id = false,$username = false) {
+		function getChannel($username = false,$id = false) {
 			$params = array("part" => "id,snippet,statistics");
 			if ($id) {
 				$params["id"] = $id;
@@ -304,6 +304,39 @@
 			}
 			return new BigTreeYouTubeChannel($response->items[0],$this);
 		}
+
+		/*
+			Function: getChannelVideos
+				Returns the videos for a given channel ID.
+
+			Parameters:
+				channel - The channel ID to retrieve videos for.
+				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
+				count - Number of videos to return (defaults to 10).
+				params - Additional parameters to pass to the search API call.
+
+			Returns:
+				A BigTreeYouTubeResultSet of BigTreeYouTubeVideo objects.
+		*/
+
+		function getChannelVideos($channel,$order = "date",$count = 10,$params = array()) {
+			$response = $this->call("search",array_merge(array(
+				"part" => "snippet",
+				"type" => "video",
+				"channelId" => $channel,
+				"order" => $order,
+				"maxResults" => $count
+			),$params));
+
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $video) {
+				$results[] = new BigTreeYouTubeVideo($video,$this);
+			}
+			return new BigTreeYouTubeResultSet($this,"getChannelVideos",array($query,$order,$count,$params),$response,$results);
+		}	
 
 		/*
 			Function: getPlaylist
@@ -674,18 +707,37 @@
 
 		function __construct($channel,&$api) {
 			$this->API = $api;
+			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;
+			isset($channel->snippet->description) ? $this->Description = $channel->snippet->description : false;
 			$this->ID = $channel->id;
-			$this->Title = $channel->snippet->title;
-			$this->Description = $channel->snippet->description;
-			$this->Timestamp = $channel->snippet->publishedAt ? date("Y-m-d H:i:s",strtotime($channel->snippet->publishedAt)) : false;
-			foreach ($channel->snippet->thumbnails as $key => $val) {
-				$key = ucwords($key);
-				$this->Images->$key = $val->url;
+			if (isset($channel->snippet->thumbnails)) {
+				$this->Images = new stdClass;
+				foreach ($channel->snippet->thumbnails as $key => $val) {
+					$key = ucwords($key);
+					$this->Images->$key = $val->url;
+				}
 			}
-			$this->ViewCount = $channel->statistics->viewCount;
-			$this->CommentCount = $channel->statistics->commentCount;
-			$this->SubscriberCount = $channel->statistics->subscriberCount;
-			$this->VideoCount = $channel->statistics->videoCount;
+			isset($channel->statistics->subscriberCount) ? $this->SubscriberCount = $channel->statistics->subscriberCount : false;
+			isset($channel->snippet->publishedAt) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($channel->snippet->publishedAt)) : false;
+			isset($channel->snippet->title) ? $this->Title = $channel->snippet->title : false;
+			isset($channel->statistics->videoCount) ? $this->VideoCount = $channel->statistics->videoCount : false;
+			isset($channel->statistics->viewCount) ? $this->ViewCount = $channel->statistics->viewCount : false;
+		}
+
+		/*
+			Function: getVideos
+				Returns the videos for this channel.
+
+			Params:
+				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
+				count - Number of videos to return (defaults to 10).
+
+			Returns:
+				A BigTreeYouTubeResultSet of BigTreeYouTubeVideo objects.
+		*/
+
+		function getVideos($order = "date",$count = 10) {
+			return $this->API->getChannelVideos($this->ID,$order,$count);
 		}
 
 		/*
@@ -715,19 +767,21 @@
 
 		function __construct($playlist,&$api) {
 			$this->API = $api;
-			$this->ChannelID = $playlist->snippet->channelId;
-			$this->ChannelTitle = $playlist->snippet->channelTitle;
-			$this->Description = $playlist->snippet->description;
+			isset($playlist->snippet->channelId) ? $this->ChannelID = $playlist->snippet->channelId : false;
+			isset($playlist->snippet->channelTitle) ? $this->ChannelTitle = $playlist->snippet->channelTitle : false;
+			isset($playlist->snippet->description) ? $this->Description = $playlist->snippet->description : false;
 			$this->ID = $playlist->id;
-			$this->Images = new stdClass;
-			foreach ($playlist->snippet->thumbnails as $key => $val) {
-				$key = ucwords($key);
-				$this->Images->$key = $val->url;
+			if (isset($playlist->snippet->thumbnails)) {
+				$this->Images = new stdClass;
+				foreach ($playlist->snippet->thumbnails as $key => $val) {
+					$key = ucwords($key);
+					$this->Images->$key = $val->url;
+				}
 			}
-			$this->Privacy = $playlist->status->privacyStatus;
-			$this->Tags = $playlist->snippet->tags;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($playlist->snippet->publishedAt));
-			$this->Title = $playlist->snippet->title;
+			isset($playlist->status->privacyStatus) ? $this->Privacy = $playlist->status->privacyStatus : false;
+			isset($playlist->snippet->tags) ? $this->Tags = $playlist->snippet->tags : false;
+			isset($playlist->snippet->publishedAt) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($playlist->snippet->publishedAt)) : false;
+			isset($playlist->snippet->title) ? $this->Title = $playlist->snippet->title : false;
 		}
 
 		/*
@@ -762,24 +816,26 @@
 
 		function __construct($item,&$api) {
 			$this->API = $api;
-			$this->ChannelID = $item->snippet->channelId;
-			$this->ChannelTitle = $item->snippet->channelTitle;
-			$this->Description = $item->snippet->description;
+			isset($item->snippet->channelId) ? $this->ChannelID = $item->snippet->channelId : false;
+			isset($item->snippet->channelTitle) ? $this->ChannelTitle = $item->snippet->channelTitle : false;
+			isset($item->snippet->description) ? $this->Description = $item->snippet->description : false;
 			$this->ID = $item->id;
-			$this->Images = new stdClass;
-			foreach ($item->snippet->thumbnails as $key => $val) {
-				$key = ucwords($key);
-				$this->Images->$key = $val->url;
+			if (isset($item->snippet->thumbnails)) {
+				$this->Images = new stdClass;
+				foreach ($item->snippet->thumbnails as $key => $val) {
+					$key = ucwords($key);
+					$this->Images->$key = $val->url;
+				}
 			}
-			$this->Note = $item->contentDetails->note;
-			$this->PlaylistID = $item->snippet->playlistId;
-			$this->Position = $item->snippet->position;
-			$this->Privacy = $item->status->privacyStatus;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($item->snippet->publishedAt));
-			$this->Title = $item->snippet->title;
-			$this->VideoID = $item->snippet->resourceId->videoId;
-			$this->VideoEndAt = $api->timeSplit($item->contentDetails->endAtMs);
-			$this->VideoStartAt = $api->timeSplit($item->contentDetails->startAtMs);
+			isset($item->contentDetails->note) ? $this->Note = $item->contentDetails->note : false;
+			isset($item->snippet->playlistId) ? $this->PlaylistID = $item->snippet->playlistId : false;
+			isset($item->snippet->position) ? $this->Position = $item->snippet->position : false;
+			isset($item->status->privacyStatus) ? $this->Privacy = $item->status->privacyStatus : false;
+			isset($item->snippet->publishedAt) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($item->snippet->publishedAt)) : false;
+			isset($item->snippet->title) ? $this->Title = $item->snippet->title : false;
+			isset($item->snippet->resourceId->videoId) ? $this->VideoID = $item->snippet->resourceId->videoId : false;
+			isset($item->contentDetails->endAtMs) ? $this->VideoEndAt = $api->timeSplit($item->contentDetails->endAtMs) : false;
+			isset($item->contentDetails->startAtMs) ? $this->VideoStartAt = $api->timeSplit($item->contentDetails->startAtMs) : false;
 		}
 
 		/*
@@ -915,42 +971,46 @@
 
 		function __construct($video,&$api) {
 			$this->API = $api;
-			$this->Captioned = $video->contentDetails->caption;
-			$this->CategoryID = $video->snippet->categoryId;
-			$this->ChannelTitle = $video->snippet->channelTitle;
-			$this->CommentCount = $video->statistics->commentCount;
-			$this->ContentRatings = $video->contentDetails->contentRating;
-			$this->Definition = $video->contentDetails->definition;
-			$this->Description = $video->snippet->description;
-			$this->Dimension = $video->contentDetails->dimension;
-			$this->DislikeCount = $video->statistics->dislikeCount;
-			$this->Duration = $api->timeSplit($video->contentDetails->duration);
-			$this->Embed = $video->player->embedHtml;
-			$this->Embeddable = $video->status->embeddable;
-			$this->FavoriteCount = $video->statistics->favoriteCount;
-			$this->ID = $video->id;
-			$this->Images = new stdClass;
-			foreach ($video->snippet->thumbnails as $key => $val) {
-				$key = ucwords($key);
-				$this->Images->$key = $val->url;
+			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;
+			isset($video->snippet->categoryId) ? $this->CategoryID = $video->snippet->categoryId : false;
+			isset($video->snippet->channelTitle) ? $this->ChannelTitle = $video->snippet->channelTitle : false;
+			isset($video->statistics->commentCount) ? $this->CommentCount = $video->statistics->commentCount : false;
+			isset($video->contentDetails->contentRating) ? $this->ContentRatings = $video->contentDetails->contentRating : false;
+			isset($video->contentDetails->definition) ? $this->Definition = $video->contentDetails->definition : false;
+			isset($video->snippet->description) ? $this->Description = $video->snippet->description : false;
+			isset($video->contentDetails->dimension) ? $this->Dimension = $video->contentDetails->dimension : false;
+			isset($video->statistics->dislikeCount) ? $this->DislikeCount = $video->statistics->dislikeCount : false;
+			isset($video->contentDetails->duration) ? $this->Duration = $api->timeSplit($video->contentDetails->duration) : false;
+			isset($video->player->embedHtml) ? $this->Embed = $video->player->embedHtml : false;
+			isset($video->status->embeddable) ? $this->Embeddable = $video->status->embeddable : false;
+			isset($video->statistics->favoriteCount) ? $this->FavoriteCount = $video->statistics->favoriteCount : false;
+			$this->ID = is_string($video->id) ? $video->id : $video->id->videoId;
+			if (isset($video->snippet->thumbnails)) {
+				$this->Images = new stdClass;
+				foreach ($video->snippet->thumbnails as $key => $val) {
+					$key = ucwords($key);
+					$this->Images->$key = $val->url;
+				}
 			}
-			$this->License = $video->status->license;
-			$this->LicensedContent = $video->contentDetails->licensedContent;
-			$this->LikeCount = $video->statistics->likeCount;
-			$this->Location = new stdClass;
-			$this->Location->Latitude = $video->recordingDetails->location->latitude;
-			$this->Location->Longitude = $video->recordingDetails->location->longitude;
-			$this->Location->Elevation = $video->recordingDetails->location->elevation;
-			$this->Location->Description = $video->recordingDetails->locationDescription;
-			$this->Privacy = $video->status->privacyStatus;
-			$this->RecordedTimestamp = $video->recordingDetails->recordingDate ? date("Y-m-d H:i:s",strtotime($video->recordingDetails->recordingDate)) : "";
-			$this->Tags = $video->snippet->tags;
-			$this->Timestamp = date("Y-m-d H:i:s",strtotime($video->snippet->publishedAt));
-			$this->Title = $video->snippet->title;
-			$this->UploadFailureReason = $video->status->failureReason;
-			$this->UploadRejectionReason = $video->status->rejectionReason;
-			$this->UploadStatus = $video->status->uploadStatus;
-			$this->ViewCount = $video->statistics->viewCount;
+			isset($video->status->license) ? $this->License = $video->status->license : false;
+			isset($video->contentDetails->licensedContent) ? $this->LicensedContent = $video->contentDetails->licensedContent : false;
+			isset($video->statistics->likeCount) ? $this->LikeCount = $video->statistics->likeCount : false;
+			if (isset($video->recordingDetails->location)) {
+				$this->Location = new stdClass;
+				$this->Location->Latitude = $video->recordingDetails->location->latitude;
+				$this->Location->Longitude = $video->recordingDetails->location->longitude;
+				$this->Location->Elevation = $video->recordingDetails->location->elevation;
+				$this->Location->Description = $video->recordingDetails->locationDescription;
+			}
+			isset($video->status->privacyStatus) ? $this->Privacy = $video->status->privacyStatus : false;
+			isset($video->recordingDetails->recordingDate) ? $this->RecordedTimestamp = $video->recordingDetails->recordingDate : false;
+			isset($video->snippet->tags) ? $this->Tags = $video->snippet->tags : false;
+			isset($video->snippet->publishedAt) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($video->snippet->publishedAt)) : false;
+			isset($video->snippet->title) ? $this->Title = $video->snippet->title : false;
+			isset($video->status->failureReason) ? $this->UploadFailureReason = $video->status->failureReason : false;
+			isset($video->status->rejectionReason) ? $this->UploadRejectionReason = $video->status->rejectionReason : false;
+			isset($video->status->uploadStatus) ? $this->UploadStatus = $video->status->uploadStatus : false;
+			isset($video->statistics->viewCount) ? $this->ViewCount = $video->statistics->viewCount : false;
 		}
 
 		/*
@@ -963,6 +1023,19 @@
 
 		function delete() {
 			return $this->API->deleteVideo($this->ID);
+		}
+
+		/*
+			Function: getDetails
+				Looks up more details on this video.
+				Calls other than BigTreeYouTubeAPI::getVideo will return partial video information, this call supplements the partial responses with a full response.
+
+			Returns:
+				A new BigTreeYouTubeVideo object with more details.
+		*/
+
+		function getDetails() {
+			return $this->API->getVideo($this->ID);
 		}
 
 		/*
