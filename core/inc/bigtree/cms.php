@@ -1074,7 +1074,7 @@
 		*/
 
 		function replaceHardRoots($string) {
-			return str_replace(array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),array("{adminroot}","{wwwroot}","{staticroot}"),$string);
+			return str_replace(array(ADMIN_ROOT,STATIC_ROOT,WWW_ROOT),array("{adminroot}","{staticroot}","{wwwroot}"),$string);
 		}
 
 		/*

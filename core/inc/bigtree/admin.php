@@ -3825,7 +3825,7 @@
 		*/
 
 		function getResourceByFile($file) {
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($this->replaceHardRoots($file))."'"));
 			if (!$item) {
 				return false;
 			}
@@ -5912,7 +5912,7 @@
 
 		function updateResource($id,$name) {
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($title));
+			$name = sqlescape(htmlspecialchars($name));
 			sqlquery("UPDATE bigtree_resources SET name = '$name' WHERE id = '$id'");
 		}
 
