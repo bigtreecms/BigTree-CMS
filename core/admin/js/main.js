@@ -2475,7 +2475,7 @@ var BigTreeQuickLoader = {
 			url: window.location.href,
 			data: {
 				"title": $("head").find("title").text(),
-				"breadcrumb": $("ul.breadcrumb").html(),
+				"breadcrumb": $("nav.breadcrumb").html(),
 				"page": $("#page").html(),
 				"active_nav": $("nav.main li").index(".active"),
 				"scripts": scripts,
@@ -2522,14 +2522,13 @@ var BigTreeQuickLoader = {
 			for (i = 0; i < data.breadcrumb.length; i++) {
 				crumb = data.breadcrumb[i];
 				if (i == data.breadcrumb.length - 1) {
-					breadcrumb += '<li><a href="admin_root/' + crumb.link + '/" class="last">' + crumb.title + '</a></li>';
+					breadcrumb += '<a href="admin_root/' + crumb.link + '/" class="last">' + crumb.title + '</a>';
 				} else {
+					breadcrumb += '<a';
 					if (i == 0) {
-						breadcrumb += '<li class="first">';
-					} else {
-						breadcrumb += '<li>';
+						breadcrumb += ' class="first"';
 					}
-					breadcrumb += '<a href="admin_root/' + crumb.link + '/">' + crumb.title + '</a></li><li>&rsaquo;</li>';	
+					breadcrumb += ' href="admin_root/' + crumb.link + '/">' + crumb.title + '</a><span>&rsaquo;</span>';	
 				}
 			}
 		}
@@ -2582,7 +2581,7 @@ var BigTreeQuickLoader = {
 
 		document.title = data.title;
 		$("#page").html(data.page);
-		$("ul.breadcrumb").html(breadcrumb);
+		$("nav.breadcrumb").html(breadcrumb);
 		$("nav.main li, nav.main li > a").removeClass("active");
 		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
 

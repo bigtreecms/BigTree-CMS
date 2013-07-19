@@ -2,8 +2,7 @@
 	function _local_findPath($nav,$path,$last_link = "") {
 		global $bigtree,$breadcrumb;
 		foreach ($nav as $item) {
-			// Doing this $last_link thing to make sure the View Whatever... actions don't appear as parents of Add/Edit.
-			if (strpos($path,$item["link"]) === 0 && ($item["link"] != $last_link || $path == $item["link"])) {
+			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
 				$bigtree["page"]["title"] = $item["title"] ? $item["title"] : $bigtree["page"]["title"];
 				$bigtree["page"]["title"] = $item["title_override"] ? $item["title_override"] : $bigtree["page"]["title"];
@@ -64,25 +63,23 @@
 	} else {
 		include BigTree::path("admin/layouts/_header.php");
 ?>
-<ul class="breadcrumb">
+<nav class="breadcrumb">
 	<?
 		$x = 0;
 		foreach ($breadcrumb as $item) {
 			$x++;
 			
 	?>
-	<li<? if ($x == 1) { ?> class="first"<? } ?>>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/"<? if ($x == count($breadcrumb)) { ?> class="last"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode($item["title"]))?></a>
-	</li>
+	<a href="<?=ADMIN_ROOT.$item["link"]?>/"<? if ($x == 1) { ?> class="first"<? } elseif ($x == count($breadcrumb)) { ?> class="last"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode($item["title"]))?></a>
 	<?
 			if ($x != count($breadcrumb)) {
 	?>
-	<li>&rsaquo;</li>
+	<span>&rsaquo;</span>
 	<?		
 			}
 		}
 	?>
-</ul>
+</nav>
 <?
 	}
 ?>
@@ -134,39 +131,37 @@
 		if ($show_nav && !defined("BIGTREE_404")) {
 	?>
 	<nav class="sub">
-		<ul>
-			<?
-				$active_item = false;
-				// Figure out what the active state is.
-				foreach ($bigtree["page"]["navigation"] as $item) {
-					if (strpos($current_path,$item["link"]) !== false) {
-						// If we already have an active item, see if the new one is deeper in the paths.
-						if (!$active_item) {
+		<?
+			$active_item = false;
+			// Figure out what the active state is.
+			foreach ($bigtree["page"]["navigation"] as $item) {
+				if (strpos($current_path,$item["link"]) !== false) {
+					// If we already have an active item, see if the new one is deeper in the paths.
+					if (!$active_item) {
+						$active_item = $item;
+					} else {
+						if (strlen($item["link"]) > strlen($active_item["link"])) {
 							$active_item = $item;
-						} else {
-							if (strlen($item["link"]) > strlen($active_item["link"])) {
-								$active_item = $item;
-							}
 						}
 					}
 				}
-				// Draw the nav.
-				foreach ($bigtree["page"]["navigation"] as $item) {
-					if (!$item["hidden"] && (!$item["level"] || $item["level"] <= $admin->Level)) {
-						$get_string = "";
-						if (is_array($item["get_vars"]) && count($item["get_vars"])) {
-							$get_string = "?";
-							foreach ($item["get_vars"] as $key => $val) {
-								$get_string .= "$key=".urlencode($val)."&";
-							}
+			}
+			// Draw the nav.
+			foreach ($bigtree["page"]["navigation"] as $item) {
+				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= $admin->Level)) {
+					$get_string = "";
+					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
+						$get_string = "?";
+						foreach ($item["get_vars"] as $key => $val) {
+							$get_string .= "$key=".urlencode($val)."&";
 						}
-			?>
-			<li><a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<? if ($active_item == $item) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a></li>
-			<?
 					}
+		?>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<? if ($active_item == $item) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a>
+		<?
 				}
-			?>
-		</ul>
+			}
+		?>
 	</nav>
 	<?
 		}
@@ -179,7 +174,7 @@
 	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
 		header("Content-type: text/json");
 		$site = $cms->getPage(0,false);
-		$title = $module_title ? $module_title." | ".$site["nav_title"]." Admin" : $site["nav_title"]." Admin";
+		$title = $bigtree["admin_title"] ? $bigtree["admin_title"]." | ".$site["nav_title"]." Admin" : $site["nav_title"]." Admin";
 		if (is_array($bigtree["js"])) {
 			foreach ($bigtree["js"] as &$script) {
 				$script = ADMIN_ROOT."js/$script";
@@ -194,7 +189,7 @@
 			"breadcrumb" => $breadcrumb,
 			"title" => $title,
 			"page" => ob_get_clean(),
-			"active_nav" => $active_nav_element,
+			"active_nav" => $bigtree["active_nav_item"],
 			"scripts" => $bigtree["js"],
 			"css" => $bigtree["css"]
 		));

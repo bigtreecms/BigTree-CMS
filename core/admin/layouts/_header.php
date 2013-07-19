@@ -23,7 +23,8 @@
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
 				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
 				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
-				array("link" => "developer/services", "title" => "Social APIs", "access" => 2),
+				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
+				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
 				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1)
 			))
 		))
@@ -48,15 +49,27 @@
 		<meta name="robots" content="noindex,nofollow" />
 		<title><? if (isset($module_title)) { ?><?=htmlspecialchars(htmlspecialchars_decode($module_title))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<? if (isset($bigtree["css"]) && is_array($bigtree["css"])) { foreach ($bigtree["css"] as $style) { ?>
+		<?
+			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
+				foreach ($bigtree["css"] as $style) {
+		?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<? } } ?>
+		<?
+				}
+			}
+		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js"></script>
-		<? if (isset($bigtree["js"]) && is_array($bigtree["js"])) { foreach ($bigtree["js"] as $script) { ?>
+		<?
+			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
+				foreach ($bigtree["js"] as $script) {
+		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<? } } ?>
+		<?
+				}
+			}
+		?>
 		<!--[if lt IE 9]>
 		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
@@ -77,14 +90,13 @@
 			<section>
 				<ul>
 					<?
-						$active_nav_element = 0;
 						$x = -1;
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
 								$x++;
 					?>
-					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { $active_nav_element = $x; ?> class="active"<? } ?>>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?
