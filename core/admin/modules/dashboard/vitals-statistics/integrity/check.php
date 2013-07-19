@@ -7,7 +7,13 @@
 	foreach ($modules as &$m) {
 		$action = $admin->getModuleActionForForm($m);
 		$module = $admin->getModule($action["module"]);
-		$m["module_name"] = $module["name"];
+		if ($module["group"]) {
+			$group = $admin->getModuleGroup($module["group"]);
+			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+		} else {
+			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+		}
+
 	    $m["items"] = array();
 	    $q = sqlquery("SELECT id FROM `".$m["table"]."`");
 	    while ($f = sqlfetch($q)) {
