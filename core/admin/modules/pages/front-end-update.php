@@ -1,7 +1,11 @@
 <?
+	// See if we've hit post_max_size
+	if (!$_POST["_bigtree_post_check"]) {
+		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+	}
+	
 	$bigtree["layout"] = "front-end";
-	// Initiate the Upload Service class.
-	$upload_service = new BigTreeUploadService;
 
 	$page = $_POST["page"];
 	
@@ -37,9 +41,11 @@
 	}
 	
 	$resources = array();
-	$crops = array();
-	$fails = array();
-	
+	$bigtree["crops"] = array();
+	$bigtree["errors"] = array();
+	// Initiate the Storage class for backwards compat.
+	$upload_service = new BigTreeStorage;
+
 	// Save the template since we're not passing in the full update data.
 	$_POST["template"] = $pdata["template"];
 	
@@ -78,10 +84,10 @@
 	
 	$admin->unlock("bigtree_pages",$page);
 	
-	if (count($crops)) {
+	if (count($bigtree["crops"])) {
 		include BigTree::path("admin/modules/pages/_front-end-crop.php");
-	} elseif (count($fails)) {
-		include BigTree::path("admin/modules/pages/_front-end-failed.php");
+	} elseif (count($bigtree["errors"])) {
+		include BigTree::path("admin/modules/pages/_front-end-error.php");
 	} else {
 ?>
 <script>parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>

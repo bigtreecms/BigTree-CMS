@@ -252,7 +252,7 @@
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
+			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight);
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
@@ -705,7 +705,7 @@
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
-				This method is deprecated and exists only for backwards compatibility (BigTreeGeocodingService should be used directly).
+				This method is deprecated and exists only for backwards compatibility (BigTreeGeocoding should be used directly).
 			
 			Parameters:
 				address - The address to geocode.
@@ -715,7 +715,7 @@
 		*/
 		
 		static function geocodeAddress($address) {
-			$geocoder = new BigTreeGeocodingService;
+			$geocoder = new BigTreeGeocoding;
 			return $geocoder->geocode($address);
 		}
 		
@@ -806,7 +806,7 @@
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_"))) {
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_")) || $tname == $default) {
 					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
 						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					} else {
@@ -979,16 +979,20 @@
 				source - The source image file
 				width - The width of the new image to be created
 				height - The height of the new image to be created
+				source_width - If we already know the width/height, the source width
+				source_height - If we already know the width/height, the source height
 
 			Returns:
 				true if the image can be created, otherwise false.
 		*/
 
-		static function imageManipulationMemoryAvailable($source,$width,$height) {
+		static function imageManipulationMemoryAvailable($source,$width,$height,$source_width = false,$source_height = false) {
 			// Thanks to Klinky on Stack Overflow for this: http://stackoverflow.com/users/187537/klinky
 			// Convert megabytes to bytes.
 			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
-			list($source_width,$source_height) = getimagesize($source);
+			if (!$source_width || !$source_height) {
+				list($source_width,$source_height) = getimagesize($source);
+			}
 			// 3 bytes per pixel, GD internally takes ~67% more memory
 			$source_size = ceil($source_width * $source_height * 3 * 1.68); 
 			$target_size = ceil($width * $height * 3 * 1.68);
@@ -1036,7 +1040,7 @@
 		*/
 		
 		static function isExternalLink($url) {
-			return (strpos($url, "http") == 0 && strpos($url, WWW_ROOT) === false);
+			return ((substr($url,0,7) == "http://" || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
 		}
 		
 		/*
@@ -1114,6 +1118,54 @@
 				$i++;
 			}
 			return $key_name;
+		}
+
+		/*
+			Function: parsedFilesArray
+				Parses the $_FILES array and returns an array more like a normal $_POST array.
+			
+			Parameters:
+				part - (Optional) The key of the file tree to return.
+			
+			Returns:
+				A more sensible array, or a piece of that sensible array if "part" is set.
+		*/
+
+		static function parsedFilesArray($part = false) {
+			$clean = array();
+			foreach ($_FILES as $key => $first_level) {
+				// Hurray, we have a first level entry, just save it to the clean array.
+				if (!is_array($first_level["name"])) {
+					$clean[$key] = $first_level;
+				} else {
+					$clean[$key] = self::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+				}
+			}
+			if ($part) {
+				return $clean[$part];
+			}
+			return $clean;
+		}
+
+		/*
+			Function: parseFilesArrayLoop
+				Private method used by parseFilesArray.
+		*/
+
+		private static function parsedFilesArrayLoop($name,$tmp_name,$type,$error,$size) {
+			$array = array();
+			foreach ($name as $k => $v) {
+				if (!is_array($v)) {
+					$array[$k]["name"] = $v;
+					$array[$k]["tmp_name"] = $tmp_name[$k];
+					$array[$k]["type"] = $type[$k];
+					$array[$k]["error"] = $error[$k];
+					$array[$k]["size"] = $size[$k];
+				} else {
+					$array[$k] = self::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+				}
+			}
+			return $array;
 		}
 		
 		/*
@@ -1552,7 +1604,7 @@
 				return $string;
 			}
 			if (strpos($string," ") === false && strlen(html_entity_decode(strip_tags($string))) > $length) {
-				return substr($string,0,$length)."...";
+				return substr($string,0,$length)."…";
 			}
 			$x = 0;
 			$z = 0;
@@ -1620,7 +1672,7 @@
 				$ns .= substr($string,$x,1);
 				$x++;
 			}
-			$ns.= "...";
+			$ns.= "…";
 			$opentags = array_reverse($opentags);
 			foreach ($opentags as $key => $val) {
 				$ns .= "</".$val.">";

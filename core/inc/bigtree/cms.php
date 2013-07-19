@@ -39,15 +39,20 @@
 			Parameters:
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data.
+				max_age - The maximum age (in seconds) for the data, defaults to any age.
 
 			Returns:
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
 		*/
 
-		function cacheGet($identifier,$key) {
+		function cacheGet($identifier,$key,$max_age = false) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			if ($max_age) {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '".date("Y-m-d H:i:s",time() - $max_age)."'"));
+			} else {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			}
 			if (!$f) {
 				return false;
 			}
@@ -122,7 +127,7 @@
 			$found = false;
 			$x = count($path);
 			while ($x) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_route_history WHERE old_route = '".implode("/",array_slice($path,0,$x))."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_route_history WHERE old_route = '".sqlescape(implode("/",array_slice($path,0,$x)))."'"));
 				if ($f) {
 					$old = $f["old_route"];
 					$new = $f["new_route"];
@@ -236,9 +241,11 @@
 					$tf = sqlfetch(sqlquery("SELECT bigtree_modules.class AS module_class FROM bigtree_templates JOIN bigtree_modules ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$f["template"]."'"));
 					if ($tf["module_class"]) {
 						$mod = new $tf["module_class"];
-						$subnav = $mod->getSitemap($f);
-						foreach ($subnav as $s) {
-							echo "<url><loc>".$s["link"]."</loc></url>\n";
+						if (method_exists($mod,"getSitemap")) {
+							$subnav = $mod->getSitemap($f);
+							foreach ($subnav as $s) {
+								echo "<url><loc>".$s["link"]."</loc></url>\n";
+							}
 						}
 						$mod = $subnav = null;
 					}
@@ -315,27 +322,14 @@
 			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
 			if ($mod["class"]) {
 				if (class_exists($mod["class"])) {
-					@eval('$module = new '.$mod["class"].';');
-					$bc = array_merge($bc,$module->getBreadcrumb($page));
+					$module = new $mod["class"];
+					if (method_exists($module, "getBreadcrumb")) {
+						$bc = array_merge($bc,$module->getBreadcrumb($page));
+					}
 				}
 			}
 			
 			return $bc;
-		}
-		
-		/*
-			Function: getCallout
-				Returns a callout template from the database.
-			
-			Parameters:
-				id - The ID of the callout.
-			
-			Returns:
-				A callout template row from the database.
-		*/
-		
-		function getCallout($id) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '$id'"));
 		}
 		
 		/*
@@ -433,16 +427,16 @@
 				$c = unserialize(base64_decode($ipl[2]));
 			}
 			// If it can't be rectified, we still don't want a warning.
-			if (is_array($c)) {
+			if (is_array($c) && count($c)) {
+				$last = end($c);
 				$commands = implode("/",$c);
+				if (strpos($last,"#") === false && strpos($last,"?") === false) {
+					$commands .= "/";
+				}
 			} else {
 				$commands = "";
 			}
-			
-			if ($commands && strpos($commands,"?") === false) {
-				$commands .= "/";
-			}
-			
+
 			// See if it's in the cache.
 			if (isset($this->iplCache[$navid])) {
 				return $this->iplCache[$navid].$commands;
@@ -563,20 +557,22 @@
 					while ($f = sqlfetch($q)) {
 						// If the class exists, instantiate it and call it
 						if ($f["class"] && class_exists($f["class"])) {
-							@eval('$module = new '.$f["class"].';');
-							$modNav = $module->getNav($f);
-							// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-							$module_nav = array();
-							foreach ($modNav as $item) {
-								$item["parent"] = $f["id"];
-								$item["id"] = "module_nav_".$module_nav_count;
-								$module_nav[] = $item;
-								$module_nav_count++;
-							}
-							if ($module->NavPosition == "top") {
-								$nav = array_merge($module_nav,$nav);
-							} else {
-								$nav = array_merge($nav,$module_nav);
+							$module = new $f["class"];
+							if (method_exists($module,"getNav")) {
+								$modNav = $module->getNav($f);
+								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+								$module_nav = array();
+								foreach ($modNav as $item) {
+									$item["parent"] = $f["id"];
+									$item["id"] = "module_nav_".$module_nav_count;
+									$module_nav[] = $item;
+									$module_nav_count++;
+								}
+								if ($module->NavPosition == "top") {
+									$nav = array_merge($module_nav,$nav);
+								} else {
+									$nav = array_merge($nav,$module_nav);
+								}
 							}
 						}
 					}
@@ -585,11 +581,13 @@
 					$f = sqlfetch(sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND bigtree_pages.id = '$parent'"));
 					// If the class exists, instantiate it and call it.
 					if ($f["class"] && class_exists($f["class"])) {
-						@eval('$module = new '.$f["class"].';');
-						if ($module->NavPosition == "top") {
-							$nav = array_merge($module->getNav($f),$nav);
-						} else {
-							$nav = array_merge($nav,$module->getNav($f));
+						$module = new $f["class"];
+						if (method_exists($module,"getNav")) {
+							if ($module->NavPosition == "top") {
+								$nav = array_merge($module->getNav($f),$nav);
+							} else {
+								$nav = array_merge($nav,$module->getNav($f));
+							}
 						}
 					}
 				}
@@ -823,9 +821,8 @@
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			// If the setting is encrypted, we need to re-pull just the value.
 			if ($f["encrypted"]) {
-				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
+				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
 			}
-			
 			$value = json_decode($f["value"],true);
 
 			// Don't try to do translations and such if it's a system value.
@@ -1077,7 +1074,7 @@
 		*/
 
 		function replaceHardRoots($string) {
-			return str_replace(array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),array("{adminroot}","{wwwroot}","{staticroot}"),$string);
+			return str_replace(array(ADMIN_ROOT,STATIC_ROOT,WWW_ROOT),array("{adminroot}","{staticroot}","{wwwroot}"),$string);
 		}
 
 		/*

@@ -1,16 +1,19 @@
 <?
-	$value = array();
-	// New data, normal module / page data.
-	if (is_array($data[$key])) {
-		foreach ($data[$key] as $i) {
-			if (is_string($i)) {
-				$value[] = json_decode($i,true);
+	$field["output"] = array();
+	foreach ($field["input"] as $i) {
+		$row = array();
+		// Callouts may have the data already decoded.
+		if (is_string($i)) {
+			$i = json_decode($i,true);
+		}
+		// Run through the fields and htmlspecialchar the non-HTML ones.
+		foreach ($field["options"]["fields"] as $array_field) {
+			if ($array_field["type"] == "html") {
+				$row[$array_field["key"]] = $i[$array_field["key"]];
 			} else {
-				$value[] = $i;
+				$row[$array_field["key"]] = htmlspecialchars(htmlspecialchars_decode($i[$array_field["key"]]));
 			}
 		}
-	// Callouts are going to keep this as a string.
-	} elseif (is_string($data[$key])) {
-		$value = json_decode($data[$key],true);
+		$field["output"][] = $row;
 	}
 ?>

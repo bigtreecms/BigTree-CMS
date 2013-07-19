@@ -4,9 +4,9 @@
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<?
-			if (isset($item)) {
+			if (isset($bigtree["entry"])) {
 		?>
-		<input type="hidden" name="id" value="<?=htmlspecialchars($edit_id)?>" />
+		<input type="hidden" name="id" value="<?=htmlspecialchars($bigtree["edit_id"])?>" />
 		<?
 			}	
 			if (isset($_GET["view_data"])) {
@@ -29,44 +29,62 @@
 				$bigtree["datetimepickers"] = array();
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
-				
-				$tabindex = 1;
-				foreach ($form["fields"] as $key => $options) {
-					if (is_array($options)) {
-						$type = $options["type"];
-						$title = $options["title"];
-						$subtitle = $options["subtitle"];
-						$value = isset($item[$key]) ? $item[$key] : "";
-						$currently_key = "currently_$key";
-						
+				$bigtree["tabindex"] = 1;
+
+				foreach ($bigtree["form"]["fields"] as $key => $resource) {
+					if (is_array($resource)) {
+						$field = array();
+						// Leaving some variable settings for backwards compatibility — removing in 5.0
+						$field["title"] = $title = $resource["title"];
+						$field["subtitle"] = $subtitle = $resource["subtitle"];
+						$field["key"] = $key;
+						$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
+						$field["id"] = uniqid("field_");
+						$field["tabindex"] = $tabindex = $bigtree["tabindex"];
+						$field["options"] = $options = $resource;
+
 						// Setup Validation Classes
 						$label_validation_class = "";
-						$input_validation_class = "";
-						if (isset($options["validation"]) && $options["validation"]) {
-							if (strpos($options["validation"],"required") !== false) {
+						$field["required"] = false;
+						if (isset($resource["validation"]) && $resource["validation"]) {
+							if (strpos($resource["validation"],"required") !== false) {
 								$label_validation_class = ' class="required"';
+								$field["required"] = true;
 							}
-							$input_validation_class = ' class="'.$options["validation"].'"';
 						}
-						
-						$path = BigTree::path("admin/form-field-types/draw/$type.php");
-						if (file_exists($path)) {
-							include $path;
-						} else {
-							include BigTree::path("admin/form-field-types/draw/text.php");
+
+						// Give many to many its information
+						if ($resource["type"] == "many-to-many") {
+							$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;
 						}
+
+						$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 						
-						$tabindex++;
+						if (file_exists($field_type_path)) {
+			?>
+			<fieldset>
+				<?
+					if ($field["title"] && $resource["type"] != "checkbox") {
+				?>
+				<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+				<?
+					}
+					include $field_type_path;
+				?>
+			</fieldset>
+			<?
+							$bigtree["tabindex"]++;
+						}
 					}
 				}
 
-				if ($form["tagging"]) {
+				if ($bigtree["form"]["tagging"]) {
 			?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
 					<label>Tags<span></span></label>
 					<ul id="tag_list">
-						<? foreach ($tags as $tag) { ?>
+						<? foreach ($bigtree["tags"] as $tag) { ?>
 						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>
 						<? } ?>
 					</ul>
@@ -82,14 +100,14 @@
 			?>
 		</section>
 		<footer>
-			<? if (isset($view) && $view["preview_url"]) { ?>
+			<? if (isset($bigtree["related_view"]) && $bigtree["related_view"]["preview_url"]) { ?>
 			<a class="button save_and_preview" href="#">
 				<span class="icon_small icon_small_computer"></span>
 				Save &amp; Preview
 			</a>
 			<? } ?>
-			<input type="submit" class="button<? if ($permission_level != "p") { ?> blue<? } ?>" tabindex="<?=$tabindex?>" value="Save" name="save" />
-			<input type="submit" class="button blue" tabindex="<?=($tabindex + 1)?>" value="Save & Publish" name="save_and_publish" <? if ($permission_level != "p") { ?>style="display: none;" <? } ?>/>
+			<input type="submit" class="button<? if ($bigtree["access_level"] != "p") { ?> blue<? } ?>" tabindex="<?=$bigtree["tabindex"]?>" value="Save" name="save" />
+			<input type="submit" class="button blue" tabindex="<?=($bigtree["tabindex"] + 1)?>" value="Save & Publish" name="save_and_publish" <? if ($bigtree["access_level"] != "p") { ?>style="display: none;" <? } ?>/>
 		</footer>
 	</form>
 </div>
@@ -133,7 +151,7 @@
 		return false;
 	});
 
-	<? if ($permission_level == "p" || !$edit_id) { ?>
+	<? if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
 	$(".gbp_select").change(function() {
 		access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
 		if (access_level == "p") {

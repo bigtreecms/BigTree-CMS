@@ -1,5 +1,6 @@
 <? include "_header.php" ?>
 <div class="row" id="subpage">
+	<? include "_breadcrumb.php" ?>
 	<aside class="desktop-3 sidebar">
 		<?
 			// Get the top level page of the one we're on, then get all navigation below it and draw it.

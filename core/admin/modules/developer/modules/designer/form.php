@@ -86,7 +86,7 @@
 			type = li.find(".developer_resource_type").find("input,select").eq(0).val();
 			if (title) {
 				key = $(this).attr("name");
-				if (key != "geocoding" && type != "many_to_many") {
+				if (key != "geocoding" && type != "many-to-many") {
 					sel = $("#unused_field").get(0);
 					sel.options[sel.options.length] = new Option(key,title,false,false);
 				}
@@ -124,7 +124,7 @@
 		BigTree.localMTMCount++;
 			
 		li = $('<li id="mtm_row_' + BigTree.localMTMCount + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + BigTree.localMTMCount + ']" id="type_mtm_' + BigTree.localMTMCount + '" type="hidden" value="many_to_many" /><p>Many To Many</p><a href="#" class="options icon_settings" name="mtm_' + BigTree.localMTMCount + '"></a><input type="hidden" name="options[mtm_' + BigTree.localMTMCount + ']" value="" id="options_mtm_' + BigTree.localMTMCount + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + BigTree.localMTMCount + '"></a></section>');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + BigTree.localMTMCount + ']" id="type_mtm_' + BigTree.localMTMCount + '" type="hidden" value="many-to-many" /><p>Many To Many</p><a href="#" class="options icon_settings" name="mtm_' + BigTree.localMTMCount + '"></a><input type="hidden" name="options[mtm_' + BigTree.localMTMCount + ']" value="" id="options_mtm_' + BigTree.localMTMCount + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + BigTree.localMTMCount + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		BigTree.localHooks();

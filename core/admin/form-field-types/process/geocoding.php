@@ -1,26 +1,28 @@
 <?
 	// Loop through all the fields to build the address
-	$fields = explode(",",$options["fields"]);
+	$source_fields = explode(",",$field["options"]["fields"]);
 	$location = array();
-	foreach ($fields as $field) {
-		$location[] = $data[trim($field)];
+	foreach ($source_fields as $source_field) {
+		if (trim($source_field)) {
+			$location[] = $bigtree["post_data"][trim($source_field)];
+		}
 	}
 	
-	if (trim($location)) {
+	if (count($location)) {
 		// Geocode
-		$geocoder = new BigTreeGeocodingService;
+		$geocoder = new BigTreeGeocoding;
 		$result = $geocoder->geocode(implode(", ",$location));
 		
 		// If it's false, we didn't get anything.
 		if (!$result) {
-			$item["latitude"] = false;
-			$item["longitude"] = false;
+			$bigtree["entry"]["latitude"] = false;
+			$bigtree["entry"]["longitude"] = false;
 		} else {
-			$item["latitude"] = $result["latitude"];
-			$item["longitude"] = $result["longitude"];
+			$bigtree["entry"]["latitude"] = $result["latitude"];
+			$bigtree["entry"]["longitude"] = $result["longitude"];
 		}
 	}
 		
 	// This field doesn't have it's own key to process.
-	$no_process = true;
+	$field["ignore"] = true;
 ?>

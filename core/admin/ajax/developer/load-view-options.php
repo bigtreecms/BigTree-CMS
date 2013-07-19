@@ -10,13 +10,10 @@
 			include $path;
 		}
 	?>
-	<br />
 </div>
 
 <script>
 	BigTree.localTable = false;
-	
-	BigTreeCustomControls();
 	
 	$(".table_select").change(function() {
 		x = 0;

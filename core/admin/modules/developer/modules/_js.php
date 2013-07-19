@@ -7,9 +7,7 @@
 	
 	$(".container").on("change",".table_select",function(event,data) {
 		BigTree.localTablePop = $(this).parent().siblings("fieldset");
-		BigTree.localTablePop.children("div").load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + data.value + "&field=" + BigTree.localTablePop.attr("name"), function() {
-			new BigTreeSelect(BigTree.localTablePop.find("select").get(0));
-		});
+		BigTree.localTablePop.children("div").load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + data.value + "&field=" + BigTree.localTablePop.attr("name"));
 	});
 	
 	$(".developer_icon_list a").click(function() {

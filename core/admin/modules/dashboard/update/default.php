@@ -7,7 +7,7 @@
 			while ($current_revision < BIGTREE_REVISION) {
 				$current_revision++;
 				if (function_exists("_local_bigtree_update_".$current_revision)) {
-					eval("_local_bigtree_update_$current_revision();");
+					call_user_func("_local_bigtree_update_$current_revision");
 				}
 			}
 
@@ -186,7 +186,7 @@
 		$q = sqlquery("SELECT * FROM bigtree_modules");
 		while ($f = sqlfetch($q)) {
 			if (class_exists($f["class"])) {
-				@eval('$test = new '.$f["class"].';');
+				$test = new $f["class"];
 				$table = sqlescape($test->Table);
 				sqlquery("UPDATE `bigtree_tags_rel` SET `table` = '$table' WHERE module = '".$f["id"]."'");
 			}
@@ -259,6 +259,18 @@
 	// BigTree 4.0RC3 update -- REVISION 19
 	function _local_bigtree_update_19() {
 		// Add the new caches table
-		sqlquery("CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(255) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		sqlquery("CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(255) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+	}
+
+	// BigTree 4.0 update -- REVISION 20
+	function _local_bigtree_update_20() {
+		// Replace "menu" types with Array of Items
+		$options = sqlescape('{"fields":[{"key":"title","title":"Title","type":"text"},{"key":"link","title":"URL (include http://)","type":"text"}]}');
+		sqlquery("UPDATE `bigtree_settings` SET `type` = 'array', `options` = '$options' WHERE `type` = 'menu'");
+
+		// Replace "many_to_many" with "many-to-many"
+		$mtm_find = sqlescape('"type":"many_to_many"');
+		$mtm_replace = sqlescape('"type":"many-to-many"');
+		sqlquery("UPDATE `bigtree_module_forms` SET `fields` = REPLACE(`fields`,'$mtm_find','$mtm_replace')");
 	}
 ?>

@@ -1,39 +1,60 @@
 <?
 	// Parse the resources
-	$template = $cms->getTemplate($_POST["template"]);
+	$bigtree["entry"] = array();
+	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
+	$bigtree["file_data"] = BigTree::parsedFilesArray("resources");
+	$bigtree["post_data"] = $_POST["resources"];
+	// Duplicate vars and $upload_service in for backwards compat.
 	$data = $_POST["resources"];
 	$file_data = $_FILES["resources"];
-	foreach ($template["resources"] as $options) {
-		$key = $options["id"];
-		$type = $options["type"];
-		$options["directory"] = "files/pages/";
-		$tpath = BigTree::path("admin/form-field-types/process/$type.php");
-		
-		$no_process = false;
+	$upload_service = new BigTreeUploadService;
+
+	foreach ($bigtree["template"]["resources"] as $resource) {
+		unset($value); // Backwards compat.
+		$field = array();
+		$field["key"] = $key = $resource["id"];
+		$field["options"] = $options = $resource;
+		$field["options"]["directory"] = $options["directory"] = "files/pages/";
+		$field["ignore"] = false;
+		$field["input"] = $bigtree["post_data"][$resource["id"]];
+		$field["file_input"] = $bigtree["file_data"][$resource["id"]];
+
 		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-		if (file_exists($tpath)) {
-			include $tpath;
+		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
+		if (file_exists($field_type_path)) {
+			include $field_type_path;
 		} else {
-			$value = htmlspecialchars(htmlspecialchars_decode($data[$key]));
+			if (is_array($bigtree["post_data"][$field["key"]])) {
+				$field["output"] = $bigtree["post_data"][$field["key"]];
+			} else {
+				$field["output"] = htmlspecialchars(htmlspecialchars_decode($bigtree["post_data"][$field["key"]]));
+			}
+		}
+
+		// Backwards compatibility with older custom field types
+		if (!isset($field["output"]) && isset($value)) {
+			$field["output"] = $value;
 		}
 		
-		if (!BigTreeForms::validate($value,$options["validation"])) {
-			$error = $options["error_message"] ? $options["error_message"] : BigTreeForms::errorMessage($value,$options["validation"]);
-			$fails[] = array(
-				"field" => $options["title"],
-				"error" => $error
+		if (!BigTreeForms::validate($field["output"],$field["options"]["validation"])) {
+			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeForms::errorMessage($field["output"],$field["options"]["validation"]);
+			$bigtree["errors"][] = array(
+				"field" => $field["options"]["title"],
+				"message" => $error
 			);
 		}
 
-		if (!$no_process) {
-			if (is_array($value)) {
-				$value = BigTree::translateArray($value);
+		if (!$field["ignore"]) {
+			// Translate internal link information to relative links.
+			if (is_array($field["output"])) {
+				$field["output"] = BigTree::translateArray($field["output"]);
 			} else {
-				$value = $admin->autoIPL($value);
+				$field["output"] = $admin->autoIPL($field["output"]);
 			}
-			$resources[$key] = $value;
+			$bigtree["entry"][$field["key"]] = $field["output"];
 		}
 	}
 
-	$_POST["resources"] = $resources;
+	// We save it back to the post array because we're just going to feed the whole post array to createPage / updatePage
+	$_POST["resources"] = $bigtree["entry"];
 ?>

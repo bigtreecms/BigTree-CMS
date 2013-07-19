@@ -229,8 +229,14 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 
 	/* Sub Page Styles */
 
-	#subpage { margin: 130px auto 50px; }
+	#subpage { margin: 80px auto 50px; }
 	.split { width: 49%; }
+
+	.breadcrumb { margin: 0 0 50px 0; font-size: 14px; }
+	.breadcrumb a:last-child { font-weight: bold; }
+	.breadcrumb span { display: inline-block; margin: 0 15px; }
+
+	.sidebar { min-height: 1px; }
 
 	.content { padding-left: 20px; }
 	.content a { border-bottom: 1px dotted #999; }

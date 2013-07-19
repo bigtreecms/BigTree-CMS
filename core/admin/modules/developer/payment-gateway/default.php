@@ -8,36 +8,23 @@
 		$admin->updateSettingValue("bigtree-internal-payment-gateway",array("service" => "", "settings" => array()));
 	}
 	$gateway = $cms->getSetting("bigtree-internal-payment-gateway");
-
-	if ($gateway["service"] == "authorize.net") {
-		$currently = "Authorize.Net";
-	} elseif ($gateway["service"] == "paypal") {
-		$currently = "PayPal Payments Pro";
-	} elseif ($gateway["service"] == "payflow") {
-		$currently = "PayPal Payflow Gateway";
-	} elseif ($gateway["service"] == "linkpoint") {
-		$currently = "First Data / LinkPoint";
-	} else {
-		$currently = "None";
-	}
 ?>
 <div class="table">
-	<summary><h2>Currently Using<small><?=$currently?></small></h2></summary>
 	<section>
 		<p>Choose a service below to configure your payment gateway settings.</p>
-		<a class="box_select" href="authorize/">
+		<a class="box_select<? if ($gateway["service"] == "authorize.net") { ?> connected<? } ?>" href="authorize/">
 			<span class="authorize"></span>
 			<p>Authorize.Net</p>
 		</a>
-		<a class="box_select" href="paypal/">
+		<a class="box_select<? if ($gateway["service"] == "paypal") { ?> connected<? } ?>" href="paypal/">
 			<span class="paypal"></span>
 			<p>PayPal Payments Pro</p>
 		</a>
-		<a class="box_select" href="payflow/">
+		<a class="box_select<? if ($gateway["service"] == "payflow") { ?> connected<? } ?>" href="payflow/">
 			<span class="payflow"></span>
 			<p>PayPal Payflow Gateway</p>
 		</a>
-		<a class="box_select" href="linkpoint/">
+		<a class="box_select<? if ($gateway["service"] == "linkpoint") { ?> connected<? } ?>" href="linkpoint/">
 			<span class="linkpoint"></span>
 			<p>First Data / LinkPoint</p>
 		</a>

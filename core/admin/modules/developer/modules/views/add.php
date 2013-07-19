@@ -1,5 +1,5 @@
 <?
-	$id = $_GET["module"];
+	$id = htmlspecialchars($_GET["module"]);
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
 	

@@ -15,8 +15,8 @@
 				Adds an entry to the table.
 			
 			Parameters:
-				keys - The column names to add
-				vals - The values for each of the columns
+				keys - An array of column names to add
+				vals - An array of values for each of the columns
 			
 			Returns:
 				The "id" of the new entry.
@@ -203,14 +203,14 @@
 				Returns all items from the table.
 			
 			Parameters:
-				sort - The sort order (in MySQL syntax, i.e. "id DESC")
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
 		
 			Returns:
 				An array of items from the table.
 		*/
 
-		function getAll($sort = false) {
-			return $this->fetch($sort);
+		function getAll($order = false) {
+			return $this->fetch($order);
 		}
 		
 		/*
@@ -306,8 +306,8 @@
 				Returns entries from the table that match the key/value pairs.
 			
 			Parameters:
-				fields - Either a single field key or an array of field keys (if you pass an array you must pass an array for values as well)
-				values - Either a signle field value or an array of field values (if you pass an array you must pass an array for fields as well)
+				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well)
+				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
 			
@@ -347,14 +347,33 @@
 		}
 		
 		/*
+			Function: getNonarchived
+				Returns nonarchived entries from the table.
+			
+			Parameters:
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				limit - Max number of entries to return, defaults to all
+			
+			Returns:
+				An array of entries from the table.
+				
+			See Also:
+				<getMatching>
+		*/
+		
+		function getNonarchived($order = false,$limit = false) {
+			return $this->getMatching("archived","",$order,$limit);
+		}
+		
+		/*
 			Function: getPage
 				Returns a page of entries from the table.
 			
 			Parameters:
-				page - The page to return.
-				orderby - The MySQL sort order.
-				where - Optional MySQL WHERE conditions.
-				perpage - The number of results per page.
+				page - The page to return
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				perpage - The number of results per page (defaults to 15)
+				where - Optional MySQL WHERE conditions
 			
 			Returns:
 				Array of entries from the table.
@@ -363,11 +382,18 @@
 				<getPageCount>
 		*/
 		
-		function getPage($page = 1,$orderby = "id ASC", $where = false, $perpage = 15) {
+		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false) {
+			// Backwards compatibility with old argument order
+			if (!is_numeric($perpage)) {
+				$saved = $perpage;
+				$perpage = $where;
+				$where = $saved;
+			}
+			// Don't try to hit page 0.
 			if ($page < 1) {
 				$page = 1;
 			}
-			return $this->fetch($orderby,(($page - 1) * $perpage).", $perpage",$where);
+			return $this->fetch($order,(($page - 1) * $perpage).", $perpage",$where);
 		}
 		
 		/*
@@ -375,8 +401,8 @@
 				Returns the number of pages of entries in the table.
 			
 			Parameters:
-				where - Optional MySQL WHERE conditions.
-				perpage - The number of results per page.
+				perpage - The number of results per page (defaults to 15)
+				where - Optional MySQL WHERE conditions
 		
 			Returns:
 				The number of pages.
@@ -385,18 +411,22 @@
 				<getPage>
 		*/
 		
-		function getPageCount($where = false, $perpage = 15) {
+		function getPageCount($perpage = 15,$where = false) {
+			// Backwards compatibility with old argument order
+			if (!is_numeric($perpage)) {
+				$saved = $perpage;
+				$perpage = $where;
+				$where = $saved;
+			}
 			if ($where) {
 				$query = "SELECT id FROM `".$this->Table."` WHERE $where";
 			} else {
 				$query = "SELECT id FROM `".$this->Table."`";
-			}
-			
+			}			
 			$pages = ceil(sqlrows(sqlquery($query)) / $perpage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
-				
 			return $pages;
 		}
 		
@@ -432,11 +462,8 @@
 			
 			}
 			
-			foreach ($item as $key => $val) {
-				$item[$key] = $cms->replaceInternalPageLinks($val);
-			}
-			
-			return $item;
+			// Translate it's roots and return it
+			return $this->get($item);
 		}
 		
 		/*
@@ -643,7 +670,7 @@
 			
 			Parameters:
 				query - A string to search for.
-				sortby - A MySQL sort parameter.
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max entries to return.
 				case_sensitive - Case sensitivity (defaults to false).
 			
@@ -651,7 +678,7 @@
 				An array of entries from the table.
 		*/
 		
-		function search($query,$sortby = false,$limit = false,$case_sensitive = false) {
+		function search($query,$order = false,$limit = false,$case_sensitive = false) {
 			$table_description = BigTree::describeTable($this->Table);
 
 			foreach ($table_description["columns"] as $field => $parameters) {
@@ -662,7 +689,7 @@
 				}
 			}
 			
-			return $this->fetch($sortby,$limit,implode(" OR ",$where));
+			return $this->fetch($order,$limit,implode(" OR ",$where));
 		}
 		
 		/*
@@ -745,8 +772,8 @@
 			
 			Parameters:
 				id - The "id" of the entry in the table.
-				keys - The column names to update.
-				vals - The values to update the columns to.
+				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well)
+				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 			
 			See Also:
 				<add>
@@ -754,23 +781,25 @@
 				<save>
 		*/
 		
-		function update($id,$keys,$vals) {
+		function update($id,$fields,$values) {
 			$id = sqlescape($id);
-			$query = "UPDATE `".$this->Table."` SET ";
-			
-			if (is_array($keys)) {
-				$kparts = array();
-				foreach ($keys as $key) {
-					$kparts[] = "`".$key."` = '".sqlescape(current($vals))."'";
-					next($vals);
+			// Multiple columns to update			
+			if (is_array($fields)) {
+				$query_parts = array();
+				foreach ($fields as $key) {
+					$val = current($values);
+					if (is_array($val)) {
+						$val = json_encode($val);
+					}
+					$query_parts[] = "`$key` = '".sqlescape($val)."'";
+					next($values);
 				}
 			
-				$query .= implode(", ",$kparts)." WHERE id = '$id'";
+				sqlquery("UPDATE `".$this->Table."` SET ".implode(", ",$query_parts)." WHERE id = '$id'");
+			// Single column to update
 			} else {
-				$query = "UPDATE `".$this->Table."` SET `$keys` = '".sqlescape($vals)."' WHERE id = '$id'";
+				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($values)."' WHERE id = '$id'");
 			}
-			
-			sqlquery($query);
 			BigTreeAutoModule::recacheItem($id,$this->Table);
 		}
 	}

@@ -44,8 +44,11 @@
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/cms.php");
 	if (BIGTREE_CUSTOM_BASE_CLASS) {
-		include BIGTREE_CUSTOM_BASE_CLASS_PATH;
-		eval('$cms = new '.BIGTREE_CUSTOM_BASE_CLASS.';');
+		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
+		// Can't instantiate class from a constant name, so we use a variable then unset it.
+		$c = BIGTREE_CUSTOM_BASE_CLASS;
+		$cms = new $c;
+		unset($c);
 	} else {
 		$cms = new BigTreeCMS;
 	}
@@ -53,30 +56,35 @@
 	// Lazy loading of modules
 	$bigtree["module_list"] = $cms->ModuleClassList;
 	$bigtree["other_classes"] = array(
-		"CSSMin" => "inc/lib/CSSMin.php",
-		"htmlMimeMail" => "inc/lib/html-mail.inc.php",
-		"JSMin" => "inc/lib/JSMin.php",
-		"PasswordHash" => "inc/lib/PasswordHash.php",
-		"TextStatistics" => "inc/lib/text-statistics.php",
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
 		"BigTreeForms" => "inc/bigtree/forms.php",
-		"BigTreeGoogleAnalytics" => "inc/bigtree/google-analytics.php",
 		"BigTreeModule" => "inc/bigtree/modules.php",
-		"BigTreePaymentGateway" => "inc/bigtree/payment-gateway.php",
-		"BigTreeUploadService" => "inc/bigtree/upload-service.php",
-		"BigTreeGeocodingService" => "inc/bigtree/geocoding-service.php",
-		"BigTreeTwitterAPI" => "inc/bigtree/api-twitter.php",
-		"BigTreeInstagramAPI" => "inc/bigtree/api-instagram.php",
-		"BigTreeGooglePlusAPI" => "inc/bigtree/api-googleplus.php",
-		"BigTreeYouTubeAPI" => "inc/bigtree/api-youtube.php",
-		"BigTreeFlickrAPI" => "inc/bigtree/api-flickr.php",
+		"BigTreeGoogleAnalytics" => "inc/bigtree/apis/google-analytics.php",
+		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
+		"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
+		"BigTreeStorage" => "inc/bigtree/apis/storage.php",
+		"BigTreeGeocoding" => "inc/bigtree/apis/geocoding.php",
+		"BigTreeTwitterAPI" => "inc/bigtree/apis/twitter.php",
+		"BigTreeInstagramAPI" => "inc/bigtree/apis/instagram.php",
+		"BigTreeGooglePlusAPI" => "inc/bigtree/apis/google-plus.php",
+		"BigTreeYouTubeAPI" => "inc/bigtree/apis/youtube.php",
+		"BigTreeFlickrAPI" => "inc/bigtree/apis/flickr.php",
+		"BigTreeSalesforceAPI" => "inc/bigtree/apis/salesforce.php",
 		"S3" => "inc/lib/amazon-s3.php",
-		"CF_Authentication" => "inc/lib/rackspace/cloud.php"
+		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
+		"CSSMin" => "inc/lib/CSSMin.php",
+		"htmlMimeMail" => "inc/lib/html-mail.php",
+		"JSMin" => "inc/lib/JSMin.php",
+		"PasswordHash" => "inc/lib/PasswordHash.php",
+		"TextStatistics" => "inc/lib/text-statistics.php",
+		"lessc" => "inc/lib/less-compiler.php",
+		"oauth_client_class" => "inc/lib/oauth_client.php"
 	);
 	
+	// Just include the admin class if it's custom.
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		$bigtree["other_classes"][BIGTREE_CUSTOM_ADMIN_CLASS] = BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
+		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
 	
 	function __autoload($class) {

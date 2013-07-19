@@ -44,7 +44,7 @@
 							BigTree.localCurrentProperty++;
 							$("#current_property").html(BigTree.localCurrentProperty);
 							if (BigTree.localCurrentProperty < BigTree.localProperties.length) {
-								getProfile();
+								BigTree.localGetProfile();
 							} else {
 								html = '<select name="profile">';
 								for (i in BigTree.localProfiles) {

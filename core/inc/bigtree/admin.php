@@ -180,6 +180,7 @@
 			"dice",
 			"ticket",
 			"pallet",
+			"lightning",
 			"camera",
 			"video",
 			"twitter",
@@ -866,12 +867,40 @@
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<? include BigTree::path("admin/form-field-types/draw/text.php"); ?>');
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
+	/*
+		When drawing a field type you are provided with the $field array with the following keys:
+			"title" — The title given by the developer to draw as the label (drawn automatically)
+			"subtitle" — The subtitle given by the developer to draw as the smaller part of the label (drawn automatically)
+			"key" — The value you should use for the "name" attribute of your form field
+			"value" — The existing value for this form field
+			"id" — A unique ID you can assign to your form field for use in JavaScript
+			"tabindex" — The current tab index you can use for the "tabindex" attribute of your form field
+			"options" — An array of options provided by the developer
+			"required" — A boolean value of whether this form field is required or not
+	*/
+	
+	include BigTree::path("admin/form-field-types/draw/text.php");
+?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<? $value = $data[$key]; ?>');
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
+	/*
+		When processing a field type you are provided with the $field array with the following keys:
+			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
+			"options" — An array of options provided by the developer
+			"input" — The end user\'s $_POST data input for this field
+			"file_input" — The end user\'s uploaded files for this field in a normalized entry from the $_FILES array in the same formatting you\'d expect from "input"
+
+		BigTree expects you to set $field["output"] to the value you wish to store. If you want to ignore this field, set $field["ignore"] to true.
+		Almost all text that is meant for drawing on the front end is expected to be run through PHP\'s htmlspecialchars function as seen in the example below.
+		If you intend to allow HTML tags you will want to run htmlspecialchars in your drawing file on your value and leave it off in the process file.
+	*/
+
+	$field["output"] = htmlspecialchars($field["input"]);
+?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/process/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
@@ -2466,8 +2495,7 @@
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
-					"route" => "Generated Route",
-					"custom" => "Custom Function"
+					"route" => "Generated Route"
 				);
 
 				$types["template"] = $types["callout"] = $types["setting"] = array(
@@ -2481,8 +2509,7 @@
 					"time" => "Time Picker",
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
+					"array" => "Array of Items"
 				);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
@@ -3225,7 +3252,7 @@
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
-					$nav_item["children"] = $this->getNaturalNavigationByParent($f["id"],$levels - 1);
+					$nav_item["children"] = $this->getNaturalNavigationByParent($nav_item["id"],$levels - 1);
 				}
 				$nav[] = $nav_item;
 			}
@@ -4014,7 +4041,7 @@
 		*/
 
 		function getResourceByFile($file) {
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($this->replaceHardRoots($file))."'"));
 			if (!$item) {
 				return false;
 			}
@@ -4713,7 +4740,7 @@
 		*/
 
 		function processCrops($crops) {
-			$upload_service = new BigTreeUploadService;
+			$storage = new BigTreeStorage;
 			
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
@@ -4736,9 +4763,9 @@
 					
 					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 					BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
-					$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
+					$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 				}
-				$upload_service->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
+				$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
 			}
 			
 			// Remove all the temporary images
@@ -5737,6 +5764,8 @@
 				sqlquery("UPDATE bigtree_module_actions SET route = 'add-$suffix' WHERE module = '".$action["module"]."' AND route = 'add-$oroute'");
 				sqlquery("UPDATE bigtree_module_actions SET route = 'edit-$suffix' WHERE module = '".$action["module"]."' AND route = 'edit-$oroute'");
 			}
+			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
+			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE form = '$id' AND route LIKE 'edit%'");
 		}
 
 		/*
@@ -5804,6 +5833,7 @@
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
 		}
 
 		/*
@@ -5980,7 +6010,7 @@
 
 			// Create an automatic redirect from the old path to the new one.
 			if ($current["path"] != $path) {
-				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$oldpath','$newpath')");
+				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('".$current["path"]."','$path')");
 
 				// Update all child page routes, ping those engines, clean those caches
 				$this->updateChildPagePaths($page);
@@ -6120,7 +6150,7 @@
 
 		function updateResource($id,$name) {
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($title));
+			$name = sqlescape(htmlspecialchars($name));
 			sqlquery("UPDATE bigtree_resources SET name = '$name' WHERE id = '$id'");
 		}
 

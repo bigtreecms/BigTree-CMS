@@ -1,5 +1,5 @@
 <?
 	$t = $admin->getCachedFieldTypes();
-	$types = $t["settings"];
+	$types = $t["setting"];
 	$section_root = $developer_root."settings/";
 ?>

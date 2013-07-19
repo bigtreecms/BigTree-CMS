@@ -62,7 +62,7 @@
 					$data = json_decode($data,true);
 					$link = $mpage.$data["route"]."/".$item["id"]."/";
 					if ($data["function"]) {
-						eval('$link = '.$data["function"].'($item);');
+						$link = call_user_func($data["function"],$item);
 					}
 		?>
 		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>

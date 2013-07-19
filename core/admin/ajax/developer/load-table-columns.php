@@ -21,3 +21,4 @@
 		echo "&mdash;";
 	}
 ?>
+<script>BigTreeCustomControls();</script>

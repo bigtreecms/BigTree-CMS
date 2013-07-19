@@ -163,7 +163,7 @@
 			
 			$cache = true;
 			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
-				@eval('$cache = '.$view["options"]["filter"].'($item);');
+				$cache = call_user_func($view["options"]["filter"],$item);
 			}
 			
 			if ($cache) {
@@ -666,6 +666,7 @@
 			$status = "published";
 			$many_to_many = array();
 			$resources = array();
+			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
@@ -683,6 +684,7 @@
 					}
 				}
 				$status = "pending";
+				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
 				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
@@ -714,13 +716,15 @@
 			
 			// Process the internal page links, turn json_encoded arrays into arrays.
 			foreach ($item as $key => $val) {
-				if (is_array(json_decode($val,true))) {
+				if (is_array($val)) {
+					$item[$key] = BigTree::untranslateArray($val);
+				} elseif (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}
 			}
-			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status);
+			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
 		}
 		
 		/*
@@ -1103,6 +1107,9 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
+						if (is_array($val)) {
+							$val = json_encode(BigTree::translateArray($val));
+						}
 						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
