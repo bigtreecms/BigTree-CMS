@@ -4767,6 +4767,7 @@
 			
 			$results = array();
 			$terms = explode(" ",$query);
+			$qpart = array("archived != 'on'");
 
 			foreach ($terms as $term) {
 				$term = sqlescape(strtolower($term));
