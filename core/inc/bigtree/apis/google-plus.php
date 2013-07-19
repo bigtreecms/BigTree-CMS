@@ -303,6 +303,24 @@
 			isset($activity->url) ? $this->URL = $activity->url : false;
 			isset($activity->actor) ? $this->User = new BigTreeGooglePlusPerson($activity->actor,$api) : false;
 		}
+
+		/*
+			Function: getComments
+				Returns comments for this activity.
+
+			Parameters:
+				count - The number of comments to return (defaults to 500, max 500)
+				order - The sort order for the results (options are "ascending" and "descending", defaults to "ascending" or oldest first)
+				params - Additional parameters to pass to the activities/{activityId}/comments API call.
+
+			Returns:
+				A BigTreeGoogleResultSet of BigTreeGooglePlusComment objects.
+		*/
+
+		function getComments($count = 500,$order = "ascending",$params = array()) {
+			return $this->API->getComments($this->ID,$count,$order,$params);
+		}
+
 	}
 
 	/*
@@ -441,6 +459,39 @@
 			isset($person->objectType) ? $this->Type = $person->objectType : false;
 			isset($person->url) ? $this->URL = $person->url : false;
 			isset($person->verified) ? $this->Verified = $person->verified : false;
+		}
+
+		/*
+			Function: getActivities
+				Returns a list of public activities made by this person.
+
+			Parameters:
+				count - The number of results to return, (defaults to 100, max 100)
+				params - Additional parameters to pass to the people/{userId}/activities API call.
+
+			Returns:
+				A BigTreeGoogleResultSet of BigTreeGooglePlusActivity objects.
+		*/
+
+		function getActivities($count = 100,$params = array()) {
+			return $this->API->getActivities($this->ID,$count,$params);
+		}
+
+		/*
+			Function: getCircledPeople
+				Returns a list of people this user has in one or more circles.
+
+			Parameters:
+				count - The number of results to return, (defaults to 100, max 100)
+				order - The sort order for the results (options are "best" and "alphabetical", defaults to "best")
+				params - Additional parameters to pass to the people/{userId}/people API call.
+
+			Returns:
+				A BigTreeGoogleResultSet of BigTreeGooglePlusPeople objects.
+		*/
+
+		function getCircledPeople($count = 100,$order = "best",$params = array()) {
+			return $this->API->getCircledPeople($this->ID,$count,$order,$params);
 		}
 	}
 ?>
