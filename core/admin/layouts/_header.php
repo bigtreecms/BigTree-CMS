@@ -47,7 +47,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><? if (isset($module_title)) { ?><?=htmlspecialchars(htmlspecialchars_decode($module_title))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
+		<title><? if (isset($bigtree["admin_title"])) { ?><?=htmlspecialchars(htmlspecialchars_decode($bigtree["admin_title"]))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
 		<?
 			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
