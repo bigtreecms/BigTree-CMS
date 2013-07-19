@@ -18,11 +18,13 @@
 			"refresh_token" => $response->refresh_token
 		);
 
-		$info = json_decode(BigTree::cURL($youtube->URL."channels?access_token=".$response->access_token."&part=snippet&mine=true"));
-		if (isset($info->items)) {
-			$setting["user_id"] = $info->items[0]->id;
-			$setting["user_name"] = $info->items[0]->snippet->title;
-			$setting["user_image"] = $info->items[0]->snippet->thumbnails->default->url;
+		$youtube->Settings["token"] = $response->access_token;
+		$youtube->Connected = true;
+		$info = $youtube->getChannel();
+		if ($info) {
+			$setting["user_id"] = $info->ID;
+			$setting["user_name"] = $info->Title;
+			$setting["user_image"] = $info->Images->Default;
 			$admin->updateSettingValue("bigtree-internal-youtube-api",$setting);
 			$admin->growl("YouTube API","Connected");
 		} else {
