@@ -155,36 +155,6 @@
 		}
 
 		/*
-			Function: getMoments
-				Returns a list of public moments of the given user ID.
-				Returns the authenticated user's moments if no ID is passed in.
-
-			Parameters:
-				user - The ID of the person to return moments for. You may pass "me" to use the authenticated user (default)
-				count - The number of results to return, (defaults to 100, max 100)
-				params - Additional parameters to pass to the people/{userId}/moments API call.
-
-			Returns:
-				A BigTreeGoogleResultSet of BigTreeGooglePlusMoment objects.
-		*/
-
-		function getMoments($user = "me",$count = 100,$params = array()) {
-			$response = $this->call("people/$user/moments/public",array_merge(array(
-				"orderBy" => $order,
-				"maxResults" => $count
-			),$params));
-
-			if (!isset($response->items)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->items as $activity) {
-				$results[] = new BigTreeGooglePlusActivity($activity,$this);
-			}
-			return new BigTreeGoogleResultSet($this,"getActivities",array($user,$count,$order,$params),$response,$results);
-		}
-
-		/*
 			Function: getPerson
 				Returns a person for the given user ID.
 				Returns the authenticated user if no ID is passed in.
@@ -376,45 +346,6 @@
 			isset($location->position->latitude) ? $this->Latitude = $location->position->latitude : false;
 			isset($location->position->longitude) ? $this->Longitude = $location->position->longitude : false;
 			isset($location->displayName) ? $this->Name = $location->displayName : false;
-		}
-	}
-
-	/*
-		Class: BigTreeGooglePlusMoment
-	*/
-
-	class BigTreeGooglePlusMoment {
-
-		function __construct($moment,&$api) {
-			$this->Action = $moment->type;
-			$this->API = $api;
-			$this->CreatedAt = date("Y-m-d H:i:s",strtotime($moment->startDate));
-			$this->ID = $moment->id;
-			$this->Target->Type = $moment->target->type;
-			$this->Target->ID = $moment->target->id;
-			$this->Target->Description = $moment->target->description;
-			$this->Target->Image = $moment->target->image;
-			$this->Target->Name = $moment->target->name;
-			$this->Target->URL = $moment->target->url;
-			if (is_array($moment->target->author)) {
-				$this->Target->Authors = array();
-				foreach ($moment->target->author as $author) {
-					$this->Target->Authors[] = new BigTreeGooglePlusPerson($author,$api);
-				}
-			}
-			if (is_array($moment->target->contributor)) {
-				$this->Target->Contributors = array();
-				foreach ($moment->target->contributor as $contributor) {
-					$this->Target->Contributors[] = new BigTreeGooglePlusPerson($contributor,$api);
-				}
-			}
-			$this->Target->CreatedAt = date("Y-m-d H:i:s",strtotime($moment->target->dateCreated));
-			$this->Target->PublishedAt = date("Y-m-d H:i:s",strtotime($moment->target->datePublished));
-			$this->Target->UpdatedAt = date("Y-m-d H:i:s",strtotime($moment->target->dateModified));
-			$this->Target->Thumbnail = $moment->target->thumbnailUrl;
-			$this->Target->ContentSize = $moment->target->contentSize;
-			$this->Target->About = $moment->target->about;
-			$this->Target->ContentURL = $moment->target->contentUrl;
 		}
 	}
 
