@@ -21,11 +21,13 @@
 	$bigtree["config"]["db_write"]["user"] = "[write_user]";
 	$bigtree["config"]["db_write"]["password"] = "[write_password]";
 	
-	// Setup the www_root and resource_root
-	// Resource root must be on a different domain than www_root.  Usually we just remove the www. from the domain.
+	// "domain" should be http:///www.website.com
 	$bigtree["config"]["domain"] = "[domain]";
+	// "www_root" should be http://www.website.com/location/of/the/site/
 	$bigtree["config"]["www_root"] = "[wwwroot]";
+	// "static_root" can either be the same as "www_root" or another domain that points to the same place -i t is used to server static files to increase page load time due to max connections per domain in most browsers.
 	$bigtree["config"]["static_root"] = "[staticroot]";
+	// "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
 	// Current Environment
