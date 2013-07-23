@@ -152,7 +152,7 @@
 			// Add OAuth related parameters.
 			$oauth = array();
 			$oauth["oauth_consumer_key"] = $this->Settings["key"];
-			$oauth["oauth_nonce"] = uniqid(true);
+			$oauth["oauth_nonce"] = uniqid();
 			$oauth["oauth_signature_method"] = "HMAC-SHA1";
 			$oauth["oauth_timestamp"] = time();
 			$oauth["oauth_version"] = "1.0";
@@ -166,23 +166,31 @@
 			$string = "";
 			foreach ($mixed as $key => $val) {
 				if (!in_array($key,$excluded)) {
-					$string .= "&".urlencode($key)."=".urlencode($val);
+					$string .= "&".rawurlencode($key)."=".rawurlencode($val);
 				}
 			}
 
 			// Signature
-			$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".urlencode($url)."&".urlencode(substr($string,1)),$this->Settings["secret"]."&".$this->Settings["token_secret"],true));
-
+			$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string,1)),$this->Settings["secret"]."&".$this->Settings["token_secret"],true));
+			
 			// Build out our new URL with OAuth vars + GET vars we extracted.
 			$url .= "?";
-			foreach ($oauth as $key => $val) {
-				$url .= "$key=$val&";
-			}
 			foreach ($get as $key => $val) {
-				$url .= "$key=".urlencode($val)."&";
+				$url .= "$key=".rawurlencode($val)."&";
 			}
-			$url = substr($url,0,-1);
 
+			// If we're using GET or DELETE, append OAuth vars, otherwise add them to the POST data.
+			if (($method == "POST" || $method == "PUT") && is_array($data)) {
+				$data = array_merge($oauth,$data);
+			} else {
+				foreach ($oauth as $key => $val) {
+					$url .= "$key=$val&";
+				}
+			}
+
+			// Trim trailing ? or & from the URL, not that it should matter.
+			$url = substr($url,0,-1);
+			
 			return BigTree::cURL($url,$data,array(CURLOPT_CUSTOMREQUEST => $method));
 		}
 
@@ -207,11 +215,15 @@
 		*/
 
 		function uploadPhoto($photo,$title = "",$description = "",$tags = array(),$public = true,$family = true,$friends = true,$safety = 1,$type = 1,$hidden = false) {
-			$tags = implode(" ",$tags);
-			print_r($this->callAPI("http://up.flickr.com/services/upload/","POST",
-				array("photo" => "@".$photo,"title" => $title,"description" => $description,"tags" => $tags,"is_public" => $public,"is_family" => $family,"is_friends" => $friends,"safety_level" => $safety,"content_type" => $type,"hidden" => ($hidden ? 2 : 1)),
+			$xml = $this->callAPI("http://up.flickr.com/services/upload/","POST",
+				array("photo" => "@".$photo,"title" => $title,"description" => $description,"tags" => implode(" ",$tags),"is_public" => $public,"is_family" => $family,"is_friends" => $friends,"safety_level" => $safety,"content_type" => $type,"hidden" => ($hidden ? 2 : 1)),
 				array("photo")
-			));
+			);
+			$doc = @simplexml_load_string($xml);
+			if (isset($doc->photoid)) {
+				return strval($doc->photoid);
+			}
+			return false;
 		}
 	}
 ?>
