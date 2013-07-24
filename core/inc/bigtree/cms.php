@@ -46,10 +46,14 @@
 		*/
 
 		function cacheGet($identifier,$key,$max_age = false) {
+			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
+			$time = sqlfetch(sqlquery("SELECT NOW() as `time`"));
+			$max_age = date("Y-m-d H:i:s",strtotime($time["time"]) - $max_age);
+			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			if ($max_age) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '".date("Y-m-d H:i:s",time() - $max_age)."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '$max_age'"));
 			} else {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			}
@@ -89,7 +93,7 @@
 			}
 			
 			if ($f) {
-				sqlquery("UPDATE bigtree_caches SET `value` = '$value' WHERE `identifier` = '$identifier' AND `key` = '$key'");
+				sqlquery("UPDATE bigtree_caches SET `value` = '$value', `timestamp` = NOW() WHERE `identifier` = '$identifier' AND `key` = '$key'");
 			} else {
 				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
 			}
