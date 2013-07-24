@@ -47,8 +47,11 @@
 
 		function cacheGet($identifier,$key,$max_age = false) {
 			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-			$time = sqlfetch(sqlquery("SELECT NOW() as `time`"));
-			$max_age = date("Y-m-d H:i:s",strtotime($time["time"]) - $max_age);
+			if (!$this->MySQLTime) {
+				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
+				$this->MySQLTime = $t["time"];
+			}
+			$max_age = date("Y-m-d H:i:s",strtotime($this->MySQLTime) - $max_age);
 			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
