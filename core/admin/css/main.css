@@ -543,7 +543,7 @@
 	.table > header { background-gradient: #9A9A9A #AFAFAF; background-position: 0px 0px; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
-	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
+	.table > section { background: #FFF; overflow: hidden; padding: 20px; text-overflow: ellipsis; white-space: nowrap; }
 	.table > ul { background: #FFF; overflow: hidden; }
 	.table > ul:last-child { border-radius: 0px 0px 5px 5px; }
 	.table > ul li { border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
