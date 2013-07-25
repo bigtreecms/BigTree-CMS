@@ -1111,7 +1111,7 @@ var BigTreeDialog = Class.extend({
 				dialog_window.html('<h2>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
 			}
 		} else {
-			dialog_window.html('<h2><a href="#" class="icon_delete" class="bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
+			dialog_window.html('<h2><a href="#" class="icon_delete bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
 		}
 
 		BigTreeCustomControls(dialog_window);
