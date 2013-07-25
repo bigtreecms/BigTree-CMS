@@ -82,7 +82,7 @@
 		*/
 
 		function cachePush($id) {
-			if (!in_array($this->LastCacheKey,$this->Settings[$id]))) {
+			if (!in_array($this->LastCacheKey,$this->Settings[$id])) {
 				$this->Settings[$id][] = $this->LastCacheKey;
 			}
 		}
