@@ -150,7 +150,7 @@
 				$data = array_merge($oauth,$data);
 			} else {
 				if (is_array($data) && count($data)) {
-					$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",http_build_query($data,"","&", PHP_QUERY_RFC3986))."&";
+					$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",http_build_query($data,"","&"))."&";
 				}
 				foreach ($oauth as $key => $val) {
 					$url .= "$key=$val&";
