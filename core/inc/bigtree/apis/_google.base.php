@@ -4,8 +4,6 @@
 			Other Google APIs inherit from this class. Implements common call patterns.
 	*/
 
-	require_once(BigTree::path("inc/bigtree/apis/_google.base.php"));
-
 	class BigTreeGoogleAPIBase {
 
 		/*
@@ -81,8 +79,6 @@
 					return json_decode(json_encode($record));
 				}
 			}
-			// Check again in the cache for this record's ETag
-
 			
 			$response = $this->callUncached($endpoint,$params,$method,$headers);
 			if ($response !== false) {
