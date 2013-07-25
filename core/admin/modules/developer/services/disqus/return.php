@@ -7,7 +7,6 @@
 		$api->Settings["user_name"] = $user->Name;
 		$api->Settings["user_image"] = $user->Image;
 		$api->Settings["user_id"] = $user->ID;
-		$api->saveSettings();
 		$admin->growl("$name API","Connected");
 	}
 	BigTree::redirect(DEVELOPER_ROOT."services/$route/");

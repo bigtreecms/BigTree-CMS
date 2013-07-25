@@ -114,6 +114,7 @@
 		function getCategory($id) {
 			$response = $this->call("categories/details.json",array("category" => $id));
 			if ($response !== false) {
+				$this->cachePush("category".$response->id);
 				return new BigTreeDisqusCategory($response,$this);
 			}
 		}
@@ -132,6 +133,7 @@
 		function getForum($shortname) {
 			$response = $this->call("forums/details.json",array("forum" => $shortname));
 			if ($response !== false) {
+				$this->cachePush("forum".$response->id);
 				return new BigTreeDisqusForum($response,$this);
 			}
 		}
@@ -150,6 +152,7 @@
 		function getPost($id) {
 			$response = $this->call("posts/details.json",array("post" => $id));
 			if ($response !== false) {
+				$this->cachePush("post".$response->id);
 				return new BigTreeDisqusPost($response,$this);
 			}
 		}
@@ -180,6 +183,7 @@
 			}
 			$response = $this->call("threads/details.json",$params);
 			if ($response !== false) {
+				$this->cachePush("thread".$response->id);
 				return new BigTreeDisqusThread($response,$this);
 			}
 		}
@@ -205,6 +209,7 @@
 			}
 			$response = $this->call("users/details.json",$params);
 			if ($response !== false) {
+				$this->cachePush("user".$response->id);
 				return new BigTreeDisqusUser($response,$this);
 			}
 		}
@@ -234,6 +239,8 @@
 		function remove() {
 			$response = $this->API->call("blacklists/remove.json",array("forum" => $this->ForumID,$this->Type => $this->Value),"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("blacklist".$this->ID);
+				$this->API->cacheBust("blacklisted".$this->ForumID);
 				return true;
 			}
 			return false;
@@ -288,6 +295,7 @@
 		function addCategory($title) {
 			$response = $this->API->call("categories/create.json",array("forum" => $this->ID,"title" => $title),"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("categories".$this->ID);
 				return new BigTreeDisqusCategory($response,$this->API);
 			}
 			return false;
@@ -311,6 +319,7 @@
 			}
 			$response = $this->API->call("forums/addModerator.json",$params,"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("moderators".$this->ID);
 				return true;
 			}
 		}
@@ -329,6 +338,7 @@
 		function addToBlacklist($type,$value,$retroactive = false,$notes = "") {
 			$response = $this->API->call("blacklists/add.json",array("forum" => $this->ID,$type => $value,"retroactive" => $retroactive,"notes" => $notes),"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("blacklisted".$this->ID);
 				return true;
 			}
 			return false;
@@ -355,6 +365,7 @@
 			}
 			$response = $this->API->call("whitelists/add.json",$params,"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("whitelisted".$this->ID);
 				return true;
 			}
 			return false;
@@ -380,8 +391,10 @@
 			$params["order"] = $order;
 			$response = $this->API->call("blacklists/list.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("blacklisted".$this->ID);
 				$results = array();
 				foreach ($response->Results as $item) {
+					$this->API->cachePush("blacklist".$item->id);
 					$results[] = new BigTreeDisqusBlacklistEntry($item,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getBlacklist",array($limit,$order,$params),$response->Cursor,$results);
@@ -408,8 +421,10 @@
 			$params["order"] = $order;
 			$response = $this->API->call("forums/listCategories.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("categories".$this->ID);
 				$results = array();
 				foreach ($response->Results as $category) {
+					$this->API->cachePush("category".$category->id);
 					$results[] = new BigTreeDisqusCategory($category,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getCategories",array($limit,$order,$params),$response->Cursor,$results);
@@ -440,8 +455,10 @@
 		function getModerators() {
 			$response = $this->API->call("forums/listModerators.json",array("forum" => $this->ID));
 			if ($response !== false) {
+				$this->API->cachePush("moderators".$this->ID);
 				$results = array();
 				foreach ($response as $user) {
+					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
 				return $results;
@@ -468,6 +485,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $user) {
+					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getMostActiveUsers",array($limit,$order,$params),$response->Cursor,$results);
@@ -494,6 +512,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $user) {
+					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getMostLikedUsers",array($limit,$order,$params),$response->Cursor,$results);
@@ -525,8 +544,10 @@
 			}
 			$response = $this->API->call("forums/listPosts.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("posts".$this->ID);
 				$results = array();
 				foreach ($response->Results as $post) {
+					$this->API->cachePush("post".$post->id);
 					$results[] = new BigTreeDisqusPost($post,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getPosts",array($limit,$order,$include,$since,$params),$response->Cursor,$results);
@@ -556,8 +577,10 @@
 			}
 			$response = $this->API->call("forums/listThreads.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("threads".$this->ID);
 				$results = array();
 				foreach ($response->Results as $thread) {
+					$this->API->cachePush("thread".$thread->id);
 					$results[] = new BigTreeDisqusThread($thread,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getThreads",array($limit,$order,$since,$params),$response->Cursor,$results);
@@ -581,6 +604,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response as $thread) {
+					$this->API->cachePush("thread".$thread->id);
 					$results[] = new BigTreeDisqusThread($thread,$this->API);
 				}
 				return $results;
@@ -605,8 +629,10 @@
 			$params["limit"] = $limit;
 			$response = $this->API->call("forums/listUsers.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("users".$this->ID);
 				$results = array();
 				foreach ($response->Results as $user) {
+					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getUsers",array($limit,$order,$since,$params),$response->Cursor,$results);
@@ -634,8 +660,10 @@
 			$params["order"] = $order;
 			$response = $this->API->call("whitelists/list.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("whitelisted".$this->ID);
 				$results = array();
 				foreach ($response->Results as $item) {
+					$this->API->cachePush("whitelist".$item->id);
 					$results[] = new BigTreeDisqusWhitelistEntry($item,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getWhitelist",array($limit,$order,$params),$response->Cursor,$results);
@@ -661,6 +689,7 @@
 			}
 			$response = $this->API->call("forums/removeModerator.json",$params,"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("moderators".$this->ID);
 				return true;
 			}
 		}
@@ -695,6 +724,11 @@
 			isset($post->userScore) ? $this->UserScore = $post->userScore : false;
 		}
 
+		function _cacheBust() {
+			$this->API->cacheBust("posts".$this->ThreadID);
+			$this->API->cacheBust("post".$this->ID);
+		}
+
 		/*
 			Function: approve
 				Approves this post.
@@ -707,6 +741,7 @@
 		function approve() {
 			$response = $this->API->call("posts/approve.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -724,6 +759,7 @@
 		function highlight() {
 			$response = $this->API->call("posts/highlight.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -741,6 +777,7 @@
 		function remove() {
 			$response = $this->API->call("posts/remove.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -757,6 +794,7 @@
 		function report() {
 			$response = $this->API->call("posts/report.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -774,6 +812,7 @@
 		function restore() {
 			$response = $this->API->call("posts/restore.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -791,6 +830,7 @@
 		function spam() {
 			$response = $this->API->call("posts/spam.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -808,6 +848,7 @@
 		function unhighlight() {
 			$response = $this->API->call("posts/unhighlight.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -827,6 +868,7 @@
 		function vote($vote = 0) {
 			$response = $this->API->call("posts/vote.json",array("post" => $this->ID,"vote" => $vote),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -923,6 +965,11 @@
 			isset($thread->userScore) ? $this->UserScore = $thread->userScore : false;
 		}
 
+		function _cacheBust() {
+			$this->API->cacheBust("threads".$this->ForumID);
+			$this->API->cacheBust("thread".$this->ID);
+		}
+
 		/*
 			Function: close
 				Closes this thread.
@@ -932,6 +979,7 @@
 		function close() {
 			$response = $this->API->call("threads/close.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -956,8 +1004,10 @@
 			$params["order"] = $order;
 			$response = $this->API->call("threads/listPosts.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("posts".$this->ID);
 				$results = array();
 				foreach ($response->Results as $post) {
+					$this->API->cachePush("post".$post->id);
 					$results[] = new BigTreeDisqusPost($post,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getPosts",array($limit,$order,$params),$response->Cursor,$results);
@@ -974,6 +1024,7 @@
 		function open() {
 			$response = $this->API->call("threads/open.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -988,6 +1039,7 @@
 		function remove() {
 			$response = $this->API->call("threads/remove.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -1002,6 +1054,7 @@
 		function restore() {
 			$response = $this->API->call("threads/restore.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -1022,6 +1075,7 @@
 			}
 			$response = $this->API->call("threads/subscribe.json",$params,"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -1042,6 +1096,7 @@
 			}
 			$response = $this->API->call("threads/unsubscribe.json",$params,"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -1058,6 +1113,7 @@
 		function vote($vote = 0) {
 			$response = $this->API->call("threads/vote.json",array("thread" => $this->ID,"vote" => $vote),"POST");
 			if ($response !== false) {
+				$this->_cacheBust();
 				return true;
 			}
 			return false;
@@ -1107,6 +1163,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $forum) {
+					$this->API->cachePush("forum".$forum->id);
 					$results[] = new BigTreeDisqusForum($forum,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getActiveForums",array($limit,$params),$response->Cursor,$results);
@@ -1130,6 +1187,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $thread) {
+					$this->API->cachePush("thread".$thread->id);
 					$results[] = new BigTreeDisqusThread($thread,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getActiveThreads",array($limit,$params),$response->Cursor,$results);
@@ -1153,6 +1211,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $user) {
+					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getFollowers",array($limit,$params),$response->Cursor,$results);
@@ -1176,6 +1235,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $user) {
+					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getFollowing",array($limit,$params),$response->Cursor,$results);
@@ -1201,6 +1261,7 @@
 			if ($response !== false) {
 				$results = array();
 				foreach ($response->Results as $post) {
+					$this->API->cachePush("post".$post->id);
 					$results[] = new BigTreeDisqusPost($post,$this->API);
 				}
 				return new BigTreeDisqusResultSet($this,"getPosts",array($limit,$order,$params),$response->Cursor,$results);
@@ -1219,6 +1280,7 @@
 		function follow() {
 			$response = $this->API->call("users/follow.json",array("target" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("user".$this->ID);
 				return true;
 			}
 			return false;
@@ -1235,6 +1297,7 @@
 		function unfollow() {
 			$response = $this->API->call("users/unfollow.json",array("target" => $this->ID),"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("user".$this->ID);
 				return true;
 			}
 			return false;
@@ -1265,6 +1328,8 @@
 		function remove() {
 			$response = $this->API->call("whitelists/remove.json",array("forum" => $this->ForumID,$this->Type => $this->Value),"POST");
 			if ($response !== false) {
+				$this->API->cacheBust("whitelisted".$this->ForumID);
+				$this->API->cacheBust("whitelist".$this->ID);
 				return true;
 			}
 			return false;

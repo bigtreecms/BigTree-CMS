@@ -38,6 +38,8 @@
 				));
 				$this->Settings = array();
 			}
+			// Setup dependency table for cache busting
+			$this->Settings["hash_table"] = is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
 			
 			// Check if we're conected
 			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
@@ -47,6 +49,41 @@
 				if ($this->Settings["expires"] < time() + 1800) {
 					$this->oAuthRefreshToken();
 				}
+			}
+		}
+
+		/*
+			Destructor: 
+				Saves $this->Settings back to BigTree's settings table.
+		*/
+
+		function __destruct() {
+			global $admin;
+			if (!$admin) {
+				$admin = new BigTreeAdmin;
+			}
+			$admin->updateSettingValue($this->SettingID,$this->Settings);
+		}
+
+		/*
+			Function: cacheBust
+				Busts the cache for everything relating to an object.
+		*/
+
+		function cacheBust($id) {
+			foreach ($this->Settings[$id] as $i) {
+				sqlquery("DELETE FROM bigtree_caches WHERE identifier = '".sqlescape($this->CacheIdentifier)."' AND key = '".sqlescape($i)."'");
+			}
+		}
+
+		/*
+			Function: cachePush
+				Pushes a hash onto the cache hash table.
+		*/
+
+		function cachePush($id) {
+			if (!in_array($this->LastCacheKey,$this->Settings[$id]))) {
+				$this->Settings[$id][] = $this->LastCacheKey;
 			}
 		}
 		
@@ -69,8 +106,8 @@
 			global $cms;
 			
 			if ($this->Cache) {
-				$cache_key = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet($this->CacheIdentifier,$cache_key,900);
+				$this->LastCacheKey = md5($endpoint.json_encode($params));
+				$record = $cms->cacheGet($this->CacheIdentifier,$this->LastCacheKey,900);
 				if ($record) {
 					// We re-decode it as an object since that's what we're expecting from OAuth normally.
 					return json_decode(json_encode($record));
@@ -80,7 +117,7 @@
 			$response = $this->callUncached($endpoint,$params,$method,$headers);
 			if ($response !== false) {
 				if ($this->Cache) {
-					$cms->cachePut($this->CacheIdentifier,$cache_key,$response);
+					$cms->cachePut($this->CacheIdentifier,$this->LastCacheKey,$response);
 				}
 			}
 			return $response;
@@ -243,7 +280,6 @@
 			if ($response->access_token) {
 				$this->Settings["token"] = $response->access_token;
 				$this->Settings["expires"] = strtotime("+".$response->expires_in." seconds");
-				$this->saveSettings();
 			}
 		}
 
@@ -272,20 +308,9 @@
 			$this->Settings["token"] = $response->access_token;
 			$this->Settings["refresh_token"] = $response->refresh_token;
 			$this->Settings["expires"] = $resposne->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
-			$this->saveSettings();
 
 			$this->Connected = true;
 			return $response;
-		}
-
-		/*
-			Function: saveSettings
-				Saves $this->Settings back to BigTree's settings table.
-		*/
-
-		function saveSettings() {
-			$admin = new BigTreeAdmin;
-			$admin->updateSettingValue($this->SettingID,$this->Settings);
 		}
 	}
 ?>
