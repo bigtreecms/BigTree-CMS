@@ -104,6 +104,18 @@
 			}
 			
 			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
+				// Responses are limited to 200 records, rinse and repeat until we have them all
+				if ($response->nextRecordsUrl) {
+					$this->OldCache = $this->Cache;
+					$this->Cache = false;
+					
+					$nextSet = $this->call($response->nextRecordsUrl,array(),$method,$options);
+					$response->records = array_merge($response->records, $nextSet->records);
+					
+					$this->Cache = $this->OldCache;
+					unset($this->OldCache);
+				}
+				
 				if ($this->Cache) {
 					$cms->cachePut("org.bigtreecms.api.salesforce",$cache_key,$response);
 				}
@@ -135,6 +147,12 @@
 			}
 
 			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
+				// Responses are limited to 200 records, rinse and repeat until we have them all
+				if ($response->nextRecordsUrl) {
+					$nextSet = $this->call($response->nextRecordsUrl,array(),$method,$options);
+					$response->records = array_merge($response->records, $nextSet->records);
+				}
+				
 				return $response;
 			} else {
 				$this->Errors = json_decode($this->OAuthClient->api_error);
@@ -158,7 +176,7 @@
 		*/
 
 		function cURL($endpoint,$method,$content = false,$json = false) {
-			$headers = array("Authorization: Bearer ".$this->Settings["token"]);
+			$headers = array($this->OAuthClient->authorization);
 			if ($json) {
 				$headers[] = "Content-type: application/json";
 			}
@@ -327,7 +345,7 @@
 
 		function delete($id) {
 			// We're going to straight up cURL because the outh class is bogus and hangs on this call.
-			$response = $this->API->cURL("sobjects/".$this->Type."/$id","DELETE");
+			$response = $this->API->cURL("sobjects/".$this->Name."/$id","DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
