@@ -40,12 +40,13 @@
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data.
 				max_age - The maximum age (in seconds) for the data, defaults to any age.
+				decode - Automatically json decode result.
 
 			Returns:
-				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
+				Data from the table (json decoded, objects convert to keyed arrays by default) if it exists or false.
 		*/
 
-		function cacheGet($identifier,$key,$max_age = false) {
+		function cacheGet($identifier,$key,$max_age = false,$decode = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			if ($max_age) {
@@ -56,7 +57,7 @@
 			if (!$f) {
 				return false;
 			}
-			return json_decode($f["value"],true);
+			return ($decode) ? json_decode($f["value"],true) : $f["value"];
 		}
 
 		/*
@@ -68,12 +69,13 @@
 				key - The key for your data.
 				value - The data to store.
 				replace - Whether to replace an existing value (defaults to true).
+				force_object - Store object if possible, otherwise store array
 
 			Returns:
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		function cachePut($identifier,$key,$value,$replace = true) {
+		function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -82,7 +84,7 @@
 			}
 
 			// Prefer to keep this an object, but we need PHP 5.3
-			if (strnatcmp(phpversion(),'5.3') >= 0) {
+			if (strnatcmp(phpversion(),'5.3') >= 0 && $force_object) {
 				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
 			} else {
 				$value = sqlescape(json_encode($value));
