@@ -1,24 +1,35 @@
 <?
 	$googleplus = new BigTreeGooglePlusAPI;
-	if ($googleplus->OAuthClient->Process()) {
-		if ($googleplus->OAuthClient->access_token) {
-			// Get user information directly from Google's OAuth system
-			$googleplus->OAuthClient->CallAPI('https://www.googleapis.com/oauth2/v1/userinfo', "GET", array(), array('FailOnAccessError'=>true), $user);
-			// Save token information and some user info for displaying connection info in the admin.
-			$admin->updateSettingValue("bigtree-internal-googleplus-api",array(
-				"key" => $googleplus->Settings["key"],
-				"secret" => $googleplus->Settings["secret"],
-				"token" => $googleplus->OAuthClient->access_token,
-				"user_id" => $user->id,
-				"user_name" => $user->name,
-				"user_image" => $user->picture
-			));
-	
+	$response = json_decode(BigTree::cURL("https://accounts.google.com/o/oauth2/token",array(
+		"code" => $_GET["code"],
+		"client_id" => $googleplus->Settings["key"],
+		"client_secret" => $googleplus->Settings["secret"],
+		"redirect_uri" => ADMIN_ROOT."developer/services/googleplus/return/",
+		"grant_type" => "authorization_code"
+	)));
+	if (isset($response->error)) {
+		$admin->growl("Google+ API",$response->error,"error");
+	} else {
+		$setting = array(
+			"key" => $googleplus->Settings["key"],
+			"secret" => $googleplus->Settings["secret"],
+			"token" => $response->access_token,
+			"expires" => strtotime("+".$response->expires_in." seconds"),
+			"refresh_token" => $response->refresh_token
+		);
+
+		$googleplus->Settings["token"] = $response->access_token;
+		$googleplus->Connected = true;
+		$info = $googleplus->getPerson();
+		if (isset($info->ID)) {
+			$setting["user_id"] = $info->ID;
+			$setting["user_name"] = $info->DisplayName;
+			$setting["user_image"] = $info->Image;
+			$admin->updateSettingValue("bigtree-internal-googleplus-api",$setting);
 			$admin->growl("Google+ API","Connected");
-			BigTree::redirect(DEVELOPER_ROOT."services/googleplus/");
+		} else {
+			$admin->growl("Google+ API","Unknown Error","error");
 		}
 	}
-	
-	$admin->growl("Google+ API","Unknown Error");
 	BigTree::redirect(DEVELOPER_ROOT."services/googleplus/");
 ?>

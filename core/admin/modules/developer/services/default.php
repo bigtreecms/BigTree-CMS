@@ -11,6 +11,7 @@
 	$google = new BigTreeGooglePlusAPI;
 	$youtube = new BigTreeYouTubeAPI;
 	$flickr = new BigTreeFlickrAPI;
+	$disqus = new BigTreeDisqusAPI;
 	$salesforce = new BigTreeSalesforceAPI;
 ?>
 <div class="table">
@@ -41,7 +42,12 @@
 			<p>Flickr</p>
 		</a>
 		
-		<a class="box_select<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
+		<a class="box_select<? if ($disqus->Connected) { ?> connected<? } ?>" href="disqus/">
+			<span class="disqus"></span>
+			<p>Disqus</p>
+		</a>
+
+		<a class="box_select last<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
 			<span class="cloud"></span>
 			<p>Salesforce</p>
 		</a>

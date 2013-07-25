@@ -4,9 +4,9 @@
 		if ($flickr->OAuthClient->access_token) {
 			$flickr->Connected = true;
 			// Get user ID
-			$user = $flickr->callAPI(array("method" => "flickr.test.login"));
+			$user = $flickr->callUncached(array("method" => "flickr.test.login"));
 			// Get user info
-			$user = $flickr->callAPI(array("method" => "flickr.people.getInfo","user_id" => $user->user->id));
+			$user = $flickr->callUncached(array("method" => "flickr.people.getInfo","user_id" => $user->user->id));
 			// If they don't have a user image we get a busted link, so give them the default BigTree gravatar instead
 			if (!$user->person->iconfarm) {
 				$user_icon = ADMIN_ROOT."images/icon_default_gravatar.jpg";

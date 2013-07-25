@@ -40,24 +40,30 @@
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data.
 				max_age - The maximum age (in seconds) for the data, defaults to any age.
-				decode - Automatically json decode result.
 
 			Returns:
-				Data from the table (json decoded, objects convert to keyed arrays by default) if it exists or false.
+				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
 		*/
 
-		function cacheGet($identifier,$key,$max_age = false,$decode = true) {
+		function cacheGet($identifier,$key,$max_age = false) {
+			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
+			if (!$this->MySQLTime) {
+				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
+				$this->MySQLTime = $t["time"];
+			}
+			$max_age = date("Y-m-d H:i:s",strtotime($this->MySQLTime) - $max_age);
+			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			if ($max_age) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '".date("Y-m-d H:i:s",time() - $max_age)."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '$max_age'"));
 			} else {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			}
 			if (!$f) {
 				return false;
 			}
-			return ($decode) ? json_decode($f["value"],true) : $f["value"];
+			return json_decode($f["value"],true);
 		}
 
 		/*
@@ -69,13 +75,12 @@
 				key - The key for your data.
 				value - The data to store.
 				replace - Whether to replace an existing value (defaults to true).
-				force_object - Store object if possible, otherwise store array
 
 			Returns:
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
+		function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -84,14 +89,14 @@
 			}
 
 			// Prefer to keep this an object, but we need PHP 5.3
-			if (strnatcmp(phpversion(),'5.3') >= 0 && $force_object) {
+			if (strnatcmp(phpversion(),'5.3') >= 0) {
 				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
 			} else {
 				$value = sqlescape(json_encode($value));
 			}
 			
 			if ($f) {
-				sqlquery("UPDATE bigtree_caches SET `value` = '$value' WHERE `identifier` = '$identifier' AND `key` = '$key'");
+				sqlquery("UPDATE bigtree_caches SET `value` = '$value', `timestamp` = NOW() WHERE `identifier` = '$identifier' AND `key` = '$key'");
 			} else {
 				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
 			}
@@ -1076,7 +1081,7 @@
 		*/
 
 		function replaceHardRoots($string) {
-			return str_replace(array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),array("{adminroot}","{wwwroot}","{staticroot}"),$string);
+			return str_replace(array(ADMIN_ROOT,STATIC_ROOT,WWW_ROOT),array("{adminroot}","{staticroot}","{wwwroot}"),$string);
 		}
 
 		/*
