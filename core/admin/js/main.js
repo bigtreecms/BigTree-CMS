@@ -245,6 +245,7 @@ var BigTreeCheckbox = Class.extend({
 				this.Element.attr("checked","checked");
 			}
 			this.Element.triggerHandler("click");
+			this.Element.triggerHandler("change");
 		}
 		return false;
 	}
@@ -830,6 +831,7 @@ var BigTreeRadioButton = Class.extend({
 			});
 		}
 		this.Element.triggerHandler("click");
+		this.Element.triggerHandler("change");
 		return false;
 	},
 	
