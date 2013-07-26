@@ -58,7 +58,11 @@
 		*/
 
 		function __destruct() {
-			global $admin;
+			global $admin,$cms;
+			// These might have already been destroyed, so we need them back.
+			if (!$cms) {
+				$cms = new BigTreeCMS;
+			}
 			if (!$admin) {
 				$admin = new BigTreeAdmin;
 			}
@@ -71,8 +75,10 @@
 		*/
 
 		function cacheBust($id) {
-			foreach ($this->Settings[$id] as $i) {
-				sqlquery("DELETE FROM bigtree_caches WHERE identifier = '".sqlescape($this->CacheIdentifier)."' AND key = '".sqlescape($i)."'");
+			if (is_array($this->Settings["hash_table"][$id])) {
+				foreach ($this->Settings["hash_table"][$id] as $i) {
+					sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '".sqlescape($this->CacheIdentifier)."' AND `key` = '".sqlescape($i)."'");
+				}
 			}
 		}
 
@@ -82,8 +88,11 @@
 		*/
 
 		function cachePush($id) {
-			if (!in_array($this->LastCacheKey,$this->Settings[$id])) {
-				$this->Settings[$id][] = $this->LastCacheKey;
+			if (!isset($this->Settings["hash_table"][$id])) {
+				$this->Settings["hash_table"][$id] = array();
+			}
+			if (!in_array($this->LastCacheKey,$this->Settings["hash_table"][$id])) {
+				$this->Settings["hash_table"][$id][] = $this->LastCacheKey;
 			}
 		}
 		

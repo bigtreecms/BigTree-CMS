@@ -544,7 +544,7 @@
 			}
 			$response = $this->API->call("forums/listPosts.json",$params);
 			if ($response !== false) {
-				$this->API->cachePush("posts".$this->ID);
+				$this->API->cachePush("forumposts".$this->ID);
 				$results = array();
 				foreach ($response->Results as $post) {
 					$this->API->cachePush("post".$post->id);
@@ -725,7 +725,7 @@
 		}
 
 		function _cacheBust() {
-			$this->API->cacheBust("posts".$this->ThreadID);
+			$this->API->cacheBust("threadposts".$this->ThreadID);
 			$this->API->cacheBust("post".$this->ID);
 		}
 
@@ -966,7 +966,7 @@
 		}
 
 		function _cacheBust() {
-			$this->API->cacheBust("threads".$this->ForumID);
+			$this->API->cacheBust("forumthreads".$this->ForumID);
 			$this->API->cacheBust("thread".$this->ID);
 		}
 
@@ -1004,7 +1004,7 @@
 			$params["order"] = $order;
 			$response = $this->API->call("threads/listPosts.json",$params);
 			if ($response !== false) {
-				$this->API->cachePush("posts".$this->ID);
+				$this->API->cachePush("threadposts".$this->ID);
 				$results = array();
 				foreach ($response->Results as $post) {
 					$this->API->cachePush("post".$post->id);
@@ -1245,7 +1245,7 @@
 
 		/*
 			Function: getPosts
-				Returns a result set of users that follow this user.
+				Returns a result set of posts by this user.
 
 			Parameters:
 				limit - Number of results per page (default is 25, max is 100)
@@ -1259,6 +1259,7 @@
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listPosts.json",$params);
 			if ($response !== false) {
+				$this->API->cachePush("userposts".$this->ID);
 				$results = array();
 				foreach ($response->Results as $post) {
 					$this->API->cachePush("post".$post->id);
