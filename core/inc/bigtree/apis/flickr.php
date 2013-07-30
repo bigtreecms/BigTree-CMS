@@ -2,14 +2,17 @@
 	/*
 		Class: BigTreeFlickrAPI
 	*/
+
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
 	
-	class BigTreeFlickrAPI {
+	class BigTreeFlickrAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = "http://ycpi.api.flickr.com/services/rest";
-		var $Settings = array();
-		var $Cache = true;
+		var $AuthorizeURL = "http://www.flickr.com/services/oauth/request_token";
+		var $EndpointURL = "http://ycpi.api.flickr.com/services/rest";
+		var $OAuthVersion = "1.0";
+		var $RequestType = "hash";
+		var $Scope = "https://www.googleapis.com/auth/youtube";
+		var $TokenURL = "http://www.flickr.com/services/oauth/authorize";
 		
 		/*
 			Constructor:
@@ -20,178 +23,80 @@
 		*/
 
 		function __construct($cache = true) {
-			global $cms;
-			$this->Cache = $cache;
+			parent::__construct("bigtree-internal-flickr-api","YouTube API","org.bigtreecms.api.flickr",$cache);
 
-			// If we don't have the setting for the Flickr API, create it.
-			$this->Settings = $cms->getSetting("bigtree-internal-flickr-api");
-			if (!$this->Settings) {
-				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-flickr-api", 
-					"name" => "Flickr API", 
-					"encrypted" => "on", 
-					"system" => "on"
-				));
-			}
-
-			// Build OAuth client
-			$this->OAuthClient = new oauth_client_class;
-			$this->OAuthClient->server = "Flickr";
-			$this->OAuthClient->client_id = $this->Settings["key"]; 
-			$this->OAuthClient->client_secret = $this->Settings["secret"];
-			$this->OAuthClient->access_token = $this->Settings["token"];
-			$this->OAuthClient->access_token_secret = $this->Settings["token_secret"];
-			$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/services/flickr/return/";
-			
-			// Check if we're conected
-			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
-				$this->Connected = true;
-			}
-			
-			// Init Client
-			$this->OAuthClient->Initialize();
-		}
-		
-		/*
-			Function: call
-				Calls the Flickr API directly with the given API parameters.
-				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
-
-			Parameters:
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API or the cache.
-		*/
-
-		function call($params = array(),$method = "GET",$options = array()) {
-			global $cms;
-			$params["key"] = $this->Settings["token"];
-			if ($method != "GET") {
-				return $this->callUncached($params,$method);				
-			}
-
-			if (!$this->Connected) {
-				throw new Exception("The Flickr API is not connected.");
-			}
-
-			if ($this->Cache) {
-				$cache_key = md5(json_encode($params));
-				$record = $cms->cacheGet("org.bigtreecms.api.flickr",$cache_key,900);
-				if ($record) {
-					// We re-decode it as an object since that's what we're expecting from Flickr normally.
-					return json_decode(json_encode($record));
-				}
-			}
-			
-			$params["format"] = "json";
-			$params["nojsoncallback"] = true;
-			if ($this->OAuthClient->CallAPI($this->URL,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				if ($this->Cache) {
-					$cms->cachePut("org.bigtreecms.api.flickr",$cache_key,$response);
-				}
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/flickr/return/";
 		}
 
 		/*
 			Function: callUncached
-				Calls the Flickr API directly with the given API parameters.
-				Does not cache information.
-
-			Parameters:
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API.
+				Overrides BigTreeOAuthAPIBase to always request normal JSON.
 		*/
 
-		function callUncached($params = array(),$method = "GET",$options = array()) {
-			if (!$this->Connected) {
-				throw new Exception("The Flickr API is not connected.");
-			}
+		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+			$params["method"] = $endpoint;
 			$params["format"] = "json";
 			$params["nojsoncallback"] = true;
-			if ($this->OAuthClient->CallAPI($this->URL,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				return $response;
+			return parent::callUncached("",$params,$method,$headers);
+		}
+
+		/*
+			Function: oAuthRedirect
+				Redirects to the OAuth API to authenticate.
+		*/
+
+		function oAuthRedirect() {
+			$this->Settings["token_secret"] = "";
+			$admin = new BigTreeAdmin;
+			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
+			parse_str($response);
+			if ($oauth_callback_confirmed) {
+				$this->Settings["token"] = $oauth_token;
+				$this->Settings["token_secret"] = $oauth_token_secret;
+				BigTree::redirect("http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
+				$admin->growl($oauth_problem,"Flickr API");
+				BigTree::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}
 
 		/*
-			Function: callAPI
-				Calls the API via cURL/OAuth
-
-			Parameters:
-				url - The URL to hit
-				method - The HTTP method to use
-				data - POST vars / body
-				excluded - Keys that are excluded from HMAC hashing
-
-			Returns:
-				Response data.
+			Function: oAuthRefreshToken
+				Refreshes an existing token setup.
 		*/
 
-		function callAPI($url,$method = "GET",$data = array(),$excluded = array()) {
-			// Extract GET vars from the URL.
-			parse_str(parse_url($url,PHP_URL_QUERY),$get);
-			if (count($get)) {
-				$url = substr($url,0,strpos($url,"?"));
+		function oAuthRefreshToken() {
+			$response = json_decode(BigTree::cURL($this->TokenURL,array(
+				"client_id" => $this->Settings["key"],
+				"client_secret" => $this->Settings["secret"],
+				"refresh_token" => $this->Settings["refresh_token"],
+				"grant_type" => "refresh_token"
+			)));
+			if ($response->access_token) {
+				$this->Settings["token"] = $response->access_token;
+				$this->Settings["expires"] = strtotime("+".$response->expires_in." seconds");
 			}
+		}
 
-			// Add OAuth related parameters.
-			$oauth = array();
-			$oauth["oauth_consumer_key"] = $this->Settings["key"];
-			$oauth["oauth_nonce"] = uniqid();
-			$oauth["oauth_signature_method"] = "HMAC-SHA1";
-			$oauth["oauth_timestamp"] = time();
-			$oauth["oauth_version"] = "1.0";
-			$oauth["oauth_token"] = $this->Settings["token"];
+		/*
+			Function: oAuthSetToken
+				Sets token information (or an error) when provided a response code.
 
-			// Merge GET and POST and OAuth
-			$mixed = array_merge($get,$data,$oauth);
-			// Sort keys
-			ksort($mixed);
-			// Create a string for signing
-			$string = "";
-			foreach ($mixed as $key => $val) {
-				if (!in_array($key,$excluded)) {
-					$string .= "&".rawurlencode($key)."=".rawurlencode($val);
-				}
+			Returns:
+				A stdClass object of information if successful.
+		*/
+
+		function oAuthSetToken($code) {
+			$response = $this->callAPI("http://www.flickr.com/services/oauth/access_token","GET",array("oauth_verifier" => $_GET["oauth_verifier"],"oauth_token" => $_GET["oauth_token"]));
+			parse_str($response);
+			if ($fullname) {
+				$this->Settings["token"] = $oauth_token;
+				$this->Settings["token_secret"] = $oauth_token_secret;
+				$this->Connected = true;
+				return true;
 			}
-
-			// Signature
-			$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string,1)),$this->Settings["secret"]."&".$this->Settings["token_secret"],true));
-			
-			// Build out our new URL with OAuth vars + GET vars we extracted.
-			$url .= "?";
-			foreach ($get as $key => $val) {
-				$url .= "$key=".rawurlencode($val)."&";
-			}
-
-			// If we're using GET or DELETE, append OAuth vars, otherwise add them to the POST data.
-			if (($method == "POST" || $method == "PUT") && is_array($data)) {
-				$data = array_merge($oauth,$data);
-			} else {
-				foreach ($oauth as $key => $val) {
-					$url .= "$key=$val&";
-				}
-			}
-
-			// Trim trailing ? or & from the URL, not that it should matter.
-			$url = substr($url,0,-1);
-			
-			return BigTree::cURL($url,$data,array(CURLOPT_CUSTOMREQUEST => $method));
+			return false;
 		}
 
 		/*

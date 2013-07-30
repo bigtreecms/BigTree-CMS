@@ -3,15 +3,18 @@
 		Class: BigTreeYouTubeAPI
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_google.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
 
-	class BigTreeYouTubeAPI extends BigTreeGoogleAPIBase {
+	class BigTreeYouTubeAPI extends BigTreeOAuthAPIBase {
 		
-		var $Cache = true;
-		var $Connected = false;
-		var $URL = "https://www.googleapis.com/youtube/v3/";
-		var $Settings = array();
-
+		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		var $EndpointURL = "https://www.googleapis.com/youtube/v3/";
+		var $OAuthVersion = "2.0";
+		var $RequestType = "header";
+		var $Scope = "https://www.googleapis.com/auth/youtube";
+		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		
 		/*
 			Constructor:
 				Sets up the YouTube API connections.
@@ -22,6 +25,9 @@
 
 		function __construct($cache = true) {
 			parent::__construct("bigtree-internal-youtube-api","YouTube API","org.bigtreecms.api.youtube",$cache);
+
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/youtube/return/";
 		}
 
 		/*

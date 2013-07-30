@@ -46,7 +46,7 @@
 				$this->Connected = true;
 
 				// If our token is going to expire in the next 30 minutes, refresh it.
-				if ($this->Settings["expires"] < time() + 1800) {
+				if ($this->Settings["expires"] < time() + 1800 && $this->Settings["expires"]) {
 					$this->oAuthRefreshToken();
 				}
 			}
@@ -163,7 +163,7 @@
 				$oauth["oauth_consumer_key"] = $this->Settings["key"];
 				$oauth["oauth_token"] = $this->Settings["token"];
 				$oauth["oauth_version"] = $this->OAuthVersion;
-				$oauth["oauth_nonce"] = uniqid();
+				$oauth["oauth_nonce"] = md5(uniqid(rand(), true));
 				$oauth["oauth_timestamp"] = time();
 				$oauth["oauth_signature_method"] = "HMAC-SHA1";
 	
@@ -178,11 +178,13 @@
 						$string .= "&".rawurlencode($key)."=".rawurlencode($val);
 					}
 				}
-	
+
 				// Signature
 				$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string,1)),$this->Settings["secret"]."&".$this->Settings["token_secret"],true));
 			} elseif ($this->RequestType == "custom") {
 				$oauth = $this->RequestParameters;
+			} elseif ($this->RequestType == "header") {
+				$headers[] = "Authorization: Bearer ".$this->Settings["token"];
 			}
 
 			// Build out our new URL with OAuth vars + GET vars we extracted.
@@ -199,8 +201,9 @@
 					$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",http_build_query($data,"","&"))."&";
 				}
 				foreach ($oauth as $key => $val) {
-					$url .= "$key=$val&";
+					$url .= "$key=".rawurlencode($val)."&";
 				}
+				$data = false;
 			}
 
 			// Trim trailing ? or & from the URL, not that it should matter.

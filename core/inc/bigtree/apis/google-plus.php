@@ -3,15 +3,17 @@
 		Class: BigTreeGooglePlusAPI
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_google.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
 
-	class BigTreeGooglePlusAPI extends BigTreeGoogleAPIBase {
+	class BigTreeGooglePlusAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = "https://www.googleapis.com/plus/v1/";
-		var $Settings = array();
-		var $Cache = true;
+		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		var $EndpointURL = "https://www.googleapis.com/plus/v1/";
+		var $OAuthVersion = "1.0";
+		var $RequestType = "custom";
+		var $Scope = "https://www.googleapis.com/auth/plus.login";
+		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		/*
 			Constructor:
@@ -23,6 +25,15 @@
 
 		function __construct($cache = true) {
 			parent::__construct("bigtree-internal-googleplus-api","Google+ API","org.bigtreecms.api.googleplus",$cache);
+
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/googleplus/return/";
+
+			// Just send the request with the secret.
+			$this->RequestParameters = array();
+			$this->RequestParameters["access_token"] = &$this->Settings["token"];
+			$this->RequestParameters["api_key"] = &$this->Settings["key"];
+			$this->RequestParameters["api_secret"] = &$this->Settings["secret"];
 		}
 
 		/*
