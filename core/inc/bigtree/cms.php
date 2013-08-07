@@ -1111,10 +1111,14 @@
 				$html = $this->getInternalPageLink($html);
 			} else {
 				$html = $this->replaceRelativeRoots($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',create_function('$matches','global $cms; return \'="\'.$cms->getInternalPageLink($matches[1]).\'"\';'),$html);
+				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
 			}
 
 			return $html;
+		}
+		protected function replaceInternalPageLinksHook($matches) {
+			global $cms;
+			return '="'.$cms->getInternalPageLink($matches[1]).'"';
 		}
 		
 		/*
