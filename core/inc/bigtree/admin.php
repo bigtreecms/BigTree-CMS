@@ -2335,7 +2335,7 @@
 						$types["callout"][$f["id"]] = $f["name"];
 					}
 					if ($f["settings"]) {
-						$types["settings"][$f["id"]] = $f["name"];
+						$types["setting"][$f["id"]] = $f["name"];
 					}
 				}
 				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));
