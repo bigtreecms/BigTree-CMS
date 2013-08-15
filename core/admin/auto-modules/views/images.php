@@ -15,7 +15,7 @@
 	if ($draggable) {
 		$order = "position DESC, id ASC";
 	} else {
-		$order = "id DESC";
+		$order = $view["options"]["sort"] ? $view["options"]["sort"] : "id DESC";
 	}
 	
 	$items = BigTreeAutoModule::getViewData($view,$order,"active");
@@ -89,6 +89,7 @@
 		<ul class="image_list">
 			<?
 				foreach ($pending_items as $item) {
+					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($prefix) {
 						$preview_image = BigTree::prefixFile($item["column1"],$prefix);
 					} else {
