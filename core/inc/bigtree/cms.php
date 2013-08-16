@@ -7,6 +7,8 @@
 	class BigTreeCMS {
 	
 		var $iplCache = array();
+		var $ReplaceableRootKeys = array();
+		var $ReplaceableRootVals = array();
 
 		/*
 			Constructor:
@@ -29,6 +31,20 @@
 				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",json_encode($items));
 			}
 			
+			// Figure out what roots we can replace
+			if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = ADMIN_ROOT;
+				$this->ReplaceableRootVals[] = "{adminroot}";
+			}
+			if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = STATIC_ROOT;
+				$this->ReplaceableRootVals[] = "{staticroot}";
+			}
+			if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = WWW_ROOT;
+				$this->ReplaceableRootVals[] = "{wwwroot}";
+			}
+
 			$this->ModuleClassList = $items;
 		}
 
@@ -1082,7 +1098,7 @@
 		*/
 
 		function replaceHardRoots($string) {
-			return str_replace(array(ADMIN_ROOT,STATIC_ROOT,WWW_ROOT),array("{adminroot}","{staticroot}","{wwwroot}"),$string);
+			return str_replace($this->ReplaceableRootKeys,$this->ReplaceableRootVals,$string);
 		}
 
 		/*
