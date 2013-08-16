@@ -540,7 +540,7 @@
 	.table > summary h2 .saved { background-position: -216px -80px; }
 	.table > summary h2 .modules { background-position: -240px -80px; }
 
-	.table > header { background-gradient: #9A9A9A #AFAFAF; background-position: 0px 0px; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
+	.table > header { background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
@@ -781,7 +781,9 @@
 	.view_paging .last span { background: url(../images/icon-sprite.png) no-repeat -137px -125px; width: 6px; height: 9px; display: block; }
 	.view_paging .ellipsis { padding: 0px 5px; }
 
-	.image_list { margin-bottom: -10px; overflow: hidden; }
+	.image_list > header span { padding: 0 0 0 20px; }
+	.image_list .image_pending_divider { background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 22px; margin: 20px -20px; padding: 0px 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); user-select: none; }
+	.image_list ul { margin-bottom: -10px; overflow: hidden; }
 	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	.image_list li.non_draggable { cursor: default; }
 	.image_list li a { cursor: pointer; margin: 0 3px 0 0; }
