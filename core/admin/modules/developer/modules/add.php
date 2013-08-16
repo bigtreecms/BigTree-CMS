@@ -1,5 +1,5 @@
 <?
-	$groups = $admin->getModuleGroups();
+	$groups = $admin->getModuleGroups("name ASC");
 	
 	// Stop notices
 	$gbp = array();

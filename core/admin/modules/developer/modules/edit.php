@@ -29,7 +29,7 @@
 	
 	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
 	
-	$groups = $admin->getModuleGroups();
+	$groups = $admin->getModuleGroups("name ASC");
 ?>
 <div class="container">
 	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
