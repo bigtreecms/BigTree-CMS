@@ -100,7 +100,7 @@
 							<? BigTree::getFieldSelectOptions($gbp["table"],$gbp["group_field"]) ?>
 						</select>
 						<? } else { ?>
-						&mdash;
+						<input type="text" disabled="disabled" value="Please select &quot;Main Table&quot;" />
 						<? } ?>
 					</div>
 				</fieldset>
@@ -121,7 +121,7 @@
 							<? BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
 						</select>
 						<? } else { ?>
-						&mdash;
+						<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
 						<? } ?>
 					</div>
 				</fieldset>

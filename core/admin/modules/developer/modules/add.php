@@ -75,7 +75,9 @@
 				</fieldset>
 				<fieldset name="gbp[group_field]">
 					<label>Main Field</label>
-					<div>&mdash;</div>
+					<div>
+						<input type="text" disabled="disabled" value="Please select &quot;Main Table&quot;" />
+					</div>
 				</fieldset>
 			</article>
 			<article>
@@ -88,7 +90,9 @@
 				</fieldset>
 				<fieldset name="gbp[title_field]">
 					<label>Title Field</label>
-					<div>&mdash;</div>
+					<div>
+						<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
+					</div>
 				</fieldset>
 			</article>
 		</section>
