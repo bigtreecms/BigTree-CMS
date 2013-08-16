@@ -17,6 +17,8 @@
 			Parameters:
 				keys - An array of column names to add
 				vals - An array of values for each of the columns
+				enforce_unique - Check to see if this entry is already in the database (prevent duplicates, defaults to false)
+				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)
 			
 			Returns:
 				The "id" of the new entry.
@@ -27,7 +29,7 @@
 				<update>
 		*/
 		
-		function add($keys,$vals) {
+		function add($keys,$vals,$enforce_unique = false,$ignore_cache = false) {
 			$existing_parts = $key_parts = $value_parts = array();
 			$x = 0;
 			// Get a bunch of query parts.
@@ -39,17 +41,21 @@
 			}
 
 			// Prevent Duplicates
-			$row = sqlfetch(sqlquery("SELECT id FROM `".$this->Table."` WHERE ".implode(" AND ",$existing_parts)." LIMIT 1"));
-			// If it's the same as an existing entry, return that entry's id
-			if ($row) {
-				return $row["id"];
+			if ($enforce_unique) {
+				$row = sqlfetch(sqlquery("SELECT id FROM `".$this->Table."` WHERE ".implode(" AND ",$existing_parts)." LIMIT 1"));
+				// If it's the same as an existing entry, return that entry's id
+				if ($row) {
+					return $row["id"];
+				}
 			}
 			
 			// Add the entry and cache it.
 			sqlquery("INSERT INTO `".$this->Table."` (".implode(",",$key_parts).") VALUES (".implode(",",$value_parts).")");
 			$id = sqlid();
-			BigTreeAutoModule::cacheNewItem($id,$this->Table);
-			
+			if (!$ignore_cache) {
+				BigTreeAutoModule::cacheNewItem($id,$this->Table);
+			}
+
 			return $id;
 		}
 		
@@ -648,20 +654,20 @@
 			
 			Parameters:
 				item - A modified entry from the table.
-				
+				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)
+							
 			See Also:
 				<add>
 				<delete>
 				<update>
 		*/
 		
-		function save($item) {
+		function save($item,$ignore_cache = false) {
 			$id = $item["id"];
 			unset($item["id"]);
 			
 			$keys = array_keys($item);
-			$this->update($id,$keys,$item);
-			BigTreeAutoModule::recacheItem($id,$this->Table);
+			$this->update($id,$keys,$item,$ignore_cache);
 		}
 		
 		/*
@@ -774,6 +780,7 @@
 				id - The "id" of the entry in the table.
 				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well)
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
+				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)	
 			
 			See Also:
 				<add>
@@ -781,7 +788,7 @@
 				<save>
 		*/
 		
-		function update($id,$fields,$values) {
+		function update($id,$fields,$values,$ignore_cache = false) {
 			$id = sqlescape($id);
 			// Multiple columns to update			
 			if (is_array($fields)) {
@@ -800,7 +807,9 @@
 			} else {
 				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($values)."' WHERE id = '$id'");
 			}
-			BigTreeAutoModule::recacheItem($id,$this->Table);
+			if (!$ignore_cache) {
+				BigTreeAutoModule::recacheItem($id,$this->Table);
+			}
 		}
 	}
 ?>
