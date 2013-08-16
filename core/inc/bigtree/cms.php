@@ -836,13 +836,8 @@
 			if ($f["encrypted"]) {
 				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
 			}
-			$value = json_decode($f["value"],true);
 
-			// Don't try to do translations and such if it's a system value.
-			if ($f["system"]) {
-				return $value;
-			}
-			
+			$value = json_decode($f["value"],true);
 			if (is_array($value)) {
 				return BigTree::untranslateArray($value);
 			} else {

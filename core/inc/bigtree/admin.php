@@ -3271,11 +3271,14 @@
 
 			$items = array();
 			while ($f = sqlfetch($q)) {
-				foreach ($f as $key => $val) {
-					$f[$key] = $this->replaceRelativeRoots($val);
-				}
 				$f["value"] = json_decode($f["value"],true);
-				if ($f["encrypted"] == "on") {
+				if (is_array($f["value"])) {
+					$f["value"] = BigTree::untranslateArray($f["value"]);
+				} else {
+					$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+				}
+				$f["description"] = $cms->replaceInternalPageLinks($f["description"]);
+				if ($f["encrypted"]) {
 					$f["value"] = "[Encrypted Text]";
 				}
 				$items[] = $f;
