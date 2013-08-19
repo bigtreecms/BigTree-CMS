@@ -61,7 +61,8 @@
 					"refresh_token" => $this->Settings["refresh_token"]
 				)),true);
 				if ($response["access_token"]) {
-					$this->URL = $response["instance_url"]."/services/data/v28.0/";
+					$this->InstanceURL = $response["instance_url"];
+					$this->URL = $this->InstanceURL."/services/data/v28.0/";
 					$this->OAuthClient->access_token = $response["access_token"];
 					$this->OAuthClient->authorization = "Authorization: Bearer ".$response["access_token"];
 					$this->Connected = true;
@@ -84,7 +85,7 @@
 				Information directly from the API or the cache.
 		*/
 
-		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
+		function call($endpoint = false,$params = array(),$method = "GET",$options = array(),$cache_time = 86400) {
 			global $cms;
 			if ($method != "GET") {
 				return $this->callUncached($endpoint,$params,$method);				
@@ -96,7 +97,7 @@
 
 			if ($this->Cache) {
 				$cache_key = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet("org.bigtreecms.api.salesforce",$cache_key,900);
+				$record = $cms->cacheGet("org.bigtreecms.api.salesforce",$cache_key,$cache_time);
 				if ($record) {
 					// We re-decode it as an object since that's what we're expecting from Salesforce normally.
 					return json_decode(json_encode($record));
@@ -105,15 +106,25 @@
 			
 			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
 				// Responses are limited to 200 records, rinse and repeat until we have them all
+				// NOTE: pretty much unsable - searching for better ways to handle massive data
 				if ($response->nextRecordsUrl) {
-					$this->OldCache = $this->Cache;
-					$this->Cache = false;
+					$response->nextRecordsEndpoint = str_ireplace($this->URL, "", $this->InstanceURL.$response->nextRecordsUrl);
 					
-					$nextSet = $this->call($response->nextRecordsUrl,array(),$method,$options);
-					$response->records = array_merge($response->records, $nextSet->records);
+					//$this->OldCache = $this->Cache;
+					//$this->Cache = false;
 					
-					$this->Cache = $this->OldCache;
-					unset($this->OldCache);
+					//$nextEndpoint = str_ireplace($this->URL, "", $this->InstanceURL.$response->nextRecordsUrl);
+					//$nextSet = $this->call($nextEndpoint,array(),$method,$options);
+					
+					//if (is_array($nextSet->records)) {
+					//	$response->records = array_merge($response->records, $nextSet->records);
+					//}
+					
+					//unset($nextSet);
+					//$nextSet = null;
+					
+					//$this->Cache = $this->OldCache;
+					//unset($this->OldCache);
 				}
 				
 				if ($this->Cache) {
@@ -235,7 +246,7 @@
 	class BigTreeSalesforceObject {
 
 		protected $API;
-		protected $QueryFieldNames;
+		var $QueryFieldNames;
 
 		/*
 			Constructor:
@@ -384,8 +395,8 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getAll($order = "Id ASC") {
-			return $this->query("SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order");
+		function getAll($order = "Id ASC",$full_response = false) {
+			return $this->query("SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order",$full_response);
 		}
 
 		/*
@@ -402,7 +413,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getMatching($fields,$values,$order = "Id ASC",$limit = false) {
+		function getMatching($fields,$values,$order = "Id ASC",$limit = false,$full_response = false) {
 			if (!is_array($fields)) {
 				$where = "$fields = '".sqlescape($values)."'";
 			} else {
@@ -421,7 +432,7 @@
 			if ($limit) {
 				$query .= " LIMIT $limit";
 			}
-			return $this->query($query);
+			return $this->query($query,$full_response);
 		}
 
 		/*
@@ -438,7 +449,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 		
-		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false) {
+		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$full_response = false) {
 			// Don't try for page 0
 			if ($page < 1) {
 				$page = 1;
@@ -449,7 +460,7 @@
 			} else {
 				$query = "SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order LIMIT $perpage OFFSET ".(($page - 1) * $perpage);
 			}
-			return $this->query($query);
+			return $this->query($query,$full_response);
 		}
 
 		/*
@@ -463,8 +474,14 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function query($query) {
-			$response = $this->API->call("query/?q=".urlencode($query));
+		function query($query,$full_response = false) {
+			
+			if (strpos($query, "query/") > -1) {
+				$response = $this->API->call($query);
+			} else {
+				$response = $this->API->call("query/?q=".urlencode($query));
+			}
+			
 			if (!isset($response->records)) {
 				return false;
 			}
@@ -472,7 +489,8 @@
 			foreach ($response->records as $record) {
 				$records[] = new BigTreeSalesforceRecord($record,$this->API);
 			}
-			return $records;
+			$response->records = $records;
+			return $full_response ? $response : $records;
 		}
 
 		/*
@@ -488,7 +506,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 		
-		function search($query,$order = "Id ASC",$limit = false) {
+		function search($query,$order = "Id ASC",$limit = false,$full_response = false) {
 			$where = array();
 			$searchable_types = array("string","picklist","textarea","phone","url");
 			foreach ($this->Fields as $field) {
@@ -503,7 +521,7 @@
 			if ($limit) {
 				$query .= " LIMIT $limit";
 			}
-			return $this->query($query);
+			return $this->query($query,$full_response);
 		}
 
 		/*
@@ -568,7 +586,7 @@
 			unset($this->Columns->CreatedById);
 			unset($this->Columns->CreatedDate);
 			unset($this->Columns->Id);
-			unset($this->Columns->IsDeleted);
+			//unset($this->Columns->IsDeleted);
 			unset($this->Columns->JigsawCompanyId);
 			unset($this->Columns->LastActivityDate);
 			unset($this->Columns->LastModifiedDate);
