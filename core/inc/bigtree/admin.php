@@ -421,7 +421,7 @@
 			$password = sqlescape($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
-			BigTree::redirect(ADMIN_ROOT."login/reset-success/");
+			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 		}
 
 		/*
@@ -1974,6 +1974,8 @@
 		*/
 
 		function forgotPassword($email) {
+			global $bigtree;
+
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
@@ -1987,13 +1989,13 @@
 			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
 			
-			$reset_link = ADMIN_ROOT."login/reset-password/$hash/";
+			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			
 			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
 			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
 			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
 			$html = str_ireplace("{site_title}",$site_title,$html);
-			$html = str_ireplace("{reset_link}",$reset_link,$html);
+			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 			
 			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
 
@@ -2004,7 +2006,7 @@
 			$mailer->setHtml($html,$text);
 			$mailer->send(array($user["email"]));
 			
-			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
+			BigTree::redirect($login_root."forgot-success/");
 		}
 
 		/*

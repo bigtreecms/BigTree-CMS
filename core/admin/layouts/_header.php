@@ -76,7 +76,7 @@
 	<body class="bigtree">
 		<header class="main">
 			<section>
-				<a href="<?=ADMIN_ROOT?>login/logout/" class="logout"><span></span>Logout</a>
+				<a href="<? if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span>Logout</a>
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>

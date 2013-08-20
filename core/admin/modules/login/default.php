@@ -21,7 +21,7 @@
 		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> Remember Me</p>
 	</fieldset>
 	<fieldset class="lower">
-		<a href="<?=ADMIN_ROOT?>login/forgot-password/" class="forgot_password">Forgot Password?</a>
+		<a href="<?=$login_root?>forgot-password/" class="forgot_password">Forgot Password?</a>
 		<input type="submit" class="button blue" value="Login" />
 	</fieldset>
 </form>
