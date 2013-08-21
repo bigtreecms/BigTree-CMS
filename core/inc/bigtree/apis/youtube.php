@@ -648,6 +648,7 @@
 	*/
 
 	class BigTreeYouTubeActivity {
+		protected $API;
 
 		function __construct($activity,&$api) {
 			$type = $activity->snippet->type;
@@ -722,6 +723,7 @@
 	*/
 
 	class BigTreeYouTubeChannel {
+		protected $API;
 
 		function __construct($channel,&$api) {
 			$this->API = $api;
@@ -782,6 +784,7 @@
 	*/
 
 	class BigTreeYouTubePlaylist {
+		protected $API;
 
 		function __construct($playlist,&$api) {
 			$this->API = $api;
@@ -831,6 +834,7 @@
 	*/
 
 	class BigTreeYouTubePlaylistItem {
+		protected $API;
 
 		function __construct($item,&$api) {
 			$this->API = $api;
@@ -894,6 +898,7 @@
 	*/
 
 	class BigTreeYouTubeSubscription {
+		protected $API;
 
 		function __construct($subscription,&$api) {
 			$this->API = $api;
@@ -925,6 +930,7 @@
 	*/
 
 	class BigTreeYouTubeVideo {
+		protected $API;
 
 		function __construct($video,&$api) {
 			$this->API = $api;

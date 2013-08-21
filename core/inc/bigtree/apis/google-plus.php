@@ -251,6 +251,7 @@
 	*/
 
 	class BigTreeGooglePlusActivity {
+		protected $API;
 
 		function __construct($activity,&$api) {
 			if (is_array($activity->access->items)) {
@@ -339,6 +340,7 @@
 	*/
 
 	class BigTreeGooglePlusComment {
+		protected $API;
 
 		function __construct($comment,&$api) {
 			$this->API = $api;
@@ -368,6 +370,7 @@
 	*/
 
 	class BigTreeGooglePlusLocation {
+		protected $API;
 
 		function __construct($location,&$api) {
 			$this->API = $api;
@@ -383,6 +386,7 @@
 	*/
 
 	class BigTreeGooglePlusPerson {
+		protected $API;
 
 		function __construct($person,&$api) {
 			$this->API = $api;

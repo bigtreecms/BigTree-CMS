@@ -220,6 +220,7 @@
 	*/
 
 	class BigTreeDisqusBlacklistEntry {
+		protected $API;
 
 		function __construct($item,&$api) {
 			$this->API = $api;
@@ -252,6 +253,7 @@
 	*/
 
 	class BigTreeDisqusCategory {
+		protected $API;
 
 		function __construct($category,&$api) {
 			$this->API = $api;
@@ -268,6 +270,7 @@
 	*/
 
 	class BigTreeDisqusForum {
+		protected $API;
 
 		function __construct($forum,&$api) {
 			$this->API = $api;
@@ -700,6 +703,7 @@
 	*/
 
 	class BigTreeDisqusPost {
+		protected $API;
 
 		function __construct($post,&$api) {
 			$this->API = $api;
@@ -941,6 +945,7 @@
 	*/
 
 	class BigTreeDisqusThread {
+		protected $API;
 
 		function __construct($thread,&$api) {
 			$this->API = $api;
@@ -1125,6 +1130,7 @@
 	*/
 
 	class BigTreeDisqusUser {
+		protected $API;
 
 		function __construct($user,&$api) {
 			$this->API = $api;
@@ -1310,6 +1316,7 @@
 	*/
 
 	class BigTreeDisqusWhitelistEntry {
+		protected $API;
 
 		function __construct($item,&$api) {
 			$this->API = $api;

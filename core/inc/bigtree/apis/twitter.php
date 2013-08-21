@@ -5,13 +5,13 @@
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
 	
-	class BigTreeTwitterAPI {
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+
+	class BigTreeTwitterAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = "https://api.twitter.com/1.1/";
-		var $Settings = array();
-		var $Cache = true;
+		var $EndpointURL = "https://api.twitter.com/1.1/";
+		var $OAuthVersion = "1.0";
+		var $RequestType = "hash";
 		
 		/*
 			Constructor:
@@ -22,37 +22,10 @@
 		*/
 
 		function __construct($cache = true) {
-			global $cms;
-			$this->Cache = $cache;
+			parent::__construct("bigtree-internal-twitter-api","Twitter API","org.bigtreecms.api.twitter",$cache);
 
-			// If we don't have the setting for the Twitter API, create it.
-			$this->Settings = $cms->getSetting("bigtree-internal-twitter-api");
-			if (!$this->Settings) {
-				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-twitter-api", 
-					"name" => "Twitter API", 
-					"encrypted" => "on", 
-					"system" => "on"
-				));
-			}
-			
-			// Build OAuth client
-			$this->OAuthClient = new oauth_client_class;
-			$this->OAuthClient->server = "Twitter";
-			$this->OAuthClient->client_id = $this->Settings["key"]; 
-			$this->OAuthClient->client_secret = $this->Settings["secret"];
-			$this->OAuthClient->access_token = $this->Settings["token"]; 
-			$this->OAuthClient->access_token_secret = $this->Settings["token_secret"];
-			$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/services/twitter/return/";
-			
-			// Check if we're conected
-			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"] && $this->Settings["token_secret"]) {
-				$this->Connected = true;
-			}
-			
-			// Init Client
-			$this->OAuthClient->Initialize();
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/twitter/return/";
 		}
 
 		/*
@@ -72,80 +45,6 @@
 				return false;
 			}
 			return new BigTreeTwitterUser($response,$this);
-		}
-
-		/*
-			Function: call
-				Calls the Twitter API directly with the given API endpoint and parameters.
-				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
-
-			Parameters:
-				endpoint - The Twitter API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API or the cache.
-		*/
-
-		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
-			global $cms;
-			$params["key"] = $this->Settings["token"];
-			if ($method != "GET") {
-				return $this->callUncached($endpoint,$params,$method);				
-			}
-
-			if (!$this->Connected) {
-				throw new Exception("The Twitter API is not connected.");
-			}
-
-			if ($this->Cache) {
-				$cache_key = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet("org.bigtreecms.api.twitter",$cache_key,900);
-				if ($record) {
-					// We re-decode it as an object since that's what we're expecting from Twitter normally.
-					return json_decode(json_encode($record));
-				}
-			}
-			
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				if ($this->Cache) {
-					$cms->cachePut("org.bigtreecms.api.twitter",$cache_key,$response);
-				}
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
-		}
-
-		/*
-			Function: callUncached
-				Calls the Twitter API directly with the given API endpoint and parameters.
-				Does not cache information.
-
-			Parameters:
-				endpoint - The Twitter API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API.
-		*/
-
-		function callUncached($endpoint,$params = array(),$method = "GET",$options = array()) {
-			if (!$this->Connected) {
-				throw new Exception("The Twitter API is not connected.");
-			}
-
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
 		}
 
 		/*
@@ -578,6 +477,48 @@
 		}
 
 		/*
+			Function: oAuthRedirect
+				Redirects to the OAuth API to authenticate.
+		*/
+
+		function oAuthRedirect() {
+			// Get a token first because Twitter is silly.
+			$response = $this->callAPI("https://api.twitter.com/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
+			parse_str($response);
+			if ($oauth_callback_confirmed != "true") {
+				global $admin;
+				$admin->growl("Twitter API","Consumer Key or Secret invalid.","error");
+				BigTree::redirect(ADMIN_ROOT."developer/services/twitter/");
+			}
+			BigTree::redirect("https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
+		}
+
+		/*
+			Function: oAuthSetToken
+				Sets token information (or an error) when provided a response code.
+
+			Returns:
+				A stdClass object of information if successful.
+		*/
+
+		function oAuthSetToken($code) {
+			$response = $this->callAPI("https://api.twitter.com/oauth/access_token","POST",array("oauth_token" => $_GET["oauth_token"],"oauth_verifier" => $_GET["oauth_verifier"]));
+			parse_str($response);
+			
+			if (!$oauth_token) {
+				$this->OAuthError = "Authentication failed.";
+				return false;
+			}
+
+			// Update Token information and save it back.
+			$this->Settings["token"] = $oauth_token;
+			$this->Settings["token_secret"] = $oauth_token_secret;
+
+			$this->Connected = true;
+			return true;
+		}
+
+		/*
 			Function: sendDirectMessage
 				Sends a direct message by the authenticated user.
 
@@ -893,6 +834,7 @@
 	*/
 
 	class BigTreeTwitterTweet {
+		protected $API;
 
 		/*
 			Constructor:
@@ -1088,6 +1030,7 @@
 	*/
 
 	class BigTreeTwitterUser {
+		protected $API;
 
 		/*
 			Constructor:
@@ -1192,6 +1135,7 @@
 	*/
 
 	class BigTreeTwitterPlace {
+		protected $API;
 
 		/*
 			Constructor:
@@ -1229,6 +1173,7 @@
 	*/
 
 	class BigTreeTwitterDirectMessage {
+		protected $API;
 
 		/*
 			Constructor:

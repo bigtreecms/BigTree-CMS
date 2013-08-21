@@ -637,6 +637,7 @@
 	*/
 
 	class BigTreeInstagramComment {
+		protected $API;
 
 		/*
 			Constructor:
@@ -709,6 +710,7 @@
 	*/
 
 	class BigTreeInstagramMedia {
+		protected $API;
 
 		/*
 			Constructor:
@@ -870,6 +872,7 @@
 	*/
 
 	class BigTreeInstagramTag {
+		protected $API;
 
 		/*
 			Constructor:
@@ -901,6 +904,7 @@
 	*/
 
 	class BigTreeInstagramUser {
+		protected $API;
 
 		/*
 			Constructor:

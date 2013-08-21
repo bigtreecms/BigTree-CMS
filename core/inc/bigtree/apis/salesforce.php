@@ -244,9 +244,8 @@
 	*/
 
 	class BigTreeSalesforceObject {
-
 		protected $API;
-		var $QueryFieldNames;
+		protected $QueryFieldNames;
 
 		/*
 			Constructor:
@@ -559,7 +558,6 @@
 	*/
 
 	class BigTreeSalesforceRecord {
-
 		protected $API;
 
 		/*
