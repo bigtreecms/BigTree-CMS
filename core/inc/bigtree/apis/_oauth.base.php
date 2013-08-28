@@ -9,6 +9,7 @@
 		var $Cache = true;
 		var $CacheIdentifier = "";
 		var $Connected = false;
+		var $Errors = array();
 		var $Settings = array();
 		var $SettingID = "";
 

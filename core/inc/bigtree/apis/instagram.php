@@ -34,6 +34,20 @@
 		}
 
 		/*
+			Function: callUncached
+				Piggybacks on the base call to provide error checking for Instagram.
+		*/
+
+		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+			$response = parent::callUncached($endpoint,$params,$method,$headers);
+			if (isset($response->meta->error_message)) {
+				$this->Errors[] = $response->meta->error_message;
+				return false;
+			}
+			return $response;
+		}
+
+		/*
 			Function: comment
 				Leaves a comment on a media post by the authenticated user.
 				This method requires special access permissions for your Instagram application.
