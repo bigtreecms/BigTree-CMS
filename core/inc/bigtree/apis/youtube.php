@@ -466,7 +466,7 @@
 				params - Additional parameters to pass to the search API call.
 		*/
 
-		function searchChannels($query,$order = "relevance",$count = 10,$params = array()) {
+		function searchChannels($query,$count = 10,$order = "relevance",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "channel",
@@ -496,7 +496,7 @@
 				params - Additional parameters to pass to the search API call.
 		*/
 
-		function searchVideos($query,$order = "relevance",$count = 10,$params = array()) {
+		function searchVideos($query,$count = 10,$order = "relevance",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "video",
@@ -786,7 +786,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubeVideo objects.
 		*/
 
-		function getVideos($order = "date",$count = 10) {
+		function getVideos($count = 10,$order = "date") {
 			return $this->API->getChannelVideos($this->ID,$order,$count);
 		}
 
