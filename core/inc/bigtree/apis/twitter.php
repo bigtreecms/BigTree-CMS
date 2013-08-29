@@ -48,6 +48,22 @@
 		}
 
 		/*
+			Function: callUncached
+				Piggybacks on the base call to provide error checking for Twitter.
+		*/
+
+		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+			$response = parent::callUncached($endpoint,$params,$method,$headers);
+			if (isset($response->errors) && count($response->errors)) {
+				foreach ($response->errors as $e) {
+					$this->Errors[] = $e->message;
+				}
+				return false;
+			}
+			return $response;
+		}
+
+		/*
 			Function: deleteDirectMessage
 				Deletes a direct message that was received by the authenticated user.
 
