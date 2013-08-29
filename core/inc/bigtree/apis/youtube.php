@@ -454,6 +454,36 @@
 			}
 			return true;
 		}
+
+		/*
+			Function: searchChannels
+				Searches YouTube for channels
+
+			Parameters:
+				query - A string to search for.
+				order - The order to sort by (options are date, rating, relevance, title, videoCount, viewCount) — defaults to relevance.
+				count - Number of videos to return (defaults to 10).
+				params - Additional parameters to pass to the search API call.
+		*/
+
+		function searchChannels($query,$order = "relevance",$count = 10,$params = array()) {
+			$response = $this->call("search",array_merge(array(
+				"part" => "snippet",
+				"type" => "channel",
+				"q" => $query,
+				"order" => $order,
+				"maxResults" => $count
+			),$params));
+
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $channel) {
+				$results[] = new BigTreeYouTubeChannel($channel,$this);
+			}
+			return new BigTreeGoogleResultSet($this,"searchChannels",array($query,$order,$count,$params),$response,$results);
+		}
 		
 		/*
 			Function: searchVideos
@@ -729,7 +759,7 @@
 			$this->API = $api;
 			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;
 			isset($channel->snippet->description) ? $this->Description = $channel->snippet->description : false;
-			$this->ID = $channel->id;
+			$this->ID = is_object($channel->id) ? $channel->id->channelId : $channel->id;
 			if (isset($channel->snippet->thumbnails)) {
 				$this->Images = new stdClass;
 				foreach ($channel->snippet->thumbnails as $key => $val) {
