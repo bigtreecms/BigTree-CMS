@@ -798,11 +798,12 @@
 				$this->CanAddMeta = $photo->editability->canaddmeta;
 			}
 			isset($photo->comments->_content) ? $this->CommentCount = $photo->comments->_content : false;
-			if (isset($photo->dates)) {
+			if (isset($photo->dates) || isset($photo->dateupload)) {
 				$this->Dates = new stdClass;
+				$this->Dates->Posted = date("Y-m-d H:i:s",isset($photo->dates->posted) ? $photo->dates->posted : $photo->dateupload);
 				isset($photo->dates->taken) ? $this->Dates->Taken = $photo->dates->taken : false;
-				$this->Dates->Posted = date("Y-m-d H:i:s",$photo->dates->posted);
-				$this->Dates->Updated = date("Y-m-d H:i:s",$photo->dates->lastupdate);
+				isset($photo->datetaken) ? $this->Dates->Taken = $photo->datetaken : false;
+				isset($photo->dates->lastupdate) ? $this->Dates->Updated = date("Y-m-d H:i:s",$photo->dates->lastupdate) : false;
 			}
 			isset($photo->description->_content) ? $this->Description = $photo->description->_content : false;
 			isset($photo->isfavorite) ? $this->Favorited = $photo->isfavorite : false;
