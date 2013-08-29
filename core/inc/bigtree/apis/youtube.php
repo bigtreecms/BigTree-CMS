@@ -255,15 +255,15 @@
 
 			Parameters:
 				channel - The channel ID to retrieve videos for.
-				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
 				count - Number of videos to return (defaults to 10).
+				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
 				params - Additional parameters to pass to the search API call.
 
 			Returns:
 				A BigTreeGoogleResultSet of BigTreeYouTubeVideo objects.
 		*/
 
-		function getChannelVideos($channel,$order = "date",$count = 10,$params = array()) {
+		function getChannelVideos($channel,$count = 10,$order = "date",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "video",
