@@ -889,6 +889,8 @@
 						$m->SecureURL = $media->media_url_https;
 						foreach ($media->sizes as $size => $info) {
 							$size_key = ucwords($size);
+							$m->Sizes = new stdClass;
+							$m->Sizes->$size_key = new stdClass;
 							$m->Sizes->$size_key->Height = $info->h;
 							$m->Sizes->$size_key->Width = $info->w;
 							$m->Sizes->$size_key->SecureURL = $media->media_url_https.":".$size;

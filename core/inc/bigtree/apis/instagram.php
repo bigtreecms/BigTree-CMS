@@ -690,6 +690,7 @@
 	*/
 
 	class BigTreeInstagramLocation {
+		protected $API;
 
 		/*
 			Constructor:

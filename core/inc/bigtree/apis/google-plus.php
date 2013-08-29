@@ -200,12 +200,15 @@
 		*/
 
 		function searchActivities($query,$count = 10,$order = "best",$params = array()) {
+			// Google+ fails if you pass too high of a count.
+			if ($count > 20) {
+				$count = 20;
+			}
 			$response = $this->call("activities",array_merge(array(
 				"query" => $query,
 				"orderBy" => $order,
 				"maxResults" => $count
 			),$params));
-
 			if (!isset($response->items)) {
 				return false;
 			}
@@ -230,6 +233,10 @@
 		*/
 
 		function searchPeople($query,$count = 10,$params = array()) {
+			// Google+ fails if you pass too high of a count.
+			if ($count > 20) {
+				$count = 20;
+			}
 			$response = $this->call("people",array_merge(array(
 				"query" => $query,
 				"maxResults" => $count
