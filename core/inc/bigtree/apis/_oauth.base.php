@@ -320,7 +320,7 @@
 			// Update Token information and save it back.
 			$this->Settings["token"] = $response->access_token;
 			$this->Settings["refresh_token"] = $response->refresh_token;
-			$this->Settings["expires"] = $resposne->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
+			$this->Settings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
 
 			$this->Connected = true;
 			return $response;
