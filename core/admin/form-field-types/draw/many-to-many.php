@@ -19,9 +19,9 @@
 	// No pending data, let's query the connecting table directly for the entries.
 	} else {
 		if ($sortable) {
-			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '$edit_id' ORDER BY `position` DESC");
+			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."' ORDER BY `position` DESC");
 		} else {
-			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '$edit_id'");
+			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."'");
 		}
 		
 		while ($f = sqlfetch($q)) {
