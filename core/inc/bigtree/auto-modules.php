@@ -488,11 +488,11 @@
 				$id = $id["id"];
 			}
 
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '$id'"));
-			$f["fields"] = json_decode($f["fields"],true);
-			$f["return_url"] = $cms->getInternalPageLink($f["return_url"]);
+			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '$id'"));
+			$form["fields"] = json_decode($form["fields"],true);
+			$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
 
-			return $f;
+			return $form;
 		}
 		
 		/*
@@ -906,13 +906,13 @@
 				$id = $id["id"];
 			}
 			
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
-			$f["actions"] = json_decode($f["actions"],true);
-			$f["options"] = json_decode($f["options"],true);
-			$f["preview_url"] = $cms->replaceInternalPageLinks($f["preview_url"]);
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
+			$view["actions"] = json_decode($view["actions"],true);
+			$view["options"] = json_decode($view["options"],true);
+			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
 			
-			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
-			$fields = json_decode($f["fields"],true);
+			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];
+			$fields = json_decode($view["fields"],true);
 			if (count($fields)) {
 				$first = current($fields);
 				if (!isset($first["width"]) || !$first["width"]) {
@@ -924,12 +924,12 @@
 						$fields[$key]["width"] = $percol - 20;
 					}
 				}
-				$f["fields"] = $fields;
+				$view["fields"] = $fields;
 			} else {
-				$f["fields"] = array();
+				$view["fields"] = array();
 			}
 
-			return $f;
+			return $view;
 		}
 		
 		/*
@@ -1015,14 +1015,14 @@
 			global $cms;
 			
 			$table = sqlescape($table);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
-			$f["options"] = json_decode($f["options"],true);
-			$f["preview_url"] = $cms->replaceInternalPageLinks($f["preview_url"]);
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
+			$view["options"] = json_decode($view["options"],true);
+			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
 			
-			$fields = json_decode($f["fields"],true);
+			$fields = json_decode($view["fields"],true);
 			if (is_array($fields)) {
 				// Three or four actions, depending on preview availability.
-				if ($f["preview_url"]) {
+				if ($view["preview_url"]) {
 					$available = 578;
 				} else {
 					$available = 633;
@@ -1031,10 +1031,10 @@
 				foreach ($fields as $key => $field) {
 					$fields[$key]["width"] = $percol - 20;
 				}
-				$f["fields"] = $fields;
+				$view["fields"] = $fields;
 			}
 
-			return $f;
+			return $view;
 		}
 		
 		/*
