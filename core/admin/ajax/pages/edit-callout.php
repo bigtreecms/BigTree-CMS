@@ -8,7 +8,7 @@
 		<label>Callout Type</label>
 		<select name="callouts[<?=$bigtree["callout_count"]?>][type]">
 			<? foreach ($callouts as $item) { ?>
-			<option value="<?=htmlspecialchars($item["id"])?>"<? if ($item["id"] == $bigtree["resources"]["type"]) { ?> selected="selected"<? } ?>><?=$item["name"]?></option>
+			<option value="<?=$item["id"]?>"<? if ($item["id"] == $bigtree["resources"]["type"]) { ?> selected="selected"<? } ?>><?=$item["name"]?></option>
 			<? } ?>
 		</select>
 	</fieldset>
