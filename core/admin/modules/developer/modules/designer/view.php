@@ -49,7 +49,7 @@
 		</section>
 		<section id="field_area" class="sub">
 			<?
-				$allow_all_actions = true;
+				$bigtree["module_designer_view"] = true;
 				include BigTree::path("admin/ajax/developer/load-view-fields.php");
 			?>
 		</section>

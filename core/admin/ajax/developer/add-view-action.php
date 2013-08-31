@@ -2,3 +2,4 @@
 <a class="action active" href="#">
 	<span class="<?=$_POST["class"]?>"></span>
 </a>
+<div class="handle"><span class="edit"></span></div>
