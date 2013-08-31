@@ -677,25 +677,44 @@
 			Parameters:
 				query - A string to search for.
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
-				limit - Max entries to return.
-				case_sensitive - Case sensitivity (defaults to false).
+				limit - Max entries to return (defaults to all)
+				split_search - If set to true, splits the query into parts and searches each part (defaults to false).
+				case_sensitive - Case sensitivity (defaults to false / the collation of the database).
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function search($query,$order = false,$limit = false,$case_sensitive = false) {
+		function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false) {
 			$table_description = BigTree::describeTable($this->Table);
+			$where = array();
 
-			foreach ($table_description["columns"] as $field => $parameters) {
-				if ($case_sensitive) {
-					$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
-				} else {
-					$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
+			if ($split_search) {
+				$pieces = explode(" ",$query);
+				foreach ($pieces as $piece) {
+					if ($piece) {
+						$where_piece = array();
+						foreach ($table_description["columns"] as $field => $parameters) {
+							if ($case_sensitive) {
+								$where_piece[] = "`$field` LIKE '%".sqlescape($piece)."%'";
+							} else {
+								$where_piece[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($piece))."%'";
+							}
+						}
+						$where[] = "(".implode(" OR ",$where_piece).")";
+					}
 				}
+				return $this->fetch($order,$limit,implode(" AND ",$where));
+			} else {
+				foreach ($table_description["columns"] as $field => $parameters) {
+					if ($case_sensitive) {
+						$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
+					} else {
+						$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
+					}
+				}
+				return $this->fetch($order,$limit,implode(" OR ",$where));
 			}
-			
-			return $this->fetch($order,$limit,implode(" OR ",$where));
 		}
 		
 		/*
