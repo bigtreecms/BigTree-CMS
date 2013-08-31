@@ -18,9 +18,6 @@
 		?>
 		<span class="view_status">Status</span>		
 		<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;">Actions</span>
-		<?
-			}
-		?>
 	</header>
 	<ul id="sort_table">
 		<? include BigTree::path("admin/ajax/auto-modules/views/draggable.php") ?>
