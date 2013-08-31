@@ -35,7 +35,7 @@
 						<option value="searchable">Searchable List</option>
 						<option value="draggable">Draggable List</option>
 					</select>
-					&nbsp; <a href="#" class="options icon_settings" style="margin-top: -2px;"></a>
+					&nbsp; <a href="#" class="options icon_settings centered"></a>
 					<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars($view["options"])?>" />
 				</fieldset>
 			</div>

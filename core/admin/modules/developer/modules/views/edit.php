@@ -55,7 +55,7 @@
 						<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
 						<? } ?>
 					</select>
-					&nbsp; <a href="#" class="options icon_settings"></a>
+					&nbsp; <a href="#" class="options icon_settings centered"></a>
 					<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($view["options"]))?>" />
 				</fieldset>
 			</div>

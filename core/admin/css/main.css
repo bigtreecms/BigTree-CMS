@@ -948,11 +948,11 @@
 	.developer .form_table .developer_resource_type { padding: 0; text-align: left; width: 240px; }
 	.developer .form_table .developer_resource_type .select span { width: 155px !important; }
 	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
-	.developer .form_table .developer_resource_type .icon_settings { margin: 8px 0 0 5px; }
+	.developer .form_table .developer_resource_type .icon_settings { margin: 9px 0 0 5px; }
 	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 155px; }
 	.developer .form_table .developer_resource_display_title { width: 40px; }
 	.developer .form_table .developer_resource_action { width: 55px; }
-	.developer .form_table .developer_resource_action a { margin: 8px 0 0 0; }
+	.developer .form_table .developer_resource_action a { margin: 9px 0 0 0; }
 	
 	.developer .form_table .developer_resource_action.right { float: right; }
 	
@@ -1188,6 +1188,7 @@
 	.icon_feature_on { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -408px -80px; }
 	.icon_sort { background: url(../images/icon-sprite.png); height: 24px; width: 24px; background-position: -432px -80px; margin: 5px 0 0 -7px; cursor: move; display: block; float: left; }
 	.icon_settings { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -456px -80px; }
+	.icon_settings.centered { margin-top: 4px; }
 	.icon_images, .icon_dialog_caption { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -480px -80px; }
 	.icon_folder, .icon_dialog_folder { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -504px -80px; }
 	.icon_disabled, .icon_deny { background: url(../images/icon-sprite.png); display: inline-block; height: 24px; width: 24px; background-position: -528px -80px; }
