@@ -10,7 +10,7 @@
 		<? if (count($items) > 0) { ?>
 		<select name="callouts[<?=$bigtree["callout_count"]?>][type]">
 			<? foreach ($items as $item) { ?>
-			<option value="<?=htmlspecialchars($item["id"])?>"><?=htmlspecialchars($item["name"])?></option>
+			<option value="<?=htmlspecialchars($item["id"])?>"><?=$item["name"]?></option>
 			<? } ?>
 		</select>
 		<? } else { ?>
