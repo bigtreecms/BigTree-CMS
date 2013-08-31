@@ -27,8 +27,14 @@
 		<span class="view_status">Status</span>
 		<?	
 			foreach ($actions as $action => $on) {
+				if ($on != "on") {
+					$on = json_decode($on,true);
+					$action = $on["name"];
+				} else {
+					$action = ucwords($action);
+				}
 		?>
-		<span class="view_action"><?=ucwords($action)?></span>
+		<span class="view_action"><?=$action?></span>
 		<?
 			}
 		?>
