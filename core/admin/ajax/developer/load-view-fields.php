@@ -84,7 +84,7 @@
 	</div>
 </fieldset>
 <fieldset class="last">
-	<label>Actions <small>(click to deselect)</small></label>
+	<label>Actions <small>(click to deselect, drag bottom tab to rearrange)</small></label>
 	<div class="developer_action_list">
 		<ul>
 			<?
