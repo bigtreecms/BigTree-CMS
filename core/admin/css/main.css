@@ -680,6 +680,7 @@
 	#callout_resources .select > span { max-width: 384px !important; }
 	#callout_resources .select .select_options { max-width: 438px !important; }
 	#callout_resources .error_message { width: 420px; }
+	#callout_resources .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
 	
 	.page_url { float: right; padding: 8px 10px 0 0; }
 	.page_url a { color: #333; }
