@@ -5,9 +5,7 @@
 	<summary><h2>Field Types</h2></summary>
 	<header>
 		<span class="developer_modules_name">Name</span>
-		<span class="view_action">Export</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul>
 		<? foreach ($types as $type) { ?>

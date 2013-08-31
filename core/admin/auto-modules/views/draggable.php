@@ -17,14 +17,7 @@
 			}
 		?>
 		<span class="view_status">Status</span>		
-		<?
-			foreach ($view["actions"] as $action => $data) {
-				if ($data != "on") {
-					$data = json_decode($data,true);
-					$action = $data["name"];
-				}
-		?>
-		<span class="view_action"><?=$action?></span>
+		<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;">Actions</span>
 		<?
 			}
 		?>

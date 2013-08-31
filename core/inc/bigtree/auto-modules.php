@@ -916,7 +916,7 @@
 			if (count($fields)) {
 				$first = current($fields);
 				if (!isset($first["width"]) || !$first["width"]) {
-					$awidth = count($actions) * 62;
+					$awidth = count($actions) * 40;
 					$available = 888 - $awidth;
 					$percol = floor($available / count($fields));
 				

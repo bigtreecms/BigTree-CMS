@@ -540,7 +540,7 @@
 	.table > summary h2 .saved { background-position: -216px -80px; }
 	.table > summary h2 .modules { background-position: -240px -80px; }
 
-	.table > header { background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
+	.table > header { background-color: #999; background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-shadow: 0px -1px 1px rgba(0,0,0,0.5); text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
@@ -770,7 +770,7 @@
 	.table .view_column { overflow: hidden; padding: 0 0 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 	.table .view_column a { color: #FFF; display: block; overflow: hidden; text-overflow: ellipsis; }
 	.table .view_column a em { font-size: 7px; padding: 0 0 0 5px; }
-	.table .view_action { width: 62px; }
+	.table .view_action { width: 40px; }
 	.table .view_status { width: 70px; }
 
 	.view_paging { background: #F4F4F4; border-radius: 11px; box-shadow: 0 1px 0 #AFAFAF; float: right; height: 22px; margin: 7px -10px 0 0; user-select: none; }
@@ -804,9 +804,9 @@
 	.alert .message_from p, .alert .message_to p { color: #666; font-size: 13px; line-height: 13px; margin: 0; }
 
 /* Users Stuff */
-	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 314px; }
-	.table .users_email { text-align: left; width: 230px; }
-	.table .users_company { text-align: left; width: 230px; }
+	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 318px; }
+	.table .users_email { text-align: left; width: 250px; }
+	.table .users_company { text-align: left; width: 250px; }
 	.table .users_api_type { text-align: left; width: 250px; }
 	.table .users_api_token { text-align: left; width: 250px; }
 
@@ -873,7 +873,7 @@
 	.user_permissions section ul.depth_10 li .folder_label { width: 486px; }
 	
 /* Settings Stuff */
-	.table .settings_name { padding: 0 20px; text-align: left; width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+	.table .settings_name { padding: 0 20px; text-align: left; width: 272px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 	.table .settings_value { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 606px; }
 
 /* Advanced Search Page */
@@ -896,22 +896,22 @@
 	.developer .table .box_select.last { margin: 0; }
 	.developer .table > section { padding: 30px; }
 	
-	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 819px; }
-	.table .developer_templates_name a { color: #333; display: block; width: 802px; margin: 0; }
-	.table .developer_modules_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 757px; }
-	.table .developer_modules_name a { color: #333; display: block; width: 740px; margin: 0; }
-	.table .developer_view_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 757px; }
+	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
+	.table .developer_templates_name a { color: #333; display: block; width: 846px; margin: 0; }
+	.table .developer_modules_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 823px; }
+	.table .developer_modules_name a { color: #333; display: block; width: 806px; margin: 0; }
+	.table .developer_view_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 823px; }
 	.table .developer_field_types_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 819px; }
 	.table .developer_field_types_name a { color: #333; display: block; margin: 0; }
 	.table .developer_field_types_version { padding: 0 0 0 15px; text-align: left; width: 150px; }
 	.table .developer_field_types_author { padding: 0 0 0 15px; text-align: left; width: 319px; }
-	.table .developer_feeds_name { padding: 0 0 0 15px; text-align: left; width: 220px; }
+	.table .developer_feeds_name { padding: 0 0 0 15px; text-align: left; width: 242px; }
 	.table .developer_feeds_name a { color: #333; display: block; margin: 0; }
-	.table .developer_feeds_url { padding: 0 0 0 15px; text-align: left; width: 420px; }
+	.table .developer_feeds_url { padding: 0 0 0 15px; text-align: left; width: 442px; }
 	.table .developer_feeds_type { padding: 0 0 0 15px; text-align: left; width: 149px; }
-	.table .developer_settings_name { padding: 0 0 0 15px; text-align: left; width: 385px; }
+	.table .developer_settings_name { padding: 0 0 0 15px; text-align: left; width: 408px; }
 	.table .developer_settings_name a { color: #333; display: block; margin: 0; }
-	.table .developer_settings_id { padding: 0 0 0 15px; text-align: left; width: 259px; }
+	.table .developer_settings_id { padding: 0 0 0 15px; text-align: left; width: 280px; }
 	.table .developer_settings_type { padding: 0 0 0 15px; text-align: left; width: 145px; }
 	
 	.template_image_list { margin: 10px 0 0 0; list-style: none; }

@@ -140,9 +140,7 @@
 	</summary>
 	<header>
 		<span class="developer_view_name">View Name</span>
-		<span class="view_action">Style</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="module_views">
 		<? foreach ($views as $view) { ?>
@@ -169,8 +167,7 @@
 	</summary>
 	<header>
 		<span class="developer_templates_name">Form Name</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
 		<? foreach ($forms as $form) { ?>
@@ -190,8 +187,7 @@
 	</summary>
 	<header>
 		<span class="developer_templates_name">Action</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<?
 		if (count($actions_in_nav)) {

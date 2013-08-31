@@ -6,7 +6,7 @@
 	$suffix = $suffix ? "-".$suffix : "";
 		
 	// Figure out the column width
-	$awidth = count($actions) * 62;
+	$awidth = count($actions) * 40;
 	$available = 896 - $awidth;
 	$percol = floor($available / count($fields));
 	
@@ -26,16 +26,8 @@
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
 		<?
 			}
-			foreach ($actions as $action => $data) {
-				if ($data != "on") {
-					$data = json_decode($data,true);
-					$action = $data["name"];
-				}
 		?>
-		<span class="view_action"><?=$action?></span>
-		<?
-			}
-		?>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;">Actions</span>
 	</header>
 	<ul id="results_table_<?=$view["id"]?>">
 		<? foreach ($items as $item) { ?>
