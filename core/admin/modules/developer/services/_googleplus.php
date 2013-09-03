@@ -4,6 +4,7 @@
 	$route = "googleplus";
 	$key_name = "Client ID";
 	$secret_name = "Client Secret";
+	$show_test_environment = false;
 	$instructions = array(
 		'Login to the <a href="https://code.google.com/apis/console/">Google API Console</a> and enable access to the Google+ API.',
 		'Choose the "API Access" tab in the API Console and create an OAuth 2.0 client ID if you have not already done so.',

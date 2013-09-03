@@ -4,6 +4,7 @@
 	$route = "twitter";
 	$key_name = "Consumer Key";
 	$secret_name = "Consumer Secret";
+	$show_test_environment = false;
 	$instructions = array(
 		'Create a <a href="https://dev.twitter.com/apps" target="_blank">Twitter Application</a> at the Twitter Developers portal.',
 		'Set the application\'s callback URL to '.DOMAIN,

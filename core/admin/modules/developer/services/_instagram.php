@@ -4,6 +4,7 @@
 	$route = "instagram";
 	$key_name = "Client ID";
 	$secret_name = "Client Secret";
+	$show_test_environment = false;
 	$instructions = array(
 		'Create an <a href="http://instagram.com/developer/clients/register/" target="_blank">Instagram Application</a> at the Instagram developer portal.',
 		'Set the application\'s OAuth redirect_uri to '.ADMIN_ROOT.'developer/services/instagram/return/',

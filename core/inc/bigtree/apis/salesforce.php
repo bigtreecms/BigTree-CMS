@@ -3,13 +3,15 @@
 		Class: BigTreeSalesforceAPI
 	*/
 	
-	class BigTreeSalesforceAPI {
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+
+	class BigTreeSalesforceAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = false;
-		var $Settings = array();
-		var $Cache = true;
+		var $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
+		var $EndpointURL = "";
+		var $OAuthVersion = "2.0";
+		var $RequestType = "header";
+		var $TokenURL = "https://login.salesforce.com/services/oauth2/token";
 
 		/*
 			Constructor:
@@ -20,41 +22,21 @@
 		*/
 
 		function __construct($cache = true) {
-			global $cms;
-			$this->Cache = $cache;
+			parent::__construct("bigtree-internal-salesforce-api","Salesforce API","org.bigtreecms.api.salesforce",$cache);
 
-			// If we don't have the setting for the Salesforce API, create it.
-			$this->Settings = $cms->getSetting("bigtree-internal-salesforce-api");
-			if (!$this->Settings) {
-				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-salesforce-api", 
-					"name" => "Salesforce API", 
-					"encrypted" => "on", 
-					"system" => "on"
-				));
-			}
-			
-			// Build OAuth client
-			$this->OAuthClient = new oauth_client_class;
-			$this->OAuthClient->server = "Salesforce";
-			$this->OAuthClient->client_id = $this->Settings["key"]; 
-			$this->OAuthClient->client_secret = $this->Settings["secret"];
-			$this->OAuthClient->access_token = $this->Settings["token"]; 
-			$this->OAuthClient->redirect_uri = str_replace("http://","https://",ADMIN_ROOT)."developer/services/salesforce/return/";
-
-			// Init Client
-			$this->OAuthClient->Initialize();
-
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/salesforce/return/";
+		
 			// Change things if we're in the test environment.
-			if ($this->Settings["test_environment"] == "on") {
-				$this->OAuthClient->dialog_url = str_ireplace("login.", "test.", $this->OAuthClient->dialog_url);
-				$this->OAuthClient->access_token_url = str_ireplace("login.", "test.", $this->OAuthClient->access_token_url);
+			if ($this->Settings["test_environment"]) {
+				$this->AuthorizeURL = str_ireplace("login.","test.",$this->AuthorizeURL);
+				$this->TokenURL = str_replace("login.","test.",$this->TokenURL);
 			}
 			
 			// Get a new access token for this session.
-			if ($this->Settings["key"] && $this->Settings["secret"]) {
-				$response = json_decode(BigTree::cURL($this->OAuthClient->access_token_url,array(
+			$this->Connected = false;
+			if ($this->Settings["refresh_token"]) {
+				$response = json_decode(BigTree::cURL($this->TokenURL,array(
 					"grant_type" => "refresh_token",
 					"client_id" => $this->Settings["key"],
 					"client_secret" => $this->Settings["secret"],
@@ -62,140 +44,11 @@
 				)),true);
 				if ($response["access_token"]) {
 					$this->InstanceURL = $response["instance_url"];
-					$this->URL = $this->InstanceURL."/services/data/v28.0/";
-					$this->OAuthClient->access_token = $response["access_token"];
-					$this->OAuthClient->authorization = "Authorization: Bearer ".$response["access_token"];
+					$this->EndpointURL = $this->InstanceURL."/services/data/v28.0/";
+					$this->Settings["token"] = $response["access_token"];
 					$this->Connected = true;
 				}
 			}
-		}
-		
-		/*
-			Function: call
-				Calls the Salesforce API directly with the given API endpoint and parameters.
-				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
-
-			Parameters:
-				endpoint - The Salesforce API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API or the cache.
-		*/
-
-		function call($endpoint = false,$params = array(),$method = "GET",$options = array(),$cache_time = 86400) {
-			global $cms;
-			if ($method != "GET") {
-				return $this->callUncached($endpoint,$params,$method);				
-			}
-
-			if (!$this->Connected) {
-				throw new Exception("The Salesforce API is not connected.");
-			}
-
-			if ($this->Cache) {
-				$cache_key = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet("org.bigtreecms.api.salesforce",$cache_key,$cache_time);
-				if ($record) {
-					// We re-decode it as an object since that's what we're expecting from Salesforce normally.
-					return json_decode(json_encode($record));
-				}
-			}
-			
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				// Responses are limited to 200 records, rinse and repeat until we have them all
-				// NOTE: pretty much unsable - searching for better ways to handle massive data
-				if ($response->nextRecordsUrl) {
-					$response->nextRecordsEndpoint = str_ireplace($this->URL, "", $this->InstanceURL.$response->nextRecordsUrl);
-					
-					//$this->OldCache = $this->Cache;
-					//$this->Cache = false;
-					
-					//$nextEndpoint = str_ireplace($this->URL, "", $this->InstanceURL.$response->nextRecordsUrl);
-					//$nextSet = $this->call($nextEndpoint,array(),$method,$options);
-					
-					//if (is_array($nextSet->records)) {
-					//	$response->records = array_merge($response->records, $nextSet->records);
-					//}
-					
-					//unset($nextSet);
-					//$nextSet = null;
-					
-					//$this->Cache = $this->OldCache;
-					//unset($this->OldCache);
-				}
-				
-				if ($this->Cache) {
-					$cms->cachePut("org.bigtreecms.api.salesforce",$cache_key,$response);
-				}
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
-		}
-
-		/*
-			Function: callUncached
-				Calls the Salesforce API directly with the given API endpoint and parameters.
-				Does not cache information.
-
-			Parameters:
-				endpoint - The Salesforce API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API.
-		*/
-
-		function callUncached($endpoint,$params = array(),$method = "GET",$options = array()) {
-			if (!$this->Connected) {
-				throw new Exception("The Salesforce API is not connected.");
-			}
-
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				// Responses are limited to 200 records, rinse and repeat until we have them all
-				if ($response->nextRecordsUrl) {
-					$nextSet = $this->call($response->nextRecordsUrl,array(),$method,$options);
-					$response->records = array_merge($response->records, $nextSet->records);
-				}
-				
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
-		}
-
-		/*
-			Function: cURL
-				Calls an authenticated API call via cURL instead of the OAuthClient library.
-				This is needed for some calls where the library hangs.
-
-			Parameters:
-				endpoint - The endpoint to hit
-				method - The HTTP method to use
-				content - The content to send
-				json - Whether the content is JSON or not, defaults to false
-
-			Returns:
-				Response body.
-		*/
-
-		function cURL($endpoint,$method,$content = false,$json = false) {
-			$headers = array($this->OAuthClient->authorization);
-			if ($json) {
-				$headers[] = "Content-type: application/json";
-			}
-
-			return BigTree::cURL($this->URL.$endpoint,$content,array(
-				CURLOPT_CUSTOMREQUEST => $method,
-				CURLOPT_HTTPHEADER => $headers
-			));
 		}
 
 		/*
@@ -325,7 +178,8 @@
 				$record[$key] = current($vals);
 				next($vals);
 			}
-			$response = json_decode($this->API->cURL("sobjects/".$this->Name."/","POST",json_encode($record),true));
+			$response = $this->API->callUncached("sobjects/".$this->Name."/",json_encode($record),"POST");
+			print_r($response);
 			// Look for a response ID.
 			if (isset($response->id)) {
 				// Setup a dumb record and build it ourselves

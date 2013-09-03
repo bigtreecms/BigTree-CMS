@@ -4,6 +4,7 @@
 	$route = "disqus";
 	$key_name = "Public Key <small>API Key</small>";
 	$secret_name = "Secret Key <small>API Secret</small>";
+	$show_test_environment = false;
 	$instructions = array(
 		'<a href="http://disqus.com/api/applications/register/" target="_blank">Register a Disqus application</a>.',
 		'Enter your Public Key and Secret Key that you receive below.',
