@@ -179,7 +179,6 @@
 				next($vals);
 			}
 			$response = $this->API->callUncached("sobjects/".$this->Name."/",json_encode($record),"POST");
-			print_r($response);
 			// Look for a response ID.
 			if (isset($response->id)) {
 				// Setup a dumb record and build it ourselves
