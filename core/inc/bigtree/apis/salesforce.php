@@ -208,8 +208,7 @@
 		*/
 
 		function delete($id) {
-			// We're going to straight up cURL because the outh class is bogus and hangs on this call.
-			$response = $this->API->cURL("sobjects/".$this->Name."/$id","DELETE");
+			$response = $this->API->callUncached("sobjects/".$this->Name."/$id",false,"DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -397,7 +396,7 @@
 			} else {
 				$record[$fields] = $values;
 			}
-			$response = $this->API->cURL("sobjects/".$this->Name."/$id","PATCH",json_encode($record),true);
+			$response = $this->API->callUncached("sobjects/".$this->Name."/$id",json_encode($record),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -458,8 +457,7 @@
 		*/
 
 		function delete() {
-			// We're going to straight up cURL because the outh class is bogus and hangs on this call.
-			$response = $this->API->cURL("sobjects/".$this->Type."/".$this->ID,"DELETE");
+			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,false,"DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -474,7 +472,7 @@
 		*/
 
 		function save() {
-			$response = $this->API->cURL("sobjects/".$this->Type."/".$this->ID,"PATCH",json_encode($this->Columns),true);
+			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,json_encode($this->Columns),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -502,7 +500,7 @@
 			} else {
 				$record[$fields] = $values;
 			}
-			$response = $this->API->cURL("sobjects/".$this->Type."/".$this->ID,"PATCH",json_encode($record),true);
+			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,json_encode($record),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);

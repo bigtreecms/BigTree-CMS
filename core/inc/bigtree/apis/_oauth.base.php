@@ -200,11 +200,11 @@
 			} else {
 				if (is_array($data) && count($data)) {
 					$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",http_build_query($data,"","&"))."&";
+					$data = false;
 				}
 				foreach ($oauth as $key => $val) {
 					$url .= "$key=".rawurlencode($val)."&";
 				}
-				$data = false;
 			}
 
 			// Trim trailing ? or & from the URL, not that it should matter.
@@ -235,7 +235,7 @@
 
 			// Some APIs expect us to send a JSON string as the content body instead of POST... and they also want a Content-type header.
 			if (is_string($params) && $params) {
-				$headers[] = "Content-type: application/json";
+				$headers[] = "Content-Type: application/json";
 			}
 
 			$response = json_decode($this->callAPI($this->EndpointURL.$endpoint,$method,$params,$headers));
