@@ -58,7 +58,6 @@
 	$bigtree["other_classes"] = array(
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
-		"BigTreeForms" => "inc/bigtree/forms.php",
 		"BigTreeModule" => "inc/bigtree/modules.php",
 		"BigTreeGoogleAnalytics" => "inc/bigtree/apis/google-analytics.php",
 		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
@@ -79,8 +78,7 @@
 		"JSMin" => "inc/lib/JSMin.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
-		"lessc" => "inc/lib/less-compiler.php",
-		"oauth_client_class" => "inc/lib/oauth_client.php"
+		"lessc" => "inc/lib/less-compiler.php"
 	);
 	
 	// Just include the admin class if it's custom.

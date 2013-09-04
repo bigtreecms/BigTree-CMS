@@ -1100,6 +1100,7 @@
 			$query_fields = array();
 			$query_vals = array();
 			$table_description = BigTree::describeTable($table);
+			$data = BigTreeAutoModule::sanitizeData($table,$data,$table_description);
 			
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
@@ -1162,6 +1163,84 @@
 		
 		static function recacheItem($id,$table,$pending = false) {
 			self::cacheNewItem($id,$table,$pending,true);
+		}
+
+		/*
+			Function: sanitizeData
+				Processes form data into values understandable by the MySQL table.
+			
+			Parameters:
+				table - The table to sanitize data for
+				data - Array of key->value pairs
+				existing_description - If the table has already been described, pass it in instead of making sanitizeData do it twice. (defaults to false)
+			
+			Returns:
+				Array of data safe for MySQL.
+		*/	
+		
+		static function sanitizeData($table,$data,$existing_description = false) {
+			// Setup column info				
+			$table_description = $existing_description ? $existing_description : BigTree::describeTable($table);
+			$columns = $table_description["columns"];
+
+			foreach ($data as $key => $val) {
+				$allow_null = $columns[$key]["allow_null"];
+				$type = $columns[$key]["type"];
+
+				// Sanitize Integers
+				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
+					if ($val !== 0 && !$val && $allow_null == "YES") {
+						$data[$key] = "NULL";	
+					} else {
+						$data[$key] = intval(str_replace(array(",","$"),"",$val));
+					}
+				}
+				// Sanitize Floats
+				if ($type == "float" || $type == "double" || $type == "decimal") {
+					if ($val !== 0 && !$val && $allow_null == "YES") {
+						$data[$key] = "NULL";	
+					} else {
+						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
+					}
+				}
+				// Sanitize Date/Times
+				if ($type == "datetime" || $type == "timestamp") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif ($val == "") {
+						$data[$key] = "0000-00-00 00:00:00";
+					} else {
+						$data[$key] = date("Y-m-d H:i:s",strtotime($val));
+					}
+				}
+				// Sanitize Dates/Years
+				if ($type == "date" || $type == "year") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif (!$val) {
+						$data[$key] = "0000-00-00";
+					} else {
+						$data[$key] = date("Y-m-d",strtotime($val));
+					}
+				}
+				// Sanitize Times
+				if ($type == "time") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif (!$val) {
+						$data[$key] = "00:00:00";
+					} else {
+						$data[$key] = date("H:i:s",strtotime($val));
+					}
+				}
+			}
+			return $data;
 		}
 
 		/*
@@ -1351,6 +1430,86 @@
 			$changes[$field] = $value;
 			$changes = sqlescape(json_encode($changes));
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes' WHERE id = '$id'");
+		}
+
+		/*
+			Function: validate
+				Validates a form element based on its validation requirements.
+			
+			Parameters:
+				data - The form's posted data for a given field.
+				type - Validation requirements (required, numeric, email, link).
+		
+			Returns:
+				True if validation passed, otherwise false.
+			
+			See Also:
+				<errorMessage>
+		*/
+		
+		static function validate($data,$type) {
+			$parts = explode(" ",$type);
+			// Not required and it's blank
+			if (!in_array("required",$parts) && !$data) {
+				return true;
+			} else {
+				// Requires numeric and it isn't
+				if (in_array("numeric",$parts) && !is_numeric($data)) {
+					return false;
+				// Requires email and it isn't
+				} elseif (in_array("email",$parts) && !filter_var($data,FILTER_VALIDATE_EMAIL)) {
+					return false;
+				// Requires url and it isn't
+				} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
+					return false;
+				} elseif (in_array("required",$parts) && !$data) {
+					return false;
+				// It exists and validates as numeric, an email, or URL
+				} else {
+					return true;
+				}
+			}
+		}
+
+		/*
+			Function: validationErrorMessage
+				Returns an error message for a form element that failed validation.
+			
+			Parameters:
+				data - The form's posted data for a given field.
+				type - Validation requirements (required, numeric, email, link).
+		
+			Returns:
+				A string containing reasons the validation failed.
+				
+			See Also:
+				<validate>
+		*/
+		
+		static function validationErrorMessage($data,$type) {
+			$parts = explode(" ",$type);
+			// Not required and it's blank
+			$message = "This field ";
+			$mparts = array();
+			
+			if (!$data && in_array("required",$parts)) {
+				$mparts[] = "is required";
+			}
+			
+			// Requires numeric and it isn't
+			if (in_array("numeric",$parts) && !is_numeric($data)) {
+				$mparts[] = "must be numeric";
+			// Requires email and it isn't
+			} elseif (in_array("email",$parts) && !filter_var($data,FILTER_VALIDATE_EMAIL)) {
+				$mparts[] = "must be an email address";
+			// Requires url and it isn't
+			} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
+				$mparts[] = "must be a link";
+			}
+			
+			$message .= implode(" and ",$mparts).".";
+			
+			return $message;
 		}
 	}
 ?>
