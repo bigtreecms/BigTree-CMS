@@ -1,5 +1,5 @@
 <?
-	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
+	$api = new BigTreeYahooBOSSAPI;
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/yahoo-boss/activate/">
@@ -17,11 +17,11 @@
 			<hr />
 			<fieldset>
 				<label>Consumer Key</label>
-				<input type="text" name="yahoo_boss_consumer_key" value="<?=htmlspecialchars($geocoding_service["yahoo_boss_consumer_key"])?>" />
+				<input type="text" name="key" value="<?=htmlspecialchars($api->Settings["key"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Consumer Secret</label>
-				<input type="text" name="yahoo_boss_consumer_secret" value="<?=htmlspecialchars($geocoding_service["yahoo_boss_consumer_secret"])?>" />
+				<input type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"])?>" />
 			</fieldset>
 		</section>
 		<footer>

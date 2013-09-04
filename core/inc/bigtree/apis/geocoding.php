@@ -6,6 +6,7 @@
 	
 	class BigTreeGeocoding {
 		
+		var $API = false;
 		var $Service = "";
 		var $Settings = array();
 		
@@ -31,17 +32,9 @@
 				$this->Service = $geo_service["service"];
 				$this->Settings = $geo_service;
 			}
-			// Yahoo BOSS uses OAuth, so we set that up here.
+			// Yahoo BOSS Geocoding uses the Yahoo BOSS API.
 			if ($this->Service == "yahoo-boss") {
-				require_once BigTree::path("inc/lib/oauth_client.php");
-				$this->OAuthClient = new oauth_client_class;
-				$this->OAuthClient->server = "Yahoo";
-				$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/geocoding/yahoo-boss/redirect/";
-				$this->OAuthClient->client_id = $this->Settings["yahoo_boss_consumer_key"];
-				$this->OAuthClient->client_secret = $this->Settings["yahoo_boss_consumer_secret"];
-				$this->OAuthClient->access_token = $this->Settings["yahoo_boss_token"]; 
-				$this->OAuthClient->access_token_secret = $this->Settings["yahoo_boss_token_secret"];
-				$this->OAuthClient->Initialize();
+				$this->API = new BigTreeYahooBOSSAPI;
 			}
 		}
 
@@ -191,23 +184,15 @@
 		*/
 
 		private function geocodeYahooBOSS($address) {
-			$this->OAuthClient->CallAPI("http://yboss.yahooapis.com/geo/placefinder","GET",array("q" => $address,"flags" => "J"),false,$response);
-			try {
-				if (is_string($response)) {
-					$response = json_decode($response, true);
-					$lat = $response["bossresponse"]["placefinder"]["results"][0]["latitude"];
-					$lon = $response["bossresponse"]["placefinder"]["results"][0]["longitude"];
-				} else {
-					$lat = $response->bossresponse->placefinder->results[0]->latitude;
-					$lon = $response->bossresponse->placefinder->results[0]->longitude;
-				}
+			$response = $this->API->call("geo/placefinder",array("q" => $address,"flags" => "J"));
+			if (isset($response->bossresponse->placefinder->results)) {
+				$lat = $response->bossresponse->placefinder->results[0]->latitude;
+				$lon = $response->bossresponse->placefinder->results[0]->longitude;
 				if ($lat && $lon) {
 					return array("latitude" => $lat, "longitude" => $lon);
 				} else {
 					return false;
 				}
-			} catch (Exception $e) {
-				return false;
 			}
 			return false;
 		}
