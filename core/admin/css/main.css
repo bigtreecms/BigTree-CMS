@@ -878,10 +878,10 @@
 
 /* Advanced Search Page */
 	.adv_search { margin: 0 0 15px 0; overflow: hidden; }
-	.adv_search h3 { margin: 11px 0 0 460px; position: absolute; }
-	.adv_search input[type=search] { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 5px 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 400px; }
+	.adv_search h3 { margin: 0 0 0 460px; position: absolute; height: 26px; line-height: 26px; }
+	.adv_search input[type=search] { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 400px; }
 	.adv_search input[type=search]:focus { border-color: #AAA; }
-	.adv_search input[type=submit] { float: left; height: 16px; margin: 10px 0 0 -27px; user-select: none; width: 16px; background: url(../images/icon-sprite.png) no-repeat -96px 0px; border: none; text-indent: -1000px; padding: 0; }
+	.adv_search input[type=submit] { float: left; height: 16px; margin: 5px 0 0 -27px; user-select: none; width: 16px; background: url(../images/icon-sprite.png) no-repeat -96px 0px; border: none; text-indent: -1000px; padding: 0; }
 	.adv_search_page_results { list-style: none; margin: 0; }
 	.adv_search_page_results li { border-bottom: 1px solid #DCDCDC; margin: 0 0 15px 0; padding: 0 0 15px 0; }
 	.adv_search_page_results li:last-child { border: 0; margin: 0; padding: 0; }
