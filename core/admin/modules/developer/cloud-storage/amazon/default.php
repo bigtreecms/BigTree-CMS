@@ -1,5 +1,5 @@
 <?
-	$ups = $cms->getSetting("bigtree-internal-upload-service");
+	$ups = $cms->getSetting("bigtree-internal-storage");
 	if ($ups["s3"]["keys"]) {
 		$access_key_id = htmlspecialchars($ups["s3"]["keys"]["access_key_id"]);
 		$secret_access_key = htmlspecialchars($ups["s3"]["keys"]["secret_access_key"]);

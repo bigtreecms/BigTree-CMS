@@ -1,5 +1,5 @@
 <?
-	$ups = $cms->getSetting("bigtree-internal-upload-service");
+	$ups = $cms->getSetting("bigtree-internal-storage");
 
 	// Check if we have optipng installed.
 	if (file_exists("/usr/bin/optipng")) {
@@ -22,7 +22,7 @@
 		$ups["service"] = "";
 	}
 
-	$admin->updateSettingValue("bigtree-internal-upload-service",$ups);
+	$admin->updateSettingValue("bigtree-internal-storage",$ups);
 	
 	$admin->growl("Developer","Updated Rackspace Keys");
 	BigTree::redirect($developer_root);

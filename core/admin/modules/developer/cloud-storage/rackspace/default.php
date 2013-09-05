@@ -1,5 +1,5 @@
 <?
-	$ups = $cms->getSetting("bigtree-internal-upload-service");
+	$ups = $cms->getSetting("bigtree-internal-storage");
 	if ($ups["rackspace"]["keys"]) {
 		$api_key = htmlspecialchars($ups["rackspace"]["keys"]["api_key"]);
 		$username = htmlspecialchars($ups["rackspace"]["keys"]["username"]);
