@@ -1592,6 +1592,9 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.ie .table .redirect_404 input { height: 12px; }
 	.ie .property_block { border: 1px solid #CCC; }
 	.ie #bigtree_tag_browser label { display: block; width: 50px; overflow: visible; }
+	.ie .form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
+	.ie .table summary .form_search { margin: 5px 25px 0 -10px; }
+	.ie .environment_alert a { background: #FFF; }
 
 	/* IE 7 */
 	.ie7 input[type=text], .ie7 input[type=password], .ie7 input[type=email], .ie7 input[type=url] { height: 18px; padding: 7px 10px; }
@@ -1607,13 +1610,14 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.ie7 .form_search { width: 200px; height: 12px !important; }
 	.ie7 .form_search_icon { margin: 10px 0 0 -50px; }
 	.ie7 a.button { display: block; float: left; }
-	.ie7 #link_finder { margin: 8px 8px 0 0; }
+	.ie7 #link_finder { margin: 8px 8px 0 0; padding-right: 35px; }
 	.ie7 .link_finder_search_icon { margin: 15px 0 0 542px; }
 	.ie7 #link_finder_results { margin: 35px 0 0 357px; }
 	.ie7 #template_tab .select { width: 150px; }
 	.ie7 #template_tab .checkbox { margin: 15px 0 0 0; }
 	.ie7 #template_tab .for_checkbox { margin: 15px 0 0 15px; }
 	.ie7 .ui-datepicker .ui-datepicker-prev span, .ie7 .ui-datepicker .ui-datepicker-next span { display: block; }
+	.ie7 .environment_alert { width: 400px; }
 	
 	/* IE 8 */
 	.ie8 body.login { background-image: url(../images/login-bg.png) repeat-x bottom left; }
@@ -1625,6 +1629,9 @@ pre[class*="language-"] { -moz-hyphens: none; -moz-tab-size: 4; -ms-hyphens: non
 	.ie8 .file_wrapper input { -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; }
 	.ie8 #file_browser .header input { height: 12px; }
 	.ie8 .ui-datepicker .ui-datepicker-prev span, .ie8 .ui-datepicker .ui-datepicker-next span { display: block; }
+	.ie8 #link_finder { height: 12px; padding-right: 35px; }
+	.ie8 #link_finder_results { margin-top: 36px; }
+	.ie8 .table summary .form_search { height: 12px; padding-right: 35px; }
 
 	/* IE 9 */
 	.ie9 nav.main li li a { filter: none; } 
