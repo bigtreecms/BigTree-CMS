@@ -40,7 +40,9 @@
 					$active = " ".strtolower($sort_direction);
 					if ($sort_direction == "ASC") {
 						$achar = "&#9650;";
+						$s_direction = "ASC";
 					} else {
+						$s_direction = "DESC";
 						$achar = "&#9660;";
 					}
 				} else {
