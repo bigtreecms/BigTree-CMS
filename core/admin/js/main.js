@@ -1596,10 +1596,8 @@ var BigTreeFormNavBar = {
 			page_count = 0;
 			current_width = 0;
 			current_page = $('<div class="nav_page active">');
-			nav_items = $(".container nav a");
-			for (x = 0; x < nav_items.length; x++) {
-				item = nav_items.eq(x);
-				width = item.width() + 47;
+			$(".container nav a").each(function() {
+				width = $(this).width() + 47;
 				
 				if ((current_width + width) > 848) {
 					page_count++;
@@ -1627,8 +1625,8 @@ var BigTreeFormNavBar = {
 				}
 				
 				current_width += width;
-				current_page.append(item);
-			}
+				current_page.append($(this));
+			});
 			
 			
 			lessButton = $('<a class="more_nav" href="#">');
