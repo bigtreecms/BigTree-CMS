@@ -799,7 +799,7 @@
 				$part = sqlescape(strtolower($part));
 				while ($x < $view_columns) {
 					$x++;
-					$qp[] = "LOWER(column$x) LIKE '%$part%'";
+					$qp[] = "column$x LIKE '%$part%'";
 				}
 				if (count($qp)) {
 					$query .= " AND (".implode(" OR ",$qp).")";
@@ -842,12 +842,12 @@
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
-						$sort_field = "LOWER(column$x)";
+						$sort_field = "column$x";
 					}
 				}
 				// If we didn't find a column, let's assume it's the default sort field.
 				if (substr($sort_field,6,6) != "column") {
-					$sort_field = "LOWER(sort_field)";
+					$sort_field = "sort_field";
 				}
 				if ($convert_numeric) {
 					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
