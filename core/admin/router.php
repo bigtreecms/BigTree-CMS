@@ -307,6 +307,7 @@
 		}
 	}
 
+	$bigtree["in_module"] = false;
 	// If this is a module or an auto module, check permissions on it.
 	if (!$ispage || !$inc) {
 		$bigtree["current_module"] = $module = $admin->getModuleByRoute($primary_route);
@@ -314,7 +315,7 @@
 		if ($module && !$admin->checkAccess($module["id"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 		} elseif ($module) {
-			$in_module = true;
+			$bigtree["in_module"] = true;
 			// Append module navigation.
 			$actions = $admin->getModuleActions($module);
 		

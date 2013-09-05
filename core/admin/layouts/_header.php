@@ -32,11 +32,6 @@
 	
 	$unread_messages = $admin->getUnreadMessageCount();	
 	$site = $cms->getPage(0,false);
-	
-	// Hide some stupid notices.
-	if (!isset($in_module)) {
-		$in_module = false;
-	}
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->
@@ -92,8 +87,8 @@
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
 					?>
-					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?
