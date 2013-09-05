@@ -3,7 +3,7 @@ $(document).ready(function() {
 	BigTreeCustomControls();
 	
 	// !BigTree Quick Search
-	$('nav.main form input[type="search"]').keyup(function(ev) {
+	$('nav.main form .qs_query').keyup(function(ev) {
 		v = $(this).val();
 		if (v && ev.keyCode != 9) { //no tabs!
 			$("#quick_search_results").load("admin_root/ajax/quick-search-results/", { query: v }, function() {
