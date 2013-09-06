@@ -225,7 +225,7 @@ var BigTreePages = {
 		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
 		last_dialog.find("input, textarea, select").each(function() {
 			if ($(this).attr("type") != "submit") {
-				if ($(this).is("textarea") && $(this).css("display") == "none" && $(this).attr("type") != "file" && $(this).attr("type") != "hidden") {
+				if ($(this).is("textarea") && $(this).css("display") == "none") {
 					var mce = tinyMCE.get($(this).attr("id"));
 					if (mce) {
 						mce.save();

@@ -28,8 +28,8 @@
 	}
 
 	// Set the page title if it hasn't been set
-	if (!$module_title) {
-		$module_title = $bigtree["page"]["title"];
+	if (!$bigtree["admin_title"]) {
+		$bigtree["admin_title"] = $bigtree["page"]["title"];
 	}
 
 	// If we're in a module, add "Modules" to the beginning of the breadcrumb

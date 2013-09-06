@@ -173,43 +173,6 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 
 	.home_callouts { margin: 6% 0 0 0; }
 	
-	/* Twitter Callout */
-
-	.twitter_timeline { -webkit-tap-highlight-color: rgba(255,255,255,0); position: relative; }
-	.twitter_timeline header { margin: 6% 0 0; }
-	.twitter_timeline h3 { float: left; font-size: 18px; margin: 0 10px 0 0; text-transform: uppercase; }
-	.twitter_timeline p { float: left; }
-	.twitter_timeline p a { border-bottom: 1px dotted #ccc; color: #222; }
-	.twitter_timeline p a:hover { border-color: #222; }
-	.twitter_timeline hr { clear: both; margin: 25px 0 40px; width: 100%; }
-	.twitter_timeline .viewport { height: 200px; overflow: hidden; position: relative; }
-	.twitter_timeline .timeline { left: 0; position: absolute; top: 0; transition: left 0.25s ease-out; width: 10000px; }
-	.twitter_timeline .timeline article { float: left; margin: 0 13px 0 12px; overflow: hidden; width: 275px; }
-	.twitter_timeline .timeline p { font-family: "GentiumBookBasic", serif; font-size: 13px; line-height: 20px; margin-bottom: 24px; }
-	.twitter_timeline .timeline a { border-bottom: 1px dotted #ccc; color: #999; }
-	.twitter_timeline .timeline a:hover { border-color: #222; color: #222; }
-	.twitter_timeline .timeline strong { clear: both; color: #999; display: block; font-family: 'OpenSans', sans-serif; font-size: 10px; text-transform: uppercase; }
-	.twitter_timeline .timeline article:hover { border-color: #222; }
-	.twitter_timeline .timeline article:hover a { color: #222; }
-	.twitter_timeline .timeline article:hover strong { color: #222; }
-	.twitter_timeline .triggers { height: 85%; position: absolute; right: 0; top: 15%; }
-	.twitter_timeline .trigger { background: #222 url(static_root/images/icon_arrows.png) no-repeat left center; cursor: pointer; display: block; height: 40%; text-indent: -99999px; width: 20px; }
-	.twitter_timeline .disabled { background-color: #ccc; }
-	.twitter_timeline .previous { background-position: -20px center; }
-	.twitter_timeline .previous.disabled { background-position: 0 center; }
-	.twitter_timeline .next { background-position: -60px center; }
-	.twitter_timeline .next.disabled { background-position: -40px center; }
-
-	.sidebar .twitter_timeline .timeline { position: static; width: 100%; }
-	.sidebar .twitter_timeline .timeline .tweet { border-bottom: 1px dotted #AAA; margin: 0 0 15px 0; padding: 0 0 15px 0; width: 100%; }
-	.sidebar .twitter_timeline hr { margin: 20px 0; }
-	.sidebar .twitter_timeline .triggers { display: none; }
-	.sidebar .twitter_timeline p, .sidebar .twitter_timeline h3 { float: none; }
-	.sidebar .twitter_timeline h3 { margin: 0 0 10px 0; }
-	.sidebar .twitter_timeline header { margin: 0; }
-	.sidebar .twitter_timeline .viewport { height: auto; }
-	.sidebar .twitter_timeline .timeline p { margin: 0 0 10px 0; }
-	
 	/* Flexible Callout */
 
 	.callout { background: #F9F9F9; margin: 0 0 20px 0; padding: 20px; }
@@ -310,8 +273,6 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 		#feature .descriptions { width: 39.5833333333333333%; }
 		#feature .description { padding: 50px 8% 30px; }
 		#feature .triggers { left: 8%; }
-		
-		.twitter_timeline .timeline article { margin: 0 10px; width: 220px; }
 	}
 	
 	@media screen and (max-width: 980px) {
@@ -319,8 +280,6 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 		#header nav a { margin: 0 0 0 20px; }
 		
 		#feature .descriptions { width: 47.9166666666666667%; }
-		
-		.twitter_timeline .timeline article { margin: 0 8px 0 7px; width: 225px; }
 		
 		#footer .cell_3, #footer .cell_4 { margin-left: 1.0416666666666667%; }
 		#footer .address, #footer .social { width: 47.9166666666666667%; }
@@ -347,11 +306,7 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 		#feature .credit:hover .credit_label { display: block; }
 		#feature .credit:hover .credit_text { display: none; }
 		
-		.home_callouts .callout figure { float: none; margin: 0 0 10px 0; width: 100%; }
-		
-		.twitter_timeline header { margin: 10% 0 0; }
-		.twitter_timeline .timeline article { margin: 0 5px; padding-right: 10px; width: 230px; }
-		
+		.home_callouts .callout figure { float: none; margin: 0 0 10px 0; width: 100%; }		
 		
 		#subpage { margin: 120px auto 50px; }
 		#subpage .sidebar { width: 100%; }
@@ -407,9 +362,6 @@ button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="but
 		#feature .next, #feature .previous { top: 0; }
 
 		.home_callouts .callout h4 { font-size: 24px; }
-		
-		.twitter_timeline .timeline article { margin: 0 4px 0 3px; padding-right: 15px; width: 294px; }
-		.twitter_timeline p { width: 80%; }
 		
 		#subpage { margin: 100px auto 50px; }
 		.content figure { float: none; margin: 0 0 20px 0; width: 100%; }

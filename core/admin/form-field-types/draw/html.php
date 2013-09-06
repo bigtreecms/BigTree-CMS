@@ -4,6 +4,5 @@
 	} else {
 		$bigtree["html_fields"][] = $field["id"];
 	}
-	
-	include BigTree::path("admin/form-field-types/draw/textarea.php");
 ?>
+<textarea class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>"><?=htmlspecialchars($field["value"])?></textarea>

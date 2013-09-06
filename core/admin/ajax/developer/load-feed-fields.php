@@ -25,7 +25,10 @@
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($tblfields as $field) {
 			if (!in_array($field,$used)) {
-				$unused[$field] = $field;
+				$unused[] = array(
+					"title" => ucwords(str_replace("_"," ",$field)),
+					"field" => $field
+				);
 			}
 		}		
 	} else {

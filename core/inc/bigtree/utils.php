@@ -339,9 +339,9 @@
 			Function: currentURL
 				Return the current active URL with correct protocall and port
 		*/
-		static function currentURL() {
+		static function currentURL($port = false) {
 			$url = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
-			if ($_SERVER["SERVER_PORT"] != "80") {
+			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
 				$url .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
 			} else {
 				$url .= $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
@@ -1505,6 +1505,53 @@
 				}
 			}
 			return array($inc_file,$commands);
+		}
+		
+		/*
+			Function: sendEmail
+				Sends an email using htmlMimeMail
+
+			Parameters:
+				subject - Subject line text
+				html - HTML Email Body
+				text - Text Email Body
+				from - From email address
+				return - Return email address
+				to - String or array of recipient email address(es)
+				cc - String or array of carbon copy email address(es)
+				bcc - String or array of blind carbon copy email address(es)
+				headers - Key/value pair array of extra headers
+
+			Returns:
+				true if email is sent, otherwise false.
+		*/
+		
+		static function sendEmail($subject, $html, $text = '', $from, $return, $to, $cc = false, $bcc = false, $headers = array()) {
+			if (!$subject || !$html || !$text || !$from || !$return || !$to) {
+				return false;
+			}
+			
+			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";
+			
+			$mailer = new htmlMimeMail();
+			foreach ($headers as $key => $val) {
+				$mailer->setHeader($key, $val);
+			}
+			$mailer->setSubject($subject);
+			$mailer->setHtml($html, $text);
+			$mailer->setFrom($from);
+			$mailer->setReturnPath($return);
+			
+			if ($cc) {
+				$mailer->setCc(is_array($cc) ? $cc : array($cc));
+			}
+			if ($bcc) {
+				$mailer->setBcc(is_array($bcc) ? $bcc : array($bcc));
+			}
+			
+			$done = $mailer->send(is_array($to) ? $to : array($to));
+			
+			return $done;
 		}
 
 		/*

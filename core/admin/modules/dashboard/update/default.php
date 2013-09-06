@@ -273,4 +273,23 @@
 		$mtm_replace = sqlescape('"type":"many-to-many"');
 		sqlquery("UPDATE `bigtree_module_forms` SET `fields` = REPLACE(`fields`,'$mtm_find','$mtm_replace')");
 	}
+
+	// BigTree 4.0 update -- REVISION 21
+	function _local_bigtree_update_21() {
+		global $bigtree;
+		// Fix widths on module view actions
+		$q = sqlquery("SELECT * FROM bigtree_module_views");
+		while ($f = sqlfetch($q)) {
+			$actions = json_decode($f["actions"],true);
+			$extra_width = count($actions) * 22; // From 62px to 40px per action.
+			$fields = json_decode($f["fields"],true);
+			foreach ($fields as &$field) {
+				if ($field["width"]) {
+					$field["width"] += floor($extra_width / count($fields));
+				}
+			}
+			$fields = sqlescape(json_encode($fields));
+			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '".$f["id"]."'");
+		}
+	}
 ?>

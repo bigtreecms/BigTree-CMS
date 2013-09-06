@@ -40,7 +40,9 @@
 					$active = " ".strtolower($sort_direction);
 					if ($sort_direction == "ASC") {
 						$achar = "&#9650;";
+						$s_direction = "ASC";
 					} else {
+						$s_direction = "DESC";
 						$achar = "&#9660;";
 					}
 				} else {
@@ -54,17 +56,7 @@
 			}
 		?>
 		<span class="view_status">Status</span>
-		<?
-			foreach ($actions as $action => $data) {
-				if ($data != "on") {
-					$data = json_decode($data,true);
-					$action = $data["name"];
-				}
-		?>
-		<span class="view_action"><?=$action?></span>
-		<?
-			}
-		?>
+		<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;">Actions</span>
 	</header>
 	<ul id="results">
 		<? include BigTree::path("admin/ajax/auto-modules/views/searchable-page.php") ?>

@@ -17,7 +17,7 @@
 				<? foreach ($feed_types as $t => $v) { ?>
 				<option value="<?=$t?>"<? if ($t == $type) { ?> selected="selected"<? } ?>><?=$v?></option>
 				<? } ?>
-			</select> &nbsp; <a href="#" class="options icon_settings"></a>
+			</select> &nbsp; <a href="#" class="options icon_settings centered"></a>
 			<input type="hidden" name="options" id="feed_options" value="<?=htmlspecialchars(json_encode($item["options"]))?>" />
 		</fieldset>
 	</div>

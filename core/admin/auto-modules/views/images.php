@@ -15,21 +15,21 @@
 	if ($draggable) {
 		$order = "position DESC, id ASC";
 	} else {
-		$order = "id DESC";
+		$order = $view["options"]["sort"] ? $view["options"]["sort"] : "id DESC";
 	}
 	
 	$items = BigTreeAutoModule::getViewData($view,$order,"active");
 	$pending_items = BigTreeAutoModule::getViewData($view,$order,"pending");
 ?>
-<div class="table auto_modules">
+<div class="table auto_modules image_list">
 	<summary>
 		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?>Click an image to edit it.</p>
 	</summary>
 	<? if (count($pending_items)) { ?>
-	<header><span style="padding: 0 0 0 20px;">Active</span></header>
+	<header><span>Active</span></header>
 	<? } ?>
 	<section>
-		<ul id="image_list" class="image_list">
+		<ul id="image_list">
 			<?
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
@@ -84,11 +84,12 @@
 		</ul>
 	</section>
 	<? if (count($pending_items)) { ?>
-	<header><span style="padding: 0 0 0 20px;">Pending</span></header>
+	<header><span>Pending</span></header>
 	<section>
-		<ul class="image_list">
+		<ul>
 			<?
 				foreach ($pending_items as $item) {
+					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($prefix) {
 						$preview_image = BigTree::prefixFile($item["column1"],$prefix);
 					} else {

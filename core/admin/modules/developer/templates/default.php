@@ -9,8 +9,7 @@
 	<summary><h2>Basic Templates</h2></summary>
 	<header>
 		<span class="developer_templates_name">Template Name</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="basic_templates">
 		<?
@@ -42,8 +41,7 @@
 	<summary><h2>Routed Templates</h2></summary>
 	<header>
 		<span class="developer_templates_name">Template Name</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="routed_templates">
 		<?

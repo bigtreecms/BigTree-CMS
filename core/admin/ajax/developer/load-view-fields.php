@@ -84,46 +84,61 @@
 	</div>
 </fieldset>
 <fieldset class="last">
-	<label>Actions <small>(click to deselect)</small></label>
-	<ul class="developer_action_list">
-		<?
-			if (!empty($actions)) {
-				foreach ($actions as $action) {
-					if ($action != "on") {
-						$data = json_decode($action,true);
-		?>
-		<li>
-			<input class="custom_control" type="checkbox" name="actions[<?=$data["route"]?>]" checked="checked" value="<?=htmlspecialchars($action)?>" />
-			<a href="#" class="action active">
-				<span class="<?=$data["class"]?>"></span>
-			</a>
-		</li>
-		<?
+	<label>Actions <small>(click to deselect, drag bottom tab to rearrange)</small></label>
+	<div class="developer_action_list">
+		<ul>
+			<?
+				$used_actions = array();
+				if (!empty($actions)) {
+					foreach ($actions as $key => $action) {
+						if ($action != "on") {
+							$data = json_decode($action,true);
+							$key = $data["route"];
+							$class = $data["class"];
+						} else {
+							$class = "icon_$key";
+							if ($key == "feature" || $key == "approve") {
+								$class .= " icon_".$key."_on";
+							}
+						}
+						$used_actions[] = $key;
+			?>
+			<li>
+				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" checked="checked" value="<?=htmlspecialchars($action)?>" />
+				<a href="#" class="action active">
+					<span class="<?=$class?>"></span>
+				</a>
+				<div class="handle"><? if ($action != "on") { ?><span class="edit"></span><? } ?></div>
+			</li>
+			<?
 					}
 				}
-			}
-			foreach ($admin->ViewActions as $key => $action) {
-				if (in_array($action["key"],$tblfields) || isset($allow_all_actions)) {
-					$checked = false;
-					if (isset($actions[$key]) || (!isset($actions) && !isset($allow_all_actions)) || (isset($allow_all_actions) && ($key == "edit" || $key == "delete"))) {
-						$checked = true;
+				foreach ($admin->ViewActions as $key => $action) {
+					if (!in_array($key,$used_actions) && (in_array($action["key"],$tblfields) || isset($bigtree["module_designer_view"]))) {
+						$checked = false;
+						if (isset($actions[$key]) || (!isset($actions) && !isset($bigtree["module_designer_view"])) || (isset($bigtree["module_designer_view"]) && ($key == "edit" || $key == "delete"))) {
+							$checked = true;
+						}
+			?>
+			<li>
+				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" value="on" <? if ($checked) { ?>checked="checked" <? } ?>/>
+				<a href="#" class="action<? if ($checked) { ?> active<? } ?>">
+					<span class="<?=$action["class"]?>"></span>
+				</a>
+				<div class="handle"></div>
+			</li>
+			<?
 					}
-		?>
-		<li>
-			<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" value="on" <? if ($checked) { ?>checked="checked" <? } ?>/>
-			<a href="#" class="action<? if ($checked) { ?> active<? } ?>">
-				<span class="<?=$action["class"]?>"></span>
-			</a>
-		</li>
-		<?
 				}
-			}
-		?>
-		<li><a href="#" class="button add_action">Add</a></li>
-	</ul>
+			?>
+		</ul>
+		<a href="#" class="button add_action">Add</a>
+	</div>
 </fieldset>
 
 <script>
+	var _local_BigTreeCustomAction = false;
+
 	$(".form_table").on("click",".icon_delete",function() {
 		tf = $(this).parents("li").find("section").find("input");
 		
@@ -148,10 +163,16 @@
 		}
 		
 		return false;
-	});
+	}).on("click",".edit",function() {
+		_local_BigTreeCustomAction = $(this).parents("li");
+		j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
+		new BigTreeDialog("Edit Custom Action",'<fieldset><label>Action Name</label><input type="text" name="name" value="' + htmlspecialchars(j.name) + '" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" value="' + htmlspecialchars(j.class) + '" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" value="' + htmlspecialchars(j.route) + '" /></fieldset><fieldset><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" value="' + htmlspecialchars(j.function) + '" /></fieldset>',function(data) {
+			_local_BigTreeCustomAction.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
+		});
+	}).sortable({ axis: "x", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 		
 	$(".add_action").click(function() {
-		new BigTreeDialog("Add Custom Action",'<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. button_edit)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',function(data) {
+		new BigTreeDialog("Add Custom Action",'<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',function(data) {
 			li = $('<li>');
 			li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
 			$(".developer_action_list li:first-child").before(li);

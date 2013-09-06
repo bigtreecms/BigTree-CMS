@@ -3,15 +3,17 @@
 		Class: BigTreeGooglePlusAPI
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_google.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
 
-	class BigTreeGooglePlusAPI extends BigTreeGoogleAPIBase {
+	class BigTreeGooglePlusAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = "https://www.googleapis.com/plus/v1/";
-		var $Settings = array();
-		var $Cache = true;
+		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		var $EndpointURL = "https://www.googleapis.com/plus/v1/";
+		var $OAuthVersion = "1.0";
+		var $RequestType = "custom";
+		var $Scope = "https://www.googleapis.com/auth/plus.login";
+		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		/*
 			Constructor:
@@ -23,6 +25,15 @@
 
 		function __construct($cache = true) {
 			parent::__construct("bigtree-internal-googleplus-api","Google+ API","org.bigtreecms.api.googleplus",$cache);
+
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/googleplus/return/";
+
+			// Just send the request with the secret.
+			$this->RequestParameters = array();
+			$this->RequestParameters["access_token"] = &$this->Settings["token"];
+			$this->RequestParameters["api_key"] = &$this->Settings["key"];
+			$this->RequestParameters["api_secret"] = &$this->Settings["secret"];
 		}
 
 		/*
@@ -155,36 +166,6 @@
 		}
 
 		/*
-			Function: getMoments
-				Returns a list of public moments of the given user ID.
-				Returns the authenticated user's moments if no ID is passed in.
-
-			Parameters:
-				user - The ID of the person to return moments for. You may pass "me" to use the authenticated user (default)
-				count - The number of results to return, (defaults to 100, max 100)
-				params - Additional parameters to pass to the people/{userId}/moments API call.
-
-			Returns:
-				A BigTreeGoogleResultSet of BigTreeGooglePlusMoment objects.
-		*/
-
-		function getMoments($user = "me",$count = 100,$params = array()) {
-			$response = $this->call("people/$user/moments/public",array_merge(array(
-				"orderBy" => $order,
-				"maxResults" => $count
-			),$params));
-
-			if (!isset($response->items)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->items as $activity) {
-				$results[] = new BigTreeGooglePlusActivity($activity,$this);
-			}
-			return new BigTreeGoogleResultSet($this,"getActivities",array($user,$count,$order,$params),$response,$results);
-		}
-
-		/*
 			Function: getPerson
 				Returns a person for the given user ID.
 				Returns the authenticated user if no ID is passed in.
@@ -219,12 +200,15 @@
 		*/
 
 		function searchActivities($query,$count = 10,$order = "best",$params = array()) {
+			// Google+ fails if you pass too high of a count.
+			if ($count > 20) {
+				$count = 20;
+			}
 			$response = $this->call("activities",array_merge(array(
 				"query" => $query,
 				"orderBy" => $order,
 				"maxResults" => $count
 			),$params));
-
 			if (!isset($response->items)) {
 				return false;
 			}
@@ -249,6 +233,10 @@
 		*/
 
 		function searchPeople($query,$count = 10,$params = array()) {
+			// Google+ fails if you pass too high of a count.
+			if ($count > 20) {
+				$count = 20;
+			}
 			$response = $this->call("people",array_merge(array(
 				"query" => $query,
 				"maxResults" => $count
@@ -270,6 +258,7 @@
 	*/
 
 	class BigTreeGooglePlusActivity {
+		protected $API;
 
 		function __construct($activity,&$api) {
 			if (is_array($activity->access->items)) {
@@ -333,6 +322,24 @@
 			isset($activity->url) ? $this->URL = $activity->url : false;
 			isset($activity->actor) ? $this->User = new BigTreeGooglePlusPerson($activity->actor,$api) : false;
 		}
+
+		/*
+			Function: getComments
+				Returns comments for this activity.
+
+			Parameters:
+				count - The number of comments to return (defaults to 500, max 500)
+				order - The sort order for the results (options are "ascending" and "descending", defaults to "ascending" or oldest first)
+				params - Additional parameters to pass to the activities/{activityId}/comments API call.
+
+			Returns:
+				A BigTreeGoogleResultSet of BigTreeGooglePlusComment objects.
+		*/
+
+		function getComments($count = 500,$order = "ascending",$params = array()) {
+			return $this->API->getComments($this->ID,$count,$order,$params);
+		}
+
 	}
 
 	/*
@@ -340,6 +347,7 @@
 	*/
 
 	class BigTreeGooglePlusComment {
+		protected $API;
 
 		function __construct($comment,&$api) {
 			$this->API = $api;
@@ -369,6 +377,7 @@
 	*/
 
 	class BigTreeGooglePlusLocation {
+		protected $API;
 
 		function __construct($location,&$api) {
 			$this->API = $api;
@@ -380,49 +389,11 @@
 	}
 
 	/*
-		Class: BigTreeGooglePlusMoment
-	*/
-
-	class BigTreeGooglePlusMoment {
-
-		function __construct($moment,&$api) {
-			$this->Action = $moment->type;
-			$this->API = $api;
-			$this->CreatedAt = date("Y-m-d H:i:s",strtotime($moment->startDate));
-			$this->ID = $moment->id;
-			$this->Target->Type = $moment->target->type;
-			$this->Target->ID = $moment->target->id;
-			$this->Target->Description = $moment->target->description;
-			$this->Target->Image = $moment->target->image;
-			$this->Target->Name = $moment->target->name;
-			$this->Target->URL = $moment->target->url;
-			if (is_array($moment->target->author)) {
-				$this->Target->Authors = array();
-				foreach ($moment->target->author as $author) {
-					$this->Target->Authors[] = new BigTreeGooglePlusPerson($author,$api);
-				}
-			}
-			if (is_array($moment->target->contributor)) {
-				$this->Target->Contributors = array();
-				foreach ($moment->target->contributor as $contributor) {
-					$this->Target->Contributors[] = new BigTreeGooglePlusPerson($contributor,$api);
-				}
-			}
-			$this->Target->CreatedAt = date("Y-m-d H:i:s",strtotime($moment->target->dateCreated));
-			$this->Target->PublishedAt = date("Y-m-d H:i:s",strtotime($moment->target->datePublished));
-			$this->Target->UpdatedAt = date("Y-m-d H:i:s",strtotime($moment->target->dateModified));
-			$this->Target->Thumbnail = $moment->target->thumbnailUrl;
-			$this->Target->ContentSize = $moment->target->contentSize;
-			$this->Target->About = $moment->target->about;
-			$this->Target->ContentURL = $moment->target->contentUrl;
-		}
-	}
-
-	/*
 		Class: BigTreeGooglePlusPerson
 	*/
 
 	class BigTreeGooglePlusPerson {
+		protected $API;
 
 		function __construct($person,&$api) {
 			$this->API = $api;
@@ -510,6 +481,39 @@
 			isset($person->objectType) ? $this->Type = $person->objectType : false;
 			isset($person->url) ? $this->URL = $person->url : false;
 			isset($person->verified) ? $this->Verified = $person->verified : false;
+		}
+
+		/*
+			Function: getActivities
+				Returns a list of public activities made by this person.
+
+			Parameters:
+				count - The number of results to return, (defaults to 100, max 100)
+				params - Additional parameters to pass to the people/{userId}/activities API call.
+
+			Returns:
+				A BigTreeGoogleResultSet of BigTreeGooglePlusActivity objects.
+		*/
+
+		function getActivities($count = 100,$params = array()) {
+			return $this->API->getActivities($this->ID,$count,$params);
+		}
+
+		/*
+			Function: getCircledPeople
+				Returns a list of people this user has in one or more circles.
+
+			Parameters:
+				count - The number of results to return, (defaults to 100, max 100)
+				order - The sort order for the results (options are "best" and "alphabetical", defaults to "best")
+				params - Additional parameters to pass to the people/{userId}/people API call.
+
+			Returns:
+				A BigTreeGoogleResultSet of BigTreeGooglePlusPeople objects.
+		*/
+
+		function getCircledPeople($count = 100,$order = "best",$params = array()) {
+			return $this->API->getCircledPeople($this->ID,$count,$order,$params);
 		}
 	}
 ?>

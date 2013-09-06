@@ -47,7 +47,7 @@
 			<? BigTree::getFieldSelectOptions($other_table,$title_field) ?>
 		</select>
 		<? } else { ?>
-		&mdash;
+		<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
 		<? } ?>
 	</div>
 </fieldset>
@@ -60,7 +60,7 @@
 			<? BigTree::getFieldSelectOptions($other_table,$ot_sort_field) ?>
 		</select>
 		<? } else { ?>
-		&mdash;
+		<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
 		<? } ?>
 	</div>
 </fieldset>

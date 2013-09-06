@@ -6,7 +6,7 @@
 ?>
 <fieldset>
 	<label>Sort By</label>
-	<select name="sort" style="float: left; margin: 0 5px 0 0;">
+	<select name="sort">
 		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
 	</select>
 </fieldset>

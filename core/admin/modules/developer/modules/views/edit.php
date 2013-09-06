@@ -37,34 +37,36 @@
 			</fieldset>
 			<? } ?>
 			
-			<div class="left">
-				<fieldset>
-					<label class="required">Item Title <small>(for example, "Questions" to make the title "Viewing Questions")</small></label>
-					<input type="text" name="title" value="<?=$title?>" class="required" />
-				</fieldset>
-				<fieldset>
-					<label class="required">Data Table</label>
-					<select name="table" id="view_table" class="required" >
-						<? BigTree::getTableSelectOptions($table); ?>
-					</select>
-				</fieldset>
-				<fieldset>
-					<label>View Type</label>
-					<select name="type" id="view_type" class="left" >
-						<? foreach ($admin->ViewTypes as $key => $t) { ?>
-						<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
-						<? } ?>
-					</select>
-					&nbsp; <a href="#" class="options icon_settings"></a>
-					<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($view["options"]))?>" />
-				</fieldset>
-			</div>
-			
-			<div class="right">
-				<fieldset>
-					<label>Description <small>(instructions for the user)</small></label>
-					<textarea name="description" ><?=$description?></textarea>
-				</fieldset>
+			<div class="contain">
+				<div class="left">
+					<fieldset>
+						<label class="required">Item Title <small>(for example, "Questions" to make the title "Viewing Questions")</small></label>
+						<input type="text" name="title" value="<?=$title?>" class="required" />
+					</fieldset>
+					<fieldset>
+						<label class="required">Data Table</label>
+						<select name="table" id="view_table" class="required" >
+							<? BigTree::getTableSelectOptions($table); ?>
+						</select>
+					</fieldset>
+					<fieldset>
+						<label>View Type</label>
+						<select name="type" id="view_type" class="left" >
+							<? foreach ($admin->ViewTypes as $key => $t) { ?>
+							<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
+							<? } ?>
+						</select>
+						&nbsp; <a href="#" class="options icon_settings centered"></a>
+						<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($view["options"]))?>" />
+					</fieldset>
+				</div>
+				
+				<div class="right">
+					<fieldset>
+						<label>Description <small>(instructions for the user)</small></label>
+						<textarea name="description" ><?=$description?></textarea>
+					</fieldset>
+				</div>
 			</div>
 			
 			<fieldset>

@@ -8,6 +8,7 @@
 		$admin->updateSettingValue("bigtree-internal-geocoding-service",array("service" => "google", "settings" => array()));
 	}
 	$gateway = $cms->getSetting("bigtree-internal-geocoding-service");
+	$gateway["service"] = isset($gateway["service"]) ? $gateway["service"] : "";
 ?>
 <div class="table">
 	<section>

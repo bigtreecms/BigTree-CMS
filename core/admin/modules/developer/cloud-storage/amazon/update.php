@@ -1,5 +1,5 @@
 <?
-	$ups = $cms->getSetting("bigtree-internal-upload-service");
+	$ups = $cms->getSetting("bigtree-internal-storage");
 
 	// Check if we have optipng installed.
 	if (file_exists("/usr/bin/optipng")) {
@@ -29,7 +29,7 @@
 		// If they've chosen a bucket, make sure it exists.
 		if ($_POST["bucket"]) {
 			if ($s3->getBucket($_POST["bucket"]) === false) {
-				$admin->updateSettingValue("bigtree-internal-upload-service",$ups);
+				$admin->updateSettingValue("bigtree-internal-storage",$ups);
 				$admin->growl("Developer","Bucket Name Doesn't Exist","error");
 				BigTree::redirect($developer_root."cloud-storage/amazon/");
 				die();	
@@ -47,7 +47,7 @@
 			if ($bucket_created) {
 				$ups["s3"]["bucket"] = $bucket;
 			} else {
-				$admin->updateSettingValue("bigtree-internal-upload-service",$ups);
+				$admin->updateSettingValue("bigtree-internal-storage",$ups);
 				$admin->growl("Developer","Couldn't Auto Generate Bucket","error");
 				BigTree::redirect($developer_root."cloud-storage/amazon/");
 				die();
@@ -57,7 +57,7 @@
 		$ups["service"] = "";
 	}
 
-	$admin->updateSettingValue("bigtree-internal-upload-service",$ups);	
+	$admin->updateSettingValue("bigtree-internal-storage",$ups);	
 
 	$admin->growl("Developer","Amazon S3 Enabled");
 	BigTree::redirect($developer_root);

@@ -79,8 +79,8 @@
 			$field["output"] = $value;
 		}
 		
-		if (!BigTreeForms::validate($field["output"],$field["options"]["validation"])) {
-			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeForms::errorMessage($field["output"],$field["options"]["validation"]);
+		if (!BigTreeAutoModule::validate($field["output"],$field["options"]["validation"])) {
+			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
 			$bigtree["errors"][] = array(
 				"field" => $field["options"]["title"],
 				"message" => $error
@@ -108,8 +108,7 @@
 	}
 
 	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-	$formParser = new BigTreeForms($bigtree["form"]["table"]);
-	$bigtree["entry"] = $formParser->sanitizeFormDataForDB($bigtree["entry"]);
+	$bigtree["entry"] = BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];

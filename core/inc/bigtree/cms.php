@@ -7,6 +7,8 @@
 	class BigTreeCMS {
 	
 		var $iplCache = array();
+		var $ReplaceableRootKeys = array();
+		var $ReplaceableRootVals = array();
 
 		/*
 			Constructor:
@@ -29,6 +31,20 @@
 				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",json_encode($items));
 			}
 			
+			// Figure out what roots we can replace
+			if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = ADMIN_ROOT;
+				$this->ReplaceableRootVals[] = "{adminroot}";
+			}
+			if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = STATIC_ROOT;
+				$this->ReplaceableRootVals[] = "{staticroot}";
+			}
+			if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = WWW_ROOT;
+				$this->ReplaceableRootVals[] = "{wwwroot}";
+			}
+
 			$this->ModuleClassList = $items;
 		}
 
@@ -40,23 +56,35 @@
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data.
 				max_age - The maximum age (in seconds) for the data, defaults to any age.
+				decode - Decode JSON (defaults to true, specify false to return JSON)
 
 			Returns:
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
 		*/
 
-		function cacheGet($identifier,$key,$max_age = false) {
+		function cacheGet($identifier,$key,$max_age = false,$decode = true) {
+			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
+			if (!$this->MySQLTime) {
+				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
+				$this->MySQLTime = $t["time"];
+			}
+			$max_age = date("Y-m-d H:i:s",strtotime($this->MySQLTime) - $max_age);
+			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			if ($max_age) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '".date("Y-m-d H:i:s",time() - $max_age)."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '$max_age'"));
 			} else {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			}
 			if (!$f) {
 				return false;
 			}
-			return json_decode($f["value"],true);
+			if ($decode) {
+				return json_decode($f["value"],true);
+			} else {
+				return $f["value"];
+			}
 		}
 
 		/*
@@ -68,12 +96,13 @@
 				key - The key for your data.
 				value - The data to store.
 				replace - Whether to replace an existing value (defaults to true).
+				force_object - Use JSON_FORCE_OBJECT (defaults to true).
 
 			Returns:
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		function cachePut($identifier,$key,$value,$replace = true) {
+		function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -82,14 +111,14 @@
 			}
 
 			// Prefer to keep this an object, but we need PHP 5.3
-			if (strnatcmp(phpversion(),'5.3') >= 0) {
+			if (strnatcmp(phpversion(),'5.3') >= 0 && $force_object) {
 				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
 			} else {
 				$value = sqlescape(json_encode($value));
 			}
 			
 			if ($f) {
-				sqlquery("UPDATE bigtree_caches SET `value` = '$value' WHERE `identifier` = '$identifier' AND `key` = '$key'");
+				sqlquery("UPDATE bigtree_caches SET `value` = '$value', `timestamp` = NOW() WHERE `identifier` = '$identifier' AND `key` = '$key'");
 			} else {
 				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
 			}
@@ -823,13 +852,8 @@
 			if ($f["encrypted"]) {
 				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
 			}
-			$value = json_decode($f["value"],true);
 
-			// Don't try to do translations and such if it's a system value.
-			if ($f["system"]) {
-				return $value;
-			}
-			
+			$value = json_decode($f["value"],true);
 			if (is_array($value)) {
 				return BigTree::untranslateArray($value);
 			} else {
@@ -1074,7 +1098,7 @@
 		*/
 
 		function replaceHardRoots($string) {
-			return str_replace(array(ADMIN_ROOT,STATIC_ROOT,WWW_ROOT),array("{adminroot}","{staticroot}","{wwwroot}"),$string);
+			return str_replace($this->ReplaceableRootKeys,$this->ReplaceableRootVals,$string);
 		}
 
 		/*
@@ -1098,10 +1122,14 @@
 				$html = $this->getInternalPageLink($html);
 			} else {
 				$html = $this->replaceRelativeRoots($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',create_function('$matches','global $cms; return \'="\'.$cms->getInternalPageLink($matches[1]).\'"\';'),$html);
+				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
 			}
 
 			return $html;
+		}
+		protected function replaceInternalPageLinksHook($matches) {
+			global $cms;
+			return '="'.$cms->getInternalPageLink($matches[1]).'"';
 		}
 		
 		/*

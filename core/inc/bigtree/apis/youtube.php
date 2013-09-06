@@ -3,15 +3,18 @@
 		Class: BigTreeYouTubeAPI
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_google.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
 
-	class BigTreeYouTubeAPI extends BigTreeGoogleAPIBase {
+	class BigTreeYouTubeAPI extends BigTreeOAuthAPIBase {
 		
-		var $Cache = true;
-		var $Connected = false;
-		var $URL = "https://www.googleapis.com/youtube/v3/";
-		var $Settings = array();
-
+		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		var $EndpointURL = "https://www.googleapis.com/youtube/v3/";
+		var $OAuthVersion = "2.0";
+		var $RequestType = "header";
+		var $Scope = "https://www.googleapis.com/auth/youtube";
+		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		
 		/*
 			Constructor:
 				Sets up the YouTube API connections.
@@ -22,6 +25,9 @@
 
 		function __construct($cache = true) {
 			parent::__construct("bigtree-internal-youtube-api","YouTube API","org.bigtreecms.api.youtube",$cache);
+
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/youtube/return/";
 		}
 
 		/*
@@ -249,15 +255,15 @@
 
 			Parameters:
 				channel - The channel ID to retrieve videos for.
-				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
 				count - Number of videos to return (defaults to 10).
+				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
 				params - Additional parameters to pass to the search API call.
 
 			Returns:
 				A BigTreeGoogleResultSet of BigTreeYouTubeVideo objects.
 		*/
 
-		function getChannelVideos($channel,$order = "date",$count = 10,$params = array()) {
+		function getChannelVideos($channel,$count = 10,$order = "date",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "video",
@@ -448,6 +454,36 @@
 			}
 			return true;
 		}
+
+		/*
+			Function: searchChannels
+				Searches YouTube for channels
+
+			Parameters:
+				query - A string to search for.
+				order - The order to sort by (options are date, rating, relevance, title, videoCount, viewCount) — defaults to relevance.
+				count - Number of videos to return (defaults to 10).
+				params - Additional parameters to pass to the search API call.
+		*/
+
+		function searchChannels($query,$count = 10,$order = "relevance",$params = array()) {
+			$response = $this->call("search",array_merge(array(
+				"part" => "snippet",
+				"type" => "channel",
+				"q" => $query,
+				"order" => $order,
+				"maxResults" => $count
+			),$params));
+
+			if (!isset($response->items)) {
+				return false;
+			}
+			$results = array();
+			foreach ($response->items as $channel) {
+				$results[] = new BigTreeYouTubeChannel($channel,$this);
+			}
+			return new BigTreeGoogleResultSet($this,"searchChannels",array($query,$order,$count,$params),$response,$results);
+		}
 		
 		/*
 			Function: searchVideos
@@ -460,7 +496,7 @@
 				params - Additional parameters to pass to the search API call.
 		*/
 
-		function searchVideos($query,$order = "relevance",$count = 10,$params = array()) {
+		function searchVideos($query,$count = 10,$order = "relevance",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "video",
@@ -642,6 +678,7 @@
 	*/
 
 	class BigTreeYouTubeActivity {
+		protected $API;
 
 		function __construct($activity,&$api) {
 			$type = $activity->snippet->type;
@@ -716,12 +753,13 @@
 	*/
 
 	class BigTreeYouTubeChannel {
+		protected $API;
 
 		function __construct($channel,&$api) {
 			$this->API = $api;
 			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;
 			isset($channel->snippet->description) ? $this->Description = $channel->snippet->description : false;
-			$this->ID = $channel->id;
+			$this->ID = is_object($channel->id) ? $channel->id->channelId : $channel->id;
 			if (isset($channel->snippet->thumbnails)) {
 				$this->Images = new stdClass;
 				foreach ($channel->snippet->thumbnails as $key => $val) {
@@ -748,7 +786,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubeVideo objects.
 		*/
 
-		function getVideos($order = "date",$count = 10) {
+		function getVideos($count = 10,$order = "date") {
 			return $this->API->getChannelVideos($this->ID,$order,$count);
 		}
 
@@ -776,6 +814,7 @@
 	*/
 
 	class BigTreeYouTubePlaylist {
+		protected $API;
 
 		function __construct($playlist,&$api) {
 			$this->API = $api;
@@ -825,6 +864,7 @@
 	*/
 
 	class BigTreeYouTubePlaylistItem {
+		protected $API;
 
 		function __construct($item,&$api) {
 			$this->API = $api;
@@ -888,6 +928,7 @@
 	*/
 
 	class BigTreeYouTubeSubscription {
+		protected $API;
 
 		function __construct($subscription,&$api) {
 			$this->API = $api;
@@ -919,6 +960,7 @@
 	*/
 
 	class BigTreeYouTubeVideo {
+		protected $API;
 
 		function __construct($video,&$api) {
 			$this->API = $api;

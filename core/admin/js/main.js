@@ -3,7 +3,7 @@ $(document).ready(function() {
 	BigTreeCustomControls();
 	
 	// !BigTree Quick Search
-	$('nav.main form input[type="search"]').keyup(function(ev) {
+	$('nav.main form .qs_query').keyup(function(ev) {
 		v = $(this).val();
 		if (v && ev.keyCode != 9) { //no tabs!
 			$("#quick_search_results").load("admin_root/ajax/quick-search-results/", { query: v }, function() {
@@ -248,6 +248,7 @@ var BigTreeCheckbox = Class.extend({
 				this.Element.attr("checked","checked");
 			}
 			this.Element.triggerHandler("click");
+			this.Element.triggerHandler("change");
 		}
 		return false;
 	}
@@ -833,6 +834,7 @@ var BigTreeRadioButton = Class.extend({
 			});
 		}
 		this.Element.triggerHandler("click");
+		this.Element.triggerHandler("change");
 		return false;
 	},
 	
@@ -1114,7 +1116,7 @@ var BigTreeDialog = Class.extend({
 				dialog_window.html('<h2>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
 			}
 		} else {
-			dialog_window.html('<h2><a href="#" class="icon_delete" class="bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
+			dialog_window.html('<h2><a href="#" class="icon_delete bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
 		}
 
 		BigTreeCustomControls(dialog_window);
@@ -1597,10 +1599,8 @@ var BigTreeFormNavBar = {
 			page_count = 0;
 			current_width = 0;
 			current_page = $('<div class="nav_page active">');
-			nav_items = $(".container nav a");
-			for (x = 0; x < nav_items.length; x++) {
-				item = nav_items.eq(x);
-				width = item.width() + 47;
+			$(".container nav a").each(function() {
+				width = $(this).width() + 47;
 				
 				if ((current_width + width) > 848) {
 					page_count++;
@@ -1628,8 +1628,8 @@ var BigTreeFormNavBar = {
 				}
 				
 				current_width += width;
-				current_page.append(item);
-			}
+				current_page.append($(this));
+			});
 			
 			
 			lessButton = $('<a class="more_nav" href="#">');

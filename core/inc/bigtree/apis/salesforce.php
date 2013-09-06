@@ -3,13 +3,15 @@
 		Class: BigTreeSalesforceAPI
 	*/
 	
-	class BigTreeSalesforceAPI {
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+
+	class BigTreeSalesforceAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = false;
-		var $Settings = array();
-		var $Cache = true;
+		var $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
+		var $EndpointURL = "";
+		var $OAuthVersion = "2.0";
+		var $RequestType = "header";
+		var $TokenURL = "https://login.salesforce.com/services/oauth2/token";
 
 		/*
 			Constructor:
@@ -20,153 +22,33 @@
 		*/
 
 		function __construct($cache = true) {
-			global $cms;
-			$this->Cache = $cache;
+			parent::__construct("bigtree-internal-salesforce-api","Salesforce API","org.bigtreecms.api.salesforce",$cache);
 
-			// If we don't have the setting for the Salesforce API, create it.
-			$this->Settings = $cms->getSetting("bigtree-internal-salesforce-api");
-			if (!$this->Settings) {
-				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-salesforce-api", 
-					"name" => "Salesforce API", 
-					"encrypted" => "on", 
-					"system" => "on"
-				));
-			}
-			
-			// Build OAuth client
-			$this->OAuthClient = new oauth_client_class;
-			$this->OAuthClient->server = "Salesforce";
-			$this->OAuthClient->client_id = $this->Settings["key"]; 
-			$this->OAuthClient->client_secret = $this->Settings["secret"];
-			$this->OAuthClient->access_token = $this->Settings["token"]; 
-			$this->OAuthClient->redirect_uri = str_replace("http://","https://",ADMIN_ROOT)."developer/services/salesforce/return/";
-
-			// Init Client
-			$this->OAuthClient->Initialize();
-
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/salesforce/return/";
+		
 			// Change things if we're in the test environment.
-			if ($this->Settings["test_environment"] == "on") {
-				$this->OAuthClient->dialog_url = str_ireplace("login.", "test.", $this->OAuthClient->dialog_url);
-				$this->OAuthClient->access_token_url = str_ireplace("login.", "test.", $this->OAuthClient->access_token_url);
+			if ($this->Settings["test_environment"]) {
+				$this->AuthorizeURL = str_ireplace("login.","test.",$this->AuthorizeURL);
+				$this->TokenURL = str_replace("login.","test.",$this->TokenURL);
 			}
 			
 			// Get a new access token for this session.
-			if ($this->Settings["key"] && $this->Settings["secret"]) {
-				$response = json_decode(BigTree::cURL($this->OAuthClient->access_token_url,array(
+			$this->Connected = false;
+			if ($this->Settings["refresh_token"]) {
+				$response = json_decode(BigTree::cURL($this->TokenURL,array(
 					"grant_type" => "refresh_token",
 					"client_id" => $this->Settings["key"],
 					"client_secret" => $this->Settings["secret"],
 					"refresh_token" => $this->Settings["refresh_token"]
 				)),true);
 				if ($response["access_token"]) {
-					$this->URL = $response["instance_url"]."/services/data/v28.0/";
-					$this->OAuthClient->access_token = $response["access_token"];
-					$this->OAuthClient->authorization = "Authorization: Bearer ".$response["access_token"];
+					$this->InstanceURL = $response["instance_url"];
+					$this->EndpointURL = $this->InstanceURL."/services/data/v28.0/";
+					$this->Settings["token"] = $response["access_token"];
 					$this->Connected = true;
 				}
 			}
-		}
-		
-		/*
-			Function: call
-				Calls the Salesforce API directly with the given API endpoint and parameters.
-				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
-
-			Parameters:
-				endpoint - The Salesforce API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API or the cache.
-		*/
-
-		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
-			global $cms;
-			if ($method != "GET") {
-				return $this->callUncached($endpoint,$params,$method);				
-			}
-
-			if (!$this->Connected) {
-				throw new Exception("The Salesforce API is not connected.");
-			}
-
-			if ($this->Cache) {
-				$cache_key = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet("org.bigtreecms.api.salesforce",$cache_key,900);
-				if ($record) {
-					// We re-decode it as an object since that's what we're expecting from Salesforce normally.
-					return json_decode(json_encode($record));
-				}
-			}
-			
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				if ($this->Cache) {
-					$cms->cachePut("org.bigtreecms.api.salesforce",$cache_key,$response);
-				}
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
-		}
-
-		/*
-			Function: callUncached
-				Calls the Salesforce API directly with the given API endpoint and parameters.
-				Does not cache information.
-
-			Parameters:
-				endpoint - The Salesforce API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API.
-		*/
-
-		function callUncached($endpoint,$params = array(),$method = "GET",$options = array()) {
-			if (!$this->Connected) {
-				throw new Exception("The Salesforce API is not connected.");
-			}
-
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				return $response;
-			} else {
-				$this->Errors = json_decode($this->OAuthClient->api_error);
-				return false;
-			}
-		}
-
-		/*
-			Function: cURL
-				Calls an authenticated API call via cURL instead of the OAuthClient library.
-				This is needed for some calls where the library hangs.
-
-			Parameters:
-				endpoint - The endpoint to hit
-				method - The HTTP method to use
-				content - The content to send
-				json - Whether the content is JSON or not, defaults to false
-
-			Returns:
-				Response body.
-		*/
-
-		function cURL($endpoint,$method,$content = false,$json = false) {
-			$headers = array("Authorization: Bearer ".$this->Settings["token"]);
-			if ($json) {
-				$headers[] = "Content-type: application/json";
-			}
-
-			return BigTree::cURL($this->URL.$endpoint,$content,array(
-				CURLOPT_CUSTOMREQUEST => $method,
-				CURLOPT_HTTPHEADER => $headers
-			));
 		}
 
 		/*
@@ -215,7 +97,6 @@
 	*/
 
 	class BigTreeSalesforceObject {
-
 		protected $API;
 		protected $QueryFieldNames;
 
@@ -297,7 +178,7 @@
 				$record[$key] = current($vals);
 				next($vals);
 			}
-			$response = json_decode($this->API->cURL("sobjects/".$this->Name."/","POST",json_encode($record),true));
+			$response = $this->API->callUncached("sobjects/".$this->Name."/",json_encode($record),"POST");
 			// Look for a response ID.
 			if (isset($response->id)) {
 				// Setup a dumb record and build it ourselves
@@ -326,8 +207,7 @@
 		*/
 
 		function delete($id) {
-			// We're going to straight up cURL because the outh class is bogus and hangs on this call.
-			$response = $this->API->cURL("sobjects/".$this->Type."/$id","DELETE");
+			$response = $this->API->callUncached("sobjects/".$this->Name."/$id",false,"DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -366,8 +246,8 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getAll($order = "Id ASC") {
-			return $this->query("SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order");
+		function getAll($order = "Id ASC",$full_response = false) {
+			return $this->query("SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order",$full_response);
 		}
 
 		/*
@@ -384,7 +264,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getMatching($fields,$values,$order = "Id ASC",$limit = false) {
+		function getMatching($fields,$values,$order = "Id ASC",$limit = false,$full_response = false) {
 			if (!is_array($fields)) {
 				$where = "$fields = '".sqlescape($values)."'";
 			} else {
@@ -403,7 +283,7 @@
 			if ($limit) {
 				$query .= " LIMIT $limit";
 			}
-			return $this->query($query);
+			return $this->query($query,$full_response);
 		}
 
 		/*
@@ -420,7 +300,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 		
-		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false) {
+		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$full_response = false) {
 			// Don't try for page 0
 			if ($page < 1) {
 				$page = 1;
@@ -431,7 +311,7 @@
 			} else {
 				$query = "SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order LIMIT $perpage OFFSET ".(($page - 1) * $perpage);
 			}
-			return $this->query($query);
+			return $this->query($query,$full_response);
 		}
 
 		/*
@@ -445,8 +325,14 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function query($query) {
-			$response = $this->API->call("query/?q=".urlencode($query));
+		function query($query,$full_response = false) {
+			
+			if (strpos($query, "query/") > -1) {
+				$response = $this->API->call($query);
+			} else {
+				$response = $this->API->call("query/?q=".urlencode($query));
+			}
+			
 			if (!isset($response->records)) {
 				return false;
 			}
@@ -454,7 +340,8 @@
 			foreach ($response->records as $record) {
 				$records[] = new BigTreeSalesforceRecord($record,$this->API);
 			}
-			return $records;
+			$response->records = $records;
+			return $full_response ? $response : $records;
 		}
 
 		/*
@@ -470,7 +357,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 		
-		function search($query,$order = "Id ASC",$limit = false) {
+		function search($query,$order = "Id ASC",$limit = false,$full_response = false) {
 			$where = array();
 			$searchable_types = array("string","picklist","textarea","phone","url");
 			foreach ($this->Fields as $field) {
@@ -485,7 +372,7 @@
 			if ($limit) {
 				$query .= " LIMIT $limit";
 			}
-			return $this->query($query);
+			return $this->query($query,$full_response);
 		}
 
 		/*
@@ -508,7 +395,7 @@
 			} else {
 				$record[$fields] = $values;
 			}
-			$response = $this->API->cURL("sobjects/".$this->Name."/$id","PATCH",json_encode($record),true);
+			$response = $this->API->callUncached("sobjects/".$this->Name."/$id",json_encode($record),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -523,7 +410,6 @@
 	*/
 
 	class BigTreeSalesforceRecord {
-
 		protected $API;
 
 		/*
@@ -550,7 +436,7 @@
 			unset($this->Columns->CreatedById);
 			unset($this->Columns->CreatedDate);
 			unset($this->Columns->Id);
-			unset($this->Columns->IsDeleted);
+			//unset($this->Columns->IsDeleted);
 			unset($this->Columns->JigsawCompanyId);
 			unset($this->Columns->LastActivityDate);
 			unset($this->Columns->LastModifiedDate);
@@ -570,8 +456,7 @@
 		*/
 
 		function delete() {
-			// We're going to straight up cURL because the outh class is bogus and hangs on this call.
-			$response = $this->API->cURL("sobjects/".$this->Type."/".$this->ID,"DELETE");
+			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,false,"DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -586,7 +471,7 @@
 		*/
 
 		function save() {
-			$response = $this->API->cURL("sobjects/".$this->Type."/".$this->ID,"PATCH",json_encode($this->Columns),true);
+			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,json_encode($this->Columns),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);
@@ -614,7 +499,7 @@
 			} else {
 				$record[$fields] = $values;
 			}
-			$response = $this->API->cURL("sobjects/".$this->Type."/".$this->ID,"PATCH",json_encode($record),true);
+			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,json_encode($record),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
 				$this->API->Errors[] = json_decode($response);

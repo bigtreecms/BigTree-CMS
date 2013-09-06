@@ -119,7 +119,8 @@
 				array("title" => "Google+ API","link" => "developer/services/googleplus","icon" => "googleplus","hidden" => true),
 				array("title" => "YouTube API","link" => "developer/services/youtube","icon" => "youtube","hidden" => true),
 				array("title" => "Flickr API","link" => "developer/services/flickr","icon" => "flickr","hidden" => true),
-				array("title" => "Salesforce API","link" => "developer/services/salesforce","icon" => "cloud","hidden" => true)
+				array("title" => "Salesforce API","link" => "developer/services/salesforce","icon" => "cloud","hidden" => true),
+				array("title" => "Disqus API","link" => "developer/services/disqus","icon" => "disqus","hidden" => true)
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
 		)),

@@ -1,17 +1,27 @@
 <?
-	// Check whether our database is running the latest revision of BigTree or not.
-	$current_revision = $cms->getSetting("bigtree-internal-revision");
-	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		BigTree::redirect(ADMIN_ROOT."dashboard/update/");
-	}
-
-	// Figure out which are connected
-	$twitter = new BigTreeTwitterAPI;
-	$instagram = new BigTreeInstagramAPI;
-	$google = new BigTreeGooglePlusAPI;
-	$youtube = new BigTreeYouTubeAPI;
-	$flickr = new BigTreeFlickrAPI;
-	$salesforce = new BigTreeSalesforceAPI;
+	// Route to common if we hit something in a sub directory that doesn't exist.
+	if (count($bigtree["commands"])) {
+		include BigTree::path("admin/modules/developer/services/_".$bigtree["commands"][0].".php");
+		if ($bigtree["commands"][1]) {
+			include BigTree::path("admin/modules/developer/services/common/".$bigtree["commands"][1].".php");
+		} else {
+			include BigTree::path("admin/modules/developer/services/common/default.php");
+		}
+	} else {
+		// Check whether our database is running the latest revision of BigTree or not.
+		$current_revision = $cms->getSetting("bigtree-internal-revision");
+		if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
+			BigTree::redirect(ADMIN_ROOT."dashboard/update/");
+		}
+	
+		// Figure out which are connected
+		$twitter = new BigTreeTwitterAPI;
+		$instagram = new BigTreeInstagramAPI;
+		$google = new BigTreeGooglePlusAPI;
+		$youtube = new BigTreeYouTubeAPI;
+		$flickr = new BigTreeFlickrAPI;
+		$disqus = new BigTreeDisqusAPI;
+		$salesforce = new BigTreeSalesforceAPI;
 ?>
 <div class="table">
 	<summary><h2>Configure</h2></summary>
@@ -41,9 +51,17 @@
 			<p>Flickr</p>
 		</a>
 		
-		<a class="box_select<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
+		<a class="box_select<? if ($disqus->Connected) { ?> connected<? } ?>" href="disqus/">
+			<span class="disqus"></span>
+			<p>Disqus</p>
+		</a>
+
+		<a class="box_select last<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
 			<span class="cloud"></span>
 			<p>Salesforce</p>
 		</a>
 	</section>
 </div>
+<?
+	}
+?>

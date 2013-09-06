@@ -9,8 +9,7 @@
 	<summary><h2>Callouts</h2></summary>
 	<header>
 		<span class="developer_templates_name">Name</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="callouts">
 		<?

@@ -1,7 +1,24 @@
-<?
-	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
-?>
 <div class="container">
+	<?
+		$geo = new BigTreeGeocoding;
+		$api = new BigTreeYahooBOSSAPI;
+		if ($api->Connected && $geo->Service == "yahoo-boss") {
+	?>
+	<section>
+		<p>The Yahoo BOSS Geocoder is connected.</p>
+	</section>
+	<?
+		} elseif ($api->Connected) {
+	?>
+	<section>
+		<p>Yahoo BOSS API services have already been configured but Yahoo BOSS is not currently the active geocoder.</p>
+	</section>
+	<footer>
+		<a href="<?=DEVELOPER_ROOT?>geocoding/yahoo-boss/switch/" class="button blue">Activate Yahoo BOSS Geocoder</a>
+	</footer>
+	<?
+		} else { 
+	?>
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/yahoo-boss/activate/">
 		<section>
 			<p>To use the Yahoo BOSS API you will need a Yahoo BOSS paid account. Yahoo BOSS provides commercial, per-query pricing (i.e. $6.00 per 1,000 queries). BigTree will cache properly geocoded addresses as to limit your query usage. To set up an account, follow the steps below:</p>
@@ -17,15 +34,18 @@
 			<hr />
 			<fieldset>
 				<label>Consumer Key</label>
-				<input type="text" name="yahoo_boss_consumer_key" value="<?=htmlspecialchars($geocoding_service["yahoo_boss_consumer_key"])?>" />
+				<input type="text" name="key" value="<?=htmlspecialchars($api->Settings["key"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Consumer Secret</label>
-				<input type="text" name="yahoo_boss_consumer_secret" value="<?=htmlspecialchars($geocoding_service["yahoo_boss_consumer_secret"])?>" />
+				<input type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"])?>" />
 			</fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Activate Yahoo BOSS Geocoder" />
 		</footer>
 	</form>
+	<?
+		}
+	?>
 </div>

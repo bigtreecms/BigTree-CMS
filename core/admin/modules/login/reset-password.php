@@ -16,7 +16,7 @@
 		<? if ($failure) { ?><p class="error_message clear">Passwords did not match. Please try again.</p><? } ?>
 		<? if (!$user) { ?>
 		<fieldset class="clear">
-			<p>This reset request has expired. <a href="<?=ADMIN_ROOT?>login/forgot-password/">Click Here</a> to request a new link.</p>
+			<p>This reset request has expired. <a href="<?=$login_root?>forgot-password/">Click Here</a> to request a new link.</p>
 		</fieldset>
 		<br />
 		<? } else { ?>

@@ -421,6 +421,8 @@
 
 IndexIgnore */*
 
+Options -MultiViews
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -434,6 +436,8 @@ php_flag magic_quotes_gpc Off');
 			
 		} elseif ($routing == "simple") {
 			bt_touch_writable("site/.htaccess",'IndexIgnore */*
+
+Options -MultiViews
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-d

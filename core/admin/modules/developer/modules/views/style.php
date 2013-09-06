@@ -25,13 +25,7 @@
 			}
 		?>
 		<span class="view_status">Status</span>
-		<?	
-			foreach ($actions as $action => $on) {
-		?>
-		<span class="view_action"><?=ucwords($action)?></span>
-		<?
-			}
-		?>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;">Actions</span>
 	</header>
 </div>
 <form method="post" action="<?=$developer_root?>modules/views/update-style/<?=$view["id"]?>/" class="module">

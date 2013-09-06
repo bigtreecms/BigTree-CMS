@@ -488,11 +488,11 @@
 				$id = $id["id"];
 			}
 
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '$id'"));
-			$f["fields"] = json_decode($f["fields"],true);
-			$f["return_url"] = $cms->getInternalPageLink($f["return_url"]);
+			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '$id'"));
+			$form["fields"] = json_decode($form["fields"],true);
+			$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
 
-			return $f;
+			return $form;
 		}
 		
 		/*
@@ -799,7 +799,7 @@
 				$part = sqlescape(strtolower($part));
 				while ($x < $view_columns) {
 					$x++;
-					$qp[] = "LOWER(column$x) LIKE '%$part%'";
+					$qp[] = "column$x LIKE '%$part%'";
 				}
 				if (count($qp)) {
 					$query .= " AND (".implode(" OR ",$qp).")";
@@ -819,7 +819,6 @@
 			} else { // Old formatting
 				list($sort_field,$sort_direction) = explode(" ",$sort);
 			}
-			
 			if ($sort_field != "id") {
 				$convert_numeric = false;
 				$columnInfo = $tableInfo["columns"][$sort_field];
@@ -828,18 +827,27 @@
 					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
 						$convert_numeric = true;
 					}
+					// We're going to assume a parser is returning a string
+					if ($view["fields"][$sort_field]["parser"]) {
+						$convert_numeric = false;
+					}
+					// See if we're a foreign key (in which case it's probably a db populated list and we want to treat as string)
+					foreach ($tableInfo["foreign_keys"] as $foreign_key) {
+						if (in_array($sort_field,$foreign_key["local_columns"])) {
+							$convert_numeric = false;
+						}
+					}
 				}
-				if ($tableInfo["columns"])
 				$x = 0;
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
-						$sort_field = "LOWER(column$x)";
+						$sort_field = "column$x";
 					}
 				}
 				// If we didn't find a column, let's assume it's the default sort field.
 				if (substr($sort_field,6,6) != "column") {
-					$sort_field = "LOWER(sort_field)";
+					$sort_field = "sort_field";
 				}
 				if ($convert_numeric) {
 					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
@@ -906,17 +914,17 @@
 				$id = $id["id"];
 			}
 			
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
-			$f["actions"] = json_decode($f["actions"],true);
-			$f["options"] = json_decode($f["options"],true);
-			$f["preview_url"] = $cms->replaceInternalPageLinks($f["preview_url"]);
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
+			$view["actions"] = json_decode($view["actions"],true);
+			$view["options"] = json_decode($view["options"],true);
+			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
 			
-			$actions = $f["preview_url"] ? ($f["actions"] + array("preview" => "on")) : $f["actions"];
-			$fields = json_decode($f["fields"],true);
+			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];
+			$fields = json_decode($view["fields"],true);
 			if (count($fields)) {
 				$first = current($fields);
 				if (!isset($first["width"]) || !$first["width"]) {
-					$awidth = count($actions) * 62;
+					$awidth = count($actions) * 40;
 					$available = 888 - $awidth;
 					$percol = floor($available / count($fields));
 				
@@ -924,12 +932,12 @@
 						$fields[$key]["width"] = $percol - 20;
 					}
 				}
-				$f["fields"] = $fields;
+				$view["fields"] = $fields;
 			} else {
-				$f["fields"] = array();
+				$view["fields"] = array();
 			}
 
-			return $f;
+			return $view;
 		}
 		
 		/*
@@ -1015,14 +1023,14 @@
 			global $cms;
 			
 			$table = sqlescape($table);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
-			$f["options"] = json_decode($f["options"],true);
-			$f["preview_url"] = $cms->replaceInternalPageLinks($f["preview_url"]);
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
+			$view["options"] = json_decode($view["options"],true);
+			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
 			
-			$fields = json_decode($f["fields"],true);
+			$fields = json_decode($view["fields"],true);
 			if (is_array($fields)) {
 				// Three or four actions, depending on preview availability.
-				if ($f["preview_url"]) {
+				if ($view["preview_url"]) {
 					$available = 578;
 				} else {
 					$available = 633;
@@ -1031,10 +1039,10 @@
 				foreach ($fields as $key => $field) {
 					$fields[$key]["width"] = $percol - 20;
 				}
-				$f["fields"] = $fields;
+				$view["fields"] = $fields;
 			}
 
-			return $f;
+			return $view;
 		}
 		
 		/*
@@ -1100,6 +1108,7 @@
 			$query_fields = array();
 			$query_vals = array();
 			$table_description = BigTree::describeTable($table);
+			$data = BigTreeAutoModule::sanitizeData($table,$data,$table_description);
 			
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
@@ -1162,6 +1171,84 @@
 		
 		static function recacheItem($id,$table,$pending = false) {
 			self::cacheNewItem($id,$table,$pending,true);
+		}
+
+		/*
+			Function: sanitizeData
+				Processes form data into values understandable by the MySQL table.
+			
+			Parameters:
+				table - The table to sanitize data for
+				data - Array of key->value pairs
+				existing_description - If the table has already been described, pass it in instead of making sanitizeData do it twice. (defaults to false)
+			
+			Returns:
+				Array of data safe for MySQL.
+		*/	
+		
+		static function sanitizeData($table,$data,$existing_description = false) {
+			// Setup column info				
+			$table_description = $existing_description ? $existing_description : BigTree::describeTable($table);
+			$columns = $table_description["columns"];
+
+			foreach ($data as $key => $val) {
+				$allow_null = $columns[$key]["allow_null"];
+				$type = $columns[$key]["type"];
+
+				// Sanitize Integers
+				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
+					if ($val !== 0 && !$val && $allow_null == "YES") {
+						$data[$key] = "NULL";	
+					} else {
+						$data[$key] = intval(str_replace(array(",","$"),"",$val));
+					}
+				}
+				// Sanitize Floats
+				if ($type == "float" || $type == "double" || $type == "decimal") {
+					if ($val !== 0 && !$val && $allow_null == "YES") {
+						$data[$key] = "NULL";	
+					} else {
+						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
+					}
+				}
+				// Sanitize Date/Times
+				if ($type == "datetime" || $type == "timestamp") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif ($val == "") {
+						$data[$key] = "0000-00-00 00:00:00";
+					} else {
+						$data[$key] = date("Y-m-d H:i:s",strtotime($val));
+					}
+				}
+				// Sanitize Dates/Years
+				if ($type == "date" || $type == "year") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif (!$val) {
+						$data[$key] = "0000-00-00";
+					} else {
+						$data[$key] = date("Y-m-d",strtotime($val));
+					}
+				}
+				// Sanitize Times
+				if ($type == "time") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif (!$val) {
+						$data[$key] = "00:00:00";
+					} else {
+						$data[$key] = date("H:i:s",strtotime($val));
+					}
+				}
+			}
+			return $data;
 		}
 
 		/*
@@ -1351,6 +1438,86 @@
 			$changes[$field] = $value;
 			$changes = sqlescape(json_encode($changes));
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes' WHERE id = '$id'");
+		}
+
+		/*
+			Function: validate
+				Validates a form element based on its validation requirements.
+			
+			Parameters:
+				data - The form's posted data for a given field.
+				type - Validation requirements (required, numeric, email, link).
+		
+			Returns:
+				True if validation passed, otherwise false.
+			
+			See Also:
+				<errorMessage>
+		*/
+		
+		static function validate($data,$type) {
+			$parts = explode(" ",$type);
+			// Not required and it's blank
+			if (!in_array("required",$parts) && !$data) {
+				return true;
+			} else {
+				// Requires numeric and it isn't
+				if (in_array("numeric",$parts) && !is_numeric($data)) {
+					return false;
+				// Requires email and it isn't
+				} elseif (in_array("email",$parts) && !filter_var($data,FILTER_VALIDATE_EMAIL)) {
+					return false;
+				// Requires url and it isn't
+				} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
+					return false;
+				} elseif (in_array("required",$parts) && !$data) {
+					return false;
+				// It exists and validates as numeric, an email, or URL
+				} else {
+					return true;
+				}
+			}
+		}
+
+		/*
+			Function: validationErrorMessage
+				Returns an error message for a form element that failed validation.
+			
+			Parameters:
+				data - The form's posted data for a given field.
+				type - Validation requirements (required, numeric, email, link).
+		
+			Returns:
+				A string containing reasons the validation failed.
+				
+			See Also:
+				<validate>
+		*/
+		
+		static function validationErrorMessage($data,$type) {
+			$parts = explode(" ",$type);
+			// Not required and it's blank
+			$message = "This field ";
+			$mparts = array();
+			
+			if (!$data && in_array("required",$parts)) {
+				$mparts[] = "is required";
+			}
+			
+			// Requires numeric and it isn't
+			if (in_array("numeric",$parts) && !is_numeric($data)) {
+				$mparts[] = "must be numeric";
+			// Requires email and it isn't
+			} elseif (in_array("email",$parts) && !filter_var($data,FILTER_VALIDATE_EMAIL)) {
+				$mparts[] = "must be an email address";
+			// Requires url and it isn't
+			} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
+				$mparts[] = "must be a link";
+			}
+			
+			$message .= implode(" and ",$mparts).".";
+			
+			return $message;
 		}
 	}
 ?>

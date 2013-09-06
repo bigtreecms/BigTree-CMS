@@ -3,15 +3,16 @@
 		Class: BigTreeInstagramAPI
 	*/
 	
-	require_once BigTree::path("inc/lib/oauth_client.php");
-	
-	class BigTreeInstagramAPI {
+	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+
+	class BigTreeInstagramAPI extends BigTreeOAuthAPIBase {
 		
-		var $OAuthClient;
-		var $Connected = false;
-		var $URL = "https://api.instagram.com/v1/";
-		var $Settings = array();
-		var $Cache = true;
+		var $AuthorizeURL = "https://api.instagram.com/oauth/authorize/";
+		var $EndpointURL = "https://api.instagram.com/v1/";
+		var $OAuthVersion = "1.0";
+		var $RequestType = "custom";
+		var $Scope = "basic comments relationships likes";
+		var $TokenURL = "https://api.instagram.com/oauth/access_token";
 		
 		/*
 			Constructor:
@@ -22,133 +23,28 @@
 		*/
 
 		function __construct($cache = true) {
-			global $cms;
-			$this->Cache = $cache;
-			
-			// If we don't have the setting for the Instagram API, create it
-			$this->Settings = $cms->getSetting("bigtree-internal-instagram-api");			
-			if (!$this->Settings) {
-				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-instagram-api", 
-					"name" => "Instagram API", 
-					"encrypted" => "on", 
-					"system" => "on"
-				));
-			}
-			
-			// Build OAuth client
-			$this->OAuthClient = new oauth_client_class;
-			$this->OAuthClient->server = "Instagram";
-			$this->OAuthClient->client_id = $this->Settings["key"]; 
-			$this->OAuthClient->client_secret = $this->Settings["secret"];
-			$this->OAuthClient->access_token = $this->Settings["token"]; 
-			$this->OAuthClient->scope = "basic comments relationships likes";
-			$this->OAuthClient->redirect_uri = ADMIN_ROOT."developer/services/instagram/return/";
-			
-			// Check if we're conected
-			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
-				$this->Connected = true;
-			}
-			
-			// Init Client
-			$this->OAuthClient->Initialize();
-		}
-		
-		/*
-			Function: call
-				Calls the Instagram API directly with the given API endpoint and parameters.
-				Caches information unless caching is explicitly disabled on class instantiation or method is not GET.
+			parent::__construct("bigtree-internal-instagram-api","Instagram API","org.bigtreecms.api.instagram",$cache);
 
-			Parameters:
-				endpoint - The Instagram API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
+			// Set OAuth Return URL
+			$this->ReturnURL = ADMIN_ROOT."developer/services/instagram/return/";
 
-			Returns:
-				Information directly from the API or the cache.
-		*/
-
-		function call($endpoint = false,$params = array(),$method = "GET",$options = array()) {
-			global $cms;
-
-			if (!$this->Connected) {
-				throw new Exception("The Instagram API is not connected.");
-			}
-
-			if ($method != "GET") {
-				return $this->callUncached($endpoint,$params,$method);				
-			// Instagram wants everything in GET URL vars.
-			} elseif (count($params)) {
-				if (strpos($endpoint,"?") === false) {
-					$endpoint .= "?";
-				}
-				foreach ($params as $key => $val) {
-					$endpoint .= "&$key=".urlencode($val);
-				}
-				$params = array();
-			}
-
-			if ($this->Cache) {
-				$cache_key = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet("org.bigtreecms.api.instagram",$cache_key,900);
-				if ($record) {
-					// We re-decode it as an object since that's what we're expecting from Instagram normally.
-					return json_decode(json_encode($record));
-				}
-			}
-			
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				if ($this->Cache) {
-					$cms->cachePut("org.bigtreecms.api.instagram",$cache_key,$response);
-				}
-				return $response;
-			} else {
-				$error_info = json_decode($this->OAuthClient->api_error,true);
-				$this->Errors = array($error_info["meta"]);
-				return false;
-			}
+			// Just send the request with the secret.
+			$this->RequestParameters = array();
+			$this->RequestParameters["access_token"] = &$this->Settings["token"];
 		}
 
 		/*
 			Function: callUncached
-				Calls the Instagram API directly with the given API endpoint and parameters.
-				Does not cache information.
-
-			Parameters:
-				endpoint - The Instagram API endpoint to hit.
-				params - The parameters to send to the API (key/value array).
-				method - HTTP method to call (defaults to GET).
-				options - Additional options to pass to OAuthClient.
-
-			Returns:
-				Information directly from the API.
+				Piggybacks on the base call to provide error checking for Instagram.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$options = array()) {
-			if (!$this->Connected) {
-				throw new Exception("The Instagram API is not connected.");
-			}
-
-			// Instagram wants everything in GET URL vars.
-			if ($method == "GET" && count($params)) {
-				if (strpos($endpoint,"?") === false) {
-					$endpoint .= "?";
-				}
-				foreach ($params as $key => $val) {
-					$endpoint .= "&$key=".urlencode($val);
-				}
-				$params = array();
-			}
-
-			if ($this->OAuthClient->CallAPI($this->URL.$endpoint,$method,$params,array_merge($options,array("FailOnAccessError" => true)),$response)) {
-				return $response;
-			} else {
-				$error_info = json_decode($this->OAuthClient->api_error,true);
-				$this->Errors = array($error_info["meta"]);
+		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+			$response = parent::callUncached($endpoint,$params,$method,$headers);
+			if (isset($response->meta->error_message)) {
+				$this->Errors[] = $response->meta->error_message;
 				return false;
 			}
+			return $response;
 		}
 
 		/*
@@ -755,6 +651,7 @@
 	*/
 
 	class BigTreeInstagramComment {
+		protected $API;
 
 		/*
 			Constructor:
@@ -793,6 +690,7 @@
 	*/
 
 	class BigTreeInstagramLocation {
+		protected $API;
 
 		/*
 			Constructor:
@@ -827,6 +725,7 @@
 	*/
 
 	class BigTreeInstagramMedia {
+		protected $API;
 
 		/*
 			Constructor:
@@ -988,6 +887,7 @@
 	*/
 
 	class BigTreeInstagramTag {
+		protected $API;
 
 		/*
 			Constructor:
@@ -1019,6 +919,7 @@
 	*/
 
 	class BigTreeInstagramUser {
+		protected $API;
 
 		/*
 			Constructor:

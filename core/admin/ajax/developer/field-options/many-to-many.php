@@ -12,7 +12,7 @@
 		<? if ($data["mtm-connecting-table"]) { ?>
 		<select name="mtm-my-id"><? BigTree::getFieldSelectOptions($data["mtm-connecting-table"],$data["mtm-my-id"]) ?></select>
 		<? } else { ?>
-		<small>-- Please choose a table. --</small>
+		<input type="text" disabled="disabled" value="Please select &quot;Connecting Table&quot;" />
 		<? } ?>
 	</div>
 </fieldset>
@@ -22,7 +22,7 @@
 		<? if ($data["mtm-connecting-table"]) { ?>
 		<select name="mtm-other-id"><? BigTree::getFieldSelectOptions($data["mtm-connecting-table"],$data["mtm-other-id"]) ?></select>
 		<? } else { ?>
-		<small>-- Please choose a table. --</small>
+		<input type="text" disabled="disabled" value="Please select &quot;Connecting Table&quot;" />
 		<? } ?>
 	</div>
 </fieldset>
@@ -39,7 +39,7 @@
 		<? if ($data["mtm-other-table"]) { ?>
 		<select name="mtm-other-descriptor"><? BigTree::getFieldSelectOptions($data["mtm-other-table"],$data["mtm-other-descriptor"]) ?></select>
 		<? } else { ?>
-		<small>-- Please choose a table. --</small>
+		<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
 		<? } ?>
 	</div>
 </fieldset>
@@ -49,7 +49,7 @@
 		<? if ($data["mtm-other-table"]) { ?>
 		<select name="mtm-sort"><? BigTree::getFieldSelectOptions($data["mtm-other-table"],$data["mtm-sort"],true) ?></select>
 		<? } else { ?>
-		<small>-- Please choose a table. --</small>
+		<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
 		<? } ?>
 	</div>
 </fieldset>
