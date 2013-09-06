@@ -144,7 +144,7 @@
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
 </div>
 <script>
-	BigTreePages.calloutCount = <?=count($bigtree["callouts"])?>;
+	BigTree.calloutCount = <?=count($bigtree["callouts"])?>;
 </script>
 <?
 	}

@@ -113,7 +113,7 @@ var BigTreePages = {
 		
 		// Callouts
 		$("#template_type").on("click","#bigtree_callouts .add_callout",function() {
-			$.ajax("admin_root/ajax/pages/add-callout/", { type: "POST", data: { count: BigTreePages.calloutCount }, complete: function(response) {
+			$.ajax("admin_root/ajax/pages/add-callout/", { type: "POST", data: { count: BigTree.calloutCount }, complete: function(response) {
 				new BigTreeDialog("Add Callout",response.responseText,function(e) {		
 					e.preventDefault();
 					
@@ -131,7 +131,7 @@ var BigTreePages = {
 					// Fill out the callout description.
 					article.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
 					
-					BigTreePages.calloutCount++;
+					BigTree.calloutCount++;
 					
 					return false;
 				},"callout",false,false,true);
@@ -141,7 +141,7 @@ var BigTreePages = {
 		}).on("click","#bigtree_callouts .icon_edit",function() {
 			BigTreePages.currentCallout = $(this).parents("article");
 			
-			$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: BigTreePages.calloutCount, data: BigTreePages.currentCallout.find(".callout_data").val() }, complete: function(response) {
+			$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: BigTree.calloutCount, data: BigTreePages.currentCallout.find(".callout_data").val() }, complete: function(response) {
 				new BigTreeDialog("Edit Callout",response.responseText,function(e) {
 					e.preventDefault();
 					
@@ -157,7 +157,7 @@ var BigTreePages = {
 					
 					article.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
 					
-					BigTreePages.calloutCount++;
+					BigTree.calloutCount++;
 					
 					return false;
 				},"callout",false,false,true);
