@@ -49,6 +49,10 @@
 		<label>Content Age</label>
 		<p><?=$age?> Days</p>
 	</article>
+	<article class="page_id">
+		<label>Page ID</label>
+		<p><?=$page["id"]?></p>
+	</article>
 	<?
 		if ($live_url) {
 	?>

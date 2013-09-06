@@ -505,6 +505,8 @@
 	.property_block .link p { width: 357px; }
 	.property_block .seo { width: 209px; }
 	.property_block .seo p { width: 127px; }
+	.property_block .page_id { width: 162px; }
+	.property_block .page_id p { width: 80px; }
 	
 	#properties_tab fieldset { margin-bottom: 20px; }
 	#properties_tab fieldset.visible { margin-bottom: 0; }
