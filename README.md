@@ -20,6 +20,184 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0 Release
+- ADDED: Multiple Service APIs (Twitter, Instagram, YouTube, Google+, Flickr, Disqus)
+- ADDED: Multiple Geocoding options (Yahoo, Yahoo BOSS, Google, MapQuest, Bing)
+- ADDED: BigTreeModule::getRecent, BigTreeModule::getRecentFeatured, and BigTreeModule::getNonArchived
+- ADDED: A heads up view on the dashboard of the logged in user's changes that are awaiting publish
+- ADDED: BigTreeAdmin::getPendingChanges (see note in "UPDATED" about the previous method by this name)
+- ADDED: Front End admin bar now throws "openbigtreebar" and "closebigtreebar" events
+- ADDED: BigTree::relativeTime (gives you a "5 days ago", "1 month ago", etc response like a Twitter timestamp)
+- ADDED: Events "addedItem" and "removedItem" are now triggerd by Many to Many
+- ADDED: Photo Galleries can now have captions disabled
+- ADDED: NavPosition property to BigTreeModule that allows module navigation to go below or above page based navigation
+- ADDED: Database Cache support via bigtree_caches (BigTreeCMS::cacheGet and BigTreeCMS::cachePut)
+- ADDED: Instruction block to files created when making a new custom field type
+- ADDED: BigTree::sendEmail utility function. Utilizes bundled htmlMimeMail class.
+- ADDED: "change" events for BigTreeCheckbox and BigTreeRadioButton
+- ADDED: Ability to choose a sorting field for "Images" and "Grouped Images" view types
+- ADDED: The a few options to BigTreeModule::search
+- ADDED: The ability to re-order module view actions and edit custom module view actions.
+
+- UPDATED: BigTreeModule::delete can now accept a full item OR the item's ID
+- UPDATED: Some language throughout the admin has been updated to be more clear
+- UPDATED: BigTreeAdmin::getPendingChanges is now BigTreeAdmin::getPublishableChanges
+- UPDATED: Sorting columns in a searchable view is now always case insensitive in new installs
+- UPDATED: Paging ellipsis now goes to the first or last page
+- UPDATED: Charset in auto-generated sitemap.xml
+- UPDATED: TinyMCE's default allowed elements now include figure and figcaption
+- UPDATED: Many to Many now removes items from the available list as they are used and re-adds them as they are deleted
+- UPDATED: jQuery to 1.10.2
+- UPDATED: jCrop to 0.9.12
+- UPDATED: Executable files are no longer uploadable through BigTreeStorage service (previously BigTreeUploadService) to prevent security issues
+- UPDATED: Feeds editor now uses the more stylish field adder inspired by Phil P (previously only in Module Forms)
+- UPDATED: Example site modules now have icons
+- UPDATED: Photo Gallery no longer requires the user to manually hit Add Photo
+- UPDATED: Clicking a label next to a radio button now works as if you clicked on the radio button itself
+- UPDATED: BigTreeCMS::getBreadcrumbByPage now sets the BreadcrumbTrunk property when a trunk is hit
+- UPDATED: Photo Gallery field type can now be used in Callouts
+- UPDATED: Example site now includes a breadcrumb.
+- UPDATED: Default TinyMCE buttons now include indentation buttons
+- UPDATED: Group and form titles added to integrity check naming to make it more clear where the error is (since multiple forms can be in one module and modules can have the same name in different groups).
+- UPDATED: Added the ability to not view cache items in add/update/save in BigTreeModule (speeds up entry when importing).
+- UPDATED: Module Groups are now alphabetical when choosing a group in the Module add/edit screen
+
+- CHANGED: $state_list, $country_list, and $month_list globals are now BigTree::$StateList, BigTree::$CountryList, BigTree::$MonthList
+- CHANGED: Significantly improved Amazon S3 cloud storage - now only uses a single bucket with "virtual" directories and authenticates you when you first enter credentials instead of trusting they are correct and also creates a bucket automatically if none is specified.
+- CHANGED: BigTree now creates tables with utf8_general_ci collation instead of utf8_bin
+- CHANGED: Most JavaScript variables are now namespaced to prevent collisions with custom scripts
+- CHANGED: Massive update to the way field types are drawn and processed. All the data you need is now available in the $field variable and fieldsets and labels are automatically drawn. $field["output"] is now used for the process file to return the value instead of $value.
+- CHANGED: Removed "Custom Function" field type as it was a precursor to custom field types.
+- CHANGED: Many previously global PHP variables are now stored within the $bigtree global array.
+- CHANGED: Textarea no longer acts as an unescaped HTML dump. It is now htmlspecialchar'd just like a single line text field. This was confusing and unexplained behavior when compared to a regular text field. Create a custom field type if the old behavior is needed.
+- CHANGED: When processing data in form field types, $bigtree["entry"] now contains the current data set (be it the module's row or pages resources or callouts resources)
+- CHANGED: When cropping, the default crop should now be ~90% of the size of the uploaded image instead of the minimum required crop
+- CHANGED: Admin navigation array is no longer included in _header.php -- it's now in _nav-tree.php so that it's easier to override in custom without changing the whole header
+- CHANGED: PayPal Express checkout methods in BigTreePaymentGateway
+- CHANGED: Many places in the admin that previously relied on eval() now use call_user_func. eval() remains only for parsers on form fields and post-install package code.
+- CHANGED: Made the checking of uniqueness an option in BigTreeModule::add
+- CHANGED: Module View Actions are now much smaller and no longer draw their title in the column (more space is now available for data columns)
+- CHANGED: Moved BigTreeForms functionality into BigTreeAutoModules, BigTreeForms class no longer exists.
+- CHANGED: BigTreeUploadService is now BigTreeStorage and the "upload" method is now "store" (backwards compatibility still exists for the old class name/method)
+
+- FIXED: Admin header now pulls protocol-agnostic version of html5.js for IE (works for HTTPS admins now)
+- FIXED: Paging functions globally use 1 as the first page now instead of 0
+- FIXED: Pending items not being editable
+- FIXED: Sortable many-to-many fields
+- FIXED: Lots of CSS and layout issues
+- FIXED: Quick Search / Advanced Search returning pages/modules that the logged in user did not have access to
+- FIXED: Settings not handling file uploads, crops, and errors
+- FIXED: sqlescape() causing errors on boolean values
+- FIXED: cron.php in shared core setups
+- FIXED: Non-administrative users not being able to use Save & Preview in Pages
+- FIXED: Non-images being dumped into /files/ instead of /files/resources/ when using the File Manager
+- FIXED: Pending Pages getting the title "Home" in Pending Changes and having the wrong preview link
+- FIXED: Save & Preview button not working on pending pages
+- FIXED: Front End BigTree Bar not working on pending pages
+- FIXED: Routing issues when a piece of the path was also a piece of one of the commands (i.e. events/new-events/ would fail to route) and a related issue with route history 301s failing when there were similar routes.
+- FIXED: Sorting of getNavByParent when requesting hidden nav as well.
+- FIXED: Geocoding fields appearing on edit of a module.
+- FIXED: 404s potentially hard-cacheing
+- FIXED: 404 manager filling with blank URLs when HTML tags were entered in the URL string
+- FIXED: Arrays being butchered when passed into a Callout resource
+- FIXED: Sorting of columns in searchable views
+- FIXED: HTML areas not fitting properly in callout windows
+- FIXED: Dual 404/301 headers being sent when a 301 is found in the 404 Manager
+- FIXED: Installer not working if deprecated MySQL PHP module isn't available
+- FIXED: Settings not having their links encoded properly for dev->live
+- FIXED: Issues with Daily Digest / Password Request emails not working properly in some email clients
+- FIXED: Page Preview not working if the new template being used has a different type (basic/routed) than the previous template
+- FIXED: Date Time and Custom Field Types causing Module Designer to fail
+- FIXED: Crash that would occur if you for some reason switched back to the blank spot in a table selector for adding a view/form/feed.
+- FIXED: DB populated lists causing the page to crash if the table was renamed/deleted.
+- FIXED: Example Site's features form uploading to /files/features/ instead of /images/features/
+- FIXED: Example Site's blog search throwing an Exception
+- FIXED: Example Site's pagination numbers in Blog and lack of 404s
+- FIXED: Example Site's posts module not having tags enabled
+- FIXED: Radio buttons having to be clicked twice after being clicked once
+- FIXED: Trigger handling on checkboxes so that the "click" events now get the proper "checked" status of the checkbox
+- FIXED: max_input_vars being hit when submittion permissions for Users in sites with > ~1000 pages.
+- FIXED: Module Designer creating MyISAM tables instead of InnoDB
+- FIXED: An issue in pages when you switched templates between two wysiwygs of the same name/type would cause the content to not save
+- FIXED: Custom routing issues in the admin
+- FIXED: A bug where if a custom field type stored itself as a JSON encoded array and the callout was never edited the next time the page was that field would lose its information
+- FIXED: Hitting back after cropping an image would lead to a broken crop page
+- FIXED: Admin crashing if an image was too large to do image cropping/thumbnailing on within scope of available memory (now properly throws errors instead of blank screening)
+- FIXED: BigTree::createCrop and BigTree::createThumbnail now fail gracefully if there isn't enough memory available
+- FIXED: Drag/drop sorting of modules
+- FIXED: Double htmlspecialchar encoding of growl messages
+- FIXED: Removed some console.log's that were left in Javascript
+- FIXED: An issue with external link checking in Integrity Check
+- FIXED: An error message is now shown if a form submission exceeds PHP's post_max_size setting (instead of causing blank entries / bad saves to occur)
+- FIXED: A bug where float parsing would return NULL for empty values even if NULL wasn't allowed
+- FIXED: BigTreeAutoModule::createItem not accepting arrays as values
+- FIXED: Module Forms/Views not deleting properly
+- FIXED: A module class' getBreadcrumb and getNav being called even if the methods don't exist.
+- FIXED: Data not transitioning between callout types
+- FIXED: Date & Time pickers not showing up in callout resources
+- FIXED: Pages not locking properly when another user was editing them
+- FIXED: Possible infinite loop when generating a route
+- FIXED: Array of Items field type doing odd things if the developer never adds fields to it
+- FIXED: Array of Items HTML field sometimes failing
+- FIXED: Many to Many not showing up when there was nothing to tag
+- FIXED: Missing ability to add form field types to packages
+- FIXED: Callout resources asking to be the SEO body copy / H1 score
+- FIXED: Poor namespacing of headers/footers in ajax and routed templates that could possibly be junked by the proceeding includes
+- FIXED: Lack of error messages when a file upload failed in the File Manager
+- FIXED: Form fields sticking around after the column is removed from a table
+- FIXED: Updating a module view/form should now update its related action name
+- FIXED: The super large size of the TinyMCE icon set (should be PNGcrushed now)
+- FIXED: Editors not being able to delete their own pending entries
+- FIXED: Behavior of BigTreeSelect when removing elements and when all elements are removed
+- FIXED: Behavior of BigTreeManyToMany when the add button is clicked with nothing left to add
+- FIXED: BigTreeSelect now gets wider when a larger option is added
+- FIXED: Publishing pending entries did not handle arrays properly
+- FIXED: depth > 1 parsing in BigTreeAdmin::getNaturalNavByParent — thanks to asiral on the forums.
+- FIXED: Selected file / pane not resetting when you begin to search in the File Browser — thanks asiral on the forums.
+- FIXED: Non-developers seeing a checked checkbox when adding top level navigation even though they would end up getting hidden nav.
+- FIXED: Encrypted system settings still untranslating.
+- FIXED: Sub-routes with similar route partials getting stuck in the admin breadcrumb
+- FIXED: BigTreeSelect drop downs not closing on scroll inside of callout editor windows.
+- FIXED: Lots of issues with WebKit, overflow scroll windows, and the BigTreeSelect boxes.
+- FIXED: Double calls to BigTreeCustomControls() causing already styled items to bug out
+- FIXED: Some XSS vulnerabilities. Thanks to Contra on github for pointing them out.
+- FIXED: getSitemapXML failing if a custom page module didn't implement getSitemap.
+- FIXED: Front End Editor not including custom admin CSS/JS
+- FIXED: BigTree bar not being loading over https when on an https page.
+- FIXED: SQL injection possibility when inserting a ' into a URL
+- FIXED: An issue related to # in internal page links
+- FIXED: Updating resource titles in File Manager. Thanks to asiral on the forums.
+- FIXED: A potential cross-site scripting issue on the module view add page. Thanks to High-Tech Bridge Security Research Lab for alerting us of this.
+- FIXED: A Cross-Site Request Forgery exploit that would allow logged-in BigTree admins hitting a malicious page to automatically create / update users. Thanks to High-Tech Bridge Security Research Lab for alerting us of this.
+- FIXED: Issues with MultiViews in Apache causing asfg.sdgsd in /site/ to tank the /asfg/ route in BigTree. Thanks @mcongrove
+- FIXED: Searching quick links and through the main search in the admin should no longer return archived pages.
+- FIXED: Fixed BigTreeDialog close icon when there are no buttons.
+- FIXED: Payment gateways not showing info when you go back into them after setting your API keys.
+- FIXED: Improper latin encodings on some columns in BigTree tables
+- FIXED: Memory leak in BigTreeCMS::replaceInternalPageLinks
+- FIXED: User profile not being editable by normal users. Thanks spud!
+- FIXED: Checkboxes and radio buttons misbehaving in callouts.
+- FIXED: Custom Field Types not showing up in Settings
+- FIXED: Pending Entries not showing up properly in Images/Grouped Images views.
+- FIXED: Double cache when using BigTreeModule::save
+- FIXED: Internal page links showing up as ipl:// in Settings list
+- FIXED: Potential crazy database corruption if you set your config's www_root or static_root to "/"
+- FIXED: Password resets and logging out when config's force_secure_login is set and config's admin_root isn't https.
+- FIXED: Styling module views showing a number instead of action title for custom actions.
+- FIXED: Double htmlspecialchars encoding of callout names in the callout selector drop down.
+- FIXED: HTML areas drawing non-htmlspecialchared data into a <textarea> block. Thanks asiral for the bug report.
+- FIXED: Stopped date fields from drawing crazy stuff if 0000-00-00 gets entered in.
+- FIXED: BigTreeAutoModules::publishPendingItem inserting improper data into the database for NULLs and such.
+- FIXED: Sort direction not working for the default sorted column in searchable views.
+- FIXED: Generally sorted out issues with sorting of columns that are originally numeric but run parsers or have foreign keys that indicate they're probably a string.
+- FIXED: Various IE 7/8/9/10 issues.
+- FIXED: Editing a feed should now properly show the list of unused fields.
+
+- REMOVED: "Menu" field type, as it was just a pre-configured Array of Items
+- REMOVED: BigTreeCMS::getCallout -- replaced with improved version of BigTreeAdmin::getCallout
+- REMOVED: When there are errors in your form submission, the Delete button no longer shows up.
+- REMOVED: Twitter callout from example site (so long Twitter API 1.0)
+
 ### 4.0RC2
 - ADDED: 404 Report now has paging and delete functionality.
 - ADDED: Foreign key constraints to tables.
