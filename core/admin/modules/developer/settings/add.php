@@ -26,7 +26,7 @@
 </script>
 <?
 	$bigtree["html_fields"] = array("setting_description");
-	include BigTree::path("admin/layouts/_tinymce_specific.php");
+	include BigTree::path("admin/layouts/_html-field-loader.php");
 	
 	unset($module);
 ?>

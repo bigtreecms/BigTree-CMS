@@ -80,7 +80,7 @@
 </div>
 <?
 	$bigtree["html_fields"] = array("message");
-	include BigTree::path("admin/layouts/_tinymce_specific.php");
+	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	new BigTreeManyToMany("send_to",<?=$x?>,"send_to",false);

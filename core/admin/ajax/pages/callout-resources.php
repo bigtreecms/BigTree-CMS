@@ -88,12 +88,6 @@
 <input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="callouts[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
 <input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][callout_count]" class="callout_count" value="<?=$bigtree["callout_count"]?>" />
 <script>	
-	if (!tinyMCE) {
-		tiny = $("<script>");
-		tiny.attr("src","<?=ADMIN_ROOT?>js/tiny_mce/tiny_mce.js");
-		$("body").append(tiny);
-	}
-	
 	<?
 		foreach ($bigtree["timepickers"] as $id) {
 			if ($bigtree["timepicker_values"][$id]) {
@@ -128,13 +122,7 @@
 	BigTreeCustomControls();
 </script>
 <?
-	$mce_width = 440;
-	$mce_height = 200;
-	
-	if (count($bigtree["html_fields"])) {
-		include BigTree::path("admin/layouts/_tinymce_specific.php");
-	}
-	if (count($bigtree["simple_html_fields"])) {
-		include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
-	}
+	$bigtree["html_editor_width"] = 440;
+	$bigtree["html_editor_height"] = 200;	
+	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>

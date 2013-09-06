@@ -73,17 +73,9 @@
 				echo '<p>There are no resources for the selected template.</p>';
 			}
 
-			$mce_width = 760;
-			$mce_height = 365;
-			
-			if (count($bigtree["html_fields"]) || count($bigtree["simple_html_fields"])) {
-				if (count($bigtree["html_fields"])) {
-					include BigTree::path("admin/layouts/_tinymce_specific.php");
-				}
-				if (count($bigtree["simple_html_fields"])) {
-					include BigTree::path("admin/layouts/_tinymce_specific_simple.php");
-				}
-			}
+			$bigtree["html_editor_width"] = 760;
+			$bigtree["html_editor_height"] = 365;			
+			include BigTree::path("admin/layouts/_html-field-loader.php");
 		?>
 	</div>
 	<footer>
