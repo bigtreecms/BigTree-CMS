@@ -1385,6 +1385,7 @@
 			Parameters:
 				folder - The folder to place it in.
 				file - The file path.
+				md5 - The MD5 hash of the file.
 				name - The file name.
 				type - The file type.
 				is_image - Whether the resource is an image.
@@ -1397,7 +1398,7 @@
 				The new resource id.
 		*/
 
-		function createResource($folder,$file,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array(),$list_thumb_margin = 0) {
+		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array(),$list_thumb_margin = 0) {
 			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
 			$file = sqlescape($file);
 			$name = sqlescape(htmlspecialchars($name));
@@ -1407,8 +1408,9 @@
 			$width = intval($width);
 			$thumbs = sqlescape(json_encode($thumbs));
 			$list_thumb_margin = intval($list_thumb_margin);
+			$md5 = sqlescape($md5);
 
-			sqlquery("INSERT INTO bigtree_resources (`file`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");
+			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");
 			return sqlid();
 		}
 
@@ -4696,6 +4698,37 @@
 			}
 			$read_by = str_replace("|".$this->ID."|","",$message["read_by"])."|".$this->ID."|";
 			sqlquery("UPDATE bigtree_messages SET read_by = '".sqlescape($read_by)."' WHERE id = '".$message["id"]."'");
+			return true;
+		}
+
+		/*
+			Function: matchResourceMD5
+				Checks if the given file is a MD5 match for any existing resources.
+				If a match is found, the resource is "copied" into the given folder (unless it already exists in that folder).
+
+			Parameters:
+				file - Uploaded file to run MD5 hash on
+				new_folder - Folder the given file is being uploaded into
+
+			Returns:
+				true if a match was found. If the file was already in the given folder, the date is simply updated.
+		*/
+
+		function matchResourceMD5($file,$new_folder) {
+			$md5 = sqlescape(md5_file($file));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE md5 = '$md5' LIMIT 1"));
+			if (!$f) {
+				return false;
+			}
+			if ($f["folder"] == $new_folder) {
+				sqlquery("UPDATE bigtree_resources SET date = NOW() WHERE id = '".$f["id"]."'");
+			} else {
+				foreach ($f as $key => $val) {
+					$$key = "'".sqlescape($val)."'";
+				}
+				$new_folder = $new_folder ? "'".sqlescape($new_folder)."'" : "NULL";
+				sqlquery("INSERT INTO bigtree_resources (`folder`,`file`,`md5`,`date`,`name`,`type`,`is_image`,`height`,`width`,`crops`,`thumbs`,`list_thumb_margin`) VALUES ($new_folder,$file,$md5,NOW(),$name,$type,$is_image,$height,$width,$crops,$thumbs,$list_thumb_margin)");
+			}
 			return true;
 		}
 

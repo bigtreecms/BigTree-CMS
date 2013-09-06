@@ -20,6 +20,10 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1 Release
+MySQL changes:
+- ALTER TABLE `bigtree_resources` ADD COLUMN `md5` VARCHAR(255) NOT NULL AFTER `file`
+
 ### 4.0 Release
 - ADDED: Multiple Service APIs (Twitter, Instagram, YouTube, Google+, Flickr, Disqus)
 - ADDED: Multiple Geocoding options (Yahoo, Yahoo BOSS, Google, MapQuest, Bing)
