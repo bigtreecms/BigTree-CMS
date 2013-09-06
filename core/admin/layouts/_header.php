@@ -55,6 +55,7 @@
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"] : "tinymce3/tiny_mce.js"?>"></script>
 		<?
 			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
 				foreach ($bigtree["js"] as $script) {
@@ -84,11 +85,13 @@
 			<section>
 				<ul>
 					<?
+						$x = -1;
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
+								$x++;
 					?>
 					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?
