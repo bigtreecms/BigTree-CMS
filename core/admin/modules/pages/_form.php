@@ -115,11 +115,11 @@
 		return false;
 	});
 
-	BigTreePages.currentTemplate = "<?=$bigtree["current_page"]["template"]?>";
+	BigTree.currentPageTemplate = "<?=$bigtree["current_page"]["template"]?>";
 	<? if ($bigtree["form_action"] == "create") { ?>
-	BigTreePages.currentPage = false;
+	BigTree.currentPage = false;
 	<? } else { ?>
-	BigTreePages.currentPage = "<?=$bigtree["current_page"]["id"]?>";
+	BigTree.currentPage = "<?=$bigtree["current_page"]["id"]?>";
 	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
 	<? } ?>
 	

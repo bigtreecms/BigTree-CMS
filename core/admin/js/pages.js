@@ -3,8 +3,6 @@ var BigTreePages = {
 	calloutDescription: false,
 	calloutNumber: 0,
 	currentCallout: false,
-	currentPage: false,
-	currentTemplate: false,
 	pageTitleDidFocus: false,
 	rememberedExternal: false,
 	rememberedTemplate: false,
@@ -179,7 +177,7 @@ var BigTreePages = {
 	CheckTemplate: function() {
 		tval = $("input[name=template]");
 		if (tval.length) {
-			if (BigTreePages.currentTemplate != tval.val()) {
+			if (BigTree.currentPageTemplate != tval.val()) {
 				// Unload all TinyMCE fields.
 				if (tinyMCE) {
 					for (id in BigTree.TinyMCEFields) {
@@ -187,11 +185,11 @@ var BigTreePages = {
 						tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[id]);
 					}
 				}
-				BigTreePages.currentTemplate = tval.val();
-				if (BigTreePages.currentPage !== false) {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTreePages.currentPage, template: BigTreePages.currentTemplate }, function() { BigTreeCustomControls("#template_type"); });
+				BigTree.currentPageTemplate = tval.val();
+				if (BigTree.currentPage !== false) {
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTree.currentPage, template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
 				} else {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: BigTreePages.currentTemplate }, function() { BigTreeCustomControls("#template_type"); });
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
 				}
 			}
 		}

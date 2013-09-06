@@ -7,7 +7,7 @@
 <script>
 	$(document).ready(function() {
 		<?
-			if ($html_editor == "tinymce3/tiny_mce.js") {
+			if ($html_editor == "TinyMCE 3") {
 				if (count($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({

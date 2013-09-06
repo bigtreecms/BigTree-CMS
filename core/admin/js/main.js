@@ -2549,7 +2549,7 @@ var BigTreeQuickLoader = {
 			for (i = 0; i < scripts_to_load.length; i++) {
 				src = scripts_to_load[i];
 				if (src) {
-					script = $("head").append($('<script src="' + src + '">'));
+					$.getScript(src);
 				}
 			}
 		}
