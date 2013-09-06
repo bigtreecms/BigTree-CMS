@@ -1,20 +1,50 @@
 <?
-	// Time Zone
-	date_default_timezone_set("America/New_York");
-	
 	// Set to false to stop all PHP errors/warnings from showing.
 	$bigtree["config"]["debug"] = true;
+
+	// Time Zone
+	date_default_timezone_set("America/New_York");
+
+	// ------------------------------
+	// BigTree Resource Configuration
+	// ------------------------------
 	
-	// Routing setup
-	$bigtree["config"]["routing"] = "[routing]";
+	// Array containing all JS files to minify; key = name of compiled file
+	// example: $bigtree["config"]["js"]["site"] compiles all JS files into "site.js"
+	$bigtree["config"]["js"]["files"]["site"] = array(
+		// "javascript_file.js"
+	);
 	
+	// Array containing variables to be replaced in compiled JS files
+	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
+	$bigtree["config"]["js"]["vars"] = array(
+		// "variable_name" => "Variable Value"
+	);
+	
+	// Flag for JS minification 
+	$bigtree["config"]["js"]["minify"] = false; 
+		
+	// Array containing all CSS files to minify; key = name of compiled file
+	// example: $bigtree["config"]["css"]["site"] compiles all CSS files into "site.css"
+	$bigtree["config"]["css"]["files"]["site"] = array( 
+		// "style_sheet.css"
+	);
+	
+	// Array containing variables to be replaced in compiled CSS files
+	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
+	$bigtree["config"]["css"]["vars"] = array(
+		// "variable_name" => "Variable Value"
+	);
+	 
+	$bigtree["config"]["css"]["prefix"] = false; // Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3
+	$bigtree["config"]["css"]["minify"] = false; // Flag for CSS minification
+		
 	// Database info.
 	$bigtree["config"]["db"]["host"] = "[host]";
 	$bigtree["config"]["db"]["name"] = "[db]";
 	$bigtree["config"]["db"]["user"] = "[user]";
 	$bigtree["config"]["db"]["password"] = "[password]";
 	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
-	
 	// Separate write database info (for load balanced setups)
 	$bigtree["config"]["db_write"]["host"] = "[write_host]";
 	$bigtree["config"]["db_write"]["name"] = "[write_db]";
@@ -27,21 +57,26 @@
 	$bigtree["config"]["www_root"] = "[wwwroot]";
 	// "static_root" can either be the same as "www_root" or another domain that points to the same place -i t is used to server static files to increase page load time due to max connections per domain in most browsers.
 	$bigtree["config"]["static_root"] = "[staticroot]";
-	// "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
-	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
-	
+
 	// Current Environment
 	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
 	$bigtree["config"]["environment_live_url"] = ""; // Site URL
+
+	// Admin Settings
+	$bigtree["config"]["admin_root"] = "[wwwroot]admin/"; // "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
+	$bigtree["config"]["force_secure_login"] = [force_secure_login]; // If you have HTTPS enabled, set to true to force admin logins through HTTPS
+	$bigtree["config"]["html_editor"] = "tinymce3/tiny_mce.js"; // WYSIWYG editor to use
+	$bigtree["config"]["password_depth"] = 8; // The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
+	$bigtree["config"]["admin_css"] = array(); // Additional CSS Files For the Admin to load, relative to /custom/admin/css/
+	$bigtree["config"]["admin_js"] = array(); // Additional JavaScript Files For the Admin to load, relative to /custom/admin/js/
+
+	// Routing setup
+	$bigtree["config"]["routing"] = "[routing]";
 	
 	// Default Image Quality Presets
 	$bigtree["config"]["image_quality"] = 90;
 	$bigtree["config"]["retina_image_quality"] = 25;
 	
-	// The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
-	$bigtree["config"]["password_depth"] = 8;
-	// If you have HTTPS enabled, set to true to force admin logins through HTTPS
-	$bigtree["config"]["force_secure_login"] = [force_secure_login];
 	// Encryption key for encrypted settings
 	$bigtree["config"]["settings_key"] = "[settings_key]";
 	
@@ -64,55 +99,7 @@
 	define("BIGTREE_CUSTOM_ADMIN_CLASS",false);
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS_PATH",false);
-	
-	// ------------------------------
-	// BigTree Resource Configuration
-	// ------------------------------
-	
-	// Array containing all JS files to minify; key = name of compiled file
-	// example: $bigtree["config"]["js"]["site"] compiles all JS files into "site.js"
-	$bigtree["config"]["js"]["files"]["site"] = array(
-		// "javascript_file.js"
-	);
-	
-	// Array containing variables to be replaced in compiled JS files
-	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
-	$bigtree["config"]["js"]["vars"] = array(
-		// "variable_name" => "Variable Value"
-	);
-	
-	// Flag for JS minification 
-	$bigtree["config"]["js"]["minify"] = false; 
-	
-	
-	// Array containing all CSS files to minify; key = name of compiled file
-	// example: $bigtree["config"]["css"]["site"] compiles all CSS files into "site.css"
-	$bigtree["config"]["css"]["files"]["site"] = array( 
-		// "style_sheet.css"
-	);
-	
-	// Array containing variables to be replaced in compiled CSS files
-	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
-	$bigtree["config"]["css"]["vars"] = array(
-		// "variable_name" => "Variable Value"
-	);
-	
-	// Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3 
-	$bigtree["config"]["css"]["prefix"] = false;
-	
-	// Flag for CSS minification 
-	$bigtree["config"]["css"]["minify"] = false;
 
-	// Additional CSS Files For the Admin to Load
-	$bigtree["config"]["admin_css"] = array(
-		// "whatever.css"
-	);
-
-	// Additional JavaScript Files For the Admin to Load
-	$bigtree["config"]["admin_js"] = array(
-		// "whatever.js"
-	);
-	
 	// --------------------------
 	// Placeholder Image Defaults
 	// --------------------------
