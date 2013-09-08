@@ -17,18 +17,30 @@
 		*/
 		
 		function __construct() {
-			global $cms;
-			$pgs = $cms->getSetting("bigtree-internal-payment-gateway");
+			$admin = new BigTreeAdmin;
+			$s = $admin->getSetting("bigtree-internal-payment-gateway");
+			if ($s === false) {
+				$admin->createSetting(array(
+					"id" => "bigtree-internal-payment-gateway",
+					"system" => "on",
+					"encrypted" => "on"
+				));
+				$s = array("service" => "", "settings" => array());
+				$admin->updateSettingValue("bigtree-internal-payment-gateway",$s);
+			}
+
 			// If for some reason the setting doesn't exist, make one.
-			$this->Service = isset($pgs["service"]) ? $pgs["service"] : false;
+			$this->Service = $s["service"];
+			$this->Settings = $s["settings"];
+
 			if ($this->Service == "authorize.net") {
-				$this->setupAuthorize($pgs["settings"]);
+				$this->setupAuthorize();
 			} elseif ($this->Service == "paypal") {
-				$this->setupPayPal($pgs["settings"]);
+				$this->setupPayPal();
 			} elseif ($this->Service == "payflow") {
-				$this->setupPayflow($pgs["settings"]);
+				$this->setupPayflow();
 			} elseif ($this->Service == "linkpoint") {
-				$this->setupLinkPoint($pgs["settings"]);
+				$this->setupLinkPoint();
 			}
 		}
 				
@@ -1052,7 +1064,17 @@
 				return false;
 			}
 		}
-		
+
+		/*
+			Function: saveSettings
+				Saves changed service and settings.
+		*/
+
+		function saveSettings() {
+			$admin = new BigTreeAdmin;
+			$admin->updateSettingValue("bigtree-internal-payment-gateway",array("service" => $this->Service,"settings" => $this->Settings));
+		}
+
 		/*
 			Function: sendAuthorize
 				Sends a command to Authorize.Net.
@@ -1236,10 +1258,10 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		protected function setupAuthorize($settings) {
-			$this->APILogin = $settings["authorize-api-login"];
-			$this->TransactionKey = $settings["authorize-transaction-key"];
-			$this->Environment = $settings["authorize-environment"];
+		protected function setupAuthorize() {
+			$this->APILogin = $this->Settings["authorize-api-login"];
+			$this->TransactionKey = $this->Settings["authorize-transaction-key"];
+			$this->Environment = $this->Settings["authorize-environment"];
 			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://test.authorize.net/gateway/transact.dll";
@@ -1264,10 +1286,10 @@
 				Prepares an environment for First Data / LinkPoint.
 		*/
 		
-		protected function setupLinkPoint($settings) {
-			$this->Store = $settings["linkpoint-store"];
-			$this->Environment = $settings["linkpoint-environment"];
-			$this->Certificate = SERVER_ROOT."custom/certificates/".$settings["linkpoint-certificate"];
+		protected function setupLinkPoint() {
+			$this->Store = $this->Settings["linkpoint-store"];
+			$this->Environment = $this->Settings["linkpoint-environment"];
+			$this->Certificate = SERVER_ROOT."custom/certificates/".$this->Settings["linkpoint-certificate"];
 
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://staging.linkpt.net:1129";
@@ -1284,11 +1306,11 @@
 				Prepares an environment for PayPal Payments Pro payments.
 		*/
 		
-		protected function setupPayPal($settings) {
-			$this->Username = $settings["paypal-username"];
-			$this->Password = $settings["paypal-password"];
-			$this->Signature = $settings["paypal-signature"];
-			$this->Environment = $settings["paypal-environment"];
+		protected function setupPayPal() {
+			$this->Username = $this->Settings["paypal-username"];
+			$this->Password = $this->Settings["paypal-password"];
+			$this->Signature = $this->Settings["paypal-signature"];
+			$this->Environment = $this->Settings["paypal-environment"];
 			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://api-3t.sandbox.paypal.com/nvp";
@@ -1309,12 +1331,12 @@
 				Prepares an environment for PayPal Payflow Gateway payments.
 		*/
 		
-		protected function setupPayflow($settings) {
-			$this->Username = $settings["payflow-username"];
-			$this->Password = $settings["payflow-password"];
-			$this->Vendor = $settings["payflow-vendor"];
-			$this->Environment = $settings["payflow-environment"];
-			$this->Partner = $settings["payflow-partner"];
+		protected function setupPayflow() {
+			$this->Username = $this->Settings["payflow-username"];
+			$this->Password = $this->Settings["payflow-password"];
+			$this->Vendor = $this->Settings["payflow-vendor"];
+			$this->Environment = $this->Settings["payflow-environment"];
+			$this->Partner = $this->Settings["payflow-partner"];
 			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://pilot-payflowpro.paypal.com";

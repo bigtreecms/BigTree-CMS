@@ -6,21 +6,21 @@
 			</div>
 			<fieldset>
 				<label>API User</label>
-				<input type="text" name="paypal-username" value="<?=htmlspecialchars($gateway["settings"]["paypal-username"])?>" />
+				<input type="text" name="paypal-username" value="<?=htmlspecialchars($gateway->Settings["paypal-username"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>API Password</label>
-				<input type="text" name="paypal-password" value="<?=htmlspecialchars($gateway["settings"]["paypal-password"])?>" />
+				<input type="text" name="paypal-password" value="<?=htmlspecialchars($gateway->Settings["paypal-password"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>API Signature</label>
-				<input type="text" name="paypal-signature" value="<?=htmlspecialchars($gateway["settings"]["paypal-signature"])?>" />
+				<input type="text" name="paypal-signature" value="<?=htmlspecialchars($gateway->Settings["paypal-signature"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Processing Environment</label>
 				<select name="paypal-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway["settings"]["paypal-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<? if ($gateway->Settings["paypal-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

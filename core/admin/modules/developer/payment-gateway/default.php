@@ -17,6 +17,10 @@
 			<span class="authorize"></span>
 			<p>Authorize.Net</p>
 		</a>
+		<a class="box_select<? if ($service == "paypal-rest") { ?> connected<? } ?>" href="paypal-rest/">
+			<span class="paypal"></span>
+			<p>PayPal REST API</p>
+		</a>
 		<a class="box_select<? if ($service == "paypal") { ?> connected<? } ?>" href="paypal/">
 			<span class="paypal"></span>
 			<p>PayPal Payments Pro</p>
