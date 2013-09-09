@@ -30,13 +30,15 @@
 			}
 
 			// If for some reason the setting doesn't exist, make one.
-			$this->Service = $s["service"];
-			$this->Settings = $s["settings"];
+			$this->Service = $s["value"]["service"];
+			$this->Settings = $s["value"]["settings"];
 
 			if ($this->Service == "authorize.net") {
 				$this->setupAuthorize();
 			} elseif ($this->Service == "paypal") {
 				$this->setupPayPal();
+			} elseif ($this->Service == "paypal-rest") {
+				$this->setupPayPalREST();
 			} elseif ($this->Service == "payflow") {
 				$this->setupPayflow();
 			} elseif ($this->Service == "linkpoint") {
@@ -909,6 +911,30 @@
 				return false;
 			}
 		}
+
+		/*
+			Function: paypalRESTTokenRequest
+				Fetches a new authorization token from PayPal's OAuth servers.
+		*/
+
+		function paypalRESTTokenRequest() {
+			if ($this->Settings["paypal-rest-environment"] == "test") {
+				$url = "api.sandbox.paypal.com";
+			} else {
+				$url = "api.paypal.com";
+			}
+			
+			$r = json_decode(BigTree::cURL("https://$url/v1/oauth2/token","grant_type=client_credentials",array(CURLOPT_POST => true, CURLOPT_USERPWD => $this->Settings["paypal-rest-client-id"].":".$this->Settings["paypal-rest-client-secret"])));
+			if ($r->error) {
+				$this->Error = $r->error;
+				return false;
+			}
+
+			$this->Settings["paypal-rest-expiration"] = date("Y-m-d H:i:s",strtotime("+".$r->expires_in." seconds"));
+			$this->Settings["paypal-rest-token"] = $r->access_token;
+			$this->saveSettings();
+			return true;
+		}
 		
 		/*
 			Function: refund
@@ -1324,6 +1350,29 @@
 				"PWD" => $this->Password,
 				"SIGNATURE" => $this->Signature
 			);
+		}
+
+		/*
+			Function: setupPayPalREST
+				Prepares an environment for the PayPal REST API.
+		*/
+		
+		protected function setupPayPalREST() {
+			// Check on the token expiration, get a new one if needed in the next minute
+			if (strtotime($this->Settings["paypal-rest-expiration"]) < time() + 60) {
+				$this->paypalRESTTokenRequest();
+			}
+			// Setup default cURL headers
+			$this->Headers = array(
+				"Content-type: application/json",
+				"Authorization: Bearer ".$this->Settings["paypal-rest-token"]
+			);
+			
+			if ($this->Settings["paypal-rest-environment"] == "test") {
+				$this->PostURL = "https://api.sandbox.paypal.com/v1/";
+			} else {
+				$this->PostURL = "https://api.paypal.com/v1/";
+			}
 		}
 		
 		/*

@@ -1,35 +1,24 @@
-<?
-	if (!$admin->settingExists("bigtree-internal-payment-gateway")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-payment-gateway",
-			"system" => "on",
-			"encrypted" => "on"
-		));
-		$admin->updateSettingValue("bigtree-internal-payment-gateway",array("service" => "", "settings" => array()));
-	}
-	$gateway = $cms->getSetting("bigtree-internal-payment-gateway");
-	$service = isset($gateway["service"]) ? $gateway["service"] : false;
-?>
+<? $root = DEVELOPER_ROOT."payment-gateway/" ?>
 <div class="table">
 	<section>
 		<p>Choose a service below to configure your payment gateway settings.</p>
-		<a class="box_select<? if ($service == "authorize.net") { ?> connected<? } ?>" href="authorize/">
+		<a class="box_select<? if ($gateway->Service == "authorize.net") { ?> connected<? } ?>" href="<?=$root?>authorize/">
 			<span class="authorize"></span>
 			<p>Authorize.Net</p>
 		</a>
-		<a class="box_select<? if ($service == "paypal-rest") { ?> connected<? } ?>" href="paypal-rest/">
+		<a class="box_select<? if ($gateway->Service == "paypal-rest") { ?> connected<? } ?>" href="<?=$root?>paypal-rest/">
 			<span class="paypal"></span>
 			<p>PayPal REST API</p>
 		</a>
-		<a class="box_select<? if ($service == "paypal") { ?> connected<? } ?>" href="paypal/">
+		<a class="box_select<? if ($gateway->Service == "paypal") { ?> connected<? } ?>" href="<?=$root?>paypal/">
 			<span class="paypal"></span>
 			<p>PayPal Payments Pro</p>
 		</a>
-		<a class="box_select<? if ($service == "payflow") { ?> connected<? } ?>" href="payflow/">
+		<a class="box_select<? if ($gateway->Service == "payflow") { ?> connected<? } ?>" href="<?=$root?>payflow/">
 			<span class="payflow"></span>
 			<p>PayPal Payflow Gateway</p>
 		</a>
-		<a class="box_select<? if ($service == "linkpoint") { ?> connected<? } ?>" href="linkpoint/">
+		<a class="box_select<? if ($gateway->Service == "linkpoint") { ?> connected<? } ?>" href="<?=$root?>linkpoint/">
 			<span class="linkpoint"></span>
 			<p>First Data / LinkPoint</p>
 		</a>
