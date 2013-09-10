@@ -930,7 +930,13 @@
 				}
 			// PayPal REST API
 			} elseif ($this->Service == "paypal-rest") {
-
+				$token = $_SESSION["bigtree"]["paypal-rest-payment-id"];
+				$response = $this->sendPayPalREST("payments/payment/$token");
+				if ($response->id) {
+					return $response;
+				} else {
+					return false;
+				}
 			} else {
 				return false;
 			}
@@ -940,7 +946,7 @@
 			Function: paypalExpressCheckoutProcess
 				Processes an Express Checkout transaction.
 				For: PayPal REST API, PayPal Payments Pro and Payflow Gateway ONLY.
-				
+
 			Parameters:
 				token - The Express Checkout token returned by PayPal.
 				payer_id - The Payer ID returned by PayPal.
@@ -950,7 +956,7 @@
 				An array of buyer information.
 		*/
 		
-		function paypalExpressCheckoutProcess($token,$payer_id,$amount) {
+		function paypalExpressCheckoutProcess($token,$payer_id,$amount = false) {
 			// Clean up the amount.
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			
@@ -991,7 +997,20 @@
 					return false;
 				}
 			} elseif ($this->Service == "paypal-rest") {
-
+				$token = $_SESSION["bigtree"]["paypal-rest-payment-id"];
+				$data = array("payer_id" => $payer_id);
+				if ($amount) {
+					$data["transactions"] = array(array("total" => $amount,"currency" => "USD"));
+				}
+				$response = $this->sendPayPalREST("payments/payment/$token/execute",json_encode($data));
+				if ($response->state == "approved") {
+					$this->Transaction = $response->transactions[0]->related_resources[0]->sale->id;
+					return $this->Transaction;
+				} else {
+					$this->Errors = $response->details;
+					$this->Message = $response->message;
+					return false;
+				}
 			} else {
 				return false;
 			}
@@ -1056,20 +1075,17 @@
 						"return_url" => $success_url,
 						"cancel_url" => $cancel_url
 					),
-					"payer" => array(
-						"payment_method" => "paypal"
-					),
-					"transactions" => array(
-						array(
-							"amount" => array(
-								"total" => $amount,
-								"currency" => "USD"
-							)
+					"payer" => array("payment_method" => "paypal"),
+					"transactions" => array(array(
+						"amount" => array(
+							"total" => $amount,
+							"currency" => "USD"
 						)
-					)
+					))
 				));
 				$response = $this->sendPayPalREST("payments/payment",$data);
 				if ($response->state == "created") {
+					$_SESSION["bigtree"]["paypal-rest-payment-id"] = $response->id;
 					foreach ($response->links as $link) {
 						if ($link->rel == "approval_url") {
 							BigTree::redirect($link->href);
