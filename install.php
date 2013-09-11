@@ -175,6 +175,8 @@
 			($routing == "basic") ? "basic" : "htaccess"
 		);
 		
+		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
+		sqlquery("SET SESSION sql_mode = ''");
 		$sql_queries = explode("\n",file_get_contents("bigtree.sql"));
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
