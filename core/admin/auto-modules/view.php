@@ -8,11 +8,9 @@
 
 	if ($view["description"]) {
 ?>
-<div class="container">
-	<section>
-		<p><?=$view["description"]?></p>
-	</section>
-</div>
+<section class="inset_block">
+	<p><?=$view["description"]?></p>
+</section>
 <?
 	}
 

@@ -36,7 +36,7 @@
 	$seo_recs .= "</ul>";
 ?>
 <h3 class="properties"><span>Properties</span><span class="icon_small icon_small_caret_<? if ($open) { ?>down<? } else { ?>right<? } ?>"></span></h3>
-<section class="property_block"<? if (!$open) { ?> style="display: none;"<? } ?>>
+<section class="inset_block property_block"<? if (!$open) { ?> style="display: none;"<? } ?>>
 	<article>
 		<label>Status</label>
 		<p class="<?=str_replace(" ","_",strtolower($status))?>"><?=$status?></p>
