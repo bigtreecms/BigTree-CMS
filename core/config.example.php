@@ -60,7 +60,8 @@
 
 	// Current Environment
 	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
-	$bigtree["config"]["environment_live_url"] = ""; // Site URL
+	$bigtree["config"]["environment_live_url"] = ""; // Live environment URL
+	$bigtree["config"]["developer_mode"] = false; // Set to true to lock out all users except developrs.
 
 	// Admin Settings
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/"; // "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
