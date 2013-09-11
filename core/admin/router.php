@@ -184,6 +184,12 @@
 		BigTree::redirect(ADMIN_ROOT."login/");
 	}
 
+	// Developer Mode On?
+	if (isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
+		include BigTree::path("admin/pages/developer-mode.php");
+		$admin->stop();
+	}
+
 	// Redirect to dashboard by default if we're not requesting anything.
 	if (!$bigtree["path"][1]) {
 		BigTree::redirect(ADMIN_ROOT."dashboard/");
