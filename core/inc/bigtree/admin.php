@@ -5712,6 +5712,11 @@
 		*/
 
 		function updateModule($id,$name,$group,$class,$permissions,$icon) {
+			// If this has a permissions table, wipe that table's view cache
+			if ($permissions["table"]) {
+				BigTreeAutoModule::clearCache($permissions["table"]);
+			}
+
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
