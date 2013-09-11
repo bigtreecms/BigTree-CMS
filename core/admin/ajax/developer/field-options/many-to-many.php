@@ -56,5 +56,6 @@
 <fieldset>
 	<label>List Parser Function</label>
 	<input type="text" name="mtm-list-parser" value="<?=htmlspecialchars($data["mtm-list-parser"])?>" />
+	<p class="note">The first parameter passed in is an array of data. The second is a boolean of whether you're receiving currently tagged entries (true) or the list of available entries that aren't currently tagged (false).</p>
 </fieldset>
 <br />
