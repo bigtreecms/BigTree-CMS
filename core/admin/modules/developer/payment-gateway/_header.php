@@ -1,3 +1,3 @@
 <?
-	$gateway = $cms->getSetting("bigtree-internal-payment-gateway");
+	$gateway = new BigTreePaymentGateway;
 ?>

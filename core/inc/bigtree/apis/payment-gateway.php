@@ -17,18 +17,32 @@
 		*/
 		
 		function __construct() {
-			global $cms;
-			$pgs = $cms->getSetting("bigtree-internal-payment-gateway");
+			$admin = new BigTreeAdmin;
+			$s = $admin->getSetting("bigtree-internal-payment-gateway");
+			if ($s === false) {
+				$admin->createSetting(array(
+					"id" => "bigtree-internal-payment-gateway",
+					"system" => "on",
+					"encrypted" => "on"
+				));
+				$s = array("service" => "", "settings" => array());
+				$admin->updateSettingValue("bigtree-internal-payment-gateway",$s);
+			}
+
 			// If for some reason the setting doesn't exist, make one.
-			$this->Service = isset($pgs["service"]) ? $pgs["service"] : false;
+			$this->Service = isset($s["value"]["service"]) ? $s["value"]["service"] : "";
+			$this->Settings = isset($s["value"]["settings"]) ? $s["value"]["settings"] : array();
+
 			if ($this->Service == "authorize.net") {
-				$this->setupAuthorize($pgs["settings"]);
+				$this->setupAuthorize();
 			} elseif ($this->Service == "paypal") {
-				$this->setupPayPal($pgs["settings"]);
+				$this->setupPayPal();
+			} elseif ($this->Service == "paypal-rest") {
+				$this->setupPayPalREST();
 			} elseif ($this->Service == "payflow") {
-				$this->setupPayflow($pgs["settings"]);
+				$this->setupPayflow();
 			} elseif ($this->Service == "linkpoint") {
-				$this->setupLinkPoint($pgs["settings"]);
+				$this->setupLinkPoint();
 			}
 		}
 				
@@ -66,6 +80,8 @@
 				return $this->authorizeAuthorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "paypal") {
 				return $this->authorizePayPal($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
+			} elseif ($this->Service == "paypal-rest") {
+				return $this->authorizePayPalREST($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "payflow") {
 				return $this->authorizePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "linkpoint") {
@@ -99,6 +115,15 @@
 		protected function authorizePayPal($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
 			return $this->chargePayPal($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"Authorization");
 		}
+
+		/*
+			Function: authorizePayPalREST
+				PayPal REST API interface for <authorize>
+		*/
+		
+		protected function authorizePayPalREST($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
+			return $this->chargePayPalREST($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"authorize");
+		}
 		
 		/*
 			Function: authorizePayflow
@@ -129,8 +154,9 @@
 				"solo" => "((?:6334|6767)\d{12}(?:\d\d)?\d?)",
 				"mastercard" => "(5[1-5]\d{14})",
 				"switch" => "(?:(?:(?:4903|4905|4911|4936|6333|6759)\d{12})|(?:(?:564182|633110)\d{10})(\d\d)?\d?)",
+				"discover" => '(^6(?:011|5[0-9]{2})[0-9]{12}$)'
 			);
-			$names = array("Visa", "American Express", "JCB", "Maestro", "Solo", "Mastercard", "Switch");
+			$names = array("visa","amex","jcb","maestro","solo","mastercrad","switch","discover");
 			$matches = array();
 			$pattern = "#^(?:".implode("|", $cards).")$#";
 			$result = preg_match($pattern, str_replace(" ", "", $card_number), $matches);
@@ -161,6 +187,8 @@
 				return $this->captureAuthorize($transaction,$amount);
 			} elseif ($this->Service == "paypal") {
 				return $this->capturePayPal($transaction,$amount);
+			} elseif ($this->Service == "paypal-rest") {
+				return $this->capturePayPalREST($transaction,$amount);
 			} elseif ($this->Service == "payflow") {
 				return $this->capturePayflow($transaction,$amount);
 			} elseif ($this->Service == "linkpoint") {
@@ -253,6 +281,28 @@
 				return false;
 			}
 		}
+
+		/*
+			Function: capturePayPalREST
+				PayPal REST API interface for <capture>
+		*/
+		
+		protected function capturePayPalREST($transaction,$amount) {
+			$data = json_encode(array(
+				"amount" => array(
+					"currency" => "USD",
+					"total" => $amount
+				)
+			));
+
+			$response = $this->sendPayPalREST("payments/authorization/$transaction/capture",$data);
+			if ($response->state == "completed") {
+				return $response->id;
+			} else {
+				$this->Message = $response->message;
+				return false;
+			}
+		}
 		
 		/*
 			Function: capturePayflow
@@ -315,6 +365,8 @@
 				return $this->chargeAuthorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "paypal") {
 				return $this->chargePayPal($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
+			} elseif ($this->Service == "paypal-rest") {
+				return $this->chargePayPalREST($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "payflow") {
 				return $this->chargePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "linkpoint") {
@@ -531,6 +583,101 @@
 				return false;
 			}
 		}
+
+		/*
+			Function: chargePayPalREST
+				PayPal REST API interface for <charge>
+		*/
+		
+		protected function chargePayPalREST($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,$action = "sale") {
+			// Split the card name into first name and last name.
+			$first_name = substr($card_name,0,strpos($card_name," "));
+			$last_name = trim(substr($card_name,strlen($first_name)));
+
+			// Separate card expiration out
+			$card_expiration_month = substr($card_expiration,0,2);
+			$card_expiration_year = substr($card_expiration,2);				
+			if (strlen($card_expiration) == 4) {
+				$card_expiration_year = "20".$card_expiration_year;
+			}
+
+			// See if we can get a country code
+			$country = isset($this->CountryCodes[strtoupper($address["country"])]) ? $this->CountryCodes[strtoupper($address["country"])] : $address["country"];
+
+			// Split out tax and subtotals if present
+			if ($tax) {
+				$transaction_details = array(
+					"subtotal" => $amount - $tax,
+					"tax" => $tax,
+					"shipping" => 0
+				);
+			} else {
+				$transaction_details = false;
+			}
+
+			$data = array(
+				"intent" => $action,
+				"payer" => array(
+					"payment_method" => "credit_card",
+					"funding_instruments" => array(
+						array(
+							"credit_card" => array(
+								"number" => $card_number,
+								"type" => $this->cardType($card_number),
+								"expire_month" => $card_expiration_month,
+								"expire_year" => $card_expiration_year,
+								"cvv2" => $cvv,
+								"first_name" => $first_name,
+								"last_name" => $last_name,
+								"billing_address" => array(
+									"line1" => $address["street"],
+									"line2" => $address["street2"],
+									"city" => $address["city"],
+									"state" => $address["state"],
+									"postal_code" => $address["zip"],
+									"country_code" => $country
+								)
+							)
+						)
+					)
+				),
+				"transactions" => array(array(
+					"amount" => array(
+						"total" => $amount,
+						"currency" => "USD"
+					)
+				))
+			);
+
+			if ($transaction_details) {
+				$data["transactions"][0]["amount"]["details"] = $transaction_details;
+			}
+			if ($email) {
+				$data["payer"]["payer_info"]["email"] = $email;
+			}
+			if ($description) {
+				$data["transactions"][0]["description"] = $description;
+			}
+
+			$response = $this->sendPayPalREST("payments/payment",json_encode($data));
+
+			if ($response->state == "approved") {
+				$this->Last4CC = substr(trim($card_number),-4,4);
+
+				if ($action == "authorize") {
+					$this->Transaction = $response->transactions[0]->related_resources[0]->authorization->id;
+				} else {
+					$this->Transaction = $response->transactions[0]->related_resources[0]->sale->id;
+				}
+
+				return $this->Transaction;
+			} else {
+				$this->Message = $response->message;
+				$this->Errors = $response->details;
+
+				return false;
+			}
+		}
 		
 		/*
 			Function: chargePayflow
@@ -642,11 +789,14 @@
 				return $this->createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
 			} elseif ($this->Service == "paypal") {
 				return $this->createRecurringPaymentPayPal($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+			} elseif ($this->Service == "paypal-rest") {
+				return $this->createRecurringPaymentPayPalREST($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
 			} elseif ($this->Service == "payflow") {
 				return $this->createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
 			} elseif ($this->Service == "linkpoint") {
 				return $this->createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
 			}
+			return false;
 		}
 		
 		/*
@@ -778,6 +928,15 @@
 				} else {
 					return false;
 				}
+			// PayPal REST API
+			} elseif ($this->Service == "paypal-rest") {
+				$token = $_SESSION["bigtree"]["paypal-rest-payment-id"];
+				$response = $this->sendPayPalREST("payments/payment/$token");
+				if ($response->id) {
+					return $response;
+				} else {
+					return false;
+				}
 			} else {
 				return false;
 			}
@@ -786,8 +945,8 @@
 		/*
 			Function: paypalExpressCheckoutProcess
 				Processes an Express Checkout transaction.
-				For: PayPal Payments Pro and Payflow Gateway ONLY.
-				
+				For: PayPal REST API, PayPal Payments Pro and Payflow Gateway ONLY.
+
 			Parameters:
 				token - The Express Checkout token returned by PayPal.
 				payer_id - The Payer ID returned by PayPal.
@@ -797,7 +956,7 @@
 				An array of buyer information.
 		*/
 		
-		function paypalExpressCheckoutProcess($token,$payer_id,$amount) {
+		function paypalExpressCheckoutProcess($token,$payer_id,$amount = false) {
 			// Clean up the amount.
 			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
 			
@@ -837,6 +996,21 @@
 				} else {
 					return false;
 				}
+			} elseif ($this->Service == "paypal-rest") {
+				$token = $_SESSION["bigtree"]["paypal-rest-payment-id"];
+				$data = array("payer_id" => $payer_id);
+				if ($amount) {
+					$data["transactions"] = array(array("total" => $amount,"currency" => "USD"));
+				}
+				$response = $this->sendPayPalREST("payments/payment/$token/execute",json_encode($data));
+				if ($response->state == "approved") {
+					$this->Transaction = $response->transactions[0]->related_resources[0]->sale->id;
+					return $this->Transaction;
+				} else {
+					$this->Errors = $response->details;
+					$this->Message = $response->message;
+					return false;
+				}
 			} else {
 				return false;
 			}
@@ -845,7 +1019,7 @@
 		/*
 			Function: paypalExpressCheckoutRedirect
 				Sets up a PayPal Express Checkout session and redirects the user to PayPal.
-				For: PayPal Payments Pro and Payflow Gateway ONLY.
+				For: PayPal REST API, PayPal Payments Pro and Payflow Gateway ONLY.
 			
 			Parameters:
 				amount - The amount to charge the user.
@@ -893,9 +1067,263 @@
 				} else {
 					return false;
 				}
+			// PayPal REST API
+			} elseif ($this->Service == "paypal-rest") {
+				$data = json_encode(array(
+					"intent" => "sale",
+					"redirect_urls" => array(
+						"return_url" => $success_url,
+						"cancel_url" => $cancel_url
+					),
+					"payer" => array("payment_method" => "paypal"),
+					"transactions" => array(array(
+						"amount" => array(
+							"total" => $amount,
+							"currency" => "USD"
+						)
+					))
+				));
+				$response = $this->sendPayPalREST("payments/payment",$data);
+				if ($response->state == "created") {
+					$_SESSION["bigtree"]["paypal-rest-payment-id"] = $response->id;
+					foreach ($response->links as $link) {
+						if ($link->rel == "approval_url") {
+							BigTree::redirect($link->href);
+						}
+					}
+				} else {
+					$this->Errors = $response->details;
+					$this->Message = $response->message;
+					return false;
+				}
 			} else {
 				return false;
 			}
+		}
+
+		/*
+			Function: paypalRESTTokenRequest
+				Fetches a new authorization token from PayPal's OAuth servers.
+		*/
+
+		function paypalRESTTokenRequest() {
+			if ($this->Settings["paypal-rest-environment"] == "test") {
+				$url = "api.sandbox.paypal.com";
+			} else {
+				$url = "api.paypal.com";
+			}
+			
+			$r = json_decode(BigTree::cURL("https://$url/v1/oauth2/token","grant_type=client_credentials",array(CURLOPT_POST => true, CURLOPT_USERPWD => $this->Settings["paypal-rest-client-id"].":".$this->Settings["paypal-rest-client-secret"])));
+			if ($r->error) {
+				$this->Error = $r->error;
+				return false;
+			}
+
+			$this->Settings["paypal-rest-expiration"] = date("Y-m-d H:i:s",strtotime("+".$r->expires_in." seconds"));
+			$this->Settings["paypal-rest-token"] = $r->access_token;
+			$this->saveSettings();
+			return true;
+		}
+
+		/*
+			Function: paypalRESTVaultAuthorize
+				Authorizes a payment using a token from the PayPal REST API vault.
+				Payment should be captured using standard "capture" method
+
+			Parameters:
+				id - The card ID returned when the card was stored.
+				user_id - The user ID related to this card (pass in false if no user id was stored with this card).
+				amount - The amount to charge (includes the tax).
+				tax - The amount of tax to charge (for accounting purposes, must also be included in total amount).
+				description - Description of what is being charged.
+				email - Email address of the purchaser.
+		*/
+
+		function paypalRESTVaultAuthorize($id,$user_id,$amount,$tax = 0,$description = "",$email = "") {
+			return $this->paypalRESTVaultCharge($id,$user_id,$amount,$tax,$description,$email,"authorize");
+		}
+
+		/*
+			Function: paypalRESTVaultCharge
+				Charges a credit card using a token from the PayPal REST API vault.
+
+			Parameters:
+				id - The card ID returned when the card was stored.
+				user_id - The user ID related to this card (pass in false if no user id was stored with this card).
+				amount - The amount to charge (includes the tax).
+				tax - The amount of tax to charge (for accounting purposes, must also be included in total amount).
+				description - Description of what is being charged.
+				email - Email address of the purchaser.
+				action - "sale" or "authorize" (defaults to sale)
+		*/
+
+		function paypalRESTVaultCharge($id,$user_id,$amount,$tax = 0,$description = "",$email = "",$action = "sale") {
+			// Split out tax and subtotals if present
+			if ($tax) {
+				$transaction_details = array(
+					"subtotal" => $amount - $tax,
+					"tax" => $tax,
+					"shipping" => 0
+				);
+			} else {
+				$transaction_details = false;
+			}
+
+			$data = array(
+				"intent" => $action,
+				"payer" => array(
+					"payment_method" => "credit_card",
+					"funding_instruments" => array(array("credit_card_token" => array("credit_card_id" => $id))),	
+				),
+				"transactions" => array(array(
+					"amount" => array(
+						"total" => $amount,
+						"currency" => "USD"
+					)
+				))
+			);
+
+			if ($transaction_details) {
+				$data["transactions"][0]["amount"]["details"] = $transaction_details;
+			}
+			if ($user_id) {
+				$data["payer"]["funding_instruments"][0]["credit_card_token"]["payer_id"] = $user_id;
+			}
+			if ($email) {
+				$data["payer"]["payer_info"]["email"] = $email;
+			}
+			if ($description) {
+				$data["transactions"][0]["description"] = $description;
+			}
+
+			$response = $this->sendPayPalREST("payments/payment",json_encode($data));
+
+			if ($response->state == "approved") {
+				if ($action == "authorize") {
+					$this->Transaction = $response->transactions[0]->related_resources[0]->authorization->id;
+				} else {
+					$this->Transaction = $response->transactions[0]->related_resources[0]->sale->id;
+				}
+
+				return $this->Transaction;
+			} else {
+				$this->Message = $response->message;
+				$this->Errors = $response->details;
+
+				return false;
+			}
+		}
+
+		/*
+			Function: paypalRESTVaultDelete
+				Deletes a credit card stored in the PayPal REST API vault.
+
+			Parameters:
+				id - The card ID returned when the card was stored.
+		*/
+
+		function paypalRESTVaultDelete($id) {
+			$this->sendPayPalREST("vault/credit-card/$id","","DELETE");
+		}
+
+		/*
+			Function: paypalRESTVaultLookup
+				Looks up a credit card stored in the PayPal REST API vault.
+
+			Parameters:
+				id - The card ID returned when the card was stored.
+
+			Returns:
+				Credit card information (only the last 4 digits of the credit card number are visible)
+		*/
+
+		function paypalRESTVaultLookup($id) {
+			$response = $this->sendPayPalREST("vault/credit-card/$id");
+			if ($response->state != "ok") {
+				$this->Message = $response->message;
+				return false;
+			}
+
+			$card = new stdClass;
+			$card->Address = new stdClass;
+			$card->Address->Street = $response->billing_address->line1;
+			isset($response->billing_address->line2) ? $card->Address->Street2 = $response->billing_address->line2 : false;
+			$card->Address->City = $response->billing_address->city;
+			$card->Address->State = $response->billing_address->state;
+			$card->Address->Zip = $response->billing_address->postal_code;
+			$card->Address->Country = $response->billing_address->country_code;
+			$card->ExpirationDate = $response->expire_month."/".$response->expire_year;
+			$card->ID = $response->id;
+			$card->Name = $response->first_name." ".$response->last_name;
+			$card->Number = $response->number;
+			$card->Type = $response->type == "amex" ? "American Express" : ucwords($response->type);
+			$card->UserID = $response->payer_id;
+			$card->ValidUntil = date("Y-m-d H:i:s",strtotime($response->valid_until));
+
+			return $card;
+		}
+
+		/*
+			Function: paypalRESTVaultStore
+				Stores a credit card in the PayPal REST API vault.
+
+			Parameters:
+				name - Name on the credit card
+				number - Credit card number
+				expiration_date - Expiration date (MMYY or MMYYYY format)
+				cvv - Credit card security code.
+				address - An address array with keys "street", "street2", "city", "state", "zip", "country"
+				user_id - A unique ID to associate with this storage (for example, the user ID of this person on your site)
+
+			Returns:
+				A card ID to be used for later recall.
+		*/
+
+		function paypalRESTVaultStore($name,$number,$expiration_date,$cvv,$address,$user_id) {
+			// Split the card name into first name and last name.
+			$first_name = substr($name,0,strpos($name," "));
+			$last_name = trim(substr($name,strlen($first_name)));
+
+			// Make card number only have numeric digits
+			$number = preg_replace('/\D/', '', $number);
+
+			// Separate card expiration out
+			$card_expiration_month = substr($expiration_date,0,2);
+			$card_expiration_year = substr($expiration_date,2);				
+			if (strlen($expiration_date) == 4) {
+				$card_expiration_year = "20".$card_expiration_year;
+			}
+
+			// See if we can get a country code
+			$country = isset($this->CountryCodes[strtoupper($address["country"])]) ? $this->CountryCodes[strtoupper($address["country"])] : $address["country"];
+
+			$data = json_encode(array(
+				"payer_id" => $user_id,
+				"number" => $number,
+				"type" => $this->cardType($number),
+				"expire_month" => $card_expiration_month,
+				"expire_year" => $card_expiration_year,
+				"cvv2" => $cvv,
+				"first_name" => $first_name,
+				"last_name" => $last_name,
+				"billing_address" => array(
+					"line1" => $address["street"],
+					"line2" => $address["street2"],
+					"city" => $address["city"],
+					"state" => $address["state"],
+					"postal_code" => $address["zip"],
+					"country_code" => $country
+				)
+			));
+
+			$response = $this->sendPayPalREST("vault/credit-card",$data);
+			if ($response->state == "ok") {
+				return $response->id;
+			}
+
+			$this->Errors = $response->details;
+			$this->Message = $response->message;
+			return false;
 		}
 		
 		/*
@@ -923,6 +1351,8 @@
 				return $this->refundAuthorize($transaction,$card_number,$amount);
 			} elseif ($this->Service == "paypal") {
 				return $this->refundPayPal($transaction,$card_number,$amount);
+			} elseif ($this->Service == "paypal-rest") {
+				return $this->refundPayPalREST($transaction,$card_number,$amount);
 			} elseif ($this->Service == "payflow") {
 				return $this->refundPayflow($transaction,$card_number,$amount);
 			} elseif ($this->Service == "linkpoint") {
@@ -1024,6 +1454,41 @@
 				return false;
 			}
 		}
+
+		/*
+			Function: refundPayPalREST
+				PayPal REST API interface for <refund>
+
+				Note: Currently the PayPal REST API requires an amount to refund if the transaction was first authorized and later captured.
+				This does not apply to transactions that were simply charged through the charge() method.
+		*/
+		
+		protected function refundPayPalREST($transaction,$card_number,$amount) {
+			if ($amount) {
+				$data = json_encode(array(
+					"amount" => array(
+						"total" => $amount,
+						"currency" => "USD"
+					)
+				));
+			} else {
+				$data = "{}";
+			}
+			// First try as if it was a sale.
+			$response = $this->sendPayPalREST("payments/sale/$transaction/refund",$data);
+			if ($response->state == "completed") {
+				return $response->id;
+			// Try as if it were auth/capture
+			} elseif ($amount) {
+				$response = $this->sendPayPalREST("payments/capture/$transaction/refund",$data);
+				if ($response->state == "completed") {
+					return $response->id;
+				}
+			}
+
+			$this->Message = $response->message;
+			return false;
+		}
 		
 		/*
 			Function: refundPayflow
@@ -1052,7 +1517,17 @@
 				return false;
 			}
 		}
-		
+
+		/*
+			Function: saveSettings
+				Saves changed service and settings.
+		*/
+
+		function saveSettings() {
+			$admin = new BigTreeAdmin;
+			$admin->updateSettingValue("bigtree-internal-payment-gateway",array("service" => $this->Service,"settings" => $this->Settings));
+		}
+
 		/*
 			Function: sendAuthorize
 				Sends a command to Authorize.Net.
@@ -1183,6 +1658,19 @@
 			$this->Unresponsive = true;
 			return false;
 		}
+
+		/*
+			Function: sendPayPalREST
+				Sends a command to PayPal REST API.
+		*/
+		
+		protected function sendPayPalREST($endpoint,$data = "",$method = false) {
+			if ($method) {
+				return json_decode(BigTree::cURL($this->PostURL.$endpoint,$data,array(CURLOPT_HTTPHEADER => $this->Headers,CURLOPT_CUSTOMREQUEST => $method)));
+			} else {
+				return json_decode(BigTree::cURL($this->PostURL.$endpoint,$data,array(CURLOPT_HTTPHEADER => $this->Headers)));
+			}
+		}
 		
 		/*
 			Function: sendPayflow
@@ -1236,10 +1724,10 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		protected function setupAuthorize($settings) {
-			$this->APILogin = $settings["authorize-api-login"];
-			$this->TransactionKey = $settings["authorize-transaction-key"];
-			$this->Environment = $settings["authorize-environment"];
+		protected function setupAuthorize() {
+			$this->APILogin = $this->Settings["authorize-api-login"];
+			$this->TransactionKey = $this->Settings["authorize-transaction-key"];
+			$this->Environment = $this->Settings["authorize-environment"];
 			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://test.authorize.net/gateway/transact.dll";
@@ -1264,10 +1752,10 @@
 				Prepares an environment for First Data / LinkPoint.
 		*/
 		
-		protected function setupLinkPoint($settings) {
-			$this->Store = $settings["linkpoint-store"];
-			$this->Environment = $settings["linkpoint-environment"];
-			$this->Certificate = SERVER_ROOT."custom/certificates/".$settings["linkpoint-certificate"];
+		protected function setupLinkPoint() {
+			$this->Store = $this->Settings["linkpoint-store"];
+			$this->Environment = $this->Settings["linkpoint-environment"];
+			$this->Certificate = SERVER_ROOT."custom/certificates/".$this->Settings["linkpoint-certificate"];
 
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://staging.linkpt.net:1129";
@@ -1284,11 +1772,11 @@
 				Prepares an environment for PayPal Payments Pro payments.
 		*/
 		
-		protected function setupPayPal($settings) {
-			$this->Username = $settings["paypal-username"];
-			$this->Password = $settings["paypal-password"];
-			$this->Signature = $settings["paypal-signature"];
-			$this->Environment = $settings["paypal-environment"];
+		protected function setupPayPal() {
+			$this->Username = $this->Settings["paypal-username"];
+			$this->Password = $this->Settings["paypal-password"];
+			$this->Signature = $this->Settings["paypal-signature"];
+			$this->Environment = $this->Settings["paypal-environment"];
 			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://api-3t.sandbox.paypal.com/nvp";
@@ -1303,18 +1791,41 @@
 				"SIGNATURE" => $this->Signature
 			);
 		}
+
+		/*
+			Function: setupPayPalREST
+				Prepares an environment for the PayPal REST API.
+		*/
+		
+		protected function setupPayPalREST() {
+			// Check on the token expiration, get a new one if needed in the next minute
+			if (strtotime($this->Settings["paypal-rest-expiration"]) < time() + 60) {
+				$this->paypalRESTTokenRequest();
+			}
+			// Setup default cURL headers
+			$this->Headers = array(
+				"Content-type: application/json",
+				"Authorization: Bearer ".$this->Settings["paypal-rest-token"]
+			);
+			
+			if ($this->Settings["paypal-rest-environment"] == "test") {
+				$this->PostURL = "https://api.sandbox.paypal.com/v1/";
+			} else {
+				$this->PostURL = "https://api.paypal.com/v1/";
+			}
+		}
 		
 		/*
 			Function: setupPayflow
 				Prepares an environment for PayPal Payflow Gateway payments.
 		*/
 		
-		protected function setupPayflow($settings) {
-			$this->Username = $settings["payflow-username"];
-			$this->Password = $settings["payflow-password"];
-			$this->Vendor = $settings["payflow-vendor"];
-			$this->Environment = $settings["payflow-environment"];
-			$this->Partner = $settings["payflow-partner"];
+		protected function setupPayflow() {
+			$this->Username = $this->Settings["payflow-username"];
+			$this->Password = $this->Settings["payflow-password"];
+			$this->Vendor = $this->Settings["payflow-vendor"];
+			$this->Environment = $this->Settings["payflow-environment"];
+			$this->Partner = $this->Settings["payflow-partner"];
 			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://pilot-payflowpro.paypal.com";
@@ -1362,6 +1873,8 @@
 				return $this->voidAuthorize($authorization);
 			} elseif ($this->Service == "paypal") {
 				return $this->voidPayPal($authorization);
+			} elseif ($this->Service == "paypal-rest") {
+				return $this->voidPayPalREST($authorization);
 			} elseif ($this->Service == "payflow") {
 				return $this->voidPayflow($authorization);
 			} elseif ($this->Service == "linkpoint") {
@@ -1442,6 +1955,21 @@
 			if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
 				return $response["AUTHORIZATIONID"];
 			} else {
+				return false;
+			}
+		}
+
+		/*
+			Function: voidPayPalREST
+				PayPal REST API interface for <void>
+		*/
+		
+		protected function voidPayPalREST($authorization) {
+			$response = $this->sendPayPalREST("payments/authorization/$authorization/void","{}");
+			if ($response->state == "voided") {
+				return $response->id;
+			} else {
+				$this->Message = $response->message;
 				return false;
 			}
 		}
