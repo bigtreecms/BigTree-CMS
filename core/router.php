@@ -314,6 +314,11 @@
 		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
+
+		// If this page should not be indexed, pass headers
+		if ($bigtree["page"]["seo_invisible"]) {
+			header("X-Robots-Tag: noindex");
+		}
 		
 		/* Backwards Compatibility */
 		$page = $bigtree["page"];

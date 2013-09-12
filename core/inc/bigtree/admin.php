@@ -1263,6 +1263,7 @@
 			$nav_title = htmlspecialchars($nav_title);
 			$meta_description = htmlspecialchars($meta_description);
 			$meta_keywords = htmlspecialchars($meta_keywords);
+			$seo_invisible = $seo_invisible ? "on" : "";
 			$external = htmlspecialchars($external);
 
 			// Set the trunk flag back to no if the user isn't a developer
@@ -1273,7 +1274,7 @@
 			}
 
 			// Make the page!
-			sqlquery("INSERT INTO bigtree_pages (`trunk`,`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources`,`callouts`,`meta_keywords`,`meta_description`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$trunk','$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$callouts','$meta_keywords','$meta_description','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
+			sqlquery("INSERT INTO bigtree_pages (`trunk`,`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources`,`callouts`,`meta_keywords`,`meta_description`,`seo_invisible`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$trunk','$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$callouts','$meta_keywords','$meta_description','$seo_invisible','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
 
 			$id = sqlid();
 
@@ -6041,10 +6042,11 @@
 			$nav_title = htmlspecialchars($nav_title);
 			$meta_description = htmlspecialchars($meta_description);
 			$meta_keywords = htmlspecialchars($meta_keywords);
+			$seo_invisible = $seo_invisible ? "on" : "";
 			$external = htmlspecialchars($external);
 
 			// Update the database
-			sqlquery("UPDATE bigtree_pages SET `trunk` = '$trunk', `parent` = '$parent', `nav_title` = '$nav_title', `route` = '$route', `path` = '$path', `in_nav` = '$in_nav', `title` = '$title', `template` = '$template', `external` = '$external', `new_window` = '$new_window', `resources` = '$resources', `callouts` = '$callouts', `meta_keywords` = '$meta_keywords', `meta_description` = '$meta_description', `last_edited_by` = '".$this->ID."', updated_at = NOW(), publish_at = $publish_at, expire_at = $expire_at, max_age = '$max_age' WHERE id = '$page'");
+			sqlquery("UPDATE bigtree_pages SET `trunk` = '$trunk', `parent` = '$parent', `nav_title` = '$nav_title', `route` = '$route', `path` = '$path', `in_nav` = '$in_nav', `title` = '$title', `template` = '$template', `external` = '$external', `new_window` = '$new_window', `resources` = '$resources', `callouts` = '$callouts', `meta_keywords` = '$meta_keywords', `meta_description` = '$meta_description', `seo_invisible` = '$seo_invisible', `last_edited_by` = '".$this->ID."', updated_at = NOW(), publish_at = $publish_at, expire_at = $expire_at, max_age = '$max_age' WHERE id = '$page'");
 
 			// Remove any pending drafts
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'");
