@@ -122,7 +122,8 @@
 				array("title" => "Salesforce API","link" => "developer/services/salesforce","icon" => "cloud","hidden" => true),
 				array("title" => "Disqus API","link" => "developer/services/disqus","icon" => "disqus","hidden" => true)
 			)),
-			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true)
+			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true),
+			array("title" => "User Emulator","link" => "developer/user-emulator","icon" => "users","hidden" => true)
 		)),
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
 		"credits" => array("title" => "Credits & Licenses","link" => "credits","icon" => "credits","hidden" => true)

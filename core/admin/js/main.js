@@ -2496,6 +2496,9 @@ var BigTreeQuickLoader = {
 			(link.hash && link.href.replace(link.hash, '') === window.location.href.replace(location.hash, '') || link.href === window.location.href + '#')) {
 			return;
 		}
+		if ($(link).hasClass("ignore_quick_loader")) {
+			return;
+		}
 		
 		e.preventDefault();
 		e.stopPropagation();

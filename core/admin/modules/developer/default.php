@@ -44,7 +44,6 @@
 	</section>
 </div>
 
-
 <div class="table">
 	<summary><h2>Configure</h2></summary>
 	<section>
@@ -68,10 +67,19 @@
 			<span class="api"></span>
 			<p>Service APIs</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>status/">
-			<span class="vitals"></span>
-			<p>Site Status</p>
-		</a>
 	</section>
 </div>
 
+<div class="table">
+	<summary><h2>Debug</h2></summary>
+	<section>
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>status/">
+			<span class="vitals"></span>
+			<p>Site Status</p>
+		</a>
+		<a class="box_select last" href="<?=DEVELOPER_ROOT?>user-emulator/">
+			<span class="users"></span>
+			<p>User Emulator</p>
+		</a>
+	</section>
+</div>

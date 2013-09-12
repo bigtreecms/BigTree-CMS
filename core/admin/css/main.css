@@ -38,7 +38,7 @@
 	h1 .page, .box_select .page { background-position: -64px -16px; }
 	h1 .add_page { background-position: -96px -16px; }
 	h1 .modules, .box_select .modules { background-position: -128px -16px; }
-	h1 .users { background-position: -160px -16px; }
+	h1 .users, .box_select .users { background-position: -160px -16px; }
 	h1 .settings, .box_select .settings { background-position: -192px -16px; }
 	h1 .developer { background-position: -224px -16px; }
 	h1 .messages { background-position: -256px -16px; }
@@ -811,6 +811,7 @@
 
 /* Users Stuff */
 	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 318px; }
+	.table .users_name_emulate { padding: 0 0 0 20px; text-align: left; width: 358px; }
 	.table .users_email { text-align: left; width: 250px; }
 	.table .users_company { text-align: left; width: 250px; }
 	.table .users_api_type { text-align: left; width: 250px; }
