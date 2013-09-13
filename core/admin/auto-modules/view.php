@@ -6,9 +6,10 @@
 		$view["actions"]["preview"] = "on";
 	}
 
-	if ($view["description"]) {
+	if ($view["description"] && !$_COOKIE["bigtree_admin"]["ignore_view_description"][$view["id"]]) {
 ?>
 <section class="inset_block">
+	<span class="hide" data-id="<?=$view["id"]?>">x</span>
 	<p><?=$view["description"]?></p>
 </section>
 <?

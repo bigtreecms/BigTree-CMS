@@ -145,13 +145,19 @@ function BigTreePageLoadHooks() {
 	$("h3.properties").click(function() {
 		if ($(this).find(".icon_small").hasClass("icon_small_caret_right")) {
 			// Set a cookie to keep it open next time.
-			$.cookie("bigtree_default_properties_open","1", { expires: 365, path: "/" });
+			$.cookie("bigtree_admin[page_properties_open]","on", { expires: 365, path: "/" });
 		} else {
-			$.cookie("bigtree_default_properties_open","0", { path: "/" });
+			$.cookie("bigtree_admin[page_properties_open]","", { path: "/" });
 		}
 		$(this).find(".icon_small").toggleClass("icon_small_caret_right").toggleClass("icon_small_caret_down");
 		$(".property_block").toggle().next().toggle();
 		return false;
+	});
+
+	$(".inset_block .hide").click(function() {
+		id = $(this).attr("data-id");
+		$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
+		$(this).parent().hide();
 	});
 	
 	// Tooltips
