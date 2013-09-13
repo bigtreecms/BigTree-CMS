@@ -6,11 +6,12 @@
 	
 	class BigTreeStorage {
 		
-		var $Service = "";
-		var $S3,$S3Data,$S3Files;
-		var $RSAuth,$RSConn,$RSContainers,$RSContainerData;
+		var $AutoJPEG = false;
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
-		
+		var $RSAuth,$RSConn,$RSContainers,$RSContainerData;
+		var $S3,$S3Data,$S3Files;
+		var $Service = "";
+
 		/*
 			Constructor:
 				Retrieves the current desired service and image processing availability.
@@ -38,6 +39,36 @@
 				$this->S3Data = $ups["s3"];
 				$this->S3Files = array();
 			}
+		}
+
+		/*
+			Function: convertJPEG
+				Internal function for turning PNGs uploaded into JPG
+		*/
+
+		function convertJPEG($file,$name) {
+			global $bigtree;
+			
+			// Try to figure out what this file is
+			list($iwidth,$iheight,$itype,$iattr) = @getimagesize($file);
+			
+			if (($this->AutoJPEG || $bigtree["config"]["image_force_jpeg"]) && $itype == IMAGETYPE_PNG) {
+				// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
+				$alpha = ord(@file_get_contents($file,null,null,25,1));
+				if ($alpha != 4 && $alpha != 6) {
+					// Convert the PNG to JPG
+					$source = imagecreatefrompng($file);
+					imagejpeg($source,$file,$bigtree["config"]["image_quality"]);
+					imagedestroy($source);
+	
+					// If they originally uploaded a JPG we rotated into a PNG, we don't want to change the desired filename, but if they uploaded a PNG the new file should be JPG
+					if (strtolower(substr($name,-3,3)) == "png") {
+						$name = substr($name,0,-3)."jpg";
+					}
+				}
+			}
+
+			return $name;
 		}
 		
 		/*
@@ -153,6 +184,10 @@
 				$this->DisabledFileError = true;
 				return false;
 			}
+
+			// If we're auto converting images to JPG from PNG
+			$file_name = $this->convertJPEG($local_file,$file_name);
+
 			if ($this->Service == "local") {
 				if (!$relative_path) {
 					$relative_path = "files/";
@@ -312,6 +347,10 @@
 				$this->DisabledFileError = true;
 				return false;
 			}
+
+			// If we're auto converting images to JPG from PNG
+			$file_name = $this->convertJPEG($local_file,$file_name);
+
 			if ($this->Service == "local") {
 				if (!$relative_path) {
 					$relative_path = "files/";

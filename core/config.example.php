@@ -75,8 +75,9 @@
 	$bigtree["config"]["routing"] = "[routing]";
 	
 	// Default Image Quality Presets
-	$bigtree["config"]["image_quality"] = 90;
-	$bigtree["config"]["retina_image_quality"] = 25;
+	$bigtree["config"]["image_quality"] = 90; // 1-100, size increases dramatically after 90
+	$bigtree["config"]["retina_image_quality"] = 25; // 1-100, size increases dramatically after 90
+	$bigtree["config"]["image_force_jpeg"] = false; // Set to true to make images uploaded as PNG save as JPG
 	
 	// Encryption key for encrypted settings
 	$bigtree["config"]["settings_key"] = "[settings_key]";
