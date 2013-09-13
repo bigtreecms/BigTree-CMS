@@ -342,9 +342,10 @@
 				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($cache_location).".page");
 				header("Content-Type: text/html");
 				die();
-			// Fall back on file_get_contents otherwise.
+			// Fall back on readfile otherwise.
 			} else {
-				die(file_get_contents($file));
+				readfile($file);
+				die();
 			}
 		}
 	}
