@@ -1,6 +1,7 @@
 $(document).ready(function() {
-
 	BigTreeCustomControls();
+	BigTreePageLoadHooks();
+	BigTreeQuickLoader.init();
 	
 	// !BigTree Quick Search
 	$('nav.main form .qs_query').keyup(function(ev) {
@@ -22,40 +23,6 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	// !BigTree Link Finder
-	$("#link_finder").keyup(function() {
-		q = $(this).val();
-		if (q == "") {
-			$("#link_finder_results").hide().html("");
-		} else {
-			$("#link_finder_results").load("admin_root/ajax/link-finder/", { query: q }, function() {
-				$("#link_finder_results").show().children("a").click(function() { return false; });
-			});
-		}
-	});
-	
-	// !BigTree Sticky Controls
-	BigTree.stickyControls = $(".sticky_controls");
-	if (BigTree.stickyControls.length) {
-		BigTree.stickyControlsTop = BigTree.stickyControls.offset().top;
-		
-		if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
-			BigTree.stickyControlsStuck = true;
-			BigTree.stickyControls.addClass("stuck");
-		}
-		
-		$(window).scroll(function() {
-			if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
-				BigTree.stickyControlsStuck = true;
-				BigTree.stickyControls.addClass("stuck");
-			}
-			if (window.scrollY < BigTree.stickyControlsTop && BigTree.stickyControlsStuck) {
-				BigTree.stickyControlsStuck = false;
-				BigTree.stickyControls.removeClass("stuck");
-			}
-		});
-	}
-	
 	// Stop the end of breadcrumbs
 	$(".breadcrumb a").click(function() {
 		if ($(this).attr("href") == "#") {
@@ -69,51 +36,6 @@ $(document).ready(function() {
 
 		return false;
 	});
-	
-	// Property Block Hide/Show
-	$("h3.properties").click(function() {
-		if ($(this).find(".icon_small").hasClass("icon_small_caret_right")) {
-			// Set a cookie to keep it open next time.
-			$.cookie("bigtree_default_properties_open","1", { expires: 365, path: "/" });
-		} else {
-			$.cookie("bigtree_default_properties_open","0", { path: "/" });
-		}
-		$(this).find(".icon_small").toggleClass("icon_small_caret_right").toggleClass("icon_small_caret_down");
-		$(".property_block").toggle().next().toggle();
-		return false;
-	});
-	
-	// Tooltips
-	$(".has_tooltip").each(function() {
-		width = BigTree.WindowWidth();
-		offset = $(this).offset();
-		if (offset.left > (width / 2)) {
-			position = "left";
-		} else {
-			position = "right";
-		}
-		new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
-	});
-
-	// Image views
-	$(".image_list img").load(function() {
-		w = $(this).width();
-		h = $(this).height();
-		if (w > h) {
-			perc = 108 / w;
-			h = perc * h;
-			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
-		} else {
-			style = { margin: "0px" };
-		}
-		
-		$(this).css(style);
-	});
-
-	BigTree.FormHooks(".container form");
-
-	// Quick Loader
-	BigTreeQuickLoader.init();
 });
 
 function BigTreeCustomControls(selector) {
@@ -182,6 +104,84 @@ function BigTreeCustomControls(selector) {
 			}
 		});
 	}
+}
+
+function BigTreePageLoadHooks() {
+	// !BigTree Link Finder
+	$("#link_finder").keyup(function() {
+		q = $(this).val();
+		if (q == "") {
+			$("#link_finder_results").hide().html("");
+		} else {
+			$("#link_finder_results").load("admin_root/ajax/link-finder/", { query: q }, function() {
+				$("#link_finder_results").show().children("a").click(function() { return false; });
+			});
+		}
+	});
+	
+	// !BigTree Sticky Controls
+	BigTree.stickyControls = $(".sticky_controls");
+	if (BigTree.stickyControls.length) {
+		BigTree.stickyControlsTop = BigTree.stickyControls.offset().top;
+		
+		if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
+			BigTree.stickyControlsStuck = true;
+			BigTree.stickyControls.addClass("stuck");
+		}
+		
+		$(window).scroll(function() {
+			if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
+				BigTree.stickyControlsStuck = true;
+				BigTree.stickyControls.addClass("stuck");
+			}
+			if (window.scrollY < BigTree.stickyControlsTop && BigTree.stickyControlsStuck) {
+				BigTree.stickyControlsStuck = false;
+				BigTree.stickyControls.removeClass("stuck");
+			}
+		});
+	}
+
+	// Property Block Hide/Show
+	$("h3.properties").click(function() {
+		if ($(this).find(".icon_small").hasClass("icon_small_caret_right")) {
+			// Set a cookie to keep it open next time.
+			$.cookie("bigtree_default_properties_open","1", { expires: 365, path: "/" });
+		} else {
+			$.cookie("bigtree_default_properties_open","0", { path: "/" });
+		}
+		$(this).find(".icon_small").toggleClass("icon_small_caret_right").toggleClass("icon_small_caret_down");
+		$(".property_block").toggle().next().toggle();
+		return false;
+	});
+	
+	// Tooltips
+	$(".has_tooltip").each(function() {
+		width = BigTree.WindowWidth();
+		offset = $(this).offset();
+		if (offset.left > (width / 2)) {
+			position = "left";
+		} else {
+			position = "right";
+		}
+		new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
+	});
+
+	// Image views
+	$(".image_list img").load(function() {
+		w = $(this).width();
+		h = $(this).height();
+		if (w > h) {
+			perc = 108 / w;
+			h = perc * h;
+			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
+		} else {
+			style = { margin: "0px" };
+		}
+		
+		$(this).css(style);
+	});
+
+	BigTree.FormHooks(".container form");
 }
 
 // !BigTreeCheckbox Class
@@ -2586,6 +2586,7 @@ var BigTreeQuickLoader = {
 		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
 
 		BigTreeCustomControls();
+		BigTreePageLoadHooks();
 		
 		// Push new states to the stack
 		if (push) {
