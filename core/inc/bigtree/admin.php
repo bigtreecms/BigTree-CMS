@@ -238,6 +238,13 @@
 			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
 			$this->ReservedTLRoutes[] = $ar[0];
 			unset($ar);
+
+			// Check for Per Page value
+			$pp = $this->getSetting("bigtree-internal-per-page");
+			$v = intval($pp["value"]);
+			if ($v) {
+				$this->PerPage = $v;
+			}
 		}
 
 		/*

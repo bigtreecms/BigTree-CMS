@@ -777,6 +777,9 @@
 		
 		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false, $module = false) {
 			global $last_query,$admin;
+			if (!$admin) {
+				$admin = new BigTreeAdmin;
+			}
 
 			// We're going to read the original table so we know whether the column we're sorting by is numeric.
 			$tableInfo = BigTree::describeTable($view["table"]);
@@ -806,7 +809,7 @@
 				}
 			}
 			
-			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : 15;
+			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : $admin->PerPage;
 			$pages = ceil(sqlrows(sqlquery($query)) / $per_page);
 			$pages = ($pages > 0) ? $pages : 1;
 			$results = array();
