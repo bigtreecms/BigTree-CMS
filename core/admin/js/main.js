@@ -2509,6 +2509,14 @@ var BigTreeQuickLoader = {
 		e.preventDefault();
 		e.stopPropagation();
 		
+		// Some timers might be running
+		if (BigTree.localLockTimer) {
+			clearInterval(BigTree.localLockTimer);
+		}
+		if (BigTree.localTimer) {
+			clearInterval(BigTree.localTimer);
+		}
+
 		BigTreeQuickLoader.request(link.href);
 	},
 
@@ -2540,19 +2548,14 @@ var BigTreeQuickLoader = {
 			}
 		}
 
-		// Remove all scripts that aren't in this new found awesome-sauce
+		// Load new scripts
 		scripts_to_load = data.scripts;
 		if (scripts_to_load) {
 			$("head > script").each(function() {
 				src = $(this).attr("src");
-				if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
-					// If we already have it included, don't reload it
-					if (data.scripts.indexOf(src) > -1) {
-						scripts_to_load[data.scripts.indexOf(src)] = null;
-					// If it's not in our new list of scripts, remove it from the page
-					} else {
-						$(this).remove();
-					}
+				// If we already have it included, don't reload it
+				if (data.scripts.indexOf(src) > -1) {
+					scripts_to_load[data.scripts.indexOf(src)] = null;
 				}
 			});
 			for (i = 0; i < scripts_to_load.length; i++) {
@@ -2562,19 +2565,15 @@ var BigTreeQuickLoader = {
 				}
 			}
 		}
-		// Remove all CSS that isn't in this new found awesome-sauce
+
+		// Load new CSS
 		css_to_load = data.css;
 		if (css_to_load) {
 			$("head > link[rel=stylesheet]").each(function() {
 				src = $(this).attr("href");
-				if (src != "admin_root/css/main.css") {
-					// If we already have it included, don't reload it
-					if (data.css.indexOf(src) > -1) {
-						css_to_load[data.css.indexOf(src)] = null;
-					// If it's not in our new list of css, remove it from the page
-					} else {
-						$(this).remove();
-					}
+				// If we already have it included, don't reload it
+				if (data.css.indexOf(src) > -1) {
+					css_to_load[data.css.indexOf(src)] = null;
 				}
 			});
 			for (i = 0; i < css_to_load.length; i++) {

@@ -93,7 +93,7 @@ var BigTreePages = {
 		BigTreeTagAdder.init("bigtree_tag_browser");
 		
 		// Watch for changes in the template, update the Content tab.
-		checkTimer = setInterval(BigTreePages.CheckTemplate,500);
+		BigTree.localTimer = setInterval(BigTreePages.CheckTemplate,500);
 		
 		$(".save_and_preview").click(function() {
 			sform = $(this).parents("form");
