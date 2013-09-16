@@ -25,7 +25,7 @@
 			}
 		?>
 		<span class="view_status">Status</span>
-		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;">Actions</span>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><? if (count($view["actions"]) > 1) { ?>Actions<? } ?></span>
 	</header>
 </div>
 <form method="post" action="<?=$developer_root?>modules/views/update-style/<?=$view["id"]?>/" class="module">

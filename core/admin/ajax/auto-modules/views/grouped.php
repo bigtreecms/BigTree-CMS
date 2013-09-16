@@ -52,7 +52,7 @@
 		}
 	?>
 	<span class="view_status">Status</span>
-	<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;">Actions</span>
+	<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;"><? if (count($view["actions"]) > 1) { ?>Actions<? } ?></span>
 </header>
 <?	
 	$gc = 0;
