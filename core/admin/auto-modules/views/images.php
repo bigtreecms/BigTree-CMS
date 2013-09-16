@@ -62,6 +62,7 @@
 									$link = "#".$item["id"];
 								}
 								
+								$action = ucwords($action);
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
@@ -69,9 +70,10 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
+									$action = htmlspecialchars(htmlspecialchars_decode($data["name"]));
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
 				<?
 							}
 						}
@@ -114,6 +116,7 @@
 								}
 								$link = "#".$item["id"];
 								
+								$action = ucwords($action);
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
@@ -121,6 +124,7 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
+									$action = htmlspecialchars(htmlspecialchars_decode($data["name"]));
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>"></a>

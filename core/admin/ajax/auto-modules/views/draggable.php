@@ -86,7 +86,7 @@
 					$link = "#".$item["id"];
 				}
 	?>
-	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
+	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=ucwords($action)?>"></a></section>
 	<?
 			} else {
 				$data = json_decode($data,true);
@@ -95,7 +95,7 @@
 					$link = call_user_func($data["function"],$item);
 				}
 	?>
-	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
+	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=htmlspecialchars(htmlspecialchars_decode($data["name"]))?>"></a></section>
 	<?
 			}
 		}

@@ -123,7 +123,7 @@
 						$link = "#".$item["id"];
 					}
 		?>
-		<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
+		<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=ucwords($action)?>"></a></section>
 		<?
 				} else {
 					$data = json_decode($data,true);
@@ -131,8 +131,9 @@
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);
 					}
+					$action = htmlspecialchars(htmlspecialchars_decode($data["name"]));
 		?>
-		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
+		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action?>"></a></section>
 		<?
 				}
 			}
