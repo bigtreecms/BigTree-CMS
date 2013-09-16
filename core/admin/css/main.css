@@ -349,10 +349,12 @@
 
 /* Sub Navigation */
 	nav.sub  { background: #DADADA url(../images/row-bg-sprite.png) repeat-x 0px -337px; border: 1px solid #CCC; border-radius: 3px; display: block; height: 30px; margin: 0 0 20px 0; overflow: hidden; user-select: none; }
-	nav.sub a { border-right: 1px solid #CCC; color: #555; float: left; font-size: 13px; height: 30px; line-height: 31px; padding: 0 15px 0 13px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); }
+	nav.sub a { border-right: 1px solid #CCC; color: #555; float: left; font-size: 13px; height: 30px; line-height: 31px; padding: 0 15px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); }
 	nav.sub a:hover { background: #E8E8E8 url(../images/row-bg-sprite.png) repeat-x 0px -337px; color: #333; }
 	nav.sub a.active { background: #EEE url(../images/row-bg-sprite.png) repeat-x 0px -337px; color: #333; }
 	nav.sub span { float: left; margin: 7px 6px 6px 0; }
+	nav.sub .developer { border-left: 1px solid #CCC; border-right: none; float: right; padding: 0 8px; }
+	nav.sub .developer span { margin: 3px 0 0 0; }
 
 /* Main Content Area */
 	.body { background: #ededed url(../images/bg.png); min-width: 960px; }

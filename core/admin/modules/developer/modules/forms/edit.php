@@ -31,6 +31,9 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=$section_root?>update/<?=$form["id"]?>/" class="module">
+		<? if ($_GET["return"] == "front") { ?>
+		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
+		<? } ?>
 		<section>
 			<div class="left last">
 				<fieldset>

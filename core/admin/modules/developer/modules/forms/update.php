@@ -14,5 +14,10 @@
 	$action = $admin->getModuleActionForForm(end($bigtree["path"]));
 
 	$admin->growl("Developer","Updated Module Form");
-	BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
+
+	if ($_POST["return_page"]) {
+		BigTree::redirect($_POST["return_page"]);
+	} else {
+		BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+	}
 ?>

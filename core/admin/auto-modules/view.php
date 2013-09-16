@@ -1,16 +1,19 @@
 <?
-	$view = BigTreeAutoModule::getView($bigtree["module_action"]["view"]);
+	$bigtree["view"] = $view = BigTreeAutoModule::getView($bigtree["module_action"]["view"]);
+
+	// Provide developers a nice handy link for edit/return of this form
+	$bigtree["developer_nav_link"] = ADMIN_ROOT."developer/modules/views/edit/".$bigtree["view"]["id"]."/?return=front";
 	
 	// Setup the preview action if we have a preview URL and field.
-	if ($view["preview_url"]) {
-		$view["actions"]["preview"] = "on";
+	if ($bigtree["view"]["preview_url"]) {
+		$bigtree["view"]["actions"]["preview"] = "on";
 	}
 
-	if ($view["description"] && !$_COOKIE["bigtree_admin"]["ignore_view_description"][$view["id"]]) {
+	if ($bigtree["view"]["description"] && !$_COOKIE["bigtree_admin"]["ignore_view_description"][$bigtree["view"]["id"]]) {
 ?>
 <section class="inset_block">
-	<span class="hide" data-id="<?=$view["id"]?>">x</span>
-	<p><?=$view["description"]?></p>
+	<span class="hide" data-id="<?=$bigtree["view"]["id"]?>">x</span>
+	<p><?=$bigtree["view"]["description"]?></p>
 </section>
 <?
 	}
@@ -23,5 +26,5 @@
 		"featured" => "Featured"
 	);
 	
-	include BigTree::path("admin/auto-modules/views/".$view["type"].".php");
+	include BigTree::path("admin/auto-modules/views/".$bigtree["view"]["type"].".php");
 ?>

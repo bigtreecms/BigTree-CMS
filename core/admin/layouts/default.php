@@ -161,6 +161,12 @@
 		<?
 				}
 			}
+
+			if ($bigtree["developer_nav_link"] && $admin->Level > 1) {
+		?>
+		<a href="<?=$bigtree["developer_nav_link"]?>" class="developer" title="Edit in Developer"><span class="icon_settings"></span></a>
+		<?
+			}
 		?>
 	</nav>
 	<?

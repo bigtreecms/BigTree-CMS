@@ -87,6 +87,11 @@
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");
 		BigTreeAutoModule::clearCache(end($bigtree["path"]));
-		BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
+
+		if ($_POST["return_page"]) {
+			BigTree::redirect($_POST["return_page"]);
+		} else {
+			BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
+		}
 	}
 ?>
