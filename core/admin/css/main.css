@@ -383,6 +383,7 @@
 	.container header h2 { float: left; font-size: 22px; line-height: 45px; margin: 0; padding: 1px 15px 0px 15px; }
 	.container header .back { background: #EEE; border-radius: 15px; box-shadow: 0px 1px 1px #AAA; color: #333; float: right; font-size: 12px; margin: 9px 10px 0 0; padding: 7px 15px; transition: background-color 0.2s; }
 	.container header .back:hover { background: #F6F6F6; }
+	.container summary h2 { line-height: 37px; margin: 0; }
 	.container nav { overflow: hidden; padding: 13px 0 0 15px; user-select: none; width: 928px; }
 	.container nav.left { float: left; width: auto; }
 	.container nav a { background: #ddd; border: 1px solid #D4D4D4; border-radius: 3px 3px 0 0; border-top-color: #B9B9B9; border-width: 1px 1px 0 1px; color: #737373; display: block; float: left; line-height: 31px; margin: 0 5px 0 0; padding: 0 20px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
