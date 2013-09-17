@@ -30,7 +30,7 @@
 		
 		// Generate the recipient names from the parent if we're replying to all, otherwise, just use the sender.
 		$send_to = array();
-		if (isset($reply_all)) {
+		if (isset($reply_all) || $parent["sender"] == $admin->ID) {
 			$p_recipients = explode("|",trim($parent["recipients"],"|"));
 			$p_recipients[] = $parent["sender"];
 			foreach ($p_recipients as $r) {
