@@ -675,15 +675,16 @@
 				Returns a page along with its resources and callouts decoded.
 			
 			Parameters:
-				child - The ID of the page.
+				id - The ID of the page.
 				decode - Whether to decode resources and callouts or not (setting to false saves processing time)
 			
 			Returns:
 				A page array from the database.
 		*/
 		
-		function getPage($child,$decode = true) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$child'"));
+		function getPage($id,$decode = true) {
+			$id = sqlescape($id);
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$id'"));
 			if (!$f) {
 				return false;
 			}
@@ -702,7 +703,7 @@
 				Returns a page along with pending changes applied.
 			
 			Parameters:
-				child - The ID of the page.
+				id - The ID of the page.
 				decode - Whether to decode resources and callouts or not (setting to false saves processing time, defaults true).
 				return_tags - Whether to return tags for the page (defaults false).
 			
