@@ -282,7 +282,6 @@
 	// So we don't lose this.
 	define("BIGTREE_PREVIEWING",$bigtree["preview"]);
 	
-	
 	if ($bigtree["path"][0] == "feeds") {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$route = $bigtree["path"][1];

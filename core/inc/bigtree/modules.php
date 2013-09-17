@@ -306,6 +306,52 @@
 			return $this->getMatching("featured","on",$order,$limit);
 		}
 		
+		/*
+			Function: getInfo
+				Returns information about a given entry from the module.
+
+			Parameters:
+				entry - An entry from this module or an id
+
+			Returns:
+				An array of keyed information:
+					"created_at" - A datestamp of the created date/time
+					"updated_at" - A datestamp of the last updated date/time
+					"creator" - The original creator of this entry (the user's ID)
+					"last_updated_by" - The last user to update this entry (the user's ID)
+					"status" - Whether this entry has pending changes "changed" or not "published"
+		*/
+
+		function getInfo($entry) {
+			$info = array();
+			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
+			if (is_array($entry)) {
+				$entry = sqlescape($entry["id"]);
+			} else {
+				$entry = sqlescape($entry);
+			}
+
+			$created = sqlfetch(sqlquery($base." AND type = 'created'"));
+			if ($created) {
+				$info["created_at"] = $created["date"];
+				$info["creator"] = $created["user"];
+			}
+
+			$updated = sqlfetch(sqlquery($base." AND type = 'updated' ORDER BY date DESC LIMIT 1"));
+			if ($updated) {
+				$info["updated_at"] = $updated["date"];
+				$info["last_updated_by"] = $updated["user"];
+			}
+			
+			$changed = sqlfetch(sqlquery($base." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1"));
+			if ($changed && strtotime($changed) > strtotime($info["updated_at"])) {
+				$info["status"] = "changed";
+			} else {
+				$info["status"] = "published";
+			}
+
+			return $info;
+		}
 		
 		/*
 			Function: getMatching
