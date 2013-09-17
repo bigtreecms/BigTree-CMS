@@ -289,7 +289,7 @@
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
 			header("Content-type: text/xml");
-			echo '<?xml version="1.0"?>';
+			echo '<?xml version="1.0" encoding="UTF-8" ?>';
 			include BigTree::path("feeds/".$feed["type"].".php");
 			die();
 		}
