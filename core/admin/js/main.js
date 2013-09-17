@@ -2474,23 +2474,27 @@ var BigTreeQuickLoader = {
 				css[css.length] = src;
 			}
 		});
-		
-		history.replaceState({
-			url: window.location.href,
-			data: {
-				"title": $("head").find("title").text(),
-				"breadcrumb": $("nav.breadcrumb").html(),
-				"page": $("#page").html(),
-				"active_nav": $("nav.main li").index(".active"),
-				"scripts": scripts,
-				"css": css
-			}
-		}, "state-" + window.location.href, window.location.href);
-		
-		$(window).on("popstate", this.pop);
-		$("body").on("click","a",this.click);
 
-		this.url = window.location.href;
+		pageData = $("#page").html();
+		// Big pages are going to fail when pushing states
+		try {
+			history.replaceState({
+				url: window.location.href,
+				data: {
+					"title": $("head").find("title").text(),
+					"breadcrumb": $("nav.breadcrumb").html(),
+					"page": $("#page").html(),
+					"active_nav": $("nav.main li").index(".active"),
+					"scripts": scripts,
+					"css": css
+				}
+			}, "state-" + window.location.href, window.location.href);
+			
+			$(window).on("popstate", this.pop);
+			$("body").on("click","a",this.click);
+	
+			this.url = window.location.href;
+		} catch (error) {}
 	},
 
 	click: function(e) {
@@ -2502,7 +2506,7 @@ var BigTreeQuickLoader = {
 			(link.hash && link.href.replace(link.hash, '') === window.location.href.replace(location.hash, '') || link.href === window.location.href + '#')) {
 			return;
 		}
-		if ($(link).hasClass("ignore_quick_loader")) {
+		if ($(link).hasClass("ignore_quick_loader") || $(link).attr("target")) {
 			return;
 		}
 		
@@ -2595,10 +2599,16 @@ var BigTreeQuickLoader = {
 		
 		// Push new states to the stack
 		if (push) {
-			history.pushState({
-				url: url,
-				data: data
-			}, "state-" + url, url);
+			try {
+				history.pushState({
+					url: url,
+					data: data
+				}, "state-" + url, url);
+			} catch (error) {
+				// This state was too big, so stop watching for pops and clicks
+				$(window).unbind("popstate", this.pop);
+				$("body").off("click","a",this.click);
+			}
 		}
 		
 		BigTreeQuickLoader.url = url;
