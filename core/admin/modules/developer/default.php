@@ -77,6 +77,10 @@
 			<span class="vitals"></span>
 			<p>Site Status</p>
 		</a>
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>audit/">
+			<span class="trail"></span>
+			<p>Audit Trail</p>
+		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>user-emulator/">
 			<span class="users"></span>
 			<p>User Emulator</p>

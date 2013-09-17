@@ -2,7 +2,7 @@
 	$bigtree["view"] = $view = BigTreeAutoModule::getView($bigtree["module_action"]["view"]);
 
 	// Provide developers a nice handy link for edit/return of this form
-	$bigtree["developer_nav_link"] = ADMIN_ROOT."developer/modules/views/edit/".$bigtree["view"]["id"]."/?return=front";
+	$bigtree["developer_nav_links"][] = array("url" => ADMIN_ROOT."developer/modules/views/edit/".$bigtree["view"]["id"]."/?return=front","class" => "icon_settings","title" => "Edit in Developer");
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {

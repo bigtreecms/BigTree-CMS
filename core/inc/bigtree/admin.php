@@ -5011,6 +5011,57 @@
 		}
 
 		/*
+			Function: searchAuditTrail
+				Searches the audit trail for a set of data.
+
+			Parameters:
+				user - User to restrict results to (optional)
+				table - Table to restrict results to (optional)
+				entry - Entry to restrict results to (optional)
+				start - Start date/time to restrict results to (optional)
+				end - End date/time to restrict results to (optional)
+			
+			Returns:
+				An array of adds/edits/deletions from the audit trail.
+		*/
+
+		function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
+			$users = $items = $where = array();
+			$query = "SELECT * FROM bigtree_audit_trail";
+
+			if ($user) {
+				$where[] = "user = '".sqlescape($user)."'";
+			}
+			if ($table) {
+				$where[] = "`table` = '".sqlescape($table)."'";
+			}
+			if ($entry) {
+				$where[] = "entry = '".sqlescape($entry)."'";
+			}
+			if ($start) {
+				$where[] = "`date` >= '".date("Y-m-d H:i:s",strtotime($start))."'";
+			}
+			if ($end) {
+				$where[] = "`date` <= '".date("Y-m-d H:i:s",strtotime($end))."'";
+			}
+			if (count($where)) {
+				$query .= " WHERE ".implode(" AND ",$where);
+			}
+
+			$q = sqlquery($query." ORDER BY `date` DESC");
+			while ($f = sqlfetch($q)) {
+				if (!$users[$f["user"]]) {
+					$u = $this->getUser($f["user"]);
+					$users[$f["user"]] = array("id" => $u["id"],"name" => $u["name"],"email" => $u["email"],"level" => $u["level"]);
+				}
+				$f["user"] = $users[$f["user"]];
+				$items[] = $f;
+			}
+
+			return $items;
+		}
+
+		/*
 			Function: searchPages
 				Searches for pages.
 

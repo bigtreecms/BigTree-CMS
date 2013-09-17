@@ -162,10 +162,12 @@
 				}
 			}
 
-			if ($bigtree["developer_nav_link"] && $admin->Level > 1) {
+			if (is_array($bigtree["developer_nav_links"]) && $admin->Level > 1) {
+				foreach ($bigtree["developer_nav_links"] as $link) {
 		?>
-		<a href="<?=$bigtree["developer_nav_link"]?>" class="developer" title="Edit in Developer"><span class="icon_settings"></span></a>
+		<a href="<?=$link["url"]?>" class="developer" title="<?=$link["title"]?>"><span class="<?=$link["class"]?>"></span></a>
 		<?
+				}
 			}
 		?>
 	</nav>
