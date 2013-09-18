@@ -16,7 +16,7 @@
 		$table_description = BigTree::describeTable($table);
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$reserved) && !in_array($column,$used)) {
-				$unused[] = array("field" => $column, "title" => ucwords(str_replace("_"," ",$column)));
+				$unused[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
 			}
 			if ($column == "position") {
 				$positioned = true;
@@ -45,8 +45,7 @@
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
 				$type = "text";
-				$title = ucwords(str_replace(array("-","_")," ",$column["name"]));
-				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),$title);
+				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
 				$options = array();
 				
 				if (strpos($title,"URL") !== false) {

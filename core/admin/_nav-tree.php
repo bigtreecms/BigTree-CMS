@@ -66,7 +66,9 @@
 				array("title" => "Edit Form","link" => "developer/modules/forms/edit","hidden" => true),
 				array("title" => "Created Form","link" => "developer/modules/forms/create","hidden" => true),
 				array("title" => "Add Action","link" => "developer/modules/actions/add","hidden" => true),
-				array("title" => "Edit Action","link" => "developer/modules/actions/edit","hidden" => true)
+				array("title" => "Edit Action","link" => "developer/modules/actions/edit","hidden" => true),
+				array("title" => "Add Report","link" => "developer/modules/reports/add","hidden" => true),
+				array("title" => "Edit Report","link" => "developer/modules/reports/edit","hidden" => true)
 			)),
 			array("title" => "Callouts","link" => "developer/callouts","icon" => "callouts","hidden" => true,"children" => array(
 				array("title" => "View Callouts","link" => "developer/callouts","nav_icon" => "list"),

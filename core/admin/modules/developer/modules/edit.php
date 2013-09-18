@@ -32,7 +32,7 @@
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
 		<section>
 			<div class="left">
 				<fieldset>
@@ -135,7 +135,7 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
 		<h2>Module Views</h2>
 	</summary>
 	<header>
@@ -148,13 +148,13 @@
 			<section class="developer_view_name">View <?=$view["title"]?></section>
 			<section class="view_action">
 				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
-				<a href="<?=$developer_root?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
 				<? } else { ?>
 				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
 				<? } ?>
 			</section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -162,7 +162,7 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
 		<h2>Module Forms</h2>
 	</summary>
 	<header>
@@ -173,8 +173,8 @@
 		<? foreach ($forms as $form) { ?>
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -182,7 +182,27 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=$developer_root?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/reports/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<h2>Module Reports</h2>
+	</summary>
+	<header>
+		<span class="developer_templates_name">Report Name</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
+	</header>
+	<ul id="module_forms">
+		<? foreach ($reports as $report) { ?>
+		<li>
+			<section class="developer_templates_name"><?=$report["title"]?></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+</div>
+
+<div class="table">
+	<summary>
+		<a href="<?=DEVELOPER_ROOT?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
 		<h2>Module Actions</h2>
 	</summary>
 	<header>
@@ -196,8 +216,8 @@
 		<? foreach ($actions_in_nav as $action) { ?>
 		<li id="row_<?=$action["id"]?>">
 			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -209,8 +229,8 @@
 		<? foreach ($actions_not_in_nav as $action) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$action["name"]?></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=$developer_root?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
