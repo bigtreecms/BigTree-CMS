@@ -997,6 +997,15 @@
 	.developer .form_table .developer_view_parser { padding: 0 0 0 10px; text-align: left; width: 480px; }
 	.developer .form_table .developer_view_parser input { width: 458px; }
 
+	.developer .form_table .developer_report_field_title { padding: 0 0 0 10px; text-align: left; width: 846px; }
+	.developer .form_table .developer_report_field_title input { width: 807px; }
+	.developer .form_table .developer_report_filter_title { padding: 0 0 0 10px; text-align: left; width: 646px; }
+	.developer .form_table .developer_report_filter_title input { width: 607px; }
+	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
+	.developer .form_table .developer_report_filter_type .select span { width: 134px !important; }
+	.developer .form_table .developer_report_filter_type .select .select_options { width: 188px !important; }
+	.developer .form_table .developer_report_action { padding: 9px 0 0 0; width: 40px; }
+
 	.developer form .right textarea, .developer form .left textarea { height: 135px; }
 
 	fieldset.developer_module_group input { float: left; width: 410px; }
@@ -1205,7 +1214,7 @@
 	.icon_approve_on { background: url(../images/icon-sprite.png); background-position: -360px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_feature { background: url(../images/icon-sprite.png); background-position: -384px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_feature_on { background: url(../images/icon-sprite.png); background-position: -408px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_sort { background: url(../images/icon-sprite.png); background-position: -432px -80px; cursor: move; display: block; float: left; height: 24px; margin: 5px 0 0 -7px; width: 24px; }
+	.icon_sort { background: url(../images/icon-sprite.png); background-position: -432px -80px; cursor: move; display: block; float: left; height: 24px; margin: 9px 0 0 -7px; width: 24px; }
 	.icon_settings { background: url(../images/icon-sprite.png); background-position: -456px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_settings.centered { margin-top: 4px; }
 	.icon_images, .icon_dialog_caption { background: url(../images/icon-sprite.png); background-position: -480px -80px; display: inline-block; height: 24px; width: 24px; }
