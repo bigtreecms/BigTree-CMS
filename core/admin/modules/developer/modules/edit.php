@@ -136,7 +136,7 @@
 <div class="table">
 	<summary>
 		<a href="<?=$developer_root?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Views <small><?=$module["name"]?></small></h2>
+		<h2>Module Views</h2>
 	</summary>
 	<header>
 		<span class="developer_view_name">View Name</span>
@@ -163,7 +163,7 @@
 <div class="table">
 	<summary>
 		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Forms <small><?=$module["name"]?></small></h2>
+		<h2>Module Forms</h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Form Name</span>
@@ -183,7 +183,7 @@
 <div class="table">
 	<summary>
 		<a href="<?=$developer_root?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
-		<h2>Module Actions <small><?=$module["name"]?></small></h2>
+		<h2>Module Actions</h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Action</span>
