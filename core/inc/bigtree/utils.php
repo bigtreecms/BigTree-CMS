@@ -1651,7 +1651,7 @@
 				return $string;
 			}
 			if (strpos($string," ") === false && strlen(html_entity_decode(strip_tags($string))) > $length) {
-				return substr($string,0,$length)."…";
+				return substr($string,0,$length)."&hellip;";
 			}
 			$x = 0;
 			$z = 0;
@@ -1719,7 +1719,7 @@
 				$ns .= substr($string,$x,1);
 				$x++;
 			}
-			$ns.= "…";
+			$ns.= "&hellip;";
 			$opentags = array_reverse($opentags);
 			foreach ($opentags as $key => $val) {
 				$ns .= "</".$val.">";
