@@ -23,7 +23,7 @@
 	<div class="triplets">
 		<fieldset>
 			<label>Form</label>
-			<select name="form"<? if ($item["view"]) { ?> disabled="disabled"<? } ?>>
+			<select name="form"<? if ($item["view"] || $item["report"]) { ?> disabled="disabled"<? } ?>>
 				<option value="">&mdash;</option>
 				<? foreach ($forms as $form) { ?>
 				<option value="<?=$form["id"]?>"<? if ($form["id"] == $item["form"]) { ?> selected="selected"<? } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
@@ -32,7 +32,7 @@
 		</fieldset>
 		<fieldset>
 			<label>View</label>
-			<select name="view"<? if ($item["form"]) { ?> disabled="disabled"<? } ?>>
+			<select name="view"<? if ($item["form"] || $item["report"]) { ?> disabled="disabled"<? } ?>>
 				<option value="">&mdash;</option>
 				<? foreach ($views as $view) { ?>
 				<option value="<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>><?=$view["title"]?> (<?=$view["table"]?>)</option>
@@ -41,7 +41,7 @@
 		</fieldset>
 		<fieldset>
 			<label>Report</label>
-			<select name="report"<? if ($item["report"]) { ?> disabled="disabled"<? } ?>>
+			<select name="report"<? if ($item["view"] || $item["form"]) { ?> disabled="disabled"<? } ?>>
 				<option value="">&mdash;</option>
 				<? foreach ($reports as $report) { ?>
 				<option value="<?=$report["id"]?>"<? if ($report["id"] == $item["report"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
@@ -70,15 +70,28 @@
 	$("select[name=form]").change(function() {
 		if ($(this).val()) {
 			$("select[name=view]").get(0).customControl.disable();
+			$("select[name=report]").get(0).customControl.disable();
 		} else {
 			$("select[name=view]").get(0).customControl.enable();
+			$("select[name=report]").get(0).customControl.enable();
 		}
 	});
 	$("select[name=view]").change(function() {
 		if ($(this).val()) {
 			$("select[name=form]").get(0).customControl.disable();
+			$("select[name=report]").get(0).customControl.disable();
 		} else {
 			$("select[name=form]").get(0).customControl.enable();
+			$("select[name=report]").get(0).customControl.enable();
+		}
+	});
+	$("select[name=report]").change(function() {
+		if ($(this).val()) {
+			$("select[name=form]").get(0).customControl.disable();
+			$("select[name=view]").get(0).customControl.disable();
+		} else {
+			$("select[name=form]").get(0).customControl.enable();
+			$("select[name=view]").get(0).customControl.enable();
 		}
 	});
 </script>
