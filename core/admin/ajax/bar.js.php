@@ -58,7 +58,7 @@ var BigTreeBar = {
 		<? if ($permission) { ?>
 		bigtree_bar_html += '<a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/?return=front">Edit in BigTree</a>';
 		<? } ?>
-		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags($_GET["username"]))?></span>';
+		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"])))?></span>';
 		<? if ($_GET["previewing"]) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
 		<? } ?>
