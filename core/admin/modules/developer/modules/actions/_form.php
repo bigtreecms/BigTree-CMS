@@ -1,6 +1,7 @@
 <?
 	$forms = $admin->getModuleForms();
 	$views = $admin->getModuleViews();
+	$reports = $admin->getModuleReports();
 ?>
 <section>
 	<fieldset>
@@ -11,15 +12,15 @@
 		<label>Route</label>
 		<input type="text" name="route" value="<?=$item["route"]?>" />
 	</fieldset>
+	<fieldset class="last">
+		<label>Access Level</label>
+		<select name="level">
+			<option value="0">Normal User</option>
+			<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
+			<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
+		</select>
+	</fieldset>
 	<div class="triplets">
-		<fieldset>
-			<label>Access Level</label>
-			<select name="level">
-				<option value="0">Normal User</option>
-				<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-				<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
-			</select>
-		</fieldset>
 		<fieldset>
 			<label>Form</label>
 			<select name="form"<? if ($item["view"]) { ?> disabled="disabled"<? } ?>>
@@ -35,6 +36,15 @@
 				<option value="">&mdash;</option>
 				<? foreach ($views as $view) { ?>
 				<option value="<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>><?=$view["title"]?> (<?=$view["table"]?>)</option>
+				<? } ?>
+			</select>
+		</fieldset>
+		<fieldset>
+			<label>Report</label>
+			<select name="report"<? if ($item["report"]) { ?> disabled="disabled"<? } ?>>
+				<option value="">&mdash;</option>
+				<? foreach ($reports as $report) { ?>
+				<option value="<?=$report["id"]?>"<? if ($report["id"] == $item["report"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
 				<? } ?>
 			</select>
 		</fieldset>

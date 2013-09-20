@@ -357,7 +357,7 @@
 			$bigtree["commands"] = $route_response["commands"];
 		}
 
-		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
+		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"] || $bigtree["module_action"]["report"])) {
 			if ($bigtree["module_action"]["form"]) {
 				// If the last command is numeric then we're editing something.
 				if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
@@ -367,8 +367,10 @@
 					$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 				}
 				include BigTree::path("admin/auto-modules/form.php");
-			} else {
+			} elseif ($bigtree["module_action"]["view"]) {
 				include BigTree::path("admin/auto-modules/view.php");
+			} elseif ($bigtree["module_action"]["report"]) {
+				include BigTree::path("admin/auto-modules/report.php");
 			}
 		} elseif ($inc) {
 			// Setup the commands array.

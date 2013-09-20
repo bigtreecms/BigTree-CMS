@@ -144,9 +144,9 @@
 		key = el.field;
 		
 		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_resource_field_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + ']" value="' + title + '" /></section><section class="view_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+		li.html('<section class="developer_report_field_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + ']" value="' + title + '" /></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 		
-		$("#field_table").append(li);
+		$("#field_table ul").append(li);
 		fs.removeCurrent();
 		BigTree.localHooks();
 	});
@@ -156,9 +156,9 @@
 		key = el.field;
 		
 		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><? foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select></section><section class="view_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+		li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><? foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 		
-		$("#filter_table").append(li);
+		$("#filter_table ul").append(li);
 		fs.removeCurrent();
 		BigTree.localHooks();
 	});

@@ -1141,6 +1141,48 @@
 		}
 
 		/*
+			Function: createModuleReport
+				Creates a module report and the associated module action.
+
+			Parameters:
+				module - The module ID this report is for.
+				title - The title of the report.
+				table - The table for the report data.
+				type - The type of report (csv or view).
+				filters - The filters a user can use to create the report.
+				fields - The fields to show in the CSV export (if type = csv).
+				parser - An optional parser function to run on the CSV export data (if type = csv).
+				view - A module view ID to use (if type = view).
+
+			Returns:
+				The route created for the module action.
+		*/
+
+		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+			$module = sqlescape($module);
+			$title = sqlescape(htmlspecialchars($title));
+			$table = sqlescape($table);
+			$type = sqlescape($type);
+			$filters = sqlescape(json_encode($filters));
+			$fields = sqlescape(json_encode($fields));
+			$parser - sqlescape($parser);
+			$callback = sqlescape($callback);
+			$view = $view ? "'".sqlescape($view)."'" : "NULL";
+			sqlquery("INSERT INTO bigtree_module_reports (`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$title','$table','$type','$filters','$fields','$parser',$view)");
+			$id = sqlid();
+
+			// Now generate an action
+			$x = 2;
+			$route = "report";
+			while ($f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"))) {
+				$route = "report-$x";
+				$x++;
+			}
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`report`,`class`) VALUES ('$module','$title','$route','on','$id','export')");
+			return $route;
+		}
+
+		/*
 			Function: createModuleView
 				Creates a module view.
 
@@ -3158,6 +3200,26 @@
 			}
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND in_nav = 'on' ORDER BY position DESC, id ASC");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
+		}
+
+		/*
+			Function: getModuleReports
+				Gets all module reports.
+
+			Parameters:
+				sort - The field to sort by.
+
+			Returns:
+				An array of entries from bigtree_module_reports.
+		*/
+
+		function getModuleReports($sort = "title") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_module_reports ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}

@@ -16,21 +16,22 @@
 		if (v == "csv") {
 			$("#data_parser_function").show();
 			$("#filtered_view").hide();
+			$("#field_table").show();
 		} else {
 			$("#data_parser_function").hide();
 			$("#filtered_view").show();
+			$("#field_table").hide();
 		}
 	});
 	
-	$("#field_area").on("click",".icon_delete",function() {
+	$("#field_area").on("click","#field_table .icon_delete",function() {
 		li = $(this).parents("li");
-		title = li.find("input").val();
-		if (title) {
-			key = $(this).attr("name");
-			if (key != "geocoding") {
-				fieldSelect.addField(key,title);
-			}
-		}
+		fieldSelect.addField($(this).attr("name"),li.find("input").val());
+		li.remove();
+		return false;
+	}).on("click","#filter_table .icon_delete",function() {
+		li = $(this).parents("li");
+		filterSelect.addField($(this).attr("name"),li.find("input").val());
 		li.remove();
 		return false;
 	});
