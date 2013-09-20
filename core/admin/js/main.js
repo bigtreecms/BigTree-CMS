@@ -431,6 +431,10 @@ var BigTreeSelect = Class.extend({
 	},
 
 	click: function() {
+		if (this.Container.hasClass("disabled")) {
+			return false;
+		}
+
 		if (!this.Open) {
 			$("select").not(this.Element).trigger("closeNow");
 			this.Element.focus();
@@ -517,7 +521,7 @@ var BigTreeSelect = Class.extend({
 	},
 
 	enable: function() {
-		this.Element.attr("disabled","");
+		this.Element.removeAttr("disabled");
 		this.Container.removeClass("disabled");
 	},
 
