@@ -1166,7 +1166,6 @@
 			$filters = sqlescape(json_encode($filters));
 			$fields = sqlescape(json_encode($fields));
 			$parser - sqlescape($parser);
-			$callback = sqlescape($callback);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("INSERT INTO bigtree_module_reports (`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$title','$table','$type','$filters','$fields','$parser',$view)");
 			$id = sqlid();
@@ -2988,6 +2987,26 @@
 				$form = sqlescape($form);
 			}
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form' ORDER BY route DESC"));
+		}
+
+		/*
+			Function: getModuleActionForReport
+				Returns the related module action for an auto module report.
+
+			Parameters:
+				report - The id of a report or a report entry.
+
+			Returns:
+				A module action entry.
+		*/
+
+		function getModuleActionForReport($report) {
+			if (is_array($report)) {
+				$report = sqlescape($report["id"]);
+			} else {
+				$report = sqlescape($report);
+			}
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE report = '$report'"));
 		}
 
 		/*
@@ -5963,6 +5982,33 @@
 			$route = sqlescape($route);
 
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route' WHERE id = '$id'");
+		}
+
+		/*
+			Function: updateModuleReport
+				Updates a module report.
+
+			Parameters:
+				id - The ID of the report to update.
+				title - The title of the report.
+				table - The table for the report data.
+				type - The type of report (csv or view).
+				filters - The filters a user can use to create the report.
+				fields - The fields to show in the CSV export (if type = csv).
+				parser - An optional parser function to run on the CSV export data (if type = csv).
+				view - A module view ID to use (if type = view).
+		*/
+
+		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+			$id = sqlescape($id);
+			$title = sqlescape(htmlspecialchars($title));
+			$table = sqlescape($table);
+			$type = sqlescape($type);
+			$filters = sqlescape(json_encode($filters));
+			$fields = sqlescape(json_encode($fields));
+			$parser - sqlescape($parser);
+			$view = $view ? "'".sqlescape($view)."'" : "NULL";
+			sqlquery("UPDATE bigtree_module_reports SET `title` = '$title', `table` = '$table', `type` = '$type', `filters` = '$filters', `fields` = '$fields', `parser` = '$parser', `view` = $view WHERE id = '$id'");
 		}
 
 		/*

@@ -16,7 +16,7 @@
 		$table_description = BigTree::describeTable($table);
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$reserved) && !in_array($column,$used)) {
-				$unused[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
+				$unused[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
 			}
 			if ($column == "position") {
 				$positioned = true;

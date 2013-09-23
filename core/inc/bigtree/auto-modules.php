@@ -758,6 +758,24 @@
 			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
 			return self::getView($f["id"]);
 		}
+
+		/*
+			Function: getReport
+				Returns a report with the filters and fields decoded.
+
+			Parameters:
+				id - The ID of the report
+
+			Returns:
+				An array of report information.
+		*/
+
+		static function getReport($id) {
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_reports WHERE id = '".sqlescape($id)."'"));
+			$f["fields"] = json_decode($f["fields"],true);
+			$f["filters"] = json_decode($f["filters"],true);
+			return $f;
+		}
 		
 		/*
 			Function: getSearchResults

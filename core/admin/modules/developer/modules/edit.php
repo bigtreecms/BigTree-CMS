@@ -5,6 +5,7 @@
 	$actions = $admin->getModuleActions($id);
 	$views = array();
 	$forms = array();
+	$reports = array();
 	$actions_in_nav = array();
 	$actions_not_in_nav = array();
 	foreach ($actions as $action) {
@@ -18,6 +19,12 @@
 			$form = BigTreeAutoModule::getForm($action["form"]);
 			if (!in_array($form,$forms)) {
 				$forms[] = $form;
+			}
+		}
+		if ($action["report"]) {
+			$report = BigTreeAutoModule::getReport($action["report"]);
+			if (!in_array($report,$reports)) {
+				$reports[] = $report;
 			}
 		}
 		if ($action["in_nav"]) {
