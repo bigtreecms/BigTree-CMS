@@ -998,9 +998,11 @@
 	.developer .form_table .developer_view_parser input { width: 458px; }
 
 	.developer .form_table .developer_report_field_title { padding: 0 0 0 10px; text-align: left; width: 846px; }
+	.developer .form_table .developer_report_field_title span { margin-top: 9px; }
 	.developer .form_table .developer_report_field_title input { width: 807px; }
 	.developer .form_table .developer_report_filter_title { padding: 0 0 0 10px; text-align: left; width: 646px; }
 	.developer .form_table .developer_report_filter_title input { width: 607px; }
+	.developer .form_table .developer_report_filter_title span { margin-top: 9px; }
 	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
 	.developer .form_table .developer_report_filter_type .select span { width: 134px !important; }
 	.developer .form_table .developer_report_filter_type .select .select_options { width: 188px !important; }
