@@ -12,8 +12,9 @@
 		var $ViewTypes = array(
 			"searchable" => "Searchable List",
 			"draggable" => "Draggable List",
-			"images" => "Image List",
+			"nested" => "Nested Draggable List",
 			"grouped" => "Grouped List",
+			"images" => "Image List",
 			"images-grouped" => "Grouped Image List"
 		);
 
