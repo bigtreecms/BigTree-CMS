@@ -17,14 +17,6 @@
 </section>
 <?
 	}
-
-	$action_names = array(
-		"approve" => "Approve/Deny",
-		"edit" => "Edit",
-		"delete" => "Delete",
-		"archive" => "Archive/Unarchive",
-		"featured" => "Featured"
-	);
 	
 	include BigTree::path("admin/auto-modules/views/".$bigtree["view"]["type"].".php");
 ?>
