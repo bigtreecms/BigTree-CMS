@@ -16,14 +16,22 @@
 
 <fieldset>
 	<label>Image Field</label>
+	<? if ($table) { ?>
 	<select name="image">
 		<? BigTree::getFieldSelectOptions($table,$image) ?>
 	</select>
+	<? } else { ?>
+	<input name="image" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
+	<? } ?>
 </fieldset>
 
 <fieldset>
 	<label>Sort By<small>(if not draggable)</small></label>
+	<? if ($table) { ?>
 	<select name="sort">
 		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
 	</select>
+	<? } else { ?>
+	<input name="sort" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
+	<? } ?>
 </fieldset>
