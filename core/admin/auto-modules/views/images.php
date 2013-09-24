@@ -1,6 +1,4 @@
 <?
-	$module_page = ADMIN_ROOT.$module["route"]."/";
-	
 	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
 		
 	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
@@ -99,7 +97,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
 					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
@@ -120,7 +118,7 @@
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
-									$link = $module_page.$data["route"]."/".$item["id"]."/";
+									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
