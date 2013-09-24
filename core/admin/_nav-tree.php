@@ -7,7 +7,7 @@
 				array("title" => "View Messages","link" => "dashboard/messages","icon" => "messages","nav_icon" => "list"),
 				array("title" => "New Message","link" => "dashboard/messages/new","icon" => "add_message","nav_icon" => "add")
 			)),
-			array("title" => "Vitals & Statistics","link" => "dashboard/vitals-statistics","icon" => "vitals","related" => true,"hidden" => true,"children" => array(
+			array("title" => "Vitals & Statistics","link" => "dashboard/vitals-statistics","icon" => "vitals","related" => true,"hidden" => true,"level" => 1,"children" => array(
 				array("title" => "Analytics","link" => "dashboard/vitals-statistics/analytics","hidden" => true,"icon" => "analytics","children" => array(
 					array("title" => "Statistics","link" => "dashboard/vitals-statistics/analytics","nav_icon" => "bar_graph"),
 					array("title" => "Service Providers","link" => "dashboard/vitals-statistics/analytics/service-providers","nav_icon" => "network"),
