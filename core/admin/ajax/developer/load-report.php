@@ -2,7 +2,6 @@
 	$filter_types = array(
 		"search" => "Simple Search",
 		"dropdown" => "Dropdown Select",
-		"search-dropdown" => "Search &amp; Dropdown",
 		"boolean" => "Yes/No/Both Select",
 		"date-range" => "Date Range"
 	);

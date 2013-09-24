@@ -267,6 +267,26 @@
 		}
 		
 		/*
+			Function: changeExists
+				Checks to see if a change exists for a given item in the bigtree_pending_changes table.
+
+			Parameters:
+				table - The table the item is from.
+				id - The ID of the item.
+
+			Returns:
+				true or false
+		*/
+
+		static function changeExists($table,$id) {
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pending_changes WHERE `table` = '".sqlescape($table)."' AND item_id = '".sqlescape($id)."'"));
+			if ($f) {
+				return true;
+			}
+			return false;
+		}
+
+		/*
 			Function: clearCache
 				Clears the cache of a view or all views with a given table.
 			
@@ -726,6 +746,22 @@
 			}
 			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
 		}
+
+		/*
+			Function: getRelatedFormForReport
+				Returns the form for the same table as the given report.
+			
+			Paramaters:
+				report - A report entry.
+			
+			Returns:
+				A form entry with fields decoded.
+		*/
+
+		static function getRelatedFormForReport($report) {
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($report["table"])."'"));
+			return self::getForm($f["id"]);
+		}
 		
 		/*
 			Function: getRelatedFormForView
@@ -760,6 +796,22 @@
 		}
 
 		/*
+			Function: getRelatedViewForReport
+				Returns the view for the same table as the given report.
+			
+			Paramaters:
+				report - A report entry.
+			
+			Returns:
+				A view entry.
+		*/
+
+		static function getRelatedViewForReport($report) {
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($report["table"])."'"));
+			return self::getView($f["id"]);
+		}
+
+		/*
 			Function: getReport
 				Returns a report with the filters and fields decoded.
 
@@ -775,6 +827,102 @@
 			$f["fields"] = json_decode($f["fields"],true);
 			$f["filters"] = json_decode($f["filters"],true);
 			return $f;
+		}
+
+		/*
+			Function: getReportResults
+				Returns rows from the table that match the filters provided.
+
+			Parameters:
+				report - A bigtree_module_reports entry.
+				view - A bigtree_module_views entry.
+				form - A bigtree_module_forms entry.
+				filters - The submitted filters to run.
+				sort_field - The field to sort by.
+				sort_direction - The direction to sort by.
+
+			Returns:
+				An array of entries from the report's table.
+		*/
+
+		static function getReportResults($report,$view,$form,$filters,$sort_field = "id",$sort_direction = "DESC") {
+			$where = $items = $parsers = $poplists = array();
+			// Figure out if we have db populated lists and parsers
+			if ($report["type"] == "view") {
+				foreach ($view["fields"] as $key => $field) {
+					if ($field["parser"]) {
+						$parsers[$key] = $field["parser"];
+					}
+				}
+			}
+			foreach ($form["fields"] as $key => $field) {
+				if ($field["type"] == "list" && $field["list_type"] == "db") {
+					$poplists[$key] = array("description" => $form["fields"][$key]["pop-description"], "table" => $form["fields"][$key]["pop-table"]);
+				}
+			}
+
+			$query = "SELECT * FROM `".$report["table"]."`";
+			foreach ($report["filters"] as $id => $filter) {
+				if ($filters[$id]) {
+					// Search field
+					if ($filter["type"] == "search") {
+						$where[] = "`$id` LIKE '%".sqlescape($filters[$id])."%'";
+					// Dropdown
+					} elseif ($filter["type"] == "dropdown") {
+						$where[] = "`$id` = '".sqlescape($filters[$id])."'";
+					// Yes / No / Both
+					} elseif ($filter["type"] == "boolean") {
+						if ($filters[$id] == "Yes") {
+							$where[] = "(`$id` = 'on' OR `$id` = '1' OR `$id` != '')";
+						} elseif ($filters[$id] == "No") {
+							$where[] = "(`$id` = '' OR `$id` = '0' OR `$id` IS NULL)";
+						}
+					// Date Range
+					} elseif ($filter["type"] == "date-range") {
+						if ($filter[$id]["start"]) {
+							$where[] = "`$id` >= '".sqlescape($filter[$id]["start"])."'";
+						}
+						if ($filter[$id]["end"]) {
+							$where[] = "`$id` <= '".sqlescape($filter[$id]["end"])."'";
+						}
+					}
+				}
+			}
+
+			if (count($where)) {
+				$query .= " WHERE ".implode(" AND ",$where);
+			}
+
+			$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
+			while ($f = sqlfetch($q)) {
+				$item = BigTree::untranslateArray($f);
+				foreach ($item as $key => $value) {
+					if ($poplists[$key]) {
+						$p = sqlfetch(sqlquery("SELECT `".$poplists[$key]["description"]."` FROM `".$poplists[$key]["table"]."` WHERE id = '".sqlescape($value)."'"));
+						$item[$key] = $p[$poplists[$key]["description"]];
+					}
+					if ($parsers[$key]) {
+						eval($parsers[$key]);
+						$item[$key] = $value;
+					}
+				}
+				$items[] = $item;
+			}
+
+			// If the field we sort by was a poplist or parser, we need to resort.
+			if (isset($parsers[$sort_field]) || isset($poplists[$sort_field])) {
+				$sort_values = array();
+				foreach ($items as $item) {
+					$sort_values[] = $item[$sort_field];
+				}
+				if ($sort_direction == "ASC") {
+					array_multisort($sort_values,SORT_ASC,$items);
+				} else {
+					array_multisort($sort_values,SORT_DESC,$items);
+				}
+			}
+
+			return $items;
 		}
 		
 		/*

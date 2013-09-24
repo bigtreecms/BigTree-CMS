@@ -6009,6 +6009,8 @@
 			$parser - sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("UPDATE bigtree_module_reports SET `title` = '$title', `table` = '$table', `type` = '$type', `filters` = '$filters', `fields` = '$fields', `parser` = '$parser', `view` = $view WHERE id = '$id'");
+			// Update the module action
+			sqlquery("UPDATE bigtree_module_actions SET `name` = '$title' WHERE `report` = '$id'");
 		}
 
 		/*
