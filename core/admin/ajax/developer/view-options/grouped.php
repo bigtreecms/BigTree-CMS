@@ -17,16 +17,24 @@
 
 <fieldset>
 	<label>Group Field</label>
+	<? if ($table) { ?>
 	<select name="group_field">
 		<? BigTree::getFieldSelectOptions($table,$group_field) ?>
 	</select>
+	<? } else { ?>
+	<input name="group_field" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
+	<? } ?>
 </fieldset>
 
 <fieldset>
 	<label>Sort By Inside Groups <small>(if not draggable)</small></label>
+	<? if ($table) { ?>
 	<select name="sort">
 		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
 	</select>
+	<? } else { ?>
+	<input name="sort" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
+	<? } ?>
 </fieldset>
 
 <h4>Optional Parameters</h4>

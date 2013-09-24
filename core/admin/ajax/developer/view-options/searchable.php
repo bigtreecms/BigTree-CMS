@@ -6,9 +6,13 @@
 ?>
 <fieldset>
 	<label>Sort By</label>
+	<? if ($table) { ?>
 	<select name="sort">
 		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
 	</select>
+	<? } else { ?>
+	<input name="sort" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
+	<? } ?>
 </fieldset>
 <fieldset>
 	<label>Items Per Page</label>
