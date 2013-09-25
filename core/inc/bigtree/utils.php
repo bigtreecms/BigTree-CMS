@@ -672,6 +672,9 @@
 			// Transition - transition: definition
 			$css = preg_replace_callback('/transition:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
 			
+			// Transform - transform: definition
+			$css = preg_replace_callback('/transform:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);			
+
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
 			
