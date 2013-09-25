@@ -6,7 +6,7 @@
 <fieldset>
 	<label>Nesting Column <small>(i.e. "parent")</small></label>
 	<select name="nesting_column">
-		<? BigTree::getFieldSelectOptions($table,$nesting_column,true) ?>
+		<? BigTree::getFieldSelectOptions($table,$nesting_column) ?>
 	</select>
 </fieldset>
 <fieldset>
