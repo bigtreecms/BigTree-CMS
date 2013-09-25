@@ -2598,6 +2598,28 @@
 		}
 
 		/*
+			Function: getMessage
+				Returns a message from message center.
+
+			Paramters:
+				id - The id of the message.
+
+			Returns:
+				An entry from bigtree_messages.
+		*/
+
+		function getMessage($id) {
+			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
+			if (!$message) {
+				return false;
+			}
+			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
+				return false;
+			}
+			return $message;
+		}
+
+		/*
 			Function: getMessages
 				Returns all a user's messages.
 
@@ -2625,7 +2647,7 @@
 					$sent[] = $f;
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($f["read_by"] && strpos("|".$user."|",$f["read_by"]) !== false) {
+					if ($f["read_by"] && strpos($f["read_by"],"|".$user."|") !== false) {
 						$read[] = $f;
 					} else {
 						$unread[] = $f;
@@ -2634,28 +2656,6 @@
 			}
 
 			return array("sent" => $sent, "read" => $read, "unread" => $unread);
-		}
-
-		/*
-			Function: getMessage
-				Returns a message from message center.
-
-			Paramters:
-				id - The id of the message.
-
-			Returns:
-				An entry from bigtree_messages.
-		*/
-
-		function getMessage($id) {
-			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
-			if (!$message) {
-				return false;
-			}
-			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
-				return false;
-			}
-			return $message;
 		}
 
 		/*
