@@ -177,9 +177,9 @@
 						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 						$fields[] = "column$x";
 						if (isset($parsers[$field]) && $parsers[$field]) {
-							$vals[] = "'".sqlescape($item[$field])."'";					
+							$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode($item[$field])))."'";					
 						} else {
-							$vals[] = "'".sqlescape(strip_tags($item[$field]))."'";
+							$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode(strip_tags($item[$field]))))."'";
 						}
 						$x++;
 					}
