@@ -1494,12 +1494,12 @@
 				Sends an email using htmlMimeMail
 
 			Parameters:
+				to - String or array of recipient email address(es)
 				subject - Subject line text
 				html - HTML Email Body
 				text - Text Email Body
 				from - From email address
-				return - Return email address
-				to - String or array of recipient email address(es)
+				return - Return email address (if different than from)
 				cc - String or array of carbon copy email address(es)
 				bcc - String or array of blind carbon copy email address(es)
 				headers - Key/value pair array of extra headers
@@ -1508,32 +1508,35 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		static function sendEmail($subject, $html, $text = '', $from, $return, $to, $cc = false, $bcc = false, $headers = array()) {
-			if (!$subject || !$html || !$text || !$from || !$return || !$to) {
-				return false;
-			}
-			
-			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";
-			
-			$mailer = new htmlMimeMail();
+		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array()) {
+			$mailer = new htmlMimeMail;
+
+			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";			
 			foreach ($headers as $key => $val) {
 				$mailer->setHeader($key, $val);
 			}
+
 			$mailer->setSubject($subject);
 			$mailer->setHtml($html, $text);
+
+			if (!$from) {
+				$from = "no-reply@".str_replace("www.","",$_SERVER["HTTP_HOST"]);
+			}
 			$mailer->setFrom($from);
-			$mailer->setReturnPath($return);
+			
+			if ($return) {
+				$mailer->setReturnPath($return);
+			}
 			
 			if ($cc) {
 				$mailer->setCc(is_array($cc) ? $cc : array($cc));
 			}
+
 			if ($bcc) {
 				$mailer->setBcc(is_array($bcc) ? $bcc : array($bcc));
 			}
 			
-			$done = $mailer->send(is_array($to) ? $to : array($to));
-			
-			return $done;
+			return $mailer->send(is_array($to) ? $to : array($to));
 		}
 
 		/*
