@@ -864,46 +864,82 @@
 		
 		/*
 			Function: globalizeArray
-				Globalizes all the keys of an array into global variables without compromising $_ variables.
-				Runs an array of functions on values that aren't arrays.
+				Globalizes all the keys of an array into global variables without compromising super global ($_) variables.
+				Optionally runs a list of functions (passed in after the array) on the data.
 			
 			Parameters:
 				array - An array with key/value pairs.
-				non_array_functions - An array of functions to perform on values that aren't arrays.
+				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 			
 			See Also:
 				<globalizeGETVars>
 				<globalizePOSTVars>
 		*/
 		
-		static function globalizeArray($array,$non_array_functions = array()) {
-			if (is_array($array)) {
-				foreach ($array as $key => $val) {
-					if (strpos($key,0,1) != "_") {
-						global $$key;
-						if (is_array($val)) {
-							$$key = $val;
-						} else {
-							foreach ($non_array_functions as $func) {
+		static function globalizeArray($array) {
+			if (!is_array($array)) {
+				return false;
+			}
+
+			$functions = array_slice(func_get_args(),1);
+			foreach ($array as $key => $val) {
+				// Prevent messing with super globals
+				if (strpos($key,0,1) != "_") {
+					global $$key;
+					if (is_array($val)) {
+						$$key = self::globalizeArrayRecursion($val,$functions);
+					} else {
+						foreach ($functions as $func) {
+							// Backwards compatibility with old array passed syntax
+							if (is_array($func)) {
+								foreach ($func as $f) {
+									$val = $f($val);
+								}
+							} else {
 								$val = $func($val);
 							}
-							$$key = $val;
 						}
+						$$key = $val;
 					}
 				}
-				
-				return true;
 			}
-			return false;
+			
+			return true;
+		}
+
+		/*
+			Function: globalizeArrayRecursion
+				Used by globalizeArray for recursion.
+		*/
+
+		static function globalizeArrayRecursion($data,$functions) {
+			foreach ($data as $key => $val) {
+				if (is_array($val)) {
+					$data[$key] = self::globalizeArrayRecursion($val,$functions);
+				} else {
+					foreach ($functions as $func) {
+						// Backwards compatibility with old array passed syntax
+						if (is_array($func)) {
+							foreach ($func as $f) {
+								$val = $f($val);
+							}
+						} else {
+							$val = $func($val);
+						}
+					}
+					$data[$key] = $val;
+				}
+			}
+			return $data;
 		}
 		
 		/*
 			Function: globalizeGETVars
 				Globalizes all the $_GET variables without compromising $_ variables.
-				Runs an array of functions on values that aren't arrays.
+				Optionally runs a list of functions passed in as arguments on the data.
 			
 			Parameters:
-				non_array_functions - An array of functions to perform on values that aren't arrays.
+				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 			
 			See Also:
 				<globalizeArray>
@@ -911,49 +947,25 @@
 				
 		*/
 		
-		static function globalizeGETVars($non_array_functions = array()) {
-			foreach ($_GET as $key => $val) {
-				if (strpos($key,0,1) != "_") {
-					global $$key;
-					if (is_array($val)) {
-						$$key = $val;
-					} else {
-						foreach ($non_array_functions as $func) {
-							$val = $func($val);
-						}
-						$$key = $val;
-					}
-				}
-			}
+		static function globalizeGETVars() {
+			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_GET),func_get_args()));
 		}
 		
 		/*
 			Function: globalizePOSTVars
 				Globalizes all the $_POST variables without compromising $_ variables.
-				Runs an array of functions on values that aren't arrays.
+				Optionally runs a list of functions passed in as arguments on the data.
 			
 			Parameters:
-				non_array_functions - An array of functions to perform on values that aren't arrays.
+				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 			
 			See Also:
 				<globalizeArray>
 				<globalizeGETVars>
 		*/
 		
-		static function globalizePOSTVars($non_array_functions = array()) {
-			foreach ($_POST as $key => $val) {
-				if (strpos($key,0,1) != "_") {
-					global $$key;
-					if (is_array($val)) {
-						$$key = $val;
-					} else {
-						foreach ($non_array_functions as $func) {
-							$val = $func($val);
-						}
-						$$key = $val;
-					}
-				}
-			}
+		static function globalizePOSTVars() {
+			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_POST),func_get_args()));
 		}
 		
 		/*
