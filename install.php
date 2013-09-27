@@ -579,8 +579,8 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="database"><span></span>Database Properties</h2>
 				<fieldset class="clear">
 					<p>Enter your MySQL database information below.</p>
-					<br />
 				</fieldset>
+				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$host) { ?> form_error<?php } ?>">
 					<label>Hostname</label>
 					<input class="text" type="text" id="db_host" name="host" value="<?php echo htmlspecialchars($host) ?>" tabindex="1" />
@@ -610,8 +610,8 @@ RewriteRule (.*) site/$1 [L]');
 					<h2 class="database"><span></span>Write Database Properties</h2>
 					<fieldset class="clear">
 						<p>If you are hosting a load balanced setup with multiple MySQL servers, enter the master write server information below.</p>
-						<br />
 					</fieldset>
+					<hr />
 					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
 						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($host) ?>" tabindex="6" />
@@ -638,14 +638,14 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="security"><span></span>Site Security</h2>
 				<fieldset class="clear">
 					<p>Customize your site's security settings below.</p>
-					<br />
 				</fieldset>
+				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$settings_key) { ?> form_error<?php } ?>">
 					<label>Settings Encryption Key</label>
 					<input class="text" type="text" name="settings_key" id="settings_key" value="<?php echo htmlspecialchars($settings_key) ?>" tabindex="10" />
 				</fieldset>
 				<fieldset class="clear">
-					<br />
+					<br /><br />
 					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
@@ -655,8 +655,8 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="account"><span></span>Administrator Account</h2>
 				<fieldset class="clear">
 					<p>Create the default account your administration area.</p>
-					<br />
 				</fieldset>
+				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
 					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="12" />
