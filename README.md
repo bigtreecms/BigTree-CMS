@@ -46,6 +46,7 @@ MySQL changes:
 - ADDED: Ability to choose a sorting field for "Images" and "Grouped Images" view types
 - ADDED: The a few options to BigTreeModule::search
 - ADDED: The ability to re-order module view actions and edit custom module view actions.
+- ADDED: PayPal REST API payment gateway (beta support)
 
 - UPDATED: BigTreeModule::delete can now accept a full item OR the item's ID
 - UPDATED: Some language throughout the admin has been updated to be more clear
@@ -69,6 +70,7 @@ MySQL changes:
 - UPDATED: Group and form titles added to integrity check naming to make it more clear where the error is (since multiple forms can be in one module and modules can have the same name in different groups).
 - UPDATED: Added the ability to not view cache items in add/update/save in BigTreeModule (speeds up entry when importing).
 - UPDATED: Module Groups are now alphabetical when choosing a group in the Module add/edit screen
+- UPDATED: BigTree's CSS3 Vendor Prefixing now supports transform
 
 - CHANGED: $state_list, $country_list, and $month_list globals are now BigTree::$StateList, BigTree::$CountryList, BigTree::$MonthList
 - CHANGED: Significantly improved Amazon S3 cloud storage - now only uses a single bucket with "virtual" directories and authenticates you when you first enter credentials instead of trusting they are correct and also creates a bucket automatically if none is specified.
@@ -87,6 +89,8 @@ MySQL changes:
 - CHANGED: Module View Actions are now much smaller and no longer draw their title in the column (more space is now available for data columns)
 - CHANGED: Moved BigTreeForms functionality into BigTreeAutoModules, BigTreeForms class no longer exists.
 - CHANGED: BigTreeUploadService is now BigTreeStorage and the "upload" method is now "store" (backwards compatibility still exists for the old class name/method)
+- CHANGED: "List" field type no longer htmlspecialchars the submitted values.
+- CHANGED: BigTree::globalizeArray and related globalize functions now iterate through arrays instead of ignoring them. You can also now pass in functions as string parameters instead of a single array of functions.
 
 - FIXED: Admin header now pulls protocol-agnostic version of html5.js for IE (works for HTTPS admins now)
 - FIXED: Paging functions globally use 1 as the first page now instead of 0
@@ -200,6 +204,17 @@ MySQL changes:
 - FIXED: Generally sorted out issues with sorting of columns that are originally numeric but run parsers or have foreign keys that indicate they're probably a string.
 - FIXED: Various IE 7/8/9/10 issues.
 - FIXED: Editing a feed should now properly show the list of unused fields.
+- FIXED: Various issues with the Payment Gateway overview screen and sub sections throwing warnings.
+- FIXED: Updating a module to have group based permissions (or changing those) not clearing the module's view cache.
+- FIXED: Replying to a message that you sent trying to send the message to you instead of all the people you'd previously sent the message to.
+- FIXED: BigTree::trimLength using a literal UTF-8 ellipsis character. Now uses an HTML entity for better cross-character-set support.
+- FIXED: Issues when a BigTreeSelect was disabled and re-enabled it behaved poorly.
+- FIXED: BigTree Bar breaking when a user's name contained an apostrophe.
+- FIXED: View Options breaking if they were edited before choosing a table.
+- FIXED: Vitals & Statistics showing for non-administrators.
+- FIXED: Messages not being properly recognized as read when the user was not the first person to read them.
+- FIXED: Values for "List" field type not being htmlspecialchar'd when drawing the list
+- FIXED: Non-htmlspecialchar'd data getting into the view cache.
 
 - REMOVED: "Menu" field type, as it was just a pre-configured Array of Items
 - REMOVED: BigTreeCMS::getCallout -- replaced with improved version of BigTreeAdmin::getCallout

@@ -155,6 +155,7 @@
 
 	textarea { border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: Helvetica,sans-serif; font-size: 12px; height: 150px; line-height: 16px; margin: 0; padding: 5px 10px; transition: border-color 0.2s; width: 875px; }
 	textarea:focus { border-color: #AAA; }
+	textarea[disabled] { background: #F6F6F6; opacity: 0.5; }
 	.form_error .mceEditor table.mceLayout { border-color: #990000; }
 	.form_error .defaultSkin table.mceLayout tr.mceFirst td { border-color: #990000; }
 	.form_error .defaultSkin table.mceLayout tr.mceLast td { border-color: #990000; }
