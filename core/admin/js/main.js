@@ -1509,6 +1509,7 @@ var BigTreeFileManager = {
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_contents").load("admin_root/ajax/file-browser/get-files/", { folder: folder }, $.proxy(this.fileBrowserPopulated,this));
+		$("#file_browser_contents").eq(0).scrollY = 0;
 	},
 	
 	openImageFolder: function(folder) {
@@ -1516,6 +1517,7 @@ var BigTreeFileManager = {
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_contents").load("admin_root/ajax/file-browser/get-images/", { minWidth: this.minWidth, minHeight: this.minHeight, folder: folder }, $.proxy(this.imageBrowserPopulated,this));
+		$("#file_browser_contents").eq(0).scrollY = 0;
 	},
 	
 	saveFileTitle: function() {
