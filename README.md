@@ -39,7 +39,6 @@ Changelog
 - ADDED: The a few options to BigTreeModule::search
 - ADDED: The ability to re-order module view actions and edit custom module view actions.
 - ADDED: PayPal REST API payment gateway (beta support)
-
 - UPDATED: BigTreeModule::delete can now accept a full item OR the item's ID
 - UPDATED: Some language throughout the admin has been updated to be more clear
 - UPDATED: BigTreeAdmin::getPendingChanges is now BigTreeAdmin::getPublishableChanges
@@ -63,7 +62,6 @@ Changelog
 - UPDATED: Added the ability to not view cache items in add/update/save in BigTreeModule (speeds up entry when importing).
 - UPDATED: Module Groups are now alphabetical when choosing a group in the Module add/edit screen
 - UPDATED: BigTree's CSS3 Vendor Prefixing now supports transform
-
 - CHANGED: $state_list, $country_list, and $month_list globals are now BigTree::$StateList, BigTree::$CountryList, BigTree::$MonthList
 - CHANGED: Significantly improved Amazon S3 cloud storage - now only uses a single bucket with "virtual" directories and authenticates you when you first enter credentials instead of trusting they are correct and also creates a bucket automatically if none is specified.
 - CHANGED: BigTree now creates tables with utf8_general_ci collation instead of utf8_bin
@@ -83,7 +81,6 @@ Changelog
 - CHANGED: BigTreeUploadService is now BigTreeStorage and the "upload" method is now "store" (backwards compatibility still exists for the old class name/method)
 - CHANGED: "List" field type no longer htmlspecialchars the submitted values.
 - CHANGED: BigTree::globalizeArray and related globalize functions now iterate through arrays instead of ignoring them. You can also now pass in functions as string parameters instead of a single array of functions.
-
 - FIXED: Admin header now pulls protocol-agnostic version of html5.js for IE (works for HTTPS admins now)
 - FIXED: Paging functions globally use 1 as the first page now instead of 0
 - FIXED: Pending items not being editable
