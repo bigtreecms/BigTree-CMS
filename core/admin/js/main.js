@@ -1517,14 +1517,14 @@ var BigTreeFileManager = {
 		this.currentFolder = folder;
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
-		$("#file_browser_contents").load("admin_root/ajax/file-browser/get-files/", { folder: folder }, $.proxy(this.fileBrowserPopulated,this));
+		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-files/", { folder: folder }, $.proxy(this.fileBrowserPopulated,this));
 	},
 	
 	openImageFolder: function(folder) {
 		this.currentFolder = folder;
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
-		$("#file_browser_contents").load("admin_root/ajax/file-browser/get-images/", { minWidth: this.minWidth, minHeight: this.minHeight, folder: folder }, $.proxy(this.imageBrowserPopulated,this));
+		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-images/", { minWidth: this.minWidth, minHeight: this.minHeight, folder: folder }, $.proxy(this.imageBrowserPopulated,this));
 	},
 	
 	saveFileTitle: function() {
