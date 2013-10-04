@@ -1,3 +1,4 @@
+<span>Drag Items Into Any Content Area</span>
 <?
 	$results = $admin->searchPages($_POST["query"]);
 	foreach ($results as $r) {

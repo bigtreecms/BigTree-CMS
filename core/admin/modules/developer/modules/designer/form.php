@@ -61,30 +61,32 @@
 <script>
 	new BigTreeFormValidator("form.module");
 
-	var current_editing_key;
-	var mtm_count = 0;
-	var key = 0;
+	BigTree.localCurrentFieldKey = false;
+	BigTree.localMTMCount = 0;
+	BigTree.localKeyCount = 0;
+	BigTree.localHooks = function() {
+		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+		BigTreeCustomControls();
+	};
 	
-	$(".icon_settings").live("click",function() {
-		key = $(this).attr("name");
-		current_editing_key = key;
+	$(".form_table").on("click",".icon_settings",function() {
+		BigTree.localCurrentFieldKey = $(this).attr("name");
 		
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + BigTree.localCurrentFieldKey).val(), data: $("#options_" + BigTree.localCurrentFieldKey).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + current_editing_key, { type: "POST", data: data });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + BigTree.localCurrentFieldKey, { type: "POST", data: data });
 			});
 		}});
 		
 		return false;
-	});
-		
-	$(".icon_delete").live("click",function() {
-		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
+	}).on("click",".icon_delete",function() {
+		new BigTreeDialog("Delete Field",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
 			li = $(this).parents("li");
 			title = li.find("input").val();
+			type = li.find(".developer_resource_type").find("input,select").eq(0).val();
 			if (title) {
 				key = $(this).attr("name");
-				if (key != "geocoding") {
+				if (key != "geocoding" && type != "many-to-many") {
 					sel = $("#unused_field").get(0);
 					sel.options[sel.options.length] = new Option(key,title,false,false);
 				}
@@ -96,13 +98,14 @@
 	});
 	
 	$(".add_field").click(function() {
-		key++;
-		
-		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="" class="required" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+		BigTree.localKeyCount++;
+		c = BigTree.localKeyCount;
+
+		li = $('<li id="row_' + c + '">');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + c + ']" value="" class="required" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + c + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + c + ']" id="type_' + c + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select><a href="#" class="options icon_settings" name="' + c + '"></a><input type="hidden" name="options[' + c + ']" value="" id="options_' + c + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + c + '"></a></section>');
 		
 		$("#resource_table").append(li);
-		_local_hooks();
+		BigTree.localHooks();
 		
 		return false;
 	});
@@ -112,27 +115,22 @@
 		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="hidden" name="subtitles[geocoding]" value="" />&nbsp;</section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" />&nbsp;<a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
 		
 		$("#resource_table").append(li);
-		_local_hooks();
+		BigTree.localHooks();
 		
 		return false;
 	});
 	
 	$(".add_many_to_many").click(function() {
-		mtm_count++;
+		BigTree.localMTMCount++;
 			
-		li = $('<li id="mtm_row_' + mtm_count + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + mtm_count + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + mtm_count + ']" id="type_mtm_' + mtm_count + '" type="hidden" value="many_to_many" /><p>Many To Many</p><a href="#" class="options icon_settings" name="mtm_' + mtm_count + '"></a><input type="hidden" name="options[mtm_' + mtm_count + ']" value="" id="options_mtm_' + mtm_count + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + mtm_count + '"></a></section>');
+		li = $('<li id="mtm_row_' + BigTree.localMTMCount + '">');
+		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + BigTree.localMTMCount + ']" id="type_mtm_' + BigTree.localMTMCount + '" type="hidden" value="many-to-many" /><p>Many To Many</p><a href="#" class="options icon_settings" name="mtm_' + BigTree.localMTMCount + '"></a><input type="hidden" name="options[mtm_' + BigTree.localMTMCount + ']" value="" id="options_mtm_' + BigTree.localMTMCount + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + BigTree.localMTMCount + '"></a></section>');
 		
 		$("#resource_table").append(li);
-		_local_hooks();
+		BigTree.localHooks();
 		
 		return false;
 	});
 	
-	function _local_hooks() {
-		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		BigTreeCustomControls();
-	}
-	
-	_local_hooks();
+	BigTree.localHooks();
 </script>

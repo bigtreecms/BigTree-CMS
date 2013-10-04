@@ -1,6 +1,12 @@
-<?	
+<?
+	$available_custom_field_types = array();
+	$ft = $admin->getFieldTypes();
+	foreach ($ft as $type) {
+		$available_custom_field_types[$type["id"]] = $type;
+	}
+
 	function gatherModuleInformation($mid) {
-		global $admin,$cms,$tables,$templates,$settings,$feeds,$class_files,$required_files,$other_files;
+		global $admin,$cms,$tables,$templates,$settings,$feeds,$class_files,$required_files,$other_files,$available_custom_field_types,$field_types;
 		$m = $admin->getModule($mid);
 		$actions = $admin->getModuleActions($m["id"]);
 		// Get all the tables of the module's actions.
@@ -14,12 +20,17 @@
 								$tables[] = $field["pop-table"]."#structure";
 							}
 						}
-						if ($field["type"] == "many_to_many") {
+						if ($field["type"] == "many-to-many") {
 							if (!in_array($field["mtm-connecting-table"]."#structure",$tables) && substr($field["mtm-connecting-table"],0,8) != "bigtree_") {
 								$tables[] = $field["mtm-connecting-table"]."#structure";
 							}
 							if (!in_array($field["mtm-other-table"]."#structure",$tables) && substr($field["mtm-other-table"],0,8) != "bigtree_") {
 								$tables[] = $field["mtm-other-table"]."#structure";
+							}
+						}
+						if (isset($available_custom_field_types[$field["type"]])) {
+							if (!in_array($available_custom_field_types[$field["type"]],$field_types)) {
+								$field_types[] = $available_custom_field_types[$field["type"]];
 							}
 						}
 					}

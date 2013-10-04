@@ -17,7 +17,7 @@
 	<form method="post" action="<?=$developer_root?>field-types/create/" enctype="multipart/form-data" class="module">
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
-			<div class="left">
+			<div class="left last">
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
 					<label class="required">ID <small>(must be unique among all field types)</small><? if ($e) { ?><span class="form_error_reason">ID Already In Use</span><? } ?></label>
 					<input type="text" class="required" name="id" value="<?=$id?>" />
@@ -27,7 +27,7 @@
 					<input type="text" class="required" name="name" value="<?=$name?>" />
 				</fieldset>
 			</div>
-			<div class="right">
+			<div class="right last">
 				<fieldset>
 					<label class="required">Use Cases</label>
 					<ul class="developer_field_types_usage">

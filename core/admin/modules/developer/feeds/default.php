@@ -7,8 +7,7 @@
 		<span class="developer_feeds_name">Feed Name</span>
 		<span class="developer_feeds_url">URL</span>
 		<span class="developer_feeds_type">Type</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
 		<? foreach ($feeds as $feed) { ?>

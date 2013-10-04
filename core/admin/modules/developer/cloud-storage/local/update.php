@@ -17,7 +17,7 @@
 	
 	$ups["service"] = "local";
 	
-	$admin->updateSettingValue("bigtree-internal-upload-service",$ups);	
+	$admin->updateSettingValue("bigtree-internal-storage",$ups);	
 	
 	$admin->growl("Developer","Updated Upload Service");
 	BigTree::redirect($developer_root);

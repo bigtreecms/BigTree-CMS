@@ -1,5 +1,5 @@
 <section>
-	<div class="left">
+	<div class="left last">
 		<fieldset>
 			<label class="required">Name</label>
 			<input type="text" class="required" name="name" value="<?=$name?>" />
@@ -17,11 +17,11 @@
 				<? foreach ($feed_types as $t => $v) { ?>
 				<option value="<?=$t?>"<? if ($t == $type) { ?> selected="selected"<? } ?>><?=$v?></option>
 				<? } ?>
-			</select> &nbsp; <a href="#" class="options icon_settings"></a>
+			</select> &nbsp; <a href="#" class="options icon_settings centered"></a>
 			<input type="hidden" name="options" id="feed_options" value="<?=htmlspecialchars(json_encode($item["options"]))?>" />
 		</fieldset>
 	</div>
-	<div class="right">
+	<div class="right last">
 		<fieldset>
 			<label>Description</label>
 			<textarea name="description"><?=$description?></textarea>
@@ -33,7 +33,7 @@
 		if ($item) {
 			include BigTree::path("admin/ajax/developer/load-feed-fields.php");
 		} else {
-			echo "<p>Choose a Data Table to populate fields.</p>";
+			echo "<p>Please choose a table to populate this area.</p>";
 		}
 	?>
 </section>

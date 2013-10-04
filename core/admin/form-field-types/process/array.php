@@ -1,14 +1,19 @@
 <?
-	// Need this for existing callout stuff.
-	if (is_array($data[$key])) {
-		$entries = array();
-		foreach ($data[$key] as $k => $v) {
-			if (is_numeric($k)) {
-				$entries[] = json_decode($v,true);
+	$field["output"] = array();
+	foreach ($field["input"] as $i) {
+		$row = array();
+		// Callouts may have the data already decoded.
+		if (is_string($i)) {
+			$i = json_decode($i,true);
+		}
+		// Run through the fields and htmlspecialchar the non-HTML ones.
+		foreach ($field["options"]["fields"] as $array_field) {
+			if ($array_field["type"] == "html") {
+				$row[$array_field["key"]] = $i[$array_field["key"]];
+			} else {
+				$row[$array_field["key"]] = htmlspecialchars(htmlspecialchars_decode($i[$array_field["key"]]));
 			}
 		}
-		$value = json_encode(BigTree::translateArray($entries));
-	} else {
-		$value = $data[$key];
+		$field["output"][] = $row;
 	}
 ?>

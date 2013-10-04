@@ -7,8 +7,7 @@
 		<span class="developer_settings_name">Name</span>
 		<span class="developer_settings_id">ID</span>
 		<span class="developer_settings_type">Type</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
 		<? foreach ($settings as $setting) { ?>

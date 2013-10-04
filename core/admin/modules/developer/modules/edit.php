@@ -29,7 +29,7 @@
 	
 	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
 	
-	$groups = $admin->getModuleGroups();
+	$groups = $admin->getModuleGroups("name ASC");
 ?>
 <div class="container">
 	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
@@ -100,7 +100,7 @@
 							<? BigTree::getFieldSelectOptions($gbp["table"],$gbp["group_field"]) ?>
 						</select>
 						<? } else { ?>
-						&mdash;
+						<input type="text" disabled="disabled" value="Please select &quot;Main Table&quot;" />
 						<? } ?>
 					</div>
 				</fieldset>
@@ -121,7 +121,7 @@
 							<? BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
 						</select>
 						<? } else { ?>
-						&mdash;
+						<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
 						<? } ?>
 					</div>
 				</fieldset>
@@ -136,13 +136,11 @@
 <div class="table">
 	<summary>
 		<a href="<?=$developer_root?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Views <small><?=$module["name"]?></small></h2>
+		<h2>Module Views</h2>
 	</summary>
 	<header>
 		<span class="developer_view_name">View Name</span>
-		<span class="view_action">Style</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="module_views">
 		<? foreach ($views as $view) { ?>
@@ -165,12 +163,11 @@
 <div class="table">
 	<summary>
 		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Forms <small><?=$module["name"]?></small></h2>
+		<h2>Module Forms</h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Form Name</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
 		<? foreach ($forms as $form) { ?>
@@ -186,12 +183,11 @@
 <div class="table">
 	<summary>
 		<a href="<?=$developer_root?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
-		<h2>Module Actions <small><?=$module["name"]?></small></h2>
+		<h2>Module Actions</h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Action</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<?
 		if (count($actions_in_nav)) {

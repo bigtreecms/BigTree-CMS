@@ -25,13 +25,7 @@
 			}
 		?>
 		<span class="view_status">Status</span>
-		<?	
-			foreach ($actions as $action => $on) {
-		?>
-		<span class="view_action"><?=ucwords($action)?></span>
-		<?
-			}
-		?>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><? if (count($view["actions"]) > 1) { ?>Actions<? } ?></span>
 	</header>
 </div>
 <form method="post" action="<?=$developer_root?>modules/views/update-style/<?=$view["id"]?>/" class="module">
@@ -46,45 +40,45 @@
 ?>
 
 <script>
-	var dragging = false;
-	var growing = false;
-	var shrinking = false;
-	var mouseStartX = false;
-	var shrinkingStartWidth = false;
-	var growingStartWidth = false;
-	var movementDirection = false;
+	BigTree.localDragging = false;
+	BigTree.localGrowing = false;
+	BigTree.localShrinking = false;
+	BigTree.localMouseStartX = false;
+	BigTree.localShrinkingStartWidth = false;
+	BigTree.localGrowingStartWidth = false;
+	BigTree.localMovementDirection = false;
 	
 	$(".table .view_column").mousedown(function(ev) {
-		growingStartWidth = $(this).width();
+		BigTree.localGrowingStartWidth = $(this).width();
 		objoffset = $(this).offset();
-		obj_middle = Math.round(growingStartWidth / 2);
+		obj_middle = Math.round(BigTree.localGrowingStartWidth / 2);
 		offset = ev.clientX - objoffset.left;
 		titles = $(".table .view_column");
-		growing = $(this);
+		BigTree.localGrowing = $(this);
 		gIndex = titles.index(this);
 		if (offset > obj_middle) {
 			if (!titles.eq(gIndex + 1).length) {
 				return;
 			}
-			shrinking = titles.eq(gIndex + 1);
-			movementDirection = "right";
+			BigTree.localShrinking = titles.eq(gIndex + 1);
+			BigTree.localMovementDirection = "right";
 			$(this).css({ cursor: "e-resize" });
 		} else {
 			if (gIndex == 0) {
 				return;
 			}
-			shrinking = titles.eq(gIndex - 1);
-			movementDirection = "left";
+			BigTree.localShrinking = titles.eq(gIndex - 1);
+			BigTree.localMovementDirection = "left";
 			$(this).css({ cursor: "w-resize" });
 		}
-		mouseStartX = ev.clientX;
-		shrinkingStartWidth = shrinking.width();
-		dragging = true;
+		BigTree.localMouseStartX = ev.clientX;
+		BigTree.localShrinkingStartWidth = BigTree.localShrinking.width();
+		BigTree.localDragging = true;
 		
 		return false;
 	}).mouseup(function() {
-		dragging = false;
-		growing.css({ cursor: "move" });
+		BigTree.localDragging = false;
+		BigTree.localGrowing.css({ cursor: "move" });
 		$(".table .view_column").each(function() {
 			name = $(this).attr("name");
 			width = $(this).width();
@@ -93,17 +87,17 @@
 	});
 	
 	$(window).mousemove(function(ev) {
-		if (!dragging) {
+		if (!BigTree.localDragging) {
 			return;
 		}
-		difference = ev.clientX - mouseStartX;
-		if (movementDirection == "left") {
+		difference = ev.clientX - BigTree.localMouseStartX;
+		if (BigTree.localMovementDirection == "left") {
 			difference = difference * -1;
 		}
 		// The minimum width is 62 (20 pixels padding) because that's the size of an action column.  Figured it's a good minimum.
-		if (shrinkingStartWidth - difference > 41 && growingStartWidth + difference > 41) {
-			shrinking.css({ width: (shrinkingStartWidth - difference) + "px" });
-			growing.css({ width: (growingStartWidth + difference) + "px" });
+		if (BigTree.localShrinkingStartWidth - difference > 41 && BigTree.localGrowingStartWidth + difference > 41) {
+			BigTree.localShrinking.css({ width: (BigTree.localShrinkingStartWidth - difference) + "px" });
+			BigTree.localGrowing.css({ width: (BigTree.localGrowingStartWidth + difference) + "px" });
 		}
 	});
 </script>

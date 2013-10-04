@@ -23,6 +23,8 @@
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
 				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
 				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
+				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
+				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
 				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1)
 			))
 		))
@@ -30,11 +32,6 @@
 	
 	$unread_messages = $admin->getUnreadMessageCount();	
 	$site = $cms->getPage(0,false);
-	
-	// Hide some stupid notices.
-	if (!isset($in_module)) {
-		$in_module = false;
-	}
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->
@@ -45,24 +42,36 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><? if (isset($module_title)) { ?><?=htmlspecialchars(htmlspecialchars_decode($module_title))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
+		<title><? if (isset($bigtree["admin_title"])) { ?><?=htmlspecialchars(htmlspecialchars_decode($bigtree["admin_title"]))?> | <? } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<? if (isset($bigtree["css"]) && is_array($bigtree["css"])) { foreach ($bigtree["css"] as $style) { ?>
+		<?
+			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
+				foreach ($bigtree["css"] as $style) {
+		?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<? } } ?>
+		<?
+				}
+			}
+		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<? if (isset($bigtree["js"]) && is_array($bigtree["js"])) { foreach ($bigtree["js"] as $script) { ?>
+		<?
+			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
+				foreach ($bigtree["js"] as $script) {
+		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<? } } ?>
+		<?
+				}
+			}
+		?>
 		<!--[if lt IE 9]>
-		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
 	</head>
 	<body class="bigtree">
 		<header class="main">
 			<section>
-				<a href="<?=ADMIN_ROOT?>login/logout/" class="logout"><span></span>Logout</a>
+				<a href="<? if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span>Logout</a>
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
@@ -78,8 +87,8 @@
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
 					?>
-					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $in_module)) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?

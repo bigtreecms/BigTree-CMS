@@ -1,0 +1,3 @@
+<?
+	$gateway = new BigTreePaymentGateway;
+?>

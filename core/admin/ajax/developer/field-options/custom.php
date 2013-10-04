@@ -8,6 +8,6 @@
 	<input type="text" name="function" value="<?=htmlspecialchars($data["function"])?>" />
 </fieldset>
 <fieldset>
-	<label>Processing Function <small>(optional, function name only, receives: $value, $key)</small></label>
+	<label>Processing Call <small>(optional, function name only, receives: $value, $key)</small></label>
 	<input type="text" name="process_function" value="<?=htmlspecialchars($data["process_function"])?>" />
 </fieldset>

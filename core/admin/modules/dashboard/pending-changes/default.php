@@ -1,6 +1,6 @@
 <?
-	// Get pending changes.
-	$changes = $admin->getPendingChanges();
+	// Get pending changes awaiting this user's approval.
+	$changes = $admin->getPublishableChanges();
 	
 	// Go through and get all the modules and pages, separate them out.
 	$modules = array();
@@ -25,7 +25,7 @@
 ?>
 <div class="container">
 	<section>
-		<p>You have no changes awaiting approval.</p>
+		<p>You have no changes awaiting your approval.</p>
 	</section>
 </div>
 <?
@@ -44,6 +44,8 @@
 	<header>
 		<span class="changes_author">Author</span>
 		<span class="changes_page">Page</span>
+		<span class="changes_type">Type</span>
+		<span class="changes_time">Updated</span>
 		<span class="changes_action">Preview</a></span>
 		<span class="changes_action">Edit</a></span>
 		<span class="changes_action">Approve</span>
@@ -52,22 +54,24 @@
 	<ul>
 		<?
 			foreach ($pages as $change) {
-				if ($change["item_id"]) {
+				if (is_numeric($change["item_id"])) {
 					$page = $cms->getPendingPage($change["item_id"]);
 					$preview_link = WWW_ROOT."_preview/".$page["path"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/".$change["item_id"]."/";
+					if (!$change["item_id"]) {
+						$page["nav_title"] = "Home";
+					}
 				} else {
 					$page = $cms->getPendingPage("p".$change["id"]);
-					$preview_link = WWW_ROOT."_preview-pending/".$change["id"]."/";
+					$preview_link = WWW_ROOT."_preview-pending/p".$change["id"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/p".$change["id"]."/";
-				}
-				if ($change["item_id"] == 0) {
-					$page["nav_title"] = "Home";
 				}
 		?>
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<section class="changes_page"><?=$page["nav_title"]?></section>
+			<section class="changes_type"><? if (is_numeric($change["item_id"])) { ?>EDIT<? } else { ?><span class="new">NEW</span><? } ?></section>
+			<section class="changes_time"><?=BigTree::relativeTime($change["date"])?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>

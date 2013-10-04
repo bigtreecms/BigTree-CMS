@@ -14,11 +14,11 @@
 		<div class="sticky_controls">
 			<div class="shadow">
 				<nav class="left">
-					<a href="#properties_tab"<? if ($action == "create") { ?> class="active"<? } ?>>Properties</a>
+					<a href="#properties_tab"<? if ($bigtree["form_action"] == "create") { ?> class="active"<? } ?>>Properties</a>
 					<? if (!$hide_template_tab) { ?>
 					<a href="#template_tab">Template</a>
 					<? } ?>
-					<a href="#content_tab"<? if ($action == "update") { ?> class="active"<? } ?>>Content</a>
+					<a href="#content_tab"<? if ($bigtree["form_action"] == "update") { ?> class="active"<? } ?>>Content</a>
 					<a href="#seo_tab">SEO</a>
 				</nav>
 				<div id="link_finder_results" style="display: none;"></div>
@@ -27,7 +27,7 @@
 			</div>
 		</div>
 	</header>
-	<form method="post" class="module" action="<?=ADMIN_ROOT?>pages/<?=$action?>/" enctype="multipart/form-data" id="page_form">
+	<form method="post" class="module" action="<?=ADMIN_ROOT?>pages/<?=$bigtree["form_action"]?>/" enctype="multipart/form-data" id="page_form">
 		<?
 			if (isset($_GET["return"]) && $_GET["return"] == "front") {
 		?>
@@ -41,9 +41,10 @@
 			}
 		?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
-		<input type="hidden" name="<? if ($action == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$page["id"]?>" />
+		<input type="hidden" name="_bigtree_post_check" value="success" />
+		<input type="hidden" name="<? if ($bigtree["form_action"] == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$bigtree["current_page"]["id"]?>" />
 		
-		<section id="properties_tab"<? if ($action == "update") { ?> style="display: none;"<? } ?>>
+		<section id="properties_tab"<? if ($bigtree["form_action"] == "update") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/properties.php") ?>
 		</section>
 		<? if (!$hide_template_tab) { ?>
@@ -51,9 +52,9 @@
 			<? include BigTree::path("admin/modules/pages/tabs/template.php") ?>
 		</section>
 		<? } else { ?>
-		<input type="hidden" name="template" id="template" value="<?=$page["template"]?>" />
+		<input type="hidden" name="template" id="template" value="<?=$bigtree["current_page"]["template"]?>" />
 		<? } ?>
-		<section id="content_tab"<? if ($action == "create") { ?> style="display: none;"<? } ?>>
+		<section id="content_tab"<? if ($bigtree["form_action"] == "create") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/content.php") ?>
 		</section>
 		<section id="seo_tab" style="display: none;">
@@ -63,11 +64,11 @@
 			<a href="#" class="next button">Next Step &raquo;</a>
 
 			<?
-				if ($action == "create") {
+				if ($bigtree["form_action"] == "create") {
 			?>
-			<input type="submit" name="ptype" value="Create" <? if ($access_level != "p") { ?>class="blue" <? } ?>/>
+			<input type="submit" name="ptype" value="Create" <? if ($bigtree["access_level"] != "p") { ?>class="blue" <? } ?>/>
 			<?
-					if ($access_level == "p") {
+					if ($bigtree["access_level"] == "p") {
 			?>
 			<input type="submit" name="ptype" value="Create &amp; Publish" class="blue" />
 			<?
@@ -75,9 +76,9 @@
 				} else {
 			?>
 			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
-			<input type="submit" name="ptype" value="Save"<? if ($access_level != "p") { ?> class="blue"<? } ?> />
+			<input type="submit" name="ptype" value="Save"<? if ($bigtree["access_level"] != "p") { ?> class="blue"<? } ?> />
 			<?
-					if ($access_level == "p") {
+					if ($bigtree["access_level"] == "p") {
 			?>
 			<input type="submit" name="ptype" value="Save &amp; Publish" class="blue" />
 			<?
@@ -115,13 +116,12 @@
 		return false;
 	});
 
-	var template = "<?=$page["template"]?>";
-	<? if ($action == "create") { ?>
-	var page = false;
+	BigTreePages.currentTemplate = "<?=$bigtree["current_page"]["template"]?>";
+	<? if ($bigtree["form_action"] == "create") { ?>
+	BigTreePages.currentPage = false;
 	<? } else { ?>
-	var page = "<?=$page["id"]?>";
-	var page_updated_at = "<?=$page["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$page["id"]?>' } });",60000);
+	BigTreePages.currentPage = "<?=$bigtree["current_page"]["id"]?>";
+	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
 	<? } ?>
 	
 	new BigTreeFormValidator("#page_form",function(errors) {

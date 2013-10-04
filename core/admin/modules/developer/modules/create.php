@@ -16,7 +16,7 @@
 ?>
 <div class="container">
 	<section>
-		<h3 class="action_title"><?=$name?></h3>
+		<h3><?=$name?></h3>
 		<p>If you plan on programming this module manually, you can leave now. Otherwise, click the continue button below to setup the module's landing page.</p>
 	</section>
 	<footer>

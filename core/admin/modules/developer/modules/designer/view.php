@@ -35,7 +35,7 @@
 						<option value="searchable">Searchable List</option>
 						<option value="draggable">Draggable List</option>
 					</select>
-					&nbsp; <a href="#" class="options button_edit" style="margin-top: -2px;"></a>
+					&nbsp; <a href="#" class="options icon_settings centered"></a>
 					<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars($view["options"])?>" />
 				</fieldset>
 			</div>
@@ -49,7 +49,7 @@
 		</section>
 		<section id="field_area" class="sub">
 			<?
-				$allow_all_actions = true;
+				$bigtree["module_designer_view"] = true;
 				include BigTree::path("admin/ajax/developer/load-view-fields.php");
 			?>
 		</section>

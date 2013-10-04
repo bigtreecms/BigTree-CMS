@@ -150,19 +150,19 @@
 	</ul>
 </div>
 <script>
-	var pages_of_messages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
+	BigTree.localPagesOfMessages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
 	
 	BigTree.SetPageCount("#unread_paging",<?=$unread_pages?>,1);
 	BigTree.SetPageCount("#read_paging",<?=$read_pages?>,1);
 	BigTree.SetPageCount("#sent_paging",<?=$sent_pages?>,1);
 	
-	$(".view_paging a").live("click",function() {
+	$(".table").on("click",".view_paging a",function() {
 		page = parseInt($(this).attr("href").substr(1));
 		$(this).parents("summary").siblings("ul").find("li").hide().filter(".page_" + page).show();
 		$(this).parents("ul").find(".active").removeClass("active");
 		
 		id = $(this).parents("ul").attr("id");
-		BigTree.SetPageCount("#" + id,pages_of_messages[id],page);
+		BigTree.SetPageCount("#" + id,BigTree.localPagesOfMessages[id],page);
 		
 		return false;
 	});

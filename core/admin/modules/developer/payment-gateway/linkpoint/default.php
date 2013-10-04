@@ -6,20 +6,20 @@
 			</div>
 			<fieldset>
 				<label>Store ID</label>
-				<input type="text" name="linkpoint-store" value="<?=htmlspecialchars($gateway["settings"]["linkpoint-store"])?>" />
+				<input type="text" name="linkpoint-store" value="<?=htmlspecialchars($gateway->Settings["linkpoint-store"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Certificate <small>(.pem file)</small></label>
 				<input type="file" name="linkpoint-certificate" />
 				<div class="currently_file">
-					<strong>Currently:</strong> <?=htmlspecialchars($gateway["settings"]["linkpoint-certificate"])?>
+					<strong>Currently:</strong> <?=htmlspecialchars($gateway->Settings["linkpoint-certificate"])?>
 				</div>
 			</fieldset>
 			<fieldset>
 				<label>Processing Environment</label>
 				<select name="linkpoint-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway["settings"]["linkpoint-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<? if ($gateway->Settings["linkpoint-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

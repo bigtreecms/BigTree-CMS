@@ -1,57 +1,82 @@
 <?
+	$db_error = false;
 	$is_group_based_perm = false;
-	if ($options["list_type"] == "db") {
-		$other_table = $options["pop-table"];
-		$other_id = $options["pop-id"];
-		$other_title = $options["pop-description"];
-		$other_sort = $options["pop-sort"];
-	
-		$q = sqlquery("SELECT `id`,`$other_title` FROM `$other_table` ORDER BY $other_sort");
-		$list = array();
-	
-		if ($module && $module["gbp"]["enabled"] && $form["table"] == $module["gbp"]["table"] && $key == $module["gbp"]["group_field"]) {
-			$is_group_based_perm = true;
-			while ($f = sqlfetch($q)) {
-				$access_level = $admin->canAccessGroup($module,$f["id"]);
-				if ($access_level) {
-					$list[] = array("value" => $f["id"],"description" => $f[$other_title],"access_level" => $access_level);
+	$list = array();
+
+	// Database populated list.
+	if ($field["options"]["list_type"] == "db") {
+		$list_table = $field["options"]["pop-table"];
+		$list_id = $field["options"]["pop-id"];
+		$list_title = $field["options"]["pop-description"];
+		$list_sort = $field["options"]["pop-sort"];
+		
+		// If debug is on we're going to check if the tables exists...
+		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
+			$db_error = true;
+		} else {
+			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
+			
+			// Check if we're doing module based permissions on this table.
+			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $key == $bigtree["module"]["gbp"]["group_field"]) {
+				$is_group_based_perm = true;
+				while ($f = sqlfetch($q)) {
+					// Find out whether the logged in user can access a given group, and if so, specify the access level.
+					$access_level = $admin->canAccessGroup($bigtree["module"],$f["id"]);
+					if ($access_level) {
+						$list[] = array("value" => $f["id"],"description" => $f[$list_title],"access_level" => $access_level);
+					}
+				}
+			// We're not doing module group based permissions, get a regular list.
+			} else {
+				while ($f = sqlfetch($q)) {
+					$list[] = array("value" => $f["id"],"description" => $f[$list_title]);
 				}
 			}
-		} else {
-			while ($f = sqlfetch($q)) {
-				$list[] = array("value" => $f["id"],"description" => $f[$other_title]);
-			}
 		}
-		
-		$options["list"] = $list;
-	} elseif ($options["list_type"] == "state") {
-		$list = array();
-		foreach ($state_list as $a => $s) {
+	// State List
+	} elseif ($field["options"]["list_type"] == "state") {
+		foreach (BigTree::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
 				"description" => $s
 			);
 		}
-		$options["list"] = $list;
-	} elseif ($options["list_type"] == "country") {
-		$list = array();
-		foreach ($country_list as $c) {
+	// Country List
+	} elseif ($field["options"]["list_type"] == "country") {
+		foreach (BigTree::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
 				"description" => $c
 			);
 		}
-		$options["list"] = $list;
+	// Static List
+	} else {
+		$list = $field["options"]["list"];
+	}
+
+	// If the table was deleted for a database populated list, throw an error.
+	if ($db_error) {
+?>
+<p class="error_message">The table for this field no longer exists (<?=htmlspecialchars($list_table)?>).</p>
+<?
+	// Draw the list.
+	} else {
+		$class = array();
+		if ($is_group_based_perm) {
+			$class[] = "gbp_select";
+		}
+		if ($field["required"]) {
+			$class[] = "required";
+		}
+?>
+<select<? if (count($class)) { ?> class="<?=implode(" ",$class)?>"<? } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
+	<? if ($field["options"]["allow-empty"] != "No") { ?>
+	<option></option>
+	<? } ?>
+	<? foreach ($list as $option) { ?>
+	<option value="<?=htmlspecialchars(htmlspecialchars_decode($option["value"]))?>"<? if ($field["value"] == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags($option["description"]), 100)))?></option>
+	<? } ?>
+</select>
+<?
 	}
 ?>
-<fieldset>
-	<? if ($title) { ?><label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label><? } ?>
-	<select<?=$input_validation_class?> name="<?=$key?>" tabindex="<?=$tabindex?>" id="field_<?=$key?>"<? if ($is_group_based_perm) { ?> class="gbp_select"<? } ?>>
-		<? if ($options["allow-empty"] != "No") { ?>
-		<option></option>
-		<? } ?>
-		<? foreach ($options["list"] as $option) { ?>
-		<option value="<?=$option["value"]?>"<? if ($value == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=BigTree::trimLength($option["description"], 100)?></option>
-		<? } ?>
-	</select>
-</fieldset>

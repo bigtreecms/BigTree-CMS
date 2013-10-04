@@ -10,25 +10,22 @@
 			include $path;
 		}
 	?>
-	<br />
 </div>
 
 <script>
-	var _local_table;
-	
-	BigTreeCustomControls();
+	BigTree.localTable = false;
 	
 	$(".table_select").change(function() {
 		x = 0;
-		_local_table = $(this).val();
+		BigTree.localTable = $(this).val();
 		
 		$(this).parents("fieldset").nextAll("fieldset").each(function() {
 			div = $(this).find("div");
 			if (div.length && div.attr("data-name")) {
 				if (div.hasClass("sort_by")) {
-					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + _local_table + "&field=" + div.attr("data-name"), BigTreeCustomControls);
+					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + BigTree.localTable + "&field=" + div.attr("data-name"), BigTreeCustomControls);
 				} else {
-					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + _local_table + "&field=" + div.attr("data-name"), BigTreeCustomControls);
+					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + BigTree.localTable + "&field=" + div.attr("data-name"), BigTreeCustomControls);
 				}
 			}
 		});

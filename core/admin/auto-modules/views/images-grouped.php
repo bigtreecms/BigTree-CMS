@@ -11,8 +11,13 @@
 	$suffix = $suffix ? "-".$suffix : "";
 	$draggable = (isset($view["options"]["draggable"]) && $view["options"]["draggable"]) ? true : false;
 	$groups = BigTreeAutoModule::getGroupsForView($view);
+	if ($draggable) {
+		$order = "position DESC, id ASC";
+	} else {
+		$order = $view["options"]["sort"] ? $view["options"]["sort"] : "id DESC";
+	}
 ?>
-<div class="table auto_modules">
+<div class="table auto_modules image_list">
 	<summary>
 		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?>Click an image to edit it.</p>
 	</summary>
@@ -21,19 +26,15 @@
 		foreach ($groups as $group => $title) {
 			$y++;
 			
-			if ($draggable) {
-				$items = BigTreeAutoModule::getViewDataForGroup($view,$group,"position DESC, id ASC","active");
-			} else {
-				$items = BigTreeAutoModule::getViewDataForGroup($view,$group,"id DESC","active");
-			}
-			$pending_items = BigTreeAutoModule::getViewDataForGroup($view,$group,"id DESC","pending");
+			$items = BigTreeAutoModule::getViewDataForGroup($view,$group,$order,"active");
+			$pending_items = BigTreeAutoModule::getViewDataForGroup($view,$group,$order,"pending");
 	?>
 	<header class="group"><?=$title?></header>
 	<section>
 		<?
 			if (count($items)) {
 		?>
-		<ul id="image_list_<?=$y?>" class="image_list">
+		<ul id="image_list_<?=$y?>">
 			<?
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
@@ -71,7 +72,7 @@
 									$class = $data["class"];
 									$link = $module_page.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
-										eval('$link = '.$data["function"].'($item);');
+										$link = call_user_func($data["function"],$item);
 									}
 								}
 				?>
@@ -91,10 +92,11 @@
 			
 			if (count($pending_items)) {
 		?>
-		<p><em>Pending Images</em></p>
-		<ul class="image_list">
+		<header class="image_pending_divider">Pending Entries</header>
+		<ul>
 			<?
 				foreach ($pending_items as $item) {
+					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($options["prefix"]) {
 						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
 					} else {
@@ -124,7 +126,7 @@
 									$class = $data["class"];
 									$link = $module_page.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
-										eval('$link = '.$data["function"].'($item);');
+										$link = call_user_func($data["function"],$item);
 									}
 								}
 				?>
@@ -151,7 +153,7 @@
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	<? if ($permission == "p" && $draggable) { ?>
-	$(".image_list").each(function() {
+	$(".image_list ul").each(function() {
 		if ($(this).attr("id")) {
 			$(this).sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
 				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/",  { type: "POST", data: { view: "<?=$view["id"]?>", table_name: "image_list", sort: $(this).sortable("serialize") } });

@@ -52,17 +52,7 @@
 		}
 	?>
 	<span class="view_status">Status</span>
-	<?	
-		foreach ($actions as $action => $data) {
-			if ($data != "on") {
-				$data = json_decode($data,true);
-				$action = $data["name"];
-			}
-	?>
-	<span class="view_action"><?=$action?></span>
-	<?
-		}
-	?>
+	<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;"><? if (count($view["actions"]) > 1) { ?>Actions<? } ?></span>
 </header>
 <?	
 	$gc = 0;
@@ -139,7 +129,7 @@
 					$data = json_decode($data,true);
 					$link = $mpage.$data["route"]."/".$item["id"]."/";
 					if ($data["function"]) {
-						eval('$link = '.$data["function"].'($item);');
+						$link = call_user_func($data["function"],$item);
 					}
 		?>
 		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>

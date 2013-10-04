@@ -10,7 +10,7 @@
 		$permission_level = $admin->getAccessLevel($admin->getModule($change["module"]),$data["item"],$change["table"]);
 	} else {
 		if ($change["item_id"]) {
-			$permission_level = $admin->getPageAccessLevel($page);
+			$permission_level = $admin->getPageAccessLevel($item_id);
 		} else {
 			$f = $admin->getPendingChange($change["id"]);
 			$permission_level = $admin->getPageAccessLevel($f["changes"]["parent"]);

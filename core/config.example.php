@@ -21,11 +21,13 @@
 	$bigtree["config"]["db_write"]["user"] = "[write_user]";
 	$bigtree["config"]["db_write"]["password"] = "[write_password]";
 	
-	// Setup the www_root and resource_root
-	// Resource root must be on a different domain than www_root.  Usually we just remove the www. from the domain.
+	// "domain" should be http:///www.website.com
 	$bigtree["config"]["domain"] = "[domain]";
+	// "www_root" should be http://www.website.com/location/of/the/site/
 	$bigtree["config"]["www_root"] = "[wwwroot]";
+	// "static_root" can either be the same as "www_root" or another domain that points to the same place -i t is used to server static files to increase page load time due to max connections per domain in most browsers.
 	$bigtree["config"]["static_root"] = "[staticroot]";
+	// "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/";
 	
 	// Current Environment
@@ -55,12 +57,9 @@
 	$bigtree["config"]["recaptcha"]["private"] = "6LcjTrwSAAAAADnHAf1dApaNCX1ODNuEBP1YdMdJ";
 	$bigtree["config"]["recaptcha"]["public"] = "6LcjTrwSAAAAAKvNG6n0YtCROEWGllOu-dS5M5oj";
 	
-	// Google Maps Key for Geocoding
-	$bigtree["config"]["google_maps_key"] = "";
-	
 	// Base classes for BigTree.  If you want to extend / overwrite core features of the CMS, change these to your new class names
-	// Set BIGTREE_CUSTOM_BASE_CLASS_PATH to the directory path (relative to /core/) of the file that will extend BigTreeCMS
-	// Set BIGTREE_CUSTOM_ADMIN_CLASS_PATH to the directory path (relative to /core/) of the file that will extend BigTreeAdmin
+	// Set BIGTREE_CUSTOM_BASE_CLASS_PATH to the directory path (relative to /site/) of the file that will extend BigTreeCMS
+	// Set BIGTREE_CUSTOM_ADMIN_CLASS_PATH to the directory path (relative to /site/) of the file that will extend BigTreeAdmin
 	define("BIGTREE_CUSTOM_BASE_CLASS",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS",false);
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);

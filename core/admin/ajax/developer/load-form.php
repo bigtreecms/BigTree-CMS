@@ -6,6 +6,7 @@
 	$positioned = false;
 	
 	$table = isset($_POST["table"]) ? $_POST["table"] : $table;
+	$table_columns = array();
 
 	if (isset($fields)) {
 		foreach ($fields as $key => $field) {
@@ -20,10 +21,17 @@
 			if ($column == "position") {
 				$positioned = true;
 			}
+			$table_columns[] = $column;
 		}
 	} else {
 		$fields = array();
-		$table_info = BigTree::describeTable($table);
+		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
+		if ($table) {
+			$table_info = BigTree::describeTable($table);
+		} else {
+			$table_info = array("foreign_keys" => array(), "columns" => array());
+		}
+
 		// Let's relate the foreign keys based on the local column so we can check easier.
 		$foreign_keys = array();
 		foreach ($table_info["foreign_keys"] as $key) {
@@ -32,6 +40,7 @@
 			}
 		}
 		foreach ($table_info["columns"] as $column) {
+			$table_columns[] = $column["name"];
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
@@ -41,7 +50,7 @@
 				$options = array();
 				
 				if (strpos($title,"URL") !== false) {
-					$subtitle = "Include http://";
+					$subtitle = "(include http://)";
 				}
 
 				if ($column["name"] == "route") {
@@ -128,13 +137,14 @@
 			}
 		}
 	}
-	
+
 	$cached_types = $admin->getCachedFieldTypes();
 	$types = $cached_types["module"];
+	if (count($fields)) {
 ?>
 <label>Fields</label>
 
-<div class="form_table">
+<div class="form_table<? if (!$positioned) { ?> last<? } ?>">
 	<header>
 		<a href="#" class="add add_geocoding"><span></span>Geocoding</a>
 		<a href="#" class="add add_many_to_many"><span></span>Many-To-Many</a>
@@ -149,7 +159,9 @@
 		<?
 			$mtm_count = 0;
 			foreach ($fields as $key => $field) {
-				$used[] = $key;
+				// If this column is no longer in the table, we're going to remove it.
+				if (in_array($key,$table_columns) || $field["type"] == "geocoding" || $field["type"] == "many-to-many") {
+					$used[] = $key;
 		?>
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">
@@ -157,19 +169,20 @@
 				<input type="text" name="titles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["title"]?>"<? } ?> />
 			</section>
 			<section class="developer_resource_form_subtitle">
-				<input type="text" name="subtitles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
+				<input type="text" name="subtitles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
 			</section>
 			<section class="developer_resource_type">
 				<?
 					if ($field["type"] == "geocoding") {
 				?>
 				<input type="hidden" name="type[geocoding]" value="geocoding" id="type_geocoding" />
+				<span class="resource_name">Geocoding</span>
 				<?
-					} elseif ($field["type"] == "many_to_many") {
+					} elseif ($field["type"] == "many-to-many") {
 						$mtm_count++;
 				?>
 				<span class="resource_name">Many to Many</span>
-				<input type="hidden" name="type[mtm_<?=$mtm_count?>]" value="many_to_many" id="type_mtm_<?=$mtm_count?>" />
+				<input type="hidden" name="type[mtm_<?=$mtm_count?>]" value="many-to-many" id="type_mtm_<?=$mtm_count?>" />
 				<?
 					} else {
 				?>
@@ -189,6 +202,7 @@
 			</section>
 		</li>
 		<?
+				}
 			}
 		?>
 	</ul>
@@ -205,7 +219,7 @@
 <? } ?>
 
 <script>
-	mtm_count = <?=$mtm_count?>;
+	BigTree.localMTMCount = <?=$mtm_count?>;
 	
 	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
 		title = el.title;
@@ -216,6 +230,13 @@
 		
 		$("#resource_table").append(li);
 		fs.removeCurrent();
-		_local_hooks();
+		BigTree.localHooks();
 	});
 </script>
+<?
+	} else {
+?>
+<p>Please choose a table to populate this area.</p>
+<?
+	}
+?>

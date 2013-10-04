@@ -1,4 +1,39 @@
 <?php
+	// Setup SQL functions for MySQL extension if we have it.
+	if (function_exists("mysql_connect")) {
+		function sqlconnect($server,$user,$password) {
+			return mysql_connect($server,$user,$password);
+		}
+
+		function sqlselectdb($con,$db) {
+			return mysql_select_db($con,$db);
+		}
+
+		function sqlquery($query) {
+			return mysql_query($query);
+		}
+
+		function sqlescape($string) {
+			return mysql_real_escape_string($string);
+		}
+	// Otherwise Use MySQLi
+	} else {
+		function sqlconnect($server,$user,$password) {
+			return mysqli_connect($server,$user,$password);
+		}
+
+		function sqlselectdb($con,$db) {
+			return mysqli_select_db($con,$db);
+		}
+
+		function sqlquery($query) {
+			return mysqli_query($query);
+		}
+
+		function sqlescape($string) {
+			return mysqli_real_escape_string($string);
+		}
+	}
 	// Turn off errors
 	ini_set("log_errors",false);
 	error_reporting(0); 
@@ -14,28 +49,31 @@
 		}
 	}
 	
-	//!Server Parameters
-	$warnings = array();
+	// Issues that are game enders first.
+	$fails = array();
 	if (!extension_loaded('json')) {
-		$warnings[] = "JSON Extension is missing (this could affect API and Foundry usage).";
+		$fails[] = "PHP does not have the JSON extension installed.";
 	}
-	if (!extension_loaded("mysql")) {
-		$warnings[] = "MySQL Extension is missing (this is a FATAL ERROR).";
+	if (!extension_loaded("mysql") && !extension_loaded("mysqli")) {
+		$fails[] = "PHP does not have the MySQL extension installed.";
 	}
+	if (!extension_loaded('gd')) {
+		$fails[] = "PHP does not have the GD extension installed.";
+	}
+	if (!extension_loaded('curl')) {
+		$fails[] = "PHP does not have the cURL extension installed.";
+	}
+	if (!ini_get('file_uploads')) {
+		$fails[] = "PHP does not have file uploads enabled. This will severely limit BigTree's functionality.";
+	}
+
+	// Issues that could cause problems next.
+	$warnings = array();
 	if (get_magic_quotes_gpc()) {
 		$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
 	}
-	if (!ini_get('file_uploads')) {
-		$warnings[] = "PHP does not have file uploads enabled. This will severely limit BigTree's functionality.";
-	}
 	if (!ini_get('short_open_tag')) {
 		$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
-	}
-	if (!extension_loaded('gd')) {
-		$warnings[] = "PHP does not have the GD library enabled. This will severely limit your ability to do anything with images in BigTree.";
-	}
-	if (intval(ini_get('upload_max_filesize')) < 4) {
-		$warnings[] = "Max upload filesize is currently less than 4MB. 8MB or higher is recommended.";
 	}
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
@@ -47,10 +85,13 @@
 		$warnings[] = "PHP's memory limit is currently under 32MB. BigTree recommends at least 32MB of memory be available to PHP.";
 	}
 
-	if (function_exists("apache_get_modules")) {
+	// mod_rewrite check
+	$rewrite_enabled = true;
+	if (function_exists("apache_get_modules")) {		
 		$apache_modules = apache_get_modules();
 		if (in_array('mod_rewrite', $apache_modules) === false) {
-			$warnings[] = "BigTree requires Apache to have mod_rewrite installed (this is a FATAL ERROR).";
+			$warnings[] = "Apache's mod_rewrite is not installed. Advanced URL rewrites are not available without it.";
+			$rewrite_enabled = false;
 		}
 	}
 
@@ -70,14 +111,14 @@
 		$error = "Please make the current working directory writable.";
 	} elseif (count($_POST)) {
 		if ($write_host && $write_user && $write_password) {
-			$con = @mysql_connect($write_host,$write_user,$write_password,$db);
+			$con = @sqlconnect($write_host,$write_user,$write_password);
 		} else {
-			$con = @mysql_connect($host,$user,$password);
+			$con = @sqlconnect($host,$user,$password);
 		}
 		if (!$con) {
 			$error = "Could not connect to database.";
 		} else {
-			$select = mysql_select_db($db, $con);
+			$select = sqlselectdb($db, $con);
 			if (!$select) {
 				$error = "Could not select database &ldquo;$db&rdquo;.";
 			}
@@ -134,20 +175,22 @@
 			($routing == "basic") ? "basic" : "htaccess"
 		);
 		
+		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
+		sqlquery("SET SESSION sql_mode = ''");
 		$sql_queries = explode("\n",file_get_contents("bigtree.sql"));
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
 			if ($query != "") {
-				$q = mysql_query($query);
+				$q = sqlquery($query);
 			}
 		}
 		
-		mysql_query("UPDATE bigtree_pages SET id = '0' WHERE id = '1'");
+		sqlquery("UPDATE bigtree_pages SET id = '0' WHERE id = '1'");
 		
 		include "core/inc/lib/PasswordHash.php";
 		$phpass = new PasswordHash(8, TRUE);
-		$enc_pass = mysql_real_escape_string($phpass->HashPassword($cms_pass));
-		mysql_query("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
+		$enc_pass = sqlescape($phpass->HashPassword($cms_pass));
+		sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
 		
 		function bt_mkdir_writable($dir) {
 			global $root;
@@ -380,6 +423,8 @@
 
 IndexIgnore */*
 
+Options -MultiViews
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -392,6 +437,8 @@ php_flag magic_quotes_gpc Off');
 			
 		} elseif ($routing == "simple") {
 			bt_touch_writable("site/.htaccess",'IndexIgnore */*
+
+Options -MultiViews
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -416,7 +463,7 @@ RewriteRule (.*) site/$1 [L]');
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
 				if ($query != "") {
-					$q = mysql_query($query);
+					$q = sqlquery($query);
 				}
 			}
 			
@@ -426,7 +473,7 @@ RewriteRule (.*) site/$1 [L]');
 		"jquery.ba-dotimeout.min.js",
 		"jquery.breakpoints.js",
 		"main.js"',$config_data);
-			$config_data = str_replace('// "style_sheet.css"','"griddle.css",
+			$config_data = str_replace('// "style_sheet.css"','"gridlock.css",
 		"master.css"',$config_data);
 			$config_data = str_replace('$bigtree["config"]["css"]["prefix"] = false;','$bigtree["config"]["css"]["prefix"] = true;',$config_data);
 			file_put_contents("templates/config.php",$config_data);
@@ -454,9 +501,9 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree 4.0RC2</title>
+		<title>Install BigTree 4.0</title>
 		<?php if ($installed) { ?>
-		<link rel="stylesheet" href="<?=$www_root?>admin/css/main.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="<?php echo $www_root ?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
 		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
 		<script src="core/admin/js/lib.js"></script>
@@ -466,14 +513,14 @@ RewriteRule (.*) site/$1 [L]');
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree 4.0RC2 Installed</h1>
+			<h1>BigTree 4.0 Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
 					<p>Your new BigTree site is ready to go! Login to the CMS using your newly created account.</p>
-					<? if ($routing == "basic") { ?>
+					<?php if ($routing == "basic") { ?>
 					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
-					<? } ?>
+					<?php } ?>
 				</fieldset>
 				
 				<hr />
@@ -495,7 +542,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree 4.0RC2</h1>
+			<h1>Install BigTree 4.0</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
@@ -511,20 +558,29 @@ RewriteRule (.*) site/$1 [L]');
 				<?php
 						}
 					}
-					
-					if ($error) {
+					if (count($fails)) {
+						echo '<br />';
+						foreach ($fails as $fail) {
+				?>
+				<p class="error_message clear"><?php echo $fail?></p>
+				<?php
+						}
+						echo '<br /><fieldset class="clear"><p><strong>Please resolve all the errors marked in red above to install BigTree.</strong></p></fieldset><br /><br />';
+					} else {
+						if ($error) {
+							echo '<br />';
 				?>
 				<p class="error_message clear"><?php echo $error?></p>
 				<?php
-					}
+						}
 				?>
 				<hr />
 				
 				<h2 class="database"><span></span>Database Properties</h2>
 				<fieldset class="clear">
 					<p>Enter your MySQL database information below.</p>
-					<br />
 				</fieldset>
+				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$host) { ?> form_error<?php } ?>">
 					<label>Hostname</label>
 					<input class="text" type="text" id="db_host" name="host" value="<?php echo htmlspecialchars($host) ?>" tabindex="1" />
@@ -554,8 +610,8 @@ RewriteRule (.*) site/$1 [L]');
 					<h2 class="database"><span></span>Write Database Properties</h2>
 					<fieldset class="clear">
 						<p>If you are hosting a load balanced setup with multiple MySQL servers, enter the master write server information below.</p>
-						<br />
 					</fieldset>
+					<hr />
 					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
 						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($host) ?>" tabindex="6" />
@@ -582,14 +638,14 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="security"><span></span>Site Security</h2>
 				<fieldset class="clear">
 					<p>Customize your site's security settings below.</p>
-					<br />
 				</fieldset>
+				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$settings_key) { ?> form_error<?php } ?>">
 					<label>Settings Encryption Key</label>
 					<input class="text" type="text" name="settings_key" id="settings_key" value="<?php echo htmlspecialchars($settings_key) ?>" tabindex="10" />
 				</fieldset>
 				<fieldset class="clear">
-					<br />
+					<br /><br />
 					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
@@ -599,8 +655,8 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="account"><span></span>Administrator Account</h2>
 				<fieldset class="clear">
 					<p>Create the default account your administration area.</p>
-					<br />
 				</fieldset>
+				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
 					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="12" />
@@ -625,9 +681,11 @@ RewriteRule (.*) site/$1 [L]');
 				</fieldset>
 				<fieldset class="clear">
 					<select name="routing">
-						<option value="basic"<? if (!$routing || $routing == "basic") { ?> selected="selected"<? } ?>>Basic Routing</option>
-						<option value="simple"<? if ($routing == "simple") { ?> selected="selected"<? } ?>>Simple Rewrite Routing</option>
-						<option value="advanced"<? if ($routing == "advanced") { ?> selected="selected"<? } ?>>Advanced Routing</option>
+						<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
+						<?php if ($rewrite_enabled) { ?>
+						<option value="simple"<?php if ($routing == "simple") { ?> selected="selected"<?php } ?>>Simple Rewrite Routing</option>
+						<option value="advanced"<?php if ($routing == "advanced") { ?> selected="selected"<?php } ?>>Advanced Routing</option>
+						<?php } ?>
 					</select>
 				</fieldset>
 				
@@ -647,6 +705,9 @@ RewriteRule (.*) site/$1 [L]');
 				<fieldset class="lower">
 					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
 				</fieldset>
+				<?php
+					}
+				?>
 			</form>
 		    <script>
 		        $(document).ready(function() {

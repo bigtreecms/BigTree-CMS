@@ -16,9 +16,7 @@
 	</summary>
 	<header>
 		<span class="developer_modules_name">Module Name</span>
-		<span class="view_action">Export</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="group_<?=$g["id"]?>">
 		<? foreach ($g["modules"] as $item) { ?>
@@ -58,9 +56,7 @@
 	</summary>
 	<header>
 		<span class="developer_modules_name">Module Name</span>
-		<span class="view_action">Export</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="group_0">
 		<? foreach ($ungrouped_modules as $item) { ?>

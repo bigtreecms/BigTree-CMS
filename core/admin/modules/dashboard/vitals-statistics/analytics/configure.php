@@ -31,25 +31,24 @@
 				?>
 				<div id="analytics_profiles_loading"><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> Loading Profiles: <span id="current_property">0</span> of <?=count($property_lookup)?> complete</div>
 				<script>
-					var properties = <?=json_encode($property_lookup)?>;
-					var current_property = 0;
-					var profiles = [];
-					
-					function getProfile() {
-						$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/analytics/get-management-profiles/", { type: "POST", data: { account: properties[current_property].account, property: properties[current_property].property }, success: function(response) {
+					BigTree.localProperties = <?=json_encode($property_lookup)?>;
+					BigTree.localCurrentProperty = 0;
+					BigTree.localProfiles = [];
+					BigTree.localGetProfile = function() {
+						$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/analytics/get-management-profiles/", { type: "POST", data: { account: BigTree.localProperties[BigTree.localCurrentProperty].account, property: BigTree.localProperties[BigTree.localCurrentProperty].property }, success: function(response) {
 							
 							for (i in response) {
-								profiles[profiles.length] = { account: properties[current_property].account_name, name: response[i].name, id: response[i].id };
+								BigTree.localProfiles[BigTree.localProfiles.length] = { account: BigTree.localProperties[BigTree.localCurrentProperty].account_name, name: response[i].name, id: response[i].id };
 							}
 							
-							current_property++;
-							$("#current_property").html(current_property);
-							if (current_property < properties.length) {
-								getProfile();
+							BigTree.localCurrentProperty++;
+							$("#current_property").html(BigTree.localCurrentProperty);
+							if (BigTree.localCurrentProperty < BigTree.localProperties.length) {
+								BigTree.localGetProfile();
 							} else {
 								html = '<select name="profile">';
-								for (i in profiles) {
-									p = profiles[i];
+								for (i in BigTree.localProfiles) {
+									p = BigTree.localProfiles[i];
 									html += '<option value="' + p.id + '">' + htmlspecialchars(p.account) + ' &mdash; ' + htmlspecialchars(p.name) + '</option>';
 								}
 								html += '</select>';
@@ -58,9 +57,9 @@
 								$("#set_button").show();
 							}
 						}});
-					}
+					};
 					
-					getProfile();
+					BigTree.localGetProfile();
 				</script>
 				<?
 					} else {
@@ -73,7 +72,7 @@
 		</section>
 		<footer>
 			<input type="submit" value="Set Profile" class="blue" id="set_button" style="display: none;" />
-			<a href="<?=$mroot?>disconnect/" class="button" id="ga_disconnect">Disconnect</a>
+			<a href="#" class="button" id="ga_disconnect">Disconnect</a>
 		</footer>
 	</form>
 	
@@ -99,9 +98,8 @@
 	});
 	
 	$("#ga_disconnect").click(function() {
-		var href = $(this).attr("href");
-		var popup = new BigTreeDialog("Disconnect Google Analytics","<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",function() {
-			window.location.href = href;
+		new BigTreeDialog("Disconnect Google Analytics","<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",function() {
+			window.location.href = "<?=$mroot?>disconnect/";
 		},"delete",false,"Disconnect");
 		return false;
 	});

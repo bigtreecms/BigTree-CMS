@@ -1,6 +1,5 @@
 <?
 	include "_header.php";
-	
 	$currentPage = BigTree::currentURL();
 	
 	// Get all the categories, authors, and months with posts in them.
@@ -8,8 +7,9 @@
 	$authors = $dogwood->getAuthors();
 	$archives = $dogwood->getMonths();
 ?>
-<div class="row_12 blog" id="subpage">
-	<aside class="cell_3 right sidebar">
+<div class="row blog" id="subpage">
+	<? include "_breadcrumb.php" ?>
+	<aside class="desktop-3 right sidebar">
 		<nav class="subnav blognav">
 			<a href="#" class="nav_label">Navigation</a>
 			<div class="nav_options">
@@ -77,7 +77,7 @@
 			</div>
 		</nav>
 	</aside>
-	<div class="cell_9 content">
+	<div class="desktop-9 content">
 		<?=$bigtree["content"]?>
 	</div>
 </div>

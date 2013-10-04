@@ -6,6 +6,10 @@
 	*/
 	
 	class BigTree {
+
+		static $StateList = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
+		static $CountryList = array("United States","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombi","Comoros","Congo (Brazzaville)","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor (Timor Timur)","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia, The","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea, North","Korea, South","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepa","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia and Montenegro","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
+		static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
 	
 		/*
 			Function: arrayToXML
@@ -44,6 +48,9 @@
 				newfile - The location to save the new cropped image.
 				cw - The crop width.
 				ch - The crop height.
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function centerCrop($file, $newfile, $cw, $ch) {
@@ -58,11 +65,11 @@
 				$nw = $w * $v;
 				$x = ceil(($nw - $cw) / 2 * $w / $nw);
 				$y = 0;
-				self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
 			} else {
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
-				self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
 			}
 		}
 		
@@ -147,10 +154,18 @@
 				height - The height to crop from the original image.
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
+
+			// If we don't have the memory available, fail gracefully.
+			if (!self::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
+				return false;
+			}
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
@@ -206,6 +221,9 @@
 				maxheight - The maximum height of the new image (0 for no max).
 				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
 		*/
 		
 		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false) {
@@ -213,13 +231,18 @@
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight,$retina);
+			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight);
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 				$result_width *= 2;
 				$result_height *= 2;
+			}
+
+			// If we don't have the memory available, fail gracefully.
+			if (!self::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
+				return false;
 			}
 
 			$thumbnailed_image = imagecreatetruecolor($result_width, $result_height);
@@ -295,9 +318,9 @@
 			Function: currentURL
 				Return the current active URL with correct protocall and port
 		*/
-		static function currentURL() {
+		static function currentURL($port = false) {
 			$url = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
-			if ($_SERVER["SERVER_PORT"] != "80") {
+			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
 				$url .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
 			} else {
 				$url .= $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
@@ -628,6 +651,9 @@
 			// Transition - transition: definition
 			$css = preg_replace_callback('/transition:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
 			
+			// Transform - transform: definition
+			$css = preg_replace_callback('/transform:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);			
+
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
 			
@@ -661,48 +687,18 @@
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
-				Caches results in a BigTree setting.
+				This method is deprecated and exists only for backwards compatibility (BigTreeGeocoding should be used directly).
 			
 			Parameters:
 				address - The address to geocode.
 			
 			Returns:
-				An associative array with "lat" and "lon" keys.
+				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
 		
 		static function geocodeAddress($address) {
-			global $cms,$admin;
-			
-			// Clean up the address and get our cache key
-			$address = trim(strip_tags($address));
-			$cache_key = base64_encode($address);
-			
-			// See if the setting exists, if it does grab it, otherwise create it.
-			if (!$admin) {
-				$admin = new BigTreeAdmin;
-			}
-			if (!$admin->settingExists("bigtree-internal-geocoded-addresses")) {
-				$admin->createSetting(array("id" => "bigtree-internal-geocoded-addresses", "system" => "on"));
-			}
-			$cache = $cms->getSetting("bigtree-internal-geocoded-addresses");
-			if (isset($cache[$cache_key])) {
-				return $cache[$cache_key];
-			}
-			
-			// It's not in the cache, ask Google for it.
-			$file = utf8_encode(BigTree::curl("http://maps.google.com/maps/geo?q=".urlencode($address)."&output=xml"));
-			try {
-				$xml = new SimpleXMLElement($file);
-				$coords = explode(",", $xml->Response->Placemark->Point->coordinates);
-				$geo = array("latitude" => $coords[1], "longitude" => $coords[0]);
-			} catch (Exception $e) {
-				$geo = false;
-			}
-			
-			// Add the result to the cache and return it.
-			$cache[$cache_key] = $geo;
-			$admin->updateSettingValue("bigtree-internal-geocoded-addresses",$cache);
-			return $geo;
+			$geocoder = new BigTreeGeocoding;
+			return $geocoder->geocode($address);
 		}
 		
 		/*
@@ -792,7 +788,7 @@
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_"))) {
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_")) || $tname == $default) {
 					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
 						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
 					} else {
@@ -847,46 +843,82 @@
 		
 		/*
 			Function: globalizeArray
-				Globalizes all the keys of an array into global variables without compromising $_ variables.
-				Runs an array of functions on values that aren't arrays.
+				Globalizes all the keys of an array into global variables without compromising super global ($_) variables.
+				Optionally runs a list of functions (passed in after the array) on the data.
 			
 			Parameters:
 				array - An array with key/value pairs.
-				non_array_functions - An array of functions to perform on values that aren't arrays.
+				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 			
 			See Also:
 				<globalizeGETVars>
 				<globalizePOSTVars>
 		*/
 		
-		static function globalizeArray($array,$non_array_functions = array()) {
-			if (is_array($array)) {
-				foreach ($array as $key => $val) {
-					if (strpos($key,0,1) != "_") {
-						global $$key;
-						if (is_array($val)) {
-							$$key = $val;
-						} else {
-							foreach ($non_array_functions as $func) {
+		static function globalizeArray($array) {
+			if (!is_array($array)) {
+				return false;
+			}
+
+			$functions = array_slice(func_get_args(),1);
+			foreach ($array as $key => $val) {
+				// Prevent messing with super globals
+				if (strpos($key,0,1) != "_") {
+					global $$key;
+					if (is_array($val)) {
+						$$key = self::globalizeArrayRecursion($val,$functions);
+					} else {
+						foreach ($functions as $func) {
+							// Backwards compatibility with old array passed syntax
+							if (is_array($func)) {
+								foreach ($func as $f) {
+									$val = $f($val);
+								}
+							} else {
 								$val = $func($val);
 							}
-							$$key = $val;
 						}
+						$$key = $val;
 					}
 				}
-				
-				return true;
 			}
-			return false;
+			
+			return true;
+		}
+
+		/*
+			Function: globalizeArrayRecursion
+				Used by globalizeArray for recursion.
+		*/
+
+		static function globalizeArrayRecursion($data,$functions) {
+			foreach ($data as $key => $val) {
+				if (is_array($val)) {
+					$data[$key] = self::globalizeArrayRecursion($val,$functions);
+				} else {
+					foreach ($functions as $func) {
+						// Backwards compatibility with old array passed syntax
+						if (is_array($func)) {
+							foreach ($func as $f) {
+								$val = $f($val);
+							}
+						} else {
+							$val = $func($val);
+						}
+					}
+					$data[$key] = $val;
+				}
+			}
+			return $data;
 		}
 		
 		/*
 			Function: globalizeGETVars
 				Globalizes all the $_GET variables without compromising $_ variables.
-				Runs an array of functions on values that aren't arrays.
+				Optionally runs a list of functions passed in as arguments on the data.
 			
 			Parameters:
-				non_array_functions - An array of functions to perform on values that aren't arrays.
+				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 			
 			See Also:
 				<globalizeArray>
@@ -894,49 +926,25 @@
 				
 		*/
 		
-		static function globalizeGETVars($non_array_functions = array()) {
-			foreach ($_GET as $key => $val) {
-				if (strpos($key,0,1) != "_") {
-					global $$key;
-					if (is_array($val)) {
-						$$key = $val;
-					} else {
-						foreach ($non_array_functions as $func) {
-							$val = $func($val);
-						}
-						$$key = $val;
-					}
-				}
-			}
+		static function globalizeGETVars() {
+			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_GET),func_get_args()));
 		}
 		
 		/*
 			Function: globalizePOSTVars
 				Globalizes all the $_POST variables without compromising $_ variables.
-				Runs an array of functions on values that aren't arrays.
+				Optionally runs a list of functions passed in as arguments on the data.
 			
 			Parameters:
-				non_array_functions - An array of functions to perform on values that aren't arrays.
+				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 			
 			See Also:
 				<globalizeArray>
 				<globalizeGETVars>
 		*/
 		
-		static function globalizePOSTVars($non_array_functions = array()) {
-			foreach ($_POST as $key => $val) {
-				if (strpos($key,0,1) != "_") {
-					global $$key;
-					if (is_array($val)) {
-						$$key = $val;
-					} else {
-						foreach ($non_array_functions as $func) {
-							$val = $func($val);
-						}
-						$$key = $val;
-					}
-				}
-			}
+		static function globalizePOSTVars() {
+			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_POST),func_get_args()));
 		}
 		
 		/*
@@ -957,7 +965,38 @@
 			return "http://www.gravatar.com/avatar/" . md5(strtolower($email)) . "?s=" . $size . "&d=" . urlencode($default) . "&rating=" . $rating;
 		}
 		
-		
+		/*
+			Function: imageManipulationMemoryAvailable
+				Checks whether there is enough memory available to perform an image manipulation.
+
+			Parameters:
+				source - The source image file
+				width - The width of the new image to be created
+				height - The height of the new image to be created
+				source_width - If we already know the width/height, the source width
+				source_height - If we already know the width/height, the source height
+
+			Returns:
+				true if the image can be created, otherwise false.
+		*/
+
+		static function imageManipulationMemoryAvailable($source,$width,$height,$source_width = false,$source_height = false) {
+			// Thanks to Klinky on Stack Overflow for this: http://stackoverflow.com/users/187537/klinky
+			// Convert megabytes to bytes.
+			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
+			if (!$source_width || !$source_height) {
+				list($source_width,$source_height) = getimagesize($source);
+			}
+			// 3 bytes per pixel, GD internally takes ~67% more memory
+			$source_size = ceil($source_width * $source_height * 3 * 1.68); 
+			$target_size = ceil($width * $height * 3 * 1.68);
+			// Give 10K memory for the methods that will perform the operation.
+			$memory_usage = $source_size + $target_size + memory_get_usage() + 10 * 1024;
+			if ($memory_usage > $available_memory) {
+				return false;
+			}
+			return true;
+		}
 		
 		/*
 			Function: isDirectoryWritable
@@ -969,6 +1008,7 @@
 			Returns:
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
+
 		static function isDirectoryWritable($path) {
 			if (is_writable($path)) {
 				return true;
@@ -980,6 +1020,21 @@
 				return self::isDirectoryWritable($path);
 			}
 			return is_writable($path);
+		}
+		
+		/*
+			Function: isExternalLink
+				Check if URL is external, relative to site root
+			
+			Parameters:
+				url - The URL to test.
+
+			Returns:
+				true if link is external
+		*/
+		
+		static function isExternalLink($url) {
+			return ((substr($url,0,7) == "http://" || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
 		}
 		
 		/*
@@ -1057,6 +1112,54 @@
 				$i++;
 			}
 			return $key_name;
+		}
+
+		/*
+			Function: parsedFilesArray
+				Parses the $_FILES array and returns an array more like a normal $_POST array.
+			
+			Parameters:
+				part - (Optional) The key of the file tree to return.
+			
+			Returns:
+				A more sensible array, or a piece of that sensible array if "part" is set.
+		*/
+
+		static function parsedFilesArray($part = false) {
+			$clean = array();
+			foreach ($_FILES as $key => $first_level) {
+				// Hurray, we have a first level entry, just save it to the clean array.
+				if (!is_array($first_level["name"])) {
+					$clean[$key] = $first_level;
+				} else {
+					$clean[$key] = self::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+				}
+			}
+			if ($part) {
+				return $clean[$part];
+			}
+			return $clean;
+		}
+
+		/*
+			Function: parseFilesArrayLoop
+				Private method used by parseFilesArray.
+		*/
+
+		private static function parsedFilesArrayLoop($name,$tmp_name,$type,$error,$size) {
+			$array = array();
+			foreach ($name as $k => $v) {
+				if (!is_array($v)) {
+					$array[$k]["name"] = $v;
+					$array[$k]["tmp_name"] = $tmp_name[$k];
+					$array[$k]["type"] = $type[$k];
+					$array[$k]["error"] = $error[$k];
+					$array[$k]["size"] = $size[$k];
+				} else {
+					$array[$k] = self::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+				}
+			}
+			return $array;
 		}
 		
 		/*
@@ -1272,7 +1375,23 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
-			global $status_codes;
+			$status_codes = array(
+				"200" => "OK",
+				"300" => "Multiple Choices",
+				"301" => "Moved Permanently",
+				"302" => "Found",
+				"304" => "Not Modified",
+				"307" => "Temporary Redirect",
+				"400" => "Bad Request",
+				"401" => "Unauthorized",
+				"403" => "Forbidden",
+				"404" => "Not Found",
+				"410" => "Gone",
+				"500" => "Internal Server Error",
+				"501" => "Not Implemented",
+				"503" => "Service Unavailable",
+				"550" => "Permission denied"
+			);
 			if (!$url) {
 				return false;
 			}
@@ -1286,6 +1405,46 @@
 			}
 			header("Location: ".$url);
 			die();
+		}
+
+		/*
+			Function: relativeTime
+				Turns a timestamp into "… hours ago" formatting.
+
+			Parameters:
+				time - A date/time stamp understandable by strtotime
+
+			Returns:
+				A string describing how long ago the passed time was.
+		*/
+
+		static function relativeTime($time) {
+			$second = 1;
+			$minute = 60;
+			$hour = 3600;
+			$day = 86400;
+			$month = 2592000;			
+			$delta = strtotime(date('r')) - strtotime($time);
+			
+			if ($delta < 2 * $minute) {
+				return "1 min ago";
+			} elseif ($delta < 45 * $minute) {
+				return floor($delta / $minute) . " min ago";
+			} elseif ($delta < 90 * $minute) {
+				return "1 hour ago";
+			} elseif ($delta < 24 * $hour) {
+				return floor($delta / $hour) . " hours ago";
+			} elseif ($delta < 48 * $hour) {
+				return "yesterday";
+			} elseif ($delta < 30 * $day) {
+				return floor($delta / $day) . " days ago";
+			} elseif ($delta < 12 * $month) {
+				$months = floor($delta / $day / 30);
+				return $months <= 1 ? "1 month ago" : $months . " months ago";
+			} else {
+				$years = floor($delta / $day / 365);
+				return $years <= 1 ? "1 year ago" : $years . " years ago";
+			}
 		}
 
 		/*
@@ -1347,12 +1506,12 @@
 				Sends an email using htmlMimeMail
 
 			Parameters:
+				to - String or array of recipient email address(es)
 				subject - Subject line text
 				html - HTML Email Body
 				text - Text Email Body
 				from - From email address
-				return - Return email address
-				to - String or array of recipient email address(es)
+				return - Return email address (if different than from)
 				cc - String or array of carbon copy email address(es)
 				bcc - String or array of blind carbon copy email address(es)
 				headers - Key/value pair array of extra headers
@@ -1361,32 +1520,35 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		static function sendEmail($subject, $html, $text = '', $from, $return, $to, $cc = false, $bcc = false, $headers = array()) {
-			if (!$subject || !$html || !$text || !$from || !$return || !$to) {
-				return false;
-			}
-			
-			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";
-			
-			$mailer = new htmlMimeMail();
+		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array()) {
+			$mailer = new htmlMimeMail;
+
+			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";			
 			foreach ($headers as $key => $val) {
 				$mailer->setHeader($key, $val);
 			}
+
 			$mailer->setSubject($subject);
 			$mailer->setHtml($html, $text);
+
+			if (!$from) {
+				$from = "no-reply@".str_replace("www.","",$_SERVER["HTTP_HOST"]);
+			}
 			$mailer->setFrom($from);
-			$mailer->setReturnPath($return);
+			
+			if ($return) {
+				$mailer->setReturnPath($return);
+			}
 			
 			if ($cc) {
 				$mailer->setCc(is_array($cc) ? $cc : array($cc));
 			}
+
 			if ($bcc) {
 				$mailer->setBcc(is_array($bcc) ? $bcc : array($bcc));
 			}
 			
-			$done = $mailer->send(is_array($to) ? $to : array($to));
-			
-			return $done;
+			return $mailer->send(is_array($to) ? $to : array($to));
 		}
 
 		/*
@@ -1455,7 +1617,7 @@
 		*/
 		
 		static function translateArray($array) {
-			global $admin;
+			$admin = new BigTreeAdmin;
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = self::translateArray($piece);
@@ -1486,7 +1648,7 @@
 				return $string;
 			}
 			if (strpos($string," ") === false && strlen(html_entity_decode(strip_tags($string))) > $length) {
-				return substr($string,0,$length)."...";
+				return substr($string,0,$length)."&hellip;";
 			}
 			$x = 0;
 			$z = 0;
@@ -1554,7 +1716,7 @@
 				$ns .= substr($string,$x,1);
 				$x++;
 			}
-			$ns.= "...";
+			$ns.= "&hellip;";
 			$opentags = array_reverse($opentags);
 			foreach ($opentags as $key => $val) {
 				$ns .= "</".$val.">";
@@ -1744,29 +1906,4 @@
 	if (!function_exists("mb_strtolower")) {
 		function mb_strtolower($string) { return strtolower($string); }
 	}
-
-	$state_list = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
-
-	$country_list = array("United States","Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombi","Comoros","Congo (Brazzaville)","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","East Timor (Timor Timur)","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia, The","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Korea, North","Korea, South","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepa","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","Norway","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia and Montenegro","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","Spain","Sri Lanka","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe");
-
-	$month_list = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
-	
-	$status_codes = array(
-		"200" => "OK",
-		"300" => "Multiple Choices",
-		"301" => "Moved Permanently",
-		"302" => "Found",
-		"304" => "Not Modified",
-		"307" => "Temporary Redirect",
-		"400" => "Bad Request",
-		"401" => "Unauthorized",
-		"403" => "Forbidden",
-		"404" => "Not Found",
-		"410" => "Gone",
-		"500" => "Internal Server Error",
-		"501" => "Not Implemented",
-		"503" => "Service Unavailable",
-		"550" => "Permission denied"
-	);
-	
 ?>

@@ -5,7 +5,7 @@
 	
 	// Handy function to show the trees without repeating so much code.
 	function local_drawPageTree($nav,$title,$subtitle,$class,$draggable = false) {
-		global $proot,$admin,$cms,$ga_on,$access_level,$page;
+		global $proot,$admin,$cms,$ga_on,$bigtree,$page;
 ?>
 <div class="table">
 	<summary>
@@ -62,7 +62,7 @@
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 			<section class="pages_title<? if ($class == "archived") { ?>_widest<? } elseif (!$ga_on) { ?>_wider<? } ?>">
-				<? if ($access_level == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
+				<? if ($bigtree["access_level"] == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
 				<span class="icon_sort"></span>
 				<? } ?>
 				<? if ($class != "archived" && is_numeric($item["id"])) { ?>
@@ -133,7 +133,7 @@
 	</ul>
 </div>
 <?
-		if ($draggable && $access_level) {
+		if ($draggable && $bigtree["access_level"]) {
 ?>
 <script>
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {

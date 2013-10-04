@@ -1,12 +1,12 @@
 #bigtree_bar_tab { background-gradient: #243D4C #406980; border-radius: 0 0 3px 3px; box-shadow: 0 0 10px rgba(0,0,0,0.5) !important; height: 40px !important; left: 12px !important; position: fixed !important; top: 0px !important; width: 40px !important; z-index: 1000001 !important; }
-#bigtree_bar_tab span { background: url(../images/icon-sprite.png) no-repeat -155px -175px !important; height: 22px !important; width: 17px !important; display: block !important; margin: 7px 0 0 12px !important; }
+#bigtree_bar_tab span { background: url(../images/icon-sprite.png) no-repeat -155px -175px !important; display: block !important; height: 22px !important; margin: 7px 0 0 12px !important; width: 17px !important; }
 .bigtree_bar_open #bigtree_bar_tab { display: none; }
 
 #bigtree_bar { background-gradient: #243D4C #406980; box-shadow: 0 0 10px rgba(0,0,0,0.5) !important; height: 40px !important; left: 0px !important; position: fixed !important; top: 0px !important; width: 100% !important; z-index: 1000001 !important; }
-#bigtree_bar_logo { background: url(../images/icon-sprite.png) no-repeat -155px -175px !important; display: block !important; float: left !important; height: 22px !important; width: 85px !important; margin: 7px 20px 0 24px !important; }
+#bigtree_bar_logo { background: url(../images/icon-sprite.png) no-repeat -155px -175px !important; display: block !important; float: left !important; height: 22px !important; margin: 7px 20px 0 24px !important; width: 85px !important; }
 #bigtree_bar_close { background: url(../images/icon-sprite.png) no-repeat -245px -175px !important; display: block !important; float: right !important; height: 15px !important; margin: 12px 15px 0 15px; width: 14px !important; }
 
-#bigtree_bar .bigtree_link { background: #CAD2D6 !important; box-shadow: 0 1px 0 rgba(0,0,0,0.5) !important; border-radius: 15px; color: #243D4C !important; float: left !important; font-family: Helvetica !important; font-size: 10px !important; height: 20px !important; line-height: 20px !important; margin: 10px 10px 10px 0 !important; padding: 0px 10px !important; text-decoration: none !important; text-shadow: 0 1px 0 rgba(250,250,250,0.6) !important; }
+#bigtree_bar .bigtree_link { background: #CAD2D6 !important; border-radius: 15px; box-shadow: 0 1px 0 rgba(0,0,0,0.5) !important; color: #243D4C !important; float: left !important; font-family: Helvetica !important; font-size: 10px !important; height: 20px !important; line-height: 20px !important; margin: 10px 10px 10px 0 !important; padding: 0px 10px !important; text-decoration: none !important; text-shadow: 0 1px 0 rgba(250,250,250,0.6) !important; }
 #bigtree_bar .bigtree_link:hover { background: #FFF !important; text-decoration: none !important; }
 
 #bigtree_bar #bigtree_name { color: #FFF !important; float: right !important; font-family: Helvetica !important; font-size: 11px !important; font-weight: bold !important; line-height: 40px !important; margin: 0 10px 0 0 !important; text-shadow: 0 -1px 0 rgba(0,0,0,0.5) !important; }
@@ -14,7 +14,7 @@
 #bigtree_bar #bigtree_logout { color: #A8D3F7 !important; float: right !important; font-family: Helvetica !important; font-size: 11px !important; line-height: 40px !important; text-decoration: none !important; text-shadow: 0 -1px 0 rgba(0,0,0,0.5) !important; }
 
 #bigtree_bar_overlay { background: rgba(0,0,0,0.6) !important; height: 100% !important; left: 0 !important; position: fixed !important; top: 0 !important; width: 100% !important; z-index: 1000000 !important; }
-#bigtree_bar_frame { background: #FFF !important; border: 1px solid #999 !important; border-radius: 8px !important; box-shadow: 0 0 20px rgba(30,30,30,0.7) !important; height: 625px !important; overflow: hidden !important; position: fixed !important; width: 840px !important; z-index: 1000001 !important; }
+#bigtree_bar_frame { background: #FFF !important; border-radius: 8px !important; box-shadow: 0 0 20px rgba(30,30,30,0.7) !important; height: 625px !important; overflow: hidden !important; position: fixed !important; width: 840px !important; z-index: 1000001 !important; }
 
 #bigtree_preview_notice { color: rgba(255,255,255,0.75) !important; display: block !important; font-family: Helvetica !important; font-size: 15px !important; font-weight: bold !important; height: 40px !important; line-height: 40px !important; margin: 0px auto !important; text-align: center !important; text-shadow: 0px -1px 1px rgba(0,0,0,0.4) !important; width: 350px !important; }
 

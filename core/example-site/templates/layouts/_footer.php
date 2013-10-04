@@ -14,13 +14,13 @@
 	$geoAddress = BigTree::geocodeAddress(substr($footerAddress, $start, ($end - $start)));
 ?>
 		<footer id="footer">
-			<div class="row_12 contain">
-				<div class="cell_3 address">
+			<div class="row">
+				<div class="desktop-3 address">
 					<h6>Contact</h6>
 					<?=$footerAddress?>
 					<img src="http://maps.googleapis.com/maps/api/staticmap?center=<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&amp;zoom=15&amp;size=240x100&amp;markers=color:red%7C<?=$geoAddress["latitude"]?>,<?=$geoAddress["longitude"]?>&amp;sensor=false" alt="" />
 				</div>
-				<div class="cell_3 push_1 right social">
+				<div class="desktop-3 desktop-push-1 right social">
 					<h6>Accounts</h6>
 					<p>
 						<? foreach ($footerSocial as $socialLink) { ?>
@@ -28,7 +28,7 @@
 						<? } ?>
 					</p>
 				</div>
-				<div class="cell_4 push_1 about">
+				<div class="desktop-4 desktop-push-1 about">
 					<h6><?=$aboutMe["resources"]["page_header"]?></h6>
 					<?
 						if ($aboutMe["resources"]["photo_file"]) {
@@ -41,7 +41,7 @@
 						echo BigTree::trimLength($aboutMe["resources"]["page_content"], 360);
 					?>
 				</div>
-				<div class="cell_12 clear copyright">
+				<div class="desktop-12 clear copyright">
 					<p>&copy; <?=$site_title?></p>
 				</div>
 			</div>

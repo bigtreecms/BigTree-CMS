@@ -1,4 +1,6 @@
-<?	
+<?
+	// We set this header so that when the user reloads the page form element changes don't stick (since we're only tracking explicit changes back to the JSON objects for Alerts and Permissions)
+	header("Cache-Control: no-store");
 	$user = $admin->getUser(end($bigtree["commands"]));
 
 	// Stop if this is a 404 or the user is editing someone higher than them.
@@ -63,18 +65,18 @@
 	<li>
 		<span class="depth"></span>
 		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?><? if (in_array($f["id"],$pre_opened_parents)) { ?> expanded<? } ?>" href="#"><?=$f["nav_title"]?></a>
-		<span class="permission_alerts"><input type="checkbox" name="alerts[<?=$f["id"]?>]"<? if ((isset($alerts[$f["id"]]) && $alerts[$f["id"]] == "on") || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
+		<span class="permission_alerts"><input type="checkbox" data-category="Alerts" data-key="<?=$f["id"]?>" name="alerts[<?=$f["id"]?>]"<? if ((isset($alerts[$f["id"]]) && $alerts[$f["id"]] == "on") || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
+			<input type="radio" data-category="Page" data-key="<?=$f["id"]?>" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
 		</span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/>
+			<input type="radio" data-category="Page" data-key="<?=$f["id"]?>" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/>
 		</span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/>
+			<input type="radio" data-category="Page" data-key="<?=$f["id"]?>" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/>
 		</span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-			<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="i" <? if (!$permissions["page"][$f["id"]] || $permissions["page"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/>
+			<input type="radio" data-category="Page" data-key="<?=$f["id"]?>" name="permissions[page][<?=$f["id"]?>]" value="i" <? if (!$permissions["page"][$f["id"]] || $permissions["page"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/>
 		</span>
 		<? _local_userDrawNavLevel($f["id"],$depth + 1,$alert_below,$grandchildren) ?>
 	</li>
@@ -101,10 +103,10 @@
 	<li>
 		<span class="depth"></span>
 		<a class="permission_label folder_label<? if (!count($grandchildren)) { ?> disabled<? } ?><? if (in_array($f["id"],$pre_opened_folders)) { ?> expanded<? } ?>" href="#"><?=$f["name"]?></a>
-		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="p" <? if ($permissions["resources"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="e" <? if ($permissions["resources"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="n" <? if ($permissions["resources"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
-		<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="i" <? if (!$permissions["resources"][$f["id"]] || $permissions["resources"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/></span>
+		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$f["id"]?>" name="permissions[resources][<?=$f["id"]?>]" value="p" <? if ($permissions["resources"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
+		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$f["id"]?>" name="permissions[resources][<?=$f["id"]?>]" value="e" <? if ($permissions["resources"][$f["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
+		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$f["id"]?>" name="permissions[resources][<?=$f["id"]?>]" value="n" <? if ($permissions["resources"][$f["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
+		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$f["id"]?>" name="permissions[resources][<?=$f["id"]?>]" value="i" <? if (!$permissions["resources"][$f["id"]] || $permissions["resources"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/></span>
 		<? _local_userDrawFolderLevel($f["id"],$depth + 1,$grandchildren) ?>
 	</li>
 	<?
@@ -186,11 +188,9 @@
 				<div class="user_permissions form_table">
 					<header<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 						<nav>
-							<ul>
-								<li><a href="#page_permissions" class="active">Pages</a></li>
-								<li><a href="#module_permissions">Modules</a></li>
-								<li><a href="#resource_permissions">Resources</a></li>
-							</ul>
+							<a href="#page_permissions" class="active">Pages</a>
+							<a href="#module_permissions">Modules</a>
+							<a href="#resource_permissions">Resources</a>
 						</nav>
 					</header>
 					<div id="page_permissions">
@@ -209,13 +209,13 @@
 									<a class="permission_label expanded<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>" href="#">All Pages</a>
 									<span class="permission_alerts"><input type="checkbox" name="alerts[0]"<? if ($alerts[0] == "on") { ?> checked="checked"<? } ?>/></span>
 									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-										<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][0] == "p") { ?>checked="checked" <? } ?>/>
+										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <? if ($permissions["page"][0] == "p") { ?>checked="checked" <? } ?>/>
 									</span>
 									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-										<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="e" <? if ($permissions["page"][0] == "e") { ?>checked="checked" <? } ?>/>
+										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="e" <? if ($permissions["page"][0] == "e") { ?>checked="checked" <? } ?>/>
 									</span>
 									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
-										<input type="radio" name="permissions[page][<?=$f["id"]?>]" value="n" <? if ($permissions["page"][0] == "n" || !$permissions["page"][0]) { ?>checked="checked" <? } ?>/>
+										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="n" <? if ($permissions["page"][0] == "n" || !$permissions["page"][0]) { ?>checked="checked" <? } ?>/>
 									</span>
 									<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>&nbsp;</span>
 									<? _local_userDrawNavLevel(0,2,$alerts[0]) ?>
@@ -262,9 +262,9 @@
 								<li>
 									<span class="depth"></span>
 									<a class="permission_label permission_label_wider<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> disabled<? } ?><? if (!$closed) { ?>  expanded<? } ?>" href="#"><?=$m["name"]?></a>
-									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 									<?
 												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
 													if (BigTree::tableExists($gbp["other_table"])) {
@@ -281,9 +281,9 @@
 										<li>
 											<span class="depth"></span>
 											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$c[$tf]?></a>
-											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="p" <? if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
-											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="e" <? if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
-											<span class="permission_level"><input type="radio" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <? if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
+											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="p" <? if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
+											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="e" <? if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
+											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <? if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
 										</li>
 										<?
 															}
@@ -317,9 +317,9 @@
 								<li class="top">
 									<span class="depth"></span>
 									<a class="permission_label folder_label expanded" href="#">Home Folder</a>
-									<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="p" <? if ($permissions["resources"][0] == "p") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="e" <? if ($permissions["resources"][0] == "e" || !$permissions["resources"][0]) { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" name="permissions[resources][<?=$f["id"]?>]" value="n" <? if ($permissions["resources"][0] == "n") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="p" <? if ($permissions["resources"][0] == "p") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="e" <? if ($permissions["resources"][0] == "e" || !$permissions["resources"][0]) { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="n" <? if ($permissions["resources"][0] == "n") { ?>checked="checked" <? } ?>/></span>
 									<span class="permission_level">&nbsp;</span>
 									<? _local_userDrawFolderLevel(0,2) ?>
 								</li>
@@ -337,7 +337,42 @@
 </div>
 
 <script>
+	<?
+		// We prefer to keep these as objects as arrays can break numeric-ness, but we need PHP 5.3
+		if (strnatcmp(phpversion(),'5.3') >= 0) {
+	?>
+	var BigTreeUserForm = {
+		Alerts: <?=json_encode($alerts,JSON_FORCE_OBJECT)?>,
+		Permissions: {
+			Page: <?=json_encode($permissions["page"],JSON_FORCE_OBJECT)?>,
+			Module: <?=json_encode($permissions["module"],JSON_FORCE_OBJECT)?>,
+			ModuleGBP: <?=json_encode($permissions["module_gbp"],JSON_FORCE_OBJECT)?>,
+			Resource: <?=json_encode($permissions["resources"],JSON_FORCE_OBJECT)?>
+		}
+	};
+	<?
+		} else {
+	?>
+	var BigTreeUserForm = {
+		Alerts: <?=json_encode($alerts)?>,
+		Permissions: {
+			Page: <?=json_encode($permissions["page"])?>,
+			Module: <?=json_encode($permissions["module"])?>,
+			ModuleGBP: <?=json_encode($permissions["module_gbp"])?>,
+			Resource: <?=json_encode($permissions["resources"])?>
+		}
+	};
+	<?
+		}
+	?>
+
 	new BigTreeFormValidator("form.module");
+	$("form.module").submit(function(ev) {
+		$("#permission_section").html("<p>Saving permissions...</p>");
+		permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
+		alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
+		$("#permission_section").append(permissions).append(alerts);
+	});
 	
 	$(".user_permissions header a").click(function() {		
 		$(".user_permissions header a").removeClass("active");
@@ -369,18 +404,37 @@
 	});
 	
 	// Observe content alert checkboxes
-	$("input[type=checkbox]").on("click",function() {
-		// This is kind of backwards since it gets fired before the checkbox gets its checked status.
-		if (!$(this).attr("checked")) {
+	$("#permission_section input[type=checkbox]").on("click",function() {
+		if ($(this).attr("checked")) {
 			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
 				$(this).attr("checked","checked").attr("disabled","disabled");
 				this.customControl.Link.addClass("checked").addClass("disabled");
 			});
+			BigTreeUserForm.Alerts[$(this).attr("data-key")] = "on";
 		} else {
 			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
 				$(this).attr("checked",false).attr("disabled",false);
 				this.customControl.Link.removeClass("checked").removeClass("disabled");
 			});
+			BigTreeUserForm.Alerts[$(this).attr("data-key")] = "";
+		}
+	});
+
+	// Observe all the permission radios
+	$("#permission_section input[type=radio]").on("click",function() {
+		category = $(this).attr("data-category");
+		key = $(this).attr("data-key");
+		if (!BigTreeUserForm.Permissions[category]) {
+			BigTreeUserForm.Permissions[category] = {};
+		}
+		if (category == "ModuleGBP") {
+			sub = $(this).attr("data-sub-key");
+			if (!BigTreeUserForm.Permissions[category][key]) {
+				BigTreeUserForm.Permissions[category][key] = {};
+			}
+			BigTreeUserForm.Permissions[category][key][sub] = $(this).attr("value");
+		} else {
+			BigTreeUserForm.Permissions[category][key] = $(this).attr("value");
 		}
 	});
 	
@@ -405,8 +459,7 @@
 	
 	$(document).ready(function() {
 		$("input.email").blur(function() {
-			var email = md5($(this).val().trim());
-			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + email + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + md5($(this).val().trim()) + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
 	});
 </script>

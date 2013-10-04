@@ -66,7 +66,6 @@
 		);
 		
 		// !Icon Classes
-		//var $IconClasses =  array("caret_down","caret_right","add","list","edit","refresh","truck","token","export","redirect","help","ignored","error","world","server","clock","network","car","key","reply","reply_all","delete","folder","calendar","search","setup","page","back","up","computer","picture","gear","done","warning","news","events","blog","form","category","map","user","twitter","facebook","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","pencil","weather");
 		
 		var $IconClasses =  array(
 			"gear",
@@ -181,6 +180,7 @@
 			"dice",
 			"ticket",
 			"pallet",
+			"lightning",
 			"camera",
 			"video",
 			"twitter",
@@ -421,7 +421,7 @@
 			$password = sqlescape($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
-			BigTree::redirect(ADMIN_ROOT."login/reset-success/");
+			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 		}
 
 		/*
@@ -719,12 +719,40 @@
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<? include BigTree::path("admin/form-field-types/draw/text.php"); ?>');
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
+	/*
+		When drawing a field type you are provided with the $field array with the following keys:
+			"title" — The title given by the developer to draw as the label (drawn automatically)
+			"subtitle" — The subtitle given by the developer to draw as the smaller part of the label (drawn automatically)
+			"key" — The value you should use for the "name" attribute of your form field
+			"value" — The existing value for this form field
+			"id" — A unique ID you can assign to your form field for use in JavaScript
+			"tabindex" — The current tab index you can use for the "tabindex" attribute of your form field
+			"options" — An array of options provided by the developer
+			"required" — A boolean value of whether this form field is required or not
+	*/
+	
+	include BigTree::path("admin/form-field-types/draw/text.php");
+?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<? $value = $data[$key]; ?>');
+				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
+	/*
+		When processing a field type you are provided with the $field array with the following keys:
+			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
+			"options" — An array of options provided by the developer
+			"input" — The end user\'s $_POST data input for this field
+			"file_input" — The end user\'s uploaded files for this field in a normalized entry from the $_FILES array in the same formatting you\'d expect from "input"
+
+		BigTree expects you to set $field["output"] to the value you wish to store. If you want to ignore this field, set $field["ignore"] to true.
+		Almost all text that is meant for drawing on the front end is expected to be run through PHP\'s htmlspecialchars function as seen in the example below.
+		If you intend to allow HTML tags you will want to run htmlspecialchars in your drawing file on your value and leave it off in the process file.
+	*/
+
+	$field["output"] = htmlspecialchars($field["input"]);
+?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/process/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
@@ -1845,7 +1873,7 @@
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$bigtree["config"]["domain"]);
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
-				$changes = $this->getPendingChanges($user["id"]);
+				$changes = $this->getPublishableChanges($user["id"]);
 				$alerts = $this->getContentAlerts($user["id"]);
 				$messages = $this->getMessages($user["id"]);
 				$unread = $messages["unread"];
@@ -1921,11 +1949,12 @@
 					$body = str_ireplace("{pending_changes}", $body_changes, $body);
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 
-					$headers  = "MIME-Version: 1.0 \r\n";
-					$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
-					$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
-
-					mail($user["name"]." <".$user["email"].">",$site_title." Daily Digest",$body,$headers);
+					$mailer = new htmlMimeMail();
+					$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
+					$mailer->setSubject("$site_title Daily Digest");
+					$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
+					$mailer->setHtml($body,"");
+					$mailer->send(array($user["email"]));
 				}
 			}
 		}
@@ -1946,6 +1975,7 @@
 
 		function forgotPassword($email) {
 			global $bigtree;
+
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
 			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
@@ -1959,23 +1989,24 @@
 			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
 			
-			$reset_link = ADMIN_ROOT."login/reset-password/$hash/";
+			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			
-			$body = file_get_contents(BigTree::path("admin/email/reset-password.html"));
-			$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
-			$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
-			$body = str_ireplace("{site_title}", $site_title, $body);
-			$body = str_ireplace("{reset_link}", $reset_link, $body);
-
-			$headers  = "MIME-Version: 1.0 \r\n";
-			$headers .= "Content-type: text/html; charset=iso-8859-1 \r\n";
-			$headers .= "From: BigTree CMS <no-reply@$no_reply_domain> \r\n";
-
-			mail($user["name"]." <".$user["email"].">","Reset Your Password",$body,$headers);
-			BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
-
-			//mail($email,"Reset Your Password","A user with the IP address ".$_SERVER["REMOTE_ADDR"]." has requested to reset your password.\n\nIf this was you, please click the link below:\n".,"From: no-reply@$no_reply_domain");
+			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
+			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
+			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
+			$html = str_ireplace("{site_title}",$site_title,$html);
+			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 			
+			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
+
+			$mailer = new htmlMimeMail();
+			$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
+			$mailer->setSubject("Reset Your Password");
+			$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
+			$mailer->setHtml($html,$text);
+			$mailer->send(array($user["email"]));
+			
+			BigTree::redirect($login_root."forgot-success/");
 		}
 
 		/*
@@ -2277,11 +2308,10 @@
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
-					"route" => "Generated Route",
-					"custom" => "Custom Function"
+					"route" => "Generated Route"
 				);
 
-				$types["template"] = array(
+				$types["template"] = $types["callout"] = $types["setting"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
 					"html" => "HTML Area",
@@ -2292,38 +2322,7 @@
 					"time" => "Time Picker",
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
-				);
-
-				$types["callout"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
-				);
-
-				$types["settings"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"menu" => "Menu",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"custom" => "Custom Function"
+					"array" => "Array of Items"
 				);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
@@ -2338,7 +2337,7 @@
 						$types["callout"][$f["id"]] = $f["name"];
 					}
 					if ($f["settings"]) {
-						$types["settings"][$f["id"]] = $f["name"];
+						$types["setting"][$f["id"]] = $f["name"];
 					}
 				}
 				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));
@@ -2599,6 +2598,28 @@
 		}
 
 		/*
+			Function: getMessage
+				Returns a message from message center.
+
+			Paramters:
+				id - The id of the message.
+
+			Returns:
+				An entry from bigtree_messages.
+		*/
+
+		function getMessage($id) {
+			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
+			if (!$message) {
+				return false;
+			}
+			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
+				return false;
+			}
+			return $message;
+		}
+
+		/*
 			Function: getMessages
 				Returns all a user's messages.
 
@@ -2626,7 +2647,7 @@
 					$sent[] = $f;
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($f["read_by"] && strpos("|".$user."|",$f["read_by"]) !== false) {
+					if ($f["read_by"] && strpos($f["read_by"],"|".$user."|") !== false) {
 						$read[] = $f;
 					} else {
 						$unread[] = $f;
@@ -2635,28 +2656,6 @@
 			}
 
 			return array("sent" => $sent, "read" => $read, "unread" => $unread);
-		}
-
-		/*
-			Function: getMessage
-				Returns a message from message center.
-
-			Paramters:
-				id - The id of the message.
-
-			Returns:
-				An entry from bigtree_messages.
-		*/
-
-		function getMessage($id) {
-			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
-			if (!$message) {
-				return false;
-			}
-			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
-				return false;
-			}
-			return $message;
 		}
 
 		/*
@@ -3066,7 +3065,7 @@
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
-					$nav_item["children"] = $this->getNaturalNavigationByParent($f["id"],$levels - 1);
+					$nav_item["children"] = $this->getNaturalNavigationByParent($nav_item["id"],$levels - 1);
 				}
 				$nav[] = $nav_item;
 			}
@@ -3274,11 +3273,14 @@
 
 			$items = array();
 			while ($f = sqlfetch($q)) {
-				foreach ($f as $key => $val) {
-					$f[$key] = $this->replaceRelativeRoots($val);
-				}
 				$f["value"] = json_decode($f["value"],true);
-				if ($f["encrypted"] == "on") {
+				if (is_array($f["value"])) {
+					$f["value"] = BigTree::untranslateArray($f["value"]);
+				} else {
+					$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
+				}
+				$f["description"] = $cms->replaceInternalPageLinks($f["description"]);
+				if ($f["encrypted"]) {
 					$f["value"] = "[Encrypted Text]";
 				}
 				$items[] = $f;
@@ -3624,7 +3626,7 @@
 		}
 
 		/*
-			Function: getPendingChanges
+			Function: getPublishableChanges
 				Returns a list of changes that the logged in user has access to publish.
 
 			Parameters:
@@ -3634,7 +3636,7 @@
 				An array of changes sorted by most recent.
 		*/
 
-		function getPendingChanges($user = false) {
+		function getPublishableChanges($user = false) {
 			if (!$user) {
 				$user = $this->getUser($this->ID);
 			} else {
@@ -3701,12 +3703,46 @@
 
 				// We're a publisher, get the info about the change and put it in the change list.
 				if ($ok) {
-					$mod = $this->getModule($f["module"]);
-					$user = $this->getUser($f["user"]);
-					$f["mod"] = $mod;
-					$f["user"] = $user;
+					$f["mod"] = $this->getModule($f["module"]);
+					$f["user"] = $this->getUser($f["user"]);
 					$changes[] = $f;
 				}
+			}
+
+			return $changes;
+		}
+
+		/*
+			Function: getPendingChanges
+				Returns a list of changes that the logged in user has created.
+
+			Parameters:
+				user - The user id to retrieve changes for. Defaults to the logged in user.
+
+			Returns:
+				An array of changes sorted by most recent.
+		*/
+
+		function getPendingChanges($user = false) {
+			if (is_array($user)) {
+				$user = $user["id"];
+			} elseif (!$user) {
+				$user = $this->ID;
+			}
+
+			$changes = array();
+			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE user = '".sqlescape($user)."' ORDER BY date DESC");
+
+			while ($f = sqlfetch($q)) {
+				if (!$f["item_id"]) {
+					$id = "p".$f["id"];
+				} else {
+					$id = $f["item_id"];
+				}
+				
+				$mod = $this->getModule($f["module"]);
+				$f["mod"] = $mod;
+				$changes[] = $f;
 			}
 
 			return $changes;
@@ -3794,7 +3830,7 @@
 		*/
 
 		function getResourceByFile($file) {
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($this->replaceHardRoots($file))."'"));
 			if (!$item) {
 				return false;
 			}
@@ -4237,7 +4273,7 @@
 		*/
 
 		function growl($title,$message,$type = "success") {
-			$_SESSION["bigtree_admin"]["flash"] = array("message" => $message, "title" => $title, "type" => $type);
+			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
 		/*
@@ -4337,6 +4373,8 @@
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
+				$locked_by = $this->getUser($f["user"]);
+				$last_accessed = $f["last_accessed"];
 				include BigTree::path($include);
 				if ($in_admin) {
 					$this->stop();
@@ -4491,7 +4529,7 @@
 		*/
 
 		function processCrops($crops) {
-			$upload_service = new BigTreeUploadService;
+			$storage = new BigTreeStorage;
 			
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
@@ -4514,9 +4552,9 @@
 					
 					$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 					BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
-					$upload_service->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
+					$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
 				}
-				$upload_service->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
+				$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
 			}
 			
 			// Remove all the temporary images
@@ -4679,7 +4717,7 @@
 				An array of entries from bigtree_404s.
 		*/
 
-		function search404s($type,$query = "",$page = 0) {
+		function search404s($type,$query = "",$page = 1) {
 			$items = array();
 
 			if ($query) {
@@ -4707,7 +4745,7 @@
 			$pages = ($pages < 1) ? 1 : $pages;
 			
 			// Get the results
-			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".($page * 20).",20");
+			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
@@ -4734,6 +4772,7 @@
 			
 			$results = array();
 			$terms = explode(" ",$query);
+			$qpart = array("archived != 'on'");
 
 			foreach ($terms as $term) {
 				$term = sqlescape(strtolower($term));
@@ -5402,6 +5441,11 @@
 		*/
 
 		function updateModule($id,$name,$group,$class,$permissions,$icon) {
+			// If this has a permissions table, wipe that table's view cache
+			if ($permissions["table"]) {
+				BigTreeAutoModule::clearCache($permissions["table"]);
+			}
+
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
@@ -5493,6 +5537,8 @@
 				sqlquery("UPDATE bigtree_module_actions SET route = 'add-$suffix' WHERE module = '".$action["module"]."' AND route = 'add-$oroute'");
 				sqlquery("UPDATE bigtree_module_actions SET route = 'edit-$suffix' WHERE module = '".$action["module"]."' AND route = 'edit-$oroute'");
 			}
+			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
+			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE form = '$id' AND route LIKE 'edit%'");
 		}
 
 		/*
@@ -5560,6 +5606,7 @@
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
 		}
 
 		/*
@@ -5736,7 +5783,7 @@
 
 			// Create an automatic redirect from the old path to the new one.
 			if ($current["path"] != $path) {
-				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$oldpath','$newpath')");
+				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('".$current["path"]."','$path')");
 
 				// Update all child page routes, ping those engines, clean those caches
 				$this->updateChildPagePaths($page);
@@ -5876,7 +5923,7 @@
 
 		function updateResource($id,$name) {
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($title));
+			$name = sqlescape(htmlspecialchars($name));
 			sqlquery("UPDATE bigtree_resources SET name = '$name' WHERE id = '$id'");
 		}
 
@@ -5946,7 +5993,18 @@
 			$item = $this->getSetting($id,false);
 			$id = sqlescape($id);
 
-			$value = sqlescape(json_encode($value));
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = $this->autoIPL($value);
+			}
+
+			// Prefer to keep this an object, but we need PHP 5.3
+			if (strnatcmp(phpversion(),'5.3') >= 0) {
+				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
+			} else {
+				$value = sqlescape(json_encode($value));
+			}
 
 			if ($item["encrypted"]) {
 				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
@@ -6044,8 +6102,8 @@
 				}
 			}
 
-			$permissions = sqlescape(json_encode($data["permissions"]));
-			$alerts = sqlescape(json_encode($data["alerts"]));
+			$permissions = sqlescape(json_encode($data["permissions"],JSON_FORCE_OBJECT));
+			$alerts = sqlescape(json_encode($data["alerts"],JSON_FORCE_OBJECT));
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);

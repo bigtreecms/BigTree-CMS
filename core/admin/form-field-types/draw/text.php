@@ -1,78 +1,88 @@
-<fieldset class="text_input">
+<div class="text_input">
 	<?
-		if ($title) {
-	?>
-	<label<?=$label_validation_class?>><?=$title?><? if ($subtitle) { ?> <small><?=$subtitle?></small><? } ?></label>
-	<?
-		}
-		
-		$st = isset($options["sub_type"]) ? $options["sub_type"] : false;
+		$st = isset($field["options"]["sub_type"]) ? $field["options"]["sub_type"] : false;
 		if (!$st) {
 	?>
-	<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=$value?>" id="field_<?=$key?>" />
+	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
 	<?
 		} elseif ($st == "name") {
+			// To prevent warnings we'll try to extract a first name / last name from a string.
+			if (!is_array($field["value"])) {
+				if ($field["value"]) {
+					$temp = explode(" ",$field["value"]);
+					$field["value"] = array("first_name" => $temp[0],"last_name" => end($temp));
+				} else {
+					$field["value"] = array("first_name" => "","last_name" => "");
+				}
+			}
 	?>
 	<section class="input_name">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[first_name]" value="<?=$value["first_name"]?>" id="field_<?=$key?>_first_name" placeholder="First" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[first_name]" value="<?=$field["value"]["first_name"]?>" id="<?=$field["id"]?>_first_name" placeholder="First" />
 	</section>
 	<section class="input_name">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=($tabindex + 1)?>" name="<?=$key?>[last_name]" value="<?=$value["last_name"]?>" id="field_<?=$key?>_last_name" placeholder="Last" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=($field["tabindex"] + 1)?>" name="<?=$field["key"]?>[last_name]" value="<?=$field["value"]["last_name"]?>" id="<?=$field["id"]?>_last_name" placeholder="Last" />
 	</section>
 	<?
-			$tabindex++;
+			// Increase form tab index since we used extras
+			$bigtree["tabindex"]++;
 		} elseif ($st == "address") {
+			// Prevent warnings.
+			if (!is_array($field["value"])) {
+				$field["value"] = array("street" => "", "city" => "", "state" => "", "zip" => "", "country" => "");
+			}
 	?>
 	<section class="input_address_street">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[street]" value="<?=$value["street"]?>" id="field_<?=$key?>_street" placeholder="Street Address" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[street]" value="<?=$field["value"]["street"]?>" id="<?=$field["id"]?>_street" placeholder="Street Address" />
 	</section>
 	<section class="input_address_city">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=($tabindex + 1)?>" name="<?=$key?>[city]" value="<?=$value["city"]?>" id="field_<?=$key?>_city" placeholder="City" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=($field["tabindex"] + 1)?>" name="<?=$field["key"]?>[city]" value="<?=$field["value"]["city"]?>" id="<?=$field["id"]?>_city" placeholder="City" />
 	</section>
 	<section class="input_address_state">
-		<select<?=$input_validation_class?> name="<?=$key?>[state]" id="field_<?=$key?>_state" tabindex="<?=($tabindex + 2)?>">
+		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[state]" id="<?=$field["id"]?>_state" tabindex="<?=($field["tabindex"] + 2)?>">
 			<option value="">Select a State</option>
-			<? foreach ($state_list as $a => $s) { ?>
-			<option value="<?=$a?>"<? if ($a == $value["state"]) { ?> selected="selected"<? } ?>><?=$s?></option>
+			<? foreach (BigTree::$StateList as $a => $s) { ?>
+			<option value="<?=$a?>"<? if ($a == $field["value"]["state"]) { ?> selected="selected"<? } ?>><?=$s?></option>
 			<? } ?>
 		</select>
 	</section>
 	<section class="input_address_zip">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=($tabindex + 3)?>" name="<?=$key?>[zip]" value="<?=$value["zip"]?>" id="field_<?=$key?>_zip" placeholder="Zip/Postal Code" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=($field["tabindex"] + 3)?>" name="<?=$field["key"]?>[zip]" value="<?=$field["value"]["zip"]?>" id="<?=$field["id"]?>_zip" placeholder="Zip/Postal Code" />
 	</section>
 	<section class="input_address_country">
-		<select<?=$input_validation_class?> name="<?=$key?>[country]" id="field_<?=$key?>_country" tabindex="<?=($tabindex + 4)?>">
-			<? foreach ($country_list as $c) { ?>
-			<option value="<?=$c?>"<? if ($c == $value["country"]) { ?> selected="selected"<? } ?>><?=$c?></option>
+		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[country]" id="<?=$field["id"]?>_country" tabindex="<?=($field["tabindex"] + 4)?>">
+			<? foreach (BigTree::$CountryList as $c) { ?>
+			<option value="<?=$c?>"<? if ($c == $field["value"]["country"]) { ?> selected="selected"<? } ?>><?=$c?></option>
 			<? } ?>
 		</select>
 	</section>
 	<?
-			$tabindex += 4;
+			// Increase form tab index since we used extras
+			$bigtree["tabindex"] += 4;
 		} elseif ($st == "email") {
 	?>
-	<input<?=$input_validation_class?> type="email" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=$value?>" id="field_<?=$key?>" />
+	<input class="<?=$field["options"]["validation"]?>" type="email" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
 	<?
 		} elseif ($st == "website") {
 	?>
-	<input<?=$input_validation_class?> type="url" tabindex="<?=$tabindex?>" name="<?=$key?>" value="<?=$value?>" id="field_<?=$key?>" />
+	<input class="<?=$field["options"]["validation"]?>" type="url" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
 	<?
 		} elseif ($st == "phone") {
-			list($area_code,$prefix,$line_number) = explode("-",$value);
+			list($area_code,$prefix,$line_number) = explode("-",$field["value"]);
 	?>
 	<section class="input_phone_3">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_1]" maxlength="3" value="<?=$area_code?>" id="field_<?=$key?>" placeholder="xxx" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[phone_1]" maxlength="3" value="<?=$area_code?>" id="<?=$field["id"]?>" placeholder="xxx" />
 		<span>-</span>
 	</section>
 	<section class="input_phone_3">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_2]" maxlength="3" value="<?=$prefix?>" id="field_<?=$key?>" placeholder="xxx" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[phone_2]" maxlength="3" value="<?=$prefix?>" id="<?=$field["id"]?>" placeholder="xxx" />
 		<span>-</span>
 	</section>
 	<section class="input_phone_4">
-		<input<?=$input_validation_class?> type="text" tabindex="<?=$tabindex?>" name="<?=$key?>[phone_3]" maxlength="4" value="<?=$line_number?>" id="field_<?=$key?>" placeholder="xxxx" />
+		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[phone_3]" maxlength="4" value="<?=$line_number?>" id="<?=$field["id"]?>" placeholder="xxxx" />
 	</section>
 	<?
-			$tabindex += 2;
+			// Increase form tab index since we used extras
+			$bigtree["tabindex"] += 2;
 		}
 	?>
-</fieldset>
+</div>

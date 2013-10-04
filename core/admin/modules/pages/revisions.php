@@ -16,7 +16,7 @@
 	}
 
 	// Make sure the user is a publisher.
-	if ($access_level != "p") {
+	if ($bigtree["access_level"] != "p") {
 ?>
 <div class="container">
 	<section>
@@ -120,10 +120,8 @@
 	</ul>
 </div>
 <script>
-	var active_draft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
-	var page = "<?=$page["id"]?>";
-	var page_updated_at = "<?=$page["updated_at"]?>";
-	lockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/pages/refresh-lock/', { type: 'POST', data: { id: '<?=$lock_id?>' } });",60000);
+	BigTree.localActiveDraft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
+	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$lock_id?>' } });",60000);
 	
 	$(".icon_save").click(function() {
 		new BigTreeDialog("Save Revision",'<fieldset><label>Short Description <small>(quick reminder of what\'s special about this revision)</small></label><input type="text" name="description" /></fieldset>',$.proxy(function(d) {
@@ -133,9 +131,7 @@
 			} else {
 				id = "c<?=$page["id"]?>";
 			}
-			$.ajax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }, complete: function() {
-				//window.location.reload();
-			}});
+			$.ajax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }});
 		},this));
 		
 		return false;
@@ -161,7 +157,7 @@
 	});
 	
 	$(".icon_draft").click(function() {
-		if (active_draft) {
+		if (BigTree.localActiveDraft) {
 			new BigTreeDialog("Use Revision",'<p class="confirm">Are you sure you want to overwrite your existing draft with this revision?</p>',$.proxy(function() {
 				document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.CleanHref($(this).attr("href"));
 			},this),"",false,"OK");

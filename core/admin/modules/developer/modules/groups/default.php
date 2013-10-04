@@ -7,8 +7,7 @@
 	</summary>
 	<header>
 		<span class="developer_templates_name">Group Name</span>
-		<span class="view_action">Edit</span>
-		<span class="view_action">Delete</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="groups">
 		<? foreach ($groups as $item) { ?>

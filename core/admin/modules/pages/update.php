@@ -1,26 +1,26 @@
 <?
-	// Initiate the Upload Service class.
-	$upload_service = new BigTreeUploadService;
-
-	$page = $_POST["page"];
+	// See if we've hit post_max_size
+	if (!$_POST["_bigtree_post_check"]) {
+		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+	}
 	
+	// Check access levels on the page we're trying to modify
+	$page = $_POST["page"];
+	// Pending page
 	if ($page[0] == "p") {
-		$change_id = substr($page,1);
-		$f = $admin->getPendingChange($change_id);
-		$pdata = $f["changes"];
-		$r = $admin->getPageAccessLevel($pdata["parent"]);
+		$pending_change = $admin->getPendingChange(substr($page,1));
+		$bigtree["current_page_data"] = $pending_change["changes"];
+		$bigtree["access_level"] = $admin->getPageAccessLevel($bigtree["current_page_data"]["parent"]);
+	// Live page
 	} else {
-		$r = $admin->getPageAccessLevel($page);
+		$bigtree["access_level"] = $admin->getPageAccessLevel($page);
 		// Get pending page data with resources decoded and tags.
-		$pdata = $cms->getPendingPage($page,true,true);
+		$bigtree["current_page_data"] = $cms->getPendingPage($page,true,true);
 	}
 	
 	// Work out the permissions	
-	if ($r == "p") {
-		$publisher = true;
-	} elseif ($r == "e") {
-		$publisher = false;
-	} else {
+	if (!$bigtree["access_level"]) {
 ?>
 <div class="container">
 	<section>
@@ -35,77 +35,78 @@
 		$admin->stop();
 	}
 	
-	$resources = array();
-	$crops = array();
-	$fails = array();
+	$bigtree["crops"] = array();
+	$bigtree["errors"] = array();
 	
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
 	// Parse callouts
-	include BigTree::path("admin/modules/pages/_callout-parse.php");	
+	include BigTree::path("admin/modules/pages/_callout-parse.php");
+
+	$id = $_POST["page"];
 	
-	if ($publisher && $_POST["ptype"] == "Save & Publish") {
+	if ($bigtree["access_level"] == "p" && $_POST["ptype"] == "Save & Publish") {
 		// Let's make it happen.
-		if ($page[0] == "p") {
+		if ($id[0] == "p") {
 			// It's a pending page, so let's create one.
 			if (!$_POST["parent"]) {
-				$_POST["parent"] = $pdata["parent"];
+				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
 			
-			$page = $admin->createPage($_POST);
-			$admin->deletePendingChange($change_id);
+			$id = $admin->createPage($_POST);
+			$admin->deletePendingChange(substr($id,1));
 			$admin->growl("Pages","Created & Published Page");
 		} else {
 			// It's an existing page.
-			$admin->updatePage($page,$_POST);
+			$admin->updatePage($id,$_POST);
 			$admin->growl("Pages","Updated Page");
 		}
 	} else {
 		if (!$_POST["parent"]) {
-			$_POST["parent"] = $pdata["parent"];
+			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
-		$admin->submitPageChange($page,$_POST);
+		$admin->submitPageChange($id,$_POST);
 		$admin->growl("Pages","Saved Page Draft");
 	}
 	
-	$admin->unlock("bigtree_pages",$page);
+	$admin->unlock("bigtree_pages",$id);
 
 	// We can't return to any lower number, so even if we edited the homepage, return to the top level nav.	
-	if ($pdata["parent"] == "-1") {
-		$pdata["parent"] = 0;
+	if ($bigtree["current_page_data"]["parent"] == "-1") {
+		$bigtree["current_page_data"]["parent"] = 0;
 	}
 	
-	if (end($bigtree["path"]) == "preview") {
-		$redirect_url = $cms->getPreviewLink($page)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$page/");
+	if (isset($_GET["preview"])) {
+		$redirect_url = $cms->getPreviewLink($id)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$id/");
 	} elseif ($_POST["return_to_front"]) {
 		if ($_POST["ptype"] != "Save & Publish") {
-			$redirect_url = $cms->getPreviewLink($page);
+			$redirect_url = $cms->getPreviewLink($id);
 		} else {
-			$pd = $cms->getPage($page);
-			if ($pd["id"]) {
-				$redirect_url = WWW_ROOT.$pd["path"]."/";
+			$page = $cms->getPage($id);
+			if ($page["id"]) {
+				$redirect_url = WWW_ROOT.$page["path"]."/";
 			} else {
 				$redirect_url = WWW_ROOT;
 			}
 		}
 	} elseif ($_POST["return_to_self"]) {
-		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["id"]."/";
+		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["id"]."/";
 	} else {
-		$redirect_url = ADMIN_ROOT."pages/view-tree/".$pdata["parent"]."/";
+		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["parent"]."/";
 	}
 
 	$_SESSION["bigtree_admin"]["form_data"] = array(
-		"page" => $page,
+		"page" => $id,
 		"return_link" => $redirect_url,
-		"edit_link" => ADMIN_ROOT."pages/edit/$page/",
-		"fails" => $fails,
-		"crops" => $crops
+		"edit_link" => ADMIN_ROOT."pages/edit/$id/",
+		"errors" => $bigtree["errors"],
+		"crops" => $bigtree["crops"]
 	);
 	
-	if (count($fails)) {
-		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
-	} elseif (count($crops)) {
-		BigTree::redirect(ADMIN_ROOT."pages/crop/$page/");
+	if (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."pages/error/$id/");
+	} elseif (count($bigtree["crops"])) {
+		BigTree::redirect(ADMIN_ROOT."pages/crop/$id/");
 	}
 
 	BigTree::redirect($redirect_url);

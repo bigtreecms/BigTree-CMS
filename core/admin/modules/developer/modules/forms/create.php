@@ -7,12 +7,14 @@
 	$default_position = isset($default_position) ? $default_position : "";
 
 	$fields = array();
-	foreach ($_POST["type"] as $key => $val) {
-		$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
-		$field["type"] = $val;
-		$field["title"] = htmlspecialchars($_POST["titles"][$key]);
-		$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
-		$fields[$key] = $field;
+	if (is_array($_POST["type"])) {
+		foreach ($_POST["type"] as $key => $val) {
+			$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
+			$field["type"] = $val;
+			$field["title"] = htmlspecialchars($_POST["titles"][$key]);
+			$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
+			$fields[$key] = $field;
+		}
 	}
 
 	$form_id = $admin->createModuleForm($title,$table,$fields,$preprocess,$callback,$default_position,$return_view,$return_url,$tagging);
@@ -23,7 +25,7 @@
 ?>
 <div class="container">
 	<section>
-		<h3 class="action_title">Add/Edit <?=$title?></h3>
+		<h3>Add/Edit <?=$title?></h3>
 		<p>Your form has been created. If you were creating a module from scratch, the process is now complete.</p>
 	</section>
 	<footer>

@@ -31,7 +31,7 @@
 								$class = $data["class"];
 								$link = $mpage.$data["route"]."/".$item["id"]."/";
 								if ($data["function"]) {
-									eval('$link = '.$data["function"].'($item);');
+									$link = call_user_func($data["function"],$item);
 								}
 							}
 				?>
@@ -47,9 +47,7 @@
 		</ul>
 	</section>
 </div>
-<script>
-	var deleteConfirm,deleteTimer,deleteId;
-	
+<script>	
 	$("#image_list_<?=$view["id"]?> .icon_edit").click(function() {
 		document.location.href = "<?=$mpage."edit".$suffix?>/" + $(this).attr("href").substr(1) + "/";
 		return false;

@@ -1,4 +1,10 @@
 <?
+	// See if we've hit post_max_size
+	if (!$_POST["_bigtree_post_check"]) {
+		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+	}
+	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
 	if ($error == 1 || $error == 2) {
@@ -162,7 +168,7 @@
 			if (count($warnings)) {
 		?>
 		<h3>Warnings</h3>
-		<ul class="styled">
+		<ul>
 			<? foreach ($warnings as $w) { ?>
 			<li><?=$w?></li>
 			<? } ?>
@@ -173,7 +179,7 @@
 			if (count($errors)) {
 		?>
 		<h3>Errors</h3>
-		<ul class="styled">
+		<ul>
 			<? foreach ($errors as $e) { ?>
 			<li><?=$e?></li>
 			<? } ?>

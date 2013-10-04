@@ -6,7 +6,7 @@
 	$suffix = $suffix ? "-".$suffix : "";
 		
 	// Figure out the column width
-	$awidth = count($actions) * 62;
+	$awidth = count($actions) * 40;
 	$available = 896 - $awidth;
 	$percol = floor($available / count($fields));
 	
@@ -26,16 +26,8 @@
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
 		<?
 			}
-			foreach ($actions as $action => $data) {
-				if ($data != "on") {
-					$data = json_decode($data,true);
-					$action = $data["name"];
-				}
 		?>
-		<span class="view_action"><?=$action?></span>
-		<?
-			}
-		?>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;">Actions</span>
 	</header>
 	<ul id="results_table_<?=$view["id"]?>">
 		<? foreach ($items as $item) { ?>
@@ -62,7 +54,7 @@
 					$data = json_decode($data,true);
 					$link = $mpage.$data["route"]."/".$item["id"]."/";
 					if ($data["function"]) {
-						eval('$link = '.$data["function"].'($item);');
+						$link = call_user_func($data["function"],$item);
 					}
 		?>
 		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
@@ -76,8 +68,6 @@
 </div>
 
 <script>
-	var deleteConfirm,deleteTimer,deleteId;
-
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {
 		document.location.href = "<?=$mpage."edit".$suffix?>/" + $(this).attr("href").substr(1) + "/";
 		return false;

@@ -23,7 +23,7 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=$section_root?>delete/<?=$view["id"]?>/" class="button red">Delete Form</a>
+		<a href="<?=$section_root?>delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
 	</footer>
 </div>
 <?
@@ -48,7 +48,6 @@
 				<fieldset>
 					<label class="required">Data Table</label>
 					<select name="table" id="form_table" class="required">
-						<option></option>
 						<? BigTree::getTableSelectOptions($form["table"]); ?>
 					</select>
 				</fieldset>

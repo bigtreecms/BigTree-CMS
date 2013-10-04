@@ -1,6 +1,10 @@
 <?
-	$keys = $cms->getSetting("bigtree-internal-s3-keys");
-	BigTree::globalizeArray($keys,array("htmlspecialchars"));
+	$ups = $cms->getSetting("bigtree-internal-storage");
+	if ($ups["s3"]["keys"]) {
+		$access_key_id = htmlspecialchars($ups["s3"]["keys"]["access_key_id"]);
+		$secret_access_key = htmlspecialchars($ups["s3"]["keys"]["secret_access_key"]);
+		$bucket = htmlspecialchars($ups["s3"]["bucket"]);
+	}
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/amazon/update/" class="module">
@@ -15,6 +19,10 @@
 			<fieldset>
 				<label>Secret Access Key</label>
 				<input type="text" name="secret_access_key" value="<?=$secret_access_key?>" />
+			</fieldset>
+			<fieldset>
+				<label>Bucket Name <small>(if this is left empty, BigTree will create its own)</small></label>
+				<input type="text" name="bucket" value="<?=$bucket?>" />
 			</fieldset>
 		</section>
 		<footer>

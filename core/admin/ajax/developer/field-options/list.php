@@ -48,7 +48,7 @@
 			<? if ($data["pop-table"]) { ?>
 			<select name="pop-description"><? BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-description"]) ?></select>
 			<? } else { ?>
-			&mdash;
+			<input type="text" disabled="disabled" value="Please select &quot;Table&quot;" />
 			<? } ?>
 		</div>
 	</fieldset>
@@ -59,7 +59,7 @@
 			<? if ($data["pop-table"]) { ?>
 			<select name="pop-sort"><? BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-sort"],true) ?></select>
 			<? } else { ?>
-			&mdash;
+			<input type="text" disabled="disabled" value="Please select &quot;Table&quot;" />
 			<? } ?>
 		</div>	
 	</fieldset>

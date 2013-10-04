@@ -8,7 +8,7 @@
 	<summary>
 		<input type="search" class="form_search" placeholder="Search" id="404_search" />
 		<span class="form_search_icon"></span>
-		<ul id="view_paging" class="view_paging"></ul>
+		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
 	<header>
 		<span class="requests_404">Requests</span>

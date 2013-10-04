@@ -30,7 +30,7 @@
 		
 		// Generate the recipient names from the parent if we're replying to all, otherwise, just use the sender.
 		$send_to = array();
-		if (isset($reply_all)) {
+		if (isset($reply_all) || $parent["sender"] == $admin->ID) {
 			$p_recipients = explode("|",trim($parent["recipients"],"|"));
 			$p_recipients[] = $parent["sender"];
 			foreach ($p_recipients as $r) {
@@ -51,6 +51,9 @@
 			<fieldset id="send_to"<? if ($error && !count($send_to)) { ?> class="form_error"<? } ?>>
 				<label class="required">Send To<? if ($error && !count($send_to)) { ?><span class="form_error_reason">Required</span><? } ?></label>
 				<div class="multi_widget many_to_many">
+					<section style="display: none;">
+						<p>No users selected. Click "Add User" to add a user to the list.</p>
+					</section>
 					<ul>
 						<?
 							$x = 0;

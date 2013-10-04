@@ -5,16 +5,16 @@
 
 	// Get the end command as the current working page and get the current user's access level.
 	if (is_numeric($id)) {
-		$page = $cms->getPendingPage($id);
-		$access_level = $admin->getPageAccessLevel($id);
+		$bigtree["current_page"] = $page = $cms->getPendingPage($id,true,true);
+		$bigtree["access_level"] = $admin->getPageAccessLevel($id);
 	} else {
-		$page = $cms->getPendingPage($id,true,true);
-		$access_level = $admin->getPageAccessLevel($page["parent"]);
-		$page["id"] = $id;
+		$bigtree["current_page"] = $page = $cms->getPendingPage($id,true,true);
+		$bigtree["access_level"] = $admin->getPageAccessLevel($page["parent"]);
+		$bigtree["current_page"]["id"] = $page["id"] = $id;
 	}
 
 	// Stop the user if they don't have access to this page.
-	if (!$access_level && $id !== false && $action != "view-tree") {
+	if (!$bigtree["access_level"] && $id !== false && $action != "view-tree") {
 ?>
 <div class="container">
 	<section>
@@ -58,12 +58,12 @@
 		$pages_nav["children"]["view-tree"]["title_override"] = $page["nav_title"];
 	}
 	// Hide "Move" and "Revisions" if this is a pending page or the user isn't a publisher.
-	if (!is_numeric($page["id"]) || $access_level != "p") {
+	if (!is_numeric($page["id"]) || $bigtree["access_level"] != "p") {
 		unset($pages_nav["children"]["move"]);
 		unset($pages_nav["children"]["revisions"]);
 	}
 	// If the user doesn't have access to this page, take away the nav for it.
-	if (!$access_level) {
+	if (!$bigtree["access_level"]) {
 		unset($pages_nav["children"]["add"]);
 		unset($pages_nav["children"]["edit"]);
 	}

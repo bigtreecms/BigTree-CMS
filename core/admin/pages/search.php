@@ -14,23 +14,28 @@
 	$r = $admin->searchPages($search_term,array("title","resources","meta_keywords","meta_description","nav_title"),"50");
 	$pages = array();
 	foreach ($r as $f) {
-		$res = json_decode($f["resources"],true);
-		$bc = $cms->getBreadcrumbByPage($f);
-		$bc_parts = array();
-		foreach ($bc as $part) {
-			$bc_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
+		$access_level = $admin->getPageAccessLevel($f["id"]);
+		if ($access_level) {
+			$res = json_decode($f["resources"],true);
+			$bc = $cms->getBreadcrumbByPage($f);
+			$bc_parts = array();
+			foreach ($bc as $part) {
+				$bc_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
+			}
+			$result = array(
+				"id" => $f["id"],
+				"title" => $f["nav_title"],
+				"description" => BigTree::trimLength(strip_tags($res["page_content"]),450),
+				"link" => ADMIN_ROOT."pages/edit/".$f["id"]."/",
+				"breadcrumb" => implode(" &rsaquo; ",$bc_parts)
+			);
+			$pages[] = $result;
+			$total_results++;
 		}
-		$result = array(
-			"id" => $f["id"],
-			"title" => $f["nav_title"],
-			"description" => BigTree::trimLength(strip_tags($res["page_content"]),450),
-			"link" => ADMIN_ROOT."pages/edit/".$f["id"]."/",
-			"breadcrumb" => implode(" &rsaquo; ",$bc_parts)
-		);
-		$pages[] = $result;
-		$total_results++;
 	}
-	$results["Pages"] = $pages;
+	if (count($pages)) {
+		$results["Pages"] = $pages;
+	}
 	
 	// Get every module's results based on auto module views.
 	$modules = $admin->getModules("name ASC");
@@ -78,6 +83,7 @@
 </form>
 
 <div class="container">
+	<? if (count($results)) { ?>
 	<header>
 		<nav>
 			<div class="more">
@@ -133,6 +139,11 @@
 			}
 		?>	
 	</div>
+	<? } else { ?>
+	<section>
+		<p>No results were found.</p>
+	</section>
+	<? } ?>
 </div>
 <script>
 	$(".container nav a").click(function() {
