@@ -137,6 +137,12 @@
 					}
 				}
 			}
+
+			// Check for a nesting column
+			if (isset($view["options"]["nesting_column"]) && $view["options"]["nesting_column"]) {
+				$fields[] = "group_field";
+				$vals[] = "'".sqlescape($item[$view["options"]["nesting_column"]])."'";
+			}
 			
 			// Group based permissions data
 			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {

@@ -1,36 +1,26 @@
 <?
-	if (isset($_POST["view"])) {
-		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
-	}
-	
-	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$permission = $admin->getAccessLevel($module_id);
-	
-	// Edit Suffix
-	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
-		
-	// Setup the preview action if we have a preview URL and field.
-	if ($bigtree["view"]["preview_url"]) {
-		$bigtree["view"]["actions"]["preview"] = "on";
-	}
-	
-	$module = $admin->getModule($module_id);
-	$mpage = ADMIN_ROOT.$module["route"]."/";
-	
-	// Retrieve our results.
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
-		$search = isset($_GET["search"]) ? $_GET["search"] : $_POST["search"];
-		$bigtree["view"]["options"]["per_page"] = 10000000;
-		$r = BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search,"position DESC, id ASC",false,$module);
-		$items = $r["results"];
+		include "draggable.php";
 	} else {
+		if (isset($_POST["view"])) {
+			$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
+		}
+	
+		$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
+		$module = $admin->getModule($module_id);
+		$mpage = ADMIN_ROOT.$module["route"]."/";
+		$permission = $admin->getAccessLevel($module_id);
+	
+		// Edit Suffix
+		$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
+		
+		// Setup the preview action if we have a preview URL and field.
+		if ($bigtree["view"]["preview_url"]) {
+			$bigtree["view"]["actions"]["preview"] = "on";
+		}
+	
 		$items = BigTreeAutoModule::getViewData($bigtree["view"],"position DESC, id ASC","both",$module);
-		$search = "";
-	}
-	
-	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
-	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "search" => $search)));
-	
+
 	foreach ($items as $item) {
 		// Stop the item status notice
 		if (!isset($item["status"])) {
@@ -103,4 +93,5 @@
 </li>
 <?
 	}
+}
 ?>

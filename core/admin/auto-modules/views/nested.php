@@ -20,7 +20,7 @@
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
 	</header>
 	<ul id="sort_table">
-		<? include BigTree::path("admin/ajax/auto-modules/views/draggable.php") ?>
+		<? include BigTree::path("admin/ajax/auto-modules/views/nested.php") ?>
 	</ul>
 </div>
 
