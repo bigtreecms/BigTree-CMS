@@ -164,8 +164,6 @@
 	
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax") {
-		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
-
 		list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/ajax/",array_slice($bigtree["path"],1));
 		if (!file_exists($inc)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
@@ -244,7 +242,6 @@
 	
 	
 	if ($bigtree["path"][0] == "feeds") {
-		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 		$route = $bigtree["path"][1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
