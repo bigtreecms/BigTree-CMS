@@ -421,7 +421,7 @@
 			// Backwards compatibility with old argument order
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
-				$perpage = $where;
+				$perpage = is_numeric($where) ? $where : 15;
 				$where = $saved;
 			}
 			if ($where) {
