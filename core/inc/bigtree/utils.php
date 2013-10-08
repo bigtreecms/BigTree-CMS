@@ -631,7 +631,7 @@
 				$start_rgb = (substr($start,0,1) == "#") ? "rgb(".hexdec(substr($start,1,2)).",".hexdec(substr($start,3,2)).",".hexdec(substr($start,5,2)).")" : $start;
 				$stop_rgb = (substr($stop,0,1) == "#") ? "rgb(".hexdec(substr($stop,1,2)).",".hexdec(substr($stop,3,2)).",".hexdec(substr($stop,5,2)).")" : $stop;
 				$response = "background-image: -webkit-gradient(linear,left top,left bottom, color-stop(0, $start_rgb), color-stop(1, $stop_rgb)); background-image: -moz-linear-gradient(center top, $start_rgb 0%, $stop_rgb 100%); background-image: -ms-linear-gradient(top, $start_rgb 0%, $stop_rgb 100%);";
-				if (substr($start_rgb,0,4) != "rgba" && substr($end_rgb,0,4) != "rgba") {
+				if (substr($start_rgb,0,4) != "rgba" && substr($stop_rgb,0,4) != "rgba") {
 					$response .= "filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop);-ms-filter: \"progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop)\"; zoom:1;";
 				}
 				return $response;
