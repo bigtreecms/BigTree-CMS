@@ -119,7 +119,6 @@ function BigTreeCustomControls(selector) {
 		$(selector).find("input[type=checkbox]").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeCheckbox(this);
-				$(this).addClass("custom_control");
 			}
 		});
 		
@@ -127,7 +126,6 @@ function BigTreeCustomControls(selector) {
 		$(selector).find("select").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeSelect(this);
-				$(this).addClass("custom_control");
 			}
 		});
 		
@@ -135,7 +133,6 @@ function BigTreeCustomControls(selector) {
 		$(selector).find("input[type=file]").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeFileInput(this);
-				$(this).addClass("custom_control");
 			}
 		});
 	
@@ -143,7 +140,6 @@ function BigTreeCustomControls(selector) {
 		$(selector).find("input[type=radio]").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeRadioButton(this);
-				$(this).addClass("custom_control");
 			}
 		});
 	} else {
@@ -151,7 +147,6 @@ function BigTreeCustomControls(selector) {
 		$("input[type=checkbox]").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeCheckbox(this);
-				$(this).addClass("custom_control");
 			}
 		});
 		
@@ -159,7 +154,6 @@ function BigTreeCustomControls(selector) {
 		$("select").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeSelect(this);
-				$(this).addClass("custom_control");
 			}
 		});
 		
@@ -167,7 +161,6 @@ function BigTreeCustomControls(selector) {
 		$("input[type=file]").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeFileInput(this);
-				$(this).addClass("custom_control");
 			}
 		});
 	
@@ -175,7 +168,6 @@ function BigTreeCustomControls(selector) {
 		$("input[type=radio]").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeRadioButton(this);
-				$(this).addClass("custom_control");
 			}
 		});
 	}
@@ -193,6 +185,7 @@ var BigTreeCheckbox = Class.extend({
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
+		this.Element.addClass("custom_control");
 		
 		div = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
@@ -265,9 +258,11 @@ var BigTreeSelect = Class.extend({
 	
 	init: function(element) {
 		this.Element = $(element);
+		
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
+		this.Element.addClass("custom_control");
 		
 		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
 		if ($.browser.webkit) {
@@ -686,6 +681,7 @@ var BigTreeFileInput = Class.extend({
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
+		this.Element.addClass("custom_control");
 		
 		div = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
 		this.Element.before(div);
@@ -776,6 +772,7 @@ var BigTreeRadioButton = Class.extend({
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
+		this.Element.addClass("custom_control");
 		
 		div = $("<div>").addClass("radio_button");
 		a = $("<a>").attr("href","#radio");
