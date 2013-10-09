@@ -217,6 +217,7 @@ var BigTreeCheckbox = Class.extend({
 		
 		if (element.disabled) {
 			a.addClass("disabled");
+			a.attr("tabindex","-1");
 		}
 		
 		if (element.tabIndex) {
@@ -230,7 +231,9 @@ var BigTreeCheckbox = Class.extend({
 	},
 	
 	focus: function() {
-		this.Link.addClass("focused");
+		if (!this.Element.attr("disabled")) {
+			this.Link.addClass("focused");
+		}
 	},
 	
 	blur: function() {
@@ -257,6 +260,16 @@ var BigTreeCheckbox = Class.extend({
 			this.Element.triggerHandler("change");
 		}
 		return false;
+	},
+
+	disable: function() {
+		this.Link.addClass("disabled");
+		this.Element.attr("disabled","disabled");
+	},
+	
+	enable: function() {
+		this.Link.removeClass("disabled");
+		this.Element.removeAttr("disabled");
 	}
 });
 
