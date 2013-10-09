@@ -16,7 +16,7 @@
 		$admin->stop();
 	}
 
-	$gravatar_email = $user["email"];
+	$bigtree["gravatar"] = $user["email"];
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 	
 	if (!$permissions) {
@@ -56,7 +56,7 @@
 		}
 		if (count($children)) {
 ?>
-<ul class="depth_<?=$depth?>"<? if ($depth > 2 && !in_array($parent,$pre_opened_parents)) { ?> style="display: none;"<? } ?>>
+<ul class="depth_<?=$depth?>">
 	<?
 			foreach ($children as $f) {
 				$grandchildren = $admin->getPageChildren($f["id"]);
@@ -64,7 +64,7 @@
 	?>
 	<li>
 		<span class="depth"></span>
-		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?><? if (in_array($f["id"],$pre_opened_parents)) { ?> expanded<? } ?>" href="#"><?=$f["nav_title"]?></a>
+		<a class="permission_label<? if (!$grandchildren) { ?> disabled<? } ?><? if ($user["level"] > 0) { ?> permission_label_admin<? } ?><? if (in_array($f["id"],$pre_opened_parents)) { ?> expanded<? } ?>" href="#" data-id="<?=$f["id"]?>" data-depth="<?=$depth?>"><?=$f["nav_title"]?></a>
 		<span class="permission_alerts"><input type="checkbox" data-category="Alerts" data-key="<?=$f["id"]?>" name="alerts[<?=$f["id"]?>]"<? if ((isset($alerts[$f["id"]]) && $alerts[$f["id"]] == "on") || $alert_above) { ?> checked="checked"<? } ?><? if ($alert_above) { ?> disabled="disabled"<? } ?>/></span>
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 			<input type="radio" data-category="Page" data-key="<?=$f["id"]?>" name="permissions[page][<?=$f["id"]?>]" value="p" <? if ($permissions["page"][$f["id"]] == "p") { ?>checked="checked" <? } ?>/>
@@ -78,7 +78,11 @@
 		<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>
 			<input type="radio" data-category="Page" data-key="<?=$f["id"]?>" name="permissions[page][<?=$f["id"]?>]" value="i" <? if (!$permissions["page"][$f["id"]] || $permissions["page"][$f["id"]] == "i") { ?>checked="checked" <? } ?>/>
 		</span>
-		<? _local_userDrawNavLevel($f["id"],$depth + 1,$alert_below,$grandchildren) ?>
+		<?
+				if (in_array($f["id"],$pre_opened_parents)) {
+					_local_userDrawNavLevel($f["id"],$depth + 1,$alert_below,$grandchildren);
+				}
+		?>
 	</li>
 	<?
 			}
@@ -337,6 +341,11 @@
 </div>
 
 <script>
+	BigTree.localPages = false;
+	$.ajax("<?=ADMIN_ROOT?>ajax/users/pages-json/", { complete: function(r) {
+		BigTree.localPages = r.responseJSON;
+	}});
+
 	<?
 		// We prefer to keep these as objects as arrays can break numeric-ness, but we need PHP 5.3
 		if (strnatcmp(phpversion(),'5.3') >= 0) {
@@ -383,19 +392,61 @@
 		return false;
 	});
 	
-	$(".permission_label").click(function() {
+	// Expand and collapse
+	$(".user_permissions").on("click",".permission_label",function() {
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
 			
 		if ($(this).hasClass("expanded")) {
-			if ($(this).nextAll("ul")) {
-				$(this).nextAll("ul").hide();
-			}
+			$(this).nextAll("ul").hide();
 			$(this).removeClass("expanded");
 		} else {
-			if ($(this).nextAll("ul")) {
-				$(this).nextAll("ul").show();
+			ul = $(this).nextAll("ul");
+			// We already made this
+			if (ul.length) {
+				ul.show();
+			// Going to pull from the JSON to create it
+			} else {
+				// If we aren't done loading the pages we can't do anything
+				if (!BigTree.localPages) {
+					return;
+				}
+
+				// Traverse our page tree
+				data = false;
+				$.fn.reverse = [].reverse;
+				$(this).parentsUntil(".depth_1","li").reverse().each(function(index,el) {
+					id = $(el).find("a").attr("data-id");
+					if (!data) {
+						data = BigTree.localPages[id];
+					} else {
+						data = data.c[id];
+					}
+				});
+
+				// Build out the new level in the DOM
+				depth = (parseInt($(this).attr("data-depth")) + 1);
+				ul = $('<ul class="depth_' + depth + '">');
+				for (i in data.c) {
+					page = data.c[i];
+					li = $('<li>');
+					li.append('<span class="depth">');
+					a = $('<a href="#" data-id="' + page.i + '" data-depth="' + depth + '" class="permission_label<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>">' + page.t + '</a>');
+					if (!page.c) {
+						a.addClass("disabled");
+					}
+					li.append(a);
+					li.append('<span class="permission_alerts"><input type="checkbox" data-category="Alerts" data-key="' + page.i + ' name="alerts[' + page.i + ']" /></span>');
+					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="p" /></span>');
+					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="e" /></span>');
+					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="n" /></span>');
+					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="i" checked="checked" /></span>');
+					ul.append(li);
+				}
+				$(this).parent().append(ul);
+				BigTreeCustomControls(ul);
+				_localObservers(ul);
 			}
 			$(this).addClass("expanded");
 		}
@@ -403,40 +454,42 @@
 		return false;
 	});
 	
-	// Observe content alert checkboxes
-	$("#permission_section input[type=checkbox]").on("click",function() {
-		if ($(this).attr("checked")) {
-			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
-				$(this).attr("checked","checked").attr("disabled","disabled");
-				this.customControl.Link.addClass("checked").addClass("disabled");
-			});
-			BigTreeUserForm.Alerts[$(this).attr("data-key")] = "on";
-		} else {
-			$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
-				$(this).attr("checked",false).attr("disabled",false);
-				this.customControl.Link.removeClass("checked").removeClass("disabled");
-			});
-			BigTreeUserForm.Alerts[$(this).attr("data-key")] = "";
-		}
-	});
-
-	// Observe all the permission radios
-	$("#permission_section input[type=radio]").on("click",function() {
-		category = $(this).attr("data-category");
-		key = $(this).attr("data-key");
-		if (!BigTreeUserForm.Permissions[category]) {
-			BigTreeUserForm.Permissions[category] = {};
-		}
-		if (category == "ModuleGBP") {
-			sub = $(this).attr("data-sub-key");
-			if (!BigTreeUserForm.Permissions[category][key]) {
-				BigTreeUserForm.Permissions[category][key] = {};
+	function _localObservers(selector) {
+		// Observe content alert checkboxes
+		$(selector).find("input[type=checkbox]").on("click",function() {
+			if ($(this).attr("checked")) {
+				$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
+					$(this).attr("checked","checked").attr("disabled","disabled");
+					this.customControl.Link.addClass("checked").addClass("disabled");
+				});
+				BigTreeUserForm.Alerts[$(this).attr("data-key")] = "on";
+			} else {
+				$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
+					$(this).attr("checked",false).attr("disabled",false);
+					this.customControl.Link.removeClass("checked").removeClass("disabled");
+				});
+				BigTreeUserForm.Alerts[$(this).attr("data-key")] = "";
 			}
-			BigTreeUserForm.Permissions[category][key][sub] = $(this).attr("value");
-		} else {
-			BigTreeUserForm.Permissions[category][key] = $(this).attr("value");
-		}
-	});
+		});
+	
+		// Observe all the permission radios
+		$(selector).find("input[type=radio]").on("click",function() {
+			category = $(this).attr("data-category");
+			key = $(this).attr("data-key");
+			if (!BigTreeUserForm.Permissions[category]) {
+				BigTreeUserForm.Permissions[category] = {};
+			}
+			if (category == "ModuleGBP") {
+				sub = $(this).attr("data-sub-key");
+				if (!BigTreeUserForm.Permissions[category][key]) {
+					BigTreeUserForm.Permissions[category][key] = {};
+				}
+				BigTreeUserForm.Permissions[category][key][sub] = $(this).attr("value");
+			} else {
+				BigTreeUserForm.Permissions[category][key] = $(this).attr("value");
+			}
+		});
+	}
 	
 	$("#user_level").on("change",function(event,data) {
 		if (data.value  > 0) {
@@ -461,5 +514,6 @@
 		$("input.email").blur(function() {
 			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + md5($(this).val().trim()) + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
+		_localObservers("#permission_section");
 	});
 </script>

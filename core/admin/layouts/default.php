@@ -88,7 +88,7 @@
 		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
 	?>
 	<h1>
-		<span class="<?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($gravatar_email)?>" alt="" /><? } ?></span>
+		<span class="<?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><? } ?></span>
 		<?
 			echo htmlspecialchars(htmlspecialchars_decode(str_replace("View ","",$bigtree["page"]["title"])));
 

@@ -1,6 +1,6 @@
 <?
 	$user = $admin->getUser($admin->ID);
-	$gravatar_email = $user["email"];
+	$bigtree["gravatar"] = $user["email"];
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
 ?>
 <div class="container">
