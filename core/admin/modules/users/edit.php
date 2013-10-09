@@ -36,6 +36,11 @@
 			}
 		}
 	}
+	if (is_array($alerts)) {
+		foreach ($alerts as $id => $on) {
+			$page_ids[] = $id;
+		}
+	}
 	$pre_opened_parents = $admin->getPageParents($page_ids);
 
 	// Gather up the parents for resource folders that should be open by default.
@@ -183,7 +188,7 @@
 			</div>			
 		</section>
 		<section class="sub" id="permission_section">
-			<fieldset>
+			<fieldset class="last">
 				<label>Permissions
 					<small id="admin_user_message"<? if ($user["level"] < 1) { ?> style="display: none;"<? } ?>>(this user is an <strong>administrator</strong> and is a publisher of the entire site)</small>
 					<small id="regular_user_message"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>(for module sub-permissions "No Access" inherits from the main permission level)</small>
@@ -330,12 +335,11 @@
 							</ul>
 						</section>
 					</div>
-					
 				</div>
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="blue" value="Update" />
+			<input id="edit_user_submit" type="submit" class="blue" value="Update" />
 		</footer>
 	</form>
 </div>
@@ -377,7 +381,7 @@
 
 	new BigTreeFormValidator("form.module");
 	$("form.module").submit(function(ev) {
-		$("#permission_section").html("<p>Saving permissions...</p>");
+		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");
 		permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
 		alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
 		$("#permission_section").append(permissions).append(alerts);
@@ -415,9 +419,13 @@
 
 				// Traverse our page tree
 				data = false;
+				inherited_alerts = false;
 				$.fn.reverse = [].reverse;
 				$(this).parentsUntil(".depth_1","li").reverse().each(function(index,el) {
 					id = $(el).find("a").attr("data-id");
+					if ($(el).find("input[type=checkbox]").attr("checked")) {
+						inherited_alerts = true;
+					}
 					if (!data) {
 						data = BigTree.localPages[id];
 					} else {
@@ -437,11 +445,14 @@
 						a.addClass("disabled");
 					}
 					li.append(a);
-					li.append('<span class="permission_alerts"><input type="checkbox" data-category="Alerts" data-key="' + page.i + ' name="alerts[' + page.i + ']" /></span>');
+					li.append('<span class="permission_alerts"><input type="checkbox" data-category="Alerts" data-key="' + page.i + '" name="alerts[' + page.i + ']" /></span>');
 					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="p" /></span>');
 					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="e" /></span>');
 					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="n" /></span>');
 					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="i" checked="checked" /></span>');
+					if (inherited_alerts) {
+						li.find("input[type=checkbox]").attr("checked","checked").attr("disabled","disabled");
+					}
 					ul.append(li);
 				}
 				$(this).parent().append(ul);
