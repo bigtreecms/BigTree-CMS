@@ -5,8 +5,10 @@
 	$data["keep_original"] = isset($data["keep_original"]) ? $data["keep_original"] : "";
 ?>
 <fieldset>
-	<label>Source Field <small>(the column name of the field to use to generate the route)</small></label>
-	<input type="text" name="source" value="<?=htmlspecialchars($data["source"])?>" />
+	<label>Source Field <small>(the table column to use for route generation)</small></label>
+	<select name="source">
+		<?=BigTree::getFieldSelectOptions($_POST["table"],$data["source"])?>
+	</select>
 </fieldset>
 
 <fieldset>
