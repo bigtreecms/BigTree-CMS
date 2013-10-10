@@ -24,9 +24,7 @@
 	header, footer, nav, summary, section, article { display: block; }
 	.clear { clear: both; }
 	.contain:after { content: ""; display: table; clear: both; }
-	.float_margin { float: left; margin: 0 20px 0 0; }
-	.float_margin p.note { margin: 5px 0; }
-
+	
 	/* Hack To Stop WebKit From Styling input[type=search] */
 	input[type=search] { -webkit-appearance: textfield; -webkit-box-sizing: content-box; }
 	input::-webkit-search-decoration, input::-webkit-search-cancel-button { display: none; }
@@ -40,7 +38,7 @@
 	h1 .page, .box_select .page { background-position: -64px -16px; }
 	h1 .add_page { background-position: -96px -16px; }
 	h1 .modules, .box_select .modules { background-position: -128px -16px; }
-	h1 .users, .box_select .users { background-position: -160px -16px; }
+	h1 .users { background-position: -160px -16px; }
 	h1 .settings, .box_select .settings { background-position: -192px -16px; }
 	h1 .developer { background-position: -224px -16px; }
 	h1 .messages { background-position: -256px -16px; }
@@ -63,6 +61,7 @@
 	h1 .authorize, .box_select .authorize { background-position: -800px -16px; }
 	h1 .linkpoint, .box_select .linkpoint { background-position: -832px -16px; }
 	h1 .payflow, .box_select .payflow { background-position: -864px -16px; }
+	h1 .disqus, .box_select .disqus { background-position: 0px -215px; }
 	h1 .crop { background-position: -896px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
@@ -87,9 +86,7 @@
 	h1 .mapquest, .box_select .mapquest { background-position: -736px -48px; }
 	h1 .bing, .box_select .bing { background-position: -768px -48px; }
 	h1 .yahooboss, .box_select .yahooboss { background-position: -800px -48px; }
-	h1 .disqus, .box_select .disqus { background-position: 0px -215px; }
-	h1 .trail, .box_select .trail { background-position: -32px -215px; }
-
+	
 	h2 { color: rgba(51,51,51,0.9); font-size: 22px; font-weight: normal; line-height: 32px; margin: 0 0 15px 0; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); user-select: none; }
 	h2 small { color: #999999; display: inline-block; font-size: 12px; padding: 0 0 0 10px; }
 	
@@ -141,7 +138,6 @@
 
 	input[type=text], input[type=password], input[type=email], input[type=url] { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: "Helvetica", Arial; font-size: 13px; height: 30px; margin: 0; padding: 0 10px; transition: border-color 0.2s; width: 876px; }
 	input[type=text]:focus, input[type=password]:focus { border-color: #AAA; }
-	input[type=text].half { width: 417px; }
 	input[disabled] { background: #F6F6F6; opacity: 0.5; }
 	input::-webkit-input-placeholder { color: #999; }
 	input:-moz-placeholder { color: #999; }
@@ -149,7 +145,7 @@
 	
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { background: #FCE8E8; border-color: #990000; }
 	
-	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 7px 0 0 -25px; }
+	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; }
 	input.date_picker, input.time_picker { float: left; width: 180px !important; }
 	input.date_picker:focus, input.time_picker:focus { border-radius: 2px 2px 0 0; }
 
@@ -183,7 +179,7 @@
 	.select.disabled { opacity: 0.5; }
 	.select .handle { background: url(../images/icon-sprite.png) -340px -105px; float: right; height: 30px; position: absolute; right: 0; width: 34px; z-index: 2; }
 	.select span { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; }
-	.select .group { background: #F6F6F6; color: #666; cursor: default; font-size: 10px; line-height: 15px; padding: 5px 10px; }
+	.select .group { background: #F6F6F6; color: #666; font-size: 10px; line-height: 15px; padding: 5px 10px; }
 	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
 	.select a:last-child { border-radius: 0px 0px 2px 2px; }
@@ -264,9 +260,6 @@
 	.login_wrapper .forgot_password { color: #666; float: right; line-height: 36px; user-select: none; }
 	.login_wrapper .forgot_password:hover { color: #3E667D; }
 	.login_wrapper .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 20px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
-	.login_wrapper .maintenance h2 { line-height: 32px; margin-bottom: 15px; }
-	.login_wrapper .maintenance h2 span { background: url(../images/icon-sprite.png) -320px -16px no-repeat; float: left; height: 32px; margin: 0 10px 0 0; width: 32px; }
-	.login_wrapper .maintenance p { margin: 0 30px; padding: 0 0 30px 0; text-align: justify; }
 	.login_logo { background: url(../images/icon-sprite.png) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.login_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); user-select: none; width: 300px; }
 	.login_copyright a { color: #777; }
@@ -354,12 +347,10 @@
 
 /* Sub Navigation */
 	nav.sub  { background: #DADADA url(../images/row-bg-sprite.png) repeat-x 0px -337px; border: 1px solid #CCC; border-radius: 3px; display: block; height: 30px; margin: 0 0 20px 0; overflow: hidden; user-select: none; }
-	nav.sub a { border-right: 1px solid #CCC; color: #555; float: left; font-size: 13px; height: 30px; line-height: 31px; padding: 0 15px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); }
+	nav.sub a { border-right: 1px solid #CCC; color: #555; float: left; font-size: 13px; height: 30px; line-height: 31px; padding: 0 15px 0 13px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); }
 	nav.sub a:hover { background: #E8E8E8 url(../images/row-bg-sprite.png) repeat-x 0px -337px; color: #333; }
 	nav.sub a.active { background: #EEE url(../images/row-bg-sprite.png) repeat-x 0px -337px; color: #333; }
 	nav.sub span { float: left; margin: 7px 6px 6px 0; }
-	nav.sub .developer { border-left: 1px solid #CCC; border-right: none; float: right; padding: 0 8px; }
-	nav.sub .developer span { margin: 3px 0 0 0; }
 
 /* Main Content Area */
 	.body { background: #ededed url(../images/bg.png); min-width: 960px; }
@@ -502,8 +493,7 @@
 	.move_page section ul.depth_10 li .depth { width: 90px; }
 	.move_page section ul.depth_10 li .title { width: 766px; }
 	
-	.inset_block { background: #FFF; border: 1px solid #eee; border-bottom-color: #fff; border-radius: 3px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); margin: 0 0 15px 0; overflow: hidden; padding: 20px; position: relative; }
-	.inset_block .hide { position: absolute; top: 10px; right: 10px; font-size: 10px; color: #578FB1; cursor: pointer; text-transform: uppercase; }	
+	.property_block { background: #FFF; border: 1px solid #eee; border-bottom-color: #fff; border-radius: 3px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); margin: 0 0 15px 0; overflow: hidden; padding: 20px; }
 	.property_block article { float: left; height: 20px; margin: 0 0 10px 0; width: 250px; }
 	.property_block article.link { margin: 0; }
 	.property_block label { color: #848484; float: left; font-size: 10px; height: 20px; line-height: 20px; margin: 0; text-transform: uppercase; width: 80px; }
@@ -518,8 +508,6 @@
 	.property_block .link p { width: 357px; }
 	.property_block .seo { width: 209px; }
 	.property_block .seo p { width: 127px; }
-	.property_block .page_id { width: 162px; }
-	.property_block .page_id p { width: 80px; }
 	
 	#properties_tab fieldset { margin-bottom: 20px; }
 	#properties_tab fieldset.visible { margin-bottom: 0; }
@@ -656,13 +644,6 @@
 	.table .changes_entry { padding: 0 0 0 20px; text-align: left; width: 668px; }
 	.table .changes_action { padding: 0 20px 0 0; text-align: center; width: 35px; }
 
-	.table.audit_trail .view_column a { color: #436D86; margin: 0; }
-	.table .audit_date { width: 120px; }
-	.table .audit_user { width: 148px; }
-	.table .audit_table { width: 150px; }
-	.table .audit_entry { width: 300px; }
-	.table .audit_action { font-size: 10px; width: 130px; }
-
 /* Error Table Styles */
 	
 	div.error_table { border-left: none; border-radius: 0; border-right: none; box-shadow: none; margin: -31px -30px; }
@@ -672,7 +653,6 @@
 /* Tags */
 	.container .tags, .container .sub_section { background-gradient: #F6F6F6 #FFFFFF; border-top: 1px solid #CCC; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
 	.sub_section fieldset:last-of-type { margin: 0; }
-	.container .sub_section.last { margin: 30px -30px -30px -30px; }
 	.container .tags input { float: left; margin: 0; width: 215px; }
 
 	#tag_results { background: #FFF; border: 1px solid #CCC; list-style: none; margin: 31px 0 0 0; position: absolute; width: 235px; z-index: 2; }
@@ -828,7 +808,6 @@
 
 /* Users Stuff */
 	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 318px; }
-	.table .users_name_emulate { padding: 0 0 0 20px; text-align: left; width: 358px; }
 	.table .users_email { text-align: left; width: 250px; }
 	.table .users_company { text-align: left; width: 250px; }
 	.table .users_api_type { text-align: left; width: 250px; }
@@ -964,7 +943,7 @@
 	.developer .form_table .developer_resource_title input { width: 168px; }
 	.developer .form_table .developer_resource_form_title { padding: 0 0 0 35px; text-align: left; width: 299px; }
 	.developer .form_table .developer_resource_form_title input { width: 267px; }
-	.developer .form_table .developer_resource_form_title span { margin: 9px 5px 0 -30px; }
+	.developer .form_table .developer_resource_form_title span { margin: 8px 5px 0 -30px; }
 	.developer .form_table .developer_resource_subtitle { text-align: left; width: 202px; }
 	.developer .form_table .developer_resource_subtitle input { width: 168px; }
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
@@ -998,20 +977,9 @@
 
 	.developer .form_table .developer_view_title { padding: 0 0 0 10px; text-align: left; width: 336px; }
 	.developer .form_table .developer_view_title input { width: 290px; }
-	.developer .form_table .developer_view_title span { margin: 9px 5px 0 -5px; }
+	.developer .form_table .developer_view_title span { margin: 8px 5px 0 -5px; }
 	.developer .form_table .developer_view_parser { padding: 0 0 0 10px; text-align: left; width: 480px; }
 	.developer .form_table .developer_view_parser input { width: 458px; }
-
-	.developer .form_table .developer_report_field_title { padding: 0 0 0 10px; text-align: left; width: 846px; }
-	.developer .form_table .developer_report_field_title span { margin-top: 9px; }
-	.developer .form_table .developer_report_field_title input { width: 807px; }
-	.developer .form_table .developer_report_filter_title { padding: 0 0 0 10px; text-align: left; width: 646px; }
-	.developer .form_table .developer_report_filter_title input { width: 607px; }
-	.developer .form_table .developer_report_filter_title span { margin-top: 9px; }
-	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
-	.developer .form_table .developer_report_filter_type .select span { width: 134px !important; }
-	.developer .form_table .developer_report_filter_type .select .select_options { width: 188px !important; }
-	.developer .form_table .developer_report_action { padding: 9px 0 0 0; width: 40px; }
 
 	.developer form .right textarea, .developer form .left textarea { height: 135px; }
 
@@ -1210,7 +1178,7 @@
 	
 /* Icons */
 	.icon_page, .icon_dialog_callout { background: url(../images/icon-sprite.png); background-position: 0px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_archive, .icon_export { background: url(../images/icon-sprite.png); background-position: -48px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_archive { background: url(../images/icon-sprite.png); background-position: -48px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_email { background: url(../images/icon-sprite.png); background-position: -96px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_publish { background: url(../images/icon-sprite.png); background-position: -192px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_save { background: url(../images/icon-sprite.png); background-position: -216px -80px; display: inline-block; height: 24px; width: 24px; }
@@ -1235,8 +1203,8 @@
 	.icon_drag { background: url(../images/icon-sprite.png); background-position: -648px -80px; cursor: move; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat { background: url(../images/icon-sprite.png); background-position: -672px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat_on { background: url(../images/icon-sprite.png); background-position: -696px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_trail { background: url(../images/icon-sprite.png); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
-
+	.icon_export { background: url(../images/icon-sprite.png); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
+	
 	.disabled_icon { cursor: default; opacity: 0.3; }
 
 /* Smaller Icons */
@@ -1673,6 +1641,6 @@
 
 /* Retina Assets */
 	@media (-webkit-min-device-pixel-ratio: 1.3), (min-resolution: 124.8dpi) { 
-		.login_wrapper .maintenance h2 span, .box_select.connected p:after, nav.main li a span, nav.main form input[type=submit], h1 > span, .table > summary h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle, .install_wrapper h2 span, .install_logo, .adv_search input[type="submit"], .developer_action_list li .handle .edit { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }		
+		.box_select.connected p:after, nav.main li a span, nav.main form input[type=submit], h1 > span, .table > summary h2 > span, .box_select span, .form_search_icon, .form_table header .add span, .table summary .add span, .field_selector .add_field, footer.main .bigtree .logo, .login_logo, .container .alert > span, .move_page section ul li .title, .user_permissions section ul li .permission_label, .view_paging li:first-child a span, .view_paging li:last-child a span, .checkbox a, .bigtree_dialog_form .image_attr ul li.colormode a, .currently .remove_resource, .tooltip article .close, header.main .logout span, header.main div, #file_browser_contents .file_browser_images .file_type_folder, #file_browser_contents .file_browser_images .file_type_folder_back, .jump_group .icon, .radio_button a, .select .handle, #bigtree_tag_browser label span, .tooltip .arrow, .field_selector .handle, .install_wrapper h2 span, .install_logo, .adv_search input[type="submit"], .developer_action_list li .handle .edit { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }		
 		*[class*='icon_'] { background-image: url(../images/icon-sprite-2x.png); background-size: 960px 960px; }
 	}
