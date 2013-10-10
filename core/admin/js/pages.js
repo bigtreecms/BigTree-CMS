@@ -205,8 +205,8 @@ var BigTreePages = {
 		}
 		
 		article = $('<article>');
-		article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a></div>');
-
+		article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
+		
 		BigTreePages.calloutNumber = last_dialog.find("input.callout_count").val();
 		// Try our best to find some way to describe the callout
 		BigTreePages.calloutDescription = "";
@@ -220,7 +220,6 @@ var BigTreePages = {
 			BigTreePages.calloutDescription = last_dialog.find(".display_default").val();
 		}
 		
-		data = {};
 		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
 		last_dialog.find("input, textarea, select").each(function() {
 			if ($(this).attr("type") != "submit") {
@@ -233,18 +232,8 @@ var BigTreePages = {
 				}
 				$(this).hide();
 				article.append($(this));
-				
-				// Get the base name
-				n = $(this).attr("name").replace("callouts[" + BigTreePages.calloutNumber + "][","");
-				n = n.substr(0,n.length - 1);
-				data[n] = $(this).val();
 			}
 		});
-
-		// Save the data back for editing again
-		savedDataInput = $('<input type="hidden" class="callout_data">');
-		savedDataInput.val(base64_encode(json_encode(data)));
-		article.append(savedDataInput);
 
 		return article;
 	}
