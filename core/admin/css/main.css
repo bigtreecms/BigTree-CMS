@@ -1178,7 +1178,7 @@
 	
 /* Icons */
 	.icon_page, .icon_dialog_callout { background: url(../images/icon-sprite.png); background-position: 0px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_archive, .icon_export { background: url(../images/icon-sprite.png); background-position: -48px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_archive { background: url(../images/icon-sprite.png); background-position: -48px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_email { background: url(../images/icon-sprite.png); background-position: -96px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_publish { background: url(../images/icon-sprite.png); background-position: -192px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_save { background: url(../images/icon-sprite.png); background-position: -216px -80px; display: inline-block; height: 24px; width: 24px; }
@@ -1203,6 +1203,7 @@
 	.icon_drag { background: url(../images/icon-sprite.png); background-position: -648px -80px; cursor: move; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat { background: url(../images/icon-sprite.png); background-position: -672px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat_on { background: url(../images/icon-sprite.png); background-position: -696px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_export { background: url(../images/icon-sprite.png); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
 	
 	.disabled_icon { cursor: default; opacity: 0.3; }
 
