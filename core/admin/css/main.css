@@ -1238,7 +1238,8 @@
 	.icon_repeat { background: url(../images/icon-sprite.png); background-position: -672px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat_on { background: url(../images/icon-sprite.png); background-position: -696px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_export { background: url(../images/icon-sprite.png); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_trail { background: url(../images/icon-sprite.png); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_trail { background: url(../images/icon-sprite.png); background-position: -744px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_settings_generic { background: url(../images/icon-sprite.png); background-position: -768px -80px; display: inline-block; height: 24px; width: 24px; }
 	
 	.disabled_icon { cursor: default; opacity: 0.3; }
 
