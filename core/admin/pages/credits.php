@@ -108,5 +108,11 @@
 			<br />
 			<a href="https://github.com/DaveChild/Text-Statistics" target="_blank">https://github.com/DaveChild/Text-Statistics</a>
 		</p>
+		<br />
+		<h3>box-sizing Polyfill</h3>
+		<p class="clear">
+			Christian Schepp Schaefer (LGPL)<br />
+			<a href="http://github.com/Schepp/box-sizing-polyfill" target="_blank">http://github.com/Schepp/box-sizing-polyfill</a>
+		</p>
 	</section>	
 </div>
