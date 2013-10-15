@@ -556,6 +556,11 @@
 	.table > summary h2 .published { background-position: -192px -80px; }
 	.table > summary h2 .saved { background-position: -216px -80px; }
 	.table > summary h2 .modules { background-position: -240px -80px; }
+	.table > summary h2 .views { background-position: 0px -250px; }
+	.table > summary h2 .reports { background-position: -24px -250px; }
+	.table > summary h2 .embeds { background-position: -48px -250px; }
+	.table > summary h2 .forms { background-position: -72px -250px; }
+	.table > summary h2 .actions { background-position: -96px -250px; }
 
 	.table > header { background-color: #999; background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 20px; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }

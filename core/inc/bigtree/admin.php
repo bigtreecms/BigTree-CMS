@@ -1076,6 +1076,47 @@
 		}
 
 		/*
+			Function: createModuleEmbedForm
+				Creates an embeddable form.
+
+			Parameters:
+				module - The module ID that this form relates to.
+				title - The title of the form.
+				table - The table for the form data.
+				fields - The form fields.
+				preprocess - Optional preprocessing function to run before data is parsed.
+				callback - Optional callback function to run after the form processes.
+				default_position - Default position for entries to the form (if the view is positioned).
+				default_pending - Whether the submissions to default to pending or not ("on" or "").
+				css - URL of a CSS file to include.
+
+			Returns:
+				The embed code.
+		*/
+
+		function createModuleEmbedForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "") {
+			$module = sqlescape($module);
+			$title = sqlescape(htmlspecialchars($title));
+			$table = sqlescape($table);
+			$fields = sqlescape(json_encode($fields));
+			$preprocess - sqlescape($preprocess);
+			$callback - sqlescape($callback);
+			$default_position - sqlescape($default_position);
+			$default_pending = $default_pending ? "on" : "";
+			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
+			$hash = uniqid();
+
+			// Make sure this isn't used already
+			while (sqlrows(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '$hash'"))) {
+				$hash = uniqid();
+			}
+
+			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`hash`) VALUES ('$module','$title','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$hash')");
+			
+			return htmlspecialchars('<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$hash.'"></script>');
+		}
+
+		/*
 			Function: createModuleForm
 				Creates a module form.
 
@@ -3097,6 +3138,32 @@
 
 			$module["gbp"] = json_decode($module["gbp"],true);
 			return $module;
+		}
+
+		/*
+			Function: getModuleEmbedForms
+				Gets all module embeddable forms.
+
+			Parameters:
+				sort - The field to sort by.
+				module - Optional module ID to filter by.
+
+			Returns:
+				An array of entries from bigtree_module_embeds with "fields" decoded.
+		*/
+
+		function getModuleEmbedForms($sort = "title",$module = false) {
+			$items = array();
+			if ($module) {
+				$q = sqlquery("SELECT * FROM bigtree_module_embeds WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_module_embeds ORDER BY $sort");
+			}
+			while ($f = sqlfetch($q)) {
+				$f["fields"] = json_decode($f["fields"],true);
+				$items[] = $f;
+			}
+			return $items;
 		}
 
 		/*
@@ -5908,6 +5975,36 @@
 			}
 
 			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view WHERE id = '$id'");
+		}
+
+		/*
+			Function: updateModuleEmbedForm
+				Updates an embeddable form.
+
+			Parameters:
+				id - The ID of the form.
+				title - The title of the form.
+				table - The table for the form data.
+				fields - The form fields.
+				preprocess - Optional preprocessing function to run before data is parsed.
+				callback - Optional callback function to run after the form processes.
+				default_position - Default position for entries to the form (if the view is positioned).
+				default_pending - Whether the submissions to default to pending or not ("on" or "").
+				css - URL of a CSS file to include.
+		*/
+
+		function updateModuleEmbedForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "") {
+			$id = sqlescape($id);
+			$title = sqlescape(htmlspecialchars($title));
+			$table = sqlescape($table);
+			$fields = sqlescape(json_encode($fields));
+			$preprocess - sqlescape($preprocess);
+			$callback - sqlescape($callback);
+			$default_position - sqlescape($default_position);
+			$default_pending = $default_pending ? "on" : "";
+			$css = sqlescape(htmlspecialchars(str_replace(WWW_ROOT,"{wwwroot}",$css)));
+			
+			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `preprocess` = '$preprocess', `callback` = '$callback', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css' WHERE id = '$id'");
 		}
 
 		/*

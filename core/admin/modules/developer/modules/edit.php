@@ -5,6 +5,7 @@
 	$actions = $admin->getModuleActions($id);
 	$views = array();
 	$forms = array();
+	$embeds = $admin->getModuleEmbedForms("title",$id);
 	$reports = array();
 	$actions_in_nav = array();
 	$actions_not_in_nav = array();
@@ -143,10 +144,10 @@
 <div class="table">
 	<summary>
 		<a href="<?=DEVELOPER_ROOT?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Views</h2>
+		<h2><span class="views"></span>Views</h2>
 	</summary>
 	<header>
-		<span class="developer_view_name">View Name</span>
+		<span class="developer_view_name">Title</span>
 		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="module_views">
@@ -170,10 +171,10 @@
 <div class="table">
 	<summary>
 		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Forms</h2>
+		<h2><span class="forms"></span>Forms</h2>
 	</summary>
 	<header>
-		<span class="developer_templates_name">Form Name</span>
+		<span class="developer_templates_name">Title</span>
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
@@ -189,11 +190,31 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/reports/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2>Module Reports</h2>
+		<a href="<?=DEVELOPER_ROOT?>modules/embeds/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<h2><span class="embeds"></span>Embeddable Forms</h2>
 	</summary>
 	<header>
-		<span class="developer_templates_name">Report Name</span>
+		<span class="developer_templates_name">Title</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
+	</header>
+	<ul id="module_forms">
+		<? foreach ($embeds as $form) { ?>
+		<li>
+			<section class="developer_templates_name"><?=$form["title"]?></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+</div>
+
+<div class="table">
+	<summary>
+		<a href="<?=DEVELOPER_ROOT?>modules/reports/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<h2><span class="reports"></span>Reports</h2>
+	</summary>
+	<header>
+		<span class="developer_templates_name">Title</span>
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
@@ -210,10 +231,10 @@
 <div class="table">
 	<summary>
 		<a href="<?=DEVELOPER_ROOT?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
-		<h2>Module Actions</h2>
+		<h2><span class="actions"></span>Actions</h2>
 	</summary>
 	<header>
-		<span class="developer_templates_name">Action</span>
+		<span class="developer_templates_name">Title</span>
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<?

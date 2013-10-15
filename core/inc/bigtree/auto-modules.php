@@ -468,6 +468,31 @@
 				$admin->track($table,"p$id","deleted-pending");
 			}
 		}
+
+		/*
+			Function: getEmbedForm
+				Returns a module embeddable form.
+			
+			Parameters:
+				id - The id of the form.
+			
+			Returns:
+				A module form entry with fields decoded.
+		*/
+
+		static function getEmbedForm($id) {
+			global $cms;
+
+			if (is_array($id)) {
+				$id = $id["id"];
+			}
+
+			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE id = '".sqlescape($id)."'"));
+			$form["fields"] = json_decode($form["fields"],true);
+			$form["css"] = $cms->getInternalPageLink($form["css"]);
+
+			return $form;
+		}
 		
 		/*
 			Function: getFilterQuery
@@ -514,7 +539,7 @@
 				$id = $id["id"];
 			}
 
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '$id'"));
+			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '".sqlescape($id)."'"));
 			$form["fields"] = json_decode($form["fields"],true);
 			$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
 
