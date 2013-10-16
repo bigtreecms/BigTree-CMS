@@ -14,7 +14,11 @@
 	if ($draggable) {
 		$order = "position DESC, id ASC";
 	} else {
-		$order = $bigtree["view"]["options"]["sort"] ? $bigtree["view"]["options"]["sort"] : "id DESC";
+		if ($bigtree["view"]["options"]["sort"] && ($bigtree["view"]["options"]["sort"] == "ASC" || $bigtree["view"]["options"]["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["options"]["sort"];
+		} else {
+			$order = "CAST(id AS UNSIGNED) DESC";
+		}
 	}
 ?>
 <div class="table auto_modules image_list">

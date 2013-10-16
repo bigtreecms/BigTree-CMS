@@ -11,11 +11,15 @@
 	
 	$items = array();
 	if ($draggable) {
-		$order = "position DESC, id ASC";
+		$order = "position DESC, CAST(id AS UNSIGNED) ASC";
 	} else {
-		$order = $bigtree["view"]["options"]["sort"] ? $bigtree["view"]["options"]["sort"] : "id DESC";
+		if ($bigtree["view"]["options"]["sort"] && ($bigtree["view"]["options"]["sort"] == "ASC" || $bigtree["view"]["options"]["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["options"]["sort"];
+		} else {
+			$order = "CAST(id AS UNSIGNED) DESC";
+		}
 	}
-	
+
 	$items = BigTreeAutoModule::getViewData($bigtree["view"],$order,"active");
 	$pending_items = BigTreeAutoModule::getViewData($bigtree["view"],$order,"pending");
 ?>
@@ -38,7 +42,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
 					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
@@ -64,7 +68,7 @@
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
-									$link = $module_page.$data["route"]."/".$item["id"]."/";
+									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
@@ -125,7 +129,7 @@
 									$action = htmlspecialchars(htmlspecialchars_decode($data["name"]));
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
 				<?
 							}
 						}
