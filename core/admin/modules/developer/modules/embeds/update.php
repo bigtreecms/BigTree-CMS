@@ -10,7 +10,7 @@
 		$fields[$key] = $field;
 	}
 
-	$admin->updateModuleEmbedForm(end($bigtree["path"]),$title,$table,$fields,$preprocess,$callback,$default_position,$default_pending,$css);
+	$admin->updateModuleEmbedForm(end($bigtree["path"]),$title,$table,$fields,$preprocess,$callback,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
 	$admin->growl("Developer","Updated Embeddable Form");
 
 	$form = BigTreeAutoModule::getEmbedForm(end($bigtree["path"]));

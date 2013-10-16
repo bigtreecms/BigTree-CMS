@@ -1,10 +1,8 @@
 <?
-	$form = BigTreeAutoModule::getEmbedForm(end($bigtree["commands"]));;
-	$module = $admin->getModule($form["module"]);
+	$form = BigTreeAutoModule::getEmbedForm(end($bigtree["commands"]));
+	BigTree::globalizeArray($form);
+	$module = $admin->getModule($module);
 
-	$table = $form["table"];
-	$fields = $form["fields"];
-	
 	if (!BigTree::tableExists($table)) {
 ?>
 <div class="container">
@@ -25,44 +23,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=$section_root?>update/<?=$form["id"]?>/" class="module">
-		<section>
-			<div class="left last">
-				<fieldset>
-					<label class="required">Title <small>(for reference only, not shown in the embed)</small></label>
-					<input type="text" class="required" name="title" value="<?=$form["title"]?>" />
-				</fieldset>
-
-				<fieldset>
-					<label class="required">Data Table</label>
-					<select name="table" id="form_table" class="required">
-						<option></option>
-						<? BigTree::getTableSelectOptions($table); ?>
-					</select>
-				</fieldset>
-
-				<fieldset>
-					<input type="checkbox" name="default_pending"<? if ($form["default_pending"]) { ?> checked="checked"<? } ?> />
-					<label class="for_checkbox">Default Submissions to Pending</label>
-				</fieldset>
-			</div>
-
-			<div class="right last">
-				<fieldset>
-					<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
-					<input type="text" name="preprocess" value="<?=htmlspecialchars($form["preprocess"])?>" />
-				</fieldset>
-
-				<fieldset>
-					<label>Function Callback <small>(passes in ID and parsed post data, and publish state)</small></label>
-					<input type="text" name="callback" value="<?=htmlspecialchars($form["callback"])?>" />
-				</fieldset>
-
-				<fieldset>
-					<label>Custom CSS File <small>(full URL)</small></label>
-					<input type="text" name="css" value="<?=$form["css"]?>" />
-				</fieldset>
-			</div>
-		</section>
+		<? include BigTree::path("admin/modules/developer/modules/embeds/_form.php") ?>
 		<section class="sub">
 			<label>Embed Code <small>(not editable)</small></label>
 			<input type="text" value="<?=htmlspecialchars('<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$form["hash"].'"></script>')?>" />

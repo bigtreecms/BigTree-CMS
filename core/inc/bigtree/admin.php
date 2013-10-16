@@ -1089,14 +1089,16 @@
 				default_position - Default position for entries to the form (if the view is positioned).
 				default_pending - Whether the submissions to default to pending or not ("on" or "").
 				css - URL of a CSS file to include.
+				redirect_url - The URL to redirect to upon completion of submission.
+				thank_you_message - The message to display upon completeion of submission.
 
 			Returns:
 				The embed code.
 		*/
 
-		function createModuleEmbedForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "") {
+		function createModuleEmbedForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
+			$t = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
 			$preprocess - sqlescape($preprocess);
@@ -1104,6 +1106,8 @@
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
+			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
+			$thank_you_message = sqlescape($thank_you_message);
 			$hash = uniqid();
 
 			// Make sure this isn't used already
@@ -1111,9 +1115,9 @@
 				$hash = uniqid();
 			}
 
-			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`hash`) VALUES ('$module','$title','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$hash')");
+			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`) VALUES ('$module','$t','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash')");
 			
-			return htmlspecialchars('<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$hash.'"></script>');
+			return htmlspecialchars('<div id="bigtree_embedded_form_container">'.htmlspecialchars($t).'</div><script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$hash.'"></script>');
 		}
 
 		/*
@@ -5991,9 +5995,11 @@
 				default_position - Default position for entries to the form (if the view is positioned).
 				default_pending - Whether the submissions to default to pending or not ("on" or "").
 				css - URL of a CSS file to include.
+				redirect_url - The URL to redirect to upon completion of submission.
+				thank_you_message - The message to display upon completeion of submission.
 		*/
 
-		function updateModuleEmbedForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "") {
+		function updateModuleEmbedForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
@@ -6002,9 +6008,11 @@
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(htmlspecialchars(str_replace(WWW_ROOT,"{wwwroot}",$css)));
+			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
+			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
+			$thank_you_message = sqlescape($thank_you_message);
 			
-			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `preprocess` = '$preprocess', `callback` = '$callback', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `preprocess` = '$preprocess', `callback` = '$callback', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message' WHERE id = '$id'");
 		}
 
 		/*

@@ -16,7 +16,7 @@
 		}
 	}
 
-	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,$preprocess,$callback,$default_position,$default_pending,$css);
+	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,$preprocess,$callback,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
 	$module_info = $admin->getModule($module);
 
 	$admin->growl("Developer","Created Embeddable Form");
