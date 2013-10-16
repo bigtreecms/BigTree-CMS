@@ -1,5 +1,5 @@
 <div class="container">
-	<form method="post" action="<?=$bigtree["form_root"]?>process/" enctype="multipart/form-data" class="module" id="auto_module_form">
+	<form method="post" action="<?=$bigtree["form_root"]?>process/<? if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><? } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
@@ -100,14 +100,26 @@
 			?>
 		</section>
 		<footer>
-			<? if (isset($bigtree["related_view"]) && $bigtree["related_view"]["preview_url"]) { ?>
+			<?
+				if ($bigtree["form"]["embedded"]) {
+			?>
+			<input type="submit" class="button" tabindex="<?=$bigtree["tabindex"]?>" value="Submit" />
+			<?
+				} else {
+					if (isset($bigtree["related_view"]) && $bigtree["related_view"]["preview_url"]) {
+			?>
 			<a class="button save_and_preview" href="#">
 				<span class="icon_small icon_small_computer"></span>
 				Save &amp; Preview
 			</a>
-			<? } ?>
+			<?
+					}
+			?>
 			<input type="submit" class="button<? if ($bigtree["access_level"] != "p") { ?> blue<? } ?>" tabindex="<?=$bigtree["tabindex"]?>" value="Save" name="save" />
 			<input type="submit" class="button blue" tabindex="<?=($bigtree["tabindex"] + 1)?>" value="Save & Publish" name="save_and_publish" <? if ($bigtree["access_level"] != "p") { ?>style="display: none;" <? } ?>/>
+			<?
+				}
+			?>
 		</footer>
 	</form>
 </div>

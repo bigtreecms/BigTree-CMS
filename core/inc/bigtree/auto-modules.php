@@ -493,6 +493,27 @@
 
 			return $form;
 		}
+
+		/*
+			Function: getEmbedFormByHash
+				Returns a module embeddable form.
+			
+			Parameters:
+				hash - The hash of the form.
+			
+			Returns:
+				A module form entry with fields decoded.
+		*/
+
+		static function getEmbedFormByHash($hash) {
+			global $cms;
+
+			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '".sqlescape($hash)."'"));
+			$form["fields"] = json_decode($form["fields"],true);
+			$form["css"] = $cms->getInternalPageLink($form["css"]);
+
+			return $form;
+		}
 		
 		/*
 			Function: getFilterQuery
