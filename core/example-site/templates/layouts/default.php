@@ -1,7 +1,7 @@
 <? include "_header.php" ?>
 <div class="row" id="subpage">
 	<? include "_breadcrumb.php" ?>
-	<aside class="desktop-3 sidebar">
+	<aside class="desktop-3 tablet-2 mobile-full sidebar">
 		<?
 			// Get the top level page of the one we're on, then get all navigation below it and draw it.
 			$topLevel = $cms->getToplevelNavigationId();
@@ -31,7 +31,7 @@
 			}
 		?>
 	</aside>
-	<div class="desktop-9 content">
+	<div class="desktop-9 tablet-4 mobile-full content">
 		<?=$bigtree["content"]?>
 	</div>
 </div>
