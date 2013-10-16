@@ -36,7 +36,7 @@
 	</ul>
 	<footer class="image_field">
 		<input type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[<?=$current?>][image]" />
-		<? if (!defined("BIGTREE_FRONT_END_EDITOR")) { ?>
+		<? if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) { ?>
 		<span class="or">OR</span>
 		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
 		<? } ?>

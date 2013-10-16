@@ -1117,7 +1117,7 @@
 
 			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`) VALUES ('$module','$t','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash')");
 			
-			return htmlspecialchars('<div id="bigtree_embedded_form_container">'.htmlspecialchars($t).'</div><script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$hash.'"></script>');
+			return htmlspecialchars('<div id="bigtree_embeddable_form_container">'.htmlspecialchars($t).'</div><script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$hash.'"></script>');
 		}
 
 		/*
