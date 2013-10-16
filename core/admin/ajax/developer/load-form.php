@@ -158,7 +158,13 @@
 	<ul id="resource_table">
 		<?
 			$mtm_count = 0;
+
 			foreach ($fields as $key => $field) {
+				if ($field["type"] == "many-to-many") {
+					$mtm_count++;
+					$key = "__mtm-".$mtm_count."__";
+				}
+
 				// If this column is no longer in the table, we're going to remove it.
 				if (in_array($key,$table_columns) || $field["type"] == "geocoding" || $field["type"] == "many-to-many") {
 					$used[] = $key;
@@ -179,10 +185,9 @@
 				<span class="resource_name">Geocoding</span>
 				<?
 					} elseif ($field["type"] == "many-to-many") {
-						$mtm_count++;
 				?>
 				<span class="resource_name">Many to Many</span>
-				<input type="hidden" name="type[mtm_<?=$mtm_count?>]" value="many-to-many" id="type_mtm_<?=$mtm_count?>" />
+				<input type="hidden" name="type[<?=$key?>]" value="many-to-many" id="type_<?=$key?>" />
 				<?
 					} else {
 				?>
