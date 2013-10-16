@@ -2176,6 +2176,9 @@ var BigTreeFormValidator = Class.extend({
 			this.form.find(".error_message").show();
 			if (!in_dialog) {
 				$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
+				if (window.parent.BigTreeEmbeddableForm) {
+					window.parent.BigTreeEmbeddableForm.scrollToTop();
+				}
 			} else {
 				this.form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
 			}

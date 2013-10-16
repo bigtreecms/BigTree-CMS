@@ -113,6 +113,7 @@
 	</form>
 </div>
 <script>
+	window.parent.BigTreeEmbeddableForm.scrollToTop();
 	BigTree.currentCrop = 1;
 	BigTree.maxCrops = <?=count($crops)?>;
 	

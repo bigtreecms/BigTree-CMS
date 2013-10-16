@@ -1,6 +1,6 @@
 		<script>
 			$(document).ready(function() {
-				setInterval('window.parent.BigTreeEmbedFormResize($("body").height());',250);
+				setInterval('window.parent.BigTreeEmbeddableForm.resize($("body").height());',250);
 			});
 		</script>
 	</body>
