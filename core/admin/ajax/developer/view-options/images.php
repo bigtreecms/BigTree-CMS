@@ -2,7 +2,7 @@
 	$draggable = isset($options["draggable"]) ? $options["draggable"] : "";
 	$prefix = isset($options["prefix"]) ? $options["prefix"] : "";
 	$image = isset($options["image"]) ? $options["image"] : "";
-	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
+	$sort = isset($options["sort"]) ? $options["sort"] : "DESC";
 ?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
@@ -26,12 +26,9 @@
 </fieldset>
 
 <fieldset>
-	<label>Sort By<small>(if not draggable)</small></label>
-	<? if ($table) { ?>
+	<label>Sort Direction<small>(if not draggable)</small></label>
 	<select name="sort">
-		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
+		<option value="DESC">Newest First</option>
+		<option value="ASC"<? if ($sort == "ASC") { ?> selected="selected"<? } ?>>Oldest First</option>
 	</select>
-	<? } else { ?>
-	<input name="sort" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
-	<? } ?>
 </fieldset>

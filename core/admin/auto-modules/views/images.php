@@ -13,11 +13,15 @@
 	
 	$items = array();
 	if ($draggable) {
-		$order = "position DESC, id ASC";
+		$order = "position DESC, CAST(id AS UNSIGNED) ASC";
 	} else {
-		$order = $view["options"]["sort"] ? $view["options"]["sort"] : "id DESC";
+		if ($view["options"]["sort"] && ($view["options"]["sort"] == "ASC" || $view["options"]["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$view["options"]["sort"];
+		} else {
+			$order = "CAST(id AS UNSIGNED) DESC";
+		}
 	}
-	
+
 	$items = BigTreeAutoModule::getViewData($view,$order,"active");
 	$pending_items = BigTreeAutoModule::getViewData($view,$order,"pending");
 ?>

@@ -14,7 +14,11 @@
 	if ($draggable) {
 		$order = "position DESC, id ASC";
 	} else {
-		$order = $view["options"]["sort"] ? $view["options"]["sort"] : "id DESC";
+		if ($view["options"]["sort"] && ($view["options"]["sort"] == "ASC" || $view["options"]["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$view["options"]["sort"];
+		} else {
+			$order = "CAST(id AS UNSIGNED) DESC";
+		}
 	}
 ?>
 <div class="table auto_modules image_list">

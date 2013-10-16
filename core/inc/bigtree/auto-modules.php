@@ -846,7 +846,7 @@
 					}
 				}
 				// If we didn't find a column, let's assume it's the default sort field.
-				if (substr($sort_field,6,6) != "column") {
+				if (substr($sort_field,0,6) != "column") {
 					$sort_field = "sort_field";
 				}
 				if ($convert_numeric) {
