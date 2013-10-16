@@ -91,7 +91,7 @@
 		*/
 
 		private function geocodeBing($address) {
-			$response = BigTree::curl("http://dev.virtualearth.net/REST/v1/Locations/".str_replace("?","",str_replace(" ","%20",$address))."?key=".$this->Settings["bing_key"]);
+			$response = BigTree::cURL("http://dev.virtualearth.net/REST/v1/Locations/".str_replace("?","",str_replace(" ","%20",$address))."?key=".$this->Settings["bing_key"]);
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response,true);
@@ -114,7 +114,7 @@
 		*/
 
 		private function geocodeGoogle($address) {
-			$response = BigTree::curl("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false");
+			$response = BigTree::cURL("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false");
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);
@@ -137,7 +137,7 @@
 		*/
 
 		private function geocodeMapQuest($address) {
-			$response = BigTree::curl("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
+			$response = BigTree::cURL("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);
@@ -160,7 +160,7 @@
 		*/
 
 		private function geocodeYahoo($address) {
-			$response = BigTree::curl("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.sqlescape($address).'"'));
+			$response = BigTree::cURL("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.sqlescape($address).'"'));
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);
