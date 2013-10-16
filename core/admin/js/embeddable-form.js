@@ -7,9 +7,6 @@ var BigTreeEmbeddableForm = {
 		document.getElementById("bigtree_embeddable_form").style.height = (parseInt(height) + 260) + "px";
 	},
 	scrollToTop: function() {
-		// Find the position of the container.
-		rect = document.getElementById("bigtree_embeddable_form_container").getBoundingClientRect();
-		// Scroll the window
-		window.scrollTo(0,rect.top);
+		window.scrollTo(0,0);
 	}
 };

@@ -2119,7 +2119,7 @@ var BigTreeFormValidator = Class.extend({
 		}
 	},
 	
-	validateForm: function(event,in_dialog) {
+	validateForm: function(event,in_dialog,embedded) {
 		errors = [];
 		this.form.find(".form_error").removeClass("form_error");
 		this.form.find(".form_error_reason").remove();
@@ -2170,6 +2170,20 @@ var BigTreeFormValidator = Class.extend({
 				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
 			}
 		});
+
+		// If this is an embedded form, we want to generate a hash of everything
+		complete_submission = "";
+		if ($("#bigtree_hashcash_field").length) {
+			this.form.find("input,select,textarea").each(function() {
+				t = $(this).attr("type");
+				if (t != "file" && $(this).attr("name")) {
+					if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
+						complete_submission += $(this).val();
+					}
+				}
+			});
+			$("#bigtree_hashcash_field").val(md5(complete_submission));
+		}
 		
 		if (this.form.find(".form_error").length) {
 			this.form.find(".warning_message").hide();

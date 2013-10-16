@@ -1,5 +1,12 @@
 <div class="container">
 	<form method="post" action="<?=$bigtree["form_root"]?>process/<? if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><? } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
+		<? if ($bigtree["form"]["embedded"]) { ?>
+		<fieldset>
+			<label>This is a field that shouldn't be filled out.</label>
+			<input type="text" name="_bigtree_email" />
+			<input type="text" name="_bigtree_hashcash" id="bigtree_hashcash_field" />
+		</fieldset>
+		<? } ?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
@@ -23,6 +30,11 @@
 			?>
 			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
 			<?
+				} elseif ($_SESSION["bigtree_admin"]["post_hash_failed"]) {
+					unset($_SESSION["bigtree_admin"]["post_hash_failed"]);
+			?>
+			<p class="warning_message">The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.</p>
+			<?		
 				}
 				$bigtree["datepickers"] = array();
 				$bigtree["timepickers"] = array();
@@ -145,7 +157,7 @@
 		}
 	?>
 	
-	new BigTreeFormValidator("#auto_module_form");
+	new BigTreeFormValidator("#auto_module_form",false<? if ($bigtree["form"]["embedded"]) { ?>,true<? } ?>);
 	
 	$(".save_and_preview").click(function() {
 		$("#preview_field").val("true");
