@@ -213,13 +213,12 @@
 	}
 
 	// Put together saved form information for the error or crop page in case we need it.
-	$suffix = $view["suffix"] ? "-".$view["suffix"] : "";
-	$edit_link = ADMIN_ROOT.$bigtree["current_module"]["route"]."/edit$suffix/$edit_id/";
+	$edit_action = BigTreeAutoModule::getEditAction($bigtree["module"]["id"],$bigtree["form"]["id"]);
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"view" => $view,
 		"id" => $edit_id,
 		"return_link" => $redirect_url,
-		"edit_link" => $edit_link,
+		"edit_link" => ADMIN_ROOT.$bigtree["current_module"]["route"]."/".$edit_action["route"]."/$edit_id/",
 		"errors" => $bigtree["errors"],
 		"crops" => $bigtree["crops"]
 	);
