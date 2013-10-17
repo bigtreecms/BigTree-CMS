@@ -442,6 +442,22 @@
 				$admin->track($table,"p$id","deleted-pending");
 			}
 		}
+
+		/*
+			Function: getEditAction
+				Returns a module action for the given module and form IDs.
+
+			Parameters:
+				module - Module ID
+				form - Form ID
+
+			Returns:
+				A bigtree_module_actions entry.
+		*/
+
+		function getEditAction($module,$form) {
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".sqlescape($form)."' AND module = '".sqlescape($module)."' AND route LIKE 'edit%'"));
+		}
 		
 		/*
 			Function: getFilterQuery
