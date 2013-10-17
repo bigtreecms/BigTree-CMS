@@ -151,6 +151,7 @@
 			$("#cropper article").eq(BigTree.localCurrentCrop - 1).hide();
 			$("#cropper article").eq(BigTree.localCurrentCrop).show();
 			BigTree.localCurrentCrop++;
+			BigTree.localInitJcrop();
 			return false;
 		}
 	});
