@@ -1625,6 +1625,7 @@
 	body.embedded .container { background: transparent; border: none; box-shadow: none; padding: 0; }
 	body.embedded .container section { padding: 0; }
 	body.embedded textarea, body.embedded input[type="text"], body.embedded input[type="password"], body.embedded input[type="email"], body.embedded input[type="url"] { -webkitablet-box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; box-sizing: border-box; *behavior: url(admin_root/css/boxsizing.htc); width: 100%; }
+	body.embedded input.date_picker, body.embedded input.time_picker { width: 202px !important; }
 	body.embedded .container footer { background: transparent; border: none; padding: 0; margin: 30px 0 0 0; }
 	body.embedded .container form > fieldset { display: none; }
 

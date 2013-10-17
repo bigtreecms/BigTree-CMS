@@ -1,5 +1,5 @@
 <?
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);	
 ?>
 <div class="container">
 	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
@@ -11,97 +11,15 @@
 				foreach ($crops as $crop) {
 					$x++;
 					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
-					$image = str_replace(SITE_ROOT,STATIC_ROOT,$crop["image"]);
-					$cwidth = $crop["width"];
-					$cheight = $crop["height"];
-					
-					$box_width = $width;
-					$box_height = $height;
-					
-					if ($box_width > 420) {
-						$box_height = ceil($box_height * 420 / $box_width);
-						$box_width = 420;
-					}
-					
-					$preview_width = $cwidth;
-					$preview_height = $cheight;
-					
-					if ($preview_width > 420) {
-						$preview_height = ceil($preview_height * 420 / $preview_width);
-						$preview_width = 420;
-					}
-					
-					$image_ratio = $box_width / $width;
-					
-					$min_width = ceil($cwidth * $image_ratio);
-					$min_height = ceil($cheight * $image_ratio);
-					
-					if ($preview_height < $box_height) {
-						$preview_margin = floor(($box_height - $preview_height) / 2);
-						$box_margin = 0;
-					} else {
-						$box_margin = floor(($preview_height - $box_height) / 2);
-						$preview_margin = 0;
-					}
-					
-					// Fill the cropper to ~90% of the available area by default.
-					if ($min_width > $min_height) {
-						$initial_width = ceil($box_width * 0.90);
-						$initial_height = ceil($initial_width / $min_width * $min_height);
-					} else {
-						$initial_height = ceil($box_height * 0.90);
-						$initial_width = ceil($initial_height / $min_height * $min_width);
-					}
-					
-					if (($initial_width < $min_width || $initial_height < $min_height) || ($crop["retina"] && ($initial_width < $min_width * 2 || $initial_height < $min_height * 2))) {
-						// If we're doing a retina crop, make the initial crop area fit the retina version.
-						if ($crop["retina"]) {
-							$initial_width = $min_width * 2;
-							$initial_height = $min_height * 2;
-						} else {
-							$initial_width = $min_width;
-							$initial_height = $min_height;
-						}
-					}
-					
-					// Figure out where we're starting the cropping box (should be centered)
-					$initial_x = ceil(($box_width - $initial_width) / 2);
-					$initial_y = ceil(($box_height - $initial_height) / 2);
-	
-					// Figure out where the arrow should be
-					$arrow_margin = 13 + ceil($box_height / 2);
 			?>
 			<article<? if ($x > 1) { ?> style="display: none;"<? } ?>>
 				<div class="original">
-					<img src="<?=$image?>" id="cropImage<?=$x?>" width="<?=$box_width?>" height="<?=$box_height?>" />
+					<img src="<?=str_replace(SITE_ROOT,STATIC_ROOT,$crop["image"])?>" id="cropImage<?=$x?>" data-retina="<?=$crop["retina"]?>" data-width="<?=$width?>" data-height="<?=$height?>" data-crop-width="<?=$crop["width"]?>" data-crop-height="<?=$crop["height"]?>" alt="" />
 				</div>
 				<input type="hidden" name="x[]" id="x<?=$x?>" />
 				<input type="hidden" name="y[]" id="y<?=$x?>" />
 				<input type="hidden" name="width[]" id="width<?=$x?>" />
 				<input type="hidden" name="height[]" id="height<?=$x?>" />
-				<script>
-					$(document).ready(function() {
-						$("#cropImage<?=$x?>").Jcrop({
-							minSize: [<?=$min_width?>,<?=$min_height?>],
-							aspectRatio: <?=($min_width / $min_height)?>,
-							setSelect: [<?=$initial_x?>,<?=$initial_y?>,<?=($initial_x + $initial_width)?>,<?=($initial_y + $initial_height)?>],
-							onSelect: BigTree.localSetCoords<?=$x?>,
-							onChange: BigTree.localSetCoords<?=$x?>
-						});
-					});
-					
-					BigTree.localShowPreview<?=$x?> = function(coords) {
-						rx = <?=$box_width?> / coords.w;
-						ry = <?=$box_height?> / coords.h;
-						bx = <?=$preview_width?> / coords.w;
-						by = <?=$preview_height?> / coords.h;
-					
-						$("#x<?=$x?>").val(Math.round(coords.x * <?=($width/$box_width)?>));
-						$("#y<?=$x?>").val(Math.round(coords.y * <?=($height/$box_height)?>));
-						$("#width<?=$x?>").val(Math.round(coords.w * <?=($width/$box_width)?>));
-						$("#height<?=$x?>").val(Math.round(coords.h * <?=($height/$box_height)?>));
-					};
-				</script>
 			</article>
 			<?
 				}
@@ -113,16 +31,131 @@
 	</form>
 </div>
 <script>
+	BigTree.localInitJcrop = function() {
+		if (BigTree.localJcropAPI) {
+			BigTree.localJcropAPI.destroy();
+		}
+		var currentImage = $("#cropImage" + BigTree.localCurrentCrop);
+		var retina = currentImage.attr("data-retina");
+		var width = currentImage.attr("data-width");
+		var height = currentImage.attr("data-height");
+		var crop_width = currentImage.attr("data-crop-width");
+		var crop_height = currentImage.attr("data-crop-height");
+		var window_width = window.innerWidth;
+
+		// Cap it at 600x600
+		if (window_width > 600) {
+			window_width = 600;
+		}
+
+		box_width = width;
+		box_height = height;
+		
+		if (box_width > window_width) {
+			box_height = Math.ceil(box_height * window_width / box_width);
+			box_width = window_width;
+		}
+		
+		preview_width = crop_width;
+		preview_height = crop_height;
+		
+		if (preview_width > window_width) {
+			preview_height = Math.ceil(preview_height * window_width / preview_width);
+			preview_width = window_width;
+		}
+		
+		image_ratio = box_width / width;
+		
+		min_width = Math.ceil(crop_width * image_ratio);
+		min_height = Math.ceil(crop_height * image_ratio);
+		
+		if (preview_height < box_height) {
+			preview_margin = Math.floor((box_height - preview_height) / 2);
+			box_margin = 0;
+		} else {
+			box_margin = Math.floor((preview_height - box_height) / 2);
+			preview_margin = 0;
+		}
+		
+		// Fill the cropper to ~90% of the available area by default.
+		if (min_width > min_height) {
+			initial_width = Math.ceil(box_width * 0.90);
+			initial_height = Math.ceil(initial_width / min_width * min_height);
+		} else {
+			initial_height = Math.ceil(box_height * 0.90);
+			initial_width = Math.ceil(initial_height / min_height * min_width);
+		}
+		
+		if ((initial_width < min_width || initial_height < min_height) || (retina && (initial_width < min_width * 2 || initial_height < min_height * 2))) {
+			// If we're doing a retina crop, make the initial crop area fit the retina version.
+			if (retina) {
+				initial_width = min_width * 2;
+				initial_height = min_height * 2;
+			} else {
+				initial_width = min_width;
+				initial_height = min_height;
+			}
+		}
+		
+		// Figure out where we're starting the cropping box (should be centered)
+		initial_x = Math.ceil((box_width - initial_width) / 2);
+		initial_y = Math.ceil((box_height - initial_height) / 2);
+
+		// Save our calculations
+		BigTree.localCropInfo = { box_width: box_width, box_height: box_height, preview_width: preview_width, preview_height: preview_height, width: width, height: height };
+
+		currentImage.width(box_width).height(box_height).Jcrop({
+			minSize: [min_width,min_height],
+			aspectRatio: (min_width / min_height),
+			setSelect: [initial_x,initial_y,(initial_x + initial_width),(initial_y + initial_height)],
+			onSelect: BigTree.localSetCoords,
+			onChange: BigTree.localSetCoords
+		},function() {
+			BigTree.localJcropAPI = this;
+		});
+	};
+
+	BigTree.localSetCoords = function(coords) {
+		rx = BigTree.localCropInfo.box_width / coords.w;
+		ry = BigTree.localCropInfo.box_height / coords.h;
+		bx = BigTree.localCropInfo.preview_width / coords.w;
+		by = BigTree.localCropInfo.preview_height / coords.h;
+	
+		$("#x" + BigTree.localCurrentCrop).val(Math.round(coords.x * (BigTree.localCropInfo.width / BigTree.localCropInfo.box_width)));
+		$("#y" + BigTree.localCurrentCrop).val(Math.round(coords.y * (BigTree.localCropInfo.height / BigTree.localCropInfo.box_height)));
+		$("#width" + BigTree.localCurrentCrop).val(Math.round(coords.w * (BigTree.localCropInfo.width / BigTree.localCropInfo.box_width)));
+		$("#height" + BigTree.localCurrentCrop).val(Math.round(coords.h * (BigTree.localCropInfo.height / BigTree.localCropInfo.box_height)));
+	};
+
+	BigTree.localWindowResizeCheck = function() {
+		w = window.innerWidth;
+		if (w > 600) {
+			w = 600;
+		}
+		if (w != BigTree.localWindowWidth) {
+			BigTree.localWindowWidth = w;	
+			BigTree.localInitJcrop();
+		}
+	};
+
 	window.parent.BigTreeEmbeddableForm.scrollToTop();
-	BigTree.currentCrop = 1;
-	BigTree.maxCrops = <?=count($crops)?>;
+	BigTree.localCurrentCrop = 1;
+	BigTree.localMaxCrops = <?=count($crops)?>;
+	BigTree.localWindowWidth = window.innerWidth;
+	if (BigTree.localWindowWidth > 600) {
+		BigTree.localWindowWidth = 600;
+	}
 	
 	$("#crop_form").submit(function() {
-		if (BigTree.currentCrop != BigTree.maxCrops) {
-			$("#cropper article").eq(BigTree.currentCrop - 1).hide();
-			$("#cropper article").eq(BigTree.currentCrop).show();
-			BigTree.currentCrop++;
+		if (BigTree.localCurrentCrop != BigTree.localMaxCrops) {
+			$("#cropper article").eq(BigTree.localCurrentCrop - 1).hide();
+			$("#cropper article").eq(BigTree.localCurrentCrop).show();
+			BigTree.localCurrentCrop++;
 			return false;
 		}
 	});
+
+	setInterval(BigTree.localWindowResizeCheck,250);
+
+	BigTree.localInitJcrop();
 </script>
