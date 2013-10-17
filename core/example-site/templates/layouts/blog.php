@@ -9,7 +9,7 @@
 ?>
 <div class="row blog" id="subpage">
 	<? include "_breadcrumb.php" ?>
-	<aside class="desktop-3 right sidebar">
+	<aside class="desktop-3 tablet-2 mobile-full right sidebar">
 		<nav class="subnav blognav">
 			<a href="#" class="nav_label">Navigation</a>
 			<div class="nav_options">
@@ -77,7 +77,7 @@
 			</div>
 		</nav>
 	</aside>
-	<div class="desktop-9 content">
+	<div class="desktop-9 tablet-4 mobile-full content">
 		<?=$bigtree["content"]?>
 	</div>
 </div>
