@@ -23,8 +23,13 @@
 		$permissions = array(
 			"page" => array(),
 			"module" => array(),
-			"resources" => array()
+			"resources" => array(),
+			"module_gbp" => array()
 		);
+	} else {
+		if (!is_array($permissions["module_gbp"])) {
+			$permissions["module_gbp"] = array();
+		}
 	}
 
 	// We need to gather all the page levels that should be expanded (anything that isn't "inherit" should have its parents pre-opened)
