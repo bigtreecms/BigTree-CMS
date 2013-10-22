@@ -292,4 +292,15 @@
 			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '".$f["id"]."'");
 		}
 	}
+
+	// BigTree 4.0.1 update -- REVISION 22
+	function _local_bigtree_update_22() {
+		global $admin;
+
+		// Go through all views and figure out what kind of data is in each column.
+		$q = sqlquery("SELECT id FROM bigtree_module_views");
+		while ($f = sqlfetch($q)) {
+			$admin->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+		}
+	}
 ?>

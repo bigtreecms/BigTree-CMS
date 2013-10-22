@@ -835,26 +835,14 @@
 			} else { // Old formatting
 				list($sort_field,$sort_direction) = explode(" ",$sort);
 			}
+
 			if ($sort_field != "id") {
-				$convert_numeric = false;
-				$columnInfo = $tableInfo["columns"][$sort_field];
-				if ($columnInfo) {
-					$t = $columnInfo["type"];
-					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
-						$convert_numeric = true;
-					}
-					// We're going to assume a parser is returning a string
-					if ($view["fields"][$sort_field]["parser"]) {
-						$convert_numeric = false;
-					}
-					// See if we're a foreign key (in which case it's probably a db populated list and we want to treat as string)
-					foreach ($tableInfo["foreign_keys"] as $foreign_key) {
-						if (in_array($sort_field,$foreign_key["local_columns"])) {
-							$convert_numeric = false;
-						}
-					}
-				}
 				$x = 0;
+				if (isset($view["fields"][$sort_field]["numeric"]) && $view["fields"][$sort_field]["numeric"]) {
+					$convert_numeric = true;
+				} else {
+					$convert_numeric = false;
+				}
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
