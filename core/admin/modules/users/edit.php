@@ -160,7 +160,7 @@
 				
 				<fieldset>
 					<label>Password <small>(Leave blank to remain unchanged)</small></label>
-					<input type="password" name="password" value="" tabindex="3" />
+					<input type="password" name="password" value="" tabindex="3" autocomplete="off" />
 				</fieldset>
 				<? if ($user["id"] != $admin->ID) { ?>
 				<fieldset>

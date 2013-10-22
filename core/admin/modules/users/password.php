@@ -29,11 +29,11 @@
 	<? } ?>
 	<fieldset class="split">
 		<label>New Password</label>
-		<input type="password" name="new_password" />
+		<input type="password" name="new_password" autocomplete="off" />
 	</fieldset>
 	<fieldset class="split second">
 		<label>Confirm New Password</label>
-		<input type="password" name="confirm_new_password" />
+		<input type="password" name="confirm_new_password" autocomplete="off" />
 	</fieldset>
 	
 	<br class="clear" />
