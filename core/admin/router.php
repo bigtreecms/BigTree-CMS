@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
 	define("BIGTREE_VERSION","4.1");
-	define("BIGTREE_REVISION",21);
+	define("BIGTREE_REVISION",22);
 
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
@@ -80,7 +80,7 @@
 		}
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo BigTree::formatCSS3(str_replace("admin_root/",$bigtree["config"]["admin_root"],file_get_contents($ifile)));
+		echo BigTree::formatCSS3(file_get_contents($ifile));
 		die();
 	}
 
@@ -131,15 +131,8 @@
 			header("Content-type: text/javascript");
 		}
 
-		$find = array("{max_file_size}","www_root/","admin_root/","static_root/");
-		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
-		foreach ($_GET as $key => $val) {
-			$find[] = '{'.$key.'}';
-			$replace[] = $val;
-		}
-
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo str_replace($find,$replace,file_get_contents($ifile));
+		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
 		die();
 	}
 
@@ -189,12 +182,6 @@
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 		BigTree::redirect(ADMIN_ROOT."login/");
-	}
-
-	// Developer Mode On?
-	if (isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
-		include BigTree::path("admin/pages/developer-mode.php");
-		$admin->stop();
 	}
 
 	// Redirect to dashboard by default if we're not requesting anything.
@@ -364,7 +351,7 @@
 			$bigtree["commands"] = $route_response["commands"];
 		}
 
-		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"] || $bigtree["module_action"]["report"])) {
+		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
 			if ($bigtree["module_action"]["form"]) {
 				// If the last command is numeric then we're editing something.
 				if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
@@ -374,10 +361,8 @@
 					$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 				}
 				include BigTree::path("admin/auto-modules/form.php");
-			} elseif ($bigtree["module_action"]["view"]) {
+			} else {
 				include BigTree::path("admin/auto-modules/view.php");
-			} elseif ($bigtree["module_action"]["report"]) {
-				include BigTree::path("admin/auto-modules/report.php");
 			}
 		} elseif ($inc) {
 			// Setup the commands array.

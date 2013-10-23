@@ -122,7 +122,7 @@ var BigTreeBar = {
 		bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
 		
-		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags($_GET["username"]))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
+		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags(str_replace("'","\'",$_GET["username"])))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
 		bigtree_bar.innerHTML = bigtree_bar_html;
 		
 		BigTreeBar.body.appendChild(bigtree_bar);

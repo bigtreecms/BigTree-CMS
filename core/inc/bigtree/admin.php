@@ -1151,7 +1151,15 @@
 			$tagging = $tagging ? "on" : "";
 
 			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`,`tagging`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url','$tagging')");
-			return sqlid();
+			$id = sqlid();
+
+			// Get related views for this table and update numeric status
+			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
+			while ($f = sqlfetch($q)) {
+				$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+			}
+
+			return $id;
 		}
 
 		/*
@@ -1259,7 +1267,10 @@
 
 			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
 
-			return sqlid();
+			$id = sqlid();
+			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+
+			return $id;
 		}
 
 		/*
@@ -6056,6 +6067,12 @@
 			}
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE form = '$id' AND route LIKE 'edit%'");
+
+			// Get related views for this table and update numeric status
+			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
+			while ($f = sqlfetch($q)) {
+				$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+			}
 		}
 
 		/*
@@ -6153,6 +6170,39 @@
 
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
+
+			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+		}
+
+		/*
+			Function: updateModuleViewColumnNumericStatus
+				Updates a module view's columns to designate whether they are numeric or not based on parsers, column type, and related forms.
+			
+			Parameters:
+				view - The view entry to update.
+		*/
+
+		function updateModuleViewColumnNumericStatus($view) {
+			if (is_array($view["fields"])) {
+				$form = BigTreeAutoModule::getRelatedFormForView($view);
+				$table = BigTree::describeTable($view["table"]);
+	
+				foreach ($view["fields"] as $key => $field) {
+					$numeric = false;
+					$t = $table["columns"][$key]["type"];
+					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
+						$numeric = true;
+					}
+					if ($field["parser"] || ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db")) {
+						$numeric = false;
+					}
+
+					$view["fields"][$key]["numeric"] = $numeric;
+				}
+
+				$fields = sqlescape(json_encode($view["fields"]));
+				sqlquery("UPDATE bigtree_module_views SET fields = '$fields' WHERE id = '".$view["id"]."'");
+			}
 		}
 
 		/*

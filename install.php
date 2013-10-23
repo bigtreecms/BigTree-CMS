@@ -422,6 +422,8 @@
   </FilesMatch>
 </IfModule>
 
+AddType image/svg+xml svg
+
 IndexIgnore */*
 
 Options -MultiViews
