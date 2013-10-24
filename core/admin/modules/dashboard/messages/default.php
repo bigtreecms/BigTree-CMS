@@ -15,7 +15,7 @@
 	<summary>
 		<h2><span class="unread"></span>Unread Messages</h2>
 		<? if (count($unread)) { ?>
-		<ul id="unread_paging" class="view_paging"></ul>
+		<nav id="unread_paging" class="view_paging"></nav>
 		<? } ?>
 	</summary>
 	<header>
@@ -59,7 +59,7 @@
 	<summary>
 		<h2><span class="read"></span>Read Messages</h2>
 		<? if (count($read)) { ?>
-		<ul id="read_paging" class="view_paging"></ul>
+		<nav id="read_paging" class="view_paging"></nav>
 		<? } ?>
 	</summary>
 	<header>
@@ -103,7 +103,7 @@
 	<summary>
 		<h2><span class="sent"></span>Sent Messages</h2>
 		<? if (count($sent)) { ?>
-		<ul id="sent_paging" class="view_paging"></ul>
+		<nav id="sent_paging" class="view_paging"></nav>
 		<? } ?>
 	</summary>
 	<header>
