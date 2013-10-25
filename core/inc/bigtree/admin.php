@@ -66,127 +66,9 @@
 			)
 		);
 		
-		// !Icon Classes
-		
-		var $IconClasses =  array(
-			"gear",
-			"truck",
-			"token",
-			"export",
-			"redirect",
-			"help",
-			"error",
-			"ignored",
-			"world",
-			"server",
-			"clock",
-			"network",
-			"car",
-			"key",
-			"folder",
-			"calendar",
-			"search",
-			"setup",
-			"page",
-			"computer",
-			"picture",
-			"news",
-			"events",
-			"blog",
-			"form",
-			"category",
-			"map",
-			"user",
-			"question",
-			"sports",
-			"credit_card",
-			"cart",
-			"cash_register",
-			"lock_key",
-			"bar_graph",
-			"comments",
-			"email",
-			"weather",
-			"pin",
-			"planet",
-			"mug",
-			"atom",
-			"shovel",
-			"cone",
-			"lifesaver",
-			"target",
-			"ribbon",
-			"dice",
-			"ticket",
-			"pallet",
-			"camera",
-			"video",
-			"twitter",
-			"facebook"
-		);
-		
-		var $ActionClasses =  array(
-			"add",
-			"delete",
-			"list",
-			"edit",
-			"refresh",
-			"gear",
-			"truck",
-			"token",
-			"export",
-			"redirect",
-			"help",
-			"error",
-			"ignored",
-			"world",
-			"server",
-			"clock",
-			"network",
-			"car",
-			"key",
-			"folder",
-			"calendar",
-			"search",
-			"setup",
-			"page",
-			"computer",
-			"picture",
-			"news",
-			"events",
-			"blog",
-			"form",
-			"category",
-			"map",
-			"user",
-			"question",
-			"sports",
-			"credit_card",
-			"cart",
-			"cash_register",
-			"lock_key",
-			"bar_graph",
-			"comments",
-			"email",
-			"weather",
-			"pin",
-			"planet",
-			"mug",
-			"atom",
-			"shovel",
-			"cone",
-			"lifesaver",
-			"target",
-			"ribbon",
-			"dice",
-			"ticket",
-			"pallet",
-			"lightning",
-			"camera",
-			"video",
-			"twitter",
-			"facebook"
-		);
+		// !Icon Classes		
+		var $IconClasses =  array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");		
+		var $ActionClasses =  array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook");
 
 		/*
 			Constructor:
@@ -2914,6 +2796,42 @@
 				return false;
 			}
 			return $message;
+		}
+
+		/*
+			Function: getMessageChain
+				Gets a full chain of messages based on one ID in the chain
+
+			Parameters:
+				id - The ID of one message in the chain.
+
+			Returns:
+				An array of entries from bigtree_messages with the message entry that was requested having the "selected" column set.
+		*/
+
+		function getMessageChain($id) {
+			$message = $m = $this->getMessage($id);
+			$message["selected"] = true;
+			if (!$message) {
+				return false;
+			}
+			$chain = array($message);
+
+			// Find parents
+			while ($m["response_to"]) {
+				$m = $this->getMessage($m["response_to"]);
+				// Prepend this message to the chain
+				$chain = array_merge(array($m),$chain);
+			}
+
+			// Find children
+			$m = $message;
+			while ($f = sqlfetch(sqlquery("SELECT id FROM bigtree_messages WHERE response_to = '".$m["id"]."'"))) {
+				$m = $this->getMessage($f["id"]);
+				$chain[] = $m;
+			}
+
+			return $chain;
 		}
 
 		/*

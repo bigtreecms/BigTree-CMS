@@ -1,8 +1,8 @@
 <?
-	// Get the message. It'll return false if the user isn't a sender/recipient.
-	$message = $admin->getMessage(end($bigtree["path"]));
+	// Get the message chain. It'll return false if the user isn't a sender/recipient.
+	$chain = $admin->getMessageChain(end($bigtree["path"]));
 
-	if (!$message) {
+	if (!$chain) {
 ?>
 <div class="container">
 	<section>
@@ -13,52 +13,39 @@
 <?
 		$admin->stop();
 	}
-
-	// Mark the message read by you.
-	$admin->markMessageRead($message["id"]);
-	
-	// Get the list of recipients to determine the names and also to tell _nav whether to show "Reply All"
-	$recipients = explode("|",trim($message["recipients"],"|"));
-	$recipient_names = array();
-	$recipient_gravatar = false;
-	foreach ($recipients as $r) {
-		$u = $admin->getUser($r);
-		$recipient_names[] = $u["name"];
-		if ($r == $admin->ID) {
-			$recipient_gravatar = $u["email"];
-		}
-	}
-	if (!$recipient_gravatar) {
-		$u = $admin->getUser($recipients[0]);
-		$recipient_gravatar = $u["email"];
-	}
-	
-	// Get the sender's name
-	$u = $admin->getUser($message["sender"]);
-	$sender_name = $u["name"];
-	$sender_gravatar = $u["email"];
 ?>
-<div class="container">
-	<summary>
-		<h2><span class="unread"></span> <?=$message["subject"]?></h2>
-	</summary>
-	<section>
-		<div class="alert">
-			<article class="message_from">
-				<span class="gravatar">
-					<img src="<?=BigTree::gravatar($sender_gravatar)?>" alt="" />
-				</span>
-				<label>From</label>
+<div class="container message_thread">
+	<?
+
+		// Mark the message read by you.
+		foreach ($chain as $m) {
+			if ($m["selected"]) {
+				$admin->markMessageRead($m["id"]);
+			}
+
+			// Get the sender's name
+			$u = $admin->getUser($m["sender"]);
+			$sender_name = $u["name"];
+			$sender_gravatar = $u["email"];
+	?>
+	<section<? if ($m["selected"]) { ?> class="selected"<? } ?>>
+		<header>
+			<h3><?=$m["subject"]?></h3>
+			<div class="from">
+				<span class="gravatar"><img src="<?=BigTree::gravatar($sender_gravatar)?>" alt="" /></span>
 				<p><?=$sender_name?></p>
-			</article>
-			<article class="message_to">
-				<span class="gravatar">
-					<img src="<?=BigTree::gravatar($recipient_gravatar)?>" alt="" />
-				</span>
-				<label>To</label>
-				<p><?=implode(", ",$recipient_names)?></p>
-			</article>
-		</div>
-		<?=$message["message"]?>
+			</div>
+		</header>
+		<article>
+			<?=$m["message"]?>
+		</article>
 	</section>
+	<?
+		}
+	?>
 </div>
+<script>
+	$(".message_thread header").click(function() {
+		$(this).parents("section").toggleClass("selected");
+	});
+</script>
