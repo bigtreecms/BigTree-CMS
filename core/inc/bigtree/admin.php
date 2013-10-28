@@ -3225,7 +3225,7 @@
 
 		/*
 			Function: getPageIds
-				Returns all page ids in bigtree_pages.
+				Returns all the IDs in bigtree_pages for pages that aren't archived.
 
 			Returns:
 				An array of page ids.
@@ -3233,7 +3233,7 @@
 
 		function getPageIds() {
 			$ids = array();
-			$q = sqlquery("SELECT id FROM bigtree_pages ORDER BY id ASC");
+			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived = '' ORDER BY id ASC");
 			while ($f = sqlfetch($q)) {
 				$ids[] = $f["id"];
 			}
