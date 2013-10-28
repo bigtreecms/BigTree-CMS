@@ -3233,7 +3233,7 @@
 
 		function getPageIds() {
 			$ids = array();
-			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived = '' ORDER BY id ASC");
+			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
 			while ($f = sqlfetch($q)) {
 				$ids[] = $f["id"];
 			}
