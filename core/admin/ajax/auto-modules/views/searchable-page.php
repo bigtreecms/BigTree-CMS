@@ -46,7 +46,7 @@
 	$suffix = $suffix ? "-".$suffix : "";
 	
 	// Handle how many pages we have and get our results.
-	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,false,$module);
+	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,false);
 	$pages = $data["pages"];
 	$items = $data["results"];
 	
