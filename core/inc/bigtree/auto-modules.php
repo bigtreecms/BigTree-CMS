@@ -785,13 +785,12 @@
 				query - The query string to search against.
 				sort - The column and direction to sort.
 				group - The group to pull information for.
-				module - The module entry to check permissions against.
 		
 			Returns:
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false, $module = false) {
+		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false) {
 			global $last_query,$admin;
 
 			// We're going to read the original table so we know whether the column we're sorting by is numeric.
@@ -952,13 +951,12 @@
 				view - The view entry to pull data for.
 				sort - The sort direction, defaults to most recent.
 				type - Whether to get only active entries, pending entries, or both.
-				module - The module entry for the view (for group based permissions)
 			
 			Returns:
 				An array of items from bigtree_module_view_cache.
 		*/
 		
-		static function getViewData($view,$sort = "id DESC",$type = "both",$module = false) {
+		static function getViewData($view,$sort = "id DESC",$type = "both") {
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
 			
