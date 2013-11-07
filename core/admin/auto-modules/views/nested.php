@@ -13,8 +13,8 @@
 			handle: ".icon_sort",
 			items: "> li",
 			placeholder: "ui-sortable-placeholder",
-			update: function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: $("#table_data").sortable("serialize") } });
+			update: function(ev,ui) {
+				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: ui.item.parent().sortable("serialize") } });
 			}
 		});
 	};
