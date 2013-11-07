@@ -773,20 +773,20 @@
 	Analytics
 ---------------------------*/
 	.analytics_columns { margin: 15px 0 0 0; overflow: hidden; }
-	.analytics_columns li { background: #FFF; border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; float: left; margin-right: 10px; width: 314px; }
-	.analytics_columns li summary { background: url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; padding: 8px 10px; }
-	.analytics_columns li summary small { color: #999; font-size: 10px; font-weight: normal; }
-	.analytics_columns li p { padding: 5px; }
-	.analytics_columns li .set { background: #fff; border: 1px solid #ccc; border-radius: 3px; display: block; margin: 5px; overflow: hidden; }
-	.analytics_columns li .data { border-radius: 3px; display: block; height: 115px; }
-	.analytics_columns li .percentage { background: #f9f9f9; border-left: 1px solid #EEE; color: #666; display: block; float: right; font-family: Helvetica; font-size: 23px; font-weight: bold; height: 70px; line-height: 70px; margin: 0; padding: 10px; text-align: right; text-shadow: 0 1px 0 #fff; width: 95px; }
-	.analytics_columns li .percentage.growth { color: #16790C; }
-	.analytics_columns li .percentage.warning { color: #B53A00; }
-	.analytics_columns li header { background-gradient: #D0D0D0 #FFFFFF; color: #666; display: block; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 8px 10px; text-shadow: 0 1px 0 #F9F9F9; text-transform: uppercase; }
-	.analytics_columns li header small { float: right; font-size: 8px; font-weight: normal; text-transform: none; }
-	.analytics_columns li label { color: #999; display: block; font-size: 10px; font-weight: bold; margin: 0; padding: 10px 0 5px 10px; text-transform: uppercase; }
-	.analytics_columns li .value { color: #333; display: block; font-size: 13px; margin: 0; padding: 0 0 0 10px; }
-	.analytics_columns li.last { margin-right: 0; width: 306px; }
+	.analytics_columns article { background: #FFF; border: 1px solid #CCC; border-radius: 5px; box-shadow: 0px 0px 3px #CCC; float: left; margin-right: 10px; width: 314px; }
+	.analytics_columns article summary { background: url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; padding: 8px 10px; }
+	.analytics_columns article summary small { color: #999; font-size: 10px; font-weight: normal; }
+	.analytics_columns article p { padding: 5px; }
+	.analytics_columns article .set { background: #fff; border: 1px solid #ccc; border-radius: 3px; display: block; margin: 5px; overflow: hidden; }
+	.analytics_columns article .data { border-radius: 3px; display: block; height: 115px; }
+	.analytics_columns article .percentage { background: #f9f9f9; border-left: 1px solid #EEE; color: #666; display: block; float: right; font-family: Helvetica; font-size: 23px; font-weight: bold; height: 70px; line-height: 70px; margin: 0; padding: 10px; text-align: right; text-shadow: 0 1px 0 #fff; width: 95px; }
+	.analytics_columns article .percentage.growth { color: #16790C; }
+	.analytics_columns article .percentage.warning { color: #B53A00; }
+	.analytics_columns article header { background-gradient: #D0D0D0 #FFFFFF; color: #666; display: block; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 8px 10px; text-shadow: 0 1px 0 #F9F9F9; text-transform: uppercase; }
+	.analytics_columns article header small { float: right; font-size: 8px; font-weight: normal; text-transform: none; }
+	.analytics_columns article label { color: #999; display: block; font-size: 10px; font-weight: bold; margin: 0; padding: 10px 0 5px 10px; text-transform: uppercase; }
+	.analytics_columns article .value { color: #333; display: block; font-size: 13px; margin: 0; padding: 0 0 0 10px; }
+	.analytics_columns article.last { margin-right: 0; width: 306px; }
 
 	.graph { display: block; margin: 0 0 0 -1px; overflow: hidden; padding: 0 0 0 1px; text-align: center; width: 919px; }
 	.graph .bar { background: url(../images/icon-sprite.png) no-repeat -865px -50px; box-shadow: -1px 1px 0 rgba(0,0,0,0.6); color: #fff; display: block; float: left; font-size: 12px; margin: 0 4px 0 2px; padding: 10px 5px; position: relative; text-align: center; text-shadow: 0 -1px 0 #406980; width: 50px; }

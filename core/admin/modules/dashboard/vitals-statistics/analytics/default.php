@@ -166,20 +166,20 @@
 	</section>
 </div>
 
-<ul class="analytics_columns">
-	<li>
+<section class="analytics_columns">
+	<article>
 		<summary>Current Month <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<? _local_compareData($cache["month"],$cache["year_ago_month"]); ?>
-	</li>
-	<li>
+	</article>
+	<article>
 		<summary>Current Quarter <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<? _local_compareData($cache["quarter"],$cache["year_ago_quarter"]); ?>
-	</li>
-	<li class="last">
+	</article>
+	<article class="last">
 		<summary>Current Year <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<? _local_compareData($cache["year"],$cache["year_ago_year"]); ?>
-	</li>
-</ul>
+	</article>
+</section>
 
 <script>
 	$("#graph_data").load("<?=ADMIN_ROOT?>ajax/analytics/get-graph/", { start_date: "<?=$tw_start?>", end_date: "<?=$tw_end?>" });
