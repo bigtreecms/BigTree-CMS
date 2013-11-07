@@ -59,7 +59,7 @@
 			}
 			return $xml;
 		}
-		
+
 		/*
 			Function: centerCrop
 				Crop from the center of an image to create a new one.
@@ -91,6 +91,26 @@
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
 				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
+			}
+		}
+
+		/*
+			Function: classAutoLoader
+				Internal function to automatically load module classes as needed.
+		*/
+
+		static function classAutoLoader($class) {
+			global $bigtree;
+			
+			if (isset($bigtree["other_classes"][$class])) {
+				include_once BigTree::path($bigtree["other_classes"][$class]); 
+			} elseif (file_exists(SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php")) {
+				include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
+			} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
+				include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
+			} else {
+				// Clear the module class list just in case we're missing something.
+				@unlink(SERVER_ROOT."cache/module-class-list.btc");
 			}
 		}
 		

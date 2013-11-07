@@ -86,22 +86,10 @@
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
-	
-	function __autoload($class) {
-		global $bigtree;
-		
-		if (isset($bigtree["other_classes"][$class])) {
-			include_once BigTree::path($bigtree["other_classes"][$class]); 
-		} elseif (file_exists(SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php")) {
-			include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
-		} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
-			include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
-		} else {
-			// Clear the module class list just in case we're missing something.
-			@unlink(SERVER_ROOT."cache/module-class-list.btc");
-		}
-	}
-	
+
+	// Auto load classes	
+	spl_autoload_register("BigTree::classAutoLoader");
+
 	// Load everything in the custom extras folder.
 	$d = opendir(SERVER_ROOT."custom/inc/required/");
 	$custom_required_includes = array();
