@@ -258,6 +258,7 @@
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
 		bt_touch_writable("templates/basic/_404.php","<h1>404 - Page Not Found</h1>");
+		bt_touch_writable("templates/basic/_maintenance.php","<h1>Under Construction</h1><p>Maintenance mode has been enabled.</p>");
 		bt_touch_writable("templates/basic/_sitemap.php","<h1>Sitemap</h1>");
 		bt_touch_writable("templates/basic/home.php");
 		bt_touch_writable("templates/basic/content.php",'<h1><?=$page_header?></h1>

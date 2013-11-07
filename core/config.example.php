@@ -61,7 +61,8 @@
 	// Current Environment
 	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
 	$bigtree["config"]["environment_live_url"] = ""; // Live environment URL
-	$bigtree["config"]["developer_mode"] = false; // Set to true to lock out all users except developrs.
+	$bigtree["config"]["developer_mode"] = false; // Set to true to lock out all users except developers.
+	$bigtree["config"]["maintenance_url"] = false; // Set to a URL to 307 redirect visitors to a maintenance page (driven by /templates/basic/_maintenance.php).
 
 	// Admin Settings
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/"; // "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/

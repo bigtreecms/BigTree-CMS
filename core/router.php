@@ -201,6 +201,19 @@
 	// Start output buffering and sessions
 	ob_start();
 	session_start();
+
+	// Check to see if we're in maintenance mode
+	if ($bigtree["config"]["maintenance_url"]) {
+		// See if we're at the URL
+		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
+			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");
+		} else {
+			include "../templates/basic/_maintenance.php";
+			$bigtree["content"] = ob_get_clean();
+			include "../templates/layouts/".($bigtree["layout"] ? $bigtree["layout"] : "default").".php";
+			die();
+		}
+	}
 	
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax") {
