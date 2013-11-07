@@ -58,8 +58,7 @@
 			return;
 		}
 		// Change expanded state
-		$(this).toggleClass("expanded");
-		var ul = $(this).parent().children("ul").toggle();
+		var ul =$(this).parent().toggleClass("expanded").children("ul").toggle();
 		<? if ($permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<? } ?>

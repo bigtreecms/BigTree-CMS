@@ -674,16 +674,16 @@
 	.nested_table .depth { height: 35px; background: #EEE; border-right: 1px solid #E3E3E3; float: left; text-align: right; }
 	.nested_table .icon_sort { margin: 5px 0 0 0; display: inline-block; float: none; }
 	.nested_table .inactive > .depth .icon_sort { opacity: 0.2; }
-	.nested_table ul li { height: auto; }
+	.nested_table ul { background: #E3E3E3; }
+	.nested_table ul li { height: auto; margin: 0 0 1px 0; border: none; }
+	.nested_table ul li.expanded { margin: 0; }
 	.nested_table ul li:after { content: ""; display: table; clear: both; }
-	.nested_table ul ul { border-top: 1px solid #E3E3E3; float: left; width: 100%; }
-	.nested_table ul li:first-of-type { border: none; }
+	.nested_table ul ul { padding: 1px 0 0 0; float: left; width: 100%; }
 	.nested_table ul li:nth-of-type(2n) { background: #FFF; }
 	.nested_table ul li section:first-of-type { background: url(../images/icon-sprite.png) no-repeat -930px 0px; cursor: pointer; padding: 0 0 0 40px; user-select: none; }
-	.nested_table ul li section.expanded { background-position: -930px -64px; }
+	.nested_table ul li.expanded > section:first-of-type { background-position: -930px -64px; }
 	.nested_table ul li section.disabled { background-position: -930px -32px; cursor: default; }
 	.nested_table ul li section.disabled.expanded { background-position: -930px -96px; }
-	.nested_table ul .ui-sortable-placeholder { height: 34px; }
 	
 /* Error Table Styles */
 	
