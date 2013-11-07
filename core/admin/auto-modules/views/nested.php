@@ -1,7 +1,33 @@
 <?
 	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
-<div class="table auto_modules">
+<script>
+	BigTree.localSearch = function() {
+		// If a search has been entered, revert to draggable
+		$("#table_data").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/nested/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() });
+	};
+	BigTree.localCreateSortable = function(element) {
+		$(element).sortable({
+			axis: "y",
+			containment: "parent",
+			handle: ".icon_sort",
+			items: "> li",
+			placeholder: "ui-sortable-placeholder",
+			update: function() {
+				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: $("#table_data").sortable("serialize") } });
+			}
+		});
+	};
+	BigTree.localMouseUp = function() {
+		// Re-open the section we collapsed while dragging
+		for (i = 0; i < BigTree.localPreviouslyExpanded.length; i++) {
+			BigTree.localPreviouslyExpanded[i].children("section:first-of-type").addClass("expanded");
+			BigTree.localPreviouslyExpanded[i].children("ul").show();
+		}
+		$("body").off("mouseup",BigTree.localMouseUp);
+	}
+</script>
+<div class="table auto_modules nested_table" id="nested_container">
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=$search?>" />
 		<span class="form_search_icon"></span>
@@ -19,32 +45,32 @@
 		<span class="view_status">Status</span>		
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
 	</header>
-	<ul id="sort_table">
+	<ul id="table_data">
 		<? include BigTree::path("admin/ajax/auto-modules/views/nested.php") ?>
 	</ul>
 </div>
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
-	BigTree.localSearch = function() {
-		// If a search has been entered, revert to draggable
-		v = $("#search").val();
-		if (v) {
-			$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: <?=$bigtree["view"]["id"]?>, search: v });
-		} else {
-			$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/nested/", { view: <?=$bigtree["view"]["id"]?> });	
+	$("#table_data").on("click",".view_column:first-of-type",function() {
+		// Make sure we haven't searched
+		if (!$(this).parents("div").hasClass("nested_table") || $(this).hasClass("disabled")) {
+			return;
 		}
-	};
-
-	BigTree.localCreateSortable = function() {
+		// Change expanded state
+		$(this).toggleClass("expanded");
+		var ul = $(this).parent().children("ul").toggle();
 		<? if ($permission == "p") { ?>
-		if ($("#search").val() == "") {
-			$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: $("#sort_table").sortable("serialize") } });
-			}});
-		}
+		BigTree.localCreateSortable(ul);
 		<? } ?>
-	};
-	
-	BigTree.localCreateSortable();
+	}).on("mousedown",".icon_sort",function() {
+		// We're going to collapse the section so we can drag it easier.
+		BigTree.localPreviouslyExpanded = [];
+		$(this).parent().parent().find("section.expanded").each(function(index,el) {
+			BigTree.localPreviouslyExpanded[BigTree.localPreviouslyExpanded.length] = $(el).parent();
+			$(el).removeClass("expanded");
+			$(el).parent().children("ul").hide();
+		});
+		$("body").on("mouseup",BigTree.localMouseUp);
+	});
 </script>
