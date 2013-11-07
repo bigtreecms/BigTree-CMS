@@ -21,8 +21,7 @@
 	BigTree.localMouseUp = function() {
 		// Re-open the section we collapsed while dragging
 		for (i = 0; i < BigTree.localPreviouslyExpanded.length; i++) {
-			BigTree.localPreviouslyExpanded[i].children("section:first-of-type").addClass("expanded");
-			BigTree.localPreviouslyExpanded[i].children("ul").show();
+			BigTree.localPreviouslyExpanded[i].addClass("expanded").children("ul").show();
 		}
 		$("body").off("mouseup",BigTree.localMouseUp);
 	}
@@ -58,18 +57,22 @@
 			return;
 		}
 		// Change expanded state
-		var ul =$(this).parent().toggleClass("expanded").children("ul").toggle();
+		var ul = $(this).parent().toggleClass("expanded").children("ul").toggle();
 		<? if ($permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<? } ?>
 	}).on("mousedown",".icon_sort",function() {
 		// We're going to collapse the section so we can drag it easier.
 		BigTree.localPreviouslyExpanded = [];
-		$(this).parent().parent().find("section.expanded").each(function(index,el) {
-			BigTree.localPreviouslyExpanded[BigTree.localPreviouslyExpanded.length] = $(el).parent();
-			$(el).removeClass("expanded");
-			$(el).parent().children("ul").hide();
-		});
+		li = $(this).parent().parent();
+		if (li.hasClass("expanded")) {
+			BigTree.localPreviouslyExpanded[0] = li;
+			li.removeClass("expanded").children("ul").hide();
+			li.find(".expanded").each(function(index,el) {
+				BigTree.localPreviouslyExpanded[BigTree.localPreviouslyExpanded.length] = $(el);
+				$(el).removeClass("expanded").children("ul").hide();
+			});
+		}
 		$("body").on("mouseup",BigTree.localMouseUp);
 	});
 </script>
