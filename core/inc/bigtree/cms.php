@@ -64,7 +64,7 @@
 
 		function cacheGet($identifier,$key,$max_age = false,$decode = true) {
 			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-			if (!$this->MySQLTime) {
+			if (empty($this->MySQLTime)) {
 				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
 				$this->MySQLTime = $t["time"];
 			}
