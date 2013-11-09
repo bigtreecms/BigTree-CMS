@@ -14,9 +14,9 @@
 	$title = htmlspecialchars($title);
 ?>
 <div class="container">
-	<header>
+	<summary>
 		<p>Step 3: Creating Your View</p>
-	</header>
+	</summary>
 	<form method="post" action="<?=$developer_root?>modules/designer/view-create/" class="module">
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />

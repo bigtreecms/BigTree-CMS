@@ -1,6 +1,6 @@
 <div class="table">
 	<summary>
-		<p>This report shows the service providers for your visitors in the past month.</p>
+		<p>Your visitor's service providers over the past month.</p>
 	</summary>
 	<header>
 		<span class="analytics_metric_name">Service Provider</span>

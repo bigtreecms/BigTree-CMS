@@ -17,9 +17,9 @@
 	$types = $cached_types["module"];
 ?>
 <div class="container">
-	<header>
+	<summary>
 		<p>Step 2: Creating Your Form</p>
-	</header>
+	</summary>
 	<form method="post" action="<?=$developer_root?>modules/designer/form-create/" class="module">
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />

@@ -1,6 +1,6 @@
 <div class="table">
 	<summary>
-		<p>This report shows the search keywords for your visitors in the past 30 days.</p>
+		<p>Your visitor's search keywords over the past month.</p>
 	</summary>
 	<header>
 		<span class="analytics_metric_name">Keyword</span>

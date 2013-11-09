@@ -1,6 +1,8 @@
 <div class="container">
 	<form method="post" action="<?=$developer_root?>modules/groups/create/" class="module">
-		<header><h2>Group Details</h2></header>
+		<summary>
+			<h2>Group Details</h2>
+		</summary>
 		<section>
 			<fieldset>
 				<label class="required">Name</label>

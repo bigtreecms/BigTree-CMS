@@ -71,8 +71,8 @@
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" value="Set Profile" class="blue" id="set_button" style="display: none;" />
 			<a href="#" class="button" id="ga_disconnect">Disconnect</a>
+			<input type="submit" value="Set Profile" class="blue" id="set_button" style="display: none;" />
 		</footer>
 	</form>
 	
@@ -85,7 +85,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<a href="<?=$analytics->Client->createAuthUrl()?>" class="button" id="google_button" target="_blank">Authenticate</a>
+			<a href="<?=$analytics->Client->createAuthUrl()?>" class="button blue" id="google_button" target="_blank">Authenticate</a>
 			<input type="submit" class="button blue" id="profile_button" value="Save Code" style="display: none;" />
 		</footer>
 	</form>
