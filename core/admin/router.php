@@ -43,6 +43,8 @@
 			header("Content-type: image/jpeg");
 		} elseif ($type == "png") {
 			header("Content-type: image/png");
+		} elseif ($type == "svg") {
+			header("Content-type: image/svg+xml");
 		}
 
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);

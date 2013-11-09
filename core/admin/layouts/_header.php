@@ -90,7 +90,7 @@
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
 								$x++;
 					?>
-					<li<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> class="active"<? } ?>>
+					<li class="<? if (isset($item["children"]) && count($item["children"])) { ?> has_dropdown<? } ?> <? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { ?> active<? } ?>">
 						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($bigtree["path"][1] == $item["link"] || ($item["link"] == "modules" && $bigtree["in_module"])) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
