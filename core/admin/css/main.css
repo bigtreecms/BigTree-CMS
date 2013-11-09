@@ -48,7 +48,7 @@
 	h1 .modules, .box_select .modules { background-position: -128px -16px; }
 	h1 .users, .box_select .users { background-position: -160px -16px; }
 	h1 .settings, .box_select .settings { background-position: -192px -16px; }
-	h1 .developer { background-position: -224px -16px; }
+	h1 .developer { background-position: -224px -18px; }
 	h1 .messages { background-position: -256px -16px; }
 	h1 .pending { background-position: -288px -16px; }
 	h1 .vitals, .box_select .vitals { background-position: -320px -16px; }
@@ -69,7 +69,6 @@
 	h1 .authorize, .box_select .authorize { background-position: -124px -214px; }
 	h1 .linkpoint, .box_select .linkpoint { background-position: -155px -214px; }
 	h1 .payflow, .box_select .payflow { background-position: -190px -214px; }
-	h1 .disqus, .box_select .disqus { background-position: -256px -250px; }
 	h1 .crop { background-position: -896px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
@@ -88,7 +87,7 @@
 	h1 .vimeo, .box_select .vimeo { background-position: -160px -250px; }
 	h1 .soundcloud, .box_select .soundcloud { background-position: -192px -250px; }
 	h1 .youtube, .box_select .youtube { background-position: -224px -250px; }
-	h1 .disqus, .box_select .disqus { background-position: 0px -215px; }
+	h1 .disqus, .box_select .disqus { background-position: -256px -250px; }
 	h1 .geocoding, .box_select .geocoding { background-position: -382px -48px; }
 	h1 .yahoo, .box_select .yahoo { background-position: 0px -283px; }
 	h1 .google, .box_select .google { background-position: -32px -284px; }
@@ -118,7 +117,7 @@
 	table { border: 1px solid #CCC; display: table; margin: 0 0 15px 0; width: 100%; }
 	table td { color: #333; font-size: 12px; padding: 10px 15px; }
 	table tr:nth-child(even) td { background: #EEE; }
-	table th, table thead td { background: url(../images/row-bg-sprite.png) repeat-x 0 -292px; color: #444; font-size: 14px; padding: 10px 15px; text-align: left; }
+	table th, table thead td { background: #eee; color: #999; font-size: 14px; padding: 10px 15px; text-align: left; }
 
 /* Form Styles */
 	fieldset { margin: 0 0 15px 0; overflow: hidden; }
@@ -195,8 +194,8 @@
 	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
 	.select a:last-child { border-radius: 0px 0px 2px 2px; }
-	.select a.active { background: #E0EAF0; }
-	.select a:hover { background: #EEE; }
+	.select a.active { background: #EFF7FD; }
+	.select a:hover { background: #eee; }
 	.select a.optgroup { padding: 5px 20px; }
 	.select.focused { border-color: #AAA; }
 	.select.open { border-radius: 2px 2px 0px 0px; }
@@ -332,20 +331,20 @@
 	nav.main form { float: right; position: relative; }
 	nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 3px; height: 34px; margin: 6px 0; padding: 0 35px 0 12px; transition: border-color 0.2s; width: 198px; }
 	nav.main form .qs_query.focus { border-color: #AAA; }
-	nav.main form .qs_image { background: url(../images/icon-sprite.svg) no-repeat -96px 0px; border: none; height: 16px; margin: 0; padding: 0; position: absolute; right: 10px; top: 15px; text-indent: -1000px; user-select: none; width: 16px; }
+	nav.main form .qs_image { background: url(../images/icon-sprite.svg) no-repeat -96px 0px; border: none; height: 16px; margin: 0; padding: 0; position: absolute; right: 9px; top: 15px; text-indent: -1000px; user-select: none; width: 16px; }
 
 	.environment_alert { background-gradient: #F39222 #FEA641; border: 1px solid #DB821D; border-radius: 0 0 3px 3px; color: #61390D; float: right; margin: -16px 0 0; padding: 2px 6px 1px 10px; text-transform: uppercase; }
 	.environment_alert span { float: left; font-size: 11px; line-height: 29px; }
 	.environment_alert a { background: rgba(255, 255, 255, 0.6); border-radius: 10px; color: #61390D; display: block; float: right; font-size: 10px; height: 20px; line-height: 20px; margin: 4px 0 0 10px; padding: 0 12px; text-transform: uppercase; transition: background-color 0.2s; }
 	.environment_alert a:hover { background: rgba(255, 255, 255, 0.75); }
 
-	#quick_search_results { background: #FFF; border: 1px solid #aaa; margin: -6px 0 0 11px; position: absolute; user-select: none; width: 200px; z-index: 2; }
-	#quick_search_results p { background: #eaf5fc; border-bottom: 1px solid #aaa; color: #666; font-size: 10px; margin: 0; padding: 3px 10px; }
-	#quick_search_results a { border-bottom: 1px solid #DDD; border-left: none; border-right: none; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 3px 10px; }
+	#quick_search_results { background: #FFF; border: 1px solid #aaa; margin: -7px 0 0 0; position: absolute; user-select: none; width: 245px; z-index: 2; }
+	#quick_search_results p { background: #eaf5fc; border-bottom: 1px solid #e2e2e2; color: #666; font-size: 10px; margin: 0; padding: 4px 10px; }
+	#quick_search_results a { border-bottom: 1px solid #e2e2e2; border-left: none; border-right: none; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 4px 10px; }
 	#quick_search_results a:nth-child(even) { background: #F3F3F3; }
 	#quick_search_results a:last-child { border-bottom: none; border-width: 0; }
 	#quick_search_results a:hover { background: #d6eefc; border-left: none; border-right: none; }
-	#quick_search_results a.advanced_search { background-gradient: #436D86 #578FB1; border-bottom: none; border-top: none; color: #FFF; }
+	#quick_search_results a.advanced_search { background: #59A8E9; border-bottom: none; border-top: none; border-radius: 2px; margin: 5px; color: #FFF; padding-bottom: 3px; text-transform: uppercase; }
 	#quick_search_results a.no_results { border-top: none; }
 	#quick_search_results p.no_results { background: #FFF; }
 
@@ -364,9 +363,9 @@
 
 /* Sub Navigation */
 	nav.sub  { background: #eee; border: 1px solid #E2E2E2; border-radius: 3px; display: block; height: 30px; margin: 0 0 20px 0; overflow: hidden; user-select: none; }
-	nav.sub a { border-right: 1px solid #E2E2E2; color: #666; float: left; font-size: 13px; height: 30px; line-height: 31px; padding: 0 15px 0 13px; transition: background-color 0.2s, color 0.2s; }
+	nav.sub a { border-right: 1px solid #E2E2E2; color: #666; float: left; font-size: 13px; height: 30px; line-height: 30px; padding: 0 15px 0 13px; transition: background-color 0.2s, color 0.2s; }
 	nav.sub a:hover, nav.sub a.active { background: #fff; }
-	nav.sub span { float: left; margin: 7px 6px 6px 0; }
+	nav.sub span { float: left; margin: 6px 6px 6px 0; }
 	nav.sub .developer { border-left: 1px solid #e2e2e2; border-right: none; float: right; padding: 0 8px; }
 	nav.sub .developer span { margin: 3px 0 0 0; }
 
@@ -449,10 +448,10 @@
 	.form_table section p { line-height: 41px; margin: 0; }
 	.form_error .form_table { border-color: #C0362F; }
 
-	.form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 3px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 35px 0 10px; transition: border-color 0.2s; width: 175px; }
+	.form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 3px; float: left; height: 24px; margin: 9px 8px 0 0; padding: 0 35px 0 10px; transition: border-color 0.2s; width: 175px; }
 	.form_search:focus { border-color: #BBB; }
 	.form_search_icon { background: url(../images/icon-sprite.svg) no-repeat -96px 0; display: block; height: 16px; margin: 10px 0 0 190px; position: absolute; width: 16px; z-index: 2; }
-	.link_finder_search_icon { margin: 15px 0 0 922px; }
+	.link_finder_search_icon { margin: 14px 0 0 928px; }
 	.taller .form_search_icon { margin-top: 15px; }
 	#file_browser .header span.form_search_icon { margin: 10px 0 0 772px; }
 	
@@ -471,12 +470,12 @@
 	.field_selector div { float: left; margin: -1px 0 0 5px; }
 
 	#link_finder { float: right; }
-	#link_finder_results { background: #FFF; border: 1px solid #CCC; margin: 34px 0 0 737px; position: absolute; width: 200px; }
+	#link_finder_results { background: #FFF; border: 1px solid #CCC; margin: 34px 0 0 728px; position: absolute; width: 220px; }
 	#link_finder_results span { background: #eee; border-bottom: 1px solid #DDD; color: #666; display: block; font-size: 9px; font-weight: bold; height: auto; line-height: 13px; padding: 4px 10px 3px; text-transform: uppercase; }
 	#link_finder_results a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 3px 10px; }
 	#link_finder_results a:nth-mchild(odd) { background: #F3F3F3; }
 	#link_finder_results a:last-child { border-bottom: none; }
-	#link_finder_results a:hover { background: #E0EAF0; }
+	#link_finder_results a:hover { background: #EFF7FD; }
 
 	.sticky_controls.stuck { height: 44px; padding: 0 0 5px 0; position: fixed; top: 0; width: 958px; z-index: 3; }
 	.sticky_controls.stuck .shadow { background: #eee; border-bottom: 1px solid #e2e2e2; height: 44px; }
@@ -590,7 +589,7 @@
 	.table > ul.secondary { border-top: 1px solid #CCC; }
 	.table > ul li:nth-of-type(odd) { background: #FFF; }
 	.table > ul li:nth-of-type(even) { background: #FAFAFA; }
-	.table > ul li.active { background-gradient: #436D86 #578FB1; color: #FFF; }
+	.table > ul li.active { background: #59A8E9; color: #FFF; }
 	
 	.table section a { margin: 5px 0 0 0; }
 	.table section .disabled_icon { margin: 5px 0 0 0; }
@@ -711,7 +710,7 @@
 	#tag_results li a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 11px; padding: 3px 10px; }
 	#tag_results li:nth-child(odd) a { background: #F3F3F3; }
 	#tag_results li:last-child a { border-bottom: none; }
-	#tag_results li.selected a { background: #E0EAF0; }
+	#tag_results li.selected a { background: #EFF7FD; }
 	#tag_list { float: right; list-style: none; margin: 0; padding: 28px 0 0 0; width: 645px; }
 	#tag_list li { float: left; margin: 0 5px 5px 0; }
 	#tag_list li a { background: #E3E3E3; border-radius: 10px; color: #555; display: block; font-size: 10px; height: 19px; line-height: 20px; padding: 0 10px; }
@@ -742,8 +741,8 @@
 	
 /* Box Select Styles */
 	.box_select { background: #fff; border: 1px solid #E2E2E2; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
-	.box_select:hover { background: #DEEEFB; color: #222; }
-	.box_select.active { background: #DEEEFB; }
+	.box_select:hover { background: #EFF7FD; color: #222; }
+	.box_select.active { background: #EFF7FD; }
 	.box_select.last_row { margin-bottom: 0; }
 	.box_select img { margin: 0 0 10px 0; }
 	.box_select p { font-size: 11px; line-height: 15px; }	
@@ -825,13 +824,15 @@
 	.table .view_action { width: 40px; }
 	.table .view_status { width: 70px; }
 
-	.view_paging { background: #fff; border-radius: 3px; float: right; height: 22px; margin: 7px 0 0 0; user-select: none; }
-	.view_paging a { border-right: 1px solid #e2e2e2; color: #999; display: block; float: left; font-size: 12px; height: 22px; line-height: 22px; padding: 0 10px; transition: background-color 0.2s; }
-	.view_paging a:hover, .view_paging .active { background-color: #FFF; color: #59A8E9; font-weight: bold; }
-	.view_paging .first { border-radius: 2px 0 0 2px; height: 15px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging { background: #fff; border-radius: 3px; float: right; height: 22px; margin: 7px 0 0 0; padding: 0 0 0 1px; user-select: none; }
+	.view_paging a { background: #fff; color: #666; display: block; float: left; font-size: 12px; height: 20px; line-height: 20px; margin: 1px 1px 1px 0; padding: 0 10px; transition: background-color 0.2s; }
+	.view_paging a:hover { color: #59A8E9; }
+	.view_paging .active, .view_paging .active:hover { background-color: #59A8E9; color: #fff; }
+	.view_paging .first { border-radius: 2px 0 0 2px; height: 14px; padding-top: 6px; text-indent: -1000px; width: 6px; }
 	.view_paging .first span { background: url(../images/icon-sprite.svg) no-repeat -137px -116px; display: block; height: 9px; width: 6px; }
-	.view_paging .last { border-radius: 0 11px 11px 0; border-right: none; height: 15px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging .last {border-radius: 0 2px 2px 0; border-right: none; height: 14px; padding-top: 6px; text-indent: -1000px; width: 6px; }
 	.view_paging .last span { background: url(../images/icon-sprite.svg) no-repeat -137px -125px; display: block; height: 9px; width: 6px; }
+	.view_paging .first:hover, .view_paging .last:hover { background: #fff; }
 	.view_paging .ellipsis { padding: 0px 5px; }
 
 	.image_list > header span { padding: 0 0 0 20px; }
@@ -978,7 +979,7 @@
 	.template_image_list { list-style: none; margin: 10px 0 0 0; }
 	.template_image_list li { float: left; margin: 0 5px 5px 0; }
 	.template_image_list a { border: 1px solid #CCC; border-radius: 3px; display: block; height: 32px; padding: 5px; text-align: center; transition: background 0.2s, border-color 0.2s; width: 32px; }
-	.template_image_list a.active, .template_image_list a:hover { background: #E0EAF0; border-color: #9DBDD9; }
+	.template_image_list a.active, .template_image_list a:hover { background: #EFF7FD; border-color: #9DBDD9; }
 
 	.form_table .add { background: #fff; border-radius: 3px; color: #666; display: block; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 5px 5px 0 0; padding: 0 10px; transition: background-color 0.2s, border-color 0.2s; text-transform: uppercase; }
 	.form_table .add:hover { background-color: #F3F3F3; }
@@ -1412,7 +1413,7 @@
 	
 /* jQuery Date Picker */
 	.ui-datepicker { background: #FFF; display: none; width: 202px; z-index: 3 !important; }
-	.ui-datepicker .ui-datepicker-header { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -225px; color: #FFF; padding: 3px 0; position: relative; }
+	.ui-datepicker .ui-datepicker-header { background: #59A8E9; color: #FFF; padding: 3px 0; position: relative; }
 	.ui-datepicker .ui-datepicker-prev, .ui-datepicker .ui-datepicker-next { cursor: pointer; display: block; font-size: 11px; height: 1.8em; line-height: 22px; padding: 0px 8px; position: absolute; top: 3px; width: auto; }
 	.ui-datepicker .ui-datepicker-prev { color: #FFF; left: 0px; }
 	.ui-datepicker .ui-datepicker-next { color: #FFF; right: 0px; }
@@ -1422,11 +1423,11 @@
 	.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year { width: 49%; }
 	.ui-datepicker table { border: 1px solid #AAA; border-collapse: collapse; border-top: none; font-size: 10px; margin: 0; width: 100%; }
 	.ui-datepicker table th { border: 0; font-size: 12px; font-weight: bold; padding: .7em .3em; text-align: center; }
-	.ui-datepicker table tr td { background: #FFF; border: 0; line-height: 1.3; padding: 1px; }
-	.ui-datepicker td span, .ui-datepicker td a { display: block; padding: 5px 2px 3px; text-align: center; text-decoration: none; }
+	.ui-datepicker table tr td { background: #FFF; line-height: 1.3; padding: 1px; }
+	.ui-datepicker td span, .ui-datepicker td a { border-radius: 2px; color: #666; display: block; overflow: hidden; padding: 5px 2px 3px; text-align: center; text-decoration: none; }
 	.ui-datepicker td a:hover { background: #EEE; }
-	.ui-datepicker td a.ui-state-highlight { background: #DDD; color: #2B4757; }
-	.ui-datepicker td a.ui-state-active { background: #2B4757; color: #FFF; }
+	.ui-datepicker td a.ui-state-highlight { background-color: #EFF7FD; }
+	.ui-datepicker td a.ui-state-active { background: #59A8E9; border-color: #fff; color: #fff; }
 	.ui-datepicker .ui-datepicker-buttonpane { background-image: none; border-bottom: 0; border-left: 0; border-right: 0; margin: .7em 0 0 0; padding: 0 .2em; }
 	.ui-datepicker .ui-datepicker-buttonpane button { cursor: pointer; float: right; margin: .5em .2em .4em; overflow: visible; padding: .2em .6em .3em .6em; width: auto; }
 	.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float: left; }
@@ -1560,7 +1561,7 @@
 	header.main .gravatar img { width: 14px; }
 	.table .gravatar { margin: 5px 10px 0 0; padding: 2px; }
 	.table .gravatar img { width: 18px; }
-	.table .active .gravatar { border-color: #335B77; }
+	.table .active .gravatar { border-color: #59A8E9; }
 	fieldset .gravatar { border-color: #DEDEDE; bottom: 4px; display: none; padding: 2px; position: absolute; right: -6px; }
 	fieldset .gravatar img { width: 18px; }
 
