@@ -18,7 +18,7 @@
 	$admin->emailDailyDigest();
 	
 	// Cache Google Analytics Information
-	$analytics = new BigTreeGoogleAnalytics;
+	$analytics = new BigTreeGoogleAnalyticsAPI;
 	if ($analytics->API && $analytics->Profile) {
 		$analytics->cacheInformation();
 	}

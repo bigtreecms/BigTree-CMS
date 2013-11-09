@@ -59,7 +59,7 @@
 		"BigTreeAdmin" => "inc/bigtree/admin.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
 		"BigTreeModule" => "inc/bigtree/modules.php",
-		"BigTreeGoogleAnalytics" => "inc/bigtree/apis/google-analytics.php",
+		"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
 		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
 		"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
 		"BigTreeStorage" => "inc/bigtree/apis/storage.php",

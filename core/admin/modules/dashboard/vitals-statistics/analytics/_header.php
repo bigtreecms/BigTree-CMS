@@ -2,12 +2,9 @@
 	$relative_path = "admin/modules/dashboard/vitals-statistics/analytics/";
 	$mroot = ADMIN_ROOT."dashboard/vitals-statistics/analytics/";
 	
-	$settings = $cms->getSetting("bigtree-internal-google-analytics");
-	$token = isset($settings["token"]) ? $settings["token"] : "";
-	$profile = isset($settings["profile"]) ? $settings["profile"] : "";
-	$analytics = new BigTreeGoogleAnalytics;
+	$analytics = new BigTreeGoogleAnalyticsAPI;
 
-	if ((!$token || !$profile) && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-profile" && end($bigtree["path"]) != "set-token") {
+	if ((!$analytics->Settings["token"] || !$analytics->Settings["profile"]) && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-profile" && end($bigtree["path"]) != "set-token") {
 		BigTree::redirect($mroot."configure/");
 	}
 

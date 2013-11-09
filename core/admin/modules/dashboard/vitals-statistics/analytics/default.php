@@ -1,4 +1,4 @@
-<?	
+<?
 	$two_week_visits = $cache["two_week"];
 	$graph_min = min($two_week_visits);
 	$graph_max = max($two_week_visits) - $graph_min;
@@ -180,10 +180,3 @@
 		<? _local_compareData($cache["year"],$cache["year_ago_year"]); ?>
 	</article>
 </section>
-
-<script>
-	$("#graph_data").load("<?=ADMIN_ROOT?>ajax/analytics/get-graph/", { start_date: "<?=$tw_start?>", end_date: "<?=$tw_end?>" });
-	$("#ga_current_month").load("<?=ADMIN_ROOT?>ajax/analytics/get-date-range/", { title: "Current Month", start_date: "<?=date("Y-m-01")?>", end_date: "<?=date("Y-m-d")?>" });
-	$("#ga_current_quarter").load("<?=ADMIN_ROOT?>ajax/analytics/get-date-range/", { title: "Current Quarter", start_date: "<?=$quarter_start?>", end_date: "<?=$quarter_end?>" });
-	$("#ga_current_year").load("<?=ADMIN_ROOT?>ajax/analytics/get-date-range/", { title: "Current Year", start_date: "<?=$year_start?>", end_date: "<?=$year_end?>" });
-</script>

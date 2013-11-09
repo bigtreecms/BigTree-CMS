@@ -264,7 +264,7 @@
 		// Email the daily digest
 		$admin->emailDailyDigest();
 		// Cache google analytics
-		$ga = new BigTreeGoogleAnalytics;
+		$ga = new BigTreeGoogleAnalyticsAPI;
 		if ($ga->API && $ga->Profile) {
 			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {

@@ -1,7 +1,7 @@
 <?
 	header("Content-type: text/json");
 
-	$analytics = new BigTreeGoogleAnalytics;
+	$analytics = new BigTreeGoogleAnalyticsAPI;
 	try {
 		$analytics->cacheInformation();
 		echo "true";

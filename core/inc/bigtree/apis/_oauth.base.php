@@ -312,6 +312,7 @@
 				"redirect_uri" => $this->ReturnURL,
 				"grant_type" => "authorization_code"
 			)));
+
 			if ($response->error) {
 				$this->OAuthError = $response->error;
 				return false;
