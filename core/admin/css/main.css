@@ -1618,19 +1618,19 @@
 /*---------------------------
 	Install Styles
 ---------------------------*/
-	body.install { background: url(../images/login-bg.png), url(../images/login-pattern-bg.png); background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
+	body.install { background: #eee; background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
 	.install_wrapper { margin: 0 auto; padding: 75px 0 25px; width: 650px; }
-	.install_wrapper hr { border: 1px solid #fff; border-top-color: #eee; margin: 20px 0; }
-	.install_wrapper h1 { color: #FFF; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; }
+	.install_wrapper hr { border: 1px solid #fff; border-top-color: #ccc; margin: 25px -1px; }
+	.install_wrapper h1 { color: #333; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; }
 	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; overflow: hidden; padding: 30px 0 0; }
 	.install_wrapper h2 { color: #444; float: left; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; }
 	.install_wrapper h2 span { background: url(../images/icon-sprite.svg) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
 	.install_wrapper h2.getting_started span { background-position: -390px -175px; }
 	.install_wrapper h2.database span { background-position: -365px -175px; }
-	.install_wrapper h2.security span { background-position: -340px -175px; }
+	.install_wrapper h2.security span { background-position: -342px -178px; }
 	.install_wrapper h2.account span { background-position: -315px -175px; }
-	.install_wrapper h2.example span { background-position: -290px -175px; }
 	.install_wrapper h2.routing span { background-position: -265px -175px; }
+	.install_wrapper h2.example span { background-position: -290px -174px; }
 	.install_wrapper fieldset { margin: 0; padding: 0 30px; }
 	.install_wrapper fieldset.left { float: left; margin: 0; padding: 0 0 0 30px; width: auto; }
 	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
@@ -1648,7 +1648,8 @@
 	.install_logo { background: url(../images/icon-sprite.svg) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; width: 100px; }
 	.install_copyright:hover { color: #ccc; }
-	.install_wrapper ul { line-height: 160%; list-style: disc inside; margin: 20px 0; }
+	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 20px 30px; }
+	.install_wrapper ul li { margin: 5px 0; }
 
 /*---------------------------
 	Embedded Form Styles
