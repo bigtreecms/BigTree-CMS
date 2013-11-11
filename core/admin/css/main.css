@@ -131,7 +131,7 @@
 	.form_error label { color: #C0362F; }
 	label .form_error_reason { float: right; font-size: 11px; line-height: 13px; text-transform: uppercase; }
 	
-	input[type=submit], a.button { background: rgba(0, 0, 0, 0.1)/* #ccc */; border: 1px solid #c1c1c1; border-radius: 3px; color: #444; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; padding: 10px 18px 12px 18px; transition: background-color 0.2s, border-color 0.2s; user-select: none; }
+	input[type=submit], a.button { background: rgba(0, 0, 0, 0.1)/* #ccc */; border: 1px solid #ccc; border-radius: 3px; color: #444; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; padding: 10px 18px 12px 18px; transition: background-color 0.2s, border-color 0.2s; user-select: none; }
 	input[type=submit] { padding: 11px 18px 9px; }
 	input[type=submit]:hover, a.button:hover { background-color: rgba(0, 0, 0, 0.15)/* #bbb */; }
 	input[type=submit].green, a.button.green { background: #4DA46E; border: none; color: #FFF; }
@@ -203,7 +203,8 @@
 	.form_error .select .handle { background-position: -374px -105px; }
 
 	.file_wrapper { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; height: 30px; margin: 0; overflow: hidden; width: 300px; }
-	.file_wrapper .handle { background: #BBB url(../images/row-bg-sprite.png) repeat-x 0px -188px; border-left: 1px solid #CCC; border-radius: 0px 2px 2px 0px; color: #333; display: block; font-size: 14px; height: 30px; line-height: 30px; margin: 0 0 0 229px; position: relative; text-align: center; width: 70px; }
+	.file_wrapper .handle { background: rgba(0, 0, 0, 0.1); border-left: 1px solid #CCC; border-radius: 0px 2px 2px 0px; color: #333; display: block; font-size: 14px; height: 30px; line-height: 30px; margin: 0 0 0 229px; position: relative; text-align: center; width: 70px; }
+	.file_wrapper:hover .handle { background: rgba(0, 0, 0, 0.15); }
 	.file_wrapper .data { float: left; font-size: 12px; height: 30px; line-height: 30px; margin: -30px 0 0 0; overflow: hidden; padding: 0 0 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; width: 200px; }
 	.file_wrapper input { cursor: pointer; height: 30px; opacity: 0; position: absolute; width: auto; }
 	.form_error .file_wrapper { background: #FCE8E8; border-color: #C0362F; }

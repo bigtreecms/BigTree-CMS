@@ -49,10 +49,10 @@ float:left;
 */
 }
 
-#insert, #cancel, input.button, .updateButton { background: #BBB url(img/button-bg.png) repeat-x; border: 1px solid #CCCCCC; border-radius: 5px; color: #333; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; margin: 0 10px 0 0; padding: 10px 18px 12px 18px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); transition: background-color 0.2s, border-color 0.2s; user-select: none; width: auto; }
-#insert:hover, #cancel:hover, input.button:hover, .updateButton:hover { background-color: #D3D3D3; }
-#insert { background: #3E667D url(img/button-bg-dark.png) repeat-x; border: 1px solid #243D4C; color: #FFF; text-shadow: 0px -1px 0 rgba(0, 0, 0, 0.5); }
-#insert:hover { background-color: #4f829f; }
+#insert, #cancel, input.button, .updateButton { background: rgba(0, 0, 0, 0.1); border: 1px solid #CCC; border-radius: 3px; color: #333; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; margin: 0 10px 0 0; padding: 10px 18px 12px 18px; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: auto; }
+#insert:hover, #cancel:hover, input.button:hover, .updateButton:hover { background-color: rgba(0, 0, 0, 0.15); }
+#insert { background: #59A8E9; border: none; color: #fff; }
+#insert:hover { background-color: #4287CE; }
 
 
 
@@ -86,12 +86,12 @@ td.charmap, #charmap a {width:18px; height:18px; color:#000; border:1px solid #A
 
 /* Source */
 .wordWrapCode {vertical-align:middle; border:1px none #000000; background:transparent;}
-.mceActionPanel {margin-top:15px; background: #F5F5F5; border-top: 1px solid #E5E5E5; padding: 5%; width: 90%; overflow: hidden; position: absolute; bottom: 0; left: 0;}
+.mceActionPanel {margin-top:15px; background: #eeeeee; border-top: 1px solid #ccc; padding: 5%; width: 90%; overflow: hidden; position: absolute; bottom: 0; left: 0;}
 
 #source .mceActionPanel { padding: 3.5%; width: 95%; }
 
 /* Tabs classes */
-.tabs { height:22px; line-height:normal; background: none; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); padding: 15px 15px 0;}
+.tabs { height:22px; line-height:normal; background: none; padding: 15px 15px 0;}
 .tabs ul {margin:0; padding:0; list-style:none;}
 .tabs li {outline: none; float:left; background: #eee; margin:0 2px 0 0; padding:0 10px; line-height:21px; height:22px; display:block; border-radius: 2px 2px 0 0;}
 .tabs li.current { background: #ddd; margin-right:2px; border-radius: 2px 2px 0 0; }
