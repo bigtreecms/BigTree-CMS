@@ -283,7 +283,7 @@
 /* Header */
 	header.main { background: #000; height: 55px; min-width: 960px; user-select: none; }
 	header.main section { margin: 0 auto; width: 960px; }
-	header.main strong { color: #FFF; float: left; font-size: 24px; font-weight: normal; height: 55px; line-height: 56px; }
+	header.main strong { color: #FFF; float: left; font-size: 20px; font-weight: normal; height: 55px; line-height: 56px; }
 	header.main .logout { color: #BDBDBD; display: block; float: right; font-size: 11px; height: 11px; margin: 22px 0; }
 	header.main .logout:hover { color: #fff; }
 /* 	header.main .logout span { background: url(../images/icon-sprite.svg) -225px -105px; display: block; float: left; height: 10px; margin: 0 5px 0 0; width: 10px; } */
@@ -1548,8 +1548,9 @@
 	.tooltip_left .arrow { background-position: -462px -105px; float: right; height: 21px; margin: 18px 0 0 0; width: 10px; }
 	
 /* Groups */
-	.jump_group { display: inline-block; position: relative; z-index: 3; }
-	.jump_group .icon { background: #e3e3e3 url(../images/icon-sprite.svg) -242px -107px; border: 1px solid #ccc; border-radius: 2px; cursor: pointer; display: block; height: 14px; margin: 0 0 -2px; width: 14px; }
+	.jump_group { display: inline-block; margin: 2px 0 0; position: relative; vertical-align: middle; z-index: 3; }
+	.jump_group .icon { background: #e3e3e3; border: 1px solid #ccc; border-radius: 2px; color: #999; cursor: pointer; display: block; font-size: 10px; height: 16px; line-height: 18px; padding: 0 0 0 3px; text-transform: uppercase; }
+	.jump_group .icon:after { background: url(../images/icon-sprite.svg) -242px -107px; content: ''; display: block; float: right; height: 16px; width: 14px; }
 	.jump_group .dropdown { background: #999; border-radius: 3px; color: #FFF; display: none; left: 0; min-width: 150px; padding: 5px; position: absolute; top: 0; z-index: 3; }
 	.jump_group:hover .dropdown { display: block; }
 	.jump_group .dropdown strong { color: rgba(255, 255, 255, 0.5); display: block; font-size: 10px; font-weight: normal; line-height: 14px; padding: 5px 7px 3px 7px; text-transform: uppercase; }
