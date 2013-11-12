@@ -4062,19 +4062,19 @@
 
 			Parameters:
 				parent - The ID of the parent page
-				in_nav - "on" returns pages in navigation, "" returns hidden pages
+				in_nav - true returns pages in navigation, false returns hidden pages
 
 			Returns:
 				An array of pending page titles/ids.
 		*/
 
-		function getPendingNavigationByParent($parent,$in_nav = "on") {
+		function getPendingNavigationByParent($parent,$in_nav = true) {
 			$nav = array();
 			$titles = array();
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE pending_page_parent = '$parent' AND `table` = 'bigtree_pages' AND type = 'NEW' ORDER BY date DESC");
 			while ($f = sqlfetch($q)) {
 				$page = json_decode($f["changes"],true);
-				if ($page["in_nav"] == $in_nav) {
+				if (($page["in_nav"] && $in_nav) || (!$page["in_nav"] && !$in_nav)) {
 					$titles[] = $page["nav_title"];
 					$page["bigtree_pending"] = true;
 					$page["title"] = $page["nav_title"];
