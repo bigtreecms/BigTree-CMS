@@ -95,7 +95,7 @@
 			if (isset($bigtree["page"]["related"]["nav"])) {
 		?>
 		<nav class="jump_group">
-			<span class="icon">Related Actions</span>
+			<span class="icon">Related</span>
 			<nav class="dropdown">
 				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
 				<?

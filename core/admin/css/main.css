@@ -330,7 +330,7 @@
 	nav.main li li a { border: none; border-radius: 3px; color: #FFF; font-size: 12px; height: 24px; line-height: 24px; margin: 0 0 1px 0; max-width: 200px; overflow: hidden; padding: 0 7px; text-overflow: ellipsis; white-space: nowrap; }
 	nav.main li li a:hover { background: #777; border-radius: 3px; }
 	nav.main form { float: right; position: relative; }
-	nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 3px; height: 34px; margin: 6px 0; padding: 0 35px 0 12px; transition: border-color 0.2s; width: 198px; }
+	nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 3px; height: 34px; margin: 6px 0; padding: 0 35px 0 12px; transition: border-color 0.2s; width: 190px; }
 	nav.main form .qs_query.focus { border-color: #AAA; }
 	nav.main form .qs_image { background: url(../images/icon-sprite.svg) no-repeat -96px 0px; border: none; height: 16px; margin: 0; padding: 0; position: absolute; right: 9px; top: 15px; text-indent: -1000px; user-select: none; width: 16px; }
 
@@ -350,9 +350,9 @@
 	#quick_search_results p.no_results { background: #FFF; }
 
 	#growl { margin: -18px 0 0 714px; position: absolute; width: 246px; z-index: 1000; }
-	#growl article { background: url(../images/growl-bg.png); border-bottom: 1px solid #222; border-radius: 4px; margin: 5px 0 0 0; overflow: hidden; padding: 15px; }
+	#growl article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; margin: 5px 0 0 0; overflow: hidden; padding: 15px; }
 	#growl article span { display: inline-block; }
-	#growl article .close { background: url(../images/icon-sprite.svg) -136px -106px; height: 10px; margin: -9px 0 0 214px; position: absolute; width: 10px; }
+	#growl article .close { background: url(../images/icon-sprite.svg) -135px -104px; height: 10px; margin: -9px 0 0 214px; position: absolute; width: 10px; }
 	#growl article section { float: right; width: 170px; }
 	#growl article section h3 { color: #fff; font-size: 13px; line-height: 17px; margin: -2px 0 3px 0; }
 	#growl article section p { color: #eee; font-size: 12px; margin: 0; padding: 0; }
@@ -494,7 +494,7 @@
 	.move_page section ul li .title.expanded { background-position: -930px -64px; }
 	.move_page section ul li .title.disabled { background-position: -930px -32px; }
 	.move_page section ul li .title.disabled.expanded { background-position: -930px -96px; }
-	.move_page section ul li .title.active { background-color: #315264; color: #FFF; }
+	.move_page section ul li .title.active { background-color: #EFF7FD; }
 
 	.move_page .depth { background: #ECECEC; float: left; height: 32px; }
 	.move_page section ul.depth_2 li .depth { width: 10px; }
@@ -578,7 +578,7 @@
 	
 	.table > header { background-color: #999; background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
-	.table > header.group { background-gradient: #274252 #406980; color: #FFF; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-transform: none; }
+	.table > header.group { background: #EFF7FD; border-top: 1px solid #ccc; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
 	.table > ul { background: #FFF; overflow: hidden; }
 	.table > ul:last-child { border-radius: 0px 0px 2px 2px; }
@@ -591,7 +591,7 @@
 	.table > ul.secondary { border-top: 1px solid #e3e3e3; }
 	.table > ul li:nth-of-type(odd) { background: #FFF; }
 	.table > ul li:nth-of-type(even) { background: #FAFAFA; }
-	.table > ul li.active { background: #59A8E9; color: #FFF; }
+	.table > ul li.active { background: #EFF7FD; }
 	
 	.table section a { margin: 5px 0 0 0; }
 	.table section .disabled_icon { margin: 5px 0 0 0; }
@@ -606,13 +606,20 @@
 	.table > ul li.pending section.view_status, .table > ul li.scheduled section.view_status, .table > ul li.expired section.view_status,
 	.table > ul li.pending section.pages_status, .table > ul li.scheduled section.pages_status, .table > ul li.expired section.pages_status { opacity: 1 !important; }
 	
+	/* Pending changes */
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }
 	.table .no_content p { line-height: 35px; }
-	.table .changes_awaiting { height: auto; line-height: 15px; padding: 18px 0 10px 20px; text-align: left; user-select: none; width: 938px; }
-	.table .changes_awaiting a { background: #EEE; border-radius: 15px; color: #666; float: left; font-size: 12px; line-height: 16px; margin: 0 10px 10px 0; padding: 3px 15px; transition: background 0.2s; }
-	.table .changes_awaiting a:hover { background: #F4F4F4; }
-	.table .changes_awaiting div { float: left; font-size: 12px; line-height: 16px; margin: 0 10px 10px 0; }
-	.pending_changes_table > ul li { height: auto; overflow: hidden; }
+	.pending_changes_table .no_content { width: auto; padding: 0; }
+	.pending_changes_table .split { float: left; padding: 20px; width: 438px; }
+	.pending_changes_table .right { border-left: 1px solid #ccc; float: right; }
+	.pending_changes_table h3 { font-size: 12px; }
+	.pending_changes_table .changes { border: 1px solid #ccc; border-radius: 2px; }
+	.pending_changes_table .changes div { border-bottom: 1px solid #ccc; line-height: 16px; padding: 10px; }
+	.pending_changes_table .changes div:nth-child(even) { background: #FAFAFA; }
+	.pending_changes_table .changes div:last-child { border: none; }
+	.pending_changes_table .left div { padding: 0; }
+	.pending_changes_table .changes a { color: #666; display: block; margin: 0; padding: 10px; }
+	.pending_changes_table .changes a:after { color: #59A8E9; content: 'View Changes'; font-size: 10px; float: right; text-transform: uppercase; }
 	
 	/* Pages Specific */
 	.table .pages_title { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 712px; }
@@ -702,6 +709,8 @@
 	div.error_table { border-left: none; border-radius: 0; border-right: none; margin: -31px -30px; }
 	div.error_table .field { padding: 0 0 0 40px; width: 230px; }
 	div.error_table .error { padding: 0 0 0 40px; width: 648px; }
+	
+
 
 /* Tags */
 	.container .tags, .container .sub_section { background: #fff; border-top: 1px solid #ccc; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
@@ -1530,7 +1539,7 @@
 	
 /* ToolTip */
 	.tooltip { position: absolute; }
-	.tooltip article { background: url(../images/growl-bg.png); border-radius: 5px; overflow: hidden; padding: 15px; z-index: 1000; }
+	.tooltip article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; overflow: hidden; padding: 15px; z-index: 1000; }
 	.tooltip article .icon_tooltip { float: left; margin: 0 10px 0 0; }
 	.tooltip article .content { float: left; max-width: 250px; }
 	.tooltip article .content p { color: rgba(255,255,255,0.8); font-size: 12px; line-height: 14px; margin: 0 0 5px 0; }
@@ -1548,8 +1557,8 @@
 	.tooltip_left .arrow { background-position: -462px -105px; float: right; height: 21px; margin: 18px 0 0 0; width: 10px; }
 	
 /* Groups */
-	.jump_group { display: inline-block; margin: 2px 0 0; position: relative; vertical-align: middle; z-index: 3; }
-	.jump_group .icon { background: #e3e3e3; border: 1px solid #ccc; border-radius: 2px; color: #999; cursor: pointer; display: block; font-size: 10px; height: 16px; line-height: 18px; padding: 0 0 0 3px; text-transform: uppercase; }
+	.jump_group { display: inline-block; margin: 4px 0 0; position: relative; vertical-align: middle; z-index: 3; }
+	.jump_group .icon { background: #e3e3e3; border: 1px solid #ccc; border-radius: 2px; color: #999; cursor: pointer; display: block; font-size: 9px; height: 16px; line-height: 18px; padding: 0 0 0 5px; text-transform: uppercase; }
 	.jump_group .icon:after { background: url(../images/icon-sprite.svg) -242px -107px; content: ''; display: block; float: right; height: 16px; width: 14px; }
 	.jump_group .dropdown { background: #999; border-radius: 3px; color: #FFF; display: none; left: 0; min-width: 150px; padding: 5px; position: absolute; top: 0; z-index: 3; }
 	.jump_group:hover .dropdown { display: block; }
@@ -1558,16 +1567,16 @@
 	.jump_group .dropdown a:hover { background: #777; }
 	
 /* Gravatar */
-	.gravatar { background: #fff; border: 1px solid #ccc; border-radius: 2px; display: block; float: left; height: auto; margin-right: 10px; margin-top: 0; padding: 3px; width: auto; }
-	.gravatar img { float: left; margin: 0; width: 28px; }
+	.gravatar { background: #fff; border-radius: 2px; display: block; float: left; height: auto; margin-right: 10px; margin-top: 0; overflow: hidden; width: auto; }
+	.gravatar img { float: left; margin: 0; width: 30px; }
 	h1 .gravatar { margin-top: -3px; }
-	header.main .gravatar { border-color: #999; margin: -3px 7px 0 0; overflow: hidden; padding: 0; }
-	header.main .gravatar img { width: 14px; }
-	.table .gravatar { margin: 5px 10px 0 0; padding: 2px; }
-	.table .gravatar img { width: 18px; }
-	.table .active .gravatar { border-color: #59A8E9; }
-	fieldset .gravatar { border-color: #DEDEDE; bottom: 4px; display: none; padding: 2px; position: absolute; right: -6px; }
-	fieldset .gravatar img { width: 18px; }
+	h1 .gravatar img { width: 32px; }
+	header.main .gravatar { border-color: #999; margin: -3px 7px 0 0; overflow: hidden; }
+	header.main .gravatar img { width: 16px; }
+	.table .gravatar { margin: 7px 10px 0 0; }
+	.table .gravatar img { width: 20px; }
+	fieldset .gravatar { border-color: #DEDEDE; bottom: 6px; display: none; margin: 0; position: absolute; right: 6px; }
+	fieldset .gravatar img { width: 20px; }
 
 /*---------------------------
 	Module Packager Styles
@@ -1708,7 +1717,6 @@
 	.ie7 .environment_alert { width: 400px; }
 	
 	/* IE 8 */
-	.ie8 body.login { background-image: url(../images/login-bg.png) repeat-x bottom left; }
 	.ie8 input[type=text], .ie8 input[type=password], .ie8 input[type=email], .ie8 input[type=url] { height: 18px; padding: 7px 10px; }
 	.ie8 nav.main ul { margin-bottom: 2px; margin-top: -2px; }
 	.ie8 nav.main form .qs_query { height: 12px; margin-top: 3px; padding: 3px 34px 9px 13px; }
