@@ -1,5 +1,5 @@
 <?	
-	$nav = array(
+	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
 			array("link" => "", "title" => "Overview", "access" => 0),
 			array("link" => "pending-changes", "title" => "Pending Changes", "access" => 0),
