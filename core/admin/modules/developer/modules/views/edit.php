@@ -24,7 +24,7 @@
 	} else {
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
 		<? if ($_GET["return"] == "front") { ?>
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<? } ?>

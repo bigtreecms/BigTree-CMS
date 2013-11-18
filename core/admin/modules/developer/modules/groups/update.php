@@ -2,5 +2,5 @@
 	$admin->updateModuleGroup(end($bigtree["path"]),$_POST["name"]);	
 
 	$admin->growl("Developer","Updated Module Group");
-	BigTree::redirect($developer_root."modules/groups/");
+	BigTree::redirect(DEVELOPER_ROOT."modules/groups/");
 ?>

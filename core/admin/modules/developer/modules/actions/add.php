@@ -3,7 +3,7 @@
 	$item = array("name" => "", "route" => "", "level" => 0, "class" => "", "in_nav" => "");
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>modules/actions/create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/create/<?=$module["id"]?>/" class="module">
 		<? include BigTree::path("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />

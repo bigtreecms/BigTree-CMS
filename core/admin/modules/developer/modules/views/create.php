@@ -80,7 +80,7 @@
 	</section>
 	<footer>
 		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp;
-		<a href="<?=$developer_root?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&suffix=<?=urlencode($suffix)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
+		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&suffix=<?=urlencode($suffix)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
 	</footer>
 </div>
 <?

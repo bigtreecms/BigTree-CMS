@@ -21,7 +21,7 @@
 		$buckets = $s3->listBuckets();
 		if ($buckets === false) {
 			$admin->growl("Developer","Amazon S3 Login Failed","error");
-			BigTree::redirect($developer_root."cloud-storage/amazon/");
+			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 			die();
 		}
 		$ups["service"] = "s3";
@@ -31,7 +31,7 @@
 			if ($s3->getBucket($_POST["bucket"]) === false) {
 				$admin->updateSettingValue("bigtree-internal-storage",$ups);
 				$admin->growl("Developer","Bucket Name Doesn't Exist","error");
-				BigTree::redirect($developer_root."cloud-storage/amazon/");
+				BigTree::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 				die();	
 			}
 			$ups["s3"]["bucket"] = $_POST["bucket"];
@@ -49,7 +49,7 @@
 			} else {
 				$admin->updateSettingValue("bigtree-internal-storage",$ups);
 				$admin->growl("Developer","Couldn't Auto Generate Bucket","error");
-				BigTree::redirect($developer_root."cloud-storage/amazon/");
+				BigTree::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 				die();
 			}
 		}
@@ -60,5 +60,5 @@
 	$admin->updateSettingValue("bigtree-internal-storage",$ups);	
 
 	$admin->growl("Developer","Amazon S3 Enabled");
-	BigTree::redirect($developer_root);
+	BigTree::redirect(DEVELOPER_ROOT);
 ?>

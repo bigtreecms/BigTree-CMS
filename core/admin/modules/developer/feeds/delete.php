@@ -2,5 +2,5 @@
 	$admin->deleteFeed(end($bigtree["commands"]));
 
 	$admin->growl("Developer","Deleted Feed");
-	BigTree::redirect($developer_root."feeds/");
+	BigTree::redirect(DEVELOPER_ROOT."feeds/");
 ?>

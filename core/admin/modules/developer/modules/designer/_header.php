@@ -1,5 +1,5 @@
 <?
-	$section_root = $developer_root."modules/";
+	$section_root = DEVELOPER_ROOT."modules/";
 	
 	if (isset($_SESSION["developer"]["saved_module"])) {
 		foreach ($_SESSION["developer"]["saved_module"] as $key => $val) {

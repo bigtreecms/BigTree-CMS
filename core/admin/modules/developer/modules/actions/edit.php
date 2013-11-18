@@ -4,7 +4,7 @@
 	$module = $admin->getModule($module);
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>modules/actions/update/<?=$item["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/update/<?=$item["id"]?>/" class="module">
 		<input type="hidden" name="position" value="<?=$item["position"]?>" />
 		<? include BigTree::path("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>

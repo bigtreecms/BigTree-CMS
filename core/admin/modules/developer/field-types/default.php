@@ -14,7 +14,7 @@
 				<a href="<?=$section_root?>edit/<?=$type["id"]?>/"><?=$type["name"]?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$developer_root?>foundry/package/choose-files/field-type/<?=$type["id"]?>/" class="icon_export"></a>
+				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/field-type/<?=$type["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=$section_root?>edit/<?=$type["id"]?>/" class="icon_edit"></a>

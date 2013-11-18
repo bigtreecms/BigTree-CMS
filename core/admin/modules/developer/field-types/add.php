@@ -14,7 +14,7 @@
 	}
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>field-types/create/" enctype="multipart/form-data" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/create/" enctype="multipart/form-data" class="module">
 		<section>
 			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left last">

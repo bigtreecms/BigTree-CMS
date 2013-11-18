@@ -1,3 +1,3 @@
 <?
-	$section_root = $developer_root."templates/";
+	$section_root = DEVELOPER_ROOT."templates/";
 ?>

@@ -1,3 +1,3 @@
 <?
-	$section_root = $developer_root."field-types/";
+	$section_root = DEVELOPER_ROOT."field-types/";
 ?>

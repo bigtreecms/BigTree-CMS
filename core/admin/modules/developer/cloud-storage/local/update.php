@@ -20,5 +20,5 @@
 	$admin->updateSettingValue("bigtree-internal-storage",$ups);	
 	
 	$admin->growl("Developer","Updated Upload Service");
-	BigTree::redirect($developer_root);
+	BigTree::redirect(DEVELOPER_ROOT);
 ?>

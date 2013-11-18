@@ -5,5 +5,5 @@
 		"rss2" => "RSS 2.0"
 	);
 
-	$section_root = $developer_root."feeds/";
+	$section_root = DEVELOPER_ROOT."feeds/";
 ?>

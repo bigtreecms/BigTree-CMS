@@ -8,5 +8,5 @@
 	$gateway->saveSettings();
 	
 	$admin->growl("Developer","Updated Payment Gateway");
-	BigTree::redirect($developer_root);
+	BigTree::redirect(DEVELOPER_ROOT);
 ?>

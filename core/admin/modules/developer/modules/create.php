@@ -11,7 +11,7 @@
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");
-		BigTree::redirect($developer_root."modules/");
+		BigTree::redirect(DEVELOPER_ROOT."modules/");
 	}
 ?>
 <div class="container">
@@ -20,6 +20,6 @@
 		<p>If you plan on programming this module manually, you can leave now. Otherwise, click the continue button below to setup the module's landing page.</p>
 	</section>
 	<footer>
-		<a href="<?=$developer_root?>modules/views/add/?module=<?=$id?>&table=<?=urlencode($table)?>&title=<?=urlencode($name)?>" class="button blue">Continue</a>	
+		<a href="<?=DEVELOPER_ROOT?>modules/views/add/?module=<?=$id?>&table=<?=urlencode($table)?>&title=<?=urlencode($name)?>" class="button blue">Continue</a>	
 	</footer>
 </div>

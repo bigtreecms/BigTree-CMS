@@ -1,3 +1,3 @@
 <?
-	$section_root = $developer_root."modules/groups/";
+	$section_root = DEVELOPER_ROOT."modules/groups/";
 ?>

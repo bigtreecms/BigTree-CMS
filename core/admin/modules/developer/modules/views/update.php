@@ -91,7 +91,7 @@
 		if ($_POST["return_page"]) {
 			BigTree::redirect($_POST["return_page"]);
 		} else {
-			BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
+			BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
 		}
 	}
 ?>

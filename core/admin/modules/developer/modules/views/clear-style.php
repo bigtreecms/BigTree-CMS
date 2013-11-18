@@ -12,5 +12,5 @@
 	$action = $admin->getModuleActionForView(end($bigtree["path"]));
 
 	$admin->growl("Developer","Reset View Styles");
-	BigTree::redirect($developer_root."modules/edit/".$action["module"]."/");
+	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
 ?>

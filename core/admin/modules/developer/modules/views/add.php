@@ -16,7 +16,7 @@
 ?>
 <div class="container">
 
-	<form method="post" action="<?=$developer_root?>modules/views/create/<?=$id?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/create/<?=$id?>/" class="module">
 		<section>
 			<? if ($landing_exists) { ?>
 			<div class="alert">

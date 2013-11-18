@@ -6,7 +6,7 @@
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>field-types/update/" enctype="multipart/form-data" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">
 		<input type="hidden" name="id" value="<?=$id?>" />
 		<section>
 			<fieldset>

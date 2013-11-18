@@ -66,7 +66,7 @@
 		?>
 	</ul>
 </div>
-<form method="post" action="<?=$developer_root?>modules/views/update-style/<?=$view["id"]?>/" class="module">
+<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update-style/<?=$view["id"]?>/" class="module">
 	<? foreach ($fields as $key => $field) { ?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
 	<? } ?>

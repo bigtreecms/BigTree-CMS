@@ -12,5 +12,5 @@
 	$admin->updateModule($id,$name,$group,$class,$gbp,$icon);	
 
 	$admin->growl("Developer","Updated Module");
-	BigTree::redirect($developer_root."modules/");
+	BigTree::redirect(DEVELOPER_ROOT."modules/");
 ?>

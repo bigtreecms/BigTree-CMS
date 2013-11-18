@@ -14,14 +14,14 @@
 	}
 	
 	if ($error) {
-		BigTree::redirect($developer_root."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
 	}
 	
 	// We've at least got the file now, unpack it and see what's going on.
 	$file = $_FILES["file"]["tmp_name"];
 	if (!$file) {
 		$_SESSION["upload_error"] = "File upload failed.";
-		BigTree::redirect($developer_root."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
 	}
 	
 	if (!is_writable(SERVER_ROOT."cache/")) {
@@ -54,14 +54,14 @@
 	if (!function_exists("exec")) {
 		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "PHP does not allow exec(). Packages can not be installed.";
-		BigTree::redirect($developer_root."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
 	}
 	
 	exec("cd $cache_root; tar zxvf $local_copy");
 	if (!file_exists($cache_root."index.btx")) {
 		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The uploaded file is not a valid BigTree Package or is corrupt.";
-		BigTree::redirect($developer_root."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
 	}
 	
 	$index = file_get_contents($cache_root."index.btx");

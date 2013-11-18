@@ -1,3 +1,3 @@
 <?
-	$section_root = $developer_root."callouts/";
+	$section_root = DEVELOPER_ROOT."callouts/";
 ?>

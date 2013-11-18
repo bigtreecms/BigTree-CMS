@@ -28,6 +28,6 @@
 		<input type="text" value="<?=$embed?>" />
 	</section>
 	<footer>
-		<a href="<?=$developer_root?>modules/edit/<?=$module_info["id"]?>/" class="button blue">Return to Edit Module</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module_info["id"]?>/" class="button blue">Return to Edit Module</a>
 	</footer>
 </div>

@@ -5,7 +5,7 @@
 	<header>
 		<p>The module designer will guide you through making a module without needing access to the database or knowledge of database table creation.</p>
 	</header>
-	<form method="post" action="<?=$developer_root?>modules/designer/create/" enctype="multipart/form-data" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/create/" enctype="multipart/form-data" class="module">
 		<section>
 			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">

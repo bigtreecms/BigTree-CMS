@@ -17,7 +17,7 @@
 	<header>
 		<p>Step 3: Creating Your View</p>
 	</header>
-	<form method="post" action="<?=$developer_root?>modules/designer/view-create/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/view-create/" class="module">
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>

@@ -25,5 +25,5 @@
 	$admin->updateSettingValue("bigtree-internal-storage",$ups);
 	
 	$admin->growl("Developer","Updated Rackspace Keys");
-	BigTree::redirect($developer_root);
+	BigTree::redirect(DEVELOPER_ROOT);
 ?>
