@@ -20,13 +20,13 @@
 		<li id="row_<?=$x?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
-				<a href="<?=$section_root?>edit/<?=$callout["id"]?>/"><?=$callout["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$callout["id"]?>/"><?=$callout["name"]?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$callout["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$callout["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$callout["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/delete/<?=$callout["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<?

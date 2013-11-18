@@ -70,7 +70,7 @@
 	<? foreach ($fields as $key => $field) { ?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
 	<? } ?>
-	<a class="button" href="<?=$section_root?>clear-style/<?=$view["id"]?>/">Clear Existing Style</a>
+	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view["id"]?>/">Clear Existing Style</a>
 	<input type="submit" class="button blue" value="Update" />
 </form>
 <?

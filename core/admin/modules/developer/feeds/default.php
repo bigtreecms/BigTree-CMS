@@ -13,15 +13,15 @@
 		<? foreach ($feeds as $feed) { ?>
 		<li>
 			<section class="developer_feeds_name">
-				<a href="<?=$section_root?>edit/<?=$feed["id"]?>/"><?=$feed["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>feeds/edit/<?=$feed["id"]?>/"><?=$feed["name"]?></a>
 			</section>
 			<section class="developer_feeds_url"><a href="<?=WWW_ROOT?>feeds/<?=$feed["route"]?>/" target="_blank"><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/</a></section>
 			<section class="developer_feeds_type"><? if ($feed["type"]) { echo $feed_types[$feed["type"]]; } else { echo "Custom"; } ?></section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$feed["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>feeds/edit/<?=$feed["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$feed["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>feeds/delete/<?=$feed["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

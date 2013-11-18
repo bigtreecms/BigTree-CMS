@@ -15,7 +15,7 @@
 	}
 ?>
 <div class="container">
-	<form class="module" method="post" action="<?=$section_root?>update/<?=$item["id"]?>/">
+	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/update/<?=$item["id"]?>/">
 		<? include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />

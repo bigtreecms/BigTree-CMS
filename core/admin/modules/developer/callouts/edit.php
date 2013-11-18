@@ -5,7 +5,7 @@
 	$resources = $callout["resources"];
 ?>
 <div class="container">
-	<form method="post" action="<?=$section_root?>update/" enctype="multipart/form-data" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/update/" enctype="multipart/form-data" class="module">
 		<input type="hidden" name="id" value="<?=$callout["id"]?>" />
 		<? include BigTree::path("admin/modules/developer/callouts/_form-content.php") ?>
 		<footer>

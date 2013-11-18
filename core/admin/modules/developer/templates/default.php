@@ -21,13 +21,13 @@
 		<li id="row_<?=$x?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
-				<a href="<?=$section_root?>edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$template["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$template["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<?
@@ -53,13 +53,13 @@
 		<li id="row_<?=$x?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
-				<a href="<?=$section_root?>edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$template["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$template["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<?

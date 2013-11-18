@@ -23,14 +23,14 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=$section_root?>delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
 	</footer>
 </div>
 <?
 	} else {
 ?>
 <div class="container">
-	<form method="post" action="<?=$section_root?>update/<?=$form["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/update/<?=$form["id"]?>/" class="module">
 		<? if ($_GET["return"] == "front") { ?>
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<? } ?>

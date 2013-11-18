@@ -13,15 +13,15 @@
 		<? foreach ($settings as $setting) { ?>
 		<li>
 			<section class="developer_settings_name">
-				<a href="<?=$section_root?>edit/<?=$setting["id"]?>/"><?=$setting["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>settings/edit/<?=$setting["id"]?>/"><?=$setting["name"]?></a>
 			</section>
 			<section class="developer_settings_id"><?=$setting["id"]?></section>
 			<section class="developer_settings_type"><?=$setting["type"]?></section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$setting["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>settings/edit/<?=$setting["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$setting["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>settings/delete/<?=$setting["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

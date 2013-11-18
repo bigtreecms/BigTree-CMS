@@ -11,16 +11,16 @@
 		<? foreach ($types as $type) { ?>
 		<li>
 			<section class="developer_modules_name">
-				<a href="<?=$section_root?>edit/<?=$type["id"]?>/"><?=$type["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>field-types/edit/<?=$type["id"]?>/"><?=$type["name"]?></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/field-type/<?=$type["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$type["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>field-types/edit/<?=$type["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$type["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>field-types/delete/<?=$type["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

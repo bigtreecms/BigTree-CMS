@@ -25,7 +25,7 @@
 	$title = htmlspecialchars(urldecode($title));
 ?>
 <div class="container">
-	<form method="post" action="<?=$section_root?>create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/create/<?=$module["id"]?>/" class="module">
 		<section>
 			<div class="left last">
 				<fieldset>

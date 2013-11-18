@@ -23,16 +23,16 @@
 		<li id="row_<?=$item["id"]?>">
 			<section class="developer_modules_name">
 				<span class="icon_sort"></span>
-				<a href="<?=$section_root?>edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/module/<?=$item["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$item["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$item["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/delete/<?=$item["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>
@@ -63,16 +63,16 @@
 		<li id="row_<?=$item["id"]?>">
 			<section class="developer_modules_name">
 				<span class="icon_sort"></span>
-				<a href="<?=$section_root?>edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/module/<?=$item["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>edit/<?=$item["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=$section_root?>delete/<?=$item["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/delete/<?=$item["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

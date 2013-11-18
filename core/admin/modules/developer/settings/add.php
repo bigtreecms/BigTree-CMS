@@ -14,7 +14,7 @@
 	}
 ?>
 <div class="container">
-	<form class="module" method="post" action="<?=$section_root?>create/">
+	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/create/">
 		<? include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
