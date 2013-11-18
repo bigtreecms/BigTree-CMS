@@ -1058,7 +1058,7 @@
 					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$f["redirect_url"]);
 				}
 				
-				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE = '".$f["id"]."'");
+				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
 				BigTree::redirect($redirect,"301");
 				return false;
 			} else {
