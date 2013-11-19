@@ -1,6 +1,3 @@
-<div id="callouts_enabled"></div>
-<div id="callouts_disabled"></div>
-
 <div id="template_type">
 	<? include BigTree::path("admin/ajax/pages/get-template-form.php") ?>
 </div>
