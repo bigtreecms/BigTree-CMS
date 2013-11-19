@@ -18,7 +18,6 @@
 		$admin->stop();
 	}
 	
-	$resources = array();
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
 	// Initiate the Storage class for backwards compat.
