@@ -1,6 +1,4 @@
 <?
-	$resources = array();
-	
 	// Clear out notices
 	$name = $description = $callouts_enabled = $level = $module = $image = "";
 	$resources = array();
