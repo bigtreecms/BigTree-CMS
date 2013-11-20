@@ -11,8 +11,8 @@
 	$gateway["service"] = isset($gateway["service"]) ? $gateway["service"] : "";
 ?>
 <div class="table">
+	<summary><h2>Configure</h2></summary>
 	<section>
-		<p>Choose a service below to configure your geocoder settings.</p>
 		<a class="box_select<? if ($gateway["service"] == "google" || !$gateway["service"]) { ?> connected<? } ?>" href="<?=DEVELOPER_ROOT?>geocoding/google/">
 			<span class="google"></span>
 			<p>Google</p>

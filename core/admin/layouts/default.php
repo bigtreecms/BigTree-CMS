@@ -62,25 +62,6 @@
 	// Otherwise, full page render, so include the header and draw the breadcrumb.
 	} else {
 		include BigTree::path("admin/layouts/_header.php");
-?>
-<nav class="breadcrumb">
-	<?
-		$x = 0;
-		foreach ($breadcrumb as $item) {
-			$x++;
-			
-	?>
-	<a href="<?=ADMIN_ROOT.$item["link"]?>/"<? if ($x == 1) { ?> class="first"<? } elseif ($x == count($breadcrumb)) { ?> class="last"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode($item["title"]))?></a>
-	<?
-			if ($x != count($breadcrumb)) {
-	?>
-	<span>&rsaquo;</span>
-	<?		
-			}
-		}
-	?>
-</nav>
-<?
 	}
 ?>
 <div id="page">
@@ -88,9 +69,22 @@
 		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
 	?>
 	<h1>
-		<span class="<?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><? } ?></span>
+		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><? } ?></span>
 		<?
-			echo htmlspecialchars(htmlspecialchars_decode(str_replace("View ","",$bigtree["page"]["title"])));
+			$x = 0;
+			foreach ($breadcrumb as $item) {
+				$x++;
+				
+		?>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<? if ($x == 1) { ?> first<? } if ($x == count($breadcrumb)) { ?> last<? } ?>"><?=htmlspecialchars(htmlspecialchars_decode($item["title"]))?></a>
+		<?
+				if ($x != count($breadcrumb)) {
+		?>
+		<span class="divider">&rsaquo;</span>
+		<?		
+				}
+			}
+			//echo htmlspecialchars(htmlspecialchars_decode(str_replace("View ","",$bigtree["page"]["title"])));
 
 			// If we're in a module and have related modules, use them for the related nav.
 			if (isset($bigtree["related_modules"])) {
@@ -101,7 +95,7 @@
 			if (isset($bigtree["page"]["related"]["nav"])) {
 		?>
 		<nav class="jump_group">
-			<span class="icon"></span>
+			<span class="icon">Related</span>
 			<nav class="dropdown">
 				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
 				<?

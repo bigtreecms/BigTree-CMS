@@ -125,69 +125,77 @@
 	<summary>
 		<h2 class="full">
 			<span class="pending"></span>
-			Pending Changes <small>Awaiting Approval</small>
+			Pending Changes
 			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="more">View All Pending Changes</a>
 		</h2>
 	</summary>
-	<ul>
+	
+	<div class="split left">
 		<?
 			if (!count($changes)) {
 		?>
-		<li><section class="no_content"><p>There are no changes awaiting your approval.</p></section></li>
+		<section class="no_content">
+			<p>There are no changes awaiting your approval.</p>
+		</section>
 		<?	
 			} else {
 		?>
-		<li>
-			<section class="changes_awaiting">
-				<p>You have the following changes pending your approval:</p>
-				<?
-					foreach ($change_modules as $m => $cm) {
-						if ($m == 0) {
-							$icon = "page";
-						} elseif ($cm["icon"]) {
-							$icon = $cm["icon"];
-						} else {
-							$icon = "gear";
-						}
-				?>
-				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></a>
-				<?
+		<h3>Changes Pending Your Approval</h3>
+		<section class="changes">
+			<?
+				foreach ($change_modules as $m => $cm) {
+					if ($m == 0) {
+						$icon = "page";
+					} elseif ($cm["icon"]) {
+						$icon = $cm["icon"];
+					} else {
+						$icon = "gear";
 					}
-				?>
-			</section>
-		</li>
+			?>
+			<div>
+				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></a>
+			</div>
+			<?
+				}
+			?>
+		</section>
 		<?
 			}
-
+		?>
+	</div>
+	<div class="split right">
+		<?
 			if (!count($my_changes)) {
 		?>
-		<li><section class="no_content"><p>You have no changes awaiting a publisher's approval.</p></section></li>
+		<section class="no_content">
+			<p>You have no changes awaiting a publisher's approval.</p>
+		</section>
 		<?
 			} else {
 		?>
-		<li>
-			<section class="changes_awaiting">
-				<p>You have the following changes pending a publisher's approval:</p>
-				<?
-					foreach ($my_change_modules as $m => $cm) {
-						if ($m == 0) {
-							$icon = "page";
-						} elseif ($cm["icon"]) {
-							$icon = $cm["icon"];
-						} else {
-							$icon = "gear";
-						}
-				?>
-				<div><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></div>
-				<?
+		<h3>Your Changes Pending Approval</h3>
+		<section class="changes">
+			<?
+				foreach ($my_change_modules as $m => $cm) {
+					if ($m == 0) {
+						$icon = "page";
+					} elseif ($cm["icon"]) {
+						$icon = $cm["icon"];
+					} else {
+						$icon = "gear";
 					}
-				?>
-			</section>
-		</li>
+			?>
+			<div>
+				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?>
+			</div>
+			<?
+				}
+			?>
+		</section>
 		<?
 			}
 		?>
-	</ul>
+	</div>
 </div>
 
 <div class="table">

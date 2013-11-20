@@ -2,6 +2,7 @@
 	$storage = new BigTreeStorage;
 ?>
 <div class="table">
+	<summary><h2>Configure</h2></summary>
 	<section>
 		<a class="box_select<? if ($storage->Service == "local") { ?> connected<? } ?>" href="local/">
 			<span class="local_storage"></span>

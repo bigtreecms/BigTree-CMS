@@ -1,6 +1,6 @@
 <div class="table">
 	<summary>
-		<p>This report shows the traffic sources for your visitors in the past month.</p>
+		<p>Your visitor's traffic sources over the past month.</p>
 	</summary>
 	<header>
 		<span class="analytics_metric_name">Referrer</span>

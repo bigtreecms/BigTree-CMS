@@ -70,7 +70,7 @@
 				?>
 			</select>	
 		</fieldset>
-		
+		<? /*
 		<fieldset>
 			<label>Image <small>(upload an image of 32x32 or 64x64 pixels or a choose an existing image)</small></label>
 			<input type="file" name="image" />
@@ -94,7 +94,8 @@
 					}
 				?>
 			</ul>
-		</fieldset>				
+		</fieldset>	
+		*/ ?>			
 	</div>
 </section>
 <section class="sub">

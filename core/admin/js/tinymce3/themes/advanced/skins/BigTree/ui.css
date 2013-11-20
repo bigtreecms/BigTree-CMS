@@ -19,24 +19,8 @@
 .BigTreeSkin table.mceLayout tr.mceLast td { }
 .BigTreeSkin table.mceToolbar, .BigTreeSkin tr.mceFirst .mceToolbar tr td, .BigTreeSkin tr.mceLast .mceToolbar tr td {border:0; margin:0; padding:0}
 .BigTreeSkin .mceIframeContainer {border-top:1px solid #CCC; border-bottom:1px solid #CCC}
-.BigTreeSkin td.mceToolbar{background:#ddd;
-	background: -moz-linear-gradient(#eeeeee, #dddddd); /* FF 3.6+ */  
-	background: -ms-linear-gradient(#eeeeee, #dddddd); /* IE10 */  
-	background: -webkit-linear-gradient(#eeeeee, #dddddd); /* Safari 5.1+, Chrome 10+ */  
-	background: -o-linear-gradient(#eeeeee, #dddddd); /* Opera 11.10 */  
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#eeeeee', endColorstr='#dddddd'); /* IE6 & IE7 */  
-	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#eeeeee', endColorstr='#dddddd')"; /* IE8+ */  
-	background: linear-gradient(#eeeeee, #dddddd); /* the standard */ 
-}
-.BigTreeSkin .mceStatusbar {background:#ddd; display:block; font-family:'MS Sans Serif',sans-serif,Verdana,Arial; font-size:9pt; line-height:16px; overflow:visible; color:#000;height:20px;
-	background: -moz-linear-gradient(#eeeeee, #dddddd); /* FF 3.6+ */  
-	background: -ms-linear-gradient(#eeeeee, #dddddd); /* IE10 */  
-	background: -webkit-linear-gradient(#eeeeee, #dddddd); /* Safari 5.1+, Chrome 10+ */  
-	background: -o-linear-gradient(#eeeeee, #dddddd); /* Opera 11.10 */  
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#eeeeee', endColorstr='#dddddd'); /* IE6 & IE7 */  
-	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#eeeeee', endColorstr='#dddddd')"; /* IE8+ */  
-	background: linear-gradient(#eeeeee, #dddddd); /* the standard */ 
-}
+.BigTreeSkin td.mceToolbar{ background: #eee; }
+.BigTreeSkin .mceStatusbar {background: #eee; display:block; font-family:'MS Sans Serif',sans-serif,Verdana,Arial; font-size:9pt; line-height:16px; overflow:visible; color:#000;height:20px; }
 .BigTreeSkin .mceStatusbar div {float:left; padding:2px 4px; font-size:10px; }
 .BigTreeSkin .mceStatusbar a.mceResize {display:block; float:right; background:url(img/icons.png) -788px 0; margin: 0 0 0 0; padding: 0 5px 5px 0; width:18px; height:14px; cursor:ns-resize; outline:0}
 .BigTreeSkin .mceStatusbar a:hover {text-decoration:underline}
@@ -104,7 +88,7 @@
 .BigTreeSkin .mce_forecolor span.mceAction, .BigTreeSkin .mce_backcolor span.mceAction {height:15px;overflow:hidden}
 
 /* Menu */
-.BigTreeSkin .mceMenu {position:absolute; left:0; top:-1px; z-index:1000; border:1px solid #ccc; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);}
+.BigTreeSkin .mceMenu {position:absolute; left:0; top:-1px; z-index:1000; border:1px solid #ccc; }
 .BigTreeSkin .mceNoIcons span.mceIcon {width:0;}
 .BigTreeSkin .mceNoIcons a .mceText {padding-left:10px}
 .BigTreeSkin .mceMenu table {background:#FFF}

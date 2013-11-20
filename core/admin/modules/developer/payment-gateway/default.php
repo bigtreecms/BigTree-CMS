@@ -1,7 +1,7 @@
 <? $root = DEVELOPER_ROOT."payment-gateway/" ?>
 <div class="table">
+	<summary><h2>Configure</h2></summary>
 	<section>
-		<p>Choose a service below to configure your payment gateway settings.</p>
 		<a class="box_select<? if ($gateway->Service == "authorize.net") { ?> connected<? } ?>" href="<?=$root?>authorize/">
 			<span class="authorize"></span>
 			<p>Authorize.Net</p>
