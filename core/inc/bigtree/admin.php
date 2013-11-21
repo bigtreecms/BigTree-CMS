@@ -621,9 +621,12 @@
 				description - The description.
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers).
 				resources - An array of resources.
+				display_field - The field to use as the display field describing a user's callout
+				display_default - The text string to use in the event the display_field is blank or non-existent
+				group - The group this callout belongs to
 		*/
 
-		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
+		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default,$group = false) {
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = '<?
 	/*
@@ -664,6 +667,7 @@
 			$resources = sqlescape(json_encode($clean_resources));
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
+			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
 				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
@@ -673,7 +677,23 @@
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_callouts SET position = position + 1");
 
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
+			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`,`group`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default',$group)");
+		}
+
+		/*
+			Function: createCalloutGroup
+				Creates a callout group.
+
+			Parameters:
+				name - The name of the group.
+
+			Returns:
+				The id of the newly created group.
+		*/
+
+		function createCalloutGroup($name) {
+			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape($name)."')");
+			return sqlid();
 		}
 
 		/*
@@ -2541,6 +2561,38 @@
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '$id'"));
 			$item["resources"] = json_decode($item["resources"],true);
 			return $item;
+		}
+
+		/*
+			Function: getCalloutGroup
+				Returns a callout group entry from the bigtree_callout_groups table.
+
+			Parameters:
+				id - The id of the callout group.
+
+			Returns:
+				A callout group entry.
+		*/
+
+		function getCalloutGroup($id) {
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'"));
+		}
+
+		/*
+			Function: getCalloutGroups
+				Returns a list of callout groups sorted by name.
+
+			Returns:
+				An array of callout group entries from bigtree_callout_groups.
+		*/
+
+		function getCalloutGroups() {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
+			while ($f = sqlfetch($q)) {
+				$items[$f["id"]] = $f;
+			}
+			return $items;
 		}
 
 		/*
@@ -5725,9 +5777,12 @@
 				description - The description.
 				level - The access level (0 for all users, 1 for administrators, 2 for developers)
 				resources - An array of resources.
+				display_field - The field to use as the display field describing a user's callout
+				display_default - The text string to use in the event the display_field is blank or non-existent
+				group - The group this callout belongs to
 		*/
 
-		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
+		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default,$group = false) {
 			$r = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"] && $resource["id"] != "type") {
@@ -5752,8 +5807,9 @@
 			$resources = sqlescape(json_encode($r));
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
+			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 
-			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default', `group` = $group WHERE id = '$id'");
 		}
 
 		/*

@@ -1,9 +1,10 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
+	$groups = $admin->getCalloutGroups();
 	$types = $cached_types["callout"];
 ?>
 <section>
-	<div class="left last">
+	<div class="left">
 		<? if (!isset($callout)) { ?>
 		<fieldset>
 			<label class="required">ID</label>
@@ -27,12 +28,22 @@
 			<input type="text" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
-	<div class="right last">
+	<div class="right">
 		<fieldset>
 			<label>Description</label>
 			<textarea name="description"><?=$description?></textarea>
 		</fieldset>	
 	</div>
+	<fieldset class="clear developer_module_group">
+		<label>Group <small>(if a new group name is chosen, the select box is ignored)</small></label> 
+		<input name="group_new" type="text" placeholder="New Group" /><span>OR</span> 
+		<select name="group_existing">
+			<option value="0"></option>
+			<? foreach ($groups as $g) { ?>
+			<option value="<?=$g["id"]?>"<? if ($g["id"] == $group) { ?> selected="selected"<? } ?>><?=htmlspecialchars($g["name"])?></option>
+			<? } ?>
+		</select>
+	</fieldset>
 </section>
 <section class="sub">
 	<label>Resources <small>("type", "display_field", "display_title", and "display_default" are all reserved IDs &mdash; any resources with these IDs will be removed)</small></label>
