@@ -2616,6 +2616,39 @@
 		}
 
 		/*
+			Function: getCalloutsByGroup
+				Returns a list of callouts in a given group.
+
+			Parameters:
+				group - The group to return callouts for.
+				sort - The sort order (defaults to positioned)
+				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
+
+			Returns:
+				An array of entries from the bigtree_callouts table.
+		*/
+
+		function getCalloutsByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
+			if (is_array($group)) {
+				$group = sqlescape($group["id"]);
+			} else {
+				$group = sqlescape($group);
+			}
+			$items = array();
+			if ($group) {
+				$q = sqlquery("SELECT * FROM bigtree_callouts WHERE `group` = '$group' ORDER BY $sort");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_callouts WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+			}
+			while ($f = sqlfetch($q)) {
+				if (!$auth || $this->Level >= $f["level"]) {
+					$items[$f["id"]] = $f;
+				}
+			}
+			return $items;
+		}
+
+		/*
 			Function: getChange
 				Get a pending change.
 
@@ -3331,7 +3364,7 @@
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_modules table with an additional "group_name" column for the group the module is in.
+				An array of entries from the bigtree_modules table.
 		*/
 
 		function getModulesByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
