@@ -7,6 +7,9 @@
 	if (isset($_POST["type"])) {
 		$bigtree["resources"]["type"] = $_POST["type"];
 	}
+	if (isset($_POST["key"])) {
+		$bigtree["callout_key"] = $_POST["key"];
+	}
 
 	foreach ($bigtree["resources"] as &$val) {
 		if (is_array($val)) {
@@ -18,7 +21,6 @@
 		}
 	}
 
-	// If this is a callout change, we need the count because it's not set in add/edit-callout.php
 	$bigtree["callout_count"] = $_POST["count"];
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 	
@@ -46,7 +48,7 @@
 			// Leaving some variable settings for backwards compatibility — removing in 5.0
 			$field["title"] = $title = $resource["title"];
 			$field["subtitle"] = $subtitle = $resource["subtitle"];
-			$field["key"] = $key = "callouts[".$bigtree["callout_count"]."][".$resource["id"]."]";
+			$field["key"] = $key = $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$resource["id"]."]";
 			$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
 			$field["id"] = uniqid("field_");
 			$field["tabindex"] = $tabindex = $bigtree["tabindex"];
@@ -84,9 +86,9 @@
 		echo '<p>There are no resources for the selected callout.</p>';
 	}
 ?>
-<input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
-<input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="callouts[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
-<input type="hidden" name="callouts[<?=$bigtree["callout_count"]?>][callout_count]" class="callout_count" value="<?=$bigtree["callout_count"]?>" />
+<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
+<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
+<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][callout_count]" class="callout_count" value="<?=$bigtree["callout_count"]?>" />
 <script>	
 	<?
 		foreach ($bigtree["timepickers"] as $id) {

@@ -7,16 +7,11 @@
 	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
 	$data["crops"] = isset($data["crops"]) ? $data["crops"] : "";
 	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
-	
-	if (!isset($_POST["template"]) && !isset($_POST["callout"])) {
 ?>
 <fieldset>
 	<label>Upload Directory <small>(required, relative to SITE_ROOT)</small></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" />
+	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"] ? $data["directory"] : "files/pages/")?>" />
 </fieldset>
-<?
-	}
-?>
 <fieldset>
 	<input type="checkbox" name="image"<? if ($data["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" />
 	<label class="for_checkbox">Image Uploader Enabled <small>(enables crops, thumbs, preview)</small></label>

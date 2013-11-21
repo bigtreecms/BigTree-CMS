@@ -110,68 +110,6 @@ var BigTreePages = {
 			}
 		});
 		$("#page_title").focus(function() { BigTreePages.pageTitleDidFocus = true; });
-		
-		// Callouts
-		$("#template_type").on("click","#bigtree_callouts .add_callout",function() {
-			$.ajax("admin_root/ajax/pages/add-callout/", { type: "POST", data: { count: BigTree.calloutCount }, complete: function(response) {
-				new BigTreeDialog("Add Callout",response.responseText,function(e) {		
-					e.preventDefault();
-					
-					article = BigTreePages.GetCallout();
-					if (!article) {
-						return false;
-					}
-	
-					// Add the callout and hide the dialog.
-					$("#bigtree_callouts .contain").append(article);
-					last_dialog.parents("div").remove();
-					last_dialog.remove();
-					$(".bigtree_dialog_overlay").last().remove();
-					
-					// Fill out the callout description.
-					article.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
-					
-					BigTree.calloutCount++;
-					
-					return false;
-				},"callout",false,false,true);
-			}});
-			
-			return false;
-		}).on("click","#bigtree_callouts .icon_edit",function() {
-			BigTreePages.currentCallout = $(this).parents("article");
-			
-			$.ajax("admin_root/ajax/pages/edit-callout/", { type: "POST", data: { count: BigTree.calloutCount, data: BigTreePages.currentCallout.find(".callout_data").val() }, complete: function(response) {
-				new BigTreeDialog("Edit Callout",response.responseText,function(e) {
-					e.preventDefault();
-					
-					article = BigTreePages.GetCallout();
-					if (!article) {
-						return false;
-					}
-	
-					BigTreePages.currentCallout.replaceWith(article);
-					last_dialog.parents("div").remove();
-					last_dialog.remove();
-					$(".bigtree_dialog_overlay").last().remove();
-					
-					article.find("h4").html(BigTreePages.calloutDescription + '<input type="hidden" name="callouts[' + BigTreePages.calloutNumber + '][display_title]" value="' + htmlspecialchars(BigTreePages.calloutDescription) + '" />');
-					
-					BigTree.calloutCount++;
-					
-					return false;
-				},"callout",false,false,true);
-			}});
-			
-			return false;
-		}).on("click","#bigtree_callouts .icon_delete",function() {
-			new BigTreeDialog("Delete Callout", '<p class="confirm">Are you sure you want to delete this callout?</p>', $.proxy(function() {
-				$(this).parents("article").remove();
-			},this),"delete",false,"OK");
-			return false;
-		});
-		
-		$("#bigtree_callouts .contain").sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	},
 
 	CheckTemplate: function() {
@@ -193,49 +131,6 @@ var BigTreePages = {
 				}
 			}
 		}
-	},
-
-	GetCallout: function() {
-		last_dialog = $(".bigtree_dialog_form").last();
-
-		// Validate required fields.
-		v = new BigTreeFormValidator(last_dialog);
-		if (!v.validateForm(false,true)) {
-			return false;
-		}
-		
-		article = $('<article>');
-		article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-		
-		BigTreePages.calloutNumber = last_dialog.find("input.callout_count").val();
-		// Try our best to find some way to describe the callout
-		BigTreePages.calloutDescription = "";
-		BigTreePages.calloutDescription_field = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-		if (BigTreePages.calloutDescription_field.is('select')) {
-			BigTreePages.calloutDescription = BigTreePages.calloutDescription_field.find("option:selected").text();
-		} else {
-			BigTreePages.calloutDescription = BigTreePages.calloutDescription_field.val();
-		}
-		if ($.trim(BigTreePages.calloutDescription) == "") {
-			BigTreePages.calloutDescription = last_dialog.find(".display_default").val();
-		}
-		
-		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
-		last_dialog.find("input, textarea, select").each(function() {
-			if ($(this).attr("type") != "submit") {
-				if ($(this).is("textarea") && $(this).css("display") == "none") {
-					var mce = tinyMCE.get($(this).attr("id"));
-					if (mce) {
-						mce.save();
-						tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-					}
-				}
-				$(this).hide();
-				article.append($(this));
-			}
-		});
-
-		return article;
 	}
 };
 

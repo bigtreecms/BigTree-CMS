@@ -73,6 +73,10 @@
 						$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 						
 						if (file_exists($field_type_path)) {
+							// Don't draw the fieldset for the callout type
+							if ($resource["type"] == "callouts") {
+								include $field_type_path;
+							} else {
 			?>
 			<fieldset>
 				<?
@@ -82,10 +86,11 @@
 				<?
 					}
 					include $field_type_path;
+					$bigtree["tabindex"]++;
 				?>
 			</fieldset>
 			<?
-							$bigtree["tabindex"]++;
+							}
 						}
 					}
 				}

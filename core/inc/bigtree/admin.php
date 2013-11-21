@@ -2495,7 +2495,7 @@
 			if (file_exists(SERVER_ROOT."cache/form-field-types.btc")) {
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/form-field-types.btc"),true);
 			} else {
-				$types["module"] = array(
+				$types["module"] = $types["template"] = $types["callout"] = $types["setting"] = array(
 					"text" => "Text",
 					"textarea" => "Text Area",
 					"html" => "HTML Area",
@@ -2507,22 +2507,11 @@
 					"datetime" => "Date &amp; Time Picker",
 					"photo-gallery" => "Photo Gallery",
 					"array" => "Array of Items",
-					"route" => "Generated Route"
+					"callouts" => "Callouts"
 				);
 
-				$types["template"] = $types["callout"] = $types["setting"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items"
-				);
+				$types["module"]["route"] = "Generated Route";
+				unset($types["callout"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
@@ -2642,7 +2631,7 @@
 			}
 			while ($f = sqlfetch($q)) {
 				if (!$auth || $this->Level >= $f["level"]) {
-					$items[$f["id"]] = $f;
+					$items[] = $f;
 				}
 			}
 			return $items;

@@ -71,6 +71,10 @@
 			$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 			
 			if (file_exists($field_type_path)) {
+				// Don't draw the fieldset for the callout type
+				if ($resource["type"] == "callouts") {
+					include $field_type_path;
+				} else {
 ?>
 <fieldset>
 	<?
@@ -80,10 +84,11 @@
 	<?
 				}
 				include $field_type_path;
+				$bigtree["tabindex"]++;
 	?>
 </fieldset>
 <?
-				$bigtree["tabindex"]++;
+				}
 			}
 		}
 	} else {
@@ -94,60 +99,6 @@
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
-	
-	if ($bigtree["template"]["callouts_enabled"]) {
-		// We're going to loop through the callout array so we don't have to do stupid is_array crap anymore.
-		function _localDrawCalloutLevel($keys,$level) {
-			foreach ($level as $key => $value) {
-				if (is_array($value)) {
-					_localDrawCalloutLevel(array_merge($keys,array($key)),$value);
-				} else {
-?>
-<input type="hidden" name="callouts[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
-<?
-				}
-			}
-		}
-?>
-<div class="sub_section" id="bigtree_callouts">
-	<label>Callouts</label>
-	<div class="contain">
-		<?
-			$x = 0;
-			foreach ($bigtree["callouts"] as $callout) {
-				$description = "";
-				$type = $admin->getCallout($callout["type"]);
-				$callout_resources = array();
-				// Loop through the resources and set the key to the id.
-				foreach ($type["resources"] as $r) {
-					$callout_resources[$r["id"]] = $r;
-				}
-		?>
-		<article>
-			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
-			<?
-				_localDrawCalloutLevel(array($x),$callout);
-			?>
-			<h4><?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?><input type="hidden" name="callouts[<?=$x?>][display_title]" value="<?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?>" /></h4>
-			<p><?=$type["name"]?></p>
-			<div class="bottom">
-				<span class="icon_drag"></span>
-				<a href="#" class="icon_edit"></a>
-				<a href="#" class="icon_delete"></a>
-			</div>
-		</article>
-		<?
-				$x++;
-			}
-		?>
-	</div>
-	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
-</div>
-<script>
-	BigTree.calloutCount = <?=count($bigtree["callouts"])?>;
-</script>
-<?
-	}
 ?>
 <script>
 	<?

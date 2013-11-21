@@ -728,16 +728,19 @@
 	#tag_list li a:hover { }
 	#tag_list li a span { color: #999; display: inline-block; font-weight: bold; padding: 0 0 0 10px; }
 
-	#bigtree_callouts { margin: 30px -30px -30px -30px; }
-	#bigtree_callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
-	#bigtree_callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
-	#bigtree_callouts article { background: #FFF; border: 1px solid #ccc; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
-	#bigtree_callouts .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
-	#bigtree_callouts h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
-	#bigtree_callouts h4 span { background: url(../images/icons.png); height: 20px; width: 16px; }
-	#bigtree_callouts .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
-	#bigtree_callouts .bottom * { margin: 0 10px 0 0; }
-	#bigtree_callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+/* Callouts */
+	fieldset.callouts { border-top: 1px solid #CCC; border-bottom: 1px solid #CCC; clear: both; margin: 30px -30px 30px -30px; padding: 30px; width: 898px; }
+	fieldset.callouts:first-of-type { border-top: none; margin-top: -30px; }
+	fieldset.callouts:last-of-type { border-bottom: none; margin-bottom: -30px; }
+	fieldset.callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
+	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
+	fieldset.callouts article { background: #FFF; border: 1px solid #ccc; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
+	fieldset.callouts .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
+	fieldset.callouts h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
+	fieldset.callouts h4 span { background: url(../images/icons.png); height: 20px; width: 16px; }
+	fieldset.callouts .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
+	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
+	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 
 	#callout_type { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_resources { height: 250px; margin: -20px; overflow: auto; padding: 20px; width: 450px; }
@@ -745,10 +748,6 @@
 	#callout_resources .select .select_options { max-width: 438px !important; }
 	#callout_resources .error_message { width: 420px; }
 	#callout_resources .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
-	
-	.page_url { float: right; padding: 8px 10px 0 0; }
-	.page_url a { color: #333; }
-	.page_url img { float: left; margin: 0 7px 0 0; }
 	
 /* Box Select Styles */
 	.box_select { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
