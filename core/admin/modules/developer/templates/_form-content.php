@@ -20,9 +20,6 @@
 			<label>Description</label>
 			<textarea name="description"><?=$description?></textarea>
 		</fieldset>
-		<fieldset>
-			<input type="checkbox" name="callouts_enabled" <? if ($callouts_enabled) { ?>checked="checked" <? } ?>/> <label class="for_checkbox">Callouts Enabled</label>
-		</fieldset>
 	</div>
 	<div class="right last">
 		<? if (!isset($template)) { ?>
@@ -70,32 +67,6 @@
 				?>
 			</select>	
 		</fieldset>
-		<? /*
-		<fieldset>
-			<label>Image <small>(upload an image of 32x32 or 64x64 pixels or a choose an existing image)</small></label>
-			<input type="file" name="image" />
-			<input type="hidden" name="existing_image" id="existing_image" />
-
-			<ul class="template_image_list">
-				<?
-					$o = opendir(SERVER_ROOT."core/admin/images/templates/");
-					while ($file = readdir($o)) {
-						if (substr($file,0,1) != ".") {
-							$all[] = $file;
-				?>
-				<li><a href="#<?=htmlspecialchars($file)?>"<? if ($image == $file) { ?> class="active" <? } ?>><img src="<?=ADMIN_ROOT?>images/templates/<?=$file?>" alt="" width="32" height="32" /></a></li>
-				<?
-						}
-					}
-					if ($image && !in_array($image,$all)) {
-				?>
-				<li><a href="#<?=htmlspecialchars($image)?>" class="active"><img src="<?=ADMIN_ROOT?>images/templates/<?=$image?>" alt="" /></a></li>
-				<?	
-					}
-				?>
-			</ul>
-		</fieldset>	
-		*/ ?>			
 	</div>
 </section>
 <section class="sub">

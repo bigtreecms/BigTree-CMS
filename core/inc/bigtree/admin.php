@@ -1533,12 +1533,10 @@
 				routed - Basic ("") or Routed ("on")
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
-				image - Image
-				callouts_enabled - "on" for yes
 				resources - An array of resources
 		*/
 
-		function createTemplate($id,$name,$description,$routed,$level,$module,$image,$callouts_enabled,$resources) {
+		function createTemplate($id,$name,$description,$routed,$level,$module,$resources) {
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 
@@ -1593,15 +1591,13 @@
 			$description = sqlescape(htmlspecialchars($description));
 			$module = sqlescape($module);
 			$resources = sqlescape(json_encode($clean_resources));
-			$image = sqlescape($image);
 			$level = sqlescape($level);
-			$callouts_enabled = sqlescape($callouts_enabled);
 			$routed = sqlescape($routed);
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_templates SET position = position + 1");
 
-			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`image`,`description`,`level`,`callouts_enabled`,`routed`) VALUES ('$id','$name','$module','$resources','$image','$description','$level','$callouts_enabled','$routed')");
+			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`description`,`level`,`routed`) VALUES ('$id','$name','$module','$resources','$description','$level','$routed')");
 		}
 
 		/*
@@ -6619,12 +6615,10 @@
 				description - Description
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
-				image - Image
-				callouts_enabled - "on" for yes
 				resources - An array of resources
 		*/
 
-		function updateTemplate($id,$name,$description,$level,$module,$image,$callouts_enabled,$resources) {
+		function updateTemplate($id,$name,$description,$level,$module,$resources) {
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
@@ -6648,11 +6642,9 @@
 			$description = sqlescape(htmlspecialchars($description));
 			$module = sqlescape($module);
 			$resources = sqlescape(json_encode($clean_resources));
-			$image = sqlescape($image);
 			$level = sqlescape($level);
-			$callouts_enabled = sqlescape($callouts_enabled);
-
-			sqlquery("UPDATE bigtree_templates SET resources = '$resources', image = '$image', name = '$name', module = '$module', description = '$description', level = '$level', callouts_enabled = '$callouts_enabled' WHERE id = '$id'");
+			
+			sqlquery("UPDATE bigtree_templates SET resources = '$resources', name = '$name', module = '$module', description = '$description', level = '$level' WHERE id = '$id'");
 		}
 
 		/*
