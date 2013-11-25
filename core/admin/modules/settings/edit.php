@@ -2,6 +2,9 @@
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
+	if ($item["encrypted"]) {
+		$value = "";
+	}
 
 	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
 ?>
@@ -13,10 +16,6 @@
 </div>
 <?
 		$admin->stop();
-	}
-
-	if ($item["encrypted"]) {
-		$item["value"] = "";
 	}
 ?>
 <div class="container">
