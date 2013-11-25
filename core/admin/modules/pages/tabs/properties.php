@@ -26,7 +26,6 @@
 			"external" => "",
 			"new_window" => "",
 			"resources" => array(),
-			"callouts" => array(),
 			"tags" => false,
 			"route" => "",
 			"meta_keywords" => "",

@@ -11,7 +11,7 @@
 	$w = "'%".sqlescape($search_term)."%'";
 	
 	// Get the "Pages" results.
-	$r = $admin->searchPages($search_term,array("title","resources","callouts","meta_keywords","meta_description","nav_title"),"50");
+	$r = $admin->searchPages($search_term,array("title","resources","meta_keywords","meta_description","nav_title"),"50");
 	$pages = array();
 	foreach ($r as $f) {
 		$access_level = $admin->getPageAccessLevel($f["id"]);

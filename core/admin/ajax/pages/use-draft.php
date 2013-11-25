@@ -32,9 +32,8 @@
 	$changes["template"] = $template;
 	$changes["external"] = $external;
 	$changes["new_window"] = $new_window;
-	// These two already are json encoded.  We don't want it encoded twice so we decode it here first.
+	// Resources are already are json encoded.
 	$changes["resources"] = json_decode($resources,true);
-	$changes["callouts"] = json_decode($callouts,true);
 	
 	if ($existing) {
 		// Update an existing draft with our changes and new author

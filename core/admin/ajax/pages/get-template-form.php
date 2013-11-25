@@ -4,14 +4,11 @@
 		$template_id = $_POST["template"];
 		$bigtree["current_page"] = $cms->getPendingPage($_POST["page"]);
 		$bigtree["resources"] = $bigtree["current_page"]["resources"];
-		$bigtree["callouts"] = $bigtree["current_page"]["callouts"];
 	} elseif (isset($_POST["template"])) {
 		$template_id = $_POST["template"];
 		$bigtree["resources"] = array();
-		$bigtree["callouts"] = array();
 	} elseif (!isset($bigtree["resources"]) && !isset($bigtree["callouts"])) {
 		$bigtree["resources"] = array();
-		$bigtree["callouts"] = array();
 	}
 
 	$bigtree["template"] = $cms->getTemplate($template_id);

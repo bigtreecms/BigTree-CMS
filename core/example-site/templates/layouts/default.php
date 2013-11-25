@@ -18,11 +18,11 @@
 			}
 			
 			// If we have callouts, draw them.
-			if (count($bigtree["page"]["callouts"])) { 
+			if (is_array($callouts) && count($callouts)) { 
 		?>
 		<div class="callouts clear">
 			<?
-				foreach ($bigtree["page"]["callouts"] as $callout) {
+				foreach ($callouts as $callout) {
 					include "../templates/callouts/".$callout["type"].".php";
 				}
 			?>

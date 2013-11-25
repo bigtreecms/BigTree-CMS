@@ -173,45 +173,6 @@
 		}
 		
 		/*
-			Function: decodeCallouts
-				Turns the JSON callout data into a PHP array of callouts with links being translated into front-end readable links.
-				This function is called by BigTree's router and is generally not a function needed to end users.
-			
-			Parameters:
-				data - JSON encoded callout data.
-			
-			Returns:
-				An array of callouts.
-		*/	
-			
-		function decodeCallouts($data) {
-			$parsed = array();
-			if (!is_array($data)) {
-				$data = json_decode($data,true);
-			}
-			// Just in case it was empty, we do an is_array to avoid warnings
-			if (is_array($data)) {
-				foreach ($data as $key => $d) {
-					$p = array();
-					foreach ($d as $kk => $dd) {
-						if (is_array($dd)) {
-							// If this value is an array, untranslate it so that {wwwroot} and ipls get fixed.
-							$p[$kk] = BigTree::untranslateArray($dd);
-						} elseif (is_array(json_decode($dd,true))) {
-							// If this value is an array, untranslate it so that {wwwroot} and ipls get fixed.
-							$p[$kk] = BigTree::untranslateArray(json_decode($dd,true));
-						} else {
-							// Otherwise it's a string, just replace the {wwwroot} and ipls.
-							$p[$kk] = $this->replaceInternalPageLinks($dd);
-						}
-					}
-					$parsed[$key] = $p;
-				}
-			}
-			return $parsed;
-		}
-		
-		/*
 			Function: decodeResources
 				Turns the JSON resources data into a PHP array of resources with links being translated into front-end readable links.
 				This function is called by BigTree's router and is generally not a function needed to end users.
@@ -693,7 +654,14 @@
 			}
 			if ($decode) {
 				$f["resources"] = $this->decodeResources($f["resources"]);
-				$f["callouts"] = $this->decodeCallouts($f["callouts"]);
+				// Backwards compatibility with 4.0 callout system
+				if (isset($f["resources"]["4.0-callouts"])) {
+					$f["callouts"] = $f["resources"]["4.0-callouts"];
+				} elseif (isset($f["resources"]["callouts"])) {
+					$f["callouts"] = $f["resources"]["callouts"];
+				} else {
+					$f["callouts"] = array();
+				}
 			}
 			return $f;
 		}
@@ -767,8 +735,14 @@
 				if (isset($page["resources"]) && is_array($page["resources"])) {
 					$page["resources"] = $this->decodeResources($page["resources"]);	
 				}
-				if (isset($page["callouts"]) && is_array($page["callouts"])) {
-					$page["callouts"] = $this->decodeCallouts($page["callouts"]);
+
+				// Backwards compatibility with 4.0 callout system
+				if (isset($page["resources"]["4.0-callouts"])) {
+					$page["callouts"] = $page["resources"]["4.0-callouts"];
+				} elseif (isset($page["resources"]["callouts"])) {
+					$page["callouts"] = $page["resources"]["callouts"];
+				} else {
+					$page["callouts"] = array();
 				}
 			}
 

@@ -77,7 +77,7 @@
 
 <section class="home_callouts">
 	<?
-		foreach ($bigtree["page"]["callouts"] as $callout) {
+		foreach ($callouts as $callout) {
 			include "../templates/callouts/".$callout["type"].".php";
 		}
 	?>

@@ -1,7 +1,6 @@
 <?
 	$bigtree["current_page"] = $page;
 	$bigtree["resources"] = $page["resources"];
-	$bigtree["callouts"] = $page["callouts"];
 	
 	// Show the properties section
 	include BigTree::path("admin/modules/pages/_properties.php");

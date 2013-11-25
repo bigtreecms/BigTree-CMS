@@ -303,4 +303,55 @@
 			$admin->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
 		}
 	}
+
+	// BigTree 4.1 update -- REVISION 100 (incrementing x00 digit for a .1 release)
+	function __local_bigtree_update_100() {
+		global $admin;
+		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `md5` VARCHAR(255) NOT NULL AFTER `file`");
+		sqlquery("ALTER TABLE `bigtree_pages` ADD COLUMN `seo_invisible` CHAR(2) NOT NULL AFTER `meta_description`");
+		sqlquery("INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `description`, `locked`, `system`, `encrypted`) VALUES ('bigtree-internal-per-page', X'3135', 'text', '', 'Number of Items Per Page', '<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>', 'on', '', '')");
+		sqlquery("CREATE TABLE `bigtree_module_reports` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL DEFAULT '', `table` varchar(255) NOT NULL, `type` varchar(255) NOT NULL, `filters` text NOT NULL, `fields` text NOT NULL, `parser` varchar(255) NOT NULL DEFAULT '', `view` int(11) unsigned DEFAULT NULL, PRIMARY KEY (`id`), KEY `view` (`view`), CONSTRAINT `bigtree_module_reports_ibfk_1` FOREIGN KEY (`view`) REFERENCES `bigtree_module_views` (`id`) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		sqlquery("ALTER TABLE `bigtree_module_actions` ADD COLUMN `report` int(11) unsigned NULL AFTER `view`");
+		sqlquery("ALTER TABLE `bigtree_module_forms` DROP COLUMN `positioning`");
+		sqlquery("CREATE TABLE `bigtree_module_embeds` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` int(11) NOT NULL, `title` varchar(255) NOT NULL, `preprocess` varchar(255) NOT NULL, `callback` varchar(255) NOT NULL, `table` varchar(255) NOT NULL, `fields` text NOT NULL, `default_position` varchar(255) NOT NULL, `default_pending` char(2) NOT NULL, `css` varchar(255) NOT NULL, `hash` varchar(255) NOT NULL DEFAULT '', `redirect_url` varchar(255) NOT NULL DEFAULT '', `thank_you_message` text NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		sqlquery("CREATE TABLE `bigtree_callout_groups` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		sqlquery("ALTER TABLE `bigtree_callouts` ADD COLUMN `group` int(11) unsigned NULL AFTER `position`");
+		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `callouts_enabled`");
+		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `image`");
+		// Get all templates with callouts enabled and provide them with a new resource instead
+		$tq = sqlquery("SELECT * FROM bigtree_templates WHERE callouts_enabled = 'on'");
+		while ($template = sqlfetch($tq)) {
+			$resources = json_decode($template["resources"],true);
+			// See if we have a "callouts" resource already
+			$found = false;
+			foreach ($resources as $r) {
+				if ($r["id"] == "callouts") {
+					$found = true;
+				}
+			}
+			// If we already have callouts, use 4.0-callouts
+			if ($found) {
+				$resources[] = array("id" => "4.0-callouts","title" => "Callouts","type" => "callouts");
+			} else {
+				$resources[] = array("id" => "callouts","title" => "Callouts","type" => "callouts");
+			}
+			$resources = sqlescape(json_encode($resources));
+			sqlquery("UPDATE bigtree_templates SET resources = '$resources' WHERE id = '".sqlescape($template["id"])."'");
+	
+			// Find pages that use this template
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE template = '".sqlescape($template["id"])."' AND callouts != '[]'");
+			while ($f = sqlfetch($q)) {
+				$resources = json_decode($f["resources"],true);
+				$callouts = json_decode($f["callouts"],true);
+				if ($found) {
+					$resources["4.0-callouts"] = $callouts;
+				} else {
+					$resources["callouts"] = $callouts;
+				}
+				$resources = sqlescape(json_encode($resources));
+				sqlquery("UPDATE bigtree_pages SET resources = '$resources' WHERE id = '".$f["id"]."'");
+			}
+		}
+		sqlquery("ALTER TABLE `bigtree_pages` DROP COLUMN `callouts`");
+	}
 ?>
