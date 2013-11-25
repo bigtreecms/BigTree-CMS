@@ -32,6 +32,7 @@ MySQL changes:
 - CREATE TABLE `bigtree_callout_groups` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 - ALTER TABLE `bigtree_callouts` ADD COLUMN `group` int(11) unsigned NULL AFTER `position`;
 - ALTER TABLE `bigtree_templates` DROP COLUMN `callouts_enabled`;
+- ALTER TABLE `bigtree_templates` DROP COLUMN `image`;
 - ALTER TABLE `bigtree_pages` DROP COLUMN `callouts`;
 
 ### 4.0 Release
