@@ -8,35 +8,32 @@
 	$lines = explode("\n",$index);
 	$module_name = $lines[0];
 	$package_info = $lines[1];
-	$group_id = 0;
-	$package_files = array();
-	$package_tables = array();
-	$module_match = array();
-	$route_match = array();
+
+	$bigtree["group_id"] = 0;
+	$bigtree["module_match"] = array();
+	$bigtree["route_match"] = array();
+	$bigtree["class_name_match"] = array();
 	
 	// Instructions and Install Code defaults
-	$instructions = false;
-	$install_code = false;
+	$bigtree["instructions"] = false;
+	$bigtree["install_code"] = false;
 	unset($_SESSION["bigtree_admin"]["package_error"]);
 	unset($_SESSION["bigtree_admin"]["package_instructions"]);	
-		
-	// Saved information for managing these packages later.
-	$savedData["tables"] = array();
-	$savedData["class_files"] = array();
-	$savedData["required_files"] = array();
-	$savedData["files"] = array();
-	$savedData["templates"] = array();
-	$savedData["callouts"] = array();
-	$savedData["settings"] = array();
-	$savedData["feeds"] = array();
 	
+	// Skip first two lines
 	next($lines);
 	next($lines);
 	foreach ($lines as $line) {
 		$parts = explode("::||BTX||::",$line);
 		$type = $parts[0];
 		$data = json_decode($parts[1],true);
-		
+		_local_import_line($type,$data);		
+	}
+
+	// We're putting it in function scope so that when we globalize the $data array it doesn't cross-contaminate when importing older data that's missing fields.
+	function _local_import_line($type,$data) {
+		global $bigtree;
+
 		if (is_array($data)) {
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
@@ -52,20 +49,20 @@
 		}
 		
 		if ($type == "Instructions") {
-			$instructions = $data;
+			$bigtree["instructions"] = $data;
 		}
 
 		if ($type == "InstallCode") {
-			$install_code = $data;
+			$bigtree["install_code"] = $data;
 		}
 		
 		if ($type == "Group") {
 			$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE name = '$name'"));
 			if ($existing) {
-				$group_id = $existing["id"];
+				$bigtree["group_id"] = $existing["id"];
 			} else {
 				sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`) VALUES ('$name','$route')");
-				$group_id = sqlid();
+				$bigtree["group_id"] = sqlid();
 			}
 		}
 		
@@ -79,72 +76,73 @@
 				$x++;
 			}
 			if ($route != $oroute) {
-				$route_match["custom/admin/$oroute/"] = "custom/admin/$route/";
+				$bigtree["route_match"]["custom/admin/$oroute/"] = "custom/admin/$route/";
+				$bigtree["class_name_match"][$oroute] = $route;
 			}
-			$group_insert = $group_id ? "'$group_id'" : "NULL";
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`group`,`icon`,`gbp`) VALUES ('$name','$route','$class',$group_insert,'$icon','$gbp')");
-			$module_match[$id] = sqlid();
-			$module_id = sqlid();
+			$group_insert = $bigtree["group_id"] ? "'".$bigtree["group_id"]."'" : "NULL";
+			sqlquery("INSERT INTO bigtree_modules (`group`,`name`,`route`,`class`,`icon`,`gbp`) VALUES ($group_insert,'$name','$route','$class','$icon','$gbp')");
+			$bigtree["module_match"][$id] = sqlid();
+			$bigtree["last_module_id"] = sqlid();
 		}
 		
 		// Import a Module Action
 		if ($type == "Action") {
-			if ($form)
-				$form = $last_form_id;
-			if ($view)
-				$view = $last_view_id;
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`view`,`form`,`class`,`position`) VALUES ('$module_id','$name','$route','$in_nav','$view','$form','$class','$position')");
+			if ($form) {
+				$form = $bigtree["last_form_id"];
+			}
+			if ($view) {
+				$view = $bigtree["last_view_id"];
+			}
+			if ($report) {
+				$report = $bigtree["last_report_id"];
+			}
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`view`,`form`,`report`,`class`,`level`,`position`) VALUES ('".$bigtree["last_module_id"]."','$name','$route','$in_nav','$view','$form','$class','$position')");
 		}
-		
+
 		// Import a Module Form
 		if ($type == "ModuleForm") {
 			$return_view = $return_view ? "'".$return_view."'" : "NULL";
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`default_position`,`return_view`,`return_url`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position',$return_view,'$return_url')");
-			$last_form_id = sqlid();
+			sqlquery("INSERT INTO bigtree_module_forms (`title`,`preprocess`,`callback`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`) VALUES ('$title','$preprocess','$callback','$table','$fields','$positioning','$default_position',$return_view,'$return_url','$tagging')");
+			$bigtree["last_form_id"] = sqlid();
 		}
 		
 		// Import a Module View
 		if ($type == "ModuleView") {
 			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`table`,`fields`,`options`,`actions`,`suffix`,`preview_url`) VALUES ('$title','$description','".$data["type"]."','$table','$fields','$options','$actions','$suffix','$preview_url')");
-			$last_view_id = sqlid();
+			$bigtree["last_view_id"] = sqlid();
 		}
 		
 		// Import a Template
 		if ($type == "Template") {
 			sqlquery("DELETE FROM bigtree_templates WHERE id = '$id'");
-			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`image`,`module`,`resources`,`description`,`callouts_enabled`,`level`,`routed`) VALUES ('$id','$name','$image','$module','$resources','$description','$callouts_enabled','$level','$routed')");
-			$savedData["templates"][] = $id;
+			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`description`,`level`,`routed`) VALUES ('$id','$name','$module','$resources','$description','$level','$routed')");
 		}
 		
 		// Import a Callout
 		if ($type == "Callout") {
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`) VALUES ('$id','$name','$description','$display_default','$display_field','$resources','$level')");
-			$savedData["callouts"][] = $id;
 		}
 		
 		// Import a Setting
 		if ($type == "Setting") {
 			if ($data["module"]) {
-				$module = $module_match[$module];
+				$module = $bigtree["module_match"][$module];
 			}
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
 			sqlquery("INSERT INTO bigtree_settings (`id`,`value`,`type`,`name`,`description`,`options`,`locked`,`system`,`encrypted`) VALUES ('$id','$value','".$data["type"]."','$name','$description','$options','$locked','$system','$encrypted')");
-			$savedData["settings"][] = $id;
 		}
 		
 		// Import a Feed
 		if ($type == "Feed") {
 			sqlquery("DELETE FROM bigtree_feeds WHERE route = '$route'");
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','".$data["type"]."','$table','$fields','$options')");
-			$savedData["feeds"][] = $route;
 		}
 		
 		// Import a Field Type
 		if ($type == "FieldType") {
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '$id'");
 			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
-			$savedData["field_types"][] = $id;
 		}
 		
 		// Import a File
@@ -152,17 +150,11 @@
 			$source = $parts[1];
 			$destination = $parts[2];
 			$section = $parts[3];
-			foreach ($route_match as $key => $val) {
+			foreach ($bigtree["route_match"] as $key => $val) {
 				$destination = str_replace($key,$val,$destination);
 			}
 			
 			BigTree::copyFile($cache_root.$source,SERVER_ROOT.$destination);
-			if ($section == "Other") {			
-				$savedData["other_files"][] = $destination;
-			} elseif ($section == "Required") {
-				$savedData["required_files"][] = $destination;				
-			}
-			$package_files[] = $destination;
 		}
 		
 		if ($type == "ClassFile") {
@@ -170,9 +162,10 @@
 			$destination = $parts[2];
 			$module_id = $parts[3];
 			BigTree::copyFile($cache_root.$source,SERVER_ROOT.$destination);
-			file_put_contents(SERVER_ROOT.$destination,str_replace('var $Module = "'.$module_id.'";','var $Module = "'.$module_match[$module_id].'";',file_get_contents(SERVER_ROOT.$destination)));
-			$savedData["class_files"][] = $destination;
-			$package_files[] = $destination;
+			foreach ($bigtree["class_name_match"] as $key => $val) {
+				$destination = str_replace("/$key.php","/$val.php",$destination);
+			}
+			file_put_contents(SERVER_ROOT.$destination,str_replace('var $Module = "'.$module_id.'";','var $Module = "'.$bigtree["module_match"][$module_id].'";',file_get_contents(SERVER_ROOT.$destination)));
 		}
 		
 		// Import a SQL file
@@ -185,8 +178,6 @@
 					sqlquery($query);
 				}
 			}
-			$savedData["tables"][] = $table;
-			$package_tables[] = $table;
 		}
 	}
 	
@@ -198,17 +189,17 @@
 	
 	$admin->growl("Developer","Installed Package");
 	
-	if ($install_code) {
+	if ($bigtree["install_code"]) {
 		try {
-			eval(ltrim(rtrim(base64_decode($install_code),"?>"),"<?"));
+			eval(ltrim(rtrim(base64_decode($bigtree["install_code"]),"?>"),"<?"));
 		} catch (Exception $e) {
-			$_SESSION["bigtree_admin"]["package_code"] = ltrim(rtrim(base64_decode($install_code),"?>"),"<?");
+			$_SESSION["bigtree_admin"]["package_code"] = ltrim(rtrim(base64_decode($bigtree["install_code"]),"?>"),"<?");
 			$_SESSION["bigtree_admin"]["package_error"] = $e;
 		}
 	}
 	
-	if (count($instructions) && $instructions["post"]) {
-		$_SESSION["bigtree_admin"]["package_instructions"] = $instructions["post"];
+	if (count($bigtree["instructions"]) && $bigtree["instructions"]["post"]) {
+		$_SESSION["bigtree_admin"]["package_instructions"] = $bigtree["instructions"]["post"];
 	}
 	
 	BigTree::redirect(ADMIN_ROOT."developer/foundry/install/complete/");
