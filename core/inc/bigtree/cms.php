@@ -6,8 +6,8 @@
 
 	class BigTreeCMS {
 	
-		var $irlCache = array();
-		var $iplCache = array();
+		var $IRLCache = array();
+		var $IPLCache = array();
 		var $ReplaceableRootKeys = array();
 		var $ReplaceableRootVals = array();
 
@@ -415,12 +415,12 @@
 			// Resource Links
 			if ($ipl[0] == "irl:") {
 				// See if it's in the cache.
-				if (isset($this->irlCache[$navid])) {
-					return $this->irlCache[$navid];
+				if (isset($this->IRLCache[$navid])) {
+					return $this->IRLCache[$navid];
 				} else {
 					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
 					$file = $r ? $this->replaceRelativeRoots($r["file"]) : false;
-					$this->irlCache[$navid] = $file;
+					$this->IRLCache[$navid] = $file;
 					return $file;
 				}
 			}
@@ -443,13 +443,13 @@
 			}
 
 			// See if it's in the cache.
-			if (isset($this->iplCache[$navid])) {
-				return $this->iplCache[$navid].$commands;
+			if (isset($this->IPLCache[$navid])) {
+				return $this->IPLCache[$navid].$commands;
 			} else {
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 				// Set the cache
-				$this->iplCache[$navid] = WWW_ROOT.$f["path"]."/";
+				$this->IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
 				return WWW_ROOT.$f["path"]."/".$commands;
 			}
 		}
