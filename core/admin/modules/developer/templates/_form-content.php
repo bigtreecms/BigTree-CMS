@@ -85,6 +85,7 @@
 		<ul id="resource_table">
 			<?
 				$x = 0;
+				$resources = is_array($resources) ? $resources : array();
 				foreach ($resources as $resource) {
 					$x++;
 			?>
