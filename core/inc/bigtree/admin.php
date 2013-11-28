@@ -317,14 +317,21 @@
 			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
 			} else {
 				$html = preg_replace_callback('/href="([^"]*)"/',create_function('$matches','
-					global $cms;
+					global $cms,$admin;
 					$href = $cms->replaceRelativeRoots($matches[1]);
 					if (strpos($href,WWW_ROOT) !== false) {
 						$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$href),"/"));
-						list($navid,$commands) = $cms->getNavId($command);
-						$page = $cms->getPage($navid,false);
-						if ($navid && (!$bigtree["commands"][0] || substr($page["template"],0,6) == "module" || substr($bigtree["commands"][0],0,1) == "#")) {
-							$href = "ipl://".$navid."//".base64_encode(json_encode($commands));
+						if ($command[0] == "files" && $command[1] == "resources") {
+							$resource = $admin->getResourceByFile($href);
+							if ($resource) {
+								$href = "irl://".$resource["id"];
+							}
+						} else {
+							list($navid,$commands) = $cms->getNavId($command);
+							$page = $cms->getPage($navid,false);
+							if ($navid && (!$bigtree["commands"][0] || substr($page["template"],0,6) == "module" || substr($bigtree["commands"][0],0,1) == "#")) {
+								$href = "ipl://".$navid."//".base64_encode(json_encode($commands));
+							}
 						}
 					}
 					$href = $cms->replaceHardRoots($href);
@@ -502,6 +509,10 @@
 					if (!$this->iplExists($href)) {
 						$errors["a"][] = $href;
 					}
+				} elseif (substr($href,0,6) == "irl://") {
+					if (!$this->irlExists($href)) {
+						$errors["a"][] = $href;
+					}
 				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:") {
 					// Don't do anything, it's a page mark, data URI, or email address
 				} elseif (substr($href,0,4) == "http") {
@@ -529,9 +540,9 @@
 							$errors["img"][] = $href;
 						}
 					}
-				} elseif (substr($href,0,6) == "ipl://") {
-					if (!$this->iplExists($href)) {
-						$errors["a"][] = $href;
+				} elseif (substr($href,0,6) == "irl://") {
+					if (!$this->irlExists($href)) {
+						$errors["img"][] = $href;
 					}
 				} elseif (substr($href,0,5) == "data:") {
 					// Do nothing, it's a data URI
@@ -3830,7 +3841,7 @@
 			$h1_field = "";
 			$body_fields = array();
 
-			if (is_array($template)) {
+			if (is_array($template["resources"])) {
 				foreach ($template["resources"] as $item) {
 					if (isset($item["seo_body"]) && $item["seo_body"]) {
 						$body_fields[] = $item["id"];
@@ -4218,6 +4229,22 @@
 				$thumb = $this->replaceRelativeRoots($thumb);
 			}
 			return $item;
+		}
+
+		/*
+			Function: getResource
+				Returns a resource.
+
+			Parameters:
+				id - The id of the resource.
+
+			Returns:
+				A resource entry.
+		*/
+
+		function getResource($id) {
+			$id = sqlescape($id);
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
 		}
 
 		/*
@@ -4727,6 +4754,27 @@
 		}
 
 		/*
+			Function: irlExists
+				Determines whether an internal resource link still exists or not.
+
+			Parameters:
+				irl - An internal resource link
+
+			Returns:
+				True if it is still a valid link, otherwise false.
+		*/
+
+		function irlExists($irl) {
+			global $cms;
+			$irl = explode("//",$irl);
+			$resource = $this->getResource($irl[1]);
+			if ($resource) {
+				return true;
+			}
+			return false;
+		}
+
+		/*
 			Function: lockCheck
 				Checks if a lock exists.
 				If a lock exists and it's currently active, stops page execution and shows the lock page.
@@ -4836,6 +4884,14 @@
 		function makeIPL($url) {
 			global $cms;
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
+			// Check for resource link
+			if ($command[0] == "files" && $command[1] == "resources") {
+				$resource = $this->getResourceByFile($url);
+				if ($resource) {
+					return "irl://".$resource["id"];
+				}
+			}
+			// Check for page link
 			list($navid,$commands) = $cms->getNavId($command);
 			if (!$navid) {
 				return $this->replaceHardRoots($url);

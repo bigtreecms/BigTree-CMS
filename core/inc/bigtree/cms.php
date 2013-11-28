@@ -6,6 +6,7 @@
 
 	class BigTreeCMS {
 	
+		var $irlCache = array();
 		var $iplCache = array();
 		var $ReplaceableRootKeys = array();
 		var $ReplaceableRootVals = array();
@@ -397,18 +398,32 @@
 				Returns a hard link to the page's publicly accessible URL from its encoded soft link URL.
 			
 			Parameters:
-				ipl - Internal Page Link (ipl://, {wwwroot}, or regular URL encoding)
+				ipl - Internal Page Link (ipl://, irl://, {wwwroot}, or regular URL encoding)
 			
 			Returns:
 				Public facing URL.
 		*/
 		
 		function getInternalPageLink($ipl) {
-			if (substr($ipl,0,6) != "ipl://") {
+			// Regular links
+			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
 				return $this->replaceRelativeRoots($ipl);
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
+
+			// Resource Links
+			if ($ipl[0] == "irl:") {
+				// See if it's in the cache.
+				if (isset($this->irlCache[$navid])) {
+					return $this->irlCache[$navid];
+				} else {
+					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
+					$file = $r ? $this->replaceRelativeRoots($r["file"]) : false;
+					$this->irlCache[$navid] = $file;
+					return $file;
+				}
+			}
 			
 			// New IPLs are encoded in JSON
 			$c = json_decode(base64_decode($ipl[2]));
@@ -1093,7 +1108,7 @@
 				return "";
 			}
 			
-			if (substr($html,0,6) == "ipl://") {
+			if (substr($html,0,6) == "ipl://" || substr($html,0,6) == "irl://") {
 				$html = $this->getInternalPageLink($html);
 			} else {
 				$html = $this->replaceRelativeRoots($html);
