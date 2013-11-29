@@ -67,6 +67,9 @@ CREATE TABLE `bigtree_resource_folders` (`id` int(11) unsigned NOT NULL AUTO_INC
 DROP TABLE IF EXISTS `bigtree_resources`;
 CREATE TABLE `bigtree_resources` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `folder` int(11) unsigned DEFAULT NULL, `file` varchar(255) NOT NULL, `md5` varchar(255) NOT NULL, `date` datetime NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `type` varchar(255) NOT NULL DEFAULT '', `is_image` char(2) NOT NULL DEFAULT '', `height` int(11) unsigned NOT NULL DEFAULT '0', `width` int(11) unsigned NOT NULL DEFAULT '0', `crops` text NOT NULL, `thumbs` text NOT NULL, `list_thumb_margin` int(11) unsigned NOT NULL, PRIMARY KEY (`id`), KEY `folder` (`folder`), CONSTRAINT `bigtree_resources_ibfk_1` FOREIGN KEY (`folder`) REFERENCES `bigtree_resource_folders` (`id`) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `bigtree_resource_allocation`;
+CREATE TABLE `bigtree_resource_allocation` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` varchar(255) DEFAULT NULL, `entry` varchar(255) DEFAULT NULL, `resource` int(11) DEFAULT NULL, `updated_at` datetime NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
 DROP TABLE IF EXISTS `bigtree_route_history`;
 CREATE TABLE `bigtree_route_history` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`old_route` varchar(255) NOT NULL,`new_route` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `old_route` (`old_route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
