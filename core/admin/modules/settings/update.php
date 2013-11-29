@@ -46,6 +46,13 @@
 		if (!isset($field["output"]) && isset($value)) {
 			$field["output"] = $value;
 		}
+
+		// Translate internal link information to relative links.
+		if (is_array($field["output"])) {
+			$field["output"] = BigTree::translateArray($field["output"]);
+		} else {
+			$field["output"] = $admin->autoIPL($field["output"]);
+		}
 		
 		if (!$field["ignore"]) {
 			$admin->updateSettingValue($_POST["id"],$field["output"]);		
@@ -62,9 +69,9 @@
 		"crops" => $bigtree["crops"]
 	);
 
-	if (count($fails)) {
+	if (count($bigtree["errors"])) {
 		BigTree::redirect(ADMIN_ROOT."settings/error/");
-	} elseif (count($crops)) {
+	} elseif (count($bigtree["crops"])) {
 		BigTree::redirect(ADMIN_ROOT."settings/crop/");
 	}
 
