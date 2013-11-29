@@ -1242,14 +1242,14 @@
 		*/
 		
 		static function putFile($file,$contents) {
-			if (!self::isDirectoryWritable($to)) {
+			if (!self::isDirectoryWritable($file)) {
 				return false;
 			}
 			if (!is_readable($from)) {
 				return false;
 			}
 			
-			$pathinfo = self::pathInfo($to);
+			$pathinfo = self::pathInfo($file);
 			$file_name = $pathinfo["basename"];
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
