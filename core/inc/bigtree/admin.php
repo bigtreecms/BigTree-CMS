@@ -6,6 +6,7 @@
 
 	class BigTreeAdmin {
 
+		var $IRLPrefixes = false;
 		var $IRLsCreated = array();
 		var $PerPage = 15;
 
@@ -337,25 +338,13 @@
 			} else {
 				$html = preg_replace_callback('/href="([^"]*)"/',create_function('$matches','
 					global $cms,$admin;
-					$href = $cms->replaceRelativeRoots($matches[1]);
-					if (strpos($href,WWW_ROOT) !== false) {
-						$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$href),"/"));
-						if ($command[0] == "files" && $command[1] == "resources") {
-							$resource = $admin->getResourceByFile($href);
-							if ($resource) {
-								$href = "irl://".$resource["id"];
-								$admin->IRLsCreated[] = $resource["id"];
-							}
-						} else {
-							list($navid,$commands) = $cms->getNavId($command);
-							$page = $cms->getPage($navid,false);
-							if ($navid && (!$bigtree["commands"][0] || substr($page["template"],0,6) == "module" || substr($bigtree["commands"][0],0,1) == "#")) {
-								$href = "ipl://".$navid."//".base64_encode(json_encode($commands));
-							}
-						}
-					}
-					$href = $cms->replaceHardRoots($href);
+					$href = $admin->makeIPL($cms->replaceRelativeRoots($matches[1]));
 					return \'href="\'.$href.\'"\';'
+				),$html);
+				$html = preg_replace_callback('/src="([^"]*)"/',create_function('$matches','
+					global $cms,$admin;
+					$src = $admin->makeIPL($cms->replaceRelativeRoots($matches[1]));
+					return \'src="\'.$src.\'"\';'
 				),$html);
 				$html = $this->replaceHardRoots($html);
 			}
@@ -4239,10 +4228,29 @@
 		*/
 
 		function getResourceByFile($file) {
+			if ($this->IRLPrefixes === false) {
+				$this->IRLPrefixes = array();
+				$thumbnail_sizes = $this->getSetting("resource-thumbnail-sizes",true);
+				$thumbnail_sizes = json_decode($thumbnail_sizes["value"],true);
+				foreach ($thumbnail_sizes as $ts) {
+					$this->IRLPrefixes[] = $ts["prefix"];
+				}
+			}
+			$last_prefix = false;
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($this->replaceHardRoots($file))."'"));
 			if (!$item) {
-				return false;
+				foreach ($this->IRLPrefixes as $prefix) {
+					if (!$item) {
+						$sfile = str_replace("files/resources/$prefix","files/resources/",$file);
+						$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($sfile)."' OR file = '".sqlescape($this->replaceHardRoots($sfile))."'"));
+						$last_prefix = $prefix;
+					}
+				}
+				if (!$item) {
+					return false;
+				}
 			}
+			$item["prefix"] = $last_prefix;
 			$item["file"] = $this->replaceRelativeRoots($item["file"]);
 			$item["thumbs"] = json_decode($item["thumbs"],true);
 			foreach ($item["thumbs"] as &$thumb) {
@@ -4909,7 +4917,7 @@
 				$resource = $this->getResourceByFile($url);
 				if ($resource) {
 					$this->IRLsCreated[] = $resource["id"];
-					return "irl://".$resource["id"];
+					return "irl://".$resource["id"]."//".$resource["prefix"];
 				}
 			}
 			// Check for page link

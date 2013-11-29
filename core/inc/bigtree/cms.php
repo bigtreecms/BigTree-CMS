@@ -416,12 +416,20 @@
 			if ($ipl[0] == "irl:") {
 				// See if it's in the cache.
 				if (isset($this->IRLCache[$navid])) {
-					return $this->IRLCache[$navid];
+					if ($ipl[2]) {
+						return BigTree::prefixFile($this->IRLCache[$navid],$ipl[2]);
+					} else {
+						return $this->IRLCache[$navid];
+					}
 				} else {
 					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
 					$file = $r ? $this->replaceRelativeRoots($r["file"]) : false;
 					$this->IRLCache[$navid] = $file;
-					return $file;
+					if ($ipl[2]) {
+						return BigTree::prefixFile($file,$ipl[2]);
+					} else {
+						return $file;
+					}
 				}
 			}
 			
@@ -1112,8 +1120,8 @@
 				$html = $this->getInternalPageLink($html);
 			} else {
 				$html = $this->replaceRelativeRoots($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
-				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
+				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
+				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
 			}
 
 			return $html;
