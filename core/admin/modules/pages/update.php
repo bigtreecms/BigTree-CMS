@@ -40,9 +40,7 @@
 	
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
-	// Parse callouts
-	include BigTree::path("admin/modules/pages/_callout-parse.php");
-
+	
 	$id = $_POST["page"];
 	
 	if ($bigtree["access_level"] == "p" && $_POST["ptype"] == "Save & Publish") {

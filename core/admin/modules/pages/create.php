@@ -25,8 +25,6 @@
 	
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
-	// Parse callouts
-	include BigTree::path("admin/modules/pages/_callout-parse.php");	
 	
 	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.
