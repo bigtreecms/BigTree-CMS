@@ -1113,6 +1113,7 @@
 			} else {
 				$html = $this->replaceRelativeRoots($html);
 				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
+				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
 			}
 
 			return $html;

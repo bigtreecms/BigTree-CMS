@@ -145,7 +145,7 @@
 			$entry = sqlescape($entry);
 			sqlquery("DELETE FROM bigtree_resource_allocation WHERE module = '$module' AND entry = '$entry'");
 			foreach ($this->IRLsCreated as $resource) {
-				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`) VALUES ('$module','$entry','".sqlescape($resource)."')");
+				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`,`updated_at`) VALUES ('$module','$entry','".sqlescape($resource)."',NOW())");
 			}
 		}
 
