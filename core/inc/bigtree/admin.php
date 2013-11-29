@@ -6,6 +6,7 @@
 
 	class BigTreeAdmin {
 
+		var $IRLsCreated = array();
 		var $PerPage = 15;
 
 		// !View Types
@@ -325,6 +326,7 @@
 							$resource = $admin->getResourceByFile($href);
 							if ($resource) {
 								$href = "irl://".$resource["id"];
+								$admin->IRLsCreated[] = $resource["id"];
 							}
 						} else {
 							list($navid,$commands) = $cms->getNavId($command);
@@ -4888,6 +4890,7 @@
 			if ($command[0] == "files" && $command[1] == "resources") {
 				$resource = $this->getResourceByFile($url);
 				if ($resource) {
+					$this->IRLsCreated[] = $resource["id"];
 					return "irl://".$resource["id"];
 				}
 			}
