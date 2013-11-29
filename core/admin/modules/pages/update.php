@@ -95,6 +95,9 @@
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["parent"]."/";
 	}
 
+	// Track resource allocation
+	$admin->allocateResources("pages",$id);
+
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $id,
 		"return_link" => $redirect_url,

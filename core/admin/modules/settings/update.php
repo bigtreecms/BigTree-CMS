@@ -69,6 +69,9 @@
 		"crops" => $bigtree["crops"]
 	);
 
+	// Track resource allocation
+	$admin->allocateResources("settings",$_POST["id"]);
+
 	if (count($bigtree["errors"])) {
 		BigTree::redirect(ADMIN_ROOT."settings/error/");
 	} elseif (count($bigtree["crops"])) {

@@ -212,6 +212,9 @@
 		call_user_func($bigtree["form"]["callback"],$edit_id,$item,$did_publish);
 	}
 
+	// Track resource allocation
+	$admin->allocateResources($bigtree["current_module"]["id"],$edit_id);
+
 	// Put together saved form information for the error or crop page in case we need it.
 	$edit_action = BigTreeAutoModule::getEditAction($bigtree["module"]["id"],$bigtree["form"]["id"]);
 	$_SESSION["bigtree_admin"]["form_data"] = array(

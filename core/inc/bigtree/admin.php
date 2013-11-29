@@ -132,6 +132,24 @@
 		}
 
 		/*
+			Function: allocateResources
+				Assigns resources from $this->IRLsCreated
+
+			Parameters:
+				module - Module ID to assign to
+				entry - Entry ID to assign to
+		*/
+
+		function allocateResources($module,$entry) {
+			$module = sqlescape($module);
+			$entry = sqlescape($entry);
+			sqlquery("DELETE FROM bigtree_resource_allocation WHERE module = '$module' AND entry = '$entry'");
+			foreach ($this->IRLsCreated as $resource) {
+				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`) VALUES ('$module','$entry','".sqlescape($resource)."')");
+			}
+		}
+
+		/*
 			Function: apiLogin
 				Creates a temporary API token (or returns an existing temporary token) for a given username and password.
 			

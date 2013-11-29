@@ -37,6 +37,9 @@
 		$admin->growl("Pages","Created Page Draft");
 	}
 
+	// Track resource allocation
+	$admin->allocateResources("pages",$page);
+
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $page,
 		"return_link" => ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/",
