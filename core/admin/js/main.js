@@ -1322,6 +1322,22 @@ var BigTreeFileManager = {
 		$(".bigtree_dialog_form").last().find("footer *").hide();
 		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
 	},
+
+	deleteFile: function(ev) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		var count = parseInt($(this).attr("data-allocation"));
+		if (count) {
+			var c = confirm("This resource is in use in " + count + " locations.\nThese links or images will become empty or broken.\n\nAre you sure you want to delete this resource?");
+		} else {
+			var c = confirm("Are you sure you want to delete this resource?");
+		}
+		if (c) {
+			$.ajax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
+			$("#file_browser_contents .selected").remove();
+			$("#file_browser_info_pane").html("");
+		}
+	},
 	
 	disableCreate: function() {
 		$("#file_browser .header a").hide();		
@@ -1364,7 +1380,9 @@ var BigTreeFileManager = {
 				$("#file_browser_detail_title_input").keyup(function() {
 					clearTimeout(BigTreeFileManager.titleSaveTimer);
 					BigTreeFileManager.titleSaveTimer = setTimeout("BigTreeFileManager.saveFileTitle();",500);
-				});				
+				});
+				$("#file_browser_info_pane .replace").click(BigTreeFileManager.replaceFile);
+				$("#file_browser_info_pane .delete").click(BigTreeFileManager.deleteFile);
 			}
 		);
 		
@@ -1428,7 +1446,9 @@ var BigTreeFileManager = {
 				$("#file_browser_detail_title_input").keyup(function() {
 					clearTimeout(BigTreeFileManager.titleSaveTimer);
 					BigTreeFileManager.titleSaveTimer = setTimeout("BigTreeFileManager.saveFileTitle();",500);
-				});				
+				});
+				$("#file_browser_info_pane .replace").click(BigTreeFileManager.replaceFile);
+				$("#file_browser_info_pane .delete").click(BigTreeFileManager.deleteFile);
 			}
 		);
 		
@@ -1535,6 +1555,10 @@ var BigTreeFileManager = {
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-images/", { minWidth: this.minWidth, minHeight: this.minHeight, folder: folder }, $.proxy(this.imageBrowserPopulated,this));
+	},
+
+	replaceFile: function(ev) {
+
 	},
 	
 	saveFileTitle: function() {

@@ -1939,6 +1939,23 @@
 		}
 
 		/*
+			Function: deleteResource
+				Deletes a resource
+
+			Parameters:
+				id - The id of the resource.
+		*/
+
+		function deleteResource($id) {
+			$id = sqlescape($id);
+			$r = $this->getResource($id);
+			if ($r) {
+				unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$r["file"]));
+				sqlquery("DELETE FROM bigtree_resources WHERE id = '$id'");
+			}
+		}
+
+		/*
 			Function: deleteSetting
 				Deletes a setting.
 
@@ -4273,6 +4290,27 @@
 		function getResource($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
+		}
+
+		/*
+			Function: getResourceAllocation
+				Returns the places a resource is used.
+
+			Parameters:
+				id - The id of the resource.
+
+			Returns:
+				An array of entries from the bigtree_resource_allocation table.
+		*/
+
+		function getResourceAllocation($id) {
+			$id = sqlescape($id);
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_resource_allocation WHERE resource = '$id' ORDER BY updated_at DESC");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
 		}
 
 		/*

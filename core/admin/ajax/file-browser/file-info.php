@@ -24,3 +24,14 @@
 	<? } ?>
 	<p><span>Uploaded</span><strong><?=date("n/j/y @ g:ia",strtotime($file["date"]))?></strong></p>
 </div>
+<?
+	if ($admin->Level) {
+		$alloc = $admin->getResourceAllocation($file["id"]);
+?>
+<div class="file_browser_detail_actions">
+	<a href="#" class="button replace">Replace</a>
+	<a href="#" data-allocation="<?=count($alloc)?>" class="button delete red">Delete</a>
+</div>
+<?
+	}
+?>
