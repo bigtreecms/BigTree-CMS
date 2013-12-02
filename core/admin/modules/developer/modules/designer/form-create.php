@@ -35,7 +35,7 @@
 		$fields[$field_name] = $field;
 		
 		// Figure out what to make the MySQL field.
-		$a = "ADD COLUMN $field_name ";
+		$a = "ADD COLUMN `$field_name` ";
 		if ($t == "textarea" || $t == "html" || $t == "photo-gallery" || $t == "array") {
 			$a .= "TEXT";
 		} elseif ($t == "date") {
@@ -51,7 +51,7 @@
 	}
 	
 	// Update the table
-	sqlquery("ALTER TABLE $table ".implode(", ",$adds));
+	sqlquery("ALTER TABLE `$table` ".implode(", ",$adds));
 	
 	// Add the module form
 	
