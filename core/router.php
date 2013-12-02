@@ -354,7 +354,12 @@
 		
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
-			$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
+			// Allow the homepage to be routed
+			if ($bigtree["page"]["path"]) {
+				$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
+			} else {
+				$path_components = $bigtree["path"];
+			}
 			if (end($path_components) === "") {
 				array_pop($path_components);
 			}
