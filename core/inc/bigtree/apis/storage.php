@@ -33,10 +33,10 @@
 				$admin->updateSettingValue("bigtree-internal-storage",array("service" => "local"));
 			} else {
 				$this->Service = $ups["service"];
-				$this->optipng = $ups["optipng"];
-				$this->jpegtran = $ups["jpegtran"];
-				$this->RackspaceData = $ups["rackspace"];
-				$this->S3Data = $ups["s3"];
+				$this->optipng = isset($ups["optipng"]) ? $ups["optipng"] : false;
+				$this->jpegtran = isset($ups["jpegtran"]) ? $ups["jpegtran"] : false;
+				$this->RackspaceData = isset($ups["rackspace"]) ? $ups["rackspace"] : false;
+				$this->S3Data = isset($ups["s3"]) ? $ups["s3"] : false;
 				$this->S3Files = array();
 			}
 		}

@@ -1240,7 +1240,7 @@ var BigTreeFileManager = {
 	availableThumbs: false,
 	browser: false,
 	callback: false,
-	currentFolder: 0,
+	currentFolder: 0,	
 	currentlyKey: false,
 	currentlyName: false,
 	fieldName: false,
@@ -1336,6 +1336,7 @@ var BigTreeFileManager = {
 			$.ajax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
 			$("#file_browser_contents .selected").remove();
 			$("#file_browser_info_pane").html("");
+			$("#file_browser .footer .blue").hide();
 		}
 	},
 	
@@ -1558,7 +1559,17 @@ var BigTreeFileManager = {
 	},
 
 	replaceFile: function(ev) {
+		ev.preventDefault();
+		ev.stopPropagation();
+		new BigTreeDialog("Replace File",'<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',BigTreeFileManager.replaceFileProcess,"folder",false,"Replace File",true,BigTreeFileManager.cancelAdd);		
+	},
 
+	replaceFileProcess: function(data) {
+		$(".bigtree_dialog_overlay").last().remove();
+		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
+		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
+		$(".bigtree_dialog_form").last().find("footer *").hide();
+		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Replacing file. Please wait…</p>'));
 	},
 	
 	saveFileTitle: function() {

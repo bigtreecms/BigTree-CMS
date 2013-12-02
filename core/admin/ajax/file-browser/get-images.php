@@ -32,8 +32,14 @@
 				if ($resource["is_image"]) {
 					$file = str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$resource["file"]);
 					$thumbs = json_decode($resource["thumbs"],true);
-					$thumb = $thumbs["bigtree_internal_list"];
-					$margin = $resource["list_thumb_margin"];
+					if (isset($thumbs["bigtree_internal_list"])) {
+						$thumb = $thumbs["bigtree_internal_list"];
+						$margin = $resource["list_thumb_margin"];
+					} else {
+						list($w,$h) = getimagesize($file);
+						$thumb = str_replace(SITE_ROOT,WWW_ROOT,$file);
+						$margin = ceil((98 - $h) / 2);
+					}
 					$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
 					$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
 					

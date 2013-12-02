@@ -6630,13 +6630,16 @@
 
 			Parameters:
 				id - The id of the resource.
-				name - The name of the resource.
+				attributes - A key/value array of fields to update.
 		*/
 
-		function updateResource($id,$name) {
+		function updateResource($id,$attributes) {
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			sqlquery("UPDATE bigtree_resources SET name = '$name' WHERE id = '$id'");
+			$fields = array();
+			foreach ($attributes as $key => $val) {
+				$fields[] = "`$key` = '".sqlescape($val)."'";
+			}
+			sqlquery("UPDATE bigtree_resources SET ".implode(", ",$fields)." WHERE id = '$id'");
 		}
 
 		/*

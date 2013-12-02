@@ -1,6 +1,17 @@
 <?
-	$folder = sqlescape($_POST["folder"]);
+	// If we're replacing an existing file, find out its name
+	if (isset($_POST["replace"])) {
+		$admin->requireLevel(1);
+		$replacing = $admin->getResource($_POST["replace"]);
+		$pinfo = BigTree::pathInfo($replacing["file"]);
+		$replacing = $pinfo["basename"];
+	} else {
+		$replacing = false;
+	}
+
+	$folder = isset($_POST["folder"]) ? sqlescape($_POST["folder"]) : false;
 	$f = $_FILES["file"];
+	$file_name = $replacing ? $replacing : $f["name"];
 
 	// If the user doesn't have permission to upload to this folder, throw an error.
 	$perm = $admin->getResourceFolderPermission($folder);
@@ -24,11 +35,11 @@
 		$temp_name = $f["tmp_name"];
 
 		// See if this file already exists
-		if (!$admin->matchResourceMD5($temp_name,$_POST["folder"])) {		
+		if ($replacing || !$admin->matchResourceMD5($temp_name,$_POST["folder"])) {		
 			$md5 = md5_file($temp_name);
 
 			// Get the name and file extension
-			$n = strrev($f["name"]);
+			$n = strrev($file_name);
 			$extension = strtolower(strrev(substr($n,0,strpos($n,"."))));
 			
 			// See if it's an image
@@ -37,7 +48,11 @@
 			// It's a regular file
 			if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 				$type = "file";
-				$file = $storage->store($temp_name,$f["name"],"files/resources/");
+				if ($replacing) {
+					$file = $storage->replace($temp_name,$file_name,"files/resources/");
+				} else {
+					$file = $storage->store($temp_name,$file_name,"files/resources/");
+				}
 				// If we failed, either cloud storage upload failed, directory permissions are bad, or the file type isn't permitted
 				if (!$file) {
 					if ($storage->DisabledFileError) {
@@ -47,7 +62,9 @@
 					}
 				// Otherwise make the database entry for the file we uplaoded.
 				} else {
-					$admin->createResource($folder,$file,$md5,$f["name"],$extension);
+					if (!$replacing) {
+						$admin->createResource($folder,$file,$md5,$file_name,$extension);
+					}
 				}
 			// It's an image
 			} else {
@@ -85,7 +102,7 @@
 					if (file_exists(substr($first_copy,0,-3)."png")) {
 						unlink($first_copy);
 						$first_copy = substr($first_copy,0,-3)."png";
-						$name_parts = BigTree::pathInfo($f["name"]);
+						$name_parts = BigTree::pathInfo($file_name);
 						$name = $name_parts["filename"].".png";
 					}
 					
@@ -117,7 +134,7 @@
 				if (!$error) {
 					// Now let's make the thumbnails we need for the image manager
 					$thumbs = array();
-					$pinfo = BigTree::pathInfo($f["name"]);
+					$pinfo = BigTree::pathInfo($file_name);
 	
 					// Create a bunch of thumbnails
 					foreach ($thumbnails_to_create as $key => $thumb) {
@@ -129,19 +146,38 @@
 								list($twidth,$theight) = getimagesize($temp_thumb);
 								$margin = floor((100 - $theight) / 2);
 							}
-	
-							$file = $storage->store($temp_thumb,$thumb["prefix"].$pinfo["basename"],"files/resources/");
+							
+							if ($replacing) {
+								$file = $storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],"files/resources/");
+							} else {
+								$file = $storage->store($temp_thumb,$thumb["prefix"].$pinfo["basename"],"files/resources/");
+							}
 							$thumbs[$key] = $file;
 						}
 					}
 				
 					// Upload the original to the proper place.
-					$file = $storage->store($first_copy,$f["name"],"files/resources/");
+					if ($replacing) {
+						$file = $storage->replace($first_copy,$file_name,"files/resources/");
+					} else {
+						$file = $storage->store($first_copy,$file_name,"files/resources/");
+					}
 		
 					if (!$file) {
 						$error = "The upload failed (unknown error).";
 					} else {
-						$admin->createResource($folder,$file,$md5,$f["name"],$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+						if (!$replacing) {
+							$admin->createResource($folder,$file,$md5,$file_name,$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+						} else {
+							$admin->updateResource($_POST["replace"],array(
+								"date" => date("Y-m-d H:i:s"),
+								"md5" => $md5,
+								"height" => $iheight,
+								"width" => $iwidth,
+								"thumbs" => json_encode($thumbs),
+								"list_thumb_margin" => $margin
+							));
+						}
 					}
 				}
 			}

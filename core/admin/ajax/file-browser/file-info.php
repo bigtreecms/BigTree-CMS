@@ -29,7 +29,7 @@
 		$alloc = $admin->getResourceAllocation($file["id"]);
 ?>
 <div class="file_browser_detail_actions">
-	<a href="#" class="button replace">Replace</a>
+	<a href="#" data-replace="<?=$file["id"]?>" class="button replace">Replace</a>
 	<a href="#" data-allocation="<?=count($alloc)?>" class="button delete red">Delete</a>
 </div>
 <?
