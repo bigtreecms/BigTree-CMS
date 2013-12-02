@@ -1328,9 +1328,9 @@ var BigTreeFileManager = {
 		ev.stopPropagation();
 		var count = parseInt($(this).attr("data-allocation"));
 		if (count) {
-			var c = confirm("This resource is in use in " + count + " locations.\nThese links or images will become empty or broken.\n\nAre you sure you want to delete this resource?");
+			var c = confirm("This file is in use in " + count + " locations.\nThese links or images will become empty or broken.\n\nAre you sure you want to delete this file?");
 		} else {
-			var c = confirm("Are you sure you want to delete this resource?");
+			var c = confirm("Are you sure you want to delete this file?");
 		}
 		if (c) {
 			$.ajax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
@@ -1338,6 +1338,23 @@ var BigTreeFileManager = {
 			$("#file_browser_info_pane").html("");
 			$("#file_browser .footer .blue").hide();
 		}
+	},
+
+	deleteFolder: function(ev) {
+		ev.stopPropagation();
+		ev.preventDefault();
+		$.ajax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: this.currentFolder }, complete: function(r) {
+			var j = $.parseJSON(r.responseText);
+			if (confirm("This folder has " + j.folders + " sub-folder(s) and " + j.resources + " file(s) which will be deleted.\n\nFiles in this folder are in use in " + j.allocations + " location(s).\n\nAre you sure you want to delete this folder?")) {
+				$.ajax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: BigTreeFileManager.currentFolder }, complete: function(r) {
+					if (BigTreeFileManager.type == "image" || BigTreeFileManager.type == "photo-gallery") {
+						BigTreeFileManager.openImageFolder(r.responseText);	
+					} else {
+						BigTreeFileManager.openFileFolder(r.responseText);
+					}
+				}});
+			}
+		}});
 	},
 	
 	disableCreate: function() {
@@ -1408,6 +1425,10 @@ var BigTreeFileManager = {
 		this.fieldName = false;
 		this.callback = callback;
 		this.open(type,options.minWidth,options.minHeight);
+	},
+
+	hideDeleteFolder: function() {
+		$("#file_browser .delete_folder").hide();
 	},
 	
 	imageBrowser: function() {
@@ -1483,6 +1504,7 @@ var BigTreeFileManager = {
 	<span class="form_search_icon"></span>\
 	<a href="#" class="button add_file">Upload File</a>\
 	<a href="#" class="button add_folder">New Folder</a>\
+	<a href="#" class="button red delete_folder" style="display: none;">Delete Folder</a>\
 	<span id="file_browser_type_icon"></span>\
 	<h2 id="file_browser_type"><em class="title"></em><em class="suffix"></em></h2>\
 </div>\
@@ -1535,6 +1557,7 @@ var BigTreeFileManager = {
 		// Handle the create new folder / file clicks
 		$("#file_browser .header .add_file").click($.proxy(this.addFile,this));
 		$("#file_browser .header .add_folder").click($.proxy(this.addFolder,this));
+		$("#file_browser .header .delete_folder").click($.proxy(this.deleteFolder,this));
 		
 		// Open the right browser
 		if (type == "image" || type == "photo-gallery") {
@@ -1597,6 +1620,10 @@ var BigTreeFileManager = {
 	
 	setTitleSuffix: function(suffix) {
 		$("#file_browser_type .suffix").html(suffix);
+	},
+
+	showDeleteFolder: function() {
+		$("#file_browser .delete_folder").show();
 	},
 	
 	submitSelectedFile: function() {

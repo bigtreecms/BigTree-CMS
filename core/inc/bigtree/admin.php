@@ -1940,7 +1940,7 @@
 
 		/*
 			Function: deleteResource
-				Deletes a resource
+				Deletes a resource.
 
 			Parameters:
 				id - The id of the resource.
@@ -1953,6 +1953,25 @@
 				unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$r["file"]));
 				sqlquery("DELETE FROM bigtree_resources WHERE id = '$id'");
 			}
+		}
+
+		/*
+			Function: deleteResourceFolder
+				Deletes a resource folder and all of its sub folders and resources.
+
+			Parameters:
+				id - The id of the resource folder.
+		*/
+
+		function deleteResourceFolder($id) {
+			$items = $this->getContentsOfResourceFolder($id);
+			foreach ($items["folders"] as $folder) {
+				$this->deleteResourceFolder($folder["id"]);
+			}
+			foreach ($items["resources"] as $resource) {
+				$this->deleteResource($resource["id"]);
+			}
+			sqlquery("DELETE FROM bigtree_resource_folders WHERE id = '".sqlescape($id)."'");
 		}
 
 		/*
@@ -4327,6 +4346,35 @@
 		function getResourceFolder($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '$id'"));
+		}
+
+		/*
+			Function: getResourceFolderAllocationCounts
+				Returns the number of items inside a folder and it's subfolders and the number of allocations of the contained resources.
+
+			Parameters:
+				folder - The id of the folder.
+
+			Returns:
+				A keyed array of "resources", "folders", and "allocations" for the number of resources, sub folders, and allocations.
+		*/
+
+		function getResourceFolderAllocationCounts($folder) {
+			$allocations = $folders = $resources = 0;
+
+			$items = $this->getContentsOfResourceFolder($folder);
+			foreach ($items["folders"] as $folder) {
+				$folders++;
+				$subs = $this->getResourceFolderAllocationCounts($folder["id"]);
+				$allocations += $subs["allocations"];
+				$folders += $subs["folders"];
+				$resources += $subs["resources"];
+			}
+			foreach ($items["resources"] as $resource) {
+				$resources++;
+				$allocations += count($this->getResourceAllocation($resource["id"]));
+			}
+			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
 		}
 
 		/*

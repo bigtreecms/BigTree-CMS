@@ -85,4 +85,9 @@
 	BigTreeFileManager.setTitleSuffix("");
 	<? } ?>
 	BigTreeFileManager.setBreadcrumb("<?=str_replace('"','\"',$crumb_contents)?>");
+	<? if ($admin->Level && $_POST["folder"]) { ?>
+	BigTreeFileManager.showDeleteFolder();
+	<? } else { ?>
+	BigTreeFileManager.hideDeleteFolder();
+	<? } ?>
 </script>

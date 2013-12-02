@@ -1208,8 +1208,7 @@
 	#file_browser .header h2 { float: left; font-size: 18px; line-height: 37px; margin: 0 0 0 5px; }
 	#file_browser .header span { float: left; margin: 7px 0 0 0; }
 	#file_browser .header em { font-style: normal; }
-	#file_browser .header a { background-color: #DDD; border-radius: 3px; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 7px 5px 0 0; padding: 0; text-align: center; width: 85px; }
-	#file_browser .header a:hover { background-color: #EEE; }
+	#file_browser .header a { border-radius: 3px; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 7px 5px 0 0; padding: 0; text-align: center; width: 85px; }
 	#file_browser_breadcrumb { background-gradient: #F6F6F6 #FFFFFF; border-bottom: 1px solid #E5E5E5; float: left; height: 25px; list-style: none; margin: 0; width: 820px; }
 	#file_browser_breadcrumb li { float: left; }
 	#file_browser_breadcrumb a { background: url(../images/row-bg-sprite.png) no-repeat right -163px; color: #333; display: block; font-size: 12px; height: 25px; line-height: 25px; padding: 0px 13px 0px 7px; }
