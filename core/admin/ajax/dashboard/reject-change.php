@@ -23,4 +23,10 @@
 	}
 	
 	$admin->deletePendingChange($change["id"]);
+
+	if (!is_numeric($item_id)) {
+		BigTreeAutoModule::uncacheItem($item_id,$change["table"]);
+	} else {
+		BigTreeAutoModule::recacheItem($item_id,$change["table"]);
+	}
 ?>
