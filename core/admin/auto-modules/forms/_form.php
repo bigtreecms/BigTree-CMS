@@ -182,8 +182,6 @@
 			$("input[name=save_and_publish]").hide();
 		}
 	});
-	$(window).load(function() {
-		$(".gbp_select").trigger("change");
-	});
+	$(".gbp_select").trigger("change");
 	<? } ?>
 </script>
