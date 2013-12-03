@@ -111,7 +111,12 @@
 			}
 		}
 
-		_localDrawLevel(BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"","position DESC, id ASC","both"),1);
+		$table_description = BigTree::describeTable($bigtree["view"]["table"]);
+		if ($table_description["columns"][$bigtree["view"]["options"]["nesting_column"]]["allow_null"]) {
+			_localDrawLevel(BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"","position DESC, id ASC","both"),1);
+		} else {
+			_localDrawLevel(BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"0","position DESC, id ASC","both"),1);
+		}
 ?>
 <script>
 	$("#nested_container").addClass("nested_table");
