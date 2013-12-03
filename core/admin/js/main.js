@@ -354,9 +354,16 @@ var BigTreeSelect = Class.extend({
 					val = text;
 				}
 				
+				// If we're making a tree-like dropdown
+				if (option.attr("data-depth")) {
+					depth = parseInt(option.attr("data-depth")) * 10;
+				} else {
+					depth = 0;
+				}
+
 				// Get the size of this text.
 				tester.html(text);
-				width = tester.width();
+				width = tester.width() + depth;
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
@@ -365,12 +372,11 @@ var BigTreeSelect = Class.extend({
 					selected_option = text;
 				}
 				
-				
 				if (option.attr("selected")) {
-					html += '<a class="active" href="#" data-value="' + val + '">' + text + '</a>';		
+					html += '<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>';		
 					selected_option = text;
 				} else {
-					html += '<a href="#" data-value="' + val + '">' + text + '</a>';
+					html += '<a style="border-left: ' + depth + 'px solid #CCC;" href="#" data-value="' + val + '">' + text + '</a>';
 				}
 			}
 		}
