@@ -81,7 +81,7 @@
 	<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" /> <label class="for_checkbox">Trunk</label>
 </fieldset>
 <? } ?>
-<fieldset class="visible clear">
+<fieldset class="last clear">
 	<? if ($parent_to_check > 0 || $admin->Level > 1) { ?>
 	<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation</label>
 	<? } else { ?>

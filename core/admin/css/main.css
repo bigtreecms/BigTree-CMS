@@ -537,7 +537,7 @@
 	.property_block .page_id p { width: 80px; }
 	
 	#properties_tab fieldset { margin-bottom: 20px; }
-	#properties_tab fieldset.visible { margin-bottom: 0; }
+	#properties_tab fieldset.last { margin-bottom: 0; }
 	#properties_tab .date_pickers fieldset { float: left; width: 205px; }
 	#properties_tab .date_pickers fieldset.right { float: right; }
 
