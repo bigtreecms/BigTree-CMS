@@ -3,14 +3,13 @@
 
 	// Grab View Data
 	if (isset($_GET["view"])) {
-		$view = $_GET["view"];
+		$bigtree["view"] = BigTreeAutoModule::getView($_GET["view"]);
 	}
 	if (isset($_GET["module"])) {
 		$module = $admin->getModuleByRoute($_GET["module"]);
 	}
 
-	$view = BigTreeAutoModule::getView($view);
-	BigTree::globalizeArray($view);
+	BigTree::globalizeArray($bigtree["view"]);
 
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 	$page = isset($_GET["page"]) ? $_GET["page"] : 1;
@@ -19,7 +18,7 @@
 		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
 		
 		// Append information to the end of an edit string so that we can return to the same set of search results after submitting a form.
-		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "sort" => $_GET["sort"], "sort_direction" => $_GET["sort_direction"], "search" => $search, "page" => $page)));
+		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "sort" => $_GET["sort"], "sort_direction" => $_GET["sort_direction"], "search" => $search, "page" => $page)));
 	} else {
 		if (isset($options["sort_column"])) {
 			$sort = $options["sort_column"]." ".$options["sort_direction"];
@@ -30,13 +29,13 @@
 		}
 		
 		// Same thing we were going to do above but omit the sort stuff.
-		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "search" => $search, "page" => $page)));
+		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "search" => $search, "page" => $page)));
 	}
 	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	
 	// Setup the preview action if we have a preview URL and field.
-	if ($view["preview_url"]) {
+	if ($bigtree["view"]["preview_url"]) {
 		$actions["preview"] = "on";
 	}
 	
@@ -46,7 +45,7 @@
 	$suffix = $suffix ? "-".$suffix : "";
 	
 	// Handle how many pages we have and get our results.
-	$data = BigTreeAutoModule::getSearchResults($view,$page,$search,$sort,false);
+	$data = BigTreeAutoModule::getSearchResults($bigtree["view"],$page,$search,$sort,false);
 	$pages = $data["pages"];
 	$items = $data["results"];
 	
@@ -82,7 +81,7 @@
 	?>
 	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
 	<?	
-		$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
+		$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
 		foreach ($actions as $action => $data) {
 			if ($data == "on") {
 				if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -96,7 +95,7 @@
 				}
 				
 				if ($action == "preview") {
-					$link = rtrim($view["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+					$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 				} elseif ($action == "edit") {
 					$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
 				} else {
