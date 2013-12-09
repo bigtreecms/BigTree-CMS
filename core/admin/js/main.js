@@ -2038,7 +2038,7 @@ var BigTreeManyToMany = Class.extend({
 		this.field.find(".add").click($.proxy(this.addItem,this));
 		this.field.on("click",".icon_delete",this.deleteItem);
 		if (keep_options) {
-			this.keepOptions = false;
+			this.keepOptions = true;
 		}
 	},
 	
