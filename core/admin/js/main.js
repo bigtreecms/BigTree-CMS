@@ -2025,8 +2025,9 @@ var BigTreeManyToMany = Class.extend({
 	field: false,
 	key: false,
 	sortable: false,
+	keepOptions: false,
 	
-	init: function(id,count,key,sortable) {
+	init: function(id,count,key,sortable,keep_options) {
 		this.count = count;
 		this.key = key;
 		this.field = $("#" + id);
@@ -2036,6 +2037,9 @@ var BigTreeManyToMany = Class.extend({
 		}
 		this.field.find(".add").click($.proxy(this.addItem,this));
 		this.field.on("click",".icon_delete",this.deleteItem);
+		if (keep_options) {
+			this.keepOptions = false;
+		}
 	},
 	
 	addItem: function() {
@@ -2054,7 +2058,9 @@ var BigTreeManyToMany = Class.extend({
 		li.find("input").val(val);
 
 		// Remove the option from the select.
-		select.customControl.remove(val);
+		if (!this.keepOptions) {
+			select.customControl.remove(val);
+		}
 		
 		this.field.find("ul").append(li);
 		this.field.trigger("addedItem", { element: li, index: this.count });
@@ -2075,7 +2081,11 @@ var BigTreeManyToMany = Class.extend({
 			li = $(this).parents("li");
 			val = li.find("input").val();
 			text = li.find("p").html();
-			fieldset.find("select")[0].customControl.add(val,text);
+			// Add the option back to the select
+			if (!this.keepOptions) {
+				fieldset.find("select")[0].customControl.add(val,text);
+			}
+
 			li.remove();
 			fieldset.trigger("removedItem", { value: val, description: text });
 
