@@ -50,6 +50,51 @@
 		}
 
 		/*
+			Function: copyFile
+				Copies a file from one container/location to another container/location.
+
+			Parameters:
+				source_container - The container the file is stored in.
+				source_pointer - The full file path inside the container.
+				destination_container - The container to copy the source file to.
+				destination_pointer - The full file path to store the copied file
+				access - Access control level for the new file: "private" for no outside access (default), "read" for public read, "write" for public read/write
+
+			Returns:
+				true if successful.
+		*/
+
+		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$access = "private") {
+			// Amazon S3
+			if ($this->Service == "amazon") {
+				// Get the Amazon code for the access level
+				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
+				$acl = $access_levels[$access];
+				if (!$acl) {
+					return false;
+				}
+
+				$response = $this->callAmazonS3("PUT",$destination_container,$destination_pointer,array(),array("Content-Length" => "0"),array(
+					"x-amz-acl" => $acl,
+					"x-amz-copy-source" => "/".$source_container."/".rawurlencode($source_pointer)
+				));
+
+				if ($this->HTTPResponseCode != "200") {
+					return false;
+				}
+				return true;
+			// Rackspace Cloud Files
+			} elseif ($this->Service == "rackspace") {
+
+			// Google Cloud Storage
+			} elseif ($this->Service == "google") {
+
+			} else {
+				return false;
+			}
+		}
+
+		/*
 			Function: createContainer
 				Creates a new container/bucket.
 
@@ -89,6 +134,52 @@
 		}
 
 		/*
+			Function: createFile
+				Creates a new file in the given container.
+
+			Parameters:
+				contents - What to write to the file.
+				container - Container name.
+				pointer - The full file path inside the container.
+				access - Access control level: "private" for no outside access (default), "read" for public read, "write" for public read/write
+				type - MIME type (defaults to "text/plain")
+			
+			Returns:
+				true if successful.
+		*/
+
+		function createFile($contents,$container,$pointer,$access = "private",$type = "text/plain") {
+			// Amazon S3
+			if ($this->Service == "amazon") {
+				// Get the Amazon code for the access level
+				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
+				$acl = $access_levels[$access];
+				if (!$acl) {
+					return false;
+				}
+
+				$response = $this->callAmazonS3("PUT",$container,$pointer,array(),array(
+					"Content-Type" => $type,
+					"Content-Length" => strlen($contents)
+				),array("x-amz-acl" => $acl),$contents);
+
+				if (!$response) {
+					return true;
+				}
+				$this->setAmazonError($response);
+				return false;
+			// Rackspace Cloud Files
+			} elseif ($this->Service == "rackspace") {
+
+			// Google Cloud Storage
+			} elseif ($this->Service == "google") {
+
+			} else {
+				return false;
+			}
+		}
+
+		/*
 			Function: deleteContainer
 				Deletes a container/bucket.
 				Containers must be empty to be deleted.
@@ -109,6 +200,37 @@
 				}
 				$this->setAmazonError($response);
 				return false;
+			// Rackspace Cloud Files
+			} elseif ($this->Service == "rackspace") {
+
+			// Google Cloud Storage
+			} elseif ($this->Service == "google") {
+
+			} else {
+				return false;
+			}
+		}
+
+		/*
+			Function: deleteFile
+				Deletes a file from the given container.
+
+			Parameters:
+				container - The container the file is stored in.
+				pointer - The full file path inside the container.
+
+			Returns:
+				true if successful
+		*/
+
+		function deleteFile($container,$pointer) {
+			// Amazon S3
+			if ($this->Service == "amazon") {
+				$response = $this->callAmazonS3("DELETE",$container,$pointer);
+				if ($this->HTTPResponseCode != "204") {
+					return false;
+				}
+				return true;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 
@@ -187,6 +309,37 @@
 		}
 
 		/*
+			Function: getFile
+				Returns a file from the given container.
+
+			Parameters:
+				container - The container the file is stored in.
+				pointer - The full file path inside the container.
+
+			Returns:
+				A binary stream of data or false if the file is not found or not allowed.
+		*/
+
+		function getFile($container,$pointer) {
+			// Amazon S3
+			if ($this->Service == "amazon") {
+				$response = $this->callAmazonS3("GET",$container,$pointer);
+				if ($this->HTTPResponseCode != "200") {
+					return false;
+				}
+				return $response;
+			// Rackspace Cloud Files
+			} elseif ($this->Service == "rackspace") {
+
+			// Google Cloud Storage
+			} elseif ($this->Service == "google") {
+
+			} else {
+				return false;
+			}
+		}
+
+		/*
 			Function: listContainers
 				Lists containers/buckets that are available in this cloud account.
 
@@ -235,6 +388,80 @@
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				return $this->createContainer($container,$level);
+			// Rackspace Cloud Files
+			} elseif ($this->Service == "rackspace") {
+
+			// Google Cloud Storage
+			} elseif ($this->Service == "google") {
+
+			} else {
+				return false;
+			}
+		}
+
+		/*
+			Function: uploadFile
+				Creates a new file in the given container.
+
+			Parameters:
+				file - The file to upload.
+				container - Container name.
+				pointer - The full file path inside the container (if left empty the file's current name will be used and the root of the bucket)
+				access - Access control level: "private" for no outside access (default), "read" for public read, "write" for public read/write
+				type - MIME type (defaults to "text/plain")
+			
+			Returns:
+				true if successful.
+		*/
+
+		function uploadFile($file,$container,$pointer = false,$access = "private") {
+			// MIME Types
+			$exts = array(
+				"jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif",
+				"png" => "image/png", "ico" => "image/x-icon", "pdf" => "application/pdf",
+				"tif" => "image/tiff", "tiff" => "image/tiff", "svg" => "image/svg+xml",
+				"svgz" => "image/svg+xml", "swf" => "application/x-shockwave-flash", 
+				"zip" => "application/zip", "gz" => "application/x-gzip",
+				"tar" => "application/x-tar", "bz" => "application/x-bzip",
+				"bz2" => "application/x-bzip2",  "rar" => "application/x-rar-compressed",
+				"exe" => "application/x-msdownload", "msi" => "application/x-msdownload",
+				"cab" => "application/vnd.ms-cab-compressed", "txt" => "text/plain",
+				"asc" => "text/plain", "htm" => "text/html", "html" => "text/html",
+				"css" => "text/css", "js" => "text/javascript",
+				"xml" => "text/xml", "xsl" => "application/xsl+xml",
+				"ogg" => "application/ogg", "mp3" => "audio/mpeg", "wav" => "audio/x-wav",
+				"avi" => "video/x-msvideo", "mpg" => "video/mpeg", "mpeg" => "video/mpeg",
+				"mov" => "video/quicktime", "flv" => "video/x-flv", "php" => "text/x-php"
+			);
+			// Default the pointer to the name of the file if not provided.
+			if (!$pointer) {
+				$path_info = BigTree::pathInfo($file);
+				$pointer = $path_info["basename"];
+			} else {
+				$path_info = BigTree::pathInfo($pointer);
+			}
+			// Get destination mime type
+			$content_type = isset($exts[strtolower($path_info["extension"])]) ? $exts[strtolower($path_info["extension"])] : "application/octet-stream";
+
+			// Amazon S3
+			if ($this->Service == "amazon") {
+				// Get the Amazon code for the access level
+				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
+				$acl = $access_levels[$access];
+				if (!$acl) {
+					return false;
+				}
+
+				$response = $this->callAmazonS3("PUT",$container,$pointer,array(),array(
+					"Content-Type" => $content_type,
+					"Content-Length" => filesize($file)
+				),array("x-amz-acl" => $acl),false,$file);
+				
+				if (!$response) {
+					return true;
+				}
+				$this->setAmazonError($response);
+				return false;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 
@@ -369,13 +596,16 @@
 			// Different methods
 			$file_pointer = false;
 			if ($verb == "PUT") {
-				curl_setopt($curl,CURLOPT_PUT,true);
 				if ($file) {
+					curl_setopt($curl,CURLOPT_PUT,true);
 					curl_setopt($curl,CURLOPT_INFILESIZE,filesize($file));
 					$file_pointer = fopen($file,"r");
 					curl_setopt($curl,CURLOPT_INFILE,$file_pointer);
 				} elseif ($data) {
+					curl_setopt($curl,CURLOPT_CUSTOMREQUEST,"PUT");
 					curl_setopt($curl,CURLOPT_POSTFIELDS,$data);
+				} else {
+					curl_setopt($curl,CURLOPT_CUSTOMREQUEST,"PUT");
 				}
 			} elseif ($verb == "POST") {
 				curl_setopt($curl,CURLOPT_POST,true);
@@ -391,6 +621,7 @@
 			if ($file_pointer) {
 				fclose($file_pointer);
 			}
+			$this->HTTPResponseCode = curl_getinfo($curl,CURLINFO_HTTP_CODE);
 			return $response;
 		}
 
