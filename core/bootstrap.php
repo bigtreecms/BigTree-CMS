@@ -63,6 +63,7 @@
 		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
 		"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
 		"BigTreeStorage" => "inc/bigtree/apis/storage.php",
+		"BigTreeCloudStorage" => "inc/bigtree/apis/cloud-storage.php",
 		"BigTreeGeocoding" => "inc/bigtree/apis/geocoding.php",
 		"BigTreeTwitterAPI" => "inc/bigtree/apis/twitter.php",
 		"BigTreeInstagramAPI" => "inc/bigtree/apis/instagram.php",

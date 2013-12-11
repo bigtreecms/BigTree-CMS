@@ -19,9 +19,9 @@
 		
 		function __construct() {
 			global $cms,$admin;
-			$ups = $cms->getSetting("bigtree-internal-storage");
+			$settings = $cms->getSetting("bigtree-internal-storage");
 			// If for some reason the setting doesn't exist, make one.
-			if (!is_array($ups) || !$ups["service"]) {
+			if (!is_array($settings) || !$settings["service"]) {
 				$this->Service = "local";
 				$this->optipng = false;
 				$this->jpegtran = false;
@@ -32,11 +32,11 @@
 				));
 				$admin->updateSettingValue("bigtree-internal-storage",array("service" => "local"));
 			} else {
-				$this->Service = $ups["service"];
-				$this->optipng = isset($ups["optipng"]) ? $ups["optipng"] : false;
-				$this->jpegtran = isset($ups["jpegtran"]) ? $ups["jpegtran"] : false;
-				$this->RackspaceData = isset($ups["rackspace"]) ? $ups["rackspace"] : false;
-				$this->S3Data = isset($ups["s3"]) ? $ups["s3"] : false;
+				$this->Service = $settings["service"];
+				$this->optipng = isset($settings["optipng"]) ? $settings["optipng"] : false;
+				$this->jpegtran = isset($settings["jpegtran"]) ? $settings["jpegtran"] : false;
+				$this->RackspaceData = isset($settings["rackspace"]) ? $settings["rackspace"] : false;
+				$this->S3Data = isset($settings["s3"]) ? $settings["s3"] : false;
 				$this->S3Files = array();
 			}
 		}
