@@ -169,10 +169,10 @@
 		*/
 
 		function createContainer($name,$access = "private") {
+			$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				// Get the Amazon code for the access level
-				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
 				$acl = $access_levels[$access];
 				if (!$acl) {
 					return false;
@@ -195,7 +195,13 @@
 				}
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$response = $this->call("b?project=".$this->Settings["project"],json_encode(array("name" => $name)),"POST");
+				$request = array("name" => $name);
+				if ($access == "read") {
+					$request["defaultObjectAcl"] = array(array("role" => "READER","entity" => "allUsers"));
+				} elseif ($access == "write") {
+					$request["defaultObjectAcl"] = array(array("role" => "OWNER","entity" => "allUsers"));
+				}
+				$response = $this->call("b?project=".$this->Settings["project"],json_encode($request),"POST");
 				if (isset($response->id)) {
 					return true;
 				} else {
