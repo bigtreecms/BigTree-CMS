@@ -1,7 +1,7 @@
 <?
-	$token = $api->oAuthSetToken($_GET["code"]);
-	if ($api->OAuthError) {
-		$admin->growl("Google Cloud Storage",$api->OAuthError,"error");
+	$token = $cloud->oAuthSetToken($_GET["code"]);
+	if ($cloud->OAuthError) {
+		$admin->growl("Google Cloud Storage",$cloud->OAuthError,"error");
 	} else {
 		$admin->growl("Google Cloud Storage","Connected");
 	}

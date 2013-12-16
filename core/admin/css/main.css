@@ -1104,6 +1104,9 @@
 	.api_account_block { overflow: hidden; }
 	.api_account_block img { float: left; width: 50px; }
 	.api_account_block strong { color: #666; display: block; font-size: 16px; font-weight: bold; padding: 8px 0 8px 0; }
+
+	.developer_cloud_key .file_wrapper { float: left; margin: 0 10px 0 0; }
+	.developer_cloud_key span { margin-top: 3px; }
 	
 /*---------------------------
 		BigTree Dialog

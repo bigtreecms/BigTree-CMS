@@ -18,11 +18,14 @@
 		/*
 			Constructor:
 				Retrieves the current desired service and settings.
+
+			Parameters:
+				service - The service to use (amazon, rackspace, google) — if this is left empty it will use $this->Settings["service"] which can be set and auto saves.
 		*/
 		
-		function __construct() {
+		function __construct($service = false) {
 			parent::__construct("bigtree-internal-cloud-storage","Cloud Storage","org.bigtreecms.api.cloud-storage",false);
-			$this->Service = $this->Settings["service"];
+			$this->Service = $service ? $service : $this->Settings["service"];
 
 			// Set OAuth Return URL for Google Cloud Storage
 			$this->ReturnURL = ADMIN_ROOT."developer/cloud-storage/google/return/";
@@ -138,6 +141,12 @@
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$source_container/o/$source_pointer/copyTo/b/$destination_container/o/$destination_pointer","{}","POST");
 				if (isset($response->id)) {
+					// Set the access control level if it's publicly accessible
+					if ($access == "read") {
+						$this->call("b/$destination_container/o/$destination_pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+					} elseif ($access == "write") {
+						$this->call("b/$destination_container/o/$destination_pointer/acl",json_encode(array("entity" => "allUsers","role" => "OWNER")),"POST");
+					}
 					return true;
 				} else {
 					return false;
@@ -237,12 +246,40 @@
 
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				print_r(array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]));
-				$response = BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"])));
-				print_r($response);
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
+				if (isset($response->id)) {
+					// Set the access control level if it's publicly accessible
+					if ($access == "read") {
+						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+					} elseif ($access == "write") {
+						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "OWNER")),"POST");
+					}
+					return true;
+				} else {
+					foreach ($response->error->errors as $error) {
+						$this->Errors[] = $error;
+					}
+					return false;
+				}
 			} else {
 				return false;
 			}
+		}
+
+		/*
+			Function: createFolder
+				Creates a new folder in the given container.
+
+			Parameters:
+				container - Container name.
+				pointer - The full folder path inside the container.
+			
+			Returns:
+				true if successful.
+		*/
+
+		function createFolder($container,$pointer) {
+			return $this->createFile("",$container,rtrim($pointer,"/")."/");
 		}
 
 		/*
@@ -315,7 +352,12 @@
 
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-
+				$error_count = count($this->Errors);
+				$response = $this->call("b/$container/o/$pointer",false,"DELETE");
+				if (count($this->Errors) > $error_count) {
+					return false;
+				}
+				return true;
 			} else {
 				return false;
 			}
@@ -346,7 +388,22 @@
 
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
+				if (!function_exists('openssl_x509_read')) {
+					throw new Exception("PHP's OpenSSL extension is required to use authenticated URLs with Google Cloud Storage.");
+				}
+				if (!$this->Settings["private_key"] || !$this->Settings["certificate_email"]) {
+					throw new Exception("You must upload your Google Cloud Storage private key and set your Certificate Email Address to use authenticated URLs.");
+				}
+				// Google's default password for these is "notasecret"
+				$certificates = array();
+				if (!openssl_pkcs12_read(file_get_contents($this->Settings["private_key"]),$certificates,"notasecret")) {
+	  				throw new Exception("Unable to parse Google Cloud Storage private key file:".openssl_error_string());
+				}
+				$private_key = openssl_pkey_get_private($certificates["pkey"]);
+				// Sign the string
+				openssl_sign("GET\n\n\n$expires\n/$container/$pointer",$signature,$private_key,"sha256");
 
+				return "http://storage.googleapis.com/$container/$pointer?GoogleAccessId=".$this->Settings["certificate_email"]."&Expires=$expires&Signature=".urlencode(base64_encode($signature));
 			} else {
 				return false;
 			}
@@ -602,10 +659,26 @@
 				return false;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-
+				$file_pointer = fopen($file,"r");
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
+				fclose($file_pointer);
+				if (isset($response->id)) {
+					// Set the access control level if it's publicly accessible
+					if ($access == "read") {
+						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+					} elseif ($access == "write") {
+						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "OWNER")),"POST");
+					}
+					return true;
+				} else {
+					foreach ($response->error->errors as $error) {
+						$this->Errors[] = $error;
+					}
+					return false;
+				}
 			} else {
 				return false;
 			}
