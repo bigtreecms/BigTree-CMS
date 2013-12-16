@@ -4059,6 +4059,8 @@
 				return false;
 			}
 			$item["changes"] = json_decode($item["changes"],true);
+			$item["mtm_changes"] = json_decode($item["mtm_changes"],true);
+			$item["tags_changes"] = json_decode($item["tags_changes"],true);
 			return $item;
 		}
 

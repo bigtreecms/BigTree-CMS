@@ -28,7 +28,7 @@
 			$page_data = $cms->getPendingPage($change["item_id"]);
 			$admin->updatePage($change["item_id"],$page_data);
 		} else {
-			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$changes["mtm_changes"],$changes["tags_changes"]);
+			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
 		}
 	// It's a new entry, let's publish it.
 	} else {
@@ -36,7 +36,7 @@
 			$page = $admin->createPage($change["changes"]);
 			$admin->deletePendingChange($change["id"]);
 		} else {
-			BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$changes["mtm_changes"],$changes["tags_changes"]);
+			BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
 		}
 	}
 ?>
