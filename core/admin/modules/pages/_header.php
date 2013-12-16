@@ -1,6 +1,6 @@
 <?
 	$proot = ADMIN_ROOT."pages/";
-	$id = end($bigtree["commands"]);
+	$id = isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]);
 	$action = $bigtree["path"][count($bigtree["path"]) - 2];
 
 	// Get the end command as the current working page and get the current user's access level.
