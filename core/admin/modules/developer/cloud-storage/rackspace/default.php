@@ -1,16 +1,22 @@
 <?
-	$ups = $cms->getSetting("bigtree-internal-storage");
-	if ($ups["rackspace"]["keys"]) {
-		$api_key = htmlspecialchars($ups["rackspace"]["keys"]["api_key"]);
-		$username = htmlspecialchars($ups["rackspace"]["keys"]["username"]);
+	$regions = array(
+		"ORD" => "Chicago, IL (USA)",
+		"DFW" => "Dallas/Ft. Worth, TX (USA)",
+		"HKG" => "Hong Kong",
+		"LON" => "London (UK)",
+		"IAD" => "Northern Virginia (USA)",
+		"SYD" => "Sydney (Australia)"
+	);
+
+	if (isset($cloud->Settings["rackspace"])) {
+		BigTree::globalizeArray($cloud->Settings["rackspace"],"htmlspecialchars");
+	} else {
+		$api_key = $username = $region = "";
 	}
 ?>
 <div class="container">
-	<form method="post" action="<?=ADMIN_ROOT?>developer/cloud-storage/rackspace/update/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/update/" class="module">
 		<section>
-			<div class="alert">
-				<p>To enable usage of Rackspace Cloud Files for all BigTree uploads enter your access keys below.<br />Please note that this change is not retroactive -- only future uploads will be stored on Rackspace Cloud Files.</p>
-			</div>	
 			<fieldset>
 				<label>API Key</label>
 				<input type="text" name="api_key" value="<?=$api_key?>" />
@@ -18,6 +24,14 @@
 			<fieldset>
 				<label>Username</label>
 				<input type="text" name="username" value="<?=$username?>" />
+			</fieldset>
+			<fieldset>
+				<label>Region <small>(choose the location closest to your users)</small></label>
+				<select name="region">
+					<? foreach ($regions as $r => $name) { ?>
+					<option value="<?=$r?>"<? if ($r == $region) { ?> selected="selected"<? } ?>><?=$name?></option>
+					<<? } ?>
+				</select>
 			</fieldset>
 		</section>
 		<footer>

@@ -1,6 +1,3 @@
-<?
-	$storage = new BigTreeStorage;
-?>
 <div class="table">
 	<summary><h2>Configure</h2></summary>
 	<section>
@@ -15,6 +12,10 @@
 		<a class="box_select<? if ($storage->Service == "rackspace") { ?> connected<? } ?>" href="rackspace/">
 			<span class="rackspace"></span>
 			<p>Rackspace Cloud Files</p>
+		</a>
+		<a class="box_select<? if ($storage->Service == "google") { ?> connected<? } ?>" href="google/">
+			<span class="google"></span>
+			<p>Google Cloud Storage</p>
 		</a>
 	</section>
 </div>

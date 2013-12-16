@@ -102,7 +102,8 @@
 			array("title" => "Cloud Storage","link" => "developer/cloud-storage","icon" => "cloud","hidden" => true,"children" => array(
 				array("title" => "Local Storage","link" => "developer/cloud-storage/local","icon" => "local_storage","hidden" => true),
 				array("title" => "Amazon S3","link" => "developer/cloud-storage/amazon","icon" => "amazon","hidden" => true),
-				array("title" => "Rackspace Cloud","link" => "developer/cloud-storage/rackspace","icon" => "rackspace","hidden" => true)
+				array("title" => "Rackspace Cloud Files","link" => "developer/cloud-storage/rackspace","icon" => "rackspace","hidden" => true),
+				array("title" => "Google Cloud Storage","link" => "developer/cloud-storage/google","icon" => "google","hidden" => true)
 			)),
 			array("title" => "Payment Gateway","link" => "developer/payment-gateway","icon" => "payment","hidden" => true,"children" => array(
 				array("title" => "Authorize.Net","link" => "developer/payment-gateway/authorize","icon" => "authorize","hidden" => true),

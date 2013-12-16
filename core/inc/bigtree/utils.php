@@ -335,6 +335,8 @@
 		*/
 		
 		static function cURL($url,$post = false,$options = array(),$strict_security = false) {
+			global $bigtree;
+
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -351,6 +353,7 @@
 				}
 			}
 			$output = curl_exec($ch);
+			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 			curl_close($ch);
 			return $output;
 		}
