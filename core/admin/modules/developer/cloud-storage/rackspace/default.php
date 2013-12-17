@@ -26,7 +26,7 @@
 				<input type="text" name="username" value="<?=$username?>" />
 			</fieldset>
 			<fieldset>
-				<label>Region <small>(choose the location closest to your users)</small></label>
+				<label>Region <small>(choose the location closest to your server)</small></label>
 				<select name="region">
 					<? foreach ($regions as $r => $name) { ?>
 					<option value="<?=$r?>"<? if ($r == $region) { ?> selected="selected"<? } ?>><?=$name?></option>

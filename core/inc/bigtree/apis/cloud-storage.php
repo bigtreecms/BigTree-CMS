@@ -36,6 +36,7 @@
 					$this->_getRackspaceToken();
 				}
 				$this->RackspaceAPIEndpoint = $this->Settings["rackspace"]["endpoints"][$this->Settings["rackspace"]["region"]];
+				$this->RackspaceCDNEndpoint = $this->Settings["rackspace"]["cdn_endpoints"][$this->Settings["rackspace"]["region"]];
 			}
 			
 		}
@@ -59,11 +60,16 @@
 				$this->Settings["rackspace"]["token"] = $j->access->token->id;
 				$this->Settings["rackspace"]["token_expiration"] = strtotime($j->access->token->expires);
 				$this->Settings["rackspace"]["endpoints"] = array();
+				$this->Settings["rackspace"]["cdn_endpoints"] = array();
 				// Get API endpoints
 				foreach ($j->access->serviceCatalog as $service) {
 					if ($service->name == "cloudFiles") {
 						foreach ($service->endpoints as $endpoint) {
 							$this->Settings["rackspace"]["endpoints"][$endpoint->region] = (string)$endpoint->publicURL;
+						}
+					} elseif ($service->name == "cloudFilesCDN") {
+						foreach ($service->endpoints as $endpoint) {
+							$this->Settings["rackspace"]["cdn_endpoints"][$endpoint->region] = (string)$endpoint->publicURL;							
 						}
 					}
 				}
@@ -103,6 +109,7 @@
 		/*
 			Function: copyFile
 				Copies a file from one container/location to another container/location.
+				Rackspace Cloud Files ignores "access" — public/private is controlled through the container only.
 
 			Parameters:
 				source_container - The container the file is stored in.
@@ -159,6 +166,7 @@
 		/*
 			Function: createContainer
 				Creates a new container/bucket.
+				Rackspace Cloud Files treats access levels differently than Amazon and Google -- if anything other than "private" is passed in the container will be CDN-enabled and all of its contents will be publicly readable.
 
 			Parameters:
 				name - Container name (keep in mind this must be unique among all other containers)
@@ -189,6 +197,10 @@
 				global $bigtree;
 				$response = $this->callRackspace($name,"",array(CURLOPT_PUT => true));
 				if ($bigtree["last_curl_response_code"] == 201) {
+					// CDN Enable this bucket if it's not private
+					if ($access != "private") {
+						BigTree::cURL($this->RackspaceCDNEndpoint."/$name","",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
+					}
 					return true;
 				} else {
 					return false;
@@ -215,6 +227,7 @@
 		/*
 			Function: createFile
 				Creates a new file in the given container.
+				Rackspace Cloud Files ignores "access" — public/private is controlled through the container only.
 
 			Parameters:
 				contents - What to write to the file.
@@ -434,7 +447,7 @@
 			if ($this->Service == "amazon") {
 				$xml = simplexml_load_string($this->callAmazonS3("GET",$container));
 				foreach ($xml->Contents as $item) {
-					$flat[] = $raw_item = array(
+					$flat[] = array(
 						"name" => (string)$item->Key,
 						"path" => (string)$item->Key,
 						"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
@@ -449,12 +462,21 @@
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				$response = $this->callRackspace($container);
+				foreach ($response as $item) {
+					$flat[] = array(
+						"name" => (string)$item->name,
+						"path" => (string)$item->name,
+						"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
+						"etag" => (string)$item->hash,
+						"size" => (int)$item->bytes
+					);
+				}
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o");
 				foreach ($response->items as $item) {
-					$flat[] = $raw_item = array(
+					$flat[] = array(
 						"name" => (string)$item->name,
 						"path" => (string)$item->name,
 						"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
@@ -576,6 +598,7 @@
 			Function: updateContainerAccessLevel
 				Updates the access level of a container.
 				For Amazon S3, the container will be created if it doesn't exist.
+				For Rackspace, changing access to anything other than "private" makes the contaienr CDN enabled and makes all files public.
 
 			Parameters:
 				container - Container name (keep in mind this must be unique among all other containers)
@@ -591,7 +614,13 @@
 				return $this->createContainer($container,$level);
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				// CDN Enable this bucket if it's not private
+				if ($access != "private") {
+					$cdn = "true";
+				} else {
+					$cdn = "false";
+				}
+				BigTree::cURL($this->RackspaceCDNEndpoint."/$name","",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Cdn-Enabled: $cdn")));
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 
@@ -603,6 +632,7 @@
 		/*
 			Function: uploadFile
 				Creates a new file in the given container.
+				Rackspace Cloud Files ignores "access" — public/private is controlled through the container only.
 
 			Parameters:
 				file - The file to upload.
