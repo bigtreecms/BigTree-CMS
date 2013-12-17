@@ -503,7 +503,7 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree 4.0</title>
+		<title>Install BigTree 4.0.1</title>
 		<?php if ($installed) { ?>
 		<link rel="stylesheet" href="<?php echo $www_root ?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
@@ -515,7 +515,7 @@ RewriteRule (.*) site/$1 [L]');
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree 4.0 Installed</h1>
+			<h1>BigTree 4.0.1 Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
@@ -544,7 +544,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree 4.0</h1>
+			<h1>Install BigTree 4.0.1</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
