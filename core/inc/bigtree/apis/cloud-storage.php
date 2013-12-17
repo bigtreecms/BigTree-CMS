@@ -143,7 +143,12 @@
 				return true;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				global $bigtree;
+				BigTree::cURL($this->RackspaceAPIEndpoint."/$source_container/$source_pointer",false,array(CURLOPT_CUSTOMREQUEST => "COPY",CURLOPT_HTTPHEADER => array("Destination: /$destination_container/$destination_pointer","X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				if ($bigtree["last_curl_response_code"] == "201") {
+					return true;
+				}
+				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$source_container/o/$source_pointer/copyTo/b/$destination_container/o/$destination_pointer","{}","POST");
@@ -262,7 +267,12 @@
 				return false;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				global $bigtree;
+				BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer",$contents,array(CURLOPT_CUSTOMREQUEST => "PUT",CURLOPT_HTTPHEADER => array("Content-Length" => strlen($contents),"X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				if ($bigtree["last_curl_response_code"] == "201") {
+					return true;
+				}
+				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
@@ -401,7 +411,7 @@
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$pointer = str_replace(array('%2F', '%2B'),array('/', '+'),rawurlencode($pointer));
-				return "http://s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->AmazonKey."&Expires=$expires&Signature=".$this->_hash($this->AmazonSecret,"GET\n\n\n$expires\n/$container/$pointer");
+				return "http://s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".$this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer");
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 
@@ -563,12 +573,17 @@
 			$containers = array();
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				$xml = simplexml_load_string($this->callAmazonS3());
-				foreach ($xml->Buckets->Bucket as $bucket) {
-					$containers[] = array(
-						"name" => (string)$bucket->Name,
-						"created_at" => date("Y-m-d H:i:s",strtotime($bucket->CreationDate))
-					);
+				$response = $this->callAmazonS3();
+				$xml = simplexml_load_string($response);
+				if (isset($xml->Buckets)) {
+					foreach ($xml->Buckets->Bucket as $bucket) {
+						$containers[] = array(
+							"name" => (string)$bucket->Name,
+							"created_at" => date("Y-m-d H:i:s",strtotime($bucket->CreationDate))
+						);
+					}
+				} else {
+					$this->_setAmazonError($response);
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
@@ -695,7 +710,14 @@
 				return false;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-				
+				global $bigtree;
+				$file_pointer = fopen($file,"r");
+				BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer",false,array(CURLOPT_PUT => true,CURLOPT_INFILE => $file_pointer,CURLOPT_HTTPHEADER => array("Content-Length" => filesize($file),"X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				fclose($file_pointer);
+				if ($bigtree["last_curl_response_code"] == "201") {
+					return true;
+				}
+				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$file_pointer = fopen($file,"r");
@@ -830,8 +852,8 @@
 				$amazon_header_signature = "";
 			}	
 			
-			$headers[] = "Authorization: AWS ".$this->AmazonKey.":".$this->_hash(
-				$this->AmazonSecret,
+			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->_hash(
+				$this->Settings["amazon"]["secret"],
 				$verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$resource
 			);
 
