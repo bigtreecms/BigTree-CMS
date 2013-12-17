@@ -908,25 +908,28 @@
 				return false;
 			}
 
-			$functions = array_slice(func_get_args(),1);
-			foreach ($array as $key => $val) {
+			// We don't want to lose track of our array while globalizing, so we're going to save things into $bigtree
+			// Since we're not in the global scope, it doesn't matter that we're junking up $bigtree
+			$bigtree = array("functions" => array_slice(func_get_args(),1),"array" => $array);
+
+			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
-				if (strpos($key,0,1) != "_") {
-					global $$key;
-					if (is_array($val)) {
-						$$key = self::globalizeArrayRecursion($val,$functions);
+				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
+					global $$bigtree["key"];
+					if (is_array($bigtree["val"])) {
+						$$bigtree["key"] = self::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
-						foreach ($functions as $func) {
+						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
-							if (is_array($func)) {
-								foreach ($func as $f) {
-									$val = $f($val);
+							if (is_array($bigtree["function"])) {
+								foreach ($bigtree["function"] as $bigtree["f"]) {
+									$bigtree["val"] = $bigtree["f"]($bigtree["val"]);
 								}
 							} else {
-								$val = $func($val);
+								$bigtree["val"] = $bigtree["function"]($bigtree["val"]);
 							}
 						}
-						$$key = $val;
+						$$bigtree["key"] = $bigtree["val"];
 					}
 				}
 			}
