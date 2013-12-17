@@ -20,6 +20,40 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.1 Release
+- FIXED: IE prior to 10 having issues with background-gradient declarations that use rgba (using "CSS3" parser feature in BigTree)
+- FIXED: Issues with forms that contained multiple many to many fields.
+- FIXED: An issue where sometimes custom radio buttons in the admin would become duplicated.
+- FIXED: Advanced Search in the admin not searching callout content.
+- FIXED: BigTree's background-gradient parser when notices were turned on corrupting the end color.
+- FIXED: icon_export class in the admin using the same icon as icon_archive.
+- FIXED: Sorting of image views (you no longer have the option to choose a sort since it never worked).
+- FIXED: Sorting of views by ID should now properly sort numerically instead of alphabetically.
+- FIXED: An issue that occurred when a module had multiple forms and an error occurred in a form. The "Return & Edit" button should now return to the proper form.
+- FIXED: Mobile and Tablet responsive states of the example site.
+- FIXED: A rare issue that could occur where a fatal error would be thrown when editing a user if there was data corruption.
+- FIXED: Usernames with a single quote in them would sometimes corrupt with BigTree bar on the front end.
+- FIXED: Issues with numeric columns not sorting properly and database populated lists not sorting properly in sortable views.
+- FIXED: Incorrect styles for pagination in message center.
+- FIXED: Site Integrity Check running on archived pages.
+- FIXED: Analytics columns getting list bullets and bad line height.
+- FIXED: BigTree::globalizeGETVars / BigTree::globalizePOSTVars not working in PHP 5.2
+- FIXED: Incrementing of 404 hits not working when a 301 existed.
+- FIXED: Encrypted settings showing their existing value when editing them.
+- FIXED: Settings not having internal page links encoded and crops/errors not working properly.
+- FIXED: BigTree::putFile not working at all.
+- FIXED: Routed templates not working for the homepage.
+- FIXED: Module Designer failing to create table columns for column names that were reserved MySQL keywords.
+- FIXED: Example Site allowing for empty author fields in blog posts.
+- FIXED: Rejecting changes in Pending Changes not clearing view caches (which left the change appearing in views).
+- FIXED: $bigtree["current_page"] not existing while processing field types during a page update.
+- FIXED: Many to Many and Tags changes not being applied when approving a change in the Pending Changes section.
+- ADDED: SVG content-type headers to fix serving svg files in htaccess
+- UPDATED: Newer version of CSSMin class.
+- CHANGED: Draggable views with search results should now order by the first column instead of their "position" for easier browseability.
+- CHANGED: Many to Many fields in forms now have more obscure form keys to make key collisions less likely.
+- REMOVED: Deprecated Twitter API class from the example site.
+
 ### 4.0 Release
 - ADDED: Multiple Service APIs (Twitter, Instagram, YouTube, Google+, Flickr, Disqus)
 - ADDED: Multiple Geocoding options (Yahoo, Yahoo BOSS, Google, MapQuest, Bing)
