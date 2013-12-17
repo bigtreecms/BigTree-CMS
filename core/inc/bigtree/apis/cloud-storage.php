@@ -171,28 +171,36 @@
 		/*
 			Function: createContainer
 				Creates a new container/bucket.
-				Rackspace Cloud Files treats access levels differently than Amazon and Google -- if anything other than "private" is passed in the container will be CDN-enabled and all of its contents will be publicly readable.
+				Rackspace Cloud Files: If public is set to true the container be CDN-enabled and all of its contents will be publicly readable.
+				Amazon: If public is set to true the bucket will have a policy making everything inside the bucket public.
+				Google: If public is set to true the bucket will set the default access control on objects to public but they can be later changed.
 
 			Parameters:
 				name - Container name (keep in mind this must be unique among all other containers)
-				access - Access control level: "private" for no outside access (default), "read" for public read, "write" for public read/write
+				public - true for public, defaults to false
 			
 			Returns:
 				true if successful.
 		*/
 
-		function createContainer($name,$access = "private") {
-			$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
+		function createContainer($name,$public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				// Get the Amazon code for the access level
-				$acl = $access_levels[$access];
-				if (!$acl) {
-					return false;
-				}
-
-				$response = $this->callAmazonS3("PUT",$name,"",array(),array(),array("x-amz-acl" => $acl));
+				$response = $this->callAmazonS3("PUT",$name,"",array(),array(),array("x-amz-acl" => "private"));
 				if (!$response) {
+					// Set the policy to be public
+					if ($public) {
+						$this->callAmazonS3("PUT","$name?policy",json_encode(array(
+							"Version" => date("Y-m-d"),
+							"Statement" => array(array(
+								"Sid" => "AllowPublicRead",
+								"Effect" => "Allow",
+								"Principle" => array("AWS" => "*"),
+								"Action" => array("s3:GetObject"),
+								"Resource" => array("arn:aws:s3:::$name/*")
+							))
+						)));
+					}
 					return true;
 				}
 				$this->_setAmazonError($response);
@@ -202,8 +210,8 @@
 				global $bigtree;
 				$response = $this->callRackspace($name,"",array(CURLOPT_PUT => true));
 				if ($bigtree["last_curl_response_code"] == 201) {
-					// CDN Enable this bucket if it's not private
-					if ($access != "private") {
+					// CDN Enable this container if it's public
+					if ($public) {
 						BigTree::cURL($this->RackspaceCDNEndpoint."/$name","",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
 					}
 					return true;
@@ -213,10 +221,8 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$request = array("name" => $name);
-				if ($access == "read") {
+				if ($public) {
 					$request["defaultObjectAcl"] = array(array("role" => "READER","entity" => "allUsers"));
-				} elseif ($access == "write") {
-					$request["defaultObjectAcl"] = array(array("role" => "OWNER","entity" => "allUsers"));
 				}
 				$response = $this->call("b?project=".$this->Settings["project"],json_encode($request),"POST");
 				if (isset($response->id)) {
@@ -238,27 +244,20 @@
 				contents - What to write to the file.
 				container - Container name.
 				pointer - The full file path inside the container.
-				access - Access control level: "private" for no outside access (default), "read" for public read, "write" for public read/write
+				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
 				type - MIME type (defaults to "text/plain")
 			
 			Returns:
 				true if successful.
 		*/
 
-		function createFile($contents,$container,$pointer,$access = "private",$type = "text/plain") {
+		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				// Get the Amazon code for the access level
-				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
-				$acl = $access_levels[$access];
-				if (!$acl) {
-					return false;
-				}
-
 				$response = $this->callAmazonS3("PUT",$container,$pointer,array(),array(
 					"Content-Type" => $type,
 					"Content-Length" => strlen($contents)
-				),array("x-amz-acl" => $acl),$contents);
+				),array("x-amz-acl" => ($public ? "public-read" : "private")),$contents);
 
 				if (!$response) {
 					return true;
@@ -278,10 +277,8 @@
 				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
-					if ($access == "read") {
+					if ($public) {
 						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
-					} elseif ($access == "write") {
-						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "OWNER")),"POST");
 					}
 					return true;
 				} else {
@@ -378,7 +375,12 @@
 				return true;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				global $bigtree;
+				$response = $this->callRackspace("$container/$pointer","",array(CURLOPT_CUSTOMREQUEST => "DELETE"));
+				if ($bigtree["last_curl_response_code"] == 204) {
+					return true;
+				}
+				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
@@ -414,7 +416,25 @@
 				return "http://s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".$this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer");
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				// If we don't have a Temp URL key already set, we need to make one
+				if (!$this->Settings["rackspace"]["temp_url_key"]) {
+					// See if we already have one
+					$response = BigTree::cURL($this->RackspaceAPIEndpoint,false,array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+					$headers = explode("\n",$response);
+					foreach ($headers as $header) {
+						if (substr($header,0,28) == "X-Account-Meta-Temp-Url-Key:") {
+							$this->Settings["rackspace"]["temp_url_key"] = trim(substr($header,29));
+						}
+					}
+					// If we don't have an existing one, make up our own
+					if (!$this->Settings["rackspace"]["temp_url_key"]) {
+						$this->Settings["rackspace"]["temp_url_key"] = uniqid();
+						BigTree::cURL($this->RackspaceAPIEndpoint,false,array(CURLOPT_CUSTOMREQUEST => "POST",CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Account-Meta-Temp-Url-Key: ".$this->Settings["rackspace"]["temp_url_key"])));
+					}
+				}
+				list($domain,$client_id) = explode("/v1/",$this->RackspaceAPIEndpoint);
+				$hash = urlencode(hash_hmac("sha1","GET\n$expires\n/v1/$client_id/$container/$pointer",$this->Settings["rackspace"]["temp_url_key"]));
+				return $this->RackspaceAPIEndpoint."/$container/$pointer?temp_url_sig=$hash&temp_url_expires=$expires";
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				if (!function_exists('openssl_x509_read')) {
@@ -551,7 +571,7 @@
 				return $response;
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
-
+				return BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer",false,array(CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				// We do a manual call because the "call" method always assumes the response is JSON.
@@ -607,41 +627,6 @@
 			}
 
 			return $containers;
-		}
-
-		/*
-			Function: updateContainerAccessLevel
-				Updates the access level of a container.
-				For Amazon S3, the container will be created if it doesn't exist.
-				For Rackspace, changing access to anything other than "private" makes the contaienr CDN enabled and makes all files public.
-
-			Parameters:
-				container - Container name (keep in mind this must be unique among all other containers)
-				access - Access control level: "private" for no outside access (default), "read" for public read, "write" for public read/write
-			
-			Returns:
-				true if successful.
-		*/
-
-		function updateContainerAccessLevel($container,$level) {
-			// Amazon S3
-			if ($this->Service == "amazon") {
-				return $this->createContainer($container,$level);
-			// Rackspace Cloud Files
-			} elseif ($this->Service == "rackspace") {
-				// CDN Enable this bucket if it's not private
-				if ($access != "private") {
-					$cdn = "true";
-				} else {
-					$cdn = "false";
-				}
-				BigTree::cURL($this->RackspaceCDNEndpoint."/$name","",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Cdn-Enabled: $cdn")));
-			// Google Cloud Storage
-			} elseif ($this->Service == "google") {
-
-			} else {
-				return false;
-			}
 		}
 
 		/*
@@ -850,11 +835,11 @@
 				$amazon_header_signature = implode("\n",$amazon_header_signature)."\n";
 			} else {
 				$amazon_header_signature = "";
-			}	
-			
+			}
+
 			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->_hash(
 				$this->Settings["amazon"]["secret"],
-				$verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$resource
+				$verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$resource.ltrim($uri,"/")
 			);
 
 			curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
