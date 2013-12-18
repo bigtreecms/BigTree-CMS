@@ -8,9 +8,8 @@
 		
 		var $AutoJPEG = false;
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
-		var $RSAuth,$RSConn,$RSContainers,$RSContainerData;
-		var $S3,$S3Data,$S3Files;
 		var $Service = "";
+		var $Cloud = false;
 
 		/*
 			Constructor:
@@ -25,9 +24,10 @@
 				$this->Service = "local";
 				$this->optipng = false;
 				$this->jpegtran = false;
+				$this->Container = "";
+				$this->Files = array();
 				$admin->createSetting(array(
 					"id" => "bigtree-internal-storage",
-					"encrypted" => "on",
 					"system" => "on"
 				));
 				$admin->updateSettingValue("bigtree-internal-storage",array("service" => "local"));
@@ -35,10 +35,27 @@
 				$this->Service = $settings["service"];
 				$this->optipng = isset($settings["optipng"]) ? $settings["optipng"] : false;
 				$this->jpegtran = isset($settings["jpegtran"]) ? $settings["jpegtran"] : false;
-				$this->RackspaceData = isset($settings["rackspace"]) ? $settings["rackspace"] : false;
-				$this->S3Data = isset($settings["s3"]) ? $settings["s3"] : false;
-				$this->S3Files = array();
+				$this->Container = $settings["container"];
+				$this->Files = $settings["files"];
 			}
+			if ($this->Service == "s3" || $this->Service == "amazon") {
+				$this->Cloud = new BigTreeCloudStorage("amazon");
+			} elseif ($this->Service == "rackspace") {
+				$this->Cloud = new BigTreeCloudStorage("rackspace");
+			} elseif ($this->Service == "google") {
+				$this->Cloud = new BigTreeCloudStorage("google");
+			}
+		}
+
+		function __destruct() {
+			$admin = new BigTreeAdmin;
+			$admin->updateSettingValue("bigtree-internal-storage",array(
+				"service" => $this->Service,
+				"optipng" => $this->optipng,
+				"jpegtran" => $this->jpegtran,
+				"container" => $this->Container,
+				"files" => $this->Files
+			));
 		}
 
 		/*
@@ -80,88 +97,12 @@
 		*/
 		
 		function delete($file_location) {
-			if ($this->Service == "local") {
-				return $this->deleteLocal($file_location);
-			} elseif ($this->Service == "s3") {
-				return $this->deleteS3($file_location);
-			} elseif ($this->Service == "rackspace") {
-				return $this->deleteRackspace($file_location);
-			} else {
-				die("BigTree Critical Error: Unknown Storage Service In Effect");
+			if ($this->Cloud) {
+				unset($this->Files[$file_location]);
+				return $this->Cloud->deleteFile($this->Container,$file_location);
 			}
-		}
-		
-		/*
-			Function: deleteLocal
-				Private function for the delete call when local storage is active.
-			
-			See Also:
-				<delete>
-		*/
-		
-		private function deleteLocal($file_location) {
 			unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
-		}
-		
-		/*
-			Function: deleteS3
-				Private function for the delete call when Amazon S3 is active.
-			
-			See Also:
-				<delete>
-		*/
-		
-		private function deleteS3($file_location) {
-			global $cms;
-			
-			if (!$this->S3) {
-				$this->S3 = new S3($this->S3Data["keys"]["access_key_id"],$this->S3Data["keys"]["secret_access_key"],true);
-			}
-			
-			// Take apart the file location since it's a full path.
-			if (substr($file_location,0,7) == "http://") {
-				$file_location = substr($file_location,7); // Cut off http://
-			} else {
-				$file_location = substr($file_location,8); // Cut off https://				
-			}
-			$file_location = substr($file_location,strpos($file_location,"/") + 1); // Cut off up to the first /.
-			$bucket = substr($file_location,0,strpos($file_location,"/")); // Get the bucket.
-			$file = substr($file_location,strlen($bucket) + 1); // Get the file.
-			$this->S3->deleteObject($bucket,$file);
-		}
-		
-		/*
-			Function: deleteRackspace
-				Private function for the delete call when Rackspace Cloud Files is active.
-			
-			See Also:
-				<delete>
-		*/
-		
-		private function deleteRackspace($file_location) {
-			global $cms;
-			
-			if (!$this->Rackspace) {
-				$keys = $this->RackspaceData["keys"];
-				$this->RSAuth = new CF_Authentication($keys["username"],$keys["api_key"]);
-				$this->RSAuth->authenticate();
-				$this->RSConn = new CF_Connection($this->RSAuth);
-			}
-			
-			if (!$this->RSContainers) {
-				$this->RSContainers = $this->RackspaceData["containers"];
-			}
-			
-			$parts = BigTree::pathInfo($file_location);
-			
-			foreach ($this->RSContainers as $key => $val) {
-				if ($val == $parts["dirname"]) {
-					$path = $key;
-				}
-			}
-			
-			$container = $this->RSConn->get_container($path);
-			$container->delete_object($parts["basename"]);
+			return true;
 		}
 		
 		/*
@@ -175,7 +116,7 @@
 				remove_original - Whether to delete the local_file or not.
 			
 			Returns:
-				The URL to the stored file.
+				The URL of the stored file.
 		*/
 		
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
@@ -187,144 +128,30 @@
 
 			// If we're auto converting images to JPG from PNG
 			$file_name = $this->convertJPEG($local_file,$file_name);
+			// Enforce trailing slashe on relative_path
+			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
-			if ($this->Service == "local") {
-				if (!$relative_path) {
-					$relative_path = "files/";
+			if ($this->Cloud) {
+				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name);
+				if ($remove_original) {
+					unlink($local_file);
 				}
-				$relative_path = rtrim($relative_path,"/")."/";
-				return $this->replaceLocal($local_file,$file_name,$relative_path,$remove_original);
-			} elseif ($this->Service == "s3") {
-				return $this->replaceS3($local_file,$file_name,$relative_path,$remove_original);
-			} elseif ($this->Service == "rackspace") {
-				return $this->replaceRackspace($local_file,$file_name,$relative_path,$remove_original);
+				if ($success) {
+					$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+				}
+				return $success;
 			} else {
-				die("BigTree Critical Error: Unknown Storage Service In Effect");
+				if ($remove_original) {
+					$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$file_name);
+				} else {
+					$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
+				}
+				if ($success) {
+					return "{staticroot}".$relative_path.$file_name;
+				} else {
+					return false;
+				}
 			}
-		}
-		
-		/*
-			Function: replaceLocal
-				Private function for the replace call when local storage is active.
-			
-			See Also:
-				<replace>
-		*/
-		
-		private function replaceLocal($local_file,$file_name,$relative_path,$remove_original) {
-			if ($remove_original) {	
-				$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$file_name);
-			} else {
-				$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
-			}
-			
-			if ($success) {
-				return "{staticroot}".$relative_path.$file_name;
-			} else {
-				return false;
-			}
-		}
-		
-		/*
-			Function: replaceS3
-				Private function for the replace call when Amazon S3 is active.
-			
-			See Also:
-				<replace>
-		*/
-		
-		private function replaceS3($local_file,$file_name,$relative_path,$remove_original) {
-			global $cms;
-			
-			if (!$this->S3) {
-				$this->S3 = new S3($this->S3Data["keys"]["access_key_id"],$this->S3Data["keys"]["secret_access_key"]);
-			}
-			
-			$destination = rtrim($relative_path,"/")."/".$file_name;
-			$this->S3->putObjectFile($local_file,$this->S3Data["bucket"],$destination,S3::ACL_PUBLIC_READ);
-			
-			// Update the list of files in this bucket locally.
-			$this->S3Files[$destination] = true;
-			
-			// Remove the original file we were storing.
-			if ($remove_original) {
-				unlink($local_file);
-			}
-			
-			return "http://s3.amazonaws.com/".$this->S3Data["bucket"]."/$destination";
-		}
-		
-		/*
-			Function: replaceRackspace
-				Private function for the replace call when Rackspace Cloud Files is active.
-			
-			See Also:
-				<replace>
-		*/
-		
-		private function replaceRackspace($local_file,$file_name,$relative_path,$remove_original) {
-			global $cms;
-			
-			if (!$this->Rackspace) {
-				$keys = $this->RackspaceData["keys"];
-				$this->RSAuth = new CF_Authentication($keys["username"],$keys["api_key"]);
-				$this->RSAuth->authenticate();
-				$this->RSConn = new CF_Connection($this->RSAuth);
-			}
-			
-			if (!$this->RSContainers) {
-				$this->RSContainers = $this->RackspaceData["containers"];
-			}
-			
-			$relative_path = str_replace("/","-",rtrim($relative_path,"/"));
-			
-			// If we don't have a bucket for this path yet, make one.
-			$url = $this->RSContainers[$relative_path];
-			if (!$url) {
-				$container = $this->RSConn->create_container($relative_path);
-				$url = $container->make_public();
-
-				$this->RSContainers[$relative_path] = $url;
-				$this->saveSettings();
-			} else {
-				$container = $this->RSConn->get_container($relative_path);
-			}
-			
-			// Create the object
-			$object = $container->create_object($file_name);
-			$object->load_from_filename($local_file);
-			
-			// Update the list of files in this container locally.
-			$existing_files[] = $file_name;
-			$this->RSContainerData[$relative_path] = $existing_files;
-			
-			// Remove the original file we were storing.
-			if ($remove_original) {
-				unlink($local_file);
-			}
-			
-			return $url."/".$file_name;
-		}
-		
-		/*
-			Function: saveSettings
-				Saves the local data back to the bigtree-internal-storage setting.
-		*/
-		
-		protected function saveSettings() {
-			$admin = new BigTreeAdmin;
-			$admin->updateSettingValue("bigtree-internal-storage",array(
-				"service" => $this->Service,
-				"s3" => array(
-					"keys" => $this->S3Data["keys"],
-					"bucket" => $this->S3Data["bucket"],
-					"files" => $this->S3Data["files"]
-				),
-				"rackspace" => array(
-					"keys" => $this->RackspaceData["keys"],
-					"containers" => $this->RSContainers
-				)
-			));
 		}
 		
 		/*
@@ -338,7 +165,7 @@
 				remove_original - Whether to delete the local_file or not.
 			
 			Returns:
-				The URL to the stored file.
+				The URL of the stored file.
 		*/
 		
 		function store($local_file,$file_name,$relative_path,$remove_original = true) {
@@ -350,168 +177,44 @@
 
 			// If we're auto converting images to JPG from PNG
 			$file_name = $this->convertJPEG($local_file,$file_name);
+			// Enforce trailing slashe on relative_path
+			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
-			if ($this->Service == "local") {
-				if (!$relative_path) {
-					$relative_path = "files/";
+			if ($this->Cloud) {
+				// Clean up the file name
+				global $cms;
+				$parts = self::pathInfo($file_name);
+				$clean_name = $cms->urlify($parts["filename"]);
+				if (strlen($clean_name) > 50) {
+					$clean_name = substr($clean_name,0,50);
 				}
-				$relative_path = rtrim($relative_path,"/")."/";
-				return $this->storeLocal($local_file,$file_name,$relative_path,$remove_original);
-			} elseif ($this->Service == "s3") {
-				return $this->storeS3($local_file,$file_name,$relative_path,$remove_original);
-			} elseif ($this->Service == "rackspace") {
-				return $this->storeRackspace($local_file,$file_name,$relative_path,$remove_original);
+				$original_name = $file_name = $clean_name.".".strtolower($parts["extension"]);
+				$x = 2;
+				// Make sure we have a unique name
+				while (isset($this->Files[$relative_path.$file_name])) {
+					$file_name = $original_name."-".$x;
+					$x++;
+				}
+				// Upload it
+				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name);
+				$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+				if ($remove_original) {
+					unlink($local_file);
+				}
+				return $success;
 			} else {
-				die("BigTree Critical Error: Unknown Storage Service In Effect");
+				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name);
+				if ($remove_original) {
+					$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
+				} else {
+					$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
+				}
+				if ($success) {
+					return "{staticroot}".$relative_path.$safe_name;
+				} else {
+					return false;
+				}
 			}
-		}
-		
-		/*
-			Function: storeLocal
-				Private function for the store call when local storage is active.
-			
-			See Also:
-				<store>
-		*/
-		
-		private function storeLocal($local_file,$file_name,$relative_path,$remove_original) {
-			$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name);
-			
-			if ($remove_original) {
-				$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
-			} else {
-				$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
-			}
-			
-			if ($success) {
-				return "{staticroot}".$relative_path.$safe_name;
-			} else {
-				return false;
-			}
-		}
-		
-		/*
-			Function: storeS3
-				Private function for the store call when Amazon S3 is active.
-			
-			See Also:
-				<store>
-		*/
-		
-		private function storeS3($local_file,$file_name,$relative_path,$remove_original) {
-			global $cms;
-			
-			if (!$this->S3) {
-				$this->S3 = new S3($this->S3Data["keys"]["access_key_id"],$this->S3Data["keys"]["secret_access_key"]);
-			}
-			
-			// Check to see if this is a unique file name for this bucket, if not, get one.
-			if (!count($this->S3Files)) {
-				$this->S3Files = $this->S3->getBucket($this->S3Data["bucket"]);
-			}
-			
-			// Get a nice clean file name
-			$parts = BigTree::pathInfo($file_name);
-			$clean_name = $cms->urlify($parts["filename"]);
-			if (strlen($clean_name) > 50) {
-				$clean_name = substr($clean_name,0,50);
-			}
-			$file_name = $clean_name.".".$parts["extension"];
-			
-			// Loop until we get a good file name.
-			$x = 2;
-			$destination = rtrim($relative_path,"/")."/".$file_name;
-			while ($this->S3Files[$destination]) {
-				$destination = rtrim($relative_path,"/")."/".$clean_name."-$x.".$parts["extension"];
-				$x++;
-			}
-			
-			$this->S3->putObjectFile($local_file,$this->S3Data["bucket"],$destination,S3::ACL_PUBLIC_READ);
-			
-			// Update the list of files in this bucket locally.
-			$this->S3Files[$destination] = true;
-			
-			// Remove the original file we were storing.
-			if ($remove_original) {
-				unlink($local_file);
-			}
-			
-			return "http://s3.amazonaws.com/".$this->S3Data["bucket"]."/$destination";
-		}
-		
-		/*
-			Function: storeRackspace
-				Private function for the store call when Rackspace Cloud Files is active.
-			
-			See Also:
-				<store>
-		*/
-		
-		private function storeRackspace($local_file,$file_name,$relative_path,$remove_original) {
-			global $cms;
-						
-			if (!$this->Rackspace) {
-				$keys = $this->RackspaceData["keys"];
-				$this->RSAuth = new CF_Authentication($keys["username"],$keys["api_key"]);
-				$this->RSAuth->authenticate();
-				$this->RSConn = new CF_Connection($this->RSAuth);
-			}
-			
-			if (!$this->RSContainers) {
-				$this->RSContainers = $this->RackspaceData["containers"];
-			}
-
-			$relative_path = str_replace("/","-",rtrim($relative_path,"/"));
-			
-			// If we don't have a bucket for this path yet, make one.
-			$url = $this->RSContainers[$relative_path];
-			if (!$url) {
-				$container = $this->RSConn->create_container($relative_path);
-				$url = $container->make_public();
-
-				$this->RSContainers[$relative_path] = $url;
-				$this->saveSettings();
-			} else {
-				$container = $this->RSConn->get_container($relative_path);
-			}
-			
-			// Check to see if this is a unique file name for this bucket, if not, get one.
-			$existing_files = $this->RSContainerData[$relative_path];
-			if (!$existing_files) {
-				$existing_files = $container->list_objects();
-				$this->RSContainerData[$relative_path] = $existing_files;
-			}
-			
-			// Get a nice clean file name
-			$parts = BigTree::pathInfo($file_name);
-			$clean_name = $cms->urlify($parts["filename"]);
-			if (strlen($clean_name) > 50) {
-				$clean_name = substr($clean_name,0,50);
-			}
-			$file_name = $clean_name.".".$parts["extension"];
-			
-			// Loop until we get a good file name.
-			$x = 2;
-			$original = $file_name;
-			while (in_array($file_name,$existing_files)) {
-				$file_name = $clean_name."-$x.".$parts["extension"];
-				$x++;
-			}
-			
-			// Create the object
-			$object = $container->create_object($file_name);
-			$object->load_from_filename($local_file);
-			
-			// Update the list of files in this container locally.
-			$existing_files[] = $file_name;
-			$this->RSContainerData[$relative_path] = $existing_files;
-			
-			// Remove the original file we were storing.
-			if ($remove_original) {
-				unlink($local_file);
-			}
-			
-			return $url."/".$file_name;
 		}
 	}
 

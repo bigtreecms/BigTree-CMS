@@ -1,21 +1,34 @@
-<div class="table">
+<div class="container">
 	<summary><h2>Configure</h2></summary>
-	<section>
-		<a class="box_select<? if ($storage->Service == "local") { ?> connected<? } ?>" href="local/">
-			<span class="local_storage"></span>
-			<p>Local Storage</p>
-		</a>
-		<a class="box_select<? if ($storage->Service == "s3") { ?> connected<? } ?>" href="amazon/">
-			<span class="amazon"></span>
-			<p>Amazon S3</p>
-		</a>
-		<a class="box_select<? if ($storage->Service == "rackspace") { ?> connected<? } ?>" href="rackspace/">
-			<span class="rackspace"></span>
-			<p>Rackspace Cloud Files</p>
-		</a>
-		<a class="box_select<? if ($storage->Service == "google") { ?> connected<? } ?>" href="google/">
-			<span class="google"></span>
-			<p>Google Cloud Storage</p>
-		</a>
-	</section>
+	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
+		<section>
+			<div class="contain">
+				<a class="box_select last_row" href="<?=DEVELOPER_ROOT?>cloud-storage/amazon/">
+					<span class="amazon"></span>
+					<p>Amazon S3</p>
+				</a>
+				<a class="box_select last_row" href="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/">
+					<span class="rackspace"></span>
+					<p>Rackspace Cloud Files</p>
+				</a>
+				<a class="box_select last_row" href="<?=DEVELOPER_ROOT?>cloud-storage/google/">
+					<span class="google"></span>
+					<p>Google Cloud Storage</p>
+				</a>
+			</div>
+			<hr />
+			<fieldset>
+				<label>Default Storage Service <small>(please configure cloud storage options prior to switching your default storage service)</small></label>
+				<select name="service">
+					<option value="local">Local Storage</option>
+					<option value="amazon"<? if ($storage->Service == "s3" || $storage->Service == "amazon") { ?> selected="selected"<? } ?>>Amazon S3</option>
+					<option value="rackspace"<? if ($storage->Service == "rackspace") { ?> selected="selected"<? } ?>>Rackspace Cloud Files</option>
+					<option value="google"<? if ($storage->Service == "google") { ?> selected="selected"<? } ?>>Google Cloud Storage</option>
+				</select>
+			</fieldset>
+		</section>
+		<footer>
+			<input type="submit" value="Update" class="button blue" />
+		</footer>
+	</form>
 </div>
