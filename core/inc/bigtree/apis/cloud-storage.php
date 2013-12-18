@@ -468,48 +468,62 @@
 			
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				$xml = simplexml_load_string($this->callAmazonS3("GET",$container));
-				foreach ($xml->Contents as $item) {
-					$flat[(string)$item->Key] = array(
-						"name" => (string)$item->Key,
-						"path" => (string)$item->Key,
-						"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
-						"etag" => (string)$item->ETag,
-						"size" => (int)$item->Size,
-						"owner" => array(
-							"name" => (string)$item->Owner->DisplayName,
-							"id" => (string)$item->Owner->ID
-						),
-						"storage_class" => (string)$item->StorageClass
-					);
+				$response = $this->callAmazonS3("GET",$container);
+				$xml = simplexml_load_string($response);
+				if (isset($xml->Contents)) {
+					foreach ($xml->Contents as $item) {
+						$flat[(string)$item->Key] = array(
+							"name" => (string)$item->Key,
+							"path" => (string)$item->Key,
+							"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
+							"etag" => (string)$item->ETag,
+							"size" => (int)$item->Size,
+							"owner" => array(
+								"name" => (string)$item->Owner->DisplayName,
+								"id" => (string)$item->Owner->ID
+							),
+							"storage_class" => (string)$item->StorageClass
+						);
+					}
+				} else {
+					$this->_setAmazonError($response);
+					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				$response = $this->callRackspace($container);
-				foreach ($response as $item) {
-					$flat[(string)$item->name] = array(
-						"name" => (string)$item->name,
-						"path" => (string)$item->name,
-						"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
-						"etag" => (string)$item->hash,
-						"size" => (int)$item->bytes
-					);
+				if (is_array($response)) {
+					foreach ($response as $item) {
+						$flat[(string)$item->name] = array(
+							"name" => (string)$item->name,
+							"path" => (string)$item->name,
+							"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
+							"etag" => (string)$item->hash,
+							"size" => (int)$item->bytes
+						);
+					}
+				} else {
+					return false;
 				}
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o");
-				foreach ($response->items as $item) {
-					$flat[(string)$item->name] = array(
-						"name" => (string)$item->name,
-						"path" => (string)$item->name,
-						"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
-						"etag" => (string)$item->etag,
-						"size" => (int)$item->size,
-						"owner" => array(
-							"name" => (string)$item->owner->entity,
-							"id" => (string)$item->owner->entityId
-						)
-					);
+				if (isset($response->items)) {
+					foreach ($response->items as $item) {
+						$flat[(string)$item->name] = array(
+							"name" => (string)$item->name,
+							"path" => (string)$item->name,
+							"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
+							"etag" => (string)$item->etag,
+							"size" => (int)$item->size,
+							"owner" => array(
+								"name" => (string)$item->owner->entity,
+								"id" => (string)$item->owner->entityId
+							)
+						);
+					}
+				} else {
+					return false;
 				}
 			} else {
 				return false;
@@ -597,23 +611,32 @@
 					}
 				} else {
 					$this->_setAmazonError($response);
+					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				$response = $this->callRackspace();
-				foreach ($response as $item) {
-					$containers[] = array("name" => (string)$item->name);
+				if (is_array($response)) {
+					foreach ($response as $item) {
+						$containers[] = array("name" => (string)$item->name);
+					}
+				} else {
+					return false;
 				}
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$resposne = $this->call("b",array("project" => $this->Settings["project"]));
-				foreach ($resposne->items as $item) {
-					$containers[] = array(
-						"name" => (string)$item->name,
-						"created_at" => date("Y-m-d H:i:s",strtotime($item->timeCreated)),
-						"location" => (string)$item->location,
-						"storage_class" => (string)$item->storageClass
-					);
+				$response = $this->call("b",array("project" => $this->Settings["project"]));
+				if (isset($response->items)) {
+					foreach ($response->items as $item) {
+						$containers[] = array(
+							"name" => (string)$item->name,
+							"created_at" => date("Y-m-d H:i:s",strtotime($item->timeCreated)),
+							"location" => (string)$item->location,
+							"storage_class" => (string)$item->storageClass
+						);
+					}
+				} else {
+					return false;
 				}
 			} else {
 				return false;
@@ -673,7 +696,7 @@
 				$response = $this->callAmazonS3("PUT",$container,$pointer,array(),array(
 					"Content-Type" => $content_type,
 					"Content-Length" => filesize($file)
-				),array("x-amz-acl" => ($public ? "public-read" : "private"))),false,$file);
+				),array("x-amz-acl" => ($public ? "public-read" : "private")),false,$file);
 				
 				if (!$response) {
 					return "http://s3.amazonaws.com/$container/$pointer";
