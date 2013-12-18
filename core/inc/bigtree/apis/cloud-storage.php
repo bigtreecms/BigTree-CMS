@@ -116,24 +116,17 @@
 				source_pointer - The full file path inside the container.
 				destination_container - The container to copy the source file to.
 				destination_pointer - The full file path to store the copied file
-				access - Access control level for the new file: "private" for no outside access (default), "read" for public read, "write" for public read/write
-
+				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
+				
 			Returns:
 				true if successful.
 		*/
 
-		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$access = "private") {
+		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				// Get the Amazon code for the access level
-				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
-				$acl = $access_levels[$access];
-				if (!$acl) {
-					return false;
-				}
-
 				$response = $this->callAmazonS3("PUT",$destination_container,$destination_pointer,array(),array("Content-Length" => "0"),array(
-					"x-amz-acl" => $acl,
+					"x-amz-acl" => ($public ? "public-read" : "private"),
 					"x-amz-copy-source" => "/".$source_container."/".rawurlencode($source_pointer)
 				));
 
@@ -154,10 +147,8 @@
 				$response = $this->call("b/$source_container/o/$source_pointer/copyTo/b/$destination_container/o/$destination_pointer","{}","POST");
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
-					if ($access == "read") {
-						$this->call("b/$destination_container/o/$destination_pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
-					} elseif ($access == "write") {
-						$this->call("b/$destination_container/o/$destination_pointer/acl",json_encode(array("entity" => "allUsers","role" => "OWNER")),"POST");
+					if ($public) {
+						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return true;
 				} else {
@@ -638,14 +629,14 @@
 				file - The file to upload.
 				container - Container name.
 				pointer - The full file path inside the container (if left empty the file's current name will be used and the root of the bucket)
-				access - Access control level: "private" for no outside access (default), "read" for public read, "write" for public read/write
+				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
 				type - MIME type (defaults to "text/plain")
 			
 			Returns:
 				true if successful.
 		*/
 
-		function uploadFile($file,$container,$pointer = false,$access = "private") {
+		function uploadFile($file,$container,$pointer = false,$public = false) {
 			// MIME Types
 			$exts = array(
 				"jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif",
@@ -676,17 +667,10 @@
 
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				// Get the Amazon code for the access level
-				$access_levels = array("private" => "private","read" => "public-read","write" => "public-read-write");
-				$acl = $access_levels[$access];
-				if (!$acl) {
-					return false;
-				}
-
 				$response = $this->callAmazonS3("PUT",$container,$pointer,array(),array(
 					"Content-Type" => $content_type,
 					"Content-Length" => filesize($file)
-				),array("x-amz-acl" => $acl),false,$file);
+				),array("x-amz-acl" => ($public ? "public-read" : "private"))),false,$file);
 				
 				if (!$response) {
 					return true;
@@ -710,10 +694,8 @@
 				fclose($file_pointer);
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
-					if ($access == "read") {
+					if ($public) {
 						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
-					} elseif ($access == "write") {
-						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "OWNER")),"POST");
 					}
 					return true;
 				} else {
