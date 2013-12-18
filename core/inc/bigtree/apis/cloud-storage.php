@@ -837,9 +837,15 @@
 				$amazon_header_signature = "";
 			}
 
+			if ($verb == "GET" && substr($uri,0,1) == "?") {
+				$signable_resource = $resource.ltrim($uri,"/");
+			} else {
+				$signable_resource = $resource;
+			}
+
 			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->_hash(
 				$this->Settings["amazon"]["secret"],
-				$verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$resource.ltrim($uri,"/")
+				$verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$signable_resource
 			);
 
 			curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
