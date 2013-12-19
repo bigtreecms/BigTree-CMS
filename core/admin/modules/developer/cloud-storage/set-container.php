@@ -13,8 +13,9 @@
 		$x = 0;
 		$success = false;
 		while (!$success && $x < 10) {
-			$container = uniqid("bigtree-container-",true);
+			$container = $cms->urlify(uniqid("bigtree-container-",true));
 			$success = $cloud->createContainer($container,true);
+			$x++;
 		}
 		if ($success) {
 			$storage->Container = $container;

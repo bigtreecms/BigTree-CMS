@@ -540,19 +540,21 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o");
-				if (isset($response->items)) {
-					foreach ($response->items as $item) {
-						$flat[(string)$item->name] = array(
-							"name" => (string)$item->name,
-							"path" => (string)$item->name,
-							"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
-							"etag" => (string)$item->etag,
-							"size" => (int)$item->size,
-							"owner" => array(
-								"name" => (string)$item->owner->entity,
-								"id" => (string)$item->owner->entityId
-							)
-						);
+				if (isset($response->kind) && $response->kind == "storage#objects") {
+					if (is_array($response->items)) {
+						foreach ($response->items as $item) {
+							$flat[(string)$item->name] = array(
+								"name" => (string)$item->name,
+								"path" => (string)$item->name,
+								"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
+								"etag" => (string)$item->etag,
+								"size" => (int)$item->size,
+								"owner" => array(
+									"name" => (string)$item->owner->entity,
+									"id" => (string)$item->owner->entityId
+								)
+							);
+						}
 					}
 				} else {
 					return false;
