@@ -9,6 +9,7 @@
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/rackspace/");
 	}
 
+	$cloud->Settings["rackspace"]["active"] = true;
 	$admin->growl("Developer","Enabled Rackspace Cloud Files");
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 ?>

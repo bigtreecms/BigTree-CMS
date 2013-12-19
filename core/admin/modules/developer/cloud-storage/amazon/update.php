@@ -12,6 +12,7 @@
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 	}
 
+	$cloud->Settings["amazon"]["active"] = true;
 	$admin->growl("Developer","Enabled Amazon S3");
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 ?>
