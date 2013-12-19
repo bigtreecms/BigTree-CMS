@@ -176,11 +176,11 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$response = $this->call("b/$source_container/o/$source_pointer/copyTo/b/$destination_container/o/$destination_pointer","{}","POST");
+				$response = $this->call("b/$source_container/o/".urlencode($source_pointer)."/copyTo/b/$destination_container/o/".urlencode($destination_pointer),"{}","POST");
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$destination_container/o/$destination_pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$destination_container/o/".urlencode($destination_pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return "http://storage.googleapis.com/$destination_container/$destination_pointer";
 				} else {
@@ -301,7 +301,7 @@
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$container/o/".urlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return "http://storage.googleapis.com/$container/$pointer";
 				} else {
@@ -407,7 +407,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
-				$response = $this->call("b/$container/o/$pointer",false,"DELETE");
+				$response = $this->call("b/$container/o/".urlencode($pointer),false,"DELETE");
 				if (count($this->Errors) > $error_count) {
 					return false;
 				}
@@ -756,7 +756,7 @@
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$container/o/$pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$container/o/".urlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return "http://storage.googleapis.com/$container/$pointer";
 				} else {
