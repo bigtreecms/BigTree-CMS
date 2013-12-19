@@ -78,6 +78,38 @@
 		}
 
 		/*
+			Function: _getRackspaceURL
+				Checks to see if the bucket is CDN enabled, if it is we use the CDN URL, otherwise the private URL.
+
+			Parameters:
+				container - Container name
+				pointer - File pointer
+
+			Returns:
+				A URL
+		*/
+
+		function _getRackspaceURL($container,$pointer) {
+			if ($this->Settings["rackspace"]["container_cdn_urls"][$container]) {
+				return $this->Settings["rackspace"]["container_cdn_urls"][$container]."/$pointer";
+			} else {
+				// See if we can get the container's CDN URL
+				$response = BigTree::cURL($this->RackspaceCDNEndpoint."/$container","",array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				$lines = explode("\n",$response);
+				foreach ($lines as $line) {
+					if (substr($line,0,10) == "X-Cdn-Uri:") {
+						$cdn = trim(substr($line,10));
+					}
+				}
+				if ($cdn) {
+					$this->Settings["rackspace"]["container_cdn_urls"][$container] = $cdn;
+					return "$cdn/$pointer";
+				}
+			}
+			return $this->RackspaceAPIEndpoint."/$container/$pointer";
+		}
+
+		/*
 			Function: _hash
 				Used for HMAC hashing internally.
 
@@ -119,8 +151,7 @@
 				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
 				
 			Returns:
-				The public URL of the file if successful.
-				In the case of Rackspace, the CDN URL will be returned even if the container is not CDN enabled.
+				The URL of the file if successful.
 		*/
 
 		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
@@ -140,7 +171,7 @@
 				global $bigtree;
 				BigTree::cURL($this->RackspaceAPIEndpoint."/$source_container/$source_pointer",false,array(CURLOPT_CUSTOMREQUEST => "COPY",CURLOPT_HTTPHEADER => array("Destination: /$destination_container/$destination_pointer","X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 				if ($bigtree["last_curl_response_code"] == "201") {
-					return $this->RackspaceCDNEndpoint."/$destination_container/$destination_pointer";
+					return $this->_getRackspaceURL($destination_container,$destination_pointer);
 				}
 				return false;
 			// Google Cloud Storage
@@ -240,8 +271,7 @@
 				type - MIME type (defaults to "text/plain")
 			
 			Returns:
-				The public URL of the file if successful.
-				In the case of Rackspace, the CDN URL will be returned even if the container is not CDN enabled.
+				The URL of the file if successful.
 		*/
 
 		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
@@ -262,7 +292,7 @@
 				global $bigtree;
 				BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer",$contents,array(CURLOPT_CUSTOMREQUEST => "PUT",CURLOPT_HTTPHEADER => array("Content-Length" => strlen($contents),"X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 				if ($bigtree["last_curl_response_code"] == "201") {
-					return $this->RackspaceCDNEndpoint."/$container/$pointer";
+					return $this->_getRackspaceURL($container,$pointer);
 				}
 				return false;
 			// Google Cloud Storage
@@ -470,20 +500,22 @@
 			if ($this->Service == "amazon") {
 				$response = $this->callAmazonS3("GET",$container);
 				$xml = simplexml_load_string($response);
-				if (isset($xml->Contents)) {
-					foreach ($xml->Contents as $item) {
-						$flat[(string)$item->Key] = array(
-							"name" => (string)$item->Key,
-							"path" => (string)$item->Key,
-							"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
-							"etag" => (string)$item->ETag,
-							"size" => (int)$item->Size,
-							"owner" => array(
-								"name" => (string)$item->Owner->DisplayName,
-								"id" => (string)$item->Owner->ID
-							),
-							"storage_class" => (string)$item->StorageClass
-						);
+				if (isset($xml->Name)) {
+					if (is_array($xml->Contents)) {
+						foreach ($xml->Contents as $item) {
+							$flat[(string)$item->Key] = array(
+								"name" => (string)$item->Key,
+								"path" => (string)$item->Key,
+								"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
+								"etag" => (string)$item->ETag,
+								"size" => (int)$item->Size,
+								"owner" => array(
+									"name" => (string)$item->Owner->DisplayName,
+									"id" => (string)$item->Owner->ID
+								),
+								"storage_class" => (string)$item->StorageClass
+							);
+						}
 					}
 				} else {
 					$this->_setAmazonError($response);
@@ -626,14 +658,16 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b",array("project" => $this->Settings["project"]));
-				if (isset($response->items)) {
-					foreach ($response->items as $item) {
-						$containers[] = array(
-							"name" => (string)$item->name,
-							"created_at" => date("Y-m-d H:i:s",strtotime($item->timeCreated)),
-							"location" => (string)$item->location,
-							"storage_class" => (string)$item->storageClass
-						);
+				if (isset($response->kind) && $response->kind == "storage#buckets") {
+					if (is_array($response->items)) {
+						foreach ($response->items as $item) {
+							$containers[] = array(
+								"name" => (string)$item->name,
+								"created_at" => date("Y-m-d H:i:s",strtotime($item->timeCreated)),
+								"location" => (string)$item->location,
+								"storage_class" => (string)$item->storageClass
+							);
+						}
 					}
 				} else {
 					return false;
@@ -658,8 +692,7 @@
 				type - MIME type (defaults to "text/plain")
 			
 			Returns:
-				The public URL of the file if successful.
-				In the case of Rackspace, the CDN URL will be returned even if the container is not CDN enabled.
+				The URL of the file if successful.
 		*/
 
 		function uploadFile($file,$container,$pointer = false,$public = false) {
@@ -710,7 +743,7 @@
 				BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer",false,array(CURLOPT_PUT => true,CURLOPT_INFILE => $file_pointer,CURLOPT_HTTPHEADER => array("Content-Length" => filesize($file),"X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 				fclose($file_pointer);
 				if ($bigtree["last_curl_response_code"] == "201") {
-					return $this->RackspaceCDNEndpoint."/$container/$pointer";
+					return $this->_getRackspaceURL($container,$pointer);
 				}
 				return false;
 			// Google Cloud Storage

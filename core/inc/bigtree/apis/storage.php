@@ -97,12 +97,50 @@
 		*/
 		
 		function delete($file_location) {
-			if ($this->Cloud) {
-				unset($this->Files[$file_location]);
-				return $this->Cloud->deleteFile($this->Container,$file_location);
+			// Make sure we're using IPLs so we don't get it confused with cloud
+			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
+			// Cloud
+			if (substr($file_location,0,4) == "http") {
+				// Try to get the container and pointer
+				$parts = explode("/",$file_location);
+				$domain = $parts[2];
+				$container = $parts[3];
+				$pointer_parts = array_slice($parts,4);
+				if ($domain == "s3.amazonaws.com") {
+					$service = "amazon";
+				} elseif ($domain == "storage.googleapis.com") {
+					$service = "google";
+				} else {
+					$service = "rackspace";
+					// Need to figure out the actual container
+					$container = false;
+					$cloud = ($this->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
+					foreach ($cloud->Settings["rackspace"]["container_cdn_urls"] as $c => $url) {
+						if ($url == "http://$domain") {
+							$container = $c;
+						}
+					}
+					if (!$container) {
+						return false;
+					}
+					$pointer_parts = array_slice($parts,3);
+				}
+
+				if ($this->Service == $service) {
+					$pointer = implode("/",$pointer_parts);
+					$this->Cloud->deleteFile($container,$pointer);
+					if ($this->Container == $container) {
+						unset($this->Files[$pointer]);
+					}
+				} else {
+					// We might have already made an instance for Rackspace
+					$cloud = isset($cloud) ? $cloud : new BigTreeCloudStorage($service);
+					$cloud->deleteFile($container,implode("/",$pointer_parts));
+				}
+			// Local
+			} else {
+				unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
 			}
-			unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
-			return true;
 		}
 		
 		/*
@@ -132,7 +170,7 @@
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
 			if ($this->Cloud) {
-				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name);
+				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
 				if ($remove_original) {
 					unlink($local_file);
 				}
@@ -183,20 +221,20 @@
 			if ($this->Cloud) {
 				// Clean up the file name
 				global $cms;
-				$parts = self::pathInfo($file_name);
+				$parts = BigTree::pathInfo($file_name);
 				$clean_name = $cms->urlify($parts["filename"]);
 				if (strlen($clean_name) > 50) {
 					$clean_name = substr($clean_name,0,50);
 				}
-				$original_name = $file_name = $clean_name.".".strtolower($parts["extension"]);
+				$$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
 				// Make sure we have a unique name
 				while (isset($this->Files[$relative_path.$file_name])) {
-					$file_name = $original_name."-".$x;
+					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
 					$x++;
 				}
 				// Upload it
-				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name);
+				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
 				$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
 				if ($remove_original) {
 					unlink($local_file);

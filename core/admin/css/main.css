@@ -1205,7 +1205,7 @@
 /*---------------------------
 	BigTree File Browser
 ---------------------------*/
-	#file_browser { background: #FFF; border: 1px solid #999; border-radius: 5px; height: 500px; overflow: hidden; position: fixed; width: 820px; z-index: 500000; }
+	#file_browser { background: #FFF; border: 1px solid #999; border-radius: 5px; height: 540px; overflow: hidden; position: fixed; width: 820px; z-index: 500000; }
 	#file_browser .header { background: url(../images/row-bg-sprite.png) repeat-x 0px -292px; border-radius: 5px 5px 0 0; height: 37px; line-height: 37px; padding: 0 10px; }
 	#file_browser .header input { float: right; margin: 5px 0 0 3px; width: 173px; }
 	#file_browser .header h2 { float: left; font-size: 18px; line-height: 37px; margin: 0 0 0 5px; }
@@ -1217,7 +1217,7 @@
 	#file_browser_breadcrumb a { background: url(../images/row-bg-sprite.png) no-repeat right -163px; color: #333; display: block; font-size: 12px; height: 25px; line-height: 25px; padding: 0px 13px 0px 7px; }
 	#file_browser_breadcrumb li:last-child a { background: transparent; }
 	#file_browser_breadcrumb li:first-child a { padding-left: 13px; }
-	#file_browser_contents { float: left; height: 371px; overflow: auto; width: 609px; }
+	#file_browser_contents { float: left; height: 411px; overflow: auto; width: 609px; }
 	#file_browser_contents .file_browser_images { overflow: hidden; padding: 0px 10px 10px 10px; }
 	#file_browser_contents a.image { background: #dddddd; border: 1px solid #D4D4D4; border-radius: 3px; display: block; float: left; height: 98px; margin: 10px 0 0 10px; overflow: hidden; text-align: center; width: 98px; }
 	#file_browser_contents a.image img { max-height: 98px; max-width: 98px; }
@@ -1236,7 +1236,7 @@
 	#file_browser_contents .file_browser_images .file_type_folder { background: url(../images/icon-sprite.svg) -128px -48px; display: block; float: none; height: 32px; margin: 20px auto 5px; width: 32px; }
 	#file_browser_contents .file_browser_images .file_type_folder_back { background: url(../images/icon-sprite.svg) -160px -48px; }
 	
-	#file_browser_info_pane { background: #EFEFEF; border-left: 1px solid #E5E5E5; float: left; height: 371px; width: 210px; }
+	#file_browser_info_pane { background: #EFEFEF; border-left: 1px solid #E5E5E5; float: left; height: 411px; width: 210px; }
 	#file_browser .footer { background: #F5F5F5; border-top: 1px solid #E5E5E5; clear: both; padding: 15px 20px; }
 	#file_browser .footer input { margin: 0 10px 0 0; }
 	#file_browser_size_pane { background: #FFF; border-left: 1px solid #E5E5E5; height: 377px; padding: 10px; position: absolute; width: 589px; z-index: 2; }

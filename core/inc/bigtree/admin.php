@@ -1953,7 +1953,11 @@
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
 			if ($r) {
-				unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$r["file"]));
+				$storage = new BigTreeStorage;
+				$storage->delete($r["file"]);
+				foreach ($r["thumbs"] as $thumb) {
+					$storage->delete($thumb);
+				}
 				sqlquery("DELETE FROM bigtree_resources WHERE id = '$id'");
 			}
 		}
@@ -4313,7 +4317,9 @@
 
 		function getResource($id) {
 			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
+			$f["thumbs"] = json_decode($f["thumbs"],true);
+			return $f;
 		}
 
 		/*
