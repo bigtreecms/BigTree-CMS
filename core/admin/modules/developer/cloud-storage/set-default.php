@@ -1,4 +1,5 @@
 <?
+	$storage = new BigTreeStorage;
 	if ($_POST["service"] != "local") {
 		$cloud = new BigTreeCloudStorage($_POST["service"]);
 		$containers = $cloud->listContainers();

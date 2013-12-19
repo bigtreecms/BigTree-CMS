@@ -1,3 +1,6 @@
+<?
+	$storage = new BigTreeStorage;
+?>
 <div class="container">
 	<summary><h2>Configure</h2></summary>
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">

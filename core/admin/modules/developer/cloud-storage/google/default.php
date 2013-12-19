@@ -4,12 +4,12 @@
 			<p>To activate Google Cloud Storage you must follow these steps:</p>
 			<hr />
 			<ol>
-				<li>Login to the Google Cloud Console and create a project.</li>
-				<li>Click into the project and enter the "API &amp; auth" section. Enable access to the Google Cloud Storage JSON API.</li>
-				<li>Click into the "Registered apps" section and create an application using the "Web Application" type.</li>
-				<li>Expaned the "Oauth 2.0 Client" block and enter the Client ID and Client Secret from that block below.</li>
-				<li>Enter <?=DEVELOPER_ROOT?>cloud-storage/google/return/ as the "Redirect URI" in the OAuth pane and click the button below to save it.</li>
-				<li>If you want to use the Temporary Private URLs feature of Cloud Storage (for providing URLs that expire after a certain amount of time), expaned the "Certificate" block and click the "Generate" button. Then click the "Download private key" button to save your private key. Upload that private key below and enter the email address from the Certificate block as the Certificate Email Address.</li>
+				<li>Login to the <a href="https://cloud.google.com/console">Google Cloud Console</a> and create a project.</li>
+				<li>Click into the project and enter the "API &amp; auth" section. Enable access to the Google Cloud Storage JSON API under APIs.</li>
+				<li>Click into the "Credentials" section and click the "Create New Client ID" button.</li>
+				<li>Enter <?=DEVELOPER_ROOT?>cloud-storage/google/return/ as an "Authorized redirect URI" and choose "Web Application" for the Application Type.</li>
+				<li>Enter the Client ID and Client Secret that was created from the previous step.</li>
+				<li>If you want to use the Temporary Private URLs feature of Cloud Storage (for providing URLs that expire after a certain amount of time), click the "Create New Client ID" button again, this time choosing "Service Account" as the type. Your private key will automatically download. Upload that private key below and enter the email address from the Service Account block as the Certificate Email Address.</li>
 				<li>Follow the OAuth process of allowing BigTree/your application access to your Google Cloud Storage account.</li>
 			</ol>
 			<hr />
