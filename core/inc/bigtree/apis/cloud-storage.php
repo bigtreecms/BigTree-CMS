@@ -245,7 +245,7 @@
 			} elseif ($this->Service == "google") {
 				$request = array("name" => $name);
 				if ($public) {
-					$request["defaultObjectAcl"] = array(array("role" => "READER","entity" => "allUsers"));
+					$request["defaultObjectAcl"] = array(array("role" => "READER","entity" => "allAuthenticatedUsers"),array("role" => "READER","entity" => "allUsers"));
 				}
 				$response = $this->call("b?project=".$this->Settings["project"],json_encode($request),"POST");
 				if (isset($response->id)) {
@@ -473,7 +473,7 @@
 				}
 				$private_key = openssl_pkey_get_private($certificates["pkey"]);
 				// Sign the string
-				openssl_sign("GET\n\n\n$expires\n/$container/$pointer",$signature,$private_key,"sha256");
+				openssl_sign("GET\n\n\n$expires\n/$container/".str_replace(array("+","%2F"),array("%20","/"),urlencode($pointer)),$signature,$private_key,"sha256");
 
 				return "http://storage.googleapis.com/$container/$pointer?GoogleAccessId=".$this->Settings["certificate_email"]."&Expires=$expires&Signature=".urlencode(base64_encode($signature));
 			} else {
