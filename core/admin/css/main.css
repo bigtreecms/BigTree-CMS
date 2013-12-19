@@ -1477,8 +1477,8 @@
 	
 /* Time Picker */
 	.ui-timepicker-div { margin-top: -1px; }
-	.ui-timepicker-div .ui-widget-header { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -224px; color: #fff; height: 22px; line-height: 1.2; padding: 3px 0; }
-	.ui-timepicker-div dl { border: 1px solid #AAA; border-width: 1px 1px 0; overflow: hidden; padding: 10px 15px 0 10px; text-align: left; }
+	.ui-timepicker-div .ui-widget-header { background: #59A8E9; color: #fff; line-height: 12px; padding: 3px 0; }
+	.ui-timepicker-div dl { border: 1px solid #AAA; border-top: none; border-width: 1px 1px 0; overflow: hidden; padding: 10px 15px 0 10px; text-align: left; }
 	.ui-timepicker-div dl dt { clear: both; float: left; height: 25px; width: 29%; }
 	.ui-timepicker-div dl dd { float: left; width: 70%; }
 	.ui-timepicker-div td { font-size: 90%; }
@@ -1486,7 +1486,8 @@
 	.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
 	.ui-datepicker .ui-datepicker-buttonpane { border: 1px solid #AAA; border-width: 0 1px 1px; clear: both; margin-top: 0; overflow: hidden; padding: 0 5px 5px; }
 	
-	.ui-datepicker .ui-datepicker-buttonpane button { background: #BBBBBB url(../images/row-bg-sprite.png) repeat-x 0px -188px; border: 1px solid #ddd; border-radius: 2px; }
+	.ui-datepicker .ui-datepicker-buttonpane button { background: #EEE; border: 1px solid #CCC; border: 1px solid #ddd; border-radius: 2px; }
+	.ui-datepicker .ui-datepicker-buttonpane button:hover { background: #DDD; }
 	.ui-datepicker .ui-timepicker-div table { border: none; color: #ccc; margin: 4px 0 5px; text-transform: uppercase; }
 	.bigtree_dialog_form .ui-datepicker-close { display: none; }
 	
@@ -1494,8 +1495,8 @@
 	.ui-slider { position: relative; text-align: left; }
 	.ui-slider .ui-slider-handle { cursor: default; height: 1.2em; position: absolute; width: 1.2em; z-index: 2; }
 	.ui-slider .ui-slider-range { background-position: 0 0; border: 0; display: block; font-size: .7em; position: absolute; z-index: 1; }
-	.ui-slider-horizontal { background: #BBBBBB url(../images/row-bg-sprite.png) repeat-x 0px -188px; border: 1px solid #ddd; border-radius: 2px; height: .7em; }
-	.ui-slider-horizontal .ui-slider-handle { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -224px; border: 1px solid #243D4C; border-radius: 2px; cursor: ew-resize; margin-left: -.6em; top: -.3em; }
+	.ui-slider-horizontal { background: #EEE; border: 1px solid #DDD; border-radius: 2px; height: .7em; }
+	.ui-slider-horizontal .ui-slider-handle { background: #59A8E9; border: 1px solid #3B98E5; border-radius: 2px; cursor: ew-resize; margin-left: -.6em; top: -.3em; }
 	.ui-slider-horizontal .ui-slider-range { height: 100%; top: 0; }
 	.ui-slider-horizontal .ui-slider-range-min { left: 0; }
 	.ui-slider-horizontal .ui-slider-range-max { right: 0; }
