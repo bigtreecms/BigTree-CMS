@@ -824,7 +824,7 @@
 	.table section.modules_no_header { border-radius: 5px; }
 	
 	.table p.module { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: left; margin: 0 10px 10px 0; transition: background 0.2s, border-color 0.2s; width: 452px; }
-	.table p.module:hover { background: #DEEEFB; }
+	.table p.module:hover { background: #EFF7FD; }
 	.table p.module:nth-child(even) { margin-right: 0; }
 	.table p.module a { color: #333; display: block; font-size: 15px; height: 35px; line-height: 35px; margin: 0; padding: 0 0 0 10px; }
 	.table p.module a.add { float: right; height: 16px; padding: 9px 10px 10px; width: 16px; }
