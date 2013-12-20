@@ -31,9 +31,14 @@
 		}
 	}
 	
+	// Make sure the breadcrumb is at most 5 pieces
+	$cut_breadcrumb = array_slice($bc,-5,5);
+	if (count($cut_breadcrumb) < count($bc)) {
+		$cut_breadcrumb = array_merge(array(array("id" => 0,"name" => "&hellip;")),$cut_breadcrumb);
+	}
 	$crumb_contents = "";
-	foreach ($bc as $crumb) {
-		$crumb_contents .= '<li><a href="#'.$crumb["id"].'">'.$crumb["name"].'</a></li>';
+	foreach ($cut_breadcrumb as $crumb) {
+		$crumb_contents .= '<li><a href="#'.$crumb["id"].'" title="'.$crumb["name"].'">'.$crumb["name"].'</a></li>';
 	}
 ?>
 <script>

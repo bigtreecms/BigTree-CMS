@@ -1215,7 +1215,7 @@
 	#file_browser .header a { border-radius: 3px; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 7px 5px 0 0; padding: 0; text-align: center; width: 85px; }
 	#file_browser_breadcrumb { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; border-top: 1px solid #E5E5E5; float: left; height: 24px; list-style: none; margin: 0; width: 820px; }
 	#file_browser_breadcrumb li { float: left; border-right: 1px solid #E5E5E5; }
-	#file_browser_breadcrumb a { color: #333; display: block; font-size: 12px; height: 24px; line-height: 24px; padding: 0px 15px; }
+	#file_browser_breadcrumb a { color: #333; display: block; font-size: 12px; height: 24px; line-height: 24px; max-width: 124px; overflow: hidden; padding: 0px 15px; text-overflow: ellipsis; white-space: nowrap; }
 	#file_browser_breadcrumb a:hover { background: #E5E5E5; }
 	#file_browser_contents { float: left; height: 411px; overflow: auto; width: 609px; }
 	#file_browser_contents .file_browser_images { overflow: hidden; padding: 0px 10px 10px 10px; }
