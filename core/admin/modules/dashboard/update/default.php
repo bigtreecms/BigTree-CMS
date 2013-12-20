@@ -354,5 +354,17 @@
 		sqlquery("ALTER TABLE `bigtree_pages` DROP COLUMN `callouts`");
 		sqlquery("ALTER TABLE `bigtree_page_revisions` DROP COLUMN `callouts`");
 		sqlquery("CREATE TABLE `bigtree_resource_allocation` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` varchar(255) DEFAULT NULL, `entry` varchar(255) DEFAULT NULL, `resource` int(11) DEFAULT NULL, `updated_at` datetime NOT NULL, PRIMARY KEY (`id`), KEY `resource` (`resource`), KEY `updated_at` (`updated_at`), CONSTRAINT `bigtree_resource_allocation_ibfk_1` FOREIGN KEY (`resource`) REFERENCES `bigtree_resources` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
+		// Switch storage settings
+		$storage_settings = $cms->getSetting("bigtree-internal-storage");
+		if ($storage_settings["service"] == "s3") {
+			$cloud = new BigTreeCloudStorage;
+			$cloud->Settings["amazon"] = array("key" => $storage_settings["s3"]["keys"]["access_key_id"],"secret" => $storage_settings["s3"]["keys"]["secret_access_key"]);
+			unset($cloud);
+		} elseif ($storage_settings["service"] == "rackspace") {
+			$cloud = new BigTreeCloudStorage;
+			$cloud->Settings["rackspace"] = array("api_key" => $storage_settings["rackspace"]["keys"]["api_key"],"username" => $storage_settings["rackspace"]["keys"]["username"]);
+			unset($cloud);
+		}
+		sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-storage'");
 	}
 ?>
