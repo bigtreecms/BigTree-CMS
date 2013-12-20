@@ -503,7 +503,7 @@
 				$this->Settings["token_secret"] = $oauth_token_secret;
 				BigTree::redirect("http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 			} else {
-				$admin->growl($oauth_problem,"Flickr API");
+				$admin->growl($oauth_problem,"Flickr API","error");
 				BigTree::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}

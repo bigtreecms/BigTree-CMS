@@ -8,7 +8,7 @@
 	$admin->requireLevel(1);
 	$item = $admin->getSetting($_POST["id"]);
 	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
-		$admin->growl("Settings","Access Denied");
+		$admin->growl("Settings","Access Denied","error");
 	} else {
 		// Init as $upload_service for backwards compat.
 		$upload_service = new BigTreeUploadService;

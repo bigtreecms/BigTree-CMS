@@ -8,7 +8,7 @@
 	$cloud->Service = "amazon";
 	$cloud->listContainers();
 	if (count($cloud->Errors)) {
-		$admin->growl("Developer","Amazon S3 secret/key are invalid.");
+		$admin->growl("Developer","Amazon S3 secret/key are invalid.","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 	}
 

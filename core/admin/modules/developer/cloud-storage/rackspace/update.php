@@ -5,7 +5,7 @@
 		"region" => $_POST["region"]
 	);
 	if (!$cloud->_getRackspaceToken()) {
-		$admin->growl("Developer","Rackspace Cloud Files Login Failed");
+		$admin->growl("Developer","Rackspace Cloud Files Login Failed","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/rackspace/");
 	}
 

@@ -4,7 +4,7 @@
 		$cloud = new BigTreeCloudStorage($_POST["service"]);
 		$containers = $cloud->listContainers();
 		if ($containers === false) {
-			$admin->growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]));
+			$admin->growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
 			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 		} else {
 			$service_names = array("amazon" => "Amazon S3","rackspace" => "Rackspace Cloud Files","google" => "Google Cloud Storage");
