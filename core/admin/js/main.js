@@ -1659,9 +1659,13 @@ var BigTreeFileManager = {
 	},
 	
 	tinyMCEOpen: function(field_name,url,type,win) {
-		this.currentlyName = false;
-		this.fieldName = win.document.forms[0].elements[field_name];
-		this.open(type,false,false);
+		BigTreeFileManager.currentlyName = false;
+		// TinyMCE 3
+		BigTreeFileManager.fieldName = win.document.forms[0].elements[field_name];
+		if (!BigTreeFileManager.fieldName) {
+			BigTreeFileManager.fieldName = $("#" + field_name).get(0);
+		}
+		BigTreeFileManager.open(type,false,false);
 	},
 
 	uploadError: function(message) {
