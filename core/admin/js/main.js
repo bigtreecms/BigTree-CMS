@@ -1577,6 +1577,7 @@ var BigTreeFileManager = {
 		this.currentFolder = folder;
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
+		$("#file_browser_form .footer .blue").hide();
 		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-files/", { folder: folder }, $.proxy(this.fileBrowserPopulated,this));
 	},
 	
@@ -1584,6 +1585,7 @@ var BigTreeFileManager = {
 		this.currentFolder = folder;
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
+		$("#file_browser_form .footer .blue").hide();
 		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-images/", { minWidth: this.minWidth, minHeight: this.minHeight, folder: folder }, $.proxy(this.imageBrowserPopulated,this));
 	},
 
