@@ -141,8 +141,9 @@
 	input[type=submit].red, a.button.red { background-color: #C0362F; border: none; color: #FFF; }
 	input[type=submit].red:hover, a.button.red:hover { background-color: #AB312B; }
 
-	a.button { display: inline-block; height: 36px; line-height: 37px; padding: 0 15px; }
+	a.button { display: inline-block; height: 34px; line-height: 37px; padding: 0 15px; }
 	a.button .icon_small { float: left; margin: 9px 7px 0 0; }
+	a.button.green, a.button.blue, a.button.red { height: 36px; }
 	input[type=submit].shorter, a.button.shorter { height: 28px; line-height: 30px; }
 	input[type=submit].shorter { padding: 4px 18px 6px; }
 
@@ -1347,6 +1348,9 @@
 	.icon_small_email { background-position: -816px -140px; }
 	.icon_small_pencil { background-position: -832px -140px; }
 	.icon_small_weather { background-position: -848px -140px; }
+	.icon_small_amazon { background-position: -864px -140px; }
+	.icon_small_rackspace { background-position: -880px -140px; }
+	.icon_small_google { background-position: -896px -140px; }
 	.icon_small_pin { background-position: -320px -156px; }
 	.icon_small_planet { background-position: -336px -156px; }
 	.icon_small_mug { background-position: -352px -156px; }
@@ -1617,6 +1621,8 @@
 	#bigtree_foundry_browser_window .navigation_pane ul { list-style: none; margin: 0; user-select: none; }
 	#bigtree_foundry_browser_window .navigation_pane li a { color: #333; display: block; font-size: 10px; line-height: 20px; margin: 0 0 3px 0; padding: 0px 5px; }
 	#bigtree_foundry_browser_window .navigation_pane li a:hover { background: #e2e2e2; }
+	#bigtree_foundry_browser_window .navigation_pane .cloud_options { background: #FFF; border-bottom: 1px solid #CCC; }
+	#bigtree_foundry_browser_window .navigation_pane .cloud_options li a { padding: 3px 5px; margin: 0; }
 	#bigtree_foundry_browser_window .browser_pane { background: #F6F6F6; border-radius-bottom-right: 2px; float: left; height: 338px; overflow: hidden; width: 450px; }
 	#bigtree_foundry_browser_window .browser_pane .files { background: url(../images/icons/page_white_text.png) no-repeat 2px 2px; border: 1px solid #FFF; float: right; height: 16px; margin: 0 3px 0 0; padding: 2px; width: 16px; }
 	#bigtree_foundry_browser_window .browser_pane .images { background: url(../images/icons/images.png) no-repeat 2px 2px; border: 1px solid #FFF; float: right; height: 16px; margin: 0; padding: 2px; width: 16px; }
