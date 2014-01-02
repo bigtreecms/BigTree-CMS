@@ -397,7 +397,7 @@
 /* Form Container Styles */
 	.container { background: #FFF; border: 1px solid #ccc; border-radius: 3px; margin: 0 0 25px 0; overflow: hidden; }
 	.container header { background: #eee; border-bottom: 1px solid #ccc; border-radius: 3px 3px 0 0; height: 45px; }
-	.container header p { color: #666; font-size: 12px; line-height: 37px; padding: 0 15px; }
+	.container header p { color: #666; font-size: 12px; line-height: 45px; padding: 0 15px; }
 	.container header h2 { float: left; font-size: 14px; line-height: 37px; margin: 0; padding: 0 15px 0 15px; text-transform: uppercase; }
 	.container header .back { background: #EEE; border-radius: 15px; color: #333; float: right; font-size: 12px; margin: 9px 10px 0 0; padding: 7px 15px; transition: background-color 0.2s; }
 	.container header .back:hover { background: #F6F6F6; }
@@ -1315,8 +1315,8 @@
 	.icon_small_reply { background-position: -304px -140px; }
 	.icon_small_reply_all { background-position: -304px -156px; }
 	.icon_small_delete { background-position: -336px -140px; }
-	.icon_small_folder { background-position: -352px -139px; }
-	.icon_small_calendar, .icon_small_calendar2 { background-position: -368px -141px; }	
+	.icon_small_folder { background-position: -352px -140px; }
+	.icon_small_calendar, .icon_small_calendar2 { background-position: -368px -140px; }	
 	.icon_small_search, .icon_small_search2 { background-position: -384px -140px; }
 	.icon_small_setup { background-position: -400px -140px; }
 	.icon_small_page { background-position: -416px -140px; }
@@ -1612,7 +1612,7 @@
 	#bigtree_foundry_browser_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; }
 	#bigtree_foundry_browser_close { background: url(../images/icons/cross.png); display: block; float: right; height: 16px; margin: -2px 3px 0 0; width: 16px; }
 	#bigtree_foundry_browser_form { clear: both; margin: 0; }
-	#bigtree_foundry_browser_window .directory { background: #eee; border-bottom: 1px solid #ccc; color: #666; font-size: 11px; height: 24px; line-height: 24px; margin-top: -1px; padding: 0px 10px; }
+	#bigtree_foundry_browser_window .directory { background: #F6F6F6; border-bottom: 1px solid #ccc; color: #666; font-size: 11px; height: 24px; line-height: 24px; padding: 0px 10px; }
 	#bigtree_foundry_browser_window .navigation_pane { background: #F6F6F6; border-right: 1px solid #ccc; border-radius-bottom-left: 2px; float: left; height: 338px; padding: 0; width: 149px; }
 	#bigtree_foundry_browser_window .navigation_pane ul { list-style: none; margin: 0; user-select: none; }
 	#bigtree_foundry_browser_window .navigation_pane li a { color: #333; display: block; font-size: 10px; line-height: 20px; margin: 0 0 3px 0; padding: 0px 5px; }
@@ -1620,7 +1620,7 @@
 	#bigtree_foundry_browser_window .browser_pane { background: #F6F6F6; border-radius-bottom-right: 2px; float: left; height: 338px; overflow: hidden; width: 450px; }
 	#bigtree_foundry_browser_window .browser_pane .files { background: url(../images/icons/page_white_text.png) no-repeat 2px 2px; border: 1px solid #FFF; float: right; height: 16px; margin: 0 3px 0 0; padding: 2px; width: 16px; }
 	#bigtree_foundry_browser_window .browser_pane .images { background: url(../images/icons/images.png) no-repeat 2px 2px; border: 1px solid #FFF; float: right; height: 16px; margin: 0; padding: 2px; width: 16px; }
-	#bigtree_foundry_browser_window .browser_pane ul { background: #fff; border-bottom: 1px solid #ccc; height: 292px; list-style: none; margin: 0; overflow: auto; user-select: none; width: 450px; }
+	#bigtree_foundry_browser_window .browser_pane ul { background: #fff; border-bottom: 1px solid #ccc; height: 290px; list-style: none; margin: 0; overflow: auto; user-select: none; width: 450px; }
 	#bigtree_foundry_browser_window .browser_pane li { border-bottom: 1px solid #EEE; cursor: pointer; font-size: 12px; line-height: 20px; padding: 3px 5px; }
 	#bigtree_foundry_browser_window .browser_pane li:hover { background: #eee; }
 	#bigtree_foundry_browser_window .browser_pane li div { height: 48px; overflow: hidden; padding: 11px 0 12px 0; text-align: center; }

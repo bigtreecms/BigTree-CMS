@@ -107,6 +107,7 @@
 			)),
 			array("title" => "Payment Gateway","link" => "developer/payment-gateway","icon" => "payment","hidden" => true,"children" => array(
 				array("title" => "Authorize.Net","link" => "developer/payment-gateway/authorize","icon" => "authorize","hidden" => true),
+				array("title" => "PayPal REST API","link" => "developer/payment-gateway/paypal-rest","icon" => "paypal","hidden" => true),
 				array("title" => "PayPal Payments Pro","link" => "developer/payment-gateway/paypal","icon" => "paypal","hidden" => true),
 				array("title" => "PayPal Payflow Gateway","link" => "developer/payment-gateway/payflow","icon" => "payflow","hidden" => true),
 				array("title" => "First Data / LinkPoint","link" => "developer/payment-gateway/linkpoint","icon" => "linkpoint","hidden" => true)
