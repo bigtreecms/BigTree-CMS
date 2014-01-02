@@ -501,21 +501,19 @@
 				$response = $this->callAmazonS3("GET",$container);
 				$xml = simplexml_load_string($response);
 				if (isset($xml->Name)) {
-					if (is_array($xml->Contents)) {
-						foreach ($xml->Contents as $item) {
-							$flat[(string)$item->Key] = array(
-								"name" => (string)$item->Key,
-								"path" => (string)$item->Key,
-								"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
-								"etag" => (string)$item->ETag,
-								"size" => (int)$item->Size,
-								"owner" => array(
-									"name" => (string)$item->Owner->DisplayName,
-									"id" => (string)$item->Owner->ID
-								),
-								"storage_class" => (string)$item->StorageClass
-							);
-						}
+					foreach ($xml->Contents as $item) {
+						$flat[(string)$item->Key] = array(
+							"name" => (string)$item->Key,
+							"path" => (string)$item->Key,
+							"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
+							"etag" => (string)$item->ETag,
+							"size" => (int)$item->Size,
+							"owner" => array(
+								"name" => (string)$item->Owner->DisplayName,
+								"id" => (string)$item->Owner->ID
+							),
+							"storage_class" => (string)$item->StorageClass
+						);
 					}
 				} else {
 					$this->_setAmazonError($response);
