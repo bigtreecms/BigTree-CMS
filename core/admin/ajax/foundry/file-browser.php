@@ -17,12 +17,12 @@
 		}
 	}
 
-	$location = isset($_POST["cloud"]) ? $_POST["cloud"] : "server";
+	$location = !empty($_POST["cloud"]) ? $_POST["cloud"] : "server";
 	$subdirectories = array();
 	$files = array();
 	$containers = array();
 	// Get the post directory
-	$postcontainer = isset($_POST["container"]) ? $_POST["container"] : "";
+	$postcontainer = !empty($_POST["container"]) ? $_POST["container"] : "";
 	$parts = explode("/",$_POST["directory"]);
 	$postdirectory = array();
 	foreach ($parts as $part) {

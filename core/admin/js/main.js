@@ -23,13 +23,6 @@ $(document).ready(function() {
 		return false;
 	});
 	
-	// Stop the end of breadcrumbs
-	$(".breadcrumb a").click(function() {
-		if ($(this).attr("href") == "#") {
-			return false;
-		}
-	});
-	
 	// Growl Hooks
 	$("#growl").on("click",".close",function() {
 		$(this).parents("article").remove();
@@ -2377,13 +2370,12 @@ var BigTreeFoundryBrowser = Class.extend({
 
 	onComplete: false,
 
-	init: function(directory,oncomplete,cloud_disabled) {
+	init: function(directory,oncomplete,cloud_disabled,location,container) {
 		this.onComplete = oncomplete;
 		overlay = $('<div class="bigtree_dialog_overlay">');
-		browserwindow = $('<div id="bigtree_foundry_browser_window">');
-		browserwindow.html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Please Wait...</form>');
+		browserwindow = $('<div id="bigtree_foundry_browser_window">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
 		$("body").append(overlay).append(browserwindow);
-		$("#bigtree_foundry_browser_form").load("admin_root/ajax/foundry/file-browser/", { directory: directory, cloud_disabled: cloud_disabled });
+		$("#bigtree_foundry_browser_form").load("admin_root/ajax/foundry/file-browser/", { directory: directory, cloud_disabled: cloud_disabled, location: location, container: container });
 
 		leftd = parseInt((BigTree.WindowWidth() - 602) / 2);
 		topd = parseInt((BigTree.WindowHeight() - 402) / 2);
@@ -2597,9 +2589,8 @@ var BigTreeQuickLoader = {
 				url: window.location.href,
 				data: {
 					"title": $("head").find("title").text(),
-					"breadcrumb": $("nav.breadcrumb").html(),
 					"page": $("#page").html(),
-					"active_nav": $("nav.main li").index(".active"),
+					"active_nav": $("nav.main > section > ul > li").index($("nav.main li.active")),
 					"scripts": scripts,
 					"css": css
 				}
@@ -2648,24 +2639,6 @@ var BigTreeQuickLoader = {
 
 	render: function(url,data,push) {
 		$(window).scrollTop(0);
-		
-		if (typeof data.breadcrumb === "string") {
-			breadcrumb = data.breadcrumb;
-		} else {
-			breadcrumb = "";
-			for (i = 0; i < data.breadcrumb.length; i++) {
-				crumb = data.breadcrumb[i];
-				if (i == data.breadcrumb.length - 1) {
-					breadcrumb += '<a href="admin_root/' + crumb.link + '/" class="last">' + crumb.title + '</a>';
-				} else {
-					breadcrumb += '<a';
-					if (i == 0) {
-						breadcrumb += ' class="first"';
-					}
-					breadcrumb += ' href="admin_root/' + crumb.link + '/">' + crumb.title + '</a><span>&rsaquo;</span>';	
-				}
-			}
-		}
 
 		// Load new scripts
 		scripts_to_load = data.scripts;
@@ -2705,7 +2678,6 @@ var BigTreeQuickLoader = {
 
 		document.title = data.title;
 		$("#page").html(data.page);
-		$("nav.breadcrumb").html(breadcrumb);
 		$("nav.main li, nav.main li > a").removeClass("active");
 		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
 
