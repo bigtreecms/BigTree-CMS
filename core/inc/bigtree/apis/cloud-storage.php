@@ -621,6 +621,30 @@
 		}
 
 		/*
+			Function: getFolder
+				Returns the folder "contents" from a container.
+
+			Parameters:
+				container - Either a string of the name of the container the folder resides in OR the response from a previous getContainer call.
+				folder - The full folder path inside the container.
+
+			Returns:
+				A keyed array of files and folders inside the folder or false if the folder was not found.
+		*/
+
+		function getFolder($container,$folder) {
+			if (!is_array($container)) {
+				$container = $this->getContainer($container);
+			}
+			$folder_parts = explode("/",trim($folder,"/"));
+			$tree = $container["tree"];
+			foreach ($folder_parts as $part) {
+				$tree = isset($tree["folders"][$part]) ? $tree["folders"][$part] : false;
+			}
+			return $tree;
+		}
+
+		/*
 			Function: listContainers
 				Lists containers/buckets that are available in this cloud account.
 

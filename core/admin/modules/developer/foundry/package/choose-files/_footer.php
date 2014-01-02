@@ -295,21 +295,21 @@
 	$(".class_browse").click(function(ev) {
 		new BigTreeFoundryBrowser("custom/inc/modules/",function(data) {
 			doneSelectFile("class_files",data);
-		});
+		},true);
 		return false;
 	});
 	
 	$(".required_browse").click(function(ev) {
 		new BigTreeFoundryBrowser("custom/inc/required/",function(data) {
 			doneSelectFile("required_files",data);
-		});
+		},true);
 		return false;
 	});
 	
 	$(".other_browse").click(function(ev) {
 		new BigTreeFoundryBrowser("",function(data) {
 			doneSelectFile("other_files",data);
-		});
+		},true);
 		return false;
 	});
 	

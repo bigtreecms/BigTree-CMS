@@ -2377,13 +2377,13 @@ var BigTreeFoundryBrowser = Class.extend({
 
 	onComplete: false,
 
-	init: function(directory,oncomplete) {
+	init: function(directory,oncomplete,cloud_disabled) {
 		this.onComplete = oncomplete;
 		overlay = $('<div class="bigtree_dialog_overlay">');
 		browserwindow = $('<div id="bigtree_foundry_browser_window">');
 		browserwindow.html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Please Wait...</form>');
 		$("body").append(overlay).append(browserwindow);
-		$("#bigtree_foundry_browser_form").load("admin_root/ajax/foundry/file-browser/", { directory: directory });
+		$("#bigtree_foundry_browser_form").load("admin_root/ajax/foundry/file-browser/", { directory: directory, cloud_disabled: cloud_disabled });
 
 		leftd = parseInt((BigTree.WindowWidth() - 602) / 2);
 		topd = parseInt((BigTree.WindowHeight() - 402) / 2);
@@ -2393,7 +2393,7 @@ var BigTreeFoundryBrowser = Class.extend({
 	},
 
 	BrowserSubmit: function(ev) {
-		data = { file: $("#bigtree_foundry_selected_file").val(), directory: $("#bigtree_foundry_directory").val() };
+		data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location") };
 		this.onComplete(data);
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#bigtree_foundry_browser_window").remove();
