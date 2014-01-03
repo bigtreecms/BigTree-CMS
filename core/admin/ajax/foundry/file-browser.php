@@ -1,7 +1,7 @@
 <?
 	// See if we have cloud support
 	$cloud_options = array();
-	if (!$_POST["cloud_disabled"]) {
+	if (!$_POST["cloud_disabled"] || $_POST["cloud_disabled"] == "false") {
 		$cloud = new BigTreeCloudStorage;
 		if (!empty($cloud->Settings["amazon"]["active"])) {
 			$cloud_options[] = array("class" => "amazon","title" => "Amazon S3");
@@ -17,7 +17,7 @@
 		}
 	}
 
-	$location = !empty($_POST["cloud"]) ? $_POST["cloud"] : "server";
+	$location = !empty($_POST["location"]) ? $_POST["location"] : "server";
 	$subdirectories = array();
 	$files = array();
 	$containers = array();
@@ -114,14 +114,14 @@
 				$parts = BigTree::pathInfo($file);
 				$ext = strtolower($parts["extension"]);
 		?>
-		<li class="file"><span class="icon_small icon_small_file_default icon_small_file_<?=$ext?>"></span><p><?=$file?></p></li>
+		<li class="file<? if ($file == $_POST["file"]) { ?> selected<? } ?>"><span class="icon_small icon_small_file_default icon_small_file_<?=$ext?>"></span><p><?=$file?></p></li>
 		<?
 			}
 		?>
 	</ul>
-	<input type="hidden" name="file" id="bigtree_foundry_file" value="" />
+	<input type="hidden" name="file" id="bigtree_foundry_file" value="<?=$_POST["file"]?>" />
 	<input type="hidden" name="directory" value="<?=$postdirectory?>" id="bigtree_foundry_directory" />
-	<input type="hidden" name="container" value="<?=$postcontaienr?>" id="bigtree_foundry_container" />
+	<input type="hidden" name="container" value="<?=$postcontainer?>" id="bigtree_foundry_container" />
 	<input type="hidden" name="location" value="<?=$location?>" id="bigtree_foundry_location" />
 	<input type="submit" value="Use Selected File" class="button blue" />
 	<a href="#" class="button">Cancel</a>
@@ -131,12 +131,12 @@
 	$("#bigtree_foundry_browser_window .navigation_pane a").click(function(ev) {
 		type = $(this).attr("data-type");
 		if (type == "location") {
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { cloud: $(this).attr("href") });
+			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { location: $(this).attr("href") });
 		} else if (type == "container") {
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { cloud: "<?=$location?>", container: $(this).attr("href") });	
+			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { location: "<?=$location?>", container: $(this).attr("href") });	
 		} else {
 			directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { cloud_disabled: "<?=$_POST["cloud_disabled"]?>", cloud: "<?=$location?>", container: "<?=$postcontainer?>", directory: directory });
+			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { cloud_disabled: "<?=$_POST["cloud_disabled"]?>", location: "<?=$location?>", container: "<?=$postcontainer?>", directory: directory });
 		}
 		return false;
 	});
