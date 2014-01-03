@@ -2385,7 +2385,7 @@ var BigTreeFoundryBrowser = Class.extend({
 	},
 
 	BrowserSubmit: function(ev) {
-		data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location") };
+		data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location").val() };
 		this.onComplete(data);
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#bigtree_foundry_browser_window").remove();

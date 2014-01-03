@@ -123,6 +123,7 @@
 	fieldset { margin: 0 0 15px 0; overflow: hidden; }
 	fieldset:last-child { margin: 0; }
 	fieldset p { user-select: none; }
+	fieldset.checkbox_bump { padding: 31px 0 0 0; }
 
 	label { color: #666; display: block; font-size: 13px; line-height: 1; margin: 0 0 10px 0; user-select: none; }
 	label small { color: #999; font-size: 11px; margin: 0 0 0 5px; }
