@@ -1292,7 +1292,7 @@
 			if (!self::isDirectoryWritable($file)) {
 				return false;
 			}
-			if (!is_readable($from)) {
+			if (!is_readable($file)) {
 				return false;
 			}
 			
