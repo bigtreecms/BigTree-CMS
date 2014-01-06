@@ -638,6 +638,33 @@
 		}
 
 		/*
+			Function: directoryContents
+				Returns a directory's files and subdirectories (with their files) in a flat array with file paths.
+
+			Parameters:
+				directory - The directory to search
+				recursive - Set to false to not recurse subdirectories (defaults to true).
+
+			Returns:
+				An array of files/folder paths.
+		*/
+
+		static function directoryContents($directory,$recurse = true) {
+			$contents = array();
+			$d = opendir($directory);
+			while ($r = readdir($d)) {
+				if ($r != "." && $r != "..") {
+					$path = rtrim($directory,"/")."/".$r;
+					$contents[] = $path;
+					if (is_dir($path) && $recurse) {
+						$contents = array_merge($contents,BigTree::directoryContents($path));
+					}
+				}
+			}
+			return $contents;
+		}
+
+		/*
 			Function: formatBytes
 				Formats bytes into larger units to make them more readable.
 			
