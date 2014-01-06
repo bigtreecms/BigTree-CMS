@@ -644,20 +644,23 @@
 			Parameters:
 				directory - The directory to search
 				recursive - Set to false to not recurse subdirectories (defaults to true).
+				extension - Limit the results to a specific file extension (defaults to false).
 
 			Returns:
 				An array of files/folder paths.
 		*/
 
-		static function directoryContents($directory,$recurse = true) {
+		static function directoryContents($directory,$recurse = true,$extension = false) {
 			$contents = array();
 			$d = opendir($directory);
 			while ($r = readdir($d)) {
 				if ($r != "." && $r != "..") {
 					$path = rtrim($directory,"/")."/".$r;
-					$contents[] = $path;
+					if ($extension === false || substr($path,-1 * strlen($extension)) == $extension) {
+						$contents[] = $path;
+					}
 					if (is_dir($path) && $recurse) {
-						$contents = array_merge($contents,BigTree::directoryContents($path));
+						$contents = array_merge($contents,BigTree::directoryContents($path,$recurse,$extension));
 					}
 				}
 			}
