@@ -1292,9 +1292,6 @@
 			if (!self::isDirectoryWritable($file)) {
 				return false;
 			}
-			if (!is_readable($file)) {
-				return false;
-			}
 			
 			$pathinfo = self::pathInfo($file);
 			$file_name = $pathinfo["basename"];
