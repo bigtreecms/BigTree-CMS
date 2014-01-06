@@ -87,7 +87,11 @@
 	
 	foreach ($modules as $mod) {
 		$view = BigTreeAutoModule::getViewForTable($mod["table"]);
-		$view_data = BigTreeAutoModule::getViewData($view);
+		if ($view) {
+			$view_data = BigTreeAutoModule::getViewData($view);
+		} else {
+			$view_data = false;
+		}
 		$edit_link = ADMIN_ROOT.$mod["route"]."/edit";
 		if ($view["suffix"]) {
 			$edit_link .= "-$suffix";
@@ -107,16 +111,19 @@
 		<ul class="image_list">
 			<?
 				foreach ($mod["changes"] as $change) {
-					if ($change["item_id"]) {
-						$item = $view_data[$change["item_id"]];
+					if ($view_data) {
+						if ($change["item_id"]) {
+							$item = $view_data[$change["item_id"]];
+						} else {
+							$item = $view_data["p".$change["id"]];
+						}
 					} else {
-						$item = $view_data["p".$change["id"]];
+						$item = array("id" => $change["item_id"] ? $change["item_id"] : "p".$change["id"]);
 					}
 					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
 					if ($view["options"]["prefix"]) {
 						$image = BigTree::prefixFile($image,$view["options"]["prefix"]);
 					}
-
 			?>
 			<li class="non_draggable">
 				<p><?=$change["user"]["name"]?></p>
