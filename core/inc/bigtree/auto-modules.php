@@ -1247,6 +1247,9 @@
 			
 			$table = sqlescape($table);
 			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
+			if (!$view) {
+				return false;
+			}
 			$view["options"] = json_decode($view["options"],true);
 			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
 			
