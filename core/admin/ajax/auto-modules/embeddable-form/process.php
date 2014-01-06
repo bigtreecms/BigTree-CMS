@@ -117,7 +117,7 @@
 	}
 
 	if ($bigtree["form"]["default_pending"]) {
-		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["current_module"]["id"],$table,$item,$many_to_many,$tags);
+		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags);
 	} else {
 		$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 		$did_publish = true;
@@ -129,7 +129,7 @@
 	}
 
 	// Track resource allocation
-	$admin->allocateResources($bigtree["current_module"]["id"],$edit_id);
+	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
 
 	// Put together saved form information for the error or crop page in case we need it.
 	$_SESSION["bigtree_admin"]["form_data"] = array(

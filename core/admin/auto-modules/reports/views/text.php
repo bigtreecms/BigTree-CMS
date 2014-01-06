@@ -35,7 +35,7 @@
 					$status_class = "published";
 					$status = "Published";
 				}
-				$item_permission = $admin->getAccessLevel($bigtree["current_module"],$item,$bigtree["form"]["table"]);
+				$item_permission = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
 				if ($item_permission && $item_permission != "n") {
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">

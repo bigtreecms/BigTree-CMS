@@ -18,12 +18,12 @@
 	}
 
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
-	$bigtree["access_level"] = $admin->getAccessLevel($bigtree["current_module"],$_POST,$bigtree["form"]["table"]);
+	$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$_POST,$bigtree["form"]["table"]);
 	if ($_POST["id"] && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
 		$original_item = BigTreeAutoModule::getItem($bigtree["form"]["table"],$_POST["id"]);
 		$existing_item = BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$_POST["id"]);
-		$previous_permission = $admin->getAccessLevel($bigtree["current_module"],$existing_item["item"],$bigtree["form"]["table"]);
-		$original_permission = $admin->getAccessLevel($bigtree["current_module"],$original_item["item"],$bigtree["form"]["table"]);
+		$previous_permission = $admin->getAccessLevel($bigtree["module"],$existing_item["item"],$bigtree["form"]["table"]);
+		$original_permission = $admin->getAccessLevel($bigtree["module"],$original_item["item"],$bigtree["form"]["table"]);
 
 		// If the current permission is e or p, drop it down to e if the old one was e.
 		if ($previous_permission != "p") {
@@ -134,12 +134,12 @@
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			BigTreeAutoModule::submitChange($bigtree["current_module"]["id"],$table,$edit_id,$item,$many_to_many,$tags);
-			$admin->growl($bigtree["current_module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
+			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags);
+			$admin->growl($bigtree["module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["current_module"]["id"],$table,$item,$many_to_many,$tags);
-			$admin->growl($bigtree["current_module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
+			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags);
+			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
 		}
 	// We're a publisher and we want to publish
 	} elseif ($bigtree["access_level"] == "p" && $data_action == "publish") {
@@ -148,18 +148,18 @@
 			// If the edit id starts with a "p" it's a pending entry we're publishing.
 			if (substr($edit_id,0,1) == "p") {
 				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
-				$admin->growl($bigtree["current_module"]["name"],"Updated & Published ".$bigtree["form"]["title"]);
+				$admin->growl($bigtree["module"]["name"],"Updated & Published ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			// Otherwise we're updating something that is already published
 			} else {
 				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
-				$admin->growl($bigtree["current_module"]["name"],"Updated ".$bigtree["form"]["title"]);
+				$admin->growl($bigtree["module"]["name"],"Updated ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			}
 		// We're creating a new published entry.
 		} else {
 			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
-			$admin->growl($bigtree["current_module"]["name"],"Created ".$bigtree["form"]["title"]);
+			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]);
 			$did_publish = true;
 		}
 	}
@@ -190,16 +190,16 @@
 	if ($bigtree["form"]["return_view"]) {
 		$action = $admin->getModuleActionForView($bigtree["form"]["return_view"]);
 		if ($action["route"]) {
-			$redirect_url = ADMIN_ROOT.$bigtree["current_module"]["route"]."/".$action["route"]."/".$redirect_append;
+			$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$action["route"]."/".$redirect_append;
 		} else {
-			$redirect_url = ADMIN_ROOT.$bigtree["current_module"]["route"]."/".$redirect_append;
+			$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$redirect_append;
 		}
 	// If we specify a specific return URL...
 	} elseif ($bigtree["form"]["return_url"]) {
 		$redirect_url = $bigtree["form"]["return_url"].$redirect_append;
 	// Otherwise just go back to the main module landing.
 	} else {
-		$redirect_url = ADMIN_ROOT.$bigtree["current_module"]["route"]."/".$redirect_append;
+		$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$redirect_append;
 	}
 	// If we've specified a preview URL in our module and the user clicked Save & Preview, return to preview page.
 	if ($_POST["_bigtree_preview"]) {
@@ -213,7 +213,7 @@
 	}
 
 	// Track resource allocation
-	$admin->allocateResources($bigtree["current_module"]["id"],$edit_id);
+	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
 
 	// Put together saved form information for the error or crop page in case we need it.
 	$edit_action = BigTreeAutoModule::getEditAction($bigtree["module"]["id"],$bigtree["form"]["id"]);
@@ -221,7 +221,7 @@
 		"view" => $view,
 		"id" => $edit_id,
 		"return_link" => $redirect_url,
-		"edit_link" => ADMIN_ROOT.$bigtree["current_module"]["route"]."/".$edit_action["route"]."/$edit_id/",
+		"edit_link" => ADMIN_ROOT.$bigtree["module"]["route"]."/".$edit_action["route"]."/$edit_id/",
 		"errors" => $bigtree["errors"],
 		"crops" => $bigtree["crops"]
 	);

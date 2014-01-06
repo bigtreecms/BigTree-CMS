@@ -20,7 +20,7 @@
 					} else {
 						$preview_image = $item[$bigtree["view"]["options"]["image"]];
 					}
-					$item_permission = $admin->getAccessLevel($bigtree["current_module"],$item,$bigtree["form"]["table"]);
+					$item_permission = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
 
 					if ($item_permission && $item_permission != "n") {
 			?>

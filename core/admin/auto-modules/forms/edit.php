@@ -20,9 +20,9 @@
 		$bigtree["entry"] = $item = $pending_entry["item"];
 
 		// Check access levels
-		$bigtree["access_level"] = $admin->getAccessLevel($bigtree["current_module"],$item,$bigtree["form"]["table"]);
+		$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
 		if ($bigtree["access_level"] != "n") {
-			$original_permission_level = $admin->getAccessLevel($bigtree["current_module"],$original_item["item"],$bigtree["form"]["table"]);
+			$original_permission_level = $admin->getAccessLevel($bigtree["module"],$original_item["item"],$bigtree["form"]["table"]);
 			if ($original_permission_level != "p") {
 				$bigtree["access_level"] = $original_permission_level;
 			}
