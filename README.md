@@ -1,4 +1,4 @@
-BigTree CMS 4.0
+BigTree CMS 4.1
 ===============
 <http://www.bigtreecms.org/>
 
@@ -21,6 +21,41 @@ Changelog
 ---------
 
 ### 4.1 Release
+- ADDED: Page ID in Page Properties section.
+- ADDED: Multiple WYSIWYG options (TinyMCE 3, TinyMCE 4) - the default is now TinyMCE 4.
+- ADDED: The ability to have a WYSIWYG area degrade to "simple mode" if a user is not an admin / developer.
+- ADDED: A Developer/admin maintenance mode that restricts access to the admin area to developer users.
+- ADDED: User Emulator for developers so that they can test how the admin behaves as a different user without knowing their password.
+- ADDED: Pages can now throw a "X-Robots-Tag: noindex" header via a checkbox when adding/editing a page (stops Google/Bing from indexing the page).
+- ADDED: Image option to automatically convert uploaded PNGs (that don't have an alpha channel) to JPGs to save space.
+- ADDED: Users can now hide Module View descriptions by clicking a close button.
+- ADDED: Titles to action buttons when hovering over them.
+- ADDED: Example content when using the Module View styler so that you can see how actual content will be affected by your changes.
+- ADDED: Quick links back to Developer edit page for module views/forms when viewing them.
+- ADDED: A setting to change the default number of items per page.
+- ADDED: Audit Trail tool to run reports on activity in the admin (the audit trail table has existed since 4.0, this new interface can use existing data).
+- ADDED: BigTreeModule::getInfo method that will return information about a given module entry (creation time, update time, who created, who last updated, etc).
+- ADDED: Module Reporting to create custom reports and CSV exports quickly.
+- ADDED: Nested Draggable view type (perfect for something like categories that have subcategories).
+- ADDED: Embeddable Module Forms — forms that you can embed via iframe in the front end of your site that will feed directly into your modules.
+- ADDED: Message Thread support in Message Center (you can now see the full conversation when viewing a message).
+- ADDED: Maintenance Mode option that will load /templates/basic/_maintenance.php and redirect users to a given URL (similar to the developer maintenance mode except for the front end).
+- ADDED: File Manager file/folder deletion ability.
+- ADDED: File Manager replace file ability.
+- ADDED: Support for "nested" <select> boxes (add data-depth="{depth}" to your <option> to increase its tab depth)
+- ADDED: Support for Google Cloud Storage
+- ADDED: BigTreeCloudStorage class for easy manipulation of different cloud storage services (you can use Amazon, Rackspace, and Google together now through this class).
+- ADDED: Cloud Storage support to the "Foundry" file picker.
+- ADDED: BigTree::directoryContents method to list a directory's contents without looping it yourself.
+- ADDED/CHANGED: Callouts are no longer a template option; they are now a field type. You can have multiple sets of callouts and callout groups.
+- CHANGED: New Design
+- CHANGED: Duplicate resources are no longer stored as duplicates (use MD5 hashes to correlate dupes).
+- CHANGED: Editing a user in sites where lots of pages existed is now MUCH faster. Page trees are now loaded via AJAX when no permissions exist in them.
+- CHANGED: Generated Route field type now provides a drop down of columns to choose from instead of making you enter it manually.
+- CHANGED: No longer using generic __autoload function to load classes, should help compatibility with some third party libraries.
+- CHANGED: Removed a lot of third party API libraries and replaced them with custom coded (much simpler) classes (i.e. Amazon, Rackspace, Google Analytics).
+- CHANGED: References to resources uploaded through the File Manager are now encoded as irl://{id} so that references are better kept.
+- CHANGED: Big revamp of Cloud Storage section. You'll need to reauthenticate services and re-select the one you wish to use for default storage.
 
 ### 4.0 Release
 - ADDED: Multiple Service APIs (Twitter, Instagram, YouTube, Google+, Flickr, Disqus)
