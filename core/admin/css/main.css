@@ -865,12 +865,12 @@
 	
 /* Message Center */
 	.message_thread section:first-child header { border-radius: 5px 5px 0 0; border-top: none; }
-	.message_thread header { background: #F3F3F3; border-radius: 0; border-top: 1px solid #CCC; cursor: pointer; height: auto; margin: -30px -30px 0 -30px; opacity: 0.7; padding: 10px 15px; }
-	.message_thread header h3 { float: left; height: 24px; line-height: 24px; margin: 0; max-width: 700px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.message_thread header { background: #F3F3F3; border-radius: 0; border-top: 1px solid #CCC; cursor: pointer; height: auto; margin: -30px -30px 0 -30px; opacity: 0.7; overflow: hidden; padding: 10px 15px; }
+	.message_thread header h3 { float: left; height: 24px; line-height: 24px; margin: 0; max-width: 600px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.message_thread header div { float: right; }
-	.message_thread header div p { float: left; height: 24px; line-height: 24px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.message_thread header div p { float: left; height: 24px; line-height: 24px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.message_thread header div .gravatar { float: right; margin: 0; }
-	.message_thread header div .gravatar img { height: 16px; width: 16px; }
+	.message_thread header div .gravatar img { height: 24px; width: 24px; }
 	.message_thread section { padding-bottom: 0; }
 	.message_thread article { height: 0px; overflow: hidden; }
 	.message_thread .selected { padding-bottom: 30px; }
