@@ -6,7 +6,7 @@
 	 * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
 	 */
 	
-	require_once(SERVER_ROOT."core/admin/js/tiny_mce/plugins/spellchecker/includes/general.php");
+	require_once(SERVER_ROOT."core/admin/js/tinymce3/plugins/spellchecker/includes/general.php");
 	
 	// Set RPC response headers
 	header('Content-Type: text/plain');
