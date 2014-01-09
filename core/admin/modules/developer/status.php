@@ -2,16 +2,6 @@
 	//!BigTree Warnings
 	$warnings = array();
 	
-	// Check for Google Analytics
-	$content = @file_get_contents(WWW_ROOT);
-	if (strpos($content,"google-analytics.com/ga.js") === false) {
-		$warnings[] = array(
-			"parameter" => "Google Analytics",
-			"rec" => "We recommend you install Google Analytics for tracking data.",
-			"status" => "ok"
-		);
-	}
-	
 	$writable_directories = array(
 		"cache/",
 		"custom/inc/modules/",
