@@ -275,7 +275,7 @@
 	.login_wrapper .forgot_password:hover { color: #59A8E9; }
 	.login_wrapper .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 20px 30px; padding: 5px 10px; }
 	.login_wrapper .maintenance h2 { line-height: 32px; margin-bottom: 15px; }
-	.login_wrapper .maintenance h2 span { background: url(../images/icon-sprite.png) -320px -16px no-repeat; float: left; height: 32px; margin: 0 10px 0 0; width: 32px; }
+	.login_wrapper .maintenance h2 span { background: url(../images/icon-sprite.svg) -320px -16px no-repeat; float: left; height: 32px; margin: 0 10px 0 0; width: 32px; }
 	.login_wrapper .maintenance p { margin: 0 30px; padding: 0 0 30px 0; text-align: justify; }
 	.login_logo { background: url(../images/icon-sprite.svg) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.login_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; user-select: none; width: 300px; }
@@ -700,7 +700,7 @@
 	.nested_table ul li:after { content: ""; display: table; clear: both; }
 	.nested_table ul ul { padding: 1px 0 0 0; float: left; width: 100%; }
 	.nested_table ul li:nth-of-type(2n) { background: #FFF; }
-	.nested_table ul li section:first-of-type { background: url(../images/icon-sprite.png) no-repeat -930px 0px; cursor: pointer; padding: 0 0 0 40px; user-select: none; }
+	.nested_table ul li section:first-of-type { background: url(../images/icon-sprite.svg) no-repeat -930px 0px; cursor: pointer; padding: 0 0 0 40px; user-select: none; }
 	.nested_table ul li.expanded > section:first-of-type { background-position: -930px -64px; }
 	.nested_table ul li section.disabled { background-position: -930px -32px; cursor: default; }
 	.nested_table ul li section.disabled.expanded { background-position: -930px -96px; }
@@ -1285,9 +1285,9 @@
 	.icon_drag { background: url(../images/icon-sprite.svg); background-position: -648px -80px; cursor: move; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat { background: url(../images/icon-sprite.svg); background-position: -672px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_repeat_on { background: url(../images/icon-sprite.svg); background-position: -696px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_export { background: url(../images/icon-sprite.png); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_trail { background: url(../images/icon-sprite.png); background-position: -744px -80px; display: inline-block; height: 24px; width: 24px; }
-	.icon_settings_generic { background: url(../images/icon-sprite.png); background-position: -768px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_export { background: url(../images/icon-sprite.svg); background-position: -720px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_trail { background: url(../images/icon-sprite.svg); background-position: -744px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_settings_generic { background: url(../images/icon-sprite.svg); background-position: -768px -80px; display: inline-block; height: 24px; width: 24px; }
 	
 	.disabled_icon { cursor: default; opacity: 0.3; }
 
