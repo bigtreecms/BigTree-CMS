@@ -424,6 +424,9 @@
 </IfModule>
 
 AddType image/svg+xml svg
+AddType video/ogg .ogv
+AddType video/mp4 .mp4
+AddType video/webm .webm
 
 IndexIgnore */*
 
