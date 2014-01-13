@@ -81,7 +81,23 @@
 </form>
 <?
 			} else {
-				
+				$ftp_root = "/".trim($ftp_root,"/")."/";
+				// Create backups folder
+				$ftp->createDirectory($ftp_root."backups/");
+				// Move old core
+				$ftp->rename($ftp_root."core/",$ftp_root."backups/core-".BIGTREE_VERSION."/");
+				// Backup database
+				$admin->backupDatabase(SERVER_ROOT."cache/backup.sql");
+				$ftp->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
+				// Move new core into place
+				$ftp->rename($ftp_root."cache/update/core/",$ftp_root."core/");
+				// Delete old files
+				$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
+				foreach ($contents as $file) {
+					unlink($file);
+				}
+				rmdir(SERVER_ROOT."cache/update/");
+				unlink(SERVER_ROOT."cache/update.zip");
 			}
 		}
 	}
