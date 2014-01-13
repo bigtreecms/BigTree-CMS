@@ -352,6 +352,74 @@
 		}
 
 		/*
+			Function: backupDatabase
+				Backs up the entire database to a given file.
+
+			Parameters:
+				file - Full file path to dump the database to.
+		
+			Returns:
+				true if successful.
+		*/
+
+		function backupDatabase($file) {
+			$dump = "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n\n";
+
+			// We need to dump the bigtree tables in the proper order or they will not properly be recreated with the right foreign keys
+			$tables = $table_definitions = array();
+			$q = sqlquery("SHOW TABLES");
+			while ($f = sqlfetch($q)) {
+				$table_definitions[current($f)] = BigTree::describeTable(current($f));
+			}
+			// Sort them
+			while (count($table_definitions)) {
+				foreach ($table_definitions as $table => $definition) {
+					// If we have no foreign keys this table can be created whenever
+					if (!count($definition["foreign_keys"])) {
+						$tables[] = $table;
+						unset($table_definitions[$table]);
+					// If we do have foreign keys we have to make sure the other tables are created prior to this one
+					} else {
+						$ok = true;
+						foreach ($definition["foreign_keys"] as $key) {
+							if (!in_array($key["other_table"],$tables)) {
+								$ok = false;
+							}
+						}
+						if ($ok) {
+							$tables[] = $table;
+							unset($table_definitions[$table]);
+						}
+					}
+				}
+			}
+
+			// Dump the tables
+			foreach ($tables as $table) {
+				$dump .= "DROP TABLE IF EXISTS `$table`;\n";
+				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+				$dump .= str_replace(array("\n  ","\n"),"",end($definition)).";\n";
+				$q = sqlquery("SELECT * FROM `$table`");
+				while ($f = sqlfetch($q)) {
+					$keys = array();
+					$vals = array();
+					foreach ($f as $key => $val) {
+						$keys[] = "`$key`";
+						if ($val === null) {
+							$vals[] = "NULL";
+						} else {
+							$vals[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
+						}
+					}
+					$dump .= "INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).");\n";
+				}
+				$dump .= "\n";
+			}
+
+			return BigTree::putFile($file,trim($dump));
+		}
+
+		/*
 			Function: canAccessGroup
 				Returns whether or not the logged in user can access a module group.
 				Utility for form field types / views -- we already know module group permissions are enabled so we skip some overhead
