@@ -185,8 +185,6 @@
 			}
 		}
 		
-		sqlquery("UPDATE bigtree_pages SET id = '0' WHERE id = '1'");
-		
 		include "core/inc/lib/PasswordHash.php";
 		$phpass = new PasswordHash(8, TRUE);
 		$enc_pass = sqlescape($phpass->HashPassword($cms_pass));
