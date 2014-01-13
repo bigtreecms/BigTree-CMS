@@ -36,7 +36,53 @@
 			rmdir(SERVER_ROOT."cache/update/");
 			unlink(SERVER_ROOT."cache/update.zip");
 		} else {
+			// Make sure FTP login works
+			$ftp = new BigTreeFTP;
+			if (!$ftp->connect("localhost")) {
+				BigTree::redirect(DEVELOPER_ROOT."upgrade/failed/");
+			}
+			if (!$ftp->login($_POST["username"],$_POST["password"])) {
+				$admin->growl("Developer","FTP Login Failed","error");
+				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
+			}
+			// Try to determine the FTP root.
+			$ftp_root = false;
+			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root"))."inc/bigtree/") {
+				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
+			} elseif ($ftp->changeDirectory(SERVER_ROOT)."inc/bigtree/") {
+				$ftp_root = SERVER_ROOT;
+			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
+				$ftp_root = "/";
+			} elseif ($ftp->changeDirectory("/httpdocs/core/inc/bigtree")) {
+				$ftp_root = "/httpdocs";
+			} elseif ($ftp->changeDirectory("/public_html/core/inc/bigtree")) {
+				$ftp_root = "/public_html";
+			} elseif ($ftp->changeDirectory("/".str_replace(array("http://","https://"),"",DOMAIN)."inc/bigtree/")) {
+				$ftp_root = "/".str_replace(array("http://","https://"),"",DOMAIN);
+			}
 
+			if ($ftp_root === false) {
+?>
+<form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
+	<div class="container">
+		<summary><h2>Upgrade BigTree</h2></summary>
+		<section>
+			<p>BigTree could not automatically detect the FTP directory that it is installed in. Please enter the full FTP path below. This would be the directory that contains /core/.</p>
+			<hr />
+			<fieldset>
+				<label>FTP Path</label>
+				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
+			</fieldset>
+		</section>
+		<footer>
+			<input type="submit" class="button blue" value="Set FTP Directory" />
+		</footer>
+	</div>
+</form>
+<?
+			} else {
+				
+			}
 		}
 	}
 ?>

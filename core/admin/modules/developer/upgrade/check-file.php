@@ -58,7 +58,7 @@
 			<? } ?>
 		</section>
 		<footer>
-			<input type="submit" class="blue" value="Continue" />
+			<input type="submit" class="blue" value="Install" />
 		</footer>
 	</div>
 </form>

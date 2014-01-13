@@ -81,7 +81,7 @@
 				true if successful
 		*/
 
-		function connect($host,$port = 21,$reconnect = true) {
+		function connect($host,$port = 21) {
 			// Setup server parameters
 			if (!is_long($port)) {
 		 		return false;
@@ -623,7 +623,7 @@
 			return $result;
 		}
 
-		private private function _settype($mode = 0) {
+		private function _settype($mode = 0) {
 			if ($this->_ready) {
 				if ($mode == 1) {
 					if ($this->_curtype != 1) {
