@@ -5,10 +5,10 @@
 			<hr />
 			<ol>
 				<li>Login to the <a href="https://cloud.google.com/console">Google Cloud Console</a> and create a project.</li>
-				<li>Click into the project and enter the "API &amp; auth" section. Enable access to the Google Cloud Storage JSON API under APIs.</li>
+				<li>Click into the project and enter the "API &amp; auth" section. Enable access to the Google Cloud Storage JSON API.</li>
 				<li>Click into the "Credentials" section and click the "Create New Client ID" button.</li>
 				<li>Enter <?=DEVELOPER_ROOT?>cloud-storage/google/return/ as an "Authorized redirect URI" and choose "Web Application" for the Application Type.</li>
-				<li>Enter the Client ID and Client Secret that was created from the previous step.</li>
+				<li>Enter the Client ID and Client Secret that was created from the previous step below.</li>
 				<li>If you want to use the Temporary Private URLs feature of Cloud Storage (for providing URLs that expire after a certain amount of time), click the "Create New Client ID" button again, this time choosing "Service Account" as the type. Your private key will automatically download. Upload that private key below and enter the email address from the Service Account block as the Certificate Email Address.</li>
 				<li>Follow the OAuth process of allowing BigTree/your application access to your Google Cloud Storage account.</li>
 			</ol>
