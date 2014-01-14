@@ -1,7 +1,15 @@
 <?
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/update.zip");
+	mkdir(SERVER_ROOT."cache/update/");
+	chmod(SERVER_ROOT."cache/update/",0777);
 	$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,"BigTree-CMS");
+	// Make sure everything extracted is 777.
+	$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
+	foreach ($contents as $c) {
+		chmod($c,0777);
+	}
+
 	if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
 ?>
 <div class="container">
@@ -35,6 +43,7 @@
 			}
 			rmdir(SERVER_ROOT."cache/update/");
 			unlink(SERVER_ROOT."cache/update.zip");
+			BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
 		} else {
 			// Make sure FTP login works
 			$ftp = new BigTreeFTP;
@@ -98,6 +107,7 @@
 				}
 				rmdir(SERVER_ROOT."cache/update/");
 				unlink(SERVER_ROOT."cache/update.zip");
+				BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
 			}
 		}
 	}
