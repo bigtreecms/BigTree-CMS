@@ -14,7 +14,7 @@
 		if ($analytics->Settings["token"]) {
 			$profiles = $analytics->getProfiles();
 	?>
-	<form method="post" action="<?=$mroot?>set-profile/" class="module">
+	<form method="post" action="<?=MODULE_ROOT?>set-profile/" class="module">
 		<section>
 			<fieldset>
 				<label>Choose A Profile From The List Below</label>
@@ -51,7 +51,7 @@
 				"&approval_prompt=force".
 				"&access_type=offline";
 	?>
-	<form method="get" action="<?=$mroot?>set-token/" class="module">	
+	<form method="get" action="<?=MODULE_ROOT?>set-token/" class="module">	
 		<section>
 			<p>To connect Google Analytics you will need to login to your Google Analytics account by clicking the Authenticate button below. Once you have logged in you will be taken to a screen with a code in a box. Copy that code into the field that appears below to allow BigTree to access your Google Analytics information.</p>
 			<fieldset>
@@ -75,7 +75,7 @@
 	
 	$("#ga_disconnect").click(function() {
 		new BigTreeDialog("Disconnect Google Analytics","<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",function() {
-			window.location.href = "<?=$mroot?>disconnect/";
+			window.location.href = "<?=MODULE_ROOT?>disconnect/";
 		},"delete",false,"Disconnect");
 		return false;
 	});

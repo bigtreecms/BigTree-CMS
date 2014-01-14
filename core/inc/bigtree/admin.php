@@ -2109,7 +2109,6 @@
 		*/
 
 		function disconnectGoogleAnalytics() {
-			$this->updateSettingValue("bigtree-internal-google-analytics",array());
 			unlink(SERVER_ROOT."cache/analytics.cache");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
 			$this->growl("Analytics","Disconnected");

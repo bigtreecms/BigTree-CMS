@@ -3,5 +3,5 @@
 	$analytics->Settings["profile"] = $_POST["profile"];
 
 	$admin->growl("Analytics","Profile Set");
-	BigTree::redirect($mroot."cache/");	
+	BigTree::redirect(MODULE_ROOT."cache/");	
 ?>

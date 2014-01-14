@@ -802,7 +802,7 @@
 	.analytics_columns article .set { background: #fff; border-bottom: 1px solid #ccc; display: block; overflow: hidden; }
 	.analytics_columns article .set:last-child { border: none; }
 	.analytics_columns article .data { border-radius: 1px; display: block; height: 115px; }
-	.analytics_columns article .percentage { background: #f9f9f9; border-left: 1px solid #EEE; color: #666; display: block; float: right; font-family: Helvetica; font-size: 23px; font-weight: bold; height: 70px; line-height: 70px; margin: 0; padding: 10px; text-align: right; width: 95px; }
+	.analytics_columns article .percentage { background: #f9f9f9; border-left: 1px solid #EEE; color: #666; display: block; float: right; font-family: Helvetica; font-size: 23px; font-weight: bold; height: 73px; line-height: 73px; margin: 0; padding: 10px; text-align: right; width: 95px; }
 	.analytics_columns article .percentage.growth { color: #16790C; }
 	.analytics_columns article .percentage.warning { color: #B53A00; }
 	.analytics_columns article header { background: #eee; border-bottom: 1px solid #ccc; border-width: 1px 0; color: #666; display: block; font-size: 10px; font-weight: bold; padding: 6px 10px 5px; text-transform: uppercase; }
