@@ -2021,12 +2021,12 @@
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
 			if ($r) {
+				sqlquery("DELETE FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'");
 				$storage = new BigTreeStorage;
 				$storage->delete($r["file"]);
 				foreach ($r["thumbs"] as $thumb) {
 					$storage->delete($thumb);
 				}
-				sqlquery("DELETE FROM bigtree_resources WHERE id = '$id'");
 			}
 		}
 
