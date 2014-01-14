@@ -27,7 +27,7 @@
 				
 				<fieldset>
 					<label class="required">Password</label>
-					<input type="password" class="required" name="password" value="" tabindex="3" />
+					<input type="password" class="required" name="password" value="" tabindex="3" autocomplete="off" />
 				</fieldset>
 				
 				<fieldset>

@@ -13,7 +13,7 @@
 				</fieldset>
 				<fieldset>
 					<label>Password <small>(leave blank to remain unchanged)</small></label>
-					<input type="password" name="password" value="" tabindex="3" />
+					<input type="password" name="password" value="" tabindex="3" autocomplete="off" />
 				</fieldset>
 			</div>
 			<div class="right">
