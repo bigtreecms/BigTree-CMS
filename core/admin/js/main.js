@@ -1301,7 +1301,7 @@ var BigTreeFileManager = {
 	closeFileBrowser: function() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
-		$("#mceModalBlocker").show();
+		$("#mceModalBlocker, #mce-modal-block").show();
 		
 		return false;
 	},
@@ -1538,7 +1538,7 @@ var BigTreeFileManager = {
 		});
 		
 		// Hide TinyMCE's default modal background, we're using our own.
-		$("#mceModalBlocker").hide();
+		$("#mceModalBlocker, #mce-modal-block").hide();
 		
 		// Handle the clicks on the breadcrumb of folders
 		$("#file_browser_breadcrumb").on("click","a",function() {
