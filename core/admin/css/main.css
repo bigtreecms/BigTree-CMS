@@ -1726,13 +1726,14 @@
 	.bigtree .mce-listbox:hover, .bigtree .mce-listbox.mce-active { background: #E5E5E5 !important; box-shadow: none !important; }
 	.bigtree .mce-menu-item-normal.mce-active { background: #F3F3F3; color: #333; }
 	.bigtree .mce-menu-item-normal.mce-active:hover { background: #59A8E9; }
-	.bigtree .mce-combobox.mce-has-open input { box-shadow: none; border-radius: 2px 0 0 2px; border-color: #CCC; }
 	.bigtree .mce-btn button { line-height: 21px; padding: 5px 10px; }
 	.bigtree .mce-ico { color: #777; text-shadow: none; font-size: 16px; line-height: 16px; -moz-osx-font-smoothing: grayscale; }
 	.bigtree i.mce-i-checkbox { background: #F8F8F8; box-shadow: none !important; }
+	.bigtree .mce-combobox .mce-btn { border-color: #ccc; }
+	.bigtree .mce-combobox button {  padding: 4px 8px 3px; }
+	.bigtree .mce-combobox.mce-has-open input { box-shadow: none; border-radius: 2px 0 0 2px; border-color: #CCC; }
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
-	.bigtree .mce-fade,
-	.bigtree .mce-window { transition: none; }
+	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
 
 
