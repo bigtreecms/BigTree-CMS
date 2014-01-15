@@ -2479,7 +2479,7 @@ var BigTree = {
 		if (pages == 0) {
 			pages = 1;
 		}
-		
+
 		// Figure out what previous and next buttons should do.
 		if (current_page == 1) {
 			prev_page = 1;
@@ -2527,6 +2527,11 @@ var BigTree = {
 		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
 		
 		$(selector).html(content);
+		if (pages == 1) {
+			$(selector).hide();
+		} else {
+			$(selector).show();
+		}
 	},
 
 	SettingsAnimation: false,
