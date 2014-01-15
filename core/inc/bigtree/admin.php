@@ -1369,7 +1369,7 @@
 			}
 
 			// Make the page!
-			sqlquery("INSERT INTO bigtree_pages (`trunk`,`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources``,`meta_keywords`,`meta_description`,`seo_invisible`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$trunk','$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$meta_keywords','$meta_description','$seo_invisible','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
+			sqlquery("INSERT INTO bigtree_pages (`trunk`,`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources`,`meta_keywords`,`meta_description`,`seo_invisible`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$trunk','$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$meta_keywords','$meta_description','$seo_invisible','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
 
 			$id = sqlid();
 
@@ -2021,12 +2021,12 @@
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
 			if ($r) {
+				sqlquery("DELETE FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'");
 				$storage = new BigTreeStorage;
 				$storage->delete($r["file"]);
 				foreach ($r["thumbs"] as $thumb) {
 					$storage->delete($thumb);
 				}
-				sqlquery("DELETE FROM bigtree_resources WHERE id = '$id'");
 			}
 		}
 

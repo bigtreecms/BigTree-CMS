@@ -6,10 +6,11 @@
 	$secret_name = "Client Secret";
 	$show_test_environment = false;
 	$instructions = array(
-		'Login to the <a href="https://code.google.com/apis/console/">Google API Console</a> and enable access to the Google+ API.',
-		'Choose the "API Access" tab in the API Console and create an OAuth 2.0 client ID if you have not already done so.',
-		'Add '.ADMIN_ROOT.'developer/services/googleplus/return/ as an Authorized Redirect URI.',
-		'Enter your Client ID and Client Secret from the API Console below.',
+		'Login to the <a href="https://cloud.google.com/console/">Google Cloud Console</a> and create a project.',
+		'Click into the project and enter the "API &amp; auth" section. Enable access to the Google+ API.',
+		'Click into the "Credentials" section and click the "Create New Client ID" button.',
+		'Enter '.DEVELOPER_ROOT.'services/youtube/return/ as an "Authorized redirect URI" and choose "Web Application" for the Application Type.',
+		'Enter the Client ID and Client Secret that was created from the previous step below.',
 		'Follow the OAuth process of allowing BigTree/your application access to your Google+ account.'
 	);
 
