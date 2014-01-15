@@ -4,7 +4,7 @@
 .BigTreeModal, .BigTreeModal div, .BigTreeModal span, .BigTreeModal a {vertical-align:baseline; text-align:left; position:absolute; border:0; padding:0; margin:0; background:transparent; font-family:Arial,Verdana; font-size:11px; color:#000; text-decoration:none; font-weight:normal; width:auto; height:auto; overflow:hidden; display:block}
 
 /* General */
-.BigTreeModal {position:absolute; direction:ltr; border: 1px solid #999999; border-radius: 3px; }
+.BigTreeModal {position:absolute; direction:ltr; border-radius: 3px; }
 .BigTreeModal .mceWrapper {position:static}
 .mceEventBlocker {position:fixed; left:0; top:0; background:url(img/horizontal.gif) no-repeat 0 -75px; width:100%; height:100%}
 .BigTreeModal .mcePlaceHolder {border:1px solid #000; background:#888; top:0; left:0; opacity:0.5; -ms-filter:'alpha(opacity=50)'; filter:alpha(opacity=50)}
