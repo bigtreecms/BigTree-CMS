@@ -1,5 +1,5 @@
 <?
 	$admin->disconnectGoogleAnalytics();
-	
-	BigTree::redirect($mroot);
+	$analytics->Settings = array();
+	BigTree::redirect(MODULE_ROOT);
 ?>
