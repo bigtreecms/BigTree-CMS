@@ -1040,11 +1040,15 @@
 				icon - The icon class for the action.
 				form - The associated form.
 				view - The associated view.
+				report - The associated report.
 				level - The required access level.
 				position - The position in navigation.
+
+			Returns:
+				The action's route.
 		*/
 
-		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$level = 0,$position = 0) {
+		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$report = 0,$level = 0,$position = 0) {
 			$module = sqlescape($module);
 			$route = sqlescape(htmlspecialchars($route));
 			$in_nav = sqlescape($in_nav);
@@ -1052,17 +1056,13 @@
 			$name = sqlescape(htmlspecialchars($name));
 			$form = $form ? "'".sqlescape($form)."'" : "NULL";
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
+			$report = $report ? "'".sqlescape($report)."'" : "NULL";
 			$level = sqlescape($level);
 			$position = sqlescape($position);
+			$route = $this->uniqueModuleActionRoute($module,$route);
 
-			$oroute = $route;
-			$x = 2;
-			while ($f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"))) {
-				$route = $oroute."-".$x;
-				$x++;
-			}
-
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,'$position')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,'$position')");
+			return $route;
 		}
 
 		/*
@@ -1213,16 +1213,7 @@
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("INSERT INTO bigtree_module_reports (`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$title','$table','$type','$filters','$fields','$parser',$view)");
 			$id = sqlid();
-
-			// Now generate an action
-			$x = 2;
-			$route = "report";
-			while ($f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"))) {
-				$route = "report-$x";
-				$x++;
-			}
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`report`,`class`) VALUES ('$module','$title','$route','on','$id','export')");
-			return $route;
+			return $id;
 		}
 
 		/*
@@ -6002,6 +5993,31 @@
 		}
 
 		/*
+			Function: uniqueModuleActionRoute
+				Returns a unique module action route.
+
+			Parameters:
+				module - The module to create a route for.
+				route - The desired route.
+				action - The ID of the action you're trying to set a new route for (optional)
+
+			Returns:
+				A unique action route.
+		*/
+
+		function uniqueModuleActionRoute($module,$route,$action = false) {
+			$module = sqlescape($module)
+			$oroute = $route = sqlescape($route);
+			$x = 2;
+			$query_add = ($action !== false) ? " AND id != '".sqlescape($action)."'" : "";
+			while (sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route' $query_add"))) {
+				$route = $oroute."-".$x;
+				$x++;
+			}
+			return $route;
+		}
+
+		/*
 			Function: unlock
 				Removes a lock from a table entry.
 
@@ -6208,11 +6224,12 @@
 				icon - The icon class for the action.
 				form - The associated form.
 				view - The associated view.
+				report - The associated report.
 				level - The required access level.
 				position - The position in navigation.
 		*/
 
-		function updateModuleAction($id,$name,$route,$in_nav,$icon,$form,$view,$level,$position) {
+		function updateModuleAction($id,$name,$route,$in_nav,$icon,$form,$view,$report,$level,$position) {
 			$id = sqlescape($id);
 			$route = sqlescape(htmlspecialchars($route));
 			$in_nav = sqlescape($in_nav);
@@ -6221,18 +6238,13 @@
 			$level = sqlescape($level);
 			$form = $form ? "'".sqlescape($form)."'" : "NULL";
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
+			$report = $report ? "'".sqlescape($report)."'" : "NULL";
 			$position = sqlescape($position);
 
 			$item = $this->getModuleAction($id);
+			$route = $this->uniqueModuleActionRoute($item["module"],$route,$id);
 
-			$oroute = $route;
-			$x = 2;
-			while ($f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".$item["module"]."' AND route = '$route' AND id != '$id'"))) {
-				$route = $oroute."-".$x;
-				$x++;
-			}
-
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report WHERE id = '$id'");
 		}
 
 		/*
