@@ -1,33 +1,42 @@
 <?
-	$cache_root = SERVER_ROOT."cache/unpack/".end($bigtree["path"])."/";
-	if (!file_exists($cache_root)) {
-		$cache_root = mkdir($cache_root);
-		chmod($cache_root,0777);
-	}
-	$index = file_get_contents($cache_root."index.btx");
-	$lines = explode("\n",$index);
-	$module_name = $lines[0];
-	$package_info = $lines[1];
+	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
+	
+	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
-	$bigtree["group_id"] = 0;
-	$bigtree["module_match"] = array();
-	$bigtree["route_match"] = array();
-	$bigtree["class_name_match"] = array();
-	
-	// Instructions and Install Code defaults
-	$bigtree["instructions"] = false;
-	$bigtree["install_code"] = false;
-	unset($_SESSION["bigtree_admin"]["package_error"]);
-	unset($_SESSION["bigtree_admin"]["package_instructions"]);	
-	
-	// Skip first two lines
-	next($lines);
-	next($lines);
-	foreach ($lines as $line) {
-		$parts = explode("::||BTX||::",$line);
-		$type = $parts[0];
-		$data = json_decode($parts[1],true);
-		_local_import_line($type,$data);		
+	foreach ($json["module_groups"] as $group) {
+		$bigtree["group_match"][$group["id"]] = $admin->createModuleGroup($group["name"]);
+	}
+
+	foreach ($json["modules"] as $module) {
+		$group = $module["group"] ? $bigtree["group_match"][$module["group"]] : "NULL";
+		// Find a unique route
+		$oroute = $route = $module["route"];
+		$x = 2;
+		while (sqlrows(sqlquery("SELECT * FROM bigtree_modules WHERE route = '".sqlescape($route)."'"))) {
+			$route = $oroute."-$x";
+			$x++;
+		}
+		// Create the module
+		sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'".sqlescape($module["gbp"])."')");
+		$module_id = sqlid();
+		$bigtree["module_match"][$module["id"]] = $module_id;
+		$bigtree["route_match"][$module["route"]] = $route;
+		// Create the embed forms
+		foreach ((array)$module["embed_forms"] as $form) {
+			$admin->createModuleEmbedForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["preprocess"],$form["callback"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
+		}
+		// Create views
+		foreach ((array)$module["views"] as $view) {
+			$bigtree["view_id_match"][$view["id"]] = $admin->createModuleView($view["title"],$view["description"],$view["table"],$view["type"],(is_array($view["options"]) ? $view["options"] : json_decode($view["options"],true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["suffix"],$view["preview_url"]);
+		}
+		// Create regular forms
+		foreach ((array)$module["forms"] as $form) {
+			$bigtree["form_id_match"][$form["id"]] = $admin->createModuleForm($form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["preprocess"],$form["callback"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
+		}
+		// Create reports
+		foreach ((array)$module["reports"] as $report) {
+			$bigtree["report_id_match"][$report["id"]] = $admin->createModuleReport($report["title"],$report["table"],$report["type"],(is_array($report["filters"]) ? $report["filters"] : json_decode($report["filters"],true)),(is_array($report["fields"]) ? $report["fields"] : json_decode($report["fields"],true)),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
+		}
 	}
 
 	// We're putting it in function scope so that when we globalize the $data array it doesn't cross-contaminate when importing older data that's missing fields.
