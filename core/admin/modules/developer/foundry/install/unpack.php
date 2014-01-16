@@ -1,4 +1,14 @@
 <?
+	function _localCleanup() {
+		// Remove the package directory, we do it backwards because the "deepest" files are last
+		$contents = @array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
+		foreach ((array)$contents as $file) {
+			@unlink($file);
+			@rmdir($file);
+		}
+		@rmdir(SERVER_ROOT."cache/package/");
+	}
+
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -36,114 +46,90 @@
 		$admin->stop();
 	}
 	
-	// Setup the cache root.
-	$cache_root = SERVER_ROOT."cache/unpack/";
+	// Clean up existing area
+	_localCleanup();
+	$cache_root = SERVER_ROOT."cache/package/";
 	if (!file_exists($cache_root)) {
 		mkdir($cache_root);
 	}
-	$uniq_dir = uniqid();
-	$cache_root .= $uniq_dir."/";
-	mkdir($cache_root);
-	chmod($cache_root,0777);
-
-	// Move the uploaded file into the cache root.	
-	$local_copy = BigTree::getAvailableFileName($cache_root,$_FILES["file"]["name"]);
-	BigTree::moveFile($_FILES["file"]["tmp_name"],$cache_root.$local_copy);
-	
-	// Go through the file.
-	if (!function_exists("exec")) {
-		BigTree::deleteDirectory($cache_root);
-		$_SESSION["upload_error"] = "PHP does not allow exec(). Packages can not be installed.";
+	// Unzip the package
+	include BigTree::path("inc/lib/pclzip.php");
+	$zip = new PclZip($file);
+	$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
+	if (!$files) {
+		_localCleanup();
+		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";
 		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
 	}
 	
-	exec("cd $cache_root; tar zxvf $local_copy");
-	if (!file_exists($cache_root."index.btx")) {
-		BigTree::deleteDirectory($cache_root);
-		$_SESSION["upload_error"] = "The uploaded file is not a valid BigTree Package or is corrupt.";
+	// Read the manifest
+	$json = json_decode(file_get_contents($cache_root."manifest.json"),true);
+	// Make sure it's legit
+	if ($json["type"] != "package" || !$json["id"] || !$json["title"]) {
+		_localCleanup();
+		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree package.";
 		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
 	}
 	
-	$index = file_get_contents($cache_root."index.btx");
-	$lines = explode("\n",$index);
-	$package_name = $lines[0];
-	$package_info = $lines[1];
-	
-	$instructions = array();
-	$install_code = false;
-	$errors = array();
-	$warnings = array();
-	next($lines);
-	next($lines);
-	foreach ($lines as $line) {
-		$parts = explode("::||BTX||::",$line);
-		$type = $parts[0];
-		$data = json_decode($parts[1],true);
-		
-		if ($type == "Instructions") {
-			$instructions = $data;
-		}
+	$instrutions = $json["instructions"];
+	$install_code = $json["install_code"];
 
-		if ($type == "InstallCode") {
-			$install_code = $data;
+	// Check for template collisions
+	foreach ($json["templates"] as $template) {
+		if (sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'"))) {
+			$warnings[] = "A template already exists with the id &ldquo;".$template["id"]."&rdquo; &mdash; the template will be overwritten.";
 		}
-
-		if ($type == "Template") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".sqlescape($data["id"])."'"));
-			if ($r) {
-				$warnings[] = "A template already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the template will be overwritten.";
-			}
+	}
+	// Check for callout collisions
+	foreach ($json["callouts"] as $callout) {
+		if (sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($callout["id"])."'"))) {
+			$warnings[] = "A sidelet already exists with the id &ldquo;".$callout["id"]."&rdquo; &mdash; the sidelet will be overwritten.";
 		}
-		if ($type == "Callout") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($data["id"])."'"));
-			if ($r) {
-				$warnings[] = "A sidelet already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the sidelet will be overwritten.";
-			}
+	}
+	// Check for settings collisions
+	foreach ($json["settings"] as $setting) {
+		if (sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".sqlescape($setting["id"])."'"))) {
+			$warnings[] = "A setting already exists with the id &ldquo;".$setting["id"]."&rdquo; &mdash; the setting will be overwritten.";
 		}
-		if ($type == "Setting") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".sqlescape($data["id"])."'"));
-			if ($r) {
-				$warnings[] = "A setting already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the setting will be overwritten.";
-			}
+	}
+	// Check for feed collisions
+	foreach ($json["feeds"] as $feed) {
+		if (sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".sqlescape($feed["route"])."'"))) {
+			$warnings[] = "A feed already exists with the route &ldquo;".$feed["route"]."&rdquo; &mdash; the feed will be overwritten.";
 		}
-		if ($type == "Feed") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".sqlescape($data["route"])."'"));
-			if ($r) {
-				$warnings[] = "A feed already exists with the route &ldquo;".$data["route"]."&rdquo; &mdash; the feed will be overwritten.";
-			}
+	}
+	// Check for field type collisions
+	foreach ($json["field_types"] as $type) {
+		if (sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".sqlescape($type["id"])."'"))) {
+			$warnings[] = "A field type already exists with the id &ldquo;".$type["id"]."&rdquo; &mdash; the field type will be overwritten.";
 		}
-		 if ($type == "FieldType") {
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".sqlescape($data["id"])."'"));
-			if ($r) {
-				$warnings[] = "A field type already exists with the id &ldquo;".$data["id"]."&rdquo; &mdash; the field type will be overwritten.";
-			}
-		}
-		if ($type == "SQL") {
-			$table = $parts[1];
-			$r = sqlrows(sqlquery("SHOW TABLES LIKE '$table'"));
-			if ($r) {
+	}
+	// Check for table collisions
+	foreach ($json["sql"] as $command) {
+		if (substr($command,0,14) == "CREATE TABLE `") {
+			$table = substr($command,14);
+			$table = substr($table,0,strpos($table,"`"));
+			if (sqlrows(sqlquery("SHOW TABLES LIKE '$table'"))) {
 				$warnings[] = "A table named &ldquo;$table&rdquo; already exists &mdash; the table will be overwritten.";
 			}
 		}
-		if ($type == "File") {
-			$location = $parts[2];
-			if (!BigTree::isDirectoryWritable(SERVER_ROOT.$location)) {
-				$errors[] = "Cannot write to $location &mdash; please make the root directory writable.";
-			}
-			if (file_exists(SERVER_ROOT.$location)) {
-				$warnings[] = "A file already exists at $location &mdash; the file will be overwritten.";
-			}
+	}
+	// Check file permissions and collisions
+	foreach ($json["files"] as $file) {
+		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$file)) {
+			$errors[] = "Cannot write to $file &mdash; please make the root directory writable.";
+		} elseif (file_exists(SERVER_ROOT.$file)) {
+			$warnings[] = "A file already exists at $file &mdash; the file will be overwritten.";
 		}
 	}
-	
 ?>
 <div class="container">
-	<header>
+	<summary>
 		<h2>
-			<?=$package_name?>
-			<small><?=$package_info?></small>
+			<?=$json["title"]?>
+			<small>by <?=$json["author"]?></small>
 		</h2>
-	</header>
+	</summary>
 	<section>
 		<?
 			if (count($instructions) && $instructions["pre"]) {
@@ -197,7 +183,7 @@
 	</section>
 	<? if (!count($errors)) { ?>
 	<footer>
-		<a href="../process/<?=$uniq_dir?>/" class="button blue">Install</a>
+		<a href="<?=DEVELOPER_ROOT?>foundry/install/process/" class="button blue">Install</a>
 	</footer>
 	<? } ?>
 </div>

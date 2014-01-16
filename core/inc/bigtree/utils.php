@@ -648,11 +648,15 @@
 
 			Returns:
 				An array of files/folder paths.
+				Returns false if the directory cannot be read.
 		*/
 
 		static function directoryContents($directory,$recurse = true,$extension = false) {
 			$contents = array();
-			$d = opendir($directory);
+			$d = @opendir($directory);
+			if (!$d) {
+				return false;
+			}
 			while ($r = readdir($d)) {
 				if ($r != "." && $r != "..") {
 					$path = rtrim($directory,"/")."/".$r;
