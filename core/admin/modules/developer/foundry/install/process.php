@@ -3,10 +3,12 @@
 	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
+	// Import module groups
 	foreach ($json["module_groups"] as $group) {
 		$bigtree["group_match"][$group["id"]] = $admin->createModuleGroup($group["name"]);
 	}
 
+	// Import modules
 	foreach ($json["modules"] as $module) {
 		$group = $module["group"] ? $bigtree["group_match"][$module["group"]] : "NULL";
 		// Find a unique route
@@ -37,6 +39,37 @@
 		foreach ((array)$module["reports"] as $report) {
 			$bigtree["report_id_match"][$report["id"]] = $admin->createModuleReport($report["title"],$report["table"],$report["type"],(is_array($report["filters"]) ? $report["filters"] : json_decode($report["filters"],true)),(is_array($report["fields"]) ? $report["fields"] : json_decode($report["fields"],true)),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
 		}
+		// Create actions
+		foreach ((array)$module["actions"] as $action) {
+			$admin->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$action["form"],$action["view"],$action["report"],$action["level"],$action["position"]);
+		}
+	}
+
+	// Import templates
+	foreach ((array)$json["templates"] as $template) {
+		$resources = sqlescape(is_array($template["resources"]) ? json_encode($template["resources"]) : $template["resources"]);
+		sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."')");
+	}
+
+	// Import callouts
+	foreach ((array)$json["callouts"] as $callout) {
+		$resources = sqlescape(is_array($callout["resources"]) ? json_encode($callout["resources"]) : $callout["resources"]);
+		sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."')");	
+	}
+
+	// Import Field Types
+	foreach ((array)$json["field_types"] as $type) {
+		sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["pages"])."','".sqlescape($type["modules"])."','".sqlescape($type["callouts"])."','".sqlescape($type["settings"])."')");
+	}
+
+	// Import Settings
+	foreach ((array)$json["settings"] as $setting) {
+		$admin->createSetting($setting);
+	}
+
+	// Import Feeds
+	foreach ((array)$json["feeds"] as $feed) {
+		
 	}
 
 	// We're putting it in function scope so that when we globalize the $data array it doesn't cross-contaminate when importing older data that's missing fields.

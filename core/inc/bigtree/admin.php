@@ -1541,18 +1541,14 @@
 		function createSetting($data) {
 			// Setup defaults
 			$id = $name = $description = $type = $options = $locked = $encrypted = $system = "";
-
-			// Avoid _SESSION hijacking.
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape(htmlspecialchars($val));
-				}
-			}
+			BigTree::globalizeArray($data,"sqlescape","htmlspecialchars");
 
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
 			// We don't want this encoded since it's JSON
-			$options = isset($data["options"]) ? sqlescape($data["options"]) : "";
+			if (isset($data["options"])) {
+				$options = sqlescape(is_array($data["options"]) ? json_encode($data["options"]) : $data["options"]);
+			}
 
 			// See if there's already a setting with this ID
 			$r = sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$id'"));
