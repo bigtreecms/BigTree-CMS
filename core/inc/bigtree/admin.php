@@ -6002,7 +6002,7 @@
 		*/
 
 		function uniqueModuleActionRoute($module,$route,$action = false) {
-			$module = sqlescape($module)
+			$module = sqlescape($module);
 			$oroute = $route = sqlescape($route);
 			$x = 2;
 			$query_add = ($action !== false) ? " AND id != '".sqlescape($action)."'" : "";
