@@ -20,7 +20,7 @@
  	:invalid { box-shadow: none; }
 	table { border-collapse: collapse; border-spacing: 0; }
 	a { color: #59A8E9; text-decoration: none; transition: color 0.2s; }
-	a:hover { color: #59A8E9; /* border-bottom: 1px solid #59A8E9; */ }
+	a:hover { color: #59A8E9; }
 	header, footer, nav, summary, section, article { display: block; }
 	.clear { clear: both; }
 	.contain:after { content: ""; display: table; clear: both; }
@@ -33,12 +33,8 @@
 
 	h1 { color: #333; font-size: 30px; font-weight: normal; line-height: 26px; margin: 0 0 20px 0; user-select: none; }
 	h1 .page_icon { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 32px; margin: 0 10px 0 0; width: 32px; }
-
-	/* .breadcrumb { margin: 0 0 20px 0; overflow: hidden; user-select: none; } */
-	h1 a ,
-	h1 span.divider { color: #777; display: inline-block; font-size: 18px; margin: 0; }
+	h1 a, h1 span.divider { color: #777; display: inline-block; font-size: 18px; margin: 0; }
 	h1 .last { color: #59A8E9; }
-	/* h1 .first { color: #777; } */
 
 	/* Icons */
 	h1 .home { background-position: 0px -16px; }
@@ -272,7 +268,7 @@
 	.login_wrapper input.text { border: 1px solid #CCC; border-radius: 3px; color: #666; display: block; height: 32px; margin: 0 0 20px 0; padding: 0 10px; width: 360px; }
 	.login_wrapper input.text:last-child { margin: 0; }
 	.login_wrapper p { color: #666; font-size: 13px; margin: 0; }
-	.login_wrapper fieldset.lower { /* background: #F5F5F5; border-top: 1px solid #E5E5E5; */ margin: 20px 0 0; padding: 25px 30px; }
+	.login_wrapper fieldset.lower { margin: 20px 0 0; padding: 25px 30px; }
 	.login_wrapper .forgot_password { color: #59A8E9; float: right; line-height: 36px; user-select: none; }
 	.login_wrapper .forgot_password:hover { color: #59A8E9; }
 	.login_wrapper .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 20px 30px; padding: 5px 10px; }
@@ -290,7 +286,6 @@
 	header.main strong { color: #FFF; float: left; font-size: 20px; font-weight: normal; height: 55px; line-height: 56px; }
 	header.main .logout { color: #BDBDBD; display: block; float: right; font-size: 11px; height: 11px; margin: 22px 0; }
 	header.main .logout:hover { color: #fff; }
-/* 	header.main .logout span { background: url(../images/icon-sprite.svg) -225px -105px; display: block; float: left; height: 10px; margin: 0 5px 0 0; width: 10px; } */
 	header.main p { color: #FFF; float: right; font-size: 11px; height: 11px; line-height: 11px; margin: 22px 0; }
 	header.main p a { color: #59A8E9; }
 	header.main p.messages a { color: #fff; }
@@ -416,7 +411,7 @@
 	.container nav .more_nav { font-weight: bold; padding: 0 15px; text-align: center; }
 	.container aside { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; overflow: hidden; padding: 0 0 0 15px; }
 	.container section { overflow: hidden; padding: 30px; }
-	.container section.sub { background: #fff/* FBFBFB */; border-top: 1px solid #ccc; }
+	.container section.sub { background: #FFF; border-top: 1px solid #ccc; }
 	.container footer { background: #eee; border-top: 1px solid #ccc; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; overflow: hidden; padding: 30px; }
 	.container footer .button, .container footer input { float: left; margin: 0 15px 0 0; }
 	.container hr { background: #CCC; border: none; color: #CCC; height: 1px; margin: 30px -30px 30px -30px; width: 958px; }
@@ -710,6 +705,7 @@
 /* Tags */
 	.container .tags, .container .sub_section { background: #fff; border-top: 1px solid #ccc; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
 	.sub_section fieldset:last-of-type { margin: 0; }
+	.container .sub_section.last { margin: 30px -30px -30px; }
 	.container .tags input { float: left; margin: 0; width: 215px; }
 
 	#tag_results { background: #FFF; border: 1px solid #CCC; list-style: none; margin: 31px 0 0 0; position: absolute; width: 235px; z-index: 2; }
@@ -1013,7 +1009,7 @@
 	.developer .form_table .developer_resource_subtitle input { width: 168px; }
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
 	.developer .form_table .developer_resource_form_subtitle input { width: 235px; }
-	.developer .form_table .developer_resource_type { padding: 0; text-align: left; width: 240px; }
+	.developer .form_table .developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
 	.developer .form_table .developer_resource_type .select span { width: 155px !important; }
 	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
 	.developer .form_table .developer_resource_type .icon_settings { margin: 9px 0 0 5px; }

@@ -187,6 +187,10 @@
 		</section>
 		<section class="sub">
 			<fieldset>
+				<label>Package ID <small>(domain.creator.identifier format, i.e. org.bigtreecms.news)</small></label>
+				<input type="text" name="package_id" value="" />
+			</fieldset>
+			<fieldset>
 				<label>Package Name</label>
 				<input type="text" name="package_name" value="<?=$default_name?>" />
 			</fieldset>

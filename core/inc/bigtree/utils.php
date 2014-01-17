@@ -175,9 +175,9 @@
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
-			copy($from,$to);
-			chmod($to,0777);
-			return true;
+			$succss = copy($from,$to);
+			@chmod($to,0777);
+			return $success;
 		}
 		
 		/*
@@ -648,11 +648,15 @@
 
 			Returns:
 				An array of files/folder paths.
+				Returns false if the directory cannot be read.
 		*/
 
 		static function directoryContents($directory,$recurse = true,$extension = false) {
 			$contents = array();
-			$d = opendir($directory);
+			$d = @opendir($directory);
+			if (!$d) {
+				return false;
+			}
 			while ($r = readdir($d)) {
 				if ($r != "." && $r != "..") {
 					$path = rtrim($directory,"/")."/".$r;

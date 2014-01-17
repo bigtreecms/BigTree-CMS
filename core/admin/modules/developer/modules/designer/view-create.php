@@ -31,7 +31,7 @@
 	
 	// Let's create the view - we're decoding options here because it's already encoded but that'd be weird to assume in the class.
 	$view_id = $admin->createModuleView($title,$description,$table,$type,json_decode($options,true),$fields,$actions,$suffix);
-	$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id,0,1);
+	$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id,0,0,1);
 		
 	BigTree::redirect(DEVELOPER_ROOT."modules/designer/complete/?module=$module");
 ?>

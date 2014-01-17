@@ -21,9 +21,9 @@
 			plugins: "advimage,paste,table,inlinepopups,spellchecker",
 			theme_advanced_blockformats: "p,h2,h3,h4",
 			<? if (defined("BIGTREE_CALLOUT_RESOURCES")) { ?>
-			theme_advanced_buttons1: "blockquote,bold,italic,underline,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
+			theme_advanced_buttons1: "blockquote,bold,italic,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
 			<? } else { ?>
-			theme_advanced_buttons1: "undo,redo,separator,blockquote,bold,italic,underline,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
+			theme_advanced_buttons1: "undo,redo,separator,blockquote,bold,italic,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
 			<? } ?>
 			theme_advanced_buttons2: "link,unlink,anchor,image,separator,hr,removeformat,visualaid,separator,table,row_after,delete_row,col_after,delete_col,separator,pasteword",
 			theme_advanced_buttons3: "",
@@ -58,7 +58,7 @@
 			elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
 			file_browser_callback: "BigTreeFileManager.tinyMCEOpen",
 			plugins: "inlinepopups,paste",
-			theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword",
+			theme_advanced_buttons1: "link,unlink,bold,italic,pasteword",
 			theme_advanced_buttons2: "",
 			theme_advanced_buttons3: "",
 			theme_advanced_disable: "cleanup,charmap",
@@ -92,7 +92,7 @@
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "code,anchor,image,link,paste,table,visualblocks",
-			toolbar: "undo redo | styleselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | hr anchor link image table | paste | visualblocks code",
+			toolbar: "undo redo | styleselect | bold italic | bullist numlist outdent indent | hr anchor link image table | paste | visualblocks code",
 			paste_remove_spans: true,
 			paste_remove_styles: true,
 			paste_strip_class_attributes: true,
@@ -116,7 +116,7 @@
 			fileBrowserCall: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "paste,link",
-			toolbar: "link  bold italic underline paste",
+			toolbar: "link  bold italic paste",
 			paste_remove_spans: true,
 			paste_remove_styles: true,
 			paste_strip_class_attributes: true,
