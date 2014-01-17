@@ -706,6 +706,7 @@
 /* Tags */
 	.container .tags, .container .sub_section { background: #fff; border-top: 1px solid #ccc; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
 	.sub_section fieldset:last-of-type { margin: 0; }
+	.container .sub_section.last { margin: 30px -30px -30px; }
 	.container .tags input { float: left; margin: 0; width: 215px; }
 
 	#tag_results { background: #FFF; border: 1px solid #CCC; list-style: none; margin: 31px 0 0 0; position: absolute; width: 235px; z-index: 2; }

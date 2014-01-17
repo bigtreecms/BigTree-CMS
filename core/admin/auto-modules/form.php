@@ -1,4 +1,11 @@
 <?
+	// If the last command is numeric then we're editing something.
+	if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
+		$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
+	// Otherwise we're adding something or we're processing something we were editing.
+	} else {
+		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
+	}
 	$bigtree["form"] = $form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
 	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
