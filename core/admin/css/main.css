@@ -948,7 +948,7 @@
 	.developer .form_table .developer_resource_subtitle input { width: 168px; }
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
 	.developer .form_table .developer_resource_form_subtitle input { width: 235px; }
-	.developer .form_table .developer_resource_type { padding: 0; text-align: left; width: 240px; }
+	.developer .form_table .developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
 	.developer .form_table .developer_resource_type .select span { width: 155px !important; }
 	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
 	.developer .form_table .developer_resource_type .icon_settings { margin: 9px 0 0 5px; }
