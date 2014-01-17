@@ -1189,7 +1189,6 @@
 				Creates a module report and the associated module action.
 
 			Parameters:
-				module - The module ID this report is for.
 				title - The title of the report.
 				table - The table for the report data.
 				type - The type of report (csv or view).
@@ -1202,7 +1201,7 @@
 				The route created for the module action.
 		*/
 
-		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+		function createModuleReport($title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
 			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
