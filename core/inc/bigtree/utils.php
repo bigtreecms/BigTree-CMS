@@ -175,7 +175,7 @@
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
-			$succss = copy($from,$to);
+			$success = copy($from,$to);
 			@chmod($to,0777);
 			return $success;
 		}
