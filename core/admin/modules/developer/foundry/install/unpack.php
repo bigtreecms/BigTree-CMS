@@ -83,7 +83,7 @@
 	// Check for callout collisions
 	foreach ($json["callouts"] as $callout) {
 		if (sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($callout["id"])."'"))) {
-			$warnings[] = "A sidelet already exists with the id &ldquo;".$callout["id"]."&rdquo; &mdash; the sidelet will be overwritten.";
+			$warnings[] = "A callout already exists with the id &ldquo;".$callout["id"]."&rdquo; &mdash; the callout will be overwritten.";
 		}
 	}
 	// Check for settings collisions
@@ -117,9 +117,13 @@
 	// Check file permissions and collisions
 	foreach ($json["files"] as $file) {
 		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$file)) {
-			$errors[] = "Cannot write to $file &mdash; please make the root directory writable.";
+			$errors[] = "Cannot write to $file &mdash; please make the root directory or file writable.";
 		} elseif (file_exists(SERVER_ROOT.$file)) {
-			$warnings[] = "A file already exists at $file &mdash; the file will be overwritten.";
+			if (!is_writable(SERVER_ROOT.$file)) {
+				$errors[] = "Cannot overwrite existing file: $file &mdash; please make the file writable or delete it.";
+			} else {
+				$warnings[] = "A file already exists at $file &mdash; the file will be overwritten.";
+			}
 		}
 	}
 ?>

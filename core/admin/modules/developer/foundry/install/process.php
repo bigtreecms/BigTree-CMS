@@ -48,22 +48,26 @@
 	// Import templates
 	foreach ((array)$json["templates"] as $template) {
 		$resources = sqlescape(is_array($template["resources"]) ? json_encode($template["resources"]) : $template["resources"]);
+		sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
 		sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."')");
 	}
 
 	// Import callouts
 	foreach ((array)$json["callouts"] as $callout) {
 		$resources = sqlescape(is_array($callout["resources"]) ? json_encode($callout["resources"]) : $callout["resources"]);
+		sqlquery("DELETE FROM bigtree_callouts WHERE id = '".sqlescape($callout["id"])."'");
 		sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."')");	
 	}
 
 	// Import Field Types
 	foreach ((array)$json["field_types"] as $type) {
+		sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($type["id"])."'");
 		sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["pages"])."','".sqlescape($type["modules"])."','".sqlescape($type["callouts"])."','".sqlescape($type["settings"])."')");
 	}
 
 	// Import Settings
 	foreach ((array)$json["settings"] as $setting) {
+		sqlquery("DELETE FROM bigtree_settings WHERE id = '".sqlescape($setting["id"])."'");
 		$admin->createSetting($setting);
 	}
 
@@ -71,6 +75,7 @@
 	foreach ((array)$json["feeds"] as $feed) {
 		$fields = sqlescape(is_array($feed["fields"]) ? json_encode($feed["fields"]) : $feed["fields"]);
 		$options = sqlescape(is_array($feed["options"]) ? json_encode($feed["options"]) : $feed["options"]);
+		sqlquery("DELETE FROM bigtree_feeds WHERE route = '".sqlescape($feed["route"])."'");
 		sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options')");
 	}
 
@@ -80,9 +85,13 @@
 	}
 
 	// Run SQL
+	sqlquery("SET foreign_key_checks = 0");
 	foreach ((array)$json["sql"] as $sql) {
 		sqlquery($sql);
 	}
+	sqlquery("SET foreign_key_checks = 1");
+	// Empty view cache
+	sqlquery("DELETE FROM bigtree_module_view_cache");
 
 	// Remove the package directory, we do it backwards because the "deepest" files are last
 	$contents = @array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
@@ -93,8 +102,8 @@
 	@rmdir(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
-	unlink(SERVER_ROOT."cache/module-class-list.btc");
-	unlink(SERVER_ROOT."cache/form-field-types.btc");
+	@unlink(SERVER_ROOT."cache/module-class-list.btc");
+	@unlink(SERVER_ROOT."cache/form-field-types.btc");
 	
 	
 	if ($json["install_code"]) {
