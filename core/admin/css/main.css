@@ -638,9 +638,9 @@
 	.table .site_status_message { padding: 0 0 0 15px; text-align: left; width: 300px; }
 	.table .site_status_action { text-align: left; width: 568px; }
 	.table .site_status_status { color: #666; width: 75px; }
-	.table .site_status_status.good { background: green; }
-	.table .site_status_status.ok { background: orange; }
-	.table .site_status_status.bad { background: red; }
+	.table .site_status_status.good { background: green; color: #FFF; }
+	.table .site_status_status.ok { background: orange; color: #FFF; }
+	.table .site_status_status.bad { background: red; color: #FFF; }
 
 	.table .status_published { color: #4DA46E; font-size: 9px; }
 	.table .status_pending a, .table .status_pending { color: #838383; font-size: 9px; }
