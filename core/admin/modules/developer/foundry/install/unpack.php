@@ -65,7 +65,7 @@
 	// Read the manifest
 	$json = json_decode(file_get_contents($cache_root."manifest.json"),true);
 	// Make sure it's legit
-	if ($json["type"] != "package" || !$json["id"] || !$json["title"]) {
+	if ($json["type"] != "package" || !isset($json["id"]) || !isset($json["title"])) {
 		_localCleanup();
 		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree package.";
 		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
