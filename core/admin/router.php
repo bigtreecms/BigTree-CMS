@@ -82,7 +82,7 @@
 		}
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo BigTree::formatCSS3(file_get_contents($ifile));
+		echo BigTree::formatCSS3(str_replace("admin_root/",$bigtree["config"]["admin_root"],file_get_contents($ifile)));
 		die();
 	}
 
@@ -190,6 +190,12 @@
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 		BigTree::redirect(ADMIN_ROOT."login/");
+	}
+
+	// Developer Mode On?
+	if (isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
+		include BigTree::path("admin/pages/developer-mode.php");
+		$admin->stop();
 	}
 
 	// Redirect to dashboard by default if we're not requesting anything.
