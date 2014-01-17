@@ -134,7 +134,13 @@
 		}
 
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
+		$find = array("{max_file_size}","www_root/","admin_root/","static_root/");
+		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
+		foreach ($_GET as $key => $val) {
+			$find[] = "{".$key."}";
+			$replace[] = "$val";
+		}
+		echo str_replace($find,$replace,file_get_contents($ifile));
 		die();
 	}
 
