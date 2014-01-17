@@ -68,7 +68,7 @@
 		$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 
 		// Make a first copy
-		$first_copy = SITE_ROOT."files/".uniqid("temp-").".".$itype_exts[$itype];
+		$first_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 		move_uploaded_file($temp_name,$first_copy);
 
 		// Do EXIF Image Rotation
