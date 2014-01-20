@@ -26,7 +26,7 @@
 		<? include BigTree::path("admin/modules/developer/modules/embeds/_form.php") ?>
 		<section class="sub">
 			<label>Embed Code <small>(not editable)</small></label>
-			<input type="text" value="<?=htmlspecialchars('<div id="bigtree_embeddable_form_container">'.$title.'</div><script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?hash='.$hash.'"></script>')?>" />
+			<input type="text" value="<?=htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.$title.'</div><script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>')?>" />
 		</section>
 		<section class="sub" id="field_area">
 			<? include BigTree::path("admin/ajax/developer/load-form.php") ?>
