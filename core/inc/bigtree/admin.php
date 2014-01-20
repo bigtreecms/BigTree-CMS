@@ -950,16 +950,17 @@
 				table - The table this module relates to.
 				permissions - The group-based permissions.
 				icon - The icon to use.
+				route - Desired route to use (defaults to auto generating if this is left false).
 
 			Returns:
 				The new module id.
 		*/
 
-		function createModule($name,$group,$class,$table,$permissions,$icon) {
+		function createModule($name,$group,$class,$table,$permissions,$icon,$route = false) {
 			global $cms;
 
 			// Find an available module route.
-			$route = $cms->urlify($name);
+			$route = $route ? $route : $cms->urlify($name);
 
 			// Go through the hard coded modules
 			$existing = array();

@@ -8,13 +8,20 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/create/" class="module">
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
-			<div class="left">
-				<fieldset>
-					<label class="required">Name</label>
-					<input name="name" class="required" type="text" />
-				</fieldset>
+			<div class="contain">
+				<div class="left">
+					<fieldset>
+						<label class="required">Name</label>
+						<input name="name" class="required" type="text" />
+					</fieldset>
+				</div>
+				<div class="right">
+					<fieldset>
+						<label>Route <small>(must be unique, auto generated if left blank)</small></label>
+						<input name="route" type="text" />
+					</fieldset>
+				</div>
 			</div>
-			<br class="clear" /><br />
 			<fieldset class="developer_module_group">
 				<label>Group <small>(if a new group name is chosen, the select box is ignored)</small></label> 
 				<input name="group_new" type="text" placeholder="New Group" /><span>OR</span> 

@@ -7,7 +7,7 @@
 		$group = $group_existing;
 	}
 	
-	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon);
+	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route);
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");
