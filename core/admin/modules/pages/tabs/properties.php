@@ -33,7 +33,8 @@
 		);
 	}
 
-	$templates = $admin->getTemplates();
+	$basic_templates = $admin->getBasicTemplates();
+	$routed_templates = $admin->getRoutedTemplates();
 
 	if ($bigtree["form_action"] == "create" && $_SESSION["bigtree_admin"]["post_max_hit"]) {
 		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
@@ -114,9 +115,16 @@
 	<fieldset class="template last">
 		<label>Template</label>
 		<select id="template_select" name="template"<? if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<? } ?>>
-			<? foreach ($templates as $t) { ?>
-			<option value="<?=$t["id"]?>"<? if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<? } ?>><?=$t["name"]?></option>
-			<? } ?>
+			<optgroup label="Flexible Templates">
+				<? foreach ($basic_templates as $t) { ?>
+				<option value="<?=$t["id"]?>"<? if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<? } ?>><?=$t["name"]?></option>
+				<? } ?>
+			</optgroup>
+			<optgroup label="Special Templates">
+				<? foreach ($routed_templates as $t) { ?>
+				<option value="<?=$t["id"]?>"<? if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<? } ?>><?=$t["name"]?></option>
+				<? } ?>
+			</optgroup>
 		</select>
 	</fieldset>
 	<fieldset class="external last">
