@@ -263,7 +263,8 @@
 <?=$page_content?>');
 		bt_mkdir_writable("templates/callouts/");
 		
-		bt_touch_writable("templates/config.php",str_replace($find,$replace,file_get_contents("core/config.example.php")));
+		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
+		bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/config.settings.php")));
 		
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
@@ -273,7 +274,8 @@
 	
 	$bigtree["config"] = array();
 	$bigtree["config"]["debug"] = false;
-	include str_replace("site/index.php","templates/config.php",strtr(__FILE__, "\\\\", "/"));
+	include str_replace("site/index.php","custom/environment.php",strtr(__FILE__, "\\\\", "/"));
+	include str_replace("site/index.php","custom/settings.php",strtr(__FILE__, "\\\\", "/"));
 	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
 	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
 
