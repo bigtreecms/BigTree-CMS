@@ -12,16 +12,9 @@
 	}
 
 	$bigtree["template"] = $cms->getTemplate($template_id);
-
-	if (!$bigtree["template"]["image"]) {
-		$image = ADMIN_ROOT."images/templates/page.png";
-	} else {
-		$image = ADMIN_ROOT."images/templates/".$bigtree["template"]["image"];
-	}
 ?>
 <div class="alert template_message">
-	<img src="<?=$image?>" alt="" width="32" height="32" />
-	<label>Template</label>
+	<label>Template:</label>
 	<p><? if ($template_id == "") { ?>External Link<? } elseif ($template_id == "!") { ?>Redirect Lower<? } else { ?><?=$bigtree["template"]["name"]?><? } ?></p>
 </div>
 <?

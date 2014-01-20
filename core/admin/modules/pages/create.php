@@ -17,6 +17,18 @@
 <?
 		$admin->stop();
 	}
+
+	// Adjust template
+	if ($_POST["redirect_lower"]) {
+		$_POST["template"] = "!";
+		$_POST["external"] = "";
+		$_POST["new_window"] = "";
+	} elseif ($_POST["external"]) {
+		$_POST["template"] = "";
+		$_POST["new_window"] = isset($_POST["new_window"]) ? $_POST["new_window"] : "";
+	} else {
+		$_POST["new_window"] = "";
+	}
 	
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();

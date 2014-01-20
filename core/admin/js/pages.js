@@ -4,67 +4,24 @@ var BigTreePages = {
 	calloutNumber: 0,
 	currentCallout: false,
 	pageTitleDidFocus: false,
-	rememberedExternal: false,
-	rememberedTemplate: false,
 
 	init: function() {
-		// Handle the template selection boxes
-		$(".box_select").click(function() {
-			// Uncheck external link but remember what it was in case they switch back.
-			BigTreePages.rememberedExternal = $("#external_link").removeClass("active").val();
-			$("#external_link").val("");
-			
-			// Uncheck redirect lower
-			$("input[name=redirect_lower]").attr("checked",false).next("div").find("a").removeClass("checked");
-			
-			$("#template").val($(this).attr("href").substr(1));
-			$(".box_select").removeClass("active");
-			$(this).addClass("active");
-			
-			return false;
-		});
-		
-		// If the redirect lower checkbox is checked, remove selected template, otherwise reset it
 		$("input[name=redirect_lower]").click(function() {
 			if ($(this).attr("checked")) {
-				BigTreePages.rememberedTemplate = $("#template").val();
-				BigTreePages.rememberedExternal = $("#external_link").val();
-				$(".box_select").removeClass("active");
-				$("#template").val("!");
-				$("#external_link").removeClass("active").val("");
+				$("#template_select").get(0).customControl.disable();
+				$("#external_link").attr("disabled","disabled");
+				$("#new_window").get(0).customControl.disable();
 			} else {
-				if (BigTreePages.rememberedTemplate == "" && BigTreePages.rememberedExternal) {
-					$("#external_link").addClass("active").val(BigTreePages.rememberedExternal);
-					$("#template").val();
-				} else if (BigTreePages.rememberedTemplate) {
-					$("#template").val(BigTreePages.rememberedTemplate);
-					$(".box_select[href=#" + BigTreePages.rememberedTemplate + "]").addClass("active");
-				} else {
-					$("#template").val($(".box_select").eq(0).addClass("active").attr("href").substr(1));
-				}
+				$("#template_select").get(0).customControl.enable();
+				$("#external_link").removeAttr("disabled");
+				$("#new_window").get(0).customControl.enable();
 			}
 		});
-		
-		// Watch for entry into the external link field and switch to a blank template.
-		$("input[name=external]").bind("focus",function() {
-			// Backup the existing one.
-			BigTreePages.rememberedTemplate = $("#template").val();
-			if (BigTreePages.rememberedTemplate && BigTreePages.rememberedExternal) {
-				$(this).val(BigTreePages.rememberedExternal);
-			}
-			$(".box_select").removeClass("active");
-			$("#template").val("");
-			if (BigTreePages.rememberedTemplate == "!") {
-				$("input[name=redirect_lower]").attr("checked",false).next("div").find("a").removeClass("checked");
-			}
-		}).bind("blur",function() {
-			if ($(this).val() == "") {
-				$("#template").val(BigTreePages.rememberedTemplate);
-				if (BigTreePages.rememberedTemplate == "!") {
-			  		$("input[name=redirect_lower]").attr("checked",true).next("div").find("a").addClass("checked");
-				} else {
-					$(".box_select[href=#" + BigTreePages.rememberedTemplate + "]").addClass("active");
-				}
+		$("input[name=external]").on("keyup",function() {
+			if ($(this).val()) {
+				$("#template_select").get(0).customControl.disable();
+			} else {
+				$("#template_select").get(0).customControl.enable();
 			}
 		});
 		
@@ -113,9 +70,16 @@ var BigTreePages = {
 	},
 
 	CheckTemplate: function() {
-		tval = $("input[name=template]");
-		if (tval.length) {
-			if (BigTree.currentPageTemplate != tval.val()) {
+		var template_select = $("select[name=template]");
+		if (template_select.length) {
+			if ($("#redirect_lower").attr("checked")) {
+				var current_template = "!";
+			} else if ($("#external_link").val()) {
+				var current_template = "";
+			} else {
+				var current_template = template_select.val();
+			}
+			if (BigTree.currentPageTemplate != current_template) {
 				// Unload all TinyMCE fields.
 				if (tinyMCE) {
 					for (id in BigTree.TinyMCEFields) {
@@ -123,7 +87,7 @@ var BigTreePages = {
 						tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[id]);
 					}
 				}
-				BigTree.currentPageTemplate = tval.val();
+				BigTree.currentPageTemplate = current_template;
 				if (BigTree.currentPage !== false) {
 					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTree.currentPage, template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
 				} else {

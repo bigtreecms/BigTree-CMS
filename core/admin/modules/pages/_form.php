@@ -3,9 +3,9 @@
 	$bigtree["js"][] = "pages.js";
 	
 	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
-	$hide_template_tab = false;
+	$hide_template_section = false;
 	if (is_array($template_data) && $template_data["level"] > $admin->Level) {
-		$hide_template_tab = true;
+		$hide_template_section = true;
 	}
 ?>
 <div class="container">
@@ -14,9 +14,6 @@
 			<div class="shadow">
 				<nav class="left">
 					<a href="#properties_tab"<? if ($bigtree["form_action"] == "create") { ?> class="active"<? } ?>>Properties</a>
-					<? if (!$hide_template_tab) { ?>
-					<a href="#template_tab">Template</a>
-					<? } ?>
 					<a href="#content_tab"<? if ($bigtree["form_action"] == "update") { ?> class="active"<? } ?>>Content</a>
 					<a href="#seo_tab">SEO</a>
 				</nav>
@@ -46,13 +43,6 @@
 		<section id="properties_tab"<? if ($bigtree["form_action"] == "update") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/properties.php") ?>
 		</section>
-		<? if (!$hide_template_tab) { ?>
-		<section id="template_tab" style="display: none;">
-			<? include BigTree::path("admin/modules/pages/tabs/template.php") ?>
-		</section>
-		<? } else { ?>
-		<input type="hidden" name="template" id="template" value="<?=$bigtree["current_page"]["template"]?>" />
-		<? } ?>
 		<section id="content_tab"<? if ($bigtree["form_action"] == "create") { ?> style="display: none;"<? } ?>>
 			<? include BigTree::path("admin/modules/pages/tabs/content.php") ?>
 		</section>

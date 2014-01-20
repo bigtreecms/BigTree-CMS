@@ -9,7 +9,7 @@
 	$file_data = $_FILES["resources"];
 	$upload_service = new BigTreeUploadService;
 
-	foreach ($bigtree["template"]["resources"] as $resource) {
+	foreach ((array)$bigtree["template"]["resources"] as $resource) {
 		unset($value); // Backwards compat.
 		$field = array();
 		$field["key"] = $key = $resource["id"];
