@@ -599,11 +599,11 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 				<fieldset class="left<?php if (count($_POST) && !$user) { ?> form_error<?php } ?>">
 					<label>Username</label>
-					<input class="text" type="text" id="db_user" name="user" value="<?php echo htmlspecialchars($user) ?>" tabindex="3" />
+					<input class="text" type="text" id="db_user" name="user" value="<?php echo htmlspecialchars($user) ?>" tabindex="3" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$password) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="db_pass" name="password" value="<?php echo htmlspecialchars($password) ?>" tabindex="4" />
+					<input class="text" type="password" id="db_pass" name="password" value="<?php echo htmlspecialchars($password) ?>" tabindex="4" autocomplete="off" />
 				</fieldset>
 				<fieldset>
 					<br />
@@ -630,11 +630,11 @@ RewriteRule (.*) site/$1 [L]');
 					<br class="clear" /><br />
 					<fieldset class="left<?php if (count($_POST) && !$write_user) { ?> form_error<?php } ?>">
 						<label>Username</label>
-						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($user) ?>" tabindex="8" />
+						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($user) ?>" tabindex="8" autocomplete="off" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_password) { ?> form_error<?php } ?>">
 						<label>Password</label>
-						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($password) ?>" tabindex="9" />
+						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($password) ?>" tabindex="9" autocomplete="off" />
 					</fieldset>
 					<br class="clear" />
 					<br />
@@ -666,11 +666,11 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
-					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="12" />
+					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="12" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" />
+					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" autocomplete="off" />
 				</fieldset>
 				
 				<br class="clear" />
