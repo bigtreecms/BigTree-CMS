@@ -314,6 +314,4 @@
 		}
 		sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-storage'");
 	}
-
-	print_r($bigtree["sql"]);
 ?>
