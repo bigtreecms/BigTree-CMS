@@ -260,7 +260,6 @@
 		sqlquery("CREATE TABLE `bigtree_module_embeds` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` int(11) NOT NULL, `title` varchar(255) NOT NULL, `preprocess` varchar(255) NOT NULL, `callback` varchar(255) NOT NULL, `table` varchar(255) NOT NULL, `fields` text NOT NULL, `default_position` varchar(255) NOT NULL, `default_pending` char(2) NOT NULL, `css` varchar(255) NOT NULL, `hash` varchar(255) NOT NULL DEFAULT '', `redirect_url` varchar(255) NOT NULL DEFAULT '', `thank_you_message` text NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 		sqlquery("CREATE TABLE `bigtree_callout_groups` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 		sqlquery("ALTER TABLE `bigtree_callouts` ADD COLUMN `group` int(11) unsigned NULL AFTER `position`");
-		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `callouts_enabled`");
 		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `image`");
 		// Get all templates with callouts enabled and provide them with a new resource instead
 		$tq = sqlquery("SELECT * FROM bigtree_templates WHERE callouts_enabled = 'on'");
@@ -296,6 +295,7 @@
 				sqlquery("UPDATE bigtree_pages SET resources = '$resources' WHERE id = '".$f["id"]."'");
 			}
 		}
+		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `callouts_enabled`");
 		sqlquery("ALTER TABLE `bigtree_pages` DROP COLUMN `callouts`");
 		sqlquery("ALTER TABLE `bigtree_page_revisions` DROP COLUMN `callouts`");
 		sqlquery("CREATE TABLE `bigtree_resource_allocation` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` varchar(255) DEFAULT NULL, `entry` varchar(255) DEFAULT NULL, `resource` int(11) DEFAULT NULL, `updated_at` datetime NOT NULL, PRIMARY KEY (`id`), KEY `resource` (`resource`), KEY `updated_at` (`updated_at`), CONSTRAINT `bigtree_resource_allocation_ibfk_1` FOREIGN KEY (`resource`) REFERENCES `bigtree_resources` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
@@ -312,4 +312,6 @@
 		}
 		sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-storage'");
 	}
+
+	print_r($bigtree["sql"]);
 ?>
