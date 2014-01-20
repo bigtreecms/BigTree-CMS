@@ -410,7 +410,8 @@
 	.container nav .more .nav_page { width: 928px; }
 	.container nav .more_nav { font-weight: bold; padding: 0 15px; text-align: center; }
 	.container aside { background-gradient: #9A9A9A #AFAFAF; color: #FFF; height: 20px; line-height: 20px; overflow: hidden; padding: 0 0 0 15px; }
-	.container section { overflow: hidden; padding: 30px; }
+	.container section { padding: 30px; }
+	.container > section:after, .container > form > section:after { content: ""; display: table; clear: both; }
 	.container section.sub { background: #FFF; border-top: 1px solid #ccc; }
 	.container footer { background: #eee; border-top: 1px solid #ccc; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; overflow: hidden; padding: 30px; }
 	.container footer .button, .container footer input { float: left; margin: 0 15px 0 0; }
@@ -534,7 +535,8 @@
 	#properties_tab .date_pickers fieldset.right { float: right; }
 
 /* Table Styles */
-	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; overflow: hidden; }
+	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; }
+	div.table:after { content: ""; display: table; clear: both; }
 	.table ul { list-style: none; margin: 0; }
 	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 37px; line-height: 37px; padding: 0 6px 0 15px; }
 	.table > summary input { float: left; margin: 5px 25px 0 -10px; }
@@ -1665,11 +1667,14 @@
 ---------------------------*/
 	body.embedded { background: transparent; }
 	body.embedded .container { background: transparent; border: none; border-radius: 0; padding: 0; }
-	body.embedded .container section { padding: 0; }
+	body.embedded .container > section { padding: 0; }
 	body.embedded textarea, body.embedded input[type="text"], body.embedded input[type="password"], body.embedded input[type="email"], body.embedded input[type="url"] { -webkitablet-box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; box-sizing: border-box; *behavior: url(admin_root/css/boxsizing.htc); width: 100%; }
 	body.embedded input.date_picker, body.embedded input.time_picker { width: 202px !important; }
 	body.embedded .container footer { background: transparent; border: none; padding: 0; margin: 30px 0 0 0; }
 	body.embedded .container form > fieldset { display: none; }
+	body.embedded .container .alert { margin: 0 0 30px -30px; background: transparent; }
+	body.embedded div.error_table .field { width: calc(35% - 40px); }
+	body.embedded div.error_table .error { width: calc(65% - 40px); }
 
 
 /*----------------------------
