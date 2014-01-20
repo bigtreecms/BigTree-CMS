@@ -32,9 +32,7 @@
 		}
 		li.remove();
 		return false;
-	});
-	
-	$(".add_geocoding").click(function() {
+	}).on("click",".add_geocoding",function() {
 		li = $('<li id="row_geocoding">');
 		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[geocoding]" value="" disabled="disabled" /></section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" value="geocoding" /><span class="resource_name">Geocoding</span><a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
 		
@@ -43,9 +41,7 @@
 		li.find(".icon_settings").trigger("click");
 		
 		return false;
-	});
-	
-	$(".add_many_to_many").click(function() {
+	}).on("click",".add_many_to_many",function() {
 		BigTree.localMTMCount++;
 			
 		li = $('<li id="mtm_row_' + BigTree.localMTMCount + '">');
