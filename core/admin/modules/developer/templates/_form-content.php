@@ -5,67 +5,65 @@
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
-	<div class="left last">
+	<div class="contain">
 		<? if (!isset($template)) { ?>
-		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
-			<label class="required">ID <small>(unique identifier that is also used for the file/directory name)</small><? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
-			<input type="text" class="required" name="id" value="<?=$id?>" />
-		</fieldset>
+		<div class="left">
+			<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
+				<label class="required">ID <small>(unique identifier that is also used for the file/directory name)</small><? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
+				<input type="text" class="required" name="id" value="<?=$id?>" />
+			</fieldset>
+		</div>
 		<? } ?>
-		<fieldset>
-			<label class="required">Name</label>
-			<input type="text" class="required" name="name" value="<?=$name?>" />
-		</fieldset>
-
-		<fieldset>
-			<label>Access Level</label>
-			<select name="level">
-				<option value="0">Normal User</option>
-				<option value="1"<? if ($level == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-				<option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option>
-			</select>
-		</fieldset>
+		<div class="<? if (isset($template)) { ?>left<? } else { ?>right<? } ?>">
+			<fieldset>
+				<label class="required">Name</label>
+				<input type="text" class="required" name="name" value="<?=$name?>" />
+			</fieldset>
+		</div>
 	</div>
-	<div class="right last">
-		<? if (!isset($template)) { ?>
-		<fieldset>
-			<label>Type</label>
-			<select name="routed">
-				<option value="">Basic</option>
-				<option value="on">Routed</option>
-			</select>
-		</fieldset>
-		<? } ?>
-		
-		
-		
-		<fieldset>
-			<label>Related Module</label>
-			<select name="module">
-				<option></option>
+	<? if (!isset($template)) { ?>
+	<fieldset class="float_margin">
+		<label>Type</label>
+		<select name="routed">
+			<option value="">Basic</option>
+			<option value="on">Routed</option>
+		</select>
+	</fieldset>
+	<? } ?>
+	<fieldset class="float_margin">
+		<label>Related Module</label>
+		<select name="module">
+			<option></option>
+			<?
+				$groups = $admin->getModuleGroups("name ASC");
+				$groups[] = array("id" => "0", "name" => "Ungrouped");
+				foreach ($groups as $g) {
+					$modules = $admin->getModulesByGroup($g["id"],"name ASC");
+					if (count($modules)) {
+			?>
+			<optgroup label="<?=$g["name"]?>">
 				<?
-					$groups = $admin->getModuleGroups("name ASC");
-					$groups[] = array("id" => "0", "name" => "Ungrouped");
-					foreach ($groups as $g) {
-						$modules = $admin->getModulesByGroup($g["id"],"name ASC");
-						if (count($modules)) {
+						foreach ($modules as $m) {
 				?>
-				<optgroup label="<?=$g["name"]?>">
-					<?
-							foreach ($modules as $m) {
-					?>
-					<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
-					<?
-							}
-					?>
-				</optgroup>
+				<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
 				<?
 						}
-					}
 				?>
-			</select>	
-		</fieldset>
-	</div>
+			</optgroup>
+			<?
+					}
+				}
+			?>
+		</select>	
+	</fieldset>
+	<fieldset class="float_margin">
+		<label>Access Level</label>
+		<select name="level">
+			<option value="0">Normal User</option>
+			<option value="1"<? if ($level == 1) { ?> selected="selected"<? } ?>>Administrator</option>
+			<option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option>
+		</select>
+	</fieldset>
 </section>
 <section class="sub">
 	<label>Resources</label>
