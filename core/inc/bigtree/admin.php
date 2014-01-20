@@ -780,7 +780,7 @@
 		*/
 
 		function createCalloutGroup($name) {
-			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape($name)."')");
+			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(htmlspecialchars($name))."')");
 			return sqlid();
 		}
 
@@ -1168,8 +1168,6 @@
 		function createModuleGroup($name) {
 			global $cms;
 
-			$name = sqlescape($name);
-
 			// Get a unique route
 			$x = 2;
 			$route = $cms->urlify($name);
@@ -1179,8 +1177,8 @@
 				$x++;
 			}
 
-			// Just to be safe
 			$route = sqlescape($route);
+			$name = sqlescape(htmlspecialchars($name));
 
 			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`) VALUES ('$name','$route')");
 			return sqlid();
@@ -1757,6 +1755,18 @@
 		}
 
 		/*
+			Function: deleteCalloutGroup
+				Deletes a callout group.
+
+			Parameters:
+				id - The id of the callout group.
+		*/
+
+		function deleteCalloutGroup($id) {
+			sqlquery("DELETE FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'");
+		}
+
+		/*
 			Function: deleteFeed
 				Deletes a feed.
 
@@ -1870,7 +1880,6 @@
 		function deleteModuleGroup($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_groups WHERE id = '$id'");
-			sqlquery("UPDATE bigtree_modules SET `group` = '0' WHERE `group` = '$id'");
 		}
 
 		/*
@@ -6097,6 +6106,19 @@
 		}
 
 		/*
+			Function: updateCalloutGroup
+				Updates a callout group's name.
+
+			Parameters:
+				id - The id of the callout group to update.
+				name - The name.
+		*/
+
+		function updateCalloutGroup($id,$name) {
+			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(htmlspecialchars($name))."' WHERE id = '".sqlescape($id)."'");
+		}
+
+		/*
 			Function: updateChildPagePaths
 				Updates the paths for pages who are descendants of a given page to reflect the page's new route.
 				Also sets route history if the page has changed paths.
@@ -6341,9 +6363,6 @@
 		function updateModuleGroup($id,$name) {
 			global $cms;
 
-			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-
 			// Get a unique route
 			$x = 2;
 			$route = $cms->urlify($name);
@@ -6355,8 +6374,9 @@
 				$x++;
 			}
 
-			// Just to be safe
 			$route = sqlescape($route);
+			$id = sqlescape($id);
+			$name = sqlescape(htmlspecialchars($name));
 
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route' WHERE id = '$id'");
 		}

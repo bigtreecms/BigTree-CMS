@@ -1,9 +1,9 @@
 <?
 	$id = end($bigtree["path"]);
-	$group = $admin->getModuleGroup($id);
+	$group = $admin->getCalloutGroup($id);
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/update/<?=$id?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$id?>/" class="module">
 		<section>
 			<fieldset>
 			    <label class="required">Name</label>

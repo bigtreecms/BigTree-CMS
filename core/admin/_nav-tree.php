@@ -75,7 +75,10 @@
 			array("title" => "Callouts","link" => "developer/callouts","icon" => "callouts","hidden" => true,"children" => array(
 				array("title" => "View Callouts","link" => "developer/callouts","nav_icon" => "list"),
 				array("title" => "Add Callout","link" => "developer/callouts/add","nav_icon" => "add"),
-				array("title" => "Edit Callout","link" => "developer/callouts/edit","hidden" => true)
+				array("title" => "Edit Callout","link" => "developer/callouts/edit","hidden" => true),
+				array("title" => "View Groups","link" => "developer/callouts/groups","nav_icon" => "list"),
+				array("title" => "Add Group","link" => "developer/callouts/groups/add","nav_icon" => "add"),
+				array("title" => "Edit Group","link" => "developer/callouts/groups/edit","hidden" => true)
 			)),
 			array("title" => "Field Types","link" => "developer/field-types","icon" => "field_types","hidden" => true,"children" => array(
 				array("title" => "View Field Types","link" => "developer/field-types","nav_icon" => "list"),
