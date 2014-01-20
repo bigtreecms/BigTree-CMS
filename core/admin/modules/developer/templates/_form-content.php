@@ -8,7 +8,7 @@
 	<div class="left last">
 		<? if (!isset($template)) { ?>
 		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
-			<label class="required">ID<? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
+			<label class="required">ID <small>(unique identifier that is also used for the file/directory name)</small><? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
 			<input type="text" class="required" name="id" value="<?=$id?>" />
 		</fieldset>
 		<? } ?>
@@ -16,9 +16,14 @@
 			<label class="required">Name</label>
 			<input type="text" class="required" name="name" value="<?=$name?>" />
 		</fieldset>
+
 		<fieldset>
-			<label>Description</label>
-			<textarea name="description"><?=$description?></textarea>
+			<label>Access Level</label>
+			<select name="level">
+				<option value="0">Normal User</option>
+				<option value="1"<? if ($level == 1) { ?> selected="selected"<? } ?>>Administrator</option>
+				<option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option>
+			</select>
 		</fieldset>
 	</div>
 	<div class="right last">
@@ -32,14 +37,7 @@
 		</fieldset>
 		<? } ?>
 		
-		<fieldset>
-			<label>Access Level</label>
-			<select name="level">
-				<option value="0">Normal User</option>
-				<option value="1"<? if ($level == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-				<option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option>
-			</select>
-		</fieldset>
+		
 		
 		<fieldset>
 			<label>Related Module</label>

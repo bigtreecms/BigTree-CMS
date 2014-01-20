@@ -4,10 +4,12 @@
 	$types = $cached_types["callout"];
 ?>
 <section>
+	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	
 	<div class="left">
 		<? if (!isset($callout)) { ?>
-		<fieldset>
-			<label class="required">ID</label>
+		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
+			<label class="required">ID <small>(unique identifier that is also used for the file name)</small><? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
 			<input type="text" class="required" name="id" value="<?=$id?>" />
 		</fieldset>
 		<? } ?>

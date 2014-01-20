@@ -2659,8 +2659,10 @@
 		*/
 
 		function getCallout($id) {
-			$id = sqlescape($id);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '$id'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($id)."'"));
+			if (!$item) {
+				return false;
+			}
 			$item["resources"] = json_decode($item["resources"],true);
 			return $item;
 		}

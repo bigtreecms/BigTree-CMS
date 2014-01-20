@@ -298,6 +298,7 @@
 			}
 		}
 		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `callouts_enabled`");
+		sqlquery("ALTER TABLE `bigtree_templates` DROP COLUMN `description`");
 		sqlquery("ALTER TABLE `bigtree_pages` DROP COLUMN `callouts`");
 		sqlquery("ALTER TABLE `bigtree_page_revisions` DROP COLUMN `callouts`");
 		sqlquery("CREATE TABLE `bigtree_resource_allocation` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` varchar(255) DEFAULT NULL, `entry` varchar(255) DEFAULT NULL, `resource` int(11) unsigned DEFAULT NULL, `updated_at` datetime NOT NULL, PRIMARY KEY (`id`), KEY `resource` (`resource`), KEY `updated_at` (`updated_at`), CONSTRAINT `bigtree_resource_allocation_ibfk_1` FOREIGN KEY (`resource`) REFERENCES `bigtree_resources` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");

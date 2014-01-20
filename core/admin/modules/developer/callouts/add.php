@@ -2,6 +2,13 @@
 	// Stop notices
 	$id = $name = $description = $display_default = $level = "";
 	$resources = array();
+
+	if ($_SESSION["bigtree_admin"]["admin_error"]) {
+		unset($_SESSION["bigtree_admin"]["admin_error"]);
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["admin_saved"]);
+		unset($_SESSION["bigtree_admin"]["admin_saved"]);
+		$show_error = true;
+	}
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/create/" enctype="multipart/form-data" class="module">
