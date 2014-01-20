@@ -13,7 +13,7 @@
 				<? foreach ($bigtree["errors"] as $error) { ?>
 				<li>
 					<section class="view_column" style="padding: 0 0 0 20px; width: 250px;"><?=$error["field"]?></section>
-					<section class="view_column" style="width: 506px;"><?=$error["message"]?></section>
+					<section class="view_column" style="width: 506px;"><?=$error["error"]?></section>
 				</li>
 				<? } ?>
 			</ul>

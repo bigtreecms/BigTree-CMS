@@ -1,7 +1,7 @@
 <?
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 
-	// If we have crops, let's con
+	// If we have crops, let's continue
 	if (count($crops)) {
 		if ($page) {
 			$return_link = $bigtree["form_root"]."crop/$page/";

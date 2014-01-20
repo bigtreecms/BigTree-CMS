@@ -73,7 +73,7 @@
 			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
 			$bigtree["errors"][] = array(
 				"field" => $field["options"]["title"],
-				"message" => $error
+				"error" => $error
 			);
 		}
 
@@ -136,12 +136,19 @@
 		"errors" => $bigtree["errors"],
 		"crops" => $bigtree["crops"]
 	);
-	
+
+	// If we have errors, we want to save the data and drop the entry from the database but give them the info again
 	if (count($bigtree["errors"])) {
-		BigTree::redirect($bigtree["form_root"]."error/?hash=".$bigtree["form"]["hash"]);
-	} elseif (count($bigtree["crops"])) {
-		BigTree::redirect($bigtree["form_root"]."crop/?hash=".$bigtree["form"]["hash"]);
+		$item = BigTreeAutoModule::getItem($table,$edit_id);
+		$_SESSION["bigtree_admin"]["form_data"]["saved"] = $item["item"];
+		BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
+	}
+	
+	if (count($bigtree["crops"])) {
+		BigTree::redirect($bigtree["form_root"]."crop/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect($bigtree["form_root"]."error/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	} else {
-		BigTree::redirect($bigtree["form_root"]."complete/?hash=".$bigtree["form"]["hash"]);
+		BigTree::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	}
 ?>

@@ -2,7 +2,7 @@
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);	
 ?>
 <div class="container">
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
+	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?id=<?=$bigtree["form"]["id"]?>&hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
 		<section id="cropper">
