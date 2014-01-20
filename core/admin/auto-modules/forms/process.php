@@ -83,7 +83,7 @@
 			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
 			$bigtree["errors"][] = array(
 				"field" => $field["options"]["title"],
-				"message" => $error
+				"error" => $error
 			);
 		}
 
