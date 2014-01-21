@@ -10,7 +10,8 @@
 
 	// Import modules
 	foreach ($json["modules"] as $module) {
-		$group = $module["group"] ? $bigtree["group_match"][$module["group"]] : "NULL";
+		$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : "NULL";
+		$gbp = sqlescape(is_array($module["gbp"]) ? json_encode($module["gbp"]) : $module["gbp"]);
 		// Find a unique route
 		$oroute = $route = $module["route"];
 		$x = 2;
@@ -19,7 +20,7 @@
 			$x++;
 		}
 		// Create the module
-		sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'".sqlescape($module["gbp"])."')");
+		sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp')");
 		$module_id = sqlid();
 		$bigtree["module_match"][$module["id"]] = $module_id;
 		$bigtree["route_match"][$module["route"]] = $route;
