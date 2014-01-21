@@ -118,7 +118,8 @@
 	table th, table thead td { background: #eee; color: #999; font-size: 14px; padding: 10px 15px; text-align: left; }
 
 /* Form Styles */
-	fieldset { margin: 0 0 15px 0; overflow: hidden; }
+	fieldset { margin: 0 0 15px 0; }
+	fieldset:after { content: ""; display: table; clear: both; }
 	fieldset:last-child { margin: 0; }
 	fieldset p { user-select: none; }
 	fieldset.checkbox_bump { padding: 31px 0 0 0; }
