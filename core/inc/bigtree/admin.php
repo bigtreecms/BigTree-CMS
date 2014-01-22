@@ -363,39 +363,14 @@
 		*/
 
 		function backupDatabase($file) {
-			$dump = "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n\n";
+			$dump = "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n";
+			$dump .= "SET foreign_key_checks = 0;\n\n";
 
 			// We need to dump the bigtree tables in the proper order or they will not properly be recreated with the right foreign keys
-			$tables = $table_definitions = array();
+			$tables = array();
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
-				$table_definitions[current($f)] = BigTree::describeTable(current($f));
-			}
-			// Sort them
-			while (count($table_definitions)) {
-				foreach ($table_definitions as $table => $definition) {
-					// If we have no foreign keys this table can be created whenever
-					if (!count($definition["foreign_keys"])) {
-						$tables[] = $table;
-						unset($table_definitions[$table]);
-					// If we do have foreign keys we have to make sure the other tables are created prior to this one
-					} else {
-						$ok = true;
-						foreach ($definition["foreign_keys"] as $key) {
-							if (!in_array($key["other_table"],$tables)) {
-								$ok = false;
-							}
-						}
-						if ($ok) {
-							$tables[] = $table;
-							unset($table_definitions[$table]);
-						}
-					}
-				}
-			}
-
-			// Dump the tables
-			foreach ($tables as $table) {
+				$table = current($f);
 				$dump .= "DROP TABLE IF EXISTS `$table`;\n";
 				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
 				$dump .= str_replace(array("\n  ","\n"),"",end($definition)).";\n";
@@ -415,6 +390,7 @@
 				}
 				$dump .= "\n";
 			}
+			$dump .= "\nSET foreign_key_checks = 1;";
 
 			return BigTree::putFile($file,trim($dump));
 		}

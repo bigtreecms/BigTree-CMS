@@ -38,7 +38,7 @@
 		"settings" => array(),
 		"feeds" => array(),
 		"files" => array(),
-		"sql" => array()
+		"sql" => array("SET foreign_key_checks = 0")
 	);
 	
 	// If it's a single module we're exporting, do just the module
@@ -105,65 +105,16 @@
 	}
 	
 	foreach ((array)$field_types as $type) {
+		$package["files"][] = "custom/admin/form-field-types/draw/$type.php";
+		$package["files"][] = "custom/admin/form-field-types/process/$type.php";
+		$package["files"][] = "custom/admin/ajax/developer/field-options/$type.php";
+		BigTree::copyFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",SERVER_ROOT."cache/package/"."custom/admin/form-field-types/draw/$type.php");
+		BigTree::copyFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",SERVER_ROOT."cache/package/"."custom/admin/form-field-types/process/$type.php");
+		BigTree::copyFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",SERVER_ROOT."cache/package/"."custom/admin/ajax/developer/field-options/$type.php");
 		$package["field_types"][] = $admin->getFieldType($type);
 	}
 	
-	// We need to rearrange the tables array so that ones that have foreign keys fall at the end.
-	$rearranged_tables = array();
-	$pending_tables = array();
-	$table_info = array();
 	foreach ((array)$tables as $t) {
-		list($table,$type) = explode("#",$t);
-		$i = BigTree::describeTable($table);
-		if (!count($i["foreign_keys"])) {
-			$rearranged_tables[] = $t;
-		} else {
-			// See if the other tables are all bigtree_ ones or the key points to itself.
-			$just_bigtree_keys = true;
-			foreach ($i["foreign_keys"] as $key) {
-				if (substr($key["other_table"],0,8) != "bigtree_" && $key["other_table"] != $table) {
-					$just_bigtree_keys = false;
-				}
-			}
-			if ($just_bigtree_keys) {
-				$rearranged_tables[] = $t;
-			} else {
-				$table_info[$t] = $i;
-				$pending_tables[] = $t;
-			}
-		}
-	}
-	// We're going to loop the number of times there are tables so we don't loop forever
-	for ($i = 0; $i < count($pending_tables); $i++) {
-		$t = $pending_tables[$i];
-		$keys = $table_info[$t]["foreign_keys"];
-		$ok = true;
-		foreach ($keys as $key) {
-			// If we haven't already found this foreign key table and it's not related to BigTree's core tables, we're not including it yet.
-			if (!in_array($key["other_table"]."#data",$rearranged_tables) &&!in_array($key["other_table"]."#structure",$rearranged_tables) && substr($key["other_table"],0,8) != "bigtree_") {
-				$ok = false;
-			}
-		}
-		// If we've already got the table for this one's foreign keys, add it to the rearranged tables if we haven't already.
-		if ($ok && !in_array($t,$rearranged_tables)) {
-			$rearranged_tables[] = $t;
-		}
-	}
-	
-	// If we have less rearranged tables than pending tables we're missing a table dependancy.
-	if (count($rearranged_tables) != count((array)$tables)) {
-		$failed_tables = array();
-		foreach ((array)$tables as $t) {
-			if (!in_array($t,$rearranged_tables)) {
-				list($table,$type) = explode("#",$t);
-				$failed_tables[] = $table;
-			}
-		}
-		$admin->stop('<div class="container"><section><div class="alert">
-		<span></span><h3>Creation Failed</h3></div><p>The following tables have missing foreign key constraints: '.implode(", ",$failed_tables).'</p></section></div>');
-	}
-	
-	foreach ($rearranged_tables as $t) {
 		$x++;
 		list($table,$type) = explode("#",$t);
 		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
@@ -186,6 +137,7 @@
 			}
 		}
 	}
+	$bigtree["sql"][] = "SET foreign_key_checks = 1";
 	
 	foreach ((array)$class_files as $file) {
 		BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."cache/package/".$file);
@@ -201,6 +153,9 @@
 		BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."cache/package/".$file);
 		$package["files"][] = $file;
 	}
+
+	// May have dupes if someone manually included things
+	$package["files"] = array_unique($package["files"]);
 	
 	// Write the manifest file
 	$json = (version_compare(PHP_VERSION,"5.4.0") >= 0) ? json_encode($package,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($package);
