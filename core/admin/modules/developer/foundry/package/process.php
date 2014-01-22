@@ -134,6 +134,15 @@
 		foreach ($field_types as $type) {
 			$item = $admin->getFieldType($type);
 			$index .= "FieldType::||BTX||::".json_encode($item)."\n";
+			$x++;
+			$index .= "File::||BTX||::$x.part.btx::||BTX||::custom/admin/form-field-types/draw/$type.php\n";
+			copy(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$dir."$x.part.btx");
+			$x++;
+			$index .= "File::||BTX||::$x.part.btx::||BTX||::custom/admin/form-field-types/process/$type.php\n";
+			copy(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$dir."$x.part.btx");
+			$x++;
+			$index .= "File::||BTX||::$x.part.btx::||BTX||::custom/admin/ajax/developer/field-options/$type.php\n";
+			copy(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$dir."$x.part.btx");
 		}
 	}
 	
