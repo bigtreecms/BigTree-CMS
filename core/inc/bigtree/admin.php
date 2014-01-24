@@ -1516,7 +1516,11 @@
 		function createSetting($data) {
 			// Setup defaults
 			$id = $name = $description = $type = $options = $locked = $encrypted = $system = "";
-			BigTree::globalizeArray($data,"sqlescape","htmlspecialchars");
+			foreach ($data as $key => $val) {
+				if (substr($key,0,1) != "_" && !is_array($val)) {
+					$$key = sqlescape(htmlspecialchars($val));
+				}
+			}
 
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";

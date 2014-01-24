@@ -42,7 +42,7 @@
 		}
 		// Create actions
 		foreach ((array)$module["actions"] as $action) {
-			$admin->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$action["form"],$action["view"],$action["report"],$action["level"],$action["position"]);
+			$admin->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$bigtree["form_id_match"][$action["form"]],$bigtree["view_id_match"][$action["view"]],$bigtree["report_id_match"][$action["report"]],$action["level"],$action["position"]);
 		}
 	}
 
