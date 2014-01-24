@@ -1798,10 +1798,16 @@
 				if ($action["view"]) {
 					sqlquery("DELETE FROM bigtree_module_views WHERE id = '".$action["view"]."'");
 				}
+				if ($action["report"]) {
+					sqlquery("DELETE FROM bigtree_module_reports WHERE id = '".$action["report"]."'");
+				}
 			}
 
 			// Delete actions
 			sqlquery("DELETE FROM bigtree_module_actions WHERE module = '$id'");
+
+			// Delete embeds
+			sqlquery("DELETE FROM bigtree_module_embeds WHERE module = '$id'");
 
 			// Delete the module
 			sqlquery("DELETE FROM bigtree_modules WHERE id = '$id'");

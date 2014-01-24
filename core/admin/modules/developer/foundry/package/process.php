@@ -81,8 +81,10 @@
 		if ($item["routed"]) {
 			$files = BigTree::directoryContents(SERVER_ROOT."templates/routed/$template/");
 			foreach ($files as $file) {
-				BigTree::copyFile($file,str_replace(SERVER_ROOT,SERVER_ROOT."cache/package/",$file));
-				$package["files"][] = str_replace(SERVER_ROOT,"",$file);
+				if (!is_dir($file)) {
+					BigTree::copyFile($file,str_replace(SERVER_ROOT,SERVER_ROOT."cache/package/",$file));
+					$package["files"][] = str_replace(SERVER_ROOT,"",$file);
+				}
 			}
 		} else {
 			BigTree::copyFile(SERVER_ROOT."templates/basic/$template.php",SERVER_ROOT."cache/package/templates/basic/$template.php");
