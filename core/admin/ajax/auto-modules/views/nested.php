@@ -26,6 +26,7 @@
 			global $bigtree,$module,$mpage,$permission,$suffix,$admin;
 
 			foreach ($items as $item) {
+				$expanded = !empty($_COOKIE["bigtree_admin"]["nested_views"][$bigtree["view"]["id"]][$item["id"]]) ? true : false;
 				$children = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$item["id"],"position DESC, id ASC","both");
 				
 				// Stop the item status notice
@@ -41,6 +42,9 @@
 				} else {
 					$status = "Published";
 					$status_class = "published";
+				}
+				if ($expanded) {
+					$status_class .= " expanded";
 				}
 ?>
 <li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
@@ -101,7 +105,11 @@
 				}
 
 				if (count($children)) {
-					echo '<ul style="display: none;">';
+					if ($expanded) {
+						echo "<ul>";
+					} else {
+						echo '<ul style="display: none;">';
+					}
 					_localDrawLevel($children,$depth + 1);
 					echo "</ul>";
 				}

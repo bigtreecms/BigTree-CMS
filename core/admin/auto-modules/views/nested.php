@@ -57,7 +57,9 @@
 			return;
 		}
 		// Change expanded state
-		var ul = $(this).parent().toggleClass("expanded").children("ul").toggle();
+		li = $(this).parent();
+		var ul = li.toggleClass("expanded").children("ul").toggle();
+		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: <?=$bigtree["view"]["id"]?>, id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
 		<? if ($permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<? } ?>
