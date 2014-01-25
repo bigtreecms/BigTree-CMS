@@ -421,6 +421,9 @@
   <FilesMatch "\.(ttf|otf|eot|woff)$">
 	Header set Access-Control-Allow-Origin "*"
   </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set X-Permitted-Cross-Domain-Policies "master-only"
 </IfModule>
 
 AddType image/svg+xml svg
