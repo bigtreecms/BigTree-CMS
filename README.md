@@ -20,6 +20,21 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.2 Release
+- FIXED: BigTree::globalizeArray (and its related methods) no longer will overwrite BigTree's globals ($admin, $bigtree, $cms) and should no longer break if the passed in array contains previously used internal variable names to the method ("array", "key", "val", "functions", "func").
+- FIXED: BigTree::putFile failing if the root filesystem directory was not readable.
+- FIXED: Pending Changes page crashing if no view was present for a pending module change.
+- FIXED: Random hits to /pages/update/ causing blank drafts to the homepage.
+- FIXED: Admin bar showing up on different sites you're not logged into on the same domain (i.e. logged into /test/admin/ and not /test2/admin/).
+- FIXED: Autocomplete should now be off for password fields when editing a user.
+- FIXED: Settings icon randomly disappearing from templates editor when zoomed in on Safari/Chrome.
+- FIXED: Many to Many and Geocoding buttons not working on initial module form creation.
+- FIXED: When creating a callout, BigTree will now verify that the ID isn't in use by another callout.
+- FIXED: Some error messages not showing up properly after submitting a form.
+- FIXED: Field Types not including their related files when creating packages.
+- REMOVED: Google Analytics check from Site Status (new usage of Google Tag Manager prevents us from really knowing anyway).
+- UPDATED: Advanced .htaccess now includes a few more mime types that Apache occasionally gets confused (ogv, mp4, webm).
+
 ### 4.0.1 Release
 - FIXED: IE prior to 10 having issues with background-gradient declarations that use rgba (using "CSS3" parser feature in BigTree)
 - FIXED: Issues with forms that contained multiple many to many fields.
