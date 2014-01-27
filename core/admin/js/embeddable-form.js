@@ -7,6 +7,8 @@ var BigTreeEmbeddableForm{id} = {
 		document.getElementById("bigtree_embeddable_form_{id}").style.height = (parseInt(height) + 260) + "px";
 	},
 	scrollToTop: function() {
-		window.scrollTo(0,0);
+		var y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+		var rect = document.getElementById("bigtree_embeddable_form_container_{id}").getBoundingClientRect();
+		window.scrollTo(0,y + rect.top - 20);
 	}
 };
