@@ -24,7 +24,8 @@
 	header, footer, nav, summary, section, article { display: block; }
 	.clear { clear: both; }
 	.contain:after { content: ""; display: table; clear: both; }
-	.float_margin { float: left; margin: 0 20px 0 0; }
+	.contain fieldset:after { display: none; }
+	.float_margin { float: left; margin: 0 20px 0 0; overflow: hidden; }
 	.float_margin p.note { margin: 5px 0; }
 
 	/* Hack To Stop WebKit From Styling input[type=search] */
@@ -127,7 +128,6 @@
 	label { color: #666; display: block; font-size: 13px; line-height: 1; margin: 0 0 10px 0; user-select: none; }
 	label small { color: #999; font-size: 11px; margin: 0 0 0 5px; }
 	label small strong { color: #59A8E9; }
-	label.for_checkbox { cursor: pointer; float: left; line-height: 17px; margin: 0; user-select: none; }
 	.form_error label { color: #C0362F; }
 	label .form_error_reason { float: right; font-size: 11px; line-height: 13px; text-transform: uppercase; }
 
@@ -178,6 +178,7 @@
 	.checkbox a.focused { background-position: -166px -105px; }
 	.checkbox a.checked.focused { background-position: -166px -121px; }
 	.checkbox a.disabled { cursor: default; opacity: 0.3; }
+	label.for_checkbox { cursor: pointer; float: left; line-height: 17px; margin: 0; user-select: none; }
 
 	.radio_button { float: left; margin: 0 7px 0 0; }
 	.radio_button a { background: url(../images/icon-sprite.svg) -256px -124px; cursor: pointer; display: block; height: 16px; width: 16px; }
@@ -861,7 +862,7 @@
 
 /* Message Center */
 	.message_thread section:first-child header { border-radius: 5px 5px 0 0; border-top: none; }
-	.message_thread header { background: #F3F3F3; border-radius: 0; border-top: 1px solid #CCC; cursor: pointer; height: auto; margin: -30px -30px 0 -30px; opacity: 0.7; overflow: hidden; padding: 10px 15px; }
+	.message_thread header { background: #F3F3F3; border-radius: 0; border-bottom: none; border-top: 1px solid #CCC; cursor: pointer; height: auto; margin: -30px -30px 0 -30px; opacity: 0.7; overflow: hidden; padding: 10px 15px; }
 	.message_thread header h3 { float: left; height: 24px; line-height: 24px; margin: 0; max-width: 600px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.message_thread header div { float: right; }
 	.message_thread header div p { float: left; height: 24px; line-height: 24px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

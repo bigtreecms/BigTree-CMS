@@ -84,9 +84,11 @@
 <div class="contain">
 	<fieldset class="float_margin">
 		<? if ($parent_to_check > 0 || $admin->Level > 1) { ?>
-		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation</label>
+		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" />
+		<label class="for_checkbox">Visible In Navigation</label>
 		<? } else { ?>
-		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="7" /> <label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
+		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="7" />
+		<label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
 		<? } ?>
 	</fieldset>
 	<?
@@ -101,7 +103,8 @@
 		if ($admin->Level > 1) {
 	?>
 	<fieldset class="float_margin">
-		<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" /> <label class="for_checkbox">Trunk</label>
+		<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" />
+		<label class="for_checkbox">Trunk</label>
 	</fieldset>
 	<?
 		}
