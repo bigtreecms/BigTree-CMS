@@ -1,10 +1,10 @@
 #bigtree_bar_tab { background: #000; border-radius: 0 0 3px 3px; height: 40px !important; left: 12px !important; position: fixed !important; top: 0px !important; width: 40px !important; z-index: 1000001 !important; }
-#bigtree_bar_tab span { background: url(../images/icon-sprite.png) no-repeat -155px -175px !important; display: block !important; height: 22px !important; margin: 7px 0 0 12px !important; width: 17px !important; }
+#bigtree_bar_tab span { background: url(../images/icon-sprite.svg) no-repeat -155px -175px !important; display: block !important; height: 22px !important; margin: 7px 0 0 12px !important; width: 17px !important; }
 .bigtree_bar_open #bigtree_bar_tab { display: none; }
 
 #bigtree_bar { background: #000; height: 40px !important; left: 0px !important; position: fixed !important; top: 0px !important; width: 100% !important; z-index: 1000001 !important; }
-#bigtree_bar_logo { background: url(../images/icon-sprite.png) no-repeat -155px -175px !important; display: block !important; float: left !important; height: 22px !important; margin: 7px 20px 0 24px !important; width: 17px /* 85px */ !important; }
-#bigtree_bar_close { background: url(../images/icon-sprite.png) no-repeat -245px -175px !important; display: block !important; float: right !important; height: 15px !important; margin: 12px 15px 0 15px; width: 14px !important; }
+#bigtree_bar_logo { background: url(../images/icon-sprite.svg) no-repeat -155px -175px !important; display: block !important; float: left !important; height: 22px !important; margin: 7px 20px 0 24px !important; width: 17px /* 85px */ !important; }
+#bigtree_bar_close { background: url(../images/icon-sprite.svg) no-repeat -245px -175px !important; display: block !important; float: right !important; height: 15px !important; margin: 12px 15px 0 15px; width: 14px !important; }
 
 #bigtree_bar .bigtree_link { background: #555 !important; border-radius: 2px; color: #fff !important; float: left !important; font-family: Helvetica !important; font-size: 10px !important; height: 20px !important; line-height: 20px !important; margin: 9px 10px 0 0 !important; padding: 1px 10px 0 !important; text-decoration: none !important; text-transform: uppercase; }
 #bigtree_bar .bigtree_link:hover { background: #666 !important; text-decoration: none !important; }
