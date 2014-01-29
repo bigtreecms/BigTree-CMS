@@ -1,7 +1,7 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.1");
-	define("BIGTREE_REVISION",100);
+	define("BIGTREE_VERSION","4.2");
+	define("BIGTREE_REVISION",200);
 
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
@@ -82,7 +82,7 @@
 		}
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo BigTree::formatCSS3(str_replace("admin_root/",$bigtree["config"]["admin_root"],file_get_contents($ifile)));
+		echo BigTree::formatCSS3(file_get_contents($ifile));
 		die();
 	}
 
@@ -134,13 +134,7 @@
 		}
 
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		$find = array("{max_file_size}","www_root/","admin_root/","static_root/");
-		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
-		foreach ($_GET as $key => $val) {
-			$find[] = "{".$key."}";
-			$replace[] = "$val";
-		}
-		echo str_replace($find,$replace,file_get_contents($ifile));
+		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
 		die();
 	}
 
@@ -190,12 +184,6 @@
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 		BigTree::redirect(ADMIN_ROOT."login/");
-	}
-
-	// Developer Mode On?
-	if (isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
-		include BigTree::path("admin/pages/developer-mode.php");
-		$admin->stop();
 	}
 
 	// Redirect to dashboard by default if we're not requesting anything.
@@ -262,12 +250,6 @@
 		die();
 	}
 
-	// We're loading a page in the admin, so let's pass some headers
-	header("Content-Type: text/html; charset=utf-8");
-	header("X-Frame-Options: SAMEORIGIN");
-	header_remove("Server");
-	header_remove("X-Powered-By");
-
 	// Execute cron tab functions if they haven't been run in 24 hours
 	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
 		$admin->createSetting(array(
@@ -294,131 +276,239 @@
 			}
 		}
 	}
-	
-	// Normal page routing.
-	$ispage = false;
-	$inc = false;
-	$primary_route = $bigtree["path"][1];
 
-	$module_path = array_slice($bigtree["path"],1);
-	// Check custom
-	list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
-	// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-	if (!$inc || count($commands)) {
-		list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
-		// If we either never found the custom file or if there are more routes found in the core file use the core.
-		if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-			$inc = $core_inc;
-			$commands = $core_commands;
-		}
-	}
-	if (count($commands)) {
-		$bigtree["module_path"] = array_slice($module_path,1,-1 * count($commands));
-	} else {
-		$bigtree["module_path"] = array_slice($module_path,1);
-	}
-	// Check pages
-	if (!$inc) {
-		$inc = BigTree::path("admin/pages/$primary_route.php");
-		if (file_exists($inc)) {
-			$ispage = true;
-		} else {
-			$inc = false;
-		}
-	}
-
-	$bigtree["in_module"] = false;
-	// If this is a module or an auto module, check permissions on it.
-	if (!$ispage || !$inc) {
-		$bigtree["current_module"] = $module = $admin->getModuleByRoute($primary_route);
-		// If this is a module and the user doesn't have access, include the denied page and stop.
-		if ($module && !$admin->checkAccess($module["id"])) {
-			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
-		} elseif ($module) {
-			$bigtree["in_module"] = true;
-			// Append module navigation.
-			$actions = $admin->getModuleActions($module);
-		
-			// Append module info to the admin nav to draw the headers and breadcrumb and such.
-			$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
-			foreach ($actions as $action) {
-				$hidden = $action["in_nav"] ? false : true;
-				$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];
-				$bigtree["nav_tree"]["auto-module"]["children"][] = array("title" => $action["name"],"link" => $route,"nav_icon" => $action["class"],"hidden" => $hidden,"level" => $action["level"]);
-			}
-
-			// Bring in related modules if this one is in a group.
-			if ($module["group"]) {
-				$related_modules = $admin->getModulesByGroup($module["group"]);
-				$related_group = $admin->getModuleGroup($module["group"]);
-				if (count($related_modules) > 1) {
-					$bigtree["related_modules"] = array();
-					$bigtree["related_group"] = $related_group["name"];
-					foreach ($related_modules as $rm) {
-						$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
-					}
-				}
-			}
-
-			// Give modules their information.
-			$bigtree["module"] = $module;
-			define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
-		}
-
-		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
-		if ($route_response) {
-			$bigtree["module_action"] = $route_response["action"];
-			$bigtree["commands"] = $route_response["commands"];
-		}
-
-		if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"] || $bigtree["module_action"]["report"])) {
-			if ($bigtree["module_action"]["form"]) {
-				include BigTree::path("admin/auto-modules/form.php");
-			} elseif ($bigtree["module_action"]["view"]) {
-				include BigTree::path("admin/auto-modules/view.php");
-			} elseif ($bigtree["module_action"]["report"]) {
-				include BigTree::path("admin/auto-modules/report.php");
-			}
-		} elseif ($inc) {
-			// Setup the commands array.
-			$bigtree["commands"] = $commands;
-			// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
-			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
-			// Include all headers in the module directory in the order they occur.
-			$inc_path = "";
-			$headers = $footers = array();
-			foreach ($pieces as $piece) {
-				if (substr($piece,-4,4) != ".php") {
-					$inc_path .= $piece."/";
-					$header = BigTree::path("admin/modules/".$inc_path."_header.php");
-					$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
-					if (file_exists($header)) {
-						$headers[] = $header;
-					}
-					if (file_exists($footer)) {
-						$footers[] = $footer;
-					}
-				}
-			}
-			// Draw the headers.
-			foreach ($headers as $header) {
-				include $header;
-			}
-			// Draw the main page.
-			include $inc;
-			// Draw the footers.
-			$footers = array_reverse($footers);
-			foreach ($footers as $footer) {
-				include $footer;
-			}
-		} else {
+	// Extensions routing
+	if ($bigtree["path"][1] == "*") {
+		$bigtree["in_module"] = true;
+		define("BIGTREE_EXTENSION",$bigtree["path"][2]);
+		define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$bigtree["path"][2]."/");
+		$bigtree["extension"] = json_decode(file_get_contents(EXTENSION_ROOT."manifest.json"),true);
+		// 404 if we aren't hitting a valid extension module
+		$module = $bigtree["path"][3];
+		if (!isset($bigtree["extension"]["modules"][$module])) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			define("BIGTREE_404",true);
 			include BigTree::path("admin/pages/_404.php");
+		} else {
+			$bigtree["current_module"] = $bigtree["extension"]["modules"][$module];
+			$bigtree["current_module"]["id"] = $bigtree["extension"]["id"].".$module";
+			$bigtree["current_module"]["route"] = $module;
+			// Check permissions
+			if (!$admin->checkAccess($bigtree["current_module"]["id"])) {
+				$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+			}
+
+			define("MODULE_ROOT",ADMIN_ROOT."*/".$bigtree["extension"]["id"]."/$module/");
+			$bigtree["extension_module"] = json_decode(file_get_contents(EXTENSION_ROOT."modules/$module/module.json"),true);
+			$bigtree["nav_tree"]["auto-module"] = array("title" => $bigtree["current_module"]["name"],"link" => "*/".$bigtree["extension"]["id"]."/".$module,"icon" => "modules","children" => array());
+			
+			// See if it's an auto action
+			$imploded_path = implode("/",array_slice($bigtree["path"],4));
+			$bigtree["module_action"] = false;
+			foreach ($bigtree["extension_module"]["actions"] as $route => $action) {
+				// Exact route match takes precedence
+				if ($route == $imploded_path) {
+					$bigtree["module_action"] = $action;
+				// Match found with sub commands
+				} elseif ($bigtree["module_action"] === false && substr($imploded_path,0,strlen($route) + 1) == $route."/") {
+					$bigtree["module_action"] = $action;
+				}
+			
+				$hidden = $action["in_nav"] ? false : true;
+				$route = $route ? "/$route" : "";
+				$bigtree["nav_tree"]["auto-module"]["children"][] = array("title" => $action["name"],"link" => "*/".$bigtree["extension"]["id"]."/".$bigtree["current_module"]["route"].$route,"nav_icon" => $action["class"],"hidden" => $hidden,"level" => $action["level"]);
+			}
+
+			// Bring in the other modules in this extension.
+			if (count($bigtree["extension"]["modules"]) > 1) {
+				$bigtree["related_modules"] = array();
+				$bigtree["related_group"] = $bigtree["extension"]["name"];
+				foreach ($bigtree["extension"]["modules"] as $route => $rm) {
+					if ($route != $module) {
+						$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => "*/".$bigtree["extension"]["id"]."/".$rm["route"]);
+					}
+				}
+			}
+
+			// If we found an auto action, load it
+			if ($bigtree["module_action"]["type"]) {
+				$bigtree["module_action"]["view"] = $bigtree["module_action"]["db_view"];
+				$bigtree["module_action"]["form"] = $bigtree["module_action"]["db_form"];
+				$bigtree["module_action"]["report"] = $bigtree["module_action"]["db_report"];
+				include BigTree::path("admin/auto-modules/".$bigtree["module_action"]["type"].".php");
+			} else {
+				$module_path = array_slice($bigtree["path"],3);
+				list($inc,$commands) = BigTree::route(EXTENSION_ROOT."modules/",$module_path);
+				if ($inc) {
+					// Setup the commands array.
+					$bigtree["commands"] = $commands;
+					// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
+					$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
+					// Include all headers in the module directory in the order they occur.
+					$inc_path = "";
+					$headers = $footers = array();
+					foreach ($pieces as $piece) {
+						if (substr($piece,-4,4) != ".php") {
+							$inc_path .= $piece."/";
+							$header = EXTENSION_ROOT."modules/$module/".$inc_path."_header.php";
+							$footer = EXTENSION_ROOT."modules/$module/".$inc_path."_footer.php";
+							if (file_exists($header)) {
+								$headers[] = $header;
+							}
+							if (file_exists($footer)) {
+								$footers[] = $footer;
+							}
+						}
+					}
+					// Draw the headers.
+					foreach ($headers as $header) {
+						include $header;
+					}
+					// Draw the main page.
+					include $inc;
+					// Draw the footers.
+					$footers = array_reverse($footers);
+					foreach ($footers as $footer) {
+						include $footer;
+					}
+				} else {
+					header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+					define("BIGTREE_404",true);
+					include BigTree::path("admin/pages/_404.php");
+				}
+			}
 		}
-	// If we have a page, just include it.
+	// Normal page routing.
 	} else {
-		include $inc;
+		$ispage = false;
+		$inc = false;
+		$primary_route = $bigtree["path"][1];
+	
+		$module_path = array_slice($bigtree["path"],1);
+		// Check custom
+		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
+		// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+		if (!$inc || count($commands)) {
+			list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+			// If we either never found the custom file or if there are more routes found in the core file use the core.
+			if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
+				$inc = $core_inc;
+				$commands = $core_commands;
+			}
+		}
+		if (count($commands)) {
+			$bigtree["module_path"] = array_slice($module_path,1,-1 * count($commands));
+		} else {
+			$bigtree["module_path"] = array_slice($module_path,1);
+		}
+		// Check pages
+		if (!$inc) {
+			$inc = BigTree::path("admin/pages/$primary_route.php");
+			if (file_exists($inc)) {
+				$ispage = true;
+			} else {
+				$inc = false;
+			}
+		}
+	
+		$bigtree["in_module"] = false;
+		// If this is a module or an auto module, check permissions on it.
+		if (!$ispage || !$inc) {
+			$bigtree["current_module"] = $module = $admin->getModuleByRoute($primary_route);
+			// If this is a module and the user doesn't have access, include the denied page and stop.
+			if ($module && !$admin->checkAccess($module["id"])) {
+				$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+			} elseif ($module) {
+				$bigtree["in_module"] = true;
+				// Append module navigation.
+				$actions = $admin->getModuleActions($module);
+			
+				// Append module info to the admin nav to draw the headers and breadcrumb and such.
+				$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
+				foreach ($actions as $action) {
+					$hidden = $action["in_nav"] ? false : true;
+					$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];
+					$bigtree["nav_tree"]["auto-module"]["children"][] = array("title" => $action["name"],"link" => $route,"nav_icon" => $action["class"],"hidden" => $hidden,"level" => $action["level"]);
+				}
+	
+				// Bring in related modules if this one is in a group.
+				if ($module["group"]) {
+					$related_modules = $admin->getModulesByGroup($module["group"]);
+					$related_group = $admin->getModuleGroup($module["group"]);
+					if (count($related_modules) > 1) {
+						$bigtree["related_modules"] = array();
+						$bigtree["related_group"] = $related_group["name"];
+						foreach ($related_modules as $rm) {
+							$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
+						}
+					}
+				}
+	
+				// Give modules their information.
+				$bigtree["module"] = $module;
+				define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+			}
+	
+			$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+			if ($route_response) {
+				$bigtree["module_action"] = $route_response["action"];
+				$bigtree["commands"] = $route_response["commands"];
+			}
+	
+			if ($module && ($bigtree["module_action"]["view"] || $bigtree["module_action"]["form"])) {
+				if ($bigtree["module_action"]["form"]) {
+					// If the last command is numeric then we're editing something.
+					if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
+						$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
+					// Otherwise we're adding something or we're processing something we were editing.
+					} else {
+						$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
+					}
+					include BigTree::path("admin/auto-modules/form.php");
+				} else {
+					include BigTree::path("admin/auto-modules/view.php");
+				}
+			} elseif ($inc) {
+				// Setup the commands array.
+				$bigtree["commands"] = $commands;
+				// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
+				$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
+				// Include all headers in the module directory in the order they occur.
+				$inc_path = "";
+				$headers = $footers = array();
+				foreach ($pieces as $piece) {
+					if (substr($piece,-4,4) != ".php") {
+						$inc_path .= $piece."/";
+						$header = BigTree::path("admin/modules/".$inc_path."_header.php");
+						$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
+						if (file_exists($header)) {
+							$headers[] = $header;
+						}
+						if (file_exists($footer)) {
+							$footers[] = $footer;
+						}
+					}
+				}
+				// Draw the headers.
+				foreach ($headers as $header) {
+					include $header;
+				}
+				// Draw the main page.
+				include $inc;
+				// Draw the footers.
+				$footers = array_reverse($footers);
+				foreach ($footers as $footer) {
+					include $footer;
+				}
+			} else {
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+				define("BIGTREE_404",true);
+				include BigTree::path("admin/pages/_404.php");
+			}
+		// If we have a page, just include it.
+		} else {
+			include $inc;
+		}
 	}
 
 	$bigtree["content"] = ob_get_clean();
