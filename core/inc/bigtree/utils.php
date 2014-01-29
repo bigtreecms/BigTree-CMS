@@ -934,8 +934,8 @@
 		*/
 		
 		static function globalizeGETVars() {
-			$args = array_merge(array($_GET),func_get_args());
-			return call_user_func_array("BigTree::globalizeArray",$args);
+			$args = func_get_args();
+			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_GET),$args));
 		}
 		
 		/*
@@ -952,8 +952,8 @@
 		*/
 		
 		static function globalizePOSTVars() {
-			$args = array_merge(array($_POST),func_get_args());
-			return call_user_func_array("BigTree::globalizeArray",$args);
+			$args = func_get_args();
+			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_POST),$args));
 		}
 		
 		/*
