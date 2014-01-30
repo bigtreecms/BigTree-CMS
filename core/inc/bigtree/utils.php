@@ -1100,16 +1100,36 @@
 		*/
 
 		static function isDirectoryWritable($path) {
-			if (is_writable($path)) {
-				return true;
+			// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
+			if (stripos($_SERVER["OS"],"windows") !== false) {
+				// Directory exists, check to see if we can create a temporary file inside it
+				if (is_dir($path)) {
+					$file = rtrim($path,"/")."/".uniqid().".tmp";
+					$success = @touch($file);
+					if ($success) {
+						unlink($file);
+						return true;
+					}
+					return false;
+				// Remove the last directory from the path and then run isDirectoryWritable again
+				} else {
+					$parts = explode("/",$path);
+					array_pop($parts);
+					if (count($parts)) {
+						return self::isDirectoryWritable(implode("/",$parts));
+					}
+					return false;
+				}
+			} else {
+				// Directory exists, return its writable state
+				if (is_dir($path)) {
+					return is_writable($path);
+				}
+				// Remove the last directory from the path and try again
+				$parts = explode("/",$path);
+				array_pop($parts);
+				return self::isDirectoryWritable(implode("/",$parts));
 			}
-			$parts = explode("/",ltrim($path,"/"));
-			unset($parts[count($parts)-1]);
-			$path = "/".implode("/",$parts);
-			if (!is_dir($path)) {
-				return self::isDirectoryWritable($path);
-			}
-			return is_writable($path);
 		}
 		
 		/*
