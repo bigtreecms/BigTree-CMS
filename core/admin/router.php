@@ -265,8 +265,10 @@
 	// We're loading a page in the admin, so let's pass some headers
 	header("Content-Type: text/html; charset=utf-8");
 	header("X-Frame-Options: SAMEORIGIN");
-	header_remove("Server");
-	header_remove("X-Powered-By");
+	if (function_exists("header_remove")) {
+		header_remove("Server");
+		header_remove("X-Powered-By");
+	}
 
 	// Execute cron tab functions if they haven't been run in 24 hours
 	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
