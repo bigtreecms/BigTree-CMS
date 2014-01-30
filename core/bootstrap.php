@@ -78,7 +78,7 @@
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",
 		"htmlMimeMail" => "inc/lib/html-mail.php",
-		"JSMin" => "inc/lib/JSMin.php",
+		"JShrink" => "inc/lib/JShrink.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
 		"lessc" => "inc/lib/less-compiler.php"

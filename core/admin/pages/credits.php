@@ -67,11 +67,11 @@
 			Richard Heyes (GPL)
 		</p>
 		<br />
-		<h3>jsMin.php</h3>
+		<h3>JShrink</h3>
 		<p class="clear">
-			Douglas Crockford / Ryan Grove (MIT)
+			Robert Hafner (BSD)
 			<br />
-			<a href="https://github.com/rgrove/jsmin-php/" target="_blank">https://github.com/rgrove/jsmin-php/</a>
+			<a href="https://github.com/tedivm/JShrink" target="_blank">https://github.com/tedivm/JShrink</a>
 		</p>
 		<br />
 		<h3>lessphp</h3>

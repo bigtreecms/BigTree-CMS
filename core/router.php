@@ -75,7 +75,7 @@
 					}
 				}
 				if ($bigtree["config"]["js"]["minify"]) {
-					$data = JSMin::minify($data);
+					$data = JShrink::minify($data);
 				}
 				file_put_contents($cfile,$data);
 				header("Content-type: text/javascript");
