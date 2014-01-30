@@ -64,7 +64,7 @@
 		$fails[] = "PHP does not have the cURL extension installed.";
 	}
 	if (!ini_get('file_uploads')) {
-		$fails[] = "PHP does not have file uploads enabled. This will severely limit BigTree's functionality.";
+		$fails[] = "PHP does not have file uploads enabled.";
 	}
 
 	// Issues that could cause problems next.
@@ -147,6 +147,19 @@
 	}
 	
 	if (!$error && count($_POST)) {
+
+		// Let domain/www_root/static_root be set by post for command line installs
+		if (!isset($domain)) {
+			$domain = "http://".$_SERVER["HTTP_HOST"];
+			if ($routing == "basic") {
+				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$www_root = $static_root."index.php/";
+			} elseif ($routing == "iis") {
+				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+			} else {
+				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+			}
+		}
 		
 		$find = array(
 			"[host]",
@@ -166,19 +179,6 @@
 			"[routing]"
 		);
 		
-		// Let domain/www_root/static_root be set by post for command line installs
-		if (!isset($domain)) {
-			$domain = "http://".$_SERVER["HTTP_HOST"];
-			if ($routing == "basic") {
-				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
-				$www_root = $static_root."index.php/";
-			} elseif ($routing == "iis") {
-				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
-			} else {
-				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
-			}
-		}	
-		
 		$replace = array(
 			$host,
 			$db,
@@ -192,7 +192,7 @@
 			$www_root,
 			$static_root,
 			$cms_user,
-			$settings_key,
+			uniqid("",true),
 			(isset($force_secure_login)) ? "true" : "false",
 			($routing == "basic") ? "basic" : "htaccess"
 		);
@@ -510,14 +510,7 @@ RewriteRule (.*) site/$1 [L]');
 	}
 	
 	// Set localhost as the default MySQL host
-	if (!$host) {
-		$host = "localhost";
-	}
-	
-	// Make a random settings key
-	if (!$settings_key) {
-		$settings_key = uniqid("",true);
-	}
+	$host = $host ? $host : "localhost";
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
@@ -670,23 +663,6 @@ RewriteRule (.*) site/$1 [L]');
 				
 				<hr />
 				
-				<h2 class="security"><span></span>Site Security</h2>
-				<fieldset class="clear">
-					<p>Customize your site's security settings below.</p>
-				</fieldset>
-				<hr />
-				<fieldset class="left<?php if (count($_POST) && !$settings_key) { ?> form_error<?php } ?>">
-					<label>Settings Encryption Key</label>
-					<input class="text" type="text" name="settings_key" id="settings_key" value="<?php echo htmlspecialchars($settings_key) ?>" tabindex="10" />
-				</fieldset>
-				<fieldset class="clear">
-					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
-					<label class="for_checkbox">Force HTTPS Logins</label>
-				</fieldset>
-				
-				<hr />
-				
 				<h2 class="account"><span></span>Administrator Account</h2>
 				<fieldset class="clear">
 					<p>Create the default account your administration area.</p>
@@ -700,9 +676,12 @@ RewriteRule (.*) site/$1 [L]');
 					<label>Password</label>
 					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" autocomplete="off" />
 				</fieldset>
+				<fieldset class="clear">
+					<br /><br />
+					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
+					<label class="for_checkbox">Force HTTPS Logins</label>
+				</fieldset>
 				
-				<br class="clear" />
-				<br />
 				<hr />
 				
 				<?php if (!$iis || $iis_rewrite) { ?>
