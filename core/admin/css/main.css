@@ -1572,10 +1572,12 @@
 	.install_wrapper .error_message { background: #990000; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	.install_wrapper .warning_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
 	.install_wrapper .delete_message { background: #D58410; border-radius: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); color: #FFF; font-size: 12px; line-height: 18px; margin: 10px 0 0 0; padding: 5px 10px; text-shadow: 0px -1px 0 rgba(0,0,0,0.25); }
+	.install_wrapper .iis_message { background: #990000; margin: 20px 0 0 0; }
 	.install_logo { background: url(../images/icon-sprite.png) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5); width: 100px; }
 	.install_copyright:hover { color: #ccc; }
 	.install_wrapper ul { line-height: 160%; list-style: disc inside; margin: 20px 0; }
+	.install_wrapper code { background: #FCFCFC; border: 1px solid #CCC; color: #333; display: block; line-height: 200%; margin: 20px 0; padding: 10px 20px; }
 
 /*-----------------------------
 	Internet Explorer Fixes
