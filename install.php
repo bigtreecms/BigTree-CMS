@@ -36,7 +36,7 @@
 	}
 	// Turn off errors
 	ini_set("log_errors",false);
-	error_reporting(0); 
+	error_reporting(0);
 	
 	// Allow for passing in $_POST via command line for automatic installs.
 	if (isset($argv) && count($argv) > 1) {
@@ -64,16 +64,24 @@
 		$fails[] = "PHP does not have the cURL extension installed.";
 	}
 	if (!ini_get('file_uploads')) {
-		$fails[] = "PHP does not have file uploads enabled. This will severely limit BigTree's functionality.";
+		$fails[] = "PHP does not have file uploads enabled.";
 	}
 
 	// Issues that could cause problems next.
 	$warnings = array();
 	if (get_magic_quotes_gpc()) {
-		$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
+		if ($iis) {
+			$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
+		} else {
+			$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
+		}
 	}
 	if (!ini_get('short_open_tag')) {
-		$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
+		if ($iis) {
+			$fails[] = "PHP does not currently allow short_open_tags. Please set short_open_tag to 'On' in php.ini.";
+		} else {
+			$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
+		}
 	}
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
@@ -83,6 +91,19 @@
 	}
 	if (intval(ini_get("memory_limit")) < 32) {
 		$warnings[] = "PHP's memory limit is currently under 32MB. BigTree recommends at least 32MB of memory be available to PHP.";
+	}
+
+	// Determine if we're on Apache or IIS
+	if (strpos($_SERVER["SERVER_SOFTWARE"],"IIS") !== false) {
+		$iis = $iis_rewrite = true;
+		$warnings[] = "You are running Microsoft IIS. BigTree is only tested on Apache; proceed with caution in production environments.";
+		// See if we have the equivalent of rewrite installed.
+		if (!isset($_SERVER["IIS_UrlRewriteModule"])) {
+			$warnings[] = "You do not seem to have the IIS rewrite module installed; only basic routing is available.";
+			$iis_rewrite = false;
+		}
+	} else {
+		$iis = false;
 	}
 
 	// mod_rewrite check
@@ -126,6 +147,19 @@
 	}
 	
 	if (!$error && count($_POST)) {
+
+		// Let domain/www_root/static_root be set by post for command line installs
+		if (!isset($domain)) {
+			$domain = "http://".$_SERVER["HTTP_HOST"];
+			if ($routing == "basic") {
+				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$www_root = $static_root."index.php/";
+			} elseif ($routing == "iis") {
+				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+			} else {
+				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+			}
+		}
 		
 		$find = array(
 			"[host]",
@@ -145,18 +179,6 @@
 			"[routing]"
 		);
 		
-		// Let domain/www_root/static_root be set by post for command line installs
-		if (!isset($domain)) {
-			$domain = "http://".$_SERVER["HTTP_HOST"];
-			if ($routing == "basic") {
-				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
-				$www_root = $static_root."index.php/";
-			} else {
-				$www_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
-				$static_root = $www_root;
-			}
-		}	
-		
 		$replace = array(
 			$host,
 			$db,
@@ -170,7 +192,7 @@
 			$www_root,
 			$static_root,
 			$cms_user,
-			$settings_key,
+			uniqid("",true),
 			(isset($force_secure_login)) ? "true" : "false",
 			($routing == "basic") ? "basic" : "htaccess"
 		);
@@ -265,7 +287,6 @@
 		
 		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
 		bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/config.settings.php")));
-		
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
 		bt_touch_writable("site/index.php",'<?
@@ -462,7 +483,7 @@ RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 			bt_touch_writable("index.php",'<? header("Location: site/index.php/"); ?>');
 		}
 		
-		if ($routing != "basic") {
+		if ($routing != "basic" && $routing != "iis") {
 			bt_touch_writable(".htaccess",'RewriteEngine On
 RewriteRule ^$ site/ [L]
 RewriteRule (.*) site/$1 [L]');
@@ -495,14 +516,7 @@ RewriteRule (.*) site/$1 [L]');
 	}
 	
 	// Set localhost as the default MySQL host
-	if (!$host) {
-		$host = "localhost";
-	}
-	
-	// Make a random settings key
-	if (!$settings_key) {
-		$settings_key = uniqid("",true);
-	}
+	$host = $host ? $host : "localhost";
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
@@ -514,7 +528,7 @@ RewriteRule (.*) site/$1 [L]');
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title>Install BigTree 4.1</title>
-		<?php if ($installed) { ?>
+		<?php if ($installed && $routing != "iis") { ?>
 		<link rel="stylesheet" href="<?php echo $www_root ?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
 		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
@@ -532,6 +546,14 @@ RewriteRule (.*) site/$1 [L]');
 					<p>Your new BigTree site is ready to go! Login to the CMS using your newly created account.</p>
 					<?php if ($routing == "basic") { ?>
 					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
+					<?php } elseif ($routing == "iis") { ?>
+					<p class="error_message iis_message">To setup proper rewrite routing for IIS you must import the following .htaccess rules to the /site/ directory:</p>
+					<code>
+						RewriteCond %{REQUEST_FILENAME} !-d<br />
+						RewriteCond %{REQUEST_FILENAME} !-f<br />
+						RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
+					</code>
+					<p class="delete_message">To remove the /site/ path from your BigTree install you will need to setup a separate IIS Site for your BigTree install and set its document root to the /site/ folder (as well as moving the rewrite rules to apply the the main Site instead of the /site/ directory). After doing so, edit your /templates/config.php file to adjust your domain, www_root, static_root, and admin_root variables.</p>
 					<?php } ?>
 				</fieldset>
 				
@@ -611,7 +633,7 @@ RewriteRule (.*) site/$1 [L]');
 					<input class="text" type="password" id="db_pass" name="password" value="<?php echo htmlspecialchars($password) ?>" tabindex="4" autocomplete="off" />
 				</fieldset>
 				<fieldset>
-					<br />
+					<br /><br />
 					<input type="checkbox" class="checkbox" name="loadbalanced" id="loadbalanced"<?php if ($loadbalanced) { ?> checked="checked"<?php } ?> tabindex="5" />
 					<label class="for_checkbox">Load Balanced MySQL</label>
 				</fieldset>
@@ -647,23 +669,6 @@ RewriteRule (.*) site/$1 [L]');
 				
 				<hr />
 				
-				<h2 class="security"><span></span>Site Security</h2>
-				<fieldset class="clear">
-					<p>Customize your site's security settings below.</p>
-				</fieldset>
-				<hr />
-				<fieldset class="left<?php if (count($_POST) && !$settings_key) { ?> form_error<?php } ?>">
-					<label>Settings Encryption Key</label>
-					<input class="text" type="text" name="settings_key" id="settings_key" value="<?php echo htmlspecialchars($settings_key) ?>" tabindex="10" />
-				</fieldset>
-				<fieldset class="clear">
-					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
-					<label class="for_checkbox">Force HTTPS Logins</label>
-				</fieldset>
-				
-				<hr />
-				
 				<h2 class="account"><span></span>Administrator Account</h2>
 				<fieldset class="clear">
 					<p>Create the default account your administration area.</p>
@@ -677,32 +682,61 @@ RewriteRule (.*) site/$1 [L]');
 					<label>Password</label>
 					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" autocomplete="off" />
 				</fieldset>
+				<fieldset class="clear">
+					<br /><br />
+					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
+					<label class="for_checkbox">Force HTTPS Logins</label>
+				</fieldset>
 				
-				<br class="clear" />
-				<br />
 				<hr />
 				
+				<?php if (!$iis || $iis_rewrite) { ?>
 				<h2 class="routing"><span></span>Site Routing</h2>
 				<fieldset class="clear">
-					<p>BigTree makes your URLs pretty but mod_rewrite support can make them even more pretty. If your server supports .htaccess overrides and mod_rewrite support you can remove the /index.php/ from your URLs.</p>
+					<?php if ($iis) { ?>
+					<p>BigTree makes your URLs pretty but URL Rewrite support can make them even more pretty. By choosing "Rewrite Routing" you can remove /index.php/ from your URLs.</p>
+					<?php } else { ?>
+					<p>BigTree makes your URLs pretty but mod_rewrite support can make them even more pretty. If your server supports .htaccess overrides and mod_rewrite support you can remove /index.php/ from your URLs.</p>
+					<?php } ?>
 					<ul>
+						<?php if ($iis) { ?>
+						<li>Choose <strong>"Basic Routing"</strong> if you are not familiar with importing .htaccess rules into IIS.</li>
+						<li>Choose <strong>"Rewrite Routing"</strong> if you want cleaner looking URLs and can import .htaccess rules.</li>
+						<?php } else { ?>
 						<li>Choose <strong>"Basic Routing"</strong> if you are unsure your server supports .htaccess overrides and mod_rewrite.</li>
 						<li>Choose <strong>"Simple Rewrite Routing"</strong> if your server supports .htaccess and mod_rewrite but does not allow for php_flags and content compression.</li>
 						<li>Choose <strong>"Advanced Routing"</strong> to install an .htaccess that enables caching, compression, and routing.</li>
+						<?php } ?>
 					</ul>
 				</fieldset>
 				<fieldset class="clear">
 					<select name="routing">
+						<?php
+							if ($iis) {
+						?>
 						<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
-						<?php if ($rewrite_enabled) { ?>
+						<option value="iis"<?php if ($routing == "iis") { ?> selected="selected"<?php } ?>>Rewrite Routing</option>
+						<?php
+							} else {
+						?>
+						<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
+						<?php
+								if ($rewrite_enabled) {
+						?>
 						<option value="simple"<?php if ($routing == "simple") { ?> selected="selected"<?php } ?>>Simple Rewrite Routing</option>
 						<option value="advanced"<?php if ($routing == "advanced") { ?> selected="selected"<?php } ?>>Advanced Routing</option>
-						<?php } ?>
+						<?php
+								}
+							}
+						?>
 					</select>
 				</fieldset>
 				
 				<br />
 				<hr />
+				<?php } else { ?>
+				<input type="hidden" name="routing" value="basic" />
+				<?php } ?>
 				
 				<h2 class="example"><span></span>Example Site</h2>
 				<fieldset class="clear">
