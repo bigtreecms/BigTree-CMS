@@ -96,11 +96,6 @@
 				array("title" => "Add Setting","link" => "developer/settings/add","nav_icon" => "add"),
 				array("title" => "Edit Setting","link" => "developer/settings/edit","hidden" => true)
 			)),
-			array("title" => "Foundry","link" => "developer/foundry","icon" => "package","hidden" => true,"children" => array(
-				array("title" => "Install Package","link" => "developer/foundry/install","hidden" => true),
-				array("title" => "Unpacked Package","link" => "developer/foundry/install/unpack","hidden" => true),
-				array("title" => "Package Installed","link" => "developer/foundry/install/complete","hidden" => true)
-			)),
 			array("title" => "Cloud Storage","link" => "developer/cloud-storage","icon" => "cloud","hidden" => true,"children" => array(
 				array("title" => "Local Storage","link" => "developer/cloud-storage/local","icon" => "local_storage","hidden" => true),
 				array("title" => "Amazon S3","link" => "developer/cloud-storage/amazon","icon" => "amazon","hidden" => true),
@@ -121,7 +116,7 @@
 				array("title" => "Yahoo BOSS","link" => "developer/geocoding/yahoo-boss","icon" => "yahoo","hidden" => true),
 				array("title" => "MapQuest","link" => "developer/geocoding/mapquest","icon" => "mapquest","hidden" => true)
 			)),
-			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true, "children" => array(
+			array("title" => "Service APIs","link" => "developer/services","icon" => "api","hidden" => true,"children" => array(
 				array("title" => "Twitter API","link" => "developer/services/twitter","icon" => "twitter","hidden" => true),
 				array("title" => "Instagram API","link" => "developer/services/instagram","icon" => "instagram","hidden" => true),
 				array("title" => "Google+ API","link" => "developer/services/googleplus","icon" => "googleplus","hidden" => true),
@@ -129,6 +124,12 @@
 				array("title" => "Flickr API","link" => "developer/services/flickr","icon" => "flickr","hidden" => true),
 				array("title" => "Salesforce API","link" => "developer/services/salesforce","icon" => "cloud","hidden" => true),
 				array("title" => "Disqus API","link" => "developer/services/disqus","icon" => "disqus","hidden" => true)
+			)),
+			array("title" => "Extensions & Packages","link" => "developer/extensions","icon" => "package","hidden" => true,"children" => array(
+				array("title" => "View Extensions","link" => "developer/extensions","nav_icon" => "list"),
+				array("title" => "Build Extension","link" => "developer/extennsions/build","nav_icon" => "add"),
+				array("title" => "View Packages","link" => "developer/extensions/packages","nav_icon" => "list"),
+				array("title" => "Build Package","link" => "developer/extensions/packages/build","nav_icon" => "add")
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true),
 			array("title" => "User Emulator","link" => "developer/user-emulator","icon" => "users","hidden" => true),

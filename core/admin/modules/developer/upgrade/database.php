@@ -336,6 +336,7 @@
 			sqlquery("UPDATE bigtree_module_views SET module = '".$f["module"]."' WHERE id = '".$f["view"]."'");
 		}
 
+		// Create the extensions table and related fields
 		sqlquery("CREATE TABLE `bigtree_extensions` (`id` varchar(255) NOT NULL DEFAULT '', `name` varchar(255) DEFAULT NULL, `version` varchar(255) DEFAULT NULL, `last_updated` datetime DEFAULT NULL, `installed_by` int(11) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 		sqlquery("ALTER TABLE bigtree_callouts ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_callouts ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");

@@ -95,9 +95,9 @@
 			<span class="settings"></span>
 			<p>Settings</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>foundry/install/">
+		<a class="box_select last" href="<?=DEVELOPER_ROOT?>extensions/">
 			<span class="package"></span>
-			<p>Install Package</p>
+			<p>Extensions &amp; Packages</p>
 		</a>
 	</section>
 </div>

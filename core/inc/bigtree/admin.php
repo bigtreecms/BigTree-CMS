@@ -2858,6 +2858,41 @@
 		}
 
 		/*
+			Function: getExtension
+				Returns information about a package or extension.
+
+			Parameters:
+				id - The package/extension ID.
+
+			Returns:
+				A package/extension.
+		*/
+		
+		function getExtension($id) {
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+		}
+
+		/*
+			Function: getExtensions
+				Returns a list of installed/created extensions.
+
+			Parameters:
+				sort - Column/direction to sort (defaults to last_updated DESC)
+
+			Returns:
+				An array of extensions.
+		*/
+		
+		function getExtensions($sort = "last_updated DESC") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'extension' ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
+		}
+
+		/*
 			Function: getFeeds
 				Returns a list of feeds.
 
@@ -3536,6 +3571,41 @@
 				$nav[] = $nav_item;
 			}
 			return $nav;
+		}
+
+		/*
+			Function: getPackage
+				Returns information about a package or extension.
+
+			Parameters:
+				id - The package/extension ID.
+
+			Returns:
+				A package/extension.
+		*/
+		
+		function getPackage($id) {
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+		}
+
+		/*
+			Function: getPackages
+				Returns a list of installed/created packages.
+
+			Parameters:
+				sort - Column/direction to sort (defaults to last_updated DESC)
+
+			Returns:
+				An array of packages.
+		*/
+		
+		function getPackages($sort = "last_updated DESC") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
 		}
 
 		/*
