@@ -137,6 +137,14 @@
 		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
 		die();
 	}
+	
+	// We're loading a page in the admin, so let's pass some headers
+	header("Content-Type: text/html; charset=utf-8");
+	header("X-Frame-Options: SAMEORIGIN");
+	if (function_exists("header_remove")) {
+		header_remove("Server");
+		header_remove("X-Powered-By");
+	}
 
 	// Bootstrap BigTree Environment
 	if (file_exists("../custom/bootstrap.php")) {

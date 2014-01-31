@@ -23,8 +23,7 @@
 					array("title" => "Clear 404s","link" => "dashboard/vitals-statistics/404/clear","nav_icon" => "delete")
 				)),
 				array("title" => "Site Integrity","link" => "dashboard/vitals-statistics/integrity","icon" => "integrity","hidden" => true,"level" => 1)
-			)),
-			array("title" => "System Update","link" => "dashboard/update","icon" => "developer","hidden" => true,"level" => 1)
+			))
 		)),
 		"pages" => array("title" => "Pages","link" => "pages","icon" => "page","nav_icon" => "pages","children" => array(
 			"view-tree" => array("title" => "View Subpages","link" => "pages/view-tree/{id}","nav_icon" => "list"),
@@ -133,7 +132,8 @@
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true),
 			array("title" => "User Emulator","link" => "developer/user-emulator","icon" => "users","hidden" => true),
-			array("title" => "Audit Trail","link" => "developer/audit","icon" => "trail","hidden" => true)
+			array("title" => "Audit Trail","link" => "developer/audit","icon" => "trail","hidden" => true),
+			array("title" => "System Upgrade","link" => "developer/upgrade","icon" => "vitals","hidden" => true)
 		)),
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
 		"credits" => array("title" => "Credits & Licenses","link" => "credits","icon" => "credits","hidden" => true)
