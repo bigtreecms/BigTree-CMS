@@ -178,6 +178,7 @@ function BigTreePageLoadHooks() {
 // !BigTreeCheckbox Class
 var BigTreeCheckbox = Class.extend({
 
+	Container: false,
 	Element: false,
 	Link: false,
 
@@ -189,12 +190,17 @@ var BigTreeCheckbox = Class.extend({
 		}
 		this.Element.addClass("custom_control");
 		
-		div = $("<div>").addClass("checkbox");
+		this.Container = $("<div>").addClass("checkbox");
 		a = $("<a>").attr("href","#checkbox");
 		a.click($.proxy(this.click,this));
 		a.focus($.proxy(this.focus,this));
 		a.blur($.proxy(this.blur,this));
 		a.keydown($.proxy(this.keydown,this));
+		// Let links inside of the labels still work properly
+		this.Element.next("label").find("a").click(function(ev) {
+			ev.stopPropagation();
+		});
+		// Have label clicks affect the checkbox
 		this.Element.next("label").click($.proxy(this.click,this));
 		
 		if (element.checked) {
@@ -212,8 +218,13 @@ var BigTreeCheckbox = Class.extend({
 		
 		this.Link = a;
 		
-		div.append(a);
-		$(element).hide().after(div);
+		this.Container.append(a);
+		$(element).hide().after(this.Container);
+	},
+
+	clear: function() {
+		this.Element.removeAttr("checked");
+		this.Container.find("a").removeClass("checked");
 	},
 	
 	focus: function() {
@@ -839,6 +850,14 @@ var BigTreeRadioButton = Class.extend({
 			this.previous(ev);
 			return false;
 		}
+	},
+
+	clear: function(ev) {
+		$('input[name="' + this.Element.attr("name") + '"]').each(function() {
+			this.customControl.Link.removeClass("checked");
+			$(this).removeAttr("checked");
+			$(this).trigger("change");
+		});
 	},
 
 	click: function(ev) {
