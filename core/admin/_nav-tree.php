@@ -127,8 +127,8 @@
 			)),
 			array("title" => "Extensions & Packages","link" => "developer/extensions","icon" => "package","hidden" => true,"children" => array(
 				array("title" => "View Extensions","link" => "developer/extensions","nav_icon" => "list"),
-				array("title" => "Build Extension","link" => "developer/extennsions/build","nav_icon" => "add"),
-				array("title" => "View Packages","link" => "developer/extensions/packages","nav_icon" => "list"),
+				array("title" => "Build Extension","link" => "developer/extensions/build","nav_icon" => "add"),
+				array("title" => "View Packages","link" => "developer/extensions/packages/view","nav_icon" => "list"),
 				array("title" => "Build Package","link" => "developer/extensions/packages/build","nav_icon" => "add")
 			)),
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true),

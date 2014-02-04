@@ -179,6 +179,7 @@
 	.checkbox a.checked.focused { background-position: -166px -121px; }
 	.checkbox a.disabled { cursor: default; opacity: 0.3; }
 	label.for_checkbox { cursor: pointer; float: left; line-height: 17px; margin: 0; user-select: none; }
+	.checkbox_row { margin: 0 0 10px 0; overflow: hidden; }
 
 	.radio_button { float: left; margin: 0 7px 0 0; }
 	.radio_button a { background: url(../images/icon-sprite.svg) -256px -124px; cursor: pointer; display: block; height: 16px; width: 16px; }
@@ -218,7 +219,7 @@
 	form .left { float: left; margin: 0 25px 15px 0; width: 435px; }
 	form .right { float: right; margin: 0 0 15px 0; width: 435px; }
 	form .last { margin-bottom: 0; }
-	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password] { width: 413px; }
+	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password], form .left input[type=email], form .right input[type=email], form .left input[type=url], form .right input[type=url] { width: 413px; }
 	form .left textarea, form .right textarea { width: 413px; }
 	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
@@ -1584,26 +1585,28 @@
 /*---------------------------
 	Module Packager Styles
 ---------------------------*/
-
-	.package_column { border: 1px solid #CCC; border-radius: 3px; float: left; margin: 20px 20px 20px 0; width: 284px; }
+	
+	.package_column { border: 1px solid #CCC; border-radius: 2px; float: left; margin: 0 20px 5px 0; width: 284px; }
 	.package_column_last { margin-right: 0; }
-	.package_column strong { background: #eee; border-bottom: 1px solid #ccc; border-radius: 3px 3px 0 0; display: block; font-weight: bold; padding: 5px 8px; }
+	.package_column strong { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; display: block; font-weight: bold; padding: 5px; }
 	.package_column ul { list-style: none; margin: 0; }
-	.package_column ul li { border-bottom: 1px solid #EEE; font-size: 10px; line-height: 16px; padding: 3px 8px; }
+	.package_column ul li { border-bottom: 1px solid #EEE; font-size: 10px; line-height: 16px; padding: 3px 5px; }
 	.package_column ul li:last-child { border-bottom: none; }
 	.package_column a { display: block; float: right; height: 16px; margin: 0 0 0 5px; width: 16px; }
-
+	fieldset:last-child .package_column { margin-bottom: 0; }
 	.package_column .adder { border-top: 1px solid #EEE; padding: 3px 0 3px 3px; }
-	.package_column .adder a { margin: 4px 8px 0 0; }
+	.package_column .adder a { background: url(../images/icon-sprite.svg) no-repeat -32px -140px; float: right; height: 16px; margin: 4px 5px 0 0; width: 16px; }
+	.package_column .add_file { padding: 0; }
+	.package_column .add_file a { background-image: none; color: #333; float: none; font-size: 10px; line-height: 20px; margin: 0; padding: 3px 5px 5px 5px; width: auto; }
+	.package_column .add_file a:hover { background-color: #EEE; }
+	.package_column_double { width: 437px; }
 
-	.package_column .add_file a { color: #333; float: none; font-size: 10px; line-height: 20px; margin: 3px; width: auto; }
-	.package_column .add_file a:hover { background-color: #FCFCFC; }
-
-	.package_files li { height: 16px; overflow: hidden; }
-	.package_files span { cursor: help; float: left; height: 16px; overflow: hidden; white-space: nowrap; width: 245px; }
-	.package_files span:hover { background: #EEE; margin: 0 0 0 -5px; padding: 0 5px; position: absolute; width: auto; }
+	#package_files li { height: 16px; overflow: hidden; }
+	#package_files span { cursor: help; float: left; height: 16px; overflow: hidden; white-space: nowrap; width: 400px; }
+	#package_files span:hover { background: #EEE; margin: 0 0 0 -5px; padding: 0 5px; position: absolute; width: auto; }
 
 	form.module .package_column select { margin: 3px 3px 3px 3px; width: 250px; }
+	form.module .package_column_double select { width: 405px; }
 
 /*---------------------------
 	BigTree Foundry Browser
