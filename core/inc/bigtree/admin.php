@@ -1883,6 +1883,54 @@
 		}
 
 		/*
+			Function: deletePackage
+				Uninstalls a package from BigTree and removes its related components and files.
+
+			Parameters:
+				id - The package ID.
+		*/
+
+		function deletePackage($id) {
+			$package = $this->getPackage($id);
+			$j = json_decode($package["manifest"],true);
+		
+			// Delete related files
+			foreach ($j["files"] as $file) {
+				@unlink(SERVER_ROOT.$file);
+			}
+		
+			// Delete components
+			foreach ($j["components"] as $type => $list) {
+				if ($type == "tables") {
+					// Turn off foreign key checks since we're going to be dropping tables.
+					sqlquery("SET SESSION foreign_key_checks = 0");
+					foreach ($list as $table) {
+						sqlquery("DROP TABLE IF EXISTS `$table`");
+					}
+					sqlquery("SET SESSION foreign_key_checks = 1");
+				} else {
+					foreach ($list as $item) {
+						sqlquery("DELETE FROM `bigtree_$type` WHERE id = ".sqlescape($item["id"])."'");
+					}
+					// Modules might have their own directories
+					if ($type == "modules") {
+						foreach ($list as $item) {
+							@rmdir(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
+							@rmdir(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
+							@rmdir(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
+						}
+					} elseif ($type == "templates") {
+						foreach ($list as $item) {
+							@rmdir(SERVER_ROOT."templates/routed/".$item["id"]."/");
+						}
+					}
+				}
+			}
+		
+			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($package["id"])."'");
+		}
+
+		/*
 			Function: deletePage
 				Deletes a page or a pending page.
 				Checks permissions.
