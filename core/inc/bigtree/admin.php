@@ -2524,13 +2524,16 @@
 		/*
 			Function: getBasicTemplates
 				Returns a list of non-routed templates ordered by position.
+			
+			Parameters:
+				sort - Sort order, defaults to positioned
 
 			Returns:
 				An array of template entries.
 		*/
 
-		function getBasicTemplates() {
-			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY position DESC, id ASC");
+		function getBasicTemplates($sort = "position DESC, id ASC") {
+			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY $sort");
 			$items = array();
 			while ($f = sqlfetch($q)) {
 				if (!$f["routed"]) {
@@ -4611,12 +4614,15 @@
 			Function: getRoutedTemplates
 				Returns a list of routed templates ordered by position.
 
+			Parameters:
+				sort - Sort order, defaults to positioned
+
 			Returns:
 				An array of template entries.
 		*/
 
-		function getRoutedTemplates() {
-			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY position DESC, id ASC");
+		function getRoutedTemplates($sort = "position DESC, id ASC") {
+			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY $sort");
 			$items = array();
 			while ($f = sqlfetch($q)) {
 				if ($f["routed"]) {
@@ -4744,6 +4750,26 @@
 			}
 
 			return $pages;
+		}
+
+		/*
+			Function: getSystemSettings
+				Returns a list of user defined (no bigtree-internal- prefix) system settings without decoded values.
+
+			Parameters:
+				sort - Order to return the settings. Defaults to name ASC.
+
+			Returns:
+				An array of entries from bigtree_settings.
+		*/
+
+		function getSystemSettings($sort = "name ASC") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_settings WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
 		}
 
 		/*
