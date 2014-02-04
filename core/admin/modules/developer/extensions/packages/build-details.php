@@ -1,24 +1,3 @@
-<?
-	$available_licenses = array(
-		"Closed Source" => array(
-			"Free For Personal Use" => "",
-			"Proprietary" => "",
-		),
-		"Open Source" => array(
-			"LGPL v2.1" => "http://opensource.org/licenses/LGPL-2.1",
-			"LGPL v3" => "http://opensource.org/licenses/LGPL-3.0",
-			"GPL v2" => "http://opensource.org/licenses/GPL-2.0",
-			"GPL v3" => "http://opensource.org/licenses/GPL-3.0",
-			"MIT" => "http://opensource.org/licenses/MIT",
-			"BSD 2-Clause" => "http://opensource.org/licenses/BSD-2-Clause",
-			"BSD 3-Clause" => "http://opensource.org/licenses/BSD-3-Clause",
-			"Apache 2.0" => "http://opensource.org/licenses/Apache-2.0",
-			"MPL 2.0" => "http://opensource.org/licenses/MPL-2.0",
-		)
-	);
-
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["package"],"htmlspecialchars");
-?>
 <div class="container">
 	<header><p>Build out the manifest details for your package.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/packages/save-details/" class="module">
@@ -60,7 +39,7 @@
 					<h3>Open Source Licenses</h3>
 					<? foreach ($available_licenses["Open Source"] as $name => $link) { ?>
 					<div class="checkbox_row">
-						<input type="checkbox" name="licenses[]" value="<?=$name?>" <? if (in_array($name,$licenses)) { ?> checked="checked"<? } ?>/>
+						<input type="checkbox" name="licenses[]" value="<?=$name?>" <? if (in_array($name,(array)$licenses)) { ?> checked="checked"<? } ?>/>
 						<label class="for_checkbox"><?=$name?> &mdash; <a href="<?=$link?>" target="_blank">Read License</a></label>
 					</div>
 					<? } ?>
@@ -90,16 +69,16 @@
 			<div class="contain">
 				<fieldset class="left">
 					<label>Name</label>
-					<input type="text" name="author_name" value="<?=$author_name?>" />
+					<input type="text" name="author[name]" value="<?=$author["name"]?>" />
 				</fieldset>
 				<fieldset class="right">
 					<label>Email</label>
-					<input type="email" name="author_email" value="<?=$author_email?>" />
+					<input type="email" name="author[email]" value="<?=$author["email"]?>" />
 				</fieldset>
 			</div>
 			<fieldset>
 				<label>Website</label>
-				<input type="url" name="author_website" value="<?=$author_website?>" />
+				<input type="url" name="author[url]" value="<?=$author["url"]?>" />
 			</fieldset>
 		</section>
 		<footer>
