@@ -11,7 +11,7 @@
 		$actions = $admin->getModuleActions($m["id"]);
 		// Get all the tables of the module's actions.
 		foreach ($actions as $action) {
-			if ($action["form"] || $action["view"]) {
+			if ($action["form"] || $action["view"] || $action["report"]) {
 				if ($action["form"]) {
 					$auto = BigTreeAutoModule::getForm($action["form"]);
 					foreach ($auto["fields"] as $field) {
@@ -35,7 +35,11 @@
 						}
 					}
 				} else {
-					$auto = BigTreeAutoModule::getView($action["view"]);
+					if ($action["view"]) {
+						$auto = BigTreeAutoModule::getView($action["view"]);
+					} else {
+						$auto = BigTreeAutoModule::getReport($action["report"]);
+					}
 				}
 
 				if (!in_array($auto["table"]."#structure",$tables)) {

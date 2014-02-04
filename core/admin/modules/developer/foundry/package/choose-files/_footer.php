@@ -148,7 +148,7 @@
 					<? foreach ($class_files as $mid => $file) { ?>
 					<li>
 						<input type="hidden" name="class_files[<?=$mid?>]" value="<?=htmlspecialchars($file)?>" />
-						<a href="#<?=$table?>" class="icon_small icon_small_delete"></a>
+						<a href="#" class="icon_small icon_small_delete"></a>
 						<span><?=$file?></span>
 					</li>
 					<? } ?>
@@ -160,7 +160,7 @@
 					<? foreach ($required_files as $file) { ?>
 					<li>
 						<input type="hidden" name="required_files[]" value="<?=htmlspecialchars($file)?>" />
-						<a href="#<?=$table?>" class="icon_small icon_small_delete"></a>
+						<a href="#" class="icon_small icon_small_delete"></a>
 						<span><?=$file?></span>
 					</li>
 					<? } ?>
@@ -175,7 +175,7 @@
 					<? foreach ($other_files as $file) { ?>
 					<li>
 						<input type="hidden" name="other_files[]" value="<?=htmlspecialchars($file)?>" />
-						<a href="#<?=$table?>" class="icon_small icon_small_delete"></a>
+						<a href="#" class="icon_small icon_small_delete"></a>
 						<span><?=$file?></span>
 					</li>
 					<? } ?>
@@ -223,7 +223,7 @@
 
 <script>
 	$(".add_table a").click(function(ev) {
-		if ($("#add_callout").get(0).selectedIndex < 0) {
+		if ($("#add_table").get(0).selectedIndex < 0) {
 			return false;
 		}
 		li = $("<li>");
