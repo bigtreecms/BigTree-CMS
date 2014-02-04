@@ -7,9 +7,9 @@
 					<strong>Modules</strong>
 					<ul>
 						<?
-							if (is_array($modules) && count($modules)) {
-								foreach ($modules as $mid) {
-									$module = $admin->getModule($mid);
+							foreach ((array)$modules as $mid) {
+								$module = $admin->getModule($mid);
+								if ($module) {
 						?>
 						<li>
 							<input type="hidden" name="modules[]" value="<?=$mid?>" />
@@ -51,9 +51,9 @@
 					<strong>Templates</strong>
 					<ul>
 						<?
-							if (is_array($templates) && count($templates)) {
-								foreach ($templates as $tid) {
-									$template = $cms->getTemplate($tid);
+							foreach ((array)$templates as $tid) {
+								$template = $cms->getTemplate($tid);
+								if ($template) {
 						?>
 						<li>
 							<input type="hidden" name="templates[]" value="<?=$tid?>" />
@@ -95,9 +95,9 @@
 					<strong>Callouts</strong>
 					<ul>
 						<?
-							if (is_array($callouts) && count($callouts)) {
-								foreach ($callouts as $cid) {
-									$callout = $admin->getCallout($cid);
+							foreach ((array)$callouts as $cid) {
+								$callout = $admin->getCallout($cid);
+								if ($callout) {
 						?>
 						<li>
 							<input type="hidden" name="callouts[]" value="<?=$cid?>" />
@@ -129,9 +129,9 @@
 					<strong>Settings</strong>
 					<ul>
 						<?
-							if (is_array($settings) && count($settings)) {
-								foreach ($settings as $sid) {
-									$setting = $admin->getSetting($sid);
+							foreach ((array)$settings as $sid) {
+								$setting = $admin->getSetting($sid);
+								if ($setting) {
 						?>
 						<li>
 							<input type="hidden" name="settings[]" value="<?=$sid?>" />
@@ -173,9 +173,9 @@
 					<strong>Feeds</strong>
 					<ul>
 						<?
-							if (is_array($feeds) && count($feeds)) {
-								foreach ($feeds as $fid) {
-									$feed = $cms->getFeed($fid);
+							foreach ((array)$feeds as $fid) {
+								$feed = $cms->getFeed($fid);
+								if ($feed) {
 						?>
 						<li>
 							<input type="hidden" name="feeds[]" value="<?=$fid?>" />
@@ -205,9 +205,9 @@
 					<strong>Field Types</strong>
 					<ul>
 						<?
-							if (is_array($field_types) && count($field_types)) {
-								foreach ($field_types as $fid) {
-									$field_type = $admin->getFieldType($fid);
+							foreach ((array)$field_types as $fid) {
+								$field_type = $admin->getFieldType($fid);
+								if ($field_type) {
 						?>
 						<li>
 							<input type="hidden" name="field_types[]" value="<?=$fid?>" />

@@ -1,8 +1,4 @@
 <?
-	if (empty(array_filter($_SESSION["bigtree_admin"]["developer"]["package"]))) {
-		BigTree::redirect(DEVELOPER_ROOT."extensions/packages/build/");
-	}
-
 	// Need to get the names for everything we're including
 	$module_string = array();
 	foreach ((array)$modules as $m) {
@@ -97,15 +93,15 @@
 			<h3>Author Information</h3>
 			<label>
 				<small>name</small>
-				<?=$author_name?>
+				<?=$author["name"]?>
 			</label>
 			<label>
 				<small>email</small>
-				<?=$author_email?>
+				<?=$author["email"]?>
 			</label>
 			<label>
 				<small>website</small>
-				<?=$author_website?>
+				<?=$author["url"]?>
 			</label>
 		</fieldset>
 		<fieldset>

@@ -21,11 +21,11 @@
 	if ($license_name) {
 		$license_array = array($license_name => $license_url);
 	} elseif ($license) {
-		$license_array = array($license => $available_licenses[$license]);
+		$license_array = array($license => $available_licenses["Closed Source"][$license]);
 	} else {
 		$license_array = array();
 		foreach ($licenses as $license) {
-			$license_array[$license] = $available_licenses[$license];
+			$license_array[$license] = $available_licenses["Open Source"][$license];
 		}
 	}
 	
