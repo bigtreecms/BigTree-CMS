@@ -338,25 +338,7 @@
 	// BigTree 4.2 update -- REVISION 200
 	function _local_bigtree_update_200() {
 		global $cms,$admin;
-
-		// Adjust module relationships better so that we can just delete a module and have everything cascade delete
-		sqlquery("ALTER TABLE bigtree_module_forms ADD COLUMN `module` INT(11) unsigned AFTER `id`");
-		sqlquery("ALTER TABLE bigtree_module_forms ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
-		sqlquery("ALTER TABLE bigtree_module_reports ADD COLUMN `module` INT(11) unsigned AFTER `id`");
-		sqlquery("ALTER TABLE bigtree_module_reports ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
-		sqlquery("ALTER TABLE bigtree_module_views ADD COLUMN `module` INT(11) unsigned AFTER `id`");
-		sqlquery("ALTER TABLE bigtree_module_views ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
-		sqlquery("ALTER TABLE bigtree_module_embeds ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
-		// Find all the relevant forms / views / reports and assign them to their proper module.
-		$q = sqlquery("SELECT * FROM bigtree_module_actions");
-		while ($f = sqlfetch($q)) {
-			sqlquery("UPDATE bigtree_module_forms SET module = '".$f["module"]."' WHERE id = '".$f["form"]."'");
-			sqlquery("UPDATE bigtree_module_reports SET module = '".$f["module"]."' WHERE id = '".$f["report"]."'");
-			sqlquery("UPDATE bigtree_module_views SET module = '".$f["module"]."' WHERE id = '".$f["view"]."'");
-		}
-
-		// Create the extensions table and related fields
-		sqlquery("CREATE TABLE `bigtree_extensions` (`id` varchar(255) NOT NULL DEFAULT '', `type` varchar(255) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, `version` varchar(255) DEFAULT NULL, `last_updated` datetime DEFAULT NULL, `manifest` LONGTEXT DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		
 		sqlquery("ALTER TABLE bigtree_callouts ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_callouts ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_field_types ADD COLUMN `extension` VARCHAR(255)");
