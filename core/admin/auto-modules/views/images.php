@@ -1,9 +1,7 @@
 <?
 	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
 		
-	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$module = $admin->getModule($module_id);
-	$permission = $admin->getAccessLevel($module_id);
+	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
 	// Setup defaults
 	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
@@ -44,8 +42,8 @@
 			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
 				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
-					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
+					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 						foreach ($bigtree["view"]["actions"] as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -103,8 +101,8 @@
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
 				<a class="image" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
-					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
+					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 						foreach ($bigtree["view"]["actions"] as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {

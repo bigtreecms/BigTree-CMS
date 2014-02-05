@@ -1,21 +1,20 @@
 <?
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
-		$view = BigTreeAutoModule::getView($_POST["view"]);
+		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
+		$bigtree["module"] = $admin->getModule(BigTreeAutoModule::getModuleForView($bigtree["view"]));
 	}
-	BigTree::globalizeArray($view);
+	BigTree::globalizeArray($bigtree["view"]);
 	
-	$module_id = BigTreeAutoModule::getModuleForView($view);
-	$permission = $admin->getAccessLevel($module_id);
-	$module = $admin->getModule($module_id);
-	$mpage = ADMIN_ROOT.$module["route"]."/";
+	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
+	$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";
 
 	// Defaults
 	$search = isset($_POST["search"]) ? $_POST["search"] : "";
 	$search = isset($_GET["search"]) ? $_GET["search"] : $search;
 	$suffix = $suffix ? "-".$suffix : "";
 	$draggable = (isset($options["draggable"]) && $options["draggable"]) ? true : false;
-	$view["options"]["per_page"] = 10000;
+	$bigtree["view"]["options"]["per_page"] = 10000;
 	if (isset($options["sort_field"])) {
 		$sort = $options["sort_field"]." ".$options["sort_direction"];
 	} elseif (isset($options["sort"])) {
@@ -28,18 +27,18 @@
 	}
 	
 	// Setup the preview action if we have a preview URL and field.
-	if ($view["preview_url"]) {
+	if ($bigtree["view"]["preview_url"]) {
 		$actions["preview"] = "on";
 	}
 	
 	
 	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
-	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $view["id"], "search" => $search)));
+	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "search" => $search)));
 	
 	// Cache the data in case it's not there.
-	BigTreeAutoModule::cacheViewData($view);
+	BigTreeAutoModule::cacheViewData($bigtree["view"]);
 	
-	$groups = BigTreeAutoModule::getGroupsForView($view);
+	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
 ?>
 <header>
 	<?
@@ -52,7 +51,7 @@
 		}
 	?>
 	<span class="view_status">Status</span>
-	<span class="view_action" style="width: <?=(count($view["actions"]) * 40)?>px;"><? if (count($view["actions"]) > 1) { ?>Actions<? } ?></span>
+	<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
 </header>
 <?	
 	$gc = 0;
@@ -64,7 +63,7 @@
 			$search_in = $search;
 		}
 		
-		$r = BigTreeAutoModule::getSearchResults($view,1,$search_in,$sort,$group);
+		$r = BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search_in,$sort,$group);
 		
 		if (count($r["results"])) {
 			$gc++;
@@ -102,7 +101,7 @@
 		?>
 		<section class="view_status status_<?=$status_class?>"><?=$status?></section>
 		<?
-			$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$view["table"]);
+			$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 			foreach ($actions as $action => $data) {
 				if ($data == "on") {
 					if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -116,9 +115,9 @@
 					}
 					
 					if ($action == "preview") {
-						$link = rtrim($view["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+						$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 					} elseif ($action == "edit") {
-						$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
+						$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
 					} else {
 						$link = "#".$item["id"];
 					}
@@ -127,7 +126,7 @@
 		<?
 				} else {
 					$data = json_decode($data,true);
-					$link = $mpage.$data["route"]."/".$item["id"]."/";
+					$link = $module_page.$data["route"]."/".$item["id"]."/";
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);
 					}

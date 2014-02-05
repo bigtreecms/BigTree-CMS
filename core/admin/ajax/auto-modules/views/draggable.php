@@ -1,10 +1,10 @@
 <?
 	if (isset($_POST["view"])) {
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
+		$bigtree["module"] = $admin->getModule(BigTreeAutoModule::getModuleForView($bigtree["view"]));
 	}
 	
-	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$permission = $admin->getAccessLevel($module_id);
+	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
 	// Edit Suffix
 	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
@@ -14,8 +14,7 @@
 		$bigtree["view"]["actions"]["preview"] = "on";
 	}
 	
-	$module = $admin->getModule($module_id);
-	$mpage = ADMIN_ROOT.$module["route"]."/";
+	$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";
 	
 	// Retrieve our results.
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
@@ -65,7 +64,7 @@
 	?>
 	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
 	<?
-		$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
+		$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 		foreach ($bigtree["view"]["actions"] as $action => $data) {
 			if ($data == "on") {
 				if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -81,7 +80,7 @@
 				if ($action == "preview") {
 					$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 				} elseif ($action == "edit") {
-					$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
+					$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
 				} else {
 					$link = "#".$item["id"];
 				}
@@ -90,7 +89,7 @@
 	<?
 			} else {
 				$data = json_decode($data,true);
-				$link = $mpage.$data["route"]."/".$item["id"]."/";
+				$link = $module_page.$data["route"]."/".$item["id"]."/";
 				if ($data["function"]) {
 					$link = call_user_func($data["function"],$item);
 				}

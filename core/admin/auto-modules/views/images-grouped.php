@@ -4,10 +4,7 @@
 	// Make sure our view data is cached;
 	BigTreeAutoModule::cacheViewData($bigtree["view"]);
 	
-	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$module = $admin->getModule($module_id);
-	$permission = $admin->getAccessLevel($module_id);
-	$module_page = ADMIN_ROOT.$module["route"]."/";
+	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	$suffix = $suffix ? "-".$suffix : "";
 	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
 	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
@@ -49,10 +46,10 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
-					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
+					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 						foreach ($actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -75,7 +72,7 @@
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
-									$link = $module_page.$data["route"]."/".$item["id"]."/";
+									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
@@ -110,10 +107,10 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$module_page?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
-					if ($permission == "p" || ($module["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
+					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 						foreach ($actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -131,7 +128,7 @@
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
-									$link = $module_page.$data["route"]."/".$item["id"]."/";
+									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}

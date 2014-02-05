@@ -6,7 +6,7 @@
 		$bigtree["view"] = BigTreeAutoModule::getView($_GET["view"]);
 	}
 	if (isset($_GET["module"])) {
-		$module = $admin->getModuleByRoute($_GET["module"]);
+		$bigtree["module"] = $admin->getModuleByRoute($_GET["module"]);
 	}
 
 	BigTree::globalizeArray($bigtree["view"]);
@@ -32,14 +32,14 @@
 		$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "search" => $search, "page" => $page)));
 	}
 	
-	$mpage = ADMIN_ROOT.$module["route"]."/";
+	$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
 		$actions["preview"] = "on";
 	}
 	
-	$perm = $admin->getAccessLevel($module);
+	$perm = $admin->getAccessLevel($bigtree["module"]);
 		
 	// If this is a second view inside a module, we might need a suffix for edits.
 	$suffix = $suffix ? "-".$suffix : "";
@@ -81,7 +81,7 @@
 	?>
 	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
 	<?	
-		$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($module,$item,$bigtree["view"]["table"]);
+		$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 		foreach ($actions as $action => $data) {
 			if ($data == "on") {
 				if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -97,7 +97,7 @@
 				if ($action == "preview") {
 					$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 				} elseif ($action == "edit") {
-					$link = $mpage."edit".$suffix."/".$item["id"]."/".$edit_append;
+					$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
 				} else {
 					$link = "#".$item["id"];
 				}
@@ -106,7 +106,7 @@
 	<?
 			} else {
 				$data = json_decode($data,true);
-				$link = $mpage.$data["route"]."/".$item["id"]."/";
+				$link = $module_page.$data["route"]."/".$item["id"]."/";
 				if ($data["function"]) {
 					$link = call_user_func($data["function"],$item);
 				}
