@@ -24,14 +24,14 @@
 	}
 	
 	if ($error) {
-		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
 	
 	// We've at least got the file now, unpack it and see what's going on.
 	$file = $_FILES["file"]["tmp_name"];
 	if (!$file) {
 		$_SESSION["upload_error"] = "File upload failed.";
-		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
 	
 	if (!is_writable(SERVER_ROOT."cache/")) {
@@ -59,7 +59,7 @@
 	if (!$files) {
 		_localCleanup();
 		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";
-		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
 	
 	// Read the manifest
@@ -68,44 +68,41 @@
 	if ($json["type"] != "package" || !isset($json["id"]) || !isset($json["title"])) {
 		_localCleanup();
 		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree package.";
-		BigTree::redirect(DEVELOPER_ROOT."foundry/install/");
+		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
 	
-	$instrutions = $json["instructions"];
-	$install_code = $json["install_code"];
-
 	// Check for template collisions
-	foreach ($json["templates"] as $template) {
+	foreach ((array)$json["components"]["templates"] as $template) {
 		if (sqlrows(sqlquery("SELECT * FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'"))) {
 			$warnings[] = "A template already exists with the id &ldquo;".$template["id"]."&rdquo; &mdash; the template will be overwritten.";
 		}
 	}
 	// Check for callout collisions
-	foreach ($json["callouts"] as $callout) {
+	foreach ((array)$json["components"]["callouts"] as $callout) {
 		if (sqlrows(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($callout["id"])."'"))) {
 			$warnings[] = "A callout already exists with the id &ldquo;".$callout["id"]."&rdquo; &mdash; the callout will be overwritten.";
 		}
 	}
 	// Check for settings collisions
-	foreach ($json["settings"] as $setting) {
+	foreach ((array)$json["components"]["settings"] as $setting) {
 		if (sqlrows(sqlquery("SELECT * FROM bigtree_settings WHERE id = '".sqlescape($setting["id"])."'"))) {
 			$warnings[] = "A setting already exists with the id &ldquo;".$setting["id"]."&rdquo; &mdash; the setting will be overwritten.";
 		}
 	}
 	// Check for feed collisions
-	foreach ($json["feeds"] as $feed) {
+	foreach ((array)$json["components"]["feeds"] as $feed) {
 		if (sqlrows(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '".sqlescape($feed["route"])."'"))) {
 			$warnings[] = "A feed already exists with the route &ldquo;".$feed["route"]."&rdquo; &mdash; the feed will be overwritten.";
 		}
 	}
 	// Check for field type collisions
-	foreach ($json["field_types"] as $type) {
+	foreach ((array)$json["components"]["field_types"] as $type) {
 		if (sqlrows(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '".sqlescape($type["id"])."'"))) {
 			$warnings[] = "A field type already exists with the id &ldquo;".$type["id"]."&rdquo; &mdash; the field type will be overwritten.";
 		}
 	}
 	// Check for table collisions
-	foreach ($json["sql"] as $command) {
+	foreach ((array)$json["sql"] as $command) {
 		if (substr($command,0,14) == "CREATE TABLE `") {
 			$table = substr($command,14);
 			$table = substr($table,0,strpos($table,"`"));
@@ -115,7 +112,7 @@
 		}
 	}
 	// Check file permissions and collisions
-	foreach ($json["files"] as $file) {
+	foreach ((array)$json["files"] as $file) {
 		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$file)) {
 			$errors[] = "Cannot write to $file &mdash; please make the root directory or file writable.";
 		} elseif (file_exists(SERVER_ROOT.$file)) {
@@ -130,31 +127,12 @@
 <div class="container">
 	<summary>
 		<h2>
-			<?=$json["title"]?>
-			<small>by <?=$json["author"]?></small>
+			<?=$json["title"]?> <?=$json["version"]?>
+			<small>by <?=$json["author"]["name"]?></small>
 		</h2>
 	</summary>
 	<section>
 		<?
-			if (count($instructions) && $instructions["pre"]) {
-		?>
-		<h3>Instructions</h3>
-		<p><?=nl2br(htmlspecialchars(base64_decode($instructions["pre"])))?></p>
-		<br />
-		<hr />
-		<?
-			}
-
-			if ($install_code) {
-		?>
-		<h3>Post Install Code</h3>
-		<p>The following code will be run after the package is finished installing:</p>
-		<pre><code class="language-php"><?=htmlspecialchars(ltrim(rtrim(base64_decode($install_code),"?>"),"<?"))?></code></pre>
-		<br /><br />
-		<hr />
-		<?
-			}
-
 			if (count($warnings)) {
 		?>
 		<h3>Warnings</h3>
@@ -187,7 +165,7 @@
 	</section>
 	<? if (!count($errors)) { ?>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>foundry/install/process/" class="button blue">Install</a>
+		<a href="<?=DEVELOPER_ROOT?>packages/install/process/" class="button blue">Install</a>
 	</footer>
 	<? } ?>
 </div>

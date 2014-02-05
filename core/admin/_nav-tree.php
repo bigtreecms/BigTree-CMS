@@ -96,10 +96,10 @@
 				array("title" => "Add Setting","link" => "developer/settings/add","nav_icon" => "add"),
 				array("title" => "Edit Setting","link" => "developer/settings/edit","hidden" => true)
 			)),
-			array("title" => "Foundry","link" => "developer/foundry","icon" => "package","hidden" => true,"children" => array(
-				array("title" => "Install Package","link" => "developer/foundry/install","hidden" => true),
-				array("title" => "Unpacked Package","link" => "developer/foundry/install/unpack","hidden" => true),
-				array("title" => "Package Installed","link" => "developer/foundry/install/complete","hidden" => true)
+			array("title" => "Packages","link" => "developer/packages","icon" => "package","hidden" => true,"children" => array(
+				array("title" => "View Packages","link" => "developer/packages","nav_icon" => "list"),
+				array("title" => "Install Package","link" => "developer/packages/install","nav_icon" => "add"),
+				array("title" => "Build Package","link" => "developer/packages/build","nav_icon" => "shovel")
 			)),
 			array("title" => "Cloud Storage","link" => "developer/cloud-storage","icon" => "cloud","hidden" => true,"children" => array(
 				array("title" => "Local Storage","link" => "developer/cloud-storage/local","icon" => "local_storage","hidden" => true),
