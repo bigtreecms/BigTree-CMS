@@ -835,7 +835,7 @@
 	.table .view_action { width: 40px; }
 	.table .view_status { width: 70px; }
 
-	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 22px; margin: 7px 0 0 0; padding: 0 0 0 1px; user-select: none; }
+	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 22px; margin: 7px 0 0 0; overflow: hidden; padding: 0 0 0 1px; user-select: none; }
 	.view_paging a { background: #fff; color: #999; display: block; float: left; font-size: 12px; height: 22px; line-height: 22px; margin: 0; padding: 0 10px; transition: background-color 0.2s; }
 	.view_paging a:hover { color: #666; }
 	.view_paging .active, .view_paging .active:hover { background-color: #eee; color: #666; }
