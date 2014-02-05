@@ -318,16 +318,12 @@
 		// Adjust module relationships better so that we can just delete a module and have everything cascade delete
 		sqlquery("ALTER TABLE bigtree_module_forms ADD COLUMN `module` INT(11) unsigned AFTER `id`");
 		sqlquery("ALTER TABLE bigtree_module_forms ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
-		sqlquery("ALTER TABLE bigtree_module_reports ADD COLUMN `module` INT(11) unsigned AFTER `id`");
-		sqlquery("ALTER TABLE bigtree_module_reports ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_module_views ADD COLUMN `module` INT(11) unsigned AFTER `id`");
 		sqlquery("ALTER TABLE bigtree_module_views ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
-		sqlquery("ALTER TABLE bigtree_module_embeds ADD FOREIGN KEY (module) REFERENCES `bigtree_modules` (id) ON DELETE CASCADE");
 		// Find all the relevant forms / views / reports and assign them to their proper module.
 		$q = sqlquery("SELECT * FROM bigtree_module_actions");
 		while ($f = sqlfetch($q)) {
 			sqlquery("UPDATE bigtree_module_forms SET module = '".$f["module"]."' WHERE id = '".$f["form"]."'");
-			sqlquery("UPDATE bigtree_module_reports SET module = '".$f["module"]."' WHERE id = '".$f["report"]."'");
 			sqlquery("UPDATE bigtree_module_views SET module = '".$f["module"]."' WHERE id = '".$f["view"]."'");
 		}
 
