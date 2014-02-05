@@ -1093,6 +1093,7 @@
 				Creates a module form.
 
 			Parameters:
+				module - The module ID that this form relates to.
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
@@ -1107,7 +1108,8 @@
 				The new form id.
 		*/
 
-		function createModuleForm($title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		function createModuleForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
@@ -1118,7 +1120,7 @@
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
 
-			sqlquery("INSERT INTO bigtree_module_forms (`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`,`tagging`) VALUES ('$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url','$tagging')");
+			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`,`tagging`) VALUES ('$module','$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url','$tagging')");
 			$id = sqlid();
 
 			// Get related views for this table and update numeric status
@@ -1165,6 +1167,7 @@
 				Creates a module report and the associated module action.
 
 			Parameters:
+				module - The module ID that this report relates to.
 				title - The title of the report.
 				table - The table for the report data.
 				type - The type of report (csv or view).
@@ -1177,7 +1180,7 @@
 				The route created for the module action.
 		*/
 
-		function createModuleReport($title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
 			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
@@ -1186,7 +1189,7 @@
 			$fields = sqlescape(json_encode($fields));
 			$parser - sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
-			sqlquery("INSERT INTO bigtree_module_reports (`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$title','$table','$type','$filters','$fields','$parser',$view)");
+			sqlquery("INSERT INTO bigtree_module_reports (`module`,`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$module','$title','$table','$type','$filters','$fields','$parser',$view)");
 			$id = sqlid();
 			return $id;
 		}
@@ -1196,6 +1199,7 @@
 				Creates a module view.
 
 			Parameters:
+				module - The module ID that this view relates to.
 				title - View title.
 				description - Description.
 				table - Data table.
@@ -1210,7 +1214,8 @@
 				The id for view.
 		*/
 
-		function createModuleView($title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
+		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
+			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$description = sqlescape(htmlspecialchars($description));
 			$table = sqlescape($table);
@@ -1221,7 +1226,7 @@
 			$suffix = sqlescape($suffix);
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
-			sqlquery("INSERT INTO bigtree_module_views (`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
+			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
 
 			$id = sqlid();
 			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
@@ -1811,6 +1816,54 @@
 
 			// Delete the module
 			sqlquery("DELETE FROM bigtree_modules WHERE id = '$id'");
+		}
+
+		/*
+			Function: deletePackage
+				Uninstalls a package from BigTree and removes its related components and files.
+
+			Parameters:
+				id - The package ID.
+		*/
+
+		function deletePackage($id) {
+			$package = $this->getPackage($id);
+			$j = json_decode($package["manifest"],true);
+		
+			// Delete related files
+			foreach ($j["files"] as $file) {
+				@unlink(SERVER_ROOT.$file);
+			}
+		
+			// Delete components
+			foreach ($j["components"] as $type => $list) {
+				if ($type == "tables") {
+					// Turn off foreign key checks since we're going to be dropping tables.
+					sqlquery("SET SESSION foreign_key_checks = 0");
+					foreach ($list as $table) {
+						sqlquery("DROP TABLE IF EXISTS `$table`");
+					}
+					sqlquery("SET SESSION foreign_key_checks = 1");
+				} else {
+					foreach ($list as $item) {
+						sqlquery("DELETE FROM `bigtree_$type` WHERE id = '".sqlescape($item["id"])."'");
+					}
+					// Modules might have their own directories
+					if ($type == "modules") {
+						foreach ($list as $item) {
+							@rmdir(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
+							@rmdir(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
+							@rmdir(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
+						}
+					} elseif ($type == "templates") {
+						foreach ($list as $item) {
+							@rmdir(SERVER_ROOT."templates/routed/".$item["id"]."/");
+						}
+					}
+				}
+			}
+		
+			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($package["id"])."'");
 		}
 
 		/*
@@ -3539,6 +3592,41 @@
 		}
 
 		/*
+			Function: getPackage
+				Returns information about a package or extension.
+
+			Parameters:
+				id - The package/extension ID.
+
+			Returns:
+				A package/extension.
+		*/
+		
+		function getPackage($id) {
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+		}
+
+		/*
+			Function: getPackages
+				Returns a list of installed/created packages.
+
+			Parameters:
+				sort - Column/direction to sort (defaults to last_updated DESC)
+
+			Returns:
+				An array of packages.
+		*/
+		
+		function getPackages($sort = "last_updated DESC") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
+		}
+
+		/*
 			Function: getPageAccessLevel
 				Returns the access level for the logged in user to a given page.
 
@@ -4674,6 +4762,26 @@
 			}
 
 			return $pages;
+		}
+
+		/*
+			Function: getSystemSettings
+				Returns a list of user defined (no bigtree-internal- prefix) system settings without decoded values.
+
+			Parameters:
+				sort - Order to return the settings. Defaults to name ASC.
+
+			Returns:
+				An array of entries from bigtree_settings.
+		*/
+
+		function getSystemSettings($sort = "name ASC") {
+			$items = array();
+			$q = sqlquery("SELECT * FROM bigtree_settings WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+			return $items;
 		}
 
 		/*
