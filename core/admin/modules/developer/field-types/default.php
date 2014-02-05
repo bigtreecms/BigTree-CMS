@@ -4,17 +4,14 @@
 <div class="table">
 	<summary><h2>Field Types</h2></summary>
 	<header>
-		<span class="developer_modules_name">Name</span>
-		<span class="view_action" style="width: 120px;">Actions</span>
+		<span class="developer_templates_name">Name</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
 		<? foreach ($types as $type) { ?>
 		<li>
-			<section class="developer_modules_name">
+			<section class="developer_templates_name">
 				<a href="<?=DEVELOPER_ROOT?>field-types/edit/<?=$type["id"]?>/"><?=$type["name"]?></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/field-type/<?=$type["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>field-types/edit/<?=$type["id"]?>/" class="icon_edit"></a>

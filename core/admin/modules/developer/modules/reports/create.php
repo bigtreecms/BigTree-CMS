@@ -2,7 +2,7 @@
 	BigTree::globalizePOSTVars();
 
 	$module = $admin->getModule(end($bigtree["path"]));
-	$id = $admin->createModuleReport($title,$table,$type,$filters,$fields,$parser,$view);
+	$id = $admin->createModuleReport($module,$title,$table,$type,$filters,$fields,$parser,$view);
 	$report_route = $admin->createModuleAction($module["id"],$title,$admin->uniqueModuleActionRoute($module["id"],"report"),"on","export",false,false,$id);
 ?>
 <div class="container">
