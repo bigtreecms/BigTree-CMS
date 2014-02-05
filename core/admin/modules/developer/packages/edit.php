@@ -10,7 +10,7 @@
 		"description" => $j["description"],
 		"keywords" => implode(", ",$j["keywords"]),
 		"author" => $j["author"],
-		"files" => $j["files"],
+		"files" => array(),
 		"modules" => array(),
 		"templates" => array(),
 		"callouts" => array(),
@@ -40,6 +40,9 @@
 			$_SESSION["bigtree_admin"]["developer"]["package"]["license_name"] = $l;
 			$_SESSION["bigtree_admin"]["developer"]["package"]["license_url"] = $d;
 		}
+	}
+	foreach ($j["files"] as $file) {
+		$_SESSION["bigtree_admin"]["developer"]["package"]["files"][] = SERVER_ROOT.$file;
 	}
 
 	BigTree::redirect(DEVELOPER_ROOT."packages/build/components/");
