@@ -11,22 +11,18 @@
 ?>
 <div class="table">
 	<summary>
-		<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/group/<?=$g["id"]?>/" class="icon_small icon_small_export"></a>
 		<h2><?=$g["name"]?></h2>
 	</summary>
 	<header>
-		<span class="developer_modules_name">Module Name</span>
-		<span class="view_action" style="width: 120px;">Actions</span>
+		<span class="developer_templates_name">Module Name</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="group_<?=$g["id"]?>">
 		<? foreach ($g["modules"] as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
-			<section class="developer_modules_name">
+			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
 				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/module/<?=$item["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/" class="icon_edit"></a>
@@ -55,18 +51,15 @@
 		<h2>Ungrouped Modules</h2>
 	</summary>
 	<header>
-		<span class="developer_modules_name">Module Name</span>
-		<span class="view_action" style="width: 120px;">Actions</span>
+		<span class="developer_templates_name">Module Name</span>
+		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="group_0">
 		<? foreach ($ungrouped_modules as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
-			<section class="developer_modules_name">
+			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
 				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>foundry/package/choose-files/module/<?=$item["id"]?>/" class="icon_export"></a>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/" class="icon_edit"></a>
