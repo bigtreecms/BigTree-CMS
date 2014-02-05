@@ -18,7 +18,7 @@
 				array("link" => "developer/field-types", "title" => "Field Types", "access" => 2),
 				array("link" => "developer/feeds", "title" => "Feeds", "access" => 2),
 				array("link" => "developer/settings", "title" => "Settings", "access" => 2),
-				array("link" => "developer/packages", "title" => "Packages", "access" => 2),
+				array("link" => "developer/extensions", "title" => "Extensions &amp; Packages", "access" => 2),
 			)),
 			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
 				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
