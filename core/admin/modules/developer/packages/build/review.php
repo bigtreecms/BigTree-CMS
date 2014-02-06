@@ -178,6 +178,6 @@
 	</section>
 	<footer>
 		<a class="button blue" href="<?=DEVELOPER_ROOT?>packages/build/create/">Create</a>
-		<a class="button" href="<?=DEVELOPER_ROOT?>packages/build/components/">Edit</a>
+		<a class="button" href="<?=DEVELOPER_ROOT?>packages/build/details/">Edit</a>
 	</footer>
 </div>
