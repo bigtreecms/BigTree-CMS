@@ -32,7 +32,11 @@ $bigtree["css"][] = "news.css";
 			</li>
 			<li>
 				Your included components will be automatically moved to your <code>/extensions/{id}/</code> directory on extension creation. After initial creation they should be maintained there.
-			</ul>
+			</li>
+			<li>
+				You will be given the opportunity to include additional files required by your callouts/templates from your <code>/templates/ajax/</code> and <code>/templates/layouts/</code> folders during the extension creation process. These files will be moved into your <code>/extensions/{id}/</code> directory upon creation.
+			</li>
+		</ul>
 	</section>
 	<footer>
 		<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/build/new/">Build an Extension</a>
