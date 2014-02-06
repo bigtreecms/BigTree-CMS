@@ -45,5 +45,5 @@
 		$_SESSION["bigtree_admin"]["developer"]["package"]["files"][] = SERVER_ROOT.$file;
 	}
 
-	BigTree::redirect(DEVELOPER_ROOT."packages/build/components/");
+	BigTree::redirect(DEVELOPER_ROOT."packages/build/details/");
 ?>
