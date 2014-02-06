@@ -7,6 +7,6 @@
 		$admin->growl("Developer","Package ID contains invalid characters.");
 		BigTree::redirect(DEVELOPER_ROOT."packages/build/details/?invalid=true");	
 	} else {
-		BigTree::redirect(DEVELOPER_ROOT."packages/build/review/");
+		BigTree::redirect(DEVELOPER_ROOT."packages/build/components/");
 	}
 ?>
