@@ -421,7 +421,7 @@
 	echo $bigtree["content"];
 	
 	// Write to the cache
-	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE")) {
+	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
 		$cache = ob_get_flush();
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
