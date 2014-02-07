@@ -426,6 +426,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		file_put_contents("../cache/".base64_encode($bigtree["page"]["path"]).".page",$cache);
+		file_put_contents("../cache/".base64_encode($_GET["bigtree_htaccess_url"]).".page",$cache);
 	}
 ?>
