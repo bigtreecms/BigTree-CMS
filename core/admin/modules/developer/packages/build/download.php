@@ -1,8 +1,4 @@
 <?
-	if (empty(array_filter($_SESSION["bigtree_admin"]["developer"]["package"]))) {
-		BigTree::redirect(DEVELOPER_ROOT."packages/build/");
-	}
-
 	header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.$cms->urlify($title).'.zip"');
 	header('Content-Transfer-Encoding: binary');
