@@ -25,6 +25,20 @@ $bigtree["css"][] = "news.css";
 				</code></pre>
 			</li>
 			<li>
+				When calling AJAX requests from your front end templates or admin side modules you must append /*/{id}/ before the AJAX path. Examples:<br />
+				<pre><code>
+$.ajax("&lt;?=WWW_ROOT?&gt;*/com.fastspot.news/ajax/get-more-news/"); // Front End Templates
+$.ajax("&lt;?=ADMIN_ROOT?&gt;*/com.fastspot.news/ajax/load-news-page/"); // Back End Modules
+				</code></pre>
+			</li>
+			<li>
+				To use a layout included in an extension in a template you must set $bigtree["extension_layout"] = "{id}" in addition to $bigtree["layout"] = "layout_file". For example:
+				<pre><code>
+$bigtree["extension_layout"] = "com.fastspot.news";
+$bigtree["layout"] = "news-layout";
+				</code></pre>
+			</li>
+			<li>
 				After creating an extension with BigTree components (modules, templates, field types, etc) they will be automatically moved into your extension directory.
 			</li>
 			<li>

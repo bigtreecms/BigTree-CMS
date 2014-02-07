@@ -131,7 +131,15 @@
 				$p["files"][] = SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php";
 			}
 		}
-	}	
+	}
+
+	// Add all the files in the extension directories
+	$contents = array_merge(BigTree::directoryContents(SITE_ROOT."extensions/{id}/"),BigTree::directoryContents(SERVER_ROOT."extensions/".$p["id"]."/"));
+	foreach ($contents as $file) {
+		if (!is_dir($file)) {
+			$p["files"][] = $file;
+		}
+	}
 
 	// Make sure we have no dupes
 	$p["module_groups"] = array_unique($p["module_groups"]);

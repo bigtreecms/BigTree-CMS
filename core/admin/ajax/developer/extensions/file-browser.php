@@ -41,13 +41,12 @@
 	// Local storage is being browsed
 	if ($location == "server") {
 		$directory = SERVER_ROOT.$postdirectory;
-		if ($postdirectory) {
-			if (!$_POST["lockInSite"] || strlen($postdirectory) > 5)
-				$subdirectories[] = "..";
+		if ($postdirectory && $postdirectory != ltrim($_POST["base_directory"],"/")) {
+			$subdirectories[] = "..";
 		}
 		$o = opendir($directory);
 		while ($r = readdir($o)) {
-			if ($r != "." && $r != "..") {
+			if ($r != "." && $r != ".." && $r != ".DS_Store") {
 				if (is_dir($directory.$r)) {
 					$subdirectories[] = $r;	
 				} else {
@@ -131,12 +130,12 @@
 	$("#bigtree_foundry_browser_window .navigation_pane a").click(function(ev) {
 		type = $(this).attr("data-type");
 		if (type == "location") {
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { location: $(this).attr("href") });
+			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { location: $(this).attr("href") });
 		} else if (type == "container") {
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { location: "<?=$location?>", container: $(this).attr("href") });	
+			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { location: "<?=$location?>", container: $(this).attr("href") });	
 		} else {
 			directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/foundry/file-browser/", { cloud_disabled: "<?=$_POST["cloud_disabled"]?>", location: "<?=$location?>", container: "<?=$postcontainer?>", directory: directory });
+			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { base_directory: "<?=$_POST["base_directory"]?>", cloud_disabled: "<?=$_POST["cloud_disabled"]?>", location: "<?=$location?>", container: "<?=$postcontainer?>", directory: directory });
 		}
 		return false;
 	});

@@ -2389,13 +2389,16 @@ var BigTreeFoundryBrowser = Class.extend({
 
 	onComplete: false,
 
-	init: function(directory,oncomplete,cloud_disabled,file,location,container) {
+	init: function(directory,oncomplete,cloud_disabled,file,location,container,base_lock) {
 		this.onComplete = oncomplete;
 		overlay = $('<div class="bigtree_dialog_overlay">');
 		browserwindow = $('<div id="bigtree_foundry_browser_window">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
 		$("body").append(overlay).append(browserwindow);
-		$("#bigtree_foundry_browser_form").load("admin_root/ajax/foundry/file-browser/", { directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
-
+		if (base_lock) {
+			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: directory, directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
+		} else {
+			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
+		}
 		leftd = parseInt((BigTree.WindowWidth() - 602) / 2);
 		topd = parseInt((BigTree.WindowHeight() - 402) / 2);
 
