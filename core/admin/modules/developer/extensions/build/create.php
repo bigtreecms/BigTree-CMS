@@ -5,7 +5,7 @@
 <div class="container">
 	<section>
 		<h3>Error</h3>
-		<p>Your cache/ and extesions/<?=$id?>/ directories must be writable.</p>
+		<p>Your /cache/ and /extensions/<?=$id?>/ directories must be writable.</p>
 	</section>
 </div>
 <?
