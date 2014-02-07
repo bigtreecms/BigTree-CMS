@@ -1,6 +1,6 @@
 <?
 	if (empty(array_filter($_SESSION["bigtree_admin"]["developer"]["package"]))) {
-		BigTree::redirect(DEVELOPER_ROOT."packages/build/");
+		BigTree::redirect(DEVELOPER_ROOT."extensions/build/");
 	}
 
 	header('Content-Type: application/octet-stream');

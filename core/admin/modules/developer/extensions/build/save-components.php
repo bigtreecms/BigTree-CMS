@@ -134,9 +134,9 @@
 	}
 
 	// Add all the files in the extension directories
-	$contents = array_merge(BigTree::directoryContents(SITE_ROOT."extensions/{id}/"),BigTree::directoryContents(SERVER_ROOT."extensions/".$p["id"]."/"));
+	$contents = array_merge((array)BigTree::directoryContents(SITE_ROOT."extensions/".$p["id"]."/"),(array)BigTree::directoryContents(SERVER_ROOT."extensions/".$p["id"]."/"));
 	foreach ($contents as $file) {
-		if (!is_dir($file)) {
+		if (!is_dir($file) && file_exists($file)) {
 			$p["files"][] = $file;
 		}
 	}

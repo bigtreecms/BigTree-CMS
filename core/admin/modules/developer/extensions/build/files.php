@@ -59,11 +59,11 @@
 	});
 
 	$(".add_file a").click(function(ev) {
-		new BigTreeFoundryBrowser("/templates/",function(data) {
+		new BigTreeFoundryBrowser("",function(data) {
 			li = $("<li>");
 			li.html('<input type="hidden" name="files[]" value="<?=SERVER_ROOT?>' + data.directory + data.file + '" /><a href="#" class="icon_small icon_small_delete"></a>' + data.directory + data.file);
 			$("#package_files").append(li);
-		},true,"","","",true);
+		},true);
 		return false;
 	});
 

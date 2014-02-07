@@ -50,6 +50,9 @@ $bigtree["layout"] = "news-layout";
 			<li>
 				You will be given the opportunity to include additional files required by your callouts/templates from your <code>/templates/ajax/</code> and <code>/templates/layouts/</code> folders during the extension creation process. These files will be moved into your <code>/extensions/{id}/</code> directory upon creation.
 			</li>
+			<li>
+				You can not rely on including anything in /custom/inc/required/. Additional files must be manually loaded from your /extensions/{id}/, only module class files will be added to PHP's autoloader.
+			</li>
 		</ul>
 	</section>
 	<footer>
