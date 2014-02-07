@@ -79,26 +79,32 @@
 		}
 		$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
 		$package["components"]["modules"][] = $module;
+		sqlquery("UPDATE bigtree_modules SET extension = '".sqlescape($id)."' WHERE id = '".$module["id"]."'");
 	}
 	
 	foreach ((array)$templates as $template) {
 		$package["components"]["templates"][] = $cms->getTemplate($template);
+		sqlquery("UPDATE bigtree_templates SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($template)."'");
 	}
 	
 	foreach ((array)$callouts as $callout) {
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
+		sqlquery("UPDATE bigtree_callouts SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($callout)."'");
 	}
 	
 	foreach ((array)$feeds as $feed) {
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
+		sqlquery("UPDATE bigtree_feeds SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($feed)."'");
 	}
 	
 	foreach ((array)$settings as $setting) {
 		$package["components"]["settings"][] = $admin->getSetting($setting);
+		sqlquery("UPDATE bigtree_settings SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($setting)."'");
 	}
 	
 	foreach ((array)$field_types as $type) {
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
+		sqlquery("UPDATE bigtree_field_types SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($type)."'");
 	}
 	
 	foreach ((array)$tables as $t) {
