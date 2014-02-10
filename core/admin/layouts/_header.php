@@ -94,7 +94,7 @@
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
 					?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($link_pieces == $path_pieces || ($item["link"] == "modules" && $bigtree["in_module"])) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<? if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?
