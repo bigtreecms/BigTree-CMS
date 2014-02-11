@@ -1,0 +1,37 @@
+/*
+ * Sprout - A CSS reset & normalizer
+ * @author Ben Plum
+ * @version 0.0.4
+ *
+ * Copyright (c) 2013 Ben Plum <mr@benplum.com>
+ * Released under the MIT License <http://www.opensource.org/licenses/mit-license.php>
+ */
+	
+	/* Reset Box Sizing */
+	* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; box-sizing: border-box; *behavior: url(boxsizing.htc); }
+	
+	/* Reset Properties */
+	a, abbr, address, area, article, aside, audio, b, bdi, bdo, blockquote, body, /* button, */ canvas, caption, cite, code, col, colgroup, command, data, datagrid, datalist, dd, del, details, dfn, div, dl, dt, em, embed, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, head, header, hgroup, html, i, iframe, img, /* input, */ ins, kbd, keygen, label, legend, li, link, mark, map, menu, meter, nav, object, ol, optgroup, option, output, p, pre, progress, q, ruby, rp, rt, s, samp, section, /* select, */ small, span, strong, sub, summary, sup, table, tbody, td, /* textarea, */ tfoot, th, thead, time, title, tr, track, u, ul, var, video { border: 0; font: inherit; font-size: 100%; margin: 0; outline: 0; padding: 0; vertical-align: baseline; }
+	
+	/* Reset Display Roles */
+	article, aside, details, figcaption, figure, footer, header, hgroup, nav, section, summary { display: block; }
+	audio, canvas, video { display: inline-block; }
+	
+	html { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+	body { line-height: 1; }
+	
+	:focus, :hover, :active { outline: none; }
+	
+	ol, ul { list-style: none; }
+	table { border-collapse: collapse; border-spacing: 0; }
+	blockquote, q { quotes: none; }
+	blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
+	
+	/* Form Inconsistencies */
+	textarea, input[type="text"], input[type="submit"] { -webkit-appearance: none; }
+	button, input[type="button"], input[type="reset"], input[type="submit"] { -webkit-appearance: button; cursor: pointer; }
+	button[disabled], input[disabled] { cursor: default; }
+	input[type="checkbox"], input[type="radio"] { box-sizing: border-box; }
+	input[type="search"] { -webkit-appearance: textfield; }
+	input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
+	button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="button"]::-moz-focus-inner, input[type="submit"]::-moz-focus-inner, input[type="file"] > input[type="button"]::-moz-focus-inner { border: 0; padding: 0; margin: 0; }
