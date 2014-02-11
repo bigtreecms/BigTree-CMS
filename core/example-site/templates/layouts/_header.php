@@ -38,19 +38,19 @@
 		<link rel="icon" href="<?=STATIC_ROOT?>favicon.ico" type="image/x-icon" />
 		<link rel="shortcut icon" href="<?=STATIC_ROOT?>favicon.ico" type="image/x-icon" />
 		
-		<link rel="stylesheet" href="<?=STATIC_ROOT?>css/site.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="<?=WWW_ROOT?>css/site.css" type="text/css" media="all" />
 		<link rel="stylesheet" href="<?=STATIC_ROOT?>css/print.css" type="text/css" media="print" />
 		
 		<!--[if IE 9]>
-			<link rel="stylesheet" href="<?=STATIC_ROOT?>css/site-ie9.css" type="text/css" media="all" />
-			<script src="<?=STATIC_ROOT?>js/site-ie9.js"></script>
+			<link rel="stylesheet" href="<?=WWW_ROOT?>css/site-ie9.css" type="text/css" media="all" />
+			<script src="<?=WWW_ROOT?>js/site-ie9.js"></script>
 		<![endif]-->
 		<!--[if IE 8]>
-			<link rel="stylesheet" href="<?=STATIC_ROOT?>css/site-ie8.css" type="text/css" media="all" />
-			<script src="<?=STATIC_ROOT?>js/site-ie8.js"></script>
+			<link rel="stylesheet" href="<?=WWW_ROOT?>css/site-ie8.css" type="text/css" media="all" />
+			<script src="<?=WWW_ROOT?>js/site-ie8.js"></script>
 		<![endif]-->
 		
-		<script src="<?=STATIC_ROOT?>js/site.js" defer></script>
+		<script src="<?=WWW_ROOT?>js/site.js" defer></script>
 		
 		<noscript>
 			<style>

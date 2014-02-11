@@ -34,7 +34,7 @@
 		     -o-transition:      -o-transform 0.2s ease !important;
 		        transition: 		transform 0.2s ease !important;
 	}
-	.shifter-active .shifter-handle { background: url(jquery.fs.shifter-icon.png) no-repeat center center; cursor: pointer; content: ''; display: block; float: right; height: 30px; width: 30px;
+	.shifter-active .shifter-handle { background: url(static_root/images/lib/jquery.fs.shifter-icon.png) no-repeat center center; cursor: pointer; content: ''; display: block; float: right; height: 30px; width: 30px;
 		overflow: hidden; text-indent: 110%; white-space: nowrap;
 		-webkit-user-select: none;
 		   -moz-user-select: none;

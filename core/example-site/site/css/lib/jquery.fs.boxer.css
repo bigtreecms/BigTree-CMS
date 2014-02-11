@@ -1,3 +1,4 @@
+
 /* 
  * Boxer v1.10.2 - 2013-12-17 
  * A jQuery plugin for displaying images and content in a modal overlay. Part of the formstone library. 
@@ -29,7 +30,7 @@
 	#boxer { background: #fff; border-radius: 3px; box-shadow: 0 0 25px #000; padding: 10px; position: absolute; z-index: 105; }
 	#boxer.inline { padding: 30px; }
 	
-	#boxer .boxer-close { background: #fff url(fs-boxer-icons.png) no-repeat -70px 10px; border-radius: 100%; cursor: pointer; display: block; height: 30px; position: absolute; padding: 0; right: -8px; top: -8px; width: 30px; text-indent: -99999px; z-index: 106; }
+	#boxer .boxer-close { background: #fff url(static_root/images/lib/fs-boxer-icons.png) no-repeat -70px 10px; border-radius: 100%; cursor: pointer; display: block; height: 30px; position: absolute; padding: 0; right: -8px; top: -8px; width: 30px; text-indent: -99999px; z-index: 106; }
 	
 	#boxer .boxer-container { background: #fff; height: 100%; overflow: hidden; position: relative; width: 100%; z-index: 105; zoom: 1; }
 	#boxer .boxer-content { background: #fff; overflow: hidden; padding: 0; width: 10000px; }
@@ -38,7 +39,7 @@
 	#boxer .boxer-iframe { float: left; height: 100%; overflow: auto; width: 100%; }
 	#boxer .boxer-meta { clear: both; }
 	
-	#boxer .boxer-arrow { background: #fff url(fs-boxer-icons.png) no-repeat 0 0; border-radius: 100%;  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4); cursor: pointer; display: block; height: 40px; margin-right: auto; margin-left: auto; position: absolute; text-indent: -99999px; top: 0; width: 40px; 
+	#boxer .boxer-arrow { background: #fff url(static_root/images/lib/fs-boxer-icons.png) no-repeat 0 0; border-radius: 100%;  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4); cursor: pointer; display: block; height: 40px; margin-right: auto; margin-left: auto; position: absolute; text-indent: -99999px; top: 0; width: 40px; 
 		-webkit-transition: opacity 0.1s linear;
 		   -moz-transition: opacity 0.1s linear;
 		   	-ms-transition: opacity 0.1s linear;
@@ -52,7 +53,7 @@
 	#boxer .boxer-caption p { margin: 0; padding: 15px 10px 10px 10px; }
 	#boxer .boxer-caption.gallery p { padding-top: 0; }
 	
-	#boxer.loading .boxer-container { background: #fff url(fs-boxer-loading.gif) no-repeat center; }
+	#boxer.loading .boxer-container { background: #fff url(static_root/images/lib/fs-boxer-loading.gif) no-repeat center; }
 	
 	/* Mobile */
 	#boxer.mobile { background-color: #000; border-radius: 0; height: 100%; left: 0; padding: 30px 0 0; position: fixed; top: 0; width: 100%; }
@@ -88,7 +89,7 @@
 		        transition: 		transform 0.25s ease-out !important;
 	}
 	
-	#boxer.mobile.loading .boxer-container { background: #000 url(fs-boxer-loading-dark.gif) no-repeat center; }
+	#boxer.mobile.loading .boxer-container { background: #000 url(static_root/images/lib/fs-boxer-loading-dark.gif) no-repeat center; }
 	
 	@media screen and (min-width: 980px) { 
 		#boxer .boxer-close:hover { background-position: -70px -20px; }

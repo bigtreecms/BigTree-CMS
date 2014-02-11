@@ -9,29 +9,8 @@ if(window.console===undefined){window.console={log:function(){},error:function()
 	var WebFontConfig = {
 		custom: {
 			families: ["PTSans", "PTSerif"],
-			urls: ["www_root/css/fonts.css"]
+			urls: ["static_root/css/fonts.css"]
 		}
-		/*
-		,
-		loading: function() {
-			console.log("LOADING");
-		},
-		active: function() {
-			console.log("ACTIVE");
-		},
-		inactive: function() {
-			console.log("INACTIVE");
-		},
-		fontloading: function(familyName, fvd) {
-			console.log("-LOADING:", familyName, fvd);
-		},
-		fontactive: function(familyName, fvd) {
-			console.log("-ACTIVE:", familyName, fvd);
-		},
-		fontinactive: function(familyName, fvd) {
-			console.log("-INACTIVE:", familyName, fvd);
-		}
-		*/
 	};
 	
 	// !Site

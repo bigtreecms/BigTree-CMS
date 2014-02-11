@@ -8,7 +8,7 @@
  */
 	
 	/* Reset Box Sizing */
-	* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; box-sizing: border-box; *behavior: url(boxsizing.htc); }
+	* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; box-sizing: border-box; *behavior: url(static_root/css/lib/boxsizing.htc); }
 	
 	/* Reset Properties */
 	a, abbr, address, area, article, aside, audio, b, bdi, bdo, blockquote, body, /* button, */ canvas, caption, cite, code, col, colgroup, command, data, datagrid, datalist, dd, del, details, dfn, div, dl, dt, em, embed, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, head, header, hgroup, html, i, iframe, img, /* input, */ ins, kbd, keygen, label, legend, li, link, mark, map, menu, meter, nav, object, ol, optgroup, option, output, p, pre, progress, q, ruby, rp, rt, s, samp, section, /* select, */ small, span, strong, sub, summary, sup, table, tbody, td, /* textarea, */ tfoot, th, thead, time, title, tr, track, u, ul, var, video { border: 0; font: inherit; font-size: 100%; margin: 0; outline: 0; padding: 0; vertical-align: baseline; }
