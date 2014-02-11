@@ -8,6 +8,14 @@
 	}
 	
 	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route);
+	// Route was incorrect if we failed
+	if (!$id) {
+		$_POST["group_existing"] = $group;
+		unset($_POST["group_new"]);
+		$_SESSION["bigtree_admin"]["developer"]["saved_module"] = $_POST;
+		$admin->growl("Developer","Invalid Route");
+		BigTree::redirect(DEVELOPER_ROOT."modules/add/?error=route");
+	}
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");
