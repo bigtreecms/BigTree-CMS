@@ -3795,14 +3795,14 @@
 
 		/*
 			Function: getContentsOfResourceFolder
-				Returns a list of resources and subfolders in a folder (based on user permissions).
+				Returns a list of resources and subfolders in a folder.
 
 			Parameters:
 				folder - The id of a folder or a folder entry.
 				sort - The column to sort the folder's files on (default: date DESC).
 
 			Returns:
-				An array of two arrays - folders and resources - that a user has access to.
+				An array of two arrays - folders and resources.
 		*/
 
 		function getContentsOfResourceFolder($folder, $sort = "date DESC") {
@@ -3816,9 +3816,7 @@
 
 			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE parent = '$folder' ORDER BY name");
 			while ($f = sqlfetch($q)) {
-				if ($this->Level > 0 || $this->getResourceFolderPermission($f["id"]) != "n") {
-					$folders[] = $f;
-				}
+				$folders[] = $f;
 			}
 
 			if ($folder) {

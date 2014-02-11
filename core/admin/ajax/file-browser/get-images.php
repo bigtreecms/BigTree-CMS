@@ -17,47 +17,47 @@
 	<?	
 		}
 	
-		if ($perm != "n") {
+		$minWidth = $_POST["minWidth"];
+		$minHeight = $_POST["minHeight"];
 		
-			$minWidth = $_POST["minWidth"];
-			$minHeight = $_POST["minHeight"];
-			
-			foreach ($items["folders"] as $folder) {
+		foreach ($items["folders"] as $folder) {
 	?>
-	<a href="#<?=$folder["id"]?>" class="file folder<? if ($folder["permission"] == "n") { ?> disabled<? } ?>"><span class="file_type file_type_folder"></span> <?=$folder["name"]?></a>		
+	<a href="#<?=$folder["id"]?>" class="file folder">
+		<span class="file_type file_type_folder"></span>
+		<?=$folder["name"]?>
+	</a>		
 	<?
-			}
+		}
 		
-			foreach ($items["resources"] as $resource) {
-				if ($resource["is_image"]) {
-					$file = str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$resource["file"]);
-					$thumbs = json_decode($resource["thumbs"],true);
-					$thumb = $thumbs["bigtree_internal_list"];
-					$margin = $resource["list_thumb_margin"];
-					$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
-					$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
-					
-					// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
-					$available_thumbs = array();
-					if (count($thumbs) > 0) {
-						foreach ($thumbs as $tk => $tu) {
-							if (substr($tk,0,17) != "bigtree_internal_") {
-								$available_thumbs[] = array(
-									"name" => $tk,
-									"file" => $tu
-								);
-							}
+		foreach ($items["resources"] as $resource) {
+			if ($resource["is_image"]) {
+				$file = str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$resource["file"]);
+				$thumbs = json_decode($resource["thumbs"],true);
+				$thumb = $thumbs["bigtree_internal_list"];
+				$margin = $resource["list_thumb_margin"];
+				$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
+				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight) || $perm == "n") ? " disabled" : "";
+				
+				// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
+				$available_thumbs = array();
+				if (count($thumbs) > 0) {
+					foreach ($thumbs as $tk => $tu) {
+						if (substr($tk,0,17) != "bigtree_internal_") {
+							$available_thumbs[] = array(
+								"name" => $tk,
+								"file" => $tu
+							);
 						}
 					}
-					
-					$data = htmlspecialchars(json_encode(array(
-						"file" => $resource["file"],
-						"thumbs" => $available_thumbs
-					)));
+				}
+				
+				$data = htmlspecialchars(json_encode(array(
+					"file" => $resource["file"],
+					"thumbs" => $available_thumbs
+				)));
 	?>
 	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb?>" alt="" style="margin-top: <?=$margin?>px;" /></a>
 	<?
-				}
 			}
 		}
 		

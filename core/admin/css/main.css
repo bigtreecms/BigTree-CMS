@@ -1147,6 +1147,7 @@
 	#file_browser_contents a.file:nth-child(even) { background: #F5F5F5; }
 	#file_browser_contents a.file:hover { background-gradient: #436D86 #578FB1; color: #FFF; }
 	#file_browser_contents a.file.selected { background-gradient: #385B6F #447491; color: #FFF; }
+	#file_browser_contents a.file .icon_small_folder { margin-top: -2px; }
 	#file_browser_contents a.disabled { cursor: default; opacity: 0.3; }
 	#file_browser_contents a.back { line-height: 17px; }
 	
