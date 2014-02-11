@@ -193,8 +193,8 @@
 	/* !Pagination */
 	.pagination { margin: 50px 0 0; }
 	.pagination .arrow { position: relative; width: 48%; }
-	.pagination .next { float: left; text-align: left; }
-	.pagination .previous { float: right; text-align: right; }
+	.pagination .next { float: right; text-align: right; }
+	.pagination .previous { float: left; text-align: left; }
 	.pagination h4 { margin: 0 0 10px; }
 	.pagination h3 { color: $black; font-size: 26px; margin: 10px 0 0; }
 	
@@ -249,8 +249,8 @@
 		
 		/* !Pagination */
 		.pagination .arrow:after { background: $iconSprite 100px 0; content: ''; display: block; height: 68px; opacity: 0.5; pointer-events: none; position: absolute; top: -8px; width: 36px; }
-		.pagination .next:after { background-position: 0 -40px; left: -80px; }
-		.pagination .previous:after { background-position: -50px -40px; right: -80px; }
+		.pagination .previous:after { background-position: 0 -40px; left: -80px; }
+		.pagination .next:after { background-position: -50px -40px; right: -80px; }
 	}
 	
 	
@@ -363,14 +363,14 @@
 		}
 		
 		/* !Pagination */
-		.pagination .next:after { left: -65px;
+		.pagination .previous:after { left: -65px;
 			-webkit-transition: opacity 0.15s linear, left 0.5s ease;
 			   -moz-transition: opacity 0.15s linear, left 0.5s ease;
 			    -ms-transition: opacity 0.15s linear, left 0.5s ease;
 				 -o-transition: opacity 0.15s linear, left 0.5s ease;
 				    transition: opacity 0.15s linear, left 0.5s ease;
 		}
-		.pagination .previous:after { right: -65px;
+		.pagination .next:after { right: -65px;
 			-webkit-transition: opacity 0.15s linear, right 0.5s ease;
 			   -moz-transition: opacity 0.15s linear, right 0.5s ease;
 			    -ms-transition: opacity 0.15s linear, right 0.5s ease;
@@ -379,8 +379,8 @@
 		}
 		
 		.pagination .arrow:hover:after { opacity: 1; }
-		.pagination .next:hover:after { left: -85px; }
-		.pagination .previous:hover:after { right: -85px; }
+		.pagination .previous:hover:after { left: -85px; }
+		.pagination .next:hover:after { right: -85px; }
 	}
 	
 	
