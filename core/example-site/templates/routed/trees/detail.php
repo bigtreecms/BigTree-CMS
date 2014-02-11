@@ -61,6 +61,5 @@
 				?>
 			</nav>
 		</div>
-		<? include "../templates/layouts/partial/subfooter.php"; ?>
 	</div>
 </div>
