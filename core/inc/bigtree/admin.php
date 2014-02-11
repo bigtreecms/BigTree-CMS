@@ -937,6 +937,9 @@
 
 			// Find an available module route.
 			$route = $route ? $route : $cms->urlify($name);
+			if (!ctype_alnum(str_replace("-","",$route))) {
+				return false;
+			}
 
 			// Go through the hard coded modules
 			$existing = array();
