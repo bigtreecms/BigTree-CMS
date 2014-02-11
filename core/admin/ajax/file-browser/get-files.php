@@ -16,19 +16,16 @@
 <?	
 	}
 	
-	if ($perm != "n") {
-	
-		foreach ($items["folders"] as $folder) {
+	foreach ($items["folders"] as $folder) {
 ?>
-<a href="#<?=$folder["id"]?>" class="file folder<? if ($folder["permission"] == "n") { ?> disabled<? } ?>"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></a>
+<a href="#<?=$folder["id"]?>" class="file folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></a>
 <?
-		}
+	}
 	
-		foreach ($items["resources"] as $resource) {
+	foreach ($items["resources"] as $resource) {
 ?>
-<a href="<?=$resource["file"]?>" class="file"><span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span> <?=$resource["name"]?></a>
+<a <? if ($perm == "n") { ?>href="#" class="file disabled"<? } else { ?>href="<?=$resource["file"]?>" class="file"<? } ?>><span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span> <?=$resource["name"]?></a>
 <?
-		}
 	}
 	
 	// Make sure the breadcrumb is at most 5 pieces
