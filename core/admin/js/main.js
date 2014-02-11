@@ -1374,18 +1374,19 @@ var BigTreeFileManager = {
 		$("#file_browser_contents a").click(this.fileClick);
 	},
 	
-	fileClick: function() {
-		// Show the "Use" button now that something is selected.
-		$("#file_browser .footer .blue").show();
-		
+	fileClick: function() {				
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
 		
 		if ($(this).hasClass("folder")) {
+			$("#file_browser .footer .blue").hide();
 			BigTreeFileManager.openFileFolder($(this).attr("href").substr(1));
 			return false;
 		}
+
+		// Show the "Use" button now that something is selected.
+		$("#file_browser .footer .blue").show();
 		
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
@@ -1441,17 +1442,19 @@ var BigTreeFileManager = {
 	},
 	
 	imageClick: function() {
-		// Show the "Use" button now that something is selected.
-		$("#file_browser .footer .blue").show();
-		
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
 		
 		if ($(this).hasClass("folder")) {
+			$("#file_browser .footer .blue").hide();
 			BigTreeFileManager.openImageFolder($(this).attr("href").substr(1));
 			return false;
 		}
+
+		// Show the "Use" button now that something is selected.
+		$("#file_browser .footer .blue").show();
+
 		
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
