@@ -478,11 +478,11 @@
 	echo $bigtree["content"];
 	
 	// Write to the cache
-	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE")) {
+	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
 		$cache = ob_get_flush();
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		file_put_contents("../cache/".base64_encode($bigtree["page"]["path"]).".page",$cache);
+		file_put_contents("../cache/".md5(json_encode($_GET)).".page",$cache);
 	}
 ?>

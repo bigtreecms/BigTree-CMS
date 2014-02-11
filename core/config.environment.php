@@ -27,5 +27,4 @@
 		
 	// Enable Simple Caching
 	$bigtree["config"]["cache"] = false;
-	$bigtree["config"]["xsendfile"] = false; // Use X-Sendfile headers to deliver cached files (more memory efficient, but your web server must support X-Sendfile headers) -- https://tn123.org/mod_xsendfile/
 ?>
