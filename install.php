@@ -351,24 +351,13 @@
 	
 	// We\'re not in the admin, see if caching is enabled and serve up a cached page if it exists
 	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
-		$cache_location = $_GET["bigtree_htaccess_url"];
-		if (!$cache_location) {
-			$cache_location = "!";
-		}
-		$file = "../cache/".base64_encode($cache_location).".page";
+		$cache_location = md5(json_encode($_GET));
+		$file = $server_root."cache/$cache_location.page";
 		// If the file is at least 5 minutes fresh, serve it up.
 		clearstatcache();
-		if (file_exists($file) && filemtime($file) > (time()-300)) {
-			// If the web server supports X-Sendfile headers, use that instead of taking up memory by opening the file and echoing it.
-			if ($bigtree["config"]["xsendfile"]) {
-				header("X-Sendfile: ".str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"))."cache/".base64_encode($cache_location).".page");
-				header("Content-Type: text/html");
-				die();
-			// Fall back on readfile otherwise.
-			} else {
-				readfile($file);
-				die();
-			}
+		if (file_exists($file) && filemtime($file) > (time() - 300)) {
+			readfile($file);
+			die();
 		}
 	}
 	
