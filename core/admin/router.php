@@ -349,6 +349,7 @@
 		// Check custom if it's not an extension, otherwise use the extension directory
 		if ($module && $module["extension"]) {
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		} else {
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
 		}
@@ -386,7 +387,7 @@
 		} elseif (!$complete) {
 			// Setup the commands array.
 			$bigtree["commands"] = $commands;
-			// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
+			// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules, core/admin/modules, or extensions/{id}/modules
 			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
 			// Include all headers in the module directory in the order they occur.
 			$inc_path = "";
@@ -394,8 +395,13 @@
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
-					$header = BigTree::path("admin/modules/".$inc_path."_header.php");
-					$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
+					if ($module["extension"]) {
+						$header = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_header.php";
+						$footer = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_footer.php";
+					} else {
+						$header = BigTree::path("admin/modules/".$inc_path."_header.php");
+						$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
+					}
 					if (file_exists($header)) {
 						$headers[] = $header;
 					}
