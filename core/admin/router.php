@@ -167,21 +167,6 @@
 		include "../core/bootstrap.php";
 	}
 
-	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
-
-	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
-	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
-		$bigtree["js"] = $bigtree["config"]["admin_js"];
-	} else {
-		$bigtree["js"] = array();
-	}
-	if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
-		$bigtree["css"] = $bigtree["config"]["admin_css"];
-	} else {
-		$bigtree["css"] = array();
-	}
-
 	// Connect to MySQL and begin sessions and output buffering.
 	if (!$bigtree["mysql_read_connection"]) {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
@@ -199,38 +184,35 @@
 		$admin = new BigTreeAdmin;
 	}
 
-	// Load the default layout.
-	$bigtree["layout"] = "default";
-
-	// If we're not logged in and we're not trying to login, redirect to the login page.
-	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-		BigTree::redirect(ADMIN_ROOT."login/");
-	}
-
-	// Redirect to dashboard by default if we're not requesting anything.
-	if (!$bigtree["path"][1]) {
-		BigTree::redirect(ADMIN_ROOT."dashboard/");
-	}
-
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
+		// Make sure we're logged in.
+		if (!isset($admin->ID)) {
+			die("Please login.");
+		}
+
 		// If the current user isn't allowed in the module for the ajax, stop them.
-		$bigtree["current_module"] = $module = $admin->getModuleByRoute($bigtree["path"][2]);
+		$module = $admin->getModuleByRoute($bigtree["path"][2]);
 		if ($module && !$admin->checkAccess($module["id"])) {
 			die("Permission denied to module: ".$module["name"]);
 		}
+		$bigtree["module"] = $bigtree["current_module"] = $module;
 
 		$ajax_path = array_slice($bigtree["path"],2);
-		// Check custom
-		list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
-		// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-		if (!$inc || count($commands)) {
-			list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
-			// If we either never found the custom file or if there are more routes found in the core file use the core.
-			if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-				$inc = $core_inc;
-				$commands = $core_commands;
+		// Extensions must use this directory
+		if (defined("EXTENSION_ROOT")) {
+			list($inc,$commands) = BigTree::route(EXTENSION_ROOT."ajax/",$ajax_path);
+		// Check custom/core
+		} else {
+			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
+			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+			if (!$inc || count($commands)) {
+				list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+				// If we either never found the custom file or if there are more routes found in the core file use the core.
+				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
+					$inc = $core_inc;
+					$commands = $core_commands;
+				}
 			}
 		}
 
@@ -248,8 +230,13 @@
 		foreach ($pieces as $piece) {
 			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
-				$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
-				$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
+				if (defined("EXTENSION_ROOT")) {
+					$header = EXTENSION_ROOT."ajax/".$inc_path."_header.php";
+					$footer = EXTENSION_ROOT."ajax/".$inc_path."_footer.php";
+				} else {
+					$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
+					$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
+				}
 				if (file_exists($header)) {
 					$headers[] = $header;
 				}
@@ -272,6 +259,35 @@
 		die();
 	}
 
+	// Make it easier to extend the nav tree without overwriting important things.
+	include BigTree::path("admin/_nav-tree.php");
+
+	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
+	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
+		$bigtree["js"] = $bigtree["config"]["admin_js"];
+	} else {
+		$bigtree["js"] = array();
+	}
+	if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
+		$bigtree["css"] = $bigtree["config"]["admin_css"];
+	} else {
+		$bigtree["css"] = array();
+	}
+
+	// Load the default layout.
+	$bigtree["layout"] = "default";
+
+	// If we're not logged in and we're not trying to login, redirect to the login page.
+	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
+		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
+		BigTree::redirect(ADMIN_ROOT."login/");
+	}
+
+	// Redirect to dashboard by default if we're not requesting anything.
+	if (!$bigtree["path"][1]) {
+		BigTree::redirect(ADMIN_ROOT."dashboard/");
+	}
+
 	// Execute cron tab functions if they haven't been run in 24 hours
 	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
 		$admin->createSetting(array(
@@ -279,7 +295,6 @@
 			"system" => "on"
 		));
 	}
-
 	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
 	// It's been more than 24 hours since we last ran cron.
 	if ((time() - $last_check) > (24 * 60 * 60)) {
@@ -293,9 +308,7 @@
 			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {
 				$ga->cacheInformation();
-			} catch (Exception $e) {
-				// We should log this in 4.1
-			}
+			} catch (Exception $e) {}
 		}
 	}
 
