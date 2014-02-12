@@ -103,15 +103,23 @@
 			global $bigtree;
 			
 			if (isset($bigtree["other_classes"][$class])) {
-				include_once BigTree::path($bigtree["other_classes"][$class]); 
-			} elseif (file_exists(SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php")) {
-				include_once SERVER_ROOT."custom/inc/modules/".$bigtree["module_list"][$class].".php";
-			} elseif (file_exists(SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php")) {
-				include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
-			} else {
-				// Clear the module class list just in case we're missing something.
-				@unlink(SERVER_ROOT."cache/module-class-list.btc");
+				include_once BigTree::path($bigtree["other_classes"][$class]);
+				return;
+			} elseif ($route = $bigtree["module_list"][$class]) {
+				if (strpos($route,"/") !== false) {
+					list($extension,$class) = explode("/",$route);
+					include_once SERVER_ROOT."extensions/$extension/classes/$class.php";
+					return;
+				} else {
+					$path = self::path("inc/modules/$route.php");
+					if (file_exists($path)) {
+						include_once $path;
+						return;
+					}
+				}
 			}
+			// Clear the module class list just in case we're missing something.
+			@unlink(SERVER_ROOT."cache/module-class-list.btc");
 		}
 		
 		/*
