@@ -11,16 +11,22 @@
 	// Make sure no notice gets thrown for $bigtree["path"] being too small.
 	$bigtree["path"] = array_pad($bigtree["path"],2,"");
 
+	// If we're routing through * it means we're accessing an extension's assets
+	if ($bigtree["path"][1] == "*") {
+		define("EXTENSION_ROOT",$server_root."extensions/".$bigtree["path"][2]."/");
+		$bigtree["path"] = array_merge(array($bigtree["path"][0]),array_slice($bigtree["path"],3));
+	}
+
 	// Images.
 	if ($bigtree["path"][1] == "images") {
-		$x = 2;
-		$ipath = "";
-		while ($x < count($bigtree["path"]) - 1) {
-			$ipath .= $bigtree["path"][$x]."/";
-			$x++;
-		}
+		// Get additional image folder path
+		$image_path = implode("/",array_slice($bigtree["path"],2));
 
-		$ifile = (file_exists("../custom/admin/images/".$ipath.$bigtree["path"][$x])) ? "../custom/admin/images/".$ipath.$bigtree["path"][$x] : "../core/admin/images/".$ipath.$bigtree["path"][$x];
+		if (defined("EXTENSION_ROOT")) {
+			$image_file = EXTENSION_ROOT."images/$image_path";
+		} else {
+			$image_file = file_exists("../custom/admin/images/$image_path") ? "../custom/admin/images/$image_path" : "../core/admin/images/$image_path";
+		}
 
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
@@ -29,14 +35,13 @@
 			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
 
-		$last_modified = filemtime($ifile);
+		$last_modified = filemtime($image_file);
 		if ($ims && strtotime($ims) == $last_modified) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
 
-		$type = explode(".",$bigtree["path"][$x]);
-		$type = strtolower($type[count($type)-1]);
+		$type = strtolower(substr($image_file,-3,3));
 		if ($type == "gif") {
 			header("Content-type: image/gif");
 		} elseif ($type == "jpg") {
@@ -48,25 +53,25 @@
 		}
 
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo file_get_contents($ifile);
+		readfile($image_file);
 		die();
 	}
 
 	// CSS
 	if ($bigtree["path"][1] == "css") {
+		// Load utils since it has the CSS3 auto-formatter
 		if (file_exists("../custom/inc/bigtree/utils.php")) {
 			include "../custom/inc/bigtree/utils.php";
 		} else {
 			include "../core/inc/bigtree/utils.php";
 		}
-		$x = 2;
-		$ipath = "";
-		while ($x < count($bigtree["path"]) - 1) {
-			$ipath .= $bigtree["path"][$x]."/";
-			$x++;
-		}
 
-		$ifile = (file_exists("../custom/admin/css/".$ipath.$bigtree["path"][$x])) ? "../custom/admin/css/".$ipath.$bigtree["path"][$x] : "../core/admin/css/".$ipath.$bigtree["path"][$x];
+		$css_path = implode("/",array_slice($bigtree["path"],2));
+		if (defined("EXTENSION_ROOT")) {
+			$css_file = EXTENSION_ROOT."css/$css_path";
+		} else {
+			$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
+		}
 
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
@@ -75,36 +80,52 @@
 			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
 
-		$last_modified = filemtime($ifile);
+		$last_modified = filemtime($css_file);
 		if ($ims && strtotime($ims) == $last_modified) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo BigTree::formatCSS3(file_get_contents($ifile));
-		die();
+		die(BigTree::formatCSS3(file_get_contents($css_file)));
 	}
 
 	// JavaScript
 	if ($bigtree["path"][1] == "js") {
+		// Calcuate the maximum post size so we can pass it along to scripts
 		$pms = ini_get('post_max_size');
 		$mul = substr($pms,-1);
 		$mul = ($mul == 'M' ? 1048576 : ($mul == 'K' ? 1024 : ($mul == 'G' ? 1073741824 : 1)));
 		$max_file_size = $mul * (int)$pms;
 
-		$x = 2;
-		$ipath = "";
-		while ($x < count($bigtree["path"]) - 1) {
-			$ipath .= $bigtree["path"][$x]."/";
-			$x++;
+		$js_path = implode("/",array_slice($bigtree["path"],2));
+		if (defined("EXTENSION_ROOT")) {
+			$js_file = EXTENSION_ROOT."js/$js_path";
+		} else {
+			$js_file = file_exists("../custom/admin/js/$js_path") ? "../custom/admin/js/$js_path" : "../core/admin/js/$js_path";
 		}
 
-		$ifile = (file_exists("../custom/admin/js/".$ipath.$bigtree["path"][$x])) ? "../custom/admin/js/".$ipath.$bigtree["path"][$x] : "../core/admin/js/".$ipath.$bigtree["path"][$x];
-
-		if (substr($ifile,-4,4) == ".php") {
-			include $ifile;
+		// If we're serving php, just include it instead of trying to parse it as JS
+		if (substr($js_file,-4,4) == ".php") {
+			header("Content-type: text/javascript");
+			include $js_file;
 			die();
+		}
+
+		// Serve different headers since some JS serves CSS/images from the JS directory
+		$type = substr($js_file,-3,3);
+		if ($type == "css") {
+			header("Content-type: text/css");
+		} elseif ($type == "htm" || substr($js_file,-4,4) == "html") {
+			header("Content-type: text/html");
+		} elseif ($type == "png") {
+			header("Content-type: image/png");
+		} elseif ($type == "gif") {
+			header("Content-type: image/gif");
+		} elseif ($type == "jpg") {
+			header("Content-type: image/jpeg");
+		} else {
+			header("Content-type: text/javascript");
 		}
 
 		if (function_exists("apache_request_headers")) {
@@ -114,28 +135,21 @@
 			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
 
-		$last_modified = filemtime($ifile);
-		if ($ims && strtotime($ims) == $last_modified) {
+		$last_modified = filemtime($js_file);
+		if ($ims && strtotime($ims) == $last_modified && count($_GET) == 1) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
-		if (substr($bigtree["path"][$x],-3,3) == "css") {
-			header("Content-type: text/css");
-		} elseif (substr($bigtree["path"][$x],-3,3) == "htm" || substr($bigtree["path"][$x],-4,4) == "html") {
-			header("Content-type: text/html");
-		} elseif (substr($bigtree["path"][$x],-3,3) == "png") {
-			header("Content-type: image/png");
-		} elseif (substr($bigtree["path"][$x],-3,3) == "gif") {
-			header("Content-type: image/gif");
-		} elseif (substr($bigtree["path"][$x],-3,3) == "jpg") {
-			header("Content-type: image/jpeg");
-		} else {
-			header("Content-type: text/javascript");
-		}
 
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		echo str_replace(array("{max_file_size}","www_root/","admin_root/","static_root/"),array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]),file_get_contents($ifile));
-		die();
+		$find = array('$max_file_size',"www_root/","admin_root/","static_root/");
+		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
+		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
+		foreach ($_GET as $key => $val) {
+			$find[] = '$'.$key;
+			$replace[] = $val;
+		}
+		die(str_replace($find,$replace,file_get_contents($js_file)));
 	}
 	
 	// We're loading a page in the admin, so let's pass some headers

@@ -48,7 +48,7 @@
 			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
 				foreach ($bigtree["css"] as $style) {
 		?>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
+		<link rel="stylesheet" href="<?=ADMIN_ROOT.(defined("EXTENSION_ROOT") ? "*/".$bigtree["module"]["extension"]."/" : "")?>css/<?=$style?>" type="text/css" media="screen" />
 		<?
 				}
 			}
@@ -60,7 +60,7 @@
 			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
 				foreach ($bigtree["js"] as $script) {
 		?>
-		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
+		<script src="<?=ADMIN_ROOT.(defined("EXTENSION_ROOT") ? "*/".$bigtree["module"]["extension"]."/" : "")?>js/<?=$script?>"></script>
 		<?
 				}
 			}

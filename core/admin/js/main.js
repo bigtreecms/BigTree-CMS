@@ -1534,7 +1534,7 @@ var BigTreeFileManager = {
 	<span style="display: none;" id="file_browser_spinner" class="spinner"></span>\
 	<iframe name="resource_frame" id="file_browser_upload_frame" style="display: none;" src="admin_root/ajax/file-browser/busy/"></iframe>\
 	<form id="file_browser_upload_form" target="resource_frame" method="post" enctype="multipart/form-data" action="admin_root/ajax/file-browser/upload/">\
-		<input type="hidden" name="MAX_FILE_SIZE" value="{max_file_size}" />\
+		<input type="hidden" name="MAX_FILE_SIZE" value="$max_file_size" />\
 		<input type="file" name="file" id="file_browser_file_input" /> \
 		<input type="submit" class="shorter blue" value="Upload" />\
 	</form>\
