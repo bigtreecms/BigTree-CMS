@@ -379,14 +379,14 @@
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		} else {
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
-		}
-		// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-		if (!$inc || count($commands)) {
-			list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
-			// If we either never found the custom file or if there are more routes found in the core file use the core.
-			if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-				$inc = $core_inc;
-				$commands = $core_commands;
+			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
+			if (!$inc || count($commands)) {
+				list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+				// If we either never found the custom file or if there are more routes found in the core file use the core.
+				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
+					$inc = $core_inc;
+					$commands = $core_commands;
+				}
 			}
 		}
 		if (count($commands)) {
