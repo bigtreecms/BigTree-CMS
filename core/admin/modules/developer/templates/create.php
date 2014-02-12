@@ -8,7 +8,7 @@
 		BigTree::redirect(DEVELOPER_ROOT."templates/add/");
 	}
 	
-	$admin->createTemplate($id,$name,$description,$routed,$level,$module,$resources);	
+	$admin->createTemplate($id,$name,$routed,$level,$module,$resources);	
 	$admin->growl("Developer","Created Template");
 	BigTree::redirect(DEVELOPER_ROOT."templates/");
 ?>
