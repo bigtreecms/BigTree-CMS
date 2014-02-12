@@ -1743,6 +1743,7 @@
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
+	.bigtree #callout_resources .mce-btn-group { border: none; }
 
 /*----------------------------
 	Custom Redactor Styles
