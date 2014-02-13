@@ -61,7 +61,60 @@
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
 	}
 	
+	foreach ((array)$callouts as $callout) {
+		if (strpos($callout,"*") === false) {
+			sqlquery("UPDATE bigtree_callouts SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
+		}
+		$package["components"]["callouts"][] = $admin->getCallout($callout);
+	}
+	
+	foreach ((array)$feeds as $feed) {
+		sqlquery("UPDATE bigtree_feeds SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($feed)."'");
+		$package["components"]["feeds"][] = $cms->getFeed($feed);
+	}
+	
+	foreach ((array)$settings as $setting) {
+		sqlquery("UPDATE bigtree_settings SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($setting)."'");
+		$package["components"]["settings"][] = $admin->getSetting($setting);
+	}
+	
+	foreach ((array)$field_types as $type) {
+		if (strpos($type,"*") === false) {
+			sqlquery("UPDATE bigtree_field_types SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($type)."' WHERE id = '".sqlescape($type)."'");
+			// Find all forms and templates that use this field type and update them.
+			$q = sqlquery("SELECT * FROM bigtree_templates WHERE resources LIKE '\"type\":\"".sqlescape($type)."\"'");
+			while ($f = sqlfetch($q)) {
+				$resources = json_decode($f["resources"],true);
+				foreach ($resources as &$r) {
+					if ($r["type"] == $type) {
+						$r["type"] = $id."*".$type;
+					}
+				}
+				sqlquery("UPDATE bigtree_templates SET resources = '".sqlescape(json_encode($resources))."' WHERE id = '".$f["id"]."'");
+			}
+			$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE fields LIKE '\"type\":\"".sqlescape($type)."\"'");
+			while ($f = sqlfetch($q)) {
+				$fields = json_decode($f["fields"],true);
+				foreach ($fields as &$r) {
+					if ($r["type"] == $type) {
+						$r["type"] = $id."*".$type;
+					}
+				}
+				sqlquery("UPDATE bigtree_module_forms SET fields = '".sqlescape(json_encode($fields))."' WHERE id = '".$f["id"]."'");
+			}
+		}
+		$package["components"]["field_types"][] = $admin->getFieldType($type);
+	}
+
+	foreach ((array)$templates as $template) {
+		if (strpos($template,"*") === false) {
+			sqlquery("UPDATE bigtree_templates SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($template)."' WHERE id = '".sqlescape($template)."'");
+		}
+		$package["components"]["templates"][] = $cms->getTemplate($template);
+	}
+
 	foreach ((array)$modules as $module) {
+		sqlquery("UPDATE bigtree_modules SET extension = '".sqlescape($id)."' WHERE id = '".$module["id"]."'");
 		$module = $admin->getModule($module);
 		$module["actions"] = $admin->getModuleActions($module["id"]);
 		foreach ($module["actions"] as $a) {
@@ -79,32 +132,6 @@
 		}
 		$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
 		$package["components"]["modules"][] = $module;
-		sqlquery("UPDATE bigtree_modules SET extension = '".sqlescape($id)."' WHERE id = '".$module["id"]."'");
-	}
-	
-	foreach ((array)$templates as $template) {
-		$package["components"]["templates"][] = $cms->getTemplate($template);
-		sqlquery("UPDATE bigtree_templates SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($template)."'");
-	}
-	
-	foreach ((array)$callouts as $callout) {
-		$package["components"]["callouts"][] = $admin->getCallout($callout);
-		sqlquery("UPDATE bigtree_callouts SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($callout)."'");
-	}
-	
-	foreach ((array)$feeds as $feed) {
-		$package["components"]["feeds"][] = $cms->getFeed($feed);
-		sqlquery("UPDATE bigtree_feeds SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($feed)."'");
-	}
-	
-	foreach ((array)$settings as $setting) {
-		$package["components"]["settings"][] = $admin->getSetting($setting);
-		sqlquery("UPDATE bigtree_settings SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($setting)."'");
-	}
-	
-	foreach ((array)$field_types as $type) {
-		$package["components"]["field_types"][] = $admin->getFieldType($type);
-		sqlquery("UPDATE bigtree_field_types SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($type)."'");
 	}
 	
 	foreach ((array)$tables as $t) {

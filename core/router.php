@@ -268,7 +268,7 @@
 	
 	// If we haven't already received our nav id through previewing...
 	if (!$navid) {
-		list($navid,$bigtree["commands"],$routed,$extension) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
+		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
 	}
 	
@@ -313,7 +313,14 @@
 			$first = current($nav);
 			BigTree::redirect($first["link"], 303);
 		}
-		
+
+		// Setup extension handler for templates
+		if (strpos($bigtree["page"]["template"],"*") !== false) {
+			list($extension,$template) = explode("*",$bigtree["page"]["template"]);
+		} else {
+			$extension = false;
+		}
+
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
 			// Allow the homepage to be routed
@@ -326,7 +333,7 @@
 				array_pop($path_components);
 			}
 			if ($extension) {
-				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
 			} else {
 				list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
 			}
@@ -377,7 +384,7 @@
 			}
 		} elseif ($bigtree["page"]["template"]) {
 			if ($extension) {
-				include SERVER_ROOT."extensions/$extension/templates/basic/".$bigtree["page"]["template"].".php";
+				include SERVER_ROOT."extensions/$extension/templates/basic/$template.php";
 			} else {
 				include SERVER_ROOT."templates/basic/".$bigtree["page"]["template"].".php";
 			}

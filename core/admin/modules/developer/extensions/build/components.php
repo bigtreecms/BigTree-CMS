@@ -34,9 +34,11 @@
 							<optgroup label="<?=$g["name"]?>">
 								<?
 										foreach ($modules as $m) {
+											if (!$m["extension"]) {
 								?>
 								<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
 								<?
+											}
 										}
 								?>
 							</optgroup>
@@ -72,9 +74,11 @@
 								<?
 									$templates = $admin->getBasicTemplates("name ASC");
 									foreach ($templates as $template) {
+										if (!$template["extension"]) {
 								?>
 								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
 								<?
+										}
 									}
 								?>
 							</optgroup>
@@ -82,9 +86,11 @@
 								<?
 									$templates = $admin->getRoutedTemplates("name ASC");
 									foreach ($templates as $template) {
+										if (!$template["extension"]) {
 								?>
 								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
 								<?
+										}
 									}
 								?>
 							</optgroup>
@@ -115,9 +121,11 @@
 							<?
 								$callouts = $admin->getCallouts("name ASC");
 								foreach ($callouts as $callout) {
+									if (!$callout["extension"]) {
 							?>
 							<option value="<?=$callout["id"]?>"><?=$callout["name"]?></option>
 							<?
+									}
 								}
 							?>
 						</select>
@@ -150,9 +158,11 @@
 								<?
 									$settings = $admin->getSettings();
 									foreach ($settings as $setting) {
+										if (!$setting["extension"]) {
 								?>
 								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
 								<?
+										}
 									}
 								?>
 							</optgroup>
@@ -193,9 +203,11 @@
 							<?
 								$feeds = $admin->getFeeds();
 								foreach ($feeds as $feed) {
+									if (!$feed["extension"]) {
 							?>
 							<option value="<?=$feed["id"]?>"><?=$feed["name"]?></option>
 							<?
+									}
 								}
 							?>
 						</select>
@@ -225,9 +237,11 @@
 							<?
 								$field_types = $admin->getFieldTypes();
 								foreach ($field_types as $type) {
+									if (!$type["extension"]) {
 							?>
 							<option value="<?=$type["id"]?>"><?=$type["name"]?></option>
 							<?
+									}
 								}
 							?>
 						</select>

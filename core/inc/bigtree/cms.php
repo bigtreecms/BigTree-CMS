@@ -637,9 +637,9 @@
 			
 			// See if we have a straight up perfect match to the path.
 			$spath = sqlescape(implode("/",$path));
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed,bigtree_templates.extension FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
+			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
 			if ($f) {
-				return array($f["id"],$commands,$f["routed"],$f["extension"]);
+				return array($f["id"],$commands,$f["routed"]);
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.
@@ -649,9 +649,9 @@
 				$commands[] = $path[count($path)-$x];
 				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.extension FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
+				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
 				if ($f) {
-					return array($f["id"],array_reverse($commands),"on",$f["extension"]);
+					return array($f["id"],array_reverse($commands),"on");
 				}
 			}
 			
