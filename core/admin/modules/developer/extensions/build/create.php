@@ -56,6 +56,7 @@
 	$used_forms = array();
 	$used_views = array();
 	$used_reports = array();
+	$extension = sqlescape($id);
 
 	foreach ((array)$module_groups as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
@@ -63,24 +64,24 @@
 	
 	foreach ((array)$callouts as $callout) {
 		if (strpos($callout,"*") === false) {
-			sqlquery("UPDATE bigtree_callouts SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
+			sqlquery("UPDATE bigtree_callouts SET extension = '$extension', id = '$extension*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
 		}
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
 	
 	foreach ((array)$feeds as $feed) {
-		sqlquery("UPDATE bigtree_feeds SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($feed)."'");
+		sqlquery("UPDATE bigtree_feeds SET route = CONCAT('$extension/',route), extension = '$extension' WHERE id = '".sqlescape($feed)."'");
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
 	}
 	
 	foreach ((array)$settings as $setting) {
-		sqlquery("UPDATE bigtree_settings SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($setting)."'");
+		sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
 	
 	foreach ((array)$field_types as $type) {
 		if (strpos($type,"*") === false) {
-			sqlquery("UPDATE bigtree_field_types SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($type)."' WHERE id = '".sqlescape($type)."'");
+			sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
 			// Find all forms and templates that use this field type and update them.
 			$q = sqlquery("SELECT * FROM bigtree_templates WHERE resources LIKE '%\"type\":\"".sqlescape($type)."\"%'");
 			while ($f = sqlfetch($q)) {
@@ -108,13 +109,13 @@
 
 	foreach ((array)$templates as $template) {
 		if (strpos($template,"*") === false) {
-			sqlquery("UPDATE bigtree_templates SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($template)."' WHERE id = '".sqlescape($template)."'");
+			sqlquery("UPDATE bigtree_templates SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($template)."'");
 		}
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}
 
 	foreach ((array)$modules as $module) {
-		sqlquery("UPDATE bigtree_modules SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($module)."'");
+		sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module)."'");
 		$module = $admin->getModule($module);
 		$module["actions"] = $admin->getModuleActions($module["id"]);
 		foreach ($module["actions"] as $a) {
