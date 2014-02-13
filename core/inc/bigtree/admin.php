@@ -692,7 +692,7 @@
 
 		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default,$group = false) {
 			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
+			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
 			}
 
@@ -832,7 +832,7 @@
 
 		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
+			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
 			}
 
@@ -949,7 +949,7 @@
 
 			// Find an available module route.
 			$route = $route ? $route : $cms->urlify($name);
-			if (!ctype_alnum(str_replace("-","",$route))) {
+			if (!ctype_alnum(str_replace("-","",$route)) || strlen($route) > 127) {
 				return false;
 			}
 
@@ -1614,7 +1614,7 @@
 
 		function createTemplate($id,$name,$routed,$level,$module,$resources) {
 			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
+			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
 			}
 
