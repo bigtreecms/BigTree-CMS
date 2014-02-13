@@ -178,8 +178,16 @@
 	}
 	
 	// Handle AJAX calls.
-	if ($bigtree["path"][0] == "ajax") {
-		list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/ajax/",array_slice($bigtree["path"],1));
+	if ($bigtree["path"][0] == "ajax" || ($bigtree["path"][0] == "*" && $bigtree["path"][2] == "ajax")) {
+		if ($bigtree["path"][0] == "*") {
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$bigtree["path"][1]."/");
+			$base_path = EXTENSION_ROOT;
+			list($inc,$commands) = BigTree::route($base_path."templates/ajax/",array_slice($bigtree["path"],3));
+		} else {
+			$base_path = SERVER_ROOT;
+			list($inc,$commands) = BigTree::route($base_path."templates/ajax/",array_slice($bigtree["path"],1));
+		}		
+		
 		if (!file_exists($inc)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
@@ -187,35 +195,40 @@
 		$bigtree["ajax_inc"] = $inc;
 		$bigtree["commands"] = $commands;
 
-		// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/ajax.
-		$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
+		// Get pieces for pulling header/footer
+		$pieces = array_slice(explode("/",str_replace($base_path,"",$inc)),2);
+
 		// Include all headers in the module directory in the order they occur.
 		$inc_path = "";
-		$bigtree["ajax_headers"] = $bigtree["ajax_footers"] = array();
+		$bigtree["ajax_headers"] = array($base_path."templates/ajax/_header.php");
+		$bigtree["ajax_footers"] = array($base_path."templates/ajax/_footer.php");
 		foreach ($pieces as $piece) {
 			if (substr($piece,-4,4) != ".php") {
 				$inc_path .= $piece."/";
-				$header = SERVER_ROOT."templates/ajax/".$inc_path."_header.php";
-				$footer = SERVER_ROOT."templates/ajax/".$inc_path."_footer.php";
-				if (file_exists($header)) {
-					$bigtree["ajax_headers"][] = $header;
-				}
-				if (file_exists($footer)) {
-					$bigtree["ajax_footers"][] = $footer;
-				}
+
+				$bigtree["ajax_headers"][] = $base_path."templates/ajax/".$inc_path."_header.php";
+				$bigtree["ajax_footers"][] = $base_path."templates/ajax/".$inc_path."_footer.php";
 			}
 		}
+
 		// Draw the headers.
 		foreach ($bigtree["ajax_headers"] as $header) {
-			include $header;
+			if (file_exists($header)) {
+				include $header;
+			}
 		}
+
 		// Draw the main page.
 		include $bigtree["ajax_inc"];
+
 		// Draw the footers.
 		$bigtree["ajax_footers"] = array_reverse($bigtree["ajax_footers"]);
 		foreach ($bigtree["ajax_footers"] as $footer) {
-			include $footer;
+			if (file_exists($footer)) {
+				include $footer;
+			}
 		}
+
 		die();
 	}
 
