@@ -206,9 +206,13 @@
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
 		// If the current user isn't allowed in the module for the ajax, stop them.
-		$bigtree["current_module"] = $module = $admin->getModuleByRoute($bigtree["path"][2]);
+		$module = $admin->getModuleByRoute($bigtree["path"][2]);
 		if ($module && !$admin->checkAccess($module["id"])) {
 			die("Permission denied to module: ".$module["name"]);
+		}
+
+		if ($module) {
+			$bigtree["current_module"] = $bigtree["module"] = $module;
 		}
 
 		$ajax_path = array_slice($bigtree["path"],2);
