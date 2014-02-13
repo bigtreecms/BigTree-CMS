@@ -691,6 +691,11 @@
 		*/
 
 		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default,$group = false) {
+			// Check to see if it's a valid ID
+			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
+				return false;
+			}
+
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = '<?
 	/*
@@ -740,8 +745,8 @@
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_callouts SET position = position + 1");
-
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`,`group`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default',$group)");
+			return $id;
 		}
 
 		/*
@@ -826,6 +831,11 @@
 		*/
 
 		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
+			// Check to see if it's a valid ID
+			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
+				return false;
+			}
+
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
 			$author = sqlescape($this->Name);
@@ -883,6 +893,8 @@
 			}
 
 			unlink(SERVER_ROOT."cache/form-field-types.btc");
+
+			return $id;
 		}
 
 		/*
@@ -1605,7 +1617,7 @@
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
 				return false;
 			}
-			
+
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 
