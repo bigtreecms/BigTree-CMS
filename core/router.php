@@ -170,9 +170,9 @@
 		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");
 		} else {
-			include "../templates/basic/_maintenance.php";
+			include SERVER_ROOT."templates/basic/_maintenance.php";
 			$bigtree["content"] = ob_get_clean();
-			include "../templates/layouts/".($bigtree["layout"] ? $bigtree["layout"] : "default").".php";
+			include SERVER_ROOT."templates/layouts/".($bigtree["layout"] ? $bigtree["layout"] : "default").".php";
 			die();
 		}
 	}
@@ -268,7 +268,7 @@
 	
 	// If we haven't already received our nav id through previewing...
 	if (!$navid) {
-		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
+		list($navid,$bigtree["commands"],$routed,$extension) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
 	}
 	
@@ -325,7 +325,11 @@
 			if (end($path_components) === "") {
 				array_pop($path_components);
 			}
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+			if ($extension) {
+				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+			} else {
+				list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+			}
 			$bigtree["routed_inc"] = $inc;
 			$bigtree["commands"] = $commands;
 			if (count($commands)) {
@@ -336,14 +340,22 @@
 			
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
 			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
+			if ($extension) {
+				$pieces = array_slice($pieces,2);
+			}
 			// Include all headers in the module directory in the order they occur.
 			$inc_path = "";
 			$bigtree["routed_headers"] = $bigtree["routed_footers"] = array();
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
-					$header = SERVER_ROOT."templates/routed/".$inc_path."_header.php";
-					$footer = SERVER_ROOT."templates/routed/".$inc_path."_footer.php";
+					if ($extension) {
+						$header = SERVER_ROOT."extensions/$extension/templates/routed/".$inc_path."_header.php";
+						$footer = SERVER_ROOT."extensions/$extension/templates/routed/".$inc_path."_footer.php";
+					} else {
+						$header = SERVER_ROOT."templates/routed/".$inc_path."_header.php";
+						$footer = SERVER_ROOT."templates/routed/".$inc_path."_footer.php";
+					}
 					if (file_exists($header)) {
 						$bigtree["routed_headers"][] = $header;
 					}
@@ -364,20 +376,24 @@
 				include $footer;
 			}
 		} elseif ($bigtree["page"]["template"]) {
-			include "../templates/basic/".$bigtree["page"]["template"].".php";
+			if ($extension) {
+				include SERVER_ROOT."extensions/$extension/templates/basic/".$bigtree["page"]["template"].".php";
+			} else {
+				include SERVER_ROOT."templates/basic/".$bigtree["page"]["template"].".php";
+			}
 		} else {
 			BigTree::redirect($bigtree["page"]["external"]);
 		}
 	// Check for standard sitemap
 	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {
-		include "../templates/basic/_sitemap.php";
+		include SERVER_ROOT."templates/basic/_sitemap.php";
 	// We've got a 404, check for old routes or throw one.
 	} else {
 		// Let's check if it's in the old routing table.
 		$cms->checkOldRoutes($bigtree["path"]);
 		// It's not, it's a 404.
 		if ($cms->handle404($_GET["bigtree_htaccess_url"])) {
-			include "../templates/basic/_404.php";
+			include SERVER_ROOT."templates/basic/_404.php";
 		}
 	}
 	
@@ -385,7 +401,11 @@
 	
 	// Load the content again into the layout.
 	ob_start();
-	include "../templates/layouts/".$bigtree["layout"].".php";
+	if ($bigtree["extension_layout"]) {
+		include SERVER_ROOT."extensions/".$bigtree["extension_layout"]."/templates/layouts/".$bigtree["layout"].".php";
+	} else {
+		include SERVER_ROOT."templates/layouts/".$bigtree["layout"].".php";
+	}
 	$bigtree["content"] = ob_get_clean();
 	
 	// Allow for special output filter functions.
@@ -445,6 +465,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		file_put_contents("../cache/".md5(json_encode($_GET)).".page",$cache);
+		file_put_contents(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
 	}
 ?>
