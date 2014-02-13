@@ -9,7 +9,7 @@
 		<? if (!isset($template)) { ?>
 		<div class="left">
 			<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
-				<label class="required">ID <small>(unique identifier that is also used for the file/directory name)</small><? if ($show_error) { ?> <span class="form_error_reason">ID In Use</span><? } ?></label>
+				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
 				<input type="text" class="required" name="id" value="<?=$id?>" />
 			</fieldset>
 		</div>

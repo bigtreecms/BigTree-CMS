@@ -4,11 +4,11 @@
 	$resources = array();
 	$show_error = false;
 	
-	if ($_SESSION["bigtree_admin"]["admin_error"]) {
-		unset($_SESSION["bigtree_admin"]["admin_error"]);
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["admin_saved"]);
-		unset($_SESSION["bigtree_admin"]["admin_saved"]);
-		$show_error = true;
+	if ($_SESSION["bigtree_admin"]["error"]) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);
+		$show_error = $_SESSION["bigtree_admin"]["error"];
+		unset($_SESSION["bigtree_admin"]["error"]);
+		unset($_SESSION["bigtree_admin"]["saved"]);
 	}
 ?>
 <div class="container">

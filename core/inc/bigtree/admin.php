@@ -1601,6 +1601,11 @@
 		*/
 
 		function createTemplate($id,$name,$routed,$level,$module,$resources) {
+			// Check to see if it's a valid ID
+			if (!ctype_alnum(str_replace(array("-","_"),"",$id))) {
+				return false;
+			}
+			
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 
@@ -1626,7 +1631,6 @@
 					$clean_resources[] = $resource;
 				}
 			}
-
 
 			$file_contents .= '	*/
 ?>';
@@ -1659,8 +1663,8 @@
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_templates SET position = position + 1");
-
 			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('$id','$name','$module','$resources','$level','$routed')");
+			return $id;
 		}
 
 		/*

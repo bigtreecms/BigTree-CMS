@@ -5,8 +5,9 @@
 	$gbp = array();
 	$name = $route = $group_new = $group_existing = $table = $class = "";
 	$icon = "gear";
-	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_module"])) {
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_module"],"htmlspecialchars");
+	if (isset($_SESSION["bigtree_admin"]["saved"])) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"],"htmlspecialchars");
+		unset($_SESSION["bigtree_admin"]["saved"]);
 	}
 ?>
 <div class="container">
