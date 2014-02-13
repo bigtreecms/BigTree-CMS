@@ -1,209 +1,235 @@
 // IE HTML5 DOM Fix | http://jdbartlett.github.com/innershiv | WTFPL License
 window.innerShiv=(function(){var d,r;return function(h,u){if(!d){d=document.createElement('div');r=document.createDocumentFragment();/*@cc_on d.style.display = 'none'@*/}var e=d.cloneNode(true);/*@cc_on document.body.appendChild(e);@*/e.innerHTML=h.replace(/^\s\s*/, '').replace(/\s\s*$/, '');/*@cc_on document.body.removeChild(e);@*/if(u===false){return e.childNodes;}var f=r.cloneNode(true),i=e.childNodes.length;while(i--){f.appendChild(e.firstChild);}return f;}}());
-
-var Site = {
-    currentPrefix: "",
-    
-    init: function() {
-    	if ($.browser.webkit) {
-    		Site.currentPrefix = "-webkit-";
-    	}
-    	if ($.browser.mozilla) {
-    		Site.currentPrefix = "-moz-";
-    	}
-    	if ($.browser.msie) {
-    		Site.currentPrefix = "-ms-";
-    	}
-    	if ($.browser.opera) {
-    		Site.currentPrefix = "-o-";
-    	}
-    	
-    	Site.$body = $("body");
-    	Site.homeFeature = new HomeFeature($("#feature"));
-    	Site.twitterTimeline = new TwitterTimeline($(".twitter_timeline"));
-    	
-    	$(window).bind("breakpoints.enter", Site.responder).breakpoints({ // exitBreakpoint
-    		breakpoints: [ 1220, 980, 740, 500, 340 ]
-    	});
-    },
-    
-    responder: function(e, bp) {
-    	if (e.type == "breakpoints" && e.namespace == "enter") { // only on enter
-    		Site.homeFeature.respond();
-    		Site.twitterTimeline.respond();
-    		
-    		var size = '';
-    		if (bp > 340) {
-    			size = "small";
-    		}
-    		if (bp > 500) {
-    			size = "medium";
-    		}
-    		if (bp > 740) {
-    			size = "large";
-    		}
-    		if (bp > 980) {
-    			size = "xlarge";
-    		}
-    		
-    		$("img.responder").each(function() {
-    			var newSrc = $(this).attr("data-" + size);
-    			if (newSrc) {
-    				$(this).attr("src", newSrc);
-    			}
-    		});
-    		
-    		Site.$body.removeClass("small medium large xlarge").addClass(size);
-    	}
-    }
-};
-
-
-// HOME FEATURE
-(function ($) {
-    HomeFeature = function ($target) {
-    	this.$feature = $target;
-    	this.$viewport = this.$feature.find(".viewport");
-    	this.$descriptions = this.$feature.find(".description");
-    	this.$images = this.$feature.find(".image");
-    	this.$credits = this.$feature.find(".credit");
-    	this.$triggers = this.$feature.find(".triggers span");
-    	this.$colorables = this.$feature.find(".background, .descriptions");
-    	
-    	this.animating = false;
-    	this.index = 0;
-    	this.total = this.$descriptions.length - 1;
-    	
-    	this.$triggers.on("click", $.proxy(this.advance, this));
-    	
-    	this.$feature.find(".content").show();
-    	$.doTimeout(1000, this.respond());
-    };
-    HomeFeature.prototype = {
-    	advance: function(e) {
-    		if (!this.animating) {
-    			var $target = $(e.currentTarget);
-    			
-    			if (!$target.hasClass("active")) {
-    				var _this = this;
-    				this.animating = true;
-    				this.$viewport.addClass("animating");
-    				
-    				this.index = this.$triggers.index($target);
-    				var $newDescription = this.$descriptions.eq(this.index);
-    				
-    				this.$colorables.css({ backgroundColor: $newDescription.attr("data-background") });
-    				
-    				this.$credits.filter(".active").removeClass("active");
-    				this.$credits.eq(this.index).addClass("active");
-    				
-    				this.$viewport.css({ height: $newDescription.outerHeight(true) });
-    				this.$descriptions.removeClass("active before after").each(function(i) {
-    					if (i < _this.index) {
-    						$(this).addClass("before");
-    					} else if (i > _this.index) {
-    						$(this).addClass("after");
-    					}
-    				});
-    				$newDescription.addClass("active");
-    				
-    				var $oldImage = this.$images.filter(".active");
-    				var $newImage = this.$images.eq(this.index);
-    				
-    				$oldImage.css({ zIndex: 3 })
-    				$newImage.css({ display: "block", opacity: 0, zIndex: 4 }).animate({ opacity: 1 }, function() {
-    					$oldImage.removeClass("active").css({ display: "none" });
-    					$newImage.addClass("active");
-    					
-    					_this.animating = false;
-    					_this.$viewport.removeClass("animating");
-    				});
-    				
-    				this.$triggers.filter(".active").removeClass("active");
-    				$target.addClass("active");
-    			}
-    		}
-    	},
-    	respond: function() {
-    		this.$viewport.css({ height: this.$descriptions.eq(this.index).outerHeight(true) });
-    	}
-    };
-}(jQuery));
-
-(function ($) {
-    TwitterTimeline = function ($target) {
-    	this.loaded = false;
-    	this.index = 0;
-    	this.search = (typeof twitter_search != "undefined") ? twitter_search : "";
-        this.timeline = (typeof twitter_timeline != "undefined") ? twitter_timeline : "";
-    	
-    	if (this.search) {
-    		this.$section = $target;
-    		if (this.$section.length) {
-    			$.ajax({
-    				type: "GET",
-    				url: "www_root/ajax/load-twitter-search/",
-    				data: { 
-    					search: this.search,
-                        sidebar: twitter_in_sidebar
-    				},
-    				success: $.proxy(this.onLoad, this)
-    			});
-    		}
-    	} else if (this.timeline) {
-            this.$section = $target;
-            if (this.$section.length) {
-                $.ajax({
-                    type: "GET",
-                    url: "www_root/ajax/load-twitter-timeline/",
-                    data: { 
-                        timeline: this.timeline,
-                        sidebar: twitter_in_sidebar
-                    },
-                    success: $.proxy(this.onLoad, this)
-                });
-            }
-        }
-    };
-    TwitterTimeline.prototype = {
-    	onLoad: function(response) {
-    		this.loaded = true;
-    		
-    		this.$timeline = this.$section.find(".timeline");
-    		this.$timeline.html(response);
-    		
-    		this.$viewport = this.$section.find(".viewport");
-    		this.$articles = this.$section.find("article");
-    		
-    		this.$section.removeClass("loading").on("click", ".trigger", $.proxy(this.advance, this));
-    		this.respond();
-    	},
-    	advance: function(e) {
-    		this.index = this.index + ($(e.currentTarget).hasClass("previous") ? -1 : 1);
-    		
-    		this.position();
-    	},
-    	respond: function() {
-    		if (this.loaded) {
-    			this.pageWidth = this.$viewport.outerWidth();
-    			this.itemWidth = this.$articles.eq(0).outerWidth(true);
-    			this.perPage = this.pageWidth / this.itemWidth;
-    			this.pageCount = Math.ceil(this.$articles.length / this.perPage);
-    			
-    			this.position();
-    		}
-    	},
-    	position: function() {
-    		if (this.index > this.pageCount - 1) {
-    			this.index = this.pageCount - 1;
-    		}
-    		if (this.index < 0) {
-    			this.index = 0;
-    		}
-    		this.$timeline.css({ left: -(this.index * this.pageWidth) });
-    	}
-    };
-}(jQuery));
-
-
-$(document).ready(Site.init);
+// Create Missing Console
+if(window.console===undefined){window.console={log:function(){},error:function(){},warn:function(){}}}
+// Fix Missing .indexOf()
+//if(!Array.prototype.indexOf){Array.prototype.indexOf=function(e){var t=this.length>>>0;var n=Number(arguments[1])||0;n=n<0?Math.ceil(n):Math.floor(n);if(n<0)n+=t;for(;n<t;n++){if(n in this&&this[n]===e)return n}return-1}}
+	
+	// !Font Loader
+	var WebFontConfig = {
+		custom: {
+			families: ["PTSans", "PTSerif"],
+			urls: ["static_root/css/fonts.css"]
+		}
+	};
+	
+	// !Site
+	var Site = {
+		minWidth: 320,
+		maxWidth: Infinity,
+		windowHeight: 0,
+		windowWidth: 0,
+		
+		_init: function() {
+			Site.$window = $(window);
+			Site.$body   = $("body");
+			
+			$.rubberband({
+				maxWidth: [ 1220, 980, 740, 500, 320 ],
+				minWidth: [ 1220, 980, 740, 500, 320 ]
+			});
+			Site.$window.on("snap", Site._onRespond)
+						.on("resize", Site._onResize)
+						.on("scroll", Site._onScroll);
+			
+			$.shifter({
+				maxWidth: Infinity
+			});
+			$(".wallpapered").wallpaper();
+			$(".lightbox").boxer({
+				margin: 0,
+				mobile: true,
+				formatter: Site._formatCaptions
+			});
+			
+			$(".scroll_to").not(".no_scroll").click(Site._scrollTo);
+			
+			ImageHeader._init();
+			
+			Site._onRAF();
+			Site.$window.trigger("resize")
+					    .trigger("scroll");
+		},
+		_onRespond: function(e, data) {
+			Site.minWidth = data.minWidth;
+			Site.maxWidth = data.maxWidth;
+			
+			ImageHeader._respond();
+		},
+		_onResize: function(e) {
+			Site.windowHeight = Site.$window.height();
+			Site.windowWidth = Site.$window.width();
+		},
+		_onRAF: function() {
+			window.requestAnimationFrame(Site._onRAF);
+			
+			Site.scrollTop = Site.$window.scrollTop();
+			
+			ImageHeader._update();
+		},
+		_onScroll: function(e) {
+			/*
+			if (!Site.$body.hasClass("disable-hover")) {
+				Site.$body.addClass("disable-hover");
+			}
+			$.doTimeout("site-scroll-end", 100, Site._onScrollEnd);
+			*/
+		},
+		_onScrollEnd: function() {
+			//Site.$body.removeClass("disable-hover");
+		},
+		_scrollTo: function(e) {
+			var $target = $(e.currentTarget),
+				href = $target.attr("href");
+			
+			if (href != "#") {
+				e.stopPropagation();
+				e.preventDefault();
+				
+				Site._scrollToElement(href);
+			}
+		},
+		_scrollToElement: function(href) {
+			var $el = $(href);
+			
+			if (!$el.length) {
+				$el = $("[name="+href.substring(1)+"]");
+			}
+			
+			if ($el.length) {
+				var pos = $el.offset(),
+					offset = 0;
+				
+				if (href == "#top") {
+					pos.top = 0;
+				}
+				
+				Site._scrollToPos(pos.top - offset);
+			}
+		},
+		_scrollToPos: function(pos) {
+			$("html, body").animate({ scrollTop: pos });
+		},
+		_formatCaptions: function($target) {
+			var attribution = $target.data("attribution"),
+				link = $target.data("link")
+				caption = '';
+			
+			if (attribution) {
+				attribution = 'Photo By ' + attribution;
+				if (link) {
+					caption += '<a href="' + link + '" target="_blank">' + attribution + '</a>';
+				} else {
+					caption += attribution;
+				}
+			}
+			
+			return '<p>' + caption + '</p>';
+		}
+	};
+	
+	
+	// !Image Header
+	var ImageHeader = {
+		initialized: false,
+		
+		_init: function() {
+			ImageHeader.$header = $(".image_header");
+			
+			if (ImageHeader.$header.length) {
+				ImageHeader.initialized = true;
+				
+				ImageHeader.$positioner = ImageHeader.$header.find(".positioner");
+				ImageHeader.$image = ImageHeader.$header.find(".wallpaper-container");
+			}
+		},
+		
+		_respond: function() {
+			if (ImageHeader.initialized) {
+				ImageHeader.positionerBottom = parseInt(ImageHeader.$positioner.css("bottom"), 10);
+				ImageHeader.height = ImageHeader.$header.outerHeight(true) - ImageHeader.$positioner.outerHeight(true);
+			}
+		},
+		
+		_update: function() {
+			if (ImageHeader.initialized) {
+				if (Site.minWidth >= 980) {
+					var perc = (ImageHeader.height - Site.scrollTop) / ImageHeader.height;
+					if (perc > 1) perc = 1;
+					if (perc < 0) perc = 0;
+					
+					ImageHeader.$image.css({ 
+						opacity: perc
+					});
+					ImageHeader.$positioner.css({ 
+						marginBottom: -(ImageHeader.positionerBottom * (1 - perc)),
+						opacity: perc
+					});
+				} else {
+					ImageHeader.$image.css({ 
+						opacity: 1
+					});
+					ImageHeader.$positioner.css({ 
+						marginBottom: 0,
+						opacity: 1
+					});
+				}
+			}
+		}
+	};
+	
+	
+	// !DOM Ready
+	$(document).ready(function() {
+		Site._init();
+	});
+	
+	
+	/* !classCount */
+	(function($) {
+		$.fn.classCount = function(classes) {
+			var $target = $(this),
+				count = 0;
+			for (var i in classes) {
+				if ($target.hasClass(classes[i])) {
+					count++;
+				}
+			}
+			return count;
+		};
+	})(jQuery);
+	
+	/* !hasOneClass */
+	(function($) {
+		$.fn.hasOneClass = function(classes) {
+			var $target = $(this);
+			for (var i in classes) {
+				if ($target.hasClass(classes[i])) {
+					return true;
+				}
+			}
+			return false;
+		};
+	})(jQuery);
+	
+	/* !hasAllClasses */
+	(function($) {
+		$.fn.hasAllClasses = function(classes) {
+			var $target = $(this);
+			for (var i in classes) {
+				if (!$target.hasClass(classes[i])) {
+					return false;
+				}
+			}
+			return true;
+		};
+	})(jQuery);
+	
+	/* !formatNumber */
+	(function($) {
+		$.formatNumber = function(number) {
+			var parts = number.toString().split(".");
+			parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			return parts.join(".");
+		};
+	})(jQuery);

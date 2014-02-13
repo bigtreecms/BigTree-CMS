@@ -1,0 +1,117 @@
+/* 
+ * Shifter v1.0.2 - 2013-12-20 
+ * A jQuery plugin for simple slide-out mobile navigation. 
+ * http://www.benplum.com/formstone/shifter/ 
+ * 
+ * Copyright 2013 Ben Plum; MIT Licensed 
+ */ 
+
+ 	.shifter-open { overflow: hidden !important; }
+	.shifter-open .shifter-page * { pointer-events: none !important; }
+ 	
+ 	.shifter .shifter-navigation { display: none; opacity: 0; }
+	.shifter .shifter-handle { display: none; }
+	
+	.shifter-active .shifter-page { background: #fff; box-shadow: 2px 0 2px rgba(0, 0, 0, 0.15); display: block; left: 0; min-height: 100%; overflow: hidden; position: relative; top: 0; z-index: 1;
+		-webkit-transform: translate3D(0px, 0px, 0px);
+		   -moz-transform: translate3D(0px, 0px, 0px);
+		    -ms-transform: translate3D(0px, 0px, 0px);
+		     -o-transform: translate3D(0px, 0px, 0px);
+		        transform: translate3D(0px, 0px, 0px);
+	}
+	.shifter-active .shifter-navigation { background: #fff; display: block; height: 100%; opacity: 1; pointer-events: none; position: fixed; top: 0; width: 270px; z-index: 0; }
+	
+	.shifter-active .shifter-page,
+	.shifter-active .shifter-navigation { 
+		-webkit-backface-visibility: hidden;
+		   -moz-backface-visibility: hidden;
+		    -ms-backface-visibility: hidden;
+		     -o-backface-visibility: hidden;
+			    backface-visibility: hidden;
+		-webkit-transition: -webkit-transform 0.2s ease !important;
+		   -moz-transition:    -moz-transform 0.2s ease !important;
+		    -ms-transition:     -ms-transform 0.2s ease !important;
+		     -o-transition:      -o-transform 0.2s ease !important;
+		        transition: 		transform 0.2s ease !important;
+	}
+	.shifter-active .shifter-handle { background: url(static_root/images/lib/jquery.fs.shifter-icon.png) no-repeat center center; cursor: pointer; content: ''; display: block; float: right; height: 30px; width: 30px;
+		overflow: hidden; text-indent: 110%; white-space: nowrap;
+		-webkit-user-select: none;
+		   -moz-user-select: none;
+		    -ms-user-select: none;
+		     -o-user-select: none;
+			    user-select: none;
+	}
+	
+	/* Right / Default */
+	.shifter-active .shifter-navigation { right: 0;
+		-webkit-transform: translate3D(0px, 0px, 0px);
+		   -moz-transform: translate3D(0px, 0px, 0px);
+		    -ms-transform: translate3D(0px, 0px, 0px);
+		     -o-transform: translate3D(0px, 0px, 0px);
+		        transform: translate3D(0px, 0px, 0px);
+	}
+	
+	.shifter-open .shifter-page { 
+		-webkit-transform: translate3D(-270px, 0px, 0px);
+		   -moz-transform: translate3D(-270px, 0px, 0px);
+		    -ms-transform: translate3D(-270px, 0px, 0px);
+		     -o-transform: translate3D(-270px, 0px, 0px);
+		        transform: translate3D(-270px, 0px, 0px);
+	}
+	
+	/* Left */
+	.shifter-active.shifter-left .shifter-navigation { left: 0;
+		-webkit-transform: translate3D(0px, 0px, 0px);
+		   -moz-transform: translate3D(0px, 0px, 0px);
+		    -ms-transform: translate3D(0px, 0px, 0px);
+		     -o-transform: translate3D(0px, 0px, 0px);
+		        transform: translate3D(0px, 0px, 0px);
+	}
+	
+	.shifter-active.shifter-left.shifter-open .shifter-page { 
+		-webkit-transform: translate3D(270px, 0px, 0px);
+		   -moz-transform: translate3D(270px, 0px, 0px);
+		    -ms-transform: translate3D(270px, 0px, 0px);
+		     -o-transform: translate3D(270px, 0px, 0px);
+		        transform: translate3D(270px, 0px, 0px);
+	}
+	
+	/* Open */
+	.shifter-open .shifter-navigation { pointer-events: all; z-index: 100\9; /* IE 9- */
+		-webkit-transform: translate3D(0px, 0px, 0px);
+		   -moz-transform: translate3D(0px, 0px, 0px);
+		    -ms-transform: translate3D(0px, 0px, 0px);
+		     -o-transform: translate3D(0px, 0px, 0px);
+		        transform: translate3D(0px, 0px, 0px);
+	}
+	
+	/* IE 10 ONLY */
+	@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) { 
+		/* Right / Default */
+		.shifter-active .shifter-navigation { right: 0;
+			-webkit-transform: translate3D(270px, 0px, 0px);
+			   -moz-transform: translate3D(270px, 0px, 0px);
+			    -ms-transform: translate3D(270px, 0px, 0px);
+			     -o-transform: translate3D(270px, 0px, 0px);
+			        transform: translate3D(270px, 0px, 0px);
+		}
+		
+		/* Left */
+		.shifter-active.shifter-left .shifter-navigation { left: 0;
+			-webkit-transform: translate3D(-270px, 0px, 0px);
+			   -moz-transform: translate3D(-270px, 0px, 0px);
+			    -ms-transform: translate3D(-270px, 0px, 0px);
+			     -o-transform: translate3D(-270px, 0px, 0px);
+			        transform: translate3D(-270px, 0px, 0px);
+		}
+		
+		/* Open */
+		.shifter-open .shifter-navigation { pointer-events: all; 
+			-webkit-transform: translate3D(0px, 0px, 0px);
+			   -moz-transform: translate3D(0px, 0px, 0px);
+			    -ms-transform: translate3D(0px, 0px, 0px);
+			     -o-transform: translate3D(0px, 0px, 0px);
+			        transform: translate3D(0px, 0px, 0px);
+		}
+	}

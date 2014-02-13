@@ -1,84 +1,44 @@
 <?
-	/*
-		Resources Available:
-		$intro_title = Intro Title - Text
-		$intro_content = Intro Content - HTML Area
-		$intro_title_title = Intro Link Title - Text
-		$intro_link = Intro Link - Text
-		$intro_image = Intro Image - Upload
-		$intro_image_credit = Intro Image Credit - Text
-		$intro_image_link = Intro Image Link - Text
-		$twitter_search = Twitter Search Phrase - Text
-	*/
+	$treesMod = new DemoTrees;
+	$trees = $treesMod->getRandom(5);
 	
-	// Switch to loading the content of this page into the /templates/layouts/home.php file.
-	$bigtree["layout"] = "home";
-	
-	// Get all approved features in positioned order.
-	$featuresMod = new SampleFeatures;
-	$features = $featuresMod->getApproved("position DESC, id ASC");	
+	$quotesMod = new DemoQuotes;
+	list($quote) = $quotesMod->getApproved("RAND()", 1);
 ?>
-<section id="feature">
-	<div class="background" style="background-color: #<?=$features[0]["background"]?>">
-		<div class="row content">
-			<div class="descriptions desktop-5 right" style="background-color: #<?=$features[0]["background"]?>">
-				<menu class="triggers">
-					<? for ($i = 0, $count = count($features); $i < $count; $i++) { ?>
-					<span<? if ($i == 0) { ?> class="active"<? } ?>><? echo ($i + 1) ?></span>
-					<? } ?>
-				</menu>
-				<div class="viewport">
-					<?
-						$i = 0; 
-						foreach ($features as $feature) {
-					?>
-					<article class="description<? if ($i == 0) { ?>  active<? } ?>" data-background="#<?=$feature["background"]?>">
-					    <h2><?=$feature["title"]?></h2>
-					    <hr />
-					    <p><?=BigTree::trimLength($feature["description"], 225)?></p>
-					    <a href="<?=$feature["link"]?>" class="more" target="_blank">Read More</a>
-					</article>
-					<?
-							$i++;
-						}
-					?>
-				</div>
-			</div>
-			<div class="credits">
-				<?
-					$i = 0; 
-					foreach ($features as $feature) {
-				?>
-				<a href="<?=$feature["image_link"]?>" target="_blank" class="credit<? if ($i == 0) { ?> active<? } ?>">
-					<span class="credit_label">Photo Credit</span>
-					<p class="credit_text"><?=$feature["image_credit"]?></p>
-				</a>
-				<?
-						$i++;
-					}
-				?>
-			</div>
+<header class="image_header wallpapered" data-wallpaper-options='{"source":"<?=$cover_image?>"}'>
+	<div class="positioner">
+		<h1><?=$bigtree["page"]["nav_title"]?></h1>
+		<p><?=$site_subtitle?></p>
+	</div>
+	<? if ($cover_attribution && $cover_link) { ?>
+	<a href="<?=$cover_link?>" class="attribution"<?=targetBlank($cover_link)?>>Photo By <?=$cover_attribution?></a>
+	<? } ?>
+</header>
+<div class="page home">
+	<div class="row">
+		<div class="mobile-full tablet-4 tablet-push-1 desktop-6 desktop-push-3">
+			<blockquote>
+				<p><?=$quote["quote"]?></p>
+				<span class="author"><?=$quote["author"]?><? if ($quote["source"]) echo ', <em>'.$quote["source"].'</em>'; ?></span>
+			</blockquote>
+			<hr />
 		</div>
-		<div class="images">
-			<? 
-				$i = 0;
-				foreach ($features as $feature) {
-			?>
-			<figure class="image<? if ($i == 0) { ?> active<? } ?>">
-				<img src="<?=$feature["image"]?>" alt="" />
-			</figure>
+		<section class="mobile-full tablet-full desktop-8 desktop-push-2 post_list">
 			<?
-					$i++;
+				foreach ($trees as $tree) {
+			?>
+			<article class="post wallpapered" data-wallpaper-options='{"source":"<?=BigTree::prefixFile($tree["cover"], "large_")?>"}'>
+				<a href="<?=$tree["detail_link"]?>">
+					<div class="cover">
+						<h2><?=$tree["title"]?></h2>
+						<span class="button">Read About <?=$tree["title"]?></span>
+					</div>
+				</a>
+			</article>
+			<?
 				}
 			?>
-		</div>
+		</section>
+		<? include "../templates/layouts/_callouts.php" ?>
 	</div>
-</section>
-
-<section class="home_callouts">
-	<?
-		foreach ($callouts as $callout) {
-			include "../templates/callouts/".$callout["type"].".php";
-		}
-	?>
-</section>
+</div>

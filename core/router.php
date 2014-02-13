@@ -1,42 +1,4 @@
-<?
-	// Handle API calls.
-	if ($path[0] == "api") {
-		if (!count($_POST) && count($_GET)) {
-			$_POST = $_GET;
-		}
-		
-		// Boot up the admin.
-		include BigTree::path("inc/bigtree/admin.php");
-		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-			eval('$admin = new '.BIGTREE_CUSTOM_ADMIN_CLASS.';');
-		} else {
-			$admin = new BigTreeAdmin;
-		}
-		
-		// Figure out whether we want XML or JSON
-		define("BIGTREE_API_ENCODING",strtolower($path[1]));
-		
-		// Find out what we want.
-		$x = 2;
-		$apipath = "";
-		while ($x < count($path) - 1) {
-			$apipath .= $path[$x]."/";
-			$x++;
-		}
-		
-		// Allow the authenticate call even if their token is wrong.
-		if ($apipath.$path[$x] != "users/authenticate") {
-			if (!$admin->apiValidateToken($_POST["token"])) {
-				echo BigTree::apiEncode(array("success" => false,"error" => "Invalid token. Please login."));
-				die();
-			}
-		}
-		
-		// Include our route.
-		include BigTree::path("api/".$apipath.$path[$x].".php");
-		die();	
-	}
-	
+<?	
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();

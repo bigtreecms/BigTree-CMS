@@ -1,0 +1,3 @@
+<?
+	$treesMod = new DemoTrees;	
+?>

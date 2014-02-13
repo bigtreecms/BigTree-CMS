@@ -12,7 +12,7 @@
 	if (!$id) {
 		$_POST["group_existing"] = $group;
 		unset($_POST["group_new"]);
-		$_SESSION["bigtree_admin"]["developer"]["saved_module"] = $_POST;
+		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		$admin->growl("Developer","Invalid Route");
 		BigTree::redirect(DEVELOPER_ROOT."modules/add/?error=route");
 	}

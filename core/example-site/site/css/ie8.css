@@ -1,0 +1,40 @@
+/*---------------------------
+  IE 8 Styles
+---------------------------*/
+	
+	/* !Boxer Plugin Overrides */
+	#boxer.mobile .boxer-caption p a:hover { color: $white; }
+	
+	#boxer .boxer-content .boxer-arrow,
+	#boxer .boxer-content:hover .boxer-arrow,
+	#boxer .boxer-content .boxer-arrow:hover { display: block; }
+	#boxer .boxer-content .boxer-arrow.disabled { display: none; }
+	
+	/* !Navigation */
+	.navigation a:hover { color: $black; }
+	
+	/* !Page Styles */
+	.page blockquote,
+	.page hr { margin-left: -17.375%; width: 134.75%; }
+	
+	/* !Image Header */
+	.image_header { height: 550px; }
+	.image_header .positioner { bottom: 100px; }
+	.image_header h1 { font-size: 90px; }
+	
+	/* !Post */
+	.post { height: 325px; }
+	.post .cover { padding: 170px 0 0; top: 0%; }
+	
+	.post h2 { font-size: 60px; }
+	.post .button { opacity: 0; }
+	
+	.post .cover { top: -30%; }
+	.post .button { opacity: 1; }
+	
+	/* !Gallery */
+	.gallery .thumbnail { margin-bottom: 20px; }
+	.gallery .cover { background-color: $brown; color: #fff; display: none; $ptSans; font-size: 14px; letter-spacing: 0.15em; height: 120%; left: 0; padding: 120px 0 0; position: absolute; text-align: center; text-transform: uppercase; top: -20%; width: 100%; }
+	.gallery .cover:before { background-position: -150px 0; content: ''; display: block; height: 40px; margin: 0 auto 15px; width: 40px; }
+	
+	.gallery .thumbnail:hover .cover { display: block; }

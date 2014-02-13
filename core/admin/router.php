@@ -198,6 +198,10 @@
 		}
 		$bigtree["module"] = $bigtree["current_module"] = $module;
 
+		if ($module) {
+			$bigtree["current_module"] = $bigtree["module"] = $module;
+		}
+
 		$ajax_path = array_slice($bigtree["path"],2);
 		// Extensions must use this directory
 		if (defined("EXTENSION_ROOT")) {

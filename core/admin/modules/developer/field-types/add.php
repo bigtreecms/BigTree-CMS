@@ -1,25 +1,19 @@
 <?
 	// Stop notices
 	$id = $name = $pages = $modules = $callouts = $settings = "";
-	if (isset($_SESSION["bigtree_admin"]["admin_saved"])) {
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["admin_saved"],array("htmlspecialchars"));
-		unset($_SESSION["bigtree_admin"]["admin_saved"]);
-	}
-	
-	if (isset($_SESSION["bigtree_admin"]["admin_error"])) {
-		$e = $_SESSION["bigtree_admin"]["admin_error"];
-		unset($_SESSION["bigtree_admin"]["admin_error"]);
-	} else {
-		$e = false;
+	if ($_SESSION["bigtree_admin"]["error"]) {
+		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);
+		$show_error = $_SESSION["bigtree_admin"]["error"];
+		unset($_SESSION["bigtree_admin"]["error"]);
+		unset($_SESSION["bigtree_admin"]["saved"]);
 	}
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/create/" enctype="multipart/form-data" class="module">
 		<section>
-			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left last">
-				<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
-					<label class="required">ID <small>(must be unique among all field types)</small><? if ($e) { ?><span class="form_error_reason">ID Already In Use</span><? } ?></label>
+				<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
+					<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
 					<input type="text" class="required" name="id" value="<?=$id?>" />
 				</fieldset>
 				<fieldset>

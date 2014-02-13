@@ -1,4 +1,28 @@
 /*---------------------------
-  IE Specific
+  IE Styles
 ---------------------------*/
-body { overflow-y: auto; }
+	
+	/* !Image Reset */
+	#boxer.mobile .boxer-close,
+	#boxer.mobile .boxer-arrow,
+	#header .shifter-handle,
+	.navigation .social a,
+	.pagination .arrow:after,
+	.gallery .cover:before { background-image: url(../images/icons.png); }
+	
+	/* !Image Header */
+	.image_header:after { background: $brown25; height: 100%; }
+	
+	/* !Post */
+	.post .cover { background: $brown50; top: -30%; }
+	.post .button { opacity: 1; }
+	
+	/* !Gallery */
+	.gallery .thumbnail .cover { background: $brown75; }
+	
+	/* !Scale Reset */
+	.post:hover .wallpaper-container,
+	.gallery .thumbnail:hover img {
+		-ms-transform: scale(1, 1);
+		    transform: scale(1, 1);
+	}

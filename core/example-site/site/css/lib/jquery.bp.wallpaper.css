@@ -1,0 +1,29 @@
+/*
+ * Wallpaper - Adds a smooth-scaling background to any element
+ * @author Ben Plum
+ * @version 2.1.2
+ *
+ * Copyright © 2013 Ben Plum <mr@benplum.com>
+ * Released under the MIT License <http://www.opensource.org/licenses/mit-license.php>
+ */
+ 	
+ 	.wallpaper { overflow: hidden; position: relative; }
+ 	.wallpaper-container { height: 100%; overflow: hidden; position: absolute; top: 0; width: 100%; z-index: 0; }
+ 	.wallpaper-image { left: 0; opacity: 0; position: absolute; top: 0; }
+ 	.wallpaper-image img { display: block; height: 100%; width: 100%; }
+ 	
+ 	.wallpaper-image.native { background-position: center; background-size: cover; height: 100%; width: 100%; }
+ 	.wallpaper-image.native img { display: none; }
+ 	
+ 	.wallpaper-image.fixed { background-position: center; background-attachment: fixed; height: 100%; width: 100%; }
+ 	.wallpaper-image.fixed img { display: none; }
+ 	
+ 	.wallpaper,
+ 	.wallpaper-container,
+ 	.wallpaper-image {
+ 		-webkit-transition: none;
+ 		   -moz-transition: none;
+			-ms-transition: none;
+			 -o-transition: none;
+			 	transition: none;
+	}
