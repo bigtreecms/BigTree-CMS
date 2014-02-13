@@ -63,7 +63,13 @@
 		$field["file_input"] = $bigtree["file_data"][$key];
 
 		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-		$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
+		if (strpos($resource["type"],"*") !== false) {
+			list($extension,$field_type) = explode("*",$resource["type"]);
+			$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
+		} else {
+			$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
+		}
+
 		if (file_exists($field_type_path)) {
 			include $field_type_path;
 		} else {

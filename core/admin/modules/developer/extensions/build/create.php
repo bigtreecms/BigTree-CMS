@@ -24,7 +24,7 @@
 		$license_array = array($license => $available_licenses["Closed Source"][$license]);
 	} else {
 		$license_array = array();
-		foreach ($licenses as $license) {
+		foreach ((array)$licenses as $license) {
 			$license_array[$license] = $available_licenses["Open Source"][$license];
 		}
 	}
@@ -82,7 +82,7 @@
 		if (strpos($type,"*") === false) {
 			sqlquery("UPDATE bigtree_field_types SET extension = '".sqlescape($id)."', id = '".sqlescape($id)."*".sqlescape($type)."' WHERE id = '".sqlescape($type)."'");
 			// Find all forms and templates that use this field type and update them.
-			$q = sqlquery("SELECT * FROM bigtree_templates WHERE resources LIKE '\"type\":\"".sqlescape($type)."\"'");
+			$q = sqlquery("SELECT * FROM bigtree_templates WHERE resources LIKE '%\"type\":\"".sqlescape($type)."\"%'");
 			while ($f = sqlfetch($q)) {
 				$resources = json_decode($f["resources"],true);
 				foreach ($resources as &$r) {
@@ -92,7 +92,7 @@
 				}
 				sqlquery("UPDATE bigtree_templates SET resources = '".sqlescape(json_encode($resources))."' WHERE id = '".$f["id"]."'");
 			}
-			$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE fields LIKE '\"type\":\"".sqlescape($type)."\"'");
+			$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE fields LIKE '%\"type\":\"".sqlescape($type)."\"%'");
 			while ($f = sqlfetch($q)) {
 				$fields = json_decode($f["fields"],true);
 				foreach ($fields as &$r) {
@@ -114,7 +114,7 @@
 	}
 
 	foreach ((array)$modules as $module) {
-		sqlquery("UPDATE bigtree_modules SET extension = '".sqlescape($id)."' WHERE id = '".$module["id"]."'");
+		sqlquery("UPDATE bigtree_modules SET extension = '".sqlescape($id)."' WHERE id = '".sqlescape($module)."'");
 		$module = $admin->getModule($module);
 		$module["actions"] = $admin->getModuleActions($module["id"]);
 		foreach ($module["actions"] as $a) {

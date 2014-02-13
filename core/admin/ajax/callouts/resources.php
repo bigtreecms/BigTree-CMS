@@ -64,8 +64,14 @@
 					$field["required"] = true;
 				}
 			}
-			$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 			
+			if (strpos($resource["type"],"*") !== false) {
+				list($extension,$field_type) = explode("*",$resource["type"]);
+				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/draw/$field_type.php";
+			} else {
+				$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
+			}
+
 			if (file_exists($field_type_path)) {
 ?>
 <fieldset>
