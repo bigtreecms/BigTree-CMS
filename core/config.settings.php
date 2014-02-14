@@ -22,7 +22,6 @@
 	$bigtree["config"]["js"]["vars"] = array();
 		
 	// Admin Settings
-	$bigtree["config"]["admin_root"] = "[wwwroot]admin/"; // "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
 	$bigtree["config"]["force_secure_login"] = [force_secure_login]; // If you have HTTPS enabled, set to true to force admin logins through HTTPS
 	$bigtree["config"]["html_editor"] = array("name" => "TinyMCE 4","src" => "tinymce4/tinymce.js"); // WYSIWYG editor to use
 	$bigtree["config"]["password_depth"] = 8; // The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
