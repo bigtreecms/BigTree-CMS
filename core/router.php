@@ -330,6 +330,7 @@
 		// Setup extension handler for templates
 		if (strpos($bigtree["page"]["template"],"*") !== false) {
 			list($extension,$template) = explode("*",$bigtree["page"]["template"]);
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/$extension/");
 		} else {
 			$extension = false;
 		}

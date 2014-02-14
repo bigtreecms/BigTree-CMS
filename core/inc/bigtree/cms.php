@@ -849,7 +849,24 @@
 		function getSetting($id) {
 			global $bigtree;
 			$id = sqlescape($id);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+
+			$f = false;
+			// See if we're in an extension
+			if (defined("EXTENSION_ROOT")) {
+				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
+				if ($f) {
+					$id = "$extension*$id";
+				}
+			}
+			// Try plain id
+			if (!$f) {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+			}
+			// Setting doesn't exist
+			if (!$f) {
+				return false;
+			}
 			// If the setting is encrypted, we need to re-pull just the value.
 			if ($f["encrypted"]) {
 				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
@@ -877,9 +894,22 @@
 		
 		function getSettings($ids) {
 			global $bigtree;
+
+			// If for some reason we only requested one, just call getSetting
 			if (!is_array($ids)) {
-				$ids = array($ids);
+				return array($this->getSetting($ids));
 			}
+
+			// If we're in an extension, just call getSetting on the whole array since we need to make inferences on each ID
+			if (defined("EXTENSION_ROOT")) {
+				$settings = array();
+				foreach ($ids as $id) {
+					$settings[$id] = $this->getSetting($id);
+				}
+				return $settings;
+			}
+
+			// Not in an extension, we can query them all at once
 			$parts = array();
 			foreach ($ids as $id) {
 				$parts[] = "id = '".sqlescape($id)."'";

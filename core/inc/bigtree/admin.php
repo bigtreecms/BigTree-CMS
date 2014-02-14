@@ -4717,7 +4717,20 @@
 			global $bigtree,$cms;
 			$id = sqlescape($id);
 
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+			$f = false;
+			// See if we're in an extension
+			if (defined("EXTENSION_ROOT")) {
+				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
+				if ($f) {
+					$id = "$extension*$id";
+				}
+			}
+			// Try plain id
+			if (!$f) {
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+			}
+			// Setting doesn't exist
 			if (!$f) {
 				return false;
 			}
@@ -7015,7 +7028,7 @@
 		function updateSettingValue($id,$value) {
 			global $bigtree;
 			$item = $this->getSetting($id,false);
-			$id = sqlescape($id);
+			$id = sqlescape($item["id"]);
 
 			if (is_array($value)) {
 				$value = BigTree::translateArray($value);
