@@ -1769,6 +1769,56 @@
 		}
 
 		/*
+			Function: deleteExtension
+				Uninstalls an extension from BigTree and removes its related components and files.
+
+			Parameters:
+				id - The extension ID.
+		*/
+
+		function deleteExtension($id) {
+			$extension = $this->getExtension($id);
+			$j = json_decode($extension["manifest"],true);
+		
+			// Delete site files
+			$site_files = file_exists(SITE_ROOT."extensions/".$j["id"]."/") ? array_reverse(BigTree::directoryContents(SITE_ROOT."extensions/".$j["id"]."/")) : array();
+			foreach ($site_files as $file) {
+				if (is_dir($file)) {
+					@rmdir($file);
+				} else {
+					@unlink($file);
+				}
+			}
+			// Delete extensions directory
+			$files = array_reverse(BigTree::directoryContents(SERVER_ROOT."extensions/".$j["id"]."/"));
+			foreach ($files as $file) {
+				if (is_dir($file)) {
+					@rmdir($file);
+				} else {
+					@unlink($file);
+				}
+			}
+		
+			// Delete components
+			foreach ($j["components"] as $type => $list) {
+				if ($type == "tables") {
+					// Turn off foreign key checks since we're going to be dropping tables.
+					sqlquery("SET SESSION foreign_key_checks = 0");
+					foreach ($list as $table) {
+						sqlquery("DROP TABLE IF EXISTS `$table`");
+					}
+					sqlquery("SET SESSION foreign_key_checks = 1");
+				} else {
+					foreach ($list as $item) {
+						sqlquery("DELETE FROM `bigtree_$type` WHERE id = '".sqlescape($item["id"])."'");
+					}
+				}
+			}
+		
+			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($extension["id"])."'");
+		}
+
+		/*
 			Function: deleteFeed
 				Deletes a feed.
 

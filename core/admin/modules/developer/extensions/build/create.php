@@ -115,7 +115,11 @@
 	}
 
 	foreach ((array)$modules as $module) {
-		sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module)."'");
+		if (strpos($module["route"],"*") === false) {
+			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module)."'");
+		} else {
+			sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module)."'");
+		}
 		$module = $admin->getModule($module);
 		$module["actions"] = $admin->getModuleActions($module["id"]);
 		foreach ($module["actions"] as $a) {

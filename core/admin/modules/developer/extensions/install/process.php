@@ -2,6 +2,10 @@
 	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
+	$extension = sqlescape($json["id"]);
+
+	// Turn off foreign key checks so we can reference the extension before creating it
+	sqlquery("SET foreign_key_checks = 0");
 
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {
@@ -25,7 +29,7 @@
 				$x++;
 			}
 			// Create the module
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp')");
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`,`extension`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp','$extension')");
 			$module_id = sqlid();
 			$bigtree["module_match"][$module["id"]] = $module_id;
 			$bigtree["route_match"][$module["route"]] = $route;
@@ -59,8 +63,7 @@
 	foreach ($json["components"]["templates"] as $template) {
 		if ($template) {
 			$resources = sqlescape(is_array($template["resources"]) ? json_encode($template["resources"]) : $template["resources"]);
-			sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
-			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."')");
+			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`,`extension`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."','$extension')");
 		}
 	}
 
@@ -68,16 +71,15 @@
 	foreach ($json["components"]["callouts"] as $callout) {
 		if ($callout) {
 			$resources = sqlescape(is_array($callout["resources"]) ? json_encode($callout["resources"]) : $callout["resources"]);
-			sqlquery("DELETE FROM bigtree_callouts WHERE id = '".sqlescape($callout["id"])."'");
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."')");	
+			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`,`extension`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."','$extension')");	
 		}
 	}
 
 	// Import Settings
 	foreach ($json["components"]["settings"] as $setting) {
 		if ($setting) {
-			sqlquery("DELETE FROM bigtree_settings WHERE id = '".sqlescape($setting["id"])."'");
 			$admin->createSetting($setting);
+			sqlquery("UPDATE bigtree_settings SET extension = '$extension' WHERE id = '".sqlescape($setting["id"])."'");
 		}
 	}
 
@@ -86,26 +88,29 @@
 		if ($feed) {
 			$fields = sqlescape(is_array($feed["fields"]) ? json_encode($feed["fields"]) : $feed["fields"]);
 			$options = sqlescape(is_array($feed["options"]) ? json_encode($feed["options"]) : $feed["options"]);
-			sqlquery("DELETE FROM bigtree_feeds WHERE route = '".sqlescape($feed["route"])."'");
-			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options')");
+			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`,`extension`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options','$extension')");
 		}
 	}
 
 	// Import Field Types
 	foreach ($json["components"]["field_types"] as $type) {
 		if ($type) {
-			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($type["id"])."'");
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["pages"])."','".sqlescape($type["modules"])."','".sqlescape($type["callouts"])."','".sqlescape($type["settings"])."')");
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["pages"])."','".sqlescape($type["modules"])."','".sqlescape($type["callouts"])."','".sqlescape($type["settings"])."','$extension')");
 		}
 	}
 
-	// Import files
-	foreach ($json["files"] as $file) {
-		BigTree::copyFile(SERVER_ROOT."cache/package/$file",SERVER_ROOT.$file);
+	// Import files into the extension directory
+	$contents = BigTree::directoryContents(SERVER_ROOT."cache/package/");
+	foreach ($contents as $file) {
+		BigTree::copyFile($file,str_replace(SERVER_ROOT."cache/package/",SERVER_ROOT."extensions/".$json["id"]."/",$file));
+	}
+	// Move site related files into the site directory
+	$site_contents = file_exists(SERVER_ROOT."extensions/".$json["id"]."/site/") ? BigTree::directoryContents(SERVER_ROOT."extensions/".$json["id"]."/site/") : array();
+	foreach ($site_contents as $file) {
+		BigTree::copyFile($file,str_replace(SERVER_ROOT,SERVER_ROOT."site/",$file));
 	}
 
 	// Run SQL
-	sqlquery("SET foreign_key_checks = 0");
 	foreach ($json["sql"] as $sql) {
 		sqlquery($sql);
 	}
@@ -125,8 +130,8 @@
 	@unlink(SERVER_ROOT."cache/module-class-list.btc");
 	@unlink(SERVER_ROOT."cache/form-field-types.btc");
 
-	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','package','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".sqlescape(json_encode($json))."')");
+	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','extension','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".sqlescape(json_encode($json))."')");
 	
-	$admin->growl("Developer","Installed Package");
-	BigTree::redirect(DEVELOPER_ROOT."packages/install/complete/");
+	$admin->growl("Developer","Installed Extension");
+	BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
 ?>

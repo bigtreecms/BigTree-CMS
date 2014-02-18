@@ -379,6 +379,7 @@
 	if (!$complete) {
 		// Check custom if it's not an extension, otherwise use the extension directory
 		if ($module && $module["extension"]) {
+			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
 			list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		} else {

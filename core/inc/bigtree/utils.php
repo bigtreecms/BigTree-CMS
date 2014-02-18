@@ -106,8 +106,8 @@
 				include_once BigTree::path($bigtree["other_classes"][$class]);
 				return;
 			} elseif ($route = $bigtree["module_list"][$class]) {
-				if (strpos($route,"/") !== false) {
-					list($extension,$class) = explode("/",$route);
+				if (strpos($route,"*") !== false) {
+					list($extension,$class) = explode("*",$route);
 					include_once SERVER_ROOT."extensions/$extension/classes/$class.php";
 					return;
 				} else {

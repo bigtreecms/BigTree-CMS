@@ -25,11 +25,7 @@
 				$q = sqlquery("SELECT * FROM bigtree_modules");
 				$items = array();
 				while ($f = sqlfetch($q)) {
-					if ($f["extension"]) {
-						$items[$f["class"]] = $f["extension"]."/".$f["route"];
-					} else {
-						$items[$f["class"]] = $f["route"];
-					}
+					$items[$f["class"]] = $f["route"];
 				}
 				
 				// Cache it so we don't hit the database.
