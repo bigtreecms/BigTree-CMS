@@ -115,12 +115,12 @@
 	}
 
 	foreach ((array)$modules as $module) {
-		if (strpos($module["route"],"*") === false) {
-			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module)."'");
-		} else {
-			sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module)."'");
-		}
 		$module = $admin->getModule($module);
+		if (strpos($module["route"],"*") === false) {
+			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
+		} else {
+			sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
+		}
 		$module["actions"] = $admin->getModuleActions($module["id"]);
 		foreach ($module["actions"] as $a) {
 			// If there's an auto module, include it as well.

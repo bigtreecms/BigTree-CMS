@@ -669,7 +669,7 @@
 				return false;
 			}
 			while ($r = readdir($d)) {
-				if ($r != "." && $r != ".." && $r != ".DS_Store") {
+				if ($r != "." && $r != ".." && $r != ".DS_Store" && $r != "__MACOSX") {
 					$path = rtrim($directory,"/")."/".$r;
 					if ($extension === false || substr($path,-1 * strlen($extension)) == $extension) {
 						$contents[] = $path;
