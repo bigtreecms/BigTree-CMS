@@ -185,6 +185,7 @@
 
 	// Load the default layout.
 	$bigtree["layout"] = "default";
+	$bigtree["subnav_extras"] = array();
 
 	// If we're not logged in and we're not trying to login, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {

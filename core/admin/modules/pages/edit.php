@@ -13,7 +13,7 @@
 	$template_data = $cms->getTemplate($page["template"]);
 
 	// Audit Trail link
-	$bigtree["developer_nav_links"][] = array("url" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"],"class" => "icon_trail","title" => "Audit Trail");		
+	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"],"icon" => "trail","title" => "View Audit Trail");		
 	
 	$bigtree["form_action"] = "update";
 	include BigTree::path("admin/modules/pages/_form.php");

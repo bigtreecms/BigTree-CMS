@@ -2,7 +2,7 @@
 	$bigtree["report"] = BigTreeAutoModule::getReport($bigtree["module_action"]["report"]);
 	$bigtree["form"] = BigTreeAutoModule::getRelatedFormForReport($bigtree["report"]);
 	$bigtree["view"] = $bigtree["report"]["view"] ? BigTreeAutoModule::getView($bigtree["report"]["view"]) : BigTreeAutoModule::getRelatedViewForReport($bigtree["report"]);
-	$bigtree["developer_nav_links"][] = array("url" => ADMIN_ROOT."developer/modules/reports/edit/".$bigtree["report"]["id"]."/?return=front","class" => "icon_settings","title" => "Edit in Developer");
+	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/reports/edit/".$bigtree["report"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
 	
 	$action = $bigtree["commands"][0];
 	if ($action == "csv") {
