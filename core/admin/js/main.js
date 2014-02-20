@@ -22,7 +22,14 @@ $(document).ready(function() {
 		$("#quick_search_results").parents().submit();
 		return false;
 	});
-	
+
+	// Subnav extras menu
+	$("#sub_nav menu").hover(function() {
+		$(this).parent().addClass("dropdown_open");
+	},function() {
+		$(this).parent().removeClass("dropdown_open");
+	});
+
 	// Growl Hooks
 	$("#growl").on("click",".close",function() {
 		$(this).parents("article").remove();

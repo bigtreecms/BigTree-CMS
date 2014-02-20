@@ -99,6 +99,6 @@ INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `name`, `description`, `l
 INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `description`, `locked`, `system`, `encrypted`) VALUES ('bigtree-internal-per-page', X'3135', 'text', '', 'Number of Items Per Page', '<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>', 'on', '', '');
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-revision','100','on');
 
-INSERT INTO `bigtree_templates` (`id`, `name`, `image`, `module`, `resources`, `position`, `description`, `level`, `routed`) VALUES ('home', 'Home', 'page.png', 0, '[]', 0, 'Home Page', 2, ''), ('content', 'Content', 'page.png', 0, '[{"id":"page_header","title":"Page Header","subtitle":"","type":"text","validation":"","seo_h1":"on","sub_type":"","wrapper":"","name":""},{"id":"page_content","title":"Page Content","subtitle":"","type":"html","validation":"","seo_body":"on","wrapper":"","name":""}]', 1, 'Master Content', 0, '');
+INSERT INTO `bigtree_templates` (`id`, `name`, `module`, `resources`, `position`, `level`, `routed`) VALUES ('home', 'Home', 0, '[]', 0, 2, ''), ('content', 'Content', 0, '[{"id":"page_header","title":"Page Header","subtitle":"","type":"text","validation":"","seo_h1":"on","sub_type":"","wrapper":"","name":""},{"id":"page_content","title":"Page Content","subtitle":"","type":"html","validation":"","seo_body":"on","wrapper":"","name":""}]', 1, 0, '');
 
 SET SESSION foreign_key_checks = 1;

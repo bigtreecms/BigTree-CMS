@@ -124,7 +124,7 @@
 		}
 		if ($show_nav && !defined("BIGTREE_404")) {
 	?>
-	<nav class="sub">
+	<nav id="sub_nav">
 		<?
 			$active_item = false;
 			// Figure out what the active state is.
@@ -155,16 +155,39 @@
 		<?
 				}
 			}
-
-			if (is_array($bigtree["developer_nav_links"]) && $admin->Level > 1) {
-				foreach ($bigtree["developer_nav_links"] as $link) {
 		?>
-		<a href="<?=$link["url"]?>" class="developer" title="<?=$link["title"]?>"><span class="<?=$link["class"]?>"></span></a>
-		<?
-				}
-			}
-		?>
+		<menu<? if (!count($bigtree["subnav_extras"])) { ?> style="display: none;"<? } ?>>
+			<span class="icon"></span>
+			<div>
+				<?
+					if (is_array($bigtree["subnav_extras"])) {
+						foreach ($bigtree["subnav_extras"] as $link) {
+							if ($admin->Level >= $link["level"]) {
+				?>
+				<a href="<?=$link["link"]?>"><span class="icon_small icon_small_<?=$link["icon"]?>"></span><?=$link["title"]?></a>
+				<?
+							}
+						}
+					}
+				?>
+			</div>
+		</menu>
 	</nav>
+	<script>
+		// Placing this here inline because we want the menu rendering changed on page render if it's too large.
+		var width = 0;
+		var menu = $("#sub_nav menu div");
+		$("#sub_nav > a").each(function() {
+			var iwidth = $(this).width() + 29;
+			if (width + iwidth > 910) {
+				menu.prepend($(this));
+			}
+			width += iwidth;
+		});
+		if (width > 910) {
+			$("#sub_nav menu").show();
+		}
+	</script>
 	<?
 		}
 
