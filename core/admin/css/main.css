@@ -372,7 +372,7 @@
 	#sub_nav .developer span { margin: 3px 0 0 0; }
 	#sub_nav menu { float: right; padding: 3px 6px; height: 24px; width: 24px; border-left: 1px solid #CCC; margin-top: 0; cursor: pointer; }
 	#sub_nav menu .icon { background: url(../images/icon-sprite.svg); background-position: -792px -80px; display: block; height: 24px; width: 24px; margin: 0; }
-	#sub_nav menu div { position: absolute; display: none; top: 30px; right: -1px; width: auto; border: 1px solid #CCC; }
+	#sub_nav menu div { z-index: 3; position: absolute; display: none; top: 30px; right: -1px; width: auto; border: 1px solid #CCC; }
 	#sub_nav menu div a { background: #EEE; display: block; float: none; border-right: none; border-bottom: 1px solid #CCC; padding: 0 10px; }
 	#sub_nav menu div a:last-child { border: none; }
 	#sub_nav.dropdown_open { border-radius: 3px 3px 0 3px; }
