@@ -25,24 +25,6 @@ var BigTreePages = {
 			}
 		});
 		
-		// Walk through each step of page creation.
-		$(".next").click(function() {
-			nav = $(".container nav a");
-			
-			tab = $(".container nav a.active");
-			tab.removeClass("active");
-			next = tab.next("a").addClass("active");
-			
-			$("#" + next.attr("href").substr(1)).show();
-			$("#" + tab.attr("href").substr(1)).hide();
-			
-			if (nav.index(tab) == nav.length - 2) {
-				$(this).hide();
-			}
-			
-			return false;
-		});
-		
 		// Setup the date pickers
 		$("#publish_at, #expire_at").datepicker({ duration: 200, showAnim: "slideDown" });
 		

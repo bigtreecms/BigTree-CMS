@@ -146,17 +146,5 @@
 	<? } ?>
 </div>
 <script>
-	$(".container nav a").click(function() {
-		$(".content_container .content").hide();
-		href = "content_" + $(this).attr("href").substr(1);
-		if ($(href)) {
-			$(".container nav a").removeClass("active");
-			$(this).addClass("active");
-			$("#" + href).show();
-		}
-		
-		return false;
-	});
-	
 	BigTreeFormNavBar.init();
 </script>

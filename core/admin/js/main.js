@@ -1702,21 +1702,79 @@ var BigTreeFileManager = {
 // !BigTreeFormNavBar
 var BigTreeFormNavBar = {
 
+	container: false,
 	moreContainer: false,
 	
 	init: function() {
-		// Calculate the width of the navigate
-		calc_nav_container = $(".container nav .more div");
-		nav_width = calc_nav_container.width();
+		this.container = $(".container");
+
+		// Generic tab controls
+		this.container.find("nav a").click(function() {		
+			var t = $(".container").offset().top;
+			if (window.scrollY > t) {
+				$('html, body').animate({
+					scrollTop: $(".container").offset().top
+				}, 200);
+			}
+			
+			var href = $(this).attr("href").substr(1);
+			BigTreeFormNavBar.container.find("form > section").hide();
+			BigTreeFormNavBar.container.find("nav a").removeClass("active");
+			$(this).addClass("active");
+			$("#" + href).show();
+			
+			// Manage the "Next" buttons
+			var nav = BigTreeFormNavBar.container.find("nav a");
+			var index = nav.index(this);
+			if (index == nav.length - 1) {
+				BigTreeFormNavBar.container.find("footer .next").hide();
+			} else {
+				BigTreeFormNavBar.container.find("footer .next").show();				
+			}
+			
+			return false;
+		});
+
+		// Next Button controls
+		this.container.find("footer .next").click(function() {
+			nav = BigTreeFormNavBar.container.find("nav a");
+			
+			tab = BigTreeFormNavBar.container.find("nav a.active");
+			tab.removeClass("active");
+			next = tab.next("a").addClass("active");
+			
+			$("#" + next.attr("href").substr(1)).show();
+			$("#" + tab.attr("href").substr(1)).hide();
+			
+			if (nav.index(tab) == nav.length - 2) {
+				$(this).hide();
+			}
+			
+			return false;
+		});
+
+		// Form Validation
+		new BigTreeFormValidator(".container form",function(errors) {
+			// Hide all the pages tab sections
+			BigTreeFormNavBar.container.find("form > section").hide();
+			// Unset all the active states on tabs
+			BigTreeFormNavBar.container.find("nav a").removeClass("active");
+			// Figure out what section the first error occurred in and show that section.
+			BigTreeFormNavBar.container.find("nav a[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+		});
+
+		// For when there are too many tabs, we need to setup scrolling
+		var calc_nav_container = this.container.find("nav .more div");
+		var nav_width = calc_nav_container.width();
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
 			BigTreeFormNavBar.moreContainer = calc_nav_container.parent();
 			
-			page_count = 0;
-			current_width = 0;
-			current_page = $('<div class="nav_page active">');
+			var page_count = 0;
+			var current_width = 0;
+			var current_page = $('<div class="nav_page active">');
 			$(".container nav a").each(function() {
-				width = $(this).width() + 47;
+				var width = $(this).width() + 47;
 				
 				if ((current_width + width) > 848) {
 					page_count++;
@@ -1730,7 +1788,7 @@ var BigTreeFormNavBar = {
 						current_page.prepend(lessButton);
 					}
 					
-					moreButton = $('<a class="more_nav" href="#">');
+					var moreButton = $('<a class="more_nav" href="#">');
 					moreButton.html("&raquo;");
 					moreButton.click(function() {
 						$(BigTreeFormNavBar.moreContainer).animate({ marginLeft: + (parseInt(BigTreeFormNavBar.moreContainer.css("margin-left")) - 928) + "px" }, 300);
@@ -1748,7 +1806,7 @@ var BigTreeFormNavBar = {
 			});
 			
 			
-			lessButton = $('<a class="more_nav" href="#">');
+			var lessButton = $('<a class="more_nav" href="#">');
 			lessButton.html("&laquo;");
 			lessButton.click(function() {
 				$(BigTreeFormNavBar.moreContainer).animate({ marginLeft: + (parseInt(BigTreeFormNavBar.moreContainer.css("margin-left")) + 928) + "px" }, 300);
@@ -2861,4 +2919,4 @@ var BigTreeCallouts = {
 
 		return article;
 	}
-}
+};
