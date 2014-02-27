@@ -128,6 +128,11 @@
 		call_user_func($bigtree["form"]["callback"],$edit_id,$item,$did_publish);
 	}
 
+	// Publish Hook
+	if ($did_publish && $bigtree["form"]["publish_hook"]) {
+		call_user_func($bigtree["form"]["publish_hook"],$table,$edit_id,$item,$many_to_many,$tags);
+	}
+
 	// Track resource allocation
 	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
 
