@@ -393,12 +393,13 @@
 				data - An array of form data to enter into the table. This function determines what data in the array applies to a column in the database and discards the rest.
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
+				publish_hook - A function to call when this change is published from the Dashboard.
 			
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array()) {
+		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
 			global $admin;
 
 			foreach ($data as $key => $val) {
@@ -413,7 +414,8 @@
 			$data = sqlescape(json_encode($data));
 			$many_data = sqlescape(json_encode($many_to_many));
 			$tags_data = sqlescape(json_encode($tags));
-			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`) VALUES (".$admin->ID.",NOW(),'$table','$data','$many_data','$tags_data','$module','NEW')");
+			$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
+			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES (".$admin->ID.",NOW(),'$table','$data','$many_data','$tags_data','$module','NEW',$publish_hook)");
 			
 			$id = sqlid();
 
@@ -1488,12 +1490,13 @@
 				data - The change request data.
 				many_to_many - The many to many changes.
 				tags - The tag changes.
+				publish_hook - A function to call when this change is published from the Dashboard.
 			
 			Returns:
 				The id of the pending change.
 		*/
 		
-		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array()) {
+		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
 			global $admin;
 
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
@@ -1547,7 +1550,8 @@
 				
 				return $existing["id"];
 			} else {
-				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`) VALUES ('".$admin->ID."',NOW(),'$table','$id','$changes','$many_data','$tags_data','$module','EDIT')");
+				$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
+				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES ('".$admin->ID."',NOW(),'$table','$id','$changes','$many_data','$tags_data','$module','EDIT',$publish_hook)");
 				self::recacheItem($id,$table);
 				
 				if ($admin) {

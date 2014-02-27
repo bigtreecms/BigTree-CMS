@@ -140,11 +140,11 @@
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags);
+			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["publish_hook"]);
 			$admin->growl($bigtree["module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags);
+			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["publish_hook"]);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
 		}
 	// We're a publisher and we want to publish

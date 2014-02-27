@@ -334,7 +334,8 @@
 	// BigTree 4.2 update -- REVISION 200
 	function _local_bigtree_update_200() {
 		global $cms,$admin;
-		
+
+		// Add extension columns
 		sqlquery("ALTER TABLE bigtree_callouts ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_callouts ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_feeds ADD COLUMN `extension` VARCHAR(255)");
@@ -347,5 +348,8 @@
 		sqlquery("ALTER TABLE bigtree_settings ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_templates ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_templates ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
+
+		// Add publish_hook column
+		sqlquery("ALTER TABLE bigtree_pending_changes ADD COLUMN `publish_hook` VARCHAR(255)");
 	}
 ?>
