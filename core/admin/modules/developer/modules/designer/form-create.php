@@ -51,7 +51,7 @@
 	}
 	
 	// Update the table
-	sqlquery("ALTER TABLE `$table` ".implode(", ",$adds));
+	sqlquery("ALTER TABLE $table ".implode(", ",$adds));
 	
 	// Add the module form
 	
