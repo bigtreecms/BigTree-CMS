@@ -17,8 +17,10 @@
 			}
 		}
 	}
+
+	$noun = $field["options"]["noun"] ? htmlspecialchars($field["options"]["noun"]) : "Callout";
 ?>
-<fieldset class="callouts" id="<?=$field["id"]?>">
+<fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 	<div class="contain">
 		<?
@@ -45,9 +47,9 @@
 			}
 		?>
 	</div>
-	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add Callout</a>
+	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
 </fieldset>
 <script>
-	BigTreeCallouts.init("#<?=$field["id"]?>","<?=$field["key"]?>","<?=htmlspecialchars($field["options"]["noun"] ? $field["options"]["noun"] : "Callout")?>","<?=$field["options"]["group"]?>");
+	BigTreeCallouts.init("#<?=$field["id"]?>","<?=$field["key"]?>","<?=$noun?>","<?=$field["options"]["group"]?>");
 	BigTreeCallouts.count += <?=count($field["value"])?>;
 </script>

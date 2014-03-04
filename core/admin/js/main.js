@@ -2789,8 +2789,8 @@ var BigTreeCallouts = {
 			}});
 			
 			return false;
-		}).on("click","#bigtree_callouts .icon_delete",function() {
-			new BigTreeDialog("Delete " + noun, '<p class="confirm">Are you sure you want to delete this ' + noun.toLower() + '?</p>', $.proxy(function() {
+		}).on("click",".icon_delete",function() {
+			new BigTreeDialog("Delete " + noun, '<p class="confirm">Are you sure you want to delete this ' + noun.toLowerCase() + '?</p>', $.proxy(function() {
 				$(this).parents("article").remove();
 			},this),"delete",false,"OK");
 			return false;

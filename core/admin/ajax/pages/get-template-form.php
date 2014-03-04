@@ -40,6 +40,7 @@
 		foreach ($bigtree["template"]["resources"] as $resource) {
 			$field = array();
 			// Leaving some variable settings for backwards compatibility — removing in 5.0
+			$field["type"] = $resource["type"];
 			$field["title"] = $title = $resource["title"];
 			$field["subtitle"] = $subtitle = $resource["subtitle"];
 			$field["key"] = $key = "resources[".$resource["id"]."]";
@@ -68,17 +69,18 @@
 ?>
 <fieldset>
 	<?
-				if ($field["title"] && $resource["type"] != "checkbox") {
+					if ($field["title"] && $resource["type"] != "checkbox") {
 	?>
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 	<?
-				}
-				include $field_type_path;
-				$bigtree["tabindex"]++;
+					}
+					include $field_type_path;
+					$bigtree["tabindex"]++;
 	?>
 </fieldset>
 <?
 				}
+				$bigtree["last_resource_type"] = $field["type"];
 			}
 		}
 	} else {
