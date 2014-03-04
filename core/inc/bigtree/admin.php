@@ -363,22 +363,27 @@
 		*/
 
 		function backupDatabase($file) {
-			$dump = "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n";
-			$dump .= "SET foreign_key_checks = 0;\n\n";
+			if (!BigTree::isDirectoryWritable($file)) {
+				return false;
+			}
+
+			$pointer = fopen($file,"w");
+			fwrite($pointer,"SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
+			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
 
 			// We need to dump the bigtree tables in the proper order or they will not properly be recreated with the right foreign keys
 			$tables = array();
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$table = current($f);
-				$dump .= "DROP TABLE IF EXISTS `$table`;\n";
+				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
 				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
-				$dump .= str_replace(array("\n  ","\n"),"",end($definition)).";\n";
-				$q = sqlquery("SELECT * FROM `$table`");
-				while ($f = sqlfetch($q)) {
+				fwrite($pointer,str_replace(array("\n  ","\n"),"",end($definition)).";\n");
+				$qq = sqlquery("SELECT * FROM `$table`");
+				while ($ff = sqlfetch($qq)) {
 					$keys = array();
 					$vals = array();
-					foreach ($f as $key => $val) {
+					foreach ($ff as $key => $val) {
 						$keys[] = "`$key`";
 						if ($val === null) {
 							$vals[] = "NULL";
@@ -386,13 +391,15 @@
 							$vals[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
 						}
 					}
-					$dump .= "INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).");\n";
+					fwrite($pointer,"INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).");\n");
 				}
-				$dump .= "\n";
+				fwrite($pointer,"\n");
 			}
-			$dump .= "\nSET foreign_key_checks = 1;";
 
-			return BigTree::putFile($file,trim($dump));
+			fwrite($pointer,"\nSET foreign_key_checks = 1;");
+			fclose($pointer);
+
+			return true;
 		}
 
 		/*
