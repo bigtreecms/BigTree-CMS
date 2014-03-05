@@ -331,14 +331,14 @@
 	
 	function swapData(ev) {
 		table = $(this).attr("href").substr(1);
-		$(this).prev("input").val(table + "#structure");
+		$(this).parent().find("input").val(table + "#structure");
 		$(this).removeClass("icon_small_export").addClass("icon_small_list").unbind("click",swapData).bind("click",swapStructure);
 		return false;
 	}
 	
 	function swapStructure(ev) {
 		table = $(this).attr("href").substr(1);
-		$(this).prev("input").val(table + "#with-data");
+		$(this).parent().find("input").val(table + "#with-data");
 		$(this).removeClass("icon_small_list").addClass("icon_small_export").unbind("click",swapStructure).bind("click",swapData);
 		return false;
 	}
