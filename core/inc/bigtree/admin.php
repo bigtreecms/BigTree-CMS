@@ -5339,6 +5339,246 @@
 		}
 
 		/*
+			Function: processImageUpload
+				Processes image upload data for form fields.
+				If you're emulating field information, the following keys are of interest in the field array:
+				"file_input" - a keyed array that needs at least "name" and "tmp_name" keys that contain the desired name of the file and the source file location, respectively.
+				"options" - a keyed array of options for the field, keys of interest for photo processing are:
+					"min_height" - Minimum Height required for the image
+					"min_width" - Minimum Width required for the image
+					"retina" - Whether to try to create a 2x size image when thumbnailing / cropping (if the source file / crop is large enough)
+					"thumbs" - An array of thumbnail arrays, each of which has "prefix", "width", "height", and "grayscale" keys (prefix is prepended to the file name when creating the thumbnail, grayscale will make the thumbnail grayscale)
+					"crops" - An array of crop arrays, each of which has "prefix", "width", "height" and "grayscale" keys (prefix is prepended to the file name when creating the crop, grayscale will make the thumbnail grayscale)). Crops can also have their own "thumbs" key that creates thumbnails of each crop (format mirrors that of "thumbs")
+
+			Parameters:
+				field - Field information (normally set to $field when running a field type's process file)
+		*/
+
+		function processImageUpload($field) {
+			global $bigtree;
+			$failed = false;
+			$name = $field["file_input"]["name"];
+			$temp_name = $field["file_input"]["tmp_name"];
+			$error = $field["file_input"]["error"];
+
+			// If a file upload error occurred, return the old image and set errors
+			if ($error == 1 || $error == 2) {
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+				return false;
+			} elseif ($error == 3) {
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");
+				return false;
+			}
+
+			// We're going to tell BigTreeStorage to handle forcing images into JPEGs instead of writing the code 20x
+			$storage = new BigTreeStorage;
+			$storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];		
+				
+			// Let's check the minimum requirements for the image first before we store it anywhere.
+			$image_info = @getimagesize($temp_name);
+			$iwidth = $image_info[0];
+			$iheight = $image_info[1];
+			$itype = $image_info[2];
+			$channels = $image_info["channels"];
+		
+			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
+			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
+				$failed = true;
+			}
+			
+			// If it's not a valid image, throw it out!
+			if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
+				$failed = true;
+			}
+			
+			// See if it's CMYK
+			if ($channels == 4) {
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
+				$failed = true;
+			}
+		
+			// See if we have enough memory for all our crops and thumbnails
+			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
+				if (is_array($field["options"]["crops"])) {
+					foreach ($field["options"]["crops"] as $crop) {
+						if ($field["options"]["retina"]) {
+							$crop["width"] *= 2;
+							$crop["height"] *= 2;
+						}
+						// We don't want to add multiple errors so we check if we've already failed
+						if (!$failed && !BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"],$iwidth,$iheight)) {
+							$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+							$failed = true;
+						}
+					}
+				}
+				if (is_array($field["options"]["thumbs"])) {
+					foreach ($field["options"]["thumbs"] as $thumb) {
+						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
+						if (!$failed) {
+							if ($field["options"]["retina"]) {
+								$thumb["width"] *= 2;
+								$thumb["height"] *= 2;
+							}
+							$sizes = BigTree::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
+							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4],$iwidth,$iheight)) {
+								$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+								$failed = true;
+							}
+						}
+					}
+				}
+			}
+		
+			if (!$failed) {
+				// Make a temporary copy to be used for thumbnails and crops.
+				$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
+		
+				// Make a first copy
+				$first_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+				BigTree::moveFile($temp_name,$first_copy);
+		
+				// Do EXIF Image Rotation
+				if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
+					$exif = @exif_read_data($first_copy);
+					$o = $exif['Orientation'];
+					if ($o == 3 || $o == 6 || $o == 8) {
+						$source = imagecreatefromjpeg($first_copy);
+						
+						if ($o == 3) {
+							$source = imagerotate($source,180,0);
+						} elseif ($o == 6) {
+							$source = imagerotate($source,270,0);
+						} else {
+							$source = imagerotate($source,90,0);
+						}
+						
+						// We're going to create a PNG so that we don't lose quality when we resave
+						imagepng($source,$first_copy);
+						rename($first_copy,substr($first_copy,0,-3)."png");
+		
+						// Force JPEG since we made the first copy a PNG
+						$storage->AutoJPEG = true;
+		
+						// Clean up memory
+						imagedestroy($source);
+		
+						// Get new width/height/type
+						list($iwidth,$iheight,$itype,$iattr) = getimagesize($first_copy);
+					}
+				}
+		
+				// Let's crush any PNG.
+				if ($itype == IMAGETYPE_PNG && $storage->optipng) {
+					exec($storage->optipng." ".$first_copy);
+				}
+		
+				// Let's crush any GIF and see if we can make it a PNG.
+				if ($itype == IMAGETYPE_GIF && $storage->optipng) {
+					exec($storage->optipng." ".$first_copy);
+					if (file_exists(substr($first_copy,0,-3)."png")) {
+						unlink($first_copy);
+						$first_copy = substr($first_copy,0,-3)."png";
+						$name = substr($name,0,-3).".png";
+					}
+					
+				}
+		
+				// Let's trim any JPG
+				if ($itype == IMAGETYPE_JPEG && $storage->jpegtran) {
+					exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
+					rename($first_copy."-trimmed",$first_copy);
+				}
+				
+				// Create a temporary copy that we will use later for crops and thumbnails
+				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+				BigTree::copyFile($first_copy,$temp_copy);
+				
+				// Upload the original to the proper place.
+				$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"]);
+ 				
+ 				// If the upload service didn't return a value, we failed to upload it for one reason or another.
+ 				if (!$field["output"]) {
+ 					if ($storage->DisabledFileError) {
+						$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The file extension is not allowed.");
+					} else {
+						$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
+					}
+					unlink($temp_copy);
+					unlink($first_copy);
+					$failed = true;
+				// If we did upload it successfully, check on thumbs and crops.
+				} else { 
+					// Get path info on the file.
+					$pinfo = BigTree::pathInfo($field["output"]);
+				
+					// Handle Crops
+					foreach ($field["options"]["crops"] as $crop) {
+						$cwidth = $crop["width"];
+						$cheight = $crop["height"];
+						
+						// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
+						if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
+							// Make a square if for some reason someone only entered one dimension for a crop.
+							if (!$cwidth) {
+								$cwidth = $cheight;
+							} elseif (!$cheight) {
+								$cheight = $cwidth;
+							}
+							$bigtree["crops"][] = array(
+								"image" => $temp_copy,
+								"directory" => $field["options"]["directory"],
+								"retina" => $field["options"]["retina"],
+								"name" => $pinfo["basename"],
+								"width" => $cwidth,
+								"height" => $cheight,
+								"prefix" => $crop["prefix"],
+								"thumbs" => $crop["thumbs"],
+								"grayscale" => $crop["grayscale"]
+							);
+						// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
+						} elseif ($iheight == $cheight && $iwidth == $cwidth) {
+							// See if we want thumbnails
+							if (is_array($crop["thumbs"])) {
+								foreach ($crop["thumbs"] as $thumb) {
+									// Create a temporary thumbnail of the image on the server before moving it to it's destination.
+									$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+									BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
+									// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+									$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+								}
+							}
+							
+							$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+						}
+					}
+					
+					// Handle thumbnailing
+					if (is_array($field["options"]["thumbs"])) {
+						foreach ($field["options"]["thumbs"] as $thumb) {
+							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+							BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
+							// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+							$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+						}
+					}
+					
+					// If we don't have any crops, get rid of the temporary image we made.
+					if (!count($bigtree["crops"])) {
+						unlink($temp_copy);
+					}
+				}
+			// We failed, keep the current value.
+			} else {
+				return false;
+			}
+
+			return $field["output"];
+		}
+
+		/*
 			Function: refreshLock
 				Refreshes a lock.
 
