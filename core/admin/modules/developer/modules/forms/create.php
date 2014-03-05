@@ -22,14 +22,7 @@
 	$admin->createModuleAction($module,"Edit $title","edit".$suffix,"","edit",$form_id);
 
 	$module_info = $admin->getModule($module);
+
+	$admin->growl("Developer","Created Module Form");
+	BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 ?>
-<div class="container">
-	<section>
-		<h3>Add/Edit <?=$title?></h3>
-		<p>Your form has been created. If you were creating a module from scratch, the process is now complete.</p>
-	</section>
-	<footer>
-		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/" class="button white">View Module</a>
-		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/add<?=$suffix?>/" class="button blue">View Form</a>
-	</footer>
-</div>

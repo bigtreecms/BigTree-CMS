@@ -17,7 +17,6 @@
 	}
 
 	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,$preprocess,$callback,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
-	$module_info = $admin->getModule($module);
 
 	$admin->growl("Developer","Created Embeddable Form");
 ?>
@@ -28,6 +27,6 @@
 		<input type="text" value="<?=$embed?>" />
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module_info["id"]?>/" class="button blue">Return to Edit Module</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button blue">Return to Module</a>
 	</footer>
 </div>
