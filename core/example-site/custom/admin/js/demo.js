@@ -1,28 +1,7 @@
-// !BigTree Photo Gallery Class
-var BigTreePhotoGallery = Class.extend({
-	container: false,
-	counter: false,
-	dragging: false,
-	key: false,
-	fileInput: false,
-	activeCaption: false,
+// Default Photo Gallery w/ Attribution and Link fields added
+var CustomPhotoGallery = BigTreePhotoGallery.extend({
 	activeAttribution: false,
 	activeLink: false,
-	disableCaptions: false,
-	
-	init: function(container,key,counter,disable_captions) {
-		this.key = key;
-		this.container = $("#" + container);
-		this.counter = counter;
-		this.disableCaptions = disable_captions;
-		this.fileInput = this.container.find("footer input");
-		
-		this.container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
-		this.container.on("click",".icon_delete",this.deletePhoto);
-		this.container.on("click",".icon_edit",$.proxy(this.editPhoto,this));
-		this.container.on("change","input[type=file]",$.proxy(this.addPhoto,this));
-		this.container.find(".form_image_browser").click($.proxy(this.openFileManager,this));
-	},
 	
 	addPhoto: function() {
 		if (!this.fileInput.val()) {
@@ -37,14 +16,6 @@ var BigTreePhotoGallery = Class.extend({
 		} else {
 			this.saveNewFile({ caption: "", attribution: "", link: "" });
 		}
-		return false;
-	},
-	
-	deletePhoto: function() {
-		new BigTreeDialog("Remove Photo",'<p class="confirm">Are you sure you want to remove this photo?</p>',$.proxy(function() {
-			$(this).parents("li").remove();
-		},this),"delete",false,"OK");
-		
 		return false;
 	},
 	
@@ -94,43 +65,4 @@ var BigTreePhotoGallery = Class.extend({
 		this.fileInput.get(0).customControl = false;
 		this.fileInput = new_file;
 	},
-	
-	openFileManager: function(ev) {
-		target = $(ev.target);
-		// In case they click the span instead of the button.
-		if (!target.attr("href")) {
-			field = target.parent().attr("href").substr(1);	
-			options = eval('(' + target.parent().attr("data-options") + ')');
-		} else {
-			field = target.attr("href").substr(1);
-			options = eval('(' + target.attr("data-options") + ')');
-		}
-		BigTreeFileManager.formOpen("photo-gallery",field,options,$.proxy(this.useExistingFile,this));
-		return false;
-	},
-	
-	useExistingFile: function(path,caption,thumbnail) {
-		li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
-		li.find("img").load(function() {
-			w = $(this).width();
-			h = $(this).height();
-			if (w > h) {
-				perc = 75 / w;
-				h = perc * h;
-				style = { margin: Math.floor((75 - h) / 2) + "px 0 0 0" };
-			} else {
-				perc = 75 / h;
-				w = perc * w;
-				style = { margin: "0 0 0 " + Math.floor((75 - w) / 2) + "px" };
-			}
-			
-			$(this).css(style);
-		});
-		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][existing]" />').val(path));
-		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(caption));
-		this.container.find("ul").append(li);
-
-		this.counter++;
-		c = this.counter;
-	}
 });

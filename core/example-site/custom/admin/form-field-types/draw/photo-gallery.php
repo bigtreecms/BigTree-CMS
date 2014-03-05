@@ -1,4 +1,6 @@
 <?
+	// Modified Photo Gallery to add Attribution and Link attributes
+
 	$photos = is_array($field["value"]) ? $field["value"] : array();
 	$max = count($photos);
 	$current = 0;
@@ -45,5 +47,5 @@
 	</footer>
 </div>
 <script>
-	new BigTreePhotoGallery("<?=$field["id"]?>","<?=$field["key"]?>",<?=$current?><? if ($field["options"]["disable_captions"]) { ?>,true<? } ?>);
+	new CustomPhotoGallery("<?=$field["id"]?>","<?=$field["key"]?>",<?=$current?><? if ($field["options"]["disable_captions"]) { ?>,true<? } ?>);
 </script>
