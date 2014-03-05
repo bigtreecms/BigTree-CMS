@@ -24,7 +24,7 @@
 	<section>
 		<h3><?=$title?></h3>
 		<p>Your embeddable form has been created. You can copy and paste the code below to embed this form.</p>
-		<input type="text" value="<?=$embed?>" />
+		<textarea><?=$embed?></textarea>
 	</section>
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button blue">Return to Module</a>
