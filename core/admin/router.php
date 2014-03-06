@@ -276,14 +276,13 @@
 	}
 
 	// Execute cron tab functions if they haven't been run in 24 hours
-	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
+	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
+	if ($last_check === false) {
 		$admin->createSetting(array(
 			"id" => "bigtree-internal-cron-last-run",
 			"system" => "on"
 		));
 	}
-
-	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
 	// It's been more than 24 hours since we last ran cron.
 	if ((time() - $last_check) > (24 * 60 * 60)) {
 		// Update the setting.
