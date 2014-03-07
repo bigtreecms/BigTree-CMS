@@ -3604,7 +3604,7 @@
 
 		function getNaturalNavigationByParent($parent,$levels = 1) {
 			$nav = array();
-			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
+			$q = sqlquery("SELECT id,nav_title AS title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = $this->replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
@@ -5281,6 +5281,26 @@
 				return true;
 			}
 			return false;
+		}
+
+		/*
+			Function: pageChangeExists
+				Returns whether pending changes exist for a given page.
+
+			Parameters:
+				page - The page id.
+
+			Returns:
+				true or false
+		*/
+
+		function pageChangeExists($page) {
+			$page = sqlescape($page);
+			$c = sqlfetch(sqlquery("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
+			if (!$c) {
+				return false;
+			}
+			return true;
 		}
 
 		/*

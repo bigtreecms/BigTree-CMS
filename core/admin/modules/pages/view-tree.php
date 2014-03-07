@@ -46,7 +46,7 @@
 				if (isset($item["bigtree_pending"])) {
 					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">Pending</a>';
 					$status_class = "pending";
-				} elseif ($admin->getPageChanges($item["id"])) {
+				} elseif ($admin->pageChangeExists($item["id"])) {
 					$status = '<a href="'.WWW_ROOT.'_preview/'.$item["path"].'/" target="_blank">Changed</a>';
 					$status_class = "pending";
 				} elseif (strtotime($item["publish_at"]) > time()) {
@@ -149,7 +149,7 @@
 <h3>Subpages</h3>
 <?
 	$nav_visible = array_merge($admin->getNaturalNavigationByParent($page["id"],1),$admin->getPendingNavigationByParent($page["id"]));
-	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page["id"]),$admin->getPendingNavigationByParent($page["id"],""));	
+	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page["id"]),$admin->getPendingNavigationByParent($page["id"],""));
 	$nav_archived = $admin->getArchivedNavigationByParent($page["id"]);
 	
 	if (count($nav_visible) || count($nav_hidden) || count($nav_archived)) {
