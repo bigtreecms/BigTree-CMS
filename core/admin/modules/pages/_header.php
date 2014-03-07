@@ -1,16 +1,18 @@
 <?
 	$proot = ADMIN_ROOT."pages/";
 	$id = isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]);
-	$action = $bigtree["path"][count($bigtree["path"]) - 2];
+	$action = $bigtree["module_path"][0];
 
-	// Get the end command as the current working page and get the current user's access level.
+	// Get the end command as the current working page, only decode resources and get tags if we're editing
+	$bigtree["current_page"] = $page = $cms->getPendingPage($id,($action == "edit"),($action == "edit"));
+
+	// Get permissions
 	if (is_numeric($id)) {
-		$bigtree["current_page"] = $page = $cms->getPendingPage($id,true,true);
 		$bigtree["access_level"] = $admin->getPageAccessLevel($id);
+	// If it's a pending page we want the permission level of its parent page
 	} else {
-		$bigtree["current_page"] = $page = $cms->getPendingPage($id,true,true);
-		$bigtree["access_level"] = $admin->getPageAccessLevel($page["parent"]);
 		$bigtree["current_page"]["id"] = $page["id"] = $id;
+		$bigtree["access_level"] = $admin->getPageAccessLevel($page["parent"]);
 	}
 
 	// Stop the user if they don't have access to this page.
