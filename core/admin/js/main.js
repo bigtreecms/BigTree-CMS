@@ -2212,13 +2212,19 @@ var BigTreeFormValidator = Class.extend({
 		this.form.find(".form_error_reason").remove();
 		
 		this.form.find("input.required, select.required, textarea.required").each(function() {
+			// TinyMCE 3
 			if ($(this).nextAll(".mceEditor").length) {
 				val = tinyMCE.get($(this).attr("id")).getContent();
+			// Tiny MCE 4
+			} else if ($(this).prevAll(".mce-tinymce").length) {
+				val = tinymce.get($(this).attr("id")).getContent();
+			// File/Image Uploads
 			} else if ($(this).parents("div").nextAll(".currently, .currently_file").length) {
 				val = $(this).parents("div").nextAll(".currently, .currently_file").find("input").val();
 				if (!val) {
 					val = $(this).val();
 				}
+			// Regular input fields
 			} else {
 				val = $(this).val();
 			}
