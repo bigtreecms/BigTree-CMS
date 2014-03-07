@@ -17,7 +17,6 @@
 	}
 
 	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,$preprocess,$callback,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
-	$module_info = $admin->getModule($module);
 
 	$admin->growl("Developer","Created Embeddable Form");
 ?>
@@ -25,9 +24,9 @@
 	<section>
 		<h3><?=$title?></h3>
 		<p>Your embeddable form has been created. You can copy and paste the code below to embed this form.</p>
-		<input type="text" value="<?=$embed?>" />
+		<textarea><?=$embed?></textarea>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module_info["id"]?>/" class="button blue">Return to Edit Module</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button blue">Return to Module</a>
 	</footer>
 </div>

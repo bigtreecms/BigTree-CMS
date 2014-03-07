@@ -158,7 +158,7 @@
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { background: #FCE8E8; border-color: #C0362F; }
 
 	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; }
-	input.date_picker, input.time_picker { float: left; width: 183px !important; }
+	input.date_picker, input.time_picker { float: left; width: 180px !important; }
 	input.date_picker:focus, input.time_picker:focus { border-radius: 2px 2px 0 0; }
 
 	textarea { border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: Helvetica,sans-serif; font-size: 12px; height: 150px; line-height: 16px; margin: 0; padding: 5px 10px; transition: border-color 0.2s; width: 875px; }
@@ -748,6 +748,7 @@
 	fieldset.callouts .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
 	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
 	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+	fieldset.callouts_no_margin { margin-top: -31px; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }

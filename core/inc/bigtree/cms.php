@@ -863,6 +863,7 @@
 			if (!$f) {
 				return false;
 			}
+
 			// If the setting is encrypted, we need to re-pull just the value.
 			if ($f["encrypted"]) {
 				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));

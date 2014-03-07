@@ -71,15 +71,18 @@
 		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
 
-		$module_info = $admin->getModule($module);
+		if (!$_POST["new_module"]) {
+			$admin->growl("Developer","Created Module View");
+			BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
+		}
 ?>
 <div class="container">
 	<section>
 		<h3>View <?=$title?></h3>
-		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or choose to test the view instead.</p>
+		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or return to the module overview instead.</p>
 	</section>
 	<footer>
-		<a href="<?=ADMIN_ROOT?><?=$module_info["route"]?>/<? if ($route) { echo $route."/"; } ?>" class="button white">Test View</a> &nbsp;
+		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button white">Return to Module</a>
 		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&suffix=<?=urlencode($suffix)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
 	</footer>
 </div>

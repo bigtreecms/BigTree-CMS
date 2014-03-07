@@ -27,7 +27,7 @@
 					<li>
 						<input type="hidden" name="tables[]" value="<?=$table_hash?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<a href="#<?=$table?>" class="icon_small <? if ($type == "with-data") { ?>icon_small_export<? } else { ?>icon_small_list<? } ?>"></a>
+						<a href="#<?=$table?>" class="icon_small <? if ($type == "with-data") { ?>icon_small_export<? } else { ?>icon_small_list<? } ?>" title="<? if ($type == "with-data") { ?>Structure &amp; Data<? } else { ?>Structure Only<? } ?>"></a>
 						<?=$table?>
 					</li>
 					<?
@@ -68,12 +68,12 @@
 	});
 
 	$(".package_column").on("click",".icon_small_export",function() {
-		$(this).prev("input").val($(this).attr("href").substr(1) + "#structure");
-		$(this).removeClass("icon_small_export").addClass("icon_small_list");
+		$(this).parent().find("input").val($(this).attr("href").substr(1) + "#structure");
+		$(this).removeClass("icon_small_export").addClass("icon_small_list").attr("title","Structure Only");
 		return false;
 	}).on("click",".icon_small_list",function() {
-		$(this).prev("input").val($(this).attr("href").substr(1) + "#with-data");
-		$(this).removeClass("icon_small_list").addClass("icon_small_export");
+		$(this).parent().find("input").val($(this).attr("href").substr(1) + "#with-data");
+		$(this).removeClass("icon_small_list").addClass("icon_small_export").attr("title","Structure & Data");
 		return false;
 	}).on("click",".icon_small_delete",function() {
 		$(this).parent().remove();

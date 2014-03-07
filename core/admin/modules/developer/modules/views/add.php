@@ -17,6 +17,9 @@
 <div class="container">
 
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/create/<?=$id?>/" class="module">
+		<? if (isset($_GET["new_module"]) || isset($new_module)) { ?>
+		<input type="hidden" name="new_module" value="true" />
+		<? } ?>
 		<section>
 			<? if ($landing_exists) { ?>
 			<div class="alert">
