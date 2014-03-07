@@ -20,6 +20,19 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.3 Release
+- ADDED: Better support for installation on Windows with IIS
+- FIXED: Another PHP 5.2 compatibility issue in func_get_args
+- FIXED: Writable directory errors on Windows environments (should now better determine if a directory is writable)
+- FIXED: Static caching not working properly on routed template pages
+- FIXED: Reduced memory usage for cached pages
+- FIXED: Pages where POST vars were present being cached
+- FIXED: Disabled resources still being clickable in the File Manager
+- FIXED: Module Designer not properly creating columns in the table.
+- FIXED: Packager not properly recognizing the option to include data when exporting a table.
+- CHANGED: Resources (File Manager) permissions should now behave the same as Pages permissions in that you can have permission to a sub folder of a folder that you don't have permission to access (the folders you don't have permission to just appear empty and unwritable)
+- REMOVED: Settings encryption key as an option in the installer, it's now randomly generated and can be manually editing the config.
+
 ### 4.0.2 Release
 - FIXED: BigTree::globalizeArray (and its related methods) no longer will overwrite BigTree's globals ($admin, $bigtree, $cms) and should no longer break if the passed in array contains previously used internal variable names to the method ("array", "key", "val", "functions", "func").
 - FIXED: BigTree::putFile failing if the root filesystem directory was not readable.
