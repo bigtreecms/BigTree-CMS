@@ -3684,49 +3684,54 @@
 		*/
 
 		function getPageAccessLevelByUser($page,$user) {
-			// See if the user is an administrator, if so we can skip permissions.
-			$u = $this->getUser($user);
-			if ($u["level"] > 0) {
-				return "p";
-			}
-
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
-				if ($f["user"] == $user) {
-					return "p";
-				}
-				$pdata = json_decode($f["changes"],true);
-				return $this->getPageAccessLevelByUser($pdata["parent"],$user);
+				$changes = json_decode($f["changes"],true);
+				return $this->getPageAccessLevelByUser($changes["parent"],$user);
+			}
+
+			// If we're checking the logged in user, just use the info we already have
+			if ($user == $this->ID) {
+				$level = $this->Level;
+				$permissions = $this->Permissions;
+			// Not the logged in user? Look up the person.
+			} else {
+				$u = $this->getUser($user);
+				$level = $u["level"];
+				$permissions = $u["permissions"];
+			}
+
+			// See if the user is an administrator, if so we can skip permissions.
+			if ($level > 0) {
+				return "p";
 			}
 			
 			// See if this page has an explicit permission set and return it if so.
-			$pp = $this->Permissions["page"][$page];
-			if ($pp == "n") {
+			$explicit_permission = $permissions["page"][$page];
+			if ($explicit_permission == "n") {
 				return false;
-			} elseif ($pp && $pp != "i") {
-				return $pp;
+			} elseif ($explicit_permission && $explicit_permission != "i") {
+				return $explicit_permission;
 			}
 			
 			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
-			$parent = $parent["parent"];
+			$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
 			
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$pp = $u["permissions"]["page"][$parent];
-			while ((!$pp || $pp == "i") && $parent) {
-				$parent = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '$parent'"));
-				$parent = $parent["parent"];
-				$pp = $u["permissions"]["page"][$parent];
+			$parent_permission = $permissions["page"][$page_data["parent"]];
+			while ((!$parent_permission || $parent_permission == "i") && $page_data["parent"]) {
+				$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".$page_data["parent"]."'"));
+				$parent_permission = $permissions["page"][$page_data["parent"]];
 			}
 
 			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
-			if (!$pp || $pp == "i" || $pp == "n") {
+			if (!$parent_permission || $parent_permission == "i" || $parent_permission == "n") {
 				return false;
 			}
 			
 			// Return whatever we found.
-			return $pp;
+			return $parent_permission;
 		}
 
 		/*
