@@ -493,12 +493,13 @@
 			
 			Parameters:
 				id - The id of the form.
+				decode_ipl - Whether we want to decode internal page link on the css file (defaults to true)
 			
 			Returns:
 				A module form entry with fields decoded.
 		*/
 
-		static function getEmbedForm($id) {
+		static function getEmbedForm($id,$decode_ipl = true) {
 			global $cms;
 
 			if (is_array($id)) {
@@ -507,7 +508,9 @@
 
 			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE id = '".sqlescape($id)."'"));
 			$form["fields"] = json_decode($form["fields"],true);
-			$form["css"] = $cms->getInternalPageLink($form["css"]);
+			if ($decode_ipl) {
+				$form["css"] = $cms->getInternalPageLink($form["css"]);
+			}
 
 			return $form;
 		}
@@ -566,12 +569,13 @@
 			
 			Parameters:
 				id - The id of the form.
+				decode_ipl - Whether we want to decode internal page link on the return url (defaults to true)
 			
 			Returns:
 				A module form entry with fields decoded.
 		*/
 
-		static function getForm($id) {
+		static function getForm($id,$decode_ipl = true) {
 			global $cms;
 
 			if (is_array($id)) {
@@ -580,7 +584,9 @@
 
 			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '".sqlescape($id)."'"));
 			$form["fields"] = json_decode($form["fields"],true);
-			$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
+			if ($decode_ipl) {
+				$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
+			}
 
 			return $form;
 		}
@@ -1128,12 +1134,13 @@
 			
 			Parameters:
 				id - The id of the view.
+				decode_ipl - Whether we want to decode internal page link on the preview url (defaults to true)
 				
 			Returns:
 				A view entry with actions, options, and fields decoded.  fields also receive a width column for the view.
 		*/
 
-		static function getView($id) {
+		static function getView($id,$decode_ipl = true) {
 			global $cms;
 			
 			if (is_array($id)) {
@@ -1143,7 +1150,9 @@
 			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
 			$view["actions"] = json_decode($view["actions"],true);
 			$view["options"] = json_decode($view["options"],true);
-			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
+			if ($decode_ipl) {
+				$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
+			}
 			
 			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];
 			$fields = json_decode($view["fields"],true);
