@@ -1,16 +1,18 @@
 <?
 	// First we need to package the file so they can download it manually if they wish.
-	if (!is_writable(SERVER_ROOT."cache/")) {
+	if (!BigTree::isDirectoryWritable(SERVER_ROOT."cache/package/")) {
 ?>
 <div class="container">
 	<section>
 		<h3>Error</h3>
-		<p>Your cache/ directory must be writable.</p>
+		<p>Your cache/ and cache/package/ directories must be writable.</p>
 	</section>
 </div>
 <?
 		$admin->stop();
 	}
+
+	@mkdir(SERVER_ROOT."cache/package/");
 	
 	// Fix keywords into an array
 	$keywords = explode(",",$keywords);
@@ -24,8 +26,10 @@
 		$license_array = array($license => $available_licenses["Closed Source"][$license]);
 	} else {
 		$license_array = array();
-		foreach ($licenses as $license) {
-			$license_array[$license] = $available_licenses["Open Source"][$license];
+		if (is_array($licenses)) {
+			foreach ($licenses as $license) {
+				$license_array[$license] = $available_licenses["Open Source"][$license];
+			}
 		}
 	}
 	
@@ -68,10 +72,10 @@
 		foreach ($module["actions"] as $a) {
 			// If there's an auto module, include it as well.
 			if ($a["form"] && !in_array($a["form"],$used_forms)) {
-				$module["forms"][] = BigTreeAutoModule::getForm($a["form"]);
+				$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
 				$used_forms[] = $a["form"];
 			} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-				$module["views"][] = BigTreeAutoModule::getView($a["view"]);
+				$module["views"][] = BigTreeAutoModule::getView($a["view"],false);
 				$used_views[] = $a["view"];
 			} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
 				$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
