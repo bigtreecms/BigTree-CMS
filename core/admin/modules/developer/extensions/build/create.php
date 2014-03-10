@@ -125,10 +125,10 @@
 		foreach ($module["actions"] as $a) {
 			// If there's an auto module, include it as well.
 			if ($a["form"] && !in_array($a["form"],$used_forms)) {
-				$module["forms"][] = BigTreeAutoModule::getForm($a["form"]);
+				$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
 				$used_forms[] = $a["form"];
 			} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-				$module["views"][] = BigTreeAutoModule::getView($a["view"]);
+				$module["views"][] = BigTreeAutoModule::getView($a["view"],false);
 				$used_views[] = $a["view"];
 			} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
 				$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
