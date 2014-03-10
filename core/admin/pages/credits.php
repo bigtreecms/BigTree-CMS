@@ -22,6 +22,34 @@
 			<a href="http://www.jquery.com" target="_blank">http://www.jquery.com</a>
 		</p>
 		<br />
+		<h3>jQuery Time Picker</h3>
+		<p class="clear">
+			Trent Richardson (GPL)
+			<br />
+			<a href="http://trentrichardson.com" target="_blank">http://trentrichardson.com</a>
+		</p>
+		<br />
+		<h3>Simple JavaScript Inheritance</h3>
+		<p class="clear">
+			John Resig (MIT)
+			<br />
+			<a href="http://ejohn.org/" target="_blank">http://ejohn.org/</a>
+		</p>
+		<br />
+		<h3>SerializeJSON jQuery plugin</h3>
+		<p class="clear">
+			Mario Izquierdo
+			<br />
+			<a href="https://github.com/marioizquierdo/jquery.serializeJSON" target="_blank">https://github.com/marioizquierdo/jquery.serializeJSON</a>
+		</p>
+		<br />
+		<h3>jQuery Cookie Plugin</h3>
+		<p class="clear">
+			Klaus Hartl
+			<br />
+			<a href="https://github.com/carhartl/jquery-cookie" target="_blank">https://github.com/carhartl/jquery-cookie</a>
+		</p>
+		<br />
 		<h3>PHP.js</h3>
 		<p class="clear">
 			<a href="http://phpjs.org/">http://phpjs.org/</a> (MIT)
@@ -39,27 +67,6 @@
 			Drew Wilson (paid, royalty-free &mdash; not for re-use outside BigTree admin area without personal license)
 			<br />
 			<a href="http://pictos.cc/" target="_blank">http://pictos.cc/</a>
-		</p>
-		<br />
-		<h3>Google Client API Libraries</h3>
-		<p class="clear">
-			Google, Inc. (Apache License)
-			<br />
-			<a href="http://code.google.com/p/google-api-php-client/" target="_blank">http://code.google.com/p/google-api-php-client/</a>
-		</p>
-		<br />
-		<h3>Rackspace Cloud API Library</h3>
-		<p class="clear">
-			Rackspace, Inc. (MIT)
-			<br />
-			<a href="https://github.com/rackspace/php-cloudfiles" target="_blank">https://github.com/rackspace/php-cloudfiles</a>
-		</p>
-		<br />
-		<h3>Amazon S3 API Library</h3>
-		<p class="clear">
-			Donovan Schonknecht (Open Source)
-			<br />
-			<a href="https://github.com/tpyo/amazon-s3-php-class" target="_blank">https://github.com/tpyo/amazon-s3-php-class</a>
 		</p>
 		<br />
 		<h3>htmlMimeMail</h3>
@@ -107,12 +114,6 @@
 			Dave Child (New BSD License)
 			<br />
 			<a href="https://github.com/DaveChild/Text-Statistics" target="_blank">https://github.com/DaveChild/Text-Statistics</a>
-		</p>
-		<br />
-		<h3>box-sizing Polyfill</h3>
-		<p class="clear">
-			Christian Schepp Schaefer (LGPL)<br />
-			<a href="http://github.com/Schepp/box-sizing-polyfill" target="_blank">http://github.com/Schepp/box-sizing-polyfill</a>
 		</p>
 	</section>	
 </div>
