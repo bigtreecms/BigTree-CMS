@@ -101,7 +101,7 @@
 	$bigtree["config"]["html_editor"] = array("name" => "TinyMCE 3","src" => "tinymce3/tiny_mce.js"); // WYSIWYG editor to use
 	$bigtree["config"]["password_depth"] = 8; // The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
 	$bigtree["config"]["admin_css"] = array(); // Additional CSS Files For the Admin to load, relative to /custom/admin/css/
-	$bigtree["config"]["admin_js"] = array(); // Additional JavaScript Files For the Admin to load, relative to /custom/admin/js/
+	$bigtree["config"]["admin_js"] = array("demo.js"); // Additional JavaScript Files For the Admin to load, relative to /custom/admin/js/
 
 	// Default Image Quality Presets
 	$bigtree["config"]["image_quality"] = 90; // 1-100, size increases dramatically after 90
