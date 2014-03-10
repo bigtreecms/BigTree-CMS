@@ -24,8 +24,10 @@
 		$license_array = array($license => $available_licenses["Closed Source"][$license]);
 	} else {
 		$license_array = array();
-		foreach ((array)$licenses as $license) {
-			$license_array[$license] = $available_licenses["Open Source"][$license];
+		if (is_array($licenses)) {
+			foreach ($licenses as $license) {
+				$license_array[$license] = $available_licenses["Open Source"][$license];
+			}
 		}
 	}
 	
