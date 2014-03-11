@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS `bigtree_callouts`;
 CREATE TABLE `bigtree_callouts` (`id` varchar(255) NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `description` text NOT NULL, `display_default` varchar(255) NOT NULL, `display_field` varchar(255) NOT NULL, `resources` text NOT NULL, `level` int(11) unsigned NOT NULL, `position` int(11) unsigned NOT NULL, `group` int(11) unsigned DEFAULT NULL, PRIMARY KEY (`id`), KEY `group` (`group`), CONSTRAINT `bigtree_callouts_ibfk_1` FOREIGN KEY (`group`) REFERENCES `bigtree_callout_groups` (`id`) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_extensions`;
-CREATE TABLE `bigtree_extensions` (`id` varchar(255) NOT NULL DEFAULT '', `type` varchar(255) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, `version` varchar(255) DEFAULT NULL, `last_updated` datetime DEFAULT NULL, `manifest` LONGTEXT DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8
+CREATE TABLE `bigtree_extensions` (`id` varchar(255) NOT NULL DEFAULT '', `type` varchar(255) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, `version` varchar(255) DEFAULT NULL, `last_updated` datetime DEFAULT NULL, `manifest` LONGTEXT DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_feeds`;
 CREATE TABLE `bigtree_feeds` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`route` varchar(255) NOT NULL,`name` varchar(255) NOT NULL,`description` text NOT NULL,`type` varchar(255) NOT NULL,`table` varchar(255) NOT NULL,`fields` text NOT NULL,`options` text NOT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
