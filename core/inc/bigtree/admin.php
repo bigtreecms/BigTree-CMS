@@ -3337,11 +3337,11 @@
 
 		/*
 			Function: getModuleEmbedForms
-				Gets all module embeddable forms.
+				Gets forms from bigtree_module_embeds with fields decoded.
 
 			Parameters:
 				sort - The field to sort by.
-				module - Optional module ID to filter by.
+				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
 				An array of entries from bigtree_module_embeds with "fields" decoded.
@@ -3363,18 +3363,23 @@
 
 		/*
 			Function: getModuleForms
-				Gets all module forms.
+				Gets forms from bigtree_module_forms with fields decoded.
 
 			Parameters:
 				sort - The field to sort by.
+				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
 				An array of entries from bigtree_module_forms with "fields" decoded.
 		*/
 
-		function getModuleForms($sort = "title") {
+		function getModuleForms($sort = "title",$module = false) {
 			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_forms ORDER BY $sort");
+			if ($module) {
+				$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_module_forms ORDER BY $sort");
+			}
 			while ($f = sqlfetch($q)) {
 				$f["fields"] = json_decode($f["fields"],true);
 				$items[] = $f;
@@ -3490,18 +3495,23 @@
 
 		/*
 			Function: getModuleReports
-				Gets all module reports.
+				Gets reports from the bigtree_module_reports table.
 
 			Parameters:
 				sort - The field to sort by.
+				module - Specific module to pull reports for (defaults to all modules).
 
 			Returns:
 				An array of entries from bigtree_module_reports.
 		*/
 
-		function getModuleReports($sort = "title") {
+		function getModuleReports($sort = "title",$module = false) {
 			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_reports ORDER BY $sort");
+			if ($module) {
+				$q = sqlquery("SELECT * FROM bigtree_module_reports WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_module_reports ORDER BY $sort");
+			}
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
