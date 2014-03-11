@@ -93,7 +93,7 @@
 						$r["type"] = $id."*".$type;
 					}
 				}
-				sqlquery("UPDATE bigtree_templates SET resources = '".sqlescape(json_encode($resources))."' WHERE id = '".$f["id"]."'");
+				sqlquery("UPDATE bigtree_templates SET resources = '".BigTree::json($resources,true)."' WHERE id = '".$f["id"]."'");
 			}
 			$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE fields LIKE '%\"type\":\"".sqlescape($type)."\"%'");
 			while ($f = sqlfetch($q)) {
@@ -103,7 +103,7 @@
 						$r["type"] = $id."*".$type;
 					}
 				}
-				sqlquery("UPDATE bigtree_module_forms SET fields = '".sqlescape(json_encode($fields))."' WHERE id = '".$f["id"]."'");
+				sqlquery("UPDATE bigtree_module_forms SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
 			}
 		}
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
@@ -213,7 +213,7 @@
 	}
 	
 	// Write the manifest file
-	$json = (version_compare(PHP_VERSION,"5.4.0") >= 0) ? json_encode($package,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($package);
+	$json = BigTree::json($package);
 	file_put_contents(SERVER_ROOT."extensions/$id/manifest.json",$json);
 	
 	// Create the zip

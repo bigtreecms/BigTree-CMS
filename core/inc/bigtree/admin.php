@@ -740,7 +740,7 @@
 			$name = sqlescape(htmlspecialchars($name));
 			$description = sqlescape(htmlspecialchars($description));
 			$level = sqlescape($level);
-			$resources = sqlescape(json_encode($clean_resources));
+			$resources = BigTree::json($clean_resources,true);
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
@@ -815,8 +815,8 @@
 			$description = sqlescape(htmlspecialchars($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$options = sqlescape(json_encode($options));
-			$fields = sqlescape(json_encode($fields));
+			$options = BigTree::json($options,true);
+			$fields = BigTree::json($fields,true);
 			$route = sqlescape($route);
 
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','$type','$table','$fields','$options')");
@@ -1001,7 +1001,7 @@
 			$route = sqlescape($route);
 			$class = sqlescape($class);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
-			$gbp = sqlescape(json_encode($permissions));
+			$gbp = BigTree::json($permissions,true);
 			$icon = sqlescape($icon);
 
 			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('$name','$route','$class','$icon',$group,'$gbp')");
@@ -1089,7 +1089,7 @@
 			$module = sqlescape($module);
 			$t = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
-			$fields = sqlescape(json_encode($fields));
+			$fields = BigTree::json($fields,true);
 			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
@@ -1134,7 +1134,7 @@
 			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
-			$fields = sqlescape(json_encode($fields));
+			$fields = BigTree::json($fields,true);
 			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
@@ -1207,8 +1207,8 @@
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$filters = sqlescape(json_encode($filters));
-			$fields = sqlescape(json_encode($fields));
+			$filters = BigTree::json($filters,true);
+			$fields = BigTree::json($fields,true);
 			$parser - sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("INSERT INTO bigtree_module_reports (`module`,`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$module','$title','$table','$type','$filters','$fields','$parser',$view)");
@@ -1242,9 +1242,9 @@
 			$description = sqlescape(htmlspecialchars($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$options = sqlescape(json_encode($options));
-			$fields = sqlescape(json_encode($fields));
-			$actions = sqlescape(json_encode($actions));
+			$options = BigTree::json($options,true);
+			$fields = BigTree::json($fields,true);
+			$actions = BigTree::json($actions,true);
 			$suffix = sqlescape($suffix);
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
@@ -1275,7 +1275,7 @@
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
 					if (is_array($val)) {
-						$$key = sqlescape(json_encode($val));
+						$$key = BigTree::json($val,true);
 					} else {
 						$$key = sqlescape($val);
 					}
@@ -1405,9 +1405,9 @@
 		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
 			$table = sqlescape($table);
 			$item_id = ($item_id !== false) ? "'".sqlescape($item_id)."'" : "NULL";
-			$changes = sqlescape(json_encode($changes));
-			$mtm_changes = sqlescape(json_encode($mtm_changes));
-			$tags_changes = sqlescape(json_encode($tags_changes));
+			$changes = BigTree::json($changes,true);
+			$mtm_changes = BigTree::json($mtm_changes,true);
+			$tags_changes = BigTree::json($tags_changes,true);
 			$module = sqlescape($module);
 
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`) VALUES ('".$this->ID."',NOW(),'$table',$item_id,'$changes','$mtm_changes','$tags_changes','$module')");
@@ -1434,7 +1434,7 @@
 			}
 
 			// Save the tags, then dump them from the saved changes array.
-			$tags = sqlescape(json_encode($data["_tags"]));
+			$tags = BigTree::json($data["_tags"],true);
 			unset($data["_tags"]);
 
 			// Make the nav title, title, external link, keywords, and description htmlspecialchar'd for displaying on the front end / the form again.
@@ -1456,7 +1456,7 @@
 			// JSON encode the changes and stick them in the database.
 			unset($data["MAX_FILE_SIZE"]);
 			unset($data["ptype"]);
-			$data = sqlescape(json_encode($data));
+			$data = BigTree::json($data,true);
 
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`title`,`table`,`changes`,`tags_changes`,`type`,`module`,`pending_page_parent`) VALUES ('".$this->ID."',NOW(),'New Page Created','bigtree_pages','$data','$tags','NEW','','$parent')");
 			$id = sqlid();
@@ -1495,7 +1495,7 @@
 			$is_image = sqlescape($is_image);
 			$height = intval($height);
 			$width = intval($width);
-			$thumbs = sqlescape(json_encode($thumbs));
+			$thumbs = BigTree::json($thumbs,true);
 			$list_thumb_margin = intval($list_thumb_margin);
 			$md5 = sqlescape($md5);
 
@@ -1553,7 +1553,7 @@
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
 			// We don't want this encoded since it's JSON
 			if (isset($data["options"])) {
-				$options = sqlescape(is_array($data["options"]) ? json_encode($data["options"]) : $data["options"]);
+				$options = sqlescape(is_array($data["options"]) ? BigTree::json($data["options"]) : $data["options"]);
 			}
 
 			// See if there's already a setting with this ID
@@ -1676,7 +1676,7 @@
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
 			$module = sqlescape($module);
-			$resources = sqlescape(json_encode($clean_resources));
+			$resources = BigTree::json($clean_resources,true);
 			$level = sqlescape($level);
 			$routed = sqlescape($routed);
 
@@ -1714,7 +1714,7 @@
 				return false;
 			}
 
-			$permissions = sqlescape(json_encode($data["permissions"]));
+			$permissions = BigTree::json($data["permissions"],true);
 
 			// If the user is trying to create a developer user and they're not a developer, then… no.
 			if ($level > $this->Level) {
@@ -2767,7 +2767,7 @@
 						$types["setting"][$f["id"]] = $f["name"];
 					}
 				}
-				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));
+				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",BigTree::json($types));
 			}
 
 			return $types;
@@ -6250,7 +6250,7 @@
 			}
 
 			// Save tags separately
-			$tags = sqlescape(json_encode($changes["_tags"]));
+			$tags = BigTree::json($changes["_tags"],true);
 			unset($changes["_tags"]);
 
 			// Unset the trunk flag if the user isn't a developer
@@ -6284,7 +6284,7 @@
 
 				// If this is a pending page, just replace all the changes
 				if ($pending) {
-					$changes = sqlescape(json_encode($changes));
+					$changes = BigTree::json($changes,true);
 				// Otherwise, we need to check what's changed.
 				} else {
 					$original_changes = json_decode($existing_pending_change["changes"],true);
@@ -6302,10 +6302,10 @@
 						}
 					}
 
-					$changes = sqlescape(json_encode($original_changes));
+					$changes = BigTree::json($original_changes,true);
 				}
 
-				$comments = sqlescape(json_encode($comments));
+				$comments = BigTree::json($comments,true);
 				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', tags_changes = '$tags', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
 
 				$this->track("bigtree_pages",$page,"updated-draft");
@@ -6324,7 +6324,7 @@
 					}
 				}
 
-				$changes = sqlescape(json_encode($original_changes));
+				$changes = BigTree::json($original_changes,true);
 				if ($type == "DELETE") {
 					sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','DELETE','Page Deletion Pending')");
 				} else {
@@ -6582,7 +6582,7 @@
 			$name = sqlescape(htmlspecialchars($name));
 			$description = sqlescape(htmlspecialchars($description));
 			$level = sqlescape($level);
-			$resources = sqlescape(json_encode($r));
+			$resources = BigTree::json($r,true);
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
@@ -6655,8 +6655,8 @@
 			$description = sqlescape(htmlspecialchars($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$options = sqlescape(json_encode($options));
-			$fields = sqlescape(json_encode($fields));
+			$options = BigTree::json($options,true);
+			$fields = BigTree::json($fields,true);
 
 			sqlquery("UPDATE bigtree_feeds SET name = '$name', description = '$description', `table` = '$table', type = '$type', fields = '$fields', options = '$options' WHERE id = '$id'");
 		}
@@ -6709,7 +6709,7 @@
 			$name = sqlescape(htmlspecialchars($name));
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$class = sqlescape($class);
-			$permissions = sqlescape(json_encode($permissions));
+			$permissions = BigTree::json($permissions,true);
 			$icon = sqlescape($icon);
 			
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
@@ -6775,7 +6775,7 @@
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
-			$fields = sqlescape(json_encode($fields));
+			$fields = BigTree::json($fields,true);
 			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
@@ -6809,7 +6809,7 @@
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
-			$fields = sqlescape(json_encode($fields));
+			$fields = BigTree::json($fields,true);
 			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
@@ -6886,8 +6886,8 @@
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$filters = sqlescape(json_encode($filters));
-			$fields = sqlescape(json_encode($fields));
+			$filters = BigTree::json($filters,true);
+			$fields = BigTree::json($fields,true);
 			$parser - sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("UPDATE bigtree_module_reports SET `title` = '$title', `table` = '$table', `type` = '$type', `filters` = '$filters', `fields` = '$fields', `parser` = '$parser', `view` = $view WHERE id = '$id'");
@@ -6921,9 +6921,9 @@
 			$description = sqlescape(htmlspecialchars($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$options = sqlescape(json_encode($options));
-			$fields = sqlescape(json_encode($fields));
-			$actions = sqlescape(json_encode($actions));
+			$options = BigTree::json($options,true);
+			$fields = BigTree::json($fields,true);
+			$actions = BigTree::json($actions,true);
 			$suffix = sqlescape($suffix);
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
@@ -6959,7 +6959,7 @@
 					$view["fields"][$key]["numeric"] = $numeric;
 				}
 
-				$fields = sqlescape(json_encode($view["fields"]));
+				$fields = BigTree::json($view["fields"],true);
 				sqlquery("UPDATE bigtree_module_views SET fields = '$fields' WHERE id = '".$view["id"]."'");
 			}
 		}
@@ -6975,7 +6975,7 @@
 
 		function updateModuleViewFields($view,$fields) {
 			$view = sqlescape($view);
-			$fields = sqlescape(json_encode($fields));
+			$fields = BigTree::json($fields,true);
 			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '$view'");
 		}
 
@@ -7022,7 +7022,7 @@
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
 					if (is_array($val)) {
-						$$key = sqlescape(json_encode($val));
+						$$key = BigTree::json($val,true);
 					} else {
 						$$key = sqlescape($val);
 					}
@@ -7233,9 +7233,9 @@
 
 		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
 			$id = sqlescape($id);
-			$changes = sqlescape(json_encode($changes));
-			$mtm_changes = sqlescape(json_encode($mtm_changes));
-			$tags_changes = sqlescape(json_encode($tags_changes));
+			$changes = BigTree::json($changes,true);
+			$mtm_changes = BigTree::json($mtm_changes,true);
+			$tags_changes = BigTree::json($tags_changes,true);
 
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
 		}
@@ -7358,12 +7358,7 @@
 				$value = $this->autoIPL($value);
 			}
 
-			// Prefer to keep this an object, but we need PHP 5.3
-			if (strnatcmp(phpversion(),'5.3') >= 0) {
-				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
-			} else {
-				$value = sqlescape(json_encode($value));
-			}
+			$value = BigTree::json($value,true);
 
 			if ($item["encrypted"]) {
 				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
@@ -7409,7 +7404,7 @@
 			$id = sqlescape($id);
 			$name = sqlescape(htmlspecialchars($name));
 			$module = sqlescape($module);
-			$resources = sqlescape(json_encode($clean_resources));
+			$resources = BigTree::json($clean_resources,true);
 			$level = sqlescape($level);
 			
 			sqlquery("UPDATE bigtree_templates SET resources = '$resources', name = '$name', module = '$module', level = '$level' WHERE id = '$id'");
@@ -7455,8 +7450,8 @@
 				}
 			}
 
-			$permissions = sqlescape(json_encode($data["permissions"],JSON_FORCE_OBJECT));
-			$alerts = sqlescape(json_encode($data["alerts"],JSON_FORCE_OBJECT));
+			$permissions = BigTree::json($data["permissions"],true);
+			$alerts = BigTree::json($data["alerts"],true);
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);

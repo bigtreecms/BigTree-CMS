@@ -174,7 +174,7 @@
 								"md5" => $md5,
 								"height" => $iheight,
 								"width" => $iwidth,
-								"thumbs" => json_encode($thumbs),
+								"thumbs" => BigTree::json($thumbs),
 								"list_thumb_margin" => $margin
 							));
 						}

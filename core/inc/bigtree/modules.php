@@ -861,7 +861,7 @@
 				foreach ($fields as $key) {
 					$val = current($values);
 					if (is_array($val)) {
-						$val = json_encode($val);
+						$val = BigTree::json($val);
 					}
 					$query_parts[] = "`$key` = '".sqlescape($val)."'";
 					next($values);

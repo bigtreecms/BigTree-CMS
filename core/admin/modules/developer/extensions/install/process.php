@@ -20,7 +20,7 @@
 	foreach ($json["components"]["modules"] as &$module) {
 		if ($module) {
 			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : "NULL";
-			$gbp = sqlescape(is_array($module["gbp"]) ? json_encode($module["gbp"]) : $module["gbp"]);
+			$gbp = sqlescape(is_array($module["gbp"]) ? BigTree::json($module["gbp"]) : $module["gbp"]);
 			// Find a unique route
 			$oroute = $route = $module["route"];
 			$x = 2;
@@ -62,7 +62,7 @@
 	// Import templates
 	foreach ($json["components"]["templates"] as $template) {
 		if ($template) {
-			$resources = sqlescape(is_array($template["resources"]) ? json_encode($template["resources"]) : $template["resources"]);
+			$resources = sqlescape(is_array($template["resources"]) ? BigTree::json($template["resources"]) : $template["resources"]);
 			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`,`extension`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."','$extension')");
 		}
 	}
@@ -70,7 +70,7 @@
 	// Import callouts
 	foreach ($json["components"]["callouts"] as $callout) {
 		if ($callout) {
-			$resources = sqlescape(is_array($callout["resources"]) ? json_encode($callout["resources"]) : $callout["resources"]);
+			$resources = sqlescape(is_array($callout["resources"]) ? BigTree::json($callout["resources"]) : $callout["resources"]);
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`,`extension`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."','$extension')");	
 		}
 	}
@@ -86,8 +86,8 @@
 	// Import Feeds
 	foreach ($json["components"]["feeds"] as $feed) {
 		if ($feed) {
-			$fields = sqlescape(is_array($feed["fields"]) ? json_encode($feed["fields"]) : $feed["fields"]);
-			$options = sqlescape(is_array($feed["options"]) ? json_encode($feed["options"]) : $feed["options"]);
+			$fields = sqlescape(is_array($feed["fields"]) ? BigTree::json($feed["fields"]) : $feed["fields"]);
+			$options = sqlescape(is_array($feed["options"]) ? BigTree::json($feed["options"]) : $feed["options"]);
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`,`extension`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options','$extension')");
 		}
 	}
@@ -130,7 +130,7 @@
 	@unlink(SERVER_ROOT."cache/module-class-list.btc");
 	@unlink(SERVER_ROOT."cache/form-field-types.btc");
 
-	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','extension','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".sqlescape(json_encode($json))."')");
+	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','extension','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");
 	
 	$admin->growl("Developer","Installed Extension");
 	BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");

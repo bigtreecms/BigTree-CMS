@@ -29,7 +29,7 @@
 				}
 				
 				// Cache it so we don't hit the database.
-				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",json_encode($items));
+				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",BigTree::json($items));
 			}
 			
 			// Figure out what roots we can replace
@@ -111,12 +111,7 @@
 				return false;
 			}
 
-			// Prefer to keep this an object, but we need PHP 5.3
-			if (strnatcmp(phpversion(),'5.3') >= 0 && $force_object) {
-				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
-			} else {
-				$value = sqlescape(json_encode($value));
-			}
+			$value = BigTree::json($value,true);
 			
 			if ($f) {
 				sqlquery("UPDATE bigtree_caches SET `value` = '$value', `timestamp` = NOW() WHERE `identifier` = '$identifier' AND `key` = '$key'");

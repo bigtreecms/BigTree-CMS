@@ -139,7 +139,7 @@
 	}
 	
 	// Write the manifest file
-	$json = (version_compare(PHP_VERSION,"5.4.0") >= 0) ? json_encode($package,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($package);
+	$json = BigTree::json($package);
 	file_put_contents(SERVER_ROOT."cache/package/manifest.json",$json);
 	
 	// Create the zip
