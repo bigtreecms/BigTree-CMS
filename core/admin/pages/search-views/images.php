@@ -1,8 +1,6 @@
 <?
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	BigTree::globalizeArray($view);
-
-	$suffix = $suffix ? "-".$suffix : "";
 ?>
 <div class="table" id="" class="image_list">
 	<header>
@@ -19,7 +17,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>">
-				<a class="image" href="<?=$mpage?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
 					foreach ($actions as $action => $data) {
 						if ($action != "edit") {
@@ -49,7 +47,7 @@
 </div>
 <script>	
 	$("#image_list_<?=$view["id"]?> .icon_edit").click(function() {
-		document.location.href = "<?=$mpage."edit".$suffix?>/" + $(this).attr("href").substr(1) + "/";
+		document.location.href = "<?=$view["edit_url"]?>" + $(this).attr("href").substr(1) + "/";
 		return false;
 	});
 	

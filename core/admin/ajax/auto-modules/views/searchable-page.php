@@ -41,9 +41,6 @@
 	
 	$perm = $admin->getAccessLevel($bigtree["module"]);
 		
-	// If this is a second view inside a module, we might need a suffix for edits.
-	$suffix = $suffix ? "-".$suffix : "";
-	
 	// Handle how many pages we have and get our results.
 	$data = BigTreeAutoModule::getSearchResults($bigtree["view"],$page,$search,$sort,false);
 	$pages = $data["pages"];
@@ -97,7 +94,7 @@
 				if ($action == "preview") {
 					$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 				} elseif ($action == "edit") {
-					$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
+					$link = $bigtree["view"]["edit_url"].$item["id"]."/".$edit_append;
 				} else {
 					$link = "#".$item["id"];
 				}

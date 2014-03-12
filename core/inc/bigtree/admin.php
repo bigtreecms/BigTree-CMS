@@ -1229,14 +1229,14 @@
 				options - View options array.
 				fields - Field array.
 				actions - Actions array.
-				suffix - Add/Edit suffix.
+				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
 
 			Returns:
 				The id for view.
 		*/
 
-		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
+		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$description = sqlescape(htmlspecialchars($description));
@@ -1245,10 +1245,10 @@
 			$options = sqlescape(json_encode($options));
 			$fields = sqlescape(json_encode($fields));
 			$actions = sqlescape(json_encode($actions));
-			$suffix = sqlescape($suffix);
+			$related_form = $related_form ? intval($related_form) : "NULL";
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
-			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`suffix`,`preview_url`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$suffix','$preview_url')");
+			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
 
 			$id = sqlid();
 			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
@@ -2172,6 +2172,28 @@
 			unlink(SERVER_ROOT."cache/analytics.cache");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
 			$this->growl("Analytics","Disconnected");
+		}
+
+		/*
+			Function: doesModuleActionExist
+				Checks to see if an action exists for a given route and module.
+
+			Parameters:
+				module - The module to check.
+				route - The route of the action to check.
+
+			Returns:
+				true if an action exists, otherwise false.
+		*/
+
+		function doesModuleActionExist($module,$route) {
+			$module = sqlescape($module);
+			$route = sqlescape($route);
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
+			if ($f) {
+				return true;
+			}
+			return false;
 		}
 
 		/*
@@ -5272,28 +5294,6 @@
 		}
 
 		/*
-			Function: moduleActionExists
-				Checks to see if an action exists for a given route and module.
-
-			Parameters:
-				module - The module to check.
-				route - The route of the action to check.
-
-			Returns:
-				true if an action exists, otherwise false.
-		*/
-
-		function moduleActionExists($module,$route) {
-			$module = sqlescape($module);
-			$route = sqlescape($route);
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
-			if ($f) {
-				return true;
-			}
-			return false;
-		}
-
-		/*
 			Function: pageChangeExists
 				Returns whether pending changes exist for a given page.
 
@@ -6705,13 +6705,12 @@
 				preprocess - Optional preprocessing function to run before data is parsed.
 				callback - Optional callback function to run after the form processes.
 				default_position - Default position for entries to the form (if the view is positioned).
-				suffix - Optional add/edit suffix for the form.
 				return_view - The view to return to when the form is completed.
 				return_url - The alternative URL to return to when the form is completed.
 				tagging - Whether or not to enable tagging.
 		*/
 
-		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false,$return_url = "",$tagging = "") {
+		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
@@ -6724,14 +6723,6 @@
 			$tagging = $tagging ? "on" : "";
 
 			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging' WHERE id = '$id'");
-
-			$action = $this->getModuleActionForForm($id);
-			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);
-			if ($suffix != $oroute) {
-				$suffix = sqlescape($suffix);
-				sqlquery("UPDATE bigtree_module_actions SET route = 'add-$suffix' WHERE module = '".$action["module"]."' AND route = 'add-$oroute'");
-				sqlquery("UPDATE bigtree_module_actions SET route = 'edit-$suffix' WHERE module = '".$action["module"]."' AND route = 'edit-$oroute'");
-			}
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE form = '$id' AND route LIKE 'edit%'");
 
@@ -6814,14 +6805,14 @@
 				options - View options array.
 				fields - Field array.
 				actions - Actions array.
-				suffix - Add/Edit suffix.
+				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
 
 			Returns:
 				The id for view.
 		*/
 
-		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url = "") {
+		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$description = sqlescape(htmlspecialchars($description));
@@ -6830,10 +6821,10 @@
 			$options = sqlescape(json_encode($options));
 			$fields = sqlescape(json_encode($fields));
 			$actions = sqlescape(json_encode($actions));
-			$suffix = sqlescape($suffix);
+			$related_form = $related_form ? intval($related_form) : "NULL";
 			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
 
-			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', suffix = '$suffix', preview_url = '$preview_url' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
 
 			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));

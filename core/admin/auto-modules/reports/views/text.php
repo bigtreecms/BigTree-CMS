@@ -1,7 +1,4 @@
 <?
-	// Edit Suffix
-	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
-		
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
 		$bigtree["view"]["actions"]["preview"] = "on";
@@ -59,7 +56,7 @@
 						if ($action == "preview") {
 							$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 						} elseif ($action == "edit") {
-							$link = MODULE_ROOT."edit".$suffix."/".$item["id"]."/";
+							$link = $bigtree["view"]["edit_url"].$item["id"]."/";
 						} else {
 							$link = "#".$item["id"];
 						}

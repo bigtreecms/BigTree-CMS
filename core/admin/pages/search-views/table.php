@@ -1,10 +1,7 @@
 <?
+	$mpage = ADMIN_ROOT.$module["route"]."/";
 	BigTree::globalizeArray($view);	
 	
-	$mpage = ADMIN_ROOT.$module["route"]."/";
-	// If this is a second view inside a module, we might need a suffix for edits.
-	$suffix = $suffix ? "-".$suffix : "";
-		
 	// Figure out the column width
 	$awidth = count($actions) * 40;
 	$available = 896 - $awidth;
@@ -17,6 +14,7 @@
 	$items = BigTreeAutoModule::parseViewData($view,$items);
 ?>
 <div class="table" style="margin: 0;">
+	<summary><h2>Search Results</h2></summary>
 	<header>
 		<?
 			$x = 0;
@@ -69,7 +67,7 @@
 
 <script>
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {
-		document.location.href = "<?=$mpage."edit".$suffix?>/" + $(this).attr("href").substr(1) + "/";
+		document.location.href = "<?=$view["edit_url"]?>/" + $(this).attr("href").substr(1) + "/";
 		return false;
 	});
 			

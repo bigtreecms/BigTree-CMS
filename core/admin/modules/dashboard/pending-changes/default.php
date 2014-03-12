@@ -92,11 +92,6 @@
 		} else {
 			$view_data = false;
 		}
-		$edit_link = ADMIN_ROOT.$mod["route"]."/edit";
-		if ($view["suffix"]) {
-			$edit_link .= "-$suffix";
-		}
-		$edit_link .= "/";
 ?>
 <a name="<?=$mod["id"]?>"></a>
 <div class="table">
@@ -127,7 +122,7 @@
 			?>
 			<li class="non_draggable">
 				<p><?=$change["user"]["name"]?></p>
-				<a class="image" href="<?=$edit_link.$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
+				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
 				<? if ($view["preview_url"]) { ?>
 				<a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
 				<? } ?>
@@ -191,7 +186,7 @@
 			<?
 				}
 			?>
-			<section class="changes_action"><a href="<?=$edit_link.$item["id"]?>/" class="icon_edit"></a></section>
+			<section class="changes_action"><a href="<?=$view["edit_url"].$item["id"]?>/" class="icon_edit"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a></section>
 		</li>

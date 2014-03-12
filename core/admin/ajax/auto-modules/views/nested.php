@@ -13,16 +13,13 @@
 		$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";
 		$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
-		// Edit Suffix
-		$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
-		
 		// Setup the preview action if we have a preview URL and field.
 		if ($bigtree["view"]["preview_url"]) {
 			$bigtree["view"]["actions"]["preview"] = "on";
 		}
 
 		function _localDrawLevel($items,$depth) {
-			global $bigtree,$module_page,$permission,$suffix,$admin;
+			global $bigtree,$module_page,$permission,$admin;
 
 			foreach ($items as $item) {
 				$expanded = !empty($_COOKIE["bigtree_admin"]["nested_views"][$bigtree["view"]["id"]][$item["id"]]) ? true : false;
@@ -84,7 +81,7 @@
 						if ($action == "preview") {
 							$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 						} elseif ($action == "edit") {
-							$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
+							$link = $bigtree["view"]["edit_url"].$item["id"]."/".$edit_append;
 						} else {
 							$link = "#".$item["id"];
 						}

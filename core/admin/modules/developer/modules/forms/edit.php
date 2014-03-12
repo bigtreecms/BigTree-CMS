@@ -2,9 +2,6 @@
 	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 
-	$action = $admin->getModuleActionForForm($form["id"]);
-	$route = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);
-
 	$table = $form["table"];
 	$fields = $form["fields"];
 
@@ -40,13 +37,6 @@
 					<label class="required">Item Title <small>(for example, "Question" as in "Adding Question")</small></label>
 					<input type="text" name="title" value="<?=$form["title"]?>" class="required" />
 				</fieldset>
-
-				<? if ($route) { ?>
-				<fieldset>
-					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" value="<?=htmlspecialchars($route)?>" />
-				</fieldset>
-				<? } ?>
 
 				<fieldset>
 					<label class="required">Data Table</label>

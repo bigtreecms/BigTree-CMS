@@ -1,7 +1,4 @@
 <?
-	// Edit Suffix
-	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
-		
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
 		$bigtree["view"]["actions"]["preview"] = "on";
@@ -25,7 +22,7 @@
 					if ($item_permission && $item_permission != "n") {
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
 					foreach ($bigtree["view"]["actions"] as $action => $data) {
 						if ($action != "edit") {

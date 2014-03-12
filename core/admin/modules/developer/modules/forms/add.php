@@ -3,8 +3,8 @@
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 
 	$module = $admin->getModule($id);
-	$edit_action_exists = $admin->doesModuleEditActionExist($module["id"]);
 
+	// Try to make sense of a plural title into singular
 	if (isset($_GET["title"])) {
 		$title = $_GET["title"];
 		if (substr($title,-3,3) == "ies") {
@@ -32,13 +32,6 @@
 					<label class="required">Item Title <small>(for example, "Question" as in "Adding Question")</small></label>
 					<input type="text" class="required" name="title" value="<?=$title?>" />
 				</fieldset>
-
-				<? if ($edit_action_exists) { ?>
-				<fieldset>
-					<label>Action Suffix <small>(for when there is more than one set of forms in a module)</small></label>
-					<input type="text" name="suffix" class="required" <? if (isset($_GET["suffix"])) { ?>value="<?=htmlspecialchars(strip_tags($_GET["suffix"]))?>" <? } ?>/>
-				</fieldset>
-				<? } ?>
 
 				<fieldset>
 					<label class="required">Data Table</label>

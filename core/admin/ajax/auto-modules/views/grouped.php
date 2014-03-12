@@ -12,7 +12,6 @@
 	// Defaults
 	$search = isset($_POST["search"]) ? $_POST["search"] : "";
 	$search = isset($_GET["search"]) ? $_GET["search"] : $search;
-	$suffix = $suffix ? "-".$suffix : "";
 	$draggable = (isset($options["draggable"]) && $options["draggable"]) ? true : false;
 	$bigtree["view"]["options"]["per_page"] = 10000;
 	if (isset($options["sort_field"])) {
@@ -117,7 +116,7 @@
 					if ($action == "preview") {
 						$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 					} elseif ($action == "edit") {
-						$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
+						$link = $bigtree["view"]["edit_url"].$item["id"]."/".$edit_append;
 					} else {
 						$link = "#".$item["id"];
 					}
