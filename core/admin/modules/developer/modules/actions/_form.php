@@ -1,7 +1,7 @@
 <?
-	$forms = $admin->getModuleForms();
-	$views = $admin->getModuleViews();
-	$reports = $admin->getModuleReports();
+	$forms = $admin->getModuleForms("title",$module["id"]);
+	$views = $admin->getModuleViews("title",$module["id"]);
+	$reports = $admin->getModuleReports("title",$module["id"]);
 ?>
 <section>
 	<fieldset>

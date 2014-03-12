@@ -218,7 +218,6 @@
 	form .float_contain { overflow: hidden; padding: 0 0 30px 0; }
 	form .left { float: left; margin: 0 25px 15px 0; width: 435px; }
 	form .right { float: right; margin: 0 0 15px 0; width: 435px; }
-	form .last { margin-bottom: 0; }
 	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password], form .left input[type=email], form .right input[type=email], form .left input[type=url], form .right input[type=url] { width: 413px; }
 	form .left textarea, form .right textarea { width: 413px; }
 	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
@@ -226,6 +225,7 @@
 	form .triplets fieldset:last-child { margin: 0; }
 	form .triplets .select > span { width: 224px !important; }
 	form .triplets .select .select_options { width: 278px !important; }
+	form .last { margin-bottom: 0; }
 
 	.image_field .file_wrapper { float: left; }
 	.image_field .or { float: left; height: 30px; line-height: 30px; padding: 0 10px; }
@@ -978,6 +978,10 @@
 	.developer .table .box_select.last { margin: 0; }
 	.developer .table > section { padding: 30px; }
 
+	.developer form fieldset.view_type .select > span { width: 193px !important; }
+	.developer form fieldset.view_type .select .select_options { width: 247px !important; }
+	.developer form fieldset.view_description textarea { height: 90px; }
+
 	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
 	.table .developer_templates_name a { color: #333; display: block; margin: 0; width: 846px; }
 	.table .developer_modules_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 823px; }
@@ -1669,6 +1673,7 @@
 	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
 	.install_wrapper label { color: #666; display: block; font-size: 13px; margin: 0 0 12px 0; }
 	.install_wrapper input.text { border: 1px solid #CCC; border-radius: 3px; color: #666; display: block; height: 32px; margin: 0 0 20px 0; padding: 0 10px; width: 260px !important; }
+	.install_wrapper input.text:focus { border-color: #AAA; }
 	.install_wrapper input.text:last-child { margin: 0; }
 	.install_wrapper p { clear: both; color: #666; font-size: 13px; line-height: 1.3; margin: 0; }
 	.install_wrapper p small { color: #999; display: block; float: left; font-size: 10px; text-transform: uppercase; width: 100px; }

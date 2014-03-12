@@ -6,9 +6,6 @@
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
-	// Edit Suffix
-	$suffix = $bigtree["view"]["suffix"] ? "-".$bigtree["view"]["suffix"] : "";
-		
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
 		$bigtree["view"]["actions"]["preview"] = "on";
@@ -80,7 +77,7 @@
 				if ($action == "preview") {
 					$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 				} elseif ($action == "edit") {
-					$link = $module_page."edit".$suffix."/".$item["id"]."/".$edit_append;
+					$link = $bigtree["view"]["edit_url"].$item["id"]."/".$edit_append;
 				} else {
 					$link = "#".$item["id"];
 				}

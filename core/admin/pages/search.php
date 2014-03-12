@@ -114,6 +114,8 @@
 						$view = $data["view"];
 						$items = $data["results"];
 						$module = $data["module"];
+						$view["edit_url"] = str_replace("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/",$view["edit_url"]);
+
 						if ($view["type"] == "images" || $view["type"] == "images-group") {
 							include BigTree::path("admin/pages/search-views/images.php");
 						} else {

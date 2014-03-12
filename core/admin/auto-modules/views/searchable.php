@@ -4,9 +4,6 @@
 	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
 	$perm = $admin->checkAccess($m);
 	
-	$suffix = $suffix ? "-".$suffix : "";
-	
-	
 	if (isset($_GET["sort"])) {
 		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
 	} elseif (isset($options["sort_column"])) {

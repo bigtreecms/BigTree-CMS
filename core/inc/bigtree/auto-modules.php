@@ -1148,10 +1148,32 @@
 			}
 			
 			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
+			if (!$view) {
+				return false;
+			}
+			
 			$view["actions"] = json_decode($view["actions"],true);
 			$view["options"] = json_decode($view["options"],true);
 			if ($decode_ipl) {
 				$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
+			}
+
+			// Get the edit link
+			if (isset($view["actions"]["edit"])) {
+				if ($view["related_form"]) {
+					// Try for actions beginning with edit first
+					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."' AND route LIKE 'edit%'"));
+					if (!$f) {
+						// Try any action with this form
+						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
+						if (!$f) {
+							throw new Exception("The requested view has an edit action but the related form has no related module action or no longer exists.");
+						}
+					}
+					$view["edit_url"] = MODULE_ROOT.$f["route"]."/";
+				} else {
+					$view["edit_url"] = MODULE_ROOT."edit/";
+				}
 			}
 			
 			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];

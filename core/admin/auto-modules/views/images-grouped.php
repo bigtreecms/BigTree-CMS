@@ -5,7 +5,6 @@
 	BigTreeAutoModule::cacheViewData($bigtree["view"]);
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
-	$suffix = $suffix ? "-".$suffix : "";
 	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
 	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
 	if ($draggable) {
@@ -46,7 +45,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
 					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
@@ -107,7 +106,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=MODULE_ROOT?>edit<?=$suffix?>/<?=$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" style="<?=$style?>" /></a>
 				<?
 					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);

@@ -52,25 +52,20 @@
 
 		$module = end($bigtree["path"]);
 
-		// Silence notices
-		$suffix = isset($suffix) ? $suffix : "";
+		// Create the view
+		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
+		$route = "";
 		$landing_exists = $admin->doesModuleLandingActionExist($module);
 		if ($landing_exists) {
-			if ($suffix) {
-				$route = "view-$suffix";
-			} else {
-				$route = $cms->urlify("view $title");
-			}
-		} else {
-			$route = "";
+			$route = $admin->uniqueModuleActionRoute($module,$cms->urlify("View $title"));
 		}
 
-		// Let's create the view
-		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$suffix,$preview_url);
+		// Create an action for the view
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
 
+		// If we're not working on a new module, just redirect back to the edit module page
 		if (!$_POST["new_module"]) {
 			$admin->growl("Developer","Created Module View");
 			BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
@@ -79,11 +74,11 @@
 <div class="container">
 	<section>
 		<h3>View <?=$title?></h3>
-		<p>Your view for <?=$module_info["name"]?> has been created. You may continue to create a form for this view or return to the module overview instead.</p>
+		<p>Your view has been created. You may continue to create a form for this view or return to the module overview instead.</p>
 	</section>
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button white">Return to Module</a>
-		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&suffix=<?=urlencode($suffix)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
+		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&view=<?=$view_id?>" class="button blue">Add Form</a></p>
 	</footer>
 </div>
 <?
