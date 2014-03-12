@@ -51,6 +51,9 @@
 	
 	// Issues that are game enders first.
 	$fails = array();
+	if (version_compare(PHP_VERSION,"5.3.0","<")) {
+		$fails[] = "PHP 5.3 or higher is required.";
+	}
 	if (!extension_loaded('json')) {
 		$fails[] = "PHP does not have the JSON extension installed.";
 	}
