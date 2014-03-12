@@ -1073,8 +1073,7 @@
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
-				preprocess - Optional preprocessing function to run before data is parsed.
-				callback - Optional callback function to run after the form processes.
+				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
 				default_position - Default position for entries to the form (if the view is positioned).
 				default_pending - Whether the submissions to default to pending or not ("on" or "").
 				css - URL of a CSS file to include.
@@ -1085,13 +1084,12 @@
 				The embed code.
 		*/
 
-		function createModuleEmbedForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
+		function createModuleEmbedForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$module = sqlescape($module);
 			$t = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
+			$hooks = BigTree::json($hooks,true);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
@@ -1104,7 +1102,7 @@
 				$hash = uniqid();
 			}
 
-			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`) VALUES ('$module','$t','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash')");
+			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`,`hooks`) VALUES ('$module','$t','$table','$fields','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash','$hooks')");
 			$id = sqlid();
 
 			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.htmlspecialchars($t).'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
@@ -1119,8 +1117,7 @@
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
-				preprocess - Optional preprocessing function to run before data is parsed.
-				callback - Optional callback function to run after the form processes.
+				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
 				default_position - Default position for entries to the form (if the view is positioned).
 				return_view - The view to return to after completing the form.
 				return_url - The alternative URL to return to after completing the form.
@@ -1130,19 +1127,18 @@
 				The new form id.
 		*/
 
-		function createModuleForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$module = sqlescape($module);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
+			$hooks = BigTree::json($hooks,true);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
 
-			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`return_view`,`return_url`,`tagging`) VALUES ('$module','$title','$table','$fields','$preprocess','$callback','$default_position',$return_view,'$return_url','$tagging')");
+			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$hooks')");
 			$id = sqlid();
 
 			// Get related views for this table and update numeric status
@@ -6762,8 +6758,7 @@
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
-				preprocess - Optional preprocessing function to run before data is parsed.
-				callback - Optional callback function to run after the form processes.
+				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
 				default_position - Default position for entries to the form (if the view is positioned).
 				default_pending - Whether the submissions to default to pending or not ("on" or "").
 				css - URL of a CSS file to include.
@@ -6771,20 +6766,19 @@
 				thank_you_message - The message to display upon completeion of submission.
 		*/
 
-		function updateModuleEmbedForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
+		function updateModuleEmbedForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
+			$hooks = BigTree::json($hooks,true);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
 			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
 			
-			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `preprocess` = '$preprocess', `callback` = '$callback', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message', `hooks` = '$hooks' WHERE id = '$id'");
 		}
 
 		/*
@@ -6796,8 +6790,7 @@
 				title - The title of the form.
 				table - The table for the form data.
 				fields - The form fields.
-				preprocess - Optional preprocessing function to run before data is parsed.
-				callback - Optional callback function to run after the form processes.
+				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
 				default_position - Default position for entries to the form (if the view is positioned).
 				suffix - Optional add/edit suffix for the form.
 				return_view - The view to return to when the form is completed.
@@ -6805,19 +6798,18 @@
 				tagging - Whether or not to enable tagging.
 		*/
 
-		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$suffix = "",$return_view = false,$return_url = "",$tagging = "") {
+		function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$suffix = "",$return_view = false,$return_url = "",$tagging = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(htmlspecialchars($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
+			$hooks = BigTree::json($hooks,true);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
 
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', preprocess = '$preprocess', callback = '$callback', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging', `hooks` = '$hooks' WHERE id = '$id'");
 
 			$action = $this->getModuleActionForForm($id);
 			$oroute = str_replace(array("add-","edit-","add","edit"),"",$action["route"]);

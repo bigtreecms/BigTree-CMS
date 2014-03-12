@@ -349,7 +349,29 @@
 		sqlquery("ALTER TABLE bigtree_templates ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_templates ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 
-		// Add publish_hook column
+		// New publish_hook column, consolidate other hooks into one column
 		sqlquery("ALTER TABLE bigtree_pending_changes ADD COLUMN `publish_hook` VARCHAR(255)");
+		sqlquery("ALTER TABLE bigtree_module_forms ADD COLUMN `hooks` TEXT");
+		sqlquery("ALTER TABLE bigtree_module_embeds ADD COLUMN `hooks` TEXT");
+		$q = sqlquery("SELECT * FROM bigtree_module_forms");
+		while ($f = sqlfetch($q)) {
+			$hooks = array();
+			$hooks["pre"] = $f["preprocess"];
+			$hooks["post"] = $f["callback"];
+			$hooks["publish"] = "";
+			sqlquery("UPDATE bigtree_module_forms SET hooks = '".BigTree::json($hooks,true)."' WHERE id = '".$f["id"]."'");
+		}
+		$q = sqlquery("SELECT * FROM bigtree_module_embeds");
+		while ($f = sqlfetch($q)) {
+			$hooks = array();
+			$hooks["pre"] = $f["preprocess"];
+			$hooks["post"] = $f["callback"];
+			$hooks["publish"] = "";
+			sqlquery("UPDATE bigtree_module_embeds SET hooks = '".BigTree::json($hooks,true)."' WHERE id = '".$f["id"]."'");
+		}
+		sqlquery("ALTER TABLE bigtree_module_forms DROP COLUMN `preprocess`");
+		sqlquery("ALTER TABLE bigtree_module_forms DROP COLUMN `callback`");
+		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `preprocess`");
+		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `callback`");
 	}
 ?>
