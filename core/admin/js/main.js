@@ -1141,46 +1141,61 @@ var BigTreeDialog = Class.extend({
 	dialogHeight: false,
 	heightWatchTimer: false,
 
-	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
+	init: function(settings) {
+		defaults = { title: "", content: "", callback: false, icon: false, noFooter: false, alternateSaveText: false, preSubmissionCallback: false, cancelHook: false };
+	
+		// BigTree 4.2 behavior should be to pass in a settings object
+		if (is_object(settings)) {
+			for (i in settings) {
+				defaults[i] = settings[i];
+			}
+		// Allow for backwards copatibility with BigTree <= 4.1
+		} else {
+			defaults.title = arguments[0];
+			defaults.content = arguments[1];
+			defaults.callback = arguments[2];
+			defaults.icon = arguments[3];
+			defaults.noFooter = arguments[4];
+			defaults.alternateSaveText = arguments[5];
+			defaults.preSubmissionCallback = arguments[6];
+			defaults.cancelHook = arguments[7];
+		}
+
+		// If they hit escape, close the dialog
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
-		this.onComplete = oncomplete;
+		// Setup a callback to give the data to once they submit their dialog
+		this.onComplete = defaults.callback;
+		this.onCancel = defaults.cancelHook;
+
+		// Build our window
 		overlay = $('<div class="bigtree_dialog_overlay">');
 		dialog_window = $('<div class="bigtree_dialog_window">');
 		$("body").append(overlay).append(dialog_window);
-		
-		if (altSaveText) {
-			saveText = altSaveText;
-		} else {
-			saveText = "Save";
+		html = '<h2>';
+		if (defaults.icon) {
+			html += '<span class="icon_dialog_' + defaults.icon + '"></span>';
 		}
-		
-		if (!noSave) {
-			if (icon) {
-				dialog_window.html('<h2><span class="icon_dialog_' + icon + '"></span>' + title + '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
-			} else {
-				dialog_window.html('<h2>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer></form>');
-			}
-		} else {
-			dialog_window.html('<h2><a href="#" class="icon_delete bigtree_dialog_close"></a>' + title + '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' + content + '</div><br class="clear" /></form>');
+		html += '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' +  defaults.content + '</div>';
+		if (!defaults.noFooter) {
+			saveText = defaults.alternateSaveText ? defaults.alternateSaveText : "Save";
+			html += '<footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer>';
 		}
-
+		html += '</form>';
+		dialog_window.html(html);
 		BigTreeCustomControls(dialog_window);
 		
+		// Center the dialog window
 		this.dialogWidth = dialog_window.width();
 		this.dialogHeight = dialog_window.height();
 		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
 		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
-
 		dialog_window.css({ "top": topd + "px", "left": leftd + "px" });
 		
-		if (altOnCancel) {
-			this.onCancel = altOnCancel;
-			dialog_window.find(".bigtree_dialog_close").click(altOnCancel);		
-		} else {
-			dialog_window.find(".bigtree_dialog_close").click($.proxy(this.DialogClose,this));
-		}
+		// Hook cancel button
+		dialog_window.find(".bigtree_dialog_close").click($.proxy(this.DialogClose,this));
 		
-		if (altOnComplete) {
+		// Hook form submission, if they don't want the submission just call the complete callback
+		if (defaults.preSubmissionCallback) {
 			dialog_window.find(".bigtree_dialog_form").submit(this.onComplete);
 		} else {
 			dialog_window.find(".bigtree_dialog_form").submit($.proxy(this.DialogSubmit,this));
@@ -1201,26 +1216,28 @@ var BigTreeDialog = Class.extend({
 	
 	CheckForEsc: function(e) {
 		if (e.keyCode == 27) {
-			if (this.onCancel) {
-				this.onCancel();
-				$("body").off("keyup");
-			} else {
-				this.DialogClose();
-			}
+			this.DialogClose();
 		}
 	},
 
 	DialogClose: function() {
-		$(".bigtree_dialog_overlay").last().remove();
-		$(".bigtree_dialog_window").last().remove();
-		$("body").off("keyup");
-		$(window).off("resize");
+		// Call the cancel hook once, if it requests that we close the dialog, don't run it again.
+		if (this.onCancel) {
+			this.onCancel();
+			this.onCancel = false;
+		} else {
+			$(".bigtree_dialog_overlay").last().remove();
+			$(".bigtree_dialog_window").last().remove();
+			$("body").off("keyup");
+			$(window).off("resize");
+		}
 		return false;
 	},
 
 	DialogSubmit: function(ev) {
 		ev.preventDefault();
 		ev.stopPropagation();
+
 		// Let's move all the TinyMCE content back.
 		if (typeof tinyMCE != "undefined") {
 			this.dialogWindow.find("textarea:hidden").each(function() {
@@ -1228,32 +1245,29 @@ var BigTreeDialog = Class.extend({
 				$(this).val(tinyMCE.get(id).getContent());
 			});
 		}
+
+		// Pass the form data to our callback as JSON
 		this.onComplete(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON());
-		if (this.onCancel) {
-			this.onCancel();
-		} else {
-			this.DialogClose();
-		}
-		return false;
+		
+		// Remove the dialog
+		$(".bigtree_dialog_overlay").last().remove();
+		$(".bigtree_dialog_window").last().remove();
+		$("body").off("keyup");
+		$(window).off("resize");
 	},
 	
 	WatchHeight: function() {
 		height = this.dialogWindow.height();
 		if (height != this.dialogHeight) {
 			this.dialogHeight = height;
-			this.WindowResize(false,true);
+			this.WindowResize(false);
 		}
 	},
 	
-	WindowResize: function(ev,animate) {
+	WindowResize: function(ev) {
 		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
 		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
-		
-		if (animate) {
-			this.dialogWindow.animate({ "top": topd + "px", "left": leftd + "px" }, 200);
-		} else {
-			this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
-		}
+		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
 	}
 });
 
