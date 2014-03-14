@@ -5,6 +5,8 @@
 		$replacing = $admin->getResource($_POST["replace"]);
 		$pinfo = BigTree::pathInfo($replacing["file"]);
 		$replacing = $pinfo["basename"];
+		// Set a recently replaced cookie so we don't use cached images
+		setcookie('bigtree_admin[recently_replaced_file]',true,time()+300,str_replace(DOMAIN,"",WWW_ROOT));
 	} else {
 		$replacing = false;
 	}

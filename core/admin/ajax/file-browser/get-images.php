@@ -62,7 +62,7 @@
 					"thumbs" => $available_thumbs
 				)));
 	?>
-	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb?>" alt="" style="margin-top: <?=$margin?>px;" /></a>
+	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" style="margin-top: <?=$margin?>px;" /></a>
 	<?
 			}
 		}

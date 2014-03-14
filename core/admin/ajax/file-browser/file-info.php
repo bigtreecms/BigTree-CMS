@@ -1,12 +1,16 @@
 <?
 	$file = $admin->getResourceByFile($_POST["file"]);
 	$pinfo = BigTree::pathInfo($file["file"]);
+	
+	// We throw on ?uniqid so that we don't cache the thumbnail in the event that we just replaced it
+	if ($file["is_image"]) {
 ?>
-<? if ($file["is_image"]) { ?>
 <div class="file_browser_detail_thumb">
-	<img src="<?=$file["thumbs"]["bigtree_internal_detail"]?>" alt="" />
+	<img src="<?=$file["thumbs"]["bigtree_internal_detail"].($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" />
 </div>
-<? } ?>
+<?
+	}
+?>
 <div class="file_browser_detail_title">
 	<label>Title</label>
 	<input type="text" name="<?=$file["id"]?>" id="file_browser_detail_title_input" value="<?=$file["name"]?>" />

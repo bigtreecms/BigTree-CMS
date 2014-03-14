@@ -1598,7 +1598,6 @@ var BigTreeFileManager = {
 	},
 
 	replaceFileProcess: function(data) {
-		$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
