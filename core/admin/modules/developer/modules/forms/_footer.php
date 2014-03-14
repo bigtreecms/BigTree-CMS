@@ -9,6 +9,18 @@
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value }, BigTree.localHooks);
 		$("#create").show();
 	});
+
+	$("#manage_hooks").click(function() {
+		data = $.parseJSON($("#form_hooks").val());
+		html = '<a class="help" href="http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/">Help</a>';
+		html += '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre) + '" /></fieldset>';
+		html += '<fieldset><label>Post-processing Hook</label><input type="text" name="post" value="' + htmlspecialchars(data.post) + '" /></fieldset>';
+		html += '<fieldset><label>Publishing Hook</label><input type="text" name="publish" value="' + htmlspecialchars(data.publish) + '" /></fieldset>';
+		new BigTreeDialog("Manage Hooks",html,function(data) {
+			$("#form_hooks").val(JSON.stringify(data));
+		});
+		return false;
+	});
 	
 	$("#field_area").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
