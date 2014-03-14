@@ -2197,7 +2197,7 @@ var BigTreeManyToMany = Class.extend({
 			this.sortable = true;
 		}
 		this.field.find(".add").click($.proxy(this.addItem,this));
-		this.field.on("click",".icon_delete",this.deleteItem);
+		this.field.on("click",".icon_delete",$.proxy(this.deleteItem,this));
 		if (keep_options) {
 			this.keepOptions = true;
 		}
@@ -2232,19 +2232,21 @@ var BigTreeManyToMany = Class.extend({
 		return false;
 	},
 	
-	deleteItem: function() {
+	deleteItem: function(ev) {
+		this.deleteTarget = ev.currentTarget;
+		
 		new BigTreeDialog({
 			title: "Delete Item",
 			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {
-				fieldset = $(this).parents("fieldset");
+				fieldset = $(this.deleteTarget).parents("fieldset");
 				// If this is the last item we're removing, show the instructions again.
-				if ($(this).parents("ul").find("li").length == 1) {
+				if ($(this.deleteTarget).parents("ul").find("li").length == 1) {
 					fieldset.find("section").show();
 				}
-				li = $(this).parents("li");
+				li = $(this.deleteTarget).parents("li");
 				val = li.find("input").val();
 				text = li.find("p").html();
 				// Add the option back to the select
