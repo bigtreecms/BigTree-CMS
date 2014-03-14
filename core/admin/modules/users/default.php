@@ -31,9 +31,15 @@
 	});
 	
 	$(".table").on("click",".icon_delete",function() {
-		new BigTreeDialog("Delete User",'<p class="confirm">Are you sure you want to delete this user?',$.proxy(function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete User",
+			content: '<p class="confirm">Are you sure you want to delete this user?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() {
+				$.ajax("<?=ADMIN_ROOT?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
+			},this)
+		});
 		
 		return false;
 	}).on("click",".sort_column",function() {

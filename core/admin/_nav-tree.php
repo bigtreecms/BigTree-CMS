@@ -125,7 +125,7 @@
 				array("title" => "Salesforce API","link" => "developer/services/salesforce","icon" => "cloud","hidden" => true),
 				array("title" => "Disqus API","link" => "developer/services/disqus","icon" => "disqus","hidden" => true)
 			)),
-			array("title" => "Extensions & Packages","link" => "developer/extensions","icon" => "package","hidden" => true,"children" => array(
+			array("title" => "Extensions","link" => "developer/extensions","icon" => "package","hidden" => true,"children" => array(
 				array("title" => "View Extensions","link" => "developer/extensions","nav_icon" => "list"),
 				array("title" => "Build Extension","link" => "developer/extensions/build","nav_icon" => "shovel"),
 				array("title" => "Install Extension","link" => "developer/extensions/install","nav_icon" => "add"),
@@ -133,7 +133,7 @@
 				array("title" => "Build Package","link" => "developer/packages/build","nav_icon" => "shovel"),
 				array("title" => "Install Package","link" => "developer/packages/install","nav_icon" => "add")
 			)),
-			array("title" => "Extensions & Packages","link" => "developer/packages","icon" => "package","hidden" => true,"children" => array(
+			array("title" => "Packages","link" => "developer/packages","icon" => "package","hidden" => true,"children" => array(
 				array("title" => "View Extensions","link" => "developer/extensions","nav_icon" => "list"),
 				array("title" => "Build Extension","link" => "developer/extensions/build","nav_icon" => "shovel"),
 				array("title" => "Install Extension","link" => "developer/extensions/install","nav_icon" => "add"),

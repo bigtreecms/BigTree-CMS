@@ -16,8 +16,13 @@
 		html += '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre) + '" /></fieldset>';
 		html += '<fieldset><label>Post-processing Hook</label><input type="text" name="post" value="' + htmlspecialchars(data.post) + '" /></fieldset>';
 		html += '<fieldset><label>Publishing Hook</label><input type="text" name="publish" value="' + htmlspecialchars(data.publish) + '" /></fieldset>';
-		new BigTreeDialog("Manage Hooks",html,function(data) {
-			$("#form_hooks").val(JSON.stringify(data));
+		new BigTreeDialog({
+			title: "Manage Hooks",
+			content: html,
+			icon: "edit",
+			callback: function(data) {
+				$("#form_hooks").val(JSON.stringify(data));
+			}
 		});
 		return false;
 	});
@@ -27,8 +32,13 @@
 		BigTree.localCurrentFieldKey = key;
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
-			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+			new BigTreeDialog({
+				title: "Field Options",
+				content: response.responseText,
+				icon: "edit",
+				callback: function(data) {
+					$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+				}
 			});
 		}});
 		

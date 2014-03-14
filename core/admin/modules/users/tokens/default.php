@@ -37,9 +37,15 @@
 	}
 	
 	$(".icon_delete").live("click",function() {
-		new BigTreeDialog("Delete API Token",'<p class="confirm">Are you sure you want to delete this API token?',$.proxy(function() {
-			$.ajax("<?=$admin_root?>ajax/users/delete-token/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete API Token",
+			content: '<p class="confirm">Are you sure you want to delete this API token?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() {
+				$.ajax("<?=$admin_root?>ajax/users/delete-token/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
+			},this)
+		});
 		
 		return false;
 	});

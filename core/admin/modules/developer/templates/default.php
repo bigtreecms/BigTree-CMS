@@ -79,10 +79,14 @@
 	}});
 	
 	$(".icon_delete").click(function() {
-		new BigTreeDialog("Delete Template",'<p class="confirm">Are you sure you want to delete this template?',$.proxy(function() {
-			document.location.href = $(this).attr("href");
-		},this),"delete",false,"OK");
-		
+		new BigTreeDialog({
+			title: "Delete Template",
+			content: '<p class="confirm">Are you sure you want to delete this template?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+		});
+
 		return false;
 	});
 </script>

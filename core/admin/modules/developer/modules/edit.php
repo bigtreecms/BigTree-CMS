@@ -226,9 +226,13 @@
 	}});
 
 	$(".table .icon_delete").click(function() {
-		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this?',$.proxy(function() {
-			document.location.href = $(this).attr("href");
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Item",
+			content: '<p class="confirm">Are you sure you want to delete this?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+		});
 		
 		return false;
 	});

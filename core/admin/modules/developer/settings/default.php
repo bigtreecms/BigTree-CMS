@@ -30,9 +30,13 @@
 
 <script>	
 	$(".icon_delete").click(function() {
-		new BigTreeDialog("Delete Setting",'<p class="confirm">Are you sure you want to delete this setting?',$.proxy(function() {
-			document.location.href = $(this).attr("href");
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Setting",
+			content: '<p class="confirm">Are you sure you want to delete this setting?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+		});
 		
 		return false;
 	});

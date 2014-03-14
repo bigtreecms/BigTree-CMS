@@ -39,7 +39,7 @@
 	}).on("click",".icon_delete",function() {
 		new BigTreeDialog({
 			title: "Delete Resource",
-			content: '<p class="confirm">Are you sure you want to delete this resource?',
+			content: '<p class="confirm">Are you sure you want to delete this resource?</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() { $(this).parents("li").remove(); },this)

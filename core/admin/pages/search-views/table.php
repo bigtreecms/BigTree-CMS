@@ -72,10 +72,16 @@
 	});
 			
 	$("#results_table_<?=$view["id"]?> .icon_delete").click(function() {
-		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?',$.proxy(function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
-			$(this).parents("li").remove();
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Item",
+			content: '<p class="confirm">Are you sure you want to delete this item?',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() {
+				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
+				$(this).parents("li").remove();
+			},this)
+		});
 		
 		return false;
 	});

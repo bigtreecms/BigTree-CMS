@@ -73,27 +73,19 @@
 		BigTree.localCurrentFieldKey = $(this).attr("name");
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + BigTree.localCurrentFieldKey).val(), data: $("#options_" + BigTree.localCurrentFieldKey).val() }, complete: function(response) {
-			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+			new BigTreeDialog({
+				title: "Field Options",
+				content: response.responseText,
+				icon: "edit",
+				callback: function(data) {
+					$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+				}
 			});
 		}});
 		
 		return false;
 	}).on("click",".icon_delete",function() {
-		new BigTreeDialog("Delete Field",'<p class="confirm">Are you sure you want to delete this field?</p>',$.proxy(function() {
-			li = $(this).parents("li");
-			title = li.find("input").val();
-			type = li.find(".developer_resource_type").find("input,select").eq(0).val();
-			if (title) {
-				key = $(this).attr("name");
-				if (key != "geocoding" && type != "many-to-many") {
-					sel = $("#unused_field").get(0);
-					sel.options[sel.options.length] = new Option(key,title,false,false);
-				}
-			}
-			li.remove();
-		},this),"delete",false,"OK");
-		
+		$(this).parents("li").remove();		
 		return false;
 	});
 	

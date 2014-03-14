@@ -25,9 +25,14 @@
 </div>
 <script>
 	$(".icon_delete").click(function() {
-		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to uninstall this package?<br />Related components will also be removed.</p>',$.proxy(function() {
-			window.location.href = $(this).attr("href");
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Uninstall Package",
+			content: '<p class="confirm">Are you sure you want to uninstall this package?<br />Related components will also be removed.</p>',
+			icon: "delete",
+			alternateSaveText: "Uninstall",
+			callback: $.proxy(function() { window.location.href = $(this).attr("href"); },this)
+		});
+		
 		return false;
 	});
 </script>

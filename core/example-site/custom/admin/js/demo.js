@@ -12,7 +12,12 @@ var CustomPhotoGallery = BigTreePhotoGallery.extend({
 			html += '<fieldset><label>Attribution</label><input type="text" name="attribution" /></fieldset>';
 			html += '<fieldset><label>Link</label><input type="text" name="link" /></fieldset>';
 			
-			new BigTreeDialog("Image Details",html,$.proxy(this.saveNewFile,this),"caption");
+			new BigTreeDialog({
+				title: "Image Details",
+				content: html,
+				icon: "caption",
+				callback: $.proxy(this.saveNewFile,this)
+			});
 		} else {
 			this.saveNewFile({ caption: "", attribution: "", link: "" });
 		}
@@ -29,7 +34,13 @@ var CustomPhotoGallery = BigTreePhotoGallery.extend({
 		html += '<fieldset><label>Attribution</label><input type="text" name="attribution" value="' + htmlspecialchars(this.activeAttribution.val()) + '"/></fieldset>';
 		html += '<fieldset><label>Link</label><input type="text" name="link" value="' + htmlspecialchars(this.activeLink.val()) + '"/></fieldset>';
 		
-		new BigTreeDialog("Image Details",html,$.proxy(this.saveCaption,this),"caption");
+		new BigTreeDialog({
+			title: "Image Details",
+			content: html,
+			icon: "caption",
+			callback: $.proxy(this.saveCaption,this)
+		});
+		
 		return false;
 	},
 	

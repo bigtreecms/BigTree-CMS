@@ -84,7 +84,7 @@
 	$(".icon_delete").click(function() {
 		new BigTreeDialog({
 			title: "Delete Callout",
-			content: '<p class="confirm">Are you sure you want to delete this callout?',
+			content: '<p class="confirm">Are you sure you want to delete this callout?</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
