@@ -749,6 +749,7 @@
 	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
 	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 	fieldset.callouts_no_margin { margin-top: -31px; }
+	.front_end_editor fieldset.callouts { margin-left: -20px; margin-right: -20px; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }
@@ -1184,12 +1185,12 @@
 
 	.bigtree_dialog_form .image_field .button { padding: 0 10px; }
 
-	.bigtree_dialog_window.front_end_editor { border: none; height: 625px; width: 100%; z-index: 1; }
-	.bigtree_dialog_window.front_end_editor .overflow { height: 469px; max-height: none; width: 800px; }
-	.bigtree_dialog_window.front_end_editor input[type=text] { width: 760px; }
-	.bigtree_dialog_window.front_end_editor input[type=submit] { margin-right: 10px; }
-	.bigtree_dialog_window.front_end_editor textarea { width: 760px; }
-	.bigtree_dialog_window.front_end_editor fieldset { width: auto; }
+	.front_end_editor .bigtree_dialog_window { border: none; height: 625px; width: 100%; z-index: 1; }
+	.front_end_editor .bigtree_dialog_window .overflow { height: 469px; max-height: none; width: 800px; }
+	.front_end_editor .bigtree_dialog_window input[type=text] { width: 760px; }
+	.front_end_editor .bigtree_dialog_window input[type=submit] { margin-right: 10px; }
+	.front_end_editor .bigtree_dialog_window textarea { width: 760px; }
+	.front_end_editor .bigtree_dialog_window fieldset { width: auto; }
 
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 
@@ -1761,6 +1762,8 @@
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
 	.bigtree #callout_resources .mce-btn-group { border: none; }
+	.front_end_editor .mce-widget button { height: 31px; }
+	.front_end_editor .mce-combobox button { padding: 6px 8px; }
 
 /*----------------------------
 	Custom Redactor Styles

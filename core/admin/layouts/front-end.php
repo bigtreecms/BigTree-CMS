@@ -27,8 +27,8 @@
 			#mceModalBlocker { display: none !important; }
 		</style>
 	</head>
-	<body>
-		<div class="bigtree_dialog_window front_end_editor">
+	<body class="bigtree front_end_editor">
+		<div class="bigtree_dialog_window">
 			<?=$bigtree["content"]?>
 		</div>
 	</body>
