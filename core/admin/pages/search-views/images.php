@@ -3,6 +3,7 @@
 	BigTree::globalizeArray($view);
 ?>
 <div class="table" id="" class="image_list">
+	<summary><h2>Search Results</h2></summary>
 	<header>
 		<span class="view_column">Click an image to edit it.</span>
 	</header>
