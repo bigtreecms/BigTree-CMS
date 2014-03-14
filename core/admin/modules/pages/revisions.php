@@ -45,9 +45,13 @@
 	$revisions = $admin->getPageRevisions($page["id"]);
 
 	include BigTree::path("admin/modules/pages/_properties.php");
+
+
+	if ($draft) {
+		$draft_author = $admin->getUser($draft["user"]);
 ?>
 <div class="table">
-	<summary><h2><span class="pages"></span>Unpublished Drafts</h2></summary>
+	<summary><h2><span class="pages"></span>Current Draft</h2></summary>
 	<header>
 		<span class="pages_last_edited">Last Edited</span>
 		<span class="pages_draft_author">Draft Author</span>
@@ -56,22 +60,19 @@
 		<span class="pages_delete">Delete</span>
 	</header>
 	<ul>
-		<?
-			if ($draft) {
-				$draft_author = $admin->getUser($draft["user"]);
-		?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($draft["date"]))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($draft_author["email"], 36)?>" alt="" /></span><?=$draft_author["name"]?></section>
-			<section class="pages_publish"><a class="icon_publish" href="#"></a></section>
+			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page["id"]?>/?draft=<?=$draft["id"]?>"></a></section>
 			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page["id"]?>/"></a></section>
 			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page["id"]?>"></a></section>
 		</li>
-		<?
-			}
-		?>
+
 	</ul>
 </div>
+<?
+	}
+?>
 <div class="table">
 	<summary><h2><span class="published"></span>Published Revisions</h2></summary>
 	<header>
