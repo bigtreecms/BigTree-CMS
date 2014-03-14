@@ -28,9 +28,13 @@
 
 <script>
 	$(".icon_delete").click(function() {
-		new BigTreeDialog("Delete Callout Group",'<p class="confirm">Are you sure you want to delete this callout group?<br /><br />Callouts in this group will become uncategorized.</p>',$.proxy(function() {
-			document.location.href = $(this).attr("href");
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Callout Group",
+			content: '<p class="confirm">Are you sure you want to delete this callout group?<br /><br />Callouts in this group will become uncategorized.</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+		});
 		
 		return false;
 	});

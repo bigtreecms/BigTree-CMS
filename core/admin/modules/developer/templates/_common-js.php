@@ -5,7 +5,7 @@
 <script>
 	new BigTreeFormValidator("form.module");
 	
-	BigTree.localCurrentField = false;
+	BigTree.localCurrentFieldKey = false;
 	BigTree.localResourceCount = <?=$x?>;
 	
 	$(".template_image_list a").click(function() {
@@ -17,11 +17,11 @@
 	
 	$(".form_table").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
-		BigTree.localCurrentField = key;
+		BigTree.localCurrentFieldKey = key;
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + BigTree.localCurrentField, { type: "POST", data: data });
+				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
 			});
 		}});
 		

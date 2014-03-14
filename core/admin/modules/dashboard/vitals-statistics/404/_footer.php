@@ -35,12 +35,18 @@
 		});
 		
 		$(".icon_delete").click(function() {
-			new BigTreeDialog("<?=ucwords($delete_action)?> 404",'<p class="confirm">Are you sure you want to delete this 404?',$.proxy(function() {
-				id = $(this).attr("href").substr(1);
-				$(this).parents("li").remove();
-				$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
-				BigTree.Growl("404 Report","Deleted 404");
-			},this),"delete",false,"OK");
+			new BigTreeDialog({
+				title: "<?=ucwords($delete_action)?> 404",
+				content: '<p class="confirm">Are you sure you want to delete this 404?</p>',
+				icon: "delete",
+				alternateSaveText: "OK",
+				callback: $.proxy(function() {
+					id = $(this).attr("href").substr(1);
+					$(this).parents("li").remove();
+					$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
+					BigTree.Growl("404 Report","Deleted 404");
+				},this)
+			});
 			
 			return false;
 		});

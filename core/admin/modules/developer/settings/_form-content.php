@@ -39,8 +39,11 @@
 <script>
 	$(".icon_settings").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
-			new BigTreeDialog("Settings Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + "settings", { type: "POST", data: data });
+			new BigTreeDialog({
+				title: "Settings Options",
+				content: response.responseText,
+				icon: "edit",
+				callback: function(data) { $("#options_settings").val(JSON.stringify(data)); }
 			});
 		}});
 		

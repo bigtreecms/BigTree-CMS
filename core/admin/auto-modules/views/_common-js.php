@@ -7,9 +7,14 @@
 	});
 	
 	$(".table").on("click",".icon_delete",function() {
-		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.CleanHref($(this).attr("href")));
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Item",
+			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { $.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.CleanHref($(this).attr("href"))); },this)
+		});
+
 		return false;
 	}).on("click",".icon_approve",function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.CleanHref($(this).attr("href")));

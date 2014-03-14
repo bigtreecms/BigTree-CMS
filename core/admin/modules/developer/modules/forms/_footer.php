@@ -1,5 +1,5 @@
 <script>
-	BigTree.localCurrentField = false;
+	BigTree.localCurrentFieldKey = false;
 	BigTree.localHooks = function() {
 		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 		BigTreeCustomControls();
@@ -24,11 +24,11 @@
 	
 	$("#field_area").on("click",".icon_settings",function() {
 		key = $(this).attr("name");
-		BigTree.localCurrentField = key;
+		BigTree.localCurrentFieldKey = key;
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + BigTree.localCurrentField, { type: "POST", data: data });
+				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
 			});
 		}});
 		

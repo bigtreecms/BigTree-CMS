@@ -25,16 +25,25 @@
 		BigTree.localCurrentFieldKey = key;
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { callout: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
-			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + BigTree.localCurrentFieldKey, { type: "POST", data: data });
+			new BigTreeDialog({
+				title: "Field Options",
+				content: response.responseText,
+				icon: "edit",
+				callback: function(data) {
+					$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+				}
 			});
 		}});
 		
 		return false;
 	}).on("click",".icon_delete",function() {
-		new BigTreeDialog("Delete Resource",'<p class="confirm">Are you sure you want to delete this resource?',$.proxy(function() {
-			$(this).parents("li").remove();
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Resource",
+			content: '<p class="confirm">Are you sure you want to delete this resource?',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { $(this).parents("li").remove(); },this)
+		});
 		
 		return false;
 	}).on("click","input[name=display_field]",function() {

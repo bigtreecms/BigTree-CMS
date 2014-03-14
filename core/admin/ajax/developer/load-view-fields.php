@@ -166,16 +166,27 @@
 	}).on("click",".edit",function() {
 		_local_BigTreeCustomAction = $(this).parents("li");
 		j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
-		new BigTreeDialog("Edit Custom Action",'<fieldset><label>Action Name</label><input type="text" name="name" value="' + htmlspecialchars(j.name) + '" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" value="' + htmlspecialchars(j.class) + '" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" value="' + htmlspecialchars(j.route) + '" /></fieldset><fieldset><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" value="' + htmlspecialchars(j.function) + '" /></fieldset>',function(data) {
-			_local_BigTreeCustomAction.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
+		new BigTreeDialog({
+			title: "Edit Custom Action",
+			content: '<fieldset><label>Action Name</label><input type="text" name="name" value="' + htmlspecialchars(j.name) + '" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" value="' + htmlspecialchars(j.class) + '" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" value="' + htmlspecialchars(j.route) + '" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" value="' + htmlspecialchars(j.function) + '" /></fieldset>',
+			icon: "edit",
+			callback: function(data) {
+				_local_BigTreeCustomAction.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
+			}
 		});
 	}).sortable({ axis: "x", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 		
 	$(".add_action").click(function() {
-		new BigTreeDialog("Add Custom Action",'<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',function(data) {
-			li = $('<li>');
-			li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
-			$(".developer_action_list li:first-child").before(li);
+		new BigTreeDialog({
+			title: "Add Custom Action",
+			content: '<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',
+			icon: "add",
+			alternateSaveText: "Add",
+			callback: function(data) {
+				li = $('<li>');
+				li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
+				$(".developer_action_list li:first-child").before(li);
+			}
 		});
 		
 		return false;
@@ -199,14 +210,20 @@
 			$("#sort_table").append(li);
 			BigTree.localHooks();
 		} else {
-			new BigTreeDialog("Add Custom Column",'<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset><label>Column Title</label><input type="text" name="title" /></fieldset>',function(data) {
-				key = htmlspecialchars(data.key);
-				title = htmlspecialchars(data.title);
-				
-				li = $('<li id="row_' + key + '">');
-				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-				$("#sort_table").append(li);
-				BigTree.localHooks();
+			new BigTreeDialog({
+				title: "Add Custom Column",
+				content: '<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset class="last"><label>Column Title</label><input type="text" name="title" /></fieldset>',
+				icon: "add",
+				alternateSaveText: "Add",
+				callback: function(data) {
+					key = htmlspecialchars(data.key);
+					title = htmlspecialchars(data.title);
+					
+					li = $('<li id="row_' + key + '">');
+					li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+					$("#sort_table").append(li);
+					BigTree.localHooks();
+				}
 			});
 		}
 	});

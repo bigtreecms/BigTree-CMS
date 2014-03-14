@@ -82,10 +82,14 @@
 	}});
 
 	$(".icon_delete").click(function() {
-		new BigTreeDialog("Delete Module",'<p class="confirm">Are you sure you want to delete this callout?',$.proxy(function() {
-			document.location.href = $(this).attr("href");
-		},this),"delete",false,"OK");
-		
+		new BigTreeDialog({
+			title: "Delete Callout",
+			content: '<p class="confirm">Are you sure you want to delete this callout?',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+		});
+
 		return false;
 	});
 </script>
