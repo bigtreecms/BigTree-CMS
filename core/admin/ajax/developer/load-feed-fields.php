@@ -95,24 +95,12 @@
 		title = el.title;
 		key = el.field;
 		
-		if (title) {
-			li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-		
-			fs.removeCurrent();
-			$("#sort_table").append(li);
-			BigTree.localHooks();
-		} else {
-			new BigTreeDialog("Add Custom Column",'<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset><label>Column Title</label><input type="text" name="title" /></fieldset>',function(data) {
-				key = htmlspecialchars(data.key);
-				title = htmlspecialchars(data.title);
-				
-				li = $('<li id="row_' + key + '">');
-				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-				$("#sort_table").append(li);
-				BigTree.localHooks();
-			});
-		}
+		li = $('<li id="row_' + key + '">');
+		li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+	
+		fs.removeCurrent();
+		$("#sort_table").append(li);
+		BigTree.localHooks();
 	});
 
 </script>
