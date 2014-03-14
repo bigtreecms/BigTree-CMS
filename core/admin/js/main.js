@@ -944,9 +944,13 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	deletePhoto: function() {
-		new BigTreeDialog("Remove Photo",'<p class="confirm">Are you sure you want to remove this photo?</p>',$.proxy(function() {
-			$(this).parents("li").remove();
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Remove Photo",
+			content: '<p class="confirm">Are you sure you want to remove this photo?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() { $(this).parents("li").remove(); },this)
+		});
 		
 		return false;
 	},
@@ -954,7 +958,14 @@ var BigTreePhotoGallery = Class.extend({
 	editPhoto: function(ev) {
 		link = $(ev.target);
 		this.activeCaption = link.siblings(".caption");
-		new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(this.activeCaption.val()) + '"/></fieldset>',$.proxy(this.saveCaption,this),"caption");
+
+		new BigTreeDialog({
+			title: "Image Caption",
+			content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(this.activeCaption.val()) + '"/></fieldset>',
+			callback: $.proxy(this.saveCaption,this),
+			icon: "caption"
+		});
+
 		return false;
 	},
 	
@@ -1310,7 +1321,15 @@ var BigTreeFileManager = {
 	},
 	
 	addFolder: function() {
-		new BigTreeDialog("New Folder",'<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',$.proxy(this.createFolder,this),"folder",false,"Create Folder",true,this.cancelAdd);
+		new BigTreeDialog({
+			title: "New Folder",
+			content: '<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',
+			callback: $.proxy(this.createFolder,this),
+			icon: "folder",
+			alternateSaveText: "Create Folder",
+			preSubmissionCallback: true,
+			cancelHook: this.cancelAdd
+		});
 		
 		return false;
 	},
@@ -1639,7 +1658,15 @@ var BigTreeFileManager = {
 	replaceFile: function(ev) {
 		ev.preventDefault();
 		ev.stopPropagation();
-		new BigTreeDialog("Replace File",'<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',BigTreeFileManager.replaceFileProcess,"folder",false,"Replace File",true,BigTreeFileManager.cancelAdd);		
+		new BigTreeDialog({
+			title: "Replace File",
+			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',
+			callback: BigTreeFileManager.replaceFileProcess,
+			icon: "folder",
+			alternateSaveText: "Replace File",
+			preSubmissionCallback: true,
+			cancelHook: BigTreeFileManager.cancelAdd
+		});
 	},
 
 	replaceFileProcess: function(data) {
@@ -1916,18 +1943,24 @@ var BigTreeArrayOfItems = Class.extend({
 		}
 		html += 'BigTreeCustomControls();</script>';
 		
-		new BigTreeDialog("Add Item",html,$.proxy(function(data) {
-			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
-			li.find("input").val(json_encode(data));
-			// Get the first element returned so we can put it in as a description
-			for (i in data) {
-				first = data[i];
-				break;
-			}
-			li.find("p").html(first);
-			this.field.find("ul").append(li);
-			this.count++;
-		},this),"add",false,"Add");
+		new BigTreeDialog({
+			title: "Add Item",
+			content: html,
+			icon: "add",
+			alternateSaveText: "Add",
+			callback: $.proxy(function(data) {
+				li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
+				li.find("input").val(json_encode(data));
+				// Get the first element returned so we can put it in as a description
+				for (i in data) {
+					first = data[i];
+					break;
+				}
+				li.find("p").html(first);
+				this.field.find("ul").append(li);
+				this.count++;
+			},this),
+		});
 		
 		return false;
 	},
@@ -1940,14 +1973,21 @@ var BigTreeArrayOfItems = Class.extend({
 		datepickers = [];
 		timepickers = [];
 		timepickervals = [];
+		i = 0;
 		for (field in this.options) {
+			i++;
 			f = this.options[field];
 			if (data[f.key]) {
 				v = data[f.key];				
 			} else {
 				v = "";
 			}
-			html += '<fieldset>';
+			
+			if (i == this.options.length) {
+				html += '<fieldset class="last">';
+			} else {
+				html += '<fieldset>';
+			}
 			if (f.type != "checkbox") {
 				html += '<label>' + f.title + '</label>';
 			}
@@ -1979,7 +2019,7 @@ var BigTreeArrayOfItems = Class.extend({
 			html += '</fieldset>';
 		}
 		
-		html += '<br /><script>';
+		html += '<script>';
 		if (tinymces.length) {
 			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
 		}
@@ -1994,26 +2034,36 @@ var BigTreeArrayOfItems = Class.extend({
 		
 		this.activeField = $(ev.target).parents("li");
 		
-		new BigTreeDialog("Edit Item",html,$.proxy(function(data) {
-			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
-			li.find("input").val(json_encode(data));
-			// Get the first element returned so we can put it in as a description
-			for (i in data) {
-				first = data[i];
-				break;
-			}
-			li.find("p").html(first);
-			this.activeField.replaceWith(li);
-			this.count++;
-		},this),"edit",false,"Update");
+		new BigTreeDialog({
+			title: "Edit Item",
+			content: html,
+			icon: "edit",
+			alternateSaveText: "Update",
+			callback: $.proxy(function(data) {
+				li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
+				li.find("input").val(json_encode(data));
+				// Get the first element returned so we can put it in as a description
+				for (i in data) {
+					first = data[i];
+					break;
+				}
+				li.find("p").html(first);
+				this.activeField.replaceWith(li);
+				this.count++;
+			},this)
+		});
 		
 		return false;
 	},
 	
 	deleteItem: function() {
-		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {
-			$(this).parents("li").remove();		
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Item",
+			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+			callback: $.proxy(function() { $(this).parents("li").remove(); },this),
+			icon: "delete",
+			alternateSaveText: "OK"
+		});
 
 		return false;
 	}
@@ -2183,24 +2233,30 @@ var BigTreeManyToMany = Class.extend({
 	},
 	
 	deleteItem: function() {
-		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?</p>',$.proxy(function() {
-			fieldset = $(this).parents("fieldset");
-			// If this is the last item we're removing, show the instructions again.
-			if ($(this).parents("ul").find("li").length == 1) {
-				fieldset.find("section").show();
-			}
-			li = $(this).parents("li");
-			val = li.find("input").val();
-			text = li.find("p").html();
-			// Add the option back to the select
-			if (!this.keepOptions) {
-				fieldset.find("select")[0].customControl.add(val,text);
-			}
-
-			li.remove();
-			fieldset.trigger("removedItem", { value: val, description: text });
-
-		},this),"delete",false,"OK");
+		new BigTreeDialog({
+			title: "Delete Item",
+			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() {
+				fieldset = $(this).parents("fieldset");
+				// If this is the last item we're removing, show the instructions again.
+				if ($(this).parents("ul").find("li").length == 1) {
+					fieldset.find("section").show();
+				}
+				li = $(this).parents("li");
+				val = li.find("input").val();
+				text = li.find("p").html();
+				// Add the option back to the select
+				if (!this.keepOptions) {
+					fieldset.find("select")[0].customControl.add(val,text);
+				}
+	
+				li.remove();
+				fieldset.trigger("removedItem", { value: val, description: text });
+	
+			},this)
+		});
 
 		return false;
 	}
@@ -2850,27 +2906,33 @@ var BigTreeCallouts = {
 		$(container).on("click",".add_callout",function() {
 			BigTreeCallouts.activeContainer = $(this).parent();
 			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: BigTreeCallouts.count, group: group, key: key }, complete: function(response) {
-				new BigTreeDialog("Add " + noun,response.responseText,function(e) {		
-					e.preventDefault();
-					
-					article = BigTreeCallouts.GetCallout();
-					if (!article) {
+				new BigTreeDialog({
+					title: "Add " + noun,
+					content: response.responseText,
+					icon: "callout",
+					preSubmissionCallback: true,
+					callback: function(e) {		
+						e.preventDefault();
+						
+						article = BigTreeCallouts.GetCallout();
+						if (!article) {
+							return false;
+						}
+		
+						// Add the callout and hide the dialog.
+						$(BigTreeCallouts.activeContainer).find(".contain").append(article);
+						last_dialog.parents("div").remove();
+						last_dialog.remove();
+						$(".bigtree_dialog_overlay").last().remove();
+						
+						// Fill out the callout description.
+						article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
+						
+						BigTreeCallouts.count++;
+						
 						return false;
 					}
-	
-					// Add the callout and hide the dialog.
-					$(BigTreeCallouts.activeContainer).find(".contain").append(article);
-					last_dialog.parents("div").remove();
-					last_dialog.remove();
-					$(".bigtree_dialog_overlay").last().remove();
-					
-					// Fill out the callout description.
-					article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
-					
-					BigTreeCallouts.count++;
-					
-					return false;
-				},"callout",false,false,true);
+				});
 			}});
 			
 			return false;
@@ -2878,32 +2940,42 @@ var BigTreeCallouts = {
 			BigTreeCallouts.current = $(this).parents("article");
 			
 			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: BigTreeCallouts.count, data: BigTreeCallouts.current.find(".callout_data").val(), group: group, key: key }, complete: function(response) {
-				new BigTreeDialog("Edit " + noun,response.responseText,function(e) {
-					e.preventDefault();
-					
-					article = BigTreeCallouts.GetCallout();
-					if (!article) {
+				new BigTreeDialog({
+					title: "Edit " + noun,
+					content: response.responseText,
+					icon: "callout",
+					preSubmissionCallback: true,
+					callback: function(e) {
+						e.preventDefault();
+						
+						article = BigTreeCallouts.GetCallout();
+						if (!article) {
+							return false;
+						}
+		
+						BigTreeCallouts.current.replaceWith(article);
+						last_dialog.parents("div").remove();
+						last_dialog.remove();
+						$(".bigtree_dialog_overlay").last().remove();
+						
+						article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
+						
+						BigTreeCallouts.count++;
+						
 						return false;
 					}
-	
-					BigTreeCallouts.current.replaceWith(article);
-					last_dialog.parents("div").remove();
-					last_dialog.remove();
-					$(".bigtree_dialog_overlay").last().remove();
-					
-					article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
-					
-					BigTreeCallouts.count++;
-					
-					return false;
-				},"callout",false,false,true);
+				});
 			}});
 			
 			return false;
 		}).on("click",".icon_delete",function() {
-			new BigTreeDialog("Delete " + noun, '<p class="confirm">Are you sure you want to delete this ' + noun.toLowerCase() + '?</p>', $.proxy(function() {
-				$(this).parents("article").remove();
-			},this),"delete",false,"OK");
+			new BigTreeDialog({
+				title: "Delete " + noun,
+				content: '<p class="confirm">Are you sure you want to delete this ' + noun.toLowerCase() + '?</p>',
+				callback: $.proxy(function() { $(this).parents("article").remove(); },this),
+				icon: "delete",
+				alternateSaveText: "OK"
+			});
 			return false;
 		}).find(".contain").sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	},
