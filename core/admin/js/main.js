@@ -931,7 +931,12 @@ var BigTreePhotoGallery = Class.extend({
 			return false;
 		}
 		if (!this.disableCaptions) {
-			new BigTreeDialog("Image Caption",'<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',$.proxy(this.saveNewFile,this),"caption");
+			new BigTreeDialog({
+				title: "Image Caption",
+				content: '<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',
+				callback: $.proxy(this.saveNewFile,this),
+				icon: "caption"
+			});
 		} else {
 			this.saveNewFile({ caption: "" });
 		}
@@ -1175,7 +1180,7 @@ var BigTreeDialog = Class.extend({
 		if (defaults.icon) {
 			html += '<span class="icon_dialog_' + defaults.icon + '"></span>';
 		}
-		html += '</h2><form class="bigtree_dialog_form" method="post" action="" class="module"><div class="overflow">' +  defaults.content + '</div>';
+		html += defaults.title + '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' +  defaults.content + '</div>';
 		if (!defaults.noFooter) {
 			saveText = defaults.alternateSaveText ? defaults.alternateSaveText : "Save";
 			html += '<footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer>';
@@ -1292,8 +1297,15 @@ var BigTreeFileManager = {
 	// Methods
 	
 	addFile: function() {
-		new BigTreeDialog("Upload File",'<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',$.proxy(this.createFile,this),"folder",false,"Upload File",true,this.cancelAdd);
-		
+		new BigTreeDialog({
+			title: "Upload File",
+			content: '<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',
+			icon: "folder",
+			alternateSaveText: "Upload File",
+			preSubmissionCallback: true,
+			callback: $.proxy(this.createFile,this),
+			cancelHook: this.cancelAdd
+		});
 		return false;
 	},
 	
@@ -1347,7 +1359,7 @@ var BigTreeFileManager = {
 	},
 	
 	createFile: function() {
-		$(".bigtree_dialog_overlay").last().remove();
+		//$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
