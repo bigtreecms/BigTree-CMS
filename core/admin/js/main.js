@@ -1314,7 +1314,6 @@ var BigTreeFileManager = {
 	},
 	
 	createFile: function() {
-		$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
@@ -1322,7 +1321,6 @@ var BigTreeFileManager = {
 	},
 	
 	createFolder: function(data) {
-		$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/create-folder/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
@@ -1415,6 +1413,7 @@ var BigTreeFileManager = {
 	},
 	
 	finishedUpload: function(file,type,width,height) {
+		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
 		

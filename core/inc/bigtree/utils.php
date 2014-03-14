@@ -1063,25 +1063,32 @@
 				source - The source image file
 				width - The width of the new image to be created
 				height - The height of the new image to be created
-				source_width - If we already know the width/height, the source width
-				source_height - If we already know the width/height, the source height
 
 			Returns:
 				true if the image can be created, otherwise false.
 		*/
 
-		static function imageManipulationMemoryAvailable($source,$width,$height,$source_width = false,$source_height = false) {
-			// Thanks to Klinky on Stack Overflow for this: http://stackoverflow.com/users/187537/klinky
-			// Convert megabytes to bytes.
+		static function imageManipulationMemoryAvailable($source,$width,$height) {
 			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
-			if (!$source_width || !$source_height) {
-				list($source_width,$source_height) = getimagesize($source);
+			$info = getimagesize($source);
+			$source_width = $info[0];
+			$source_height = $info[1];
+
+			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
+			if ($info["mime"] == "image/jpg") {
+				$source_size = ceil($source_width * $source_height * 3 * 1.7); 
+				$target_size = ceil($width * $height * 3 * 1.7);
+			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
+			} elseif ($info["mime"] == "image/gif") {
+				$source_size = ceil($source_width * $source_height * 2.5); 
+				$target_size = ceil($width * $height * 2.5);
+			// GD takes about 245% extra memory for PNGs which are most likely running 4 bytes per pixel
+			} elseif ($info["mime"] == "image/png") {
+				$source_size = ceil($source_width * $source_height * 4 * 2.45);
+				$target_size = ceil($width * $height * 4 * 2.45);
 			}
-			// 3 bytes per pixel, GD internally takes ~67% more memory
-			$source_size = ceil($source_width * $source_height * 3 * 1.68); 
-			$target_size = ceil($width * $height * 3 * 1.68);
-			// Give 10K memory for the methods that will perform the operation.
-			$memory_usage = $source_size + $target_size + memory_get_usage() + 10 * 1024;
+
+			$memory_usage = $source_size + $target_size + memory_get_usage();
 			if ($memory_usage > $available_memory) {
 				return false;
 			}
