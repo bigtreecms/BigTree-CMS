@@ -66,6 +66,9 @@
 	if (!ini_get('file_uploads')) {
 		$fails[] = "PHP does not have file uploads enabled.";
 	}
+	if (!is_writable(".")) {
+		$fails[] = "Please make the current directory writable.";
+	}
 
 	// Issues that could cause problems next.
 	$warnings = array();
@@ -111,7 +114,7 @@
 	if (function_exists("apache_get_modules")) {		
 		$apache_modules = apache_get_modules();
 		if (in_array('mod_rewrite', $apache_modules) === false) {
-			$warnings[] = "Apache's mod_rewrite is not installed. Advanced URL rewrites are not available without it.";
+			$warnings[] = "Apache's mod_rewrite is not installed. Only basic routing is available without mod_rewrite.";
 			$rewrite_enabled = false;
 		}
 	}
@@ -127,9 +130,7 @@
 	$installed = false;
 
 	if (count($_POST) && !($db && $host && $user && $password && $cms_user && $cms_pass)) {
-		$error = "Errors found! Please fix the highlighted fields before submitting.";
-	} elseif (!is_writable(".")) {
-		$error = "Please make the current working directory writable.";
+		$error = "Errors found! Please fix the highlighted fields and submit the form again.";
 	} elseif (count($_POST)) {
 		if ($write_host && $write_user && $write_password) {
 			$con = @sqlconnect($write_host,$write_user,$write_password);
@@ -538,7 +539,7 @@ RewriteRule (.*) site/$1 [L]');
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
-					<p>Your new BigTree site is ready to go! Login to the CMS using your newly created account.</p>
+					<p>Your new BigTree site is ready to go! Login to the CMS using the email/password you entered on the previous page.</p>
 					<?php if ($routing == "basic") { ?>
 					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
 					<?php } elseif ($routing == "iis") { ?>
@@ -575,7 +576,7 @@ RewriteRule (.*) site/$1 [L]');
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
-					<p>Welcome to the BigTree installer. If you have not done so already, please make the current working directory writable and create a MySQL database for your new BigTree powered site.</p>
+					<p>Welcome to the BigTree installer. If you need help with installation, <a href="http://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank">check out the developer docs</a>.</p>
 					<br />
 				</fieldset>
 				<?php
@@ -666,7 +667,7 @@ RewriteRule (.*) site/$1 [L]');
 				
 				<h2 class="account"><span></span>Administrator Account</h2>
 				<fieldset class="clear">
-					<p>Create the default account your administration area.</p>
+					<p>Please enter the desired email address and password for your site's developer account.</p>
 				</fieldset>
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
@@ -735,10 +736,10 @@ RewriteRule (.*) site/$1 [L]');
 				
 				<h2 class="example"><span></span>Example Site</h2>
 				<fieldset class="clear">
-					<p>If you would also like to install the BigTree example site, check the box below. These optional demo files include example templates and modules to help learn how BigTree works, behind the scenes.</p>
+					<p>If you would also like to install the BigTree example site, check the box below. These optional demo files include example templates and modules to help get you started learning BigTree.</p>
 				</fieldset>
+				<br />
 				<fieldset class="clear">
-					<br />
 					<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if ($install_example_site) { ?> checked="checked"<?php } ?> tabindex="14" />
 					<label class="for_checkbox">Install Example Site</label>
 				</fieldset>
@@ -753,7 +754,7 @@ RewriteRule (.*) site/$1 [L]');
 		    <script>
 		        $(document).ready(function() {
 		        	$("#loadbalanced").on("change", function() {
-		        		if ($(this).is(':checked')) {
+		        		if ($(this).attr("checked")) {
 		        			$("#loadbalanced_settings").css({ display: "block" });
 		        		} else {
 		        			$("#loadbalanced_settings").css({ display: "none" });
