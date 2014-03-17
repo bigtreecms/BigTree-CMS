@@ -89,6 +89,13 @@
 		*/
 		
 		static function cacheRecord($item,$view,$parsers,$poplists,$original_item) {
+			// If we have a filter function, ask it first if we should cache it
+			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
+				if (!call_user_func($view["options"]["filter"],$item)) {
+					return false;
+				}
+			}
+
 			global $cms;
 			
 			// Setup the fields and VALUES to INSERT INTO the cache table.
@@ -151,7 +158,7 @@
 				$fields[] = "published_gbp_field";
 				$vals[] = "'".sqlescape($original_item[$view["gbp"]["group_field"]])."'";
 			}
-			
+
 			// Run parsers
 			foreach ($parsers as $key => $parser) {
 				$value = $item[$key];
@@ -166,38 +173,30 @@
 					$item[$key] = current($f);
 				}
 			}
-			
-			$cache = true;
-			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
-				$cache = call_user_func($view["options"]["filter"],$item);
-			}
-			
-			if ($cache) {
-				$x = 1;
-				
-				if ($view["type"] == "images" || $view["type"] == "images-grouped") {
-					$fields[] = "column1";
-					$vals[] = "'".$item[$view["options"]["image"]]."'";
-				} else {
-					foreach ($view["fields"] as $field => $options) {
-						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
-						$fields[] = "column$x";
-						if (isset($parsers[$field]) && $parsers[$field]) {
-							$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode($item[$field])))."'";					
-						} else {
-							$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode(strip_tags($item[$field]))))."'";
-						}
-						$x++;
-					}
-				}
 
-				if ($sort_field) {
-					$fields[] = "`sort_field`";
-					$vals[] = "'".sqlescape($item[$sort_field])."'";
+			// Insert into the view cache			
+			if ($view["type"] == "images" || $view["type"] == "images-grouped") {
+				$fields[] = "column1";
+				$vals[] = "'".$item[$view["options"]["image"]]."'";
+			} else {
+				$x = 1;
+				foreach ($view["fields"] as $field => $options) {
+					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
+					$fields[] = "column$x";
+					if (isset($parsers[$field]) && $parsers[$field]) {
+						$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode($item[$field])))."'";					
+					} else {
+						$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode(strip_tags($item[$field]))))."'";
+					}
+					$x++;
 				}
-				
-				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
 			}
+			if ($sort_field) {
+				$fields[] = "`sort_field`";
+				$vals[] = "'".sqlescape($item[$sort_field])."'";
+			}
+			
+			sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
 		}
 		
 		/*

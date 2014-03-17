@@ -3,7 +3,6 @@
 	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
 	$group_field = isset($options["group_field"]) ? $options["group_field"] : "";
 	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
-	$filter = isset($options["filter"]) ? $options["filter"] : "";
 	$draggable = isset($options["draggable"]) ? $options["draggable"] : false;
 	$other_table = isset($options["other_table"]) ? $options["other_table"] : false;
 	$title_field = isset($options["title_field"]) ? $options["title_field"] : false;
