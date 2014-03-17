@@ -1150,6 +1150,7 @@
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
 	.bigtree_dialog_form input.date_picker { width: 180px; }
 	.bigtree_dialog_form input.time_picker { width: 180px; }
+	.bigtree_dialog_form input.error { background: #FCE8E8; border-color: #C0362F; }
 
 	.bigtree_dialog_form .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
 	.bigtree_dialog_form .input_name input { width: 200px; }

@@ -2206,7 +2206,7 @@ var BigTreeFormValidator = Class.extend({
 		}
 	},
 	
-	validateForm: function(event,in_dialog,embedded) {
+	validateForm: function(ev,in_dialog,embedded) {
 		errors = [];
 		this.form.find(".form_error").removeClass("form_error");
 		this.form.find(".form_error_reason").remove();
@@ -2292,6 +2292,9 @@ var BigTreeFormValidator = Class.extend({
 			if (this.callback) {
 				this.callback(errors);
 			}
+			ev.stopImmediatePropagation();
+			ev.stopPropagation();
+			ev.preventDefault();
 			return false;
 		} else {
 			return true;
