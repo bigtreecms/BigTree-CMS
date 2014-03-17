@@ -36,7 +36,7 @@
 		<input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?>/>
 		<label class="for_checkbox"> When Available</label>
 	</fieldset>
-	
+
 	<h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
 		<div class="image_attr" id="pop_crop_list">
@@ -48,6 +48,7 @@
 				$cx = 0;
 				if (!empty($data["crops"])) {
 					foreach ($data["crops"] as $crop) {
+						if (is_array($crop) && count($crop) > 0) {
 			?>
 			<ul>
 				<li>
@@ -67,9 +68,9 @@
 				<li class="del"><a href="#<?=$cx?>" title="Remove"></a></li>
 			</ul>
 			<?
-						if (!empty($crop["thumbs"])) {
-							foreach ($crop["thumbs"] as $thumb) {
-								$ctx++;
+							if (!empty($crop["thumbs"])) {
+								foreach ($crop["thumbs"] as $thumb) {
+									$ctx++;
 			?>
 			<ul class="image_attr_thumbs_<?=$cx?>">
 				<li class="thumbed">
@@ -89,16 +90,17 @@
 				</li>
 				<li class="del"><a href="#" title="Remove"></a></li>
 			</ul>
-			<?		
+			<?
+								}
 							}
+							$cx++;
 						}
-						$cx++;
 					}
 				}
 			?>
 		</div>
 	</fieldset>
-	
+
 	<h4>Thumbnails <a href="#" class="add_thumb icon_small icon_small_add"></a></h4>
 	<fieldset>
 		<div class="image_attr" id="pop_thumb_list">
