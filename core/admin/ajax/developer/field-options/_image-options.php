@@ -18,7 +18,7 @@
 	<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 </fieldset>
 <fieldset>
-	<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/documentation/developer-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
+	<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
 	<input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?>/>
 	<label class="for_checkbox"> When Available</label>
 </fieldset>
