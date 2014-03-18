@@ -795,8 +795,9 @@
 	#cropper .original { float: left; width: 420px; }
 	#cropper .cropped { float: right; width: 420px; }
 	#cropper .crop_arrow { background: url(../images/icon-sprite.svg) -205px -105px; display: block; float: left; height: 25px; margin: 0 0 0 22px; width: 15px; }
+	.container header h2.cropper { line-height: 46px; }
 	.container header h2.cropper span { background-image: none; display: block; float: left; height: auto; margin: 0 8px 0 0; width: auto; }
-	.container header h2.cropper span.count { background: #3E667D; border-radius: 100%; color: #fff; font-size: 18px; font-weight: bold; height: 30px; line-height: 32px; margin: 6px 8px 0 0; text-align: center; width: 30px; }
+	.container header h2.cropper span.count { color: #59A8E9;  font-size: 20px; }
 
 /*---------------------------
 	Analytics
