@@ -156,7 +156,7 @@
 	input:-moz-placeholder { color: #999; }
 	input[type=checkbox] { border: 1px solid #CCC; height: 16px; width: 16px; }
 
-	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { background: #FCE8E8; border-color: #C0362F; }
+	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { border-color: #C0362F; }
 
 	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; }
 	input.date_picker, input.time_picker { float: left; width: 180px !important; }
@@ -203,18 +203,14 @@
 	.select a.optgroup { padding: 5px 20px; }
 	.select.focused { border-color: #AAA; }
 	.select.open { border-radius: 2px 2px 0px 0px; }
-	.form_error .select { background-color: #FCE8E8; border-color: #C0362F; }
+	.form_error .select { border-color: #C0362F; }
 	.form_error .select .handle { background-position: -374px -105px; }
 
 	.file_wrapper { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; height: 30px; margin: 0; overflow: hidden; width: 300px; }
 	.file_wrapper .handle { background: rgba(0, 0, 0, 0.1); border-left: 1px solid #CCC; border-radius: 0px 2px 2px 0px; color: #333; display: block; font-size: 14px; height: 30px; line-height: 30px; margin: 0 0 0 229px; position: relative; text-align: center; width: 70px; }
-	.file_wrapper:hover .handle { background: rgba(0, 0, 0, 0.15); }
 	.file_wrapper .data { float: left; font-size: 12px; height: 30px; line-height: 30px; margin: -30px 0 0 0; overflow: hidden; padding: 0 0 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; width: 200px; }
 	.file_wrapper input { cursor: pointer; height: 30px; opacity: 0; position: absolute; width: auto; }
-	.form_error .file_wrapper { background: #FCE8E8; border-color: #C0362F; }
-	.form_error .file_wrapper .handle { background: url(../images/row-bg-sprite.png) repeat-x 0px -260px; border-left: 1px solid #D9A0A0; color: #C0362F; }
-	.form_error .button { background: #BBB url(../images/row-bg-sprite.png) repeat-x 0px -260px; border-color: #C0362F; color: #C0362F; }
-	.form_error .or { color: #C0362F; }
+	.form_error .file_wrapper { border-color: #C0362F; }
 
 	form .float_contain { overflow: hidden; padding: 0 0 30px 0; }
 	form .left { float: left; margin: 0 25px 15px 0; width: 435px; }
@@ -1716,6 +1712,7 @@
 	Custom TinyMCE 4 Styles
 -----------------------------*/
 	.bigtree .mce-tinymce { border-color: #CCC; }
+	.bigtree .form_error .mce-tinymce { border-color: #C0362F; }
 	.bigtree .mce-tinymce * { font-family: Helvetica; }
 	.bigtree .mce-tinymce .mce-ico { font-family: "tinymce", Helvetica; }
 	.bigtree .mce-window { border: none; border-radius: 3px; box-shadow: none; }
