@@ -29,7 +29,8 @@
 	.float_margin p.note { margin: 5px 0; }
 
 	/* Hack To Stop WebKit From Styling input[type=search] */
-	input[type=search] { -webkit-appearance: textfield; -webkit-box-sizing: content-box; }
+	input { -webkit-appearance: none; }
+	input[type=search] { -webkit-box-sizing: content-box; }
 	input::-webkit-search-decoration, input::-webkit-search-cancel-button { display: none; }
 
 	h1 { color: #333; font-size: 30px; font-weight: normal; line-height: 26px; margin: 0 0 20px 0; user-select: none; }
