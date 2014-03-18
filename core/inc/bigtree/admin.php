@@ -5391,6 +5391,7 @@
 
 		function processImageUpload($field) {
 			global $bigtree;
+			
 			$failed = false;
 			$name = $field["file_input"]["name"];
 			$temp_name = $field["file_input"]["tmp_name"];
