@@ -1248,12 +1248,12 @@
 	#file_browser_contents .file_browser_images .file_type_folder { background: url(../images/icon-sprite.svg) -128px -48px; display: block; float: none; height: 32px; margin: 20px auto 5px; width: 32px; }
 	#file_browser_contents .file_browser_images .file_type_folder_back { background: url(../images/icon-sprite.svg) -160px -48px; }
 
-	#file_browser_info_pane { background: #F6F6F6; border-left: 1px solid #E5E5E5; float: left; height: 411px; width: 210px; }
+	#file_browser_info_pane { background: #F6F6F6; border-left: 1px solid #E5E5E5; float: left; height: 411px; width: 210px; transition: margin 0.3s; position: absolute; margin-left: 609px; }
 	#file_browser .footer { background: #EEEEEE; border-top: 1px solid #E5E5E5; clear: both; padding: 20px; }
 	#file_browser .footer input { margin: 0 10px 0 0; }
-	#file_browser_size_pane { background: #FFF; border-left: 1px solid #E5E5E5; height: 377px; padding: 10px; position: absolute; width: 589px; z-index: 2; }
+	#file_browser_size_pane { background: #FFF; border-left: 1px solid #E5E5E5; height: 417px; margin-left: 820px; padding: 10px; position: absolute; width: 589px; z-index: 2; transition: margin 0.3s; }
 	#file_browser_size_pane a { margin: 0 10px 10px 0; }
-	#file_browser_size_pane h3 { background: #3E667D url(../images/row-bg-sprite.png) repeat-x 0px -225px; border-bottom: 1px solid #333; color: #FFF; font-size: 14px; height: 20px; line-height: 22px; margin: -10px -10px 10px -10px; padding: 5px 10px; }
+	#file_browser_size_pane h3 { background: #EFF7FD; border-bottom: 1px solid #E5E5E5; color: #333; font-size: 14px; height: 20px; line-height: 22px; margin: -10px -10px 10px -10px; padding: 5px 10px; }
 	.file_browser_response { background: #333; border-radius: 3px; color: #FFF; font-size: 14px; height: 28px; line-height: 28px; text-align: center; }
 	.file_browser_error { background: #AB312B; }
 	.file_browser_detail_thumb { border-bottom: 1px solid #E5E5E5; padding: 10px; text-align: center; }
