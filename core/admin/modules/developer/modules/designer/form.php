@@ -37,8 +37,6 @@
 				<label class="required">Fields<? if (isset($e["fields"])) { ?><span class="form_error_reason">One Or More Fields Required</span><? } ?></label>
 				<div class="form_table">
 					<header>
-						<a class="add add_geocoding" href="#"><span></span>Geocoding</a>
-						<a class="add add_many_to_many" href="#"><span></span>Many-To-Many</a>
 						<a class="add add_field" href="#"><span></span>Field</A>
 					</header>
 					<div class="labels">
@@ -91,28 +89,6 @@
 
 		li = $('<li id="row_' + c + '">');
 		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + c + ']" value="" class="required" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + c + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + c + ']" id="type_' + c + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select><a href="#" class="options icon_settings" name="' + c + '"></a><input type="hidden" name="options[' + c + ']" value="" id="options_' + c + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + c + '"></a></section>');
-		
-		$("#resource_table").append(li);
-		BigTree.localHooks();
-		
-		return false;
-	});
-	
-	$(".add_geocoding").click(function() {
-		li = $('<li id="row_geocoding">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[geocoding]" value="Geocoding" disabled="disabled" /></section><section class="developer_resource_form_subtitle"><input type="hidden" name="subtitles[geocoding]" value="" />&nbsp;</section><section class="developer_resource_type"><input name="type[geocoding]" id="type_geocoding" type="hidden" />&nbsp;<a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="options[geocoding]" value="" id="options_geocoding" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
-		
-		$("#resource_table").append(li);
-		BigTree.localHooks();
-		
-		return false;
-	});
-	
-	$(".add_many_to_many").click(function() {
-		BigTree.localMTMCount++;
-			
-		li = $('<li id="mtm_row_' + BigTree.localMTMCount + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[mtm_' + BigTree.localMTMCount + ']" value="" /></section><section class="developer_resource_type"><input name="type[mtm_' + BigTree.localMTMCount + ']" id="type_mtm_' + BigTree.localMTMCount + '" type="hidden" value="many-to-many" /><p>Many To Many</p><a href="#" class="options icon_settings" name="mtm_' + BigTree.localMTMCount + '"></a><input type="hidden" name="options[mtm_' + BigTree.localMTMCount + ']" value="" id="options_mtm_' + BigTree.localMTMCount + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="mtm_' + BigTree.localMTMCount + '"></a></section>');
 		
 		$("#resource_table").append(li);
 		BigTree.localHooks();
