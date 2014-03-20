@@ -582,7 +582,7 @@
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
 
-	.table > header { background: #eee; background-color: #999; border-bottom: 1px solid #ccc; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
+	.table > header { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background: #EFF7FD; border-top: 1px solid #ccc; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
@@ -746,7 +746,6 @@
 	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
 	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 	fieldset.callouts_no_margin { margin-top: -31px; }
-	.front_end_editor fieldset.callouts { margin-left: -20px; margin-right: -20px; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }
@@ -1122,6 +1121,22 @@
 	.developer_cloud_key span { margin-top: 3px; }
 
 /*---------------------------
+		Front End Editor
+---------------------------*/
+
+	.bigtree_dialog_window.front_end_editor_container { z-index: 0; border: none; height: 625px; width: 100%; }
+	.bigtree_dialog_window.front_end_editor_container > .bigtree_dialog_form > .overflow { height: 469px; max-height: none; width: 800px; }
+	.bigtree.front_end_editor fieldset { width: auto; }
+	.bigtree.front_end_editor fieldset.callouts { margin-left: -20px; margin-right: -20px; }
+	.bigtree.front_end_editor input[type="text"], .bigtree.front_end_editor input[type="email"], .bigtree.front_end_editor input[type="password"], .bigtree.front_end_editor input[type="url"] { width: 760px; }
+	.bigtree.front_end_editor input[type=submit] { margin-right: 10px; }
+	.bigtree.front_end_editor textarea { width: 760px; }
+
+	.bigtree.front_end_editor #callout_resources input[type="text"], .bigtree.front_end_editor #callout_resources input[type="email"], .bigtree.front_end_editor #callout_resources input[type="password"], .bigtree.front_end_editor #callout_resources input[type="url"] { width: 418px; }
+	.bigtree.front_end_editor #callout_resources textarea { width: 418px; }
+	.bigtree.front_end_editor #callout_resources fieldset { width: 440px; }
+
+/*---------------------------
 		BigTree Dialog
 ---------------------------*/
 
@@ -1184,16 +1199,7 @@
 	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 105px; }
 	.bigtree_dialog_form .image_attr input.image_attr_thumbs { padding-left: 23px; width: 89px; }
 	.bigtree_dialog_form .image_attr .icon_small_picture { margin: 3px 0 0 5px; position: absolute; }
-
 	.bigtree_dialog_form .image_field .button { padding: 0 10px; }
-
-	.front_end_editor .bigtree_dialog_window { border: none; height: 625px; width: 100%; }
-	.front_end_editor .bigtree_dialog_window .overflow { height: 469px; max-height: none; width: 800px; }
-	.front_end_editor .bigtree_dialog_window input[type=text] { width: 760px; }
-	.front_end_editor .bigtree_dialog_window input[type=submit] { margin-right: 10px; }
-	.front_end_editor .bigtree_dialog_window textarea { width: 760px; }
-	.front_end_editor .bigtree_dialog_window fieldset { width: auto; }
-
 	.bigtree_dialog_window #image_uploader_options { margin: 0 0 15px 0; }
 
 /* List Options Widget */
@@ -1765,8 +1771,6 @@
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
 	.bigtree #callout_resources .mce-btn-group { border: none; }
-	.front_end_editor .mce-widget button { height: 31px; }
-	.front_end_editor .mce-combobox button { padding: 6px 8px; }
 
 /*----------------------------
 	Custom Redactor Styles
