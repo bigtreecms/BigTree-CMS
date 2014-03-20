@@ -1280,7 +1280,7 @@ var BigTreeFileManager = {
 	chooseImageSize: function() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
 		$("#file_browser_form .footer input.blue").hide();
-		$("#file_browser_info_pane").css({ height: "437px" });
+		$("#file_browser_info_pane").css({ height: "437px", marginTop: 0 });
 		size_pane = $("#file_browser_size_pane");
 		size_pane.html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
 		for (i = 0; i< this.availableThumbs.length; i++) {

@@ -1139,8 +1139,10 @@
 	.bigtree_dialog_form .overflow { max-height: 380px; overflow-y: auto; padding: 20px; width: 450px; }
 	.bigtree_dialog_form p { padding: 0 0 10px 0; }
 	.bigtree_dialog_form p:last-of-type { padding: 0; }
+	.bigtree_dialog_form .callouts p { padding: 5px 10px 10px; }
 	.bigtree_dialog_form h4 { border-bottom: 1px solid #e3e3e3; color: #333; font-size: 17px; font-weight: normal; margin: 0 0 15px; padding: 10px 0; }
 	.bigtree_dialog_form h4:first-child { margin-top: -10px; }
+	.bigtree_dialog_form .callouts h4 { border: none; }
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
 	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form fieldset.last { margin: 0; }
@@ -1150,6 +1152,9 @@
 	.bigtree_dialog_form input.date_picker { width: 180px; }
 	.bigtree_dialog_form input.time_picker { width: 180px; }
 	.bigtree_dialog_form input.error { background: #FCE8E8; border-color: #C0362F; }
+
+
+
 
 	.bigtree_dialog_form .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
 	.bigtree_dialog_form .input_name input { width: 200px; }
@@ -1248,7 +1253,7 @@
 	#file_browser_contents .file_browser_images .file_type_folder { background: url(../images/icon-sprite.svg) -128px -48px; display: block; float: none; height: 32px; margin: 20px auto 5px; width: 32px; }
 	#file_browser_contents .file_browser_images .file_type_folder_back { background: url(../images/icon-sprite.svg) -160px -48px; }
 
-	#file_browser_info_pane { background: #F6F6F6; border-left: 1px solid #E5E5E5; float: left; height: 411px; width: 210px; transition: margin 0.3s; position: absolute; margin-left: 609px; }
+	#file_browser_info_pane { background: #F6F6F6; border-left: 1px solid #E5E5E5; float: left; height: 411px; width: 210px; transition: margin 0.3s; position: absolute; margin-left: 609px; margin-top: 26px; }
 	#file_browser .footer { background: #EEEEEE; border-top: 1px solid #E5E5E5; clear: both; padding: 20px; }
 	#file_browser .footer input { margin: 0 10px 0 0; }
 	#file_browser_size_pane { background: #FFF; border-left: 1px solid #E5E5E5; height: 417px; margin-left: 820px; padding: 10px; position: absolute; width: 589px; z-index: 2; transition: margin 0.3s; }
