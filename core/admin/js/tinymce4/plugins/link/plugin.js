@@ -30,7 +30,7 @@ tinymce.PluginManager.add('link', function(editor) {
 
 	function showDialog(linkList) {
 		var data = {}, selection = editor.selection, dom = editor.dom, selectedElm, anchorElm, initialText;
-		var win, linkListCtrl, relListCtrl, targetListCtrl;
+		var win, onlyText, textListCtrl, linkListCtrl, relListCtrl, targetListCtrl, classListCtrl;
 
 		function linkListChangeHandler(e) {
 			var textCtrl = win.find('#text');
@@ -56,36 +56,28 @@ tinymce.PluginManager.add('link', function(editor) {
 			return linkListItems;
 		}
 
-		function buildRelList(relValue) {
-			var relListItems = [{text: 'None', value: ''}];
+		function buildValues(listSettingName, dataItemName, defaultItems) {
+			var selectedItem, items = [];
 
-			tinymce.each(editor.settings.rel_list, function(rel) {
-				relListItems.push({
-					text: rel.text || rel.title,
-					value: rel.value,
-					selected: relValue === rel.value
-				});
+			tinymce.each(editor.settings[listSettingName] || defaultItems, function(target) {
+				var item = {
+					text: target.text || target.title,
+					value: target.value
+				};
+
+				items.push(item);
+
+				if (data[dataItemName] === target.value || (!selectedItem && target.selected)) {
+					selectedItem = item;
+				}
 			});
 
-			return relListItems;
-		}
-
-		function buildTargetList(targetValue) {
-			var targetListItems = [{text: 'None', value: ''}];
-
-			if (!editor.settings.target_list) {
-				targetListItems.push({text: 'New window', value: '_blank'});
+			if (selectedItem && !data[dataItemName]) {
+				data[dataItemName] = selectedItem.value;
+				selectedItem.selected = true;
 			}
 
-			tinymce.each(editor.settings.target_list, function(target) {
-				targetListItems.push({
-					text: target.text || target.title,
-					value: target.value,
-					selected: targetValue === target.value
-				});
-			});
-
-			return targetListItems;
+			return items;
 		}
 
 		function buildAnchorListControl(url) {
@@ -121,21 +113,56 @@ tinymce.PluginManager.add('link', function(editor) {
 				linkListCtrl.value(editor.convertURL(this.value(), 'href'));
 			}
 
-			if (!initialText && data.text.length === 0) {
+			if (!initialText && data.text.length === 0 && onlyText) {
 				this.parent().parent().find('#text')[0].value(this.value());
 			}
 		}
 
+		function isOnlyTextSelected(anchorElm) {
+			var html = selection.getContent();
+
+			// Partial html and not a fully selected anchor element
+			if (/</.test(html) && (!/^<a [^>]+>[^<]+<\/a>$/.test(html) || html.indexOf('href=') == -1)) {
+				return false;
+			}
+
+			if (anchorElm) {
+				var nodes = anchorElm.childNodes, i;
+
+				if (nodes.length === 0) {
+					return false;
+				}
+
+				for (i = nodes.length - 1; i >= 0; i--) {
+					if (nodes[i].nodeType != 3) {
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
 		selectedElm = selection.getNode();
 		anchorElm = dom.getParent(selectedElm, 'a[href]');
+		onlyText = isOnlyTextSelected();
 
 		data.text = initialText = anchorElm ? (anchorElm.innerText || anchorElm.textContent) : selection.getContent({format: 'text'});
 		data.href = anchorElm ? dom.getAttrib(anchorElm, 'href') : '';
-		data.target = anchorElm ? dom.getAttrib(anchorElm, 'target') : '';
-		data.rel = anchorElm ? dom.getAttrib(anchorElm, 'rel') : '';
+		data.target = anchorElm ? dom.getAttrib(anchorElm, 'target') : (editor.settings.default_link_target || null);
+		data.rel = anchorElm ? dom.getAttrib(anchorElm, 'rel') : null;
+		data['class'] = anchorElm ? dom.getAttrib(anchorElm, 'class') : null;
 
-		if (selectedElm.nodeName == "IMG") {
-			data.text = initialText = " ";
+		if (onlyText) {
+			textListCtrl = {
+				name: 'text',
+				type: 'textbox',
+				size: 40,
+				label: 'Text to display',
+				onchange: function() {
+					data.text = this.value();
+				}
+			};
 		}
 
 		if (linkList) {
@@ -156,7 +183,7 @@ tinymce.PluginManager.add('link', function(editor) {
 				name: 'target',
 				type: 'listbox',
 				label: 'Target',
-				values: buildTargetList(data.target)
+				values: buildValues('target_list', 'target', [{text: 'None', value: ''}, {text: 'New window', value: '_blank'}])
 			};
 		}
 
@@ -165,7 +192,16 @@ tinymce.PluginManager.add('link', function(editor) {
 				name: 'rel',
 				type: 'listbox',
 				label: 'Rel',
-				values: buildRelList(data.rel)
+				values: buildValues('rel_list', 'rel', [{text: 'None', value: ''}])
+			};
+		}
+
+		if (editor.settings.link_class_list) {
+			classListCtrl = {
+				name: 'class',
+				type: 'listbox',
+				label: 'Class',
+				values: buildValues('link_class_list', 'class')
 			};
 		}
 
@@ -183,16 +219,18 @@ tinymce.PluginManager.add('link', function(editor) {
 					onchange: urlChange,
 					onkeyup: urlChange
 				},
-				{name: 'text', type: 'textbox', size: 40, label: 'Text to display', onchange: function() {
-					data.text = this.value();
-				}},
+				textListCtrl,
 				buildAnchorListControl(data.href),
 				linkListCtrl,
 				relListCtrl,
-				targetListCtrl
+				targetListCtrl,
+				classListCtrl
 			],
 			onSubmit: function(e) {
-				var data = e.data, href = data.href;
+				var href;
+
+				data = tinymce.extend(data, e.data);
+				href = data.href;
 
 				// Delay confirm since onSubmit will move focus
 				function delayedConfirm(message, callback) {
@@ -207,31 +245,37 @@ tinymce.PluginManager.add('link', function(editor) {
 				}
 
 				function insertLink() {
-					if (data.text != initialText) {
-						if (anchorElm) {
-							editor.focus();
-							anchorElm.innerHTML = data.text;
+					if (anchorElm) {
+						editor.focus();
 
-							dom.setAttribs(anchorElm, {
-								href: href,
-								target: data.target ? data.target : null,
-								rel: data.rel ? data.rel : null
-							});
+						if (onlyText && data.text != initialText) {
+							anchorElm.innerText = data.text;
+						}
 
-							selection.select(anchorElm);
-						} else {
+						dom.setAttribs(anchorElm, {
+							href: href,
+							target: data.target ? data.target : null,
+							rel: data.rel ? data.rel : null,
+							"class": data["class"] ? data["class"] : null
+						});
+
+						selection.select(anchorElm);
+						editor.undoManager.add();
+					} else {
+						if (onlyText) {
 							editor.insertContent(dom.createHTML('a', {
 								href: href,
 								target: data.target ? data.target : null,
+								rel: data.rel ? data.rel : null,
+								"class": data["class"] ? data["class"] : null
+							}, dom.encode(data.text)));
+						} else {
+							editor.execCommand('mceInsertLink', false, {
+								href: href,
+								target: data.target,
 								rel: data.rel ? data.rel : null
-							}, data.text));
+							});
 						}
-					} else {
-						editor.execCommand('mceInsertLink', false, {
-							href: href,
-							target: data.target,
-							rel: data.rel ? data.rel : null
-						});
 					}
 				}
 

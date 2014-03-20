@@ -141,7 +141,7 @@ define("tinymce/Formatter", [
 
 				removeformat: [
 					{
-						selector: 'b,strong,em,i,font,u,strike,sub,sup',
+						selector: 'b,strong,em,i,font,u,strike,sub,sup,dfn,code,samp,kbd,var,cite,mark,q',
 						remove: 'all',
 						split: true,
 						expand: false,
@@ -556,7 +556,7 @@ define("tinymce/Formatter", [
 						});
 
 						// If child was found and of the same type as the current node
-						if (child && matchName(child, format)) {
+						if (child && !isBookmarkNode(child) && matchName(child, format)) {
 							clone = dom.clone(child, FALSE);
 							setElementFormat(clone);
 
@@ -590,6 +590,10 @@ define("tinymce/Formatter", [
 							// will become: <span style="color:red"><b><span style="font-size:10px">text</span></b></span>
 							each(dom.select(format.inline, node), function(child) {
 								var parent;
+
+								if (isBookmarkNode(child)) {
+									return;
+								}
 
 								// When wrap_links is set to false we don't want
 								// to remove the format on children within links
@@ -1371,7 +1375,8 @@ define("tinymce/Formatter", [
 					}
 				}
 
-				for (;;) {
+				/*eslint no-constant-condition:0 */
+				while (true) {
 					// Stop expanding on block elements
 					if (!format[0].block_expand && isBlock(parent)) {
 						return parent;
@@ -1950,7 +1955,7 @@ define("tinymce/Formatter", [
 						var name = attr.nodeName.toLowerCase();
 
 						// Don't compare internal attributes or style
-						if (name.indexOf('_') !== 0 && name !== 'style') {
+						if (name.indexOf('_') !== 0 && name !== 'style' && name !== 'data-mce-style') {
 							attribs[name] = dom.getAttrib(node, name);
 						}
 					});
@@ -2010,7 +2015,7 @@ define("tinymce/Formatter", [
 					return FALSE;
 				}
 
-				return TRUE;
+				return !isBookmarkNode(node1) && !isBookmarkNode(node2);
 			}
 
 			function findElementSibling(node, sibling_name) {

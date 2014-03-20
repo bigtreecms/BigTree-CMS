@@ -88,10 +88,45 @@ define("tinymce/util/Quirks", [
 		 * fix seemed like a huge task. I hope we can remove this before the year 2030. 
 		 */
 		function cleanupStylesWhenDeleting() {
-			var doc = editor.getDoc();
+			var doc = editor.getDoc(), urlPrefix = 'data:text/mce-internal,';
+			var MutationObserver = window.MutationObserver, olderWebKit;
 
-			if (!window.MutationObserver) {
-				return;
+			// Add mini polyfill for older WebKits
+			// TODO: Remove this when old Safari versions gets updated
+			if (!MutationObserver) {
+				olderWebKit = true;
+
+				MutationObserver = function() {
+					var records = [], target;
+
+					function nodeInsert(e) {
+						var target = e.relatedNode || e.target;
+						records.push({target: target, addedNodes: [target]});
+					}
+
+					function attrModified(e) {
+						var target = e.relatedNode || e.target;
+						records.push({target: target, attributeName: e.attrName});
+					}
+
+					this.observe = function(node) {
+						target = node;
+						target.addEventListener('DOMSubtreeModified', nodeInsert, false);
+						target.addEventListener('DOMNodeInsertedIntoDocument', nodeInsert, false);
+						target.addEventListener('DOMNodeInserted', nodeInsert, false);
+						target.addEventListener('DOMAttrModified', attrModified, false);
+					};
+
+					this.disconnect = function() {
+						target.removeEventListener('DOMNodeInserted', nodeInsert);
+						target.removeEventListener('DOMAttrModified', attrModified);
+						target.removeEventListener('DOMSubtreeModified', nodeInsert, false);
+					};
+
+					this.takeRecords = function() {
+						return records;
+					};
+				};
 			}
 
 			function customDelete(isForward) {
@@ -187,7 +222,7 @@ define("tinymce/util/Quirks", [
 			});
 
 			editor.on('keypress', function(e) {
-				if (!isDefaultPrevented(e) && !selection.isCollapsed() && e.charCode) {
+				if (!isDefaultPrevented(e) && !selection.isCollapsed() && e.charCode && !VK.metaKeyPressed(e)) {
 					e.preventDefault();
 					customDelete(true);
 					editor.selection.setContent(String.fromCharCode(e.charCode));
@@ -202,15 +237,26 @@ define("tinymce/util/Quirks", [
 				customDelete(true);
 			});
 
+			// Older WebKits doesn't properly handle the clipboard so we can't add the rest
+			if (olderWebKit) {
+				return;
+			}
+
 			editor.on('dragstart', function(e) {
-				e.dataTransfer.setData('mce-internal', editor.selection.getContent());
+				// Safari doesn't support custom dataTransfer items so we can only use URL and Text
+				e.dataTransfer.setData('URL', 'data:text/mce-internal,' + escape(editor.selection.getContent()));
 			});
 
 			editor.on('drop', function(e) {
 				if (!isDefaultPrevented(e)) {
-					var internalContent = e.dataTransfer.getData('mce-internal');
+					var internalContent = e.dataTransfer.getData('URL');
 
-					if (internalContent && doc.caretRangeFromPoint) {
+					if (!internalContent || internalContent.indexOf(urlPrefix) == -1 || !doc.caretRangeFromPoint) {
+						return;
+					}
+
+					internalContent = unescape(internalContent.substr(urlPrefix.length));
+					if (doc.caretRangeFromPoint) {
 						e.preventDefault();
 						customDelete();
 						editor.selection.setRng(doc.caretRangeFromPoint(e.x, e.y));
@@ -338,7 +384,7 @@ define("tinymce/util/Quirks", [
 				// Case 2 IME doesn't initialize if you click the documentElement it also doesn't properly fire the focusin event
 				dom.bind(editor.getDoc(), 'mousedown', function(e) {
 					if (e.target == editor.getDoc().documentElement) {
-						editor.getWin().focus();
+						editor.getBody().focus();
 						selection.setRng(selection.getRng());
 					}
 				});
@@ -496,6 +542,10 @@ define("tinymce/util/Quirks", [
 				}
 
 				selectionTimer = window.setTimeout(function() {
+					if (editor.removed) {
+						return;
+					}
+
 					var rng = selection.getRng();
 
 					// Compare the ranges to see if it was a real change or not
@@ -542,8 +592,8 @@ define("tinymce/util/Quirks", [
 				return;
 			}
 
-			 // Enable display: none in area and add a specific class that hides all BR elements in PRE to
-			 // avoid the caret from getting stuck at the BR elements while pressing the right arrow key
+			// Enable display: none in area and add a specific class that hides all BR elements in PRE to
+			// avoid the caret from getting stuck at the BR elements while pressing the right arrow key
 			setEditorCommandState('RespectVisibilityInDesign', true);
 			editor.contentStyles.push('.mceHideBrInPre pre br {display: none}');
 			dom.addClass(editor.getBody(), 'mceHideBrInPre');
@@ -900,7 +950,7 @@ define("tinymce/util/Quirks", [
 						dom.bind(doc, 'mouseup', endSelection);
 						dom.bind(doc, 'mousemove', selectionChange);
 
-						dom.win.focus();
+						dom.getRoot().focus();
 						startRng.select();
 					}
 				}
@@ -908,16 +958,16 @@ define("tinymce/util/Quirks", [
 		}
 
 		/**
-		 * Fixes selection issues on Gecko where the caret can be placed between two inline elements like <b>a</b>|<b>b</b>
+		 * Fixes selection issues where the caret can be placed between two inline elements like <b>a</b>|<b>b</b>
 		 * this fix will lean the caret right into the closest inline element.
 		 */
 		function normalizeSelection() {
 			// Normalize selection for example <b>a</b><i>|a</i> becomes <b>a|</b><i>a</i> except for Ctrl+A since it selects everything
-			editor.on('keyup focusin', function(e) {
+			editor.on('keyup focusin mouseup', function(e) {
 				if (e.keyCode != 65 || !VK.metaKeyPressed(e)) {
 					selection.normalize();
 				}
-			});
+			}, true);
 		}
 
 		/**
@@ -964,8 +1014,8 @@ define("tinymce/util/Quirks", [
 				editor.contentStyles.push('body {min-height: 150px}');
 				editor.on('click', function(e) {
 					if (e.target.nodeName == 'HTML') {
-						editor.execCommand('SelectAll');
-						editor.selection.collapse(true);
+						editor.getBody().focus();
+						editor.selection.normalize();
 						editor.nodeChanged();
 					}
 				});
@@ -987,6 +1037,47 @@ define("tinymce/util/Quirks", [
 			}
 		}
 
+		/**
+		 * Disables the autolinking in IE 9+ this is then re-enabled by the autolink plugin.
+		 */
+		function disableAutoUrlDetect() {
+			setEditorCommandState("AutoUrlDetect", false);
+		}
+
+		/**
+		 * IE 11 has a fantastic bug where it will produce two trailing BR elements to iframe bodies when
+		 * the iframe is hidden by display: none on a parent container. The DOM is actually out of sync
+		 * with innerHTML in this case. It's like IE adds shadow DOM BR elements that appears on innerHTML
+		 * but not as the lastChild of the body. However is we add a BR element to the body then remove it
+		 * it doesn't seem to add these BR elements makes sence right?!
+		 *
+		 * Example of what happens: <body>text</body> becomes <body>text<br><br></body>
+		 */
+		function doubleTrailingBrElements() {
+			if (!editor.inline) {
+				editor.on('focus blur', function() {
+					var br = editor.dom.create('br');
+					editor.getBody().appendChild(br);
+					br.parentNode.removeChild(br);
+				}, true);
+			}
+		}
+
+		/**
+		 * iOS 7.1 introduced two new bugs:
+		 * 1) It's possible to open links within a contentEditable area by clicking on them.
+		 * 2) If you hold down the finger it will display the link/image touch callout menu.
+		 */
+		function tapLinksAndImages() {
+			editor.on('click', function(e) {
+				if (e.target.tagName === 'A') {
+					e.preventDefault();
+				}
+			});
+
+			editor.contentStyles.push('.mce-content-body {-webkit-touch-callout: none}');
+		}
+
 		// All browsers
 		disableBackspaceIntoATable();
 		removeBlockQuoteOnBackSpace();
@@ -1005,6 +1096,7 @@ define("tinymce/util/Quirks", [
 				selectionChangeNodeChanged();
 				restoreFocusOnKeyDown();
 				bodyHeight();
+				tapLinksAndImages();
 			} else {
 				selectAll();
 			}
@@ -1024,10 +1116,12 @@ define("tinymce/util/Quirks", [
 
 		if (Env.ie >= 11) {
 			bodyHeight();
+			doubleTrailingBrElements();
 		}
 
 		if (Env.ie) {
 			selectAll();
+			disableAutoUrlDetect();
 		}
 
 		// Gecko

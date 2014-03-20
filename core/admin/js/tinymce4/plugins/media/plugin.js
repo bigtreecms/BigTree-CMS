@@ -9,6 +9,7 @@
  */
 
 /*jshint maxlen:255 */
+/*eslint max-len:0 */
 /*global tinymce:true */
 
 tinymce.PluginManager.add('media', function(editor, url) {
@@ -112,9 +113,9 @@ tinymce.PluginManager.add('media', function(editor, url) {
 							align: 'center',
 							spacing: 5,
 							items: [
-								{name: 'width', type: 'textbox', maxLength: 3, size: 3, onchange: recalcSize},
+								{name: 'width', type: 'textbox', maxLength: 5, size: 3, ariaLabel: 'Width', onchange: recalcSize},
 								{type: 'label', text: 'x'},
-								{name: 'height', type: 'textbox', maxLength: 3, size: 3, onchange: recalcSize},
+								{name: 'height', type: 'textbox', maxLength: 5, size: 3, ariaLabel: 'Height', onchange: recalcSize},
 								{name: 'constrain', type: 'checkbox', checked: true, text: 'Constrain proportions'}
 							]
 						}
@@ -135,9 +136,11 @@ tinymce.PluginManager.add('media', function(editor, url) {
 					items: [
 						{
 							type: 'label',
-							text: 'Paste your embed code below:'
+							text: 'Paste your embed code below:',
+							forId: 'mcemediasource'
 						},
 						{
+							id: 'mcemediasource',
 							type: 'textbox',
 							flex: 1,
 							name: 'embed',
@@ -190,6 +193,7 @@ tinymce.PluginManager.add('media', function(editor, url) {
 
 					for (i = 0; match[i]; i++) {
 						/*jshint loopfunc:true*/
+						/*eslint no-loop-func:0 */
 						url = url.replace('$' + i, function() {
 							return match[i];
 						});
@@ -197,8 +201,8 @@ tinymce.PluginManager.add('media', function(editor, url) {
 
 					data.source1 = url;
 					data.type = pattern.type;
-					data.width = pattern.w;
-					data.height = pattern.h;
+					data.width = data.width || pattern.w;
+					data.height = data.height || pattern.h;
 				}
 			});
 
@@ -641,7 +645,7 @@ tinymce.PluginManager.add('media', function(editor, url) {
 	editor.addButton('media', {
 		tooltip: 'Insert/edit video',
 		onclick: showDialog,
-		stateSelector: 'img[data-mce-object=video]'
+		stateSelector: ['img[data-mce-object=video]', 'img[data-mce-object=iframe]']
 	});
 
 	editor.addMenuItem('media', {
