@@ -891,6 +891,7 @@
 	.table .users_api_type { text-align: left; width: 250px; }
 	.table .users_api_token { text-align: left; width: 250px; }
 
+	.user_permissions .labels { background: #AFAFAF; color: #FFF; border: none; }
 	.user_permissions .labels .permission_label { padding: 0 0 0 20px; text-align: left; width: 466px; }
 	.user_permissions .labels .permission_label_wider { width: 666px; }
 	.user_permissions .labels .permission_label_admin { width: 746px; }
@@ -910,8 +911,8 @@
 	.user_permissions section ul li .folder_label { width: 576px; }
 	.user_permissions section ul li .permission_level { float: left; height: 16px; padding: 8px 27px; width: 16px; }
 	.user_permissions section ul li .permission_alerts { float: left; height: 16px; padding: 8px 57px; width: 16px; }
-	.user_permissions section ul .module_group, .user_permissions section ul .module_group:hover { background-gradient: #274252 #406980; border: none; padding: 5px 20px; }
-	.user_permissions section ul .module_group .module_group_name { color: #FFF; font-size: 12px; }
+	.user_permissions section ul .module_group, .user_permissions section ul .module_group:hover { background: #EFF7FD; border: none; padding: 5px 20px; }
+	.user_permissions section ul .module_group .module_group_name { color: #333; font-size: 12px; }
 
 	.user_permissions .depth { background: #ECECEC; float: left; height: 32px; }
 	.user_permissions section ul.depth_2 li .depth { width: 10px; }
