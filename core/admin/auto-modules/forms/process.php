@@ -188,6 +188,7 @@
 	$view = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 	// If we specify a specific return view, get that information
 	if ($bigtree["form"]["return_view"]) {
+		$view = BigTreeAutoModule::getView($bigtree["form"]["return_view"]);
 		$action = $admin->getModuleActionForView($bigtree["form"]["return_view"]);
 		if ($action["route"]) {
 			$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$action["route"]."/".$redirect_append;

@@ -848,6 +848,9 @@
 		*/
 
 		static function getRelatedFormForView($view) {
+			if ($view["related_form"]) {
+				return self::getForm($view["related_form"]);
+			}
 			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
 			return self::getForm($f["id"]);
 		}
@@ -864,7 +867,12 @@
 		*/
 
 		static function getRelatedViewForForm($form) {
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+			// Try to find a view that's relating back to this form first
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `related_form` = '".$form["id"]."'"));
+			// Fall back to any view that uses the same table
+			if (!$f) {
+				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+			}
 			return self::getView($f["id"]);
 		}
 
