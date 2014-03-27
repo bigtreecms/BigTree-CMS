@@ -824,7 +824,7 @@
 			Function: getRelatedFormForReport
 				Returns the form for the same table as the given report.
 			
-			Paramaters:
+			Parameters:
 				report - A report entry.
 			
 			Returns:
@@ -840,7 +840,7 @@
 			Function: getRelatedFormForView
 				Returns the form for the same table as the given view.
 			
-			Paramaters:
+			Parameters:
 				view - A view entry.
 			
 			Returns:
@@ -859,7 +859,7 @@
 			Function: getRelatedViewForForm
 				Returns the view for the same table as the given form.
 			
-			Paramaters:
+			Parameters:
 				form - A form entry.
 			
 			Returns:
@@ -880,7 +880,7 @@
 			Function: getRelatedViewForReport
 				Returns the view for the same table as the given report.
 			
-			Paramaters:
+			Parameters:
 				report - A report entry.
 			
 			Returns:

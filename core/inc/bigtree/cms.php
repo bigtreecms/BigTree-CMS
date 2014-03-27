@@ -614,7 +614,7 @@
 				Provides the page ID for a given path array.
 				This is a method used by the router and the admin and can generally be ignored.
 			
-			Paramaters:
+			Parameters:
 				path - An array of path elements from a URL
 				previewing - Whether we are previewing or not.
 			
