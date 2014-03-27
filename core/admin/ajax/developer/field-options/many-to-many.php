@@ -1,4 +1,3 @@
-<h4>Many To Many Options</h4>
 <fieldset>
 	<label>Connecting Table</label>
 	<select name="mtm-connecting-table" class="table_select">

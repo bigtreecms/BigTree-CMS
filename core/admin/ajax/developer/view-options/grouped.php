@@ -36,7 +36,7 @@
 	<? } ?>
 </fieldset>
 
-<h4>Optional Parameters</h4>
+<h4>Grouping Parameters</h4>
 
 <fieldset>
 	<label>Other Table</label>

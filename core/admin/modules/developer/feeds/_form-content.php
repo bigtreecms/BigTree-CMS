@@ -12,7 +12,7 @@
 			</select>
 		</fieldset>
 		<fieldset>
-			<label>Feed Type</label>
+			<label>Type</label>
 			<select name="type" id="feed_type" class="left">
 				<? foreach ($feed_types as $t => $v) { ?>
 				<option value="<?=$t?>"<? if ($t == $type) { ?> selected="selected"<? } ?>><?=$v?></option>
