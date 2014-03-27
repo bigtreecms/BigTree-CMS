@@ -170,6 +170,8 @@
 			}
 			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
 		}
+
+	// These are the older MySQL extension versions
 	} else {
 		function bigtree_setup_sql_connection($read_write = "read") {
 			global $bigtree;
@@ -193,21 +195,6 @@
 			}
 			return $connection;
 		}
-		
-		/*
-			Function: sqlquery
-				Equivalent to mysql_query in most cases.
-				If BigTree has enabled splitting off to a separate write server this function will send all write related queries to the write server and all read queries to the read server.
-				If BigTree has not enabled a separate write server the type parameter does not exist.
-			
-			Parameters:
-				query - A query string.
-				connection - An optional MySQL connection (normally this is chosen automatically)
-				type - Chosen automatically if a connection isn't passed. "read" or "write" to specify which server to use.
-				
-			Returns:
-				A MySQL query resource.
-		*/
 		
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 			function sqlquery($query,$connection = false,$type = "read") {
@@ -271,19 +258,6 @@
 			}
 		}
 		
-		/*
-			Function: sqlfetch
-				Equivalent to mysql_fetch_assoc.
-				Throws an exception if it is called on an invalid query resource which includes the most recent MySQL errors.
-			
-			Parameters:
-				query - The mysql query resource (returned via sqlquery or mysql_query or mysql_db_query)
-				ignore_errors - If set to true an exception will not be thrown on a bad query resource.
-			
-			Returns:
-				A row from the query in array format with key/value pairs.
-		*/
-		
 		function sqlfetch($query,$ignore_errors = false) {
 			global $bigtree;
 			
@@ -299,19 +273,9 @@
 			}
 		}
 		
-		/*
-			Function: sqlrows
-				Equivalent to mysql_num_rows.
-		*/
-		
 		function sqlrows($result) {
 			return mysql_num_rows($result);
 		}
-		
-		/*
-			Function: sqlid
-				Equivalent to mysql_insert_id.
-		*/
 		
 		function sqlid() {
 			global $bigtree;
@@ -322,11 +286,6 @@
 				return mysql_insert_id($bigtree["mysql_read_connection"]);			
 			}
 		}
-		
-		/*
-			Function: sqlescape
-				Equivalent to mysql_real_escape_string
-		*/
 		
 		function sqlescape($string) {
 			global $bigtree;
