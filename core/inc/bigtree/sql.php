@@ -34,7 +34,7 @@
 				If BigTree has enabled splitting off to a separate write server this function will send all write related queries to the write server and all read queries to the read server.
 				If BigTree has not enabled a separate write server the type parameter does not exist.
 			
-			Paramters:
+			Parameters:
 				query - A query string.
 				connection - An optional MySQL connection (normally this is chosen automatically)
 				type - Chosen automatically if a connection isn't passed. "read" or "write" to specify which server to use.
@@ -200,7 +200,7 @@
 				If BigTree has enabled splitting off to a separate write server this function will send all write related queries to the write server and all read queries to the read server.
 				If BigTree has not enabled a separate write server the type parameter does not exist.
 			
-			Paramters:
+			Parameters:
 				query - A query string.
 				connection - An optional MySQL connection (normally this is chosen automatically)
 				type - Chosen automatically if a connection isn't passed. "read" or "write" to specify which server to use.
