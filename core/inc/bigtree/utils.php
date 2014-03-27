@@ -1374,6 +1374,7 @@
 		
 		/*
 			Function: placeholderImage
+				Generates placeholder image data.
 			
 			Parameters:
 				width - The width of desired image
