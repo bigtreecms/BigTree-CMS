@@ -6369,21 +6369,21 @@
 
 		function unCache($page) {
 			global $cms;
+			$get = array();
 			if (is_array($page)) {
 				if (!$page["path"]) {
-					$page["path"] = "!";
+					$get["bigtree_htaccess_url"] = "";
+				} else {
+					$get["bigtree_htaccess_url"] = $page["path"]."/";
 				}
-				$file = SERVER_ROOT."cache/".base64_encode($page["path"]."/").".page";
 			} else {
 				if ($page == 0) {
-					$file = SERVER_ROOT."cache/".base64_encode("!").".page";
+					$get["bigtree_htaccess_url"] = "";
 				} else {
-					$file = SERVER_ROOT."cache/".base64_encode(str_replace(WWW_ROOT,"",$cms->getLink($page))).".page";
+					$get["bigtree_htaccess_url"] = str_replace(WWW_ROOT,"",$cms->getLink($page));
 				}
 			}
-			if (file_exists($file)) {
-				@unlink($file);
-			}
+			@unlink(md5(json_encode($get)).".page");
 		}
 
 		/*
