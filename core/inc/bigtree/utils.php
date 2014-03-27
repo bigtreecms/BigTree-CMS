@@ -1381,7 +1381,7 @@
 				height - The height of desired image
 				bg_color - The background color; must be full 6 charachter hex value
 				text_color - The text color; must be full 6 charachter hex value
-				icon_path - Image to render, relative to 'site/'; disables text rendering
+				icon_path - Image to render, disables text rendering, must be gif, jpeg, or png
 				text_string - Text to render; overrides default dimension display
 				
 			Returns:
@@ -1423,7 +1423,14 @@
 				$icon_x = ($width - $icon_width) / 2;
 				$icon_y = ($height - $icon_height) / 2;
 				
-				$icon = imagecreatefrompng($icon_path); 
+				$ext = strtolower(substr($icon_path,-3));
+				if ($ext == "jpg" || $ext == "peg") {
+					$icon = imagecreatefromjpeg($icon_path);
+				} elseif ($ext == "gif") {
+					$icon = imagecreatefromgif($icon_path);
+				} else {
+					$icon = imagecreatefrompng($icon_path); 
+				}
 				imagesavealpha($icon, true);
 				imagealphablending($icon, true);
 				imagecopyresampled($image, $icon, $icon_x, $icon_y, 0, 0, $icon_width, $icon_height, $icon_width, $icon_height);
