@@ -3,7 +3,7 @@
 		Class: SQL Wrappers
 			Support for splitting reads/writes and handling error throwing automatically.
 	*/
-			
+
 	$bigtree["sql"]["errors"] = array();
 	$bigtree["sql"]["queries"] = array();
 	
@@ -32,7 +32,7 @@
 		
 		/*
 			Function: sqlquery
-				Equivalent to mysql_query in most cases.
+				Equivalent to mysqli_query / mysql_query in most cases.
 				If BigTree has enabled splitting off to a separate write server this function will send all write related queries to the write server and all read queries to the read server.
 				If BigTree has not enabled a separate write server the type parameter does not exist.
 			
@@ -109,7 +109,7 @@
 		
 		/*
 			Function: sqlfetch
-				Equivalent to mysql_fetch_assoc.
+				Equivalent to mysqli_fetch_assoc / mysql_fetch_assoc.
 				Throws an exception if it is called on an invalid query resource which includes the most recent MySQL errors.
 			
 			Parameters:
@@ -136,7 +136,7 @@
 		
 		/*
 			Function: sqlrows
-				Equivalent to mysql_num_rows.
+				Equivalent to mysqli_num_rows / mysql_num_rows.
 		*/
 		
 		function sqlrows($result) {
@@ -145,7 +145,7 @@
 		
 		/*
 			Function: sqlid
-				Equivalent to mysql_insert_id.
+				Equivalent to mysqli_insert_id / mysql_insert_id.
 		*/
 		
 		function sqlid() {
@@ -159,7 +159,7 @@
 		
 		/*
 			Function: sqlescape
-				Equivalent to mysql_real_escape_string
+				Equivalent to mysqli_real_escape_string / mysql_real_escape_string
 		*/
 		
 		function sqlescape($string) {
