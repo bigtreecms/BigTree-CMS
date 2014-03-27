@@ -1,7 +1,8 @@
 <?
-	// - MySQL Call Wrapper Functions -
-	// Support for splitting reads/writes and handling error throwing automatically.
-
+	/* - MySQL Call Wrapper Functions -
+	   Support for splitting reads/writes and handling error throwing automatically.
+	*/
+	
 	$bigtree["sql"]["errors"] = array();
 	$bigtree["sql"]["queries"] = array();
 	
