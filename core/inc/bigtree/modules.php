@@ -362,24 +362,28 @@
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				exact - If you want exact matches for NULL, "", and 0, pass true, otherwise 0 = NULL = ""
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function getMatching($fields,$values,$sortby = false,$limit = false) {
+		function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false) {
 			if (!is_array($fields)) {
-				$where = "`$fields` = '".sqlescape($values)."'";
+				$search = array($fields => $values);
 			} else {
-				$x = 0;
-				while ($x < count($fields)) {
-					$where[] = "`".$fields[$x]."` = '".sqlescape($values[$x])."'";
-					$x++;
+				$search = array_combine($fields,$values);
+			}
+			$where = array();
+			foreach ($search as $key => $value) {
+				if (!$exact && ($value === "NULL" || !$value)) {
+					$where[] = "(`$key` IS NULL OR `$key` = '' OR `$key` = '0')";
+				} else {
+					$where[] = "`$key` = '".sqlescape($value)."'";
 				}
-				$where = implode(" AND ",$where);
 			}
 			
-			return $this->fetch($sortby,$limit,$where);
+			return $this->fetch($sortby,$limit,implode(" AND ",$where));
 		}
 		
 		/*
