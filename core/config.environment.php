@@ -10,7 +10,7 @@
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/"; // "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
 	$bigtree["config"]["force_secure_login"] = [force_secure_login]; // If you have HTTPS enabled, set to true to force admin logins through HTTPS
 	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
-	$bigtree["config"]["environment_live_url"] = ""; // Live environment URL
+	$bigtree["config"]["environment_live_url"] = ""; // Live admin URL
 	$bigtree["config"]["developer_mode"] = false; // Set to true to lock out all users except developers.
 	$bigtree["config"]["maintenance_url"] = false; // Set to a URL to 307 redirect visitors to a maintenance page (driven by /templates/basic/_maintenance.php).
 	$bigtree["config"]["routing"] = "[routing]";
