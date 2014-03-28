@@ -8,6 +8,7 @@
 	$title_field = isset($options["title_field"]) ? $options["title_field"] : false;
 	$ot_sort_field = isset($options["ot_sort_field"]) ? $options["ot_sort_field"] : false;
 	$ot_sort_direction = isset($options["ot_sort_direction"]) ? $options["ot_sort_direction"] : false;
+	$group_parser = isset($options["group_parser"]) ? $options["group_parser"] : "";
 ?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
@@ -78,4 +79,9 @@
 		<option>ASC</option>
 		<option<? if ($ot_sort_direction == "DESC") { ?> selected="selected"<? } ?>>DESC</option>
 	</select>
+</fieldset>
+
+<fieldset>
+	<label>Group Name Parser <small>($item is the group data, set $value to the new name)</small></label>
+	<textarea name="group_parser"><?=htmlspecialchars($group_parser)?></textarea>
 </fieldset>
