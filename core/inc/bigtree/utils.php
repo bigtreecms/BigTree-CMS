@@ -1622,6 +1622,25 @@
 			}
 			return array($inc_file,$commands);
 		}
+
+		/*
+			Function: runParser
+				Evaluates code in a function scope with $item and $value
+				Used mostly internally in the admin for parsers.
+
+			Parameters:
+				item - Full array of data
+				value - The value to be manipulated and returned
+				code - The code to be run in eval()
+
+			Returns:
+				Modified $value
+		*/
+
+		static function runParser($item,$value,$code) {
+			eval($code);
+			return $value;
+		}
 		
 		/*
 			Function: sendEmail

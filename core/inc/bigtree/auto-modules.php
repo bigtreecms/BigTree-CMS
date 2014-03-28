@@ -130,7 +130,7 @@
 
 				// Check for a parser
 				if (isset($view["options"]["group_parser"]) && $view["options"]["group_parser"]) {
-					@eval($view["options"]["group_parser"]);
+					$value = BigTree::runParser($item,$value,$view["options"]["group_parser"]);
 				}
 
 				$fields[] = "group_field";
@@ -161,9 +161,7 @@
 
 			// Run parsers
 			foreach ($parsers as $key => $parser) {
-				$value = $item[$key];
-				@eval($parser);
-				$item[$key] = $value;
+				$item[$key] = BigTree::runParser($item,$item[$key],$parser);
 			}
 			
 			// Run pop lists
@@ -983,8 +981,7 @@
 						$item[$key] = $p[$poplists[$key]["description"]];
 					}
 					if ($parsers[$key]) {
-						eval($parsers[$key]);
-						$item[$key] = $value;
+						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
 					}
 				}
 				$items[] = $item;
@@ -1330,8 +1327,7 @@
 						$value = $item[$key];
 						// If we have a parser, run it.
 						if ($field["parser"]) {
-							@eval($field["parser"]);
-							$item[$key] = $value;
+							$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
 						// If we know this field is a populated list, get the title they entered in the form.
 						} else {
 							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {
