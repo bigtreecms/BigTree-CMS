@@ -310,14 +310,12 @@
 
 		function archivePageChildren($page) {
 			$page = sqlescape($page);
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page'");
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page' AND archived != 'on'");
 			while ($f = sqlfetch($q)) {
-				if (!$f["archived"]) {
-					sqlquery("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' WHERE id = '".$f["id"]."'");
-					$this->track("bigtree_pages",$f["id"],"archived");
-					$this->archivePageChildren($f["id"]);
-				}
+				$this->track("bigtree_pages",$f["id"],"archived-inherited");
+				$this->archivePageChildren($f["id"]);
 			}
+			sqlquery("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' WHERE parent = '$page' AND archived != 'on'");
 		}
 
 		/*
@@ -6314,14 +6312,12 @@
 		*/
 
 		function unarchivePageChildren($id) {
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$id'");
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$id' AND archived_inherited = 'on'");
 			while ($f = sqlfetch($q)) {
-				if ($f["archived_inherited"]) {
-					sqlquery("UPDATE bigtree_pages SET archived = '', archived_inherited = '' WHERE id = '".$f["id"]."'");
-					$this->track("bigtree_pages",$f["id"],"unarchived");
-					$this->archivePageChildren($f["id"]);
-				}
+				$this->track("bigtree_pages",$f["id"],"unarchived-inherited");
+				$this->unarchivePageChildren($f["id"]);
 			}
+			sqlquery("UPDATE bigtree_pages SET archived = '', archived_inherited = '' WHERE parent = '$id' AND archived_inherited = 'on'");
 		}
 
 		/*
