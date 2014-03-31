@@ -793,12 +793,13 @@
 			Parameters:
 				directory - The destination directory.
 				file - The desired file name.
+				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
 			
 			Returns:
 				An available, web safe file name.
 		*/
 		
-		static function getAvailableFileName($directory,$file) {
+		static function getAvailableFileName($directory,$file,$prefixes = array()) {
 			global $cms;
 		
 			$parts = self::pathInfo($directory.$file);
@@ -812,8 +813,14 @@
 			
 			// Just find a good filename that isn't used now.
 			$x = 2;
-			while (file_exists($directory.$file)) {
+			while (!$file || file_exists($directory.$file)) {
 				$file = $clean_name."-$x.".strtolower($parts["extension"]);
+				// Check prefixes
+				foreach ($prefixes as $prefix) {
+					if (file_exists($directory.$prefix.$file)) {
+						$file = false;
+					}
+				}
 				$x++;
 			}
 			return $file;
@@ -1638,6 +1645,7 @@
 		*/
 
 		static function runParser($item,$value,$code) {
+			global $admin,$bigtree,$cms;
 			eval($code);
 			return $value;
 		}

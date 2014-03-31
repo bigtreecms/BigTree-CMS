@@ -201,12 +201,13 @@
 				file_name - The desired file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
+				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
 			
 			Returns:
 				The URL of the stored file.
 		*/
 		
-		function store($local_file,$file_name,$relative_path,$remove_original = true) {
+		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
@@ -226,11 +227,18 @@
 				if (strlen($clean_name) > 50) {
 					$clean_name = substr($clean_name,0,50);
 				}
-				$$file_name = $clean_name.".".strtolower($parts["extension"]);
+				// Best case name
+				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
 				// Make sure we have a unique name
-				while (isset($this->Files[$relative_path.$file_name])) {
+				while (!$file_name || isset($this->Files[$relative_path.$file_name])) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
+					// Check all the prefixes, make sure they don't exist either
+					foreach ($prefixes as $prefix) {
+						if (isset($this->Files[$relative_path.$prefix.$file_name])) {
+							$file_name = false;
+						}
+					}
 					$x++;
 				}
 				// Upload it
@@ -241,7 +249,7 @@
 				}
 				return $success;
 			} else {
-				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name);
+				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);
 				if ($remove_original) {
 					$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 				} else {

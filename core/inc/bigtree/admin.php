@@ -4717,6 +4717,11 @@
 
 		function getSetting($id,$decode = true) {
 			global $bigtree,$cms;
+			if (!$cms) {
+				// For use in __desctruct
+				$cms = new BigTreeCMS;
+			}
+
 			$id = sqlescape($id);
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
@@ -5438,21 +5443,23 @@
 			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
 				if (is_array($field["options"]["crops"])) {
 					foreach ($field["options"]["crops"] as $crop) {
-						if ($field["options"]["retina"]) {
-							$crop["width"] *= 2;
-							$crop["height"] *= 2;
-						}
-						// We don't want to add multiple errors so we check if we've already failed
-						if (!$failed && !BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"],$iwidth,$iheight)) {
-							$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
-							$failed = true;
+						if (!$failed && is_array($crop)) {
+							if ($field["options"]["retina"]) {
+								$crop["width"] *= 2;
+								$crop["height"] *= 2;
+							}
+							// We don't want to add multiple errors so we check if we've already failed
+							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"],$iwidth,$iheight)) {
+								$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+								$failed = true;
+							}
 						}
 					}
 				}
 				if (is_array($field["options"]["thumbs"])) {
 					foreach ($field["options"]["thumbs"] as $thumb) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed) {
+						if (!$failed && is_array($thumb)) {
 							if ($field["options"]["retina"]) {
 								$thumb["width"] *= 2;
 								$thumb["height"] *= 2;
@@ -5531,8 +5538,32 @@
 				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 				BigTree::copyFile($first_copy,$temp_copy);
 				
+				// Gather up an array of file prefixes
+				$prefixes = array();
+				if (is_array($field["options"]["thumbs"])) {
+					foreach ($field["options"]["thumbs"] as $thumb) {
+						if (!empty($thumb["prefix"])) {
+							$prefixes[] = $thumb["prefix"];
+						}
+					}
+				}
+				if (is_array($field["options"]["crops"])) {
+					foreach ($field["options"]["crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							$prefixes[] = $crop["prefix"];
+						}
+						if (is_array($crop["thumbs"])) {
+							foreach ($crop["thumbs"] as $thumb) {
+								if (!empty($thumb["prefix"])) {
+									$prefixes[] = $thumb["prefix"];
+								}
+							}
+						}
+					}
+				}
+
 				// Upload the original to the proper place.
-				$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"]);
+				$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
  				
  				// If the upload service didn't return a value, we failed to upload it for one reason or another.
  				if (!$field["output"]) {
