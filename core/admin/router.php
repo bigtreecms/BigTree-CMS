@@ -194,7 +194,7 @@
 	}
 
 	// Developer Mode On?
-	if (isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
+	if (isset($admin->ID) && isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
 		include BigTree::path("admin/pages/developer-mode.php");
 		$admin->stop();
 	}
