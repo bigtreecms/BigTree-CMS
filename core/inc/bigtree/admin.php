@@ -5225,7 +5225,7 @@
 				if ($f["archived_inherited"]) {
 					sqlquery("UPDATE bigtree_pages SET archived = '', archived_inherited = '' WHERE id = '".$f["id"]."'");
 					$this->track("bigtree_pages",$f["id"],"unarchived");
-					$this->archivePageChildren($f["id"]);
+					$this->unarchivePageChildren($f["id"]);
 				}
 			}
 		}
