@@ -32,6 +32,16 @@
 	
 	$unread_messages = $admin->getUnreadMessageCount();	
 	$site = $cms->getPage(0,false);
+
+	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
+	$environment_alert = false;
+	if (!empty($bigtree["config"]["maintenance_url"])) {
+		$environment_alert = '<span><strong>Maintenance Mode</strong> &middot; Entire Site Restricted To Developers</span>';
+	} elseif (!empty($bigtree["config"]["developer_mode"])) {
+		$environment_alert = '<span><strong>Developer Mode</strong> &middot; Admin Area Restricted To Developers</span>';
+	} elseif ($bigtree["config"]["environment"] == "dev" && $bigtree["config"]["environment_live_url"]) {
+		$environment_alert = '<span><strong>Development Site</strong> &middot; Changes Will Not Effect Live Site!</span><a href="'.$bigtree["config"]["environment_live_url"].'">Go Live</a>';
+	}
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->
@@ -134,12 +144,9 @@
 		</nav>
 		<div class="body">
 			<div class="wrapper">
-				<? if ($bigtree["config"]["environment"] == "dev" && $bigtree["config"]["environment_live_url"]) { ?>
+				<? if ($environment_alert) { ?>
 				<div class="environment_alert">
-					<span>
-						<strong>Development Site</strong> &middot; Changes Will Not Effect Live Site!
-					</span>
-					<a href="<?=$bigtree["config"]["environment_live_url"]?>">Go Live</a>
+					<?=$environment_alert?>
 				</div>
 				<? } ?>
 				<aside id="growl"></aside>

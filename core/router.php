@@ -165,7 +165,7 @@
 	session_start();
 
 	// Check to see if we're in maintenance mode
-	if ($bigtree["config"]["maintenance_url"]) {
+	if ($bigtree["config"]["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
 		// See if we're at the URL
 		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");

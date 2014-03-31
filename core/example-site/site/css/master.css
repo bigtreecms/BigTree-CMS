@@ -119,6 +119,7 @@
 	/* !Shifter Plugin Overrides */
 	.shifter .shifter-page { box-shadow: none; }
 	.shifter .shifter-navigation { background: $lighterGray; padding: 35px 40px; }
+	.bigtree_bar_open .shifter-navigation { padding-top: 75px; }
 	
 	/* !Navigation */
 	.navigation a { color: $darkGray; display: block; font-size: 18px; margin: 0 0 8px; }
