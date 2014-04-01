@@ -1,11 +1,21 @@
 <?
 	// Stop notices
-	$data["directory"] = isset($data["directory"]) ? $data["directory"] : "";
+	if (empty($data["directory"])) {
+		if (isset($_POST["template"])) {
+			$data["directory"] = "files/pages/";
+		} elseif (isset($_POST["callout"])) {
+			$data["directory"] = "files/callouts/";
+		} elseif (isset($_POST["setting"])) {
+			$data["directory"] = "files/settings/";
+		} else {
+			$data["directory"] = "files/modules/";
+		}
+	}
 	$data["image"] = isset($data["image"]) ? $data["image"] : "";
 ?>
 <fieldset>
 	<label>Upload Directory <small>(required, relative to SITE_ROOT)</small></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"] ? $data["directory"] : "files/pages/")?>" />
+	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" class="required" />
 </fieldset>
 <fieldset>
 	<input type="checkbox" name="image"<? if ($data["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" />
