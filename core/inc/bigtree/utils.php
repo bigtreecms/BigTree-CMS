@@ -1645,7 +1645,6 @@
 		*/
 
 		static function runParser($item,$value,$code) {
-			global $admin,$bigtree,$cms;
 			eval($code);
 			return $value;
 		}
