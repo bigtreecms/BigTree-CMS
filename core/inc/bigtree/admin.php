@@ -378,7 +378,19 @@
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
 				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
 				fwrite($pointer,str_replace(array("\n  ","\n"),"",end($definition)).";\n");
-				$qq = sqlquery("SELECT * FROM `$table`");
+				// Need to figure out which columns are binary so that we can request them as hex
+				$description = BigTree::describeTable($table);
+				$column_query = array();
+				$binary_columns = array();
+				foreach ($description["columns"] as $key => $column) {
+					if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
+						$column_query[] = "HEX(`$key`) AS `$key`";
+						$binary_columns[] = $key;
+					} else {
+						$column_query[] = "`$key`";
+					}
+				}
+				$qq = sqlquery("SELECT ".implode(", ",$column_query)." FROM `$table`");
 				while ($ff = sqlfetch($qq)) {
 					$keys = array();
 					$vals = array();
@@ -387,7 +399,11 @@
 						if ($val === null) {
 							$vals[] = "NULL";
 						} else {
-							$vals[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
+							if (in_array($key,$binary_columns)) {
+								$vals[] = "X'".sqlescape(str_replace("\n","\\n",$val))."'";
+							} else {
+								$vals[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
+							}
 						}
 					}
 					fwrite($pointer,"INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).");\n");
