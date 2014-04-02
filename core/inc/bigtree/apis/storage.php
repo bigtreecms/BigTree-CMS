@@ -243,7 +243,9 @@
 				}
 				// Upload it
 				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
-				$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+				if ($success) {
+					$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+				}
 				if ($remove_original) {
 					unlink($local_file);
 				}
