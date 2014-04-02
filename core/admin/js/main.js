@@ -1209,7 +1209,7 @@ var BigTreeDialog = Class.extend({
 				$(this).val(tinyMCE.get(id).getContent());
 			});
 		}
-		this.onComplete(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON());
+		this.onComplete(BigTree.CleanObject(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON()));
 		if (this.onCancel) {
 			this.onCancel();
 		} else {
@@ -2421,6 +2421,27 @@ var BigTree = {
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);
+	},
+
+	CleanObject: function(o) {
+		if (typeof o != "object") {
+			return o;
+		}
+
+		if (Object.prototype.toString.call(o) === '[object Array]') {
+			var j = [];
+			for (i = 0; i < o.length; i++) {
+				if (typeof o[i] != "undefined") {
+					j[j.length] = o[i];
+				}
+			}
+		} else {
+			var j = {};
+			for (i in o) {
+				j[i] = BigTree.CleanObject(o[i]);
+			}
+		}
+		return j;
 	},
 
 	FormHooks: function(selector) {

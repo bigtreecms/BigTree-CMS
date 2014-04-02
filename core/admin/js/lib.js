@@ -267,15 +267,15 @@ target[name]=props[name];return target;};$.timepicker=new Timepicker();$.timepic
 (function(){var a=false,b=/xyz/.test(function(){xyz})?/\b_super\b/:/.*/;this.Class=function(){};Class.extend=function(g){var f=this.prototype;a=true;var e=new this();a=false;for(var d in g){e[d]=typeof g[d]=="function"&&typeof f[d]=="function"&&b.test(g[d])?(function(h,i){return function(){var k=this._super;this._super=f[h];var j=i.apply(this,arguments);this._super=k;return j}})(d,g[d]):g[d]}function c(){if(!a&&this.init){this.init.apply(this,arguments)}}c.prototype=e;c.prototype.constructor=c;c.extend=arguments.callee;return c}})();
 
 /*!
-SerializeJSON jQuery plugin.
-https://github.com/marioizquierdo/jquery.serializeJSON
-version 1.1.1 (Feb 16, 2014)
+  SerializeJSON jQuery plugin.
+  https://github.com/marioizquierdo/jquery.serializeJSON
+  version 1.2.1 (Mar 11, 2014)
 
-Copyright (c) 2012 Mario Izquierdo
-Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
-and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
+  Copyright (c) 2012 Mario Izquierdo
+  Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+  and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
 */
-(function(c){c.fn.serializeJSON=function(){var e,d;e={};d=this.serializeArray();c.each(d,function(h,f){var g,k,j;g=f.name;k=f.value;j=c.map(g.split("["),function(i){var l;l=i[i.length-1];return l==="]"?i.substring(0,i.length-1):i});if(j[0]===""){j.shift()}c.deepSet(e,j,k)});return e};var a=function(d){return d===Object(d)};var b=function(d){return/^[0-9]+$/.test(String(d))};c.deepSet=function(d,l,i){var j,h,f,g,k,e;if(!l||l.length===0){throw new Error("ArgumentError: keys param expected to be an array with least one key")}j=l[0];if(l.length==1){if(j===""){d.push(i)}else{d[j]=i}}else{h=l[1];if(j===""){k=d.length-1;e=d[d.length-1];if(a(e)&&!e[h]){j=k}else{d.push({});j=k+1}}if(d[j]===undefined){if(h===""||b(h)){d[j]=[]}else{d[j]={}}}f=l.slice(1);c.deepSet(d[j],f,i)}}}(jQuery));
+(function(e){"use strict";e.fn.serializeJSON=function(){var t,n,r;t={};n=this.serializeArray();e.each(n,function(n,i){r=e.serializeJSON.splitInputNameIntoKeysArray(i.name);e.serializeJSON.deepSet(t,r,i.value)});return t};e.serializeJSON={isObject:function(e){return e===Object(e)},isUndefined:function(e){return e===void 0},isValidArrayIndex:function(e){return e===""||/^[0-9]+$/.test(String(e))},splitInputNameIntoKeysArray:function(t){var n,r;if(e.serializeJSON.isUndefined(t)){throw new Error("ArgumentError: param 'name' expected to be a string, found undefined")}n=e.map(t.split("["),function(e){r=e[e.length-1];return r==="]"?e.substring(0,e.length-1):e});if(n[0]===""){n.shift()}return n},deepSet:function(t,n,r){var i,s,o,u,a;if(e.serializeJSON.isUndefined(t)){throw new Error("ArgumentError: param 'o' expected to be an object or array, found undefined")}if(!n||n.length===0){throw new Error("ArgumentError: param 'keys' expected to be an array with least one element")}i=n[0];if(n.length===1){if(i===""){t.push(r)}else{t[i]=r}}else{s=n[1];if(i===""){u=t.length-1;a=t[t.length-1];if(e.serializeJSON.isObject(a)&&e.serializeJSON.isUndefined(a[s])){i=u}else{i=u+1}}if(e.serializeJSON.isUndefined(t[i])){if(e.serializeJSON.isValidArrayIndex(s)){t[i]=[]}else{t[i]={}}}o=n.slice(1);e.serializeJSON.deepSet(t[i],o,r)}}}})(jQuery)
 
 // Thanks to PHP.js project, see php.js.license.txt for license information.
 function htmlspecialchars(c,h,g,b){var e=0,d=0,f=false;if(typeof h==="undefined"||h===null){h=2}c=c.toString();if(b!==false){c=c.replace(/&/g,"&amp;")}c=c.replace(/</g,"&lt;").replace(/>/g,"&gt;");var a={ENT_NOQUOTES:0,ENT_HTML_QUOTE_SINGLE:1,ENT_HTML_QUOTE_DOUBLE:2,ENT_COMPAT:2,ENT_QUOTES:3,ENT_IGNORE:4};if(h===0){f=true}if(typeof h!=="number"){h=[].concat(h);for(d=0;d<h.length;d++){if(a[h[d]]===0){f=true}else{if(a[h[d]]){e=e|a[h[d]]}}}h=e}if(h&a.ENT_HTML_QUOTE_SINGLE){c=c.replace(/'/g,"&#039;")}if(!f){c=c.replace(/"/g,"&quot;")}return c};
