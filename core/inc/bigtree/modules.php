@@ -613,6 +613,9 @@
 			$results = array();
 			$relevance = array();
 			foreach ($tags as $tag) {
+				if (is_array($tag)) {
+					$tag = $tag["tag"];
+				}
 				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 				if ($tdat) {
 					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = '".sqlescape($this->Table)."'");
