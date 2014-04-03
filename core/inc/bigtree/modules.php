@@ -249,6 +249,25 @@
 		function getApproved($order = false,$limit = false) {
 			return $this->getMatching("approved","on",$order,$limit);
 		}
+
+		/*
+			Function: getArchived
+				Returns archived entries from the table.
+			
+			Parameters:
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				limit - Max number of entries to return, defaults to all
+			
+			Returns:
+				An array of entries from the table.
+				
+			See Also:
+				<getMatching>
+		*/
+		
+		function getArchived($order = false,$limit = false) {
+			return $this->getMatching("archived","on",$order,$limit);
+		}
 		
 		/*
 			Function: getBreadcrumb
@@ -658,6 +677,25 @@
 			}
 			
 			return $tags;
+		}
+
+		/*
+			Function: getUnapproved
+				Returns unapproved entries from the table.
+			
+			Parameters:
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				limit - Max number of entries to return, defaults to all
+			
+			Returns:
+				An array of entries from the table.
+				
+			See Also:
+				<getMatching>
+		*/
+		
+		function getUnapproved($order = false,$limit = false) {
+			return $this->getMatching("approved","",$order,$limit);
 		}
 		
 		/*
