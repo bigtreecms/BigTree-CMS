@@ -1523,7 +1523,7 @@
 				Creates a resource folder.
 				Checks permissions.
 
-			Paremeters:
+			Parameters:
 				parent - The parent folder.
 				name - The name of the new folder.
 
@@ -1625,7 +1625,7 @@
 			Function: createTemplate
 				Creates a template and its default files/directories.
 
-			Paremeters:
+			Parameters:
 				id - Id for the template.
 				name - Name
 				routed - Basic ("") or Routed ("on")
@@ -7332,7 +7332,7 @@
 			Function: updateTemplate
 				Updates a template.
 
-			Paremeters:
+			Parameters:
 				id - The id of the template to update.
 				name - Name
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
