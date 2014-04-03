@@ -680,6 +680,26 @@
 		}
 
 		/*
+			Function: getUnarchived
+				Returns entries that are not archived from the table.
+				Equivalent to getNonarchived.
+			
+			Parameters:
+				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				limit - Max number of entries to return, defaults to all
+			
+			Returns:
+				An array of entries from the table.
+				
+			See Also:
+				<getMatching> <getNonarchived>
+		*/
+		
+		function getUnarchived($order = false,$limit = false) {
+			return $this->getMatching("archived","",$order,$limit);
+		}
+
+		/*
 			Function: getUnapproved
 				Returns unapproved entries from the table.
 			
