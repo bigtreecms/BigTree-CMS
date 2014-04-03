@@ -184,6 +184,27 @@
 		$admin = new BigTreeAdmin;
 	}
 
+	// Load the default layout.
+	$bigtree["layout"] = "default";
+	$bigtree["subnav_extras"] = array();
+
+	// If we're not logged in and we're not trying to login, redirect to the login page.
+	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
+		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
+		BigTree::redirect(ADMIN_ROOT."login/");
+	}
+
+	// Developer Mode On?
+	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
+		include BigTree::path("admin/pages/developer-mode.php");
+		$admin->stop();
+	}
+
+	// Redirect to dashboard by default if we're not requesting anything.
+	if (!$bigtree["path"][1]) {
+		BigTree::redirect(ADMIN_ROOT."dashboard/");
+	}
+
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
 		// Make sure we're logged in.
@@ -276,27 +297,6 @@
 		$bigtree["css"] = $bigtree["config"]["admin_css"];
 	} else {
 		$bigtree["css"] = array();
-	}
-
-	// Load the default layout.
-	$bigtree["layout"] = "default";
-	$bigtree["subnav_extras"] = array();
-
-	// If we're not logged in and we're not trying to login, redirect to the login page.
-	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-		BigTree::redirect(ADMIN_ROOT."login/");
-	}
-
-	// Developer Mode On?
-	if (isset($bigtree["config"]["developer_mode"]) && $bigtree["config"]["developer_mode"] && $admin->Level < 2) {
-		include BigTree::path("admin/pages/developer-mode.php");
-		$admin->stop();
-	}
-
-	// Redirect to dashboard by default if we're not requesting anything.
-	if (!$bigtree["path"][1]) {
-		BigTree::redirect(ADMIN_ROOT."dashboard/");
 	}
 
 	// Execute cron tab functions if they haven't been run in 24 hours

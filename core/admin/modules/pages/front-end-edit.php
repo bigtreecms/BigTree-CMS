@@ -54,19 +54,24 @@
 					$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 					
 					if (file_exists($field_type_path)) {
+						// Don't draw the fieldset for the callout type
+						if ($resource["type"] == "callouts") {
+							include $field_type_path;
+						} else {
 		?>
 		<fieldset>
 			<?
-				if ($field["title"] && $resource["type"] != "checkbox") {
+							if ($field["title"] && $resource["type"] != "checkbox") {
 			?>
 			<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 			<?
-				}
-				include $field_type_path;
+							}
+							include $field_type_path;
 			?>
 		</fieldset>
 		<?
-						$bigtree["tabindex"]++;
+							$bigtree["tabindex"]++;
+						}
 					}
 				}
 			} else {

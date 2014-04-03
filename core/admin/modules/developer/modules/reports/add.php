@@ -11,7 +11,7 @@
 		<section>
 			<div class="left last">
 				<fieldset>
-					<label class="required">Report Title</label>
+					<label class="required">Title</label>
 					<input type="text" class="required" name="title" />
 				</fieldset>
 
@@ -26,7 +26,7 @@
 
 			<div class="right last">
 				<fieldset>
-					<label>Report Type</label>
+					<label>Type</label>
 					<select name="type" id="report_type">
 						<option value="csv">CSV Export</option>
 						<option value="view">Filtered View</option>

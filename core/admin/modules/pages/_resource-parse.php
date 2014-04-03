@@ -14,7 +14,9 @@
 		$field = array();
 		$field["key"] = $key = $resource["id"];
 		$field["options"] = $options = $resource;
-		$field["options"]["directory"] = $options["directory"] = "files/pages/";
+		if (empty($field["options"]["directory"])) {
+			$field["options"]["directory"] = $options["directory"] = "files/pages/";
+		}
 		$field["ignore"] = false;
 		$field["input"] = $bigtree["post_data"][$resource["id"]];
 		$field["file_input"] = $bigtree["file_data"][$resource["id"]];

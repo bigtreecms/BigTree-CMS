@@ -17,6 +17,12 @@
 			$ignorable[] = $update["version"];
 		}
 	}
+	// If we're ignoring updates through config, still ignore them
+	if (!empty($bigtree["config"]["ignore_admin_updates"])) {
+		$ignored_all = true;
+	}
+
+	// Updates are available and we didn't ignore them
 	if (!$ignored_all && count($updates)) {
 ?>
 <div class="container">

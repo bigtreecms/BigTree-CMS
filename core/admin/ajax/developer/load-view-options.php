@@ -2,8 +2,13 @@
 	$table = $_POST["table"];
 	$type = $_POST["type"];
 	$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
+	$filter = isset($options["filter"]) ? $options["filter"] : "";
 ?>
 <div style="width: 450px;">
+	<fieldset>
+		<label>Filter Function <small>(function name only, <a href="http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/" target="_blank">learn more</a>)</small></label>
+		<input type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
+	</fieldset>
 	<?
 		$path = BigTree::path("admin/ajax/developer/view-options/".$type.".php");
 		if (file_exists($path)) {

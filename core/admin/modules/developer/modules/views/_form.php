@@ -43,7 +43,7 @@
 				<? } ?>
 			</select>
 			&nbsp; <a href="#" class="options icon_settings centered"></a>
-			<input type="hidden" name="options" id="view_options" value="<?=$options?>" />
+			<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($options))?>" />
 		</fieldset>
 	</div>
 </section>

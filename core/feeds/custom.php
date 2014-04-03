@@ -18,7 +18,7 @@
 			foreach ($feed["fields"] as $key => $options) {
 				$value = $item[$key];
 				if ($options["parser"]) {
-					eval($options["parser"]);
+					$value = BigTree::runParser($item,$value,$options["parser"]);
 				}
 		?>
 		<<?=$key?>><![CDATA[<?=$value?>]]></<?=$key?>>

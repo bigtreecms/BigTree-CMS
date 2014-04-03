@@ -1,6 +1,5 @@
 <?
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
-	print_r($errors);
 ?>
 <div class="container">
 	<section>

@@ -45,6 +45,10 @@ define("tinymce/util/Observable", [
 		fire: function(name, args, bubble) {
 			var self = this, handlers, i, l, callback, parent;
 
+			if (self.removed) {
+				return;
+			}
+
 			name = name.toLowerCase();
 			args = args || {};
 			args.type = name;
@@ -118,13 +122,14 @@ define("tinymce/util/Observable", [
 		 * @method on
 		 * @param {String} name Event name or space separated list of events to bind.
 		 * @param {callback} callback Callback to be executed when the event occurs.
+		 * @param {Boolean} first Optional flag if the event should be prepended. Use this with care.
 		 * @return {Object} Current class instance.
 		 * @example
 		 * instance.on('event', function(e) {
 		 *     // Callback logic
 		 * });
 		 */
-		on: function(name, callback) {
+		on: function(name, callback, prepend) {
 			var self = this, bindings, handlers, names, i;
 
 			if (callback === false) {
@@ -152,7 +157,11 @@ define("tinymce/util/Observable", [
 						}
 					}
 
-					handlers.push(callback);
+					if (prepend) {
+						handlers.unshift(callback);
+					} else {
+						handlers.push(callback);
+					}
 				}
 			}
 

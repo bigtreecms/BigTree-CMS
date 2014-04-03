@@ -1263,7 +1263,7 @@ var BigTreeDialog = Class.extend({
 		}
 
 		// Pass the form data to our callback as JSON
-		this.onComplete(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON());
+		this.onComplete(BigTree.CleanObject(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON()));
 		
 		// Remove the dialog
 		$(".bigtree_dialog_overlay").last().remove();
@@ -1344,25 +1344,24 @@ var BigTreeFileManager = {
 	chooseImageSize: function() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
 		$("#file_browser_form .footer input.blue").hide();
-		$("#file_browser_info_pane").css({ position: "absolute", marginLeft: "609px", height: "397px" });
-		new_pane = $('<section id="file_browser_size_pane" style="margin-left: 820px;">');
-		new_pane.html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
+		$("#file_browser_info_pane").css({ height: "437px", marginTop: 0 });
+		size_pane = $("#file_browser_size_pane");
+		size_pane.html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
 		for (i = 0; i< this.availableThumbs.length; i++) {
 			size = this.availableThumbs[i];
 			link = $('<a class="button">');
 			link.attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
 			link.html(size.name);
-			new_pane.append(link);
+			size_pane.append(link);
 		}
 		link = $('<a class="button">');
 		link.attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
 		link.html("Original");
-		new_pane.append(link);
-		$("#file_browser_form .footer").before(new_pane);
-		new_pane.animate({ marginLeft: "210px" },500);
-		$("#file_browser_info_pane").animate({ marginLeft: "-1px" },500);
+		size_pane.append(link);
+		size_pane.css({ marginLeft: "210px" });
+		$("#file_browser_info_pane").css({ marginLeft: "-1px" });
 		
-		new_pane.find("a").click(function() {
+		size_pane.find("a").click(function() {
 			BigTreeFileManager.fieldName.value = $(this).attr("href");
 			BigTreeFileManager.closeFileBrowser();
 			return false;
@@ -1594,6 +1593,7 @@ var BigTreeFileManager = {
 	<input type="hidden" id="file_browser_selected_file" value="" />\
 	<div id="file_browser_contents"></div>\
 	<div id="file_browser_info_pane"></div>\
+	<section id="file_browser_size_pane"></section>\
 	<div class="footer">\
 		<input type="submit" class="button white" value="Cancel" id="file_browser_cancel" />\
 		<input type="submit" class="button blue" value="Use Selected Item" style="display: none;" />\
@@ -1670,7 +1670,6 @@ var BigTreeFileManager = {
 	},
 
 	replaceFileProcess: function(data) {
-		$(".bigtree_dialog_overlay").last().remove();
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
@@ -2366,7 +2365,7 @@ var BigTreeFormValidator = Class.extend({
 		}
 	},
 	
-	validateForm: function(event,in_dialog,embedded) {
+	validateForm: function(ev,in_dialog,embedded) {
 		errors = [];
 		this.form.find(".form_error").removeClass("form_error");
 		this.form.find(".form_error_reason").remove();
@@ -2452,6 +2451,9 @@ var BigTreeFormValidator = Class.extend({
 			if (this.callback) {
 				this.callback(errors);
 			}
+			ev.stopImmediatePropagation();
+			ev.stopPropagation();
+			ev.preventDefault();
 			return false;
 		} else {
 			return true;
@@ -2581,6 +2583,27 @@ var BigTree = {
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);
+	},
+
+	CleanObject: function(o) {
+		if (typeof o != "object") {
+			return o;
+		}
+
+		if (Object.prototype.toString.call(o) === '[object Array]') {
+			var j = [];
+			for (i = 0; i < o.length; i++) {
+				if (typeof o[i] != "undefined") {
+					j[j.length] = o[i];
+				}
+			}
+		} else {
+			var j = {};
+			for (i in o) {
+				j[i] = BigTree.CleanObject(o[i]);
+			}
+		}
+		return j;
 	},
 
 	FormHooks: function(selector) {

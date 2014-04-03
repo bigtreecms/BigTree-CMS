@@ -317,7 +317,6 @@
 
 		function getPhoto($id,$secret = false) {
 			$r = $this->call("flickr.photos.getInfo",array("photo_id" => $id,"secret" => $secret));
-			print_r($r);
 			if (!isset($r->photo)) {
 				return false;
 			}

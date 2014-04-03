@@ -3,12 +3,12 @@
 	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
 	$group_field = isset($options["group_field"]) ? $options["group_field"] : "";
 	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
-	$filter = isset($options["filter"]) ? $options["filter"] : "";
 	$draggable = isset($options["draggable"]) ? $options["draggable"] : false;
 	$other_table = isset($options["other_table"]) ? $options["other_table"] : false;
 	$title_field = isset($options["title_field"]) ? $options["title_field"] : false;
 	$ot_sort_field = isset($options["ot_sort_field"]) ? $options["ot_sort_field"] : false;
 	$ot_sort_direction = isset($options["ot_sort_direction"]) ? $options["ot_sort_direction"] : false;
+	$group_parser = isset($options["group_parser"]) ? $options["group_parser"] : "";
 ?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
@@ -37,7 +37,7 @@
 	<? } ?>
 </fieldset>
 
-<h4>Optional Parameters</h4>
+<h4>Grouping Parameters</h4>
 
 <fieldset>
 	<label>Other Table</label>
@@ -79,4 +79,9 @@
 		<option>ASC</option>
 		<option<? if ($ot_sort_direction == "DESC") { ?> selected="selected"<? } ?>>DESC</option>
 	</select>
+</fieldset>
+
+<fieldset>
+	<label>Group Name Parser <small>($item is the group data, set $value to the new name)</small></label>
+	<textarea name="group_parser"><?=htmlspecialchars($group_parser)?></textarea>
 </fieldset>

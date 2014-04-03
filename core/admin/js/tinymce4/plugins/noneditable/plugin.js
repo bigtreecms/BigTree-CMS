@@ -9,6 +9,7 @@
  */
 
 /*jshint loopfunc:true */
+/*eslint no-loop-func:0 */
 /*global tinymce:true */
 
 tinymce.PluginManager.add('noneditable', function(editor) {
@@ -16,44 +17,44 @@ tinymce.PluginManager.add('noneditable', function(editor) {
 	var externalName = 'contenteditable', internalName = 'data-mce-' + externalName;
 	var VK = tinymce.util.VK;
 
+	// Returns the content editable state of a node "true/false" or null
+	function getContentEditable(node) {
+		var contentEditable;
+
+		// Ignore non elements
+		if (node.nodeType === 1) {
+			// Check for fake content editable
+			contentEditable = node.getAttribute(internalName);
+			if (contentEditable && contentEditable !== "inherit") {
+				return contentEditable;
+			}
+
+			// Check for real content editable
+			contentEditable = node.contentEditable;
+			if (contentEditable !== "inherit") {
+				return contentEditable;
+			}
+		}
+
+		return null;
+	}
+
+	// Returns the noneditable parent or null if there is a editable before it or if it wasn't found
+	function getNonEditableParent(node) {
+		var state;
+
+		while (node) {
+			state = getContentEditable(node);
+			if (state) {
+				return state  === "false" ? node : null;
+			}
+
+			node = node.parentNode;
+		}
+	}
+
 	function handleContentEditableSelection() {
 		var dom = editor.dom, selection = editor.selection, caretContainerId = 'mce_noneditablecaret', invisibleChar = '\uFEFF';
-
-		// Returns the content editable state of a node "true/false" or null
-		function getContentEditable(node) {
-			var contentEditable;
-
-			// Ignore non elements
-			if (node.nodeType === 1) {
-				// Check for fake content editable
-				contentEditable = node.getAttribute(internalName);
-				if (contentEditable && contentEditable !== "inherit") {
-					return contentEditable;
-				}
-
-				// Check for real content editable
-				contentEditable = node.contentEditable;
-				if (contentEditable !== "inherit") {
-					return contentEditable;
-				}
-			}
-
-			return null;
-		}
-
-		// Returns the noneditable parent or null if there is a editable before it or if it wasn't found
-		function getNonEditableParent(node) {
-			var state;
-
-			while (node) {
-				state = getContentEditable(node);
-				if (state) {
-					return state  === "false" ? node : null;
-				}
-
-				node = node.parentNode;
-			}
-		}
 
 		// Get caret container parent for the specified node
 		function getParentCaretContainer(node) {
@@ -184,7 +185,7 @@ tinymce.PluginManager.add('noneditable', function(editor) {
 					if (offset < container.childNodes.length) {
 						// Browser represents caret position as the offset at the start of an element. When moving right
 						// this is the element we are moving into so we consider our container to be child node at offset-1
-						var pos = !left && offset > 0 ? offset-1 : offset;
+						var pos = !left && offset > 0 ? offset - 1 : offset;
 						container = container.childNodes[pos];
 						if (container.hasChildNodes()) {
 							container = container.firstChild;
@@ -529,5 +530,11 @@ tinymce.PluginManager.add('noneditable', function(editor) {
 				node.attr(externalName, null);
 			}
 		});
+	});
+
+	editor.on('drop', function(e) {
+		if (getNonEditableParent(e.target)) {
+			e.preventDefault();
+		}
 	});
 });

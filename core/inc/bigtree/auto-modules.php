@@ -89,6 +89,13 @@
 		*/
 		
 		static function cacheRecord($item,$view,$parsers,$poplists,$original_item) {
+			// If we have a filter function, ask it first if we should cache it
+			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
+				if (!call_user_func($view["options"]["filter"],$item)) {
+					return false;
+				}
+			}
+
 			global $cms;
 			
 			// Setup the fields and VALUES to INSERT INTO the cache table.
@@ -123,7 +130,7 @@
 
 				// Check for a parser
 				if (isset($view["options"]["group_parser"]) && $view["options"]["group_parser"]) {
-					@eval($view["options"]["group_parser"]);
+					$value = BigTree::runParser($item,$value,$view["options"]["group_parser"]);
 				}
 
 				$fields[] = "group_field";
@@ -151,12 +158,10 @@
 				$fields[] = "published_gbp_field";
 				$vals[] = "'".sqlescape($original_item[$view["gbp"]["group_field"]])."'";
 			}
-			
+
 			// Run parsers
 			foreach ($parsers as $key => $parser) {
-				$value = $item[$key];
-				@eval($parser);
-				$item[$key] = $value;
+				$item[$key] = BigTree::runParser($item,$item[$key],$parser);
 			}
 			
 			// Run pop lists
@@ -166,38 +171,30 @@
 					$item[$key] = current($f);
 				}
 			}
-			
-			$cache = true;
-			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
-				$cache = call_user_func($view["options"]["filter"],$item);
-			}
-			
-			if ($cache) {
-				$x = 1;
-				
-				if ($view["type"] == "images" || $view["type"] == "images-grouped") {
-					$fields[] = "column1";
-					$vals[] = "'".$item[$view["options"]["image"]]."'";
-				} else {
-					foreach ($view["fields"] as $field => $options) {
-						$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
-						$fields[] = "column$x";
-						if (isset($parsers[$field]) && $parsers[$field]) {
-							$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode($item[$field])))."'";					
-						} else {
-							$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode(strip_tags($item[$field]))))."'";
-						}
-						$x++;
-					}
-				}
 
-				if ($sort_field) {
-					$fields[] = "`sort_field`";
-					$vals[] = "'".sqlescape($item[$sort_field])."'";
+			// Insert into the view cache			
+			if ($view["type"] == "images" || $view["type"] == "images-grouped") {
+				$fields[] = "column1";
+				$vals[] = "'".$item[$view["options"]["image"]]."'";
+			} else {
+				$x = 1;
+				foreach ($view["fields"] as $field => $options) {
+					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
+					$fields[] = "column$x";
+					if (isset($parsers[$field]) && $parsers[$field]) {
+						$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode($item[$field])))."'";					
+					} else {
+						$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode(strip_tags($item[$field]))))."'";
+					}
+					$x++;
 				}
-				
-				sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
 			}
+			if ($sort_field) {
+				$fields[] = "`sort_field`";
+				$vals[] = "'".sqlescape($item[$sort_field])."'";
+			}
+			
+			sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
 		}
 		
 		/*
@@ -827,7 +824,7 @@
 			Function: getRelatedFormForReport
 				Returns the form for the same table as the given report.
 			
-			Paramaters:
+			Parameters:
 				report - A report entry.
 			
 			Returns:
@@ -843,7 +840,7 @@
 			Function: getRelatedFormForView
 				Returns the form for the same table as the given view.
 			
-			Paramaters:
+			Parameters:
 				view - A view entry.
 			
 			Returns:
@@ -851,6 +848,9 @@
 		*/
 
 		static function getRelatedFormForView($view) {
+			if ($view["related_form"]) {
+				return self::getForm($view["related_form"]);
+			}
 			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
 			return self::getForm($f["id"]);
 		}
@@ -859,7 +859,7 @@
 			Function: getRelatedViewForForm
 				Returns the view for the same table as the given form.
 			
-			Paramaters:
+			Parameters:
 				form - A form entry.
 			
 			Returns:
@@ -867,7 +867,12 @@
 		*/
 
 		static function getRelatedViewForForm($form) {
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+			// Try to find a view that's relating back to this form first
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `related_form` = '".$form["id"]."'"));
+			// Fall back to any view that uses the same table
+			if (!$f) {
+				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+			}
 			return self::getView($f["id"]);
 		}
 
@@ -875,7 +880,7 @@
 			Function: getRelatedViewForReport
 				Returns the view for the same table as the given report.
 			
-			Paramaters:
+			Parameters:
 				report - A report entry.
 			
 			Returns:
@@ -978,8 +983,7 @@
 						$item[$key] = $p[$poplists[$key]["description"]];
 					}
 					if ($parsers[$key]) {
-						eval($parsers[$key]);
-						$item[$key] = $value;
+						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
 					}
 				}
 				$items[] = $item;
@@ -1325,8 +1329,7 @@
 						$value = $item[$key];
 						// If we have a parser, run it.
 						if ($field["parser"]) {
-							@eval($field["parser"]);
-							$item[$key] = $value;
+							$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
 						// If we know this field is a populated list, get the title they entered in the form.
 						} else {
 							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {

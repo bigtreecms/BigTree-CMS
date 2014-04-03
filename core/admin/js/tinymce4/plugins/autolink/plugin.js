@@ -11,6 +11,8 @@
 /*global tinymce:true */
 
 tinymce.PluginManager.add('autolink', function(editor) {
+	var AutoUrlDetectState;
+
 	editor.on("keydown", function(e) {
 		if (e.keyCode == 13) {
 			return handleEnter(editor);
@@ -19,6 +21,18 @@ tinymce.PluginManager.add('autolink', function(editor) {
 
 	// Internet Explorer has built-in automatic linking for most cases
 	if (tinymce.Env.ie) {
+		editor.on("focus", function() {
+			if (!AutoUrlDetectState) {
+				AutoUrlDetectState = true;
+
+				try {
+					editor.execCommand('AutoUrlDetect', false, true);
+				} catch (ex) {
+					// Ignore
+				}
+			}
+		});
+
 		return;
 	}
 
@@ -107,7 +121,7 @@ tinymce.PluginManager.add('autolink', function(editor) {
 
 			// Loop until one of the following is found: a blank space, &nbsp;, delimiter, (end-2) >= 0
 		} while (rng.toString() != ' ' && rng.toString() !== '' &&
-			rng.toString().charCodeAt(0) != 160 && (end -2) >= 0 && rng.toString() != delimiter);
+			rng.toString().charCodeAt(0) != 160 && (end - 2) >= 0 && rng.toString() != delimiter);
 
 		if (rng.toString() == delimiter || rng.toString().charCodeAt(0) == 160) {
 			rng.setStart(endContainer, end);
@@ -116,8 +130,7 @@ tinymce.PluginManager.add('autolink', function(editor) {
 		} else if (rng.startOffset === 0) {
 			rng.setStart(endContainer, 0);
 			rng.setEnd(endContainer, start);
-		}
-		else {
+		} else {
 			rng.setStart(endContainer, end);
 			rng.setEnd(endContainer, start);
 		}

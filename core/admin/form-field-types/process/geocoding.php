@@ -3,8 +3,11 @@
 	$source_fields = explode(",",$field["options"]["fields"]);
 	$location = array();
 	foreach ($source_fields as $source_field) {
-		if (trim($source_field)) {
-			$location[] = $bigtree["post_data"][trim($source_field)];
+		$data = isset($bigtree["post_data"][trim($source_field)]) ? $bigtree["post_data"][trim($source_field)] : false;
+		if (is_array($data)) {
+			$location = array_merge($location,$data);
+		} elseif ($data) {
+			$location[] = $data;
 		}
 	}
 	

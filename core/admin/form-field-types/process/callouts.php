@@ -25,7 +25,7 @@
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
-					if (!$field["options"]["directory"]) {
+					if (empty($field["options"]["directory"])) {
 						$field["options"]["directory"] = "files/pages/";
 					}
 					

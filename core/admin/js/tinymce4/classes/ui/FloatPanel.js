@@ -128,13 +128,11 @@ define("tinymce/ui/FloatPanel", [
 			if (settings.autohide) {
 				if (!documentClickHandler) {
 					documentClickHandler = function(e) {
-						var i, clickCtrl = self.getParentCtrl(e.target);
-
 						// Hide any float panel when a click is out side that float panel and the
 						// float panels direct parent for example a click on a menu button
-						i = visiblePanels.length;
+						var i = visiblePanels.length;
 						while (i--) {
-							var panel = visiblePanels[i];
+							var panel = visiblePanels[i], clickCtrl = panel.getParentCtrl(e.target);
 
 							if (panel.settings.autohide) {
 								if (clickCtrl) {
@@ -314,6 +312,16 @@ define("tinymce/ui/FloatPanel", [
 		remove: function() {
 			removeVisiblePanel(this);
 			this._super();
+		},
+
+		postRender: function() {
+			var self = this;
+
+			if (self.settings.bodyRole) {
+				this.getEl('body').setAttribute('role', self.settings.bodyRole);
+			}
+
+			return self._super();
 		}
 	});
 
@@ -329,8 +337,7 @@ define("tinymce/ui/FloatPanel", [
 		while (i--) {
 			var panel = visiblePanels[i];
 
-			if (panel.settings.autohide) {
-				panel.fire('cancel', {}, false);
+			if (panel && panel.settings.autohide) {
 				panel.hide();
 				visiblePanels.splice(i, 1);
 			}

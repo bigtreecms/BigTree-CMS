@@ -27,8 +27,9 @@ define("tinymce/dom/DOMUtils", [
 	"tinymce/dom/Range",
 	"tinymce/html/Entities",
 	"tinymce/Env",
-	"tinymce/util/Tools"
-], function(Sizzle, Styles, EventUtils, TreeWalker, Range, Entities, Env, Tools) {
+	"tinymce/util/Tools",
+	"tinymce/dom/StyleSheetLoader"
+], function(Sizzle, Styles, EventUtils, TreeWalker, Range, Entities, Env, Tools, StyleSheetLoader) {
 	// Shorten names
 	var each = Tools.each, is = Tools.is, grep = Tools.grep, trim = Tools.trim, extend = Tools.extend;
 	var isWebKit = Env.webkit, isIE = Env.ie;
@@ -54,6 +55,7 @@ define("tinymce/dom/DOMUtils", [
 		self.stdMode = !isIE || doc.documentMode >= 8;
 		self.boxModel = !isIE || doc.compatMode == "CSS1Compat" || self.stdMode;
 		self.hasOuterHTML = "outerHTML" in doc.createElement("a");
+		self.styleSheetLoader = new StyleSheetLoader(doc);
 		this.boundEvents = [];
 
 		self.settings = settings = extend({
@@ -432,7 +434,8 @@ define("tinymce/dom/DOMUtils", [
 				return false;
 			}
 
-			return Sizzle.matches(selector, elm.nodeType ? [elm] : elm).length > 0;
+			var elms = elm.nodeType ? [elm] : elm;
+			return Sizzle(selector, elms[0].ownerDocument || elms[0], null, elms).length > 0;
 		},
 
 		// #endif
@@ -744,7 +747,7 @@ define("tinymce/dom/DOMUtils", [
 		 * tinymce.dom.setAttrib('mydiv', 'class', 'myclass');
 		 */
 		setAttrib: function(e, n, v) {
-			var t = this;
+			var self = this;
 
 			// What's the point
 			if (!e || !n) {
@@ -752,14 +755,14 @@ define("tinymce/dom/DOMUtils", [
 			}
 
 			return this.run(e, function(e) {
-				var s = t.settings;
+				var s = self.settings;
 				var originalValue = e.getAttribute(n);
 				if (v !== null) {
 					switch (n) {
 						case "style":
 							if (!is(v, 'string')) {
 								each(v, function(v, n) {
-									t.setStyle(e, n, v);
+									self.setStyle(e, n, v);
 								});
 
 								return;
@@ -785,10 +788,10 @@ define("tinymce/dom/DOMUtils", [
 						case "href":
 							if (s.keep_values) {
 								if (s.url_converter) {
-									v = s.url_converter.call(s.url_converter_scope || t, v, n, e);
+									v = s.url_converter.call(s.url_converter_scope || self, v, n, e);
 								}
 
-								t.setAttrib(e, 'data-mce-' + n, v, 2);
+								self.setAttrib(e, 'data-mce-' + n, v, 2);
 							}
 
 							break;
@@ -1001,8 +1004,8 @@ define("tinymce/dom/DOMUtils", [
 
 					// Add scroll offsets from documentElement or body since IE with the wrong box model will use d.body and so do WebKit
 					// Also remove the body/documentelement clientTop/clientLeft on IE 6, 7 since they offset the position
-					x = pos.left + (doc.documentElement.scrollLeft || doc.body.scrollLeft) - rootElm.clientTop;
-					y = pos.top + (doc.documentElement.scrollTop || doc.body.scrollTop) - rootElm.clientLeft;
+					x = pos.left + (doc.documentElement.scrollLeft || doc.body.scrollLeft) - rootElm.clientLeft;
+					y = pos.top + (doc.documentElement.scrollTop || doc.body.scrollTop) - rootElm.clientTop;
 
 					return {x: x, y: y};
 				}
@@ -1357,7 +1360,7 @@ define("tinymce/dom/DOMUtils", [
 						newElement.innerHTML = '<br />' + html;
 
 						// Add all children from div to target
-						each (grep(newElement.childNodes), function(node, i) {
+						each(grep(newElement.childNodes), function(node, i) {
 							// Skip br element
 							if (i && element.canHaveHTML) {
 								element.appendChild(node);
@@ -1769,10 +1772,10 @@ define("tinymce/dom/DOMUtils", [
 		 * @return {Number} Index of the specified node.
 		 */
 		nodeIndex: function(node, normalized) {
-			var idx = 0, lastNodeType, lastNode, nodeType;
+			var idx = 0, lastNodeType, nodeType;
 
 			if (node) {
-				for (lastNodeType = node.nodeType, node = node.previousSibling, lastNode = node; node; node = node.previousSibling) {
+				for (lastNodeType = node.nodeType, node = node.previousSibling; node; node = node.previousSibling) {
 					nodeType = node.nodeType;
 
 					// Normalize text nodes

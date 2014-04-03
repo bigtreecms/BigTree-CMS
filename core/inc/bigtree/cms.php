@@ -609,7 +609,7 @@
 				Provides the page ID for a given path array.
 				This is a method used by the router and the admin and can generally be ignored.
 			
-			Paramaters:
+			Parameters:
 				path - An array of path elements from a URL
 				previewing - Whether we are previewing or not.
 			
@@ -804,6 +804,9 @@
 			$results = array();
 			$relevance = array();
 			foreach ($tags as $tag) {
+				if (is_array($tag)) {
+					$tag = $tag["tag"];
+				}
 				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 				if ($tdat) {
 					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = 'bigtree_pages'");

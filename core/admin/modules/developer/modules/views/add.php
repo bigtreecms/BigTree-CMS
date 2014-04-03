@@ -11,6 +11,7 @@
 	} else {
 		// Stop notices
 		$description = $type = $preview_url = "";
+		$options = array();
 	}
 ?>
 <div class="container">
