@@ -63,7 +63,7 @@
 				Internal function for turning PNGs uploaded into JPG
 		*/
 
-		function convertJPEG($file,$name) {
+		protected function convertJPEG($file,$name) {
 			global $bigtree;
 			
 			// Try to figure out what this file is
