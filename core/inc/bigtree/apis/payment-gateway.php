@@ -135,38 +135,6 @@
 		}
 		
 		/*
-			Function: cardType
-				Returns the type of credit card based on the number.
-			
-			Parameters:
-				card_number - The credit card number.
-			
-			Returns:
-				The name of the card issuer.
-		*/
-		
-		function cardType($card_number) {
-			$cards = array(
-				"visa" => "(4\d{12}(?:\d{3})?)",
-				"amex" => "(3[47]\d{13})",
-				"jcb" => "(35[2-8][89]\d\d\d{10})",
-				"maestro" => "((?:5020|5038|6304|6579|6761)\d{12}(?:\d\d)?)",
-				"solo" => "((?:6334|6767)\d{12}(?:\d\d)?\d?)",
-				"mastercard" => "(5[1-5]\d{14})",
-				"switch" => "(?:(?:(?:4903|4905|4911|4936|6333|6759)\d{12})|(?:(?:564182|633110)\d{10})(\d\d)?\d?)",
-				"discover" => '(^6(?:011|5[0-9]{2})[0-9]{12}$)'
-			);
-			$names = array("visa","amex","jcb","maestro","solo","mastercrad","switch","discover");
-			$matches = array();
-			$pattern = "#^(?:".implode("|", $cards).")$#";
-			$result = preg_match($pattern, str_replace(" ", "", $card_number), $matches);
-			if ($result > 0) {
-				return $names[count($matches) - 2];
-			}
-			return false;
-		}
-		
-		/*
 			Function: capture
 				Captures a previously authorized transaction.
 			
@@ -329,6 +297,38 @@
 			} else {
 				return false;
 			}
+		}
+
+		/*
+			Function: cardType
+				Returns the type of credit card based on the number.
+			
+			Parameters:
+				card_number - The credit card number.
+			
+			Returns:
+				The name of the card issuer.
+		*/
+		
+		function cardType($card_number) {
+			$cards = array(
+				"visa" => "(4\d{12}(?:\d{3})?)",
+				"amex" => "(3[47]\d{13})",
+				"jcb" => "(35[2-8][89]\d\d\d{10})",
+				"maestro" => "((?:5020|5038|6304|6579|6761)\d{12}(?:\d\d)?)",
+				"solo" => "((?:6334|6767)\d{12}(?:\d\d)?\d?)",
+				"mastercard" => "(5[1-5]\d{14})",
+				"switch" => "(?:(?:(?:4903|4905|4911|4936|6333|6759)\d{12})|(?:(?:564182|633110)\d{10})(\d\d)?\d?)",
+				"discover" => '(^6(?:011|5[0-9]{2})[0-9]{12}$)'
+			);
+			$names = array("visa","amex","jcb","maestro","solo","mastercrad","switch","discover");
+			$matches = array();
+			$pattern = "#^(?:".implode("|", $cards).")$#";
+			$result = preg_match($pattern, str_replace(" ", "", $card_number), $matches);
+			if ($result > 0) {
+				return $names[count($matches) - 2];
+			}
+			return false;
 		}
 		
 		/*
