@@ -1106,7 +1106,7 @@
 				Fetches a new authorization token from PayPal's OAuth servers.
 		*/
 
-		function paypalRESTTokenRequest() {
+		protected function paypalRESTTokenRequest() {
 			if ($this->Settings["paypal-rest-environment"] == "test") {
 				$url = "api.sandbox.paypal.com";
 			} else {
