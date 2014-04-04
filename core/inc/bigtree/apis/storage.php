@@ -7,7 +7,7 @@
 	class BigTreeStorage {
 		
 		var $AutoJPEG = false;
-		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
+		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
 		var $Cloud = false;
 
