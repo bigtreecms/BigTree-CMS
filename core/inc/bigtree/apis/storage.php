@@ -1,7 +1,7 @@
 <?
 	/*
 		Class: BigTreeStorage
-			Controls where files are stored (local and cloud storage)
+			Facilitates the storage, deletion, and replacement of files (whether local or cloud stored).
 	*/
 	
 	class BigTreeStorage {
