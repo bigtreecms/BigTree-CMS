@@ -778,7 +778,7 @@
 			Function: getVideos
 				Returns the videos for this channel.
 
-			Params:
+			Parameters:
 				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
 				count - Number of videos to return (defaults to 10).
 

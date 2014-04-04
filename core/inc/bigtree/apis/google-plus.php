@@ -40,7 +40,7 @@
 			Function: getActivity
 				Returns information about a given activity ID.
 
-			Params:
+			Parameters:
 				id - The ID of the activity.
 
 			Returns:
