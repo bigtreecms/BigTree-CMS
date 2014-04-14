@@ -1114,7 +1114,9 @@
 		
 		function replaceInternalPageLinks($html) {
 			$drop_count = 0;
-			if (!trim($html)) {
+
+			// Save time if the string is empty
+			if (trim($html) === "") {
 				return "";
 			}
 			
