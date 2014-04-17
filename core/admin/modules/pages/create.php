@@ -4,8 +4,8 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
-		
-	$access_level = $admin->getPageAccessLevel($_POST["parent"]); 
+
+	$access_level = $admin->getPageAccessLevel($_POST["parent"]);
 	if ($access_level != "p" && $access_level != "e") {
 ?>
 <div class="container">
@@ -29,15 +29,15 @@
 	} else {
 		$_POST["new_window"] = "";
 	}
-	
+
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
 	// Initiate the Storage class for backwards compat.
 	$upload_service = new BigTreeStorage;
-	
+
 	// Parse resources
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
-	
+
 	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.
 		$page = $admin->createPage($_POST);
@@ -57,7 +57,9 @@
 		"errors" => $bigtree["errors"],
 		"crops" => $bigtree["crops"]
 	);
-	
+
+	$upload_service = null;
+
 	if (count($bigtree["errors"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
 	} elseif (count($bigtree["crops"])) {

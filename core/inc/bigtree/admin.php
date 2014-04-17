@@ -67,9 +67,9 @@
 				"class" => "icon_delete"
 			)
 		);
-		
-		// !Icon Classes		
-		var $IconClasses =  array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");		
+
+		// !Icon Classes
+		var $IconClasses =  array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
 		var $ActionClasses =  array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook");
 
 		/*
@@ -154,16 +154,16 @@
 		/*
 			Function: apiLogin
 				Creates a temporary API token (or returns an existing temporary token) for a given username and password.
-			
+
 			Parameters:
 				email - Email address.
 				password - Password.
-			
+
 			Returns:
 				An encoded message containing a user's token and expiration time if login is successful.
 				Returns an encoded error message if the login failed.
 		*/
-		
+
 		function apiLogin($email,$password) {
 			global $config;
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".mysql_real_escape_string($email)."'"));
@@ -183,60 +183,60 @@
 					$token = BigTree::randomString(100);
 					$r = sqlrows(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
 				}
-				
+
 				$time = date("Y-m-d H:i:s",strtotime("+30 minutes"));
-				
+
 				sqlquery("DELETE FROM bigtree_api_tokens WHERE user = '".$f["id"]."' AND temporary = 'on'");
 				sqlquery("INSERT INTO bigtree_api_tokens (`token`,`user`,`expires`,`temporary`) VALUES ('$token','".$f["id"]."','$time','on')");
-				
+
 				return BigTree::apiEncode(array("success" => true, "token" => $token, "expires" => $time));
 			}
-			
+
 			return BigTree::apiEncode(array("success" => false, "error" => "Login failed."));
 		}
-		
+
 		/*
 			Function: apiRequireLevel
 				Requires a given level for the currently used API token.
 				Dies with an error message if the level is not met.
-			
+
 			Parameters:
-				level - The minimum level.	
+				level - The minimum level.
 		*/
-		
+
 		function apiRequireLevel($level) {
 			if ($this->Level < $level) {
 				echo BigTree::apiEncode(array("success" => false,"error" => "Permission level is too low."));
 				die();
 			}
 		}
-		
+
 		/*
 			Function: apiRequireWrite
 				Requires the currently used token to not be read only.
 				Dies with an error message if the token is read only.
 		*/
-		
+
 		function apiRequireWrite() {
 			if ($this->ReadOnly) {
 				echo BigTree::apiEncode(array("success" => false,"error" => "Not available in read only mode."));
 				die();
 			}
 		}
-		
+
 		/*
 			Function: apiValidateToken
 				Validates a token and sets up the admin environment for the token's use.
 				Dies with an error message if the token is expired or invalid.
-			
+
 			Parameters:
 				token - The token to use.
-			
+
 			Returns:
 				true if the token is valid.
 				false (and echoes encoded errors) if the token is expired or invalid.
 		*/
-		
+
 		function apiValidateToken($token) {
 			$t = sqlfetch(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
 			if (!$t) {
@@ -247,12 +247,12 @@
 				echo BigTree::apiEncode(array("success" => false,"error" => "Token has expired."));
 				return false;
 			}
-			
+
 			// If it's a temporary token, update its expiration to keep it fresh.
 			if ($t["temporary"]) {
 				sqlquery("UPDATE bigtree_api_tokens SET expires = '".date("Y-m-d H:i:s",strtotime("+30 minutes"))."' WHERE id = '".$t["id"]."'");
 			}
-			
+
 			$user = $this->getUser($t["user"]);
 			$this->ID = $user["id"];
 			$this->User = $user["email"];
@@ -262,7 +262,7 @@
 			$this->ReadOnly = $t["read_only"];
 			return true;
 		}
-		
+
 		/*
 			Function: archivePage
 				Archives a page.
@@ -356,7 +356,7 @@
 
 			Parameters:
 				file - Full file path to dump the database to.
-		
+
 			Returns:
 				true if successful.
 		*/
@@ -664,22 +664,22 @@
 		/*
 			Function: createAPIToken
 				Creates an API token.
-			
+
 			Parameters:
 				user - The user that the token is associated to.
 				read_only - Whether the token has write access.
 				temporary - Whether the token expires (defaults to false).
 				expires - When the token expires (if it does at all).
-			
+
 			Returns:
 				The token that is created.
 		*/
-		
+
 		function createAPIToken($user,$read_only,$temporary = false, $expires = false) {
 			$user = mysql_real_escape_string($user);
 			$read_only = $read_only ? "on" : "";
 			$expires = $temporary ? date("Y-m-d- H:i:s",strtotime($expires)) : false;
-			
+
 			// Generate a unique token
 			$token = mysql_real_escape_string(BigTree::randomString(255));
 			$r = sqlrows(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
@@ -687,16 +687,16 @@
 				$token = mysql_real_escape_string(BigTree::randomString(255));
 				$r = sqlrows(sqlquery("select * from bigtree_api_tokens where token = '$token'"));
 			}
-			
+
 			if ($temporary) {
 				sqlquery("INSERT INTO bigtree_api_tokens (`token`,`user`,`read_only`,`temporary`,`expires`) VALUES ('$token','$user','$read_only','on','$expires')");
 			} else {
 				sqlquery("INSERT INTO bigtree_api_tokens (`token`,`user`,`read_only`) VALUES ('$token','$user','$read_only')");
 			}
-			
+
 			return $token;
 		}
-		
+
 		/*
 			Function: createCallout
 				Creates a callout and its files.
@@ -885,7 +885,7 @@
 			"options" — An array of options provided by the developer
 			"required" — A boolean value of whether this form field is required or not
 	*/
-	
+
 	include BigTree::path("admin/form-field-types/draw/text.php");
 ?>');
 				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
@@ -1763,7 +1763,7 @@
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_404s WHERE id = '$id'");
 		}
-		
+
 		/*
 			Function: deleteCallout
 				Deletes a callout and removes its file.
@@ -1868,12 +1868,12 @@
 		function deletePackage($id) {
 			$package = $this->getPackage($id);
 			$j = json_decode($package["manifest"],true);
-		
+
 			// Delete related files
 			foreach ($j["files"] as $file) {
 				@unlink(SERVER_ROOT.$file);
 			}
-		
+
 			// Delete components
 			foreach ($j["components"] as $type => $list) {
 				if ($type == "tables") {
@@ -1901,7 +1901,7 @@
 					}
 				}
 			}
-		
+
 			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($package["id"])."'");
 		}
 
@@ -2102,6 +2102,7 @@
 				foreach ($r["thumbs"] as $thumb) {
 					$storage->delete($thumb);
 				}
+				$storage = null;
 			}
 		}
 
@@ -2245,7 +2246,7 @@
 			Function: emailDailyDigest
 				Sends out a daily digest email to all who have subscribed.
 		*/
-		
+
 		function emailDailyDigest() {
 			global $bigtree;
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
@@ -2268,9 +2269,9 @@
 						$body_alerts .= '<tr>';
 						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$alert["nav_title"].'</td>';
 						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 20px 10px 15px; text-align: right;">'.$alert["current_age"].' Days</td>';
-						
+
 						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$bigtree["config"]["www_root"].$alert["path"].'/"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>';
-						
+
 						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$bigtree["config"]["admin_root"]."pages/edit/".$alert["id"].'/"><img src="'.$image_root.'edit.gif" alt="Edit" /></a></td>';
 						$body_alerts .= '</tr>';
 					}
@@ -2369,15 +2370,15 @@
 
 			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
-			
+
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
-			
+
 			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
 			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
 			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
 			$html = str_ireplace("{site_title}",$site_title,$html);
 			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
-			
+
 			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
 
 			$mailer = new htmlMimeMail();
@@ -2386,7 +2387,7 @@
 			$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
 			$mailer->setHtml($html,$text);
 			$mailer->send(array($user["email"]));
-			
+
 			BigTree::redirect($login_root."forgot-success/");
 		}
 
@@ -2543,44 +2544,44 @@
 		/*
 			Function: getAPITokenById
 				Returns an API token for a given id.
-			
+
 			Parameters:
 				id - The database id of the API token.
-			
+
 			Returns:
 				A token array.
 		*/
-		
+
 		function getAPITokenById($id) {
 			$id = mysql_real_escape_string($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_api_tokens WHERE id = '$id'"));
 		}
-		
+
 		/*
 			Function: getAPITokensPageCount
 				Returns the number of pages of API tokens that match a given query.
-			
+
 			Parameters:
 				query - A query string to check the tokens against.
-			
+
 			Returns:
 				The number of pages that match the query.
 		*/
-		
+
 		function getAPITokensPageCount($query = "") {
 			if ($query) {
 				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_api_tokens WHERE temporary = '' AND token LIKE '%".mysql_real_escape_string($query)."%'"));
 			} else {
 				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_api_tokens WHERE temporary = ''"));
 			}
-			
+
 			$pages = ceil($f["count"] / $this->PerPage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
 			return $pages;
 		}
-		
+
 		/*
 			Function: getArchivedNavigationByParent
 				Returns an alphabetic list of navigation that is archived under the given parent.
@@ -2950,7 +2951,7 @@
 			if (!count($where)) {
 				return false;
 			}
-			
+
 			// If we care about the whole tree, skip the madness.
 			if ($user["alerts"][0] == "on") {
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
@@ -3239,7 +3240,7 @@
 				$commands[] = end($route);
 				$route = array_slice($route,0,-1);
 			}
-			
+
 			return false;
 		}
 
@@ -3672,7 +3673,7 @@
 			Returns:
 				A package/extension.
 		*/
-		
+
 		function getPackage($id) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
 		}
@@ -3687,7 +3688,7 @@
 			Returns:
 				An array of packages.
 		*/
-		
+
 		function getPackages($sort = "last_updated DESC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
@@ -3753,7 +3754,7 @@
 			if ($level > 0) {
 				return "p";
 			}
-			
+
 			// See if this page has an explicit permission set and return it if so.
 			$explicit_permission = $permissions["page"][$page];
 			if ($explicit_permission == "n") {
@@ -3761,10 +3762,10 @@
 			} elseif ($explicit_permission && $explicit_permission != "i") {
 				return $explicit_permission;
 			}
-			
+
 			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
 			$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
-			
+
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
 			$parent_permission = $permissions["page"][$page_data["parent"]];
 			while ((!$parent_permission || $parent_permission == "i") && $page_data["parent"]) {
@@ -3776,7 +3777,7 @@
 			if (!$parent_permission || $parent_permission == "i" || $parent_permission == "n") {
 				return false;
 			}
-			
+
 			// Return whatever we found.
 			return $parent_permission;
 		}
@@ -3862,15 +3863,15 @@
 		/*
 			Function: getPageOfAPITokens
 				Returns a page of API Tokens (most recent first) and their related users.
-			
+
 			Parameters:
 				page - The page of users to return.
 				query - Optional query string to search against.
-			
+
 			Returns:
 				An array of entries from bigtree_users.
 		*/
-		
+
 		function getPageOfAPITokens($page = 0,$query = "") {
 			$query = mysql_real_escape_string($query);
 			if ($query) {
@@ -3885,7 +3886,7 @@
 			}
 			return $items;
 		}
-		
+
 		/*
 			Function: getPageOfSettings
 				Returns a page of settings.
@@ -4398,7 +4399,7 @@
 				} else {
 					$id = $f["item_id"];
 				}
-				
+
 				$mod = $this->getModule($f["module"]);
 				$f["mod"] = $mod;
 				$changes[] = $f;
@@ -4749,9 +4750,9 @@
 				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 				$f["value"] = $v["value"];
 			}
-			
+
 			$f["value"] = json_decode($f["value"],true);
-			
+
 			if ($decode) {
 				if (is_array($f["value"])) {
 					$f["value"] = BigTree::untranslateArray($f["value"]);
@@ -4759,7 +4760,7 @@
 					$f["value"] = $cms->replaceInternalPageLinks($f["value"]);
 				}
 			}
-			
+
 			return $f;
 		}
 
@@ -5210,7 +5211,7 @@
 				$_SESSION["bigtree_admin"]["level"] = $f["level"];
 				$_SESSION["bigtree_admin"]["name"] = $f["name"];
 				$_SESSION["bigtree_admin"]["permissions"] = json_decode($f["permissions"],true);
-				
+
 				if (isset($_SESSION["bigtree_login_redirect"])) {
 					BigTree::redirect($_SESSION["bigtree_login_redirect"]);
 				} else {
@@ -5358,7 +5359,7 @@
 
 		function processCrops($crops) {
 			$storage = new BigTreeStorage;
-			
+
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
 				$target_width = $crop["width"];
@@ -5369,9 +5370,9 @@
 				$width = $_POST["width"][$key];
 				$height = $_POST["height"][$key];
 				$thumbs = $crop["thumbs"];
-				
+
 				$pinfo = pathinfo($image_src);
-					
+
 				$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 				BigTree::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
 				if (is_array($thumbs)) {
@@ -5379,7 +5380,7 @@
 						if (is_array($thumb)) {
 							// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
 							list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"]);
-							
+
 							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 							BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
 							$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
@@ -5388,11 +5389,13 @@
 				}
 				$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
 			}
-			
+
 			// Remove all the temporary images
 			foreach ($crops as $crop) {
 				@unlink($crop["image"]);
 			}
+
+			$storage = null;
 		}
 
 		/*
@@ -5413,7 +5416,7 @@
 
 		function processImageUpload($field) {
 			global $bigtree;
-			
+
 			$failed = false;
 			$name = $field["file_input"]["name"];
 			$temp_name = $field["file_input"]["tmp_name"];
@@ -5430,33 +5433,33 @@
 
 			// We're going to tell BigTreeStorage to handle forcing images into JPEGs instead of writing the code 20x
 			$storage = new BigTreeStorage;
-			$storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];		
-				
+			$storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
+
 			// Let's check the minimum requirements for the image first before we store it anywhere.
 			$image_info = @getimagesize($temp_name);
 			$iwidth = $image_info[0];
 			$iheight = $image_info[1];
 			$itype = $image_info[2];
 			$channels = $image_info["channels"];
-		
+
 			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
 			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
 				$failed = true;
 			}
-			
+
 			// If it's not a valid image, throw it out!
 			if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 				$failed = true;
 			}
-			
+
 			// See if it's CMYK
 			if ($channels == 4) {
 				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
 				$failed = true;
 			}
-		
+
 			// See if we have enough memory for all our crops and thumbnails
 			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
 				if (is_array($field["options"]["crops"])) {
@@ -5491,22 +5494,22 @@
 					}
 				}
 			}
-		
+
 			if (!$failed) {
 				// Make a temporary copy to be used for thumbnails and crops.
 				$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
-		
+
 				// Make a first copy
 				$first_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 				BigTree::moveFile($temp_name,$first_copy);
-		
+
 				// Do EXIF Image Rotation
 				if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
 					$exif = @exif_read_data($first_copy);
 					$o = $exif['Orientation'];
 					if ($o == 3 || $o == 6 || $o == 8) {
 						$source = imagecreatefromjpeg($first_copy);
-						
+
 						if ($o == 3) {
 							$source = imagerotate($source,180,0);
 						} elseif ($o == 6) {
@@ -5514,27 +5517,27 @@
 						} else {
 							$source = imagerotate($source,90,0);
 						}
-						
+
 						// We're going to create a PNG so that we don't lose quality when we resave
 						imagepng($source,$first_copy);
 						rename($first_copy,substr($first_copy,0,-3)."png");
-		
+
 						// Force JPEG since we made the first copy a PNG
 						$storage->AutoJPEG = true;
-		
+
 						// Clean up memory
 						imagedestroy($source);
-		
+
 						// Get new width/height/type
 						list($iwidth,$iheight,$itype,$iattr) = getimagesize($first_copy);
 					}
 				}
-		
+
 				// Let's crush any PNG.
 				if ($itype == IMAGETYPE_PNG && $storage->optipng) {
 					exec($storage->optipng." ".$first_copy);
 				}
-		
+
 				// Let's crush any GIF and see if we can make it a PNG.
 				if ($itype == IMAGETYPE_GIF && $storage->optipng) {
 					exec($storage->optipng." ".$first_copy);
@@ -5543,19 +5546,19 @@
 						$first_copy = substr($first_copy,0,-3)."png";
 						$name = substr($name,0,-3).".png";
 					}
-					
+
 				}
-		
+
 				// Let's trim any JPG
 				if ($itype == IMAGETYPE_JPEG && $storage->jpegtran) {
 					exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
 					rename($first_copy."-trimmed",$first_copy);
 				}
-				
+
 				// Create a temporary copy that we will use later for crops and thumbnails
 				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 				BigTree::copyFile($first_copy,$temp_copy);
-				
+
 				// Gather up an array of file prefixes
 				$prefixes = array();
 				if (is_array($field["options"]["thumbs"])) {
@@ -5582,7 +5585,7 @@
 
 				// Upload the original to the proper place.
 				$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
- 				
+
  				// If the upload service didn't return a value, we failed to upload it for one reason or another.
  				if (!$field["output"]) {
  					if ($storage->DisabledFileError) {
@@ -5594,17 +5597,17 @@
 					unlink($first_copy);
 					$failed = true;
 				// If we did upload it successfully, check on thumbs and crops.
-				} else { 
+				} else {
 					// Get path info on the file.
 					$pinfo = BigTree::pathInfo($field["output"]);
-				
+
 					// Handle Crops
 					foreach ($field["options"]["crops"] as $crop) {
 						// Make sure the crops have a width/height and it's numeric
 						if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
 							$cwidth = $crop["width"];
 							$cheight = $crop["height"];
-							
+
 							// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
 							if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
 								// Make a square if for some reason someone only entered one dimension for a crop.
@@ -5639,12 +5642,12 @@
 										}
 									}
 								}
-								
+
 								$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 							}
 						}
 					}
-					
+
 					// Handle thumbnailing
 					if (is_array($field["options"]["thumbs"])) {
 						foreach ($field["options"]["thumbs"] as $thumb) {
@@ -5657,7 +5660,7 @@
 							}
 						}
 					}
-					
+
 					// If we don't have any crops, get rid of the temporary image we made.
 					if (!count($bigtree["crops"])) {
 						unlink($temp_copy);
@@ -5667,6 +5670,8 @@
 			} else {
 				return false;
 			}
+
+			$storage = null;
 
 			return $field["output"];
 		}
@@ -5846,12 +5851,12 @@
 					$where = "ignored = '' AND redirect_url = ''";
 				}
 			}
-			
+
 			// Get the page count
 			$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_404s WHERE $where"));
 			$pages = ceil($f["count"] / 20);
 			$pages = ($pages < 1) ? 1 : $pages;
-			
+
 			// Get the results
 			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
@@ -5871,7 +5876,7 @@
 				entry - Entry to restrict results to (optional)
 				start - Start date/time to restrict results to (optional)
 				end - End date/time to restrict results to (optional)
-			
+
 			Returns:
 				An array of adds/edits/deletions from the audit trail.
 		*/
@@ -5928,7 +5933,7 @@
 		function searchPages($query,$fields = array("nav_title"),$max = 10) {
 			// Since we're in JSON we have to do stupid things to the /s for URL searches.
 			$query = str_replace('/','\\\/',$query);
-			
+
 			$results = array();
 			$terms = explode(" ",$query);
 			$qpart = array("archived != 'on'");
@@ -6488,7 +6493,7 @@
 		/*
 			Function: updateAPIToken
 				Updates an API token.
-			
+
 			Parameters:
 				id - The database id of the existing API token.
 				user - The user that the token is associated to.
@@ -6496,17 +6501,17 @@
 				temporary - Whether the token expires (defaults to false).
 				expires - When the token expires (if it does at all).
 		*/
-		
+
 		function updateAPIToken($id,$user,$read_only,$temporary,$expires) {
 			$id = mysql_real_escape_string($id);
 			$user = mysql_real_escape_string($user);
 			$read_only = $read_only ? "on" : "";
 			$temporary = $temporary ? "on" : "";
 			$expires = $temporary ? "'".date("Y-m-d- H:i:s",strtotime($expires))."'" : "NULL";
-			
+
 			sqlquery("UPDATE bigtree_api_tokens SET user = '$user', read_only = '$read_only', temporary = '$temporary', expires = '$expires' WHERE id = '$id'");
-		}		
-		
+		}
+
 		/*
 			Function: updateCallout
 				Updates a callout.
@@ -6673,7 +6678,7 @@
 			$class = sqlescape($class);
 			$permissions = sqlescape(json_encode($permissions));
 			$icon = sqlescape($icon);
-			
+
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
@@ -6745,7 +6750,7 @@
 			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
 			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
-			
+
 			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `preprocess` = '$preprocess', `callback` = '$callback', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message' WHERE id = '$id'");
 		}
 
@@ -6889,7 +6894,7 @@
 		/*
 			Function: updateModuleViewColumnNumericStatus
 				Updates a module view's columns to designate whether they are numeric or not based on parsers, column type, and related forms.
-			
+
 			Parameters:
 				view - The view entry to update.
 		*/
@@ -6898,7 +6903,7 @@
 			if (is_array($view["fields"])) {
 				$form = BigTreeAutoModule::getRelatedFormForView($view);
 				$table = BigTree::describeTable($view["table"]);
-	
+
 				foreach ($view["fields"] as $key => $field) {
 					$numeric = false;
 					$t = $table["columns"][$key]["type"];
@@ -7313,7 +7318,7 @@
 
 			// Prefer to keep this an object, but we need PHP 5.3
 			if (strnatcmp(phpversion(),'5.3') >= 0) {
-				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));			
+				$value = sqlescape(json_encode($value,JSON_FORCE_OBJECT));
 			} else {
 				$value = sqlescape(json_encode($value));
 			}
@@ -7323,7 +7328,7 @@
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
-			
+
 			// Audit trail
 			$this->track("bigtree_settings",$id,"updated-value");
 		}
@@ -7364,7 +7369,7 @@
 			$module = sqlescape($module);
 			$resources = sqlescape(json_encode($clean_resources));
 			$level = sqlescape($level);
-			
+
 			sqlquery("UPDATE bigtree_templates SET resources = '$resources', name = '$name', module = '$module', level = '$level' WHERE id = '$id'");
 		}
 

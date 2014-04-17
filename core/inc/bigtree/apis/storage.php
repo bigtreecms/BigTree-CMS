@@ -3,9 +3,9 @@
 		Class: BigTreeStorage
 			Facilitates the storage, deletion, and replacement of files (whether local or cloud stored).
 	*/
-	
+
 	class BigTreeStorage {
-		
+
 		var $AutoJPEG = false;
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
@@ -15,7 +15,7 @@
 			Constructor:
 				Retrieves the current desired service and image processing availability.
 		*/
-		
+
 		function __construct() {
 			global $cms,$admin;
 			$settings = $cms->getSetting("bigtree-internal-storage");
@@ -48,6 +48,11 @@
 		}
 
 		function __destruct() {
+			// Instantiating multiple versions of this class will call this destructor multiple times - last created to first created.
+			// This causes BIG problems with multiple uploads since each instance has a broken file list that contains only it's own updates.
+			// The first created is the last to update; If you never actually destroy the class when finished with it, the file list is almost guaranteed to be incomplete.
+			// It's incredibly important to destroy classes after you use them if you're going to do stuff like this so that each instance has the latest file list.
+
 			$admin = new BigTreeAdmin;
 			$admin->updateSettingValue("bigtree-internal-storage",array(
 				"service" => $this->Service,
@@ -65,10 +70,10 @@
 
 		protected function convertJPEG($file,$name) {
 			global $bigtree;
-			
+
 			// Try to figure out what this file is
 			list($iwidth,$iheight,$itype,$iattr) = @getimagesize($file);
-			
+
 			if (($this->AutoJPEG || $bigtree["config"]["image_force_jpeg"]) && $itype == IMAGETYPE_PNG) {
 				// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
 				$alpha = ord(@file_get_contents($file,null,null,25,1));
@@ -77,7 +82,7 @@
 					$source = imagecreatefrompng($file);
 					imagejpeg($source,$file,$bigtree["config"]["image_quality"]);
 					imagedestroy($source);
-	
+
 					// If they originally uploaded a JPG we rotated into a PNG, we don't want to change the desired filename, but if they uploaded a PNG the new file should be JPG
 					if (strtolower(substr($name,-3,3)) == "png") {
 						$name = substr($name,0,-3)."jpg";
@@ -87,15 +92,15 @@
 
 			return $name;
 		}
-		
+
 		/*
 			Function: delete
 				Deletes a file from the active storage service.
-			
+
 			Parameters:
 				file_location - The URL of the file.
 		*/
-		
+
 		function delete($file_location) {
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
@@ -142,21 +147,21 @@
 				unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
 			}
 		}
-		
+
 		/*
 			Function: replace
 				Stores a file to the current storage service and replaces any existing file with the same file_name.
-			
+
 			Parameters:
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
-			
+
 			Returns:
 				The URL of the stored file.
 		*/
-		
+
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
@@ -191,22 +196,22 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: store
 				Stores a file to the current storage service and finds a unique filename if collisions exist.
-			
+
 			Parameters:
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The desired file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
 				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
-			
+
 			Returns:
 				The URL of the stored file.
 		*/
-		
+
 		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {

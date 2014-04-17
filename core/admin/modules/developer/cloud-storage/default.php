@@ -35,3 +35,6 @@
 		</footer>
 	</form>
 </div>
+<?
+	$storage = null;
+?>
