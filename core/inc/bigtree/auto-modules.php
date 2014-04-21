@@ -1144,6 +1144,12 @@
 
 		static function getView($id,$decode_ipl = true) {
 			global $cms;
+
+			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
+			if (!defined("MODULE_ROOT")) {
+				global $bigtree;
+				define("MODULE_ROOT",ADMIN_ROOT.$bigtree["module"]["route"]."/");
+			}
 			
 			if (is_array($id)) {
 				$id = $id["id"];
