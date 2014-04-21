@@ -24,7 +24,7 @@
 			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 		}
 	}
-	
+
 	$container = $cloud->getContainer($storage->Container);
 	if ($container === false) {
 		$admin->growl("Developer","Failed to read container.","error");
@@ -35,7 +35,8 @@
 		$files[$item["path"]] = array("name" => $item["name"],"path" => $item["path"],"size" => $item["size"]);
 	}
 	$storage->Files = $files;
-	
+	$storage = null;
+
 	$admin->growl("Developer","Changed Default Storage");
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 ?>

@@ -29,9 +29,11 @@
 </container>
 <?
 		}
+		$storage = null;
 	} else {
 		$storage->Service = "local";
 		$admin->growl("Developer","Changed Default Storage");
+		$storage = null;
 		BigTree::redirect(DEVELOPER_ROOT);
 	}
 ?>
