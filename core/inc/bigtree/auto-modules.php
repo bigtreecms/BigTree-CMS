@@ -1144,12 +1144,6 @@
 
 		static function getView($id,$decode_ipl = true) {
 			global $cms;
-
-			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
-			if (!defined("MODULE_ROOT")) {
-				global $bigtree;
-				define("MODULE_ROOT",ADMIN_ROOT.$bigtree["module"]["route"]."/");
-			}
 			
 			if (is_array($id)) {
 				$id = $id["id"];
@@ -1158,6 +1152,12 @@
 			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
 			if (!$view) {
 				return false;
+			}
+
+			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
+			if (!defined("MODULE_ROOT")) {
+				$module = sqlfetch(sqlquery("SELECT route FROM bigtree_modules WHERE id = '".$view["module"]."'"));
+				define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
 			}
 			
 			$view["actions"] = json_decode($view["actions"],true);
