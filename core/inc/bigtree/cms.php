@@ -6,6 +6,7 @@
 
 	class BigTreeCMS {
 	
+		var $AutoSaveSettings = array();
 		var $IRLCache = array();
 		var $IPLCache = array();
 		var $ReplaceableRootKeys = array();
@@ -47,6 +48,61 @@
 			}
 
 			$this->ModuleClassList = $items;
+		}
+
+		/*
+			Destructor:
+				Saves settings back to the database that were instantiated through the autoSaveSetting method.
+		*/
+
+		function __destruct() {
+			// Need $admin back if it's already been destroyed
+			global $admin;
+			$admin = new BigTreeAdmin;
+
+			foreach ($this->AutoSaveSettings as $id => $obj) {
+				if (is_object($obj)) {
+					$admin->updateSettingValue($id,get_object_vars($obj));
+				} else {
+					$admin->updateSettingValue($id,$obj);
+				}
+			}
+		}
+
+		/*
+			Function: autoSaveSetting
+				Returns a reference to an object that can be modified which will automatically save back to a bigtree_settings entry on the $cms class destruction.
+				The entry in bigtree_settings should be an associate array. If the setting doesn't exist, an encrypted setting with the passed in id will be created.
+				You MUST set your variable to be a reference using $var = &$cms->autoSaveSetting("my-id") for this to function properly.
+
+			Parameters:
+				id - The bigtree_settings id.
+				return_object - Return the data an object (default, set to false to return as array)
+
+			Returns:
+				An object reference.
+		*/
+
+		function &autoSaveSetting($id,$return_object = true) {
+			// Only want one usage to exist
+			if (!isset($this->AutoSaveSettings[$id])) {
+				$data = $this->getSetting($id);
+				if ($data === false) {
+					sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on')");
+					$data = array();
+				}
+				if ($return_object) {
+					$obj = new stdClass;
+					foreach ($data as $key => $val) {
+						$obj->$key = $val;
+					}
+					$this->AutoSaveSettings[$id] = $obj;
+				} else {
+					$this->AutoSaveSettings[$id] = $data;
+				}
+			}
+
+			return $this->AutoSaveSettings[$id];
 		}
 
 		/*

@@ -12,8 +12,6 @@
 					$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
 				}
 			}
-
-			$storage = null;
 		} else {
 			$field["output"] = $field["input"];
 		}

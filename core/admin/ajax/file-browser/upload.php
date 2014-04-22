@@ -88,38 +88,6 @@
 				$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 				$first_copy = $temp_name;
 
-				// Let's crush this png.
-				if ($itype == IMAGETYPE_PNG && $storage->optipng) {
-					$first_copy = SITE_ROOT."files/".uniqid("temp-").".png";
-					move_uploaded_file($temp_name,$first_copy);
-					exec($storage->optipng." ".$first_copy);
-				}
-
-				// Let's crush the gif and see if we can make it a PNG.
-				if ($itype == IMAGETYPE_GIF && $storage->optipng) {
-					$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
-					move_uploaded_file($temp_name,$first_copy);
-
-					exec($storage->optipng." ".$first_copy);
-					if (file_exists(substr($first_copy,0,-3)."png")) {
-						unlink($first_copy);
-						$first_copy = substr($first_copy,0,-3)."png";
-						$name_parts = BigTree::pathInfo($file_name);
-						$name = $name_parts["filename"].".png";
-					}
-
-				}
-
-				// Let's trim the jpg.
-				if ($itype == IMAGETYPE_JPEG && $storage->jpegtran) {
-					$first_copy = SITE_ROOT."files/".uniqid("temp-").".gif";
-					move_uploaded_file($temp_name,$first_copy);
-
-					exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
-					unlink($first_copy);
-					$first_copy = $first_copy."-trimmed";
-				}
-
 				list($iwidth,$iheight,$itype,$iattr) = getimagesize($first_copy);
 
 				foreach ($thumbnails_to_create as $thumb) {
@@ -184,8 +152,6 @@
 				}
 			}
 		}
-
-		$storage = null;
 	} else {
 		$error = "The upload failed (unknown error).";
 	}

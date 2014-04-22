@@ -58,8 +58,6 @@
 		"crops" => $bigtree["crops"]
 	);
 
-	$upload_service = null;
-
 	if (count($bigtree["errors"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
 	} elseif (count($bigtree["crops"])) {

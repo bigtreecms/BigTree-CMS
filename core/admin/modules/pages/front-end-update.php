@@ -93,5 +93,4 @@
 <script>parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>
 <?
 	}
-	$upload_service = null;
 ?>

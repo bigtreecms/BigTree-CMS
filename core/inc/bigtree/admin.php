@@ -9,6 +9,8 @@
 		var $IRLPrefixes = false;
 		var $IRLsCreated = array();
 		var $PerPage = 15;
+		var $ReplaceableRootKeys = array();
+		var $ReplaceableRootVals = array();
 
 		// !View Types
 		var $ViewTypes = array(
@@ -126,10 +128,24 @@
 			unset($ar);
 
 			// Check for Per Page value
-			$pp = $this->getSetting("bigtree-internal-per-page");
+			$pp = $this->getSetting("bigtree-internal-per-page",false);
 			$v = intval($pp["value"]);
 			if ($v) {
 				$this->PerPage = $v;
+			}
+
+			// Figure out what roots we can replace -- yes, this is duped from the BigTreeCMS class.
+			if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = ADMIN_ROOT;
+				$this->ReplaceableRootVals[] = "{adminroot}";
+			}
+			if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = STATIC_ROOT;
+				$this->ReplaceableRootVals[] = "{staticroot}";
+			}
+			if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = WWW_ROOT;
+				$this->ReplaceableRootVals[] = "{wwwroot}";
 			}
 		}
 
@@ -2102,7 +2118,6 @@
 				foreach ($r["thumbs"] as $thumb) {
 					$storage->delete($thumb);
 				}
-				$storage = null;
 			}
 		}
 
@@ -4734,10 +4749,6 @@
 
 		function getSetting($id,$decode = true) {
 			global $bigtree,$cms;
-			if (!$cms) {
-				// For use in __desctruct
-				$cms = new BigTreeCMS;
-			}
 
 			$id = sqlescape($id);
 
@@ -5394,8 +5405,6 @@
 			foreach ($crops as $crop) {
 				@unlink($crop["image"]);
 			}
-
-			$storage = null;
 		}
 
 		/*
@@ -5533,28 +5542,6 @@
 					}
 				}
 
-				// Let's crush any PNG.
-				if ($itype == IMAGETYPE_PNG && $storage->optipng) {
-					exec($storage->optipng." ".$first_copy);
-				}
-
-				// Let's crush any GIF and see if we can make it a PNG.
-				if ($itype == IMAGETYPE_GIF && $storage->optipng) {
-					exec($storage->optipng." ".$first_copy);
-					if (file_exists(substr($first_copy,0,-3)."png")) {
-						unlink($first_copy);
-						$first_copy = substr($first_copy,0,-3)."png";
-						$name = substr($name,0,-3).".png";
-					}
-
-				}
-
-				// Let's trim any JPG
-				if ($itype == IMAGETYPE_JPEG && $storage->jpegtran) {
-					exec($storage->jpegtran." -copy none -optimize -progressive $first_copy > $first_copy-trimmed");
-					rename($first_copy."-trimmed",$first_copy);
-				}
-
 				// Create a temporary copy that we will use later for crops and thumbnails
 				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 				BigTree::copyFile($first_copy,$temp_copy);
@@ -5671,8 +5658,6 @@
 				return false;
 			}
 
-			$storage = null;
-
 			return $field["output"];
 		}
 
@@ -5703,8 +5688,7 @@
 		*/
 
 		function replaceHardRoots($string) {
-			global $cms;
-			return $cms->replaceHardRoots($string);
+			return str_replace($this->ReplaceableRootKeys,$this->ReplaceableRootVals,$string);
 		}
 
 		/*
@@ -5719,8 +5703,7 @@
 		*/
 
 		function replaceRelativeRoots($string) {
-			global $cms;
-			return $cms->replaceRelativeRoots($string);
+			return str_replace(array("{adminroot}","{wwwroot}","{staticroot}"),array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),$string);
 		}
 
 		/*

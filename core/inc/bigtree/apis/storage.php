@@ -10,6 +10,7 @@
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
 		var $Cloud = false;
+		var $Settings = false;
 
 		/*
 			Constructor:
@@ -18,49 +19,17 @@
 
 		function __construct() {
 			global $cms,$admin;
-			$settings = $cms->getSetting("bigtree-internal-storage");
-			// If for some reason the setting doesn't exist, make one.
-			if (!is_array($settings) || !$settings["service"]) {
-				$this->Service = "local";
-				$this->optipng = false;
-				$this->jpegtran = false;
-				$this->Container = "";
-				$this->Files = array();
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-storage",
-					"system" => "on"
-				));
-				$admin->updateSettingValue("bigtree-internal-storage",array("service" => "local"));
-			} else {
-				$this->Service = $settings["service"];
-				$this->optipng = isset($settings["optipng"]) ? $settings["optipng"] : false;
-				$this->jpegtran = isset($settings["jpegtran"]) ? $settings["jpegtran"] : false;
-				$this->Container = $settings["container"];
-				$this->Files = $settings["files"];
-			}
-			if ($this->Service == "s3" || $this->Service == "amazon") {
+			
+			// Get by reference because we modify it.
+			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
+			
+			if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
 				$this->Cloud = new BigTreeCloudStorage("amazon");
-			} elseif ($this->Service == "rackspace") {
+			} elseif ($this->Settings->Service == "rackspace") {
 				$this->Cloud = new BigTreeCloudStorage("rackspace");
-			} elseif ($this->Service == "google") {
+			} elseif ($this->Settings->Service == "google") {
 				$this->Cloud = new BigTreeCloudStorage("google");
 			}
-		}
-
-		function __destruct() {
-			// Instantiating multiple versions of this class will call this destructor multiple times - last created to first created.
-			// This causes BIG problems with multiple uploads since each instance has a broken file list that contains only it's own updates.
-			// The first created is the last to update; If you never actually destroy the class when finished with it, the file list is almost guaranteed to be incomplete.
-			// It's incredibly important to destroy classes after you use them if you're going to do stuff like this so that each instance has the latest file list.
-
-			$admin = new BigTreeAdmin;
-			$admin->updateSettingValue("bigtree-internal-storage",array(
-				"service" => $this->Service,
-				"optipng" => $this->optipng,
-				"jpegtran" => $this->jpegtran,
-				"container" => $this->Container,
-				"files" => $this->Files
-			));
 		}
 
 		/*
@@ -119,7 +88,7 @@
 					$service = "rackspace";
 					// Need to figure out the actual container
 					$container = false;
-					$cloud = ($this->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
+					$cloud = ($this->Settings->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
 					foreach ($cloud->Settings["rackspace"]["container_cdn_urls"] as $c => $url) {
 						if ($url == "http://$domain") {
 							$container = $c;
@@ -131,11 +100,11 @@
 					$pointer_parts = array_slice($parts,3);
 				}
 
-				if ($this->Service == $service) {
+				if ($this->Settings->Service == $service) {
 					$pointer = implode("/",$pointer_parts);
 					$this->Cloud->deleteFile($container,$pointer);
-					if ($this->Container == $container) {
-						unset($this->Files[$pointer]);
+					if ($this->Settings->Container == $container) {
+						unset($this->Settings->Files[$pointer]);
 					}
 				} else {
 					// We might have already made an instance for Rackspace
@@ -175,12 +144,12 @@
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
 			if ($this->Cloud) {
-				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($remove_original) {
 					unlink($local_file);
 				}
 				if ($success) {
-					$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+					$this->Settings->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
 				}
 				return $success;
 			} else {
@@ -236,20 +205,20 @@
 				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
 				// Make sure we have a unique name
-				while (!$file_name || isset($this->Files[$relative_path.$file_name])) {
+				while (!$file_name || isset($this->Settings->Files[$relative_path.$file_name])) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
 					// Check all the prefixes, make sure they don't exist either
 					foreach ($prefixes as $prefix) {
-						if (isset($this->Files[$relative_path.$prefix.$file_name])) {
+						if (isset($this->Settings->Files[$relative_path.$prefix.$file_name])) {
 							$file_name = false;
 						}
 					}
 					$x++;
 				}
 				// Upload it
-				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($success) {
-					$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+					$this->Settings->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
 				}
 				if ($remove_original) {
 					unlink($local_file);
