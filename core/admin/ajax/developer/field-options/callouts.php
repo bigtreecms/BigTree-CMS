@@ -9,7 +9,7 @@
 	<select name="group">
 		<option></option>
 		<? foreach ($groups as $g) { ?>
-		<option value="<?=$g["id"]?>"><?=$g["name"]?></option>
+		<option value="<?=$g["id"]?>"<? if ($data["group"] == $g["id"]) { ?> selected="selected"<? } ?>><?=$g["name"]?></option>
 		<? } ?>
 	</select>
 </fieldset>
