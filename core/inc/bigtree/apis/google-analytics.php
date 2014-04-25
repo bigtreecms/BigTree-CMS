@@ -157,7 +157,7 @@
 			Function: getProperties
 				Returns web properties for a given account (or all accounts).
 		
-			Params:
+			Parameters:
 				account - Account ID (or "~all" for all accounts which is the default)
 				params - Additional parameters to pass to the API call.
 
@@ -181,7 +181,7 @@
 			Function: getProfiles
 				Returns views/profiles for a given account (or all accounts) and web property (or all web profiles).
 		
-			Params:
+			Parameters:
 				account - Account ID (or "~all" for all accounts which is the default)
 				property - Web Property ID (or "~all" for all profiles which is the default)
 				params - Additional parameters to pass to the API call.

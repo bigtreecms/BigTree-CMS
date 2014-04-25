@@ -1,7 +1,7 @@
 <?
 	/*
 		Class: BigTreeDisqusAPI
-			The Disqus class is somewhat unique. There are a few top-level calls to the main API class to retrieve objects that have all the other actions.
+			The main Disqus API class used to retrieve lower level Disqus objects.
 	*/
 
 	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
@@ -217,6 +217,7 @@
 
 	/*
 		Class: BigTreeDisqusBlacklistEntry
+			A Disqus object that contains information about and methods you can perform on a blacklist entry.
 	*/
 
 	class BigTreeDisqusBlacklistEntry {
@@ -250,6 +251,7 @@
 
 	/*
 		Class: BigTreeDisqusCategory
+			A Disqus object that contains information about and methods you can perform on a category.
 	*/
 
 	class BigTreeDisqusCategory {
@@ -267,6 +269,7 @@
 
 	/*
 		Class: BigTreeDisqusForum
+			A Disqus object that contains information about and methods you can perform on a forum.
 	*/
 
 	class BigTreeDisqusForum {
@@ -700,6 +703,7 @@
 
 	/*
 		Class: BigTreeDisqusPost
+			A Disqus object that contains information about and methods you can perform on a forum post.
 	*/
 
 	class BigTreeDisqusPost {
@@ -881,6 +885,7 @@
 
 	/*
 		Class: BigTreeDisqusResultSet
+			An object that contains multiple results from a Disqus API query.
 	*/
 
 	class BigTreeDisqusResultSet {
@@ -942,6 +947,7 @@
 
 	/*
 		Class: BigTreeDisqusThread
+			A Disqus object that contains information about and methods you can perform on a forum thread.
 	*/
 
 	class BigTreeDisqusThread {
@@ -1127,6 +1133,7 @@
 
 	/*
 		Class: BigTreeDisqusUser
+			A Disqus object that contains information about and methods you can perform on a user.
 	*/
 
 	class BigTreeDisqusUser {
@@ -1313,6 +1320,7 @@
 
 	/*
 		Class: BigTreeDisqusWhitelistEntry
+			A Disqus object that contains information about and methods you can perform on a whitelist entry.
 	*/
 
 	class BigTreeDisqusWhitelistEntry {

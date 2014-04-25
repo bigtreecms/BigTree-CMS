@@ -18,7 +18,7 @@
 			<select name="container">
 				<option></option>
 				<? foreach ($containers as $container) { ?>
-				<option value="<?=htmlspecialchars($container["name"])?>"<? if ($storage->Container == $container["name"] && $storage->Service == $_POST["service"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($container["name"])?></option>
+				<option value="<?=htmlspecialchars($container["name"])?>"<? if ($storage->Settings->Container == $container["name"] && $storage->Settings->Service == $_POST["service"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($container["name"])?></option>
 				<? } ?>
 			</select>
 		</section>
@@ -30,7 +30,7 @@
 <?
 		}
 	} else {
-		$storage->Service = "local";
+		$storage->Settings->Service = "local";
 		$admin->growl("Developer","Changed Default Storage");
 		BigTree::redirect(DEVELOPER_ROOT);
 	}

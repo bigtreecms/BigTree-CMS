@@ -1155,6 +1155,12 @@
 			if (!$view) {
 				return false;
 			}
+
+			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
+			if (!defined("MODULE_ROOT")) {
+				$module = sqlfetch(sqlquery("SELECT route FROM bigtree_modules WHERE id = '".$view["module"]."'"));
+				define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+			}
 			
 			$view["actions"] = json_decode($view["actions"],true);
 			$view["options"] = json_decode($view["options"],true);

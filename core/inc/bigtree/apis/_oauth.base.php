@@ -27,18 +27,8 @@
 			$this->CacheIdentifier = $cache_id;
 
 			// If we don't have the setting for the API, create it.
-			$this->Settings = $cms->getSetting($setting_id);
-			$this->SettingID = $setting_id;
-			if (!$this->Settings) {
-				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => $setting_id, 
-					"name" => $setting_name, 
-					"encrypted" => "on", 
-					"system" => "on"
-				));
-				$this->Settings = array();
-			}
+			$this->Settings = &$cms->autoSaveSetting($setting_id,false);
+
 			// Setup dependency table for cache busting
 			$this->Settings["hash_table"] = is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
 			
@@ -51,23 +41,6 @@
 					$this->oAuthRefreshToken();
 				}
 			}
-		}
-
-		/*
-			Destructor: 
-				Saves $this->Settings back to BigTree's settings table.
-		*/
-
-		function __destruct() {
-			global $admin,$cms;
-			// These might have already been destroyed, so we need them back.
-			if (!$cms) {
-				$cms = new BigTreeCMS;
-			}
-			if (!$admin) {
-				$admin = new BigTreeAdmin;
-			}
-			$admin->updateSettingValue($this->SettingID,$this->Settings);
 		}
 
 		/*

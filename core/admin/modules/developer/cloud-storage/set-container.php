@@ -1,9 +1,9 @@
 <?
 	$storage = new BigTreeStorage;
-	$storage->Service = $_POST["service"];
+	$storage->Settings->Service = $_POST["service"];
 	$cloud = new BigTreeCloudStorage($_POST["service"]);
 	if ($_POST["container"]) {
-		$storage->Container = $_POST["container"];
+		$storage->Settings->Container = $_POST["container"];
 		// If we're using Rackspace, we need to explicitly CDN enable this container.
 		if ($_POST["service"] == "rackspace") {
 			BigTree::cURL($cloud->RackspaceCDNEndpoint."/".$_POST["container"],"",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
@@ -18,14 +18,14 @@
 			$x++;
 		}
 		if ($success) {
-			$storage->Container = $container;
+			$storage->Settings->Container = $container;
 		} else {
 			$admin->growl("Developer","Failed to create container.","error");
 			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 		}
 	}
-	
-	$container = $cloud->getContainer($storage->Container);
+
+	$container = $cloud->getContainer($storage->Settings->Container);
 	if ($container === false) {
 		$admin->growl("Developer","Failed to read container.","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
@@ -34,8 +34,8 @@
 	foreach ($container["flat"] as $item) {
 		$files[$item["path"]] = array("name" => $item["name"],"path" => $item["path"],"size" => $item["size"]);
 	}
-	$storage->Files = $files;
-	
+	$storage->Settings->Files = $files;
+
 	$admin->growl("Developer","Changed Default Storage");
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 ?>

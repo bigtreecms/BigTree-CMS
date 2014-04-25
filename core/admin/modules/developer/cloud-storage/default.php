@@ -24,9 +24,9 @@
 				<label>Default Storage Service <small>(please configure cloud storage options prior to switching your default storage service)</small></label>
 				<select name="service">
 					<option value="local">Local Storage</option>
-					<option value="amazon"<? if ($storage->Service == "s3" || $storage->Service == "amazon") { ?> selected="selected"<? } ?>>Amazon S3</option>
-					<option value="rackspace"<? if ($storage->Service == "rackspace") { ?> selected="selected"<? } ?>>Rackspace Cloud Files</option>
-					<option value="google"<? if ($storage->Service == "google") { ?> selected="selected"<? } ?>>Google Cloud Storage</option>
+					<option value="amazon"<? if ($storage->Settings->Service == "s3" || $storage->Settings->Service == "amazon") { ?> selected="selected"<? } ?>>Amazon S3</option>
+					<option value="rackspace"<? if ($storage->Settings->Service == "rackspace") { ?> selected="selected"<? } ?>>Rackspace Cloud Files</option>
+					<option value="google"<? if ($storage->Settings->Service == "google") { ?> selected="selected"<? } ?>>Google Cloud Storage</option>
 				</select>
 			</fieldset>
 		</section>

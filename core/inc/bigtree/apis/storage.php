@@ -1,61 +1,35 @@
 <?
 	/*
 		Class: BigTreeStorage
-			Controls where files are stored (local and cloud storage)
+			Facilitates the storage, deletion, and replacement of files (whether local or cloud stored).
 	*/
-	
+
 	class BigTreeStorage {
-		
+
 		var $AutoJPEG = false;
-		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
+		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
 		var $Cloud = false;
+		var $Settings = false;
 
 		/*
 			Constructor:
 				Retrieves the current desired service and image processing availability.
 		*/
-		
+
 		function __construct() {
 			global $cms,$admin;
-			$settings = $cms->getSetting("bigtree-internal-storage");
-			// If for some reason the setting doesn't exist, make one.
-			if (!is_array($settings) || !$settings["service"]) {
-				$this->Service = "local";
-				$this->optipng = false;
-				$this->jpegtran = false;
-				$this->Container = "";
-				$this->Files = array();
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-storage",
-					"system" => "on"
-				));
-				$admin->updateSettingValue("bigtree-internal-storage",array("service" => "local"));
-			} else {
-				$this->Service = $settings["service"];
-				$this->optipng = isset($settings["optipng"]) ? $settings["optipng"] : false;
-				$this->jpegtran = isset($settings["jpegtran"]) ? $settings["jpegtran"] : false;
-				$this->Container = $settings["container"];
-				$this->Files = $settings["files"];
-			}
-			if ($this->Service == "s3" || $this->Service == "amazon") {
+			
+			// Get by reference because we modify it.
+			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
+			
+			if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
 				$this->Cloud = new BigTreeCloudStorage("amazon");
-			} elseif ($this->Service == "rackspace") {
+			} elseif ($this->Settings->Service == "rackspace") {
 				$this->Cloud = new BigTreeCloudStorage("rackspace");
-			} elseif ($this->Service == "google") {
+			} elseif ($this->Settings->Service == "google") {
 				$this->Cloud = new BigTreeCloudStorage("google");
 			}
-		}
-
-		function __destruct() {
-			$admin = new BigTreeAdmin;
-			$admin->updateSettingValue("bigtree-internal-storage",array(
-				"service" => $this->Service,
-				"optipng" => $this->optipng,
-				"jpegtran" => $this->jpegtran,
-				"container" => $this->Container,
-				"files" => $this->Files
-			));
 		}
 
 		/*
@@ -63,12 +37,12 @@
 				Internal function for turning PNGs uploaded into JPG
 		*/
 
-		function convertJPEG($file,$name) {
+		protected function convertJPEG($file,$name) {
 			global $bigtree;
-			
+
 			// Try to figure out what this file is
 			list($iwidth,$iheight,$itype,$iattr) = @getimagesize($file);
-			
+
 			if (($this->AutoJPEG || $bigtree["config"]["image_force_jpeg"]) && $itype == IMAGETYPE_PNG) {
 				// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
 				$alpha = ord(@file_get_contents($file,null,null,25,1));
@@ -77,7 +51,7 @@
 					$source = imagecreatefrompng($file);
 					imagejpeg($source,$file,$bigtree["config"]["image_quality"]);
 					imagedestroy($source);
-	
+
 					// If they originally uploaded a JPG we rotated into a PNG, we don't want to change the desired filename, but if they uploaded a PNG the new file should be JPG
 					if (strtolower(substr($name,-3,3)) == "png") {
 						$name = substr($name,0,-3)."jpg";
@@ -87,15 +61,15 @@
 
 			return $name;
 		}
-		
+
 		/*
 			Function: delete
 				Deletes a file from the active storage service.
-			
+
 			Parameters:
 				file_location - The URL of the file.
 		*/
-		
+
 		function delete($file_location) {
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
@@ -114,7 +88,7 @@
 					$service = "rackspace";
 					// Need to figure out the actual container
 					$container = false;
-					$cloud = ($this->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
+					$cloud = ($this->Settings->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
 					foreach ($cloud->Settings["rackspace"]["container_cdn_urls"] as $c => $url) {
 						if ($url == "http://$domain") {
 							$container = $c;
@@ -126,11 +100,11 @@
 					$pointer_parts = array_slice($parts,3);
 				}
 
-				if ($this->Service == $service) {
+				if ($this->Settings->Service == $service) {
 					$pointer = implode("/",$pointer_parts);
 					$this->Cloud->deleteFile($container,$pointer);
-					if ($this->Container == $container) {
-						unset($this->Files[$pointer]);
+					if ($this->Settings->Container == $container) {
+						unset($this->Settings->Files[$pointer]);
 					}
 				} else {
 					// We might have already made an instance for Rackspace
@@ -142,21 +116,21 @@
 				unlink(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
 			}
 		}
-		
+
 		/*
 			Function: replace
 				Stores a file to the current storage service and replaces any existing file with the same file_name.
-			
+
 			Parameters:
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
-			
+
 			Returns:
 				The URL of the stored file.
 		*/
-		
+
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
@@ -170,12 +144,12 @@
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
 			if ($this->Cloud) {
-				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($remove_original) {
 					unlink($local_file);
 				}
 				if ($success) {
-					$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+					$this->Settings->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
 				}
 				return $success;
 			} else {
@@ -191,22 +165,22 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: store
 				Stores a file to the current storage service and finds a unique filename if collisions exist.
-			
+
 			Parameters:
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The desired file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
 				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
-			
+
 			Returns:
 				The URL of the stored file.
 		*/
-		
+
 		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
@@ -231,20 +205,20 @@
 				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
 				// Make sure we have a unique name
-				while (!$file_name || isset($this->Files[$relative_path.$file_name])) {
+				while (!$file_name || isset($this->Settings->Files[$relative_path.$file_name])) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
 					// Check all the prefixes, make sure they don't exist either
 					foreach ($prefixes as $prefix) {
-						if (isset($this->Files[$relative_path.$prefix.$file_name])) {
+						if (isset($this->Settings->Files[$relative_path.$prefix.$file_name])) {
 							$file_name = false;
 						}
 					}
 					$x++;
 				}
 				// Upload it
-				$success = $this->Cloud->uploadFile($local_file,$this->Container,$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($success) {
-					$this->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+					$this->Settings->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
 				}
 				if ($remove_original) {
 					unlink($local_file);

@@ -46,7 +46,7 @@
 				Gets a new access token for the Rackspace Cloud Files API.
 		*/
 
-		function _getRackspaceToken() {
+		protected function _getRackspaceToken() {
 			$j = json_decode(BigTree::cURL("https://identity.api.rackspacecloud.com/v2.0/tokens",json_encode(array(
 				"auth" => array(
 					"RAX-KSKEY:apiKeyCredentials" => array(
@@ -89,7 +89,7 @@
 				A URL
 		*/
 
-		function _getRackspaceURL($container,$pointer) {
+		protected function _getRackspaceURL($container,$pointer) {
 			if ($this->Settings["rackspace"]["container_cdn_urls"][$container]) {
 				return $this->Settings["rackspace"]["container_cdn_urls"][$container]."/$pointer";
 			} else {
@@ -121,7 +121,7 @@
 				Hashed string.
 		*/
 
-		private function _hash($secret,$string) {
+		protected function _hash($secret,$string) {
 			if (extension_loaded("hash")) {
 				return base64_encode(hash_hmac('sha1',$string,$secret,true));
 			}
@@ -133,7 +133,7 @@
 				Parses an Amazon response for the error message and sets $this->Error
 		*/
 
-		private function _setAmazonError($xml) {
+		protected function _setAmazonError($xml) {
 			$xml = simplexml_load_string($xml);
 			$this->Errors[] = array("message" => (string)$xml->Message, "code" => (string)$xml->Code);
 		}

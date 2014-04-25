@@ -532,7 +532,7 @@
 				Joins a time object made by timeSplit into one readable by the YouTube API.
 		*/
 
-		function timeJoin($time) {
+		protected function timeJoin($time) {
 			$t = "PT";
 			if ($time->Hours) {
 				$t .= $time->Hours."H";
@@ -548,7 +548,7 @@
 				Splits a YouTube video time length into an object.
 		*/
 
-		function timeSplit($time) {
+		protected function timeSplit($time) {
 			$t = new stdClass;
 			$t->Hours = 0;
 			$t->Minutes = 0;
@@ -778,7 +778,7 @@
 			Function: getVideos
 				Returns the videos for this channel.
 
-			Params:
+			Parameters:
 				order - The order to sort by (options are date, rating, relevance, title, viewCount) — defaults to date.
 				count - Number of videos to return (defaults to 10).
 
