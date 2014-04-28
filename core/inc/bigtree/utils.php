@@ -1082,7 +1082,7 @@
 			$source_height = $info[1];
 
 			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
-			if ($info["mime"] == "image/jpg") {
+			if ($info["mime"] == "image/jpg" || $info["mime"] == "image/jpeg") {
 				$source_size = ceil($source_width * $source_height * 3 * 1.7); 
 				$target_size = ceil($width * $height * 3 * 1.7);
 			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
