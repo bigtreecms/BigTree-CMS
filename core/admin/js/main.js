@@ -247,14 +247,13 @@ var BigTreeCheckbox = Class.extend({
 // !BigTreeSelect Class
 var BigTreeSelect = Class.extend({
 
-	Element: false,
-	Container: false,
-	Open: false,
-	Options: [],
 	BoundWindowClick: false,
 	BoundOverflowScroll: false,
+	Container: false,
+	Element: false,
+	Open: false,
+	Options: [],
 	WasRelative: false,
-	KeyDownBind: false,
 	
 	init: function(element) {
 		this.Element = $(element);
@@ -379,9 +378,10 @@ var BigTreeSelect = Class.extend({
 			this.Container.addClass("disabled");
 		}
 		
-		// Observe focus on the select that's been hidden.
+		// Observe focus, blur, and keydown on the hidden element.
 		this.Element.focus($.proxy(this.focus,this));
 		this.Element.blur($.proxy(this.blur,this));
+		this.Element.keydown($.proxy(this.keydown,this));
 		// Custom event to force open lists closed when another select opens.
 		this.Element.on("closeNow",$.proxy(this.close,this));
 	},
@@ -422,7 +422,6 @@ var BigTreeSelect = Class.extend({
 	
 	blur: function() {
 		this.Container.removeClass("focused");
-		this.Element.unbind("keydown");
 	},
 
 	click: function() {
@@ -522,8 +521,6 @@ var BigTreeSelect = Class.extend({
 
 	focus: function() {
 		this.Container.addClass("focused");
-		this.KeyBindDown = $.proxy(this.keydown,this);
-		this.Element.keydown(this.KeyBindDown);
 	},	
 	
 	keydown: function(ev) {
@@ -544,14 +541,14 @@ var BigTreeSelect = Class.extend({
 		index = el.selectedIndex;
 		oindex = index;
 		
-		// Up arrow pressed
-		if (ev.keyCode == 38) {
+		// Up or left arrow pressed
+		if (ev.keyCode == 38 || ev.keyCode == 37) {
 			index--;
 			if (index < 0) {
 				index = 0;
 			}
-		// Down arrow pressed
-		} else if (ev.keyCode == 40) {
+		// Down or right arrow pressed
+		} else if (ev.keyCode == 40 || ev.keyCode == 39) {
 			index++;
 			if (index == el.options.length) {
 				index--;
@@ -605,14 +602,15 @@ var BigTreeSelect = Class.extend({
 				select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
 			}
 	
-			el.selectedIndex = index;
+			// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
+			if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
+			} else {
+				el.selectedIndex = index;
+			}
+
 			this.Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
 			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 			
-			// This hack brought to you by Firefox, who ignores the fact that we don't want it handling the change in selectedIndex
-			this.Element.blur();
-			setTimeout($.proxy(function() { this.focus(); },this.Element),50);
-
 			return false;
 		}
 		
