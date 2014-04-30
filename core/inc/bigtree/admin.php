@@ -5432,7 +5432,7 @@
 				BigTree::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
 				if (is_array($thumbs)) {
 					foreach ($thumbs as $thumb) {
-						if (is_array($thumb)) {
+						if (is_array($thumb) && ($thumb["height"] || $thumb["width"])) {
 							// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
 							list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"]);
 
