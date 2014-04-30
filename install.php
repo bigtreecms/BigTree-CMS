@@ -254,8 +254,6 @@
 		bt_mkdir_writable("custom/admin/ajax/");
 		bt_mkdir_writable("custom/admin/css/");
 		bt_mkdir_writable("custom/admin/images/");
-		bt_mkdir_writable("custom/admin/images/modules/");
-		bt_mkdir_writable("custom/admin/images/templates/");
 		bt_mkdir_writable("custom/admin/modules/");
 		bt_mkdir_writable("custom/admin/pages/");
 		bt_mkdir_writable("custom/admin/form-field-types/");

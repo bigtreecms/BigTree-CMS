@@ -165,13 +165,6 @@
 	textarea { border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: Helvetica,sans-serif; font-size: 12px; height: 150px; line-height: 16px; margin: 0; padding: 5px 10px; transition: border-color 0.2s; width: 875px; }
 	textarea:focus { border-color: #AAA; }
 	textarea[disabled] { background: #F6F6F6; opacity: 0.5; }
-	.form_error .mceEditor table.mceLayout { border-color: #C0362F; }
-	.form_error .defaultSkin table.mceLayout tr.mceFirst td { border-color: #C0362F; }
-	.form_error .defaultSkin table.mceLayout tr.mceLast td { border-color: #C0362F; }
-	.form_error .defaultSkin .mceIframeContainer { border-color: #C0362F; }
-
-	#message_path_row, .defaultSkin .mceListBox .mceText, .defaultSkin .mceMenuItemTitle span.mceText, .defaultSkin .mce_p span.mceText, .defaultSkin .mce_h2 span.mceText,.defaultSkin .mce_h3 span.mceText, .defaultSkin .mce_h4 span.mceText { user-select: none; }
-	.container .defaultSkin .mceStatusbar { background: #CCC url(../images/row-bg-sprite.png) repeat-x 0px -188px; }
 
 	.checkbox { float: left; margin: 0 7px 0 0; }
 	.checkbox a { background: url(../images/icon-sprite.svg) -150px -105px; cursor: pointer; display: block; height: 16px; width: 16px; }
@@ -603,9 +596,9 @@
 	.table section .disabled_icon { margin: 5px 0 0 0; }
 
 	.table > ul li.published { }
-	.table > ul li.pending { background: #fff url(../images/row-bg-sprite.png) 0px -36px; }
-	.table > ul li.scheduled { background: #fff url(../images/row-bg-sprite.png) 0px -72px; }
-	.table > ul li.expired { background: #fff url(../images/row-bg-sprite.png) 0px 0px; }
+	.table > ul li.pending { background: #F1F1F1; }
+	.table > ul li.scheduled { background: #EDF6FB; }
+	.table > ul li.expired { background: #FCF2F1; }
 
 	.table > ul li section.view_status { text-transform: uppercase; }
 	.table > ul li.pending section, .table > ul li.scheduled section, .table > ul li.expired section { opacity: 0.5; }
@@ -1721,6 +1714,15 @@
 	body.embedded div.error_table { border: 1px solid #CCC; margin: -30px 0 0 0; }
 	body.embedded div.error_table .field { padding: 0 0 0 20px; width: calc(28.1837% - 20px); }
 	body.embedded div.error_table .error { padding: 0 0 0 20px; width: calc(71.8163% - 20px); }
+
+/*----------------------------
+	Custom TinyMCE 3 Styles
+-----------------------------*/
+	.form_error .mceEditor table.mceLayout { border-color: #C0362F; }
+	.form_error .defaultSkin table.mceLayout tr.mceFirst td { border-color: #C0362F; }
+	.form_error .defaultSkin table.mceLayout tr.mceLast td { border-color: #C0362F; }
+	.form_error .defaultSkin .mceIframeContainer { border-color: #C0362F; }
+	#message_path_row, .defaultSkin .mceListBox .mceText, .defaultSkin .mceMenuItemTitle span.mceText, .defaultSkin .mce_p span.mceText, .defaultSkin .mce_h2 span.mceText,.defaultSkin .mce_h3 span.mceText, .defaultSkin .mce_h4 span.mceText { user-select: none; }
 
 /*----------------------------
 	Custom TinyMCE 4 Styles
