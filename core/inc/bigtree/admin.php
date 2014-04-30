@@ -2276,7 +2276,7 @@
 				$unread = $messages["unread"];
 
 				// Start building the email
-				$body = "";
+				$body = $body_alerts = $body_changes = $body_messages = "";
 
 				// Alerts
 				if (is_array($alerts) && count($alerts)) {
@@ -2291,9 +2291,7 @@
 						$body_alerts .= '</tr>';
 					}
 				} else {
-					$body_alerts .= '<tr>';
-					$body_alerts = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Content Age Alerts</p></td>';
-					$body_alerts .= '</tr>';
+					$body_alerts = '<tr><td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Content Age Alerts</p></td></tr>';
 				}
 
 				// Changes
@@ -2315,9 +2313,7 @@
 						$body_changes .= '</tr>';
 					}
 				} else {
-					$body_changes .= '<tr>';
-					$body_changes = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Pending Changes</p></td>';
-					$body_changes .= '</tr>';
+					$body_changes = '<tr><td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Pending Changes</p></td></tr>';
 				}
 
 				// Messages
@@ -2330,9 +2326,7 @@
 						$body_messages .= '</tr>';
 					}
 				} else {
-					$body_messages .= '<tr>';
-					$body_messages = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Unread Messages</p></td>';
-					$body_messages .= '</tr>';
+					$body_messages = '<tr><td colspan="3" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Unread Messages</p></td></tr>';
 				}
 
 				// Send it
