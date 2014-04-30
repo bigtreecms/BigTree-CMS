@@ -1670,13 +1670,13 @@
 	.install_wrapper h1 { color: #333; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; }
 	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; overflow: hidden; padding: 30px 0 0; }
 	.install_wrapper h2 { color: #444; float: left; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; }
-	.install_wrapper h2 span { background: url(../images/icon-sprite.svg) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
-	.install_wrapper h2.getting_started span { background-position: -390px -175px; }
-	.install_wrapper h2.database span { background-position: -365px -175px; }
-	.install_wrapper h2.security span { background-position: -342px -178px; }
-	.install_wrapper h2.account span { background-position: -315px -175px; }
-	.install_wrapper h2.routing span { background-position: -265px -175px; }
-	.install_wrapper h2.example span { background-position: -290px -174px; }
+	.install_wrapper h2 span { background: url(../images/install-sprite.png) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
+	.install_wrapper h2.getting_started span { background-position: -125px 0px; }
+	.install_wrapper h2.database span { background-position: -100px 0px; }
+	.install_wrapper h2.security span { background-position: -75px 0px; }
+	.install_wrapper h2.account span { background-position: -50px 0px; }
+	.install_wrapper h2.routing span { background-position: 0px 0px; }
+	.install_wrapper h2.example span { background-position: -25px 0px; }
 	.install_wrapper fieldset { margin: 0; padding: 0 30px; }
 	.install_wrapper fieldset.left { float: left; margin: 0; padding: 0 0 0 30px; width: auto; }
 	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
@@ -1790,6 +1790,11 @@
 	#redactor_modal .redactor_modal_btn:hover { background-color: #BBB; background-color: rgba(0, 0, 0, 0.15); }
 	#redactor_modal .redactor_modal_action_btn:hover { background-color: #4287CE; }
 	#redactor_modal input[type=text]:last-child { margin: 0 !important; }
+
+/* Retina Query for Installer */
+@media (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {
+	.install_wrapper h2 span { background-image: url(../images/install-sprite-2x.png) no-repeat; }
+}
 
 /*-----------------------------
 	Internet Explorer Fixes
