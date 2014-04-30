@@ -1,8 +1,10 @@
-<?
+<?	
 	include BigTree::path("inc/lib/pclzip.php");
+	if (!file_exists(SERVER_ROOT."cache/update/")) {
+		mkdir(SERVER_ROOT."cache/update/");
+		chmod(SERVER_ROOT."cache/update/",0777);
+	}
 	$zip = new PclZip(SERVER_ROOT."cache/update.zip");
-	mkdir(SERVER_ROOT."cache/update/");
-	chmod(SERVER_ROOT."cache/update/",0777);
 	$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,"BigTree-CMS");
 	// Make sure everything extracted is 777.
 	$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
@@ -37,14 +39,23 @@
 			// Move new core into place
 			rename(SERVER_ROOT."cache/update/core/",SERVER_ROOT."core/");
 			// Delete old files
-			$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
+			$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/update/"));
 			foreach ($contents as $file) {
-				unlink($file);
+				if (is_dir($file)) {
+					rmdir($file);	
+				} else {
+					unlink($file);
+				}
 			}
 			rmdir(SERVER_ROOT."cache/update/");
 			unlink(SERVER_ROOT."cache/update.zip");
 			BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
 		} else {
+			// If we had to set a directory path we lost the POST
+			if (!count($_POST)) {
+				$_POST = $_SESSION["bigtree_admin"]["ftp"];
+			}
+			
 			// Make sure FTP login works
 			$ftp = new BigTreeFTP;
 			if (!$ftp->connect("localhost")) {
@@ -56,9 +67,9 @@
 			}
 			// Try to determine the FTP root.
 			$ftp_root = false;
-			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root"))."inc/bigtree/") {
+			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root")."core/inc/bigtree/")) {
 				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
-			} elseif ($ftp->changeDirectory(SERVER_ROOT)."inc/bigtree/") {
+			} elseif ($ftp->changeDirectory(SERVER_ROOT."inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;
 			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
 				$ftp_root = "/";
@@ -69,14 +80,15 @@
 			} elseif ($ftp->changeDirectory("/".str_replace(array("http://","https://"),"",DOMAIN)."inc/bigtree/")) {
 				$ftp_root = "/".str_replace(array("http://","https://"),"",DOMAIN);
 			}
-
+			
 			if ($ftp_root === false) {
+				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
 		<section>
-			<p>BigTree could not automatically detect the FTP directory that it is installed in. Please enter the full FTP path below. This would be the directory that contains /core/.</p>
+			<p>BigTree could not automatically detect the FTP directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full FTP path below. This would be the directory that contains /core/.</p>
 			<hr />
 			<fieldset>
 				<label>FTP Path</label>
@@ -101,9 +113,13 @@
 				// Move new core into place
 				$ftp->rename($ftp_root."cache/update/core/",$ftp_root."core/");
 				// Delete old files
-				$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
+				$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/update/"));
 				foreach ($contents as $file) {
-					unlink($file);
+					if (is_dir($file)) {
+						rmdir($file);	
+					} else {
+						unlink($file);
+					}
 				}
 				rmdir(SERVER_ROOT."cache/update/");
 				unlink(SERVER_ROOT."cache/update.zip");
