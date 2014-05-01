@@ -20,6 +20,24 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.4 Release
+- FIXED: BigTreeadmin::getPageAccessLevelByUser only working for the logged in user's permissions and made it more efficient.
+- FIXED: Missing focus highlighting on installer fields
+- FIXED: An issue that would cause user creation to fail in PHP 5.2
+- FIXED: Image Memory manipulation calculations to be more accurate (should now catch large images more frequently)
+- FIXED: Overlays disappearing when creating a file or folder in the file manager failed
+- FIXED: Module Designer not letting you delete fields from a form
+- FIXED: Publishing drafts not working.
+- FIXED: Missing retina icons for thumbnail / delete in the crops editor.
+- FIXED: Thumbnails and Crops attempting to be processed even if they were left blank.
+- FIXED: Checkbox bug in the installer and adjusted a few other things
+- FIXED: Unarchiving second level children
+- FIXED: replaceInternalPageLinks converting 0 or another falsey value to "" (thanks tamtt)
+- FIXED: Keyboard arrow usage in Firefox on custom select fields
+- FIXED: Daily Digest / Password Reset email issues in GMail and Outlook
+- FIXED: Front End Editor not showing up if for some reason iframes are display: something-other-than-block in the user CSS
+- FIXED: asp/aspx files being allowed as user uploads
+
 ### 4.0.3 Release
 - ADDED: Better support for installation on Windows with IIS
 - FIXED: Another PHP 5.2 compatibility issue in func_get_args
