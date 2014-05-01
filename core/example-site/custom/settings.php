@@ -30,7 +30,7 @@
 	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
 	$bigtree["config"]["css"]["vars"] = array(
 		"iconIndent"  => "overflow: hidden; text-indent: 125%; white-space: nowrap",
-		"iconSprite"  => "url(".$bigtree["config"]["static_root"]."images/icons.svg) no-repeat",
+		"iconSprite"  => "url(https://bigtree-demo-site.s3.amazonaws.com/images/icons.svg) no-repeat",
 
 		"ptSans"      => 'font-family: "PTSans", sans-serif',
 		"ptSerif"     => 'font-family: "PTSerif", serif',
