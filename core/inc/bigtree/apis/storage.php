@@ -9,7 +9,7 @@
 		var $Service = "";
 		var $S3,$S3Data,$S3Files;
 		var $RSAuth,$RSConn,$RSContainers,$RSContainerData;
-		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh)$/i';
+		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		
 		/*
 			Constructor:
