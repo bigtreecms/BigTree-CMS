@@ -48,6 +48,7 @@
 @text-inverse:                   white;
 @text-disabled:                  #aaa;
 @text-shadow:                    0 1px 1px hsla(hue(@text-inverse), saturation(@text-inverse), lightness(@text-inverse), 0.75);
+@text-error:                     #aa0000;
 
 // Button
 @btn-text:                       @text;
@@ -1213,7 +1214,6 @@ i.@{prefix}-i-checkbox {
 .@{prefix}-label {
 	.inline-block();
 	text-shadow: @text-shadow;
-	border: 0;
 	overflow: hidden;
 }
 
@@ -1227,6 +1227,10 @@ i.@{prefix}-i-checkbox {
 
 .@{prefix}-label.@{prefix}-multiline {
 	white-space: pre-wrap;
+}
+
+.@{prefix}-label.@{prefix}-error {
+	color: @text-error;
 }
 
 // RTL
@@ -1264,10 +1268,6 @@ i.@{prefix}-i-checkbox {
 	.box-shadow(none);
 }
 /* MenuButton */
-
-.@{prefix}-menubtn.@{prefix}-disabled span {
-	color: @text-disabled;
-}
 
 .@{prefix}-menubtn span {
 	color: @btn-text;
@@ -1663,6 +1663,11 @@ i.@{prefix}-i-resize {
 	width: 100%; height: 100%;
 	.opacity(0.6);
 	background: @throbber-bg;
+}
+
+.@{prefix}-throbber-inline {
+	position: static;
+	height: 50px;
 }
 /* Icons IE7 */
 
