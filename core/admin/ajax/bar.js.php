@@ -48,7 +48,8 @@ var BigTreeBar = {
 		BigTreeBar.body_padding = parseInt(BigTreeBar.getStyle(BigTreeBar.body,"padding-top"));
 		BigTreeBar.body.style.paddingTop = (BigTreeBar.body_padding + 40) + "px";
 		
-		document.getElementsByTagName('body')[0].className += ' bigtree_bar_open';
+		// Remove the closed class, add the open class
+		document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_closed", "") + " bigtree_bar_open").trim();
 		
 		// Add the bar
 		bigtree_bar = document.createElement("div");
@@ -70,6 +71,7 @@ var BigTreeBar = {
 		
 		BigTreeBar.body.appendChild(bigtree_bar);
 		
+		// Close Button
 		document.getElementById("bigtree_bar_close").onclick = function(e) {
 			if (document.getElementById("bigtree_bar_overlay")) {
 				BigTreeBar.body.removeChild(document.getElementById("bigtree_bar_overlay"));
@@ -80,8 +82,8 @@ var BigTreeBar = {
 			BigTreeBar.body.removeChild(document.getElementById("bigtree_bar"));
 			BigTreeBar.body.style.paddingTop = BigTreeBar.body_padding + "px";
 			
-			var bodyClass = document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "").trim();
-			document.getElementsByTagName('body')[0].className = bodyClass;
+			// Remove the open class, add the closed class
+			document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();
 			
 			BigTreeBar.createCookie("hide_bigtree_bar","on",365);
 			
@@ -181,6 +183,8 @@ BigTreeBar.tab.setAttribute("href","#");
 BigTreeBar.tab.onclick = BigTreeBar.show;
 BigTreeBar.body.appendChild(BigTreeBar.tab);
 
+// Add BigTree Bar class to the body, keep outside global namespace
+document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();	
 <? if ($_GET["show_bar"]) { ?>
 BigTreeBar.show();
 <? } ?>
