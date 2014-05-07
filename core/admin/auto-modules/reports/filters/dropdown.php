@@ -17,6 +17,6 @@
 <select name="<?=$id?>">
 	<option></option>
 	<? foreach ($list as $item) { ?>
-	<option value="<?=htmlspecialchars(htmlspecialchars_decode($item["value"]))?>"><?=htmlspecialchars(htmlspecialchars_decode($item["description"]))?></option>
+	<option value="<?=BigTree::safeEncode($item["value"])?>"><?=BigTree::safeEncode($item["description"])?></option>
 	<? } ?>
 </select>

@@ -70,7 +70,7 @@
 							$link = call_user_func($data["function"],$item);
 						}
 			?>
-			<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=htmlspecialchars(htmlspecialchars_decode($data["name"]))?>"></a></section>
+			<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=BigTree::safeEncode($data["name"])?>"></a></section>
 			<?
 					}
 				}

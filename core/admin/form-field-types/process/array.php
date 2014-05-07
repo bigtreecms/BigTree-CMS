@@ -11,7 +11,7 @@
 			if ($array_field["type"] == "html") {
 				$row[$array_field["key"]] = $i[$array_field["key"]];
 			} else {
-				$row[$array_field["key"]] = htmlspecialchars(htmlspecialchars_decode($i[$array_field["key"]]));
+				$row[$array_field["key"]] = BigTree::safeEncode($i[$array_field["key"]]);
 			}
 		}
 		$field["output"][] = $row;

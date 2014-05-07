@@ -53,7 +53,7 @@
 	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
 		ob_start();
 		foreach ($breadcrumb as &$item) {
-			$item["title"] = htmlspecialchars(htmlspecialchars_decode($item["title"]));
+			$item["title"] = BigTree::safeEncode($item["title"]);
 		}
 		unset($item);
 		// We're going to fake include the header to get the active nav state.
@@ -76,7 +76,7 @@
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<? if ($x == 1) { ?> first<? } if ($x == count($breadcrumb)) { ?> last<? } ?>"><?=htmlspecialchars(htmlspecialchars_decode($item["title"]))?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<? if ($x == 1) { ?> first<? } if ($x == count($breadcrumb)) { ?> last<? } ?>"><?=BigTree::safeEncode($item["title"])?></a>
 		<?
 				if ($x != count($breadcrumb)) {
 		?>
@@ -84,7 +84,6 @@
 		<?		
 				}
 			}
-			//echo htmlspecialchars(htmlspecialchars_decode(str_replace("View ","",$bigtree["page"]["title"])));
 
 			// If we're in a module and have related modules, use them for the related nav.
 			if (isset($bigtree["related_modules"])) {

@@ -5,9 +5,9 @@
 		foreach ($field["input"] as $photo_count => $data) {
 			// Existing Data
 			if ($data["image"]) {
-				$data["caption"] = htmlspecialchars(htmlspecialchars_decode($data["caption"]));
-				$data["attribution"] = htmlspecialchars(htmlspecialchars_decode($data["attribution"]));
-				$data["link"] = htmlspecialchars(htmlspecialchars_decode($data["link"]));
+				$data["caption"] = BigTree::safeEncode($data["caption"]);
+				$data["attribution"] = BigTree::safeEncode($data["attribution"]);
+				$data["link"] = BigTree::safeEncode($data["link"]);
 				$photo_gallery[] = $data;
 			// Uploaded File
 			} elseif ($field["file_input"][$photo_count]["image"]["name"]) {
@@ -16,7 +16,7 @@
 
 				$file = $admin->processImageUpload($field_copy);
 				if ($file) {
-					$photo_gallery[] = array("image" => $file,"caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])),"attribution" => htmlspecialchars(htmlspecialchars_decode($data["attribution"])),"link" => htmlspecialchars(htmlspecialchars_decode($data["link"])));
+					$photo_gallery[] = array("image" => $file,"caption" => BigTree::safeEncode($data["caption"]),"attribution" => BigTree::safeEncode($data["attribution"]),"link" => BigTree::safeEncode($data["link"]));
 				}
 			// File From Image Manager
 			} elseif ($data["existing"]) {
@@ -29,7 +29,7 @@
 
 				$file = $admin->processImageUpload($field_copy);
 				if ($file) {
-					$photo_gallery[] = array("image" => $file,"caption" => htmlspecialchars(htmlspecialchars_decode($data["caption"])),"attribution" => htmlspecialchars(htmlspecialchars_decode($data["attribution"])),"link" => htmlspecialchars(htmlspecialchars_decode($data["link"])));
+					$photo_gallery[] = array("image" => $file,"caption" => BigTree::safeEncode($data["caption"]),"attribution" => BigTree::safeEncode($data["attribution"]),"link" => BigTree::safeEncode($data["link"]));
 				}
 			}
 		}

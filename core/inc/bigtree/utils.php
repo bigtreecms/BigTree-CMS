@@ -1648,6 +1648,27 @@
 			eval($code);
 			return $value;
 		}
+
+		/*
+			Function: safeEncode
+				Modifies a string so that it is safe for display on the web (tags and quotes modified for usage inside attributes) without double-encoding.
+				Ensures that other html entities (like &hellip;) turn into UTF-8 characters before encoding.
+				Only to be used when your website's character set is UTF-8.
+
+			Parameters:
+				string - String to encode
+
+			Returns:
+				Encoded string.
+		*/
+
+		static function safeEncode($string) {
+			if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
+				return htmlspecialchars(html_entity_decode($string,ENT_HTML5));
+			} else {
+				return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
+			}
+		}
 		
 		/*
 			Function: sendEmail

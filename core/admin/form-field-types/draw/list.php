@@ -74,7 +74,7 @@
 	<option></option>
 	<? } ?>
 	<? foreach ($list as $option) { ?>
-	<option value="<?=htmlspecialchars(htmlspecialchars_decode($option["value"]))?>"<? if ($field["value"] == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags($option["description"]), 100)))?></option>
+	<option value="<?=BigTree::safeEncode($option["value"])?>"<? if ($field["value"] == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
 	<? } ?>
 </select>
 <?

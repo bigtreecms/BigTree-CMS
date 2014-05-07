@@ -38,7 +38,7 @@
 			if (is_array($bigtree["post_data"][$field["key"]])) {
 				$field["output"] = $bigtree["post_data"][$field["key"]];
 			} else {
-				$field["output"] = htmlspecialchars(htmlspecialchars_decode($bigtree["post_data"][$field["key"]]));
+				$field["output"] = BigTree::safeEncode($bigtree["post_data"][$field["key"]]);
 			}
 		}
 

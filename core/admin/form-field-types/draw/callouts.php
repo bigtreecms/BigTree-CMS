@@ -11,7 +11,7 @@
 					_localDrawCalloutLevel(array_merge($keys,array($key)),$value);
 				} else {
 ?>
-<input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($value))?>" />
+<input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
 <?
 				}
 			}
@@ -32,8 +32,8 @@
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<? _localDrawCalloutLevel(array($x),$callout) ?>
 			<h4>
-				<?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=htmlspecialchars(htmlspecialchars_decode($callout["display_title"]))?>" />
+				<?=BigTree::safeEncode($callout["display_title"])?>
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=BigTree::safeEncode($callout["display_title"])?>" />
 			</h4>
 			<p><?=$type["name"]?></p>
 			<div class="bottom">
