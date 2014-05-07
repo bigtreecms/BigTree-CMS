@@ -671,15 +671,15 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
-					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="12" autocomplete="off" />
+					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="10" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" autocomplete="off" />
+					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="11" autocomplete="off" />
 				</fieldset>
 				<fieldset class="clear">
 					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
+					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="12" />
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
 				
@@ -705,7 +705,7 @@ RewriteRule (.*) site/$1 [L]');
 					</ul>
 				</fieldset>
 				<fieldset class="clear">
-					<select name="routing">
+					<select name="routing" tabindex="13">
 						<?php
 							if ($iis) {
 						?>
