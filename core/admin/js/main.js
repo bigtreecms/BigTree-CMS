@@ -1123,8 +1123,8 @@ var BigTreeDialog = Class.extend({
 	init: function(title,content,oncomplete,icon,noSave,altSaveText,altOnComplete,altOnCancel) {
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
 		this.onComplete = oncomplete;
-		overlay = $('<div class="bigtree_dialog_overlay">');
-		dialog_window = $('<div class="bigtree_dialog_window">');
+		overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		dialog_window = $('<div class="bigtree_dialog_window" style="z-index: ' + (BigTree.zIndex++) + ';">');
 		$("body").append(overlay).append(dialog_window);
 		
 		if (altSaveText) {
@@ -1192,6 +1192,7 @@ var BigTreeDialog = Class.extend({
 	DialogClose: function() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
+		BigTree.zIndex -= 2;
 		$("body").off("keyup");
 		$(window).off("resize");
 		return false;
@@ -1271,6 +1272,7 @@ var BigTreeFileManager = {
 	cancelAdd: function() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
+		BigTree.zIndex -= 2;
 		
 		return false;
 	},
@@ -1305,6 +1307,7 @@ var BigTreeFileManager = {
 	closeFileBrowser: function() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
+		BigTree.zIndex = BigTree.zIndexBackup;
 		$("#mceModalBlocker, #mce-modal-block").show();
 		
 		return false;
@@ -1413,6 +1416,7 @@ var BigTreeFileManager = {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
+		BigTree.zIndex -= 3;
 		
 		if (this.type == "image" || this.type == "photo-gallery") {
 			this.openImageFolder(this.currentFolder);	
@@ -1497,10 +1501,14 @@ var BigTreeFileManager = {
 		height = BigTree.WindowHeight();
 		leftOffset = Math.round((width - 820) / 2);
 		topOffset = Math.round((height - 500) / 2);
+
+		// Set BigTree's zIndex super high because TinyMCE will try to be on top
+		BigTree.zIndexBackup = BigTree.zIndex;
+		BigTree.zIndex = 500000;
 		
 		// Create the window.
-		overlay = $('<div class="bigtree_dialog_overlay">');
-		this.browser = $('<div id="file_browser">');
+		overlay = $('<div class="bigtree_dialog_overlay" style="z-index:' + (BigTree.zIndex++) + ';">');
+		this.browser = $('<div id="file_browser" style="z-index: ' + (BigTree.zIndex++) + ';">');
 		this.browser.css({ top: topOffset + "px", left: leftOffset + "px" });
 		
 		this.browser.html('\
@@ -2337,7 +2345,12 @@ var BigTreeToolTip = Class.extend({
 		
 		if (auto_close) {
 			$(selector).mouseenter($.proxy(this.showTip,this));
-			$(selector).mouseleave($.proxy(function() { this.container.stop().fadeTo(200, 0, function() { $(this).hide(); }); },this));
+			$(selector).mouseleave($.proxy(function() {
+				this.container.stop().fadeTo(200, 0, function() {
+					$(this).hide();
+				});
+				BigTree.zIndex--;
+			},this));
 		} else {
 			$(selector).click($.proxy(this.showTip,this));
 		}
@@ -2345,6 +2358,7 @@ var BigTreeToolTip = Class.extend({
 	
 	close: function() {
 		this.container.stop().fadeTo(200, 0, function() { $(this).hide(); });
+		BigTree.zIndex--;
 		return false;
 	},
 	
@@ -2378,7 +2392,7 @@ var BigTreeToolTip = Class.extend({
 			t = offset.top - container.height() - 5;
 		}
 		
-		this.container.css({ left: l + "px", top: t + "px" }).stop().fadeTo(200, 1);
+		this.container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.zIndex++) }).stop().fadeTo(200, 1);
 	}
 });
 
@@ -2389,8 +2403,8 @@ var BigTreeFoundryBrowser = Class.extend({
 
 	init: function(directory,oncomplete,cloud_disabled,file,location,container) {
 		this.onComplete = oncomplete;
-		overlay = $('<div class="bigtree_dialog_overlay">');
-		browserwindow = $('<div id="bigtree_foundry_browser_window">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
+		overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		browserwindow = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.zIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
 		$("body").append(overlay).append(browserwindow);
 		$("#bigtree_foundry_browser_form").load("admin_root/ajax/foundry/file-browser/", { directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
 
@@ -2406,6 +2420,7 @@ var BigTreeFoundryBrowser = Class.extend({
 		this.onComplete(data);
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#bigtree_foundry_browser_window").remove();
+		BigTree.zIndex -= 2;
 		return false;
 
 	}
@@ -2416,6 +2431,7 @@ var BigTree = {
 	stickyControls: false,
 	stickyControlsTop: false,
 	stickyControlsStuck: false,
+	zIndex: 1000,
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);
@@ -2780,6 +2796,7 @@ var BigTreeCallouts = {
 					last_dialog.parents("div").remove();
 					last_dialog.remove();
 					$(".bigtree_dialog_overlay").last().remove();
+					BigTree.zIndex -= 2;
 					
 					// Fill out the callout description.
 					article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
@@ -2807,6 +2824,7 @@ var BigTreeCallouts = {
 					last_dialog.parents("div").remove();
 					last_dialog.remove();
 					$(".bigtree_dialog_overlay").last().remove();
+					BigTree.zIndex -= 2;
 					
 					article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
 					

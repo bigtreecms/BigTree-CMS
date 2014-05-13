@@ -1133,10 +1133,9 @@
 		BigTree Dialog
 ---------------------------*/
 
-	#bigtree_file_browser_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 500000; }
-	.bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 500000; }
+	.bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; }
 
-	.bigtree_dialog_window { background: #FFF; border-radius: 3px; position: fixed; z-index: 500000; }
+	.bigtree_dialog_window { background: #FFF; border-radius: 3px; position: fixed; }
 	.bigtree_dialog_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; float: none; font-family: Helvetica; font-size: 14px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; text-transform: uppercase; }
 	.bigtree_dialog_window h2 span { float: left; margin: 2px 5px 0 0; }
 	.bigtree_dialog_window footer { background: #eee; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; padding: 20px; }
@@ -1220,7 +1219,7 @@
 /*---------------------------
 	BigTree File Browser
 ---------------------------*/
-	#file_browser { background: #FFF; border-radius: 3px; height: 551px; overflow: hidden; position: fixed; width: 820px; z-index: 500000; }
+	#file_browser { background: #FFF; border-radius: 3px; height: 551px; overflow: hidden; position: fixed; width: 820px; }
 	#file_browser .header { background: #EEE; border-radius: 2px 2px 0 0; height: 37px; line-height: 37px; padding: 0 5px 0 10px; }
 	#file_browser .header input { float: right; margin: 5px 0 0 3px; width: 173px; }
 	#file_browser .header h2 { float: left; font-size: 18px; line-height: 37px; margin: 0 0 0 5px; }
@@ -1560,7 +1559,7 @@
 
 /* ToolTip */
 	.tooltip { position: absolute; }
-	.tooltip article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; overflow: hidden; padding: 15px; z-index: 1000; }
+	.tooltip article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; overflow: hidden; padding: 15px; }
 	.tooltip article .icon_tooltip { float: left; margin: 0 10px 0 0; }
 	.tooltip article .content { float: left; max-width: 250px; }
 	.tooltip article .content p { color: rgba(255,255,255,0.8); font-size: 12px; line-height: 14px; margin: 0 0 5px 0; }
@@ -1569,7 +1568,7 @@
 	.tooltip article .content li { color: rgba(255,255,255,0.8); font-size: 12px; line-height: 16px; list-style: square outside; margin: 0 0 5px 0; }
 	.tooltip article .content li:last-child { margin: 0; }
 	.tooltip article .close { background: url(../images/icon-sprite.svg) -136px -106px; float: right; height: 10px; margin: -5px -5px 0 0; width: 10px; }
-	.tooltip .arrow { background: url(../images/icon-sprite.svg); position: relative; z-index: 1001; }
+	.tooltip .arrow { background: url(../images/icon-sprite.svg); position: relative; }
 	.tooltip_below .arrow { background-position: -431px -105px; display: block; float: none; height: 10px; margin: 0 0 0 18px; width: 21px; }
 	.tooltip_above .arrow { background-position: -420px -105px; display: block; float: none; height: 10px; margin: 0 0 0 18px; width: 21px; }
 	.tooltip_right article { float: left; }
@@ -1632,7 +1631,7 @@
 	BigTree Foundry Browser
 ---------------------------*/
 
-	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #666; border-radius: 2px; height: 400px; overflow: hidden; position: fixed; width: 600px; z-index: 500000; }
+	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #666; border-radius: 2px; height: 400px; overflow: hidden; position: fixed; width: 600px; }
 	#bigtree_foundry_browser_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; }
 	#bigtree_foundry_browser_close { background: url(../images/icons/cross.png); display: block; float: right; height: 16px; margin: -2px 3px 0 0; width: 16px; }
 	#bigtree_foundry_browser_form { clear: both; margin: 0; }
