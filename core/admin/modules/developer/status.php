@@ -59,29 +59,28 @@
 	}
 
 	//!Server Parameters
-	$json = extension_loaded('json') ? "good" : "ok";
-	$mysql = extension_loaded('mysql') ? "good" : "bad";
+	$mysql = (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad";
 	$magic_quotes_gpc = !get_magic_quotes_gpc() ? "good" : "bad";
 	$magic_quotes_runtime = !get_magic_quotes_runtime() ? "good" : "bad";
 	$file_uploads = ini_get('file_uploads') ? "good" : "bad";
 	$short_tags = ini_get('short_open_tag') ? "good" : "bad";
 	$image_support = extension_loaded('gd') ? "good" : "bad";
-	
-	$ftp = function_exists("ftp_connect") ? "good" : "ok";
+	$curl_support = extension_loaded('curl') ? "good" : "bad";
 	
 	$upload_max_filesize = ini_get('upload_max_filesize');
 	$post_max_size = ini_get('post_max_size');
 	$max_file = (intval($upload_max_filesize) > intval($post_max_size)) ? intval($post_max_size) : intval($upload_max_filesize);
 	
 	$max_check = "bad";
-	if ($max_file >= 4)
+	if ($max_file >= 4) {
 		$max_check = "ok";
-	if ($max_file >= 8)
+	}
+	if ($max_file >= 8) {
 		$max_check = "good";
+	}
 	
 	$mem_limit = ini_get("memory_limit");
 	$memory_limit = (intval($mem_limit) > 32) ? "good" : "bad";
-	
 	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
 <div class="container">
@@ -151,29 +150,19 @@
 			<section class="site_status_status <?=$memory_limit?>"><?=$mem_limit?></section>
 		</li>
 		<li>
-			<section class="site_status_message">JSON Support</section>
-			<section class="site_status_action">JSON module is required.</section>
-			<section class="site_status_status <?=$json?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">FTP Support</section>
-			<section class="site_status_action">FTP module is required for Dev/Live Sync</section>
-			<section class="site_status_status <?=$json?>"></section>
-		</li>
-		<li>
 			<section class="site_status_message">MySQL Support</section>
-			<section class="site_status_action">MySQL Module is required</section>
+			<section class="site_status_action">MySQL or <a href="http://www.php.net/manual/en/mysqli.installation.php" target="_blank">MySQLi extension</a> is required</section>
 			<section class="site_status_status <?=$mysql?>"></section>
 		</li>
 		<li>
 			<section class="site_status_message">Image Processing</section>
-			<section class="site_status_action">GD library support is required</section>
+			<section class="site_status_action"><a href="http://us3.php.net/manual/en/image.installation.php" target="_blank">GD extension</a> is required</section>
 			<section class="site_status_status <?=$image_support?>"></section>
 		</li>
 		<li>
-			<section class="site_status_message">External URL Opening</section>
-			<section class="site_status_action">allow_url_fopen in php.ini should be on for advanced features to work</section>
-			<section class="site_status_status <?=$fopen_url?>"></section>
+			<section class="site_status_message">cURL Support</section>
+			<section class="site_status_action"><a href="http://www.php.net/manual/en/curl.installation.php" target="_blank">cURL extension</a> is required</section>
+			<section class="site_status_status <?=$curl_support?>"></section>
 		</li>
 	</ul>
 </div>
