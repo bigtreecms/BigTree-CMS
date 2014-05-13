@@ -81,7 +81,6 @@
 	
 	$mem_limit = ini_get("memory_limit");
 	$memory_limit = (intval($mem_limit) > 32) ? "good" : "bad";
-	$fopen_url = ini_get("allow_url_fopen") ? "good" : "ok";
 ?>
 <div class="container">
 	<section>
