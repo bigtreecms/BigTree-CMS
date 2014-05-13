@@ -227,10 +227,10 @@
 		"crops" => $bigtree["crops"]
 	);
 	
-	if (count($bigtree["errors"])) {
-		BigTree::redirect($bigtree["form_root"]."error/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
 		BigTree::redirect($bigtree["form_root"]."crop/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect($bigtree["form_root"]."error/");
 	} else {
 		BigTree::redirect($redirect_url);
 	}

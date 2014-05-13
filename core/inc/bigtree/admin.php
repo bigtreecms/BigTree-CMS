@@ -5491,7 +5491,7 @@
 
 			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
 			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
-				$error = "Image uploaded did not meet the minimum size of ";
+				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
 				if ($field["options"]["min_height"] && $field["options"]["min_width"]) {
 					$error .= $field["options"]["min_width"]."x".$field["options"]["min_height"]." pixels.";
 				} elseif ($field["options"]["min_height"]) {
