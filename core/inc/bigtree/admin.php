@@ -5491,7 +5491,15 @@
 
 			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
 			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
+				$error = "Image uploaded did not meet the minimum size of ";
+				if ($field["options"]["min_height"] && $field["options"]["min_width"]) {
+					$error .= $field["options"]["min_width"]."x".$field["options"]["min_height"]." pixels.";
+				} elseif ($field["options"]["min_height"]) {
+					$error .= $field["options"]["min_height"]." pixels tall.";
+				} elseif ($field["options"]["min_width"]) {
+					$error .= $field["options"]["min_width"]." pixels wide.";
+				}
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => $error);
 				$failed = true;
 			}
 
