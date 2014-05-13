@@ -1,4 +1,4 @@
-// 4.0.25 (2014-04-30)
+// 4.0.26 (2014-05-06)
 
 /**
  * Compiled inline version. (Library mode)
@@ -5017,10 +5017,6 @@ define("tinymce/dom/DOMUtils", [
 		},
 
 		isChildOf: function(node, parent) {
-			if (parent.contains) {
-				return parent.contains(node);
-			}
-
 			while (node) {
 				if (parent === node) {
 					return true;
@@ -26499,7 +26495,7 @@ define("tinymce/EditorManager", [
 		 * @property minorVersion
 		 * @type String
 		 */
-		minorVersion : '0.25',
+		minorVersion : '0.26',
 
 		/**
 		 * Release date of TinyMCE build.
@@ -26507,7 +26503,7 @@ define("tinymce/EditorManager", [
 		 * @property releaseDate
 		 * @type String
 		 */
-		releaseDate: '2014-04-30',
+		releaseDate: '2014-05-06',
 
 		/**
 		 * Collection of editor instances.
