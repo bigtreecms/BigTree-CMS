@@ -20,7 +20,7 @@
 		<li>
 			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=htmlspecialchars(json_encode($entry))?>" />
 			<span class="icon_sort"></span>
-			<p><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags(current($entry)),100)))?></p>
+			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags(current($entry)),100))?></p>
 			<a href="#" class="icon_delete"></a>
 			<a href="#" class="icon_edit"></a>
 		</li>

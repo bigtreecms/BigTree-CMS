@@ -2371,7 +2371,7 @@
 				$unread = $messages["unread"];
 
 				// Start building the email
-				$body = "";
+				$body = $body_alerts = $body_changes = $body_messages = "";
 
 				// Alerts
 				if (is_array($alerts) && count($alerts)) {
@@ -2386,9 +2386,7 @@
 						$body_alerts .= '</tr>';
 					}
 				} else {
-					$body_alerts .= '<tr>';
-					$body_alerts = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Content Age Alerts</p></td>';
-					$body_alerts .= '</tr>';
+					$body_alerts = '<tr><td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Content Age Alerts</p></td></tr>';
 				}
 
 				// Changes
@@ -2410,9 +2408,7 @@
 						$body_changes .= '</tr>';
 					}
 				} else {
-					$body_changes .= '<tr>';
-					$body_changes = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Pending Changes</p></td>';
-					$body_changes .= '</tr>';
+					$body_changes = '<tr><td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Pending Changes</p></td></tr>';
 				}
 
 				// Messages
@@ -2425,9 +2421,7 @@
 						$body_messages .= '</tr>';
 					}
 				} else {
-					$body_messages .= '<tr>';
-					$body_messages = '<td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Unread Messages</p></td>';
-					$body_messages .= '</tr>';
+					$body_messages = '<tr><td colspan="3" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Unread Messages</p></td></tr>';
 				}
 
 				// Send it
@@ -4009,6 +4003,51 @@
 		}
 
 		/*
+			Function: getPageIDForPath
+				Provides the page ID for a given path array.
+				This is equivalent to BigTreeCMS::getNavId.
+			
+			Parameters:
+				path - An array of path elements from a URL
+				previewing - Whether we are previewing or not.
+			
+			Returns:
+				An array containing the page ID and any additional commands.
+		*/
+		
+		function getPageIDForPath($path,$previewing = false) {
+			$commands = array();
+			
+			if (!$previewing) {
+				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
+			} else {
+				$publish_at = "";
+			}
+			
+			// See if we have a straight up perfect match to the path.
+			$spath = sqlescape(implode("/",$path));
+			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
+			if ($f) {
+				return array($f["id"],$commands,$f["routed"]);
+			}
+			
+			// Guess we don't, let's chop off commands until we find a page.
+			$x = 0;
+			while ($x < count($path)) {
+				$x++;
+				$commands[] = $path[count($path)-$x];
+				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
+				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
+				if ($f) {
+					return array($f["id"],array_reverse($commands),"on");
+				}
+			}
+			
+			return array(false,false,false);
+		}
+
+		/*
 			Function: getPageOfAPITokens
 				Returns a page of API Tokens (most recent first) and their related users.
 
@@ -5407,7 +5446,6 @@
 		*/
 
 		function makeIPL($url) {
-			global $cms;
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			// Check for resource link
 			if ($command[0] == "files" && $command[1] == "resources") {
@@ -5418,7 +5456,7 @@
 				}
 			}
 			// Check for page link
-			list($navid,$commands) = $cms->getNavId($command);
+			list($navid,$commands) = $this->getPageIDForPath($command);
 			if (!$navid) {
 				return $this->replaceHardRoots($url);
 			}
@@ -5537,7 +5575,7 @@
 				BigTree::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
 				if (is_array($thumbs)) {
 					foreach ($thumbs as $thumb) {
-						if (is_array($thumb)) {
+						if (is_array($thumb) && ($thumb["height"] || $thumb["width"])) {
 							// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
 							list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"]);
 
@@ -5602,7 +5640,15 @@
 
 			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
 			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded did not meet the minimum size of ".$field["options"]["min_width"]."x".$field["options"]["min_height"]);
+				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
+				if ($field["options"]["min_height"] && $field["options"]["min_width"]) {
+					$error .= $field["options"]["min_width"]."x".$field["options"]["min_height"]." pixels.";
+				} elseif ($field["options"]["min_height"]) {
+					$error .= $field["options"]["min_height"]." pixels tall.";
+				} elseif ($field["options"]["min_width"]) {
+					$error .= $field["options"]["min_width"]." pixels wide.";
+				}
+				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => $error);
 				$failed = true;
 			}
 

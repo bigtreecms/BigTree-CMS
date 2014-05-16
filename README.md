@@ -21,6 +21,7 @@ Changelog
 ---------
 
 ### 4.1 Release
+- ADDED: Built-in core updater (via local write and FTP, SFTP coming in 4.2)
 - ADDED: Page ID in Page Properties section.
 - ADDED: Multiple WYSIWYG options (TinyMCE 3, TinyMCE 4) - the default is now TinyMCE 4.
 - ADDED: The ability to have a WYSIWYG area degrade to "simple mode" if a user is not an admin / developer.
@@ -47,8 +48,20 @@ Changelog
 - ADDED: BigTreeCloudStorage class for easy manipulation of different cloud storage services (you can use Amazon, Rackspace, and Google together now through this class).
 - ADDED: Cloud Storage support to the "Foundry" file picker.
 - ADDED: BigTree::directoryContents method to list a directory's contents without looping it yourself.
+- ADDED: BigTreeFTP class for connecting to FTP sites.
+- ADDED: BigTreeAdmin::backupDatabase method for backing up the whole database.
+- ADDED: Forms/Views/Reports are now associated in the database directly with a module and should be properly deleted when a module is deleted.
+- ADDED: Some default security headers to the "Advanced" routing htaccess file
+- ADDED: Templates / Callouts / Field Types should now have better error checking on creation (to prevent duplicate ids)
+- ADDED: Modules now support an unlimited number of actions in their navigation -- if they exceed the width of the nav bar they will be placed in an overflow menu.
+- ADDED: BigTree::placeholderImage now supports JPG and GIF files
+- ADDED: Group Name Parser option to the Grouped view.
+- ADDED: getArchived, getUnarchived (equivalent to getNonArchived) and getUnapproved methods to BigTreeModule
 - ADDED/CHANGED: Callouts are no longer a template option; they are now a field type. You can have multiple sets of callouts and callout groups.
+- ADDED/CHANGED: The field types _photo-process.php function has been removed and replaced with BigTreeAdmin::processImageUpload (with better documentation)
+- ADDED/CHANGED: View Filters are now available on all view types but the filter occurs BEFORE processor functions are run (data passed in is raw from the database).
 - CHANGED: New Design
+- CHANGED: New Example Site
 - CHANGED: Duplicate resources are no longer stored as duplicates (use MD5 hashes to correlate dupes).
 - CHANGED: Editing a user in sites where lots of pages existed is now MUCH faster. Page trees are now loaded via AJAX when no permissions exist in them.
 - CHANGED: Generated Route field type now provides a drop down of columns to choose from instead of making you enter it manually.
@@ -56,6 +69,103 @@ Changelog
 - CHANGED: Removed a lot of third party API libraries and replaced them with custom coded (much simpler) classes (i.e. Amazon, Rackspace, Google Analytics).
 - CHANGED: References to resources uploaded through the File Manager are now encoded as irl://{id} so that references are better kept.
 - CHANGED: Big revamp of Cloud Storage section. You'll need to reauthenticate services and re-select the one you wish to use for default storage.
+- CHANGED: There is a new package format (incompatible with things packaged in 4.0) in preparation for full extension support in 4.2
+- CHANGED: There is no longer a "Template" tab in Pages. Templates are now stored in a single more clean dropdown in the Properties tab.
+- CHANGED: Configuration settings are no longer stored in /templates/config.php (though if you are upgrading, they will still be read from there). Configuratation settings are now split into /custom/settings.php (for environment independent settings) and environment.php (for settings that will differ between a live and development site).
+- CHANGED: BigTree 4.1 and higher require PHP 5.3+
+- CHANGED: Javascript Minifying now uses JShrink (jsMin was no longer maintained)
+- CHANGED: Updated CSSMin and LESS compiler
+- CHANGED: Updated static caching system (requires a new index.php if upgrading from 4.0) to be more efficient
+- CHANGED: When creating a module form/view/report you now automatically redirect back to editing the module instead of getting stuck on a completed page.
+- CHANGED: Adding or Editing a Module Action now only shows forms/views for the same module.
+- CHANGED: Parsers now run in a function scope instead of global.
+- CHANGED: getMatching now has fuzzy matching on values that could be NULL, blank, or 0. This allows methods like getNonArchived to work even if your database column allows null values.
+- CHANGED: Geocoding field type will now work properly on array-based content (i.e. the "Address" type of the main Text field type)
+- CHANGED: Upload / Photo Gallery field types now suggest a default directory.
+- CHANGED: Templates / Callouts now allow you to specify an upload directory for Upload / Photo Gallery field types instead of always forcing /files/pages/.
+- CHANGED: BigTree
+- FIXED: Lots of misspellings causing class docs to not generate properly.
+- REMOVED: (undocumented) optipng and jpegtran support.
+
+### 4.0.4 Release
+- FIXED: BigTreeadmin::getPageAccessLevelByUser only working for the logged in user's permissions and made it more efficient.
+- FIXED: Missing focus highlighting on installer fields
+- FIXED: An issue that would cause user creation to fail in PHP 5.2
+- FIXED: Image Memory manipulation calculations to be more accurate (should now catch large images more frequently)
+- FIXED: Overlays disappearing when creating a file or folder in the file manager failed
+- FIXED: Module Designer not letting you delete fields from a form
+- FIXED: Publishing drafts not working.
+- FIXED: Missing retina icons for thumbnail / delete in the crops editor.
+- FIXED: Thumbnails and Crops attempting to be processed even if they were left blank.
+- FIXED: Checkbox bug in the installer and adjusted a few other things
+- FIXED: Unarchiving second level children
+- FIXED: replaceInternalPageLinks converting 0 or another falsey value to "" (thanks tamtt)
+- FIXED: Keyboard arrow usage in Firefox on custom select fields
+- FIXED: Daily Digest / Password Reset email issues in GMail and Outlook
+- FIXED: Front End Editor not showing up if for some reason iframes are display: something-other-than-block in the user CSS
+- FIXED: asp/aspx files being allowed as user uploads
+
+### 4.0.3 Release
+- ADDED: Better support for installation on Windows with IIS
+- FIXED: Another PHP 5.2 compatibility issue in func_get_args
+- FIXED: Writable directory errors on Windows environments (should now better determine if a directory is writable)
+- FIXED: Static caching not working properly on routed template pages
+- FIXED: Reduced memory usage for cached pages
+- FIXED: Pages where POST vars were present being cached
+- FIXED: Disabled resources still being clickable in the File Manager
+- FIXED: Module Designer not properly creating columns in the table.
+- FIXED: Packager not properly recognizing the option to include data when exporting a table.
+- CHANGED: Resources (File Manager) permissions should now behave the same as Pages permissions in that you can have permission to a sub folder of a folder that you don't have permission to access (the folders you don't have permission to just appear empty and unwritable)
+- REMOVED: Settings encryption key as an option in the installer, it's now randomly generated and can be manually editing the config.
+
+### 4.0.2 Release
+- FIXED: BigTree::globalizeArray (and its related methods) no longer will overwrite BigTree's globals ($admin, $bigtree, $cms) and should no longer break if the passed in array contains previously used internal variable names to the method ("array", "key", "val", "functions", "func").
+- FIXED: BigTree::putFile failing if the root filesystem directory was not readable.
+- FIXED: Pending Changes page crashing if no view was present for a pending module change.
+- FIXED: Random hits to /pages/update/ causing blank drafts to the homepage.
+- FIXED: Admin bar showing up on different sites you're not logged into on the same domain (i.e. logged into /test/admin/ and not /test2/admin/).
+- FIXED: Autocomplete should now be off for password fields when editing a user.
+- FIXED: Settings icon randomly disappearing from templates editor when zoomed in on Safari/Chrome.
+- FIXED: Many to Many and Geocoding buttons not working on initial module form creation.
+- FIXED: When creating a callout, BigTree will now verify that the ID isn't in use by another callout.
+- FIXED: Some error messages not showing up properly after submitting a form.
+- FIXED: Field Types not including their related files when creating packages.
+- REMOVED: Google Analytics check from Site Status (new usage of Google Tag Manager prevents us from really knowing anyway).
+- UPDATED: Advanced .htaccess now includes a few more mime types that Apache occasionally gets confused (ogv, mp4, webm).
+
+### 4.0.1 Release
+- FIXED: IE prior to 10 having issues with background-gradient declarations that use rgba (using "CSS3" parser feature in BigTree)
+- FIXED: Issues with forms that contained multiple many to many fields.
+- FIXED: An issue where sometimes custom radio buttons in the admin would become duplicated.
+- FIXED: Advanced Search in the admin not searching callout content.
+- FIXED: BigTree's background-gradient parser when notices were turned on corrupting the end color.
+- FIXED: icon_export class in the admin using the same icon as icon_archive.
+- FIXED: Sorting of image views (you no longer have the option to choose a sort since it never worked).
+- FIXED: Sorting of views by ID should now properly sort numerically instead of alphabetically.
+- FIXED: An issue that occurred when a module had multiple forms and an error occurred in a form. The "Return & Edit" button should now return to the proper form.
+- FIXED: Mobile and Tablet responsive states of the example site.
+- FIXED: A rare issue that could occur where a fatal error would be thrown when editing a user if there was data corruption.
+- FIXED: Usernames with a single quote in them would sometimes corrupt with BigTree bar on the front end.
+- FIXED: Issues with numeric columns not sorting properly and database populated lists not sorting properly in sortable views.
+- FIXED: Incorrect styles for pagination in message center.
+- FIXED: Site Integrity Check running on archived pages.
+- FIXED: Analytics columns getting list bullets and bad line height.
+- FIXED: BigTree::globalizeGETVars / BigTree::globalizePOSTVars not working in PHP 5.2
+- FIXED: Incrementing of 404 hits not working when a 301 existed.
+- FIXED: Encrypted settings showing their existing value when editing them.
+- FIXED: Settings not having internal page links encoded and crops/errors not working properly.
+- FIXED: BigTree::putFile not working at all.
+- FIXED: Routed templates not working for the homepage.
+- FIXED: Module Designer failing to create table columns for column names that were reserved MySQL keywords.
+- FIXED: Example Site allowing for empty author fields in blog posts.
+- FIXED: Rejecting changes in Pending Changes not clearing view caches (which left the change appearing in views).
+- FIXED: $bigtree["current_page"] not existing while processing field types during a page update.
+- FIXED: Many to Many and Tags changes not being applied when approving a change in the Pending Changes section.
+- ADDED: SVG content-type headers to fix serving svg files in htaccess
+- UPDATED: Newer version of CSSMin class.
+- CHANGED: Draggable views with search results should now order by the first column instead of their "position" for easier browseability.
+- CHANGED: Many to Many fields in forms now have more obscure form keys to make key collisions less likely.
+- REMOVED: Deprecated Twitter API class from the example site.
 
 ### 4.0 Release
 - ADDED: Multiple Service APIs (Twitter, Instagram, YouTube, Google+, Flickr, Disqus)

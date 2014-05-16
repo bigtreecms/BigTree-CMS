@@ -11,7 +11,7 @@
 		var $Connected = false;
 		var $Errors = array();
 		var $Settings = array();
-		var $SettingID = "";
+		var $SettingID = false;
 
 		/*
 			Constructor:
@@ -28,6 +28,7 @@
 
 			// If we don't have the setting for the API, create it.
 			$this->Settings = &$cms->autoSaveSetting($setting_id,false);
+			$this->SettingID = $setting_id;
 
 			// Setup dependency table for cache busting
 			$this->Settings["hash_table"] = is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();

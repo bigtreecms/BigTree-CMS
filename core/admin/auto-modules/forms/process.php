@@ -76,7 +76,7 @@
 			if (is_array($bigtree["post_data"][$field["key"]])) {
 				$field["output"] = $bigtree["post_data"][$field["key"]];
 			} else {
-				$field["output"] = htmlspecialchars(htmlspecialchars_decode($bigtree["post_data"][$field["key"]]));
+				$field["output"] = BigTree::safeEncode($bigtree["post_data"][$field["key"]]);
 			}
 		}
 
@@ -238,10 +238,10 @@
 		"crops" => $bigtree["crops"]
 	);
 	
-	if (count($bigtree["errors"])) {
-		BigTree::redirect($bigtree["form_root"]."error/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
 		BigTree::redirect($bigtree["form_root"]."crop/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect($bigtree["form_root"]."error/");
 	} else {
 		BigTree::redirect($redirect_url);
 	}

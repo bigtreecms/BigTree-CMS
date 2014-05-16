@@ -280,14 +280,13 @@ var BigTreeCheckbox = Class.extend({
 // !BigTreeSelect Class
 var BigTreeSelect = Class.extend({
 
-	Element: false,
-	Container: false,
-	Open: false,
-	Options: [],
 	BoundWindowClick: false,
 	BoundOverflowScroll: false,
+	Container: false,
+	Element: false,
+	Open: false,
+	Options: [],
 	WasRelative: false,
-	KeyDownBind: false,
 	
 	init: function(element) {
 		this.Element = $(element);
@@ -418,9 +417,10 @@ var BigTreeSelect = Class.extend({
 			this.Container.addClass("disabled");
 		}
 		
-		// Observe focus on the select that's been hidden.
+		// Observe focus, blur, and keydown on the hidden element.
 		this.Element.focus($.proxy(this.focus,this));
 		this.Element.blur($.proxy(this.blur,this));
+		this.Element.keydown($.proxy(this.keydown,this));
 		// Custom event to force open lists closed when another select opens.
 		this.Element.on("closeNow",$.proxy(this.close,this));
 	},
@@ -461,7 +461,6 @@ var BigTreeSelect = Class.extend({
 	
 	blur: function() {
 		this.Container.removeClass("focused");
-		this.Element.unbind("keydown");
 	},
 
 	click: function() {
@@ -561,8 +560,6 @@ var BigTreeSelect = Class.extend({
 
 	focus: function() {
 		this.Container.addClass("focused");
-		this.KeyBindDown = $.proxy(this.keydown,this);
-		this.Element.keydown(this.KeyBindDown);
 	},	
 	
 	keydown: function(ev) {
@@ -583,14 +580,14 @@ var BigTreeSelect = Class.extend({
 		index = el.selectedIndex;
 		oindex = index;
 		
-		// Up arrow pressed
-		if (ev.keyCode == 38) {
+		// Up or left arrow pressed
+		if (ev.keyCode == 38 || ev.keyCode == 37) {
 			index--;
 			if (index < 0) {
 				index = 0;
 			}
-		// Down arrow pressed
-		} else if (ev.keyCode == 40) {
+		// Down or right arrow pressed
+		} else if (ev.keyCode == 40 || ev.keyCode == 39) {
 			index++;
 			if (index == el.options.length) {
 				index--;
@@ -644,14 +641,15 @@ var BigTreeSelect = Class.extend({
 				select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
 			}
 	
-			el.selectedIndex = index;
+			// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
+			if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
+			} else {
+				el.selectedIndex = index;
+			}
+
 			this.Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
 			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 			
-			// This hack brought to you by Firefox, who ignores the fact that we don't want it handling the change in selectedIndex
-			this.Element.blur();
-			setTimeout($.proxy(function() { this.focus(); },this.Element),50);
-
 			return false;
 		}
 		
@@ -1179,13 +1177,15 @@ var BigTreeDialog = Class.extend({
 
 		// If they hit escape, close the dialog
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
+
 		// Setup a callback to give the data to once they submit their dialog
 		this.onComplete = defaults.callback;
 		this.onCancel = defaults.cancelHook;
 
 		// Build our window
-		overlay = $('<div class="bigtree_dialog_overlay">');
-		dialog_window = $('<div class="bigtree_dialog_window">');
+		overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		dialog_window = $('<div class="bigtree_dialog_window" style="z-index: ' + (BigTree.zIndex++) + ';">');
+
 		$("body").append(overlay).append(dialog_window);
 		html = '<h2>';
 		if (defaults.icon) {
@@ -1246,6 +1246,7 @@ var BigTreeDialog = Class.extend({
 			$(".bigtree_dialog_window").last().remove();
 			$("body").off("keyup");
 			$(window).off("resize");
+			BigTree.zIndex -= 2;
 		}
 		return false;
 	},
@@ -1337,6 +1338,7 @@ var BigTreeFileManager = {
 	cancelAdd: function() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
+		BigTree.zIndex -= 2;
 		
 		return false;
 	},
@@ -1371,6 +1373,7 @@ var BigTreeFileManager = {
 	closeFileBrowser: function() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
+		BigTree.zIndex = BigTree.zIndexBackup;
 		$("#mceModalBlocker, #mce-modal-block").show();
 		
 		return false;
@@ -1479,6 +1482,7 @@ var BigTreeFileManager = {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
+		BigTree.zIndex -= 3;
 		
 		if (this.type == "image" || this.type == "photo-gallery") {
 			this.openImageFolder(this.currentFolder);	
@@ -1563,10 +1567,14 @@ var BigTreeFileManager = {
 		height = BigTree.WindowHeight();
 		leftOffset = Math.round((width - 820) / 2);
 		topOffset = Math.round((height - 500) / 2);
+
+		// Set BigTree's zIndex super high because TinyMCE will try to be on top
+		BigTree.zIndexBackup = BigTree.zIndex;
+		BigTree.zIndex = 500000;
 		
 		// Create the window.
-		overlay = $('<div class="bigtree_dialog_overlay">');
-		this.browser = $('<div id="file_browser">');
+		overlay = $('<div class="bigtree_dialog_overlay" style="z-index:' + (BigTree.zIndex++) + ';">');
+		this.browser = $('<div id="file_browser" style="z-index: ' + (BigTree.zIndex++) + ';">');
 		this.browser.css({ top: topOffset + "px", left: leftOffset + "px" });
 		
 		this.browser.html('\
@@ -2498,7 +2506,12 @@ var BigTreeToolTip = Class.extend({
 		
 		if (auto_close) {
 			$(selector).mouseenter($.proxy(this.showTip,this));
-			$(selector).mouseleave($.proxy(function() { this.container.stop().fadeTo(200, 0, function() { $(this).hide(); }); },this));
+			$(selector).mouseleave($.proxy(function() {
+				this.container.stop().fadeTo(200, 0, function() {
+					$(this).hide();
+				});
+				BigTree.zIndex--;
+			},this));
 		} else {
 			$(selector).click($.proxy(this.showTip,this));
 		}
@@ -2506,6 +2519,7 @@ var BigTreeToolTip = Class.extend({
 	
 	close: function() {
 		this.container.stop().fadeTo(200, 0, function() { $(this).hide(); });
+		BigTree.zIndex--;
 		return false;
 	},
 	
@@ -2539,7 +2553,7 @@ var BigTreeToolTip = Class.extend({
 			t = offset.top - container.height() - 5;
 		}
 		
-		this.container.css({ left: l + "px", top: t + "px" }).stop().fadeTo(200, 1);
+		this.container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.zIndex++) }).stop().fadeTo(200, 1);
 	}
 });
 
@@ -2550,8 +2564,8 @@ var BigTreeFoundryBrowser = Class.extend({
 
 	init: function(directory,oncomplete,cloud_disabled,file,location,container,base_lock) {
 		this.onComplete = oncomplete;
-		overlay = $('<div class="bigtree_dialog_overlay">');
-		browserwindow = $('<div id="bigtree_foundry_browser_window">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
+		overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		browserwindow = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.zIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
 		$("body").append(overlay).append(browserwindow);
 		if (base_lock) {
 			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: directory, directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
@@ -2570,6 +2584,7 @@ var BigTreeFoundryBrowser = Class.extend({
 		this.onComplete(data);
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#bigtree_foundry_browser_window").remove();
+		BigTree.zIndex -= 2;
 		return false;
 
 	}
@@ -2580,6 +2595,7 @@ var BigTree = {
 	stickyControls: false,
 	stickyControlsTop: false,
 	stickyControlsStuck: false,
+	zIndex: 1000,
 
 	CleanHref: function(href) {
 		return href.substr(href.indexOf("#")+1);

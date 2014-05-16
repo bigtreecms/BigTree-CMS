@@ -254,8 +254,6 @@
 		bt_mkdir_writable("custom/admin/ajax/");
 		bt_mkdir_writable("custom/admin/css/");
 		bt_mkdir_writable("custom/admin/images/");
-		bt_mkdir_writable("custom/admin/images/modules/");
-		bt_mkdir_writable("custom/admin/images/templates/");
 		bt_mkdir_writable("custom/admin/modules/");
 		bt_mkdir_writable("custom/admin/pages/");
 		bt_mkdir_writable("custom/admin/form-field-types/");
@@ -398,60 +396,59 @@
 		
 		if ($routing == "advanced") {
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
-  # force deflate for mangled headers developer.yahoo.com/blogs/ydn/posts/2010/12/pushing-beyond-gzipping/
-  <IfModule mod_setenvif.c>
-	<IfModule mod_headers.c>
-	  SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
-	  RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+	<IfModule mod_setenvif.c>
+		<IfModule mod_headers.c>
+			SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+			RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+		</IfModule>
 	</IfModule>
-  </IfModule>
-  
-  # html, txt, css, js, json, xml, htc:
-  <IfModule filter_module>
-   FilterDeclare   COMPRESS
-   FilterProvider  COMPRESS  DEFLATE resp=Content-Type /text/(html|css|javascript|plain|x(ml|-component))/
-   FilterProvider  COMPRESS  DEFLATE resp=Content-Type /application/(javascript|json|xml|x-javascript)/
-   FilterChain	 COMPRESS
-   FilterProtocol  COMPRESS  change=yes;byteranges=no
- </IfModule>
- 
- # Legacy versions of Apache
- <IfModule !mod_filter.c>
-   AddOutputFilterByType DEFLATE text/html text/plain text/css application/json
-   AddOutputFilterByType DEFLATE text/javascript application/javascript application/x-javascript 
-   AddOutputFilterByType DEFLATE text/xml application/xml text/x-component
- </IfModule>
- 
- # webfonts and svg:
- <FilesMatch "\.(ttf|otf|eot|svg)$">
-   SetOutputFilter DEFLATE
- </FilesMatch>
+
+	<IfModule mod_filter.c>
+		AddOutputFilterByType DEFLATE 	application/atom+xml \
+										application/javascript \
+										application/json \
+										application/ld+json \
+										application/rss+xml \
+										application/vnd.ms-fontobject \
+										application/x-font-ttf \
+										application/x-web-app-manifest+json \
+										application/xhtml+xml \
+										application/xml \
+										font/opentype \
+										image/svg+xml \
+										image/x-icon \
+										text/css \
+										text/html \
+										text/plain \
+										text/x-component \
+										text/xml
+	</IfModule>
 </IfModule>
 
 <IfModule mod_expires.c>
-  ExpiresActive On
-  ExpiresByType image/gif "access plus 1 month"
-  ExpiresByType image/png "access plus 1 month"
-  ExpiresByType image/jpeg "access plus 1 month"
-  ExpiresByType text/css "access plus 1 month"
-  ExpiresByType text/javascript "access plus 1 month"
-  ExpiresByType application/x-javascript "access plus 1 month"
-  ExpiresByType application/x-shockwave-flash "access plus 1 month"
-  
-  ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
-  ExpiresByType font/ttf "access plus 1 month"
-  ExpiresByType font/otf "access plus 1 month"
-  ExpiresByType font/x-woff "access plus 1 month"
-  ExpiresByType image/svg+xml "access plus 1 month"
+	ExpiresActive On
+	ExpiresByType image/gif "access plus 1 month"
+	ExpiresByType image/png "access plus 1 month"
+	ExpiresByType image/jpeg "access plus 1 month"
+	ExpiresByType text/css "access plus 1 month"
+	ExpiresByType text/javascript "access plus 1 month"
+	ExpiresByType application/x-javascript "access plus 1 month"
+	ExpiresByType application/x-shockwave-flash "access plus 1 month"
+	
+	ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
+	ExpiresByType font/ttf "access plus 1 month"
+	ExpiresByType font/otf "access plus 1 month"
+	ExpiresByType font/x-woff "access plus 1 month"
+	ExpiresByType image/svg+xml "access plus 1 month"
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(ttf|otf|eot|woff)$">
+	<FilesMatch "\.(ttf|otf|eot|woff)$">
 	Header set Access-Control-Allow-Origin "*"
-  </FilesMatch>
-  Header set X-Content-Type-Options "nosniff"
-  Header set X-XSS-Protection "1; mode=block"
-  Header set X-Permitted-Cross-Domain-Policies "master-only"
+	</FilesMatch>
+	Header set X-Content-Type-Options "nosniff"
+	Header set X-XSS-Protection "1; mode=block"
+	Header set X-Permitted-Cross-Domain-Policies "master-only"
 </IfModule>
 
 AddType image/svg+xml svg
@@ -660,15 +657,15 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
-					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="12" autocomplete="off" />
+					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="10" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="13" autocomplete="off" />
+					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="11" autocomplete="off" />
 				</fieldset>
 				<fieldset class="clear">
 					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="11" />
+					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="12" />
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
 				
@@ -694,7 +691,7 @@ RewriteRule (.*) site/$1 [L]');
 					</ul>
 				</fieldset>
 				<fieldset class="clear">
-					<select name="routing">
+					<select name="routing" tabindex="13">
 						<?php
 							if ($iis) {
 						?>

@@ -1091,7 +1091,7 @@
 			$source_height = $info[1];
 
 			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
-			if ($info["mime"] == "image/jpg") {
+			if ($info["mime"] == "image/jpg" || $info["mime"] == "image/jpeg") {
 				$source_size = ceil($source_width * $source_height * 3 * 1.7); 
 				$target_size = ceil($width * $height * 3 * 1.7);
 			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
@@ -1687,6 +1687,27 @@
 		static function runParser($item,$value,$code) {
 			eval($code);
 			return $value;
+		}
+
+		/*
+			Function: safeEncode
+				Modifies a string so that it is safe for display on the web (tags and quotes modified for usage inside attributes) without double-encoding.
+				Ensures that other html entities (like &hellip;) turn into UTF-8 characters before encoding.
+				Only to be used when your website's character set is UTF-8.
+
+			Parameters:
+				string - String to encode
+
+			Returns:
+				Encoded string.
+		*/
+
+		static function safeEncode($string) {
+			if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
+				return htmlspecialchars(html_entity_decode($string,ENT_HTML5));
+			} else {
+				return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
+			}
 		}
 		
 		/*

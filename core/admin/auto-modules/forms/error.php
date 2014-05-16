@@ -1,14 +1,6 @@
 <?
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 
-	// If we have crops, let's continue
-	if (count($crops)) {
-		if ($page) {
-			$return_link = $bigtree["form_root"]."crop/$page/";
-		} else {
-			$return_link = $bigtree["form_root"]."crop/";
-		}
-	} 
 	// Override the default H1
 	$bigtree["page_override"] = array("title" => "Errors Occurred","icon" => "page_404");
 ?>

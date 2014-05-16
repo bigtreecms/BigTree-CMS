@@ -182,9 +182,9 @@
 					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 					$fields[] = "column$x";
 					if (isset($parsers[$field]) && $parsers[$field]) {
-						$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode($item[$field])))."'";					
+						$vals[] = "'".sqlescape(BigTree::safeEncode($item[$field]))."'";					
 					} else {
-						$vals[] = "'".sqlescape(htmlspecialchars(htmlspecialchars_decode(strip_tags($item[$field]))))."'";
+						$vals[] = "'".sqlescape(BigTree::safeEncode(strip_tags($item[$field])))."'";
 					}
 					$x++;
 				}

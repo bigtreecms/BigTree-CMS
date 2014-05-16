@@ -23,12 +23,14 @@
 			// Get by reference because we modify it.
 			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
 			
-			if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
-				$this->Cloud = new BigTreeCloudStorage("amazon");
-			} elseif ($this->Settings->Service == "rackspace") {
-				$this->Cloud = new BigTreeCloudStorage("rackspace");
-			} elseif ($this->Settings->Service == "google") {
-				$this->Cloud = new BigTreeCloudStorage("google");
+			if (!empty($this->Settings->Service)) {
+				if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
+					$this->Cloud = new BigTreeCloudStorage("amazon");
+				} elseif ($this->Settings->Service == "rackspace") {
+					$this->Cloud = new BigTreeCloudStorage("rackspace");
+				} elseif ($this->Settings->Service == "google") {
+					$this->Cloud = new BigTreeCloudStorage("google");
+				}
 			}
 		}
 

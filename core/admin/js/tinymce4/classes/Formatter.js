@@ -25,8 +25,9 @@
 define("tinymce/Formatter", [
 	"tinymce/dom/TreeWalker",
 	"tinymce/dom/RangeUtils",
-	"tinymce/util/Tools"
-], function(TreeWalker, RangeUtils, Tools) {
+	"tinymce/util/Tools",
+	"tinymce/fmt/Preview"
+], function(TreeWalker, RangeUtils, Tools, Preview) {
 	/**
 	 * Constructs a new formatter instance.
 	 *
@@ -75,6 +76,19 @@ define("tinymce/Formatter", [
 
 		function defaultFormats() {
 			register({
+				
+				valigntop: [
+					{selector: 'td,th', styles: {'verticalAlign': 'top'}}
+				],
+
+				valignmiddle: [
+					{selector: 'td,th', styles: {'verticalAlign': 'middle'}}
+				],
+
+				valignbottom: [
+					{selector: 'td,th', styles: {'verticalAlign': 'bottom'}}
+				],
+
 				alignleft: [
 					{selector: 'figure,p,h1,h2,h3,h4,h5,h6,td,th,tr,div,ul,ol,li', styles: {textAlign: 'left'}, defaultBlock: 'div'},
 					{selector: 'img,table', collapsed: false, styles: {'float': 'left'}}
@@ -288,6 +302,16 @@ define("tinymce/Formatter", [
 					each(fmt.styles, function(value, name) {
 						dom.setStyle(elm, name, replaceVars(value, vars));
 					});
+
+					// Needed for the WebKit span spam bug
+					// TODO: Remove this once WebKit/Blink fixes this
+					if (fmt.styles) {
+						var styleVal = dom.getAttrib(elm, 'style');
+
+						if (styleVal) {
+							elm.setAttribute('data-mce-style', styleVal);
+						}
+					}
 
 					each(fmt.attributes, function(value, name) {
 						dom.setAttrib(elm, name, replaceVars(value, vars));
@@ -1191,6 +1215,20 @@ define("tinymce/Formatter", [
 			return this;
 		}
 
+		/**
+		 * Returns a preview css text for the specified format.
+		 *
+		 * @method getCssText
+		 * @param {String/Object} format Format to generate preview css text for.
+		 * @return {String} Css text for the specified format.
+		 * @example
+		 * var cssText1 = editor.formatter.getCssText('bold');
+		 * var cssText2 = editor.formatter.getCssText({inline: 'b'});
+		 */
+		function getCssText(format) {
+			return Preview.getCssText(ed, format);
+		}
+
 		// Expose to public
 		extend(this, {
 			get: get,
@@ -1202,7 +1240,8 @@ define("tinymce/Formatter", [
 			matchAll: matchAll,
 			matchNode: matchNode,
 			canApply: canApply,
-			formatChanged: formatChanged
+			formatChanged: formatChanged,
+			getCssText: getCssText
 		});
 
 		// Initialize

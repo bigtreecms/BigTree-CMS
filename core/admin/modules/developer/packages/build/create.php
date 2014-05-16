@@ -68,22 +68,24 @@
 	
 	foreach ((array)$modules as $module) {
 		$module = $admin->getModule($module);
-		$module["actions"] = $admin->getModuleActions($module["id"]);
-		foreach ($module["actions"] as $a) {
-			// If there's an auto module, include it as well.
-			if ($a["form"] && !in_array($a["form"],$used_forms)) {
-				$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
-				$used_forms[] = $a["form"];
-			} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-				$module["views"][] = BigTreeAutoModule::getView($a["view"],false);
-				$used_views[] = $a["view"];
-			} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
-				$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
-				$used_reports[] = $a["report"];
+		if ($module) {
+			$module["actions"] = $admin->getModuleActions($module["id"]);
+			foreach ($module["actions"] as $a) {
+				// If there's an auto module, include it as well.
+				if ($a["form"] && !in_array($a["form"],$used_forms)) {
+					$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
+					$used_forms[] = $a["form"];
+				} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
+					$module["views"][] = BigTreeAutoModule::getView($a["view"],false);
+					$used_views[] = $a["view"];
+				} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
+					$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
+					$used_reports[] = $a["report"];
+				}
 			}
+			$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
+			$package["components"]["modules"][] = $module;
 		}
-		$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
-		$package["components"]["modules"][] = $module;
 	}
 	
 	foreach ((array)$templates as $template) {

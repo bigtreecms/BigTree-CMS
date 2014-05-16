@@ -26,7 +26,7 @@
 	
 	if ($bigtree["callout"]["description"]) {
 ?>
-<p class="callout_description"><?=htmlspecialchars(htmlspecialchars_decode($bigtree["callout"]["description"]))?></p>
+<p class="callout_description"><?=BigTree::safeEncode($bigtree["callout"]["description"])?></p>
 <?
 	}
 	

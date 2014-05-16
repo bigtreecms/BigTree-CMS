@@ -109,8 +109,8 @@
 	/* !Header */
 	#header { background: $brown; height: 40px; line-height: 40px; padding: 0 20px; position: relative; width: 100%; z-index: 5; }
 	#header .branding { color: $white; color: $white75; float: left; font-size: 16px; line-height: 36px; }
-	
 	#header .shifter-handle { background: $iconSprite 0 0; height: 15px; margin: 12px 0 0; opacity: 0.75; width: 20px; }
+	.bigtree_bar_closed #header { padding-left: 60px; }
 	
 	/* !Footer */
 	#footer { padding: 0 0 50px; }

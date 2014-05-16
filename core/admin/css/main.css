@@ -165,13 +165,6 @@
 	textarea { border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: Helvetica,sans-serif; font-size: 12px; height: 150px; line-height: 16px; margin: 0; padding: 5px 10px; transition: border-color 0.2s; width: 875px; }
 	textarea:focus { border-color: #AAA; }
 	textarea[disabled] { background: #F6F6F6; opacity: 0.5; }
-	.form_error .mceEditor table.mceLayout { border-color: #C0362F; }
-	.form_error .defaultSkin table.mceLayout tr.mceFirst td { border-color: #C0362F; }
-	.form_error .defaultSkin table.mceLayout tr.mceLast td { border-color: #C0362F; }
-	.form_error .defaultSkin .mceIframeContainer { border-color: #C0362F; }
-
-	#message_path_row, .defaultSkin .mceListBox .mceText, .defaultSkin .mceMenuItemTitle span.mceText, .defaultSkin .mce_p span.mceText, .defaultSkin .mce_h2 span.mceText,.defaultSkin .mce_h3 span.mceText, .defaultSkin .mce_h4 span.mceText { user-select: none; }
-	.container .defaultSkin .mceStatusbar { background: #CCC url(../images/row-bg-sprite.png) repeat-x 0px -188px; }
 
 	.checkbox { float: left; margin: 0 7px 0 0; }
 	.checkbox a { background: url(../images/icon-sprite.svg) -150px -105px; cursor: pointer; display: block; height: 16px; width: 16px; }
@@ -603,9 +596,9 @@
 	.table section .disabled_icon { margin: 5px 0 0 0; }
 
 	.table > ul li.published { }
-	.table > ul li.pending { background: #fff url(../images/row-bg-sprite.png) 0px -36px; }
-	.table > ul li.scheduled { background: #fff url(../images/row-bg-sprite.png) 0px -72px; }
-	.table > ul li.expired { background: #fff url(../images/row-bg-sprite.png) 0px 0px; }
+	.table > ul li.pending { background: #F1F1F1; }
+	.table > ul li.scheduled { background: #EDF6FB; }
+	.table > ul li.expired { background: #FCF2F1; }
 
 	.table > ul li section.view_status { text-transform: uppercase; }
 	.table > ul li.pending section, .table > ul li.scheduled section, .table > ul li.expired section { opacity: 0.5; }
@@ -1143,10 +1136,9 @@
 		BigTree Dialog
 ---------------------------*/
 
-	#bigtree_file_browser_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 500000; }
-	.bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; z-index: 500000; }
+	.bigtree_dialog_overlay { background: rgba(0,0,0,0.6); height: 100%; left: 0; position: fixed; top: 0; width: 100%; }
 
-	.bigtree_dialog_window { background: #FFF; border-radius: 3px; position: fixed; z-index: 500000; }
+	.bigtree_dialog_window { background: #FFF; border-radius: 3px; position: fixed; }
 	.bigtree_dialog_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; float: none; font-family: Helvetica; font-size: 14px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; text-transform: uppercase; }
 	.bigtree_dialog_window h2 span { float: left; margin: 2px 5px 0 0; }
 	.bigtree_dialog_window footer { background: #eee; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; padding: 20px; }
@@ -1230,7 +1222,7 @@
 /*---------------------------
 	BigTree File Browser
 ---------------------------*/
-	#file_browser { background: #FFF; border-radius: 3px; height: 551px; overflow: hidden; position: fixed; width: 820px; z-index: 500000; }
+	#file_browser { background: #FFF; border-radius: 3px; height: 551px; overflow: hidden; position: fixed; width: 820px; }
 	#file_browser .header { background: #EEE; border-radius: 2px 2px 0 0; height: 37px; line-height: 37px; padding: 0 5px 0 10px; }
 	#file_browser .header input { float: right; margin: 5px 0 0 3px; width: 173px; }
 	#file_browser .header h2 { float: left; font-size: 18px; line-height: 37px; margin: 0 0 0 5px; }
@@ -1570,7 +1562,7 @@
 
 /* ToolTip */
 	.tooltip { position: absolute; }
-	.tooltip article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; overflow: hidden; padding: 15px; z-index: 1000; }
+	.tooltip article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; overflow: hidden; padding: 15px; }
 	.tooltip article .icon_tooltip { float: left; margin: 0 10px 0 0; }
 	.tooltip article .content { float: left; max-width: 250px; }
 	.tooltip article .content p { color: rgba(255,255,255,0.8); font-size: 12px; line-height: 14px; margin: 0 0 5px 0; }
@@ -1579,7 +1571,7 @@
 	.tooltip article .content li { color: rgba(255,255,255,0.8); font-size: 12px; line-height: 16px; list-style: square outside; margin: 0 0 5px 0; }
 	.tooltip article .content li:last-child { margin: 0; }
 	.tooltip article .close { background: url(../images/icon-sprite.svg) -136px -106px; float: right; height: 10px; margin: -5px -5px 0 0; width: 10px; }
-	.tooltip .arrow { background: url(../images/icon-sprite.svg); position: relative; z-index: 1001; }
+	.tooltip .arrow { background: url(../images/icon-sprite.svg); position: relative; }
 	.tooltip_below .arrow { background-position: -431px -105px; display: block; float: none; height: 10px; margin: 0 0 0 18px; width: 21px; }
 	.tooltip_above .arrow { background-position: -420px -105px; display: block; float: none; height: 10px; margin: 0 0 0 18px; width: 21px; }
 	.tooltip_right article { float: left; }
@@ -1642,7 +1634,7 @@
 	BigTree Foundry Browser
 ---------------------------*/
 
-	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #666; border-radius: 2px; height: 400px; overflow: hidden; position: fixed; width: 600px; z-index: 500000; }
+	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #666; border-radius: 2px; height: 400px; overflow: hidden; position: fixed; width: 600px; }
 	#bigtree_foundry_browser_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; }
 	#bigtree_foundry_browser_close { background: url(../images/icons/cross.png); display: block; float: right; height: 16px; margin: -2px 3px 0 0; width: 16px; }
 	#bigtree_foundry_browser_form { clear: both; margin: 0; }
@@ -1673,13 +1665,13 @@
 	.install_wrapper h1 { color: #333; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; }
 	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; overflow: hidden; padding: 30px 0 0; }
 	.install_wrapper h2 { color: #444; float: left; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; }
-	.install_wrapper h2 span { background: url(../images/icon-sprite.svg) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
-	.install_wrapper h2.getting_started span { background-position: -390px -175px; }
-	.install_wrapper h2.database span { background-position: -365px -175px; }
-	.install_wrapper h2.security span { background-position: -342px -178px; }
-	.install_wrapper h2.account span { background-position: -315px -175px; }
-	.install_wrapper h2.routing span { background-position: -265px -175px; }
-	.install_wrapper h2.example span { background-position: -290px -174px; }
+	.install_wrapper h2 span { background: url(../images/install-sprite.png) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
+	.install_wrapper h2.getting_started span { background-position: -125px 0px; }
+	.install_wrapper h2.database span { background-position: -100px 0px; }
+	.install_wrapper h2.security span { background-position: -75px 0px; }
+	.install_wrapper h2.account span { background-position: -50px 0px; }
+	.install_wrapper h2.routing span { background-position: 0px 0px; }
+	.install_wrapper h2.example span { background-position: -25px 0px; }
 	.install_wrapper fieldset { margin: 0; padding: 0 30px; }
 	.install_wrapper fieldset.left { float: left; margin: 0; padding: 0 0 0 30px; width: auto; }
 	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
@@ -1703,6 +1695,11 @@
 	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 20px 30px; }
 	.install_wrapper ul li { margin: 5px 0; }
 	.install_wrapper code { background: #FCFCFC; border: 1px solid #CCC; color: #333; display: block; line-height: 200%; margin: 20px 0; padding: 10px 20px; }
+	.install_wrapper .select .handle { background: url(../images/install-sprite.png) -32px -25px; }
+	.install_wrapper .checkbox a { background: url(../images/install-sprite.png) 0px -25px; }
+	.install_wrapper .checkbox a.checked { background-position: 0px -41px; }
+	.install_wrapper .checkbox a.focused { background-position: -16px -25px; }
+	.install_wrapper .checkbox a.checked.focused { background-position: -16px -41px; }
 	
 /*---------------------------
 	Embedded Form Styles
@@ -1719,6 +1716,15 @@
 	body.embedded div.error_table { border: 1px solid #CCC; margin: -30px 0 0 0; }
 	body.embedded div.error_table .field { padding: 0 0 0 20px; width: calc(28.1837% - 20px); }
 	body.embedded div.error_table .error { padding: 0 0 0 20px; width: calc(71.8163% - 20px); }
+
+/*----------------------------
+	Custom TinyMCE 3 Styles
+-----------------------------*/
+	.form_error .mceEditor table.mceLayout { border-color: #C0362F; }
+	.form_error .defaultSkin table.mceLayout tr.mceFirst td { border-color: #C0362F; }
+	.form_error .defaultSkin table.mceLayout tr.mceLast td { border-color: #C0362F; }
+	.form_error .defaultSkin .mceIframeContainer { border-color: #C0362F; }
+	#message_path_row, .defaultSkin .mceListBox .mceText, .defaultSkin .mceMenuItemTitle span.mceText, .defaultSkin .mce_p span.mceText, .defaultSkin .mce_h2 span.mceText,.defaultSkin .mce_h3 span.mceText, .defaultSkin .mce_h4 span.mceText { user-select: none; }
 
 /*----------------------------
 	Custom TinyMCE 4 Styles
@@ -1793,6 +1799,11 @@
 	#redactor_modal .redactor_modal_btn:hover { background-color: #BBB; background-color: rgba(0, 0, 0, 0.15); }
 	#redactor_modal .redactor_modal_action_btn:hover { background-color: #4287CE; }
 	#redactor_modal input[type=text]:last-child { margin: 0 !important; }
+
+/* Retina Query for Installer */
+@media (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {
+	.install_wrapper h2 span, .install_wrapper .checkbox a, .install_wrapper .select .handle { background-image: url(../images/install-sprite-2x.png); }
+}
 
 /*-----------------------------
 	Internet Explorer Fixes

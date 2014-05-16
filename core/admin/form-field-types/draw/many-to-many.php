@@ -66,11 +66,11 @@
 			foreach ($entries as $id => $description) {
 		?>
 		<li>
-			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=htmlspecialchars(htmlspecialchars_decode($id))?>" />
+			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
 			<? if ($sortable) { ?>
 			<span class="icon_sort"></span>
 			<? } ?>
-			<p><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags($description),100)))?></p>
+			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($description),100))?></p>
 			<a href="#" class="icon_delete"></a>
 		</li>
 		<?
@@ -81,7 +81,7 @@
 	<footer>
 		<select>
 			<? foreach ($list as $k => $v) { ?>
-			<option value="<?=htmlspecialchars(htmlspecialchars_decode($k))?>"><?=htmlspecialchars(htmlspecialchars_decode(BigTree::trimLength(strip_tags($v),100)))?></option>
+			<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v),100))?></option>
 			<? } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>

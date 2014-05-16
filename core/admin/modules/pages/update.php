@@ -121,10 +121,10 @@
 		"crops" => $bigtree["crops"]
 	);
 	
-	if (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."pages/error/$id/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/crop/$id/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."pages/error/$id/");
 	}
 
 	BigTree::redirect($redirect_url);
