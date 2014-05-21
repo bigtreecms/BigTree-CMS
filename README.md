@@ -20,6 +20,16 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2 Release
+- ADDED: Extensions Support
+- ADDED: On-Publish Hook support for forms
+- ADDED: "clear" method to BigTreeRadio / BigTreeCheckbox to uncheck
+- CHANGED: BigTreeDialog now supports an options object with named parameters instead of a long list of confusing parameters.
+- CHANGED: Pre / Post callbacks for forms are now integrated into Hooks
+- CHANGED: BigTree running on PHP 5.4+ will now save its data in pretty-print JSON without escaped quotes for improved database editability.
+- CHANGED: AJAX folder routing will now include _header.php and _footer.php from the directories like templates.
+- CHANGED: You can now include links in <label class="for_checkbox"> elements.
+
 ### 4.1 Release
 - ADDED: Built-in core updater (via local write and FTP, SFTP coming in 4.2)
 - ADDED: Page ID in Page Properties section.
