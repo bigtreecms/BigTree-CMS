@@ -772,35 +772,5 @@
 			
 			return array("author" => $author["id"]);
 		}
-		
-		// Custom APRE function to allow for overriding Post Authors
-		function updatePostCustomAuthor($data) {
-			global $cms,$admin;
-			
-			if ($data["author"]) {
-				return $author["id"] = $author;
-			} else if ($data["id"]) {
-			// If they already have an author ID, we don't want to change it, but still need to return the current value for permission's sake.
-				if (!is_numeric($data["id"])) {
-					// We need to figure out the pending data, get the author from there and return it.
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($data["id"],1))."'"));
-					$c = json_decode($f["changes"],true);
-					return array("author" => $c["author"]);
-				} else {
-					// Get the active entry's author
-					$f = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_posts WHERE id = '".sqlescape($data["id"])."'"));
-					return array("author" => $f["author"]);
-				}
-			}
-
-			// Get author info based on who's logged in doing this update.
-			$author = sqlfetch(sqlquery("SELECT * FROM btx_dogwood_authors WHERE user = '".sqlescape($admin->ID)."'"));
-			if (!$author) {
-				$author = array("id" => 0);
-			}
-			
-			return array("author" => $author["id"]);
-
-		}
 	}
 ?>
