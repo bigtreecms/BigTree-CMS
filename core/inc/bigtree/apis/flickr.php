@@ -687,6 +687,7 @@
 
 	/*
 		Class: BigTreeFlickrGroup
+			A Flickr object that contains information about and methods you can perform on a group.
 	*/
 
 	class BigTreeFlickrGroup {
@@ -707,6 +708,7 @@
 
 	/*
 		Class: BigTreeFlickrPerson
+			A Flickr object that contains information about and methods you can perform on a person.
 	*/
 
 	class BigTreeFlickrPerson {
@@ -783,6 +785,7 @@
 
 	/*
 		Class: BigTreeFlickrPhoto
+			A Flickr object that contains information about and methods you can perform on a photo.
 	*/
 
 	class BigTreeFlickrPhoto {
@@ -1116,6 +1119,7 @@
 
 	/*
 		Class: BigTreeFlickrResultSet
+			An object that contains multiple results from a Flickr API query.
 	*/
 
 	class BigTreeFlickrResultSet {
@@ -1177,6 +1181,7 @@
 
 	/*
 		Class: BigTreeFlickrTag
+			A Flickr object that contains information about and methods you can perform on a tag.
 	*/
 
 	class BigTreeFlickrTag {

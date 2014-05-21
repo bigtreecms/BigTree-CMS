@@ -1,6 +1,7 @@
 <?
 	/*
 		Class: BigTreeSalesforceAPI
+			Salesforce API class that implements a BigTree-esque module API over Salesforce.
 	*/
 	
 	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
@@ -93,7 +94,7 @@
 
 	/*
 		Class: BigTreeSalesforceObject
-			Emulates most of the methods from BigTreeModule for a Salesforce object type.
+			An object that emulates most of the methods from BigTreeModule for a Salesforce object type.
 	*/
 
 	class BigTreeSalesforceObject {
@@ -407,6 +408,7 @@
 
 	/*
 		Class: BigTreeSalesforceRecord
+			A Salesforce object that contains information about and methods you can perform on a record.
 	*/
 
 	class BigTreeSalesforceRecord {

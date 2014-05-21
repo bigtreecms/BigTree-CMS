@@ -1,6 +1,7 @@
 <?
 	/*
 		Class: BigTreeYouTubeAPI
+			YouTube API class that implements most API calls (media posting excluded).
 	*/
 	
 	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
@@ -675,6 +676,7 @@
 
 	/*
 		Class: BigTreeYouTubeActivity
+			A YouTube object that contains information about and methods you can perform on an activity.
 	*/
 
 	class BigTreeYouTubeActivity {
@@ -750,6 +752,7 @@
 
 	/*
 		Class: BigTreeYouTubeChannel
+			A YouTube object that contains information about and methods you can perform on a channel.
 	*/
 
 	class BigTreeYouTubeChannel {
@@ -811,6 +814,7 @@
 
 	/*
 		Class: BigTreeYouTubePlaylist
+			A YouTube object that contains information about and methods you can perform on a playlist.
 	*/
 
 	class BigTreeYouTubePlaylist {
@@ -861,6 +865,7 @@
 
 	/*
 		Class: BigTreeYouTubePlaylistItem
+			A YouTube object that contains information about and methods you can perform on a playlist item.
 	*/
 
 	class BigTreeYouTubePlaylistItem {
@@ -925,6 +930,7 @@
 
 	/*
 		Class: BigTreeYouTubeSubscription
+			A YouTube object that contains information about and methods you can perform on a subscription.
 	*/
 
 	class BigTreeYouTubeSubscription {
@@ -957,6 +963,7 @@
 
 	/*
 		Class: BigTreeYouTubeVideo
+			A YouTube object that contains information about and methods you can perform on a video.
 	*/
 
 	class BigTreeYouTubeVideo {

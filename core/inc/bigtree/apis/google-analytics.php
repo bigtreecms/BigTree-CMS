@@ -305,6 +305,7 @@
 
 	/*
 		Class: BigTreeGoogleAnalyticsAccount
+			A Google Analytics object that contains information about and methods you can perform on an account.
 	*/
 
 	class BigTreeGoogleAnalyticsAccount {
@@ -325,6 +326,7 @@
 
 	/*
 		Class: BigTreeGoogleAnalyticsProperty
+			A Google Analytics object that contains information about and methods you can perform on a property.
 	*/
 
 	class BigTreeGoogleAnalyticsProperty {
@@ -347,6 +349,7 @@
 
 	/*
 		Class: BigTreeGoogleAnalyticsProfile
+			A Google Analytics object that contains information about and methods you can perform on a profile.
 	*/
 
 	class BigTreeGoogleAnalyticsProfile {

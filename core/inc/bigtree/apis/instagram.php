@@ -1,6 +1,7 @@
 <?
 	/*
 		Class: BigTreeInstagramAPI
+			Instagram API class that implements most API calls (media posting excluded).
 	*/
 	
 	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
@@ -648,6 +649,7 @@
 
 	/*
 		Class: BigTreeInstagramComment
+			An Instagram object that contains information about and methods you can perform on a comment.
 	*/
 
 	class BigTreeInstagramComment {
@@ -687,6 +689,7 @@
 
 	/*
 		Class: BigTreeInstagramLocation
+			An Instagram object that contains information about and methods you can perform on a location.
 	*/
 
 	class BigTreeInstagramLocation {
@@ -722,6 +725,7 @@
 
 	/*
 		Class: BigTreeInstagramMedia
+			An Instagram object that contains information about and methods you can perform on media.
 	*/
 
 	class BigTreeInstagramMedia {
@@ -847,6 +851,7 @@
 
 	/*
 		Class: BigTreeInstagramResultSet
+			An object that contains multiple results from an Instagram API query.
 	*/
 
 	class BigTreeInstagramResultSet {
@@ -884,6 +889,7 @@
 
 	/*
 		Class: BigTreeInstagramTag
+			An Instagram object that contains information about and methods you can perform on a tag.
 	*/
 
 	class BigTreeInstagramTag {
@@ -916,6 +922,7 @@
 
 	/*
 		Class: BigTreeInstagramUser
+			An Instagram object that contains information about and methods you can perform on a user.
 	*/
 
 	class BigTreeInstagramUser {
