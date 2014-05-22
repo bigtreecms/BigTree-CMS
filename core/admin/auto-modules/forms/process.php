@@ -118,7 +118,6 @@
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
-	$resources = $_POST["_resources"];
 	$edit_id = $_POST["id"] ? $_POST["id"] : false;
 	$new_id = false;
 	$table = $bigtree["form"]["table"];

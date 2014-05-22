@@ -955,10 +955,10 @@ var BigTreePhotoGallery = Class.extend({
 		// In case they click the span instead of the button.
 		if (!target.attr("href")) {
 			field = target.parent().attr("href").substr(1);	
-			options = eval('(' + target.parent().attr("data-options") + ')');
+			options = $.parseJSON(target.parent().attr("data-options"));
 		} else {
 			field = target.attr("href").substr(1);
-			options = eval('(' + target.attr("data-options") + ')');
+			options = $.parseJSON(target.attr("data-options"));
 		}
 		BigTreeFileManager.formOpen("photo-gallery",field,options,$.proxy(this.useExistingFile,this));
 		return false;
@@ -1489,7 +1489,7 @@ var BigTreeFileManager = {
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
 		
-		data = eval('(' + $(this).attr("href") + ')');
+		data = $.parseJSON($(this).attr("href"));
 		BigTreeFileManager.availableThumbs = data.thumbs;
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		
@@ -1683,14 +1683,17 @@ var BigTreeFileManager = {
 			}
 		} else {
 			if (this.type == "image") {
-				input = $('<input type="hidden" name="' + this.currentlyKey + '">');
+				var input = $('<input type="hidden" name="' + this.currentlyKey + '">');
 				input.val("resource://" + $("#file_browser_selected_file").val());
-				img = new $('<img alt="">');
+				var img = new $('<img alt="">');
 				img.attr("src",$("#file_browser_selected_file").val());
-				container = $(document.getElementById(this.currentlyName));
+				var container = $(document.getElementById(this.currentlyName));
 				container.find("img, input").remove();
 				container.append(input).find(".currently_wrapper").append(img);
 				container.show();
+
+				// If a user already selected something to upload, replace it
+				container.siblings(".file_wrapper").find("input").val("");
 			} else if (this.type == "photo-gallery") {
 				this.callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			}
@@ -1930,7 +1933,7 @@ var BigTreeArrayOfItems = Class.extend({
 	},
 	
 	editItem: function(ev) {
-		data = eval("(" + $(ev.target).parents("li").find("input").val() + ")");
+		data = $.parseJSON($(ev.target).parents("li").find("input").val());
 		
 		html = "";
 		tinymces = [];
@@ -2590,7 +2593,7 @@ var BigTree = {
 			return false;
 		}).on("click",".form_image_browser",function() {
 		// Form Image Browser
-			options = eval('(' + $(this).attr("data-options") + ')');
+			options = $.parseJSON($(this).attr("data-options"));
 			field = $(this).attr("href").substr(1);
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;

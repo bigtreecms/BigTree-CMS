@@ -1,6 +1,7 @@
 <?
 	/*
 		Class: BigTreeGooglePlusAPI
+			Google+ API class that implements people and activity related calls.
 	*/
 	
 	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
@@ -255,6 +256,7 @@
 
 	/*
 		Class: BigTreeGooglePlusActivity
+			A Google+ object that contains information about and methods you can perform on an activity.
 	*/
 
 	class BigTreeGooglePlusActivity {
@@ -344,6 +346,7 @@
 
 	/*
 		Class: BigTreeGooglePlusComment
+			A Google+ object that contains information about and methods you can perform on a comment.
 	*/
 
 	class BigTreeGooglePlusComment {
@@ -374,6 +377,7 @@
 
 	/*
 		Class: BigTreeGooglePlusLocation
+			A Google+ object that contains information about and methods you can perform on a location.
 	*/
 
 	class BigTreeGooglePlusLocation {
@@ -390,6 +394,7 @@
 
 	/*
 		Class: BigTreeGooglePlusPerson
+			A Google+ object that contains information about and methods you can perform on a person.
 	*/
 
 	class BigTreeGooglePlusPerson {

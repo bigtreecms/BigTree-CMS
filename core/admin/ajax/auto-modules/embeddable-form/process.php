@@ -102,7 +102,6 @@
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
-	$resources = $_POST["_resources"];
 	$new_id = false;
 	$table = $bigtree["form"]["table"];
 	$item = $bigtree["entry"];

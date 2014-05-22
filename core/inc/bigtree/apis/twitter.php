@@ -1,7 +1,7 @@
 <?
 	/*
 		Class: BigTreeTwitterAPI
-			Twitter API implementation.
+			Twitter API class that implements most functionality (limited lists support).
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
 	
@@ -807,6 +807,7 @@
 
 	/*
 		Class: BigTreeTwitterResultSet
+			An object that contains multiple results from a Twitter API query.
 	*/
 
 	class BigTreeTwitterResultSet {
@@ -847,6 +848,7 @@
 
 	/*
 		Class: BigTreeTwitterTweet
+			A Twitter object that contains information about and methods you can perform on a tweet.
 	*/
 
 	class BigTreeTwitterTweet {
@@ -1045,6 +1047,7 @@
 
 	/*
 		Class: BigTreeTwitterUser
+			A Twitter object that contains information about and methods you can perform on a user.
 	*/
 
 	class BigTreeTwitterUser {
@@ -1150,6 +1153,7 @@
 
 	/*
 		Class: BigTreeTwitterPlace
+			A Twitter object that contains information about and methods you can perform on a place.
 	*/
 
 	class BigTreeTwitterPlace {
@@ -1188,6 +1192,7 @@
 
 	/*
 		Class: BigTreeTwitterDirectMessage
+			A Twitter object that contains information about and methods you can perform on a direct message.
 	*/
 
 	class BigTreeTwitterDirectMessage {
