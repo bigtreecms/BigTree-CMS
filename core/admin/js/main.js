@@ -722,28 +722,39 @@ var BigTreeFileInput = Class.extend({
 		this.Container = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
 		this.Element.before(this.Container);
 
+
 		this.Container.click($.proxy(function() { this.Element.click(); },this));
 	},
 
 	checkUploads: function() {
-		// If this input allows for multiple uploads... handle it differently
-		if (this.Element.attr("multiple")) {
-
-		// Single upload? Show the thumbnail and file name / size
+		// No content or early browser fallback? Just draw the input's value
+		if (!this.Element.get(0).files.length) {
+			this.Container.find(".data").html('<span class="name wider">' + this.Element.get(0).value + '</span>');
 		} else {
-			var file = this.Element.get(0).files[0];
-			this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
-			if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
-				var img = document.createElement("img");
-				img.file = file;
-				this.Container.find(".data").prepend(img);
-				var reader = new FileReader();
-				reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-				reader.readAsDataURL(file);
+			// If this input allows for multiple uploads... handle it differently
+			if (this.Element.attr("multiple")) {
+	
+			// Single upload? Show the thumbnail and file name / size
 			} else {
-				this.Container.find(".name").addClass("wider");
+				var file = this.Element.get(0).files[0];
+				this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
+				if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
+					var img = document.createElement("img");
+					img.file = file;
+					this.Container.find(".data").prepend(img);
+					var reader = new FileReader();
+					reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+					reader.readAsDataURL(file);
+				} else {
+					this.Container.find(".name").addClass("wider");
+				}
 			}
 		}
+	},
+
+	clear: function() {
+		this.Element.val("");
+		this.checkUploads();
 	},
 
 	// Courtesy of Aliceljm on StackOverflow
@@ -1687,13 +1698,13 @@ var BigTreeFileManager = {
 				input.val("resource://" + $("#file_browser_selected_file").val());
 				var img = new $('<img alt="">');
 				img.attr("src",$("#file_browser_selected_file").val());
-				var container = $(document.getElementById(this.currentlyName));
+				container = $(document.getElementById(this.currentlyName));
 				container.find("img, input").remove();
 				container.append(input).find(".currently_wrapper").append(img);
 				container.show();
 
 				// If a user already selected something to upload, replace it
-				container.siblings(".file_wrapper").find("input").val("");
+				container.siblings("input").get(0).customControl.clear();
 			} else if (this.type == "photo-gallery") {
 				this.callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			}
