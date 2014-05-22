@@ -1,5 +1,5 @@
 			</div>
-		</div><!--End Wrapper-->
+		</div>
 		<footer class="main">
 			<section>
 				<article class="bigtree">

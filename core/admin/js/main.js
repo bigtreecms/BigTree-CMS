@@ -714,87 +714,44 @@ var BigTreeFileInput = Class.extend({
 	
 	init: function(element) {
 		this.Element = $(element);
-
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
-		this.Element.addClass("custom_control");
+		this.Element.addClass("custom_control").hide().on("change",$.proxy(this.checkUploads,this));
 		
-		div = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
-		this.Element.before(div);
-		div.append(this.Element);
-		div.mousemove($.proxy(this.watchMouse,this));
-		
-		this.Timer = setInterval($.proxy(this.checkInput,this),250);
-		
-		this.Container = div;
+		this.Container = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
+		this.Element.before(this.Container);
+
+		this.Container.click($.proxy(function() { this.Element.click(); },this));
 	},
-	
-	// Special thanks to http://www.shauninman.com/archive/2007/09/10/styling_file_inputs_with_css_and_the_dom
-	watchMouse: function(e) {
-		if (typeof e.pageY == 'undefined' &&  typeof e.clientX == 'number' && document.documentElement) {
-			e.pageX = e.clientX + document.documentElement.scrollLeft;
-			e.pageY = e.clientY + document.documentElement.scrollTop;
-		};
-		
-		offset = this.Container.offset();
-		this.Left = offset.left;
-		this.Top = offset.top;
-		
-		if (e.pageX < this.Left || e.pageY < this.Top || e.pageX > (this.Left + 300) || e.pageY > (this.Top + 30)) {
-			this.Element.hide();
-			return;
+
+	checkUploads: function() {
+		// If this input allows for multiple uploads... handle it differently
+		if (this.Element.attr("multiple")) {
+
+		// Single upload? Show the thumbnail and file name / size
 		} else {
-			this.Element.show();
+			var file = this.Element.get(0).files[0];
+			this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
+			if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
+				var img = document.createElement("img");
+				img.file = file;
+				this.Container.find(".data").prepend(img);
+				var reader = new FileReader();
+				reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+				reader.readAsDataURL(file);
+			} else {
+				this.Container.find(".name").addClass("wider");
+			}
 		}
+	},
 
-		var ox = oy = 0;
-		var elem = this;
-		if (elem.offsetParent) {
-			ox = elem.offsetLeft;
-			oy = elem.offsetTop;
-			while (elem = elem.offsetParent) {
-				ox += elem.offsetLeft;
-				oy += elem.offsetTop;
-			};
-		};
-
-		var x = e.pageX - ox;
-		var y = e.pageY - oy;
-		
-		if (this.Element.parents(".bigtree_dialog_window").length) {
-			x -= this.Element.parents(".bigtree_dialog_form").offset().left;
-			y -= this.Element.parents(".bigtree_dialog_form").offset().top - 30;
-		}
-		
-		var w = this.Element.get(0).offsetWidth;
-		var h = this.Element.get(0).offsetHeight;
-
-		this.Element.css({ top: (y - (h / 2)  + 'px'), left: (x - (w - 30) + 'px') });
-	},
-	
-	showInput: function() {
-		this.Element.show();
-	},
-	
-	hideInput: function() {
-		this.Element.hide();
-	},
-	
-	checkInput: function() {
-		pinfo = basename(this.Element.val());
-		this.Container.find(".data").html(pinfo);
-	},
-	
-	destroy: function() {
-		clearInterval(this.Timer);
-	},
-	
-	connect: function(el) {
-		this.Element = $(el);
-		this.Timer = setInterval($.proxy(this.checkInput,this),250);
-		return this;
-	}
+	// Courtesy of Aliceljm on StackOverflow
+	formatBytes: function(bytes) {
+		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+		var i = Math.floor(Math.log(bytes) / Math.log(1000));
+		return (bytes / Math.pow(1000, i)).toPrecision(3) + sizes[i];
+	}	
 });
 
 // !BigTreeRadioButton Class

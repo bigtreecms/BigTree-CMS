@@ -8,7 +8,8 @@
 		</fieldset>
 		<? } ?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
-		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
+		<input type="hidden" name="MAX_POST_SIZE" value="<?=BigTree::postMaxSize()?>" id="bigtree_max_post_size" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<?
 			if (isset($bigtree["entry"])) {

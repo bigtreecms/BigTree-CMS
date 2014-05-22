@@ -1495,6 +1495,20 @@
 			imagedestroy($image);
 			die();
 		}
+
+		/*
+			Function: postMaxSize
+				Returns in bytes the maximum size of a POST.
+		*/
+
+		static function postMaxSize() {
+			$post_max_size = ini_get("post_max_size");
+			if (!is_integer($post_max_size)) {
+				$post_max_size = self::unformatBytes($post_max_size);
+			}
+			
+			return $post_max_size;
+		}
 		
 		/*
 			Function: randomString
@@ -2094,11 +2108,7 @@
 				$upload_max_filesize = self::unformatBytes($upload_max_filesize);
 			}
 			
-			$post_max_size = ini_get("post_max_size");
-			if (!is_integer($post_max_size)) {
-				$post_max_size = self::unformatBytes($post_max_size);
-			}
-			
+			$post_max_size = self::postMaxSize();
 			if ($post_max_size < $upload_max_filesize) {
 				$upload_max_filesize = $post_max_size;
 			}
