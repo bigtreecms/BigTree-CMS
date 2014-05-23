@@ -5576,6 +5576,7 @@
 						// We're going to create a PNG so that we don't lose quality when we resave
 						imagepng($source,$first_copy);
 						rename($first_copy,substr($first_copy,0,-3)."png");
+						$first_copy = substr($first_copy,0,-3)."png";
 
 						// Force JPEG since we made the first copy a PNG
 						$storage->AutoJPEG = true;
