@@ -34,9 +34,10 @@
 			$x = 0;
 			// Get a bunch of query parts.
 			while ($x < count($keys)) {
-				$existing_parts[] = "`".$keys[$x]."` = '".sqlescape($vals[$x])."'";
+				$val = is_array($vals[$x]) ? sqlescape(json_encode(BigTree::translateArray($vals[$x]))) : sqlescape($admin->autoIPL($vals[$x]));
+				$existing_parts[] = "`".$keys[$x]."` = '$val'";
 				$key_parts[] = "`".$keys[$x]."`";
-				$value_parts[] = "'".sqlescape($vals[$x])."'";
+				$value_parts[] = "'$val'";
 				$x++;
 			}
 
@@ -919,6 +920,7 @@
 		*/
 		
 		function update($id,$fields,$values,$ignore_cache = false) {
+			$admin = new BigTreeAdmin;
 			$id = sqlescape($id);
 			// Multiple columns to update			
 			if (is_array($fields)) {
@@ -926,7 +928,9 @@
 				foreach ($fields as $key) {
 					$val = current($values);
 					if (is_array($val)) {
-						$val = json_encode($val);
+						$val = json_encode(BigTree::translateArray($val));
+					} else {
+						$val = $admin->autoIPL($val);
 					}
 					$query_parts[] = "`$key` = '".sqlescape($val)."'";
 					next($values);
@@ -935,7 +939,12 @@
 				sqlquery("UPDATE `".$this->Table."` SET ".implode(", ",$query_parts)." WHERE id = '$id'");
 			// Single column to update
 			} else {
-				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($values)."' WHERE id = '$id'");
+				if (is_array($values)) {
+					$val = json_encode(BigTree::translateArray($values));
+				} else {
+					$val = $admin->autoIPL($values);
+				}
+				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($val)."' WHERE id = '$id'");
 			}
 			if (!$ignore_cache) {
 				BigTreeAutoModule::recacheItem($id,$this->Table);
