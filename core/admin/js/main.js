@@ -492,8 +492,10 @@ var BigTreeSelect = Class.extend({
 		}
 
 		if (!this.Open) {
-			// Tooltips and menus sometimes show over the dropdown, requires clicking the menu again twice so it's not ideal
-			$(".mce-tooltip, .mce-menu").hide();
+			// Tooltips and menus sometimes show over the dropdown when using TinyMCE 4
+			try {
+				tinyMCE.ui.FloatPanel.hideAll();
+			} catch (err) {}
 		
 			$("select").not(this.Element).trigger("closeNow");
 			this.Element.focus();
