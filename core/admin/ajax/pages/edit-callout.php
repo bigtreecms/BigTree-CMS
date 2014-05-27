@@ -19,6 +19,6 @@
 
 <script>
 	$("#callout_type select").change(function(event,data) {
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/pages/callout-resources/", { type: data.value, count: <?=$bigtree["callout_count"]?>, resources: "<?=$_POST["data"]?>" }, BigTreeCustomControls);
+		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/pages/callout-resources/", { type: data.value, count: <?=$bigtree["callout_count"]?>, resources: "<?=$_POST["data"]?>" }, BigTreeCustomControls).scrollTop(0);
 	});
 </script>
