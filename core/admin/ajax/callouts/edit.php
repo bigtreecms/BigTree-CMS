@@ -25,6 +25,9 @@
 
 <script>
 	$("#callout_type select").change(function(event,data) {
+		// TinyMCE tooltips and menus sometimes get stuck
+		$(".mce-tooltip, .mce-menu").remove();
+
 		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", { count: <?=$bigtree["callout_count"]?>, key: "<?=$bigtree["callout_key"]?>", resources: "<?=$_POST["data"]?>", type: data.value }, BigTreeCustomControls);
 	});
 </script>

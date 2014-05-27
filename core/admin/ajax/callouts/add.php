@@ -30,6 +30,9 @@
 
 <script>
 	$("#callout_type select").change(function(event,data) {
+		// TinyMCE tooltips and menus sometimes get stuck
+		$(".mce-tooltip, .mce-menu").remove();
+
 		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", { type: data.value, count: <?=$bigtree["callout_count"]?>, key: "<?=$bigtree["callout_key"]?>" });
 	});
 </script>
