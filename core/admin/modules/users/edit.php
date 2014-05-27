@@ -372,6 +372,8 @@
 	?>
 
 	new BigTreeFormValidator("form.module");
+	new BigTreePasswordInput("input[type=password]");
+	
 	$("form.module").submit(function(ev) {
 		$("#permission_section").html("<p>Saving permissions...</p>");
 		permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));

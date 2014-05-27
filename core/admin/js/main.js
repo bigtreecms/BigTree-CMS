@@ -173,6 +173,40 @@ function BigTreeCustomControls(selector) {
 	}
 }
 
+var BigTreePasswordInput = Class.extend({
+
+	Buffer: "",
+	Element: false,
+	FakeElement: false,
+	Timer: false,
+
+	init: function(element) {
+		this.FakeElement = $('<input type="text" />').attr("tabindex",$(element).attr("tabindex"));
+		// Copy class name over
+		this.FakeElement.get(0).className = $(element).get(0).className;
+
+		this.Element = $(element).addClass("custom_control");
+		this.Element.hide().after(this.FakeElement);
+
+		this.FakeElement.on("blur",$.proxy(this.blur,this))
+						.on("focus",$.proxy(this.focus,this))
+						.on("change",$.proxy(this.change,this));
+	},
+
+	blur: function() {
+		this.Buffer = this.FakeElement.val();
+		this.FakeElement.val(str_repeat("•",this.FakeElement.val().length));
+	},
+
+	change: function() {
+		this.Element.val(this.FakeElement.val());
+	},
+
+	focus: function() {
+		this.FakeElement.val(this.Buffer);
+	}
+});
+
 // !BigTreeCheckbox Class
 var BigTreeCheckbox = Class.extend({
 
