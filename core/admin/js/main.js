@@ -492,6 +492,9 @@ var BigTreeSelect = Class.extend({
 		}
 
 		if (!this.Open) {
+			// Tooltips and menus sometimes get stuck
+			$(".mce-tooltip, .mce-menu").remove();
+		
 			$("select").not(this.Element).trigger("closeNow");
 			this.Element.focus();
 			
