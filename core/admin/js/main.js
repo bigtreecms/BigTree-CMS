@@ -491,7 +491,10 @@ var BigTreeSelect = Class.extend({
 			return false;
 		}
 
-		if (!this.Open) {		
+		if (!this.Open) {
+			// Tooltips and menus sometimes show over the dropdown, requires clicking the menu again twice so it's not ideal
+			$(".mce-tooltip, .mce-menu").hide();
+		
 			$("select").not(this.Element).trigger("closeNow");
 			this.Element.focus();
 			
