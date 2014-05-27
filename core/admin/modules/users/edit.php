@@ -154,13 +154,13 @@
 			<div class="left">
 				<fieldset<? if ($e) { ?> class="form_error"<? } ?> style="position: relative;">
 					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e) { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
-					<input type="text" class="required email" name="email" value="<?=$email?>" tabindex="1" />
+					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
 					<span class="gravatar"<? if ($email) { ?> style="display: block;"<? } ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset>
 					<label>Password <small>(Leave blank to remain unchanged)</small></label>
-					<input type="password" name="password" value="" tabindex="3" autocomplete="off" />
+					<input type="text" name="password" value="" tabindex="3" autocomplete="off" id="password_field" />
 				</fieldset>
 				<? if ($user["id"] != $admin->ID) { ?>
 				<fieldset>
@@ -385,6 +385,8 @@
 	?>
 
 	new BigTreeFormValidator("form.module");
+	new BigTreePasswordInput("input[type=password]");
+	
 	$("form.module").submit(function(ev) {
 		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");
 		permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));

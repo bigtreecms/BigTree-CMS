@@ -64,6 +64,7 @@
 </div>
 <script>
 	new BigTreeFormValidator("form.module");
+	new BigTreePasswordInput("input[type=password]");
 	
 	$(document).ready(function() {
 		$("input.email").blur(function() {
