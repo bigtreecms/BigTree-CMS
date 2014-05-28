@@ -771,11 +771,11 @@
 /* Form Control Widget Styles */
 	.photo_gallery_widget { background: #FFF; border: 1px solid #CCC; border-radius: 3px; overflow: hidden; }
 	.photo_gallery_widget ul { list-style: none; margin: 0; overflow: hidden; padding: 16px 16px 6px 16px; }
-	.photo_gallery_widget li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 3px; cursor: move; float: left; margin: 0 10px 10px 0; overflow: hidden; padding: 5px; text-align: center; }
+	.photo_gallery_widget li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 3px; cursor: move; float: left; line-height: 100%; margin: 0 10px 10px 0; overflow: hidden; padding: 5px; text-align: center; }
 	.photo_gallery_widget li:nth-child(9n) { margin-right: 0; }
 	.photo_gallery_widget li a { margin: 5px 5px 0 0; }
 	.photo_gallery_widget li a:last-child { margin: 5px 0 0 0; }
-	.photo_gallery_widget figure { background: #CCC; height: 75px; margin: 0; width: 75px; }
+	.photo_gallery_widget figure { background: #CCC; display: block; height: 75px; margin: 0; overflow: hidden; width: 75px; }
 	.photo_gallery_widget figure figcaption { background: #FFF; color: #333; display: block; font-size: 10px; line-height: 15px; padding: 6px 0; text-align: center; }
 	.photo_gallery_widget img { max-height: 75px; max-width: 75px; position: relative; top: 50%; transform: translateY(-50%); }
 	.photo_gallery_widget footer { background: #F5F5F5; padding: 20px; }
