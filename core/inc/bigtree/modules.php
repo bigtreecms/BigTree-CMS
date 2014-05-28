@@ -9,6 +9,20 @@
 		var $Table = "";
 		var $Module = "";
 		var $NavPosition = "bottom";
+
+		/*
+			Constructor:
+				If you pass in a table name it will be used for all module functions.
+
+			Parameters:
+				table - The SQL table you want to perform queries on.
+		*/
+
+		function __construct($table = false) {
+			if ($table !== false) {
+				$this->Table = $table;
+			}
+		}
 		
 		/*
 			Function: add
