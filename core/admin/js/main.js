@@ -2316,10 +2316,17 @@ var BigTreeFormValidator = Class.extend({
 		complete_submission = "";
 		if ($("#bigtree_hashcash_field").length) {
 			this.form.find("input,select,textarea").each(function() {
-				t = $(this).attr("type");
-				if (t != "file" && $(this).attr("name")) {
-					if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
-						complete_submission += $(this).val();
+				if ($(this).is("textarea") && $(this).css("display") == "none") {
+					var mce = tinyMCE.get($(this).attr("id"));
+					if (mce) {
+						complete_submission += mce.getContent();
+					}
+				} else {
+					t = $(this).attr("type");
+					if (t != "file" && $(this).attr("name")) {
+						if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
+							complete_submission += $(this).val();
+						}
 					}
 				}
 			});
