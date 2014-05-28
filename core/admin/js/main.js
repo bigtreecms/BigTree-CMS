@@ -767,9 +767,9 @@ var BigTreeFileInput = Class.extend({
 		if (!this.Element.get(0).files.length) {
 			this.Container.find(".data").html('<span class="name wider">' + this.Element.get(0).value + '</span>');
 		} else {
-			// If this input allows for multiple uploads... handle it differently
+			// If this input allows for multiple uploads we're not going to handle it directly, watch its change event yourself
 			if (this.Element.attr("multiple")) {
-	
+			
 			// Single upload? Show the thumbnail and file name / size
 			} else {
 				// Get file reference
