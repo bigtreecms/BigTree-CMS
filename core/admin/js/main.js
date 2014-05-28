@@ -768,8 +768,8 @@ var BigTreeFileInput = Class.extend({
 			this.Container.find(".data").html('<span class="name wider">' + this.Element.get(0).value + '</span>');
 		} else {
 			// If this input allows for multiple uploads we're not going to handle it directly, watch its change event yourself
-			if (this.Element.attr("multiple")) {
-			
+			if (this.Element.attr("multiple") && this.Element.get(0).files.length > 1) {
+				this.Container.find(".data").html('<span class="name">' + this.Element.get(0).files.length + ' Files</span>');
 			// Single upload? Show the thumbnail and file name / size
 			} else {
 				// Get file reference
@@ -1327,10 +1327,10 @@ var BigTreeFileManager = {
 	
 	addFile: function() {
 		new BigTreeDialog({
-			title: "Upload File",
-			content: '<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',
+			title: "Upload Files",
+			content: '<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select File(s)</label><input type="file" multiple name="files[]" /></fieldset>',
 			icon: "folder",
-			alternateSaveText: "Upload File",
+			alternateSaveText: "Upload Files",
 			preSubmissionCallback: true,
 			callback: $.proxy(this.createFile,this),
 			cancelHook: this.cancelAdd
@@ -1400,7 +1400,7 @@ var BigTreeFileManager = {
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
-		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading file. Please wait…</p>'));
+		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
 	},
 	
 	createFolder: function(data) {
@@ -1495,7 +1495,7 @@ var BigTreeFileManager = {
 		return false;
 	},
 	
-	finishedUpload: function(file,type,width,height) {
+	finishedUpload: function(errors) {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
@@ -1598,7 +1598,7 @@ var BigTreeFileManager = {
 <div class="header">\
 	<input class="form_search" id="file_browser_search" placeholder="Search" />\
 	<span class="form_search_icon"></span>\
-	<a href="#" class="button add_file">Upload File</a>\
+	<a href="#" class="button add_file">Upload Files</a>\
 	<a href="#" class="button add_folder">New Folder</a>\
 	<a href="#" class="button red delete_folder" style="display: none;">Delete Folder</a>\
 	<span id="file_browser_type_icon"></span>\
@@ -1771,10 +1771,16 @@ var BigTreeFileManager = {
 		BigTreeFileManager.open(type,false,false);
 	},
 
-	uploadError: function(message) {
-		$(".bigtree_dialog_form").last().find("footer *").show();
-		$(".bigtree_dialog_form").last().find("p").remove();
-		$(".bigtree_dialog_form").last().find(".overflow").prepend($('<p class="error_message">' + message + '</p>'));
+	uploadError: function(message,successes) {
+		$(".bigtree_dialog_form").last().find("p,fieldset,input").remove();
+		$(".bigtree_dialog_form").last().find(".overflow").prepend($('<p class="error_message">' + message + '</p><p>' + successes + '</p>'));
+		$(".bigtree_dialog_form").last().find("footer a").show().html("Ok");
+
+		if (this.type == "image" || this.type == "photo-gallery") {
+			this.openImageFolder(this.currentFolder);	
+		} else {
+			this.openFileFolder(this.currentFolder);
+		}
 	}
 };
 
