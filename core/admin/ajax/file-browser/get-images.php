@@ -35,11 +35,8 @@
 				$thumbs = json_decode($resource["thumbs"],true);
 				if (isset($thumbs["bigtree_internal_list"])) {
 					$thumb = $thumbs["bigtree_internal_list"];
-					$margin = $resource["list_thumb_margin"];
 				} else {
-					list($w,$h) = getimagesize($file);
 					$thumb = str_replace(SITE_ROOT,WWW_ROOT,$file);
-					$margin = ceil((98 - $h) / 2);
 				}
 				$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
 				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
@@ -62,7 +59,7 @@
 					"thumbs" => $available_thumbs
 				)));
 	?>
-	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" style="margin-top: <?=$margin?>px;" /></a>
+	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" /></a>
 	<?
 			}
 		}

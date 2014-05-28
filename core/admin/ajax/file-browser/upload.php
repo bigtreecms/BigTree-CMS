@@ -115,11 +115,6 @@
 									$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 									BigTree::createThumbnail($first_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
 		
-									if ($key == "bigtree_internal_list") {
-										list($twidth,$theight) = getimagesize($temp_thumb);
-										$margin = floor((100 - $theight) / 2);
-									}
-		
 									if ($replacing) {
 										$file = $storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],"files/resources/");
 									} else {
@@ -140,15 +135,14 @@
 								$errors[] = "Uploading $file_name failed (unknown error).";
 							} else {
 								if (!$replacing) {
-									$admin->createResource($folder,$file,$md5,$file_name,$extension,"on",$iheight,$iwidth,$thumbs,$margin);
+									$admin->createResource($folder,$file,$md5,$file_name,$extension,"on",$iheight,$iwidth,$thumbs);
 								} else {
 									$admin->updateResource($_POST["replace"],array(
 										"date" => date("Y-m-d H:i:s"),
 										"md5" => $md5,
 										"height" => $iheight,
 										"width" => $iwidth,
-										"thumbs" => BigTree::json($thumbs),
-										"list_thumb_margin" => $margin
+										"thumbs" => BigTree::json($thumbs)
 									));
 								}
 							}

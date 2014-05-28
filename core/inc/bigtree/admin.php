@@ -1509,13 +1509,12 @@
 				height - The image height (if it's an image).
 				width - The image width (if it's an image).
 				thumbs - An array of thumbnails (if it's an image).
-				list_thumb_margin - The margin for the list thumbnail (if it's an image).
 
 			Returns:
 				The new resource id.
 		*/
 
-		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array(),$list_thumb_margin = 0) {
+		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
 			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
 			$file = sqlescape($file);
 			$name = sqlescape(htmlspecialchars($name));
@@ -1524,10 +1523,9 @@
 			$height = intval($height);
 			$width = intval($width);
 			$thumbs = BigTree::json($thumbs,true);
-			$list_thumb_margin = intval($list_thumb_margin);
 			$md5 = sqlescape($md5);
 
-			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`list_thumb_margin`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$list_thumb_margin')");
+			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs')");
 			return sqlid();
 		}
 

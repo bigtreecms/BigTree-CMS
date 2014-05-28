@@ -1242,7 +1242,7 @@
 	#file_browser_contents { float: left; height: 411px; overflow: auto; width: 609px; }
 	#file_browser_contents .file_browser_images { overflow: hidden; padding: 10px; }
 	#file_browser_contents a.image { background: #dddddd; border: 1px solid #D4D4D4; border-radius: 3px; display: block; float: left; height: 98px; margin: 10px 0 0 10px; overflow: hidden; text-align: center; width: 98px; }
-	#file_browser_contents a.image img { max-height: 98px; max-width: 98px; }
+	#file_browser_contents a.image img { max-height: 98px; max-width: 98px; position: relative; top: 50%; transform: translateY(-50%); }
 	#file_browser_contents a.image:hover { background: #CCCCCC; }
 	#file_browser_contents a.image.disabled { cursor: default; opacity: 0.3; }
 	#file_browser_contents a.file { background: #FFF; color: #333; display: block; font-size: 13px; line-height: 16px; overflow: hidden; padding: 5px 20px; }
