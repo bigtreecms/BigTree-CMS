@@ -206,6 +206,7 @@
 	.file_wrapper .data .size { float: right; color: #999; font-size: 10px; height: 30px; max-width: 40px; }
 	.file_wrapper .data .name { float: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 129px; padding: 0 0 0 5px; }
 	.file_wrapper .data .wider { width: 179px; }
+	.file_wrapper .data .error { color: #CC0000; }
 	.file_wrapper .data img { float: left; margin: 0 0 0 -3px; height: 26px; max-width: 40px; position: relative; top: 50%; transform: translateY(-50%); }
 	.file_wrapper input { cursor: pointer; height: 30px; opacity: 0; position: absolute; width: auto; }
 	.form_error .file_wrapper { border-color: #C0362F; }
@@ -776,7 +777,7 @@
 	.photo_gallery_widget li a:last-child { margin: 5px 0 0 0; }
 	.photo_gallery_widget figure { background: #CCC; height: 75px; margin: 0; width: 75px; }
 	.photo_gallery_widget figure figcaption { background: #FFF; color: #333; display: block; font-size: 10px; line-height: 15px; padding: 6px 0; text-align: center; }
-	.photo_gallery_widget img { max-height: 75px; max-width: 75px; }
+	.photo_gallery_widget img { max-height: 75px; max-width: 75px; position: relative; top: 50%; transform: translateY(-50%); }
 	.photo_gallery_widget footer { background: #F5F5F5; padding: 20px; }
 	.photo_gallery_widget .ui-sortable-placeholder { background: #eee; border: 1px dashed #ccc; border-radius: 3px; cursor: move; float: left; height: 107px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 75px; }
 	.photo_gallery_widget .file_wrapper { margin: 0; }

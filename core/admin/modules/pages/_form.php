@@ -36,7 +36,7 @@
 		<?
 			}
 		?>
-		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="<? if ($bigtree["form_action"] == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$bigtree["current_page"]["id"]?>" />
 		

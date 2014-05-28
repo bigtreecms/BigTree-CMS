@@ -187,7 +187,6 @@ var BigTreePasswordInput = Class.extend({
 	Buffer: "",
 	Element: false,
 	FakeElement: false,
-	Timer: false,
 
 	init: function(element) {
 		this.FakeElement = $('<input type="text" />').attr("tabindex",$(element).attr("tabindex"));
@@ -747,9 +746,6 @@ var BigTreeFileInput = Class.extend({
 	
 	Container: false,
 	Element: false,
-	Timer: false,
-	Top: 0,
-	Left: 0,
 	
 	init: function(element) {
 		this.Element = $(element);
@@ -760,12 +756,13 @@ var BigTreeFileInput = Class.extend({
 		
 		this.Container = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
 		this.Element.before(this.Container);
-
-
 		this.Container.click($.proxy(function() { this.Element.click(); },this));
 	},
 
 	checkUploads: function() {
+		// Max file size
+		var max_size = parseInt($("#bigtree_max_file_size").val());
+
 		// No content or early browser fallback? Just draw the input's value
 		if (!this.Element.get(0).files.length) {
 			this.Container.find(".data").html('<span class="name wider">' + this.Element.get(0).value + '</span>');
@@ -775,17 +772,29 @@ var BigTreeFileInput = Class.extend({
 	
 			// Single upload? Show the thumbnail and file name / size
 			} else {
+				// Get file reference
 				var file = this.Element.get(0).files[0];
-				this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
-				if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
-					var img = document.createElement("img");
-					img.file = file;
-					this.Container.find(".data").prepend(img);
-					var reader = new FileReader();
-					reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-					reader.readAsDataURL(file);
+
+				// See if the file is too big
+				if (max_size && max_size < file.size) {
+					// Clear it out
+					this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name error wider">File Too Large (Max ' + this.formatBytes(max_size) + ')</span>');
+					this.Element.val("");
+				// File size is ok
 				} else {
-					this.Container.find(".name").addClass("wider");
+					this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
+					// If this is an image, draw a thumbnail
+					if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
+						var img = document.createElement("img");
+						img.file = file;
+						this.Container.find(".data").prepend(img);
+						var reader = new FileReader();
+						reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+						reader.readAsDataURL(file);
+					// Not an image? Give more room for the file name
+					} else {
+						this.Container.find(".name").addClass("wider");
+					}
 				}
 			}
 		}
@@ -794,6 +803,11 @@ var BigTreeFileInput = Class.extend({
 	clear: function() {
 		this.Element.val("");
 		this.checkUploads();
+	},
+
+	connect: function(el) {
+		this.Element = $(el).on("change",$.proxy(this.checkUploads,this));
+		return this;
 	},
 
 	// Courtesy of Aliceljm on StackOverflow
@@ -961,7 +975,7 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	editPhoto: function(ev) {
-		link = $(ev.target);
+		var link = $(ev.target);
 		this.activeCaption = link.siblings(".caption");
 
 		new BigTreeDialog({
@@ -980,63 +994,59 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveNewFile: function(data) {
-		if (this.disableCaptions) {
-			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_delete"></a>');
-		} else {
-			li = $('<li>').html('<figure><figcaption>Awaiting Uploading</figcaption></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+		var li = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
+		if (!this.disableCaptions) {
+			li.find("a").before('<a href="#" class="icon_edit"></a>');
 		}
+
+		// Try to get an image preview but fallback to the old upload message
+		var img = this.fileInput.prev(".file_wrapper").find("img");
+		if (img.length) {
+			li.find("figure").append(img);
+		} else {
+			li.find("figure").append('<figcaption>Awaiting Upload</figcaption>');
+		}
+
+		// Move the hidden input into an image box for upload
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		this.container.find("ul").append(li);
 
+		// Increment the photo counter
 		this.counter++;
-		c = this.counter;
 		
-		new_file = $('<input type="file" class="custom_control" name="' + this.key + '[' + this.counter + '][image]">').hide();
-		this.container.find(".file_wrapper").append(new_file);
-		customControl = this.fileInput.get(0).customControl;
+		// Create a new hidden file input for the next image to be uploaded
+		var new_file = $('<input type="file" class="custom_control" name="' + this.key + '[' + this.counter + '][image]">').hide();
+		this.container.find(".file_wrapper").after(new_file);
+		
+		// Wipe existing custom control information, assign the new input to it
+		var customControl = this.fileInput.get(0).customControl;
+		customControl.Container.find(".data").html("");
 		new_file.get(0).customControl = customControl.connect(new_file.get(0));
 		this.fileInput.get(0).customControl = false;
 		this.fileInput = new_file;
 	},
 	
 	openFileManager: function(ev) {
-		target = $(ev.target);
+		var target = $(ev.target);
 		// In case they click the span instead of the button.
 		if (!target.attr("href")) {
-			field = target.parent().attr("href").substr(1);	
-			options = $.parseJSON(target.parent().attr("data-options"));
+			var field = target.parent().attr("href").substr(1);	
+			var options = $.parseJSON(target.parent().attr("data-options"));
 		} else {
-			field = target.attr("href").substr(1);
-			options = $.parseJSON(target.attr("data-options"));
+			var field = target.attr("href").substr(1);
+			var options = $.parseJSON(target.attr("data-options"));
 		}
 		BigTreeFileManager.formOpen("photo-gallery",field,options,$.proxy(this.useExistingFile,this));
 		return false;
 	},
 	
 	useExistingFile: function(path,caption,thumbnail) {
-		li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
-		li.find("img").load(function() {
-			w = $(this).width();
-			h = $(this).height();
-			if (w > h) {
-				perc = 75 / w;
-				h = perc * h;
-				style = { margin: Math.floor((75 - h) / 2) + "px 0 0 0" };
-			} else {
-				perc = 75 / h;
-				w = perc * w;
-				style = { margin: "0 0 0 " + Math.floor((75 - w) / 2) + "px" };
-			}
-			
-			$(this).css(style);
-		});
+		var li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][existing]" />').val(path));
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(caption));
 		this.container.find("ul").append(li);
-
 		this.counter++;
-		c = this.counter;
 	}
 });
 
