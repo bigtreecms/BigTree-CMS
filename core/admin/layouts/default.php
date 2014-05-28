@@ -176,15 +176,16 @@
 		// Placing this here inline because we want the menu rendering changed on page render if it's too large.
 		var width = 0;
 		var menu = $("#sub_nav menu div");
+		var extras = $("<div>");
 		$("#sub_nav > a").each(function() {
 			var iwidth = $(this).width() + 29;
 			if (width + iwidth > 910) {
-				menu.prepend($(this));
+				extras.append($(this));
 			}
 			width += iwidth;
 		});
 		if (width > 910) {
-			$("#sub_nav menu").show();
+			$("#sub_nav menu").show().find("div").prepend(extras.html());
 		}
 	</script>
 	<?
