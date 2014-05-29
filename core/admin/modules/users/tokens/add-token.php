@@ -6,7 +6,7 @@
 <h1><span class="users"></span>Add API Token</h1>
 <? include BigTree::path("admin/modules/users/_nav.php") ?>
 <div class="form_container">
-	<form class="module" action="<?=$admin_root?>users/tokens/create/" method="post">
+	<form class="module" action="<?=ADMIN_ROOT?>users/tokens/create/" method="post">
 		<section>
 			<fieldset>
 				<label>Associated User</label>

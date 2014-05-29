@@ -7,7 +7,7 @@
 ?>
 <h1><span class="users"></span>Edit API Token</h1>
 <div class="form_container">
-	<form class="module" action="<?=$admin_root?>users/tokens/update/<?=end($path)?>/" method="post">
+	<form class="module" action="<?=ADMIN_ROOT?>users/tokens/update/<?=end($path)?>/" method="post">
 		<section>
 			<fieldset>
 				<label>Token</label>

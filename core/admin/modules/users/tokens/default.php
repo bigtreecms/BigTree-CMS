@@ -33,7 +33,7 @@
 	});
 
 	function _local_search() {
-		$("#results").load("<?=$admin_root?>ajax/users/get-tokens-page/?page=0&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-tokens-page/?page=0&query=" + escape($("#query").val()));
 	}
 	
 	$(".icon_delete").live("click",function() {
@@ -43,7 +43,7 @@
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {
-				$.ajax("<?=$admin_root?>ajax/users/delete-token/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
+				$.ajax("<?=ADMIN_ROOT?>ajax/users/delete-token/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
 			},this)
 		});
 		

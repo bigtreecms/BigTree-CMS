@@ -15,7 +15,7 @@
 		<span class="icon_approve<? if ($item["read_only"]) { ?> icon_approve_on<? } ?>"></span>
 	</section>
 	<section class="view_action">
-		<a href="<?=$admin_root?>users/tokens/edit/<?=$item["id"]?>/" class="icon_edit"></a>
+		<a href="<?=ADMIN_ROOT?>users/tokens/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 	</section>
 	<section class="view_action">
 		<a href="#<?=$item["id"]?>" class="icon_delete"></a>

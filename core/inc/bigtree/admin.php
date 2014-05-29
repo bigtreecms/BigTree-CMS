@@ -5307,7 +5307,7 @@
 		*/
 
 		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
-			global $breadcrumb,$www_root,$admin_root,$cms,$admin,$bigtree;
+			global $admin,$bigtree,$cms;
 			$table = sqlescape($table);
 			$id = sqlescape($id);
 
@@ -5865,7 +5865,7 @@
 		*/
 
 		function requireAccess($module) {
-			global $cms,$admin_root,$css,$js,$site;
+			global $admin,$bigtree,$cms;
 			if ($this->Level > 0)
 				return "p";
 			if (!isset($this->Permissions[$module]) || $this->Permissions[$module] == "") {
@@ -5885,7 +5885,7 @@
 		*/
 
 		function requireLevel($level) {
-			global $admin,$cms,$admin_root,$css,$js,$site;
+			global $admin,$bigtree,$cms;
 			if (!isset($this->Level) || $this->Level < $level) {
 				define("BIGTREE_ACCESS_DENIED",true);
 				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
@@ -5905,9 +5905,10 @@
 		*/
 
 		function requirePublisher($module) {
-			global $cms,$admin_root,$css,$js,$site;
-			if ($this->Level > 0)
+			global $admin,$bigtree,$cms;
+			if ($this->Level > 0) {
 				return true;
+			}
 			if ($this->Permissions[$module] != "p") {
 				ob_clean();
 				include BigTree::path("admin/pages/_denied.php");
@@ -6307,7 +6308,7 @@
 		*/
 
 		function stop($message = "") {
-			global $cms,$admin,$www_root,$admin_root,$site,$breadcrumb,$bigtree;
+			global $admin,$bigtree,$cms;
 			echo $message;
 			$bigtree["content"] = ob_get_clean();
 			include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
