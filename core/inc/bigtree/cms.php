@@ -1228,6 +1228,7 @@
 
 			$title = str_replace($accent_match, $accent_replace, $title);
 			$title = htmlspecialchars_decode($title);
+			$title = str_replace("/","-",$title);
 			$title = strtolower(preg_replace('/\s/', '-',preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '',trim($title))));
 			$title = str_replace("--","-",$title);
 	
