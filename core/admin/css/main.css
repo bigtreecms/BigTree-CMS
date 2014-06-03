@@ -1580,6 +1580,8 @@
 	.install_copyright:hover { color: #ccc; }
 	.install_wrapper ul { line-height: 160%; list-style: disc inside; margin: 20px 0; }
 	.install_wrapper code { background: #FCFCFC; border: 1px solid #CCC; color: #333; display: block; line-height: 200%; margin: 20px 0; padding: 10px 20px; }
+	.install_wrapper .form_error input { border-color: #990000; }
+	.install_wrapper .form_error label { color: #990000; }
 
 /*-----------------------------
 	Internet Explorer Fixes

@@ -129,7 +129,7 @@
 	$success = false;
 	$installed = false;
 
-	if (count($_POST) && !($db && $host && $user && $password && $cms_user && $cms_pass)) {
+	if (count($_POST) && !($db && $host && $user && $cms_user && $cms_pass)) {
 		$error = "Errors found! Please fix the highlighted fields and submit the form again.";
 	} elseif (count($_POST)) {
 		if ($write_host && $write_user && $write_password) {
@@ -623,7 +623,7 @@ RewriteRule (.*) site/$1 [L]');
 					<label>Username</label>
 					<input class="text" type="text" id="db_user" name="user" value="<?php echo htmlspecialchars($user) ?>" tabindex="3" autocomplete="off" />
 				</fieldset>
-				<fieldset class="right<?php if (count($_POST) && !$password) { ?> form_error<?php } ?>">
+				<fieldset class="right">
 					<label>Password</label>
 					<input class="text" type="password" id="db_pass" name="password" value="<?php echo htmlspecialchars($password) ?>" tabindex="4" autocomplete="off" />
 				</fieldset>
