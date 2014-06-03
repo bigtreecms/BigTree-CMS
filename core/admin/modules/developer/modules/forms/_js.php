@@ -26,7 +26,7 @@
 		title = li.find("input").val();
 		if (title) {
 			key = $(this).attr("name");
-			if (key != "geocoding") {
+			if (key != "geocoding" && key.indexOf("__mtm-") != 0) {
 				fieldSelect.addField(key,title);
 			}
 		}
