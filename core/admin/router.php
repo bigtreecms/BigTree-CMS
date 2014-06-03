@@ -150,7 +150,7 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
-
+	
 	// Make it easier to extend the nav tree without overwriting important things.
 	include BigTree::path("admin/_nav-tree.php");
 
@@ -187,11 +187,14 @@
 	$bigtree["layout"] = "default";
 	$bigtree["subnav_extras"] = array();
 
-	// If we're not logged in and we're not trying to login, redirect to the login page.
+	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-		BigTree::redirect(ADMIN_ROOT."login/");
+		if (implode(array_slice($bigtree["path"],1),"/") != "ajax/auto-modules/embeddable-form") {
+			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
+			BigTree::redirect(ADMIN_ROOT."login/");
+		}
 	}
+	
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
@@ -206,14 +209,17 @@
 
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
-		// If the current user isn't allowed in the module for the ajax, stop them.
-		$module = $admin->getModuleByRoute($bigtree["path"][2]);
-		if ($module && !$admin->checkAccess($module["id"])) {
-			die("Permission denied to module: ".$module["name"]);
-		}
-
-		if ($module) {
-			$bigtree["current_module"] = $bigtree["module"] = $module;
+		$module = false;
+		if ($bigtree["path"][2] != "auto-modules") {
+			// If the current user isn't allowed in the module for the ajax, stop them.
+			$module = $admin->getModuleByRoute($bigtree["path"][2]);
+			if ($module && !$admin->checkAccess($module["id"])) {
+				die("Permission denied to module: ".$module["name"]);
+			}
+			
+			if ($module) {
+				$bigtree["current_module"] = $bigtree["module"] = $module;
+			}
 		}
 
 		$ajax_path = array_slice($bigtree["path"],2);
