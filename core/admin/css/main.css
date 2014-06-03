@@ -1697,7 +1697,8 @@
 	.install_wrapper .checkbox a.checked { background-position: 0px -41px; }
 	.install_wrapper .checkbox a.focused { background-position: -16px -25px; }
 	.install_wrapper .checkbox a.checked.focused { background-position: -16px -41px; }
-	
+	.install_wrapper .form_error input { border-color: #C0362F; }
+	.install_wrapper .form_error label { color: #C0362F; }
 /*---------------------------
 	Embedded Form Styles
 ---------------------------*/
