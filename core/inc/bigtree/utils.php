@@ -1663,11 +1663,7 @@
 		*/
 
 		static function safeEncode($string) {
-			if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
-				return htmlspecialchars(html_entity_decode($string,ENT_HTML5));
-			} else {
-				return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
-			}
+			return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
 		}
 		
 		/*
