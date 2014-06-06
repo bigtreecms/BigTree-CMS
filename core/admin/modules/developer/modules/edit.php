@@ -48,7 +48,7 @@
 				<select name="group_existing">
 					<option value="0"></option>
 					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group["id"] == $module["group"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($group["name"])?></option>
+					<option value="<?=$group["id"]?>"<? if ($group["id"] == $module["group"]) { ?> selected="selected"<? } ?>><?=$group["name"]?></option>
 					<? } ?>
 				</select>
 			</fieldset>

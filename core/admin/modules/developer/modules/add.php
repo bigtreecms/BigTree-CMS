@@ -21,7 +21,7 @@
 				<select name="group_existing">
 					<option value="0"></option>
 					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"><?=htmlspecialchars($group["name"])?></option>
+					<option value="<?=$group["id"]?>"><?=$group["name"]?></option>
 					<? } ?>
 				</select>
 			</fieldset>
