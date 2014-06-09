@@ -2,13 +2,13 @@
 	$api = new BigTreeTwitterAPI;
 	$name = "Twitter";
 	$route = "twitter";
-	$key_name = "Consumer Key";
-	$secret_name = "Consumer Secret";
+	$key_name = "API Key";
+	$secret_name = "API Secret";
 	$show_test_environment = false;
 	$instructions = array(
-		'Create a <a href="https://dev.twitter.com/apps" target="_blank">Twitter Application</a> at the Twitter Developers portal.',
-		'Set the application\'s callback URL to '.DOMAIN,
-		'Enter the application\'s "Consumer Key" and "Consumer Secret" below.',
+		'Create a <a href="https://apps.twitter.com/" target="_blank">Twitter Application</a> at the Twitter Developers portal.',
+		'Set the application\'s Website to '.DOMAIN.' and it\'s Callback URL to '.DEVELOPER_ROOT.'services/twitter/return/',
+		'Enter the application\'s "API Key" and "API Secret" below.',
 		'Follow the OAuth process of allowing BigTree/your application access to your Twitter account.'
 	);
 
