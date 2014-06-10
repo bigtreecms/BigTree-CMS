@@ -93,8 +93,10 @@
 				}
 				if ($return_object) {
 					$obj = new stdClass;
-					foreach ($data as $key => $val) {
-						$obj->$key = $val;
+					if (is_array($data)) {
+						foreach ($data as $key => $val) {
+							$obj->$key = $val;
+						}
 					}
 					$this->AutoSaveSettings[$id] = $obj;
 				} else {
