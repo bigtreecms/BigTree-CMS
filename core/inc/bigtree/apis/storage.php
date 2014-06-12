@@ -106,7 +106,7 @@
 					$pointer = implode("/",$pointer_parts);
 					$this->Cloud->deleteFile($container,$pointer);
 					if ($this->Settings->Container == $container) {
-						unset($this->Settings->Files[$pointer]);
+						sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($pointer)."'");
 					}
 				} else {
 					// We might have already made an instance for Rackspace
@@ -151,7 +151,7 @@
 					unlink($local_file);
 				}
 				if ($success) {
-					$this->Settings->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+					sqlquery("UPDATE bigtree_caches SET value = '".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."' WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'");
 				}
 				return $success;
 			} else {
@@ -207,20 +207,25 @@
 				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
 				// Make sure we have a unique name
-				while (!$file_name || isset($this->Settings->Files[$relative_path.$file_name])) {
+				while (!$file_name || sqlrows(sqlquery("SELECT `timestamp` FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'"))) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
+					$x++;
+
 					// Check all the prefixes, make sure they don't exist either
-					foreach ($prefixes as $prefix) {
-						if (isset($this->Settings->Files[$relative_path.$prefix.$file_name])) {
+					if (is_array($prefixes) && count($prefixes)) {
+						$prefix_query = array();
+						foreach ($prefixes as $prefix) {
+							$prefix_query[] = "`key` = '".sqlescape($relative_path.$prefix.$file_name)."'";
+						}
+						if (sqlrows(sqlquery("SELECT `timestamp` FROM bigtree_caches WHERE identifier = 'org.bigtreecms.cloudfiles' AND (".implode(" OR ",$prefix_query).")"))) {
 							$file_name = false;
 						}
 					}
-					$x++;
 				}
 				// Upload it
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($success) {
-					$this->Settings->Files[$relative_path.$file_name] = array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file));
+					sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($relative_path.$file_name)."','".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."')");
 				}
 				if ($remove_original) {
 					unlink($local_file);

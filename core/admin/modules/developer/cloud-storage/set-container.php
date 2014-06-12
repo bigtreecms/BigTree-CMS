@@ -30,11 +30,9 @@
 		$admin->growl("Developer","Failed to read container.","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 	}
-	$files = array();
-	foreach ($container["flat"] as $item) {
-		$files[$item["path"]] = array("name" => $item["name"],"path" => $item["path"],"size" => $item["size"]);
-	}
-	$storage->Settings->Files = $files;
+
+	// Remove all existing cloud file caches and import new data
+	$cloud->resetCache($container["flat"]);
 
 	$admin->growl("Developer","Changed Default Storage");
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");

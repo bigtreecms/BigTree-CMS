@@ -704,6 +704,21 @@
 		}
 
 		/*
+			Function: resetCache
+				Clears the bigtree_caches table of container data and resets it with new data.
+
+			Parameters:
+				data - An array of file data from a container
+		*/
+
+		function resetCache($data) {
+			sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles'");
+			foreach ($data as $item) {
+				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($item["path"])."','".sqlescape(json_encode(array("name" => $item["name"],"path" => $item["path"],"size" => $item["size"])))."')");
+			}
+		}
+
+		/*
 			Function: uploadFile
 				Creates a new file in the given container.
 				Rackspace Cloud Files ignores "access" — public/private is controlled through the container only.
