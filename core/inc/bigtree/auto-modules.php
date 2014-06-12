@@ -444,6 +444,26 @@
 		}
 
 		/*
+			Function: getDependantViews
+				Returns all views that have a dependance on a given table.
+
+			Parameters:
+				table - Table name
+
+			Returns:
+				An array of rows from bigtree_module_views.
+		*/
+
+		static function getDependantViews($table) {
+			$views = array();
+			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE options LIKE '%".sqlescape($table)."%'");
+			while ($f = sqlfetch($q)) {
+				$views[] = $f;
+			}
+			return $views;
+		}
+
+		/*
 			Function: getEditAction
 				Returns a module action for the given module and form IDs.
 
