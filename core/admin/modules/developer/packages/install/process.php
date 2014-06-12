@@ -1,5 +1,7 @@
 <?
 	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
+
+	sqlquery("SET foreign_key_checks = 0");
 	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
@@ -43,6 +45,10 @@
 			// Create regular forms
 			foreach ($module["forms"] as $form) {
 				$bigtree["form_id_match"][$form["id"]] = $admin->createModuleForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["preprocess"],$form["callback"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
+				// Update related form values
+				foreach ($bigtree["view_id_match"] as $view_id) {
+					sqlquery("UPDATE bigtree_module_views SET related_form = '".$bigtree["form_id_match"][$form["id"]]."' WHERE related_form = '".$form["id"]."' AND id = '$view_id'");
+				}
 			}
 			// Create reports
 			foreach ($module["reports"] as $report) {
@@ -105,11 +111,9 @@
 	}
 
 	// Run SQL
-	sqlquery("SET foreign_key_checks = 0");
 	foreach ($json["sql"] as $sql) {
 		sqlquery($sql);
 	}
-	sqlquery("SET foreign_key_checks = 1");
 	// Empty view cache
 	sqlquery("DELETE FROM bigtree_module_view_cache");
 
@@ -126,6 +130,8 @@
 	@unlink(SERVER_ROOT."cache/form-field-types.btc");
 
 	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','package','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".sqlescape(json_encode($json))."')");
+
+	sqlquery("SET foreign_key_checks = 1");
 	
 	$admin->growl("Developer","Installed Package");
 	BigTree::redirect(DEVELOPER_ROOT."packages/install/complete/");
