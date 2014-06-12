@@ -1115,7 +1115,7 @@
 
 		static function isDirectoryWritable($path) {
 			// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
-			if (stripos($_SERVER["OS"],"windows") !== false) {
+			if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
 				// Directory exists, check to see if we can create a temporary file inside it
 				if (is_dir($path)) {
 					$file = rtrim($path,"/")."/".uniqid().".tmp";
@@ -1532,7 +1532,7 @@
 					header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
 				}
 			}
-			header("Location: ".$url);
+			header("Location: $url");
 			die();
 		}
 
@@ -1697,7 +1697,7 @@
 			$mailer->setHtml($html, $text);
 
 			if (!$from) {
-				$from = "no-reply@".str_replace("www.","",$_SERVER["HTTP_HOST"]);
+				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
 			}
 			$mailer->setFrom($from);
 			
