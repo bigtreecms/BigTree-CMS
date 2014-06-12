@@ -755,9 +755,9 @@
 
 					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 
-					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["title"] = htmlspecialchars($resource["title"]);
-					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					$resource["id"] = BigTree::safeEncode($resource["id"]);
+					$resource["title"] = BigTree::safeEncode($resource["title"]);
+					$resource["subtitle"] = BigTree::safeEncode($resource["subtitle"]);
 					unset($resource["options"]);
 					$clean_resources[] = $resource;
 				}
@@ -767,9 +767,9 @@
 ?>';
 
 			// Clean up the post variables
-			$id = sqlescape(htmlspecialchars($id));
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$id = sqlescape(BigTree::safeEncode($id));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$level = sqlescape($level);
 			$resources = sqlescape(json_encode($clean_resources));
 			$display_default = sqlescape($display_default);
@@ -799,7 +799,7 @@
 		*/
 
 		function createCalloutGroup($name) {
-			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(htmlspecialchars($name))."')");
+			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(BigTree::safeEncode($name))."')");
 			return sqlid();
 		}
 
@@ -842,8 +842,8 @@
 			}
 
 			// Fix stuff up for the db.
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$options = sqlescape(json_encode($options));
@@ -875,7 +875,7 @@
 			}
 
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$author = sqlescape($this->Name);
 			$pages = sqlescape($pages);
 			$modules = sqlescape($modules);
@@ -1028,7 +1028,7 @@
 				$x++;
 			}
 
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$route = sqlescape($route);
 			$class = sqlescape($class);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
@@ -1080,10 +1080,10 @@
 
 		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$report = 0,$level = 0,$position = 0) {
 			$module = sqlescape($module);
-			$route = sqlescape(htmlspecialchars($route));
+			$route = sqlescape(BigTree::safeEncode($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$form = $form ? "'".sqlescape($form)."'" : "NULL";
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			$report = $report ? "'".sqlescape($report)."'" : "NULL";
@@ -1118,15 +1118,15 @@
 
 		function createModuleEmbedForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$module = sqlescape($module);
-			$t = sqlescape(htmlspecialchars($title));
+			$sql_title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
 			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
-			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
+			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
+			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
 			$hash = uniqid();
 
@@ -1135,10 +1135,10 @@
 				$hash = uniqid();
 			}
 
-			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`) VALUES ('$module','$t','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash')");
+			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`preprocess`,`callback`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`) VALUES ('$module','$sql_title','$table','$fields','$preprocess','$callback','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash')");
 			$id = sqlid();
 
-			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.htmlspecialchars($t).'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
+			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.$title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
 		}
 
 		/*
@@ -1163,7 +1163,7 @@
 
 		function createModuleForm($module,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
 			$preprocess - sqlescape($preprocess);
@@ -1209,7 +1209,7 @@
 			}
 
 			$route = sqlescape($route);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 
 			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`) VALUES ('$name','$route')");
 			return sqlid();
@@ -1235,7 +1235,7 @@
 
 		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$filters = sqlescape(json_encode($filters));
@@ -1269,15 +1269,15 @@
 
 		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
-			$description = sqlescape(htmlspecialchars($description));
+			$title = sqlescape(BigTree::safeEncode($title));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$options = sqlescape(json_encode($options));
 			$fields = sqlescape(json_encode($fields));
 			$actions = sqlescape(json_encode($actions));
 			$related_form = $related_form ? intval($related_form) : "NULL";
-			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
+			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
 
 			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
 
@@ -6571,17 +6571,17 @@
 							$resource[$key] = $val;
 						}
 					}
-					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["title"] = htmlspecialchars($resource["title"]);
-					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					$resource["id"] = BigTree::safeEncode($resource["id"]);
+					$resource["title"] = BigTree::safeEncode($resource["title"]);
+					$resource["subtitle"] = BigTree::safeEncode($resource["subtitle"]);
 					unset($resource["options"]);
 					$r[] = $resource;
 				}
 			}
 
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$level = sqlescape($level);
 			$resources = sqlescape(json_encode($r));
 			$display_default = sqlescape($display_default);
@@ -6601,7 +6601,7 @@
 		*/
 
 		function updateCalloutGroup($id,$name) {
-			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(htmlspecialchars($name))."' WHERE id = '".sqlescape($id)."'");
+			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(BigTree::safeEncode($name))."' WHERE id = '".sqlescape($id)."'");
 		}
 
 		/*
@@ -6652,8 +6652,8 @@
 
 			// Fix stuff up for the db.
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$options = sqlescape(json_encode($options));
@@ -6677,7 +6677,7 @@
 
 		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$pages = sqlescape($pages);
 			$modules = sqlescape($modules);
 			$callouts = sqlescape($callouts);
@@ -6707,7 +6707,7 @@
 			}
 
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$class = sqlescape($class);
 			$permissions = sqlescape(json_encode($permissions));
@@ -6738,10 +6738,10 @@
 
 		function updateModuleAction($id,$name,$route,$in_nav,$icon,$form,$view,$report,$level,$position) {
 			$id = sqlescape($id);
-			$route = sqlescape(htmlspecialchars($route));
+			$route = sqlescape(BigTree::safeEncode($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$level = sqlescape($level);
 			$form = $form ? "'".sqlescape($form)."'" : "NULL";
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
@@ -6774,15 +6774,15 @@
 
 		function updateModuleEmbedForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
 			$preprocess - sqlescape($preprocess);
 			$callback - sqlescape($callback);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
-			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
+			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
+			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
 
 			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `preprocess` = '$preprocess', `callback` = '$callback', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message' WHERE id = '$id'");
@@ -6807,7 +6807,7 @@
 
 		function updateModuleForm($id,$title,$table,$fields,$preprocess = "",$callback = "",$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
 			$preprocess - sqlescape($preprocess);
@@ -6853,7 +6853,7 @@
 
 			$route = sqlescape($route);
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route' WHERE id = '$id'");
 		}
@@ -6875,7 +6875,7 @@
 
 		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$filters = sqlescape(json_encode($filters));
@@ -6909,15 +6909,15 @@
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
-			$description = sqlescape(htmlspecialchars($description));
+			$title = sqlescape(BigTree::safeEncode($title));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$options = sqlescape(json_encode($options));
 			$fields = sqlescape(json_encode($fields));
 			$actions = sqlescape(json_encode($actions));
 			$related_form = $related_form ? intval($related_form) : "NULL";
-			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
+			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
 
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
