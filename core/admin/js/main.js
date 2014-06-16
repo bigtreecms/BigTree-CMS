@@ -446,6 +446,9 @@ var BigTreeSelect = Class.extend({
 		this.Element.keydown($.proxy(this.keydown,this));
 		// Custom event to force open lists closed when another select opens.
 		this.Element.on("closeNow",$.proxy(this.close,this));
+
+		// Cleanup
+		tester.remove();
 	},
 
 	add: function(value,text) {
