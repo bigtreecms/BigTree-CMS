@@ -26,7 +26,7 @@
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { callout: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 			new BigTreeDialog("Field Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-field-options/?key=" + BigTree.localCurrentFieldKey, { type: "POST", data: data });
+				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
 			});
 		}});
 		

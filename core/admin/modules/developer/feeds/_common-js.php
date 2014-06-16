@@ -8,7 +8,7 @@
 	$(".options").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-feed-options/", { type: "POST", data: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() }, complete: function(response) {
 			new BigTreeDialog("Feed Options",response.responseText,function(data) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/save-feed-options/", { type: "POST", data: data });
+				$("#feed_options").val(JSON.stringify(data));
 			});
 		}});
 		return false;
