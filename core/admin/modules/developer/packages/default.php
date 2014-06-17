@@ -11,7 +11,7 @@
 		<? foreach ($packages as $package) { ?>
 		<li>
 			<section class="developer_templates_name">
-				<?=$package["name"]?> v<?=$package["version"]?>
+				<?=$package["name"]?> <?=$package["version"]?>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>packages/edit/<?=$package["id"]?>/" class="icon_edit"></a>
