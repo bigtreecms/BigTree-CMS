@@ -101,7 +101,18 @@
 	foreach ($json["components"]["field_types"] as $type) {
 		if ($type) {
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($type["id"])."'");
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["pages"])."','".sqlescape($type["modules"])."','".sqlescape($type["callouts"])."','".sqlescape($type["settings"])."')");
+			// Backwards compatibility with field types packaged for 4.1
+			if (!isset($type["use_cases"])) {
+				$type["use_cases"] = array(
+					"templates" => $type["pages"],
+					"modules" => $type["modules"],
+					"callouts" => $type["callouts"],
+					"settings" => $type["settings"]
+				);
+			}
+			$use_cases = is_array($type["use_cases"]) ? sqlescape(json_encode($type["use_cases"])) : sqlescape($type["use_cases"]);
+			$self_draw = $type["self_draw"] ? "'on'" : "NULL";
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','$use_cases',$self_draw)");
 		}
 	}
 
