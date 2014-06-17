@@ -19,7 +19,7 @@
 	}
 
 	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["setting"];
+	$bigtree["field_types"] = $cached_types["settings"];
 ?>
 <div class="container">
 	<summary><h2><?=$item["name"]?></h2></summary>

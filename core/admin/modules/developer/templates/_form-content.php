@@ -1,6 +1,6 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
-	$types = $cached_types["template"];
+	$types = $cached_types["templates"];
 ?>
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>

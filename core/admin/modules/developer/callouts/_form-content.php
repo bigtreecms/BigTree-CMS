@@ -1,7 +1,7 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
 	$groups = $admin->getCalloutGroups();
-	$types = $cached_types["callout"];
+	$types = $cached_types["callouts"];
 ?>
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>

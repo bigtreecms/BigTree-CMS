@@ -384,7 +384,7 @@
 		$q = sqlquery("SELECT * FROM bigtree_field_types");
 		while ($f = sqlfetch($q)) {
 			$use_cases = sqlescape(json_encode(array(
-				"pages" => $f["pages"],
+				"templates" => $f["pages"],
 				"modules" => $f["modules"],
 				"callouts" => $f["callouts"],
 				"settings" => $f["settings"]

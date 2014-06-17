@@ -15,7 +15,7 @@
 	$bigtree["tabindex"] = 1;
 
 	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["template"];
+	$bigtree["field_types"] = $cached_types["templates"];
 ?>
 <h2>Edit Page Content</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">

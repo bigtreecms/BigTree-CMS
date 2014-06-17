@@ -1,7 +1,7 @@
 <?
 	// Stop notices
 	$id = $name = $self_draw = "";
-	$use_cases = array("pages" => "on", "modules" => "on","callouts" => "on","settings" => "on");
+	$use_cases = array("templates" => "on", "modules" => "on","callouts" => "on","settings" => "on");
 	if ($_SESSION["bigtree_admin"]["error"]) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);
 		$show_error = $_SESSION["bigtree_admin"]["error"];
@@ -27,7 +27,7 @@
 					<fieldset>
 						<label class="required">Use Cases</label>
 						<ul class="developer_field_types_usage">
-							<li><input type="checkbox" name="use_cases[pages]"<? if ($use_cases["pages"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Pages</label></li>
+							<li><input type="checkbox" name="use_cases[templates]"<? if ($use_cases["templates"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Templates</label></li>
 							<li><input type="checkbox" name="use_cases[modules]"<? if ($use_cases["modules"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Modules</label></li>
 							<li><input type="checkbox" name="use_cases[callouts]"<? if ($use_cases["callouts"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Callouts</label></li>
 							<li><input type="checkbox" name="use_cases[settings]"<? if ($use_cases["settings"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Settings</label></li>

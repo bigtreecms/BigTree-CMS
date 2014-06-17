@@ -44,7 +44,7 @@
 				$bigtree["tabindex"] = 1;
 
 				$cached_types = $admin->getCachedFieldTypes();
-				$bigtree["field_types"] = $cached_types["module"];
+				$bigtree["field_types"] = $cached_types["modules"];
 
 				foreach ($bigtree["form"]["fields"] as $key => $resource) {
 					if (is_array($resource)) {

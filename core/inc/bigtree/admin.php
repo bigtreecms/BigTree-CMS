@@ -741,7 +741,7 @@
 ';
 
 			$cached_types = $this->getCachedFieldTypes();
-			$types = $cached_types["callout"];
+			$types = $cached_types["callouts"];
 
 			$clean_resources = array();
 			foreach ($resources as $resource) {
@@ -1655,7 +1655,7 @@
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 
 			$types = $this->getCachedFieldTypes();
-			$types = $types["template"];
+			$types = $types["templates"];
 
 			$clean_resources = array();
 			foreach ($resources as $resource) {
@@ -2723,7 +2723,7 @@
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
 			} else {
-				$types["module"] = $types["template"] = $types["callout"] = $types["setting"] = array(
+				$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = array(
 					"text" => array("name" => "Text", "self_draw" => false),
 					"textarea" => array("name" => "Text Area", "self_draw" => false),
 					"html" => array("name" => "HTML Area", "self_draw" => false),
@@ -2738,8 +2738,8 @@
 					"callouts" => array("name" => "Callouts", "self_draw" => true)
 				);
 
-				$types["module"]["route"] = array("name" => "Generated Route","self_draw" => true);
-				unset($types["callout"]["callouts"]);
+				$types["modules"]["route"] = array("name" => "Generated Route","self_draw" => true);
+				unset($types["callouts"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {

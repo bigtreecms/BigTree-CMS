@@ -1,6 +1,6 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
-	$types = $cached_types["template"];
+	$types = $cached_types["templates"];
 ?>
 <script>
 	new BigTreeFormValidator("form.module");

@@ -1,6 +1,6 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
-	$types = $cached_types["callout"];
+	$types = $cached_types["callouts"];
 ?>
 <script>
 	new BigTreeFormValidator("form.module");

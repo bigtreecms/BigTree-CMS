@@ -1,6 +1,6 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["template"];
+	$bigtree["field_types"] = $cached_types["templates"];
 
 	$template_id = $bigtree["current_page"]["template"];
 	if (isset($_POST["page"])) {

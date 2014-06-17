@@ -138,7 +138,7 @@
 	}
 
 	$cached_types = $admin->getCachedFieldTypes();
-	$types = $cached_types["module"];
+	$types = $cached_types["modules"];
 	if (count($fields)) {
 ?>
 <label>Fields</label>
