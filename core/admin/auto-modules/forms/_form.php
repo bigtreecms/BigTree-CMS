@@ -43,6 +43,9 @@
 				$bigtree["simple_html_fields"] = array();
 				$bigtree["tabindex"] = 1;
 
+				$cached_types = $admin->getCachedFieldTypes();
+				$bigtree["field_types"] = $cached_types["module"];
+
 				foreach ($bigtree["form"]["fields"] as $key => $resource) {
 					if (is_array($resource)) {
 						$field = array();
@@ -74,8 +77,7 @@
 						$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 						
 						if (file_exists($field_type_path)) {
-							// Don't draw the fieldset for the callout type
-							if ($resource["type"] == "callouts") {
+							if ($bigtree["field_types"][$resource["type"]]["self_draw"]) {
 								include $field_type_path;
 							} else {
 			?>

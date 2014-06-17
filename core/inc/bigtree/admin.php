@@ -862,13 +862,11 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				pages - Whether it can be used as a page resource or not ("on" is yes)
-				modules - Whether it can be used as a module resource or not ("on" is yes)
-				callouts - Whether it can be used as a callout resource or not ("on" is yes)
-				settings - Whether it can be used as a setting resource or not ("on" is yes)
+				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
+		function createFieldType($id,$name,$use_cases,$self_draw) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
@@ -876,15 +874,12 @@
 
 			$id = sqlescape($id);
 			$name = sqlescape(BigTree::safeEncode($name));
-			$author = sqlescape($this->Name);
-			$pages = sqlescape($pages);
-			$modules = sqlescape($modules);
-			$callouts = sqlescape($callouts);
-			$settings = sqlescape($settings);
+			$use_cases = sqlescape(json_encode($use_cases));
+			$self_draw = $self_draw ? "'on'" : "NULL";
 
 			$file = "$id.php";
 
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`) VALUES ('$id','$name','$use_cases',$self_draw)");
 
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
@@ -930,7 +925,7 @@
 				chmod(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file",0777);
 			}
 
-			unlink(SERVER_ROOT."cache/form-field-types.btc");
+			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			return $id;
 		}
@@ -1052,7 +1047,7 @@
 				chmod(SERVER_ROOT."custom/inc/modules/$route.php",0777);
 
 				// Remove cached class list.
-				unlink(SERVER_ROOT."cache/module-class-list.btc");
+				unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
 
 			return $id;
@@ -2725,43 +2720,37 @@
 
 		function getCachedFieldTypes() {
 			// Used cached values if available, otherwise query the DB
-			if (file_exists(SERVER_ROOT."cache/form-field-types.btc")) {
-				$types = json_decode(file_get_contents(SERVER_ROOT."cache/form-field-types.btc"),true);
+			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
+				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
 			} else {
 				$types["module"] = $types["template"] = $types["callout"] = $types["setting"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"callouts" => "Callouts"
+					"text" => array("name" => "Text", "self_draw" => false),
+					"textarea" => array("name" => "Text Area", "self_draw" => false),
+					"html" => array("name" => "HTML Area", "self_draw" => false),
+					"upload" => array("name" => "Upload", "self_draw" => false),
+					"list" => array("name" => "List", "self_draw" => false),
+					"checkbox" => array("name" => "Checkbox", "self_draw" => false),
+					"date" => array("name" => "Date Picker", "self_draw" => false),
+					"time" => array("name" => "Time Picker", "self_draw" => false),
+					"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
+					"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
+					"array" => array("name" => "Array of Items", "self_draw" => false),
+					"callouts" => array("name" => "Callouts", "self_draw" => true)
 				);
 
-				$types["module"]["route"] = "Generated Route";
+				$types["module"]["route"] = array("name" => "Generated Route","self_draw" => true);
 				unset($types["callout"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
-					if ($f["pages"]) {
-						$types["template"][$f["id"]] = $f["name"];
-					}
-					if ($f["modules"]) {
-						$types["module"][$f["id"]] = $f["name"];
-					}
-					if ($f["callouts"]) {
-						$types["callout"][$f["id"]] = $f["name"];
-					}
-					if ($f["settings"]) {
-						$types["setting"][$f["id"]] = $f["name"];
+					$use_cases = json_decode($f["use_cases"],true);
+					foreach ($use_cases as $case => $val) {
+						if ($val) {
+							$types[$case][$f["id"]] = array("name" => $f["name"],"self_draw" => $f["self_draw"]);
+						}
 					}
 				}
-				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",json_encode($types));
+				file_put_contents(SERVER_ROOT."cache/bigtree-form-field-types.json",json_encode($types));
 			}
 
 			return $types;
@@ -3018,6 +3007,7 @@
 			if (!$item) {
 				return false;
 			}
+			$item["use_cases"] = json_decode($item["use_cases"],true);
 			return $item;
 		}
 
@@ -6669,22 +6659,18 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				pages - Whether it can be used as a page resource or not ("on" is yes)
-				modules - Whether it can be used as a module resource or not ("on" is yes)
-				callouts - Whether it can be used as a callout resource or not ("on" is yes)
-				settings - Whether it can be used as a setting resource or not ("on" is yes)
+				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
+		function updateFieldType($id,$name,$use_cases,$self_draw) {
 			$id = sqlescape($id);
 			$name = sqlescape(BigTree::safeEncode($name));
-			$pages = sqlescape($pages);
-			$modules = sqlescape($modules);
-			$callouts = sqlescape($callouts);
-			$settings = sqlescape($settings);
+			$use_cases = sqlescape(json_encode($use_cases));
+			$self_draw = $self_draw ? "'on'" : "NULL";
 
-			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
-			unlink(SERVER_ROOT."cache/form-field-types.btc");
+			sqlquery("UPDATE bigtree_field_types SET name = '$name', use_cases = '$use_cases', self_draw = $self_draw WHERE id = '$id'");
+			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 		}
 
 		/*
@@ -6716,7 +6702,7 @@
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
-			unlink(SERVER_ROOT."cache/module-class-list.btc");
+			unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
 
 		/*

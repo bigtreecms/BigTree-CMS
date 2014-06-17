@@ -1,8 +1,5 @@
 <?
 	$type = $admin->getFieldType(end($bigtree["commands"]));
-
-	// Stop notices
-	$id = $name = $pages = $modules = $callouts = $settings = "";
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
 <div class="container">
@@ -16,11 +13,16 @@
 			<fieldset>
 				<label class="required">Use Cases</label>
 				<ul class="developer_field_types_usage">
-					<li><input type="checkbox" name="pages"<? if ($pages) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Pages</label></li>
-					<li><input type="checkbox" name="modules"<? if ($modules) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Modules</label></li>
-					<li><input type="checkbox" name="callouts"<? if ($callouts) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Callouts</label></li>
-					<li><input type="checkbox" name="settings"<? if ($settings) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Settings</label></li>
+					<li><input type="checkbox" name="use_cases[pages]"<? if ($use_cases["pages"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Pages</label></li>
+					<li><input type="checkbox" name="use_cases[modules]"<? if ($use_cases["modules"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Modules</label></li>
+					<li><input type="checkbox" name="use_cases[callouts]"<? if ($use_cases["callouts"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Callouts</label></li>
+					<li><input type="checkbox" name="use_cases[settings]"<? if ($use_cases["settings"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Settings</label></li>
 				</ul>
+			</fieldset>
+			<hr />
+			<fieldset>
+				<input type="checkbox" name="self_draw"<? if ($self_draw) { ?> checked="checked"<? } ?> />
+				<label class="for_checkbox">Self Draw <small>(if checked, you will need to draw your &lt;fieldset&gt; and &lt;label&gt; manually)</small></label>
 			</fieldset>
 		</section>
 		<footer>

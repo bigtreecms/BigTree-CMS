@@ -110,7 +110,7 @@
 				include_once SERVER_ROOT."core/inc/modules/".$bigtree["module_list"][$class].".php";
 			} else {
 				// Clear the module class list just in case we're missing something.
-				@unlink(SERVER_ROOT."cache/module-class-list.btc");
+				@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
 		}
 		

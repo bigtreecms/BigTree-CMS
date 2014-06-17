@@ -33,9 +33,6 @@
 	
 	$preview_field = isset($view["preview_field"]) ? $view["preview_field"] : "id";
 	
-	$cached_types = $admin->getCachedFieldTypes();
-	$types = $cached_types["module"];
-	
 	$unused[] = array("field" => "— Custom —", "title" => "");
 	if (count($tblfields)) {
 ?>

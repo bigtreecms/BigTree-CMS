@@ -19,8 +19,8 @@
 		
 		function __construct() {
 			// If the cache exists, just use it.
-			if (file_exists(SERVER_ROOT."cache/module-class-list.btc")) {
-				$items = json_decode(file_get_contents(SERVER_ROOT."cache/module-class-list.btc"),true);
+			if (file_exists(SERVER_ROOT."cache/bigtree-module-class-list.json")) {
+				$items = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-class-list.json"),true);
 			} else {
 				// Get the Module Class List
 				$q = sqlquery("SELECT * FROM bigtree_modules");
@@ -30,7 +30,7 @@
 				}
 				
 				// Cache it so we don't hit the database.
-				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",json_encode($items));
+				file_put_contents(SERVER_ROOT."cache/bigtree-module-class-list.json",json_encode($items));
 			}
 			
 			// Figure out what roots we can replace

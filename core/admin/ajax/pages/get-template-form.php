@@ -1,4 +1,7 @@
 <?
+	$cached_types = $admin->getCachedFieldTypes();
+	$bigtree["field_types"] = $cached_types["template"];
+
 	$template_id = $bigtree["current_page"]["template"];
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
@@ -63,7 +66,7 @@
 			
 			if (file_exists($field_type_path)) {
 				// Don't draw the fieldset for the callout type
-				if ($resource["type"] == "callouts") {
+				if ($bigtree["field_types"][$resource["type"]]["self_draw"]) {
 					include $field_type_path;
 				} else {
 ?>

@@ -23,6 +23,9 @@
 
 	$bigtree["callout_count"] = $_POST["count"];
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
+
+	$cached_types = $admin->getCachedFieldTypes();
+	$bigtree["field_types"] = $cached_types["callout"];
 	
 	if ($bigtree["callout"]["description"]) {
 ?>

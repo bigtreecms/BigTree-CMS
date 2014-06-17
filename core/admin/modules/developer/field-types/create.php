@@ -5,7 +5,7 @@
 		$_SESSION["bigtree_admin"]["error"] = "ID Used";
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		BigTree::redirect(DEVELOPER_ROOT."field-types/add/");
-	} elseif (!$admin->createFieldType($_POST["id"],$_POST["name"],$_POST["pages"],$_POST["modules"],$_POST["callouts"],$_POST["settings"])) {
+	} elseif (!$admin->createFieldType($_POST["id"],$_POST["name"],$_POST["use_cases"],$_POST["self_draw"])) {
 		$_SESSION["bigtree_admin"]["error"] = "ID Invalid";
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		BigTree::redirect(DEVELOPER_ROOT."field-types/add/");		

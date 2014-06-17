@@ -376,4 +376,21 @@
 		}
 		unset($storage->Settings->Files);
 	}
+
+	// BigTree 4.1.1 update -- REVISION 102
+	function _local_bigtree_update_102() {
+		sqlquery("ALTER TABLE bigtree_field_types ADD COLUMN `use_cases` TEXT NOT NULL AFTER `name`");
+		sqlquery("ALTER TABLE bigtree_field_types ADD COLUMN `self_draw` CHAR(2) NULL AFTER `use_cases`");
+		$q = sqlquery("SELECT * FROM bigtree_field_types");
+		while ($f = sqlfetch($q)) {
+			$use_cases = sqlescape(json_encode(array(
+				"pages" => $f["pages"],
+				"modules" => $f["modules"],
+				"callouts" => $f["callouts"],
+				"settings" => $f["settings"]
+			)));
+			sqlquery("UPDATE bigtree_field_types SET use_cases = '$use_cases' WHERE id = '".sqlescape($f["id"])."'");
+		}
+		sqlquery("ALTER TABLE bigtree_field_types DROP `pages`, DROP `modules`, DROP `callouts`, DROP `settings`");
+	}
 ?>
