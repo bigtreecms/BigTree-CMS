@@ -48,8 +48,10 @@
 		?>
 	</div>
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
+	<script>
+		$(function() {
+			BigTreeCallouts.init("#<?=$field["id"]?>","<?=$field["key"]?>","<?=$noun?>","<?=$field["options"]["group"]?>");
+			BigTreeCallouts.count += <?=count($field["value"])?>;
+		});
+	</script>
 </fieldset>
-<script>
-	BigTreeCallouts.init("#<?=$field["id"]?>","<?=$field["key"]?>","<?=$noun?>","<?=$field["options"]["group"]?>");
-	BigTreeCallouts.count += <?=count($field["value"])?>;
-</script>

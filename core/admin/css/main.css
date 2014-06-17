@@ -727,8 +727,8 @@
 
 /* Callouts */
 	fieldset.callouts { border-bottom: 1px solid #CCC; border-top: 1px solid #CCC; clear: both; margin: 30px -30px 30px -30px; padding: 30px; width: 898px; }
-	fieldset.callouts:first-of-type { border-top: none; margin-top: -30px; }
-	fieldset.callouts:last-of-type { border-bottom: none; margin-bottom: -30px; }
+	fieldset.callouts:first-child { border-top: none; margin-top: -30px; }
+	fieldset.callouts:last-child { border-bottom: none; margin-bottom: -30px; }
 	fieldset.callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
 	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
 	fieldset.callouts article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
