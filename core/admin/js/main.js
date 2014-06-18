@@ -2934,7 +2934,7 @@ var BigTreeCallouts = {
 						tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
 					}
 				}
-				$(this).hide();
+				$(this).hide().get(0).className = "";
 				article.append($(this));
 			}
 		});
