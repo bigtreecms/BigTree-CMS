@@ -748,6 +748,12 @@
 	#callout_resources .error_message { width: 420px; }
 	#callout_resources .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
 
+	#callout_resources fieldset.callouts { margin: 30px -20px; width: calc(100% - 20px); }
+	#callout_resources fieldset.callouts:last-child { margin-bottom: 0; }
+	#callout_resources fieldset.callouts article { width: calc(50% - 10px); margin: 0 10px 10px 0; }
+	#callout_resources fieldset.callouts article:nth-child(even) { margin-right: 0; }
+	#callout_resources fieldset.callouts h4 { margin: 0; }
+
 /* Box Select Styles */
 	.box_select { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
 	.box_select:hover { background: #EFF7FD; color: #222; }

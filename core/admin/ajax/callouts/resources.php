@@ -47,6 +47,9 @@
 		$bigtree["simple_html_fields"] = array();
 		
 		if (count($bigtree["callout"]["resources"])) {
+			$cached_types = $admin->getCachedFieldTypes();
+			$bigtree["field_types"] = $cached_types["callouts"];
+
 			foreach ($bigtree["callout"]["resources"] as $resource) {
 				$field = array();
 				// Leaving some variable settings for backwards compatibility — removing in 5.0
@@ -71,18 +74,22 @@
 				$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 				
 				if (file_exists($field_type_path)) {
+					if ($bigtree["field_types"][$resource["type"]]["self_draw"]) {
+						include $field_type_path;
+					} else {
 	?>
 	<fieldset>
 		<?
-					if ($field["title"] && $resource["type"] != "checkbox") {
+						if ($field["title"] && $resource["type"] != "checkbox") {
 		?>
 		<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 		<?
-					}
-					include $field_type_path;
+						}
+						include $field_type_path;
 		?>
 	</fieldset>
-	<?
+	<?				}
+
 					$bigtree["tabindex"]++;
 				}
 			}
