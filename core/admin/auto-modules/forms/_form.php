@@ -34,9 +34,11 @@
 					unset($_SESSION["bigtree_admin"]["post_hash_failed"]);
 			?>
 			<p class="warning_message">The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.</p>
+			<?		
+				}
+			?>
 			<div class="form_fields">
-				<?		
-					}
+				<?
 					$bigtree["datepickers"] = array();
 					$bigtree["timepickers"] = array();
 					$bigtree["datetimepickers"] = array();
