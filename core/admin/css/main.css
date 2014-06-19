@@ -1806,7 +1806,7 @@
 
 /* Retina Query for Installer */
 @media (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {
-	.install_wrapper h2 span, .install_wrapper .checkbox a, .install_wrapper .select .handle { background-image: url(../images/install-sprite-2x.png); }
+	.install_wrapper h2 span, .install_wrapper .checkbox a, .install_wrapper .select .handle { background-image: url(../images/install-sprite-2x.png); background-size: 150px 57px; }
 }
 
 /*-----------------------------
