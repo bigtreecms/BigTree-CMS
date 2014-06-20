@@ -24,7 +24,7 @@
 		<? } ?>
 	</fieldset>
 </div>
-<div id="callout_resources">
+<div id="callout_resources" class="callout_fields">
 	<? include BigTree::path("admin/ajax/callouts/resources.php") ?>
 </div>
 
