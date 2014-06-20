@@ -66,7 +66,7 @@ function BigTreeCustomControls(selector) {
 function BigTreePageLoadHooks() {
 	// !BigTree Link Finder
 	$("#link_finder").keyup(function() {
-		q = $(this).val();
+		var q = $(this).val();
 		if (q == "") {
 			$("#link_finder_results").hide().html("");
 		} else {
@@ -112,33 +112,33 @@ function BigTreePageLoadHooks() {
 	});
 
 	$(".inset_block .hide").click(function() {
-		id = $(this).attr("data-id");
+		var id = $(this).attr("data-id");
 		$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
 		$(this).parent().hide();
 	});
 	
 	// Tooltips
 	$(".has_tooltip").each(function() {
-		width = BigTree.WindowWidth();
-		offset = $(this).offset();
+		var width = BigTree.WindowWidth();
+		var offset = $(this).offset();
 		if (offset.left > (width / 2)) {
-			position = "left";
+			var position = "left";
 		} else {
-			position = "right";
+			var position = "right";
 		}
 		new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
 	});
 
 	// Image views
 	$(".image_list img").load(function() {
-		w = $(this).width();
-		h = $(this).height();
+		var w = $(this).width();
+		var h = $(this).height();
 		if (w > h) {
-			perc = 108 / w;
+			var perc = 108 / w;
 			h = perc * h;
-			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
+			var style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
 		} else {
-			style = { margin: "0px" };
+			var style = { margin: "0px" };
 		}
 		
 		$(this).css(style);
@@ -183,7 +183,6 @@ var BigTreePasswordInput = Class.extend({
 // !BigTreeCheckbox Class
 var BigTreeCheckbox = Class.extend({
 
-	Container: false,
 	Element: false,
 	Link: false,
 
@@ -193,43 +192,36 @@ var BigTreeCheckbox = Class.extend({
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
-		this.Element.addClass("custom_control");
 		
-		this.Container = $("<div>").addClass("checkbox");
-		a = $("<a>").attr("href","#checkbox");
-		a.click($.proxy(this.click,this));
-		a.focus($.proxy(this.focus,this));
-		a.blur($.proxy(this.blur,this));
-		a.keydown($.proxy(this.keydown,this));
-		// Let links inside of the labels still work properly
-		this.Element.next("label").find("a").click(function(ev) {
-			ev.stopPropagation();
-		});
-		// Have label clicks affect the checkbox
-		this.Element.next("label").click($.proxy(this.click,this));
+		// Have label clicks affect the checkbox but let links inside of the labels still work properly
+		this.Element.addClass("custom_control")
+					.next("label").click($.proxy(this.click,this))
+								  .find("a").click(function(ev) { ev.stopPropagation(); });
 		
+		// Create our clickable fake checkbox
+		this.Link = $("<a>").attr("href","#checkbox")
+						.click($.proxy(this.click,this))
+						.focus($.proxy(this.focus,this))
+						.blur($.proxy(this.blur,this))
+						.keydown($.proxy(this.keydown,this));
+
 		if (element.checked) {
-			a.addClass("checked");
+			this.Link.addClass("checked");
 		}
 		
 		if (element.disabled) {
-			a.addClass("disabled");
-			a.attr("tabindex","-1");
+			this.Link.addClass("disabled")
+					 .attr("tabindex","-1");
+		} else if (element.tabIndex) {
+			this.Link.attr("tabindex",element.tabIndex);
 		}
 		
-		if (element.tabIndex) {
-			a.attr("tabindex",element.tabIndex);
-		}
-		
-		this.Link = a;
-		
-		this.Container.append(a);
-		$(element).hide().after(this.Container);
+		$(element).hide().after($('<div class="checkbox">').append(this.Link));
 	},
 
 	clear: function() {
 		this.Element.removeAttr("checked");
-		this.Container.find("a").removeClass("checked");
+		this.Link.removeClass("checked");
 	},
 	
 	focus: function() {
@@ -301,19 +293,19 @@ var BigTreeSelect = Class.extend({
 			$(element).css({ position: "absolute", left: "-1000000px" });
 		}
 
-		div = $("<div>").addClass("select");
-		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
+		var div = $("<div>").addClass("select");
+		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
-		maxwidth = 0;
+		var maxwidth = 0;
 		
-		html = "";
-		selected = "";
-		selected_option = "";
+		var html = "";
+		var selected = "";
+		var selected_option = "";
 		
 		// Need to find all children since we have to account for options in and out of optgroups
-		first_level = $(element).children();
-		y = 0;
-		for (i = 0; i < first_level.length; i++) {
+		var first_level = $(element).children();
+		var y = 0;
+		for (var i = 0; i < first_level.length; i++) {
 			el = first_level.get(i);
 			if (el.nodeName.toLowerCase() == "optgroup") {
 				l = $(el).attr("label");
@@ -1155,7 +1147,7 @@ var BigTreeDialog = Class.extend({
 	
 		// BigTree 4.2 behavior should be to pass in a settings object
 		if (is_object(settings)) {
-			for (i in settings) {
+			for (var i in settings) {
 				defaults[i] = settings[i];
 			}
 		// Allow for backwards copatibility with BigTree <= 4.1
