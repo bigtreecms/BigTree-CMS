@@ -151,6 +151,13 @@
 		include "../core/bootstrap.php";
 	}
 	
+	// Connect to MySQL and begin sessions and output buffering.
+	if (!$bigtree["mysql_read_connection"]) {
+		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
+	}
+	ob_start();
+	session_start();
+
 	// Make it easier to extend the nav tree without overwriting important things.
 	include BigTree::path("admin/_nav-tree.php");
 
@@ -165,13 +172,6 @@
 	} else {
 		$bigtree["css"] = array();
 	}
-
-	// Connect to MySQL and begin sessions and output buffering.
-	if (!$bigtree["mysql_read_connection"]) {
-		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
-	}
-	ob_start();
-	session_start();
 
 	// Instantiate the $admin var with either a custom class or the normal BigTreeAdmin.
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -215,6 +215,8 @@
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
 			if ($module && !$admin->checkAccess($module["id"])) {
 				die("Permission denied to module: ".$module["name"]);
+			} elseif (!$admin->Level) {
+				die("Please login.");
 			}
 			
 			if ($module) {
