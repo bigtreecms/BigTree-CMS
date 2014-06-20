@@ -132,8 +132,14 @@
 	$("#<?=$id?>").datetimepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
 	<?
 		}
+
+		// Only re-run if we're loading a new callout type
+		if (isset($_POST["type"])) {
 	?>
-	BigTreeCustomControls();
+	BigTreeCustomControls($("#callout_resources"));
+	<?
+		}
+	?>
 </script>
 <?
 	$bigtree["html_editor_width"] = 440;
