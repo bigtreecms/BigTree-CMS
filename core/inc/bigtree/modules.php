@@ -29,8 +29,8 @@
 				Adds an entry to the table.
 			
 			Parameters:
-				keys - An array of column names to add
-				vals - An array of values for each of the columns
+				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well) - Optionally this can be a key/value array and the values field kept false
+				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 				enforce_unique - Check to see if this entry is already in the database (prevent duplicates, defaults to false)
 				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)
 			
@@ -43,16 +43,36 @@
 				<update>
 		*/
 		
-		function add($keys,$vals,$enforce_unique = false,$ignore_cache = false) {
+		function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {			
 			$existing_parts = $key_parts = $value_parts = array();
 			$x = 0;
-			// Get a bunch of query parts.
-			while ($x < count($keys)) {
-				$val = is_array($vals[$x]) ? sqlescape(json_encode(BigTree::translateArray($vals[$x]))) : sqlescape($admin->autoIPL($vals[$x]));
-				$existing_parts[] = "`".$keys[$x]."` = '$val'";
-				$key_parts[] = "`".$keys[$x]."`";
-				$value_parts[] = "'$val'";
-				$x++;
+
+			// Single column/value add
+			if (is_string($fields)) {
+				$value = is_array($values) ? sqlescape(json_encode(BigTree::translateArray($values))) : sqlescape($admin->autoIPL($values));
+				$existing_parts[] = "`$fields` = '$value'";
+				$key_parts[] = "`$fields`";
+				$value_parts[] = "$value";
+			// Multiple columns / values
+			} else {
+				// If we didn't pass in values (=== false) then we're using a key => value array
+				if ($values === false) {
+					foreach ($fields as $key => $value) {
+						$value = is_array($value) ? sqlescape(json_encode(BigTree::translateArray($value))) : sqlescape($admin->autoIPL($value));
+						$existing_parts[] = "`$key` = '$value'";
+						$key_parts[] = "`$key`";
+						$value_parts[] = "'$value'";
+					}
+				// Separate arrays for keys and values
+				} else {
+					while ($x < count($fields)) {
+						$val = is_array($values[$x]) ? sqlescape(json_encode(BigTree::translateArray($values[$x]))) : sqlescape($admin->autoIPL($values[$x]));
+						$existing_parts[] = "`".$fields[$x]."` = '$val'";
+						$key_parts[] = "`".$fields[$x]."`";
+						$value_parts[] = "'$val'";
+						$x++;
+					}
+				}
 			}
 
 			// Prevent Duplicates
