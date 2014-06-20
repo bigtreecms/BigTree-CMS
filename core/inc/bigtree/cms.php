@@ -7,10 +7,11 @@
 	class BigTreeCMS {
 	
 		var $AutoSaveSettings = array();
-		var $IRLCache = array();
-		var $IPLCache = array();
-		var $ReplaceableRootKeys = array();
-		var $ReplaceableRootVals = array();
+		static $IRLCache = array();
+		static $IPLCache = array();
+		static $MySQLTime = false;
+		static $ReplaceableRootKeys = array();
+		static $ReplaceableRootVals = array();
 
 		/*
 			Constructor:
@@ -32,20 +33,6 @@
 				// Cache it so we don't hit the database.
 				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",BigTree::json($items));
 			}
-			
-			// Figure out what roots we can replace
-			if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
-				$this->ReplaceableRootKeys[] = ADMIN_ROOT;
-				$this->ReplaceableRootVals[] = "{adminroot}";
-			}
-			if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
-				$this->ReplaceableRootKeys[] = STATIC_ROOT;
-				$this->ReplaceableRootVals[] = "{staticroot}";
-			}
-			if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
-				$this->ReplaceableRootKeys[] = WWW_ROOT;
-				$this->ReplaceableRootVals[] = "{wwwroot}";
-			}
 
 			$this->ModuleClassList = $items;
 		}
@@ -56,15 +43,11 @@
 		*/
 
 		function __destruct() {
-			// Need $admin back if it's already been destroyed
-			global $admin;
-			$admin = new BigTreeAdmin;
-
 			foreach ($this->AutoSaveSettings as $id => $obj) {
 				if (is_object($obj)) {
-					$admin->updateSettingValue($id,get_object_vars($obj));
+					BigTreeAdmin::updateSettingValue($id,get_object_vars($obj));
 				} else {
-					$admin->updateSettingValue($id,$obj);
+					BigTreeAdmin::updateSettingValue($id,$obj);
 				}
 			}
 		}
@@ -119,13 +102,13 @@
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
 		*/
 
-		function cacheGet($identifier,$key,$max_age = false,$decode = true) {
+		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
 			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-			if (empty($this->MySQLTime)) {
+			if (!self:$MySQLTime) {
 				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
-				$this->MySQLTime = $t["time"];
+				self::$MySQLTime = $t["time"];
 			}
-			$max_age = date("Y-m-d H:i:s",strtotime($this->MySQLTime) - $max_age);
+			$max_age = date("Y-m-d H:i:s",strtotime(self::$MySQLTime) - $max_age);
 			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
@@ -159,7 +142,7 @@
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
+		static function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -182,10 +165,10 @@
 				Manually catch and display the 404 page from a routed template; logs missing page with handle404
 		*/
 		
-		function catch404() {
-			global $cms,$bigtree;
+		static function catch404() {
+			global $admin,$bigtree,$cms;
 			
-			if ($this->handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+			if (self::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
 				$bigtree["layout"] = "default";
 				ob_start();
 				include "../templates/basic/_404.php";
@@ -204,7 +187,7 @@
 				path - An array of routes
 		*/
 		
-		function checkOldRoutes($path) {
+		static function checkOldRoutes($path) {
 			$found = false;
 			$x = count($path);
 			while ($x) {
@@ -236,7 +219,7 @@
 				An array of resources.
 		*/
 
-		function decodeResources($data) {
+		static function decodeResources($data) {
 			if (!is_array($data)) {
 				$data = json_decode($data,true);
 			}
@@ -250,7 +233,7 @@
 						$val = BigTree::untranslateArray(json_decode($val,true));
 					} else {
 						// Otherwise it's a string, just replace the {wwwroot} and ipls.
-						$val = $this->replaceInternalPageLinks($val);				
+						$val = self::replaceInternalPageLinks($val);				
 					}
 					$data[$key] = $val;
 				}
@@ -270,7 +253,7 @@
 			$q = sqlquery("SELECT id,template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
 
 			while ($f = sqlfetch($q)) {
-				if ($f["template"] || strpos($f["external"],$GLOBALS["domain"])) {	
+				if ($f["template"] || strpos($f["external"],DOMAIN)) {	
 					if (!$f["template"]) {
 						$link = $this->getInternalPageLink($f["external"]);
 					} else {
@@ -388,7 +371,7 @@
 				<getFeedByRoute>
 		*/
 		
-		function getFeed($item) {
+		static function getFeed($item) {
 			if (!is_array($item)) {
 				$item = sqlescape($item);
 				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
@@ -399,7 +382,7 @@
 			$item["options"] = json_decode($item["options"],true);
 			if (is_array($item["options"])) {
 				foreach ($item["options"] as &$option) {
-					$option = $this->replaceRelativeRoots($option);
+					$option = self::replaceRelativeRoots($option);
 				}
 			}
 			$item["fields"] = json_decode($item["fields"],true);
@@ -420,10 +403,10 @@
 				<getFeed>
 		*/
 		
-		function getFeedByRoute($route) {
+		static function getFeedByRoute($route) {
 			$route = sqlescape($route);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
-			return $this->getFeed($item);
+			return self::getFeed($item);
 		}
 		
 		/*
@@ -455,10 +438,10 @@
 				Public facing URL.
 		*/
 		
-		function getInternalPageLink($ipl) {
+		static function getInternalPageLink($ipl) {
 			// Regular links
 			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
-				return $this->replaceRelativeRoots($ipl);
+				return self::replaceRelativeRoots($ipl);
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
@@ -466,16 +449,16 @@
 			// Resource Links
 			if ($ipl[0] == "irl:") {
 				// See if it's in the cache.
-				if (isset($this->IRLCache[$navid])) {
+				if (isset(self::$IRLCache[$navid])) {
 					if ($ipl[2]) {
-						return BigTree::prefixFile($this->IRLCache[$navid],$ipl[2]);
+						return BigTree::prefixFile(self::$IRLCache[$navid],$ipl[2]);
 					} else {
-						return $this->IRLCache[$navid];
+						return self::$IRLCache[$navid];
 					}
 				} else {
 					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
-					$file = $r ? $this->replaceRelativeRoots($r["file"]) : false;
-					$this->IRLCache[$navid] = $file;
+					$file = $r ? self::replaceRelativeRoots($r["file"]) : false;
+					self::$IRLCache[$navid] = $file;
 					if ($ipl[2]) {
 						return BigTree::prefixFile($file,$ipl[2]);
 					} else {
@@ -502,13 +485,13 @@
 			}
 
 			// See if it's in the cache.
-			if (isset($this->IPLCache[$navid])) {
-				return $this->IPLCache[$navid].$commands;
+			if (isset(self::$IPLCache[$navid])) {
+				return self::$IPLCache[$navid].$commands;
 			} else {
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 				// Set the cache
-				$this->IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
+				self::$IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
 				return WWW_ROOT.$f["path"]."/".$commands;
 			}
 		}
@@ -524,7 +507,7 @@
 				Public facing URL.
 		*/
 		
-		function getLink($id) {
+		static function getLink($id) {
 			global $bigtree;
 			// Homepage, just return the web root.
 			if ($id == 0) {
@@ -724,10 +707,10 @@
 				return false;
 			}
 			if ($f["external"] && $f["template"] == "") {
-				$f["external"] = $this->getInternalPageLink($f["external"]);
+				$f["external"] = self::getInternalPageLink($f["external"]);
 			}
 			if ($decode) {
-				$f["resources"] = $this->decodeResources($f["resources"]);
+				$f["resources"] = self::decodeResources($f["resources"]);
 				// Backwards compatibility with 4.0 callout system
 				if (isset($f["resources"]["4.0-callouts"])) {
 					$f["callouts"] = $f["resources"]["4.0-callouts"];
@@ -1048,7 +1031,7 @@
 				The template row from the database with resources decoded.
 		*/
 		
-		function getTemplate($id) {
+		static function getTemplate($id) {
 			$id = sqlescape($id);
 			$template = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
 			if (!$template) {
@@ -1180,8 +1163,23 @@
 				A string with relative roots.
 		*/
 
-		function replaceHardRoots($string) {
-			return str_replace($this->ReplaceableRootKeys,$this->ReplaceableRootVals,$string);
+		static function replaceHardRoots($string) {
+			// Figure out what roots we can replace
+			if (!count(self::$ReplaceableRootKeys)) {
+				if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
+					self::$ReplaceableRootKeys[] = ADMIN_ROOT;
+					self::$ReplaceableRootVals[] = "{adminroot}";
+				}
+				if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
+					self::$ReplaceableRootKeys[] = STATIC_ROOT;
+					self::$ReplaceableRootVals[] = "{staticroot}";
+				}
+				if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
+					self::$ReplaceableRootKeys[] = WWW_ROOT;
+					self::$ReplaceableRootVals[] = "{wwwroot}";
+				}
+			}
+			return str_replace(self::$ReplaceableRootKeys,self::$ReplaceableRootVals,$string);
 		}
 
 		/*
@@ -1195,7 +1193,7 @@
 				An HTML block with links hard-linked.
 		*/
 		
-		function replaceInternalPageLinks($html) {
+		static function replaceInternalPageLinks($html) {
 			$drop_count = 0;
 
 			// Save time if there's no content
@@ -1204,18 +1202,17 @@
 			}
 			
 			if (substr($html,0,6) == "ipl://" || substr($html,0,6) == "irl://") {
-				$html = $this->getInternalPageLink($html);
+				$html = self::getInternalPageLink($html);
 			} else {
-				$html = $this->replaceRelativeRoots($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
-				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array($this,"replaceInternalPageLinksHook"),$html);
+				$html = self::replaceRelativeRoots($html);
+				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array(self,"replaceInternalPageLinksHook"),$html);
+				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array(self,"replaceInternalPageLinksHook"),$html);
 			}
 
 			return $html;
 		}
-		protected function replaceInternalPageLinksHook($matches) {
-			global $cms;
-			return '="'.$cms->getInternalPageLink($matches[1]).'"';
+		static function replaceInternalPageLinksHook($matches) {
+			return '="'.self::getInternalPageLink($matches[1]).'"';
 		}
 		
 		/*
@@ -1229,7 +1226,7 @@
 				A string with hard links.
 		*/
 
-		function replaceRelativeRoots($string) {
+		static function replaceRelativeRoots($string) {
 			return str_replace(array("{adminroot}","{wwwroot}","{staticroot}"),array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),$string);
 		}
 
@@ -1244,7 +1241,7 @@
 				A string suited for a URL route.
 		*/
 
-		function urlify($title) {
+		static function urlify($title) {
 			$accent_match = array('Â', 'Ã', 'Ä', 'À', 'Á', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 'Ð', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'ß', 'à', 'á', 'â', 'ã', 'ä', 'å', 'æ', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ð', 'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ');
 			$accent_replace = array('A', 'A', 'A', 'A', 'A', 'A', 'AE', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'D', 'N', 'O', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'B', 'a', 'a', 'a', 'a', 'a', 'a', 'ae', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'n', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y');
 

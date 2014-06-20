@@ -809,12 +809,10 @@
 		*/
 		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			global $cms;
-		
 			$parts = self::pathInfo($directory.$file);
 			
 			// Clean up the file name
-			$clean_name = $cms->urlify($parts["filename"]);
+			$clean_name = BigTreeCMS::urlify($parts["filename"]);
 			if (strlen($clean_name) > 50) {
 				$clean_name = substr($clean_name,0,50);
 			}
@@ -1827,7 +1825,6 @@
 		/*
 			Function: translateArray
 				Steps through an array and creates internal page links for all parts of it.
-				Requires $admin to be presently instantiated to BigTreeAdmin.
 			
 			Parameters:
 				array - The array to process.
@@ -1840,12 +1837,11 @@
 		*/
 		
 		static function translateArray($array) {
-			$admin = new BigTreeAdmin;
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = self::translateArray($piece);
 				} else {
-					$piece = $admin->autoIPL($piece);
+					$piece = BigTreeAdmin::autoIPL($piece);
 				}
 			}
 			return $array;
@@ -1986,12 +1982,11 @@
 		*/
 		
 		static function untranslateArray($array) {
-			global $cms;
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = self::untranslateArray($piece);
 				} else {
-					$piece = $cms->replaceInternalPageLinks($piece);
+					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
 				}
 			}
 			return $array;

@@ -324,9 +324,7 @@
 				The id of the new entry in the database.
 		*/
 
-		static function createItem($table,$data,$many_to_many = array(),$tags = array()) {
-			global $admin,$module;
-			
+		static function createItem($table,$data,$many_to_many = array(),$tags = array()) {			
 			$table_description = BigTree::describeTable($table);
 			$query_fields = array();
 			$query_vals = array();
@@ -371,11 +369,8 @@
 				}
 			}
 			
-			self::cacheNewItem($id,$table);
-			
-			if ($admin) {
-				$admin->track($table,$id,"created");
-			}
+			self::cacheNewItem($id,$table);			
+			self::track($table,$id,"created");
 
 			return $id;
 		}
@@ -397,8 +392,6 @@
 		*/
 
 		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
-			global $admin;
-
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
@@ -417,10 +410,7 @@
 			$id = sqlid();
 
 			self::cacheNewItem($id,$table,true);
-			
-			if ($admin) {
-				$admin->track($table,"p$id","created-pending");
-			}
+			self::track($table,"p$id","created-pending");
 			
 			return $id;
 		}
@@ -435,16 +425,12 @@
 		*/
 
 		static function deleteItem($table,$id) {
-			global $admin;
-			
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM `$table` WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'");
+
 			self::uncacheItem($id,$table);
-			
-			if ($admin) {
-				$admin->track($table,$id,"deleted");
-			}
+			self::track($table,$id,"deleted");
 		}
 		
 		/*
@@ -457,15 +443,11 @@
 		*/
 		
 		static function deletePendingItem($table,$id) {
-			global $admin;
-			
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND id = '$id'");
-			self::uncacheItem("p$id",$table);
 
-			if ($admin) {
-				$admin->track($table,"p$id","deleted-pending");
-			}
+			self::uncacheItem("p$id",$table);
+			self::track($table,"p$id","deleted-pending");
 		}
 
 		/*
@@ -536,6 +518,7 @@
 		/*
 			Function: getFilterQuery
 				Returns a query string that is used for searching views based on group permissions.
+				Can only be called when logged into the admin.
 			
 			Parameters:
 				view - The view to create a filter for.
@@ -546,7 +529,7 @@
 		
 		static function getFilterQuery($view) {
 			global $admin;
-			$module = $admin->getModule(self::getModuleForView($view));
+			$module = BigTreeAdmin::getModule(self::getModuleForView($view));
 			if (isset($module["gbp"]["enabled"]) && $module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
 				$groups = $admin->getAccessGroups($module["id"]);
 				if (is_array($groups)) {
@@ -1021,11 +1004,6 @@
 		*/
 		
 		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false) {
-			global $last_query,$admin;
-			if (!$admin) {
-				$admin = new BigTreeAdmin;
-			}
-
 			// We're going to read the original table so we know whether the column we're sorting by is numeric.
 			$tableInfo = BigTree::describeTable($view["table"]);
 			
@@ -1054,7 +1032,7 @@
 				}
 			}
 			
-			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : $admin->PerPage;
+			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : BigTreeAdmin::$PerPage;
 			$pages = ceil(sqlrows(sqlquery($query)) / $per_page);
 			$pages = ($pages > 0) ? $pages : 1;
 			$results = array();
@@ -1522,6 +1500,7 @@
 		/*
 			Function: submitChange
 				Creates a change request for an item and caches it.
+				Can only be called when logged into the admin.
 			
 			Parameters:
 				module - The module for the entry.
@@ -1538,6 +1517,9 @@
 		
 		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
 			global $admin;
+			if (!isset($admin) || get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				throw Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
+			}
 
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
@@ -1584,20 +1566,32 @@
 					self::recacheItem($id,$table);					
 				}
 				
-				if ($admin) {
-					$admin->track($table,$id,"updated-draft");
-				}
-				
+				$admin->track($table,$id,"updated-draft");
 				return $existing["id"];
 			} else {
 				$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
 				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES ('".$admin->ID."',NOW(),'$table','$id','$changes','$many_data','$tags_data','$module','EDIT',$publish_hook)");
 				self::recacheItem($id,$table);
 				
-				if ($admin) {
-					$admin->track($table,$id,"saved-draft");
-				}
+				$admin->track($table,$id,"saved-draft");
 				return sqlid();
+			}
+		}
+
+		/*
+			Function: track
+				Used internally by the class to facilitate audit trail tracking when a logged in user is making a call.
+
+			Parameters:
+				table - The table that is being changed
+				id - The id of the record being changed
+				action - The action being taken
+		*/
+
+		static function track($table,$id,$action) {
+			global $admin;
+			if (isset($admin) && get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+				$admin->track($table,$id,$action);
 			}
 		}
 		
@@ -1630,7 +1624,6 @@
 		*/
 		
 		static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
-			global $admin,$module;
 			$table_description = BigTree::describeTable($table);
 			$query = "UPDATE `$table` SET ";
 			foreach ($data as $key => $val) {
@@ -1683,9 +1676,7 @@
 				self::recacheItem($id,$table);
 			}
 			
-			if ($admin) {
-				$admin->track($table,$id,"updated");
-			}
+			self::track($table,$id,"updated");
 		}
 
 		/*
