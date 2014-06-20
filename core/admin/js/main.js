@@ -786,29 +786,30 @@ var BigTreeRadioButton = Class.extend({
 		if (this.Element.hasClass("custom_control")) {
 			return false;
 		}
-		this.Element.addClass("custom_control");
 		
-		div = $("<div>").addClass("radio_button");
-		a = $("<a>").attr("href","#radio");
-		a.click($.proxy(this.click,this));
-		a.focus($.proxy(this.focus,this));
-		a.blur($.proxy(this.blur,this));
-		a.keydown($.proxy(this.keydown,this));
-		this.Element.next("label").click($.proxy(this.click,this));
+		// Have label clicks affect the checkbox but let links inside of the labels still work properly
+		this.Element.addClass("custom_control")
+					.next("label").click($.proxy(this.click,this))
+								  .find("a").click(function(ev) { ev.stopPropagation(); });
+
+		this.Link = $("<a>").attr("href","#radio")
+							.click($.proxy(this.click,this))
+							.focus($.proxy(this.focus,this))
+							.blur($.proxy(this.blur,this))
+							.keydown($.proxy(this.keydown,this));
 		
 		if (element.checked) {
-			a.addClass("checked");
+			this.Link.addClass("checked");
 		}
 		
-		if (element.tabIndex) {
-			a.attr("tabIndex",element.tabIndex);
+		if (element.disabled) {
+			this.Link.addClass("disabled")
+					 .attr("tabindex","-1");
+		} else if (element.tabIndex) {
+			this.Link.attr("tabindex",element.tabIndex);
 		}
 		
-		this.Link = a;
-		
-		div.append(a);
-		this.Element.hide();
-		this.Element.after(div);
+		this.Element.hide().after($('<div class="radio_button">').append(this.Link));
 	},
 	
 	focus: function(ev) {
@@ -859,8 +860,8 @@ var BigTreeRadioButton = Class.extend({
 	},
 	
 	next: function(ev) {
-		all = $('input[name="' + this.Element.attr("name") + '"]');
-		index = all.index(this.Element);
+		var all = $('input[name="' + this.Element.attr("name") + '"]');
+		var index = all.index(this.Element);
 		if (index != all.length - 1) {
 			all[index + 1].customControl.Link.focus();
 			all[index + 1].customControl.click(ev);
@@ -868,8 +869,8 @@ var BigTreeRadioButton = Class.extend({
 	},
 	
 	previous: function(ev) {
-		all = $('input[name="' + this.Element.attr("name") + '"]');
-		index = all.index(this.Element);
+		var all = $('input[name="' + this.Element.attr("name") + '"]');
+		var index = all.index(this.Element);
 		if (index != 0) {
 			all[index - 1].customControl.Link.focus();
 			all[index - 1].customControl.click(ev);
