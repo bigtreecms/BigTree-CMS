@@ -1031,25 +1031,27 @@ var BigTreePhotoGallery = Class.extend({
 // !BigTree Tag Adder Object
 var BigTreeTagAdder = {
 	
-	element: false,
-	searching: false,
-	selected: -1,
-	dropdown: false,
-	lastsearch: false,
+	Dropdown: false,
+	LastSearch: false,
+	Searching: false,
+	Selected: -1,
+	TagEntry: false,
+	TagList: false,
+	TagResults: false,
 	
-	init: function(module,entry,element) {
-		this.element = $(element);
-		// Setup delete hooks on existing tags
-		$("#tag_list a").click(this.deleteHook);		
-
-		$("#tag_entry").keydown($.proxy(this.checkKeys,this));
-		$("#tag_entry").keyup($.proxy(this.searchTags,this));
+	init: function() {
+		this.TagEntry = $("#tag_entry").keydown($.proxy(this.checkKeys,this))
+					   				   .keyup($.proxy(this.searchTags,this));
+		this.TagList = $("#tag_list").on("click","a",this.deleteHook);
+		this.TagResults = $("#tag_results");
 	},
 	
 	checkKeys: function(ev) {
 		if (ev.keyCode == 13) {
-			if (this.selected > -1 && this.dropdown)
-				$("#tag_entry").val($("#tag_results li").eq(this.selected).find("a").html().replace("<span>","").replace("</span>",""));
+			if (this.Selected > -1 && this.Dropdown) {
+				var v = this.TagResults.find("li").eq(this.Selected).find("a").html().replace("<span>","").replace("</span>","");
+				this.TagEntry.val(v);
+			}
 			this.addTag(ev);
 			return false;
 		}
@@ -1064,46 +1066,51 @@ var BigTreeTagAdder = {
 	},
 	
 	moveUp: function(ev) {
-		if (!this.dropdown || this.selected < 0)
+		if (!this.Dropdown || this.Selected < 0) {
 			return;
-		$("#tag_results li").eq(this.selected).removeClass("selected");
-		this.selected--;
-		if (this.selected > -1)
-			$("#tag_results li").eq(this.selected).addClass("selected");
+		}
+		var li = this.TagResults.find("li");
+		li.eq(this.Selected).removeClass("selected");
+		this.Selected--;
+		if (this.Selected > -1) {
+			li.eq(this.Selected).addClass("selected");
+		}
 	},
 	
 	moveDown: function(ev){
-		max = $("#tag_results li").length - 1;
-		if (!this.dropdown || this.selected == max)
+		var li = this.TagResults.find("li");
+		var max = li.length - 1;
+		if (!this.Dropdown || this.Selected == max) {
 			return;
-		if (this.selected > -1)
-			$("#tag_results li").eq(this.selected).removeClass("selected");
-		this.selected++;
-		$("#tag_results li").eq(this.selected).addClass("selected");
+		}
+		if (this.Selected > -1) {
+			li.eq(this.Selected).removeClass("selected");
+		}
+		this.Selected++;
+		li.eq(this.Selected).addClass("selected");
 	},
 	
 	searchTags: function(ev) {
-		tag = $("#tag_entry").val();
-		if (tag != BigTreeTagAdder.lastsearch) {
-			BigTreeTagAdder.lastsearch = tag;
+		var tag = this.TagEntry.val();
+		if (tag != this.LastSearch) {
+			this.LastSearch = tag;
 			if (tag.length > 3) {
-				$("#tag_results").load("admin_root/ajax/tags/search/", { tag: tag }, BigTreeTagAdder.hookResults);
+				this.TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, $.proxy(this.hookResults,this));
 			} else {
-				$("#tag_results").hide();
+				this.TagResults.hide();
 			}
 		}
 	},
 	
 	hookResults: function() {
-		BigTreeTagAdder.selected = -1;
-		ul = $("#tag_results");
-		if (ul.html()) {
-			ul.show();
-			BigTreeTagAdder.dropdown = true;
-			$("#tag_results li a").click(BigTreeTagAdder.chooseTag);
+		this.Selected = -1;
+		if (this.TagResults.html()) {
+			this.TagResults.show();
+			this.Dropdown = true;
+			this.TagResults.find("li a").click(this.chooseTag,this);
 		} else {
-			BigTreeTagAdder.dropdown = false;
-			ul.hide();
+			this.Dropdown = false;
+			this.TagResults.hide();
 		}
 	},
 	
@@ -1113,30 +1120,28 @@ var BigTreeTagAdder = {
 	},
 	
 	chooseTag: function(ev) {
-		el = ev.target;
-		tag = el.innerHTML.replace("<span>","").replace("</span>","");
+		var el = ev.target;
+		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
 		if (tag) {
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: BigTreeTagAdder.addedTag });
+			this.ActiveTagName = tag;
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: $.proxy(this.addedTag,this) });
 		}
 		return false;
 	},
 	
 	addTag: function(ev) {
-		tag = $("#tag_entry").val();
+		var tag = this.TagEntry.val();
 		if (tag) {
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: BigTreeTagAdder.addedTag });
+			this.ActiveTagName = tag;
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: $.proxy(this.addedTag,this) });
 		}
 	},
 	
-	addedTag: function(data) {
-		id = data;
-		li = $("<li>").addClass("tag").html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + tag + '<span>x</span></a>');
-		li.children("a").click(BigTreeTagAdder.deleteHook);
-
-		$("#tag_list").append(li);
-		$("#tag_entry").val("").focus();
-		$("#tag_results").hide();
-		BigTreeTagAdder.dropdown = false;
+	addedTag: function(id) {
+		this.TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + this.ActiveTagName + '<span>x</span></a>'));
+		this.TagEntry.val("").focus();
+		this.TagResults.hide();
+		this.Dropdown = false;
 	}
 };
 

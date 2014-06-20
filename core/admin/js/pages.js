@@ -29,7 +29,7 @@ var BigTreePages = {
 		$("#publish_at, #expire_at").datepicker({ duration: 200, showAnim: "slideDown" });
 		
 		// Tagger
-		BigTreeTagAdder.init("bigtree_tag_browser");
+		BigTreeTagAdder.init();
 		
 		// Watch for changes in the template, update the Content tab.
 		BigTree.localTimer = setInterval(BigTreePages.CheckTemplate,500);

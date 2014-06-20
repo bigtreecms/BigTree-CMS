@@ -122,7 +122,7 @@
 				</fieldset>
 			</div>
 			<script>
-				BigTreeTagAdder.init("bigtree_tag_browser");
+				BigTreeTagAdder.init();
 			</script>
 			<? } ?>
 		</section>
