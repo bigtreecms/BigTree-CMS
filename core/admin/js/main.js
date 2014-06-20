@@ -5,7 +5,7 @@ $(document).ready(function() {
 	
 	// !BigTree Quick Search
 	$('nav.main form .qs_query').keyup(function(ev) {
-		v = $(this).val();
+		var v = $(this).val();
 		if (v && ev.keyCode != 9) { //no tabs!
 			$("#quick_search_results").load("admin_root/ajax/quick-search-results/", { query: v }, function() {
 				$("#quick_search_results").show();
@@ -39,63 +39,28 @@ $(document).ready(function() {
 });
 
 function BigTreeCustomControls(selector) {
-	if (selector) {
-		// Setup custom checkboxes
-		$(selector).find("input[type=checkbox]").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeCheckbox(this);
-			}
-		});
-		
-		// Setup custom select boxes
-		$(selector).find("select").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeSelect(this);
-			}
-		});
-		
-		// Setup custom file boxes.
-		$(selector).find("input[type=file]").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeFileInput(this);
-			}
-		});
-	
-		// Setup custom radio buttons.
-		$(selector).find("input[type=radio]").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeRadioButton(this);
-			}
-		});
-	} else {
-		// Setup custom checkboxes
-		$("input[type=checkbox]").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeCheckbox(this);
-			}
-		});
-		
-		// Setup custom select boxes
-		$("select").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeSelect(this);
-			}
-		});
-		
-		// Setup custom file boxes.
-		$("input[type=file]").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeFileInput(this);
-			}
-		});
-	
-		// Setup custom radio buttons.
-		$("input[type=radio]").each(function() {
-			if (!$(this).hasClass("custom_control")) {
-				this.customControl = new BigTreeRadioButton(this);
-			}
-		});
-	}
+	var parent = (typeof selector == "undefined") ? $("body") : $(selector);
+
+	parent.find("input[type=checkbox]").each(function() {
+		if (!$(this).hasClass("custom_control")) {
+			this.customControl = new BigTreeCheckbox(this);
+		}
+	});
+	parent.find("select").each(function() {
+		if (!$(this).hasClass("custom_control")) {
+			this.customControl = new BigTreeSelect(this);
+		}
+	});
+	parent.find("input[type=file]").each(function() {
+		if (!$(this).hasClass("custom_control")) {
+			this.customControl = new BigTreeFileInput(this);
+		}
+	});
+	parent.find("input[type=radio]").each(function() {
+		if (!$(this).hasClass("custom_control")) {
+			this.customControl = new BigTreeRadioButton(this);
+		}
+	});
 }
 
 function BigTreePageLoadHooks() {
