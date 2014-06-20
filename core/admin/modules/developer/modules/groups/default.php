@@ -38,7 +38,9 @@
 			content: '<p class="confirm">Are you sure you want to delete this module group?<br /><br />Modules in this group will become uncategorized.</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
-			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+			callback: $.proxy(function() {
+				document.location.href = $(this).attr("href");
+			},this)
 		});
 		
 		return false;

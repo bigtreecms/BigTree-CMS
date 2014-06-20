@@ -43,7 +43,7 @@
 	
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/cms.php");
-	if (BIGTREE_CUSTOM_BASE_CLASS) {
+	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
 		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
 		// Can't instantiate class from a constant name, so we use a variable then unset it.
 		$c = BIGTREE_CUSTOM_BASE_CLASS;
@@ -85,7 +85,7 @@
 	);
 	
 	// Just include the admin class if it's custom.
-	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
+	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
 

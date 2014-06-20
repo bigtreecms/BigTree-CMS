@@ -4,13 +4,13 @@
 <h2>Crop Images</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/">
 	<div class="overflow">
-		<p>You have <?=count($crops)?> image<? if (count($crops) > 1) { ?>s<? } ?> that need<? if (count($crops) == 1) { ?>s<? } ?> to be cropped.</p>
+		<p>You have <?=count($bigtree["crops"])?> image<? if (count($bigtree["crops"]) > 1) { ?>s<? } ?> that need<? if (count($bigtree["crops"]) == 1) { ?>s<? } ?> to be cropped.</p>
 		<input type="hidden" name="return_page" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />
-		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
+		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($bigtree["crops"]))?>" />
 		<section id="cropper">
 			<?
 				$x = 0;
-				foreach ($crops as $crop) {
+				foreach ($bigtree["crops"] as $crop) {
 					$x++;
 					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
 					$image = str_replace(SITE_ROOT,WWW_ROOT,$crop["image"]);
@@ -87,7 +87,7 @@
 </form>
 <script>
 	BigTree.localCurrentCrop = 1;
-	BigTree.localMaxCrops = <?=count($crops)?>;
+	BigTree.localMaxCrops = <?=count($bigtree["crops"])?>;
 	
 	$("#crop_form").submit(function() {
 		if (BigTree.localCurrentCrop != BigTree.localMaxCrops) {

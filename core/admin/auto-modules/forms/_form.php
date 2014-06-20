@@ -36,74 +36,79 @@
 			<p class="warning_message">The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.</p>
 			<?		
 				}
-				$bigtree["datepickers"] = array();
-				$bigtree["timepickers"] = array();
-				$bigtree["datetimepickers"] = array();
-				$bigtree["html_fields"] = array();
-				$bigtree["simple_html_fields"] = array();
-				$bigtree["tabindex"] = 1;
-
-				foreach ($bigtree["form"]["fields"] as $key => $resource) {
-					if (is_array($resource)) {
-						$field = array();
-						// Leaving some variable settings for backwards compatibility — removing in 5.0
-						$field["type"] = $resource["type"];
-						$field["title"] = $title = $resource["title"];
-						$field["subtitle"] = $subtitle = $resource["subtitle"];
-						$field["key"] = $key;
-						$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
-						$field["id"] = uniqid("field_");
-						$field["tabindex"] = $tabindex = $bigtree["tabindex"];
-						$field["options"] = $options = $resource;
-
-						// Setup Validation Classes
-						$label_validation_class = "";
-						$field["required"] = false;
-						if (isset($resource["validation"]) && $resource["validation"]) {
-							if (strpos($resource["validation"],"required") !== false) {
-								$label_validation_class = ' class="required"';
-								$field["required"] = true;
-							}
-						}
-
-						// Give many to many its information
-						if ($resource["type"] == "many-to-many") {
-							$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;
-						}
-
-						if (strpos($resource["type"],"*") !== false) {
-							list($extension,$field_type) = explode("*",$resource["type"]);
-							$field_type_path = SERVER_ROOT."extensions/$extension/field-types/draw/$field_type.php";
-						} else {
-							$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
-						}
-
-						if (file_exists($field_type_path)) {
-							// Don't draw the fieldset for the callout type
-							if ($resource["type"] == "callouts") {
-								include $field_type_path;
-							} else {
 			?>
-			<fieldset>
+			<div class="form_fields">
 				<?
-								if ($field["title"] && $resource["type"] != "checkbox") {
+					$bigtree["datepickers"] = array();
+					$bigtree["timepickers"] = array();
+					$bigtree["datetimepickers"] = array();
+					$bigtree["html_fields"] = array();
+					$bigtree["simple_html_fields"] = array();
+					$bigtree["tabindex"] = 1;
+	
+					$cached_types = $admin->getCachedFieldTypes();
+					$bigtree["field_types"] = $cached_types["modules"];
+	
+					foreach ($bigtree["form"]["fields"] as $key => $resource) {
+						if (is_array($resource)) {
+							$field = array();
+							// Leaving some variable settings for backwards compatibility — removing in 5.0
+							$field["type"] = $resource["type"];
+							$field["title"] = $title = $resource["title"];
+							$field["subtitle"] = $subtitle = $resource["subtitle"];
+							$field["key"] = $key;
+							$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
+							$field["id"] = uniqid("field_");
+							$field["tabindex"] = $tabindex = $bigtree["tabindex"];
+							$field["options"] = $options = $resource;
+	
+							// Setup Validation Classes
+							$label_validation_class = "";
+							$field["required"] = false;
+							if (isset($resource["validation"]) && $resource["validation"]) {
+								if (strpos($resource["validation"],"required") !== false) {
+									$label_validation_class = ' class="required"';
+									$field["required"] = true;
+								}
+							}
+	
+							// Give many to many its information
+							if ($resource["type"] == "many-to-many") {
+								$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;
+							}
+	
+							if (strpos($resource["type"],"*") !== false) {
+								list($extension,$field_type) = explode("*",$resource["type"]);
+								$field_type_path = SERVER_ROOT."extensions/$extension/field-types/draw/$field_type.php";
+							} else {
+								$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
+							}
+							
+							if (file_exists($field_type_path)) {
+								if ($bigtree["field_types"][$resource["type"]]["self_draw"]) {
+									include $field_type_path;
+								} else {
 				?>
-				<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+				<fieldset>
+					<?
+									if ($field["title"] && $resource["type"] != "checkbox") {
+					?>
+					<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+					<?
+									}
+									include $field_type_path;
+									$bigtree["tabindex"]++;
+					?>
+				</fieldset>
 				<?
 								}
-								include $field_type_path;
-								$bigtree["tabindex"]++;
-				?>
-			</fieldset>
-			<?
+								$bigtree["last_resource_type"] = $field["type"];
 							}
-							$bigtree["last_resource_type"] = $field["type"];
 						}
 					}
-				}
-
-				if ($bigtree["form"]["tagging"]) {
-			?>
+				?>
+			</div>
+			<? if ($bigtree["form"]["tagging"]) { ?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
 					<label>Tags<span></span></label>
@@ -119,9 +124,7 @@
 			<script>
 				BigTreeTagAdder.init("bigtree_tag_browser");
 			</script>
-			<?
-				}
-			?>
+			<? } ?>
 		</section>
 		<footer>
 			<?

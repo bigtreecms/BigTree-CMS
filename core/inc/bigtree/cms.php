@@ -20,8 +20,8 @@
 		
 		function __construct() {
 			// If the cache exists, just use it.
-			if (file_exists(SERVER_ROOT."cache/module-class-list.btc")) {
-				$items = json_decode(file_get_contents(SERVER_ROOT."cache/module-class-list.btc"),true);
+			if (file_exists(SERVER_ROOT."cache/bigtree-module-class-list.json")) {
+				$items = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-class-list.json"),true);
 			} else {
 				// Get the Module Class List
 				$q = sqlquery("SELECT * FROM bigtree_modules");
@@ -31,7 +31,21 @@
 				}
 				
 				// Cache it so we don't hit the database.
-				file_put_contents(SERVER_ROOT."cache/module-class-list.btc",BigTree::json($items));
+				file_put_contents(SERVER_ROOT."cache/bigtree-module-class-list.json",BigTree::json($items));
+			}
+			
+			// Figure out what roots we can replace
+			if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = ADMIN_ROOT;
+				$this->ReplaceableRootVals[] = "{adminroot}";
+			}
+			if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = STATIC_ROOT;
+				$this->ReplaceableRootVals[] = "{staticroot}";
+			}
+			if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
+				$this->ReplaceableRootKeys[] = WWW_ROOT;
+				$this->ReplaceableRootVals[] = "{wwwroot}";
 			}
 
 			$this->ModuleClassList = $items;
@@ -76,8 +90,10 @@
 				}
 				if ($return_object) {
 					$obj = new stdClass;
-					foreach ($data as $key => $val) {
-						$obj->$key = $val;
+					if (is_array($data)) {
+						foreach ($data as $key => $val) {
+							$obj->$key = $val;
+						}
 					}
 					$this->AutoSaveSettings[$id] = $obj;
 				} else {
@@ -1247,6 +1263,7 @@
 
 			$title = str_replace($accent_match, $accent_replace, $title);
 			$title = htmlspecialchars_decode($title);
+			$title = str_replace("/","-",$title);
 			$title = strtolower(preg_replace('/\s/', '-',preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '',trim($title))));
 			$title = str_replace("--","-",$title);
 	

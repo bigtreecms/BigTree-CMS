@@ -3,10 +3,11 @@
 	<?	
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
 			if ($field["value"]) {
+				$pathinfo = BigTree::pathInfo($field["value"]);
 	?>
 	<div class="currently_file">
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
-		<strong>Currently:</strong> <?=$field["value"]?> <a href="#" class="remove_resource">Remove</a>
+		<strong>Currently:</strong> <?=$pathinfo["basename"]?> <a href="#" class="remove_resource">Remove</a>
 	</div>
 	<?
 			}

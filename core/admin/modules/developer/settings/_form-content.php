@@ -16,7 +16,7 @@
 				<label class="required">Type</label>
 				<select name="type" id="settings_type">
 					<? foreach ($types as $k => $v) { ?>
-					<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v?></option>
+					<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
 					<? } ?>
 				</select> &nbsp; <a class="icon_settings" href="#"></a>
 				<input type="hidden" name="options" value="<?=$options?>" id="options_settings" />
@@ -38,7 +38,7 @@
 </section>
 <script>
 	$(".icon_settings").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
 			new BigTreeDialog({
 				title: "Settings Options",
 				content: response.responseText,

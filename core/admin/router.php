@@ -166,13 +166,28 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
-
+	
 	// Connect to MySQL and begin sessions and output buffering.
 	if (!$bigtree["mysql_read_connection"]) {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	}
 	ob_start();
 	session_start();
+
+	// Make it easier to extend the nav tree without overwriting important things.
+	include BigTree::path("admin/_nav-tree.php");
+
+	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
+	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
+		$bigtree["js"] = $bigtree["config"]["admin_js"];
+	} else {
+		$bigtree["js"] = array();
+	}
+	if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
+		$bigtree["css"] = $bigtree["config"]["admin_css"];
+	} else {
+		$bigtree["css"] = array();
+	}
 
 	// Instantiate the $admin var with either a custom class or the normal BigTreeAdmin.
 	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -188,11 +203,14 @@
 	$bigtree["layout"] = "default";
 	$bigtree["subnav_extras"] = array();
 
-	// If we're not logged in and we're not trying to login, redirect to the login page.
+	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-		BigTree::redirect(ADMIN_ROOT."login/");
+		if (implode(array_slice($bigtree["path"],1),"/") != "ajax/auto-modules/embeddable-form") {
+			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
+			BigTree::redirect(ADMIN_ROOT."login/");
+		}
 	}
+	
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
@@ -207,20 +225,17 @@
 
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
-		// Make sure we're logged in.
-		if (!isset($admin->ID)) {
-			die("Please login.");
-		}
-
-		// If the current user isn't allowed in the module for the ajax, stop them.
-		$module = $admin->getModuleByRoute($bigtree["path"][2]);
-		if ($module && !$admin->checkAccess($module["id"])) {
-			die("Permission denied to module: ".$module["name"]);
-		}
-		$bigtree["module"] = $bigtree["current_module"] = $module;
-
-		if ($module) {
-			$bigtree["current_module"] = $bigtree["module"] = $module;
+		$module = false;
+		if ($bigtree["path"][2] != "auto-modules") {
+			// If the current user isn't allowed in the module for the ajax, stop them.
+			$module = $admin->getModuleByRoute($bigtree["path"][2]);
+			if ($module && !$admin->checkAccess($module["id"])) {
+				die("Permission denied to module: ".$module["name"]);
+			}
+			
+			if ($module) {
+				$bigtree["current_module"] = $bigtree["module"] = $module;
+			}
 		}
 
 		$ajax_path = array_slice($bigtree["path"],2);
@@ -282,21 +297,6 @@
 			include $footer;
 		}
 		die();
-	}
-
-	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
-
-	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
-	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
-		$bigtree["js"] = $bigtree["config"]["admin_js"];
-	} else {
-		$bigtree["js"] = array();
-	}
-	if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
-		$bigtree["css"] = $bigtree["config"]["admin_css"];
-	} else {
-		$bigtree["css"] = array();
 	}
 
 	// Execute cron tab functions if they haven't been run in 24 hours

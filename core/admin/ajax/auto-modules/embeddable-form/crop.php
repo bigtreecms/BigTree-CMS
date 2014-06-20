@@ -1,5 +1,5 @@
 <?
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);	
+	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 ?>
 <div class="container">
 	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?id=<?=$bigtree["form"]["id"]?>&hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
@@ -138,7 +138,7 @@
 		}
 	};
 
-	window.parent.BigTreeEmbeddableForm.scrollToTop();
+	window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.scrollToTop();
 	BigTree.localCurrentCrop = 1;
 	BigTree.localMaxCrops = <?=count($crops)?>;
 	BigTree.localWindowWidth = window.innerWidth;

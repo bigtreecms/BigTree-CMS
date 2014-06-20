@@ -1,6 +1,6 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes();
-	$types = $cached_types["template"];
+	$types = $cached_types["templates"];
 ?>
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
@@ -99,7 +99,7 @@
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
 						<? foreach ($types as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v?></option>
+						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
 						<? } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>

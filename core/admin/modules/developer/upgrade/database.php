@@ -361,6 +361,35 @@
 		sqlquery("SET SESSION foreign_key_checks = 1");
 	}
 
+	// BigTree 4.1.1 update -- REVISION 101
+	function _local_bigtree_update_101() {
+		sqlquery("ALTER TABLE bigtree_caches CHANGE `key` `key` VARCHAR(10000)");
+		$storage = new BigTreeStorage;
+		if (is_array($storage->Settings->Files)) {
+			foreach ($storage->Settings->Files as $file) {
+				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($file["path"])."','".sqlescape(json_encode($file))."')");
+			}
+		}
+		unset($storage->Settings->Files);
+	}
+
+	// BigTree 4.1.1 update -- REVISION 102
+	function _local_bigtree_update_102() {
+		sqlquery("ALTER TABLE bigtree_field_types ADD COLUMN `use_cases` TEXT NOT NULL AFTER `name`");
+		sqlquery("ALTER TABLE bigtree_field_types ADD COLUMN `self_draw` CHAR(2) NULL AFTER `use_cases`");
+		$q = sqlquery("SELECT * FROM bigtree_field_types");
+		while ($f = sqlfetch($q)) {
+			$use_cases = sqlescape(json_encode(array(
+				"templates" => $f["pages"],
+				"modules" => $f["modules"],
+				"callouts" => $f["callouts"],
+				"settings" => $f["settings"]
+			)));
+			sqlquery("UPDATE bigtree_field_types SET use_cases = '$use_cases' WHERE id = '".sqlescape($f["id"])."'");
+		}
+		sqlquery("ALTER TABLE bigtree_field_types DROP `pages`, DROP `modules`, DROP `callouts`, DROP `settings`");
+	}
+
 	// BigTree 4.2 update -- REVISION 200
 	function _local_bigtree_update_200() {
 		global $cms,$admin;
@@ -403,5 +432,5 @@
 		sqlquery("ALTER TABLE bigtree_module_forms DROP COLUMN `callback`");
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `preprocess`");
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `callback`");
-	}
+	}	
 ?>

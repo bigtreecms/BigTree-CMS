@@ -30,7 +30,9 @@
 			content: '<p class="confirm">Are you sure you want to uninstall this extension?</p>',
 			icon: "delete",
 			alternateSaveText: "Uninstall",
-			callback: $.proxy(function() { window.location.href = $(this).attr("href"); },this)
+			callback: $.proxy(function() {
+				window.location.href = $(this).attr("href");
+			},this)
 		});
 
 		return false;

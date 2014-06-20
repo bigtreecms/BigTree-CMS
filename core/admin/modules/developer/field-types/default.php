@@ -31,7 +31,9 @@
 			content: '<p class="confirm">Are you sure you want to delete this field type?<br /><br />Fields using this type will revert to text fields and your source files will be deleted.</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
-			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+			callback: $.proxy(function() {
+				document.location.href = $(this).attr("href");
+			},this)
 		});
 		
 		return false;

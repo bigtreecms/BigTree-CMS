@@ -456,6 +456,9 @@ var BigTreeSelect = Class.extend({
 		this.Element.keydown($.proxy(this.keydown,this));
 		// Custom event to force open lists closed when another select opens.
 		this.Element.on("closeNow",$.proxy(this.close,this));
+
+		// Cleanup
+		tester.remove();
 	},
 
 	add: function(value,text) {
@@ -1966,7 +1969,11 @@ var BigTreeArrayOfItems = Class.extend({
 		
 		html += '<script>';
 		if (tinymces.length) {
-			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
+			if (tinyMCE.majorVersion == 4) {
+				html += 'tinyMCE.init({ theme: "modern", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: BigTreeFileManager.tinyMCEOpen, menubar: false, plugins: "paste,link,code", toolbar: "link unlink bold italic underline paste code", paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
+			} else {
+				html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
+			}
 		}
 		for (i = 0; i < datepickers.length; i++) {
 			html += '$("#' + datepickers[i] + '_datepicker").datepicker({ onSelect: function(dateText) { $("#' + datepickers[i] + '").val(dateText); } });';
@@ -2461,10 +2468,17 @@ var BigTreeFormValidator = Class.extend({
 		complete_submission = "";
 		if ($("#bigtree_hashcash_field").length) {
 			this.form.find("input,select,textarea").each(function() {
-				t = $(this).attr("type");
-				if (t != "file" && $(this).attr("name")) {
-					if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
-						complete_submission += $(this).val();
+				if ($(this).is("textarea") && $(this).css("display") == "none") {
+					var mce = tinyMCE.get($(this).attr("id"));
+					if (mce) {
+						complete_submission += mce.getContent();
+					}
+				} else {
+					t = $(this).attr("type");
+					if (t != "file" && $(this).attr("name")) {
+						if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
+							complete_submission += $(this).val();
+						}
 					}
 				}
 			});
@@ -3082,7 +3096,7 @@ var BigTreeCallouts = {
 						tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
 					}
 				}
-				$(this).hide();
+				$(this).hide().get(0).className = "";
 				article.append($(this));
 			}
 		});

@@ -79,7 +79,9 @@
 			content: "<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",
 			icon: "delete",
 			alternateSaveText: "Disconnect",
-			callback: function() { window.location.href = "<?=MODULE_ROOT?>disconnect/"; }
+			callback: function() {
+				window.location.href = "<?=MODULE_ROOT?>disconnect/";
+			}
 		});
 
 		return false;

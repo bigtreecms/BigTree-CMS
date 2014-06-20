@@ -11,7 +11,9 @@
 				title: "Feed Options",
 				content: response.responseText,
 				icon: "edit",
-				callback: function(data) { $("#feed_options").val(JSON.stringify(data)); }
+				callback: function(data) {
+					$("#feed_options").val(JSON.stringify(data));
+				}
 			});
 		}});
 		return false;

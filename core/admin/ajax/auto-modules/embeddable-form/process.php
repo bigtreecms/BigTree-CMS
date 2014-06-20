@@ -38,6 +38,9 @@
 	$bigtree["errors"] = array();
 	$bigtree["entry"] = array();
 
+	$cached_types = $admin->getCachedFieldTypes();
+	$bigtree["field_types"] = $cached_types["modules"];
+
 	// Some backwards compatibility vars thrown in.
 	$bigtree["post_data"] = $data = $_POST;
 	$bigtree["file_data"] = BigTree::parsedFilesArray();

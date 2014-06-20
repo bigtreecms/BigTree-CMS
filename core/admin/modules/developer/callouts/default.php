@@ -95,7 +95,9 @@
 			content: '<p class="confirm">Are you sure you want to delete this callout?</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
-			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
+			callback: $.proxy(function() {
+				document.location.href = $(this).attr("href");
+			},this)
 		});
 
 		return false;

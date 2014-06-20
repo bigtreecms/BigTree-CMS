@@ -11,7 +11,7 @@
 		<? foreach ($packages as $package) { ?>
 		<li>
 			<section class="developer_templates_name">
-				<?=$package["name"]?> v<?=$package["version"]?>
+				<?=$package["name"]?> <?=$package["version"]?>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>packages/edit/<?=$package["id"]?>/" class="icon_edit"></a>
@@ -30,7 +30,9 @@
 			content: '<p class="confirm">Are you sure you want to uninstall this package?<br />Related components will also be removed.</p>',
 			icon: "delete",
 			alternateSaveText: "Uninstall",
-			callback: $.proxy(function() { window.location.href = $(this).attr("href"); },this)
+			callback: $.proxy(function() {
+				window.location.href = $(this).attr("href");
+			},this)
 		});
 		
 		return false;

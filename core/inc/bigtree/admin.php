@@ -734,7 +734,7 @@
 ';
 
 			$cached_types = $this->getCachedFieldTypes();
-			$types = $cached_types["callout"];
+			$types = $cached_types["callouts"];
 
 			$clean_resources = array();
 			foreach ($resources as $resource) {
@@ -748,9 +748,9 @@
 
 					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 
-					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["title"] = htmlspecialchars($resource["title"]);
-					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					$resource["id"] = BigTree::safeEncode($resource["id"]);
+					$resource["title"] = BigTree::safeEncode($resource["title"]);
+					$resource["subtitle"] = BigTree::safeEncode($resource["subtitle"]);
 					unset($resource["options"]);
 					$clean_resources[] = $resource;
 				}
@@ -760,9 +760,9 @@
 ?>';
 
 			// Clean up the post variables
-			$id = sqlescape(htmlspecialchars($id));
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$id = sqlescape(BigTree::safeEncode($id));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$level = sqlescape($level);
 			$resources = BigTree::json($clean_resources,true);
 			$display_default = sqlescape($display_default);
@@ -792,7 +792,7 @@
 		*/
 
 		function createCalloutGroup($name) {
-			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(htmlspecialchars($name))."')");
+			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(BigTree::safeEncode($name))."')");
 			return sqlid();
 		}
 
@@ -833,8 +833,8 @@
 			}
 
 			// Fix stuff up for the db.
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$options = BigTree::json($options,true);
@@ -853,29 +853,24 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				pages - Whether it can be used as a page resource or not ("on" is yes)
-				modules - Whether it can be used as a module resource or not ("on" is yes)
-				callouts - Whether it can be used as a callout resource or not ("on" is yes)
-				settings - Whether it can be used as a setting resource or not ("on" is yes)
+				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function createFieldType($id,$name,$pages,$modules,$callouts,$settings) {
+		function createFieldType($id,$name,$use_cases,$self_draw) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
 			}
 
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$author = sqlescape($this->Name);
-			$pages = sqlescape($pages);
-			$modules = sqlescape($modules);
-			$callouts = sqlescape($callouts);
-			$settings = sqlescape($settings);
+			$name = sqlescape(BigTree::safeEncode($name));
+			$use_cases = sqlescape(json_encode($use_cases));
+			$self_draw = $self_draw ? "'on'" : "NULL";
 
 			$file = "$id.php";
 
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`) VALUES ('$id','$name','$pages','$modules','$callouts','$settings')");
+			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`) VALUES ('$id','$name','$use_cases',$self_draw)");
 
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
@@ -921,7 +916,7 @@
 				chmod(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file",0777);
 			}
 
-			unlink(SERVER_ROOT."cache/form-field-types.btc");
+			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			return $id;
 		}
@@ -1017,7 +1012,7 @@
 				$x++;
 			}
 
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$route = sqlescape($route);
 			$class = sqlescape($class);
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
@@ -1041,7 +1036,7 @@
 				chmod(SERVER_ROOT."custom/inc/modules/$route.php",0777);
 
 				// Remove cached class list.
-				unlink(SERVER_ROOT."cache/module-class-list.btc");
+				unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
 
 			return $id;
@@ -1069,10 +1064,10 @@
 
 		function createModuleAction($module,$name,$route,$in_nav,$icon,$form = 0,$view = 0,$report = 0,$level = 0,$position = 0) {
 			$module = sqlescape($module);
-			$route = sqlescape(htmlspecialchars($route));
+			$route = sqlescape(BigTree::safeEncode($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$form = $form ? "'".sqlescape($form)."'" : "NULL";
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			$report = $report ? "'".sqlescape($report)."'" : "NULL";
@@ -1106,14 +1101,14 @@
 
 		function createModuleEmbedForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$module = sqlescape($module);
-			$t = sqlescape(htmlspecialchars($title));
+			$sql_title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
 			$hooks = BigTree::json($hooks,true);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
-			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
+			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
+			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
 			$hash = uniqid();
 
@@ -1122,10 +1117,11 @@
 				$hash = uniqid();
 			}
 
-			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`,`hooks`) VALUES ('$module','$t','$table','$fields','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash','$hooks')");
+			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`,`hooks`) VALUES ('$module','$sql_title','$table','$fields','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash','$hooks')");
+
 			$id = sqlid();
 
-			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.htmlspecialchars($t).'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
+			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.$title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
 		}
 
 		/*
@@ -1149,7 +1145,7 @@
 
 		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
 			$hooks = BigTree::json($hooks,true);
@@ -1192,7 +1188,7 @@
 			}
 
 			$route = sqlescape($route);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 
 			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`) VALUES ('$name','$route')");
 			return sqlid();
@@ -1218,7 +1214,7 @@
 
 		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$filters = BigTree::json($filters,true);
@@ -1252,8 +1248,8 @@
 
 		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$module = sqlescape($module);
-			$title = sqlescape(htmlspecialchars($title));
-			$description = sqlescape(htmlspecialchars($description));
+			$title = sqlescape(BigTree::safeEncode($title));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 
@@ -1261,7 +1257,7 @@
 			$fields = BigTree::json($fields,true);
 			$actions = BigTree::json($actions,true);
 			$related_form = $related_form ? intval($related_form) : "NULL";
-			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
+			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
 
 			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
 
@@ -1636,7 +1632,7 @@
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 
 			$types = $this->getCachedFieldTypes();
-			$types = $types["template"];
+			$types = $types["templates"];
 
 			$clean_resources = array();
 			foreach ($resources as $resource) {
@@ -2752,43 +2748,38 @@
 
 		static function getCachedFieldTypes() {
 			// Used cached values if available, otherwise query the DB
-			if (file_exists(SERVER_ROOT."cache/form-field-types.btc")) {
-				$types = json_decode(file_get_contents(SERVER_ROOT."cache/form-field-types.btc"),true);
+			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
+				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
 			} else {
-				$types["module"] = $types["template"] = $types["callout"] = $types["setting"] = array(
-					"text" => "Text",
-					"textarea" => "Text Area",
-					"html" => "HTML Area",
-					"upload" => "Upload",
-					"list" => "List",
-					"checkbox" => "Checkbox",
-					"date" => "Date Picker",
-					"time" => "Time Picker",
-					"datetime" => "Date &amp; Time Picker",
-					"photo-gallery" => "Photo Gallery",
-					"array" => "Array of Items",
-					"callouts" => "Callouts"
+				$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = array(
+					"text" => array("name" => "Text", "self_draw" => false),
+					"textarea" => array("name" => "Text Area", "self_draw" => false),
+					"html" => array("name" => "HTML Area", "self_draw" => false),
+					"upload" => array("name" => "Upload", "self_draw" => false),
+					"list" => array("name" => "List", "self_draw" => false),
+					"checkbox" => array("name" => "Checkbox", "self_draw" => false),
+					"date" => array("name" => "Date Picker", "self_draw" => false),
+					"time" => array("name" => "Time Picker", "self_draw" => false),
+					"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
+					"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
+					"array" => array("name" => "Array of Items", "self_draw" => false),
+					"callouts" => array("name" => "Callouts", "self_draw" => true)
 				);
 
-				$types["module"]["route"] = "Generated Route";
-				unset($types["callout"]["callouts"]);
+				$types["modules"]["route"] = array("name" => "Generated Route","self_draw" => true);
+				unset($types["callouts"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
-					if ($f["pages"]) {
-						$types["template"][$f["id"]] = $f["name"];
-					}
-					if ($f["modules"]) {
-						$types["module"][$f["id"]] = $f["name"];
-					}
-					if ($f["callouts"]) {
-						$types["callout"][$f["id"]] = $f["name"];
-					}
-					if ($f["settings"]) {
-						$types["setting"][$f["id"]] = $f["name"];
+					$use_cases = json_decode($f["use_cases"],true);
+					foreach ($use_cases as $case => $val) {
+						if ($val) {
+							$types[$case][$f["id"]] = array("name" => $f["name"],"self_draw" => $f["self_draw"]);
+						}
 					}
 				}
-				file_put_contents(SERVER_ROOT."cache/form-field-types.btc",BigTree::json($types));
+
+				file_put_contents(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
 			}
 
 			return $types;
@@ -3080,6 +3071,7 @@
 			if (!$item) {
 				return false;
 			}
+			$item["use_cases"] = json_decode($item["use_cases"],true);
 			return $item;
 		}
 
@@ -5675,13 +5667,15 @@
 				}
 				if (is_array($field["options"]["crops"])) {
 					foreach ($field["options"]["crops"] as $crop) {
-						if (!empty($crop["prefix"])) {
-							$prefixes[] = $crop["prefix"];
-						}
-						if (is_array($crop["thumbs"])) {
-							foreach ($crop["thumbs"] as $thumb) {
-								if (!empty($thumb["prefix"])) {
-									$prefixes[] = $thumb["prefix"];
+						if (is_array($crop)) {
+							if (!empty($crop["prefix"])) {
+								$prefixes[] = $crop["prefix"];
+							}
+							if (is_array($crop["thumbs"])) {
+								foreach ($crop["thumbs"] as $thumb) {
+									if (!empty($thumb["prefix"])) {
+										$prefixes[] = $thumb["prefix"];
+									}
 								}
 							}
 						}
@@ -5708,47 +5702,49 @@
 
 					// Handle Crops
 					foreach ($field["options"]["crops"] as $crop) {
-						// Make sure the crops have a width/height and it's numeric
-						if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
-							$cwidth = $crop["width"];
-							$cheight = $crop["height"];
-
-							// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
-							if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
-								// Make a square if for some reason someone only entered one dimension for a crop.
-								if (!$cwidth) {
-									$cwidth = $cheight;
-								} elseif (!$cheight) {
-									$cheight = $cwidth;
-								}
-								$bigtree["crops"][] = array(
-									"image" => $temp_copy,
-									"directory" => $field["options"]["directory"],
-									"retina" => $field["options"]["retina"],
-									"name" => $pinfo["basename"],
-									"width" => $cwidth,
-									"height" => $cheight,
-									"prefix" => $crop["prefix"],
-									"thumbs" => $crop["thumbs"],
-									"grayscale" => $crop["grayscale"]
-								);
-							// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
-							} elseif ($iheight == $cheight && $iwidth == $cwidth) {
-								// See if we want thumbnails
-								if (is_array($crop["thumbs"])) {
-									foreach ($crop["thumbs"] as $thumb) {
-										// Make sure the thumbnail has a width or height and it's numeric
-										if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
-											// Create a temporary thumbnail of the image on the server before moving it to it's destination.
-											$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-											BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
-											// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-											$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+						if (is_array($crop)) {
+							// Make sure the crops have a width/height and it's numeric
+							if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
+								$cwidth = $crop["width"];
+								$cheight = $crop["height"];
+	
+								// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
+								if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
+									// Make a square if for some reason someone only entered one dimension for a crop.
+									if (!$cwidth) {
+										$cwidth = $cheight;
+									} elseif (!$cheight) {
+										$cheight = $cwidth;
+									}
+									$bigtree["crops"][] = array(
+										"image" => $temp_copy,
+										"directory" => $field["options"]["directory"],
+										"retina" => $field["options"]["retina"],
+										"name" => $pinfo["basename"],
+										"width" => $cwidth,
+										"height" => $cheight,
+										"prefix" => $crop["prefix"],
+										"thumbs" => $crop["thumbs"],
+										"grayscale" => $crop["grayscale"]
+									);
+								// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
+								} elseif ($iheight == $cheight && $iwidth == $cwidth) {
+									// See if we want thumbnails
+									if (is_array($crop["thumbs"])) {
+										foreach ($crop["thumbs"] as $thumb) {
+											// Make sure the thumbnail has a width or height and it's numeric
+											if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
+												// Create a temporary thumbnail of the image on the server before moving it to it's destination.
+												$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+												BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
+												// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+												$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+											}
 										}
 									}
+	
+									$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 								}
-
-								$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 							}
 						}
 					}
@@ -6604,17 +6600,17 @@
 							$resource[$key] = $val;
 						}
 					}
-					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["title"] = htmlspecialchars($resource["title"]);
-					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
+					$resource["id"] = BigTree::safeEncode($resource["id"]);
+					$resource["title"] = BigTree::safeEncode($resource["title"]);
+					$resource["subtitle"] = BigTree::safeEncode($resource["subtitle"]);
 					unset($resource["options"]);
 					$r[] = $resource;
 				}
 			}
 
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$level = sqlescape($level);
 			$resources = BigTree::json($r,true);
 			$display_default = sqlescape($display_default);
@@ -6634,7 +6630,7 @@
 		*/
 
 		function updateCalloutGroup($id,$name) {
-			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(htmlspecialchars($name))."' WHERE id = '".sqlescape($id)."'");
+			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(BigTree::safeEncode($name))."' WHERE id = '".sqlescape($id)."'");
 		}
 
 		/*
@@ -6683,8 +6679,8 @@
 
 			// Fix stuff up for the db.
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$description = sqlescape(htmlspecialchars($description));
+			$name = sqlescape(BigTree::safeEncode($name));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$options = BigTree::json($options,true);
@@ -6700,22 +6696,18 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				pages - Whether it can be used as a page resource or not ("on" is yes)
-				modules - Whether it can be used as a module resource or not ("on" is yes)
-				callouts - Whether it can be used as a callout resource or not ("on" is yes)
-				settings - Whether it can be used as a setting resource or not ("on" is yes)
+				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function updateFieldType($id,$name,$pages,$modules,$callouts,$settings) {
+		function updateFieldType($id,$name,$use_cases,$self_draw) {
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$pages = sqlescape($pages);
-			$modules = sqlescape($modules);
-			$callouts = sqlescape($callouts);
-			$settings = sqlescape($settings);
+			$name = sqlescape(BigTree::safeEncode($name));
+			$use_cases = sqlescape(json_encode($use_cases));
+			$self_draw = $self_draw ? "'on'" : "NULL";
 
-			sqlquery("UPDATE bigtree_field_types SET name = '$name', pages = '$pages', modules = '$modules', callouts = '$callouts', settings = '$settings' WHERE id = '$id'");
-			unlink(SERVER_ROOT."cache/form-field-types.btc");
+			sqlquery("UPDATE bigtree_field_types SET name = '$name', use_cases = '$use_cases', self_draw = $self_draw WHERE id = '$id'");
+			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 		}
 
 		/*
@@ -6738,7 +6730,7 @@
 			}
 
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$class = sqlescape($class);
 			$permissions = BigTree::json($permissions,true);
@@ -6747,7 +6739,7 @@
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
 
 			// Remove cached class list.
-			unlink(SERVER_ROOT."cache/module-class-list.btc");
+			unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
 
 		/*
@@ -6769,10 +6761,10 @@
 
 		function updateModuleAction($id,$name,$route,$in_nav,$icon,$form,$view,$report,$level,$position) {
 			$id = sqlescape($id);
-			$route = sqlescape(htmlspecialchars($route));
+			$route = sqlescape(BigTree::safeEncode($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 			$level = sqlescape($level);
 			$form = $form ? "'".sqlescape($form)."'" : "NULL";
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
@@ -6804,14 +6796,14 @@
 
 		function updateModuleEmbedForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
 			$hooks = BigTree::json($hooks,true);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(htmlspecialchars($this->makeIPL($css)));
-			$redirect_url = sqlescape(htmlspecialchars($redirect_url));
+			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
+			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
 
 			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message', `hooks` = '$hooks' WHERE id = '$id'");
@@ -6835,7 +6827,7 @@
 
 		function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = BigTree::json($fields,true);
 			$hooks = BigTree::json($hooks,true);
@@ -6878,7 +6870,7 @@
 
 			$route = sqlescape($route);
 			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(BigTree::safeEncode($name));
 
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route' WHERE id = '$id'");
 		}
@@ -6900,7 +6892,7 @@
 
 		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
+			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 			$filters = BigTree::json($filters,true);
@@ -6934,8 +6926,8 @@
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(htmlspecialchars($title));
-			$description = sqlescape(htmlspecialchars($description));
+			$title = sqlescape(BigTree::safeEncode($title));
+			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 
@@ -6943,7 +6935,7 @@
 			$fields = BigTree::json($fields,true);
 			$actions = BigTree::json($actions,true);
 			$related_form = $related_form ? intval($related_form) : "NULL";
-			$preview_url = sqlescape(htmlspecialchars($this->makeIPL($preview_url)));
+			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
 
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");

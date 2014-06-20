@@ -9,7 +9,9 @@
 				title: "View Options",
 				content: response.responseText,
 				icon: "edit",
-				callback: function(data) { $("#view_options").val(JSON.stringify(data)); }
+				callback: function(data) {
+					$("#view_options").val(JSON.stringify(data));
+				}
 			});
 		}});
 		

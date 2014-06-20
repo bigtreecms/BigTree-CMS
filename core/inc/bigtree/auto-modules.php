@@ -451,6 +451,26 @@
 		}
 
 		/*
+			Function: getDependantViews
+				Returns all views that have a dependance on a given table.
+
+			Parameters:
+				table - Table name
+
+			Returns:
+				An array of rows from bigtree_module_views.
+		*/
+
+		static function getDependantViews($table) {
+			$views = array();
+			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE options LIKE '%".sqlescape($table)."%'");
+			while ($f = sqlfetch($q)) {
+				$views[] = $f;
+			}
+			return $views;
+		}
+
+		/*
 			Function: getEditAction
 				Returns a module action for the given module and form IDs.
 
@@ -462,7 +482,7 @@
 				A bigtree_module_actions entry.
 		*/
 
-		function getEditAction($module,$form) {
+		static function getEditAction($module,$form) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".sqlescape($form)."' AND module = '".sqlescape($module)."' AND route LIKE 'edit%'"));
 		}
 
@@ -1154,9 +1174,6 @@
 					if (!$f) {
 						// Try any action with this form
 						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
-						if (!$f) {
-							throw new Exception("The requested view has an edit action but the related form has no related module action or no longer exists.");
-						}
 					}
 					$view["edit_url"] = MODULE_ROOT.$f["route"]."/";
 				} else {

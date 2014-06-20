@@ -259,7 +259,7 @@
 /* Login Styles */
 	body.login { background: #eee; }
 	.login_wrapper { margin: 0 auto; padding: 75px 0 25px; width: 445px; }
-	.login_wrapper h1 { color: #333; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; }
+	.login_wrapper h1 { color: #333; font-size: 30px; font-weight: normal; line-height: 40px; margin: 0 0 25px 0; text-align: center; }
 	.login_wrapper form { background: #FFF; border: 1px solid #ccc; border-radius: 5px; overflow: hidden; padding: 30px 0 0; }
 	.login_wrapper h2 { color: #333; font-size: 20px; font-weight: normal; line-height: 1; margin: 0 30px 25px; overflow: hidden; }
 	.login_wrapper fieldset { padding: 0 30px; }
@@ -733,8 +733,8 @@
 
 /* Callouts */
 	fieldset.callouts { border-bottom: 1px solid #CCC; border-top: 1px solid #CCC; clear: both; margin: 30px -30px 30px -30px; padding: 30px; width: 898px; }
-	fieldset.callouts:first-of-type { border-top: none; margin-top: -30px; }
-	fieldset.callouts:last-of-type { border-bottom: none; margin-bottom: -30px; }
+	fieldset.callouts:first-child { border-top: none; margin-top: -30px; }
+	fieldset.callouts:last-child { border-bottom: none; margin-bottom: -30px; }
 	fieldset.callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
 	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
 	fieldset.callouts article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
@@ -753,6 +753,12 @@
 	#callout_resources .select .select_options { max-width: 438px !important; }
 	#callout_resources .error_message { width: 420px; }
 	#callout_resources .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
+
+	#callout_resources fieldset.callouts { margin: 30px -20px; width: calc(100% - 20px); }
+	#callout_resources fieldset.callouts:last-child { margin-bottom: 0; }
+	#callout_resources fieldset.callouts article { width: calc(50% - 10px); margin: 0 10px 10px 0; }
+	#callout_resources fieldset.callouts article:nth-child(even) { margin-right: 0; }
+	#callout_resources fieldset.callouts h4 { margin: 0; }
 
 /* Box Select Styles */
 	.box_select { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
@@ -1126,7 +1132,7 @@
 		Front End Editor
 ---------------------------*/
 
-	.bigtree_dialog_window.front_end_editor_container { z-index: 0; border: none; height: 625px; width: 100%; }
+	.bigtree_dialog_window.front_end_editor_container { border: none; height: 625px; width: 100%; z-index: 0; }
 	.bigtree_dialog_window.front_end_editor_container > .bigtree_dialog_form > .overflow { height: 469px; max-height: none; width: 800px; }
 	.bigtree.front_end_editor fieldset { width: auto; }
 	.bigtree.front_end_editor fieldset.callouts { margin-left: -20px; margin-right: -20px; }
@@ -1212,10 +1218,10 @@
 	.bigtree_dialog_form .list_options_widget select { height: 22px; }
 	.bigtree_dialog_form .list_options_widget ul { list-style: none; margin: 0; }
 	.bigtree_dialog_form .list_options_widget li { margin: 0 0 5px 0; overflow: hidden; }
-	.bigtree_dialog_form .list_options_widget_1 span { width: 405px; }
+	.bigtree_dialog_form .list_options_widget_1 span { width: 395px; }
 	.bigtree_dialog_form .list_options_widget_2 span { width: 190px; }
 	.bigtree_dialog_form .list_options_widget_3 span { width: 124px; }
-	.bigtree_dialog_form .list_options_widget_1 input { width: 397px; }
+	.bigtree_dialog_form .list_options_widget_1 input { width: 385px; }
 	.bigtree_dialog_form .list_options_widget_2 input { width: 185px; }
 	.bigtree_dialog_form .list_options_widget_3 input { width: 118px; }
 	.bigtree_dialog_form .list_options_widget_1 select { width: 409px; }
@@ -1561,7 +1567,7 @@
 	.multi_widget li:nth-child(even) { background: #F8F8F8; }
 	.multi_widget .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
 	.bigtree_dialog_form .multi_widget li p { width: 330px; }
-	.many_to_many section { border-bottom: 1px solid #CCC; }
+	.many_to_many section { border-bottom: 1px solid #CCC; padding: 30px; }
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
 	.many_to_many footer .select > span { max-width: 679px !important; }
 	.many_to_many footer .select .select_options { max-width: 733px !important; }
@@ -1706,7 +1712,8 @@
 	.install_wrapper .checkbox a.checked { background-position: 0px -41px; }
 	.install_wrapper .checkbox a.focused { background-position: -16px -25px; }
 	.install_wrapper .checkbox a.checked.focused { background-position: -16px -41px; }
-	
+	.install_wrapper .form_error input { border-color: #C0362F; }
+	.install_wrapper .form_error label { color: #C0362F; }
 /*---------------------------
 	Embedded Form Styles
 ---------------------------*/
@@ -1808,7 +1815,7 @@
 
 /* Retina Query for Installer */
 @media (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {
-	.install_wrapper h2 span, .install_wrapper .checkbox a, .install_wrapper .select .handle { background-image: url(../images/install-sprite-2x.png); }
+	.install_wrapper h2 span, .install_wrapper .checkbox a, .install_wrapper .select .handle { background-image: url(../images/install-sprite-2x.png); background-size: 150px 57px; }
 }
 
 /*-----------------------------

@@ -118,9 +118,10 @@
 						return;
 					}
 				}
+			} else {
+				// Clear the module class list just in case we're missing something.
+				@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
-			// Clear the module class list just in case we're missing something.
-			@unlink(SERVER_ROOT."cache/module-class-list.btc");
 		}
 		
 		/*
@@ -1122,7 +1123,7 @@
 
 		static function isDirectoryWritable($path) {
 			// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
-			if (stripos($_SERVER["OS"],"windows") !== false) {
+			if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
 				// Directory exists, check to see if we can create a temporary file inside it
 				if (is_dir($path)) {
 					$file = rtrim($path,"/")."/".uniqid().".tmp";
@@ -1584,7 +1585,7 @@
 					header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
 				}
 			}
-			header("Location: ".$url);
+			header("Location: $url");
 			die();
 		}
 
@@ -1715,11 +1716,7 @@
 		*/
 
 		static function safeEncode($string) {
-			if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
-				return htmlspecialchars(html_entity_decode($string,ENT_HTML5));
-			} else {
-				return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
-			}
+			return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
 		}
 		
 		/*
@@ -1753,7 +1750,7 @@
 			$mailer->setHtml($html, $text);
 
 			if (!$from) {
-				$from = "no-reply@".str_replace("www.","",$_SERVER["HTTP_HOST"]);
+				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
 			}
 			$mailer->setFrom($from);
 			
