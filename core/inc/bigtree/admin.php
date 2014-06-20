@@ -2706,7 +2706,7 @@
 				An array of template entries.
 		*/
 
-		static function getBasicTemplates($sort = "position DESC, id ASC") {
+		function getBasicTemplates($sort = "position DESC, id ASC") {
 			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY $sort");
 			$items = array();
 			while ($f = sqlfetch($q)) {
