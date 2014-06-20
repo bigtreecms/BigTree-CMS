@@ -3,7 +3,7 @@
 		$table = $_GET["table"];
 	}
 	
-	$reserved = $admin->ReservedColumns;
+	$reserved = BigTreeAdmin::$ReservedColumns;
 
 	$used = array();
 	$unused = array();
@@ -110,7 +110,7 @@
 			<?
 					}
 				}
-				foreach ($admin->ViewActions as $key => $action) {
+				foreach (BigTreeAdmin::$ViewActions as $key => $action) {
 					if (!in_array($key,$used_actions) && (in_array($action["key"],$tblfields) || isset($bigtree["module_designer_view"]))) {
 						$checked = false;
 						if (isset($actions[$key]) || (!isset($actions) && !isset($bigtree["module_designer_view"])) || (isset($bigtree["module_designer_view"]) && ($key == "edit" || $key == "delete"))) {

@@ -38,7 +38,7 @@
 		<fieldset class="view_type">
 			<label>View Type</label>
 			<select name="type" id="view_type" class="left" >
-				<? foreach ($admin->ViewTypes as $key => $t) { ?>
+				<? foreach (BigTreeAdmin::$ViewTypes as $key => $t) { ?>
 				<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
 				<? } ?>
 			</select>

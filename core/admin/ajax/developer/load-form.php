@@ -1,5 +1,5 @@
 <?
-	$reserved = $admin->ReservedColumns;
+	$reserved = BigTreeAdmin::$ReservedColumns;
 	
 	$used = array();
 	$unused = array();
