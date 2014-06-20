@@ -880,33 +880,54 @@ var BigTreeRadioButton = Class.extend({
 
 // !BigTree Photo Gallery Class
 var BigTreePhotoGallery = Class.extend({
-	container: false,
-	counter: false,
-	dragging: false,
-	key: false,
-	fileInput: false,
-	activeCaption: false,
-	disableCaptions: false,
+
+	ActiveCaption: false,
+	Container: false,
+	Counter: false,
+	DisableCaptions: false,
+	Key: false,
+	FileInput: false,
 	
-	init: function(container,key,counter,disable_captions) {
-		this.key = key;
-		this.container = $("#" + container);
-		this.counter = counter;
-		this.disableCaptions = disable_captions;
-		this.fileInput = this.container.find("footer input");
+	init: function(settings) {
+		var defaults = {
+			"container": "",
+			"key": "",
+			"counter": 0,
+			"disableCaptions": ""
+		};
+
+		// BigTree 4.2 behavior should be to pass in a settings object
+		if (is_object(settings)) {
+			for (var i in settings) {
+				defaults[i] = settings[i];
+			}
+		// Allow for backwards copatibility with BigTree <= 4.1
+		} else {
+			defaults.container = arguments[0];
+			defaults.key = arguments[1];
+			defaults.counter = arguments[2];
+			defaults.disableCaptions = arguments[3];
+		}
+
+		this.Key = defaults.key;
+		this.Container = $("#" + defaults.container.replace("#",""));
+		this.Counter = defaults.counter;
+		this.DisableCaptions = defaults.disableCaptions;
+		this.FileInput = this.Container.find("footer input");
 		
-		this.container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
-		this.container.on("click",".icon_delete",this.deletePhoto);
-		this.container.on("click",".icon_edit",$.proxy(this.editPhoto,this));
-		this.container.on("change","input[type=file]",$.proxy(this.addPhoto,this));
-		this.container.find(".form_image_browser").click($.proxy(this.openFileManager,this));
+		this.Container.on("click",".icon_delete",this.deletePhoto)
+					  .on("click",".icon_edit",$.proxy(this.editPhoto,this))
+					  .on("change","input[type=file]",$.proxy(this.addPhoto,this));
+
+		this.Container.find(".form_image_browser").click($.proxy(this.openFileManager,this));
+		this.Container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 	},
 	
 	addPhoto: function() {
-		if (!this.fileInput.val()) {
+		if (!this.FileInput.val()) {
 			return false;
 		}
-		if (!this.disableCaptions) {
+		if (!this.DisableCaptions) {
 			new BigTreeDialog({
 				title: "Image Caption",
 				content: '<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',
@@ -933,11 +954,11 @@ var BigTreePhotoGallery = Class.extend({
 	
 	editPhoto: function(ev) {
 		var link = $(ev.target);
-		this.activeCaption = link.siblings(".caption");
+		this.ActiveCaption = link.siblings(".caption");
 
 		new BigTreeDialog({
 			title: "Image Caption",
-			content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(this.activeCaption.val()) + '"/></fieldset>',
+			content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(this.ActiveCaption.val()) + '"/></fieldset>',
 			callback: $.proxy(this.saveCaption,this),
 			icon: "caption"
 		});
@@ -946,18 +967,18 @@ var BigTreePhotoGallery = Class.extend({
 	},
 	
 	saveCaption: function(data) {
-		this.activeCaption.val(data.caption);
-		this.activeCaption = false;
+		this.ActiveCaption.val(data.caption);
+		this.ActiveCaption = false;
 	},
 	
 	saveNewFile: function(data) {
 		var li = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
-		if (!this.disableCaptions) {
+		if (!this.DisableCaptions) {
 			li.find("a").before('<a href="#" class="icon_edit"></a>');
 		}
 
 		// Try to get an image preview but fallback to the old upload message
-		var img = this.fileInput.prev(".file_wrapper").find("img");
+		var img = this.FileInput.prev(".file_wrapper").find("img");
 		if (img.length) {
 			li.find("figure").append(img);
 		} else {
@@ -965,23 +986,23 @@ var BigTreePhotoGallery = Class.extend({
 		}
 
 		// Move the hidden input into an image box for upload
-		li.append(this.fileInput.hide());
-		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
-		this.container.find("ul").append(li);
+		li.append(this.FileInput.hide());
+		li.append($('<input type="hidden" name="' + this.Key + '[' + this.Counter + '][caption]" class="caption" />').val(data.caption));
+		this.Container.find("ul").append(li);
 
 		// Increment the photo counter
-		this.counter++;
+		this.Counter++;
 		
 		// Create a new hidden file input for the next image to be uploaded
-		var new_file = $('<input type="file" class="custom_control" name="' + this.key + '[' + this.counter + '][image]">').hide();
-		this.container.find(".file_wrapper").after(new_file);
+		var new_file = $('<input type="file" class="custom_control" name="' + this.Key + '[' + this.Counter + '][image]">').hide();
+		this.Container.find(".file_wrapper").after(new_file);
 		
 		// Wipe existing custom control information, assign the new input to it
-		var customControl = this.fileInput.get(0).customControl;
+		var customControl = this.FileInput.get(0).customControl;
 		customControl.Container.find(".data").html("");
 		new_file.get(0).customControl = customControl.connect(new_file.get(0));
-		this.fileInput.get(0).customControl = false;
-		this.fileInput = new_file;
+		this.FileInput.get(0).customControl = false;
+		this.FileInput = new_file;
 	},
 	
 	openFileManager: function(ev) {
@@ -1000,10 +1021,10 @@ var BigTreePhotoGallery = Class.extend({
 	
 	useExistingFile: function(path,caption,thumbnail) {
 		var li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
-		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][existing]" />').val(path));
-		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(caption));
-		this.container.find("ul").append(li);
-		this.counter++;
+		li.append($('<input type="hidden" name="' + this.Key + '[' + this.Counter + '][existing]" />').val(path));
+		li.append($('<input type="hidden" name="' + this.Key + '[' + this.Counter + '][caption]" class="caption" />').val(caption));
+		this.Container.find("ul").append(li);
+		this.Counter++;
 	}
 });
 

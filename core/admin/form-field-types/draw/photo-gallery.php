@@ -43,5 +43,10 @@
 	</footer>
 </div>
 <script>
-	new BigTreePhotoGallery("<?=$field["id"]?>","<?=$field["key"]?>",<?=$current?><? if ($field["options"]["disable_captions"]) { ?>,true<? } ?>);
+	new BigTreePhotoGallery({
+		container: "<?=$field["id"]?>",
+		key: "<?=$field["key"]?>",
+		count: <?=$current?>
+		<? if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<? } ?>
+	});
 </script>
