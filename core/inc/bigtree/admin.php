@@ -10,7 +10,7 @@
 		static $PerPage = 15;		
 
 		// !View Types
-		var $ViewTypes = array(
+		static $ViewTypes = array(
 			"searchable" => "Searchable List",
 			"draggable" => "Draggable List",
 			"nested" => "Nested Draggable List",
@@ -20,7 +20,7 @@
 		);
 
 		// !Reserved Column Names
-		var $ReservedColumns = array(
+		static $ReservedColumns = array(
 			"id",
 			"position",
 			"archived",
@@ -28,7 +28,7 @@
 		);
 
 		// !Reserved Top Level Routes
-		var $ReservedTLRoutes = array(
+		static $ReservedTLRoutes = array(
 			"ajax",
 			"css",
 			"feeds",
@@ -39,7 +39,7 @@
 		);
 
 		// !View Actions
-		var $ViewActions = array(
+		static $ViewActions = array(
 			"approve" => array(
 				"key" => "approved",
 				"name" => "Approve",
@@ -68,8 +68,8 @@
 		);
 
 		// !Icon Classes
-		var $IconClasses =  array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
-		var $ActionClasses =  array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook");
+		static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
+		static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook");
 
 		/*
 			Constructor:
@@ -121,7 +121,7 @@
 
 			// Update the reserved top level routes with the admin's route
 			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
-			$this->ReservedTLRoutes[] = $ar[0];
+			self::$ReservedTLRoutes[] = $ar[0];
 			unset($ar);
 
 			// Check for Per Page value
@@ -129,20 +129,6 @@
 			$v = intval($pp["value"]);
 			if ($v) {
 				self::$PerPage = $v;
-			}
-
-			// Figure out what roots we can replace -- yes, this is duped from the BigTreeCMS class.
-			if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
-				$this->ReplaceableRootKeys[] = ADMIN_ROOT;
-				$this->ReplaceableRootVals[] = "{adminroot}";
-			}
-			if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
-				$this->ReplaceableRootKeys[] = STATIC_ROOT;
-				$this->ReplaceableRootVals[] = "{staticroot}";
-			}
-			if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
-				$this->ReplaceableRootKeys[] = WWW_ROOT;
-				$this->ReplaceableRootVals[] = "{wwwroot}";
 			}
 		}
 
@@ -155,11 +141,11 @@
 				entry - Entry ID to assign to
 		*/
 
-		function allocateResources($module,$entry) {
+		static function allocateResources($module,$entry) {
 			$module = sqlescape($module);
 			$entry = sqlescape($entry);
 			sqlquery("DELETE FROM bigtree_resource_allocation WHERE module = '$module' AND entry = '$entry'");
-			foreach ($this->IRLsCreated as $resource) {
+			foreach (self::$IRLsCreated as $resource) {
 				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`,`updated_at`) VALUES ('$module','$entry','".sqlescape($resource)."',NOW())");
 			}
 		}
@@ -177,7 +163,7 @@
 				Returns an encoded error message if the login failed.
 		*/
 
-		function apiLogin($email,$password) {
+		static function apiLogin($email,$password) {
 			global $bigtree;
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".mysql_real_escape_string($email)."'"));
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
@@ -301,7 +287,7 @@
 			if ($access == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
 				sqlquery("UPDATE bigtree_pages SET archived = 'on' WHERE id = '$page'");
 				$this->archivePageChildren($page);
-				$this->growl("Pages","Archived Page");
+				self::growl("Pages","Archived Page");
 				$this->track("bigtree_pages",$page,"archived");
 				return true;
 			}
@@ -370,7 +356,7 @@
 				true if successful.
 		*/
 
-		function backupDatabase($file) {
+		static function backupDatabase($file) {
 			if (!BigTree::isDirectoryWritable($file)) {
 				return false;
 			}
@@ -504,7 +490,7 @@
 
 		*/
 
-		function changePassword($hash,$password) {
+		static function changePassword($hash,$password) {
 			global $bigtree;
 
 			$hash = sqlescape($hash);
@@ -567,7 +553,7 @@
 				An array containing two possible keys (a and img) which each could contain an array of errors.
 		*/
 
-		function checkHTML($relative_path,$html,$external = false) {
+		static function checkHTML($relative_path,$html,$external = false) {
 			if (!$html) {
 				return array();
 			}
@@ -585,29 +571,29 @@
 						if (strpos($href,"#") !== false) {
 							$href = substr($href,0,strpos($href,"#")-1);
 						}
-						if (!$this->urlExists($href)) {
+						if (!self::urlExists($href)) {
 							$errors["a"][] = $href;
 						}
 					}
 				} elseif (substr($href,0,6) == "ipl://") {
-					if (!$this->iplExists($href)) {
+					if (!self::iplExists($href)) {
 						$errors["a"][] = $href;
 					}
 				} elseif (substr($href,0,6) == "irl://") {
-					if (!$this->irlExists($href)) {
+					if (!self::irlExists($href)) {
 						$errors["a"][] = $href;
 					}
 				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:") {
 					// Don't do anything, it's a page mark, data URI, or email address
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
-					if (!$this->urlExists($href)) {
+					if (!self::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
-					if (!$this->urlExists($local)) {
+					if (!self::urlExists($local)) {
 						$errors["a"][] = $local;
 					}
 				}
@@ -620,25 +606,25 @@
 				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
-						if (!$this->urlExists($href)) {
+						if (!self::urlExists($href)) {
 							$errors["img"][] = $href;
 						}
 					}
 				} elseif (substr($href,0,6) == "irl://") {
-					if (!$this->irlExists($href)) {
+					if (!self::irlExists($href)) {
 						$errors["img"][] = $href;
 					}
 				} elseif (substr($href,0,5) == "data:") {
 					// Do nothing, it's a data URI
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
-					if (!$this->urlExists($href)) {
+					if (!self::urlExists($href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
-					if (!$this->urlExists($local)) {
+					if (!self::urlExists($local)) {
 						$errors["img"][] = $local;
 					}
 				}
@@ -651,7 +637,7 @@
 				Removes all files in the cache directory.
 		*/
 
-		function clearCache() {
+		static function clearCache() {
 			$d = opendir(SERVER_ROOT."cache/");
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."cache/".$f)) {
@@ -667,7 +653,8 @@
 
 		function clearDead404s() {
 			sqlquery("DELETE FROM bigtree_404s WHERE redirect_url = ''");
-			$this->growl("404 Report","Cleared 404s");
+			$this->track("bigtree_404s","All","Cleared Empty");
+			self::growl("404 Report","Cleared 404s");
 		}
 
 		/*
@@ -702,6 +689,8 @@
 			} else {
 				sqlquery("INSERT INTO bigtree_api_tokens (`token`,`user`,`read_only`) VALUES ('$token','$user','$read_only')");
 			}
+
+			$this->track("bigtree_api_tokens",sqlid(),"created");
 
 			return $token;
 		}
@@ -777,6 +766,8 @@
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_callouts SET position = position + 1");
 			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`,`group`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default',$group)");
+			$this->track("bigtree_callouts",$id,"created");
+
 			return $id;
 		}
 
@@ -793,7 +784,11 @@
 
 		function createCalloutGroup($name) {
 			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(BigTree::safeEncode($name))."')");
-			return sqlid();
+
+			$id = sqlid();
+			$this->track("bigtree_callout_groups",$id,"created");
+
+			return $id;
 		}
 
 		/*
@@ -842,6 +837,7 @@
 			$route = sqlescape($route);
 
 			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','$type','$table','$fields','$options')");
+			$admin->track("bigtree_feeds",sqlid(),"created");
 
 			return $route;
 		}
@@ -917,6 +913,8 @@
 			}
 
 			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+
+			$this->track("bigtree_field_types",$id,"created");
 
 			return $id;
 		}
@@ -1039,6 +1037,8 @@
 				unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
 
+			$this->track("bigtree_modules",$id,"created");
+
 			return $id;
 		}
 
@@ -1076,6 +1076,9 @@
 			$route = $this->uniqueModuleActionRoute($module,$route);
 
 			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,'$position')");
+			
+			$this->track("bigtree_module_actions",sqlid(),"created");
+
 			return $route;
 		}
 
@@ -1120,6 +1123,7 @@
 			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`,`hooks`) VALUES ('$module','$sql_title','$table','$fields','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash','$hooks')");
 
 			$id = sqlid();
+			$this->track("bigtree_module_embeds",$id,"created");
 
 			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.$title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
 		}
@@ -1156,11 +1160,12 @@
 
 			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$hooks')");
 			$id = sqlid();
+			$this->track("bigtree_module_forms",$id,"created");
 
 			// Get related views for this table and update numeric status
 			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
 			while ($f = sqlfetch($q)) {
-				$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+				self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
 			}
 
 			return $id;
@@ -1191,7 +1196,10 @@
 			$name = sqlescape(BigTree::safeEncode($name));
 
 			sqlquery("INSERT INTO bigtree_module_groups (`name`,`route`) VALUES ('$name','$route')");
-			return sqlid();
+			$id = sqlid();
+			$this->track("bigtree_module_groups",$id,"created");
+
+			return $id;
 		}
 
 		/*
@@ -1221,8 +1229,11 @@
 			$fields = BigTree::json($fields,true);
 			$parser - sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
+
 			sqlquery("INSERT INTO bigtree_module_reports (`module`,`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$module','$title','$table','$type','$filters','$fields','$parser',$view)");
 			$id = sqlid();
+			$this->track("bigtree_module_reports",$id,"created");
+
 			return $id;
 		}
 
@@ -1262,7 +1273,8 @@
 			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
 
 			$id = sqlid();
-			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			$this->track("bigtree_module_views",$id,"created");
 
 			return $id;
 		}
@@ -1316,7 +1328,7 @@
 					$route = $original_route."-".$x;
 					$x++;
 				}
-				while (in_array($route,$this->ReservedTLRoutes)) {
+				while (in_array($route,self::$ReservedTLRoutes)) {
 					$route = $original_route."-".$x;
 					$x++;
 				}
@@ -1505,7 +1517,10 @@
 			$md5 = sqlescape($md5);
 
 			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs')");
-			return sqlid();
+			$id = sqlid();
+			$this->track("bigtree_resources",$id,"created");
+
+			return $id;
 		}
 
 		/*
@@ -1531,7 +1546,10 @@
 			$name = sqlescape(htmlspecialchars($name));
 
 			sqlquery("INSERT INTO bigtree_resource_folders (`name`,`parent`) VALUES ('$name','$parent')");
-			return sqlid();
+			$id = sqlid();
+			$this->track("bigtree_resource_folders",$id,"created");
+
+			return $id;
 		}
 
 		/*
@@ -1568,7 +1586,6 @@
 			}
 
 			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`options`,`locked`,`encrypted`,`system`) VALUES ('$id','$name','$description','$type','$options','$locked','$encrypted','$system')");
-			// Audit trail.
 			$this->track("bigtree_settings",$id,"created");
 
 			return true;
@@ -1605,6 +1622,8 @@
 			} else {
 				$id = $f["id"];
 			}
+
+			$this->track("bigtree_tags",$id,"created");
 
 			return $id;
 		}
@@ -1686,6 +1705,8 @@
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_templates SET position = position + 1");
 			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('$id','$name','$module','$resources','$level','$routed')");
+			$this->track("bigtree_templates",$id,"created");
+
 			return $id;
 		}
 
@@ -1730,8 +1751,6 @@
 
 			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
 			$id = sqlid();
-
-			// Audit trail.
 			$this->track("bigtree_users",$id,"created");
 
 			return $id;
@@ -1750,6 +1769,7 @@
 			$this->requireLevel(1);
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_404s WHERE id = '$id'");
+			$this->track("bigtree_404s",$id,"deleted");
 		}
 
 		/*
@@ -1764,6 +1784,7 @@
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
+			$this->track("bigtree_callouts",$id,"deleted");
 		}
 
 		/*
@@ -1776,6 +1797,7 @@
 
 		function deleteCalloutGroup($id) {
 			sqlquery("DELETE FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'");
+			$this->track("bigtree_callout_groups",$id,"deleted");
 		}
 
 		/*
@@ -1826,6 +1848,7 @@
 			}
 		
 			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($extension["id"])."'");
+			$this->track("bigtree_extensions",$extension["id"],"deleted");
 		}
 
 		/*
@@ -1839,6 +1862,7 @@
 		function deleteFeed($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_feeds WHERE id = '$id'");
+			$this->track("bigtree_feeds",$id,"deleted");
 		}
 
 		/*
@@ -1854,6 +1878,7 @@
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
+			$this->track("bigtree_field_types",$id,"deleted");
 		}
 
 		/*
@@ -1893,6 +1918,8 @@
 
 			// Delete the module
 			sqlquery("DELETE FROM bigtree_modules WHERE id = '$id'");
+
+			$this->track("bigtree_modules",$id,"deleted");
 		}
 
 		/*
@@ -1921,6 +1948,7 @@
 				}
 			}
 			sqlquery("DELETE FROM bigtree_module_actions WHERE id = '$id'");
+			$this->track("bigtree_module_actions",$id,"deleted");
 		}
 
 		/*
@@ -1935,6 +1963,7 @@
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_forms WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE form = '$id'");
+			$this->track("bigtree_module_forms",$id,"deleted");
 		}
 
 		/*
@@ -1948,6 +1977,7 @@
 		function deleteModuleGroup($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_groups WHERE id = '$id'");
+			$this->track("bigtree_module_groups",$id,"deleted");
 		}
 
 		/*
@@ -1962,6 +1992,7 @@
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_views WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE view = '$id'");
+			$this->track("bigtree_module_views",$id,"deleted");
 		}
 
 		/*
@@ -2010,6 +2041,7 @@
 			}
 		
 			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($package["id"])."'");
+			$this->track("bigtree_extensions",$package["id"],"deleted");
 		}
 
 		/*
@@ -2032,13 +2064,13 @@
 				// If the page isn't numeric it's most likely prefixed by the "p" so it's pending.
 				if (!is_numeric($page)) {
 					sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'");
-					$this->growl("Pages","Deleted Page");
+					self::growl("Pages","Deleted Page");
 					$this->track("bigtree_pages","p$page","deleted-pending");
 				} else {
 					sqlquery("DELETE FROM bigtree_pages WHERE id = '$page'");
 					// Delete the children as well.
 					$this->deletePageChildren($page);
-					$this->growl("Pages","Deleted Page");
+					self::growl("Pages","Deleted Page");
 					$this->track("bigtree_pages",$page,"deleted");
 				}
 
@@ -2084,6 +2116,7 @@
 
 			// Delete draft copy
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'");
+			$this->track("bigtree_pending_changes",$id,"deleted");
 		}
 
 		/*
@@ -2105,6 +2138,7 @@
 
 			// Delete the revision
 			sqlquery("DELETE FROM bigtree_page_revisions WHERE id = '".$revision["id"]."'");
+			$this->track("bigtree_page_revisions",$id,"deleted");
 		}
 
 		/*
@@ -2118,6 +2152,7 @@
 		function deletePendingChange($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '$id'");
+			$this->track("bigtree_pending_changes",$id,"deleted");
 		}
 
 		/*
@@ -2139,6 +2174,7 @@
 					$storage->delete($thumb);
 				}
 			}
+			$this->track("bigtree_resources",$id,"deleted");
 		}
 
 		/*
@@ -2158,6 +2194,7 @@
 				$this->deleteResource($resource["id"]);
 			}
 			sqlquery("DELETE FROM bigtree_resource_folders WHERE id = '".sqlescape($id)."'");
+			$this->track("bigtree_resource_folders",$id,"deleted");
 		}
 
 		/*
@@ -2171,6 +2208,7 @@
 		function deleteSetting($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
+			$this->track("bigtree_settings",$id,"deleted");
 		}
 
 		/*
@@ -2184,6 +2222,7 @@
 		function deleteTemplate($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_templates WHERE id = '$id'");
+			$this->track("bigtree_templates",$id,"deleted");
 		}
 
 		/*
@@ -2207,8 +2246,6 @@
 			}
 
 			sqlquery("DELETE FROM bigtree_users WHERE id = '$id'");
-
-			// Audit trail
 			$this->track("bigtree_users",$id,"deleted");
 
 			return true;
@@ -2222,7 +2259,7 @@
 		function disconnectGoogleAnalytics() {
 			unlink(SERVER_ROOT."cache/analytics.cache");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
-			$this->growl("Analytics","Disconnected");
+			self::growl("Analytics","Disconnected");
 		}
 
 		/*
@@ -2237,7 +2274,7 @@
 				true if an action exists, otherwise false.
 		*/
 
-		function doesModuleActionExist($module,$route) {
+		static function doesModuleActionExist($module,$route) {
 			$module = sqlescape($module);
 			$route = sqlescape($route);
 			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
@@ -2258,7 +2295,7 @@
 				1 or 0, for true or false.
 		*/
 
-		function doesModuleEditActionExist($module) {
+		static function doesModuleEditActionExist($module) {
 			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".sqlescape($module)."' AND route = 'edit'"));
 		}
 
@@ -2273,7 +2310,7 @@
 				1 or 0, for true or false.
 		*/
 
-		function doesModuleLandingActionExist($module) {
+		static function doesModuleLandingActionExist($module) {
 			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".sqlescape($module)."' AND route = ''"));
 		}
 
@@ -2329,7 +2366,7 @@
 						} elseif ($change["type"] == "EDIT") {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
 						}
-						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$this->getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
+						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.self::getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
 						$body_changes .= '</tr>';
 					}
 				} else {
@@ -2384,12 +2421,11 @@
 				<changePassword>
 		*/
 
-		function forgotPassword($email) {
+		static function forgotPassword($email) {
 			global $bigtree;
 
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
-			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN);
 
 			$email = sqlescape($email);
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
@@ -2410,13 +2446,7 @@
 
 			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
 
-			$mailer = new htmlMimeMail();
-			$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
-			$mailer->setSubject("Reset Your Password");
-			$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
-			$mailer->setHtml($html,$text);
-			$mailer->send(array($user["email"]));
-
+			BigTree::sendEmail($user["email"],"Reset Your Password",$html,$text);
 			BigTree::redirect($login_root."forgot-success/");
 		}
 
@@ -2431,7 +2461,7 @@
 				The number of 404s in the table of the given type.
 		*/
 
-		function get404Total($type) {
+		static function get404Total($type) {
 			if ($type == "404") {
 				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''"));
 			} elseif ($type == "301") {
@@ -2535,7 +2565,7 @@
 				If the item isn't already featured, it would simply return "icon_featured" for the "feature" action.
 		*/
 
-		function getActionClass($action,$item) {
+		static function getActionClass($action,$item) {
 			$class = "";
 			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
 				return "icon_disabled";
@@ -2581,7 +2611,7 @@
 				A token array.
 		*/
 
-		function getAPITokenById($id) {
+		static function getAPITokenById($id) {
 			$id = mysql_real_escape_string($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_api_tokens WHERE id = '$id'"));
 		}
@@ -2597,7 +2627,7 @@
 				The number of pages that match the query.
 		*/
 
-		function getAPITokensPageCount($query = "") {
+		static function getAPITokensPageCount($query = "") {
 			if ($query) {
 				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_api_tokens WHERE temporary = '' AND token LIKE '%".mysql_real_escape_string($query)."%'"));
 			} else {
@@ -2622,7 +2652,7 @@
 				An array of page entries.
 		*/
 
-		function getArchivedNavigationByParent($parent) {
+		static function getArchivedNavigationByParent($parent) {
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
@@ -2648,7 +2678,7 @@
 				<BigTreeAutoModule.getView>
 		*/
 
-		function getAutoModuleActions($module) {
+		static function getAutoModuleActions($module) {
 			$items = array();
 			$id = sqlescape($module);
 			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$id' AND (form != 0 OR view != 0) AND in_nav = 'on' ORDER BY position DESC, id ASC");
@@ -2676,7 +2706,7 @@
 				An array of template entries.
 		*/
 
-		function getBasicTemplates($sort = "position DESC, id ASC") {
+		static function getBasicTemplates($sort = "position DESC, id ASC") {
 			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY $sort");
 			$items = array();
 			while ($f = sqlfetch($q)) {
@@ -2796,7 +2826,7 @@
 				A callout entry from bigtree_callouts with resources decoded.
 		*/
 
-		function getCallout($id) {
+		static function getCallout($id) {
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($id)."'"));
 			if (!$item) {
 				return false;
@@ -2816,7 +2846,7 @@
 				A callout group entry.
 		*/
 
-		function getCalloutGroup($id) {
+		static function getCalloutGroup($id) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'"));
 		}
 
@@ -2828,7 +2858,7 @@
 				An array of callout group entries from bigtree_callout_groups.
 		*/
 
-		function getCalloutGroups() {
+		static function getCalloutGroups() {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
 			while ($f = sqlfetch($q)) {
@@ -2848,7 +2878,7 @@
 				An array of callout entries from bigtree_callouts.
 		*/
 
-		function getCallouts($sort = "position DESC, id ASC") {
+		static function getCallouts($sort = "position DESC, id ASC") {
 			$callouts = array();
 			$q = sqlquery("SELECT * FROM bigtree_callouts ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -2901,7 +2931,7 @@
 				A pending change entry from the bigtree_pending_changes table.
 		*/
 
-		function getChange($id) {
+		static function getChange($id) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
 		}
 
@@ -2916,7 +2946,7 @@
 				A string containing a link to the admin.
 		*/
 
-		function getChangeEditLink($change) {
+		static function getChangeEditLink($change) {
 			global $bigtree;
 
 			if (!is_array($change)) {
@@ -2952,17 +2982,19 @@
 				Gets a list of pages with content older than their Max Content Age that a user follows.
 
 			Parameters:
-				user - The user id to pull alerts for or a user entry.
+				user - The user id to pull alerts for or a user entry (defaults to the logged in user)
 
 			Returns:
 				An array of arrays containing a page title, path, and id.
 		*/
 
-		function getContentAlerts($user) {
+		function getContentAlerts($user = false) {
 			if (is_array($user)) {
-				$user = $this->getUser($user["id"]);
+				$user = self::getUser($user["id"]);
+			} elseif ($user) {
+				$user = self::getUser($user);
 			} else {
-				$user = $this->getUser($user);
+				$user = self::getUser($this->ID);
 			}
 
 			if (!is_array($user["alerts"])) {
@@ -3010,7 +3042,7 @@
 				A package/extension.
 		*/
 		
-		function getExtension($id) {
+		static function getExtension($id) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
 		}
 
@@ -3025,7 +3057,7 @@
 				An array of extensions.
 		*/
 		
-		function getExtensions($sort = "last_updated DESC") {
+		static function getExtensions($sort = "last_updated DESC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'extension' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -3045,7 +3077,7 @@
 				An array of feed elements from bigtree_feeds sorted by name.
 		*/
 
-		function getFeeds($sort = "name ASC") {
+		static function getFeeds($sort = "name ASC") {
 			$feeds = array();
 			$q = sqlquery("SELECT * FROM bigtree_feeds ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -3065,7 +3097,7 @@
 				A field type entry with the "files" column decoded.
 		*/
 
-		function getFieldType($id) {
+		static function getFieldType($id) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '$id'"));
 			if (!$item) {
@@ -3086,7 +3118,7 @@
 				An array of entries from bigtree_field_types.
 		*/
 
-		function getFieldTypes($sort = "name ASC") {
+		static function getFieldTypes($sort = "name ASC") {
 			$types = array();
 			$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -3106,11 +3138,11 @@
 				The navigation path (normally found in the "path" column in bigtree_pages).
 		*/
 
-		function getFullNavigationPath($id, $path = array()) {
+		static function getFullNavigationPath($id, $path = array()) {
 			$f = sqlfetch(sqlquery("SELECT route,id,parent FROM bigtree_pages WHERE id = '$id'"));
 			$path[] = BigTreeCMS::urlify($f["route"]);
 			if ($f["parent"] != 0) {
-				return $this->getFullNavigationPath($f["parent"],$path);
+				return self::getFullNavigationPath($f["parent"],$path);
 			}
 			$path = implode("/",array_reverse($path));
 			return $path;
@@ -3127,7 +3159,7 @@
 				An array of page entries.
 		*/
 
-		function getHiddenNavigationByParent($parent) {
+		static function getHiddenNavigationByParent($parent) {
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
 			while ($nav_item = sqlfetch($q)) {
@@ -3140,6 +3172,7 @@
 		/*
 			Function: getMessage
 				Returns a message from message center.
+				Verifies that the user calling this method is either the sender or a recipient.
 
 			Parameters:
 				id - The id of the message.
@@ -3267,7 +3300,7 @@
 				A module action entry.
 		*/
 
-		function getModuleAction($id) {
+		static function getModuleAction($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE id = '$id'"));
 		}
@@ -3284,7 +3317,7 @@
 				A module action entry.
 		*/
 
-		function getModuleActionByRoute($module,$route) {
+		static function getModuleActionByRoute($module,$route) {
 			// For landing routes.
 			if (!count($route)) {
 				$route = array("");
@@ -3316,7 +3349,7 @@
 				A module action entry.
 		*/
 
-		function getModuleActionForForm($form) {
+		static function getModuleActionForForm($form) {
 			if (is_array($form)) {
 				$form = sqlescape($form["id"]);
 			} else {
@@ -3336,7 +3369,7 @@
 				A module action entry.
 		*/
 
-		function getModuleActionForReport($report) {
+		static function getModuleActionForReport($report) {
 			if (is_array($report)) {
 				$report = sqlescape($report["id"]);
 			} else {
@@ -3356,7 +3389,7 @@
 				A module action entry.
 		*/
 
-		function getModuleActionForView($view) {
+		static function getModuleActionForView($view) {
 			if (is_array($view)) {
 				$view = sqlescape($view["id"]);
 			} else {
@@ -3376,7 +3409,7 @@
 				An array of module action entries.
 		*/
 
-		function getModuleActions($module) {
+		static function getModuleActions($module) {
 			if (is_array($module)) {
 				$module = sqlescape($module["id"]);
 			} else {
@@ -3401,7 +3434,7 @@
 				A module entry with the "gbp" column decoded or false if a module was not found.
 		*/
 
-		function getModuleByClass($class) {
+		static function getModuleByClass($class) {
 			$class = sqlescape($class);
 			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE class = '$class'"));
 			if (!$module) {
@@ -3423,7 +3456,7 @@
 				A module entry with the "gbp" column decoded or false if a module was not found.
 		*/
 
-		function getModuleByRoute($route) {
+		static function getModuleByRoute($route) {
 			$route = sqlescape($route);
 			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE route = '$route'"));
 			if (!$module) {
@@ -3446,7 +3479,7 @@
 				An array of entries from bigtree_module_embeds with "fields" decoded.
 		*/
 
-		function getModuleEmbedForms($sort = "title",$module = false) {
+		static function getModuleEmbedForms($sort = "title",$module = false) {
 			$items = array();
 			if ($module) {
 				$q = sqlquery("SELECT * FROM bigtree_module_embeds WHERE module = '".sqlescape($module)."' ORDER BY $sort");
@@ -3472,7 +3505,7 @@
 				An array of entries from bigtree_module_forms with "fields" decoded.
 		*/
 
-		function getModuleForms($sort = "title",$module = false) {
+		static function getModuleForms($sort = "title",$module = false) {
 			$items = array();
 			if ($module) {
 				$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE module = '".sqlescape($module)."' ORDER BY $sort");
@@ -3501,7 +3534,7 @@
 				<getModuleGroupByRoute>
 		*/
 
-		function getModuleGroup($id) {
+		static function getModuleGroup($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE id = '$id'"));
 		}
@@ -3522,7 +3555,7 @@
 		*/
 
 
-		function getModuleGroupByName($name) {
+		static function getModuleGroupByName($name) {
 			$name = sqlescape(strtolower($name));
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE LOWER(name) = '$name'"));
 		}
@@ -3542,7 +3575,7 @@
 				<getModuleGroupByName>
 		*/
 
-		function getModuleGroupByRoute($route) {
+		static function getModuleGroupByRoute($route) {
 			$name = sqlescape($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '$route'"));
 		}
@@ -3558,7 +3591,7 @@
 				An array of module group entries from bigtree_module_groups.
 		*/
 
-		function getModuleGroups($sort = "position DESC, id ASC") {
+		static function getModuleGroups($sort = "position DESC, id ASC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_module_groups ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -3578,7 +3611,7 @@
 				An array of module actions from bigtree_module_actions.
 		*/
 
-		function getModuleNavigation($module) {
+		static function getModuleNavigation($module) {
 			if (is_array($module)) {
 				$module = sqlescape($module["id"]);
 			} else {
@@ -3604,7 +3637,7 @@
 				An array of entries from bigtree_module_reports.
 		*/
 
-		function getModuleReports($sort = "title",$module = false) {
+		static function getModuleReports($sort = "title",$module = false) {
 			$items = array();
 			if ($module) {
 				$q = sqlquery("SELECT * FROM bigtree_module_reports WHERE module = '".sqlescape($module)."' ORDER BY $sort");
@@ -3684,7 +3717,8 @@
 			Returns:
 				An array of view entries with "fields" decoded.
 		*/
-		function getModuleViews($sort = "title",$module = false) {
+
+		static function getModuleViews($sort = "title",$module = false) {
 			$items = array();
 			if ($module !== false) {
 				$module = sqlescape($module);
@@ -3711,13 +3745,13 @@
 				An array of page entries.
 		*/
 
-		function getNaturalNavigationByParent($parent,$levels = 1) {
+		static function getNaturalNavigationByParent($parent,$levels = 1) {
 			$nav = array();
 			$q = sqlquery("SELECT id,nav_title AS title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
-					$nav_item["children"] = $this->getNaturalNavigationByParent($nav_item["id"],$levels - 1);
+					$nav_item["children"] = self::getNaturalNavigationByParent($nav_item["id"],$levels - 1);
 				}
 				$nav[] = $nav_item;
 			}
@@ -3735,7 +3769,7 @@
 				A package/extension.
 		*/
 
-		function getPackage($id) {
+		static function getPackage($id) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
 		}
 
@@ -3750,7 +3784,7 @@
 				An array of packages.
 		*/
 
-		function getPackages($sort = "last_updated DESC") {
+		static function getPackages($sort = "last_updated DESC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -3851,7 +3885,7 @@
 				An array of pages that link to the admin.
 		*/
 
-		function getPageAdminLinks() {
+		static function getPageAdminLinks() {
 			global $bigtree;
 			$pages = array();
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
@@ -3872,7 +3906,7 @@
 				An entry from bigtree_pending_changes with changes decoded.
 		*/
 
-		function getPageChanges($page) {
+		static function getPageChanges($page) {
 			$page = sqlescape($page);
 			$c = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
 			if (!$c) {
@@ -3894,7 +3928,7 @@
 				An array of pages.
 		*/
 
-		function getPageChildren($page,$sort = "nav_title ASC") {
+		static function getPageChildren($page,$sort = "nav_title ASC") {
 			$page = sqlescape($page);
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page' AND archived != 'on' ORDER BY $sort");
@@ -3912,7 +3946,7 @@
 				An array of page ids.
 		*/
 
-		function getPageIds() {
+		static function getPageIds() {
 			$ids = array();
 			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
 			while ($f = sqlfetch($q)) {
@@ -3978,7 +4012,7 @@
 				An array of entries from bigtree_users.
 		*/
 
-		function getPageOfAPITokens($page = 0,$query = "") {
+		static function getPageOfAPITokens($page = 0,$query = "") {
 			$query = mysql_real_escape_string($query);
 			if ($query) {
 				$q = sqlquery("SELECT bigtree_api_tokens.* FROM bigtree_api_tokens JOIN bigtree_users ON bigtree_api_tokens.user = bigtree_users.id WHERE temporary = '' AND (name LIKE '%$query%' OR token LIKE '%$query%') ORDER BY bigtree_api_tokens.id DESC LIMIT ".($page * self::$PerPage).",".self::$PerPage);
@@ -3987,7 +4021,7 @@
 			}
 			$items = array();
 			while ($f = sqlfetch($q)) {
-				$f["user"] = $this->getUser($f["user"]);
+				$f["user"] = self::getUser($f["user"]);
 				$items[] = $f;
 			}
 			return $items;
@@ -3995,7 +4029,7 @@
 
 		/*
 			Function: getPageOfSettings
-				Returns a page of settings.
+				Returns a page of settings the logged in user has access to.
 
 			Parameters:
 				page - The page to return.
@@ -4064,7 +4098,7 @@
 				An array of entries from bigtree_users.
 		*/
 
-		function getPageOfUsers($page = 1,$query = "",$sort = "name ASC") {
+		static function getPageOfUsers($page = 1,$query = "",$sort = "name ASC") {
 			// If we're searching.
 			if ($query) {
 				$qparts = explode(" ",$query);
@@ -4099,7 +4133,7 @@
 				An array of parent IDs.
 		*/
 
-		function getPageParents($pages) {
+		static function getPageParents($pages) {
 			$parents = array();
 			$page_query = array();
 			foreach ($pages as $id) {
@@ -4126,7 +4160,7 @@
 				A page version entry from the table.
 		*/
 
-		function getPageRevision($id) {
+		static function getPageRevision($id) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_page_revisions WHERE id = '$id'"));
 			return $item;
@@ -4143,7 +4177,7 @@
 				An array of "saved" revisions and "unsaved" revisions.
 		*/
 
-		function getPageRevisions($page) {
+		static function getPageRevisions($page) {
 			$page = sqlescape($page);
 
 			// Get all previous revisions, add them to the saved or unsaved list
@@ -4169,7 +4203,7 @@
 				Array of unmodified entries from bigtree_pages.
 		*/
 
-		function getPages() {
+		static function getPages() {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_pages ORDER BY id ASC");
 			while ($f = sqlfetch($q)) {
@@ -4208,7 +4242,7 @@
 				- Fresh content - up to 10 points
 		*/
 
-		function getPageSEORating($page,$content) {
+		static function getPageSEORating($page,$content) {
 			$template = BigTreeCMS::getTemplate($page["template"]);
 			$tsources = array();
 			$h1_field = "";
@@ -4232,7 +4266,6 @@
 			if (!count($body_fields) && $tsources["page_content"]) {
 				$body_fields[] = "page_content";
 			}
-
 
 			$textStats = new TextStatistics;
 			$recommendations = array();
@@ -4377,7 +4410,7 @@
 				A entry from the table with the "changes" column decoded.
 		*/
 
-		function getPendingChange($id) {
+		static function getPendingChange($id) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
 			if (!$item) {
@@ -4402,9 +4435,9 @@
 
 		function getPublishableChanges($user = false) {
 			if (!$user) {
-				$user = $this->getUser($this->ID);
+				$user = self::getUser($this->ID);
 			} else {
-				$user = $this->getUser($user);
+				$user = self::getUser($user);
 			}
 
 			$changes = array();
@@ -4458,7 +4491,7 @@
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = $this->getAccessLevel($this->getModule($f["module"]),$item["item"],$f["table"]);
+						$level = $this->getAccessLevel(self::getModule($f["module"]),$item["item"],$f["table"]);
 						if ($level == "p") {
 							$ok = true;
 						}
@@ -4467,8 +4500,8 @@
 
 				// We're a publisher, get the info about the change and put it in the change list.
 				if ($ok) {
-					$f["mod"] = $this->getModule($f["module"]);
-					$f["user"] = $this->getUser($f["user"]);
+					$f["mod"] = self::getModule($f["module"]);
+					$f["user"] = self::getUser($f["user"]);
 					$changes[] = $f;
 				}
 			}
@@ -4478,7 +4511,7 @@
 
 		/*
 			Function: getPendingChanges
-				Returns a list of changes that the logged in user has created.
+				Returns a list of changes for a given user.
 
 			Parameters:
 				user - The user id to retrieve changes for. Defaults to the logged in user.
@@ -4504,7 +4537,7 @@
 					$id = $f["item_id"];
 				}
 
-				$mod = $this->getModule($f["module"]);
+				$mod = self::getModule($f["module"]);
 				$f["mod"] = $mod;
 				$changes[] = $f;
 			}
@@ -4524,7 +4557,7 @@
 				An array of pending page titles/ids.
 		*/
 
-		function getPendingNavigationByParent($parent,$in_nav = true) {
+		static function getPendingNavigationByParent($parent,$in_nav = true) {
 			$nav = array();
 			$titles = array();
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE pending_page_parent = '$parent' AND `table` = 'bigtree_pages' AND type = 'NEW' ORDER BY date DESC");
@@ -4554,7 +4587,7 @@
 				An array of two arrays - folders and resources.
 		*/
 
-		function getContentsOfResourceFolder($folder, $sort = "date DESC") {
+		static function getContentsOfResourceFolder($folder, $sort = "date DESC") {
 			if (is_array($folder)) {
 				$folder = $folder["id"];
 			}
@@ -4591,7 +4624,7 @@
 				An entry from bigtree_resources with file and thumbs decoded.
 		*/
 
-		function getResourceByFile($file) {
+		static function getResourceByFile($file) {
 			if (self::$IRLPrefixes === false) {
 				self::$IRLPrefixes = array();
 				$thumbnail_sizes = $this->getSetting("resource-thumbnail-sizes",true);
@@ -4634,7 +4667,7 @@
 				A resource entry.
 		*/
 
-		function getResource($id) {
+		static function getResource($id) {
 			$id = sqlescape($id);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
 			$f["thumbs"] = json_decode($f["thumbs"],true);
@@ -4652,7 +4685,7 @@
 				An array of entries from the bigtree_resource_allocation table.
 		*/
 
-		function getResourceAllocation($id) {
+		static function getResourceAllocation($id) {
 			$id = sqlescape($id);
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_resource_allocation WHERE resource = '$id' ORDER BY updated_at DESC");
@@ -4673,7 +4706,7 @@
 				A resource folder entry.
 		*/
 
-		function getResourceFolder($id) {
+		static function getResourceFolder($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '$id'"));
 		}
@@ -4689,20 +4722,20 @@
 				A keyed array of "resources", "folders", and "allocations" for the number of resources, sub folders, and allocations.
 		*/
 
-		function getResourceFolderAllocationCounts($folder) {
+		static function getResourceFolderAllocationCounts($folder) {
 			$allocations = $folders = $resources = 0;
 
-			$items = $this->getContentsOfResourceFolder($folder);
+			$items = self::getContentsOfResourceFolder($folder);
 			foreach ($items["folders"] as $folder) {
 				$folders++;
-				$subs = $this->getResourceFolderAllocationCounts($folder["id"]);
+				$subs = self::getResourceFolderAllocationCounts($folder["id"]);
 				$allocations += $subs["allocations"];
 				$folders += $subs["folders"];
 				$resources += $subs["resources"];
 			}
 			foreach ($items["resources"] as $resource) {
 				$resources++;
-				$allocations += count($this->getResourceAllocation($resource["id"]));
+				$allocations += count(self::getResourceAllocation($resource["id"]));
 			}
 			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
 		}
@@ -4718,7 +4751,7 @@
 				An array of arrays containing the name and id of folders above.
 		*/
 
-		function getResourceFolderBreadcrumb($folder,$crumb = array()) {
+		static function getResourceFolderBreadcrumb($folder,$crumb = array()) {
 			if (!is_array($folder)) {
 				$folder = sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '".sqlescape($folder)."'"));
 			}
@@ -4728,7 +4761,7 @@
 			}
 
 			if ($folder["parent"]) {
-				return $this->getResourceFolderBreadcrumb($folder["parent"],$crumb);
+				return self::getResourceFolderBreadcrumb($folder["parent"],$crumb);
 			} else {
 				$crumb[] = array("id" => 0, "name" => "Home");
 				return array_reverse($crumb);
@@ -4746,7 +4779,7 @@
 				An array of resource folder entries.
 		*/
 
-		function getResourceFolderChildren($id) {
+		static function getResourceFolderChildren($id) {
 			$items = array();
 			$id = sqlescape($id);
 			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE parent = '$id' ORDER BY name ASC");
@@ -4806,7 +4839,7 @@
 
 		/*
 			Function: getRoutedTemplates
-				Returns a list of routed templates ordered by position.
+				Returns a list of routed templates ordered by position that the logged in user has access to.
 
 			Parameters:
 				sort - Sort order, defaults to positioned
@@ -4882,8 +4915,7 @@
 
 		/*
 			Function: getSettings
-				Returns a list of all settings.
-				Checks for developer access.
+				Returns a list of all settings that the logged in user has access to.
 
 			Parameters:
 				sort - Order to return the settings. Defaults to name ASC.
@@ -4916,7 +4948,7 @@
 
 		/*
 			Function: getSettingsPageCount
-				Returns the number of pages of settings.
+				Returns the number of pages of settings that the logged in user has access to.
 
 			Parameters:
 				query - Optional string to query against.
@@ -4971,7 +5003,7 @@
 				An array of entries from bigtree_settings.
 		*/
 
-		function getSystemSettings($sort = "name ASC") {
+		static function getSystemSettings($sort = "name ASC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_settings WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -4991,7 +5023,7 @@
 				A bigtree_tags entry.
 		*/
 
-		function getTag($id) {
+		static function getTag($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
 		}
@@ -5007,7 +5039,7 @@
 				An array of template entries.
 		*/
 
-		function getTemplates($sort = "position DESC, name ASC") {
+		static function getTemplates($sort = "position DESC, name ASC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_templates ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -5039,7 +5071,7 @@
 				A user entry from bigtree_users with permissions and alerts decoded.
 		*/
 
-		function getUser($id) {
+		static function getUser($id) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '$id'"));
 			if (!$item) {
@@ -5070,7 +5102,7 @@
 				A user entry from bigtree_users.
 		*/
 
-		function getUserByEmail($email) {
+		static function getUserByEmail($email) {
 			$email = sqlescape($email);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
 		}
@@ -5086,7 +5118,7 @@
 				A user entry from bigtree_users.
 		*/
 
-		function getUserByHash($hash) {
+		static function getUserByHash($hash) {
 			$hash = sqlescape($hash);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
 		}
@@ -5103,7 +5135,7 @@
 				The keys of the array are the ids of the user.
 		*/
 
-		function getUsers($sort = "name ASC") {
+		static function getUsers($sort = "name ASC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
@@ -5124,7 +5156,7 @@
 				The number of pages of results.
 		*/
 
-		function getUsersPageCount($query = "") {
+		static function getUsersPageCount($query = "") {
 			// If we're searching.
 			if ($query) {
 				$qparts = explode(" ",$query);
@@ -5158,7 +5190,7 @@
 				type - The icon to draw.
 		*/
 
-		function growl($title,$message,$type = "success") {
+		static function growl($title,$message,$type = "success") {
 			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
@@ -5173,7 +5205,7 @@
 				A clean string of HTML for echoing in <body>
 		*/
 
-		function htmlClean($html) {
+		static function htmlClean($html) {
 			return str_replace("<br></br>","<br />",strip_tags($html,"<a><abbr><address><area><article><aside><audio><b><base><bdo><blockquote><body><br><button><canvas><caption><cite><code><col><colgroup><command><datalist><dd><del><details><dfn><div><dl><dt><em><emded><fieldset><figcaption><figure><footer><form><h1><h2><h3><h4><h5><h6><header><hgroup><hr><i><iframe><img><input><ins><keygen><kbd><label><legend><li><link><map><mark><menu><meter><nav><noscript><object><ol><optgroup><option><output><p><param><pre><progress><q><rp><rt><ruby><s><samp><script><section><select><small><source><span><strong><style><sub><summary><sup><table><tbody><td><textarea><tfoot><th><thead><time><title><tr><ul><var><video><wbr>"));
 		}
 
@@ -5190,6 +5222,7 @@
 			$this->requireLevel(1);
 			$id = sqlescape($id);
 			sqlquery("UPDATE bigtree_404s SET ignored = 'on' WHERE id = '$id'");
+			$this->track("bigtree_404s",$id,"ignored");
 		}
 
 		/*
@@ -5203,7 +5236,7 @@
 				True if it is still a valid link, otherwise false.
 		*/
 
-		function iplExists($ipl) {
+		static function iplExists($ipl) {
 			$ipl = explode("//",$ipl);
 
 			// See if the page it references still exists.
@@ -5244,9 +5277,9 @@
 				True if it is still a valid link, otherwise false.
 		*/
 
-		function irlExists($irl) {
+		static function irlExists($irl) {
 			$irl = explode("//",$irl);
-			$resource = $this->getResource($irl[1]);
+			$resource = self::getResource($irl[1]);
 			if ($resource) {
 				return true;
 			}
@@ -5309,7 +5342,7 @@
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 
-		function login($email,$password,$stay_logged_in = false) {
+		static function login($email,$password,$stay_logged_in = false) {
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($email)."'"));
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
@@ -5341,7 +5374,7 @@
 				Destroys the user's session and unsets the login cookies, then sends the user back to the login page.
 		*/
 
-		function logout() {
+		static function logout() {
 			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			setcookie("bigtree_admin[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			unset($_SESSION["bigtree_admin"]);
@@ -5359,7 +5392,7 @@
 				An internal page link (if possible) or just the same URL (if it's not internal).
 		*/
 
-		function makeIPL($url) {
+		static function makeIPL($url) {
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			// Check for resource link
 			if ($command[0] == "files" && $command[1] == "resources") {
@@ -5408,7 +5441,7 @@
 				true if a match was found. If the file was already in the given folder, the date is simply updated.
 		*/
 
-		function matchResourceMD5($file,$new_folder) {
+		static function matchResourceMD5($file,$new_folder) {
 			$md5 = sqlescape(md5_file($file));
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE md5 = '$md5' LIMIT 1"));
 			if (!$f) {
@@ -5437,7 +5470,7 @@
 				true or false
 		*/
 
-		function pageChangeExists($page) {
+		static function pageChangeExists($page) {
 			$page = sqlescape($page);
 			$c = sqlfetch(sqlquery("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
 			if (!$c) {
@@ -5451,8 +5484,8 @@
 				Sends the latest sitemap.xml out to search engine ping services if enabled in settings.
 		*/
 
-		function pingSearchEngines() {
-			$setting = $this->getSetting("ping-search-engines");
+		static function pingSearchEngines() {
+			$setting = self::getSetting("ping-search-engines");
 			if ($setting["value"] == "on") {
 				$google = file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
 				$ask = file_get_contents("http://submissions.ask.com/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
@@ -5469,7 +5502,7 @@
 				crops - An array of crop information.
 		*/
 
-		function processCrops($crops) {
+		static function processCrops($crops) {
 			$storage = new BigTreeStorage;
 
 			foreach ($crops as $key => $crop) {
@@ -5524,7 +5557,7 @@
 				field - Field information (normally set to $field when running a field type's process file)
 		*/
 
-		function processImageUpload($field) {
+		static function processImageUpload($field) {
 			global $bigtree;
 
 			$failed = false;
@@ -5804,8 +5837,9 @@
 
 		function requireAccess($module) {
 			global $admin,$bigtree,$cms;
-			if ($this->Level > 0)
+			if ($this->Level > 0) {
 				return "p";
+			}
 			if (!isset($this->Permissions[$module]) || $this->Permissions[$module] == "") {
 				define("BIGTREE_ACCESS_DENIED",true);
 				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
@@ -5869,7 +5903,7 @@
 				The new revision id.
 		*/
 
-		function saveCurrentPageRevision($page,$description) {
+		static function saveCurrentPageRevision($page,$description) {
 			$page = sqlescape($page);
 			$description = sqlescape($description);
 
@@ -5881,8 +5915,10 @@
 
 			// Copy it to the saved versions
 			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`author`,`updated_at`,`saved`,`saved_description`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$last_edited_by','$updated_at','on','$description')");
+			$id = sqlid();
+			$this->track("bigtree_page_revisions",$id,"created");
 
-			return sqlid();
+			return $id;
 		}
 
 		/*
@@ -5898,7 +5934,7 @@
 				An array of entries from bigtree_404s.
 		*/
 
-		function search404s($type,$query = "",$page = 1) {
+		static function search404s($type,$query = "",$page = 1) {
 			$items = array();
 
 			if ($query) {
@@ -5949,7 +5985,7 @@
 				An array of adds/edits/deletions from the audit trail.
 		*/
 
-		function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
+		static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
 			$users = $items = $where = array();
 			$query = "SELECT * FROM bigtree_audit_trail";
 
@@ -5975,7 +6011,7 @@
 			$q = sqlquery($query." ORDER BY `date` DESC");
 			while ($f = sqlfetch($q)) {
 				if (!$users[$f["user"]]) {
-					$u = $this->getUser($f["user"]);
+					$u = self::getUser($f["user"]);
 					$users[$f["user"]] = array("id" => $u["id"],"name" => $u["name"],"email" => $u["email"],"level" => $u["level"]);
 				}
 				$f["user"] = $users[$f["user"]];
@@ -5998,7 +6034,7 @@
 				An array of pages.
 		*/
 
-		function searchPages($query,$fields = array("nav_title"),$max = 10) {
+		static function searchPages($query,$fields = array("nav_title"),$max = 10) {
 			// Since we're in JSON we have to do stupid things to the /s for URL searches.
 			$query = str_replace('/','\\\/',$query);
 
@@ -6076,7 +6112,7 @@
 				An array of up to 8 similar tags.
 		*/
 
-		function searchTags($tag) {
+		static function searchTags($tag) {
 			$tags = array();
 			$meta = metaphone($tag);
 			$close_tags = array();
@@ -6114,6 +6150,7 @@
 			$id = sqlescape($id);
 			$url = sqlescape(htmlspecialchars($url));
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
+			$this->track("bigtree_404s",$id,"updated");
 		}
 
 		/*
@@ -6125,7 +6162,7 @@
 				position - The position to set.
 		*/
 
-		function setCalloutPosition($id,$position) {
+		static function setCalloutPosition($id,$position) {
 			$id = sqlescape($id);
 			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_callouts SET position = '$position' WHERE id = '$id'");
@@ -6140,7 +6177,7 @@
 				position - The position to set.
 		*/
 
-		function setModuleActionPosition($id,$position) {
+		static function setModuleActionPosition($id,$position) {
 			$id = sqlescape($id);
 			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_module_actions SET position = '$position' WHERE id = '$id'");
@@ -6155,7 +6192,7 @@
 				position - The position to set.
 		*/
 
-		function setModuleGroupPosition($id,$position) {
+		static function setModuleGroupPosition($id,$position) {
 			$id = sqlescape($id);
 			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_module_groups SET position = '$position' WHERE id = '$id'");
@@ -6170,7 +6207,7 @@
 				position - The position to set.
 		*/
 
-		function setModulePosition($id,$position) {
+		static function setModulePosition($id,$position) {
 			$id = sqlescape($id);
 			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_modules SET position = '$position' WHERE id = '$id'");
@@ -6185,7 +6222,7 @@
 				position - The position to set.
 		*/
 
-		function setPagePosition($id,$position) {
+		static function setPagePosition($id,$position) {
 			$id = sqlescape($id);
 			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_pages SET position = '$position' WHERE id = '$id'");
@@ -6202,7 +6239,7 @@
 				A change password hash.
 		*/
 
-		function setPasswordHashForUser($user) {
+		static function setPasswordHashForUser($user) {
 			$hash = md5(microtime().$user["password"]);
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
 		}
@@ -6216,7 +6253,7 @@
 				position - The position to set.
 		*/
 
-		function setTemplatePosition($id,$position) {
+		static function setTemplatePosition($id,$position) {
 			$id = sqlescape($id);
 			$position = sqlescape($position);
 			sqlquery("UPDATE bigtree_templates SET position = '$position' WHERE id = '$id'");
@@ -6233,7 +6270,7 @@
 				1 if the setting exists, otherwise 0.
 		*/
 
-		function settingExists($id) {
+		static function settingExists($id) {
 			return sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '".sqlescape($id)."'"));
 		}
 
@@ -6443,7 +6480,7 @@
 				Destroys the growl session.
 		*/
 
-		function ungrowl() {
+		static function ungrowl() {
 			unset($_SESSION["bigtree_admin"]["flash"]);
 		}
 
@@ -6458,7 +6495,7 @@
 				true if it can connect, false if connection failed.
 		*/
 
-		function urlExists($url) {
+		static function urlExists($url) {
 			$handle = curl_init($url);
 			if ($handle === false) {
 				return false;
@@ -6482,7 +6519,7 @@
 				page - Either a page id or a page entry.
 		*/
 
-		function unCache($page) {
+		static function unCache($page) {
 			$get = array();
 			if (is_array($page)) {
 				if (!$page["path"]) {
@@ -6513,6 +6550,7 @@
 			$this->requireLevel(1);
 			$id = sqlescape($id);
 			sqlquery("UPDATE bigtree_404s SET ignored = '' WHERE id = '$id'");
+			$this->track("bigtree_404s",$id,"unignored");
 		}
 
 		/*
@@ -6528,7 +6566,7 @@
 				A unique action route.
 		*/
 
-		function uniqueModuleActionRoute($module,$route,$action = false) {
+		static function uniqueModuleActionRoute($module,$route,$action = false) {
 			$module = sqlescape($module);
 			$oroute = $route = sqlescape($route);
 			$x = 2;
@@ -6549,7 +6587,7 @@
 				id - The id of the entry.
 		*/
 
-		function unlock($table,$id) {
+		static function unlock($table,$id) {
 			sqlquery("DELETE FROM bigtree_locks WHERE `table` = '".sqlescape($table)."' AND item_id = '".sqlescape($id)."'");
 		}
 
@@ -6573,6 +6611,7 @@
 			$expires = $temporary ? "'".date("Y-m-d- H:i:s",strtotime($expires))."'" : "NULL";
 
 			sqlquery("UPDATE bigtree_api_tokens SET user = '$user', read_only = '$read_only', temporary = '$temporary', expires = '$expires' WHERE id = '$id'");
+			$this->track("bigtree_api_tokens",$id,"updated");
 		}
 
 		/*
@@ -6618,6 +6657,7 @@
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 
 			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default', `group` = $group WHERE id = '$id'");
+			$this->track("bigtree_callouts",$id,"updated");
 		}
 
 		/*
@@ -6631,6 +6671,7 @@
 
 		function updateCalloutGroup($id,$name) {
 			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(BigTree::safeEncode($name))."' WHERE id = '".sqlescape($id)."'");
+			$this->track("bigtree_callout_groups",$id,"updated");
 		}
 
 		/*
@@ -6642,17 +6683,17 @@
 				page - The page id.
 		*/
 
-		function updateChildPagePaths($page) {
+		static function updateChildPagePaths($page) {
 			$page = sqlescape($page);
 			$q = sqlquery("SELECT id,path FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
 				$oldpath = $f["path"];
-				$path = $this->getFullNavigationPath($f["id"]);
+				$path = self::getFullNavigationPath($f["id"]);
 				if ($oldpath != $path) {
 					sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '$oldpath'");
 					sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$oldpath','$path')");
 					sqlquery("UPDATE bigtree_pages SET path = '$path' WHERE id = '".$f["id"]."'");
-					$this->updateChildPagePaths($f["id"]);
+					self::updateChildPagePaths($f["id"]);
 				}
 			}
 		}
@@ -6687,6 +6728,7 @@
 			$fields = BigTree::json($fields,true);
 
 			sqlquery("UPDATE bigtree_feeds SET name = '$name', description = '$description', `table` = '$table', type = '$type', fields = '$fields', options = '$options' WHERE id = '$id'");
+			$this->track("bigtree_feeds",$id,"updated");
 		}
 
 		/*
@@ -6707,6 +6749,8 @@
 			$self_draw = $self_draw ? "'on'" : "NULL";
 
 			sqlquery("UPDATE bigtree_field_types SET name = '$name', use_cases = '$use_cases', self_draw = $self_draw WHERE id = '$id'");
+			$this->track("bigtree_field_types",$id,"updated");
+
 			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 		}
 
@@ -6737,6 +6781,7 @@
 			$icon = sqlescape($icon);
 
 			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
+			$this->track("bigtree_modules",$id,"updated");
 
 			// Remove cached class list.
 			unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
@@ -6775,6 +6820,7 @@
 			$route = $this->uniqueModuleActionRoute($item["module"],$route,$id);
 
 			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report WHERE id = '$id'");
+			$this->track("bigtree_module_actions",$id,"updated");
 		}
 
 		/*
@@ -6807,6 +6853,7 @@
 			$thank_you_message = sqlescape($thank_you_message);
 
 			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message', `hooks` = '$hooks' WHERE id = '$id'");
+			$this->track("bigtree_module_embeds",$id,"updated");
 		}
 
 		/*
@@ -6843,8 +6890,10 @@
 			// Get related views for this table and update numeric status
 			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
 			while ($f = sqlfetch($q)) {
-				$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+				self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
 			}
+
+			$this->track("bigtree_module_forms",$id,"updated");
 		}
 
 		/*
@@ -6873,6 +6922,7 @@
 			$name = sqlescape(BigTree::safeEncode($name));
 
 			sqlquery("UPDATE bigtree_module_groups SET name = '$name', route = '$route' WHERE id = '$id'");
+			$this->track("bigtree_module_groups",$id,"updated");
 		}
 
 		/*
@@ -6902,6 +6952,7 @@
 			sqlquery("UPDATE bigtree_module_reports SET `title` = '$title', `table` = '$table', `type` = '$type', `filters` = '$filters', `fields` = '$fields', `parser` = '$parser', `view` = $view WHERE id = '$id'");
 			// Update the module action
 			sqlquery("UPDATE bigtree_module_actions SET `name` = '$title' WHERE `report` = '$id'");
+			$this->track("bigtree_module_reports",$id,"updated");
 		}
 
 		/*
@@ -6940,7 +6991,8 @@
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
 
-			$this->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			$this->track("bigtree_module_views",$id,"updated");
 		}
 
 		/*
@@ -6951,7 +7003,7 @@
 				view - The view entry to update.
 		*/
 
-		function updateModuleViewColumnNumericStatus($view) {
+		static function updateModuleViewColumnNumericStatus($view) {
 			if (is_array($view["fields"])) {
 				$form = BigTreeAutoModule::getRelatedFormForView($view);
 				$table = BigTree::describeTable($view["table"]);
@@ -6987,6 +7039,7 @@
 			$view = sqlescape($view);
 			$fields = BigTree::json($fields,true);
 			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '$view'");
+			$this->track("bigtree_module_views",$id,"updated");
 		}
 
 		/*
@@ -7024,7 +7077,7 @@
 			}
 
 			// Remove this page from the cache
-			$this->unCache($page);
+			self::unCache($page);
 
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			foreach ($data as $key => $val) {
@@ -7055,7 +7108,7 @@
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
 			if ($external) {
-				$external = $this->makeIPL($external);
+				$external = self::makeIPL($external);
 			}
 
 			// If somehow we didn't provide a parent page (like, say, the user didn't have the right to change it) then pull the one from before.  Actually, this might be exploitable… look into it later.
@@ -7084,7 +7137,7 @@
 						$route = $oroute."-".$x;
 						$x++;
 					}
-					while (in_array($route,$this->ReservedTLRoutes)) {
+					while (in_array($route,self::$ReservedTLRoutes)) {
 						$route = $oroute."-".$x;
 						$x++;
 					}
@@ -7104,7 +7157,7 @@
 
 			// We have no idea how this affects the nav, just wipe it all.
 			if ($current["nav_title"] != $nav_title || $current["route"] != $route || $current["in_nav"] != $in_nav || $current["parent"] != $parent) {
-				$this->clearCache();
+				self::clearCache();
 			}
 
 			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
@@ -7123,7 +7176,7 @@
 
 			// Set the full path, saves DB access time on the front end.
 			if ($parent > 0) {
-				$path = $this->getFullNavigationPath($parent)."/".$route;
+				$path = self::getFullNavigationPath($parent)."/".$route;
 			} else {
 				$path = $route;
 			}
@@ -7150,9 +7203,9 @@
 				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('".$current["path"]."','$path')");
 
 				// Update all child page routes, ping those engines, clean those caches
-				$this->updateChildPagePaths($page);
-				$this->pingSearchEngines();
-				$this->clearCache();
+				self::updateChildPagePaths($page);
+				self::pingSearchEngines();
+				self::clearCache();
 			}
 
 			// Handle tags
@@ -7203,6 +7256,7 @@
 
 			// Update the paths of any child pages.
 			$this->updateChildPagePaths($page);
+			$this->track("bigtree_pages",$page,"moved");
 		}
 
 		/*
@@ -7226,6 +7280,7 @@
 			// Save the version's description and saved status
 			$description = sqlescape(htmlspecialchars($description));
 			sqlquery("UPDATE bigtree_page_revisions SET saved = 'on', saved_description = '$description' WHERE id = '".$revision["id"]."'");
+			$this->track("bigtree_page_revisions",$id,"updated");
 		}
 
 		/*
@@ -7246,6 +7301,7 @@
 			$tags_changes = BigTree::json($tags_changes,true);
 
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
+			$this->track("bigtree_pending_changes",$id,"updated");
 		}
 
 		/*
@@ -7292,6 +7348,7 @@
 				$fields[] = "`$key` = '".sqlescape($val)."'";
 			}
 			sqlquery("UPDATE bigtree_resources SET ".implode(", ",$fields)." WHERE id = '$id'");
+			$this->track("bigtree_resources",$id,"updated");
 		}
 
 		/*
@@ -7310,7 +7367,7 @@
 			global $bigtree;
 
 			// Get the existing setting information.
-			$existing = $this->getSetting($old_id);
+			$existing = self::getSetting($old_id);
 			$old_id = sqlescape($old_id);
 
 			// Globalize the data and clean it up.
@@ -7326,7 +7383,7 @@
 			$options = sqlescape($data["options"]);
 
 			// See if we have an id collision with the new id.
-			if ($old_id != $id && $this->settingExists($id)) {
+			if ($old_id != $id && self::settingExists($id)) {
 				return false;
 			}
 
@@ -7374,9 +7431,6 @@
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
-
-			// Audit trail
-			$this->track("bigtree_settings",$id,"updated-value");
 		}
 
 		/*
@@ -7417,6 +7471,7 @@
 			$level = sqlescape($level);
 
 			sqlquery("UPDATE bigtree_templates SET resources = '$resources', name = '$name', module = '$module', level = '$level' WHERE id = '$id'");
+			$this->track("bigtree_templates",$id,"updated");
 		}
 
 		/*
@@ -7443,7 +7498,7 @@
 
 
 			// If this person has higher access levels than the person trying to update them, fail.
-			$current = $this->getUser($id);
+			$current = self::getUser($id);
 			if ($current["level"] > $this->Level) {
 				return false;
 			}
@@ -7484,7 +7539,7 @@
 				password - The new password.
 		*/
 
-		function updateUserPassword($id,$password) {
+		static function updateUserPassword($id,$password) {
 			global $bigtree;
 
 			$id = sqlescape($id);
