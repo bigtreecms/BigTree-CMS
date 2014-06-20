@@ -306,23 +306,23 @@ var BigTreeSelect = Class.extend({
 		var first_level = $(element).children();
 		var y = 0;
 		for (var i = 0; i < first_level.length; i++) {
-			el = first_level.get(i);
+			var el = first_level.get(i);
 			if (el.nodeName.toLowerCase() == "optgroup") {
-				l = $(el).attr("label");
+				var l = $(el).attr("label");
 				html += '<div class="group">' + l + '</div>';
 				// Get the size of this text.
 				tester.html(l);
-				width = tester.width();
+				var width = tester.width();
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
 				
-				options = $(el).find("option");
+				var options = $(el).find("option");
 				for (x = 0; x < options.length; x++) {
 					y++;
-					option = options.eq(x);
-					text = option.html();
-					val = option.attr("value");
+					var option = options.eq(x);
+					var text = option.html();
+					var val = option.attr("value");
 					if (!val) {
 						val = text;
 					}
@@ -347,23 +347,23 @@ var BigTreeSelect = Class.extend({
 				}
 			} else {
 				y++;
-				option = $(el);
-				text = option.html();
-				val = option.attr("value");
+				var option = $(el);
+				var text = option.html();
+				var val = option.attr("value");
 				if (!val) {
 					val = text;
 				}
 				
 				// If we're making a tree-like dropdown
 				if (option.attr("data-depth")) {
-					depth = parseInt(option.attr("data-depth")) * 10;
+					var depth = parseInt(option.attr("data-depth")) * 10;
 				} else {
-					depth = 0;
+					var depth = 0;
 				}
 
 				// Get the size of this text.
 				tester.html(text);
-				width = tester.width() + depth;
+				var width = tester.width() + depth;
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
@@ -383,10 +383,10 @@ var BigTreeSelect = Class.extend({
 		
 		div.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
 
-		spanwidth = maxwidth;
+		var spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
 		if ($(element).parent().get(0).tagName.toLowerCase() == "section") {
-			sectionwidth = $(element).parent().width();
+			var sectionwidth = $(element).parent().width();
 			if (sectionwidth < (maxwidth + 56)) {
 				spanwidth = sectionwidth - 80;
 				div.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
@@ -420,24 +420,22 @@ var BigTreeSelect = Class.extend({
 
 	add: function(value,text) {
 		// Add to the actual select.
-		op = new Option(text,value);
-		this.Element[0].options[this.Element[0].options.length] = op;
+		this.Element[0].options[this.Element[0].options.length] = new Option(text,value);
 		// Add to the styled select.
-		a = $('<a href="#">' + text + '</a>');
-		a.attr("data-value",value);
+		var a = $('<a href="#">' + text + '</a>').attr("data-value",value);
 		this.Container.find(".select_options").append(a);
 
 		// Test the size of this new element and see if we need to increase the width.
-		tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
+		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
 		tester.html(text);
-		width = tester.width();
+		var width = tester.width();
 		
-		span = this.Container.find("span");
+		var span = this.Container.find("span");
 
 		// If we're in a section cell we may need to be smaller.
 		if (this.Element.parent().get(0).tagName.toLowerCase() == "section") {
-			sectionwidth = this.Element.parent().width();
+			var sectionwidth = this.Element.parent().width();
 			if (sectionwidth < (width + 56)) {
 				width = sectionwidth - 80;
 				span.css({ overflow: "hidden", padding: "0 0 0 10px" });
@@ -471,7 +469,7 @@ var BigTreeSelect = Class.extend({
 			this.Element.focus();
 			
 			// Check if we're in a sortable row and disable it's relative position if so.
-			li = this.Element.parent("li");
+			var li = this.Element.parent("li");
 			if (li.length) {
 				if (li.css("position") == "relative") {
 					li.css("position","");
@@ -479,20 +477,19 @@ var BigTreeSelect = Class.extend({
 				}
 			}
 			
-			dList = this.Container.find(".select_options");
+			var selectOptions = this.Container.find(".select_options").show();
 			this.Open = true;
-			dList.show();
 			this.Container.addClass("open");
 			this.BoundWindowClick = $.proxy(this.close,this);
 			$("body").click(this.BoundWindowClick);
 			
 			// Find out if we're in a dialog and have an overflow
-			overflow = this.Container.parents(".overflow");
+			var overflow = this.Container.parents(".overflow");
 			if (overflow.length) {
 				if (this.Container.parents("#callout_resources").length) {
 					// WebKit needs fixin.
 					if ($.browser.webkit) {
-						dList.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
+						selectOptions.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
 					}
 					// When someone scrolls the overflow, close the select or the dropdown will detach.
 					this.BoundCalloutResourcesScroll = $.proxy(this.close,this);
@@ -500,7 +497,7 @@ var BigTreeSelect = Class.extend({
 				} else {
 					// WebKit needs fixin.
 					if ($.browser.webkit) {
-						dList.css("marginTop",-1 * overflow.scrollTop() + "px");
+						selectOptions.css("marginTop",-1 * overflow.scrollTop() + "px");
 					}
 					// When someone scrolls the overflow, close the select or the dropdown will detach.
 					this.BoundOverflowScroll = $.proxy(this.close,this);
@@ -508,8 +505,7 @@ var BigTreeSelect = Class.extend({
 				}		
 			} else {
 				// If the select drops below the visible area, scroll down a bit.
-				dOffset = dList.offset().top + dList.height();
-				toScroll = dOffset - window.scrollY - $(window).height();
+				var toScroll = (selectOptions.offset().top + selectOptions.height()) - window.scrollY - $(window).height();
 				if (toScroll > 0) {
 					$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
 				}
@@ -572,11 +568,11 @@ var BigTreeSelect = Class.extend({
 		}
 
 		// The original select element that's hidden off screen.
-		el = this.Element.get(0);
+		var el = this.Element.get(0);
 		
 		// Get the original index and save it so we know when it changes.
-		index = el.selectedIndex;
-		oindex = index;
+		var index = el.selectedIndex;
+		var originalIndex = index;
 		
 		// Up or left arrow pressed
 		if (ev.keyCode == 38 || ev.keyCode == 37) {
@@ -592,15 +588,15 @@ var BigTreeSelect = Class.extend({
 			}
 		// A letter key was pressed
 		} else if (ev.keyCode > 64 && ev.keyCode < 91) {
-			spot = ev.keyCode - 65;
-			letters = "abcdefghijklmnopqrstuvwxyz";
-			letter = letters[spot];
+			var spot = ev.keyCode - 65;
+			var letters = "abcdefghijklmnopqrstuvwxyz";
+			var letter = letters[spot];
 			
 			// Go through all the options in the select to see if any of them start with the letter that was pressed.
-			for (i = index + 1; i < el.options.length; i++) {
-				text = el.options[i].text;
+			for (var i = index + 1; i < el.options.length; i++) {
+				var text = el.options[i].text;
 				if (text) {
-					first_letter = text[0].toLowerCase();
+					var first_letter = text[0].toLowerCase();
 					if (first_letter == letter) {
 						index = i;
 						break;
@@ -609,11 +605,11 @@ var BigTreeSelect = Class.extend({
 			}
 			
 			// If we were already on that letter, find the next one with that same letter.
-			if (index == oindex) {
-				for (i = 0; i < oindex; i++) {
-					text = el.options[i].text;
+			if (index == originalIndex) {
+				for (var i = 0; i < originalIndex; i++) {
+					var text = el.options[i].text;
 					if (text) {
-						first_letter = text[0].toLowerCase();
+						var first_letter = text[0].toLowerCase();
 						if (first_letter == letter) {
 							index = i;
 							break;
@@ -624,15 +620,15 @@ var BigTreeSelect = Class.extend({
 		}
 		
 		// We found a new element, fire an event saying the select changed and update the description in the styled dropdown.
-		if (index != oindex) {
+		if (index != originalIndex) {
 			// Update the new selected option
-			select_options_container = this.Container.find(".select_options");
-			ops = select_options_container.find("a");
-			ops.eq(oindex).removeClass("active");
+			var select_options_container = this.Container.find(".select_options");
+			var ops = select_options_container.find("a");
+			ops.eq(originalIndex).removeClass("active");
 			ops.eq(index).addClass("active");
 
 			// Find out if we can see this option
-			selected_y = (index + 1) * 25;
+			var selected_y = (index + 1) * 25;
 			if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
 				select_options_container.animate({ scrollTop: selected_y - select_options_container.height() + "px" }, 250);
 			} else if (selected_y <= select_options_container.scrollTop()) {
@@ -659,23 +655,23 @@ var BigTreeSelect = Class.extend({
 
 	remove: function(value) {
 		// Remove it from the actual select.
-		ops = this.Element.find("option");
-		for (i = 0; i < ops.length; i++) {
+		var ops = this.Element.find("option");
+		for (var i = 0; i < ops.length; i++) {
 			if (ops.eq(i).val() == value) {
 				ops.eq(i).remove();
 			}
 		}
 		// Remove it from the styled one.
-		as = this.Container.find(".select_options a");
-		for (i = 0; i < as.length; i++) {
+		var as = this.Container.find(".select_options a");
+		for (var i = 0; i < as.length; i++) {
 			if (as.eq(i).attr("data-value") == value) {
-				text_was = as.eq(i).html();
+				var text_was = as.eq(i).html();
 				as.eq(i).remove();
 			}
 		}
 		// If the current selected state is the value we're removing, switch to the first available.
-		sel = this.Container.find("span").eq(0);
-		select_options = this.Container.find(".select_options a");
+		var sel = this.Container.find("span").eq(0);
+		var select_options = this.Container.find(".select_options a");
 		if (select_options.length > 0) {
 			if (sel.html() == '<figure class="handle"></figure>' + text_was) {
 				sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
@@ -686,7 +682,7 @@ var BigTreeSelect = Class.extend({
 	},
 	
 	select: function(event) {
-		el = $(event.target);
+		var el = $(event.target);
 		// Set the <select> to the new value
 		this.Element.val(el.attr("data-value"));
 		// Update the selected state of the custom dropdown
