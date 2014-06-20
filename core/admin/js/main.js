@@ -1168,15 +1168,25 @@ var BigTreeTagAdder = {
 // !BigTree Dialog Class
 var BigTreeDialog = Class.extend({
 
+	dialogHeight: false,
+	dialogWidth: false,
 	dialogWindow: false,
+	heightWatchTimer: false,
 	onComplete: false,
 	onCancel: false,
-	dialogWidth: false,
-	dialogHeight: false,
-	heightWatchTimer: false,
 
 	init: function(settings) {
-		defaults = { title: "", content: "", callback: false, icon: false, noFooter: false, alternateSaveText: false, preSubmissionCallback: false, cancelHook: false };
+		var defaults = {
+			alternateSaveText: false,
+			callback: false,
+			cancelHook: false,
+			content: "",
+			icon: false,
+			noFooter: false,
+			preSubmissionCallback: false,
+			title: "",
+			width: 450
+		};
 	
 		// BigTree 4.2 behavior should be to pass in a settings object
 		if (is_object(settings)) {
@@ -1198,22 +1208,18 @@ var BigTreeDialog = Class.extend({
 		// If they hit escape, close the dialog
 		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
 
-		// Setup a callback to give the data to once they submit their dialog
-		this.onComplete = defaults.callback;
-		this.onCancel = defaults.cancelHook;
-
 		// Build our window
-		overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
-		dialog_window = $('<div class="bigtree_dialog_window" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		var dialog_window = $('<div class="bigtree_dialog_window" style="z-index: ' + (BigTree.zIndex++) + ';">');
 
 		$("body").append(overlay).append(dialog_window);
-		html = '<h2>';
+		var html = '<h2>';
 		if (defaults.icon) {
 			html += '<span class="icon_dialog_' + defaults.icon + '"></span>';
 		}
-		html += defaults.title + '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' +  defaults.content + '</div>';
+		html += defaults.title + '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow" style="width: ' + defaults.width + 'px;">' +  defaults.content + '</div>';
 		if (!defaults.noFooter) {
-			saveText = defaults.alternateSaveText ? defaults.alternateSaveText : "Save";
+			var saveText = defaults.alternateSaveText ? defaults.alternateSaveText : "Save";
 			html += '<footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer>';
 		}
 		html += '</form>';
@@ -1223,8 +1229,8 @@ var BigTreeDialog = Class.extend({
 		// Center the dialog window
 		this.dialogWidth = dialog_window.width();
 		this.dialogHeight = dialog_window.height();
-		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
-		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
+		var leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
+		var topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
 		dialog_window.css({ "top": topd + "px", "left": leftd + "px" });
 		
 		// Hook cancel button
@@ -1238,16 +1244,20 @@ var BigTreeDialog = Class.extend({
 		}
 		
 		dialog_window.find("input[type=submit]").focus();
-		
-		this.dialogWindow = dialog_window;
-		
+				
 		// Move the dialog around with the window size.
 		$(window).resize($.proxy(this.WindowResize,this));
 		
 		// Set a timer to watch for a change in the dialog height
 		this.heightWatchTimer = setInterval($.proxy(this.WatchHeight,this),250);
 
-		BigTree.FormHooks(".bigtree_dialog_form");
+		// Save our dialog window and run form hooks
+		this.dialogWindow = dialog_window;
+		BigTree.FormHooks(this.dialogWindow);
+
+		// Setup a callback to give the data to once they submit their dialog
+		this.onComplete = defaults.callback;
+		this.onCancel = defaults.cancelHook;
 	},
 	
 	CheckForEsc: function(e) {
@@ -1278,7 +1288,7 @@ var BigTreeDialog = Class.extend({
 		// Let's move all the TinyMCE content back.
 		if (typeof tinyMCE != "undefined") {
 			this.dialogWindow.find("textarea:hidden").each(function() {
-				id = $(this).attr("id");
+				var id = $(this).attr("id");
 				$(this).val(tinyMCE.get(id).getContent());
 			});
 		}
@@ -1294,7 +1304,7 @@ var BigTreeDialog = Class.extend({
 	},
 	
 	WatchHeight: function() {
-		height = this.dialogWindow.height();
+		var height = this.dialogWindow.height();
 		if (height != this.dialogHeight) {
 			this.dialogHeight = height;
 			this.WindowResize(false);
@@ -1302,8 +1312,8 @@ var BigTreeDialog = Class.extend({
 	},
 	
 	WindowResize: function(ev) {
-		leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
-		topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
+		var leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
+		var topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
 		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
 	}
 });
