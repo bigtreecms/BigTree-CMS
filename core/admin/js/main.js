@@ -1148,13 +1148,11 @@ var BigTreeTagAdder = {
 // !BigTree Dialog Class
 var BigTreeDialog = Class.extend({
 
-	dialogHeight: false,
-	dialogWidth: false,
-	dialogWindow: false,
-	heightWatchTimer: false,
-	onComplete: false,
-	onCancel: false,
-
+	DialogHeight: false,
+	DialogWidth: false,
+	DialogWindow: false,
+	HeightWatchTimer: false,
+	
 	init: function(settings) {
 		var defaults = {
 			alternateSaveText: false,
@@ -1186,7 +1184,7 @@ var BigTreeDialog = Class.extend({
 		}
 
 		// If they hit escape, close the dialog
-		$("body").on("keyup",$.proxy(this.CheckForEsc,this));
+		$("body").on("keyup",$.proxy(this.checkForEsc,this));
 
 		// Build our window
 		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
@@ -1207,46 +1205,46 @@ var BigTreeDialog = Class.extend({
 		BigTreeCustomControls(dialog_window);
 		
 		// Center the dialog window
-		this.dialogWidth = dialog_window.width();
-		this.dialogHeight = dialog_window.height();
-		var leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
-		var topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
+		this.DialogWidth = dialog_window.width();
+		this.DialogHeight = dialog_window.height();
+		var leftd = parseInt((BigTree.WindowWidth() - this.DialogWidth) / 2);
+		var topd = parseInt((BigTree.WindowHeight() - this.DialogHeight) / 2);
 		dialog_window.css({ "top": topd + "px", "left": leftd + "px" });
 		
 		// Hook cancel button
-		dialog_window.find(".bigtree_dialog_close").click($.proxy(this.DialogClose,this));
+		dialog_window.find(".bigtree_dialog_close").click($.proxy(this.dialogClose,this));
 		
 		// Hook form submission, if they don't want the submission just call the complete callback
 		if (defaults.preSubmissionCallback) {
 			dialog_window.find(".bigtree_dialog_form").submit(this.onComplete);
 		} else {
-			dialog_window.find(".bigtree_dialog_form").submit($.proxy(this.DialogSubmit,this));
+			dialog_window.find(".bigtree_dialog_form").submit($.proxy(this.dialogSubmit,this));
 		}
 		
 		dialog_window.find("input[type=submit]").focus();
 				
 		// Move the dialog around with the window size.
-		$(window).resize($.proxy(this.WindowResize,this));
+		$(window).resize($.proxy(this.windowResize,this));
 		
 		// Set a timer to watch for a change in the dialog height
-		this.heightWatchTimer = setInterval($.proxy(this.WatchHeight,this),250);
+		this.HeightWatchTimer = setInterval($.proxy(this.watchHeight,this),250);
 
 		// Save our dialog window and run form hooks
-		this.dialogWindow = dialog_window;
-		BigTree.FormHooks(this.dialogWindow);
+		this.DialogWindow = dialog_window;
+		BigTree.FormHooks(this.DialogWindow);
 
 		// Setup a callback to give the data to once they submit their dialog
 		this.onComplete = defaults.callback;
 		this.onCancel = defaults.cancelHook;
 	},
 	
-	CheckForEsc: function(e) {
+	checkForEsc: function(e) {
 		if (e.keyCode == 27) {
-			this.DialogClose();
+			this.dialogClose();
 		}
 	},
 
-	DialogClose: function() {
+	dialogClose: function() {
 		// Call the cancel hook once, if it requests that we close the dialog, don't run it again.
 		if (this.onCancel) {
 			this.onCancel();
@@ -1261,20 +1259,20 @@ var BigTreeDialog = Class.extend({
 		return false;
 	},
 
-	DialogSubmit: function(ev) {
+	dialogSubmit: function(ev) {
 		ev.preventDefault();
 		ev.stopPropagation();
 
 		// Let's move all the TinyMCE content back.
 		if (typeof tinyMCE != "undefined") {
-			this.dialogWindow.find("textarea:hidden").each(function() {
+			this.DialogWindow.find("textarea:hidden").each(function() {
 				var id = $(this).attr("id");
 				$(this).val(tinyMCE.get(id).getContent());
 			});
 		}
 
 		// Pass the form data to our callback as JSON
-		this.onComplete(BigTree.CleanObject(this.dialogWindow.find(".bigtree_dialog_form").serializeJSON()));
+		this.onComplete(BigTree.CleanObject(this.DialogWindow.find(".bigtree_dialog_form").serializeJSON()));
 		
 		// Remove the dialog
 		$(".bigtree_dialog_overlay").last().remove();
@@ -1282,19 +1280,22 @@ var BigTreeDialog = Class.extend({
 		$("body").off("keyup");
 		$(window).off("resize");
 	},
+
+	onComplete: false,
+	onCancel: false,
 	
-	WatchHeight: function() {
-		var height = this.dialogWindow.height();
-		if (height != this.dialogHeight) {
-			this.dialogHeight = height;
-			this.WindowResize(false);
+	watchHeight: function() {
+		var height = this.DialogWindow.height();
+		if (height != this.DialogHeight) {
+			this.DialogHeight = height;
+			this.windowResize(false);
 		}
 	},
 	
-	WindowResize: function(ev) {
-		var leftd = parseInt((BigTree.WindowWidth() - this.dialogWidth) / 2);
-		var topd = parseInt((BigTree.WindowHeight() - this.dialogHeight) / 2);
-		this.dialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
+	windowResize: function(ev) {
+		var leftd = parseInt((BigTree.WindowWidth() - this.DialogWidth) / 2);
+		var topd = parseInt((BigTree.WindowHeight() - this.DialogHeight) / 2);
+		this.DialogWindow.css({ "top": topd + "px", "left": leftd + "px" });
 	}
 });
 
