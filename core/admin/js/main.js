@@ -1029,121 +1029,122 @@ var BigTreePhotoGallery = Class.extend({
 });
 
 // !BigTree Tag Adder Object
-var BigTreeTagAdder = {
+var BigTreeTagAdder = (function() {
 	
-	Dropdown: false,
-	LastSearch: false,
-	Searching: false,
-	Selected: -1,
-	TagEntry: false,
-	TagList: false,
-	TagResults: false,
+	var Dropdown = false;
+	var LastSearch = false;
+	var Searching = false;
+	var SelectedTag = -1;
+	var $TagEntry = false;
+	var $TagList = false;
+	var $TagResults = false;
 	
-	init: function() {
-		this.TagEntry = $("#tag_entry").keydown($.proxy(this.checkKeys,this))
-					   				   .keyup($.proxy(this.searchTags,this));
-		this.TagList = $("#tag_list").on("click","a",this.deleteHook);
-		this.TagResults = $("#tag_results");
-	},
+	function init() {
+		$TagEntry = $("#tag_entry").keydown(checkKeys).keyup(searchTags);
+		$TagList = $("#tag_list").on("click","a",deleteHook);
+		$TagResults = $("#tag_results");
+	};
 	
-	checkKeys: function(ev) {
+	function checkKeys(ev) {
 		if (ev.keyCode == 13) {
-			if (this.Selected > -1 && this.Dropdown) {
-				var v = this.TagResults.find("li").eq(this.Selected).find("a").html().replace("<span>","").replace("</span>","");
-				this.TagEntry.val(v);
+			if (SelectedTag > -1 && Dropdown) {
+				var v = $TagResults.find("li").eq(SelectedTag).find("a").html().replace("<span>","").replace("</span>","");
+				$TagEntry.val(v);
 			}
-			this.addTag(ev);
+			addTag(ev);
 			return false;
 		}
 		if (ev.keyCode == 38) {
-			this.moveUp(ev);
+			moveUp(ev);
 			return false;
 		}
 		if (ev.keyCode == 40) {
-			this.moveDown(ev);
+			moveDown(ev);
 			return false;
 		}
-	},
+	};
 	
-	moveUp: function(ev) {
-		if (!this.Dropdown || this.Selected < 0) {
+	function moveUp(ev) {
+		if (!Dropdown || SelectedTag < 0) {
 			return;
 		}
-		var li = this.TagResults.find("li");
-		li.eq(this.Selected).removeClass("selected");
-		this.Selected--;
-		if (this.Selected > -1) {
-			li.eq(this.Selected).addClass("selected");
+		var li = $TagResults.find("li");
+		li.eq(SelectedTag).removeClass("selected");
+		SelectedTag--;
+		if (SelectedTag > -1) {
+			li.eq(SelectedTag).addClass("selected");
 		}
-	},
+	};
 	
-	moveDown: function(ev){
-		var li = this.TagResults.find("li");
+	function moveDown(ev) {
+		var li = $TagResults.find("li");
 		var max = li.length - 1;
-		if (!this.Dropdown || this.Selected == max) {
+		if (!Dropdown || SelectedTag == max) {
 			return;
 		}
-		if (this.Selected > -1) {
-			li.eq(this.Selected).removeClass("selected");
+		if (SelectedTag > -1) {
+			li.eq(SelectedTag).removeClass("selected");
 		}
-		this.Selected++;
-		li.eq(this.Selected).addClass("selected");
-	},
+		SelectedTag++;
+		li.eq(SelectedTag).addClass("selected");
+	};
 	
-	searchTags: function(ev) {
-		var tag = this.TagEntry.val();
-		if (tag != this.LastSearch) {
-			this.LastSearch = tag;
+	function searchTags(ev) {
+		var tag = $TagEntry.val();
+		if (tag != LastSearch) {
+			LastSearch = tag;
 			if (tag.length > 3) {
-				this.TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, $.proxy(this.hookResults,this));
+				$TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, hookResults);
 			} else {
-				this.TagResults.hide();
+				$TagResults.hide();
 			}
 		}
-	},
+	};
 	
-	hookResults: function() {
-		this.Selected = -1;
-		if (this.TagResults.html()) {
-			this.TagResults.show();
-			this.Dropdown = true;
-			this.TagResults.find("li a").click(this.chooseTag,this);
+	function hookResults() {
+		SelectedTag = -1;
+		if ($TagResults.html()) {
+			$TagResults.show();
+			Dropdown = true;
+			$TagResults.find("li a").click(chooseTag);
 		} else {
-			this.Dropdown = false;
-			this.TagResults.hide();
+			Dropdown = false;
+			$TagResults.hide();
 		}
-	},
+	};
 	
-	deleteHook: function(ev) {
+	function deleteHook(ev) {
 		$(this).parents("li").remove();
 		return false;
-	},
+	};
 	
-	chooseTag: function(ev) {
+	function chooseTag(ev) {
 		var el = ev.target;
 		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
 		if (tag) {
-			this.ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: $.proxy(this.addedTag,this) });
+			ActiveTagName = tag;
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
 		return false;
-	},
+	};
 	
-	addTag: function(ev) {
-		var tag = this.TagEntry.val();
+	function addTag(ev) {
+		var tag = $TagEntry.val();
 		if (tag) {
-			this.ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: $.proxy(this.addedTag,this) });
+			ActiveTagName = tag;
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
-	},
+	};
 	
-	addedTag: function(id) {
-		this.TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + this.ActiveTagName + '<span>x</span></a>'));
-		this.TagEntry.val("").focus();
-		this.TagResults.hide();
-		this.Dropdown = false;
-	}
-};
+	function addedTag(id) {
+		$TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
+		$TagEntry.val("").focus();
+		$TagResults.hide();
+		Dropdown = false;
+	};
+
+	return { init: init };
+})();
 
 // !BigTree Dialog Class
 var BigTreeDialog = Class.extend({
@@ -1304,25 +1305,25 @@ var BigTreeDialog = Class.extend({
 var BigTreeFileManager = {
 
 	// Properties
-	availableThumbs: false,
-	browser: false,
-	callback: false,
-	currentFolder: 0,	
-	currentlyKey: false,
-	currentlyName: false,
-	fieldName: false,
-	minHeight: false,
-	minWidth: false,
-	startSearchTimer: false,
-	titleSaveTimer: false,
-	type: false,
+	AvailableThumbs: false,
+	Browser: false,
+	Callback: false,
+	CurrentFolder: 0,	
+	CurrentlyKey: false,
+	CurrentlyName: false,
+	FieldName: false,
+	MinHeight: false,
+	MinWidth: false,
+	StartSearchTimer: false,
+	TitleSaveTimer: false,
+	Type: false,
 	
 	// Methods
 	
 	addFile: function() {
 		new BigTreeDialog({
 			title: "Upload Files",
-			content: '<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Select File(s)</label><input type="file" multiple name="files[]" /></fieldset>',
+			content: '<input type="hidden" name="folder" value="' + this.CurrentFolder + '" /><fieldset><label>Select File(s)</label><input type="file" multiple name="files[]" /></fieldset>',
 			icon: "folder",
 			alternateSaveText: "Upload Files",
 			preSubmissionCallback: true,
@@ -1335,7 +1336,7 @@ var BigTreeFileManager = {
 	addFolder: function() {
 		new BigTreeDialog({
 			title: "New Folder",
-			content: '<input type="hidden" name="folder" value="' + this.currentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',
+			content: '<input type="hidden" name="folder" value="' + this.CurrentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',
 			callback: $.proxy(this.createFolder,this),
 			icon: "folder",
 			alternateSaveText: "Create Folder",
@@ -1357,23 +1358,20 @@ var BigTreeFileManager = {
 	chooseImageSize: function() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
 		$("#file_browser_form .footer input.blue").hide();
-		$("#file_browser_info_pane").css({ height: "437px", marginTop: 0 });
-		size_pane = $("#file_browser_size_pane");
-		size_pane.html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
-		for (i = 0; i< this.availableThumbs.length; i++) {
-			size = this.availableThumbs[i];
-			link = $('<a class="button">');
-			link.attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
-			link.html(size.name);
+		$("#file_browser_info_pane").css({ height: "437px", marginTop: 0, marginLeft: "-1px" });
+
+		var size_pane = $("#file_browser_size_pane").html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
+		// Add all available thumbnail sizes as buttons
+		for (var i = 0; i < this.AvailableThumbs.length; i++) {
+			var size = this.AvailableThumbs[i];
+			var link = $('<a class="button">').attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html(size.name);
 			size_pane.append(link);
 		}
-		link = $('<a class="button">');
-		link.attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/"));
-		link.html("Original");
-		size_pane.append(link);
-		size_pane.css({ marginLeft: "210px" });
-		$("#file_browser_info_pane").css({ marginLeft: "-1px" });
-		
+		// Add original size button and move the size pane to the left
+		size_pane.append($('<a class="button">').attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html("Original"))
+				 .css({ marginLeft: "210px" });
+
+		// Hook the size buttons to change the selected URL
 		size_pane.find("a").click(function() {
 			BigTreeFileManager.fieldName.value = $(this).attr("href");
 			BigTreeFileManager.closeFileBrowser();
