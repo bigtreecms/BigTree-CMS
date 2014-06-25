@@ -30,6 +30,7 @@
 		*/
 		
 		function add($keys,$vals,$enforce_unique = false,$ignore_cache = false) {
+			$admin = new BigTreeAdmin;
 			$existing_parts = $key_parts = $value_parts = array();
 			$x = 0;
 			// Get a bunch of query parts.
