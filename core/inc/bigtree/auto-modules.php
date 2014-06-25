@@ -1384,59 +1384,8 @@
 		*/
 		
 		static function publishPendingItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
-			global $module;
-			
 			self::deletePendingItem($table,$id);
-			
-			$query_fields = array();
-			$query_vals = array();
-			$table_description = BigTree::describeTable($table);
-			$data = BigTreeAutoModule::sanitizeData($table,$data,$table_description);
-			
-			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$table_description["columns"])) {
-					$query_fields[] = "`".$key."`";
-					if ($val === "NULL" || $val == "NOW()") {
-						$query_vals[] = $val;
-					} else {
-						if (is_array($val)) {
-							$val = json_encode(BigTree::translateArray($val));
-						}
-						$query_vals[] = "'".sqlescape($val)."'";
-					}
-				}
-			}
-			sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
-			$id = sqlid();
-
-			// Handle many to many
-			foreach ($many_to_many as $mtm) {
-				$table_description = BigTree::describeTable($mtm["table"]);
-				if (!empty($mtm["data"])) {
-					$x = count($mtm["data"]);
-					foreach ($mtm["data"] as $position => $item) {
-						if (isset($table_description["columns"]["position"])) {
-							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
-						} else {
-							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
-						}
-						$x--;
-					}
-				}
-			}
-
-			// Handle the tags
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
-			if (!empty($tags)) {
-				foreach ($tags as $tag) {
-					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
-					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
-				}
-			}
-			
-			self::cacheNewItem($id,$table);
-			
-			return $id;
+			self::createItem($table,$data,$many_to_many,$tags);
 		}
 		
 		/*
