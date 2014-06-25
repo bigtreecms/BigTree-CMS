@@ -125,7 +125,7 @@
 			unset($ar);
 
 			// Check for Per Page value
-			$pp = $this->getSetting("bigtree-internal-per-page",false);
+			$pp = self::getSetting("bigtree-internal-per-page",false);
 			$v = intval($pp["value"]);
 			if ($v) {
 				self::$PerPage = $v;
@@ -252,7 +252,7 @@
 				sqlquery("UPDATE bigtree_api_tokens SET expires = '".date("Y-m-d H:i:s",strtotime("+30 minutes"))."' WHERE id = '".$t["id"]."'");
 			}
 
-			$user = $this->getUser($t["user"]);
+			$user = self::getUser($t["user"]);
 			$this->ID = $user["id"];
 			$this->User = $user["email"];
 			$this->Level = $user["level"];
@@ -2240,7 +2240,7 @@
 		function deleteUser($id) {
 			$id = sqlescape($id);
 			// If this person has higher access levels than the person trying to update them, fail.
-			$current = $this->getUser($id);
+			$current = self::getUser($id);
 			if ($current["level"] > $this->Level) {
 				return false;
 			}
@@ -3840,7 +3840,7 @@
 				$permissions = $this->Permissions;
 			// Not the logged in user? Look up the person.
 			} else {
-				$u = $this->getUser($user);
+				$u = self::getUser($user);
 				$level = $u["level"];
 				$permissions = $u["permissions"];
 			}
@@ -4627,7 +4627,7 @@
 		static function getResourceByFile($file) {
 			if (self::$IRLPrefixes === false) {
 				self::$IRLPrefixes = array();
-				$thumbnail_sizes = $this->getSetting("resource-thumbnail-sizes",true);
+				$thumbnail_sizes = self::getSetting("resource-thumbnail-sizes",true);
 				$thumbnail_sizes = json_decode($thumbnail_sizes["value"],true);
 				foreach ($thumbnail_sizes as $ts) {
 					self::$IRLPrefixes[] = $ts["prefix"];
@@ -4648,10 +4648,10 @@
 				}
 			}
 			$item["prefix"] = $last_prefix;
-			$item["file"] = self::replaceRelativeRoots($item["file"]);
+			$item["file"] = BigTreeCMS::replaceRelativeRoots($item["file"]);
 			$item["thumbs"] = json_decode($item["thumbs"],true);
 			foreach ($item["thumbs"] as &$thumb) {
-				$thumb = self::replaceRelativeRoots($thumb);
+				$thumb = BigTreeCMS::replaceRelativeRoots($thumb);
 			}
 			return $item;
 		}
@@ -5311,7 +5311,7 @@
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
-				$locked_by = $this->getUser($f["user"]);
+				$locked_by = self::getUser($f["user"]);
 				$last_accessed = $f["last_accessed"];
 				include BigTree::path($include);
 				if ($in_admin) {
@@ -6346,7 +6346,7 @@
 						"comment" => "A new revision has been made."
 					);
 				} else {
-					$user = $this->getUser($this->ID);
+					$user = self::getUser($this->ID);
 					$comments[] = array(
 						"user" => "BigTree",
 						"date" => date("F j, Y @ g:ia"),
