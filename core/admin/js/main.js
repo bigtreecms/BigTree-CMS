@@ -1354,8 +1354,8 @@ var BigTreeFileManager = (function($) {
 
 		var size_pane = $("#file_browser_size_pane").html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
 		// Add all available thumbnail sizes as buttons
-		for (var i = 0; i < this.AvailableThumbs.length; i++) {
-			var size = this.AvailableThumbs[i];
+		for (var i = 0; i < AvailableThumbs.length; i++) {
+			var size = AvailableThumbs[i];
 			var link = $('<a class="button">').attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html(size.name);
 			size_pane.append(link);
 		}
@@ -1369,6 +1369,8 @@ var BigTreeFileManager = (function($) {
 			closeFileBrowser();
 			return false;
 		});
+
+		return false;
 	};
 	
 	function closeFileBrowser() {
