@@ -1791,54 +1791,55 @@ var BigTreeFileManager = (function($) {
 
 }(jQuery));
 
-// !BigTreeFormNavBar
-var BigTreeFormNavBar = {
+var BigTreeFormNavBar = (function() {
 
-	container: false,
-	moreContainer: false,
+	var $Container = false;
+	var $MoreContainer = false;
+	var $Nav = false;
+	var $NextButton = false;
+	var $Sections = false;
+	var ContainerOffset = false;
 	
-	init: function() {
-		this.container = $(".container");
+	function init() {
+		$Container = $(".container");
+		ContainerOffset = $Container.offset().top;
+		$Nav = $Container.find("nav a");
+		$NextButton = $Container.find("footer .next");
+		$Sections = $Container.find("form > section");
 
 		// Generic tab controls
-		this.container.find("nav a").click(function() {		
-			var t = $(".container").offset().top;
-			if (window.scrollY > t) {
-				$('html, body').animate({
-					scrollTop: $(".container").offset().top
-				}, 200);
+		$Nav.click(function() {		
+			if (window.scrollY > ContainerOffset) {
+				$("html, body").animate({ scrollTop: ContainerOffset }, 200);
 			}
 			
 			var href = $(this).attr("href").substr(1);
-			BigTreeFormNavBar.container.find("form > section").hide();
-			BigTreeFormNavBar.container.find("nav a").removeClass("active");
+			$Sections.hide();
+			$Nav.removeClass("active");
 			$(this).addClass("active");
 			$("#" + href).show();
 			
 			// Manage the "Next" buttons
-			var nav = BigTreeFormNavBar.container.find("nav a");
-			var index = nav.index(this);
-			if (index == nav.length - 1) {
-				BigTreeFormNavBar.container.find("footer .next").hide();
+			var index = $Nav.index(this);
+			if (index == $Nav.length - 1) {
+				$NextButton.hide();
 			} else {
-				BigTreeFormNavBar.container.find("footer .next").show();				
+				$NextButton.show();				
 			}
 			
 			return false;
 		});
 
 		// Next Button controls
-		this.container.find("footer .next").click(function() {
-			nav = BigTreeFormNavBar.container.find("nav a");
+		$NextButton.click(function() {
+			var $tab = $Nav.filter(".active");
+			$tab.removeClass("active");
+			var $next = $tab.next("a").addClass("active");
 			
-			tab = BigTreeFormNavBar.container.find("nav a.active");
-			tab.removeClass("active");
-			next = tab.next("a").addClass("active");
+			$("#" + $next.attr("href").substr(1)).show();
+			$("#" + $tab.attr("href").substr(1)).hide();
 			
-			$("#" + next.attr("href").substr(1)).show();
-			$("#" + tab.attr("href").substr(1)).hide();
-			
-			if (nav.index(tab) == nav.length - 2) {
+			if ($Nav.index($tab) == $Nav.length - 2) {
 				$(this).hide();
 			}
 			
@@ -1846,49 +1847,45 @@ var BigTreeFormNavBar = {
 		});
 
 		// Form Validation
-		new BigTreeFormValidator(".container form",function(errors) {
+		new BigTreeFormValidator($Container.find("form"),function(errors) {
 			// Hide all the pages tab sections
-			BigTreeFormNavBar.container.find("form > section").hide();
+			$Sections.hide();
 			// Unset all the active states on tabs
-			BigTreeFormNavBar.container.find("nav a").removeClass("active");
+			$Nav.removeClass("active");
 			// Figure out what section the first error occurred in and show that section.
-			BigTreeFormNavBar.container.find("nav a[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+			$Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
 		});
 
 		// For when there are too many tabs, we need to setup scrolling
-		var calc_nav_container = this.container.find("nav .more div");
+		var calc_nav_container = $Container.find("nav .more div");
 		var nav_width = calc_nav_container.width();
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
-			BigTreeFormNavBar.moreContainer = calc_nav_container.parent();
+			$MoreContainer = calc_nav_container.parent();
 			
 			var page_count = 0;
 			var current_width = 0;
 			var current_page = $('<div class="nav_page active">');
-			$(".container nav a").each(function() {
+			$Nav.each(function() {
 				var width = $(this).width() + 47;
 				
 				if ((current_width + width) > 848) {
 					page_count++;
 					if (page_count > 1) {
-						lessButton = $('<a class="more_nav" href="#">');
-						lessButton.html("&laquo;");
-						lessButton.click(function() {
-							$(BigTreeFormNavBar.moreContainer).animate({ marginLeft: + (parseInt(BigTreeFormNavBar.moreContainer.css("margin-left")) + 928) + "px" }, 300);
+						var lessButton = $('<a class="more_nav" href="#">').html("&laquo;").click(function() {
+							$MoreContainer.animate({ marginLeft: + (parseInt($MoreContainer.css("margin-left")) + 928) + "px" }, 300);
 							return false;
 						});
 						current_page.prepend(lessButton);
 					}
 					
-					var moreButton = $('<a class="more_nav" href="#">');
-					moreButton.html("&raquo;");
-					moreButton.click(function() {
-						$(BigTreeFormNavBar.moreContainer).animate({ marginLeft: + (parseInt(BigTreeFormNavBar.moreContainer.css("margin-left")) - 928) + "px" }, 300);
+					var moreButton = $('<a class="more_nav" href="#">').html("&raquo;").click(function() {
+						$MoreContainer.animate({ marginLeft: + (parseInt($MoreContainer.css("margin-left")) - 928) + "px" }, 300);
 						return false;
 					});
 					current_page.append(moreButton);
 					
-					BigTreeFormNavBar.moreContainer.append(current_page);
+					$MoreContainer.append(current_page);
 					current_page = $('<div class="nav_page">');
 					current_width = 0;
 				}
@@ -1898,19 +1895,19 @@ var BigTreeFormNavBar = {
 			});
 			
 			
-			var lessButton = $('<a class="more_nav" href="#">');
-			lessButton.html("&laquo;");
-			lessButton.click(function() {
-				$(BigTreeFormNavBar.moreContainer).animate({ marginLeft: + (parseInt(BigTreeFormNavBar.moreContainer.css("margin-left")) + 928) + "px" }, 300);
+			var lessButton = $('<a class="more_nav" href="#">').html("&laquo;").click(function() {
+				$MoreContainer.animate({ marginLeft: + (parseInt($MoreContainer.css("margin-left")) + 928) + "px" }, 300);
 				return false;
 			});
 			current_page.prepend(lessButton);
 			
-			BigTreeFormNavBar.moreContainer.append(current_page);
+			$MoreContainer.append(current_page);
 			calc_nav_container.remove();
 		}
 	}
-}
+
+	return { init: init };
+}());
 
 // !BigTreeArrayOfItems
 var BigTreeArrayOfItems = Class.extend({
