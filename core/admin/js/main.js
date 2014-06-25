@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	BigTreeCustomControls();
-	BigTreePageLoadHooks();
+	BigTreePageLoadHooks.init();
 	//BigTreeQuickLoader.init();
 	
 	// !BigTree Quick Search
@@ -63,89 +63,82 @@ function BigTreeCustomControls(selector) {
 	});
 }
 
-function BigTreePageLoadHooks() {
-	// !BigTree Link Finder
-	$("#link_finder").keyup(function() {
-		var q = $(this).val();
-		if (q == "") {
-			$("#link_finder_results").hide().html("");
-		} else {
-			$("#link_finder_results").load("admin_root/ajax/link-finder/", { query: q }, function() {
-				$("#link_finder_results").show().children("a").click(function() { return false; });
-			});
-		}
-	});
-	
-	// !BigTree Sticky Controls
-	BigTree.stickyControls = $(".sticky_controls");
-	if (BigTree.stickyControls.length) {
-		BigTree.stickyControlsTop = BigTree.stickyControls.offset().top;
-		
-		if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
-			BigTree.stickyControlsStuck = true;
-			BigTree.stickyControls.addClass("stuck");
-		}
-		
-		$(window).scroll(function() {
-			if (window.scrollY >= BigTree.stickyControlsTop && !BigTree.stickyControlsStuck) {
-				BigTree.stickyControlsStuck = true;
-				BigTree.stickyControls.addClass("stuck");
-			}
-			if (window.scrollY < BigTree.stickyControlsTop && BigTree.stickyControlsStuck) {
-				BigTree.stickyControlsStuck = false;
-				BigTree.stickyControls.removeClass("stuck");
+var BigTreePageLoadHooks = (function($) {
+
+	var StickyControls = { $el: false, stuck: false, top: false };
+
+	function init() {
+
+		// !BigTree Link Finder
+		$("#link_finder").keyup(function() {
+			var q = $(this).val();
+			if (q == "") {
+				$("#link_finder_results").hide().html("");
+			} else {
+				$("#link_finder_results").load("admin_root/ajax/link-finder/", { query: q }, function() {
+					$("#link_finder_results").show().children("a").click(function() { return false; });
+				});
 			}
 		});
+		
+		// !BigTree Sticky Controls
+		StickyControls.$el = $(".sticky_controls");
+		if (StickyControls.$el.length) {
+			StickyControls.top = StickyControls.$el.offset().top;
+			
+			if (window.scrollY >= StickyControls.top && !StickyControls.stuck) {
+				StickyControls.stuck = true;
+				StickyControls.$el.addClass("stuck");
+			}
+			
+			$(window).scroll(function() {
+				if (window.scrollY >= StickyControls.top && !StickyControls.stuck) {
+					StickyControls.stuck = true;
+					StickyControls.$el.addClass("stuck");
+				}
+				if (window.scrollY < StickyControls.top && StickyControls.stuck) {
+					StickyControls.stuck = false;
+					StickyControls.$el.removeClass("stuck");
+				}
+			});
+		}
+	
+		// Property Block Hide/Show
+		$("h3.properties").click(function() {
+			if ($(this).find(".icon_small").hasClass("icon_small_caret_right")) {
+				// Set a cookie to keep it open next time.
+				$.cookie("bigtree_admin[page_properties_open]","on", { expires: 365, path: "/" });
+			} else {
+				$.cookie("bigtree_admin[page_properties_open]","", { path: "/" });
+			}
+			$(this).find(".icon_small").toggleClass("icon_small_caret_right").toggleClass("icon_small_caret_down");
+			$(".property_block").toggle().next().toggle();
+			return false;
+		});
+	
+		$(".inset_block .hide").click(function() {
+			var id = $(this).attr("data-id");
+			$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
+			$(this).parent().hide();
+		});
+		
+		// Tooltips
+		$(".has_tooltip").each(function() {
+			var width = BigTree.WindowWidth();
+			var offset = $(this).offset();
+			if (offset.left > (width / 2)) {
+				var position = "left";
+			} else {
+				var position = "right";
+			}
+			new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
+		});
+	
+		BigTree.FormHooks(".container form");
 	}
 
-	// Property Block Hide/Show
-	$("h3.properties").click(function() {
-		if ($(this).find(".icon_small").hasClass("icon_small_caret_right")) {
-			// Set a cookie to keep it open next time.
-			$.cookie("bigtree_admin[page_properties_open]","on", { expires: 365, path: "/" });
-		} else {
-			$.cookie("bigtree_admin[page_properties_open]","", { path: "/" });
-		}
-		$(this).find(".icon_small").toggleClass("icon_small_caret_right").toggleClass("icon_small_caret_down");
-		$(".property_block").toggle().next().toggle();
-		return false;
-	});
-
-	$(".inset_block .hide").click(function() {
-		var id = $(this).attr("data-id");
-		$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
-		$(this).parent().hide();
-	});
-	
-	// Tooltips
-	$(".has_tooltip").each(function() {
-		var width = BigTree.WindowWidth();
-		var offset = $(this).offset();
-		if (offset.left > (width / 2)) {
-			var position = "left";
-		} else {
-			var position = "right";
-		}
-		new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
-	});
-
-	// Image views
-	$(".image_list img").load(function() {
-		var w = $(this).width();
-		var h = $(this).height();
-		if (w > h) {
-			var perc = 108 / w;
-			h = perc * h;
-			var style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
-		} else {
-			var style = { margin: "0px" };
-		}
-		
-		$(this).css(style);
-	});
-
-	BigTree.FormHooks(".container form");
-}
+	return { init: init }
+}(jQuery));
 
 var BigTreePasswordInput = Class.extend({
 
