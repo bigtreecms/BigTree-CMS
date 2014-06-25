@@ -194,7 +194,7 @@ var BigTreePasswordInput = Class.extend({
 		// Copy class name over
 		this.FakeElement.get(0).className = $(element).get(0).className;
 
-		this.Element = $(element).addClass("custom_control");
+		this.Element = $(element).addClass("custom_control").removeClass("required");
 		this.Element.hide().after(this.FakeElement);
 
 		this.FakeElement.on("blur",$.proxy(this.blur,this))
