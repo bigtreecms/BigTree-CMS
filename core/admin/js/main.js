@@ -850,18 +850,122 @@ var BigTreeRadioButton = function(element) {
 	})(jQuery,element);
 };
 
-// !BigTree Photo Gallery Class
-var BigTreePhotoGallery = Class.extend({
+var BigTreePhotoGallery = function(settings) {
+	return (function($,settings) {
 
-	ActiveCaption: false,
-	Container: false,
-	Counter: false,
-	DisableCaptions: false,
-	Key: false,
-	FileInput: false,
+		var ActiveCaption = false;
+		var Container = false;
+		var Counter = 0;
+		var DisableCaptions = false;
+		var FileInput = false;
+		var Key = false;
+
+		function addPhoto() {
+			if (!FileInput.val()) {
+				return false;
+			}
+			if (!DisableCaptions) {
+				new BigTreeDialog({
+					title: "Image Caption",
+					content: '<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',
+					callback: saveNewFile,
+					icon: "caption"
+				});
+			} else {
+				saveNewFile({ caption: "" });
+			}
+			return false;
+		};
+		
+		function deletePhoto() {
+			new BigTreeDialog({
+				title: "Remove Photo",
+				content: '<p class="confirm">Are you sure you want to remove this photo?</p>',
+				icon: "delete",
+				alternateSaveText: "OK",
+				callback: $.proxy(function() { $(this).parents("li").remove(); },this)
+			});
+			
+			return false;
+		};
+		
+		function editPhoto(ev) {
+			var link = $(ev.target);
+			ActiveCaption = link.siblings(".caption");
 	
-	init: function(settings) {
-		var defaults = {
+			new BigTreeDialog({
+				title: "Image Caption",
+				content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(ActiveCaption.val()) + '"/></fieldset>',
+				callback: saveCaption,
+				icon: "caption"
+			});
+	
+			return false;
+		};
+
+		function openFileManager(ev) {
+			var target = $(ev.target);
+			// In case they click the span instead of the button.
+			if (!target.attr("href")) {
+				var field = target.parent().attr("href").substr(1);	
+				var options = $.parseJSON(target.parent().attr("data-options"));
+			} else {
+				var field = target.attr("href").substr(1);
+				var options = $.parseJSON(target.attr("data-options"));
+			}
+			BigTreeFileManager.formOpen("photo-gallery",field,options,useExistingFile);
+			return false;
+		};
+
+		function saveCaption(data) {
+			ActiveCaption.val(data.caption);
+			ActiveCaption = false;
+		};
+		
+		function saveNewFile(data) {
+			var li = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
+			if (!DisableCaptions) {
+				li.find("a").before('<a href="#" class="icon_edit"></a>');
+			}
+	
+			// Try to get an image preview but fallback to the old upload message
+			var img = FileInput.prev(".file_wrapper").find("img");
+			if (img.length) {
+				li.find("figure").append(img);
+			} else {
+				li.find("figure").append('<figcaption>Awaiting Upload</figcaption>');
+			}
+	
+			// Move the hidden input into an image box for upload
+			li.append(FileInput.hide());
+			li.append($('<input type="hidden" name="' + Key + '[' + Counter + '][caption]" class="caption" />').val(data.caption));
+			Container.find("ul").append(li);
+	
+			// Increment the photo counter
+			Counter++;
+			
+			// Create a new hidden file input for the next image to be uploaded
+			var new_file = $('<input type="file" class="custom_control" name="' + Key + '[' + Counter + '][image]">').hide();
+			Container.find(".file_wrapper").after(new_file);
+			
+			// Wipe existing custom control information, assign the new input to it
+			var customControl = FileInput.get(0).customControl;
+			customControl.Container.find(".data").html("");
+			new_file.get(0).customControl = customControl.connect(new_file.get(0));
+			FileInput.get(0).customControl = false;
+			FileInput = new_file;
+		};
+		
+		function useExistingFile(path,caption,thumbnail) {
+			var li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
+			li.append($('<input type="hidden" name="' + Key + '[' + Counter + '][existing]" />').val(path));
+			li.append($('<input type="hidden" name="' + Key + '[' + Counter + '][caption]" class="caption" />').val(caption));
+			Container.find("ul").append(li);
+			Counter++;
+		};
+
+		// Init routine
+		var Defaults = {
 			"container": "",
 			"key": "",
 			"counter": 0,
@@ -871,134 +975,32 @@ var BigTreePhotoGallery = Class.extend({
 		// BigTree 4.2 behavior should be to pass in a settings object
 		if (is_object(settings)) {
 			for (var i in settings) {
-				defaults[i] = settings[i];
+				Defaults[i] = settings[i];
 			}
 		// Allow for backwards copatibility with BigTree <= 4.1
 		} else {
-			defaults.container = arguments[0];
-			defaults.key = arguments[1];
-			defaults.counter = arguments[2];
-			defaults.disableCaptions = arguments[3];
+			Defaults.container = arguments[0];
+			Defaults.key = arguments[1];
+			Defaults.counter = arguments[2];
+			Defaults.disableCaptions = arguments[3];
 		}
 
-		this.Key = defaults.key;
-		this.Container = $("#" + defaults.container.replace("#",""));
-		this.Counter = defaults.counter;
-		this.DisableCaptions = defaults.disableCaptions;
-		this.FileInput = this.Container.find("footer input");
+		Key = Defaults.key;
+		Container = $("#" + Defaults.container.replace("#",""));
+		Counter = Defaults.counter;
+		DisableCaptions = Defaults.disableCaptions;
+		FileInput = Container.find("footer input");
 		
-		this.Container.on("click",".icon_delete",this.deletePhoto)
-					  .on("click",".icon_edit",$.proxy(this.editPhoto,this))
-					  .on("change","input[type=file]",$.proxy(this.addPhoto,this));
+		Container.on("click",".icon_delete",deletePhoto)
+				 .on("click",".icon_edit",editPhoto)
+				 .on("change","input[type=file]",addPhoto);
+		Container.find(".form_image_browser").click(openFileManager);
+		Container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 
-		this.Container.find(".form_image_browser").click($.proxy(this.openFileManager,this));
-		this.Container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
-	},
-	
-	addPhoto: function() {
-		if (!this.FileInput.val()) {
-			return false;
-		}
-		if (!this.DisableCaptions) {
-			new BigTreeDialog({
-				title: "Image Caption",
-				content: '<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',
-				callback: $.proxy(this.saveNewFile,this),
-				icon: "caption"
-			});
-		} else {
-			this.saveNewFile({ caption: "" });
-		}
-		return false;
-	},
-	
-	deletePhoto: function() {
-		new BigTreeDialog({
-			title: "Remove Photo",
-			content: '<p class="confirm">Are you sure you want to remove this photo?</p>',
-			icon: "delete",
-			alternateSaveText: "OK",
-			callback: $.proxy(function() { $(this).parents("li").remove(); },this)
-		});
-		
-		return false;
-	},
-	
-	editPhoto: function(ev) {
-		var link = $(ev.target);
-		this.ActiveCaption = link.siblings(".caption");
+		return { ActiveCaption: ActiveCaption, Container: Container, Counter: Counter, DisableCaptions: DisableCaptions, FileInput: FileInput, Key: Key, addPhoto: addPhoto, openFileManager: openFileManager, useExistingFile: useExistingFile };
 
-		new BigTreeDialog({
-			title: "Image Caption",
-			content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(this.ActiveCaption.val()) + '"/></fieldset>',
-			callback: $.proxy(this.saveCaption,this),
-			icon: "caption"
-		});
-
-		return false;
-	},
-	
-	saveCaption: function(data) {
-		this.ActiveCaption.val(data.caption);
-		this.ActiveCaption = false;
-	},
-	
-	saveNewFile: function(data) {
-		var li = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
-		if (!this.DisableCaptions) {
-			li.find("a").before('<a href="#" class="icon_edit"></a>');
-		}
-
-		// Try to get an image preview but fallback to the old upload message
-		var img = this.FileInput.prev(".file_wrapper").find("img");
-		if (img.length) {
-			li.find("figure").append(img);
-		} else {
-			li.find("figure").append('<figcaption>Awaiting Upload</figcaption>');
-		}
-
-		// Move the hidden input into an image box for upload
-		li.append(this.FileInput.hide());
-		li.append($('<input type="hidden" name="' + this.Key + '[' + this.Counter + '][caption]" class="caption" />').val(data.caption));
-		this.Container.find("ul").append(li);
-
-		// Increment the photo counter
-		this.Counter++;
-		
-		// Create a new hidden file input for the next image to be uploaded
-		var new_file = $('<input type="file" class="custom_control" name="' + this.Key + '[' + this.Counter + '][image]">').hide();
-		this.Container.find(".file_wrapper").after(new_file);
-		
-		// Wipe existing custom control information, assign the new input to it
-		var customControl = this.FileInput.get(0).customControl;
-		customControl.Container.find(".data").html("");
-		new_file.get(0).customControl = customControl.connect(new_file.get(0));
-		this.FileInput.get(0).customControl = false;
-		this.FileInput = new_file;
-	},
-	
-	openFileManager: function(ev) {
-		var target = $(ev.target);
-		// In case they click the span instead of the button.
-		if (!target.attr("href")) {
-			var field = target.parent().attr("href").substr(1);	
-			var options = $.parseJSON(target.parent().attr("data-options"));
-		} else {
-			var field = target.attr("href").substr(1);
-			var options = $.parseJSON(target.attr("data-options"));
-		}
-		BigTreeFileManager.formOpen("photo-gallery",field,options,$.proxy(this.useExistingFile,this));
-		return false;
-	},
-	
-	useExistingFile: function(path,caption,thumbnail) {
-		var li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
-		li.append($('<input type="hidden" name="' + this.Key + '[' + this.Counter + '][existing]" />').val(path));
-		li.append($('<input type="hidden" name="' + this.Key + '[' + this.Counter + '][caption]" class="caption" />').val(caption));
-		this.Container.find("ul").append(li);
-		this.Counter++;
-	}
-});
+	})(jQuery,settings);
+};
 
 // !BigTree Tag Adder Object
 var BigTreeTagAdder = (function($) {
