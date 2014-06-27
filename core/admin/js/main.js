@@ -1009,21 +1009,21 @@ var BigTreeTagAdder = (function($) {
 	var LastSearch = false;
 	var Searching = false;
 	var SelectedTag = -1;
-	var $TagEntry = false;
-	var $TagList = false;
-	var $TagResults = false;
+	var TagEntry = false;
+	var TagList = false;
+	var TagResults = false;
 	
 	function init() {
-		$TagEntry = $("#tag_entry").keydown(checkKeys).keyup(searchTags);
-		$TagList = $("#tag_list").on("click","a",deleteHook);
-		$TagResults = $("#tag_results");
+		TagEntry = $("#tag_entry").keydown(checkKeys).keyup(searchTags);
+		TagList = $("#tag_list").on("click","a",deleteHook);
+		TagResults = $("#tag_results");
 	};
 	
 	function checkKeys(ev) {
 		if (ev.keyCode == 13) {
 			if (SelectedTag > -1 && Dropdown) {
-				var v = $TagResults.find("li").eq(SelectedTag).find("a").html().replace("<span>","").replace("</span>","");
-				$TagEntry.val(v);
+				var v = TagResults.find("li").eq(SelectedTag).find("a").html().replace("<span>","").replace("</span>","");
+				TagEntry.val(v);
 			}
 			addTag(ev);
 			return false;
@@ -1042,7 +1042,7 @@ var BigTreeTagAdder = (function($) {
 		if (!Dropdown || SelectedTag < 0) {
 			return;
 		}
-		var li = $TagResults.find("li");
+		var li = TagResults.find("li");
 		li.eq(SelectedTag).removeClass("selected");
 		SelectedTag--;
 		if (SelectedTag > -1) {
@@ -1051,7 +1051,7 @@ var BigTreeTagAdder = (function($) {
 	};
 	
 	function moveDown(ev) {
-		var li = $TagResults.find("li");
+		var li = TagResults.find("li");
 		var max = li.length - 1;
 		if (!Dropdown || SelectedTag == max) {
 			return;
@@ -1064,26 +1064,26 @@ var BigTreeTagAdder = (function($) {
 	};
 	
 	function searchTags(ev) {
-		var tag = $TagEntry.val();
+		var tag = TagEntry.val();
 		if (tag != LastSearch) {
 			LastSearch = tag;
 			if (tag.length > 3) {
-				$TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, hookResults);
+				TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, hookResults);
 			} else {
-				$TagResults.hide();
+				TagResults.hide();
 			}
 		}
 	};
 	
 	function hookResults() {
 		SelectedTag = -1;
-		if ($TagResults.html()) {
-			$TagResults.show();
+		if (TagResults.html()) {
+			TagResults.show();
 			Dropdown = true;
-			$TagResults.find("li a").click(chooseTag);
+			TagResults.find("li a").click(chooseTag);
 		} else {
 			Dropdown = false;
-			$TagResults.hide();
+			TagResults.hide();
 		}
 	};
 	
@@ -1103,7 +1103,7 @@ var BigTreeTagAdder = (function($) {
 	};
 	
 	function addTag(ev) {
-		var tag = $TagEntry.val();
+		var tag = TagEntry.val();
 		if (tag) {
 			ActiveTagName = tag;
 			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
@@ -1111,9 +1111,9 @@ var BigTreeTagAdder = (function($) {
 	};
 	
 	function addedTag(id) {
-		$TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
-		$TagEntry.val("").focus();
-		$TagResults.hide();
+		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
+		TagEntry.val("").focus();
+		TagResults.hide();
 		Dropdown = false;
 	};
 
