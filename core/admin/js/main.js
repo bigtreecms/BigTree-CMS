@@ -140,42 +140,42 @@ var BigTreePageLoadHooks = (function($) {
 	return { init: init }
 }(jQuery));
 
-var BigTreePasswordInput = Class.extend({
+var BigTreePasswordInput = function(element) {
+	return (function($,element) {
+		var Buffer;
+		var Element = $(element);
+		var FakeElement;
 
-	Buffer: "",
-	Element: false,
-	FakeElement: false,
+		function blur() {
+			Buffer = FakeElement.val();
+			FakeElement.val(str_repeat("•",FakeElement.val().length));
+		}
 
-	init: function(element) {
-		this.FakeElement = $('<input type="text" />').attr("tabindex",$(element).attr("tabindex"));
-		// Copy class name over
-		this.FakeElement.get(0).className = $(element).get(0).className;
+		function change() {
+			Element.val(FakeElement.val());
+		}
 
-		this.Element = $(element).addClass("custom_control");
-		this.Element.hide().after(this.FakeElement);
+		function focus() {
+			FakeElement.val(Buffer);
+		}
 
-		this.FakeElement.on("blur",$.proxy(this.blur,this))
-						.on("focus",$.proxy(this.focus,this))
-						.on("change",$.proxy(this.change,this));
-	},
+		// Init routine
+		if (Element.hasClass("custom_control")) {
+			return false;
+		}
 
-	blur: function() {
-		this.Buffer = this.FakeElement.val();
-		this.FakeElement.val(str_repeat("•",this.FakeElement.val().length));
-	},
+		FakeElement = $('<input type="text" />').attr("tabindex",$(element).attr("tabindex"));
+		FakeElement.on("blur",blur).focus(focus).change(change);
+		FakeElement.get(0).className = Element.get(0).className;
+		Element.addClass("custom_control").hide().after(FakeElement);
 
-	change: function() {
-		this.Element.val(this.FakeElement.val());
-	},
+		return { Element: Element, FakeElement: FakeElement };
 
-	focus: function() {
-		this.FakeElement.val(this.Buffer);
-	}
-});
+	})(jQuery,element);
+};
 
-// !BigTreeCheckbox Class
-var BigTreeCheckbox = function(element,text) {
-	return (function(element,text) {
+var BigTreeCheckbox = function(element) {
+	return (function($,element) {
 		var Element = $(element);
 		var Link = false;
 
@@ -254,7 +254,7 @@ var BigTreeCheckbox = function(element,text) {
 
 		return { Element: Element, Link: Link, blur: blur, clear: clear, click: click, disable: disable, enable: enable, focus: focus };
 
-	})(element,text);
+	})(jQuery,element);
 };
 
 // !BigTreeSelect Class
