@@ -749,109 +749,106 @@ var BigTreeFileInput = function(element) {
 	})(jQuery,element);
 };
 
-// !BigTreeRadioButton Class
-var BigTreeRadioButton = Class.extend({
+var BigTreeRadioButton = function(element) {
+	return (function($,element) {
 
-	Element: false,
-	Link: false,
+		var Element = $(element);
+		var Link = false;
 
-	init: function(element,text) {
-		this.Element = $(element);
+		function focus() {
+			Link.addClass("focused");
+		};
 
-		if (this.Element.hasClass("custom_control")) {
+		function blur() {
+			Link.removeClass("focused");
+		};
+	
+		function keydown(ev) {
+			if (ev.keyCode == 32) {
+				click(ev);
+				return false;
+			}
+			if (ev.keyCode == 39 || ev.keyCode == 40) {
+				next(ev);
+				return false;
+			}
+			if (ev.keyCode == 37 || ev.keyCode == 38) {
+				previous(ev);
+				return false;
+			}
+		};
+
+		function clear(ev) {
+			$('input[name="' + Element.attr("name") + '"]').each(function() {
+				this.customControl.Link.removeClass("checked");
+				$(this).removeAttr("checked");
+				$(this).trigger("change");
+			});
+		};
+
+		function click(ev) {
+			if (Link.hasClass("checked")) {
+				// If it's already clicked, nothing happens for radio buttons.
+			} else {
+				Link.addClass("checked");
+				Element.attr("checked",true);
+				$('input[name="' + Element.attr("name") + '"]').not(Element).each(function() {
+					this.customControl.Link.removeClass("checked");
+					$(this).trigger("change");
+				});
+			}
+			Element.triggerHandler("click");
+			Element.triggerHandler("change");
+			return false;
+		};
+	
+		function next(ev) {
+			var all = $('input[name="' + Element.attr("name") + '"]');
+			var index = all.index(Element);
+			if (index != all.length - 1) {
+				all[index + 1].customControl.Link.focus();
+				all[index + 1].customControl.click(ev);
+			}
+		};
+		
+		function previous(ev) {
+			var all = $('input[name="' + Element.attr("name") + '"]');
+			var index = all.index(Element);
+			if (index != 0) {
+				all[index - 1].customControl.Link.focus();
+				all[index - 1].customControl.click(ev);
+			}
+		};
+
+		// Init routine
+		if (Element.hasClass("custom_control")) {
 			return false;
 		}
 		
 		// Have label clicks affect the checkbox but let links inside of the labels still work properly
-		this.Element.addClass("custom_control")
-					.next("label").click($.proxy(this.click,this))
-								  .find("a").click(function(ev) { ev.stopPropagation(); });
+		Element.addClass("custom_control")
+			   .next("label").click(click)
+			   .find("a").click(function(ev) { ev.stopPropagation(); });
 
-		this.Link = $("<a>").attr("href","#radio")
-							.click($.proxy(this.click,this))
-							.focus($.proxy(this.focus,this))
-							.blur($.proxy(this.blur,this))
-							.keydown($.proxy(this.keydown,this));
+		Link = $("<a>").attr("href","#radio").click(click).focus(focus).blur(blur).keydown(keydown);
 		
 		if (element.checked) {
-			this.Link.addClass("checked");
+			Link.addClass("checked");
 		}
 		
 		if (element.disabled) {
-			this.Link.addClass("disabled")
-					 .attr("tabindex","-1");
+			Link.addClass("disabled")
+				.attr("tabindex","-1");
 		} else if (element.tabIndex) {
-			this.Link.attr("tabindex",element.tabIndex);
+			Link.attr("tabindex",element.tabIndex);
 		}
 		
-		this.Element.hide().after($('<div class="radio_button">').append(this.Link));
-	},
-	
-	focus: function(ev) {
-		this.Link.addClass("focused");
-	},
-	
-	blur: function(ev) {
-		this.Link.removeClass("focused");
-	},
-	
-	keydown: function(ev) {
-		if (ev.keyCode == 32) {
-			this.click(ev);
-			return false;
-		}
-		if (ev.keyCode == 39 || ev.keyCode == 40) {
-			this.next(ev);
-			return false;
-		}
-		if (ev.keyCode == 37 || ev.keyCode == 38) {
-			this.previous(ev);
-			return false;
-		}
-	},
+		Element.hide().after($('<div class="radio_button">').append(Link));
 
-	clear: function(ev) {
-		$('input[name="' + this.Element.attr("name") + '"]').each(function() {
-			this.customControl.Link.removeClass("checked");
-			$(this).removeAttr("checked");
-			$(this).trigger("change");
-		});
-	},
+		return { Element: Element, Link: Link, blur: blur, click: click, clear: clear, focus: focus };
 
-	click: function(ev) {
-		if (this.Link.hasClass("checked")) {
-			// If it's already clicked, nothing happens for radio buttons.
-		} else {
-			this.Link.addClass("checked");
-			this.Element.attr("checked",true);
-			$('input[name="' + this.Element.attr("name") + '"]').not(this.Element).each(function() {
-				this.customControl.Link.removeClass("checked");
-				$(this).trigger("change");
-			});
-		}
-		this.Element.triggerHandler("click");
-		this.Element.triggerHandler("change");
-		return false;
-	},
-	
-	next: function(ev) {
-		var all = $('input[name="' + this.Element.attr("name") + '"]');
-		var index = all.index(this.Element);
-		if (index != all.length - 1) {
-			all[index + 1].customControl.Link.focus();
-			all[index + 1].customControl.click(ev);
-		}
-	},
-	
-	previous: function(ev) {
-		var all = $('input[name="' + this.Element.attr("name") + '"]');
-		var index = all.index(this.Element);
-		if (index != 0) {
-			all[index - 1].customControl.Link.focus();
-			all[index - 1].customControl.click(ev);
-		}
-	}
-});
+	})(jQuery,element);
+};
 
 // !BigTree Photo Gallery Class
 var BigTreePhotoGallery = Class.extend({
