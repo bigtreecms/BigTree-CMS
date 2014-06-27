@@ -368,9 +368,9 @@ var BigTreeSelect = function(element) {
 			Open = false;
 			Container.removeClass("open").find(".select_options").hide();
 			// Remove events for closing the dropdown
-			$("body").unbind("click",click);
-			$("#callout_resources").unbind("scroll",click);
-			Container.parents(".overflow").unbind("scroll",click);
+			$("body").unbind("click",close);
+			$("#callout_resources").unbind("scroll",close);
+			Container.parents(".overflow").unbind("scroll",close);
 			
 			// Reset relative position if applicable
 			if (WasRelative) {
