@@ -174,91 +174,88 @@ var BigTreePasswordInput = Class.extend({
 });
 
 // !BigTreeCheckbox Class
-var BigTreeCheckbox = Class.extend({
+var BigTreeCheckbox = function(element,text) {
+	return (function(element,text) {
+		var Element = $(element);
+		var Link = false;
 
-	Element: false,
-	Link: false,
+		function blur() {
+			Link.removeClass("focused");
+		};
 
-	init: function(element,text) {
-		this.Element = $(element);
+		function clear() {
+			Element.removeAttr("checked");
+			Link.removeClass("checked");
+		};
 
-		if (this.Element.hasClass("custom_control")) {
+		function click() {
+			if (!Element.attr("disabled")) {
+				if (Link.hasClass("checked")) {
+					Link.removeClass("checked");
+					Element.attr("checked",false);
+				} else {
+					Link.addClass("checked");
+					Element.attr("checked","checked");
+				}
+				Element.triggerHandler("click");
+				Element.triggerHandler("change");
+			}
+			return false;
+		};
+	
+		function disable() {
+			Link.addClass("disabled");
+			Element.attr("disabled","disabled");
+		};
+		
+		function enable() {
+			Link.removeClass("disabled");
+			Element.removeAttr("disabled");
+		};
+
+		function focus() {
+			if (!Element.attr("disabled")) {
+				Link.addClass("focused");
+			}
+		};
+		
+		function keydown(event) {
+			if (event.keyCode == 32) {
+				click();
+				return false;
+			}
+		};
+
+		// Init routine
+		if (Element.hasClass("custom_control")) {
 			return false;
 		}
-		
+
 		// Have label clicks affect the checkbox but let links inside of the labels still work properly
-		this.Element.addClass("custom_control")
-					.next("label").click($.proxy(this.click,this))
-								  .find("a").click(function(ev) { ev.stopPropagation(); });
+		Element.addClass("custom_control")
+			   .next("label").click(click)
+			   .find("a").click(function(ev) { ev.stopPropagation(); });
 		
 		// Create our clickable fake checkbox
-		this.Link = $("<a>").attr("href","#checkbox")
-						.click($.proxy(this.click,this))
-						.focus($.proxy(this.focus,this))
-						.blur($.proxy(this.blur,this))
-						.keydown($.proxy(this.keydown,this));
+		Link = $("<a>").attr("href","#checkbox").click(click).focus(focus).blur(blur).keydown(keydown);
 
 		if (element.checked) {
-			this.Link.addClass("checked");
+			Link.addClass("checked");
 		}
 		
 		if (element.disabled) {
-			this.Link.addClass("disabled")
-					 .attr("tabindex","-1");
+			Link.addClass("disabled")
+				.attr("tabindex","-1");
 		} else if (element.tabIndex) {
-			this.Link.attr("tabindex",element.tabIndex);
+			Link.attr("tabindex",element.tabIndex);
 		}
 		
-		$(element).hide().after($('<div class="checkbox">').append(this.Link));
-	},
+		$(element).hide().after($('<div class="checkbox">').append(Link));
 
-	clear: function() {
-		this.Element.removeAttr("checked");
-		this.Link.removeClass("checked");
-	},
-	
-	focus: function() {
-		if (!this.Element.attr("disabled")) {
-			this.Link.addClass("focused");
-		}
-	},
-	
-	blur: function() {
-		this.Link.removeClass("focused");
-	},
-	
-	keydown: function(event) {
-		if (event.keyCode == 32) {
-			$.proxy(this.click,this)();
-			return false;
-		}
-	},
+		return { Element: Element, Link: Link, blur: blur, clear: clear, click: click, disable: disable, enable: enable, focus: focus };
 
-	click: function() {
-		if (!this.Element.attr("disabled")) {
-			if (this.Link.hasClass("checked")) {
-				this.Link.removeClass("checked");
-				this.Element.attr("checked",false);
-			} else {
-				this.Link.addClass("checked");
-				this.Element.attr("checked","checked");
-			}
-			this.Element.triggerHandler("click");
-			this.Element.triggerHandler("change");
-		}
-		return false;
-	},
-
-	disable: function() {
-		this.Link.addClass("disabled");
-		this.Element.attr("disabled","disabled");
-	},
-	
-	enable: function() {
-		this.Link.removeClass("disabled");
-		this.Element.removeAttr("disabled");
-	}
-});
+	})(element,text);
+};
 
 // !BigTreeSelect Class
 var BigTreeSelect = Class.extend({
