@@ -673,82 +673,81 @@ var BigTreeSelect = function(element) {
 	})(jQuery,element);
 };
 
-// !BigTreeFileInput Class
-var BigTreeFileInput = Class.extend({
-	
-	Container: false,
-	Element: false,
-	
-	init: function(element) {
-		this.Element = $(element);
-		if (this.Element.hasClass("custom_control")) {
-			return false;
-		}
-		this.Element.addClass("custom_control").hide().on("change",$.proxy(this.checkUploads,this));
-		
-		this.Container = $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
-		this.Element.before(this.Container);
-		this.Container.click($.proxy(function() { this.Element.click(); },this));
-	},
+var BigTreeFileInput = function(element) {
+	return (function($,element) {
 
-	checkUploads: function() {
-		// Max file size
-		var max_size = parseInt($("#bigtree_max_file_size").val());
+		var Container =  $("<div>").addClass("file_wrapper").html('<span class="handle">Upload</span><span class="data"></span>');
+		var Element = $(element);
 
-		// No content or early browser fallback? Just draw the input's value
-		if (!this.Element.get(0).files.length) {
-			this.Container.find(".data").html('<span class="name wider">' + this.Element.get(0).value + '</span>');
-		} else {
-			// If this input allows for multiple uploads we're not going to handle it directly, watch its change event yourself
-			if (this.Element.attr("multiple") && this.Element.get(0).files.length > 1) {
-				this.Container.find(".data").html('<span class="name">' + this.Element.get(0).files.length + ' Files</span>');
-			// Single upload? Show the thumbnail and file name / size
+		function checkUploads() {
+			// Max file size
+			var max_size = parseInt($("#bigtree_max_file_size").val());
+	
+			// No content or early browser fallback? Just draw the input's value
+			if (!Element.get(0).files.length) {
+				Container.find(".data").html('<span class="name wider">' + Element.get(0).value + '	</span>');
 			} else {
-				// Get file reference
-				var file = this.Element.get(0).files[0];
-
-				// See if the file is too big
-				if (max_size && max_size < file.size) {
-					// Clear it out
-					this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name error wider">File Too Large (Max ' + this.formatBytes(max_size) + ')</span>');
-					this.Element.val("");
-				// File size is ok
+				// If this input allows for multiple uploads we're not going to handle it directly, watch its change event yourself
+				if (Element.attr("multiple") && Element.get(0).files.length > 1) {
+					Container.find(".data").html('<span class="name">' + Element.get(0).files.length + ' Files</span>');
+				// Single upload? Show the thumbnail and file name / size
 				} else {
-					this.Container.find(".data").html('<span class="size">' + this.formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
-					// If this is an image, draw a thumbnail
-					if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
-						var img = document.createElement("img");
-						img.file = file;
-						this.Container.find(".data").prepend(img);
-						var reader = new FileReader();
-						reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-						reader.readAsDataURL(file);
-					// Not an image? Give more room for the file name
+					// Get file reference
+					var file = Element.get(0).files[0];
+	
+					// See if the file is too big
+					if (max_size && max_size < file.size) {
+						// Clear it out
+						Container.find(".data").html('<span class="size">' + formatBytes(file.size) + '</span><span class="name error wider">File Too Large (Max ' + formatBytes(max_size) + ')</span>');
+						Element.val("");
+					// File size is ok
 					} else {
-						this.Container.find(".name").addClass("wider");
+						Container.find(".data").html('<span class="size">' + formatBytes(file.size) + '</span><span class="name">' + file.name + '</span>');
+						// If this is an image, draw a thumbnail
+						if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
+							var img = document.createElement("img");
+							img.file = file;
+							Container.find(".data").prepend(img);
+							var reader = new FileReader();
+							reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+							reader.readAsDataURL(file);
+						// Not an image? Give more room for the file name
+						} else {
+							Container.find(".name").addClass("wider");
+						}
 					}
 				}
 			}
+		};
+
+		function clear() {
+			Element.val("");
+			checkUploads();
+		};
+	
+		function connect(el) {
+			Element = $(el).on("change",checkUploads);
+			return { Container: Container, Element: Element, clear: clear, connect: connect };
+		};
+	
+		// Courtesy of Aliceljm on StackOverflow
+		function formatBytes(bytes) {
+			var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+			var i = Math.floor(Math.log(bytes) / Math.log(1000));
+			return (bytes / Math.pow(1000, i)).toPrecision(3) + sizes[i];
+		};	
+
+		// Init routine
+		if (Element.hasClass("custom_control")) {
+			return false;
 		}
-	},
+		Container.find(".handle").click(function() { Element.click(); });
+		Element.addClass("custom_control").hide().on("change",checkUploads).before(Container);
+		
+		return { Container: Container, Element: Element, clear: clear, connect: connect };
 
-	clear: function() {
-		this.Element.val("");
-		this.checkUploads();
-	},
-
-	connect: function(el) {
-		this.Element = $(el).on("change",$.proxy(this.checkUploads,this));
-		return this;
-	},
-
-	// Courtesy of Aliceljm on StackOverflow
-	formatBytes: function(bytes) {
-		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-		var i = Math.floor(Math.log(bytes) / Math.log(1000));
-		return (bytes / Math.pow(1000, i)).toPrecision(3) + sizes[i];
-	}	
-});
+	})(jQuery,element);
+};
 
 // !BigTreeRadioButton Class
 var BigTreeRadioButton = Class.extend({
