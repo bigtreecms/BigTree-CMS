@@ -142,6 +142,7 @@ var BigTreePageLoadHooks = (function($) {
 
 var BigTreePasswordInput = function(element) {
 	return (function($,element) {
+
 		var Buffer;
 		var Element = $(element);
 		var FakeElement;
@@ -176,6 +177,7 @@ var BigTreePasswordInput = function(element) {
 
 var BigTreeCheckbox = function(element) {
 	return (function($,element) {
+
 		var Element = $(element);
 		var Link = false;
 
@@ -257,33 +259,295 @@ var BigTreeCheckbox = function(element) {
 	})(jQuery,element);
 };
 
-// !BigTreeSelect Class
-var BigTreeSelect = Class.extend({
+var BigTreeSelect = function(element) {
+	return (function($,element) {
 
-	BoundWindowClick: false,
-	BoundOverflowScroll: false,
-	Container: false,
-	Element: false,
-	Open: false,
-	Options: [],
-	WasRelative: false,
+		var Container = $("<div>").addClass("select");
+		var Element = $(element);
+		var Open = false;
+		var Options = [];
+		var WasRelative = false;
+
+		function add(value,text) {
+			// Add to the actual select.
+			Element.get(0).options[Element.get(0).options.length] = new Option(text,value);
+			// Add to the styled select.
+			var a = $('<a href="#">' + text + '</a>').attr("data-value",value);
+			Container.find(".select_options").append(a);
 	
-	init: function(element) {
-		this.Element = $(element);
+			// Test the size of this new element and see if we need to increase the width.
+			var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
+			$("body").append(tester);
+			tester.html(text);
+			var width = tester.width();
+			
+			var span = Container.find("span");
+	
+			// If we're in a section cell we may need to be smaller.
+			if (Element.parent().get(0).tagName.toLowerCase() == "section") {
+				var sectionwidth = Element.parent().width();
+				if (sectionwidth < (width + 56)) {
+					width = sectionwidth - 80;
+					span.css({ overflow: "hidden", padding: "0 0 0 10px" });
+				}
+			}
+	
+			if (width > span.width()) {
+				span.css({ width: (width + 10) + "px" });
+				Container.find(".select_options").css({ width: (width + 64) + "px" });
+			}
+	
+			tester.remove();
+		};
 		
-		if (this.Element.hasClass("custom_control")) {
+		function blur() {
+			Container.removeClass("focused");
+		};
+	
+		function click() {
+			if (Container.hasClass("disabled")) {
+				return false;
+			}
+	
+			if (!Open) {
+				// Tooltips and menus sometimes show over the dropdown when using TinyMCE 4
+				try {
+					tinyMCE.ui.FloatPanel.hideAll();
+				} catch (err) {}
+			
+				$("select").not(Element).trigger("closeNow");
+				Element.focus();
+				
+				// Check if we're in a sortable row and disable it's relative position if so.
+				var li = Element.parent("li");
+				if (li.length) {
+					if (li.css("position") == "relative") {
+						li.css("position","");
+						WasRelative = true;
+					}
+				}
+				
+				var select_options = Container.find(".select_options").show();
+				Open = true;
+				Container.addClass("open");
+				$("body").click(close);
+				
+				// Find out if we're in a dialog and have an overflow
+				var overflow = Container.parents(".overflow");
+				if (overflow.length) {
+					if (Container.parents("#callout_resources").length) {
+						// WebKit needs fixin.
+						if ($.browser.webkit) {
+							select_options.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
+						}
+						// When someone scrolls the overflow, close the select or the dropdown will detach.
+						setTimeout(function() { $("#callout_resources").scroll(close); },500);
+					} else {
+						// WebKit needs fixin.
+						if ($.browser.webkit) {
+							select_options.css("marginTop",-1 * overflow.scrollTop() + "px");
+						}
+						// When someone scrolls the overflow, close the select or the dropdown will detach.
+						setTimeout(function() { overflow.scroll(close); },500);
+					}		
+				} else {
+					// If the select drops below the visible area, scroll down a bit.
+					var toScroll = (select_options.offset().top + select_options.height()) - window.scrollY - $(window).height();
+					if (toScroll > 0) {
+						$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
+					}
+				}
+			} else {
+				close();
+			}
+	
+			return false;
+		};
+
+		function close() {
+			Open = false;
+			Container.removeClass("open").find(".select_options").hide();
+			// Remove events for closing the dropdown
+			$("body").unbind("click",click);
+			$("#callout_resources").unbind("scroll",click);
+			Container.parents(".overflow").unbind("scroll",click);
+			
+			// Reset relative position if applicable
+			if (WasRelative) {
+				Element.parent("li").css("position", "relative");
+				WasRelative = false;
+			}
+			
+			return false;
+		};
+	
+		function disable() {
+			Element.attr("disabled","disabled");
+			Container.addClass("disabled");
+		};
+	
+		function enable() {
+			Element.removeAttr("disabled");
+			Container.removeClass("disabled");
+		};
+	
+		function focus() {
+			Container.addClass("focused");
+		};
+		
+		function keydown(ev) {
+			// If a modifier has been pressed, ignore this.
+			if (ev.ctrlKey || ev.altKey || ev.metaKey) {
+				return true;
+			}
+	
+			if (ev.keyCode == 13 && Open) {
+				close();
+				return false;
+			}
+	
+			// The original select element that's hidden off screen.
+			var el = Element.get(0);
+			
+			// Get the original index and save it so we know when it changes.
+			var index = el.selectedIndex;
+			var originalIndex = index;
+			
+			// Up or left arrow pressed
+			if (ev.keyCode == 38 || ev.keyCode == 37) {
+				index--;
+				if (index < 0) {
+					index = 0;
+				}
+			// Down or right arrow pressed
+			} else if (ev.keyCode == 40 || ev.keyCode == 39) {
+				index++;
+				if (index == el.options.length) {
+					index--;
+				}
+			// A letter key was pressed
+			} else if (ev.keyCode > 64 && ev.keyCode < 91) {
+				var spot = ev.keyCode - 65;
+				var letters = "abcdefghijklmnopqrstuvwxyz";
+				var letter = letters[spot];
+				
+				// Go through all the options in the select to see if any of them start with the letter that was pressed.
+				for (var i = index + 1; i < el.options.length; i++) {
+					var text = el.options[i].text;
+					if (text) {
+						var first_letter = text[0].toLowerCase();
+						if (first_letter == letter) {
+							index = i;
+							break;
+						}
+					}
+				}
+				
+				// If we were already on that letter, find the next one with that same letter.
+				if (index == originalIndex) {
+					for (var i = 0; i < originalIndex; i++) {
+						var text = el.options[i].text;
+						if (text) {
+							var first_letter = text[0].toLowerCase();
+							if (first_letter == letter) {
+								index = i;
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			// We found a new element, fire an event saying the select changed and update the description in the styled dropdown.
+			if (index != originalIndex) {
+				// Update the new selected option
+				var select_options_container = Container.find(".select_options");
+				var ops = select_options_container.find("a");
+				ops.eq(originalIndex).removeClass("active");
+				ops.eq(index).addClass("active");
+	
+				// Find out if we can see this option
+				var selected_y = (index + 1) * 25;
+				if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
+					select_options_container.animate({ scrollTop: selected_y - select_options_container.height() + "px" }, 250);
+				} else if (selected_y <= select_options_container.scrollTop()) {
+					select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
+				}
+		
+				// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
+				if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
+				} else {
+					el.selectedIndex = index;
+				}
+	
+				Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
+				Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
+				
+				return false;
+			}
+			
+			// Stop the event if it's not a tab.
+			if (ev.keyCode != 9) {
+				return false;
+			}
+		};
+	
+		function remove(value) {
+			// Remove it from the actual select.
+			var ops = Element.find("option");
+			for (var i = 0; i < ops.length; i++) {
+				if (ops.eq(i).val() == value) {
+					ops.eq(i).remove();
+				}
+			}
+			// Remove it from the styled one.
+			var as = Container.find(".select_options a");
+			for (var i = 0; i < as.length; i++) {
+				if (as.eq(i).attr("data-value") == value) {
+					var text_was = as.eq(i).html();
+					as.eq(i).remove();
+				}
+			}
+			// If the current selected state is the value we're removing, switch to the first available.
+			var sel = Container.find("span").eq(0);
+			var select_options = Container.find(".select_options a");
+			if (select_options.length > 0) {
+				if (sel.html() == '<figure class="handle"></figure>' + text_was) {
+					sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
+				}
+			} else {
+				sel.html('<figure class="handle"></figure>');
+			}
+		};
+		
+		function select(event) {
+			var el = $(event.target);
+			// Set the <select> to the new value
+			Element.val(el.attr("data-value"));
+			// Update the selected state of the custom dropdown
+			Container.find("span").html('<figure class="handle"></figure>' + el.html());
+			Container.find("a").removeClass("active");
+			el.addClass("active");
+			// Close the dropdown
+			close();
+			// Tell the <select> it has changed.
+			Element.trigger("change", { value: el.attr("data-value"), text: el.innerHTML });
+			return false;
+		};
+
+		// Init routine
+		if (Element.hasClass("custom_control")) {
 			return false;
 		}
-		this.Element.addClass("custom_control");
+		Element.addClass("custom_control");
 		
 		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
 		if ($.browser.webkit) {
-			$(element).css({ position: "relative", left: "-1000000px", float: "left", width: "1px", marginRight: "-1px" });
+			Element.css({ position: "relative", left: "-1000000px", float: "left", width: "1px", marginRight: "-1px" });
 		} else {
-			$(element).css({ position: "absolute", left: "-1000000px" });
+			Element.css({ position: "absolute", left: "-1000000px" });
 		}
 
-		var div = $("<div>").addClass("select");
 		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
 		var maxwidth = 0;
@@ -293,7 +557,7 @@ var BigTreeSelect = Class.extend({
 		var selected_option = "";
 		
 		// Need to find all children since we have to account for options in and out of optgroups
-		var first_level = $(element).children();
+		var first_level = Element.children();
 		var y = 0;
 		for (var i = 0; i < first_level.length; i++) {
 			var el = first_level.get(i);
@@ -371,321 +635,43 @@ var BigTreeSelect = Class.extend({
 			}
 		}
 		
-		div.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
+		Container.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
 
 		var spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
-		if ($(element).parent().get(0).tagName.toLowerCase() == "section") {
+		if (Element.parent().get(0).tagName.toLowerCase() == "section") {
 			var sectionwidth = $(element).parent().width();
 			if (sectionwidth < (maxwidth + 56)) {
 				spanwidth = sectionwidth - 80;
-				div.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
+				Container.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
 			}
 		}
 		
-		div.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click($.proxy(this.click,this));
-		div.find(".select_options").css({ width: (maxwidth + 64) + "px" });
-		div.on("click","a",$.proxy(this.select,this));
-		div.find(".handle").click($.proxy(this.click,this));
+		Container.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click(click);
+		Container.find(".select_options").css({ width: (maxwidth + 64) + "px" });
+		Container.on("click","a",select);
+		Container.find(".handle").click(click);
 		
 		// Add it to the DOM
-		$(element).after(div);		
-		this.Container = div;
+		Element.after(Container);		
 
 		// See if this select is disabled
-		if (this.Element.attr("disabled")) {
-			this.Container.addClass("disabled");
+		if (Element.attr("disabled")) {
+			Container.addClass("disabled");
 		}
 		
 		// Observe focus, blur, and keydown on the hidden element.
-		this.Element.focus($.proxy(this.focus,this));
-		this.Element.blur($.proxy(this.blur,this));
-		this.Element.keydown($.proxy(this.keydown,this));
+		Element.focus(focus).blur(blur).keydown(keydown);
 		// Custom event to force open lists closed when another select opens.
-		this.Element.on("closeNow",$.proxy(this.close,this));
+		Element.on("closeNow",close);
 
 		// Cleanup
 		tester.remove();
-	},
 
-	add: function(value,text) {
-		// Add to the actual select.
-		this.Element[0].options[this.Element[0].options.length] = new Option(text,value);
-		// Add to the styled select.
-		var a = $('<a href="#">' + text + '</a>').attr("data-value",value);
-		this.Container.find(".select_options").append(a);
+		return { Container: Container, Element: Element, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove };
 
-		// Test the size of this new element and see if we need to increase the width.
-		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
-		$("body").append(tester);
-		tester.html(text);
-		var width = tester.width();
-		
-		var span = this.Container.find("span");
-
-		// If we're in a section cell we may need to be smaller.
-		if (this.Element.parent().get(0).tagName.toLowerCase() == "section") {
-			var sectionwidth = this.Element.parent().width();
-			if (sectionwidth < (width + 56)) {
-				width = sectionwidth - 80;
-				span.css({ overflow: "hidden", padding: "0 0 0 10px" });
-			}
-		}
-
-		if (width > span.width()) {
-			span.css({ width: (width + 10) + "px" });
-			this.Container.find(".select_options").css({ width: (width + 64) + "px" });
-		}
-
-		tester.remove();
-	},
-	
-	blur: function() {
-		this.Container.removeClass("focused");
-	},
-
-	click: function() {
-		if (this.Container.hasClass("disabled")) {
-			return false;
-		}
-
-		if (!this.Open) {
-			// Tooltips and menus sometimes show over the dropdown when using TinyMCE 4
-			try {
-				tinyMCE.ui.FloatPanel.hideAll();
-			} catch (err) {}
-		
-			$("select").not(this.Element).trigger("closeNow");
-			this.Element.focus();
-			
-			// Check if we're in a sortable row and disable it's relative position if so.
-			var li = this.Element.parent("li");
-			if (li.length) {
-				if (li.css("position") == "relative") {
-					li.css("position","");
-					this.WasRelative = true;
-				}
-			}
-			
-			var selectOptions = this.Container.find(".select_options").show();
-			this.Open = true;
-			this.Container.addClass("open");
-			this.BoundWindowClick = $.proxy(this.close,this);
-			$("body").click(this.BoundWindowClick);
-			
-			// Find out if we're in a dialog and have an overflow
-			var overflow = this.Container.parents(".overflow");
-			if (overflow.length) {
-				if (this.Container.parents("#callout_resources").length) {
-					// WebKit needs fixin.
-					if ($.browser.webkit) {
-						selectOptions.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
-					}
-					// When someone scrolls the overflow, close the select or the dropdown will detach.
-					this.BoundCalloutResourcesScroll = $.proxy(this.close,this);
-					setTimeout($.proxy(function() { $("#callout_resources").scroll(this.BoundCalloutResourcesScroll); },this),500);
-				} else {
-					// WebKit needs fixin.
-					if ($.browser.webkit) {
-						selectOptions.css("marginTop",-1 * overflow.scrollTop() + "px");
-					}
-					// When someone scrolls the overflow, close the select or the dropdown will detach.
-					this.BoundOverflowScroll = $.proxy(this.close,this);
-					setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
-				}		
-			} else {
-				// If the select drops below the visible area, scroll down a bit.
-				var toScroll = (selectOptions.offset().top + selectOptions.height()) - window.scrollY - $(window).height();
-				if (toScroll > 0) {
-					$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
-				}
-			}
-		} else {
-			this.close();
-		}
-
-		return false;
-	},
-	
-	close: function() {
-		this.Open = false;
-		this.Container.removeClass("open");
-		this.Container.find(".select_options").hide();
-		$("body").unbind("click",this.BoundWindowClick);
-		
-		if (this.BoundOverflowScroll) {
-			this.Container.parents(".overflow").unbind("scroll",this.BoundOverflowScroll);
-			this.BoundOverflowScroll = false;
-		}
-
-		if (this.BoundCalloutResourcesScroll) {
-			$("#callout_resources").unbind("scroll",this.BoundCalloutResourcesScroll);
-			this.BoundCalloutResourcesScroll = false;			
-		}
-		
-		// Reset relative position if applicable
-		if (this.WasRelative) {
-			this.Element.parent("li").css("position", "relative");
-			this.WasRelative = false;
-		}
-		
-		return false;
-	},
-
-	disable: function() {
-		this.Element.attr("disabled","disabled");
-		this.Container.addClass("disabled");
-	},
-
-	enable: function() {
-		this.Element.removeAttr("disabled");
-		this.Container.removeClass("disabled");
-	},
-
-	focus: function() {
-		this.Container.addClass("focused");
-	},	
-	
-	keydown: function(ev) {
-		// If a modifier has been pressed, ignore this.
-		if (ev.ctrlKey || ev.altKey || ev.metaKey) {
-			return true;
-		}
-
-		if (ev.keyCode == 13 && this.Open) {
-			this.close();
-			return false;
-		}
-
-		// The original select element that's hidden off screen.
-		var el = this.Element.get(0);
-		
-		// Get the original index and save it so we know when it changes.
-		var index = el.selectedIndex;
-		var originalIndex = index;
-		
-		// Up or left arrow pressed
-		if (ev.keyCode == 38 || ev.keyCode == 37) {
-			index--;
-			if (index < 0) {
-				index = 0;
-			}
-		// Down or right arrow pressed
-		} else if (ev.keyCode == 40 || ev.keyCode == 39) {
-			index++;
-			if (index == el.options.length) {
-				index--;
-			}
-		// A letter key was pressed
-		} else if (ev.keyCode > 64 && ev.keyCode < 91) {
-			var spot = ev.keyCode - 65;
-			var letters = "abcdefghijklmnopqrstuvwxyz";
-			var letter = letters[spot];
-			
-			// Go through all the options in the select to see if any of them start with the letter that was pressed.
-			for (var i = index + 1; i < el.options.length; i++) {
-				var text = el.options[i].text;
-				if (text) {
-					var first_letter = text[0].toLowerCase();
-					if (first_letter == letter) {
-						index = i;
-						break;
-					}
-				}
-			}
-			
-			// If we were already on that letter, find the next one with that same letter.
-			if (index == originalIndex) {
-				for (var i = 0; i < originalIndex; i++) {
-					var text = el.options[i].text;
-					if (text) {
-						var first_letter = text[0].toLowerCase();
-						if (first_letter == letter) {
-							index = i;
-							break;
-						}
-					}
-				}
-			}
-		}
-		
-		// We found a new element, fire an event saying the select changed and update the description in the styled dropdown.
-		if (index != originalIndex) {
-			// Update the new selected option
-			var select_options_container = this.Container.find(".select_options");
-			var ops = select_options_container.find("a");
-			ops.eq(originalIndex).removeClass("active");
-			ops.eq(index).addClass("active");
-
-			// Find out if we can see this option
-			var selected_y = (index + 1) * 25;
-			if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
-				select_options_container.animate({ scrollTop: selected_y - select_options_container.height() + "px" }, 250);
-			} else if (selected_y <= select_options_container.scrollTop()) {
-				select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
-			}
-	
-			// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
-			if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
-			} else {
-				el.selectedIndex = index;
-			}
-
-			this.Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
-			this.Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
-			
-			return false;
-		}
-		
-		// Stop the event if it's not a tab.
-		if (ev.keyCode != 9) {
-			return false;
-		}
-	},
-
-	remove: function(value) {
-		// Remove it from the actual select.
-		var ops = this.Element.find("option");
-		for (var i = 0; i < ops.length; i++) {
-			if (ops.eq(i).val() == value) {
-				ops.eq(i).remove();
-			}
-		}
-		// Remove it from the styled one.
-		var as = this.Container.find(".select_options a");
-		for (var i = 0; i < as.length; i++) {
-			if (as.eq(i).attr("data-value") == value) {
-				var text_was = as.eq(i).html();
-				as.eq(i).remove();
-			}
-		}
-		// If the current selected state is the value we're removing, switch to the first available.
-		var sel = this.Container.find("span").eq(0);
-		var select_options = this.Container.find(".select_options a");
-		if (select_options.length > 0) {
-			if (sel.html() == '<figure class="handle"></figure>' + text_was) {
-				sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
-			}
-		} else {
-			sel.html('<figure class="handle"></figure>');
-		}
-	},
-	
-	select: function(event) {
-		var el = $(event.target);
-		// Set the <select> to the new value
-		this.Element.val(el.attr("data-value"));
-		// Update the selected state of the custom dropdown
-		this.Container.find("span").html('<figure class="handle"></figure>' + el.html());
-		this.Container.find("a").removeClass("active");
-		el.addClass("active");
-		// Close the dropdown
-		this.close();
-		// Tell the <select> it has changed.
-		this.Element.trigger("change", { value: el.attr("data-value"), text: el.innerHTML });
-		return false;
-	}
-});
+	})(jQuery,element);
+};
 
 // !BigTreeFileInput Class
 var BigTreeFileInput = Class.extend({
