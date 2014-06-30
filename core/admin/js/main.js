@@ -1892,316 +1892,105 @@ var BigTreeFormNavBar = (function() {
 	return { init: init };
 }());
 
-// !BigTreeArrayOfItems
-var BigTreeArrayOfItems = Class.extend({
-	count: 0,
-	field: false,
-	key: false,
-	options: false,
-	activeField: false,
-	
-	init: function(id,count,key,options) {
-		this.count = count;
-		this.options = options;
-		this.key = key;
-		this.field = $("#" + id);
-		this.field.find("ul").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		this.field.find(".add").click($.proxy(this.addItem,this));
-		this.field.on("click",".icon_edit",$.proxy(this.editItem,this));
-		this.field.on("click",".icon_delete",this.deleteItem);
-	},
-	
-	addItem: function(ev) {
-		html = "";
-		tinymces = [];
-		datepickers = [];
-		timepickers = [];
-		i = 0;
-		for (field in this.options) {
-			i++;
-			f = this.options[field];
-			if (i == this.options.length) {
-				html += '<fieldset class="last">';
-			} else {
-				html += '<fieldset>';
-			}
-			if (f.type != "checkbox") {
-				html += '<label>' + f.title + '</label>';
-			}
-			
-			if (f.type == "text" || !f.type) {
-				html += '<input type="text" name="' + f.key + '" />';
-			} else if (f.type == "textarea") {
-				html += '<textarea name="' + f.key + '"></textarea>';
-			} else if (f.type == "html") {
-				html += '<textarea name="' + f.key + '" id="aoi_' + f.key + '" class="is_html"></textarea>';
-				tinymces[tinymces.length] = "aoi_" + f.key;
-			} else if (f.type == "checkbox") {
-				html += '<input type="checkbox" name="' + f.key + '" />';
-				html += '<label class="for_checkbox">' + f.title + '</label>';
-			} else if (f.type == "date") {
-				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" />';
-				html += '<div id="aoi_' + f.key + '_datepicker"></div>';
-				datepickers[datepickers.length] = "aoi_" + f.key;
-			} else if (f.type == "time") {
-				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" />';
-				html += '<div id="aoi_' + f.key + '_timepicker"></div>';
-				timepickers[timepickers.length] = "aoi_" + f.key;
-			}
-			html += '</fieldset>';
-		}
-		
-		html += '<script>';
-		if (tinymces.length) {
-			if (tinyMCE.majorVersion == 4) {
-				html += 'tinyMCE.init({ theme: "modern", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: BigTreeFileManager.tinyMCEOpen, menubar: false, plugins: "paste,link,code", toolbar: "link unlink bold italic underline paste code", paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
-			} else {
-				html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
-			}
-		}
-		for (i = 0; i < datepickers.length; i++) {
-			html += '$("#' + datepickers[i] + '_datepicker").datepicker({ onSelect: function(dateText) { $("#' + datepickers[i] + '").val(dateText); } });';
-		}
-		for (i = 0; i < timepickers.length; i++) {
-			html += '$("#' + timepickers[i] + '_timepicker").timepicker({ ampm: true, hourGrid: 6,	minuteGrid: 10, onSelect: function(dateText) { $("#' + timepickers[i] + '").val(dateText); } });';
-		}
-		html += 'BigTreeCustomControls();</script>';
-		
-		new BigTreeDialog({
-			title: "Add Item",
-			content: html,
-			icon: "add",
-			alternateSaveText: "Add",
-			callback: $.proxy(function(data) {
-				li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
-				li.find("input").val(json_encode(data));
-				// Get the first element returned so we can put it in as a description
-				for (i in data) {
-					first = data[i];
-					break;
-				}
-				li.find("p").html(first);
-				this.field.find("ul").append(li);
-				this.count++;
-			},this),
-		});
-		
-		return false;
-	},
-	
-	editItem: function(ev) {
-		data = $.parseJSON($(ev.target).parents("li").find("input").val());
-		
-		html = "";
-		tinymces = [];
-		datepickers = [];
-		timepickers = [];
-		timepickervals = [];
-		i = 0;
-		for (field in this.options) {
-			i++;
-			f = this.options[field];
-			if (data[f.key]) {
-				v = data[f.key];				
-			} else {
-				v = "";
-			}
-			
-			if (i == this.options.length) {
-				html += '<fieldset class="last">';
-			} else {
-				html += '<fieldset>';
-			}
-			if (f.type != "checkbox") {
-				html += '<label>' + f.title + '</label>';
-			}
-			
-			if (f.type == "text" || !f.type) {
-				html += '<input type="text" name="' + f.key + '" value="' + v + '" />';
-			} else if (f.type == "textarea") {
-				html += '<textarea name="' + f.key + '">' + v + '</textarea>';
-			} else if (f.type == "html") {
-				html += '<textarea name="' + f.key + '" id="aoi_' + f.key + '" class="is_html">' + v + '</textarea>';
-				tinymces[tinymces.length] = "aoi_" + f.key;
-			} else if (f.type == "checkbox") {
-				if (v) {
-					html += '<input type="checkbox" name="' + f.key + '" checked="checked" />';
-				} else {
-					html += '<input type="checkbox" name="' + f.key + '" />';
-				}
-				html += '<label class="for_checkbox">' + f.title + '</label>';
-			} else if (f.type == "date") {
-				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="date_picker" id="aoi_' + f.key + '" value="' + v + '" />';
-				html += '<div id="aoi_' + f.key + '_datepicker"></div>';
-				datepickers[datepickers.length] = "aoi_" + f.key;
-			} else if (f.type == "time") {
-				html += '<input type="hidden" name="' + f.key + '" autocomplete="off" class="time_picker" id="aoi_' + f.key + '" value="' + v + '" />';
-				html += '<div id="aoi_' + f.key + '_timepicker"></div>';
-				timepickers[timepickers.length] = "aoi_" + f.key;
-				timepickervals[timepickervals.length] = v;
-			}
-			html += '</fieldset>';
-		}
-		
-		html += '<script>';
-		if (tinymces.length) {
-			html += 'tinyMCE.init({ skin : "BigTree", inlinepopups_skin: "BigTreeModal", theme: "advanced", mode: "exact", elements: "' + tinymces.join(',') + '", file_browser_callback: "BigTreeFileManager.tinyMCEOpen", plugins: "inlinepopups,paste", theme_advanced_buttons1: "link,unlink,bold,italic,underline,pasteword,code", theme_advanced_buttons2: "", theme_advanced_buttons3: "", theme_advanced_disable: "cleanup,charmap",	theme_advanced_toolbar_location: "top", theme_advanced_toolbar_align: "left", theme_advanced_statusbar_location : "bottom", theme_advanced_resizing: true, theme_advanced_resize_horizontal: false, theme_advanced_resize_vertial: true, paste_remove_spans: true, paste_remove_styles: true, paste_strip_class_attributes: true, paste_auto_cleanup_on_paste: true, gecko_spellcheck: true, relative_urls: false, remove_script_host: false, extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]" });';
-		}
-		for (i = 0; i < datepickers.length; i++) {
-			html += '$("#' + datepickers[i] + '_datepicker").datepicker({ defaultDate: $("#' + datepickers[i] + '").val(), onSelect: function(dateText) { $("#' + datepickers[i] + '").val(dateText); } });';
-		}
-		for (i = 0; i < timepickers.length; i++) {
-			d = BigTree.ParseTime(timepickervals[i]);
-			html += '$("#' + timepickers[i] + '_timepicker").timepicker({ hour: ' + d.getHours() + ', minute: ' + d.getMinutes() + ', ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) { $("#' + timepickers[i] + '").val(dateText); } });';
-		}
-		html += 'BigTreeCustomControls();</script>';
-		
-		this.activeField = $(ev.target).parents("li");
-		
-		new BigTreeDialog({
-			title: "Edit Item",
-			content: html,
-			icon: "edit",
-			alternateSaveText: "Update",
-			callback: $.proxy(function(data) {
-				li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a><a href="#" class="icon_edit"></a></li>');
-				li.find("input").val(json_encode(data));
-				// Get the first element returned so we can put it in as a description
-				for (i in data) {
-					first = data[i];
-					break;
-				}
-				li.find("p").html(first);
-				this.activeField.replaceWith(li);
-				this.count++;
-			},this)
-		});
-		
-		return false;
-	},
-	
-	deleteItem: function() {
-		new BigTreeDialog({
-			title: "Delete Item",
-			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
-			callback: $.proxy(function() { $(this).parents("li").remove(); },this),
-			icon: "delete",
-			alternateSaveText: "OK"
-		});
 
-		return false;
-	}
-});
+var BigTreeListMaker = function(settings) {
+	return (function($,settings) {
 
+		var Container;
+		var Count = 0;
+		var Keys = [];
+		var Name;
 
-// !BigTreeListMaker
-var BigTreeListMaker = Class.extend({
-	
-	container: false,
-	name: false,
-	keys: [],
-	count: 0,
-	
-	init: function(selector,name,title,columns,keys,existing) {
-		this.container = $(selector);
-		this.keys = keys;
-		this.name = name;
-		
-		// Add the title
-		html = '<h4>' + title + ' <a href="#" class="add_option icon_small icon_small_add"></a></h4>';
-		if (keys.length == 1) {
-			lclass = "list_options_widget_1";
-		} else if (keys.length == 2) {
-			lclass = "list_options_widget_2";
-		} else if (keys.length == 3) {
-			lclass = "list_options_widget_3";
-		} else {
-			alert("Error: Too many keys. Maximum is 3.");
-		}
-		html += '<fieldset class="list_options_widget ' + lclass + '">';
-		
-		// Add the column headers
-		html += '<summary>';
-		for (i = 0; i < columns.length; i++) {
-			html += '<span>' + columns[i] + '</span>';
-		}
-		html += '</summary>';
-		
-		// Add the options
-		html += '<ul>';
-		count = 0;
-		for (i in existing) {
-			html += '<li><span class="icon_sort"></span>';
-			for (x = 0; x < keys.length; x++) {
-				if (keys[x].type == "select") {
-					html += '<span><select class="custom_control" name="' + name + '[' + count + '][' + keys[x].key + ']">';
-					for (v in keys[x].list) {
-						html += '<option value="' + htmlspecialchars(v) + '"';
-						if (v == existing[i][keys[x].key]) {
-							html += ' selected="selected"';
-						}
-						html += '>' + htmlspecialchars(keys[x].list[v]) + '</option>';
+		function addOption() {
+			var html = '<li><span class="icon_sort"></span>';
+			for (var x = 0; x < Keys.length; x++) {
+				if (Keys[x].type == "select") {
+					html += '<span><select class="custom_control" name="' + Name + '[' + Count + '][' + Keys[x].key + ']">';
+					for (var v in Keys[x].list) {
+						html += '<option value="' + htmlspecialchars(v) + '">' + htmlspecialchars(Keys[x].list[v]) + '</option>';
 					}
 					html += '</select></span>';
 				} else {
-					html += '<span><input type="text" name="' + name + '[' + count + '][' + keys[x].key + ']" value="' + htmlspecialchars(existing[i][keys[x].key]) + '" /></span>';
+					html += '<span><input type="text" name="' + Name + '[' + Count + '][' + Keys[x].key + ']" /></span>';
+				}
+			}
+			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
+
+			// Add the option, increment the count
+			Container.find("ul").append(html);
+			Count++;
+
+			// We're guaranteed at least one option now, so show the header.
+			Container.find("summary").show();
+	
+			return false;
+		};
+		
+		function deleteOption() {
+			ul = $(this).parents("ul").eq(0);
+			$(this).parents("li").eq(0).remove();
+			// Hide the header if we're out of options
+			if (ul.find("li").length == 0) {
+				ul.prev("summary").hide();
+			}
+	
+			return false;
+		};
+
+		// Init routine
+		Container = $(settings.selector);
+		Keys = settings.keys;
+		Name = settings.name;
+
+		var html = '<h4>' + settings.title + ' a href="#" class="add_option icon_small icon_small_add"></a></h4>';
+		html += '<fieldset class="list_options_widget list_options_widget_' + Keys.length + '">';
+		// Add column headers
+		html += '<summary>';
+		for (var i = 0; i < settings.columns.length; i++) {
+			html += '<span>' + settings.columns[i] + '</span>';
+		}
+		html += '</summary>';
+		// Add options
+		html += '<ul>';
+		var count = 0;
+		for (var i in settings.existing) {
+			html += '<li><span class="icon_sort"></span>';
+			for (var x = 0; x < Keys.length; x++) {
+				if (Keys[x].type == "select") {
+					html += '<span><select class="custom_control" name="' + Name + '[' + count + '][' + Keys[x].key + ']">';
+					for (var v in Keys[x].list) {
+						html += '<option value="' + htmlspecialchars(v) + '"';
+						if (v == settings.existing[i][Keys[x].key]) {
+							html += ' selected="selected"';
+						}
+						html += '>' + htmlspecialchars(Keys[x].list[v]) + '</option>';
+					}
+					html += '</select></span>';
+				} else {
+					html += '<span><input type="text" name="' + name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(settings.existing[i][Keys[x].key]) + '" /></span>';
 				}
 			}
 			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
 			count++;
 		}
 		html += '</ul>';
-		this.container.html(html);
-		
+		Count = count;
+		Container.html(html);
+
 		// Hide the summary if we have no options
-		if (!existing || existing.length == 0) {
-			this.container.find("summary").hide();
+		if (!settings.existing || settings.existing.length == 0) {
+			Container.find("summary").hide();
 		}
 		// Hook the add button
-		this.container.find(".add_option").click($.proxy(this.addOption,this));
+		Container.find(".add_option").click(addOption);
 		// Hook delete buttons
-		this.container.on("click",".delete",this.deleteOption);
+		Container.on("click",".delete",deleteOption);
 		// Make it sortable
-		this.container.sortable({ handle: ".icon_sort", axis: "y", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder" });
-		// Set the count of options
-		this.count = count;
-	},
-	
-	addOption: function() {
-		html = '<li><span class="icon_sort"></span>';
-		for (x = 0; x < this.keys.length; x++) {
-			if (this.keys[x].type == "select") {
-				html += '<span><select class="custom_control" name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']">';
-				for (v in this.keys[x].list) {
-					html += '<option value="' + htmlspecialchars(v) + '">' + htmlspecialchars(this.keys[x].list[v]) + '</option>';
-				}
-				html += '</select></span>';
-			} else {
-				html += '<span><input type="text" name="' + this.name + '[' + this.count + '][' + this.keys[x].key + ']" /></span>';
-			}
-		}
-		html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
-		// Add the option, increment the count
-		this.container.find("ul").append(html);
-		this.count++;
-		// We're guaranteed at least one option now, so show the header.
-		this.container.find("summary").show();
+		Container.sortable({ handle: ".icon_sort", axis: "y", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder" });
 
-		return false;
-	},
-	
-	deleteOption: function() {
-		ul = $(this).parents("ul").eq(0);
-		$(this).parents("li").eq(0).remove();
-		// Hide the header if we're out of options
-		if (ul.find("li").length == 0) {
-			ul.prev("summary").hide();
-		}
-
-		return false;
-	}
-
-});
+		return { addOption: addOption };
+	})(jQuery,settings);
+};
 
 
 // !BigTreeManyToMany
