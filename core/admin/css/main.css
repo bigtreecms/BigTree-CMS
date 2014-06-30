@@ -481,7 +481,7 @@
 	.sticky_controls.stuck { height: 44px; padding: 0 0 5px 0; position: fixed; top: 0; width: 958px; z-index: 3; }
 	.sticky_controls.stuck .shadow { background: #eee; border-bottom: 1px solid #ccc; height: 44px; }
 
-	.sticky_controls.stuck nav { overflow: hidden; padding: 12px 0 0 15px; width: 711px; }
+	.sticky_controls.stuck nav { overflow: hidden; padding: 12px 0 0 15px; }
 	.sticky_controls.stuck nav a { border-radius: 3px; border-width: 1px; }
 
 	.move_page .labels .page_label { padding: 0 0 0 20px; text-align: left; width: 596px; }

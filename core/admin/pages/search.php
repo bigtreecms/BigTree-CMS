@@ -85,21 +85,25 @@
 <div class="container">
 	<? if (count($results)) { ?>
 	<header>
-		<nav>
-			<div class="more">
-				<div>
-					<?
-						$x = 0;
-						foreach ($results as $key => $r) {
-							$x++;
-					?>
-					<a<? if ($x == 1) { ?> class="active"<? } ?> href="#<?=$cms->urlify($key)?>"><?=htmlspecialchars($key)?></a>
-					<?
-						}
-					?>
-				</div>
+		<div class="sticky_controls">
+			<div class="shadow">
+				<nav>
+					<div class="more">
+						<div>
+							<?
+								$x = 0;
+								foreach ($results as $key => $r) {
+									$x++;
+							?>
+							<a<? if ($x == 1) { ?> class="active"<? } ?> href="#<?=$cms->urlify($key)?>"><?=htmlspecialchars($key)?></a>
+							<?
+								}
+							?>
+						</div>
+					</div>
+				</nav>
 			</div>
-		</nav>
+		</div>
 	</header>
 	<div class="content_container">
 		<?

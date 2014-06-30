@@ -1793,7 +1793,7 @@ var BigTreeFormNavBar = (function() {
 		// Generic tab controls
 		Nav.click(function() {		
 			if (window.scrollY > ContainerOffset) {
-				$("html, body").animate({ scrollTop: ContainerOffset }, 200);
+				$("html, body").animate({ scrollTop: ContainerOffset + 3 }, 200);
 			}
 			
 			var href = $(this).attr("href").substr(1);
