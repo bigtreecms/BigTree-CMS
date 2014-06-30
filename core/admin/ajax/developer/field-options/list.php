@@ -75,5 +75,12 @@
 			$("#db_list_options").show();
 		}
 	});
-	new BigTreeListMaker("#static_list_options","list","Static List Options",["Value","Description"],[{ key: "value", type: "text" },{ key: "description", type: "text" }],<?=json_encode($data["list"])?>);
+	var localList = new BigTreeListMaker({
+		element: "#static_list_options",
+		name: "list",
+		title: "Static List Options",
+		columns: ["Value","Description"],
+		keys: [{ key: "value", type: "text" },{ key: "description", type: "text" }],
+		existing: <?=json_encode($data["list"])?>
+	});
 </script>

@@ -1938,7 +1938,7 @@ var BigTreeListMaker = function(settings) {
 		};
 
 		// Init routine
-		Container = $(settings.selector);
+		Container = $(settings.element);
 		Keys = settings.keys;
 		Name = settings.name;
 
