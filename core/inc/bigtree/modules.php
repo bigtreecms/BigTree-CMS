@@ -33,13 +33,15 @@
 			$admin = new BigTreeAdmin;
 			$existing_parts = $key_parts = $value_parts = array();
 			$x = 0;
+
 			// Get a bunch of query parts.
-			while ($x < count($keys)) {
-				$val = is_array($vals[$x]) ? sqlescape(json_encode(BigTree::translateArray($vals[$x]))) : sqlescape($admin->autoIPL($vals[$x]));
-				$existing_parts[] = "`".$keys[$x]."` = '$val'";
-				$key_parts[] = "`".$keys[$x]."`";
+			foreach ($keys as $key) {
+				$val = current($vals);
+				$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape($admin->autoIPL($val));
+				$existing_parts[] = "`$key` = '$val'";
+				$key_parts[] = "`$key`";
 				$value_parts[] = "'$val'";
-				$x++;
+				next($vals);
 			}
 
 			// Prevent Duplicates
