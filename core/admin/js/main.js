@@ -1992,90 +1992,110 @@ var BigTreeListMaker = function(settings) {
 	})(jQuery,settings);
 };
 
+var BigTreeManyToMany = function(settings) {
+	return (function($,settings) {
 
-// !BigTreeManyToMany
-var BigTreeManyToMany = Class.extend({
-	count: 0,
-	field: false,
-	key: false,
-	sortable: false,
-	keepOptions: false,
+		var Count = 0;
+		var DeleteTarget;
+		var Field;
+		var Key;
+		var Sortable;
+		var KeepOptions;
+
+		function addItem() {
+			var select = Field.find("select").get(0);
+			if (select.selectedIndex < 0) {
+				return false;
+			}
+
+			var val = select.value;
+			var text = select.options[select.selectedIndex].text;
+
+			if (Sortable) {
+				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
+			} else {
+				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+			}
+			li.find("p").html(text);
+			li.find("input").val(val);
 	
-	init: function(id,count,key,sortable,keep_options) {
-		this.count = count;
-		this.key = key;
-		this.field = $("#" + id);
-		if (sortable) {
-			this.field.find("ul").sortable({ items: "li", handle: ".icon_sort" });
-			this.sortable = true;
-		}
-		this.field.find(".add").click($.proxy(this.addItem,this));
-		this.field.on("click",".icon_delete",$.proxy(this.deleteItem,this));
-		if (keep_options) {
-			this.keepOptions = true;
-		}
-	},
+			// Remove the option from the select.
+			if (!KeepOptions) {
+				select.customControl.remove(val);
+			}
+			
+			Field.find("ul").append(li);
+			Field.trigger("addedItem", { element: li, index: Count });
+			Count++;
+			
+			// Hide the instructions saying there haven't been any items tagged.
+			Field.find("section").hide();
 	
-	addItem: function() {
-		select = this.field.find("select").get(0);
-		if (select.selectedIndex < 0) {
 			return false;
-		}
-		val = select.value;
-		text = select.options[select.selectedIndex].text;
-		if (this.sortable) {
-			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
+		};
+	
+		function deleteItem(ev) {
+			DeleteTarget = ev.currentTarget;
+			
+			new BigTreeDialog({
+				title: "Delete Item",
+				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+				icon: "delete",
+				alternateSaveText: "OK",
+				callback: function() {
+					var fieldset = $(DeleteTarget).parents("fieldset");
+					// If this is the last item we're removing, show the instructions again.
+					if ($(DeleteTarget).parents("ul").find("li").length == 1) {
+						fieldset.find("section").show();
+					}
+					var li = $(DeleteTarget).parents("li");
+					var val = li.find("input").val();
+					var text = li.find("p").html();
+					// Add the option back to the select
+					if (!KeepOptions) {
+						fieldset.find("select")[0].customControl.add(val,text);
+					}
+		
+					li.remove();
+					fieldset.trigger("removedItem", { value: val, description: text });
+				}
+			});
+	
+			return false;
+		};
+
+		// 4.2 init routine
+		if (is_object(settings)) {
+			Field = $("#" + settings.id);
+			Count = settings.count;
+			Key = settings.key;
+			if (settings.sortable) {
+				Sortable = true;
+			}
+			if (settings.keepOptions) {
+				KeepOptions = true;
+			}
 		} else {
-			li = $('<li><input type="hidden" name="' + this.key + '[' + this.count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+			Field = $("#" + arguments[0]);
+			Count = arguments[1];
+			Key = arguments[2];
+			if (arguments[3]) {
+				Sortable = true;
+			}
+			if (arguments[4]) {
+				KeepOptions = true;
+			}
 		}
-		li.find("p").html(text);
-		li.find("input").val(val);
 
-		// Remove the option from the select.
-		if (!this.keepOptions) {
-			select.customControl.remove(val);
+		if (Sortable) {
+			Field.find("ul").sortable({ items: "li", handle: ".icon_sort" });
 		}
+		Field.find(".add").click(addItem);
+		Field.on("click",".icon_delete",deleteItem);
 		
-		this.field.find("ul").append(li);
-		this.field.trigger("addedItem", { element: li, index: this.count });
-		this.count++;
-		// Hide the instructions saying there haven't been any items tagged.
-		this.field.find("section").hide();
 
-		return false;
-	},
-	
-	deleteItem: function(ev) {
-		this.deleteTarget = ev.currentTarget;
-		
-		new BigTreeDialog({
-			title: "Delete Item",
-			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
-			icon: "delete",
-			alternateSaveText: "OK",
-			callback: $.proxy(function() {
-				fieldset = $(this.deleteTarget).parents("fieldset");
-				// If this is the last item we're removing, show the instructions again.
-				if ($(this.deleteTarget).parents("ul").find("li").length == 1) {
-					fieldset.find("section").show();
-				}
-				li = $(this.deleteTarget).parents("li");
-				val = li.find("input").val();
-				text = li.find("p").html();
-				// Add the option back to the select
-				if (!this.keepOptions) {
-					fieldset.find("select")[0].customControl.add(val,text);
-				}
-	
-				li.remove();
-				fieldset.trigger("removedItem", { value: val, description: text });
-	
-			},this)
-		});
-
-		return false;
-	}
-});
+	})(jQuery,settings);
+};
 
 // !BigTreeFieldSelect
 var BigTreeFieldSelect = Class.extend({
