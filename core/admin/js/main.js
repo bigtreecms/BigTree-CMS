@@ -1123,6 +1123,9 @@ var BigTreeTagAdder = (function($) {
 var BigTreeDialog = function(settings) {
 	return (function($,settings) {
 
+		var DialogHeight;
+		var DialogWidth;
+		var HeightWatchTimer;
 		var DialogWindow;
 		var OnComplete = false;
 		var OnCancel = false;
@@ -1168,6 +1171,25 @@ var BigTreeDialog = function(settings) {
 			$("body").off("keyup",checkForEsc);
 		};
 
+		function watchHeight() {
+			var height = DialogWindow.height();
+			if (height != DialogHeight) {
+				DialogHeight = height;
+				windowResize(false,true);
+			}
+		};
+
+		function windowResize(ev,animate) {
+			var left_offset = parseInt((BigTree.WindowWidth() - DialogWidth) / 2);
+			var top_offset = parseInt((BigTree.WindowHeight() - DialogHeight) / 2);
+			
+			if (animate) {
+				DialogWindow.animate({ "top": top_offset + "px", "left": left_offset + "px" }, 200);
+			} else {
+				DialogWindow.css({ "top": top_offset + "px", "left": left_offset + "px" });
+			}
+		};
+
 		// Init routine
 		var Defaults = {
 			alternateSaveText: false,
@@ -1208,7 +1230,7 @@ var BigTreeDialog = function(settings) {
 
 		// Build our window
 		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
-		DialogWindow = $('<div class="bigtree_dialog_window">').css({ zIndex: BigTree.zIndex++, width: parseInt(Defaults.width) + "px", height: parseInt(Defaults.height) + "px" });
+		DialogWindow = $('<div class="bigtree_dialog_window">').css({ zIndex: BigTree.zIndex++ });
 		$("body").append(overlay).append(DialogWindow);
 
 		// Fill the window
@@ -1224,6 +1246,12 @@ var BigTreeDialog = function(settings) {
 		html += '</form>';
 		DialogWindow.html(html);
 		BigTreeCustomControls(DialogWindow);
+
+		DialogWidth = DialogWindow.width();
+		DialogHeight = DialogWindow.height();
+		DialogWindow.css({ left: parseInt((BigTree.WindowWidth() - DialogWidth) / 2) + "px", top: parseInt((BigTree.WindowHeight() - DialogHeight) / 2) + "px" });
+		console.log(DialogWindow);
+
 		BigTree.FormHooks(DialogWindow);
 				
 		// Hook cancel button
@@ -1238,7 +1266,12 @@ var BigTreeDialog = function(settings) {
 		
 		// For confirmation dialogs, enter should immediately close
 		DialogWindow.find("input[type=submit]").focus();
-				
+		
+		// Handle moving the dialog around if the window changes
+		$(window).resize(windowResize);
+		
+		// Set a timer to watch for a change in the dialog height to recenter.
+		HeightWatchTimer = setInterval(watchHeight,250);
 
 	})(jQuery,settings);
 };
