@@ -351,19 +351,17 @@
 				$html = $this->makeIPL($html);
 			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
 			} else {
-				$html = preg_replace_callback('/href="([^"]*)"/',create_function('$matches','
-					global $cms,$admin;
-					$href = $admin->makeIPL($cms->replaceRelativeRoots($matches[1]));
-					return \'href="\'.$href.\'"\';'
-				),$html);
-				$html = preg_replace_callback('/src="([^"]*)"/',create_function('$matches','
-					global $cms,$admin;
-					$src = $admin->makeIPL($cms->replaceRelativeRoots($matches[1]));
-					return \'src="\'.$src.\'"\';'
-				),$html);
+				$html = preg_replace_callback('/href="([^"]*)"/',array($this,"autoIPLCallback"),$html);
+				$html = preg_replace_callback('/src="([^"]*)"/',array($this,"autoIPLCallback"),$html);
 				$html = $this->replaceHardRoots($html);
 			}
 			return $html;
+		}
+		
+		private function autoIPLCallback($matches) {
+			global $cms;
+			$href = $this->makeIPL($cms->replaceRelativeRoots($matches[1]));
+			return 'href="'.$href.'"';
 		}
 
 		/*
