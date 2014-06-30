@@ -1776,53 +1776,53 @@ var BigTreeFileManager = (function($) {
 
 var BigTreeFormNavBar = (function() {
 
-	var $Container = false;
-	var $MoreContainer = false;
-	var $Nav = false;
-	var $NextButton = false;
-	var $Sections = false;
+	var Container = false;
+	var MoreContainer = false;
+	var Nav = false;
+	var NextButton = false;
+	var Sections = false;
 	var ContainerOffset = false;
 	
 	function init() {
-		$Container = $(".container");
+		Container = $(".container");
 		ContainerOffset = $Container.offset().top;
-		$Nav = $Container.find("nav a");
-		$NextButton = $Container.find("footer .next");
-		$Sections = $Container.find("form > section");
+		Nav = $Container.find("nav a");
+		NextButton = $Container.find("footer .next");
+		Sections = $Container.find("form > section");
 
 		// Generic tab controls
-		$Nav.click(function() {		
+		Nav.click(function() {		
 			if (window.scrollY > ContainerOffset) {
 				$("html, body").animate({ scrollTop: ContainerOffset }, 200);
 			}
 			
 			var href = $(this).attr("href").substr(1);
-			$Sections.hide();
-			$Nav.removeClass("active");
+			Sections.hide();
+			Nav.removeClass("active");
 			$(this).addClass("active");
 			$("#" + href).show();
 			
 			// Manage the "Next" buttons
-			var index = $Nav.index(this);
-			if (index == $Nav.length - 1) {
-				$NextButton.hide();
+			var index = Nav.index(this);
+			if (index == Nav.length - 1) {
+				NextButton.hide();
 			} else {
-				$NextButton.show();				
+				NextButton.show();				
 			}
 			
 			return false;
 		});
 
 		// Next Button controls
-		$NextButton.click(function() {
-			var $tab = $Nav.filter(".active");
-			$tab.removeClass("active");
-			var $next = $tab.next("a").addClass("active");
+		NextButton.click(function() {
+			var tab = Nav.filter(".active");
+			tab.removeClass("active");
+			var next = tab.next("a").addClass("active");
 			
-			$("#" + $next.attr("href").substr(1)).show();
-			$("#" + $tab.attr("href").substr(1)).hide();
+			$("#" + next.attr("href").substr(1)).show();
+			$("#" + tab.attr("href").substr(1)).hide();
 			
-			if ($Nav.index($tab) == $Nav.length - 2) {
+			if (Nav.index(tab) == Nav.length - 2) {
 				$(this).hide();
 			}
 			
@@ -1830,45 +1830,45 @@ var BigTreeFormNavBar = (function() {
 		});
 
 		// Form Validation
-		new BigTreeFormValidator($Container.find("form"),function(errors) {
+		new BigTreeFormValidator(Container.find("form"),function(errors) {
 			// Hide all the pages tab sections
-			$Sections.hide();
+			Sections.hide();
 			// Unset all the active states on tabs
-			$Nav.removeClass("active");
+			Nav.removeClass("active");
 			// Figure out what section the first error occurred in and show that section.
-			$Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+			Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
 		});
 
 		// For when there are too many tabs, we need to setup scrolling
-		var calc_nav_container = $Container.find("nav .more div");
+		var calc_nav_container = Container.find("nav .more div");
 		var nav_width = calc_nav_container.width();
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
-			$MoreContainer = calc_nav_container.parent();
+			MoreContainer = calc_nav_container.parent();
 			
 			var page_count = 0;
 			var current_width = 0;
 			var current_page = $('<div class="nav_page active">');
-			$Nav.each(function() {
+			Nav.each(function() {
 				var width = $(this).width() + 47;
 				
 				if ((current_width + width) > 848) {
 					page_count++;
 					if (page_count > 1) {
 						var lessButton = $('<a class="more_nav" href="#">').html("&laquo;").click(function() {
-							$MoreContainer.animate({ marginLeft: + (parseInt($MoreContainer.css("margin-left")) + 928) + "px" }, 300);
+							MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) + 928) + "px" }, 300);
 							return false;
 						});
 						current_page.prepend(lessButton);
 					}
 					
 					var moreButton = $('<a class="more_nav" href="#">').html("&raquo;").click(function() {
-						$MoreContainer.animate({ marginLeft: + (parseInt($MoreContainer.css("margin-left")) - 928) + "px" }, 300);
+						MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) - 928) + "px" }, 300);
 						return false;
 					});
 					current_page.append(moreButton);
 					
-					$MoreContainer.append(current_page);
+					MoreContainer.append(current_page);
 					current_page = $('<div class="nav_page">');
 					current_width = 0;
 				}
@@ -1879,12 +1879,12 @@ var BigTreeFormNavBar = (function() {
 			
 			
 			var lessButton = $('<a class="more_nav" href="#">').html("&laquo;").click(function() {
-				$MoreContainer.animate({ marginLeft: + (parseInt($MoreContainer.css("margin-left")) + 928) + "px" }, 300);
+				MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) + 928) + "px" }, 300);
 				return false;
 			});
 			current_page.prepend(lessButton);
 			
-			$MoreContainer.append(current_page);
+			MoreContainer.append(current_page);
 			calc_nav_container.remove();
 		}
 	}
