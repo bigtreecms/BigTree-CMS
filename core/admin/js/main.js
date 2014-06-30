@@ -1366,23 +1366,23 @@ var BigTreeFileManager = (function($) {
 	};
 	
 	function createFile() {
-		var $last_dialog = $(".bigtree_dialog_form").last();
+		var last_dialog = $(".bigtree_dialog_form").last();
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		$last_dialog.attr("action","admin_root/ajax/file-browser/upload/")
+		last_dialog.attr("action","admin_root/ajax/file-browser/upload/")
 					.attr("target","file_manager_upload_frame");
-		$last_dialog.find("footer *").hide();
-		$last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
+		last_dialog.find("footer *").hide();
+		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
 	};
 	
 	function createFolder(data) {
-		var $last_dialog = $(".bigtree_dialog_form").last();
+		var last_dialog = $(".bigtree_dialog_form").last();
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		$last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")
+		last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")
 					.attr("target","file_manager_upload_frame");
-		$last_dialog.find("footer *").hide();
-		$last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
+		last_dialog.find("footer *").hide();
+		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
 	};
 
 	function deleteFile(ev) {
@@ -1747,10 +1747,10 @@ var BigTreeFileManager = (function($) {
 	};
 
 	function uploadError(message,successes) {
-		var $last_dialog = $(".bigtree_dialog_form").last();
-		$last_dialog.find("p,fieldset,input").remove();
-		$last_dialog.find(".overflow").prepend($('<p class="error_message">' + message + '</p><p>' + successes + '</p>'));
-		$last_dialog.find("footer a").show().html("Ok");
+		var last_dialog = $(".bigtree_dialog_form").last();
+		last_dialog.find("p,fieldset,input").remove();
+		last_dialog.find(".overflow").prepend($('<p class="error_message">' + message + '</p><p>' + successes + '</p>'));
+		last_dialog.find("footer a").show().html("Ok");
 
 		if (Type == "image" || Type == "photo-gallery") {
 			openImageFolder(CurrentFolder);	
@@ -1785,10 +1785,10 @@ var BigTreeFormNavBar = (function() {
 	
 	function init() {
 		Container = $(".container");
-		ContainerOffset = $Container.offset().top;
-		Nav = $Container.find("nav a");
-		NextButton = $Container.find("footer .next");
-		Sections = $Container.find("form > section");
+		ContainerOffset = Container.offset().top;
+		Nav = Container.find("nav a");
+		NextButton = Container.find("footer .next");
+		Sections = Container.find("form > section");
 
 		// Generic tab controls
 		Nav.click(function() {		
