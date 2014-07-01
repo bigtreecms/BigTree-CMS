@@ -2191,121 +2191,124 @@ var BigTreeFieldSelect = function(settings) {
 	})(jQuery,settings);
 };
 
-// !BigTreeFormValidator
-var BigTreeFormValidator = Class.extend({
-	form: false,
-	callback: false,
-	
-	init: function(selector,callback) {
-		this.form = $(selector);
-		this.form.submit($.proxy(this.validateForm,this));
-		if (callback) {
-			this.callback = callback;
-		}
-	},
-	
-	validateForm: function(ev,in_dialog,embedded) {
-		errors = [];
-		this.form.find(".form_error").removeClass("form_error");
-		this.form.find(".form_error_reason").remove();
-		
-		this.form.find("input.required, select.required, textarea.required").each(function() {
-			// TinyMCE 3
-			if ($(this).nextAll(".mceEditor").length) {
-				val = tinyMCE.get($(this).attr("id")).getContent();
-			// Tiny MCE 4
-			} else if ($(this).prevAll(".mce-tinymce").length) {
-				val = tinymce.get($(this).attr("id")).getContent();
-			// File/Image Uploads
-			} else if ($(this).parents("div").nextAll(".currently, .currently_file").length) {
-				val = $(this).parents("div").nextAll(".currently, .currently_file").find("input").val();
-				if (!val) {
-					val = $(this).val();
-				}
-			// Regular input fields
-			} else {
-				val = $(this).val();
-			}
-			if (!val) {
-				errors[errors.length] = $(this);
-				$(this).parents("fieldset").addClass("form_error");
-				$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
-				$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
-			}
-		});
-		
-		this.form.find("input.numeric").each(function() {
-			if (isNaN($(this).val())) {
-				errors[errors.length] = $(this);
-				$(this).parents("fieldset").addClass("form_error");
-				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be Numeric</span>'));
-			}
-		});
-		
-		this.form.find("input.email").each(function() {
-			reg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-			val = $(this).val();
-			if (val && !reg.test(val)) {
-				errors[errors.length] = $(this);
-				$(this).parents("fieldset").addClass("form_error");
-				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be An Email Address</span>'));
-			}
-		});
-		
-		this.form.find("input.link").each(function() {
-			reg = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-			val = $(this).val();
-			if (val && !reg.test(val)) {
-				errors[errors.length] = $(this);
-				$(this).parents("fieldset").addClass("form_error");
-				$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
-			}
-		});
+var BigTreeFormValidator = function(selector,callback) {
+	return (function($,selector,callback) {
 
-		// If this is an embedded form, we want to generate a hash of everything
-		complete_submission = "";
-		if ($("#bigtree_hashcash_field").length) {
-			this.form.find("input,select,textarea").each(function() {
-				if ($(this).is("textarea") && $(this).css("display") == "none") {
-					var mce = tinyMCE.get($(this).attr("id"));
-					if (mce) {
-						complete_submission += mce.getContent();
+		var Form;
+		var Callback;
+
+		// in_dialog and embedded are never called by the submit event, they are only for manual calls to validateForm
+		function validateForm(ev,in_dialog,embedded) {
+			var errors = [];
+			
+			Form.find(".form_error").removeClass("form_error");
+			Form.find(".form_error_reason").remove();
+			Form.find("input.required, select.required, textarea.required").each(function() {
+				// TinyMCE 3
+				if ($(this).nextAll(".mceEditor").length) {
+					var val = tinyMCE.get($(this).attr("id")).getContent();
+				// Tiny MCE 4
+				} else if ($(this).prevAll(".mce-tinymce").length) {
+					var val = tinymce.get($(this).attr("id")).getContent();
+				// File/Image Uploads
+				} else if ($(this).parents("div").nextAll(".currently, .currently_file").length) {
+					var val = $(this).parents("div").nextAll(".currently, .currently_file").find("input").val();
+					if (!val) {
+						val = $(this).val();
 					}
+				// Regular input fields
 				} else {
-					t = $(this).attr("type");
-					if (t != "file" && $(this).attr("name")) {
-						if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
-							complete_submission += $(this).val();
-						}
-					}
+					var val = $(this).val();
+				}
+				if (!val) {
+					errors[errors.length] = $(this);
+					$(this).parents("fieldset").addClass("form_error");
+					$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
+					$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 				}
 			});
-			$("#bigtree_hashcash_field").val(md5(complete_submission));
-		}
-		
-		if (this.form.find(".form_error").length) {
-			this.form.find(".warning_message").hide();
-			this.form.find(".error_message").show();
-			if (!in_dialog) {
-				$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
-				if (window.parent.BigTreeEmbeddableForm) {
-					window.parent.BigTreeEmbeddableForm.scrollToTop();
+			Form.find("input.numeric").each(function() {
+				if (isNaN($(this).val())) {
+					errors[errors.length] = $(this);
+					$(this).parents("fieldset").addClass("form_error");
+					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be Numeric</span>'));
 				}
+			});
+			Form.find("input.email").each(function() {
+				var reg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+				var val = $(this).val();
+				if (val && !reg.test(val)) {
+					errors[errors.length] = $(this);
+					$(this).parents("fieldset").addClass("form_error");
+					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be An Email Address</span>'));
+				}
+			});
+			Form.find("input.link").each(function() {
+				var reg = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+				var val = $(this).val();
+				if (val && !reg.test(val)) {
+					errors[errors.length] = $(this);
+					$(this).parents("fieldset").addClass("form_error");
+					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
+				}
+			});
+	
+			// If this is an embedded form, we want to generate a hash of everything
+			var complete_submission = "";
+			if ($("#bigtree_hashcash_field").length) {
+				Form.find("input,select,textarea").each(function() {
+					if ($(this).is("textarea") && $(this).css("display") == "none") {
+						var mce = tinyMCE.get($(this).attr("id"));
+						if (mce) {
+							complete_submission += mce.getContent();
+						}
+					} else {
+						var t = $(this).attr("type");
+						if (t != "file" && $(this).attr("name")) {
+							if ((t != "radio" && t != "checkbox") || $(this).is(":checked")) {
+								complete_submission += $(this).val();
+							}
+						}
+					}
+				});
+				$("#bigtree_hashcash_field").val(md5(complete_submission));
+			}
+			
+			if (Form.find(".form_error").length) {
+				Form.find(".warning_message").hide();
+				Form.find(".error_message").show();
+				if (!in_dialog) {
+					$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
+					if (window.parent.BigTreeEmbeddableForm) {
+						window.parent.BigTreeEmbeddableForm.scrollToTop();
+					}
+				} else {
+					Form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
+				}
+				if (Callback) {
+					Callback(errors);
+				}
+
+				ev.stopImmediatePropagation();
+				ev.stopPropagation();
+				ev.preventDefault();
+				return false;
 			} else {
-				this.form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
+				return true;
 			}
-			if (this.callback) {
-				this.callback(errors);
-			}
-			ev.stopImmediatePropagation();
-			ev.stopPropagation();
-			ev.preventDefault();
-			return false;
-		} else {
-			return true;
+		};
+
+		// Init routine
+		Form = $(selector);
+		Form.submit(validateForm);
+		if (callback) {
+			Callback = callback;
 		}
-	}
-});
+
+		return { Form: Form, Callback: Callback, validateForm: validateForm };
+
+	})(jQuery,selector,callback);
+};
 
 // !BigTreeToolTip
 var BigTreeToolTip = Class.extend({
