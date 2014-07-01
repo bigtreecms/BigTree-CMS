@@ -979,10 +979,10 @@ var BigTreePhotoGallery = function(settings) {
 			}
 		// Allow for backwards copatibility with BigTree <= 4.1
 		} else {
-			Defaults.container = arguments[0];
-			Defaults.key = arguments[1];
-			Defaults.counter = arguments[2];
-			Defaults.disableCaptions = arguments[3];
+			Defaults.container = arguments[1];
+			Defaults.key = arguments[2];
+			Defaults.counter = arguments[3];
+			Defaults.disableCaptions = arguments[4];
 		}
 
 		Key = Defaults.key;
@@ -1211,14 +1211,14 @@ var BigTreeDialog = function(settings) {
 			}
 		// Allow for backwards copatibility with BigTree <= 4.1
 		} else {
-			Defaults.title = arguments[0];
-			Defaults.content = arguments[1];
-			Defaults.callback = arguments[2];
-			Defaults.icon = arguments[3];
-			Defaults.noFooter = arguments[4];
-			Defaults.alternateSaveText = arguments[5];
-			Defaults.preSubmissionCallback = arguments[6];
-			Defaults.cancelHook = arguments[7];
+			Defaults.title = arguments[1];
+			Defaults.content = arguments[2];
+			Defaults.callback = arguments[3];
+			Defaults.icon = arguments[4];
+			Defaults.noFooter = arguments[5];
+			Defaults.alternateSaveText = arguments[6];
+			Defaults.preSubmissionCallback = arguments[7];
+			Defaults.cancelHook = arguments[8];
 		}
 
 		// Setup a callback to give the data to once they submit their dialog
@@ -1250,7 +1250,6 @@ var BigTreeDialog = function(settings) {
 		DialogWidth = DialogWindow.width();
 		DialogHeight = DialogWindow.height();
 		DialogWindow.css({ left: parseInt((BigTree.WindowWidth() - DialogWidth) / 2) + "px", top: parseInt((BigTree.WindowHeight() - DialogHeight) / 2) + "px" });
-		console.log(DialogWindow);
 
 		BigTree.FormHooks(DialogWindow);
 				
@@ -2023,7 +2022,7 @@ var BigTreeManyToMany = function(settings) {
 			if (!KeepOptions) {
 				select.customControl.remove(val);
 			}
-			
+
 			Field.find("ul").append(li);
 			Field.trigger("addedItem", { element: li, index: Count });
 			Count++;
@@ -2076,13 +2075,13 @@ var BigTreeManyToMany = function(settings) {
 				KeepOptions = true;
 			}
 		} else {
-			Field = $("#" + arguments[0]);
-			Count = arguments[1];
-			Key = arguments[2];
-			if (arguments[3]) {
+			Field = $("#" + arguments[1]);
+			Count = arguments[2];
+			Key = arguments[3];
+			if (arguments[4]) {
 				Sortable = true;
 			}
-			if (arguments[4]) {
+			if (arguments[5]) {
 				KeepOptions = true;
 			}
 		}
