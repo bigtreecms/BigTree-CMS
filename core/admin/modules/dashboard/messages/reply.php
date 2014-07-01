@@ -107,6 +107,11 @@
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>
 <script>
-	new BigTreeManyToMany("send_to",<?=$x?>,"send_to",false);
+	new BigTreeManyToMany({
+		id: "send_to",
+		count: <?=$x?>,
+		key: "send_to",
+		sortable: false
+	});
 	new BigTreeFormValidator("#message_form");
 </script>

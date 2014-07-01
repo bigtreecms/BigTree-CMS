@@ -88,7 +88,12 @@
 	</footer>
 </div>
 <script>
-	new BigTreeManyToMany("<?=$field["id"]?>",<?=$x?>,"<?=$field["key"]?>",<?=($sortable ? "true" : "false")?>);
+	new BigTreeManyToMany({
+		id: "<?=$field["id"]?>",
+		count: <?=$x?>,
+		key: "<?=$field["key"]?>",
+		sortable: <?=($sortable ? "true" : "false")?>
+	});
 </script>
 <?
 	} else {
