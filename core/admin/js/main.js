@@ -131,7 +131,11 @@ var BigTreePageLoadHooks = (function($) {
 			} else {
 				var position = "right";
 			}
-			new BigTreeToolTip($(this),$(this).attr("data-tooltip"),position,false,true);
+			new BigTreeToolTip({
+				selector: $(this),
+				content: $(this).attr("data-tooltip"),
+				position: position
+			});
 		});
 	
 		BigTree.FormHooks(".container form");
@@ -2310,93 +2314,91 @@ var BigTreeFormValidator = function(selector,callback) {
 	})(jQuery,selector,callback);
 };
 
-// !BigTreeToolTip
-var BigTreeToolTip = Class.extend({
-	container: false,
-	position: false,
-	selector: false,
-	
-	init: function(selector,content,position,icon,auto_close) {
-		// If you don't specify an icon, just use the alert one.
-		if (!icon) {
-			icon = "alert";
+var BigTreeToolTip = function(settings) {
+	return (function($,settings) {
+
+		var Container;
+		var Content;
+		var Defaults = { hover: true, position: "above", icon: "alert" };
+		var Position;
+		var Target;
+
+		function hide() {
+			Container.stop().fadeTo(200,0,Container.hide);
+			BigTree.zIndex--;
+			return false;
+		};
+		
+		function show() {
+			// Figure out where the target is in the DOM, add the container to the DOM so we can get its width/height for some positions.
+			var offset = Target.offset();
+			var w = parseInt(Target.css("width"));
+			var h = parseInt(Target.css("height"));
+			
+			// The tip is below the target.
+			if (Defaults.position == "below") {
+				l = offset.left - 28 + Math.round(w / 2);
+				t = offset.top + h + 5;
+			}
+			
+			// The tip is to the right of the target.
+			if (Defaults.position == "right") {
+				l = offset.left + w + 5;
+				t = offset.top - 28 + Math.round(h / 2);
+			}
+			
+			// The tip is to the left of the target.
+			if (Defaults.position == "left") {
+				l = offset.left - Container.width() - 5;
+				t = offset.top - 28 + Math.round(h / 2);
+			}
+			
+			// The tip is above of the target.
+			if (Defaults.position == "above") {
+				l = offset.left - 28 + Math.round(w / 2);
+				t = offset.top - Container.height() - 5;
+			}
+			
+			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.zIndex++) }).stop().fadeTo(200, 1);
+		};
+
+		// 4.2 init routine
+		for (var i in settings) {
+			Defaults[i] = settings[i];
 		}
-		// Create the container, add the tip to the container.
-		container = $('<div class="tooltip" style="display: none;">');
+		Target = $(settings.selector);
+		Content = settings.content;
+		Container = $('<div class="tooltip" style="display: none;">');
+		
 		// The arrow is below the tip if the position is above.
-		if (position != "above") {
-			container.append($('<span class="arrow">'));
+		if (Defaults.position != "above") {
+			Container.append($('<span class="arrow">'));
 		}
-		tip = $('<article>');
-		tip.html('<section class="icon_tooltip icon_growl_' + icon + '"></section><section class="content">' + content + '</section>');
+
+		var tip = $('<article>').html('<section class="icon_tooltip icon_growl_' + Defaults.icon + '"></section><section class="content">' + Content + '</section>');
 		// If the tip should stay open, add a close button.  Otherwise it'll close when you roll off the target.
-		if (!auto_close) {
+		if (!Defaults.hover) {
 			tip.append($('<a href="#" class="close"></a>'));
-			tip.find(".close").click($.proxy(this.close,this));
+			tip.find(".close").click(hide);
 		}
-		container.append(tip);
-		container.addClass("tooltip_" + position);
-		if (position == "above") {
-			container.append($('<span class="arrow">'));
+
+		Container.append(tip).addClass("tooltip_" + Defaults.position);
+		if (Defaults.position == "above") {
+			Container.append($('<span class="arrow">'));
 		}
-		$("body").append(container);
+
+		$("body").append(Container);
 		
-		this.position = position;
-		this.container = container;
-		this.selector = selector;
-		
-		if (auto_close) {
-			$(selector).mouseenter($.proxy(this.showTip,this));
-			$(selector).mouseleave($.proxy(function() {
-				this.container.stop().fadeTo(200, 0, function() {
-					$(this).hide();
-				});
-				BigTree.zIndex--;
-			},this));
+		if (Defaults.hover) {
+			Target.mouseenter(show).mouseleave(hide);
 		} else {
-			$(selector).click($.proxy(this.showTip,this));
+			Target.click(show);
 		}
-	},
-	
-	close: function() {
-		this.container.stop().fadeTo(200, 0, function() { $(this).hide(); });
-		BigTree.zIndex--;
-		return false;
-	},
-	
-	showTip: function() {
-		// Figure out where the target is in the DOM, add the container to the DOM so we can get its width/height for some positions.
-		offset = $(this.selector).offset();
-		w = $(this.selector).width();
-		h = $(this.selector).height();
-		
-		// The tip is below the target.
-		if (this.position == "below") {
-			l = offset.left - 28 + Math.round(w / 2);
-			t = offset.top + h + 5;
-		}
-		
-		// The tip is to the right of the target.
-		if (this.position == "right") {
-			l = offset.left + w + 5;
-			t = offset.top - 28 + Math.round(h / 2);
-		}
-		
-		// The tip is to the left of the target.
-		if (this.position == "left") {
-			l = offset.left - container.width() - 5;
-			t = offset.top - 28 + Math.round(h / 2);
-		}
-		
-		// The tip is above of the target.
-		if (this.position == "above") {
-			l = offset.left - 28 + Math.round(w / 2);
-			t = offset.top - container.height() - 5;
-		}
-		
-		this.container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.zIndex++) }).stop().fadeTo(200, 1);
-	}
-});
+
+		return { Container: Container, Content: Content, Position: Position, Target: Target, hide: hide, show: show };
+
+	})(jQuery,settings);
+};
 
 // !BigTree Foundry Browser Class
 var BigTreeFoundryBrowser = Class.extend({
