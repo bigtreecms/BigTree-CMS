@@ -49,7 +49,7 @@
 		if (title) {
 			key = $(this).attr("name");
 			if (key != "geocoding" && key.indexOf("__mtm-") != 0) {
-				fieldSelect.addField(key,title);
+				BigTree.localFieldSelect.addField(key,title);
 			}
 		}
 		li.remove();

@@ -26,12 +26,12 @@
 	
 	$("#field_area").on("click","#field_table .icon_delete",function() {
 		li = $(this).parents("li");
-		fieldSelect.addField($(this).attr("name"),li.find("input").val());
+		BigTree.localFieldSelect.addField($(this).attr("name"),li.find("input").val());
 		li.remove();
 		return false;
 	}).on("click","#filter_table .icon_delete",function() {
 		li = $(this).parents("li");
-		filterSelect.addField($(this).attr("name"),li.find("input").val());
+		BigTree.localFilterSelect.addField($(this).attr("name"),li.find("input").val());
 		li.remove();
 		return false;
 	});

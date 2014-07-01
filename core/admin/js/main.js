@@ -3,7 +3,7 @@ $(document).ready(function() {
 	BigTreePageLoadHooks.init();
 	//BigTreeQuickLoader.init();
 	
-	// !BigTree Quick Search
+	// BigTree Quick Search
 	$('nav.main form .qs_query').keyup(function(ev) {
 		var v = $(this).val();
 		if (v && ev.keyCode != 9) { //no tabs!
@@ -69,7 +69,7 @@ var BigTreePageLoadHooks = (function($) {
 
 	function init() {
 
-		// !BigTree Link Finder
+		// Link Finder
 		$("#link_finder").keyup(function() {
 			var q = $(this).val();
 			if (q == "") {
@@ -81,7 +81,7 @@ var BigTreePageLoadHooks = (function($) {
 			}
 		});
 		
-		// !BigTree Sticky Controls
+		// Sticky Controls
 		StickyControls.$el = $(".sticky_controls");
 		if (StickyControls.$el.length) {
 			StickyControls.top = StickyControls.$el.offset().top;
@@ -1002,7 +1002,6 @@ var BigTreePhotoGallery = function(settings) {
 	})(jQuery,settings);
 };
 
-// !BigTree Tag Adder Object
 var BigTreeTagAdder = (function($) {
 	
 	var Dropdown = false;
@@ -2093,94 +2092,104 @@ var BigTreeManyToMany = function(settings) {
 	})(jQuery,settings);
 };
 
-// !BigTreeFieldSelect
-var BigTreeFieldSelect = Class.extend({
-	addCallback: false,
-	currentElement: 0,
-	elements: false,
-	container: false,
-	
-	init: function(selector,elements,callback) {
-		fs = $('<div class="field_selector">');
-		ophtml = "";
-		for (i = 0; i < elements.length; i++) {
-			ophtml += '<a href="#' + elements[i].title + '">' + elements[i].field + '</a>';
-		}
-		if (elements.length == 0) {
-			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="handle"></span><span class="current"><p></p>' + ophtml + '</span>');
-		} else {
-			fs.html('<a href="#" class="add_field"></a><div><span class="dd">' + ophtml + '</span></div><span class="handle"></span><span class="current"><p>' + elements[0].field + '</p>' + ophtml + '</span>');
-		}
-		$(selector).prepend(fs);
-		
-		fs.find("p, .handle").click($.proxy(this.click,this));
-		
-		fs.find(".dd").on("click","a",$.proxy(function(ev) {
-			el = ev.currentTarget;
-			p = $(el).parents(".field_selector");
-			p.find("p").html($(el).html());
-			i = p.find(".dd").hide().find("a").index(el);
-			this.currentElement = i;
-			return false;
-		},this));
-		
-		fs.find(".add_field").click($.proxy(function() {
-			el = this.elements[this.currentElement];
-			this.addCallback(el,this);
-			return false;
-		},this));
-		
-		this.elements = elements;
-		this.container = fs;
-		this.addCallback = callback;
-		
-		if (this.elements.length == 0) {
-			this.container.hide();
-		}
-	},
-	
-	addField: function(field,title) {
-		this.container.find(".dd").append($('<a href="#' + title + '">' + field + '</a>'));
-		this.container.find(".current").append($('<a href="#' + title + '">' + field + '</a>'));
-		this.elements.push({ field: field, title: title });
-		if (this.elements.length == 1) {
-			this.container.find("p").html(this.elements[0].field);
-			this.container.show();
-		}
-	},
-	
-	click: function(ev) {
-		p = $(ev.currentTarget);
-		dd = p.parents(".field_selector").find(".dd");
-		if (dd.hasClass("open")) {
-			this.close();
-		} else {
-			if (dd.find("a").length > 1) {
-				dd.show().addClass("open");
-				this.BoundWindowClick = $.proxy(this.close,this);
-				$("body").bind("click",this.BoundWindowClick);
+var BigTreeFieldSelect = function(settings) {
+	return (function($,settings) {
+
+		var Callback;
+		var Container;
+		var CurrentElement = 0;
+		var CurrentlyContainer;
+		var CurrentlyP;
+		var Dropdown;
+		var Elements;
+
+		function addField(field,title) {
+			Dropdown.append($('<a href="#' + title + '">' + field + '</a>'));
+			CurrentlyContainer.append($('<a href="#' + title + '">' + field + '</a>'));
+			Elements.push({ field: field, title: title });
+
+			// If we previously had no fields, show it again.
+			if (Elements.length == 1) {
+				Container.find("p").html(Elements[0].field);
+				Container.show();
 			}
+		};
+		
+		function click(ev) {
+			if (Dropdown.hasClass("open")) {
+				close();
+			} else {
+				if (Dropdown.find("a").length > 1) {
+					Dropdown.show().addClass("open");
+					$("body").bind("click",close);
+				}
+			}
+			return false;
+		};
+		
+		function close() {
+			$(window).unbind("click",close);
+			Dropdown.removeClass("open").hide();
+		};
+		
+		function removeCurrent() {
+			Dropdown.find("a").eq(CurrentElement).remove();
+			CurrentlyContainer.find("a").eq(CurrentElement).remove();
+			Elements.splice(CurrentElement,1);
+			CurrentElement = 0;
+			
+			if (Elements.length == 0) {
+				Container.hide();
+			} else {
+				CurrentlyP.html(Elements[0].field);
+			}
+		};
+
+		// Init routine
+		Container = $('<div class="field_selector">');
+		Elements = settings.elements;
+		Callback = settings.callback;
+
+		// Build the element
+		var option_html = "";
+		for (var i = 0; i < Elements.length; i++) {
+			option_html += '<a href="#' + Elements[i].title + '">' + Elements[i].field + '</a>';
 		}
-		return false;
-	},
-	
-	close: function() {
-		$(window).unbind("click",this.BoundWindowClick);
-		$(".field_selector .dd").removeClass("open").hide();
-	},
-	
-	removeCurrent: function() {
-		this.container.find(".dd a").eq(this.currentElement).remove();
-		this.container.find(".current a").eq(this.currentElement).remove();
-		this.elements.splice(this.currentElement,1);
-		this.currentElement = 0;
-		if (this.elements.length == 0) {
-			this.container.hide();
+		if (Elements.length == 0) {
+			Container.html('<a href="#" class="add_field"></a><div><span class="dd">' + option_html + '</span></div><span class="handle"></span><span class="current"><p></p>' + option_html + '</span>');
 		} else {
-			this.container.find("p").html(this.elements[0].field);
+			Container.html('<a href="#" class="add_field"></a><div><span class="dd">' + option_html + '</span></div><span class="handle"></span><span class="current"><p>' + Elements[0].field + '</p>' + option_html + '</span>');
 		}
-	}
-});
+		$(settings.selector).prepend(Container);
+
+		// Cache some DOM
+		Dropdown = Container.find(".dd");
+		CurrentlyContainer = Container.find(".current");
+		CurrentlyP = CurrentlyContainer.find("p");
+		
+		// Action hooks
+		Container.find("p, .handle").click(click);
+		Container.find(".add_field").click(function() {
+			var element = Elements[CurrentElement];
+			Callback(element,{ Callback: Callback, Container: Container, CurrentElement: CurrentElement, Elements: Elements, addField: addField, removeCurrent: removeCurrent });
+			return false;
+		});
+
+		Dropdown.on("click","a",function(ev) {
+			var element = ev.currentTarget;
+			CurrentlyP.html($(element).html());
+			CurrentElement = Dropdown.hide().find("a").index(element);
+			return false;
+		});
+		
+		if (Elements.length == 0) {
+			Container.hide();
+		}
+
+		return { Callback: Callback, Container: Container, CurrentElement: CurrentElement, Elements: Elements, addField: addField, removeCurrent: removeCurrent };
+
+	})(jQuery,settings);
+};
 
 // !BigTreeFormValidator
 var BigTreeFormValidator = Class.extend({

@@ -138,28 +138,36 @@
 </fieldset>
 
 <script>
-	fieldSelect = new BigTreeFieldSelect("#field_table header",<?=json_encode($unused_fields)?>,function(el,fs) {
-		title = el.title;
-		key = el.field;
-		
-		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_report_field_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + ']" value="' + title + '" /></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
-		
-		$("#field_table ul").append(li);
-		fs.removeCurrent();
-		BigTree.localHooks();
+	BigTree.localFieldSelect = new BigTreeFieldSelect({
+		selector: "#field_table header",
+		elements: <?=json_encode($unused_fields)?>,
+		callback: function(el,fs) {
+			var title = el.title;
+			var key = el.field;
+			
+			var li = $('<li id="row_' + key + '">');
+			li.html('<section class="developer_report_field_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + ']" value="' + title + '" /></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			
+			$("#field_table ul").append(li);
+			fs.removeCurrent();
+			BigTree.localHooks();
+		}
 	});
 
-	filterSelect = new BigTreeFieldSelect("#filter_table header",<?=json_encode($unused_filters)?>,function(el,fs) {
-		title = el.title;
-		key = el.field;
-		
-		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><? foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
-		
-		$("#filter_table ul").append(li);
-		fs.removeCurrent();
-		BigTree.localHooks();
+	BigTree.localFilterSelect = new BigTreeFieldSelect({
+		selector: "#filter_table header",
+		elements: <?=json_encode($unused_filters)?>,
+		callback: function(el,fs) {
+			var title = el.title;
+			var key = el.field;
+			
+			var li = $('<li id="row_' + key + '">');
+			li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><? foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			
+			$("#filter_table ul").append(li);
+			fs.removeCurrent();
+			BigTree.localHooks();
+		}
 	});
 </script>
 <?

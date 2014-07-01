@@ -137,13 +137,13 @@
 	var _local_BigTreeCustomAction = false;
 
 	$(".form_table").on("click",".icon_delete",function() {
-		tf = $(this).parents("li").find("section").find("input");
+		var tf = $(this).parents("li").find("section").find("input");
 		
-		title = tf.val();
-		key = tf.attr("name").substr(7);
+		var title = tf.val();
+		var key = tf.attr("name").substr(7);
 		key = key.substr(0,key.length-8);
 		
-		fieldSelect.addField(key,title);
+		BigTree.localFieldSelect.addField(key,title);
 
 		$(this).parents("li").remove();		
 		return false;
@@ -195,33 +195,37 @@
 	
 	BigTree.localHooks();
 	
-	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
-		title = el.title;
-		key = el.field;
-		
-		if (title) {
-			li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-		
-			fs.removeCurrent();
-			$("#sort_table").append(li);
-			BigTree.localHooks();
-		} else {
-			new BigTreeDialog({
-				title: "Add Custom Column",
-				content: '<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset class="last"><label>Column Title</label><input type="text" name="title" /></fieldset>',
-				icon: "add",
-				alternateSaveText: "Add",
-				callback: function(data) {
-					key = htmlspecialchars(data.key);
-					title = htmlspecialchars(data.title);
-					
-					li = $('<li id="row_' + key + '">');
-					li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
-					$("#sort_table").append(li);
-					BigTree.localHooks();
-				}
-			});
+	BigTree.localFieldSelect = new BigTreeFieldSelect({
+		selector: ".form_table header",
+		elements: <?=json_encode($unused)?>,
+		callback: function(el,fs) {
+			var title = el.title;
+			var key = el.field;
+			
+			if (title) {
+				var li = $('<li id="row_' + key + '">');
+				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+			
+				fs.removeCurrent();
+				$("#sort_table").append(li);
+				BigTree.localHooks();
+			} else {
+				new BigTreeDialog({
+					title: "Add Custom Column",
+					content: '<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset class="last"><label>Column Title</label><input type="text" name="title" /></fieldset>',
+					icon: "add",
+					alternateSaveText: "Add",
+					callback: function(data) {
+						var key = htmlspecialchars(data.key);
+						var title = htmlspecialchars(data.title);
+						
+						var li = $('<li id="row_' + key + '">');
+						li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+						$("#sort_table").append(li);
+						BigTree.localHooks();
+					}
+				});
+			}
 		}
 	});
 </script>

@@ -225,16 +225,20 @@
 <script>
 	BigTree.localMTMCount = <?=$mtm_count?>;
 	
-	fieldSelect = new BigTreeFieldSelect(".form_table header",<?=json_encode($unused)?>,function(el,fs) {
-		title = el.title;
-		key = el.field;
-		
-		li = $('<li id="row_' + key + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
-		
-		$("#resource_table").append(li);
-		fs.removeCurrent();
-		BigTree.localHooks();
+	BigTree.localFieldSelect = new BigTreeFieldSelect({
+		selector: ".form_table header",
+		elements: <?=json_encode($unused)?>,
+		callback: function(el,fs) {
+			var title = el.title;
+			var key = el.field;
+			
+			var li = $('<li id="row_' + key + '">');
+			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			
+			$("#resource_table").append(li);
+			fs.removeCurrent();
+			BigTree.localHooks();
+		}
 	});
 </script>
 <?
