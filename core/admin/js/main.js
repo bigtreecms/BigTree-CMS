@@ -2446,129 +2446,155 @@ var BigTreeFilesystemBrowser = function(settings) {
 	})(jQuery,settings);
 };
 
-var BigTreeCallouts = {
-	count: 0,
+var BigTreeCallouts = function(settings) {
+	return (function($,settings) {
 
-	init: function(container,key,noun,group) {
-		$(container).on("click",".add_callout",function() {
-			BigTreeCallouts.activeContainer = $(this).parent();
-			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: BigTreeCallouts.count, group: group, key: key }, complete: function(response) {
+		var Container;
+		var Count;
+		var Current;
+		var Description;
+		var DescriptionField;
+		var Group;
+		var Key;
+		var LastDialog;
+		var List;
+		var Noun;
+		var Number;
+
+		function addCallout() {
+			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, group: Group, key: Key }, complete: function(response) {
 				new BigTreeDialog({
-					title: "Add " + noun,
+					title: "Add " + Noun,
 					content: response.responseText,
 					icon: "callout",
 					preSubmissionCallback: true,
 					callback: function(e) {		
 						e.preventDefault();
 						
-						article = BigTreeCallouts.GetCallout();
+						var article = getCallout();
 						if (!article) {
 							return false;
 						}
 		
 						// Add the callout and hide the dialog.
-						$(BigTreeCallouts.activeContainer).find(".contain").append(article);
-						last_dialog.parents("div").remove();
-						last_dialog.remove();
+						List.append(article);
+						LastDialog.parents("div").remove();
+						LastDialog.remove();
 						$(".bigtree_dialog_overlay").last().remove();
 						
 						// Fill out the callout description.
-						article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
+						article.find("h4").html(Description + '<input type="hidden" name="' + Key + '[' + Number + '][display_title]" value="' + htmlspecialchars(Description) + '" />');
 						
-						BigTreeCallouts.count++;
-						
+						Count++;
 						return false;
 					}
 				});
 			}});
-			
 			return false;
-		}).on("click",".icon_edit",function() {
-			BigTreeCallouts.current = $(this).parents("article");
+		};
+
+		function editCallout() {
+			Current = $(this).parents("article");
 			
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: BigTreeCallouts.count, data: BigTreeCallouts.current.find(".callout_data").val(), group: group, key: key }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: Current.find(".callout_data").val(), group: Group, key: Key }, complete: function(response) {
 				new BigTreeDialog({
-					title: "Edit " + noun,
+					title: "Edit " + Noun,
 					content: response.responseText,
 					icon: "callout",
 					preSubmissionCallback: true,
 					callback: function(e) {
 						e.preventDefault();
 						
-						article = BigTreeCallouts.GetCallout();
+						var article = getCallout();
 						if (!article) {
 							return false;
 						}
 		
-						BigTreeCallouts.current.replaceWith(article);
-						last_dialog.parents("div").remove();
-						last_dialog.remove();
+						Current.replaceWith(article);
+						LastDialog.parents("div").remove();
+						LastDialog.remove();
 						$(".bigtree_dialog_overlay").last().remove();
 						
-						article.find("h4").html(BigTreeCallouts.description + '<input type="hidden" name="' + key + '[' + BigTreeCallouts.number + '][display_title]" value="' + htmlspecialchars(BigTreeCallouts.description) + '" />');
+						article.find("h4").html(Description + '<input type="hidden" name="' + Key + '[' + Number + '][display_title]" value="' + htmlspecialchars(Description) + '" />');
 						
-						BigTreeCallouts.count++;
-						
+						Count++;
 						return false;
 					}
 				});
 			}});
-			
 			return false;
-		}).on("click",".icon_delete",function() {
+		};
+
+		function deleteCallout() {
 			new BigTreeDialog({
-				title: "Delete " + noun,
-				content: '<p class="confirm">Are you sure you want to delete this ' + noun.toLowerCase() + '?</p>',
+				title: "Delete " + Noun,
+				content: '<p class="confirm">Are you sure you want to delete this ' + Noun.toLowerCase() + '?</p>',
 				callback: $.proxy(function() { $(this).parents("article").remove(); },this),
 				icon: "delete",
 				alternateSaveText: "OK"
 			});
 			return false;
-		}).find(".contain").sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-	},
+		};
 
-	GetCallout: function() {
-		last_dialog = $(".bigtree_dialog_form").last();
-
-		// Validate required fields.
-		v = new BigTreeFormValidator(last_dialog);
-		if (!v.validateForm(false,true)) {
-			return false;
-		}
-		
-		article = $('<article>');
-		article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-		
-		BigTreeCallouts.number = last_dialog.find("input.callout_count").val();
-		// Try our best to find some way to describe the callout
-		BigTreeCallouts.description = "";
-		BigTreeCallouts.descriptionField = last_dialog.find("[name='" + last_dialog.find(".display_field").val() + "']");
-		if (BigTreeCallouts.descriptionField.is('select')) {
-			BigTreeCallouts.description = BigTreeCallouts.descriptionField.find("option:selected").text();
-		} else {
-			BigTreeCallouts.description = BigTreeCallouts.descriptionField.val();
-		}
-		if ($.trim(BigTreeCallouts.description) == "") {
-			BigTreeCallouts.description = last_dialog.find(".display_default").val();
-		}
-		
-		// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
-		last_dialog.find("input, textarea, select").each(function() {
-			if ($(this).attr("type") != "submit") {
-				if ($(this).is("textarea") && $(this).css("display") == "none") {
-					var mce = tinyMCE.get($(this).attr("id"));
-					if (mce) {
-						mce.save();
-						tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-					}
-				}
-				$(this).hide().get(0).className = "";
-				article.append($(this));
+		function getCallout() {
+			LastDialog = $(".bigtree_dialog_form").last();
+	
+			// Validate required fields.
+			var v = new BigTreeFormValidator(LastDialog);
+			if (!v.validateForm(false,true)) {
+				return false;
 			}
-		});
+			
+			var article = $('<article>');
+			article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
+			
+			Number = LastDialog.find("input.callout_count").val();
+			// Try our best to find some way to describe the callout
+			Description = "";
+			DescriptionField = LastDialog.find("[name='" + LastDialog.find(".display_field").val() + "']");
+			if (DescriptionField.is('select')) {
+				Description = DescriptionField.find("option:selected").text();
+			} else {
+				Description = DescriptionField.val();
+			}
+			if ($.trim(Description) == "") {
+				Description = LastDialog.find(".display_default").val();
+			}
+			
+			// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
+			LastDialog.find("input, textarea, select").each(function() {
+				if ($(this).attr("type") != "submit") {
+					if ($(this).is("textarea") && $(this).css("display") == "none") {
+						var mce = tinyMCE.get($(this).attr("id"));
+						if (mce) {
+							mce.save();
+							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
+						}
+					}
+					$(this).hide().get(0).className = "";
+					article.append($(this));
+				}
+			});
+	
+			return article;
+		};
 
-		return article;
-	}
+		// Init routine
+		Container = $(settings.selector);
+		Count = settings.count ? settings.count : 0;
+		Key = settings.key;
+		Noun = settings.noun;
+		Group = settings.group;
+		List = Container.find(".contain");
+
+		Container.find(".add_callout").click(addCallout);
+		Container.on("click",".icon_edit",editCallout);
+		Container.on("click",".icon_delete",deleteCallout);
+		List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+
+		return { Container: Container, Count: Count, Key: Key, Group: Group, List: List, addCallout: addCallout };
+			
+	})(jQuery,settings);
 };
 
 var BigTree = {
