@@ -2400,38 +2400,52 @@ var BigTreeToolTip = function(settings) {
 	})(jQuery,settings);
 };
 
-// !BigTree Foundry Browser Class
-var BigTreeFoundryBrowser = Class.extend({
+var BigTreeFilesystemBrowser = function(settings) {
+	return (function($,settings) {
 
-	onComplete: false,
+		var Callback = false;
+		var Container;
+		var Defaults = { directory: "/", enableCloudServices: true, preventBelowBaseDirectory: true }
 
-	init: function(directory,oncomplete,cloud_disabled,file,location,container,base_lock) {
-		this.onComplete = oncomplete;
-		overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
-		browserwindow = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.zIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
-		$("body").append(overlay).append(browserwindow);
-		if (base_lock) {
-			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: directory, directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
-		} else {
-			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: directory, cloud_disabled: cloud_disabled, file: file, location: location, container: container });
+		function submit() {
+			var data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location").val() };
+			if (Callback) {
+				Callback(data);
+			}
+			$(".bigtree_dialog_overlay").last().remove();
+			Container.remove();
+			BigTree.zIndex -= 2;
+			return false;
+		};
+
+		// Init routine
+		for (var i in settings) {
+			Defaults[i] = settings[i];
 		}
-		leftd = parseInt((BigTree.WindowWidth() - 602) / 2);
-		topd = parseInt((BigTree.WindowHeight() - 402) / 2);
+		if (settings.callback) {
+			Callback = settings.callback;
+		}
 
-		$("#bigtree_foundry_browser_window").css({ "top": topd + "px", "left": leftd + "px" });
-		$("#bigtree_foundry_browser_form").submit($.proxy(this.BrowserSubmit,this));
-	},
+		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		Container = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.zIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
+		$("body").append(overlay).append(Container);
+		
+		if (Defaults.preventBelowBaseDirectory) {
+			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: Defaults.directory, directory: Defaults.directory, cloud_disabled: !Defaults.enableCloudServices, file: Defaults.currentFile, location: Defaults.cloudLocation, container: Defaults.cloudContainer });
+		} else {
+			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: Defaults.directory, cloud_disabled: !Defaults.enableCloudServices, file: Defaults.currentFile, location: Defaults.cloudLocation, container: Defaults.cloudContainer });
+		}
 
-	BrowserSubmit: function(ev) {
-		data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location").val() };
-		this.onComplete(data);
-		$(".bigtree_dialog_overlay").last().remove();
-		$("#bigtree_foundry_browser_window").remove();
-		BigTree.zIndex -= 2;
-		return false;
+		var left_offset = parseInt((BigTree.WindowWidth() - 602) / 2);
+		var top_offset = parseInt((BigTree.WindowHeight() - 402) / 2);
 
-	}
-});
+		Container.css({ "top": top_offset + "px", "left": left_offset + "px" });
+		Container.find("form").submit(submit);
+
+		return { Callback: Callback, Container: Container, Settings: Defaults, submit: submit };
+
+	})(jQuery,settings);
+};
 
 // !BigTree Object
 var BigTree = {

@@ -59,12 +59,15 @@
 	});
 
 	$(".add_file a").click(function(ev) {
-		new BigTreeFoundryBrowser("",function(data) {
-			li = $("<li>");
-			li.html('<input type="hidden" name="files[]" value="<?=SERVER_ROOT?>' + data.directory + data.file + '" /><a href="#" class="icon_small icon_small_delete"></a>' + data.directory + data.file);
-			$("#package_files").append(li);
-		},true);
-		return false;
+		new BigTreeFilesystemBrowser({
+			directory: "",
+			callback: function(data) {
+				var li = $("<li>");
+				li.html('<input type="hidden" name="files[]" value="<?=SERVER_ROOT?>' + data.directory + data.file + '" /><a href="#" class="icon_small icon_small_delete"></a>' + data.directory + data.file);
+				$("#package_files").append(li);
+			},
+			enableCloudServices: false
+		});
 	});
 
 	$(".package_column").on("click",".icon_small_export",function() {
