@@ -8,7 +8,7 @@
 		if (response) {
 			document.location.href = "<?=MODULE_ROOT?>";
 		} else {
-			BigTree.Growl("Analytics","Caching Failed",5000,"error");
+			BigTree.growl("Analytics","Caching Failed",5000,"error");
 			$(".container section p").html('Caching failed. Please return to the configuration screen by <a href="../configure/">clicking here</a>.');
 		}
 	}});

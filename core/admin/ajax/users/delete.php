@@ -4,4 +4,4 @@
 	$admin->deleteUser($_POST["id"]);
 ?>
 $("#row_<?=$_POST["id"]?>").remove();
-BigTree.Growl("Users","Deleted User");
+BigTree.growl("Users","Deleted User");

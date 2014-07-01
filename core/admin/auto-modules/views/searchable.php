@@ -71,7 +71,7 @@
 	};
 	
 	$(".table").on("click",".sort_column",function() {
-		BigTree.localSortDirection = BigTree.CleanHref($(this).attr("href"));
+		BigTree.localSortDirection = BigTree.cleanHref($(this).attr("href"));
 		BigTree.localSortColumn = $(this).attr("name");
 		if ($(this).hasClass("asc") || $(this).hasClass("desc")) {
 			$(this).toggleClass("asc").toggleClass("desc");
@@ -99,7 +99,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.CleanHref($(this).attr("href")));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
 
 		return false;
 	});

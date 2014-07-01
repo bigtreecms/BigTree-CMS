@@ -152,9 +152,9 @@
 <script>
 	BigTree.localPagesOfMessages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
 	
-	BigTree.SetPageCount("#unread_paging",<?=$unread_pages?>,1);
-	BigTree.SetPageCount("#read_paging",<?=$read_pages?>,1);
-	BigTree.SetPageCount("#sent_paging",<?=$sent_pages?>,1);
+	BigTree.setPageCount("#unread_paging",<?=$unread_pages?>,1);
+	BigTree.setPageCount("#read_paging",<?=$read_pages?>,1);
+	BigTree.setPageCount("#sent_paging",<?=$sent_pages?>,1);
 	
 	$(".table").on("click",".view_paging a",function() {
 		page = parseInt($(this).attr("href").substr(1));
@@ -162,7 +162,7 @@
 		$(this).parents("ul").find(".active").removeClass("active");
 		
 		id = $(this).parents("ul").attr("id");
-		BigTree.SetPageCount("#" + id,BigTree.localPagesOfMessages[id],page);
+		BigTree.setPageCount("#" + id,BigTree.localPagesOfMessages[id],page);
 		
 		return false;
 	});

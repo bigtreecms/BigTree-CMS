@@ -1,4 +1,4 @@
 <?
 	header("Content-type: text/javascript");
 ?>
-BigTree.Growl("Error","You have been signed out.");
+BigTree.growl("Error","You have been signed out.");

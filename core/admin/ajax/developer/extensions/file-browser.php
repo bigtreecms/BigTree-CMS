@@ -149,7 +149,7 @@
 	
 	$("#bigtree_foundry_browser_window a.button").click(function() {
 		$(".bigtree_dialog_overlay, #bigtree_foundry_browser_window").remove();
-		BigTree.zIndex -= 2;
+		BigTree.ZIndex -= 2;
 		return false;
 	});
 </script>

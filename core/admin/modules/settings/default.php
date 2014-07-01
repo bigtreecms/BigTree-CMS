@@ -32,7 +32,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=" + BigTree.CleanHref($(this).attr("href")) + "&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/settings/get-page/?page=" + BigTree.cleanHref($(this).attr("href")) + "&query=" + escape($("#query").val()));
 
 		return false;
 	});

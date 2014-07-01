@@ -130,8 +130,8 @@
 			content: '<fieldset class="last"><label>Short Description <small>(quick reminder of what\'s special about this revision)</small></label><input type="text" name="description" /></fieldset>',
 			callback: $.proxy(function(d) {
 				// If there's no href it's because it's the currently published copy we're saving.
-				if (BigTree.CleanHref($(this).attr("href"))) {
-					id = BigTree.CleanHref($(this).attr("href"));
+				if (BigTree.cleanHref($(this).attr("href"))) {
+					id = BigTree.cleanHref($(this).attr("href"));
 				} else {
 					id = "c<?=$page["id"]?>";
 				}
@@ -151,9 +151,9 @@
 				icon: "delete",
 				alternateSaveText: "OK",
 				callback: $.proxy(function() {
-					$.ajax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.CleanHref($(this).attr("href")));
+					$.ajax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.cleanHref($(this).attr("href")));
 					$(this).parents("li").remove();
-					BigTree.Growl("Pages","Deleted Revision");
+					BigTree.growl("Pages","Deleted Revision");
 				},this)
 			});
 		} else {
@@ -165,7 +165,7 @@
 				callback: $.proxy(function() {
 					$.ajax($(this).attr("href"));
 					$(this).parents("li").remove();
-					BigTree.Growl("Pages","Deleted Draft");
+					BigTree.growl("Pages","Deleted Draft");
 				},this)
 			});
 		}
@@ -179,10 +179,10 @@
 				title: "Use Revision",
 				content: '<p class="confirm">Are you sure you want to overwrite your existing draft with this revision?</p>',
 				alternateSaveText: "Overwrite"
-				callback: $.proxy(function() { document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.CleanHref($(this).attr("href")); },this)
+				callback: $.proxy(function() { document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href")); },this)
 			});
 		} else {
-			document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.CleanHref($(this).attr("href"));
+			document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href"));
 		}
 		return false;
 	});

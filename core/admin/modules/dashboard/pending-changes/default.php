@@ -204,14 +204,14 @@
 	$(".icon_approve").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.Growl($(this).attr("data-module"),"Approved Change");
+		BigTree.growl($(this).attr("data-module"),"Approved Change");
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.Growl($(this).attr("data-module"),"Rejected Change");
+		BigTree.growl($(this).attr("data-module"),"Rejected Change");
 		return false;
 	});
 </script>

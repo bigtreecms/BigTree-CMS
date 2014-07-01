@@ -20,7 +20,7 @@
 			id = $(this).attr("href").substr(1);
 			$(this).parents("li").remove();
 			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/ignore/", { data: { id: id }, type: "POST" });
-			BigTree.Growl("404 Report","Ignored 404");
+			BigTree.growl("404 Report","Ignored 404");
 			
 			return false;
 		});
@@ -29,7 +29,7 @@
 			id = $(this).attr("href").substr(1);
 			$(this).parents("li").remove();
 			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/unignore/", { data: { id: id }, type: "POST" });
-			BigTree.Growl("404 Report","Unignored 404");
+			BigTree.growl("404 Report","Unignored 404");
 			
 			return false;
 		});
@@ -44,7 +44,7 @@
 					id = $(this).attr("href").substr(1);
 					$(this).parents("li").remove();
 					$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
-					BigTree.Growl("404 Report","Deleted 404");
+					BigTree.growl("404 Report","Deleted 404");
 				},this)
 			});
 			
@@ -69,7 +69,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>", page: BigTree.CleanHref($(this).attr("href")) }, BigTree.localHooks);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/dashboard/404/search/", { search: $("#404_search").val(), type: "<?=$type?>", page: BigTree.cleanHref($(this).attr("href")) }, BigTree.localHooks);
 
 		return false;
 	});

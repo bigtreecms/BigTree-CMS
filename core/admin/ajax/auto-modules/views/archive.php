@@ -3,9 +3,9 @@
 	
 	if ($item["archived"]) {
 		if ($access_level != "p") {
-			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
+			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
-			echo 'BigTree.Growl("'.$module["name"].'","Item is now unarchived.");';
+			echo 'BigTree.growl("'.$module["name"].'","Item is now unarchived.");';
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET archived = '' WHERE id = '$id'");
 			} else {
@@ -14,9 +14,9 @@
 		}
 	} else {
 		if ($access_level != "p") {
-			echo 'BigTree.Growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
+			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
-			echo 'BigTree.Growl("'.$module["name"].'","Item is now archived.");';
+			echo 'BigTree.growl("'.$module["name"].'","Item is now archived.");';
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET archived = 'on' WHERE id = '$id'");
 			} else {

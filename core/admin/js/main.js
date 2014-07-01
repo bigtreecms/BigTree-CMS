@@ -1,7 +1,6 @@
 $(document).ready(function() {
 	BigTreeCustomControls();
 	BigTreePageLoadHooks.init();
-	//BigTreeQuickLoader.init();
 	
 	// BigTree Quick Search
 	$('nav.main form .qs_query').keyup(function(ev) {
@@ -65,7 +64,7 @@ function BigTreeCustomControls(selector) {
 
 var BigTreePageLoadHooks = (function($) {
 
-	var StickyControls = { $el: false, stuck: false, top: false };
+	var StickyControls = { element: false, stuck: false, top: false };
 
 	function init() {
 
@@ -82,23 +81,23 @@ var BigTreePageLoadHooks = (function($) {
 		});
 		
 		// Sticky Controls
-		StickyControls.$el = $(".sticky_controls");
-		if (StickyControls.$el.length) {
-			StickyControls.top = StickyControls.$el.offset().top;
+		StickyControls.element = $(".sticky_controls");
+		if (StickyControls.element.length) {
+			StickyControls.top = StickyControls.element.offset().top;
 			
 			if (window.scrollY >= StickyControls.top && !StickyControls.stuck) {
 				StickyControls.stuck = true;
-				StickyControls.$el.addClass("stuck");
+				StickyControls.element.addClass("stuck");
 			}
 			
 			$(window).scroll(function() {
 				if (window.scrollY >= StickyControls.top && !StickyControls.stuck) {
 					StickyControls.stuck = true;
-					StickyControls.$el.addClass("stuck");
+					StickyControls.element.addClass("stuck");
 				}
 				if (window.scrollY < StickyControls.top && StickyControls.stuck) {
 					StickyControls.stuck = false;
-					StickyControls.$el.removeClass("stuck");
+					StickyControls.element.removeClass("stuck");
 				}
 			});
 		}
@@ -124,7 +123,7 @@ var BigTreePageLoadHooks = (function($) {
 		
 		// Tooltips
 		$(".has_tooltip").each(function() {
-			var width = BigTree.WindowWidth();
+			var width = BigTree.windowWidth();
 			var offset = $(this).offset();
 			if (offset.left > (width / 2)) {
 				var position = "left";
@@ -138,7 +137,7 @@ var BigTreePageLoadHooks = (function($) {
 			});
 		});
 	
-		BigTree.FormHooks(".container form");
+		BigTree.formHooks(".container form");
 	}
 
 	return { init: init }
@@ -1148,7 +1147,7 @@ var BigTreeDialog = function(settings) {
 				$(".bigtree_dialog_overlay").last().remove();
 				$(".bigtree_dialog_window").last().remove();
 				$("body").off("keyup",checkForEsc);
-				BigTree.zIndex -= 2;
+				BigTree.ZIndex -= 2;
 			}
 			return false;
 		};
@@ -1166,7 +1165,7 @@ var BigTreeDialog = function(settings) {
 			}
 	
 			// Pass the form data to our callback as JSON
-			OnComplete(BigTree.CleanObject(DialogWindow.find(".bigtree_dialog_form").serializeJSON()));
+			OnComplete(BigTree.cleanObject(DialogWindow.find(".bigtree_dialog_form").serializeJSON()));
 			
 			// Remove the dialog
 			$(".bigtree_dialog_overlay").last().remove();
@@ -1183,8 +1182,8 @@ var BigTreeDialog = function(settings) {
 		};
 
 		function windowResize(ev,animate) {
-			var left_offset = parseInt((BigTree.WindowWidth() - DialogWidth) / 2);
-			var top_offset = parseInt((BigTree.WindowHeight() - DialogHeight) / 2);
+			var left_offset = parseInt((BigTree.windowWidth() - DialogWidth) / 2);
+			var top_offset = parseInt((BigTree.windowHeight() - DialogHeight) / 2);
 			
 			if (animate) {
 				DialogWindow.animate({ "top": top_offset + "px", "left": left_offset + "px" }, 200);
@@ -1232,8 +1231,8 @@ var BigTreeDialog = function(settings) {
 		$("body").on("keyup",checkForEsc);
 
 		// Build our window
-		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
-		DialogWindow = $('<div class="bigtree_dialog_window">').css({ zIndex: BigTree.zIndex++ });
+		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.ZIndex++) + ';">');
+		DialogWindow = $('<div class="bigtree_dialog_window">').css({ zIndex: BigTree.ZIndex++ });
 		$("body").append(overlay).append(DialogWindow);
 
 		// Fill the window
@@ -1252,9 +1251,9 @@ var BigTreeDialog = function(settings) {
 
 		DialogWidth = DialogWindow.width();
 		DialogHeight = DialogWindow.height();
-		DialogWindow.css({ left: parseInt((BigTree.WindowWidth() - DialogWidth) / 2) + "px", top: parseInt((BigTree.WindowHeight() - DialogHeight) / 2) + "px" });
+		DialogWindow.css({ left: parseInt((BigTree.windowWidth() - DialogWidth) / 2) + "px", top: parseInt((BigTree.windowHeight() - DialogHeight) / 2) + "px" });
 
-		BigTree.FormHooks(DialogWindow);
+		BigTree.formHooks(DialogWindow);
 				
 		// Hook cancel button
 		DialogWindow.find(".bigtree_dialog_close").click(dialogClose);
@@ -1327,7 +1326,7 @@ var BigTreeFileManager = (function($) {
 	function cancelAdd() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
-		BigTree.zIndex -= 2;
+		BigTree.ZIndex -= 2;
 		
 		return false;
 	};
@@ -1361,7 +1360,7 @@ var BigTreeFileManager = (function($) {
 	function closeFileBrowser() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
-		BigTree.zIndex = BigTree.zIndexBackup;
+		BigTree.ZIndex = BigTree.ZIndexBackup;
 		$("#mceModalBlocker, #mce-modal-block").show();
 		
 		return false;
@@ -1476,7 +1475,7 @@ var BigTreeFileManager = (function($) {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
-		BigTree.zIndex -= 3;
+		BigTree.ZIndex -= 3;
 		
 		if (Type == "image" || Type == "photo-gallery") {
 			openImageFolder(CurrentFolder);	
@@ -1557,19 +1556,19 @@ var BigTreeFileManager = (function($) {
 		MinHeight = min_height;
 			
 		// Figure out where to put the window.
-		var width = BigTree.WindowWidth();
-		var height = BigTree.WindowHeight();
+		var width = BigTree.windowWidth();
+		var height = BigTree.windowHeight();
 		var left_offset = Math.round((width - 820) / 2);
 		var top_offset = Math.round((height - 500) / 2);
 
 		// Set BigTree's zIndex super high because TinyMCE will try to be on top
-		BigTree.zIndexBackup = BigTree.zIndex;
-		BigTree.zIndex = 500000;
+		BigTree.ZIndexBackup = BigTree.ZIndex;
+		BigTree.ZIndex = 500000;
 		
 		// Create the window.
-		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index:' + (BigTree.zIndex++) + ';">');
+		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index:' + (BigTree.ZIndex++) + ';">');
 		
-		Browser = $('<div id="file_browser" style="z-index: ' + (BigTree.zIndex++) + ';">');
+		Browser = $('<div id="file_browser" style="z-index: ' + (BigTree.ZIndex++) + ';">');
 		Browser.css({ top: top_offset + "px", left: left_offset + "px" });
 		Browser.html('\
 <div class="header">\
@@ -2325,7 +2324,7 @@ var BigTreeToolTip = function(settings) {
 
 		function hide() {
 			Container.stop().fadeTo(200,0,Container.hide);
-			BigTree.zIndex--;
+			BigTree.ZIndex--;
 			return false;
 		};
 		
@@ -2359,7 +2358,7 @@ var BigTreeToolTip = function(settings) {
 				var t = offset.top - Container.height() - 5;
 			}
 			
-			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.zIndex++) }).stop().fadeTo(200, 1);
+			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.ZIndex++) }).stop().fadeTo(200, 1);
 		};
 
 		// 4.2 init routine
@@ -2414,7 +2413,7 @@ var BigTreeFilesystemBrowser = function(settings) {
 			}
 			$(".bigtree_dialog_overlay").last().remove();
 			Container.remove();
-			BigTree.zIndex -= 2;
+			BigTree.ZIndex -= 2;
 			return false;
 		};
 
@@ -2426,8 +2425,8 @@ var BigTreeFilesystemBrowser = function(settings) {
 			Callback = settings.callback;
 		}
 
-		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.zIndex++) + ';">');
-		Container = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.zIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
+		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.ZIndex++) + ';">');
+		Container = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.ZIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
 		$("body").append(overlay).append(Container);
 		
 		if (Defaults.preventBelowBaseDirectory) {
@@ -2436,8 +2435,8 @@ var BigTreeFilesystemBrowser = function(settings) {
 			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: Defaults.directory, cloud_disabled: !Defaults.enableCloudServices, file: Defaults.currentFile, location: Defaults.cloudLocation, container: Defaults.cloudContainer });
 		}
 
-		var left_offset = parseInt((BigTree.WindowWidth() - 602) / 2);
-		var top_offset = parseInt((BigTree.WindowHeight() - 402) / 2);
+		var left_offset = parseInt((BigTree.windowWidth() - 602) / 2);
+		var top_offset = parseInt((BigTree.windowHeight() - 402) / 2);
 
 		Container.css({ "top": top_offset + "px", "left": left_offset + "px" });
 		Container.find("form").submit(submit);
@@ -2445,356 +2444,6 @@ var BigTreeFilesystemBrowser = function(settings) {
 		return { Callback: Callback, Container: Container, Settings: Defaults, submit: submit };
 
 	})(jQuery,settings);
-};
-
-// !BigTree Object
-var BigTree = {
-	stickyControls: false,
-	stickyControlsTop: false,
-	stickyControlsStuck: false,
-	zIndex: 1000,
-
-	CleanHref: function(href) {
-		return href.substr(href.indexOf("#")+1);
-	},
-
-	CleanObject: function(o) {
-		if (typeof o != "object") {
-			return o;
-		}
-
-		if (Object.prototype.toString.call(o) === '[object Array]') {
-			var j = [];
-			for (i = 0; i < o.length; i++) {
-				if (typeof o[i] != "undefined") {
-					j[j.length] = o[i];
-				}
-			}
-		} else {
-			var j = {};
-			for (i in o) {
-				j[i] = BigTree.CleanObject(o[i]);
-			}
-		}
-		return j;
-	},
-
-	FormHooks: function(selector) {
-		$(selector).on("click",".remove_resource",function() {
-			p = $(this).parent();
-			if (p.hasClass("currently_file")) {
-				p.remove();
-			} else {
-				p.hide().find("input, img").remove();
-			}
-			return false;
-		}).on("click",".form_image_browser",function() {
-		// Form Image Browser
-			options = $.parseJSON($(this).attr("data-options"));
-			field = $(this).attr("href").substr(1);
-			BigTreeFileManager.formOpen("image",field,options);
-			return false;
-		});
-	},
-
-	growltimer: false,
-	growling: false,
-	Growl: function(title,message,time,type) {
-		if (!time) {
-			time = 5000;
-		}
-		if (!type) {
-			type = "success";
-		}
-		if (BigTree.Growling) {
-			$("#growl").append($('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>'));
-			BigTree.Growltimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time);
-		} else {
-			$("#growl").html('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>');
-			BigTree.Growling = true;
-			$("#growl").fadeIn(500, function() { BigTree.Growltimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time); });
-		}
-	},
-
-	ParserWatch: function() {
-		name = $(this).attr("name");
-		value = $(this).val();
-		t = $('<textarea class="parser" name="' + name + '">');
-		t.val(value);
-		t.mouseleave(function() {
-			name = $(this).attr("name");
-			value = $(this).val();
-			i = $('<input class="parser" name="' + name + '">');
-			i.val(value);
-			i.focus(BigTree.ParserWatch);
-			i.replaceAll(this);
-		});
-		t.replaceAll(this);
-		t.focus();
-	},
-	
-	
-	// Thanks to John Resig and Benji York
-	// http://stackoverflow.com/questions/141348/what-is-the-best-way-to-parse-a-time-into-a-date-object-from-user-input-in-javas
-	ParseTime: function(time) {
-		var d = new Date();
-		time = time.match(/(\d+)(?::(\d\d))?\s*([pP]?)/);
-		if (time) {
-			d.setHours(parseInt(time[1],10) + (time[3] ? 12 : 0));
-			d.setMinutes(parseInt(time[2],10) || 0);
-		} else {
-			d.setHours(0);
-			d.setMinutes(0);
-		}
-		return d;
-	},
-	
-	SetPageCount: function(selector,pages,current_page) {
-		// We have to have at least one page.
-		if (pages == 0) {
-			pages = 1;
-		}
-
-		// Figure out what previous and next buttons should do.
-		if (current_page == 1) {
-			prev_page = 1;
-		} else {
-			prev_page = current_page - 1;
-		}
-		if (current_page == pages) {
-			next_page = pages;
-		} else {
-			next_page = current_page + 1;
-		}
-		
-		// If we have 10 or less pages, just draw them all.
-		if (pages < 11) {
-			start_page = 1;
-			end_page = pages;
-		// Otherwise we need to figure out where we are...
-		} else {
-			if (current_page < 7) {
-				start_page = 1;
-				end_page = 9;
-			} else if (current_page > pages - 7) {
-				start_page = pages - 9;
-				end_page = pages;
-			} else {
-				start_page = current_page - 4;
-				end_page = current_page + 5;
-			}
-		}
-
-		content = '<a class="first" href="#' + prev_page + '"><span>&laquo;</span></a>';
-		if (start_page > 1) {
-			content += '<a class="ellipsis" href="#1">…</a>';
-		}
-		for (i = start_page; i <= end_page; i++) {
-			content += '<a href="#' + i + '"';
-			if (i == current_page) {
-				content += ' class="active"';
-			}
-			content += '>' + i + '</a>';
-		}
-		if (end_page < pages) {
-			content += '<a class="ellipsis" href="#' + pages + '">…</a>';
-		}
-		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
-		
-		$(selector).html(content);
-		if (pages == 1) {
-			$(selector).hide();
-		} else {
-			$(selector).show();
-		}
-	},
-
-	SettingsAnimation: false,
-	
-	ThrowError: function(message) {
-		alert(message);
-	},
-	
-	WindowWidth: function() {
-		if (window.innerWidth) {
-			windowWidth = window.innerWidth;
-		} else if (document.documentElement && document.documentElement.clientWidth) {
-			windowWidth = document.documentElement.clientWidth;
-		} else if (document.body) {
-			windowWidth = document.body.clientWidth;
-		}
-		return windowWidth;
-	},
-
-	WindowHeight: function() {
-		if (window.innerHeight) {
-			windowHeight = window.innerHeight;
-		} else if (document.documentElement && document.documentElement.clientHeight) {
-			windowHeight = document.documentElement.clientHeight;
-		} else if (document.body) {
-			windowHeight = document.body.clientHeight;
-		}
-		return windowHeight;
-	}
-}
-
-// !BigTree Quick Loader — adapted from Ben Plum's Pronto jQuery Plugin @ https://github.com/benplum/Pronto
-var BigTreeQuickLoader = {
-
-	init: function() {
-		var supported = window.history && window.history.pushState && window.history.replaceState;
-		if (!supported) {
-			return;
-		}
-
-		scripts = [];
-		$("head > script").each(function() {
-			src = $(this).attr("src");
-			if (src != "admin_root/js/lib.js" && src != "admin_root/js/main.js") {
-				scripts[scripts.length] = src;
-			}
-		});
-		css = [];
-		$("head > link[rel=stylesheet]").each(function() {
-			src = $(this).attr("href");
-			if (src != "admin_root/css/main.css") {
-				css[css.length] = src;
-			}
-		});
-
-		pageData = $("#page").html();
-		// Big pages are going to fail when pushing states
-		try {
-			history.replaceState({
-				url: window.location.href,
-				data: {
-					"title": $("head").find("title").text(),
-					"page": $("#page").html(),
-					"active_nav": $("nav.main > section > ul > li").index($("nav.main li.active")),
-					"scripts": scripts,
-					"css": css
-				}
-			}, "state-" + window.location.href, window.location.href);
-			
-			$(window).on("popstate", this.pop);
-			$("body").on("click","a",this.click);
-	
-			this.url = window.location.href;
-		} catch (error) {}
-	},
-
-	click: function(e) {
-		var link = e.currentTarget;
-		
-		// Ignore everything but normal clicks
-		if ((e.which > 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) ||
-			(window.location.protocol !== link.protocol || window.location.host !== link.host) ||
-			(link.hash && link.href.replace(link.hash, '') === window.location.href.replace(location.hash, '') || link.href === window.location.href + '#')) {
-			return;
-		}
-		if ($(link).hasClass("ignore_quick_loader") || $(link).attr("target")) {
-			return;
-		}
-		
-		e.preventDefault();
-		e.stopPropagation();
-		
-		// Some timers might be running
-		if (BigTree.localLockTimer) {
-			clearInterval(BigTree.localLockTimer);
-		}
-		if (BigTree.localTimer) {
-			clearInterval(BigTree.localTimer);
-		}
-
-		BigTreeQuickLoader.request(link.href);
-	},
-
-	pop: function(e) {
-		var state = e.originalEvent.state;
-		if (state !== null && (state.url !== BigTreeQuickLoader.url)) {
-			BigTreeQuickLoader.render(state.url, state.data, false);
-		}
-	},
-
-	render: function(url,data,push) {
-		$(window).scrollTop(0);
-
-		// Load new scripts
-		scripts_to_load = data.scripts;
-		if (scripts_to_load) {
-			$("head > script").each(function() {
-				src = $(this).attr("src");
-				// If we already have it included, don't reload it
-				if (data.scripts.indexOf(src) > -1) {
-					scripts_to_load[data.scripts.indexOf(src)] = null;
-				}
-			});
-			for (i = 0; i < scripts_to_load.length; i++) {
-				src = scripts_to_load[i];
-				if (src) {
-					$.getScript(src);
-				}
-			}
-		}
-
-		// Load new CSS
-		css_to_load = data.css;
-		if (css_to_load) {
-			$("head > link[rel=stylesheet]").each(function() {
-				src = $(this).attr("href");
-				// If we already have it included, don't reload it
-				if (data.css.indexOf(src) > -1) {
-					css_to_load[data.css.indexOf(src)] = null;
-				}
-			});
-			for (i = 0; i < css_to_load.length; i++) {
-				src = css_to_load[i];
-				if (src) {
-					css = $("head").append($('<link rel="stylesheet" type="text/css" media="screen" href="' + src + '">'));
-				}
-			}
-		}
-
-		document.title = data.title;
-		$("#page").html(data.page);
-		$("nav.main li, nav.main li > a").removeClass("active");
-		$("nav.main > section > ul > li").eq(data.active_nav).addClass("active").find("a").eq(0).addClass("active");
-
-		BigTreeCustomControls();
-		BigTreePageLoadHooks();
-		
-		// Push new states to the stack
-		if (push) {
-			try {
-				history.pushState({
-					url: url,
-					data: data
-				}, "state-" + url, url);
-			} catch (error) {
-				// This state was too big, so stop watching for pops and clicks
-				$(window).unbind("popstate", this.pop);
-				$("body").off("click","a",this.click);
-			}
-		}
-		
-		BigTreeQuickLoader.url = url;
-	},
-
-	request: function(url) {
-		// Call new content
-		$.ajax({
-			url: url,
-			headers: { "BigTree-Partial": "True" },
-			dataType: "json",
-			success: function(response) {
-				BigTreeQuickLoader.render(url,response,true);
-			},
-			error: function(response) {
-				window.location.href = url;
-			}
-		});
-	}
 };
 
 var BigTreeCallouts = {
@@ -2921,3 +2570,151 @@ var BigTreeCallouts = {
 		return article;
 	}
 };
+
+var BigTree = {
+	Growling: false,
+	GrowlTimer: false,
+	ZIndex: 1000,
+
+	cleanHref: function(href) {
+		return href.substr(href.indexOf("#")+1);
+	},
+
+	cleanObject: function(o) {
+		if (typeof o != "object") {
+			return o;
+		}
+
+		if (Object.prototype.toString.call(o) === '[object Array]') {
+			var j = [];
+			for (var i = 0; i < o.length; i++) {
+				if (typeof o[i] != "undefined") {
+					j[j.length] = o[i];
+				}
+			}
+		} else {
+			var j = {};
+			for (var i in o) {
+				j[i] = BigTree.cleanObject(o[i]);
+			}
+		}
+		return j;
+	},
+
+	formHooks: function(selector) {
+		$(selector).on("click",".remove_resource",function() {
+			var p = $(this).parent();
+			if (p.hasClass("currently_file")) {
+				p.remove();
+			} else {
+				p.hide().find("input, img").remove();
+			}
+			return false;
+		}).on("click",".form_image_browser",function() {
+		// Form Image Browser
+			var options = $.parseJSON($(this).attr("data-options"));
+			var field = $(this).attr("href").substr(1);
+			BigTreeFileManager.formOpen("image",field,options);
+			return false;
+		});
+	},
+
+	growl: function(title,message,time,type) {
+		if (!time) {
+			time = 5000;
+		}
+		if (!type) {
+			type = "success";
+		}
+		if (BigTree.Growling) {
+			$("#growl").append($('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>'));
+			BigTree.GrowlTimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time);
+		} else {
+			$("#growl").html('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>');
+			BigTree.Growling = true;
+			$("#growl").fadeIn(500, function() { BigTree.GrowlTimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time); });
+		}
+	},
+	
+	setPageCount: function(selector,pages,current_page) {
+		// We have to have at least one page.
+		if (pages == 0) {
+			pages = 1;
+		}
+
+		// Figure out what previous and next buttons should do.
+		if (current_page == 1) {
+			var prev_page = 1;
+		} else {
+			var prev_page = current_page - 1;
+		}
+		if (current_page == pages) {
+			var next_page = pages;
+		} else {
+			var next_page = current_page + 1;
+		}
+		
+		// If we have 10 or less pages, just draw them all.
+		if (pages < 11) {
+			var start_page = 1;
+			var end_page = pages;
+		// Otherwise we need to figure out where we are...
+		} else {
+			if (current_page < 7) {
+				var start_page = 1;
+				var end_page = 9;
+			} else if (current_page > pages - 7) {
+				var start_page = pages - 9;
+				var end_page = pages;
+			} else {
+				var start_page = current_page - 4;
+				var end_page = current_page + 5;
+			}
+		}
+
+		var content = '<a class="first" href="#' + prev_page + '"><span>&laquo;</span></a>';
+		if (start_page > 1) {
+			content += '<a class="ellipsis" href="#1">…</a>';
+		}
+		for (var i = start_page; i <= end_page; i++) {
+			content += '<a href="#' + i + '"';
+			if (i == current_page) {
+				content += ' class="active"';
+			}
+			content += '>' + i + '</a>';
+		}
+		if (end_page < pages) {
+			content += '<a class="ellipsis" href="#' + pages + '">…</a>';
+		}
+		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
+		
+		$(selector).html(content);
+		if (pages == 1) {
+			$(selector).hide();
+		} else {
+			$(selector).show();
+		}
+	},
+
+	windowHeight: function() {
+		if (window.innerHeight) {
+			var windowHeight = window.innerHeight;
+		} else if (document.documentElement && document.documentElement.clientHeight) {
+			var windowHeight = document.documentElement.clientHeight;
+		} else if (document.body) {
+			var windowHeight = document.body.clientHeight;
+		}
+		return windowHeight;
+	},
+
+	windowWidth: function() {
+		if (window.innerWidth) {
+			var windowWidth = window.innerWidth;
+		} else if (document.documentElement && document.documentElement.clientWidth) {
+			var windowWidth = document.documentElement.clientWidth;
+		} else if (document.body) {
+			var windowWidth = document.body.clientWidth;
+		}
+		return windowWidth;
+	}
+}

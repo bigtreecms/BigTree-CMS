@@ -34,7 +34,7 @@
 	});
 	
 	$(".table").on("click",".sort_column",function() {
-		BigTree.localSortDirection = BigTree.CleanHref($(this).attr("href"));
+		BigTree.localSortDirection = BigTree.cleanHref($(this).attr("href"));
 		BigTree.localSortColumn = $(this).attr("name");
 		if ($(this).hasClass("asc") || $(this).hasClass("desc")) {
 			$(this).toggleClass("asc").toggleClass("desc");
@@ -62,7 +62,7 @@
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-emulate-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=" + BigTree.CleanHref($(this).attr("href")) + "&query=" + escape($("#query").val()));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/users/get-emulate-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=" + BigTree.cleanHref($(this).attr("href")) + "&query=" + escape($("#query").val()));
 
 		return false;
 	});
