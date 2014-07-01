@@ -1998,17 +1998,18 @@ var BigTreeManyToMany = function(settings) {
 		var DeleteTarget;
 		var Field;
 		var Key;
+		var List;
+		var Select;
 		var Sortable;
 		var KeepOptions;
 
 		function addItem() {
-			var select = Field.find("select").get(0);
-			if (select.selectedIndex < 0) {
+			if (Select.selectedIndex < 0) {
 				return false;
 			}
 
-			var val = select.value;
-			var text = select.options[select.selectedIndex].text;
+			var val = Select.value;
+			var text = Select.options[Select.selectedIndex].text;
 
 			if (Sortable) {
 				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
@@ -2020,10 +2021,10 @@ var BigTreeManyToMany = function(settings) {
 	
 			// Remove the option from the select.
 			if (!KeepOptions) {
-				select.customControl.remove(val);
+				Select.customControl.remove(val);
 			}
 
-			Field.find("ul").append(li);
+			List.append(li);
 			Field.trigger("addedItem", { element: li, index: Count });
 			Count++;
 			
@@ -2034,31 +2035,22 @@ var BigTreeManyToMany = function(settings) {
 		};
 	
 		function deleteItem(ev) {
-			DeleteTarget = ev.currentTarget;
+			// If this is the last item we're removing, show the instructions again.
+			if (List.find("li").length == 1) {
+				Field.find("section").show();
+			}
 			
-			new BigTreeDialog({
-				title: "Delete Item",
-				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
-				icon: "delete",
-				alternateSaveText: "OK",
-				callback: function() {
-					var fieldset = $(DeleteTarget).parents("fieldset");
-					// If this is the last item we're removing, show the instructions again.
-					if ($(DeleteTarget).parents("ul").find("li").length == 1) {
-						fieldset.find("section").show();
-					}
-					var li = $(DeleteTarget).parents("li");
-					var val = li.find("input").val();
-					var text = li.find("p").html();
-					// Add the option back to the select
-					if (!KeepOptions) {
-						fieldset.find("select")[0].customControl.add(val,text);
-					}
-		
-					li.remove();
-					fieldset.trigger("removedItem", { value: val, description: text });
-				}
-			});
+			var li = $(this).parents("li");
+			var val = li.find("input").val();
+			var text = li.find("p").html();
+			
+			// Add the option back to the select
+			if (!KeepOptions) {
+				Select.customControl.add(val,text);
+			}
+
+			li.remove();
+			Field.trigger("removedItem", { value: val, description: text });
 	
 			return false;
 		};
@@ -2086,12 +2078,17 @@ var BigTreeManyToMany = function(settings) {
 			}
 		}
 
+		List = Field.find("ul");
+		Select = Field.find("select").get(0);
+
 		if (Sortable) {
-			Field.find("ul").sortable({ items: "li", handle: ".icon_sort" });
+			List.sortable({ items: "li", handle: ".icon_sort" });
 		}
+
 		Field.find(".add").click(addItem);
 		Field.on("click",".icon_delete",deleteItem);
-		
+
+		return { Field: Field, List: List, Select: Select };
 
 	})(jQuery,settings);
 };
