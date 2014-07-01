@@ -1926,7 +1926,7 @@ var BigTreeListMaker = function(settings) {
 		};
 		
 		function deleteOption() {
-			ul = $(this).parents("ul").eq(0);
+			var ul = $(this).parents("ul").eq(0);
 			$(this).parents("li").eq(0).remove();
 			// Hide the header if we're out of options
 			if (ul.find("li").length == 0) {
@@ -1941,7 +1941,7 @@ var BigTreeListMaker = function(settings) {
 		Keys = settings.keys;
 		Name = settings.name;
 
-		var html = '<h4>' + settings.title + ' a href="#" class="add_option icon_small icon_small_add"></a></h4>';
+		var html = '<h4>' + settings.title + ' <a href="#" class="add_option icon_small icon_small_add"></a></h4>';
 		html += '<fieldset class="list_options_widget list_options_widget_' + Keys.length + '">';
 		// Add column headers
 		html += '<summary>';
