@@ -2337,26 +2337,26 @@ var BigTreeToolTip = function(settings) {
 			
 			// The tip is below the target.
 			if (Defaults.position == "below") {
-				l = offset.left - 28 + Math.round(w / 2);
-				t = offset.top + h + 5;
+				var l = offset.left - 28 + Math.round(w / 2);
+				var t = offset.top + h + 5;
 			}
 			
 			// The tip is to the right of the target.
 			if (Defaults.position == "right") {
-				l = offset.left + w + 5;
-				t = offset.top - 28 + Math.round(h / 2);
+				var l = offset.left + w + 5;
+				var t = offset.top - 28 + Math.round(h / 2);
 			}
 			
 			// The tip is to the left of the target.
 			if (Defaults.position == "left") {
-				l = offset.left - Container.width() - 5;
-				t = offset.top - 28 + Math.round(h / 2);
+				var l = offset.left - Container.width() - 5;
+				var t = offset.top - 28 + Math.round(h / 2);
 			}
 			
 			// The tip is above of the target.
 			if (Defaults.position == "above") {
-				l = offset.left - 28 + Math.round(w / 2);
-				t = offset.top - Container.height() - 5;
+				var l = offset.left - 28 + Math.round(w / 2);
+				var t = offset.top - Container.height() - 5;
 			}
 			
 			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.zIndex++) }).stop().fadeTo(200, 1);
