@@ -389,8 +389,8 @@
 	
 	$("form.module").submit(function(ev) {
 		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");
-		permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
-		alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
+		var permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
+		var alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
 		$("#permission_section").append(permissions).append(alerts);
 	});
 	
@@ -413,7 +413,7 @@
 			$(this).nextAll("ul").hide();
 			$(this).removeClass("expanded");
 		} else {
-			ul = $(this).nextAll("ul");
+			var ul = $(this).nextAll("ul");
 			// We already made this
 			if (ul.length) {
 				ul.show();
@@ -425,11 +425,11 @@
 				}
 
 				// Traverse our page tree
-				data = false;
-				inherited_alerts = false;
+				var data = false;
+				var inherited_alerts = false;
 				$.fn.reverse = [].reverse;
 				$(this).parentsUntil(".depth_1","li").reverse().each(function(index,el) {
-					id = $(el).find("a").attr("data-id");
+					var id = $(el).find("a").attr("data-id");
 					if ($(el).find("input[type=checkbox]").attr("checked")) {
 						inherited_alerts = true;
 					}
@@ -441,13 +441,13 @@
 				});
 
 				// Build out the new level in the DOM
-				depth = (parseInt($(this).attr("data-depth")) + 1);
+				var depth = (parseInt($(this).attr("data-depth")) + 1);
 				ul = $('<ul class="depth_' + depth + '">');
-				for (i in data.c) {
-					page = data.c[i];
-					li = $('<li>');
+				for (var i in data.c) {
+					var page = data.c[i];
+					var li = $('<li>');
 					li.append('<span class="depth">');
-					a = $('<a href="#" data-id="' + page.i + '" data-depth="' + depth + '" class="permission_label<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>">' + page.t + '</a>');
+					var a = $('<a href="#" data-id="' + page.i + '" data-depth="' + depth + '" class="permission_label<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>">' + page.t + '</a>');
 					if (!page.c) {
 						a.addClass("disabled");
 					}
@@ -492,13 +492,13 @@
 	
 		// Observe all the permission radios
 		$(selector).find("input[type=radio]").on("click",function() {
-			category = $(this).attr("data-category");
-			key = $(this).attr("data-key");
+			var category = $(this).attr("data-category");
+			var key = $(this).attr("data-key");
 			if (!BigTreeUserForm.Permissions[category]) {
 				BigTreeUserForm.Permissions[category] = {};
 			}
 			if (category == "ModuleGBP") {
-				sub = $(this).attr("data-sub-key");
+				var sub = $(this).attr("data-sub-key");
 				if (!BigTreeUserForm.Permissions[category][key]) {
 					BigTreeUserForm.Permissions[category][key] = {};
 				}

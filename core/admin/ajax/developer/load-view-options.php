@@ -21,11 +21,11 @@
 	BigTree.localTable = false;
 	
 	$(".table_select").change(function() {
-		x = 0;
+		var x = 0;
 		BigTree.localTable = $(this).val();
 		
 		$(this).parents("fieldset").nextAll("fieldset").each(function() {
-			div = $(this).find("div");
+			var div = $(this).find("div");
 			if (div.length && div.attr("data-name")) {
 				if (div.hasClass("sort_by")) {
 					div.load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + BigTree.localTable + "&field=" + div.attr("data-name"), BigTreeCustomControls);

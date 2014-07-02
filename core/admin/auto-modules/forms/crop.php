@@ -113,10 +113,10 @@
 					});
 					
 					BigTree.localShowPreview<?=$x?> = function(coords) {
-						rx = <?=$box_width?> / coords.w;
-						ry = <?=$box_height?> / coords.h;
-						bx = <?=$preview_width?> / coords.w;
-						by = <?=$preview_height?> / coords.h;
+						var rx = <?=$box_width?> / coords.w;
+						var ry = <?=$box_height?> / coords.h;
+						var bx = <?=$preview_width?> / coords.w;
+						var by = <?=$preview_height?> / coords.h;
 					
 						$("#preview_<?=$x?> img").css({
 							width: Math.round(rx * <?=$preview_width?>) + 'px',

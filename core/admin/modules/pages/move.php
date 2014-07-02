@@ -74,7 +74,7 @@
 		$(".move_page .title").removeClass("active");
 		$(this).addClass("active");
 		
-		id = $(this).attr("href").substr(1);
+		var id = $(this).attr("href").substr(1);
 		$("#page_parent").val(id);
 		
 		if (id == 0) {

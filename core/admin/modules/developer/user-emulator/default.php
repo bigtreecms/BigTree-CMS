@@ -49,9 +49,9 @@
 			}
 		} else {
 			if (BigTree.localSortDirection == "ASC") {
-				dchar = "&#9650;";
+				var dchar = "&#9650;";
 			} else {
-				dchar = "&#9660;";
+				var dchar = "&#9660;";
 			}
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(BigTree.localSortDirection.toLowerCase()).find("em").html(dchar);

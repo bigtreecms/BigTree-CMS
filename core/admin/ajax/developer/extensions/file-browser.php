@@ -128,13 +128,13 @@
 
 <script>
 	$("#bigtree_foundry_browser_window .navigation_pane a").click(function(ev) {
-		type = $(this).attr("data-type");
+		var type = $(this).attr("data-type");
 		if (type == "location") {
 			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { location: $(this).attr("href") });
 		} else if (type == "container") {
 			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { location: "<?=$location?>", container: $(this).attr("href") });	
 		} else {
-			directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
+			var directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
 			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { base_directory: "<?=$_POST["base_directory"]?>", cloud_disabled: "<?=$_POST["cloud_disabled"]?>", location: "<?=$location?>", container: "<?=$postcontainer?>", directory: directory });
 		}
 		return false;

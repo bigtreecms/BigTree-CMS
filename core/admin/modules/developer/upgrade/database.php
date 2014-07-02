@@ -432,5 +432,5 @@
 		sqlquery("ALTER TABLE bigtree_module_forms DROP COLUMN `callback`");
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `preprocess`");
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `callback`");
-	}	
+	}
 ?>

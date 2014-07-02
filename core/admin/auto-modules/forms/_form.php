@@ -183,7 +183,7 @@
 
 	<? if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
 	$(".gbp_select").change(function() {
-		access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
+		var access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
 		if (access_level == "p") {
 			$("input[name=save]").removeClass("blue");
 			$("input[name=save_and_publish]").show();

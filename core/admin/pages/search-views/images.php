@@ -86,16 +86,16 @@
 	});
 	
 	$("#image_list_<?=$view["id"]?> img").load(function() {
-		w = $(this).width();
-		h = $(this).height();
+		var w = $(this).width();
+		var h = $(this).height();
 		if (w > h) {
-			perc = 108 / w;
+			var perc = 108 / w;
 			h = perc * h;
-			style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
+			var style = { margin: Math.floor((108 - h) / 2) + "px 0 0 0" };
 		} else {
-			perc = 108 / h;
+			var perc = 108 / h;
 			w = perc * w;
-			style = { margin: "0 0 0 " + Math.floor((108 - w) / 2) + "px" };
+			var style = { margin: "0 0 0 " + Math.floor((108 - w) / 2) + "px" };
 		}
 		
 		$(this).css(style);

@@ -90,10 +90,10 @@
 	
 	$(".table .view_column").mousedown(function(ev) {
 		BigTree.localGrowingStartWidth = $(this).width();
-		objoffset = $(this).offset();
-		obj_middle = Math.round(BigTree.localGrowingStartWidth / 2);
-		offset = ev.clientX - objoffset.left;
-		titles = $(".table .view_column");
+		var objoffset = $(this).offset();
+		var obj_middle = Math.round(BigTree.localGrowingStartWidth / 2);
+		var offset = ev.clientX - objoffset.left;
+		var titles = $(".table .view_column");
 		BigTree.localGrowing = titles.index(this);
 		if (offset > obj_middle) {
 			BigTree.localShrinking = BigTree.localGrowing + 1;
@@ -126,7 +126,7 @@
 		if (!BigTree.localDragging) {
 			return;
 		}
-		difference = ev.clientX - BigTree.localMouseStartX;
+		var difference = ev.clientX - BigTree.localMouseStartX;
 		if (BigTree.localMovementDirection == "left") {
 			difference = difference * -1;
 		}

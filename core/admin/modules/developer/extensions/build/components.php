@@ -262,7 +262,7 @@
 		if (el.selectedIndex < 0) {
 			return false;
 		}
-		li = $("<li>");
+		var li = $("<li>");
 		li.html('<input type="hidden" name="' + select.attr("data-key") + '[]" value="' + select.val() + '" /><a href="#" class="icon_small icon_small_delete"></a></a>' + el.options[el.selectedIndex].text);
 		$(this).parent().parent().find("ul").append(li);
 		return false;

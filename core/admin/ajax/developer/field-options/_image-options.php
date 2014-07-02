@@ -213,5 +213,5 @@
 			ev.stopImmediatePropagation();
 			return false;
 		}
-	})
+	});
 </script>

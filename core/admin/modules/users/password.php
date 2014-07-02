@@ -43,8 +43,8 @@
 <script>
 	$("form.module").submit(function() {
 		BigTree.ClearFieldAlerts();
-		newp = $("input[name=new_password]");
-		newpc = $("input[name=confirm_new_password]");
+		var newp = $("input[name=new_password]");
+		var newpc = $("input[name=confirm_new_password]");
 		if (!newp.val()) {
 			BigTree.FieldAlert(newp,"You must enter a password.");
 			return false;

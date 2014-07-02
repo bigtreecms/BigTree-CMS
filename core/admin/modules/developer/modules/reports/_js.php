@@ -12,7 +12,7 @@
 	});
 
 	$("#report_type").change(function(event,data) {
-		v = $(this).val();
+		var v = $(this).val();
 		if (v == "csv") {
 			$("#data_parser_function").show();
 			$("#filtered_view").hide();
@@ -25,12 +25,12 @@
 	});
 	
 	$("#field_area").on("click","#field_table .icon_delete",function() {
-		li = $(this).parents("li");
+		var li = $(this).parents("li");
 		BigTree.localFieldSelect.addField($(this).attr("name"),li.find("input").val());
 		li.remove();
 		return false;
 	}).on("click","#filter_table .icon_delete",function() {
-		li = $(this).parents("li");
+		var li = $(this).parents("li");
 		BigTree.localFilterSelect.addField($(this).attr("name"),li.find("input").val());
 		li.remove();
 		return false;

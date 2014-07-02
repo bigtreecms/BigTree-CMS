@@ -48,42 +48,42 @@
 			window_width = 600;
 		}
 
-		box_width = width;
-		box_height = height;
+		var box_width = width;
+		var box_height = height;
 		
 		if (box_width > window_width) {
 			box_height = Math.ceil(box_height * window_width / box_width);
 			box_width = window_width;
 		}
 		
-		preview_width = crop_width;
-		preview_height = crop_height;
+		var preview_width = crop_width;
+		var preview_height = crop_height;
 		
 		if (preview_width > window_width) {
 			preview_height = Math.ceil(preview_height * window_width / preview_width);
 			preview_width = window_width;
 		}
 		
-		image_ratio = box_width / width;
+		var image_ratio = box_width / width;
 		
-		min_width = Math.ceil(crop_width * image_ratio);
-		min_height = Math.ceil(crop_height * image_ratio);
+		var min_width = Math.ceil(crop_width * image_ratio);
+		var min_height = Math.ceil(crop_height * image_ratio);
 		
 		if (preview_height < box_height) {
-			preview_margin = Math.floor((box_height - preview_height) / 2);
-			box_margin = 0;
+			var preview_margin = Math.floor((box_height - preview_height) / 2);
+			var box_margin = 0;
 		} else {
-			box_margin = Math.floor((preview_height - box_height) / 2);
-			preview_margin = 0;
+			var box_margin = Math.floor((preview_height - box_height) / 2);
+			var preview_margin = 0;
 		}
 		
 		// Fill the cropper to ~90% of the available area by default.
 		if (min_width > min_height) {
-			initial_width = Math.ceil(box_width * 0.90);
-			initial_height = Math.ceil(initial_width / min_width * min_height);
+			var initial_width = Math.ceil(box_width * 0.90);
+			var initial_height = Math.ceil(initial_width / min_width * min_height);
 		} else {
-			initial_height = Math.ceil(box_height * 0.90);
-			initial_width = Math.ceil(initial_height / min_height * min_width);
+			var initial_height = Math.ceil(box_height * 0.90);
+			var initial_width = Math.ceil(initial_height / min_height * min_width);
 		}
 		
 		if ((initial_width < min_width || initial_height < min_height) || (retina && (initial_width < min_width * 2 || initial_height < min_height * 2))) {
@@ -98,8 +98,8 @@
 		}
 		
 		// Figure out where we're starting the cropping box (should be centered)
-		initial_x = Math.ceil((box_width - initial_width) / 2);
-		initial_y = Math.ceil((box_height - initial_height) / 2);
+		var initial_x = Math.ceil((box_width - initial_width) / 2);
+		var initial_y = Math.ceil((box_height - initial_height) / 2);
 
 		// Save our calculations
 		BigTree.localCropInfo = { box_width: box_width, box_height: box_height, preview_width: preview_width, preview_height: preview_height, width: width, height: height };
@@ -116,10 +116,10 @@
 	};
 
 	BigTree.localSetCoords = function(coords) {
-		rx = BigTree.localCropInfo.box_width / coords.w;
-		ry = BigTree.localCropInfo.box_height / coords.h;
-		bx = BigTree.localCropInfo.preview_width / coords.w;
-		by = BigTree.localCropInfo.preview_height / coords.h;
+		var rx = BigTree.localCropInfo.box_width / coords.w;
+		var ry = BigTree.localCropInfo.box_height / coords.h;
+		var bx = BigTree.localCropInfo.preview_width / coords.w;
+		var by = BigTree.localCropInfo.preview_height / coords.h;
 	
 		$("#x" + BigTree.localCurrentCrop).val(Math.round(coords.x * (BigTree.localCropInfo.width / BigTree.localCropInfo.box_width)));
 		$("#y" + BigTree.localCurrentCrop).val(Math.round(coords.y * (BigTree.localCropInfo.height / BigTree.localCropInfo.box_height)));
@@ -128,7 +128,7 @@
 	};
 
 	BigTree.localWindowResizeCheck = function() {
-		w = window.innerWidth;
+		var w = window.innerWidth;
 		if (w > 600) {
 			w = 600;
 		}

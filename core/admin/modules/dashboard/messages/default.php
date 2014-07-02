@@ -157,11 +157,11 @@
 	BigTree.setPageCount("#sent_paging",<?=$sent_pages?>,1);
 	
 	$(".table").on("click",".view_paging a",function() {
-		page = parseInt($(this).attr("href").substr(1));
+		var page = parseInt($(this).attr("href").substr(1));
 		$(this).parents("summary").siblings("ul").find("li").hide().filter(".page_" + page).show();
 		$(this).parents("ul").find(".active").removeClass("active");
 		
-		id = $(this).parents("ul").attr("id");
+		var id = $(this).parents("ul").attr("id");
 		BigTree.setPageCount("#" + id,BigTree.localPagesOfMessages[id],page);
 		
 		return false;

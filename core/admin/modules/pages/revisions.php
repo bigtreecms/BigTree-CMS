@@ -131,9 +131,9 @@
 			callback: $.proxy(function(d) {
 				// If there's no href it's because it's the currently published copy we're saving.
 				if (BigTree.cleanHref($(this).attr("href"))) {
-					id = BigTree.cleanHref($(this).attr("href"));
+					var id = BigTree.cleanHref($(this).attr("href"));
 				} else {
-					id = "c<?=$page["id"]?>";
+					var id = "c<?=$page["id"]?>";
 				}
 				$.ajax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }});
 			},this)
@@ -143,7 +143,7 @@
 	});
 	
 	$(".icon_delete").click(function() {
-		href = $(this).attr("href");
+		var href = $(this).attr("href");
 		if (href.substr(0,1) == "#") {
 			new BigTreeDialog({
 				title: "Delete Revision",

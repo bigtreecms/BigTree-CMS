@@ -51,8 +51,8 @@
 ?>
 <script>	
 	$(".table_select").change(function() {
-		name = $(this).attr("name");
-		table = $(this).val();
+		var name = $(this).attr("name");
+		var table = $(this).val();
 		$(".pop-dependant").each(function(el) {
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {

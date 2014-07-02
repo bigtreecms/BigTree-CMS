@@ -162,7 +162,7 @@
 		return false;
 	}).on("click",".edit",function() {
 		_local_BigTreeCustomAction = $(this).parents("li");
-		j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
+		var j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
 		new BigTreeDialog({
 			title: "Edit Custom Action",
 			content: '<fieldset><label>Action Name</label><input type="text" name="name" value="' + htmlspecialchars(j.name) + '" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" value="' + htmlspecialchars(j.class) + '" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" value="' + htmlspecialchars(j.route) + '" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" value="' + htmlspecialchars(j.function) + '" /></fieldset>',
@@ -180,7 +180,7 @@
 			icon: "add",
 			alternateSaveText: "Add",
 			callback: function(data) {
-				li = $('<li>');
+				var li = $('<li>');
 				li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
 				$(".developer_action_list li:first-child").before(li);
 			}

@@ -49,9 +49,9 @@
 </div>
 <script>
 	$(".add_table a").click(function(ev) {
-		table = $(this).next().val();
+		var table = $(this).next().val();
 		if (table) {
-			li = $("<li>");
+			var li = $("<li>");
 			li.html('<input type="hidden" name="tables[]" value="' + table + '#structure" /><a href="#" class="icon_small icon_small_delete"></a><a href="#' + table + '" class="icon_small icon_small_list"></a>' + table);
 			$(this).parent().parent().find("ul").append(li);
 		}
