@@ -31,6 +31,10 @@
 	});
 	
 	$(".table").on("click",".icon_delete",function() {
+		if ($(this).hasClass("disabled_icon")) {
+			return false;
+		}
+		
 		new BigTreeDialog("Delete User",'<p class="confirm">Are you sure you want to delete this user?',$.proxy(function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
 		},this),"delete",false,"OK");
