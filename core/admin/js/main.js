@@ -1127,8 +1127,8 @@ var BigTreeDialog = function(settings) {
 
 		var DialogHeight;
 		var DialogWidth;
-		var HeightWatchTimer;
 		var DialogWindow;
+		var HeightWatchTimer;
 		var OnComplete = false;
 		var OnCancel = false;
 
@@ -1198,6 +1198,7 @@ var BigTreeDialog = function(settings) {
 			callback: false,
 			cancelHook: false,
 			content: "",
+			helpLink: false,
 			icon: false,
 			noFooter: false,
 			preSubmissionCallback: false,
@@ -1240,7 +1241,11 @@ var BigTreeDialog = function(settings) {
 		if (Defaults.icon) {
 			html += '<span class="icon_dialog_' + Defaults.icon + '"></span>';
 		}
-		html += Defaults.title + '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' +  Defaults.content + '</div>';
+		html += Defaults.title;
+		if (Defaults.helpLink) {
+			html += '<a href="' + Defaults.helpLink + '" target="_blank" class="icon_small icon_small_help"></a>';
+		}
+		html += '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' +  Defaults.content + '</div>';
 		if (!Defaults.noFooter) {
 			var saveText = Defaults.alternateSaveText ? Defaults.alternateSaveText : "Save";
 			html += '<footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer>';

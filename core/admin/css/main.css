@@ -1154,6 +1154,7 @@
 	.bigtree_dialog_window { background: #FFF; border-radius: 3px; position: fixed; }
 	.bigtree_dialog_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; float: none; font-family: Helvetica; font-size: 14px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; text-transform: uppercase; }
 	.bigtree_dialog_window h2 span { float: left; margin: 2px 5px 0 0; }
+	.bigtree_dialog_window .icon_small { float: right; margin: 5px 10px 0 0; }
 	.bigtree_dialog_window footer { background: #eee; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; padding: 20px; }
 	.bigtree_dialog_close { margin: 0 10px 0 0; }
 	.bigtree_dialog_window h2 .icon_delete { display: block; float: right; margin: 0 5px 0 0; }
@@ -1334,7 +1335,7 @@
 	.icon_small_token { background-position: -112px -140px; }
 	.icon_small_export { background-position: -128px -140px; }
 	.icon_small_redirect { background-position: -144px -140px; }
-	.icon_small_help { background-position: -160px -140px; cursor: help; }
+	.icon_small_help { background-position: -160px -140px; }
 	.icon_small_ignored { background-position: -176px -140px; }
 	.icon_small_error { background-position: -192px -140px; }
 	.icon_small_world { background-position: -208px -140px; }

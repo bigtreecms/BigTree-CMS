@@ -12,13 +12,13 @@
 
 	$("#manage_hooks").click(function() {
 		var data = $.parseJSON($("#form_hooks").val());
-		var html = '<a class="help" href="http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/">Help</a>';
-		html += '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre) + '" /></fieldset>';
+		var html = '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre) + '" /></fieldset>';
 		html += '<fieldset><label>Post-processing Hook</label><input type="text" name="post" value="' + htmlspecialchars(data.post) + '" /></fieldset>';
 		html += '<fieldset><label>Publishing Hook</label><input type="text" name="publish" value="' + htmlspecialchars(data.publish) + '" /></fieldset>';
 		new BigTreeDialog({
 			title: "Manage Hooks",
 			content: html,
+			helpLink: "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/",
 			icon: "edit",
 			callback: function(data) {
 				$("#form_hooks").val(JSON.stringify(data));
