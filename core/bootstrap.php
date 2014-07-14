@@ -84,13 +84,13 @@
 		"lessc" => "inc/lib/less-compiler.php"
 	);
 	
+	// Auto load classes	
+	spl_autoload_register("BigTree::classAutoLoader");
+
 	// Just include the admin class if it's custom.
 	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
 	}
-
-	// Auto load classes	
-	spl_autoload_register("BigTree::classAutoLoader");
 
 	// Load everything in the custom extras folder.
 	$d = opendir(SERVER_ROOT."custom/inc/required/");
