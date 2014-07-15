@@ -486,7 +486,7 @@
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
 				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
-				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
+				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (strpos($href,"#") !== false) {
@@ -5245,6 +5245,10 @@
 		*/
 
 		function urlExists($url) {
+			// Handle // urls as http://
+			if (substr($url,0,2) == "//") {
+				$url = "http:".$url;
+			}
 			$handle = curl_init($url);
 			if ($handle === false) {
 				return false;
