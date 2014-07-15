@@ -37,6 +37,7 @@
 					foreach ($bigtree["template"]["resources"] as $resource) {
 						$field = array();
 						// Leaving some variable settings for backwards compatibility — removing in 5.0
+						$field["type"] = $resource["type"];
 						$field["title"] = $title = $resource["title"];
 						$field["subtitle"] = $subtitle = $resource["subtitle"];
 						$field["key"] = $key = "resources[".$resource["id"]."]";
@@ -75,6 +76,7 @@
 			<?
 								$bigtree["tabindex"]++;
 							}
+							$bigtree["last_resource_type"] = $field["type"];
 						}
 					}
 				} else {

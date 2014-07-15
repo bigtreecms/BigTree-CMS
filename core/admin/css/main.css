@@ -1127,7 +1127,8 @@
 	.bigtree_dialog_window.front_end_editor_container { border: none; height: 625px; width: 100%; z-index: 0; }
 	.bigtree_dialog_window.front_end_editor_container > .bigtree_dialog_form > .overflow { height: 469px; max-height: none; width: 800px; }
 	.bigtree.front_end_editor fieldset { width: auto; }
-	.bigtree.front_end_editor fieldset.callouts { margin-left: -20px; margin-right: -20px; }
+	.bigtree.front_end_editor fieldset.callouts { margin: 30px -20px; }
+	.bigtree.front_end_editor fieldset.callouts_no_margin { margin-top: -31px; }
 	.bigtree.front_end_editor input[type="text"], .bigtree.front_end_editor input[type="email"], .bigtree.front_end_editor input[type="password"], .bigtree.front_end_editor input[type="url"] { width: 760px; }
 	.bigtree.front_end_editor input[type=submit] { margin-right: 10px; }
 	.bigtree.front_end_editor textarea { width: 760px; }
