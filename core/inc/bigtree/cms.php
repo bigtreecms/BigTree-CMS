@@ -500,8 +500,11 @@
 				return WWW_ROOT.$bigtree["page"]["path"]."/";
 			}
 			// Otherwise we'll grab the page path from the db.
-			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
-			return WWW_ROOT.$f["path"]."/";
+			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
+			if ($f) {
+				return WWW_ROOT.$f["path"]."/";
+			}
+			return false;
 		}
 		
 		/*
