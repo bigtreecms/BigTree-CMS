@@ -5274,6 +5274,7 @@
 		function logout() {
 			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			setcookie("bigtree_admin[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			unset($_COOKIE["bigtree_admin"]);
 			unset($_SESSION["bigtree_admin"]);
 			BigTree::redirect(ADMIN_ROOT);
 		}
