@@ -8,11 +8,11 @@
 	
 	class BigTreeFlickrAPI extends BigTreeOAuthAPIBase {
 		
-		var $AuthorizeURL = "http://www.flickr.com/services/oauth/request_token";
-		var $EndpointURL = "http://ycpi.api.flickr.com/services/rest";
+		var $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
+		var $EndpointURL = "https://ycpi.api.flickr.com/services/rest";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "hash";
-		var $TokenURL = "http://www.flickr.com/services/oauth/authorize";
+		var $TokenURL = "https://www.flickr.com/services/oauth/authorize";
 		
 		/*
 			Constructor:

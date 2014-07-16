@@ -5,10 +5,11 @@
 	$key_name = "Client ID";
 	$secret_name = "Client Secret";
 	$instructions = array(
-		'Login to the <a href="https://code.google.com/apis/console/">Google API Console</a> and enable access to the YouTube API.',
-		'Choose the "API Access" tab in the API Console and create an OAuth 2.0 client ID if you have not already done so.',
-		'Add '.ADMIN_ROOT.'developer/services/youtube/return/ as an Authorized Redirect URI.',
-		'Enter your Client ID and Client Secret from the API Console below.',
+		'Login to the <a href="https://console.developers.google.com">Google Developers Console</a> and create a project.',
+		'Expand "API &amp; Auth" on the left and click "APIs". Switch the "YouTube Data API v3" API toggle to ON.',
+		'Click into the "Credentials" section and click the "Create New Client ID" button.',
+		'Choose "Web Application" for the Application Type. Enter '.DEVELOPER_ROOT.'services/youtube/return/ as the "Authorized redirect URI".',
+		'Enter the Client ID and Client Secret that was created from the previous step below.',
 		'Follow the OAuth process of allowing BigTree/your application access to your YouTube account.'
 	);
 
