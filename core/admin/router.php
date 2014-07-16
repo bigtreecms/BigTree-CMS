@@ -215,7 +215,7 @@
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
 			if ($module && !$admin->checkAccess($module["id"])) {
 				die("Permission denied to module: ".$module["name"]);
-			} elseif (!$admin->Level) {
+			} elseif (!$admin->ID) {
 				die("Please login.");
 			}
 			
