@@ -80,8 +80,17 @@
 				</section>
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
-						<? foreach ($types as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+						<optgroup label="Default">
+							<? foreach ($types["default"] as $k => $v) { ?>
+							<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+							<? } ?>
+						</optgroup>
+						<? if (count($types["custom"])) { ?>
+						<optgroup label="Custom">
+							<? foreach ($types["custom"] as $k => $v) { ?>
+							<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+							<? } ?>
+						</optgroup>
 						<? } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>

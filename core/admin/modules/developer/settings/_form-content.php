@@ -15,8 +15,17 @@
 			<fieldset>
 				<label class="required">Type</label>
 				<select name="type" id="settings_type">
-					<? foreach ($types as $k => $v) { ?>
-					<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+					<optgroup label="Default">
+						<? foreach ($types["default"] as $k => $v) { ?>
+						<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+						<? } ?>
+					</optgroup>
+					<? if (count($types["custom"])) { ?>
+					<optgroup label="Custom">
+						<? foreach ($types["custom"] as $k => $v) { ?>
+						<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+						<? } ?>
+					</optgroup>
 					<? } ?>
 				</select> &nbsp; <a class="icon_settings" href="#"></a>
 				<input type="hidden" name="options" value="<?=$options?>" id="options_settings" />

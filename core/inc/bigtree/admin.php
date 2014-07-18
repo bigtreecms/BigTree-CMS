@@ -2787,29 +2787,32 @@
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
 			} else {
 				$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = array(
-					"text" => array("name" => "Text", "self_draw" => false),
-					"textarea" => array("name" => "Text Area", "self_draw" => false),
-					"html" => array("name" => "HTML Area", "self_draw" => false),
-					"upload" => array("name" => "Upload", "self_draw" => false),
-					"list" => array("name" => "List", "self_draw" => false),
-					"checkbox" => array("name" => "Checkbox", "self_draw" => false),
-					"date" => array("name" => "Date Picker", "self_draw" => false),
-					"time" => array("name" => "Time Picker", "self_draw" => false),
-					"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
-					"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
-					"array" => array("name" => "Array of Items", "self_draw" => false),
-					"callouts" => array("name" => "Callouts", "self_draw" => true)
+					"default" => array(
+						"text" => array("name" => "Text", "self_draw" => false),
+						"textarea" => array("name" => "Text Area", "self_draw" => false),
+						"html" => array("name" => "HTML Area", "self_draw" => false),
+						"upload" => array("name" => "Upload", "self_draw" => false),
+						"list" => array("name" => "List", "self_draw" => false),
+						"checkbox" => array("name" => "Checkbox", "self_draw" => false),
+						"date" => array("name" => "Date Picker", "self_draw" => false),
+						"time" => array("name" => "Time Picker", "self_draw" => false),
+						"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
+						"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
+						"array" => array("name" => "Array of Items", "self_draw" => false),
+						"callouts" => array("name" => "Callouts", "self_draw" => true)
+					),
+					"custom" => array()
 				);
 
-				$types["modules"]["route"] = array("name" => "Generated Route","self_draw" => true);
-				unset($types["callouts"]["callouts"]);
+				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
+				unset($types["callouts"]["default"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
 					$use_cases = json_decode($f["use_cases"],true);
-					foreach ($use_cases as $case => $val) {
+					foreach ((array)$use_cases as $case => $val) {
 						if ($val) {
-							$types[$case][$f["id"]] = array("name" => $f["name"],"self_draw" => $f["self_draw"]);
+							$types[$case]["custom"][$f["id"]] = array("name" => $f["name"],"self_draw" => $f["self_draw"]);
 						}
 					}
 				}

@@ -191,8 +191,17 @@
 					} else {
 				?>
 				<select name="type[<?=$key?>]" id="type_<?=$key?>">
-					<? foreach ($types as $k => $v) { ?>
-					<option value="<?=$k?>"<? if ($k == $field["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+					<optgroup label="Default">
+						<? foreach ($types["default"] as $k => $v) { ?>
+						<option value="<?=$k?>"<? if ($k == $field["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+						<? } ?>
+					</optgroup>
+					<? if (count($types["custom"])) { ?>
+					<optgroup label="Custom">
+						<? foreach ($types["custom"] as $k => $v) { ?>
+						<option value="<?=$k?>"<? if ($k == $field["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
+						<? } ?>
+					</optgroup>
 					<? } ?>
 				</select>
 				<?
@@ -233,7 +242,7 @@
 			var key = el.field;
 			
 			var li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><? foreach ($types as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + key + ']" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + key + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + key + ']" id="type_' + key + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="options[' + key + ']" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 			
 			$("#resource_table").append(li);
 			fs.removeCurrent();
