@@ -3,9 +3,6 @@
 	$data["default_now"] = isset($data["default_now"]) ? $data["default_now"] : "";
 ?>
 <fieldset>
-	<label>Default to Today's Date &amp; Time</label>
-	<select name="default_now">
-		<option value="">No</option>
-		<option value="on"<? if ($data["default_now"]) { ?> selected="selected"<? } ?>>Yes</option>
-	</select>
+	<input type="checkbox" name="default_now"<? if ($data["default_now"]) { ?> checked="checked"<? } ?>/>
+	<label class="for_checkbox">Default to Today's Date &amp; Time</label>
 </fieldset>

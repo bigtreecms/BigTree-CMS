@@ -339,12 +339,12 @@
 			return $html;
 		}
 		
-		private function autoIPLCallbackHref($matches) {
+		private static function autoIPLCallbackHref($matches) {
 			global $cms;
 			$href = self::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'href="'.$href.'"';
 		}
-		private function autoIPLCallbackSrc($matches) {
+		private static function autoIPLCallbackSrc($matches) {
 			global $cms;
 			$src = self::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'src="'.$src.'"';

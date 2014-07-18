@@ -12,6 +12,7 @@
 		<fieldset>
 			<label class="required">Data Table</label>
 			<select name="table" id="form_table" class="required">
+				<option></option>
 				<? BigTree::getTableSelectOptions($form["table"]); ?>
 			</select>
 		</fieldset>
