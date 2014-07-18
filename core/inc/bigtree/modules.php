@@ -66,7 +66,6 @@
 				// Separate arrays for keys and values
 				} else {
 					foreach ($fields as $key) {
-					while ($x < count($fields)) {
 						$val = current($values);
 						$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape(BigTreeAdmin::autoIPL($val));
 						$existing_parts[] = "`$key` = '$val'";
@@ -941,7 +940,7 @@
 			
 			Parameters:
 				id - The "id" of the entry in the table.
-				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well)
+				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well) — Optionally this can be a key/value array and the values field kept false
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)	
 			
@@ -951,8 +950,13 @@
 				<save>
 		*/
 		
-		function update($id,$fields,$values,$ignore_cache = false) {
+		function update($id,$fields,$values = false,$ignore_cache = false) {
 			$id = sqlescape($id);
+			// Turn a key => value array into pairs
+			if ($values === false && is_array($fields)) {
+				$values = $fields;
+				$fields = array_keys($fields);
+			}
 			// Multiple columns to update			
 			if (is_array($fields)) {
 				$query_parts = array();
