@@ -20,16 +20,6 @@
 	</div>
 	<div class="right last">
 		<fieldset>
-			<label>Preprocessing Function <small>(passes in post data, returns keyed array of adds/edits)</small></label>
-			<input type="text" name="preprocess" value="<?=htmlspecialchars($preprocess)?>" />
-		</fieldset>
-
-		<fieldset>
-			<label>Function Callback <small>(passes in ID and parsed post data, and publish state)</small></label>
-			<input type="text" name="callback" value="<?=htmlspecialchars($callback)?>" />
-		</fieldset>
-
-		<fieldset>
 			<label>Custom CSS File <small>(full URL)</small></label>
 			<input type="text" name="css" value="<?=$css?>" />
 		</fieldset>
@@ -42,6 +32,9 @@
 		<fieldset>
 			<input type="checkbox" name="default_pending"<? if ($default_pending) { ?> checked="checked"<? } ?> />
 			<label class="for_checkbox">Default Submissions to Pending</label>
+
+			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
+			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"]))?>" />
 		</fieldset>
 	</div>
 </section>

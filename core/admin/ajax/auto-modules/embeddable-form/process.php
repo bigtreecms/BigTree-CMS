@@ -20,8 +20,8 @@
 	
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();
-	if ($bigtree["form"]["preprocess"]) {
-		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["preprocess"],$_POST);
+	if ($bigtree["form"]["hooks"]["pre"]) {
+		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["hooks"]["pre"],$_POST);
 		// Update the $_POST
 		if (is_array($bigtree["preprocessed"])) {
 			foreach ($bigtree["preprocessed"] as $key => $val) {
@@ -119,20 +119,20 @@
 	}
 
 	if ($bigtree["form"]["default_pending"]) {
-		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["publish_hook"]);
+		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
 	} else {
 		$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 		$did_publish = true;
 	}
 
 	// If there's a callback function for this module, let's get'r'done.
-	if ($bigtree["form"]["callback"]) {
-		call_user_func($bigtree["form"]["callback"],$edit_id,$item,$did_publish);
+	if ($bigtree["form"]["hooks"]["post"]) {
+		call_user_func($bigtree["form"]["hooks"]["post"],$edit_id,$item,$did_publish);
 	}
 
 	// Publish Hook
-	if ($did_publish && $bigtree["form"]["publish_hook"]) {
-		call_user_func($bigtree["form"]["publish_hook"],$table,$edit_id,$item,$many_to_many,$tags);
+	if ($did_publish && $bigtree["form"]["hooks"]["publish"]) {
+		call_user_func($bigtree["form"]["hooks"]["publish"],$table,$edit_id,$item,$many_to_many,$tags);
 	}
 
 	// Track resource allocation

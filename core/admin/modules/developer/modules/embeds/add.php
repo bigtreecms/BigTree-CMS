@@ -1,5 +1,6 @@
 <?
 	$module = $admin->getModule($_GET["module"]);
+	$form = array("hooks" => array());
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module["id"]?>/" class="module">
@@ -13,4 +14,4 @@
 	</form>
 </div>
 
-<? include BigTree::path("admin/modules/developer/modules/forms/_js.php") ?>
+<? include BigTree::path("admin/modules/developer/modules/forms/_footer.php") ?>

@@ -37,6 +37,6 @@
 	</form>
 </div>
 <?
-		include BigTree::path("admin/modules/developer/modules/forms/_js.php");
+		include BigTree::path("admin/modules/developer/modules/forms/_footer.php");
 	}
 ?>

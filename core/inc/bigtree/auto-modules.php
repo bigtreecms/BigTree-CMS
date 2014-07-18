@@ -510,6 +510,7 @@
 			if ($decode_ipl) {
 				$form["css"] = $cms->getInternalPageLink($form["css"]);
 			}
+			$form["hooks"] = json_decode($form["hooks"],true);
 
 			return $form;
 		}

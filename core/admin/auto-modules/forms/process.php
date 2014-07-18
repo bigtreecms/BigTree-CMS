@@ -7,8 +7,8 @@
 	
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();
-	if ($bigtree["form"]["preprocess"]) {
-		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["preprocess"],$_POST);
+	if ($bigtree["form"]["hooks"]["pre"]) {
+		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["hooks"]["pre"],$_POST);
 		// Update the $_POST
 		if (is_array($bigtree["preprocessed"])) {
 			foreach ($bigtree["preprocessed"] as $key => $val) {
@@ -139,11 +139,11 @@
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["publish_hook"]);
+			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
 			$admin->growl($bigtree["module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["publish_hook"]);
+			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
 		}
 	// We're a publisher and we want to publish
@@ -214,13 +214,13 @@
 	}
 
 	// If there's a callback function for this module, let's get'r'done.
-	if ($bigtree["form"]["callback"]) {
-		call_user_func($bigtree["form"]["callback"],$edit_id,$item,$did_publish);
+	if ($bigtree["form"]["hooks"]["post"]) {
+		call_user_func($bigtree["form"]["hooks"]["post"],$edit_id,$item,$did_publish);
 	}
 
 	// Custom callback for only publishes
-	if ($did_publish && $bigtree["form"]["publish_hook"]) {
-		call_user_func($bigtree["form"]["publish_hook"],$table,$edit_id,$item,$many_to_many,$tags);
+	if ($did_publish && $bigtree["form"]["hooks"]["publish"]) {
+		call_user_func($bigtree["form"]["hooks"]["publish"],$table,$edit_id,$item,$many_to_many,$tags);
 	}
 
 	// Track resource allocation
