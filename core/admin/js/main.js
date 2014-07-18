@@ -538,6 +538,12 @@ var BigTreeSelect = function(element) {
 			return false;
 		};
 
+		function update() {
+			var el = Element.get(0);
+			Container.find("span").html('<figure class="handle"></figure>' + el.options[el.selectedIndex].text);
+			Container.find("a").removeClass("active").eq(el.selectedIndex).addClass("active");
+		};
+
 		// Init routine
 		if (Element.hasClass("custom_control")) {
 			return false;
@@ -671,7 +677,7 @@ var BigTreeSelect = function(element) {
 		// Cleanup
 		tester.remove();
 
-		return { Container: Container, Element: Element, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove };
+		return { Container: Container, Element: Element, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove, update: update };
 
 	})(jQuery,element);
 };
