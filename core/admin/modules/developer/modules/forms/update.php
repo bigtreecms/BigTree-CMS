@@ -10,7 +10,7 @@
 		$fields[$key] = $field;
 	}
 
-	$admin->updateModuleForm(end($bigtree["path"]),$title,$table,$fields,$preprocess,$callback,$default_position,$return_view,$return_url,$tagging);
+	$admin->updateModuleForm(end($bigtree["path"]),$title,$table,$fields,json_decode($_POST["hooks"]),$default_position,$return_view,$return_url,$tagging);
 	$action = $admin->getModuleActionForForm(end($bigtree["path"]));
 
 	$admin->growl("Developer","Updated Module Form");

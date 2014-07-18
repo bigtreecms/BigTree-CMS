@@ -16,7 +16,7 @@
 		}
 	}
 
-	$form_id = $admin->createModuleForm($module,$title,$table,$fields,$preprocess,$callback,$default_position,$return_view,$return_url,$tagging);
+	$form_id = $admin->createModuleForm($module,$title,$table,$fields,json_decode($_POST["hooks"]),$default_position,$return_view,$return_url,$tagging);
 	
 	// See if add/edit actions already exist
 	$add_route = "add";

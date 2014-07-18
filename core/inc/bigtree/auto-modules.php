@@ -584,6 +584,7 @@
 
 			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '".sqlescape($id)."'"));
 			$form["fields"] = json_decode($form["fields"],true);
+			$form["hooks"] = json_decode($form["hooks"],true);
 			if ($decode_ipl) {
 				$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
 			}
