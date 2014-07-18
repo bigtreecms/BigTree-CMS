@@ -49,7 +49,7 @@
 
 			// Single column/value add
 			if (is_string($fields)) {
-				$value = is_array($values) ? sqlescape(json_encode(BigTree::translateArray($values))) : sqlescape($admin->autoIPL($values));
+				$value = is_array($values) ? sqlescape(json_encode(BigTree::translateArray($values))) : sqlescape(BigTreeAdmin::autoIPL($values));
 				$existing_parts[] = "`$fields` = '$value'";
 				$key_parts[] = "`$fields`";
 				$value_parts[] = "$value";
@@ -58,7 +58,7 @@
 				// If we didn't pass in values (=== false) then we're using a key => value array
 				if ($values === false) {
 					foreach ($fields as $key => $value) {
-						$value = is_array($value) ? sqlescape(json_encode(BigTree::translateArray($value))) : sqlescape($admin->autoIPL($value));
+						$value = is_array($value) ? sqlescape(json_encode(BigTree::translateArray($value))) : sqlescape(BigTreeAdmin::autoIPL($value));
 						$existing_parts[] = "`$key` = '$value'";
 						$key_parts[] = "`$key`";
 						$value_parts[] = "'$value'";
@@ -68,7 +68,7 @@
 					foreach ($fields as $key) {
 					while ($x < count($fields)) {
 						$val = current($values);
-						$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape($admin->autoIPL($val));
+						$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape(BigTreeAdmin::autoIPL($val));
 						$existing_parts[] = "`$key` = '$val'";
 						$key_parts[] = "`$key`";
 						$value_parts[] = "'$val'";
@@ -218,8 +218,6 @@
 		*/
 		
 		function get($item) {
-			global $cms;
-			
 			if (!is_array($item)) {
 				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '".sqlescape($item)."'"));
 			}
@@ -234,7 +232,7 @@
 				} elseif (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
-					$item[$key] = $cms->replaceInternalPageLinks($val);
+					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
 				}
 			}
 			
@@ -554,8 +552,6 @@
 		*/
 		
 		function getPending($id) {
-			global $cms;
-			
 			$id = sqlescape($id);
 			
 			if (substr($id,0,1) == "p") {
@@ -956,7 +952,6 @@
 		*/
 		
 		function update($id,$fields,$values,$ignore_cache = false) {
-			$admin = new BigTreeAdmin;
 			$id = sqlescape($id);
 			// Multiple columns to update			
 			if (is_array($fields)) {
@@ -966,7 +961,7 @@
 					if (is_array($val)) {
 						$val = BigTree::json(BigTree::translateArray($val));
 					} else {
-						$val = $admin->autoIPL($val);
+						$val = BigTreeAdmin::autoIPL($val);
 					}
 					$query_parts[] = "`$key` = '".sqlescape($val)."'";
 					next($values);
@@ -978,7 +973,7 @@
 				if (is_array($values)) {
 					$val = json_encode(BigTree::translateArray($values));
 				} else {
-					$val = $admin->autoIPL($values);
+					$val = BigTreeAdmin::autoIPL($values);
 				}
 				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($val)."' WHERE id = '$id'");
 			}
