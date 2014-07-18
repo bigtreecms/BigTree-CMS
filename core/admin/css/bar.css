@@ -3,6 +3,7 @@
 .bigtree_bar_open #bigtree_bar_tab { display: none; }
 
 #bigtree_bar { background: #000; height: 40px !important; left: 0px !important; position: fixed !important; top: 0px !important; width: 100% !important; z-index: 1000001 !important; }
+#bigtree_bar a { border: none !important; }
 #bigtree_bar_logo { background: url(../images/icon-sprite.svg) no-repeat -155px -175px !important; display: block !important; float: left !important; height: 22px !important; margin: 7px 20px 0 24px !important; width: 17px /* 85px */ !important; }
 #bigtree_bar_close { background: url(../images/icon-sprite.svg) no-repeat -245px -175px !important; display: block !important; float: right !important; height: 15px !important; margin: 12px 15px 0 15px; width: 14px !important; }
 

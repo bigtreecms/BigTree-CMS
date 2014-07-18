@@ -22,6 +22,8 @@
 		die("Permission denied.");
 	}
 
+	$change["changes"] = BigTreeAutoModule::sanitizeData($change["table"],$change["changes"]);
+
 	// This is an update to an existing entry.
 	if (!is_null($change["item_id"])) {
 		if ($change["table"] == "bigtree_pages") {

@@ -45,7 +45,7 @@ function BigTreeCustomControls(selector) {
 			this.customControl = BigTreeCheckbox(this);
 		}
 	});
-	parent.find("select").each(function() {
+	parent.find("select:not([multiple])").each(function() {
 		if (!$(this).hasClass("custom_control")) {
 			this.customControl = BigTreeSelect(this);
 		}

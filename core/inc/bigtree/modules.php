@@ -65,12 +65,14 @@
 					}
 				// Separate arrays for keys and values
 				} else {
+					foreach ($fields as $key) {
 					while ($x < count($fields)) {
-						$val = is_array($values[$x]) ? sqlescape(json_encode(BigTree::translateArray($values[$x]))) : sqlescape($admin->autoIPL($values[$x]));
-						$existing_parts[] = "`".$fields[$x]."` = '$val'";
-						$key_parts[] = "`".$fields[$x]."`";
+						$val = current($values);
+						$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape($admin->autoIPL($val));
+						$existing_parts[] = "`$key` = '$val'";
+						$key_parts[] = "`$key`";
 						$value_parts[] = "'$val'";
-						$x++;
+						next($values);
 					}
 				}
 			}

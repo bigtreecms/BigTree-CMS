@@ -31,6 +31,10 @@
 	});
 	
 	$(".table").on("click",".icon_delete",function() {
+		if ($(this).hasClass("disabled_icon")) {
+			return false;
+		}
+
 		new BigTreeDialog({
 			title: "Delete User",
 			content: '<p class="confirm">Are you sure you want to delete this user?</p>',
