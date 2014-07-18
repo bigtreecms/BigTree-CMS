@@ -123,7 +123,7 @@ function BigTreeCustomControls(selector) {
 		});
 		
 		// Setup custom select boxes
-		$(selector).find("select").each(function() {
+		$(selector).find("select:not([multiple])").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeSelect(this);
 			}
@@ -151,7 +151,7 @@ function BigTreeCustomControls(selector) {
 		});
 		
 		// Setup custom select boxes
-		$("select").each(function() {
+		$("select:not([multiple])").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeSelect(this);
 			}
