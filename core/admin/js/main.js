@@ -42,22 +42,22 @@ function BigTreeCustomControls(selector) {
 
 	parent.find("input[type=checkbox]").each(function() {
 		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeCheckbox(this);
+			this.customControl = BigTreeCheckbox(this);
 		}
 	});
 	parent.find("select").each(function() {
 		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeSelect(this);
+			this.customControl = BigTreeSelect(this);
 		}
 	});
 	parent.find("input[type=file]").each(function() {
 		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeFileInput(this);
+			this.customControl = BigTreeFileInput(this);
 		}
 	});
 	parent.find("input[type=radio]").each(function() {
 		if (!$(this).hasClass("custom_control")) {
-			this.customControl = new BigTreeRadioButton(this);
+			this.customControl = BigTreeRadioButton(this);
 		}
 	});
 }
