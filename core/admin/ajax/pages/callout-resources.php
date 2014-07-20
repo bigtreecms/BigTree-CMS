@@ -17,6 +17,7 @@
 			$val = $cms->replaceInternalPageLinks($val);
 		}
 	}
+	unset($val);
 
 	// If this is a callout change, we need the count because it's not set in add/edit-callout.php
 	$bigtree["callout_count"] = $_POST["count"];
