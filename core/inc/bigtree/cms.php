@@ -11,6 +11,7 @@
 		var $IPLCache = array();
 		var $ReplaceableRootKeys = array();
 		var $ReplaceableRootVals = array();
+		var $Secure = false;
 
 		/*
 			Constructor:

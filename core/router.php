@@ -431,7 +431,7 @@
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
-		if ($_GET["bigtree_preview_return"]) {
+		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
 			$return_link = $_GET["bigtree_preview_return"];
