@@ -1752,7 +1752,7 @@
 
 			// Hash the password.
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword($data["password"]));
+			$password = sqlescape($phpass->HashPassword(trim($data["password"])));
 
 			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
 			$id = sqlid();
@@ -5351,7 +5351,11 @@
 		*/
 
 		static function login($email,$password,$stay_logged_in = false) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($email)."'"));
+			// Get rid of whitespace and make the email lowercase for consistency
+			$email = trim(strtolower($email));
+			$password = trim($password);
+
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
@@ -7533,7 +7537,7 @@
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = sqlescape($phpass->HashPassword($data["password"]));
+				$password = sqlescape($phpass->HashPassword(trim($data["password"])));
 				sqlquery("UPDATE bigtree_users SET `email` = '$email', `password` = '$password', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
 			} else {
 				sqlquery("UPDATE bigtree_users SET `email` = '$email', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
@@ -7558,7 +7562,7 @@
 
 			$id = sqlescape($id);
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword($password));
+			$password = sqlescape($phpass->HashPassword(trim($password)));
 			sqlquery("UPDATE bigtree_users SET password = '$password' WHERE id = '$id'");
 		}
 	}
