@@ -144,6 +144,7 @@
 			array("title" => "Site Status","link" => "developer/status","icon" => "vitals","hidden" => true),
 			array("title" => "User Emulator","link" => "developer/user-emulator","icon" => "users","hidden" => true),
 			array("title" => "Audit Trail","link" => "developer/audit","icon" => "trail","hidden" => true),
+			array("title" => "Security","link" => "developer/security","icon" => "lock","hidden" => true),
 			array("title" => "System Upgrade","link" => "developer/upgrade","icon" => "vitals","hidden" => true)
 		)),
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),

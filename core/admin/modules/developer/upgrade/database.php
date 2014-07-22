@@ -433,6 +433,10 @@
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `preprocess`");
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `callback`");
 
+		// Password policy setting
+		sqlquery("INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-security-policy','{}','on')");
+
+		// New field types
 		unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	}
 ?>

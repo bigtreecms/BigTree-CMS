@@ -131,6 +131,10 @@
 			<span class="api"></span>
 			<p>Service APIs</p>
 		</a>
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>security/">
+			<span class="lock"></span>
+			<p>Security</p>
+		</a>
 	</section>
 </div>
 
