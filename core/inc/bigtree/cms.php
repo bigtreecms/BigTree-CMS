@@ -7,12 +7,14 @@
 	class BigTreeCMS {
 	
 		var $AutoSaveSettings = array();
+
 		static $BreadcrumbTrunk;
 		static $IRLCache = array();
 		static $IPLCache = array();
 		static $MySQLTime = false;
 		static $ReplaceableRootKeys = array();
 		static $ReplaceableRootVals = array();
+		static $Secure;
 
 		/*
 			Constructor:

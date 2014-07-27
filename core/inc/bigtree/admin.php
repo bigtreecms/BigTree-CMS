@@ -1957,6 +1957,19 @@
 		}
 
 		/*
+			Function: deleteModuleEmbedForm
+				Deletes an embeddable module form.
+
+			Parameters:
+				id - The id of the embeddable form.
+		*/
+
+		function deleteModuleEmbedForm($id) {
+			$id = sqlescape($id);
+			sqlquery("DELETE FROM bigtree_module_embeds WHERE id = '$id'");
+		}
+
+		/*
 			Function: deleteModuleForm
 				Deletes a module form and its related actions.
 
