@@ -2499,7 +2499,7 @@ var BigTreeCallouts = function(settings) {
 			e.preventDefault();
 
 			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: Current.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
 				new BigTreeDialog({
 					title: "Edit " + Noun,
 					content: response.responseText,
