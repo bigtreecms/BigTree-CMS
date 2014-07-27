@@ -53,7 +53,7 @@
 			selector: "#<?=$field["id"]?>",
 			key: "<?=$field["key"]?>",
 			noun: "<?=$noun?>",
-			group: "<?=$field["options"]["group"]?>"
+			groups: <?=json_encode($field["options"]["groups"])?>
 		});
 	</script>
 </fieldset>

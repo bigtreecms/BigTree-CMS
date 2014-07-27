@@ -1,5 +1,5 @@
 <?
-	$cached_types = $admin->getCachedFieldTypes();
+	$cached_types = $admin->getCachedFieldTypes(true);
 	$groups = $admin->getCalloutGroups();
 	$types = $cached_types["callouts"];
 ?>

@@ -2790,11 +2790,14 @@
 			Function: getCachedFieldTypes
 				Caches available field types and returns them.
 
+			Parameters:
+				split - Whether to split the field types into separate default / custom arrays (defaults to false)
+
 			Returns:
 				Array of three arrays of field types (template, module, and callout).
 		*/
 
-		static function getCachedFieldTypes() {
+		static function getCachedFieldTypes($split = false) {
 			// Used cached values if available, otherwise query the DB
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
@@ -2812,7 +2815,8 @@
 						"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
 						"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
 						"array" => array("name" => "Array of Items", "self_draw" => false),
-						"callouts" => array("name" => "Callouts", "self_draw" => true)
+						"callouts" => array("name" => "Callouts", "self_draw" => true),
+						"matrix" => array("name" => "Matrix", "self_draw" => true)
 					),
 					"custom" => array()
 				);
@@ -2831,6 +2835,13 @@
 				}
 
 				file_put_contents(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
+			}
+
+			// Re-merge if we don't want them split
+			if (!$split) {
+				foreach ($types as $use_case => $list) {
+					$types[$use_case] = array_merge($list["default"],$list["custom"]);
+				}
 			}
 
 			return $types;

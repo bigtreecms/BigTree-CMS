@@ -1,4 +1,4 @@
 <?
-	$t = $admin->getCachedFieldTypes();
+	$t = $admin->getCachedFieldTypes(true);
 	$types = $t["settings"];
 ?>

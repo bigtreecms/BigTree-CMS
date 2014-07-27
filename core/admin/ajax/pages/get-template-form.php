@@ -70,9 +70,8 @@
 				} else {
 					$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 				}
-				
 				if (file_exists($field_type_path)) {
-					// Don't draw the fieldset for the callout type
+					// Don't draw the fieldset field types that are declared as self drawing.
 					if ($bigtree["field_types"][$resource["type"]]["self_draw"]) {
 						include $field_type_path;
 					} else {

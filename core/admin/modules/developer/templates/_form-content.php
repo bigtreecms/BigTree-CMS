@@ -1,5 +1,5 @@
 <?
-	$cached_types = $admin->getCachedFieldTypes();
+	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["templates"];
 ?>
 <section>
