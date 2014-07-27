@@ -53,8 +53,7 @@
 			selector: "#<?=$field["id"]?>",
 			key: "<?=$field["key"]?>",
 			noun: "<?=$noun?>",
-			group: "<?=$field["options"]["group"]?>",
-			count: <?=count($field["value"])?>
+			group: "<?=$field["options"]["group"]?>"
 		});
 	</script>
 </fieldset>
