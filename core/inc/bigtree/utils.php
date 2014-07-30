@@ -1881,7 +1881,9 @@
 				$ns .= substr($string,$x,1);
 				$x++;
 			}
-			$ns.= "&hellip;";
+			if (strlen(strip_tags($ns)) < strlen(strip_tags($string))) {
+				$ns.= "&hellip;";
+			}
 			$opentags = array_reverse($opentags);
 			foreach ($opentags as $key => $val) {
 				$ns .= "</".$val.">";
