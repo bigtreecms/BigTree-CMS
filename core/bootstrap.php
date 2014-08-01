@@ -34,7 +34,7 @@
 	$bigtree["mysql_write_connection"] = "disconnected";
 	
 	// Turn on debugging if we're in debug mode.
-	if ($bigtree["config"]["debug"] == "full") {
+	if ($bigtree["config"]["debug"] === "full") {
 		error_reporting(E_ALL);
 		ini_set("display_errors","on");
 	} elseif ($bigtree["config"]["debug"]) {
