@@ -72,7 +72,7 @@
 	});
 			
 	$("#results_table_<?=$view["id"]?> .icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Item",
 			content: '<p class="confirm">Are you sure you want to delete this item?',
 			icon: "delete",

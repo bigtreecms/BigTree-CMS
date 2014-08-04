@@ -27,7 +27,7 @@
 </div>
 <script>
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Callout",
 			content: '<p class="confirm">Are you sure you want to delete this callout?</p>',
 			icon: "delete",

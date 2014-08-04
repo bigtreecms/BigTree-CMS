@@ -7,7 +7,7 @@
 	});
 	
 	$(".table").on("click",".icon_delete",function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Item",
 			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 			icon: "delete",

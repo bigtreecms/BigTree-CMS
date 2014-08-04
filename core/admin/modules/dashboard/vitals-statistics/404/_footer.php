@@ -35,7 +35,7 @@
 		});
 		
 		$(".icon_delete").click(function() {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "<?=ucwords($delete_action)?> 404",
 				content: '<p class="confirm">Are you sure you want to delete this 404?</p>',
 				icon: "delete",

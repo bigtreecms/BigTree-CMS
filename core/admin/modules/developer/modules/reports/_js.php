@@ -37,5 +37,5 @@
 	});
 	
 	BigTree.localHooks();
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 </script>	

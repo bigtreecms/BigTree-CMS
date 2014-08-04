@@ -37,7 +37,7 @@
 	}
 	
 	$(".icon_delete").live("click",function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete API Token",
 			content: '<p class="confirm">Are you sure you want to delete this API token?</p>',
 			icon: "delete",

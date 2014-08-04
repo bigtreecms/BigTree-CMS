@@ -59,7 +59,7 @@
 
 			CurrentColumn = $(this).attr("name");			
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: $("#matrix_type_" + CurrentColumn).val(), data: $("#matrix_options_" + CurrentColumn).val() }, complete: function(response) {
-				new BigTreeDialog("Column Options",response.responseText,function(data) {
+				BigTreeDialog("Column Options",response.responseText,function(data) {
 					$("#matrix_options_" + CurrentColumn).val(JSON.stringify(data));
 				});
 			}});

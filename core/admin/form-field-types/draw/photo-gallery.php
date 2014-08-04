@@ -43,7 +43,7 @@
 	</footer>
 </div>
 <script>
-	new BigTreePhotoGallery({
+	BigTreePhotoGallery({
 		container: "<?=$field["id"]?>",
 		key: "<?=$field["key"]?>",
 		count: <?=$current?>

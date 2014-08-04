@@ -33,7 +33,7 @@
 	}});
 
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Module Group",
 			content: '<p class="confirm">Are you sure you want to delete this module group?<br /><br />Modules in this group will become uncategorized.</p>',
 			icon: "delete",

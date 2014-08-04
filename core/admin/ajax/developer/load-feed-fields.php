@@ -91,7 +91,7 @@
 	}
 	BigTree.localHooks();
 
-	BigTree.localFieldSelect = new BigTreeFieldSelect({
+	BigTree.localFieldSelect = BigTreeFieldSelect({
 		selector: ".form_table header",
 		elements: <?=json_encode($unused)?>,
 		callback: function(el,fs) {

@@ -49,7 +49,7 @@
 	</div>
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
 	<script>
-		new BigTreeCallouts({
+		BigTreeCallouts({
 			selector: "#<?=$field["id"]?>",
 			key: "<?=$field["key"]?>",
 			noun: "<?=$noun?>",

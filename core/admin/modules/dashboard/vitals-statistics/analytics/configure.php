@@ -74,7 +74,7 @@
 	});
 	
 	$("#ga_disconnect").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Disconnect Google Analytics",
 			content: "<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",
 			icon: "delete",

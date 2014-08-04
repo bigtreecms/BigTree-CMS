@@ -1,5 +1,5 @@
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 	
 	$("#gbp_on").bind("click",function() {
 		$("#gbp").toggle();

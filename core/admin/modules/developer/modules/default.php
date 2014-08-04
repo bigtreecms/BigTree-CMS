@@ -81,7 +81,7 @@
 	}});
 
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Module",
 			content: '<p class="confirm">Are you sure you want to delete this module?</p>',
 			icon: "delete",

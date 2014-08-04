@@ -88,7 +88,7 @@
 	</footer>
 </div>
 <script>
-	new BigTreeManyToMany({
+	BigTreeManyToMany({
 		id: "<?=$field["id"]?>",
 		count: <?=$x?>,
 		key: "<?=$field["key"]?>",

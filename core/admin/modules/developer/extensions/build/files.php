@@ -59,7 +59,7 @@
 	});
 
 	$(".add_file a").click(function(ev) {
-		new BigTreeFilesystemBrowser({
+		BigTreeFilesystemBrowser({
 			directory: "",
 			callback: function(data) {
 				var li = $("<li>");

@@ -48,5 +48,5 @@
 </div>
 
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 </script>

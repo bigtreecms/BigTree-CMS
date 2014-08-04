@@ -130,7 +130,7 @@ var BigTreePageLoadHooks = (function($) {
 			} else {
 				var position = "right";
 			}
-			new BigTreeToolTip({
+			BigTreeToolTip({
 				selector: $(this),
 				content: $(this).attr("data-tooltip"),
 				position: position
@@ -874,7 +874,7 @@ var BigTreePhotoGallery = function(settings) {
 				return false;
 			}
 			if (!DisableCaptions) {
-				new BigTreeDialog({
+				BigTreeDialog({
 					title: "Image Caption",
 					content: '<fieldset><label>Caption</label><input type="text" name="caption" /></fieldset>',
 					callback: saveNewFile,
@@ -887,7 +887,7 @@ var BigTreePhotoGallery = function(settings) {
 		};
 		
 		function deletePhoto() {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Remove Photo",
 				content: '<p class="confirm">Are you sure you want to remove this photo?</p>',
 				icon: "delete",
@@ -902,7 +902,7 @@ var BigTreePhotoGallery = function(settings) {
 			var link = $(ev.target);
 			ActiveCaption = link.siblings(".caption");
 	
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Image Caption",
 				content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(ActiveCaption.val()) + '"/></fieldset>',
 				callback: saveCaption,
@@ -1308,7 +1308,7 @@ var BigTreeFileManager = (function($) {
 	// Methods
 	
 	function addFile() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Upload Files",
 			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Select File(s)</label><input type="file" multiple name="files[]" /></fieldset>',
 			icon: "folder",
@@ -1321,7 +1321,7 @@ var BigTreeFileManager = (function($) {
 	};
 	
 	function addFolder() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "New Folder",
 			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',
 			callback: createFolder,
@@ -1668,7 +1668,7 @@ var BigTreeFileManager = (function($) {
 	};
 
 	function replaceFile() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Replace File",
 			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',
 			callback: replaceFileProcess,
@@ -1842,7 +1842,7 @@ var BigTreeFormNavBar = (function() {
 		});
 
 		// Form Validation
-		new BigTreeFormValidator(Container.find("form"),function(errors) {
+		BigTreeFormValidator(Container.find("form"),function(errors) {
 			// Hide all the pages tab sections
 			Sections.hide();
 			// Unset all the active states on tabs
@@ -2467,7 +2467,7 @@ var BigTreeCallouts = function(settings) {
 			e.preventDefault();
 
 			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key }, complete: function(response) {
-				new BigTreeDialog({
+				BigTreeDialog({
 					title: "Add " + Noun,
 					content: response.responseText,
 					icon: "callout",
@@ -2492,7 +2492,7 @@ var BigTreeCallouts = function(settings) {
 
 			CurrentItem = $(this).parents("article");
 			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
-				new BigTreeDialog({
+				BigTreeDialog({
 					title: "Edit " + Noun,
 					content: response.responseText,
 					icon: "callout",
@@ -2515,7 +2515,7 @@ var BigTreeCallouts = function(settings) {
 			e.preventDefault();
 
 			CurrentItem = $(this).parents("article");
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Delete " + Noun,
 				content: '<p class="confirm">Are you sure you want to delete this ' + Noun.toLowerCase() + '?</p>',
 				callback: function() { CurrentItem.remove(); },
@@ -2608,7 +2608,7 @@ var BTXMatrix = function(settings) {
 				type: "POST",
 				data: { columns: Columns, count: Count, key: Key },
 				complete: function(response) {
-					new BigTreeDialog({
+					BigTreeDialog({
 						title: "Add Item",
 						content: response.responseText,
 						icon: "add",
@@ -2633,7 +2633,7 @@ var BTXMatrix = function(settings) {
 			e.preventDefault();
 
 			CurrentItem = $(this).parents("article");
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Delete Item",
 				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 				callback: function() {
@@ -2654,7 +2654,7 @@ var BTXMatrix = function(settings) {
 				type: "POST",
 				data: { columns: Columns, count: Count, data: CurrentItem.find(".btx_matrix_data").val(), key: Key },
 				complete: function(response) {
-					new BigTreeDialog({
+					BigTreeDialog({
 						title: "Edit Item",
 						content: response.responseText,
 						icon: "edit",

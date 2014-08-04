@@ -77,7 +77,7 @@
 
 <script>
 	$(document).ready(function() {
-		new BigTreeToolTip({
+		BigTreeToolTip({
 			selector: ".seo .icon_small_help",
 			content: "<p><strong>SEO Goals</strong></p><?=$seo_recs?>",
 			position: "below",

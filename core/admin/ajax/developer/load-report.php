@@ -138,7 +138,7 @@
 </fieldset>
 
 <script>
-	BigTree.localFieldSelect = new BigTreeFieldSelect({
+	BigTree.localFieldSelect = BigTreeFieldSelect({
 		selector: "#field_table header",
 		elements: <?=json_encode($unused_fields)?>,
 		callback: function(el,fs) {
@@ -154,7 +154,7 @@
 		}
 	});
 
-	BigTree.localFilterSelect = new BigTreeFieldSelect({
+	BigTree.localFilterSelect = BigTreeFieldSelect({
 		selector: "#filter_table header",
 		elements: <?=json_encode($unused_filters)?>,
 		callback: function(el,fs) {

@@ -119,7 +119,7 @@
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 	
 	<?
 		foreach ($bigtree["datepickers"] as $id) {

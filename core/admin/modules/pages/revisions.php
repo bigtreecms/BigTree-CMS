@@ -125,7 +125,7 @@
 	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$lock_id?>' } });",60000);
 	
 	$(".icon_save").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Save Revision",
 			content: '<fieldset class="last"><label>Short Description <small>(quick reminder of what\'s special about this revision)</small></label><input type="text" name="description" /></fieldset>',
 			callback: $.proxy(function(d) {
@@ -145,7 +145,7 @@
 	$(".icon_delete").click(function() {
 		var href = $(this).attr("href");
 		if (href.substr(0,1) == "#") {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Delete Revision",
 				content: '<p class="confirm">Are you sure you want to delete this revision?</p>',
 				icon: "delete",
@@ -157,7 +157,7 @@
 				},this)
 			});
 		} else {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Delete Draft",
 				content: '<p class="confirm">Are you sure you want to delete this draft?</p>',
 				icon: "delete",
@@ -175,7 +175,7 @@
 	
 	$(".icon_draft").click(function() {
 		if (BigTree.localActiveDraft) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Use Revision",
 				content: '<p class="confirm">Are you sure you want to overwrite your existing draft with this revision?</p>',
 				alternateSaveText: "Overwrite"

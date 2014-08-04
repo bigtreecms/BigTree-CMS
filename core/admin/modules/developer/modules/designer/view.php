@@ -60,11 +60,11 @@
 </div>
 
 <script>	
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 	
 	$(".options").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-options/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "View Options",
 				content: response.responseText,
 				icon: "edit",

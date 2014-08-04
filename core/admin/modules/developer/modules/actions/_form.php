@@ -66,7 +66,7 @@
 	</fieldset>
 </section>
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 	$("select[name=form]").change(function() {
 		if ($(this).val()) {
 			$("select[name=view]").get(0).customControl.disable();

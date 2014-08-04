@@ -35,7 +35,7 @@
 			return false;
 		}
 
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete User",
 			content: '<p class="confirm">Are you sure you want to delete this user?</p>',
 			icon: "delete",

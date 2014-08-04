@@ -1,5 +1,5 @@
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 
 	$("#feed_table").change(function(event,data) {
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-feed-fields/?table=" + data.value);
@@ -7,7 +7,7 @@
 	
 	$(".options").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-feed-options/", { type: "POST", data: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() }, complete: function(response) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Feed Options",
 				content: response.responseText,
 				icon: "edit",

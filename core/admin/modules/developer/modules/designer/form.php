@@ -57,7 +57,7 @@
 </div>
 
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 
 	BigTree.localCurrentFieldKey = false;
 	BigTree.localMTMCount = 0;
@@ -71,7 +71,7 @@
 		BigTree.localCurrentFieldKey = $(this).attr("name");
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + BigTree.localCurrentFieldKey).val(), data: $("#options_" + BigTree.localCurrentFieldKey).val() }, complete: function(response) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Field Options",
 				content: response.responseText,
 				icon: "edit",

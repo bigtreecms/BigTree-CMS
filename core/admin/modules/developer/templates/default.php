@@ -79,7 +79,7 @@
 	}});
 	
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Template",
 			content: '<p class="confirm">Are you sure you want to delete this template?</p>',
 			icon: "delete",

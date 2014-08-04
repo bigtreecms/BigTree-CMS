@@ -22,7 +22,7 @@
 	</form>
 </div>
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 </script>
 <?
 	$bigtree["html_fields"] = array("setting_description");

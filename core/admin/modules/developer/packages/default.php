@@ -25,7 +25,7 @@
 </div>
 <script>
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Uninstall Package",
 			content: '<p class="confirm">Are you sure you want to uninstall this package?<br />Related components will also be removed.</p>',
 			icon: "delete",

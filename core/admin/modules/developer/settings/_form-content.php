@@ -48,7 +48,7 @@
 <script>
 	$(".icon_settings").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Settings Options",
 				content: response.responseText,
 				icon: "edit",

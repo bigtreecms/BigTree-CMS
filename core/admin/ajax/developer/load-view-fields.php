@@ -163,7 +163,7 @@
 	}).on("click",".edit",function() {
 		_local_BigTreeCustomAction = $(this).parents("li");
 		var j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Edit Custom Action",
 			content: '<fieldset><label>Action Name</label><input type="text" name="name" value="' + htmlspecialchars(j.name) + '" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" value="' + htmlspecialchars(j.class) + '" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" value="' + htmlspecialchars(j.route) + '" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" value="' + htmlspecialchars(j.function) + '" /></fieldset>',
 			icon: "edit",
@@ -174,7 +174,7 @@
 	}).sortable({ axis: "x", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 		
 	$(".add_action").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Add Custom Action",
 			content: '<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',
 			icon: "add",
@@ -195,7 +195,7 @@
 	
 	BigTree.localHooks();
 	
-	BigTree.localFieldSelect = new BigTreeFieldSelect({
+	BigTree.localFieldSelect = BigTreeFieldSelect({
 		selector: ".form_table header",
 		elements: <?=json_encode($unused)?>,
 		callback: function(el,fs) {
@@ -210,7 +210,7 @@
 				$("#sort_table").append(li);
 				BigTree.localHooks();
 			} else {
-				new BigTreeDialog({
+				BigTreeDialog({
 					title: "Add Custom Column",
 					content: '<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset class="last"><label>Column Title</label><input type="text" name="title" /></fieldset>',
 					icon: "add",

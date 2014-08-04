@@ -25,7 +25,7 @@
 </div>
 <script>
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Uninstall Extension",
 			content: '<p class="confirm">Are you sure you want to uninstall this extension?</p>',
 			icon: "delete",

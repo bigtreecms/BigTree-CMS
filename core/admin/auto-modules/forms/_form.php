@@ -172,7 +172,7 @@
 		}
 	?>
 	
-	new BigTreeFormValidator("#auto_module_form",false<? if ($bigtree["form"]["embedded"]) { ?>,true<? } ?>);
+	BigTreeFormValidator("#auto_module_form",false<? if ($bigtree["form"]["embedded"]) { ?>,true<? } ?>);
 	
 	$(".save_and_preview").click(function() {
 		$("#preview_field").val("true");

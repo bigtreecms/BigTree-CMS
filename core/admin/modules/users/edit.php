@@ -384,8 +384,8 @@
 		}
 	?>
 
-	new BigTreeFormValidator("form.module");
-	new BigTreePasswordInput("input[type=password]");
+	BigTreeFormValidator("form.module");
+	BigTreePasswordInput("input[type=password]");
 	
 	$("form.module").submit(function(ev) {
 		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");

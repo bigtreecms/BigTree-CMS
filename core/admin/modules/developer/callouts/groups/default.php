@@ -28,7 +28,7 @@
 
 <script>
 	$(".icon_delete").click(function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Callout Group",
 			content: '<p class="confirm">Are you sure you want to delete this callout group?<br /><br />Callouts in this group will become uncategorized.</p>',
 			icon: "delete",

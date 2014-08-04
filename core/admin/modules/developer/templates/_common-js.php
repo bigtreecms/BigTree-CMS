@@ -3,7 +3,7 @@
 	$types = $cached_types["templates"];
 ?>
 <script>
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 	
 	BigTree.localCurrentFieldKey = false;
 	BigTree.localResourceCount = <?=$x?>;
@@ -12,7 +12,7 @@
 		BigTree.localCurrentField = $(this).attr("name");
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: $("#type_" + BigTree.localCurrentField).val(), data: $("#options_" + BigTree.localCurrentField).val() }, complete: function(response) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Field Options",
 				content: response.responseText,
 				icon: "edit",
@@ -24,7 +24,7 @@
 		
 		return false;
 	}).on("click",".icon_delete",function() {
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Delete Resource",
 			content: '<p class="confirm">Are you sure you want to delete this resource?</p>',
 			icon: "delete",

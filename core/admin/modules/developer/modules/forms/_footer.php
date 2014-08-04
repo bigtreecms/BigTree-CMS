@@ -15,7 +15,7 @@
 		var html = '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre ? data.pre : "") + '" /></fieldset>';
 		html += '<fieldset><label>Post-processing Hook</label><input type="text" name="post" value="' + htmlspecialchars(data.post ? data.post : "") + '" /></fieldset>';
 		html += '<fieldset><label>Publishing Hook</label><input type="text" name="publish" value="' + htmlspecialchars(data.publish ? data.publish : "") + '" /></fieldset>';
-		new BigTreeDialog({
+		BigTreeDialog({
 			title: "Manage Hooks",
 			content: html,
 			helpLink: "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/",
@@ -32,7 +32,7 @@
 		BigTree.localCurrentFieldKey = key;
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
-			new BigTreeDialog({
+			BigTreeDialog({
 				title: "Field Options",
 				content: response.responseText,
 				icon: "edit",
@@ -81,5 +81,5 @@
 	});
 	
 	BigTree.localHooks();
-	new BigTreeFormValidator("form.module");
+	BigTreeFormValidator("form.module");
 </script>	
