@@ -11,10 +11,10 @@ DROP TABLE IF EXISTS `bigtree_caches`;
 CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(1000) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_callout_groups`;
-CREATE TABLE `bigtree_callout_groups` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_callout_groups` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `name` varchar(255) DEFAULT NULL, `callouts` text, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_callouts`;
-CREATE TABLE `bigtree_callouts` (`id` varchar(255) NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `description` text NOT NULL, `display_default` varchar(255) NOT NULL, `display_field` varchar(255) NOT NULL, `resources` text NOT NULL, `level` int(11) unsigned NOT NULL, `position` int(11) unsigned NOT NULL, `group` int(11) unsigned DEFAULT NULL, PRIMARY KEY (`id`), KEY `group` (`group`), CONSTRAINT `bigtree_callouts_ibfk_1` FOREIGN KEY (`group`) REFERENCES `bigtree_callout_groups` (`id`) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_callouts` (`id` varchar(255) NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `description` text NOT NULL, `display_default` varchar(255) NOT NULL, `display_field` varchar(255) NOT NULL, `resources` text NOT NULL, `level` int(11) unsigned NOT NULL, `position` int(11) unsigned NOT NULL, `extension` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `extension` (`extension`), CONSTRAINT `bigtree_callouts_ibfk_2` FOREIGN KEY (`extension`) REFERENCES `bigtree_extensions` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_extensions`;
 CREATE TABLE `bigtree_extensions` (`id` varchar(255) NOT NULL DEFAULT '', `type` varchar(255) DEFAULT NULL, `name` varchar(255) DEFAULT NULL, `version` varchar(255) DEFAULT NULL, `last_updated` datetime DEFAULT NULL, `manifest` LONGTEXT DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;

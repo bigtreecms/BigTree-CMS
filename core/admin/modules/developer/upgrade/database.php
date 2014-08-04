@@ -433,6 +433,28 @@
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `preprocess`");
 		sqlquery("ALTER TABLE bigtree_module_embeds DROP COLUMN `callback`");
 
+		// Adjust groups/callouts for multi-support -- first we drop the foreign key
+		$table_desc = BigTree::describeTable("bigtree_callouts");
+		foreach ($table_desc["foreign_keys"] as $name => $definition) {
+			if ($definition["local_columns"][0] === "group") {
+				sqlquery("ALTER TABLE bigtree_callouts DROP FOREIGN KEY `$name`");
+			}
+		}
+		// Add the field to the groups
+		sqlquery("ALTER TABLE bigtree_callout_groups ADD COLUMN `callouts` TEXT AFTER `name`");
+		// Find all the callouts in each group
+		$q = sqlquery("SELECT * FROM bigtree_callout_groups");
+		while ($f = sqlfetch($q)) {
+			$callouts = array();
+			$qq = sqlquery("SELECT * FROM bigtree_callouts WHERE `group` = '".$f["id"]."' ORDER BY position DESC, id ASC");
+			while ($ff = sqlfetch($qq)) {
+				$callouts[] = $ff["id"];
+			}
+			sqlquery("UPDATE bigtree_callout_groups SET `callouts` = '".BigTree::json($callouts,true)."' WHERE id = '".$f["id"]."'");
+		}
+		// Drop the group column
+		sqlquery("ALTER TABLE bigtree_callouts DROP COLUMN `group`");
+
 		// Password policy setting
 		sqlquery("INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-security-policy','{}','on')");
 

@@ -1,10 +1,6 @@
 <?
-	$groups = $admin->getCalloutGroups();
-	foreach ($groups as &$group) {
-		$group["callouts"] = $admin->getCalloutsByGroup($group["id"]);
-	}
-	
-	$ungrouped_callouts = $admin->getCalloutsByGroup(0,"name ASC");
+	$groups = $admin->getCalloutGroups();	
+	$ungrouped_callouts = $admin->getCalloutsByGroup(0);
 
 	// Need to create a ridiculous hack because jQuery's sortable is stupid.
 	$x = 0;
@@ -23,7 +19,8 @@
 	</header>
 	<ul id="group_<?=$g["id"]?>">
 		<?
-			foreach ($g["callouts"] as $item) {
+			foreach ($g["callouts"] as $id) {
+				$item = $admin->getCallout($id);
 				$x++;
 				$rel_table[$x] = $item["id"];
 		?>
@@ -47,7 +44,7 @@
 
 <script>
 	$("#group_<?=$g["id"]?>").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-callouts/", { type: "POST", data: { sort: $("#group_<?=$g["id"]?>").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-callouts/", { type: "POST", data: { group: <?=$g["id"]?>, sort: $("#group_<?=$g["id"]?>").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 </script>
 <?
@@ -85,10 +82,6 @@
 ?>
 
 <script>
-	$("#group_0").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-callouts/", { type: "POST", data: { sort: $("#group_0").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
-	}});
-
 	$(".icon_delete").click(function() {
 		new BigTreeDialog({
 			title: "Delete Callout",

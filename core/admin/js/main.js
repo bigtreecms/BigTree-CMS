@@ -2005,8 +2005,12 @@ var BigTreeListMaker = function(settings) {
 };
 
 var BigTreeManyToMany = function(settings) {
-	return (function($,settings) {
+	// Pre 4.2 compat
+	if (!is_object(settings)) {
+		settings = { id: arguments[0], count: arguments[1], key: arguments[2], sortable: arguments[3], keepOptions: arguments[4] };
+	}
 
+	return (function($,settings) {
 		var Count = 0;
 		var DeleteTarget;
 		var Field;
@@ -2068,27 +2072,15 @@ var BigTreeManyToMany = function(settings) {
 			return false;
 		};
 
-		// 4.2 init routine
-		if (is_object(settings)) {
-			Field = $("#" + settings.id);
-			Count = settings.count;
-			Key = settings.key;
-			if (settings.sortable) {
-				Sortable = true;
-			}
-			if (settings.keepOptions) {
-				KeepOptions = true;
-			}
-		} else {
-			Field = $("#" + arguments[1]);
-			Count = arguments[2];
-			Key = arguments[3];
-			if (arguments[4]) {
-				Sortable = true;
-			}
-			if (arguments[5]) {
-				KeepOptions = true;
-			}
+		// Init routine
+		Field = $("#" + settings.id);
+		Count = settings.count;
+		Key = settings.key;
+		if (settings.sortable) {
+			Sortable = true;
+		}
+		if (settings.keepOptions) {
+			KeepOptions = true;
 		}
 
 		List = Field.find("ul");

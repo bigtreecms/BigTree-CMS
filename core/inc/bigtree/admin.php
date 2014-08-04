@@ -712,10 +712,9 @@
 				resources - An array of resources.
 				display_field - The field to use as the display field describing a user's callout
 				display_default - The text string to use in the event the display_field is blank or non-existent
-				group - The group this callout belongs to
 		*/
 
-		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default,$group = false) {
+		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
@@ -761,7 +760,6 @@
 			$resources = BigTree::json($clean_resources,true);
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
-			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
 				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
@@ -770,7 +768,7 @@
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
 			sqlquery("UPDATE bigtree_callouts SET position = position + 1");
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`,`group`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default',$group)");
+			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`resources`,`level`,`display_field`,`display_default`) VALUES ('$id','$name','$description','$resources','$level','$display_field','$display_default')");
 			$this->track("bigtree_callouts",$id,"created");
 
 			return $id;
@@ -782,13 +780,15 @@
 
 			Parameters:
 				name - The name of the group.
+				callouts - An array of callout IDs to assign to the group.
 
 			Returns:
 				The id of the newly created group.
 		*/
 
-		function createCalloutGroup($name) {
-			sqlquery("INSERT INTO bigtree_callout_groups (`name`) VALUES ('".sqlescape(BigTree::safeEncode($name))."')");
+		function createCalloutGroup($name,$callouts) {
+			$callouts = BigTree::json($callouts,true);
+			sqlquery("INSERT INTO bigtree_callout_groups (`name`,`callouts`) VALUES ('".sqlescape(BigTree::safeEncode($name))."','$callouts')");
 
 			$id = sqlid();
 			$this->track("bigtree_callout_groups",$id,"created");
@@ -2880,7 +2880,12 @@
 		*/
 
 		static function getCalloutGroup($id) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'"));
+			if (!$f) {
+				return false;
+			}
+			$f["callouts"] = json_decode($f["callouts"],true);
+			return $f;
 		}
 
 		/*
@@ -2895,6 +2900,7 @@
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
 			while ($f = sqlfetch($q)) {
+				$f["callouts"] = json_decode($f["callouts"]);
 				$items[$f["id"]] = $f;
 			}
 			return $items;
@@ -2925,32 +2931,40 @@
 				Returns a list of callouts in a given group.
 
 			Parameters:
-				group - The group to return callouts for.
-				sort - The sort order (defaults to positioned)
+				group - The group object to return callouts for.
 				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
 
 			Returns:
 				An array of entries from the bigtree_callouts table.
 		*/
 
-		function getCalloutsByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
-			if (is_array($group)) {
-				$group = sqlescape($group["id"]);
-			} else {
-				$group = sqlescape($group);
-			}
-			$items = array();
-			if ($group) {
-				$q = sqlquery("SELECT * FROM bigtree_callouts WHERE `group` = '$group' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_callouts WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
-			}
-			while ($f = sqlfetch($q)) {
-				if (!$auth || $this->Level >= $f["level"]) {
-					$items[] = $f;
+		function getCalloutsByGroup($group,$auth = true) {
+			// Empty? Grab anything not in a group
+			if (!array_filter((array)$group)) {
+				$callouts = $this->getCallouts("name ASC");
+				$items = array();
+
+				foreach ($callouts as $callout) {
+					$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_callout_groups WHERE callouts LIKE '%\"".$callout["id"]."\"%'"));
+					if (!$f["count"] && (!$auth || $this->Level >= $callout["level"])) {
+						$items[] = $callout;
+					}
 				}
+				return $items;
+			} else {
+				if (!is_array($group)) {
+					throw new Exception("This method requires a full group object as the first parameter in BigTree 4.2+");
+				}
+
+				$items = array();
+				foreach ($group["callouts"] as $id) {
+					$callout = $this->getCallout($id);
+					if (!$auth || $this->Level >= $callout["level"]) {
+						$items[] = $callout;
+					}
+				}
+				return $items;
 			}
-			return $items;
 		}
 
 		/*
@@ -6669,10 +6683,9 @@
 				resources - An array of resources.
 				display_field - The field to use as the display field describing a user's callout
 				display_default - The text string to use in the event the display_field is blank or non-existent
-				group - The group this callout belongs to
 		*/
 
-		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default,$group = false) {
+		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
 			$r = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"] && $resource["id"] != "type") {
@@ -6697,23 +6710,39 @@
 			$resources = BigTree::json($r,true);
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
-			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 
-			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default', `group` = $group WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_callouts SET resources = '$resources', name = '$name', description = '$description', level = '$level', display_field = '$display_field', display_default = '$display_default' WHERE id = '$id'");
 			$this->track("bigtree_callouts",$id,"updated");
 		}
 
 		/*
 			Function: updateCalloutGroup
-				Updates a callout group's name.
+				Updates a callout group's name and callout list.
 
 			Parameters:
 				id - The id of the callout group to update.
 				name - The name.
+				callouts - An array of callout IDs to assign to the group.
 		*/
 
-		function updateCalloutGroup($id,$name) {
-			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(BigTree::safeEncode($name))."' WHERE id = '".sqlescape($id)."'");
+		function updateCalloutGroup($id,$name,$callouts) {
+			$callouts = BigTree::json($callouts,true);
+			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(BigTree::safeEncode($name))."', callouts = '$callouts' WHERE id = '".sqlescape($id)."'");
+			$this->track("bigtree_callout_groups",$id,"updated");
+		}
+
+		/*
+			Function: updateCalloutGroupPositions
+				Updates a callout group's list of callouts (used for positioning).
+
+			Parameters:
+				id - The id of the callout group to update.
+				callouts - An array of callout IDs to assign to the group.
+		*/
+
+		function updateCalloutGroupPositions($id,$callouts) {
+			$callouts = BigTree::json($callouts,true);
+			sqlquery("UPDATE bigtree_callout_groups SET callouts = '$callouts' WHERE id = '".sqlescape($id)."'");
 			$this->track("bigtree_callout_groups",$id,"updated");
 		}
 
