@@ -6732,21 +6732,6 @@
 		}
 
 		/*
-			Function: updateCalloutGroupPositions
-				Updates a callout group's list of callouts (used for positioning).
-
-			Parameters:
-				id - The id of the callout group to update.
-				callouts - An array of callout IDs to assign to the group.
-		*/
-
-		function updateCalloutGroupPositions($id,$callouts) {
-			$callouts = BigTree::json($callouts,true);
-			sqlquery("UPDATE bigtree_callout_groups SET callouts = '$callouts' WHERE id = '".sqlescape($id)."'");
-			$this->track("bigtree_callout_groups",$id,"updated");
-		}
-
-		/*
 			Function: updateChildPagePaths
 				Updates the paths for pages who are descendants of a given page to reflect the page's new route.
 				Also sets route history if the page has changed paths.
