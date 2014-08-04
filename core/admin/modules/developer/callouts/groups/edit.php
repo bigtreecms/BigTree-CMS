@@ -61,7 +61,6 @@
 	BigTreeManyToMany({
 		id: "group_callouts",
 		count: <?=$x?>,
-		key: "callouts",
-		sortable: true
+		key: "callouts"
 	});
 </script>

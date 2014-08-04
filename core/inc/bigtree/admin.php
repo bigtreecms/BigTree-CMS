@@ -787,6 +787,7 @@
 		*/
 
 		function createCalloutGroup($name,$callouts) {
+			sort($callouts);
 			$callouts = BigTree::json($callouts,true);
 			sqlquery("INSERT INTO bigtree_callout_groups (`name`,`callouts`) VALUES ('".sqlescape(BigTree::safeEncode($name))."','$callouts')");
 
@@ -2927,44 +2928,36 @@
 		}
 
 		/*
-			Function: getCalloutsByGroup
-				Returns a list of callouts in a given group.
+			Function: getCalloutsInGroups
+				Returns a list of callouts in a given set of groups.
 
 			Parameters:
-				group - The group object to return callouts for.
+				groups - An array of group IDs to retrieve callouts for.
 				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
 
 			Returns:
 				An array of entries from the bigtree_callouts table.
 		*/
 
-		function getCalloutsByGroup($group,$auth = true) {
-			// Empty? Grab anything not in a group
-			if (!array_filter((array)$group)) {
-				$callouts = $this->getCallouts("name ASC");
-				$items = array();
+		function getCalloutsInGroups($groups,$auth = true) {
+			$ids = array();
+			$items = array();
+			$names = array();
 
-				foreach ($callouts as $callout) {
-					$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_callout_groups WHERE callouts LIKE '%\"".$callout["id"]."\"%'"));
-					if (!$f["count"] && (!$auth || $this->Level >= $callout["level"])) {
+			foreach ($groups as $group_id) {
+				$group = $this->getCalloutGroup($group_id);
+				foreach ($group["callouts"] as $callout_id) {
+					if (!in_array($callout_id,$ids)) {
+						$ids[] = $callout_id;
+						$callout = $this->getCallout($callout_id);
 						$items[] = $callout;
+						$names[] = $callout["name"];
 					}
 				}
-				return $items;
-			} else {
-				if (!is_array($group)) {
-					throw new Exception("This method requires a full group object as the first parameter in BigTree 4.2+");
-				}
-
-				$items = array();
-				foreach ($group["callouts"] as $id) {
-					$callout = $this->getCallout($id);
-					if (!$auth || $this->Level >= $callout["level"]) {
-						$items[] = $callout;
-					}
-				}
-				return $items;
 			}
+			
+			array_multisort($names,$items);
+			return $items;
 		}
 
 		/*
@@ -6726,6 +6719,7 @@
 		*/
 
 		function updateCalloutGroup($id,$name,$callouts) {
+			sort($callouts);
 			$callouts = BigTree::json($callouts,true);
 			sqlquery("UPDATE bigtree_callout_groups SET name = '".sqlescape(BigTree::safeEncode($name))."', callouts = '$callouts' WHERE id = '".sqlescape($id)."'");
 			$this->track("bigtree_callout_groups",$id,"updated");

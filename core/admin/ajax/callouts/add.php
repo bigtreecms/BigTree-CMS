@@ -1,6 +1,6 @@
 <?
-	if ($_POST["group"]) {
-		$items = $admin->getCalloutsByGroup($_POST["group"]);
+	if ($_POST["groups"]) {
+		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
 		$items = $admin->getCallouts("name ASC");
 	}
