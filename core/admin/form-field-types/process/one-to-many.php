@@ -1,0 +1,3 @@
+<?
+	$field["output"] = $field["input"];
+?>

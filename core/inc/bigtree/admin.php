@@ -2816,7 +2816,8 @@
 						"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
 						"array" => array("name" => "Array of Items", "self_draw" => false),
 						"callouts" => array("name" => "Callouts", "self_draw" => true),
-						"matrix" => array("name" => "Matrix", "self_draw" => true)
+						"matrix" => array("name" => "Matrix", "self_draw" => true),
+						"one-to-many" => array("name" => "One to Many", "self_draw" => false)
 					),
 					"custom" => array()
 				);
