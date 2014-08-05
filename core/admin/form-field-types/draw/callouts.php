@@ -2,21 +2,6 @@
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
-	if (!function_exists("_localDrawCalloutLevel")) {
-		// We're going to loop through the callout array so we don't have to do stupid is_array crap anymore.
-		function _localDrawCalloutLevel($keys,$level) {
-			global $field;
-			foreach ($level as $key => $value) {
-				if (is_array($value)) {
-					_localDrawCalloutLevel(array_merge($keys,array($key)),$value);
-				} else {
-?>
-<input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
-<?
-				}
-			}
-		}
-	}
 
 	$noun = $field["options"]["noun"] ? htmlspecialchars($field["options"]["noun"]) : "Callout";
 ?>
@@ -30,7 +15,7 @@
 		?>
 		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
-			<? _localDrawCalloutLevel(array($x),$callout) ?>
+			<? BigTreeAdmin::drawArrayLevel(array($x),$callout) ?>
 			<h4>
 				<?=BigTree::safeEncode($callout["display_title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=BigTree::safeEncode($callout["display_title"])?>" />

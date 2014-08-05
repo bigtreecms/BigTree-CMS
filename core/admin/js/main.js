@@ -2544,18 +2544,18 @@ var BigTreeCallouts = function(settings) {
 	})(jQuery,settings);
 };
 
-var BTXMatrix = function(settings) {
+var BigTreeMatrix = function(settings) {
 	return (function($,settings) {
 
-		var Columns = settings.columns;
-		var Container = $(settings.selector);
+		var Columns;
+		var Container;
 		var Count = 0;
-		var Current = false;
-		var Key = settings.key;
+		var Current;
+		var Key;
 		var LastDialog;
-		var List = Container.find(".contain");
-		var Subtitle = "";
-		var Title = "";
+		var List;
+		var Subtitle;
+		var Title;
 
 		function addItem(e) {
 			e.preventDefault();
@@ -2608,7 +2608,7 @@ var BTXMatrix = function(settings) {
 			
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".btx_matrix_data").val(), key: Key },
+				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Edit Item",
@@ -2644,7 +2644,7 @@ var BTXMatrix = function(settings) {
 	
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
-			LastDialog.find(".btx_matrix_display_title").each(function(index,el) {
+			LastDialog.find(".bigtree_matrix_display_title").each(function(index,el) {
 				var item = $(el).find("input[type=text],textarea,select");
 				if (item.length) {
 					if (item.is("select")) {
@@ -2691,13 +2691,19 @@ var BTXMatrix = function(settings) {
 		};
 
 		// Init routine
+		Key = settings.key;
+		Columns = settings.columns;
+		Container = $(settings.selector);
+		List = Container.find(".contain");
 		Count = List.find("article").length;
+		
 		Container.on("click",".add_item",addItem)
 				 .on("click",".icon_edit",editItem)
 				 .on("click",".icon_delete",deleteItem);
 		List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
 		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
+
 	})(jQuery,settings);
 };
 

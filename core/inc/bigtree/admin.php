@@ -2334,6 +2334,24 @@
 		}
 
 		/*
+			Function: drawArrayLevel
+				An internal function used for drawing callout and matrix resource data.
+		*/
+
+		static function drawArrayLevel($keys,$level) {
+			global $field;
+			foreach ($level as $key => $value) {
+				if (is_array($value)) {
+					self::drawArrayLevel(array_merge($keys,array($key)),$value);
+				} else {
+?>
+<input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
+<?
+				}
+			}
+		}
+
+		/*
 			Function: emailDailyDigest
 				Sends out a daily digest email to all who have subscribed.
 		*/

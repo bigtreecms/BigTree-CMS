@@ -63,7 +63,7 @@
 					
 					if (file_exists($field_type_path)) {
 		?>
-		<fieldset<? if ($resource["display_title"]) { ?> class="btx_matrix_display_title"<? } ?>>
+		<fieldset<? if ($resource["display_title"]) { ?> class="bigtree_matrix_display_title"<? } ?>>
 			<?
 						if ($field["title"] && $resource["type"] != "checkbox") {
 			?>

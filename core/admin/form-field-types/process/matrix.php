@@ -1,5 +1,5 @@
 <?
-	$bigtree["btx-matrix"] = array(
+	$bigtree["matrix-field"] = array(
 		"data" => array(),
 		"field" => $field,
 		"saved_entry" => $bigtree["entry"],
@@ -7,15 +7,15 @@
 		"saved_file_data" => $bigtree["file_data"]
 	);
 	
-	if (count($bigtree["btx-matrix"]["field"]["input"])) {
-		foreach ($bigtree["btx-matrix"]["field"]["input"] as $number => $data) {
+	if (count($bigtree["matrix-field"]["field"]["input"])) {
+		foreach ($bigtree["matrix-field"]["field"]["input"] as $number => $data) {
 			// Make sure something has been entered
-			if (array_filter((array)$data) || array_filter((array)$bigtree["btx-matrix"]["field"]["file_input"][$number])) {
+			if (array_filter((array)$data) || array_filter((array)$bigtree["matrix-field"]["field"]["file_input"][$number])) {
 				$bigtree["entry"] = array("__internal-title" => $data["__internal-title"],"__internal-subtitle" => $data["__internal-subtitle"]);
 				$bigtree["post_data"] = $data;
-				$bigtree["file_data"] = $bigtree["btx-matrix"]["field"]["file_input"][$number];
+				$bigtree["file_data"] = $bigtree["matrix-field"]["field"]["file_input"][$number];
 				
-				foreach ($bigtree["btx-matrix"]["field"]["options"]["columns"] as $resource) {
+				foreach ($bigtree["matrix-field"]["field"]["options"]["columns"] as $resource) {
 					$options = @json_decode($resource["options"],true);
 					$options = is_array($options) ? $options : array();
 
@@ -68,14 +68,14 @@
 						$bigtree["entry"][$field["key"]] = $field["output"];
 					}
 				}
-				$bigtree["btx-matrix"]["data"][] = $bigtree["entry"];
+				$bigtree["matrix-field"]["data"][] = $bigtree["entry"];
 			}
 		}
 	}
 	
-	$bigtree["entry"] = $bigtree["btx-matrix"]["saved_entry"];
-	$bigtree["post_data"] = $bigtree["btx-matrix"]["saved_post_data"];
-	$bigtree["file_data"] = $bigtree["btx-matrix"]["saved_file_data"];
-	$field = $bigtree["btx-matrix"]["field"];
-	$field["output"] = $bigtree["btx-matrix"]["data"];
+	$bigtree["entry"] = $bigtree["matrix-field"]["saved_entry"];
+	$bigtree["post_data"] = $bigtree["matrix-field"]["saved_post_data"];
+	$bigtree["file_data"] = $bigtree["matrix-field"]["saved_file_data"];
+	$field = $bigtree["matrix-field"]["field"];
+	$field["output"] = $bigtree["matrix-field"]["data"];
 ?>
