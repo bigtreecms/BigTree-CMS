@@ -860,6 +860,11 @@ var BigTreeRadioButton = function(element) {
 };
 
 var BigTreePhotoGallery = function(settings) {
+	// BigTree < 4.2 style
+	if (!is_object(settings)) {
+		settings = { container: arguments[0], key: arguments[1], counter: arguments[2], disableCaptions: arguments[3] };
+	}
+
 	return (function($,settings) {
 
 		var ActiveCaption = false;
@@ -974,30 +979,10 @@ var BigTreePhotoGallery = function(settings) {
 		};
 
 		// Init routine
-		var Defaults = {
-			"container": "",
-			"key": "",
-			"counter": 0,
-			"disableCaptions": ""
-		};
-
-		// BigTree 4.2 behavior should be to pass in a settings object
-		if (is_object(settings)) {
-			for (var i in settings) {
-				Defaults[i] = settings[i];
-			}
-		// Allow for backwards copatibility with BigTree <= 4.1
-		} else {
-			Defaults.container = arguments[1];
-			Defaults.key = arguments[2];
-			Defaults.counter = arguments[3];
-			Defaults.disableCaptions = arguments[4];
-		}
-
-		Key = Defaults.key;
-		Container = $("#" + Defaults.container.replace("#",""));
-		Counter = Defaults.counter;
-		DisableCaptions = Defaults.disableCaptions;
+		Key = settings.key;
+		Container = $("#" + settings.container.replace("#",""));
+		Counter = settings.counter;
+		DisableCaptions = settings.disableCaptions;
 		FileInput = Container.find("footer input");
 		
 		Container.on("click",".icon_delete",deletePhoto)
@@ -1129,8 +1114,12 @@ var BigTreeTagAdder = (function($) {
 })(jQuery);
 
 var BigTreeDialog = function(settings) {
-	return (function($,settings) {
+	// BigTree < 4.2 style
+	if (!is_object(settings)) {
+		settings = { title: arguments[0], content: arguments[1], callback: arguments[2], icon: arguments[3], noFooter: arguments[4], alternateSaveText: arguments[5], preSubmissionCallback: arguments[6], cancelHook: arguments[7] };
+	}
 
+	return (function($,settings) {
 		var DialogHeight;
 		var DialogWidth;
 		var DialogWindow;
@@ -1198,41 +1187,9 @@ var BigTreeDialog = function(settings) {
 			}
 		};
 
-		// Init routine
-		var Defaults = {
-			alternateSaveText: false,
-			callback: false,
-			cancelHook: false,
-			content: "",
-			helpLink: false,
-			icon: false,
-			noFooter: false,
-			preSubmissionCallback: false,
-			title: "",
-			width: 450,
-			height: 400
-		};
-	
-		// BigTree 4.2 behavior should be to pass in a settings object
-		if (is_object(settings)) {
-			for (var i in settings) {
-				Defaults[i] = settings[i];
-			}
-		// Allow for backwards copatibility with BigTree <= 4.1
-		} else {
-			Defaults.title = arguments[1];
-			Defaults.content = arguments[2];
-			Defaults.callback = arguments[3];
-			Defaults.icon = arguments[4];
-			Defaults.noFooter = arguments[5];
-			Defaults.alternateSaveText = arguments[6];
-			Defaults.preSubmissionCallback = arguments[7];
-			Defaults.cancelHook = arguments[8];
-		}
-
 		// Setup a callback to give the data to once they submit their dialog
-		OnComplete = Defaults.callback;
-		OnCancel = Defaults.cancelHook;
+		OnComplete = settings.callback;
+		OnCancel = settings.cancelHook;
 
 		// If they hit escape, close the dialog
 		$("body").on("keyup",checkForEsc);
@@ -1244,16 +1201,16 @@ var BigTreeDialog = function(settings) {
 
 		// Fill the window
 		var html = '<h2>';
-		if (Defaults.icon) {
-			html += '<span class="icon_dialog_' + Defaults.icon + '"></span>';
+		if (settings.icon) {
+			html += '<span class="icon_dialog_' + settings.icon + '"></span>';
 		}
-		html += Defaults.title;
-		if (Defaults.helpLink) {
-			html += '<a href="' + Defaults.helpLink + '" target="_blank" class="icon_small icon_small_help"></a>';
+		html += settings.title;
+		if (settings.helpLink) {
+			html += '<a href="' + settings.helpLink + '" target="_blank" class="icon_small icon_small_help"></a>';
 		}
-		html += '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' +  Defaults.content + '</div>';
-		if (!Defaults.noFooter) {
-			var saveText = Defaults.alternateSaveText ? Defaults.alternateSaveText : "Save";
+		html += '</h2><form class="bigtree_dialog_form" method="post" enctype="multipart/form-data" action="" class="module"><div class="overflow">' +  settings.content + '</div>';
+		if (!settings.noFooter) {
+			var saveText = settings.alternateSaveText ? settings.alternateSaveText : "Save";
 			html += '<footer><a class="button bigtree_dialog_close">Cancel</a><input type="submit" class="button blue" value="' + saveText + '" /></footer>';
 		}
 		html += '</form>';
@@ -1270,7 +1227,7 @@ var BigTreeDialog = function(settings) {
 		DialogWindow.find(".bigtree_dialog_close").click(dialogClose);
 		
 		// Hook form submission, if they don't want the submission just call the complete callback
-		if (Defaults.preSubmissionCallback) {
+		if (settings.preSubmissionCallback) {
 			DialogWindow.find(".bigtree_dialog_form").submit(OnComplete);
 		} else {
 			DialogWindow.find(".bigtree_dialog_form").submit(dialogSubmit);
@@ -2005,7 +1962,7 @@ var BigTreeListMaker = function(settings) {
 };
 
 var BigTreeManyToMany = function(settings) {
-	// Pre 4.2 compat
+	// BigTree < 4.2 style
 	if (!is_object(settings)) {
 		settings = { id: arguments[0], count: arguments[1], key: arguments[2], sortable: arguments[3], keepOptions: arguments[4] };
 	}
@@ -2321,8 +2278,8 @@ var BigTreeToolTip = function(settings) {
 
 		var Container;
 		var Content;
-		var Defaults = { hover: true, position: "above", icon: "alert" };
 		var Position;
+		var Settings = { hover: true, position: "above", icon: "alert" };
 		var Target;
 
 		function hide() {
@@ -2338,25 +2295,25 @@ var BigTreeToolTip = function(settings) {
 			var h = parseInt(Target.css("height"));
 			
 			// The tip is below the target.
-			if (Defaults.position == "below") {
+			if (Settings.position == "below") {
 				var l = offset.left - 28 + Math.round(w / 2);
 				var t = offset.top + h + 5;
 			}
 			
 			// The tip is to the right of the target.
-			if (Defaults.position == "right") {
+			if (Settings.position == "right") {
 				var l = offset.left + w + 5;
 				var t = offset.top - 28 + Math.round(h / 2);
 			}
 			
 			// The tip is to the left of the target.
-			if (Defaults.position == "left") {
+			if (Settings.position == "left") {
 				var l = offset.left - Container.width() - 5;
 				var t = offset.top - 28 + Math.round(h / 2);
 			}
 			
 			// The tip is above of the target.
-			if (Defaults.position == "above") {
+			if (Settings.position == "above") {
 				var l = offset.left - 28 + Math.round(w / 2);
 				var t = offset.top - Container.height() - 5;
 			}
@@ -2364,34 +2321,34 @@ var BigTreeToolTip = function(settings) {
 			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.ZIndex++) }).stop().fadeTo(200, 1);
 		};
 
-		// 4.2 init routine
+		// Init routine
 		for (var i in settings) {
-			Defaults[i] = settings[i];
+			Settings[i] = settings[i];
 		}
 		Target = $(settings.selector);
 		Content = settings.content;
 		Container = $('<div class="tooltip" style="display: none;">');
 		
 		// The arrow is below the tip if the position is above.
-		if (Defaults.position != "above") {
+		if (Settings.position != "above") {
 			Container.append($('<span class="arrow">'));
 		}
 
-		var tip = $('<article>').html('<section class="icon_tooltip icon_growl_' + Defaults.icon + '"></section><section class="content">' + Content + '</section>');
+		var tip = $('<article>').html('<section class="icon_tooltip icon_growl_' + Settings.icon + '"></section><section class="content">' + Content + '</section>');
 		// If the tip should stay open, add a close button.  Otherwise it'll close when you roll off the target.
-		if (!Defaults.hover) {
+		if (!Settings.hover) {
 			tip.append($('<a href="#" class="close"></a>'));
 			tip.find(".close").click(hide);
 		}
 
-		Container.append(tip).addClass("tooltip_" + Defaults.position);
-		if (Defaults.position == "above") {
+		Container.append(tip).addClass("tooltip_" + Settings.position);
+		if (Settings.position == "above") {
 			Container.append($('<span class="arrow">'));
 		}
 
 		$("body").append(Container);
 		
-		if (Defaults.hover) {
+		if (Settings.hover) {
 			Target.mouseenter(show).mouseleave(hide);
 		} else {
 			Target.click(show);
@@ -2407,7 +2364,7 @@ var BigTreeFilesystemBrowser = function(settings) {
 
 		var Callback = false;
 		var Container;
-		var Defaults = { directory: "/", enableCloudServices: true, preventBelowBaseDirectory: true }
+		var Settings = { directory: "/", enableCloudServices: true, preventBelowBaseDirectory: true }
 
 		function submit() {
 			var data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location").val() };
@@ -2422,7 +2379,7 @@ var BigTreeFilesystemBrowser = function(settings) {
 
 		// Init routine
 		for (var i in settings) {
-			Defaults[i] = settings[i];
+			Settings[i] = settings[i];
 		}
 		if (settings.callback) {
 			Callback = settings.callback;
@@ -2432,10 +2389,10 @@ var BigTreeFilesystemBrowser = function(settings) {
 		Container = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.ZIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
 		$("body").append(overlay).append(Container);
 		
-		if (Defaults.preventBelowBaseDirectory) {
-			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: Defaults.directory, directory: Defaults.directory, cloud_disabled: !Defaults.enableCloudServices, file: Defaults.currentFile, location: Defaults.cloudLocation, container: Defaults.cloudContainer });
+		if (Settings.preventBelowBaseDirectory) {
+			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: Settings.directory, directory: Settings.directory, cloud_disabled: !Settings.enableCloudServices, file: Settings.currentFile, location: Settings.cloudLocation, container: Settings.cloudContainer });
 		} else {
-			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: Defaults.directory, cloud_disabled: !Defaults.enableCloudServices, file: Defaults.currentFile, location: Defaults.cloudLocation, container: Defaults.cloudContainer });
+			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: Settings.directory, cloud_disabled: !Settings.enableCloudServices, file: Settings.currentFile, location: Settings.cloudLocation, container: Settings.cloudContainer });
 		}
 
 		var left_offset = parseInt((BigTree.windowWidth() - 602) / 2);
@@ -2444,14 +2401,13 @@ var BigTreeFilesystemBrowser = function(settings) {
 		Container.css({ "top": top_offset + "px", "left": left_offset + "px" });
 		Container.find("form").submit(submit);
 
-		return { Callback: Callback, Container: Container, Settings: Defaults, submit: submit };
+		return { Callback: Callback, Container: Container, Settings: Settings, submit: submit };
 
 	})(jQuery,settings);
 };
 
 var BigTreeCallouts = function(settings) {
 	return (function($,settings) {
-
 		var Container = $(settings.selector);
 		var Count;
 		var CurrentItem;
