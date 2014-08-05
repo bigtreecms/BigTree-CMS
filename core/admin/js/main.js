@@ -2650,7 +2650,7 @@ var BigTreeMatrix = function(settings) {
 					if (item.is("select")) {
 						var value = $.trim(item.find("option:selected").text());
 					} else {
-						var value = $.trim(i.val());
+						var value = $.trim(item.val());
 					}
 					if (value) {
 						if (Title) {
@@ -2696,7 +2696,7 @@ var BigTreeMatrix = function(settings) {
 		Container = $(settings.selector);
 		List = Container.find(".contain");
 		Count = List.find("article").length;
-		
+
 		Container.on("click",".add_item",addItem)
 				 .on("click",".icon_edit",editItem)
 				 .on("click",".icon_delete",deleteItem);
