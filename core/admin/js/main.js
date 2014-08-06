@@ -116,56 +116,56 @@ $(document).ready(function() {
 function BigTreeCustomControls(selector) {
 	if (selector) {
 		// Setup custom checkboxes
-		$(selector).find("input[type=checkbox]").each(function() {
+		$(selector).find("input[type=checkbox]").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeCheckbox(this);
 			}
 		});
 		
 		// Setup custom select boxes
-		$(selector).find("select:not([multiple])").each(function() {
+		$(selector).find("select:not([multiple])").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeSelect(this);
 			}
 		});
 		
 		// Setup custom file boxes.
-		$(selector).find("input[type=file]").each(function() {
+		$(selector).find("input[type=file]").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeFileInput(this);
 			}
 		});
 	
 		// Setup custom radio buttons.
-		$(selector).find("input[type=radio]").each(function() {
+		$(selector).find("input[type=radio]").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeRadioButton(this);
 			}
 		});
 	} else {
 		// Setup custom checkboxes
-		$("input[type=checkbox]").each(function() {
+		$("input[type=checkbox]").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeCheckbox(this);
 			}
 		});
 		
 		// Setup custom select boxes
-		$("select:not([multiple])").each(function() {
+		$("select:not([multiple])").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeSelect(this);
 			}
 		});
 		
 		// Setup custom file boxes.
-		$("input[type=file]").each(function() {
+		$("input[type=file]").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeFileInput(this);
 			}
 		});
 	
 		// Setup custom radio buttons.
-		$("input[type=radio]").each(function() {
+		$("input[type=radio]").filter(":visible").each(function() {
 			if (!$(this).hasClass("custom_control")) {
 				this.customControl = new BigTreeRadioButton(this);
 			}
