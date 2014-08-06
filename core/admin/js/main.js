@@ -2039,7 +2039,25 @@ var BigTreeListMaker = Class.extend({
 		// Hook delete buttons
 		this.container.on("click",".delete",this.deleteOption);
 		// Make it sortable
-		this.container.sortable({ handle: ".icon_sort", axis: "y", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder" });
+		this.container.sortable({
+			handle: ".icon_sort",
+			axis: "y",
+			containment: "parent",
+			items: "li",
+			placeholder: "ui-sortable-placeholder",
+			update: $.proxy(function() {
+				// Reset keys, JSON.stringify doesn't care what order the data was in.
+				var x = 0;
+				var rows = this.container.find("li");
+				rows.each(function() {
+					var fields = $(this).find("input,select");
+					fields.eq(0).attr("name","fields[" + x + "][key]");
+					fields.eq(1).attr("name","fields[" + x + "][title]");
+					fields.eq(2).attr("name","fields[" + x + "][type]");
+					x++;
+				});
+			},this)
+		});
 		// Set the count of options
 		this.count = count;
 	},
