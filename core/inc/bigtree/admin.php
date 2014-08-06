@@ -4551,6 +4551,7 @@
 			if ($this->IRLPrefixes === false) {
 				$this->IRLPrefixes = array();
 				$thumbnail_sizes = $this->getSetting("resource-thumbnail-sizes");
+				$thumbnail_sizes = json_decode($thumbnail_sizes["value"],true);
 				foreach ($thumbnail_sizes as $ts) {
 					$this->IRLPrefixes[] = $ts["prefix"];
 				}
