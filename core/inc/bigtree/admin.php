@@ -2434,12 +2434,14 @@
 					$body = str_ireplace("{pending_changes}", $body_changes, $body);
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 
-					$mailer = new htmlMimeMail();
-					$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
-					$mailer->setSubject("$site_title Daily Digest");
-					$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
-					$mailer->setHtml($body,"");
-					$mailer->send(array($user["email"]));
+					$mailer = new PHPMailer;
+					$mailer->From = "no-reply@$no_reply_domain";
+					$mailer->FromName = "BigTree CMS";
+					$mailer->addAddress($user["email"],$user["name"]);
+					$mailer->isHTML(true);
+					$mailer->Subject = "$site_title Daily Digest";
+					$mailer->Body = $body;
+					$mailer->send();
 				}
 			}
 		}

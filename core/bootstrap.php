@@ -77,7 +77,7 @@
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",
-		"htmlMimeMail" => "inc/lib/html-mail.php",
+		"PHPMailer" => "inc/lib/phpmailer.php",
 		"JShrink" => "inc/lib/JShrink.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",

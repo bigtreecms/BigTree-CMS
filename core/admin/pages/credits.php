@@ -69,9 +69,11 @@
 			<a href="http://pictos.cc/" target="_blank">http://pictos.cc/</a>
 		</p>
 		<br />
-		<h3>htmlMimeMail</h3>
+		<h3>PHPMailer</h3>
 		<p class="clear">
-			Richard Heyes (GPL)
+			PHPMailer Team (LGPL)
+			<br />
+			<a href="https://github.com/PHPMailer/PHPMailer" target="_blank">https://github.com/PHPMailer/PHPMailer</a>
 		</p>
 		<br />
 		<h3>JShrink</h3>

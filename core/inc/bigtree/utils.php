@@ -1739,34 +1739,59 @@
 		*/
 		
 		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array()) {
-			$mailer = new htmlMimeMail;
+			$mailer = new PHPMailer;
 
-			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";			
 			foreach ($headers as $key => $val) {
-				$mailer->setHeader($key, $val);
+				$mailer->addCustomHeader($key,$val);
 			}
 
-			$mailer->setSubject($subject);
-			$mailer->setHtml($html, $text);
+			$mailer->Subject = $subject;
+			if ($html) {
+				$mailer->isHTML(true);
+				$mailer->Body = $html;
+				$mailer->AltBody = $text;
+			} else {
+				$mailer->Body = $text;
+			}
 
 			if (!$from) {
 				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
 			}
-			$mailer->setFrom($from);
+			$mailer->From = $from;
 			
 			if ($return) {
-				$mailer->setReturnPath($return);
+				$mailer->addReplyTo($return);
 			}
 			
 			if ($cc) {
-				$mailer->setCc(is_array($cc) ? $cc : array($cc));
+				if (is_array($cc)) {
+					foreach ($cc as $item) {
+						$mailer->addCC($item);
+					}
+				} else {
+					$mailer->addCC($cc);
+				}
 			}
 
 			if ($bcc) {
-				$mailer->setBcc(is_array($bcc) ? $bcc : array($bcc));
+				if (is_array($bcc)) {
+					foreach ($bcc as $item) {
+						$mailer->addBCC($item);
+					}
+				} else {
+					$mailer->addBCC($bcc);
+				}
+			}
+
+			if (is_array($to)) {
+				foreach ($to as $item) {
+					$mailer->addAddress($to);
+				}
+			} else {
+				$mailer->addAddress($to);
 			}
 			
-			return $mailer->send(is_array($to) ? $to : array($to));
+			return $mailer->send();
 		}
 
 		/*
