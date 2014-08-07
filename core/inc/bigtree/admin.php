@@ -4551,7 +4551,7 @@
 			if ($this->IRLPrefixes === false) {
 				$this->IRLPrefixes = array();
 				$thumbnail_sizes = $this->getSetting("bigtree-file-manager-thumbnail-sizes");
-				foreach ($thumbnail_sizes as $ts) {
+				foreach ($thumbnail_sizes["value"] as $ts) {
 					$this->IRLPrefixes[] = $ts["prefix"];
 				}
 			}
