@@ -10,7 +10,10 @@
 	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
 	// Provide developers a nice handy link for edit/return of this form
-	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/forms/edit/".$bigtree["form"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+	if ($admin->Level > 1) {
+		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/forms/edit/".$bigtree["form"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+	}
+
 	// Audit Trail link
 	if ($bigtree["edit_id"]) {
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=".$bigtree["form"]["table"]."&entry=".$bigtree["edit_id"],"icon" => "trail","title" => "View Audit Trail");		

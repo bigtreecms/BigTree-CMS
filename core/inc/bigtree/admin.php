@@ -4687,9 +4687,8 @@
 		static function getResourceByFile($file) {
 			if (self::$IRLPrefixes === false) {
 				self::$IRLPrefixes = array();
-				$thumbnail_sizes = self::getSetting("resource-thumbnail-sizes",true);
-				$thumbnail_sizes = json_decode($thumbnail_sizes["value"],true);
-				foreach ($thumbnail_sizes as $ts) {
+				$thumbnail_sizes = self::getSetting("bigtree-file-manager-thumbnail-sizes");
+				foreach ($thumbnail_sizes["value"] as $ts) {
 					self::$IRLPrefixes[] = $ts["prefix"];
 				}
 			}

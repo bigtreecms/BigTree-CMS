@@ -390,6 +390,20 @@
 		sqlquery("ALTER TABLE bigtree_field_types DROP `pages`, DROP `modules`, DROP `callouts`, DROP `settings`");
 	}
 
+	// BigTree 4.1.1 update -- REVISION 103
+	function _local_bigtree_update_103() {
+		global $cms;
+		// Converting resource thumbnail sizes to a properly editable feature and naming it better.
+		$current = $cms->getSetting("resource-thumbnail-sizes");
+		$thumbs = json_decode($current,true);
+		$value = array();
+		foreach ($thumbs as $title => $info) {
+			$value[] = array("title" => $title,"prefix" => $info["prefix"],"width" => $info["width"],"height" => $info["height"]);
+		}
+		sqlquery("INSERT INTO bigtree_settings (`id`,`value`,`type`,`options`,`name`,`locked`) VALUES ('bigtree-file-manager-thumbnail-sizes','".sqlescape(json_encode($value))."','array','".sqlescape('{"fields":[{"key":"title","title":"Title","type":"text"},{"key":"prefix","title":"File Prefix (i.e. thumb_)","type":"text"},{"key":"width","title":"Width","type":"text"},{"key":"height","title":"Height","type":"text"}]}')."','File Manager Thumbnail Sizes','on')");
+		sqlquery("DELETE FROM bigtree_settings WHERE id = 'resource-thumbnail-sizes'");
+	}
+
 	// BigTree 4.2 update -- REVISION 200
 	function _local_bigtree_update_200() {
 		global $cms,$admin;

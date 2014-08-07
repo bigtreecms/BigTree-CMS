@@ -41,22 +41,22 @@ function BigTreeCustomControls(selector) {
 	var parent = (typeof selector == "undefined") ? $("body") : $(selector);
 
 	parent.find("input[type=checkbox]").each(function() {
-		if (!$(this).hasClass("custom_control")) {
+		if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 			this.customControl = BigTreeCheckbox(this);
 		}
 	});
 	parent.find("select:not([multiple])").each(function() {
-		if (!$(this).hasClass("custom_control")) {
+		if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 			this.customControl = BigTreeSelect(this);
 		}
 	});
 	parent.find("input[type=file]").each(function() {
-		if (!$(this).hasClass("custom_control")) {
+		if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 			this.customControl = BigTreeFileInput(this);
 		}
 	});
 	parent.find("input[type=radio]").each(function() {
-		if (!$(this).hasClass("custom_control")) {
+		if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 			this.customControl = BigTreeRadioButton(this);
 		}
 	});
@@ -1955,7 +1955,25 @@ var BigTreeListMaker = function(settings) {
 		// Hook delete buttons
 		Container.on("click",".delete",deleteOption);
 		// Make it sortable
-		Container.sortable({ handle: ".icon_sort", axis: "y", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder" });
+		Container.sortable({
+			handle: ".icon_sort",
+			axis: "y",
+			containment: "parent",
+			items: "li",
+			placeholder: "ui-sortable-placeholder",
+			update: $.proxy(function() {
+				// Reset keys, JSON.stringify doesn't care what order the data was in.
+				var x = 0;
+				var rows = this.container.find("li");
+				rows.each(function() {
+					var fields = $(this).find("input,select");
+					fields.eq(0).attr("name","fields[" + x + "][key]");
+					fields.eq(1).attr("name","fields[" + x + "][title]");
+					fields.eq(2).attr("name","fields[" + x + "][type]");
+					x++;
+				});
+			},this)
+		});
 
 		return { addOption: addOption };
 	})(jQuery,settings);

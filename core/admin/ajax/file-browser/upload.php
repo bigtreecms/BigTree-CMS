@@ -80,10 +80,10 @@
 							"bigtree_internal_list" => array("width" => 100, "height" => 100, "prefix" => "bigtree_list_thumb_"),
 							"bigtree_internal_detail" => array("width" => 190, "height" => 145, "prefix" => "bigtree_detail_thumb_")
 						);
-						$more_thumb_types = @json_decode($cms->getSetting("resource-thumbnail-sizes"),true);
+						$more_thumb_types = $cms->getSetting("bigtree-file-manager-thumbnail-sizes");
 						if (is_array($more_thumb_types)) {
-							foreach ($more_thumb_types as $key => $thumb) {
-								$thumbnails_to_create[$key] = $thumb;
+							foreach ($more_thumb_types as $thumb) {
+								$thumbnails_to_create[$thumb["title"]] = $thumb;
 							}
 						}
 		

@@ -6,8 +6,10 @@
 		$bigtree["view"]["actions"]["preview"] = "on";
 	}
 
-	// Provide developers a nice handy link for edit/return of this form
-	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/views/edit/".$bigtree["view"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+	// Provide developers a nice handy link for edit/return of this view
+	if ($admin->Level > 1) {
+		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/views/edit/".$bigtree["view"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+	}
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
