@@ -41,57 +41,57 @@ $(document).ready(function() {
 function BigTreeCustomControls(selector) {
 	if (selector) {
 		// Setup custom checkboxes
-		$(selector).find("input[type=checkbox]").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$(selector).find("input[type=checkbox]").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeCheckbox(this);
 			}
 		});
 		
 		// Setup custom select boxes
-		$(selector).find("select:not([multiple])").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$(selector).find("select:not([multiple])").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeSelect(this);
 			}
 		});
 		
 		// Setup custom file boxes.
-		$(selector).find("input[type=file]").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$(selector).find("input[type=file]").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeFileInput(this);
 			}
 		});
 	
 		// Setup custom radio buttons.
-		$(selector).find("input[type=radio]").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$(selector).find("input[type=radio]").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeRadioButton(this);
 			}
 		});
 	} else {
 		// Setup custom checkboxes
-		$("input[type=checkbox]").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$("input[type=checkbox]").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeCheckbox(this);
 			}
 		});
 		
 		// Setup custom select boxes
-		$("select:not([multiple])").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$("select:not([multiple])").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeSelect(this);
 			}
 		});
 		
 		// Setup custom file boxes.
-		$("input[type=file]").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$("input[type=file]").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeFileInput(this);
 			}
 		});
 	
 		// Setup custom radio buttons.
-		$("input[type=radio]").filter(":visible").each(function() {
-			if (!$(this).hasClass("custom_control")) {
+		$("input[type=radio]").each(function() {
+			if (!$(this).hasClass("custom_control") && $(this).css("display") != "none") {
 				this.customControl = new BigTreeRadioButton(this);
 			}
 		});
