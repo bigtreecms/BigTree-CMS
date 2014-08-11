@@ -500,7 +500,7 @@
 					if (!$this->iplExists($href)) {
 						$errors["a"][] = $href;
 					}
-				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:") {
+				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:" || substr($href,0,4) == "tel:") {
 					// Don't do anything, it's a page mark, data URI, or email address
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
