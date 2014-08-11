@@ -20,6 +20,38 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.5 Release
+- FIXED: "Advanced" routing settings should now function properly in Apache 2.4 (requires a new install as .htaccess is written during an install)
+- FIXED: Tab indexes in the installer
+- FIXED: JSON and FTP being checked in Site Status (no longer applicable as BigTree uses custom FTP class and JSON is built into PHP 5.2)
+- FIXED: Max post size error not showing when updating a page.
+- FIXED: Custom function that shouldn't have been in the demo site is now removed.
+- FIXED: Use of eval() over parseJSON in Javascript.
+- FIXED: New BigTreePasswordInput field type to replace default password input fields as all major browsers are moving to ignore autocomplete="off" (which caused auto fills to occur when editing users).
+- FIXED: BigTreeModule's add/update methods not converting internal page links and being tempermental about their array value support.
+- FIXED: Callout editor window being partially scrolled when changing types.
+- FIXED: Not being able to install without a database password and errors not highlighting properly in the installer.
+- FIXED: Upload field type showing the full URL of the current file instead of just the file name.
+- FIXED: Deleted many to many fields showing up in the field selector.
+- FIXED: "urlify" (used to create routes) converting / into a blank space (should now be -)
+- FIXED: Front End cropping failing.
+- FIXED: Double encoding of group names when adding/editing a module.
+- FIXED: Instructions for service APIs (as vendors change their process).
+- FIXED: BigTree crashing if BIGTREE_CUSTOM_BASE_CLASS and BIGTREE_CUSTOM_ADMIN_CLASS were not defined.
+- FIXED: Re-ordering groups in their view not reflecting the new order in other views that were grouped by those groups.
+- FIXED: Random test <div>s staying in the DOM in the admin.
+- FIXED: Approving changes via the dashboard not sanitizing data (i.e. not converting NULLs properly)
+- FIXED: BigTreeModule's add method failing if you were using an array with out of order numeric keys for values
+- FIXED: Users that weren't deletable still being clickable.
+- FIXED: BigTree Bar links getting a border in some sites
+- FIXED: Site Integrity check throwing errors on agnostic protocols // and tel:
+- FIXED: <select> boxes with the "multiple" attribute still being converted to BigTree's custom ones
+- FIXED: Usage of $val in callout resources causing havoc
+- FIXED: BigTree::trimLength still adding ellipsis on non-shortened strings (if the string was longer than the set # due to not truncating words)
+- FIXED: Hidden elements (display: none) being converted to BigTree custom ones and drawing.
+- FIXED: BigTree Bar not showing up unless you selected "Remember Me" when logging into the admin.
+
+
 ### 4.0.4 Release
 - FIXED: BigTreeadmin::getPageAccessLevelByUser only working for the logged in user's permissions and made it more efficient.
 - FIXED: Missing focus highlighting on installer fields
