@@ -15,6 +15,7 @@
 	-webkit-box-sizing: content-box;
 	box-sizing: content-box;
 	direction: ltr;
+	max-width: none;
 }
 
 .@{prefix}-widget button {
@@ -163,6 +164,11 @@
 // Combobox
 @combobox-border:                @textbox-border;
 
+// Colorpicker
+@colorpicker-border:             @textbox-border;
+@colorpicker-hue-bg:             #fff;
+@colorpicker-hue-border:         #333;
+
 // Grid
 @grid-bg-active:                 @menuitem-bg-active;
 @grid-border-active:             #a1a1a1;
@@ -237,7 +243,7 @@
 }
 .@{prefix}-tinymce {
 	// Avoid FOUC
-	visibility: visible !important;
+	visibility: inherit !important;
 	position: relative;
 }
 
@@ -309,14 +315,18 @@ div.@{prefix}-edit-area {
 	background: @btn-bg-hlight;
 }
 
-.@{prefix}-grid td div {
+.@{prefix}-grid td.@{prefix}-grid-cell div {
 	border: 1px solid @grid-border;
-	width: 12px; height: 12px;
-	margin: 2px;
+	width: 15px; height: 15px;
+	margin: 0px;
 	cursor: pointer;
 
 	&:focus {
 		border-color: @grid-border-active;
+	}
+
+	&[disabled] {
+		cursor: not-allowed;
 	}
 }
 
@@ -355,6 +365,15 @@ div.@{prefix}-edit-area {
 div.@{prefix}-tinymce-inline {
 	width: 100%;
 	.box-shadow(none);
+}
+
+.@{prefix}-colorbtn-trans div {
+	text-align: center;
+	vertical-align: middle;
+	font-weight: bold;
+	font-size: 20px;
+	line-height: 16px;
+	color: mix(@text, #fff, 70%);
 }
 
 // Reduce double margins between toolbar rows
@@ -798,7 +817,7 @@ body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
 		.box-shadow(@btn-box-shadow-active);
 	}
 
-	&:not(.@{prefix}-disabled):active {
+	&:active {
 		.vertical-gradient(darken(@btn-bg, 10%), darken(@btn-bg-hlight, 10%));
 		.box-shadow(@btn-box-shadow-active);
 	}
@@ -906,6 +925,21 @@ body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
 	border-top: 0;
 }
 
+.@{prefix}-btn-flat {
+	border: 0;
+	background: transparent;
+	.border-radius(0);
+	.box-shadow(none);
+	filter: none;
+}
+
+.@{prefix}-btn-flat:hover, .@{prefix}-btn-flat.@{prefix}-active, .@{prefix}-btn-flat:focus, .@{prefix}-btn-flat:active {
+	border: 0;
+	background: @menubar-bg-active;
+	filter: none;
+	.box-shadow(none);
+}
+
 // RTL
 
 .@{prefix}-rtl .@{prefix}-btn button {
@@ -982,6 +1016,50 @@ i.@{prefix}-i-checkbox {
 
 .@{prefix}-rtl i.@{prefix}-i-checkbox {
 	margin: 0 0 0 3px;
+}
+// ComboBox
+
+.@{prefix}-combobox {
+	.inline-block();
+	.border-radius(3px);
+	.box-shadow(@textbox-box-shadow);
+	*height: 32px;
+}
+
+.@{prefix}-combobox input {
+	border: 1px solid @textbox-border;
+	border-right-color: @combobox-border;
+	height: 28px;
+}
+
+.@{prefix}-combobox.@{prefix}-disabled input {
+	color: mix(@text, @textbox-bg, 40%);
+}
+
+.@{prefix}-combobox.@{prefix}-has-open input {
+	.border-radius(4px 0 0 4px);
+}
+
+.@{prefix}-combobox .@{prefix}-btn {
+	border-left: 0;
+	.border-radius(0 4px 4px 0);
+}
+
+.@{prefix}-combobox button {
+	padding-right: 8px;
+	padding-left: 8px;
+}
+
+.@{prefix}-combobox.@{prefix}-disabled .@{prefix}-btn button {
+	cursor: default;
+	.box-shadow(none);
+	.opacity(@btn-box-disabled-opacity);
+}
+// ColorBox
+
+.@{prefix}-colorbox i {
+	border: 1px solid @textbox-border;
+	width: 14px; height: 14px;
 }
 // ColorButton
 
@@ -1061,43 +1139,85 @@ i.@{prefix}-i-checkbox {
 	padding-left: 4px;
 	padding-right: 4px;
 }
-// ComboBox
+// ColorPicker
 
-.@{prefix}-combobox {
-	.inline-block();
-	.border-radius(3px);
-	.box-shadow(@textbox-box-shadow);
-	*height: 32px;
+.@{prefix}-colorpicker {
+	position: relative;
+	width: 250px;
+	height: 220px;
 }
 
-.@{prefix}-combobox input {
-	border: 1px solid @textbox-border;
-	border-right-color: @combobox-border;
-	height: 28px;
+.@{prefix}-colorpicker-sv {
+	position: absolute;
+	top: 0; left: 0;
+	width: 90%;
+	height: 100%;
+	border: 1px solid @colorpicker-border;
+	cursor: crosshair;
+	overflow: hidden;
 }
 
-.@{prefix}-combobox.@{prefix}-disabled input {
-	color: mix(@text, @textbox-bg, 40%);
+.@{prefix}-colorpicker-h-chunk {
+	width: 100%;
 }
 
-.@{prefix}-combobox.@{prefix}-has-open input {
-	.border-radius(4px 0 0 4px);
+.@{prefix}-colorpicker-overlay1, .@{prefix}-colorpicker-overlay2 {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 
-.@{prefix}-combobox .@{prefix}-btn {
-	border-left: 0;
-	.border-radius(0 4px 4px 0);
+.@{prefix}-colorpicker-overlay1 {
+	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr='#ffffff', endColorstr='#00ffffff');
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr='#ffffff', endColorstr='#00ffffff')";
+	background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
 }
 
-.@{prefix}-combobox button {
-	padding-right: 8px;
-	padding-left: 8px;
+.@{prefix}-colorpicker-overlay2 {
+	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#00000000', endColorstr='#000000');
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#00000000', endColorstr='#000000')";
+	background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,1));
 }
 
-.@{prefix}-combobox.@{prefix}-disabled .@{prefix}-btn button {
-	cursor: default;
-	.box-shadow(none);
-	.opacity(@btn-box-disabled-opacity);
+.@{prefix}-colorpicker-selector1 {
+	background: none;
+	position: absolute;
+	width: 12px;
+	height: 12px;
+	margin: -8px 0 0 -8px;
+	border: 1px solid black;
+	border-radius: 50%;
+}
+
+.@{prefix}-colorpicker-selector2 {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	border: 1px solid white;
+	border-radius: 50%;
+}
+
+.@{prefix}-colorpicker-h {
+	position: absolute;
+	top: 0; right: 0;
+	width: 6.5%;
+	height: 100%;
+	border: 1px solid @colorpicker-border;
+	cursor: crosshair;
+}
+
+.@{prefix}-colorpicker-h-marker {
+	margin-top: -4px;
+	position: absolute;
+	top: 0;
+	left: -1px;
+	width: 100%;
+	border: 1px solid @colorpicker-hue-border;
+	background: @colorpicker-hue-bg;
+	height: 4px;
+	z-index: 100;
 }
 // Path
 

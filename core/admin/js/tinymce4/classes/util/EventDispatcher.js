@@ -25,7 +25,8 @@ define("tinymce/util/EventDispatcher", [
 	var nativeEvents = Tools.makeMap(
 		"focus blur focusin focusout click dblclick mousedown mouseup mousemove mouseover beforepaste paste cut copy selectionchange " +
 		"mouseout mouseenter mouseleave wheel keydown keypress keyup input contextmenu dragstart dragend dragover " +
-		"draggesture dragdrop drop drag submit",
+		"draggesture dragdrop drop drag submit " +
+		"compositionstart compositionend compositionupdate touchstart touchend",
 		' '
 	);
 
@@ -97,6 +98,11 @@ define("tinymce/util/EventDispatcher", [
 			if (handlers) {
 				for (i = 0, l = handlers.length; i < l; i++) {
 					handlers[i] = callback = handlers[i];
+
+					// Unbind handlers marked with "once"
+					if (callback.once) {
+						off(name, callback);
+					}
 
 					// Stop immediate propagation if needed
 					if (args.isImmediatePropagationStopped()) {
@@ -203,7 +209,8 @@ define("tinymce/util/EventDispatcher", [
 							hi = handlers.length;
 							while (hi--) {
 								if (handlers[hi] === callback) {
-									handlers.splice(hi, 1);
+									handlers = handlers.slice(0, hi).concat(handlers.slice(hi + 1));
+									bindings[name] = handlers;
 								}
 							}
 						}
@@ -226,6 +233,25 @@ define("tinymce/util/EventDispatcher", [
 		}
 
 		/**
+		 * Binds an event listener to a specific event by name
+		 * and automatically unbind the event once the callback fires.
+		 *
+		 * @method once
+		 * @param {String} name Event name or space separated list of events to bind.
+		 * @param {callback} callback Callback to be executed when the event occurs.
+		 * @param {Boolean} first Optional flag if the event should be prepended. Use this with care.
+		 * @return {Object} Current class instance.
+		 * @example
+		 * instance.once('event', function(e) {
+		 *     // Callback logic
+		 * });
+		 */
+		function once(name, callback, prepend) {
+			callback.once = true;
+			return on(name, callback, prepend);
+		}
+
+		/**
 		 * Returns true/false if the dispatcher has a event of the specified name.
 		 *
 		 * @method has
@@ -241,6 +267,7 @@ define("tinymce/util/EventDispatcher", [
 		self.fire = fire;
 		self.on = on;
 		self.off = off;
+		self.once = once;
 		self.has = has;
 	}
 
