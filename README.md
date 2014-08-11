@@ -20,6 +20,87 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.1 Release
+- ADDED: Front ends of sites should now receive the "bigtree_bar_closed" class on the body when the BigTree Bar is in its tab mode.
+- ADDED: A confirmation dialog when trying to navigate away from a page where you are cropping images.
+- ADDED: You can now specify that you wish to draw a field yourself for custom field types (similar to how callouts always drew itself).
+- ADDED: Landing page for System Upgrade
+- UPDATED: TinyMCE 4 to 4.1.3
+- UPDATED: Instructions updated for Service APIs to reflect changing processes at the different services.
+- UPDATED: Field Types terminology use case changed from "Pages" to "Templates" to better reflect its usage.
+- UPDATED: Form fields are now wrapped in a <div class="form_fields"> to better work with first/last child styling.
+- UPDATED: Debug should no longer throw strict errors - new debug value of "full" will show strict and notices.
+- UPDATED: Thumbnail settings for File Manager are now an easy to edit setting instead of a JSON string
+- FIXED: "Advanced" routing settings should now function properly in Apache 2.4 (requires a new install as .htaccess is written during an install)
+- FIXED: Service APIs not being disconnectable
+- FIXED: Some issues where HTML entities would be double encoded (new BigTree::safeEncode method)
+- FIXED: BigTree Bar tab button covering the page title in the example site
+- FIXED: Some settings in the example site configuration being in the wrong files
+- FIXED: Tab indexes in the installer
+- FIXED: Empty modules being exported in packages that did not contain modules
+- FIXED: JSON and FTP being checked in Site Status (no longer applicable as BigTree uses custom FTP class and JSON is built into PHP 5.2)
+- FIXED: MySQLi and cURL not being checked in Site Status
+- FIXED: Standardized error language on image sizes
+- FIXED: Errors for a submission now occur AFTER crops (prevents temp files from staying behind in /site/files/).
+- FIXED: zIndex issues with TinyMCE (i.e. Formats menu not working in callouts)
+- FIXED: Max post size error not showing when updating a page.
+- FIXED: Missing class comments / docs on Service APIs
+- FIXED: Use of eval() over parseJSON in Javascript.
+- FIXED: JPG images that were rotated via EXIF data failing to upload.
+- FIXED: New BigTreePasswordInput field type to replace default password input fields as all major browsers are moving to ignore autocomplete="off" (which caused auto fills to occur when editing users).
+- FIXED: BigTreeModule's add/update methods not converting internal page links and being tempermental about their array value support.
+- FIXED: TinyMCE tooltips/menus getting stuck when changing callout types.
+- FIXED: Callout editor window being partially scrolled when changing types.
+- FIXED: Embedded Forms failing to validate properly when an HTML field was used.
+- FIXED: Overflow menu in modules being in reverse order.
+- FIXED: Not being able to install without a database password and errors not highlighting properly in the installer.
+- FIXED: Embedded Forms not working for non-logged-in users and the cropper not working.
+- FIXED: Display issues on the login form when there was a long site title.
+- FIXED: Upload field type showing the full URL of the current file instead of just the file name.
+- FIXED: Deleted many to many fields showing up in the field selector.
+- FIXED: TinyMCE 4 not working in Array of Items.
+- FIXED: Missing buttons in TinyMCE 4 editors.
+- FIXED: "urlify" (used to create routes) converting / into a blank space (should now be -)
+- FIXED: Front end cropping and warnings being thrown when bad data was associated to crops.
+- FIXED: BigTreeListMaker not functioning properly for one element.
+- FIXED: Double encoding (&amp;) of group names when editing/adding a module.
+- FIXED: BigTree crashing if BIGTREE_CUSTOM_BASE_CLASS and BIGTREE_CUSTOM_ADMIN_CLASS were not defined.
+- FIXED: Importing packages that had non-default related forms for views
+- FIXED: Re-ordering groups in their view not reflecting the new order in other views that were grouped by those groups.
+- FIXED: Crashes that would occur when cloud storage grew too large (no longer uses flat file caches, moved to bigtree_caches table).
+- FIXED: BigTree::sendEmail not getting a proper domain when run from cron/command line.
+- FIXED: Issues with JSON values as field options.
+- FIXED: Random test <div>s staying in the DOM in the admin.
+- FIXED: Many to Many styles not working properly in callouts.
+- FIXED: Callouts with required fields causing the entire form to fail validation.
+- FIXED: Callout styles not being usable inside of a callout pop-up.
+- FIXED: Sprites on the installer on retina capable screens
+- FIXED: _nav-tree.php include not having access to SQL for custom drawing of admin nav.
+- FIXED: Cron file using BigTree 4.0 style configs.
+- FIXED: Double required message on password inputs.
+- FIXED: Double sanitization of data in BigTreeAutoModule
+- FIXED: Approving changes via the dashboard not sanitizing data (i.e. not converting NULLs properly)
+- FIXED: BigTreeModule's add method failing if you were using an array with out of order numeric keys for values
+- FIXED: Obnoxious memory usage of autoIPL method on large pages.
+- FIXED: Users that weren't deletable still being clickable.
+- FIXED: BigTree Bar links getting a border in some sites
+- FIXED: Class auto loader not allowing a custom admin class to extend BigTreeAdmin
+- FIXED: Site Integrity check throwing errors on agnostic protocols // and tel:
+- FIXED: Back to back callout blocks in the front end editor having bad styles
+- FIXED: Flickr API failing to work due to new required https endpoint
+- FIXED: Logout requiring two clicks
+- FIXED: BigTreeCMS::getLink returning links for archived pages
+- FIXED: <select> boxes with the "multiple" attribute still being converted to BigTree's custom ones
+- FIXED: Embeddable forms weren't deletable
+- FIXED: Double encoding of callout groups (&amp;)
+- FIXED: Usage of $val in callout resources causing havoc
+- FIXED: BigTree::trimLength still adding ellipsis on non-shortened strings (if the string was longer than the set # due to not truncating words)
+- FIXED: Some field options not being sortable (Array of Items)
+- FIXED: Hidden elements (display: none) being converted to BigTree custom ones and drawing.
+- FIXED: "Edit in Developer" showing up for everyone on forms/views
+- FIXED: BigTree Bar not showing up unless you selected "Remember Me" when logging into the admin.
+
+
 ### 4.1 Release
 - ADDED: Built-in core updater (via local write and FTP, SFTP coming in 4.2)
 - ADDED: Page ID in Page Properties section.
