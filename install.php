@@ -398,26 +398,32 @@
 			RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
 		</IfModule>
 	</IfModule>
-
+	<IfModule mod_mime.c>
+		AddEncoding gzip svgz
+	</IfModule>
 	<IfModule mod_filter.c>
-		AddOutputFilterByType DEFLATE 	application/atom+xml \
-										application/javascript \
-										application/json \
-										application/ld+json \
-										application/rss+xml \
-										application/vnd.ms-fontobject \
-										application/x-font-ttf \
-										application/x-web-app-manifest+json \
-										application/xhtml+xml \
-										application/xml \
-										font/opentype \
-										image/svg+xml \
-										image/x-icon \
-										text/css \
-										text/html \
-										text/plain \
-										text/x-component \
-										text/xml
+		AddOutputFilterByType DEFLATE "application/atom+xml" \
+			"application/javascript" \
+			"application/json" \
+			"application/ld+json" \
+			"application/manifest+json" \
+			"application/rss+xml" \
+			"application/vnd.geo+json" \
+			"application/vnd.ms-fontobject" \
+			"application/x-font-ttf" \
+			"application/x-web-app-manifest+json" \
+			"application/xhtml+xml" \
+			"application/xml" \
+			"font/opentype" \
+			"image/svg+xml" \
+			"image/x-icon" \
+			"text/cache-manifest" \
+			"text/css" \
+			"text/html" \
+			"text/plain" \
+			"text/vtt" \
+			"text/x-component" \
+			"text/xml"
 	</IfModule>
 </IfModule>
 
