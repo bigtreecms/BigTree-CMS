@@ -174,6 +174,11 @@
 	ob_start();
 	session_start();
 
+	// Set date format if it wasn't defined in config
+	if (empty($bigtree["config"]["date_format"])) {
+		$bigtree["config"]["date_format"] = "m/d/Y";
+	}
+
 	// Make it easier to extend the nav tree without overwriting important things.
 	include BigTree::path("admin/_nav-tree.php");
 

@@ -64,7 +64,7 @@
 				}
 		?>
 		<li>
-			<section class="view_column audit_date"><?=date("m/d/y @ g:ia",strtotime($r["date"]))?></section>
+			<section class="view_column audit_date"><?=date($bigtree["config"]["date_format"]." @ g:ia",strtotime($r["date"]))?></section>
 			<section class="view_column audit_user"><a target="_blank" href="<?=ADMIN_ROOT?>users/edit/<?=$r["user"]["id"]?>/"><?=$r["user"]["name"]?></a></section>
 			<section class="view_column audit_table"><?=$r["table"]?></section>
 			<section class="view_column audit_entry"><?=$link?></section>

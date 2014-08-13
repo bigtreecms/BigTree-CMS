@@ -1365,57 +1365,52 @@
 			}
 			return $parts;
 		}
-		
+
 		/*
-			Function: prefixFile
-				Prefixes a file name with a given prefix.
-			
+			Function: phpDateTojQuery
+				Converts a PHP date() format to jQuery date picker format.
+
 			Parameters:
-				file - A file name or full file path.
-				prefix - The prefix for the file name.
-			
+				format - PHP date() formatting string
+
 			Returns:
-				The full path or file name with a prefix appended to the file name.
+				jQuery date picker formatting string.
 		*/
-		
-		static function prefixFile($file,$prefix) {
-			$pinfo = self::pathInfo($file);
-			// Remove notices
-			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
-			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
-		}
-		
-		/*
-			Function: putFile
-				Writes data to a file, even if that directory for the file doesn't exist yet.
-				Sets the file permissions to 777 if the file did not exist.
-			
-			Parameters:
-				file - The location of the file.
-				contents - The data to write.
-			
-			Returns:
-				true if the move was successful, false if the directories were not writable.
-		*/
-		
-		static function putFile($file,$contents) {
-			if (!self::isDirectoryWritable($file)) {
-				return false;
+
+		function phpDateTojQuery($format) {
+			$new_format = "";
+			for ($i = 0; $i < strlen($format); $i++) {
+				$c = substr($format,$i,1);
+				// Day with leading zeroes
+				if ($c == "d") {
+					$new_format .= "dd";
+				// Day without leading zeroes
+				} elseif ($c == "j") {
+					$new_format .= "d";
+				// Full day name (i.e. Sunday)
+				} elseif ($c == "l") {
+					$new_format .= "DD";
+				// Numeric day of the year (0-365)
+				} elseif ($c == "z") {
+					$new_format .= "o";
+				// Full month name (i.e. January)
+				} elseif ($c == "F") {
+					$new_format .= "MM";
+				// Month with leading zeroes
+				} elseif ($c == "m") {
+					$new_format .= "mm";
+				// Month without leading zeroes
+				} elseif ($c == "n") {
+					$new_format .= "m";
+				// 4 digit year
+				} elseif ($c == "Y") {
+					$new_format .= "yy";
+				// Many others are the same or not a date format part
+				} else {
+					$new_format .= $c;
+				}
 			}
-			
-			$pathinfo = self::pathInfo($file);
-			$file_name = $pathinfo["basename"];
-			$directory = $pathinfo["dirname"];
-			BigTree::makeDirectory($directory);
-			
-			if (!file_exists($file)) {
-				file_put_contents($file,$contents);
-				chmod($file,0777);
-			} else {
-				file_put_contents($file,$contents);
-			}
-			
-			return true;
+			return $new_format;
 		}
 		
 		/*
@@ -1508,7 +1503,59 @@
 			
 			return $post_max_size;
 		}
+
+		/*
+			Function: prefixFile
+				Prefixes a file name with a given prefix.
+			
+			Parameters:
+				file - A file name or full file path.
+				prefix - The prefix for the file name.
+			
+			Returns:
+				The full path or file name with a prefix appended to the file name.
+		*/
 		
+		static function prefixFile($file,$prefix) {
+			$pinfo = self::pathInfo($file);
+			// Remove notices
+			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
+			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
+		}
+		
+		/*
+			Function: putFile
+				Writes data to a file, even if that directory for the file doesn't exist yet.
+				Sets the file permissions to 777 if the file did not exist.
+			
+			Parameters:
+				file - The location of the file.
+				contents - The data to write.
+			
+			Returns:
+				true if the move was successful, false if the directories were not writable.
+		*/
+		
+		static function putFile($file,$contents) {
+			if (!self::isDirectoryWritable($file)) {
+				return false;
+			}
+			
+			$pathinfo = self::pathInfo($file);
+			$file_name = $pathinfo["basename"];
+			$directory = $pathinfo["dirname"];
+			BigTree::makeDirectory($directory);
+			
+			if (!file_exists($file)) {
+				file_put_contents($file,$contents);
+				chmod($file,0777);
+			} else {
+				file_put_contents($file,$contents);
+			}
+			
+			return true;
+		}
+
 		/*
 			Function: randomString
 				Returns a random string.

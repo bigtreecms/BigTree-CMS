@@ -105,9 +105,10 @@
 ?>
 <script>
 	<?
+		$date_format = BigTree::phpDateTojQuery($bigtree["config"]["date_format"]);
 		foreach ($bigtree["datepickers"] as $id) {
 	?>
-	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
+	$("#<?=$id?>").datepicker({ dateFormat: "<?=$date_format?>", duration: 200, showAnim: "slideDown" });
 	<?
 		}
 		
@@ -119,7 +120,7 @@
 		
 		foreach ($bigtree["datetimepickers"] as $id) {
 	?>
-	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+	$("#<?=$id?>").datetimepicker({ dateFormat: "<?=$date_format?>", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 	<?
 		}
 	?>

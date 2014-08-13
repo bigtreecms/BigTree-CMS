@@ -1,6 +1,6 @@
 <?
 	if (!$field["value"] && isset($field["options"]["default_today"]) && $field["options"]["default_today"]) {
-		$field["value"] = date("m/d/Y");
+		$field["value"] = date($bigtree["config"]["date_format"]);
 	}
 	
 	// We draw the picker inline for callouts
@@ -14,7 +14,7 @@
 	} else {
 		$bigtree["datepickers"][] = $field["id"];
 ?>
-<input type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<? if ($field["value"] && $field["value"] != "0000-00-00" && $field["value"] != "0000-00-00 00:00:00") { echo date("m/d/Y",strtotime($field["value"])); } ?>" autocomplete="off" id="<?=$field["id"]?>" class="date_picker<? if ($field["required"]) { ?> required<? } ?>" />
+<input type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<? if ($field["value"] && $field["value"] != "0000-00-00" && $field["value"] != "0000-00-00 00:00:00") { echo date($bigtree["config"]["date_format"],strtotime($field["value"])); } ?>" autocomplete="off" id="<?=$field["id"]?>" class="date_picker<? if ($field["required"]) { ?> required<? } ?>" />
 <span class="icon_small icon_small_calendar date_picker_icon"></span>
 <?
 	}

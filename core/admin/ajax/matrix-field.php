@@ -97,20 +97,21 @@
 	<?
 		}
 		
+		$date_format = BigTree::phpDateTojQuery($bigtree["config"]["date_format"]);
 		foreach ($bigtree["datepickers"] as $id) {
 			if ($bigtree["datepicker_values"][$id]) {
-				$date = date("m/d/Y",strtotime($bigtree["datepicker_values"][$id]));
+				$date = date($bigtree["config"]["date_format"],strtotime($bigtree["datepicker_values"][$id]));
 			} else {
-				$date = date("m/d/Y");
+				$date = date($bigtree["config"]["date_format"]);
 			}
 	?>
-	$("#<?=$id?>").datepicker({ defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
+	$("#<?=$id?>").datepicker({ dateFormat: "<?=$date_format?>", defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
 	<?
 		}
 
 		foreach ($bigtree["datetimepickers"] as $id) {
 			$time = strtotime($bigtree["datetimepicker_values"][$id]["time"]);
-			$date = date("m/d/Y",strtotime($bigtree["datetimepicker_values"][$id]["date"]));
+			$date = date($bigtree["config"]["date_format"],strtotime($bigtree["datetimepicker_values"][$id]["date"]));
 	?>
 	$("#<?=$id?>").datetimepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
 	<?
