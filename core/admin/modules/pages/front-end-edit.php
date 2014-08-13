@@ -44,7 +44,7 @@
 						$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
 						$field["id"] = uniqid("field_");
 						$field["tabindex"] = $bigtree["tabindex"];
-						$field["options"] = $options = $resource;
+						$field["options"] = $options = $resource["options"];
 						$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
 			
 						// Setup Validation Classes

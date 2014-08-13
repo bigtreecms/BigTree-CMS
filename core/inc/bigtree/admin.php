@@ -731,21 +731,16 @@
 
 			$clean_resources = array();
 			foreach ($resources as $resource) {
+				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
-					$options = json_decode($resource["options"],true);
-					foreach ($options as $key => $val) {
-						if ($key != "id" && $key != "type" && $key != "display_field" && $key != "display_default" && $key != "title" && $key != "subtitle") {
-							$resource[$key] = $val;
-						}
-					}
+					$clean_resources[] = array(
+						"id" => BigTree::safeEncode($resource["id"]),
+						"title" => BigTree::safeEncode($resource["title"]),
+						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
+						"options" => json_decode($resource["options"],true)
+					);
 
 					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
-
-					$resource["id"] = BigTree::safeEncode($resource["id"]);
-					$resource["title"] = BigTree::safeEncode($resource["title"]);
-					$resource["subtitle"] = BigTree::safeEncode($resource["subtitle"]);
-					unset($resource["options"]);
-					$clean_resources[] = $resource;
 				}
 			}
 
@@ -1112,14 +1107,21 @@
 			$module = sqlescape($module);
 			$sql_title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$fields = BigTree::json($fields,true);
-			$hooks = BigTree::json($hooks,true);
+			$hooks = BigTree::json(json_decode($hooks),true);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
 			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
 			$hash = uniqid();
+
+			$clean_fields = array();
+			foreach ($fields as $key => $field) {
+				$field["options"] = json_decode($field["options"],true);
+				$field["column"] = $key;
+				$clean_fields[] = $field;
+			}
+			$fields = BigTree::json($clean_fields,true);
 
 			// Make sure this isn't used already
 			while (sqlrows(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '$hash'"))) {
@@ -1157,12 +1159,19 @@
 			$module = sqlescape($module);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$fields = BigTree::json($fields,true);
-			$hooks = BigTree::json($hooks,true);
+			$hooks = BigTree::json(json_decode($hooks),true);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
+
+			$clean_fields = array();
+			foreach ($fields as $key => $field) {
+				$field["options"] = json_decode($field["options"],true);
+				$field["column"] = $key;
+				$clean_fields[] = $field;
+			}
+			$fields = BigTree::json($clean_fields,true);
 
 			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$hooks')");
 			$id = sqlid();
@@ -1662,20 +1671,15 @@
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
-					$options = json_decode($resource["options"],true);
-					foreach ($options as $key => $val) {
-						if ($key != "title" && $key != "id" && $key != "type") {
-							$resource[$key] = $val;
-						}
-					}
+					$clean_resources[] = array(
+						"id" => BigTree::safeEncode($resource["id"]),
+						"title" => BigTree::safeEncode($resource["title"]),
+						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
+						"type" => BigTree::safeEncode($resource["type"]),
+						"options" => json_decode($resource["options"],true)
+					);
 
 					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
-
-					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["title"] = htmlspecialchars($resource["title"]);
-					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
-					unset($resource["options"]);
-					$clean_resources[] = $resource;
 				}
 			}
 
@@ -6698,20 +6702,16 @@
 		*/
 
 		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
-			$r = array();
+			$clean_resources = array();
 			foreach ($resources as $resource) {
+				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
-					$options = json_decode($resource["options"],true);
-					foreach ($options as $key => $val) {
-						if ($key != "id" && $key != "type" && $key != "display_field" && $key != "display_default" && $key != "title" && $key != "subtitle") {
-							$resource[$key] = $val;
-						}
-					}
-					$resource["id"] = BigTree::safeEncode($resource["id"]);
-					$resource["title"] = BigTree::safeEncode($resource["title"]);
-					$resource["subtitle"] = BigTree::safeEncode($resource["subtitle"]);
-					unset($resource["options"]);
-					$r[] = $resource;
+					$clean_resources[] = array(
+						"id" => BigTree::safeEncode($resource["id"]),
+						"title" => BigTree::safeEncode($resource["title"]),
+						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
+						"options" => json_decode($resource["options"],true)
+					);
 				}
 			}
 
@@ -6719,7 +6719,7 @@
 			$name = sqlescape(BigTree::safeEncode($name));
 			$description = sqlescape(BigTree::safeEncode($description));
 			$level = sqlescape($level);
-			$resources = BigTree::json($r,true);
+			$resources = BigTree::json($clean_resources,true);
 			$display_default = sqlescape($display_default);
 			$display_field = sqlescape($display_field);
 
@@ -6914,13 +6914,20 @@
 			$id = sqlescape($id);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$fields = BigTree::json($fields,true);
-			$hooks = BigTree::json($hooks,true);
+			$hooks = BigTree::json(json_decode($hooks),true);
 			$default_position - sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
 			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
 			$thank_you_message = sqlescape($thank_you_message);
+
+			$clean_fields = array();
+			foreach ($fields as $key => $field) {
+				$field["options"] = json_decode($field["options"],true);
+				$field["column"] = $key;
+				$clean_fields[] = $field;
+			}
+			$fields = BigTree::json($clean_fields,true);
 
 			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message', `hooks` = '$hooks' WHERE id = '$id'");
 			$this->track("bigtree_module_embeds",$id,"updated");
@@ -6946,12 +6953,19 @@
 			$id = sqlescape($id);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$fields = BigTree::json($fields,true);
-			$hooks = BigTree::json($hooks,true);
+			$hooks = BigTree::json(json_decode($hooks),true);
 			$default_position - sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
+
+			$clean_fields = array();
+			foreach ($fields as $key => $field) {
+				$field["options"] = json_decode($field["options"],true);
+				$field["column"] = $key;
+				$clean_fields[] = $field;
+			}
+			$fields = BigTree::json($clean_fields,true);
 
 			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging', `hooks` = '$hooks' WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
@@ -7519,18 +7533,13 @@
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
-					$options = json_decode($resource["options"],true);
-					foreach ($options as $key => $val) {
-						if ($key != "title" && $key != "id" && $key != "subtitle" && $key != "type") {
-							$resource[$key] = $val;
-						}
-					}
-
-					$resource["id"] = htmlspecialchars($resource["id"]);
-					$resource["title"] = htmlspecialchars($resource["title"]);
-					$resource["subtitle"] = htmlspecialchars($resource["subtitle"]);
-					unset($resource["options"]);
-					$clean_resources[] = $resource;
+					$clean_resources[] = array(
+						"id" => BigTree::safeEncode($resource["id"]),
+						"title" => BigTree::safeEncode($resource["title"]),
+						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
+						"type" => BigTree::safeEncode($resource["type"]),
+						"options" => json_decode($resource["options"],true)
+					);
 				}
 			}
 

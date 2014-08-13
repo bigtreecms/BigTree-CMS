@@ -53,11 +53,11 @@
 	$bigtree["file_data"] = BigTree::parsedFilesArray();
 	$file_data = $_FILES;
 
-	foreach ($bigtree["form"]["fields"] as $key => $resource) {
+	foreach ($bigtree["form"]["fields"] as $resource) {
 		unset($value); // Backwards compat.
 		$field = array();
-		$field["key"] = $key;
-		$field["options"] = $options = $resource;
+		$field["key"] = $resource["column"];
+		$field["options"] = $options = $resource["options"];
 		$field["ignore"] = false;
 		$field["input"] = $bigtree["post_data"][$key];
 		$field["file_input"] = $bigtree["file_data"][$key];

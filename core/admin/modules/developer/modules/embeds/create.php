@@ -4,19 +4,7 @@
 	$module = end($bigtree["path"]);
 
 	$default_position = isset($default_position) ? $default_position : "";
-
-	$fields = array();
-	if (is_array($_POST["type"])) {
-		foreach ($_POST["type"] as $key => $val) {
-			$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
-			$field["type"] = $val;
-			$field["title"] = htmlspecialchars($_POST["titles"][$key]);
-			$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
-			$fields[$key] = $field;
-		}
-	}
-
-	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,json_decode($_POST["hooks"]),$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
+	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
 
 	$admin->growl("Developer","Created Embeddable Form");
 ?>

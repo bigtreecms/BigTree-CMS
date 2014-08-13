@@ -13,7 +13,7 @@
 		unset($value); // Backwards compat.
 		$field = array();
 		$field["key"] = $key = $resource["id"];
-		$field["options"] = $options = $resource;
+		$field["options"] = $options = $resource["options"];
 		if (empty($field["options"]["directory"])) {
 			$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		}

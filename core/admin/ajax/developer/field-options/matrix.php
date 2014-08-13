@@ -2,7 +2,12 @@
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
 	$columns = is_array($data["columns"]) ? $data["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
+	$data["max"] = isset($data["max"]) ? intval($data["max"]) : "";
 ?>
+<fieldset>
+	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
+	<input type="text" name="max" value="<?=$data["max"]?>" />
+</fieldset>
 <span class="icon_small icon_small_add" id="matrix_add_column"></span>
 <label>Columns</label>
 <section id="matrix_table">

@@ -474,5 +474,67 @@
 
 		// New field types
 		unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+
+		// Setup an anonymous function for converting a resource set
+		$resource_converter = function($resources) {
+			$new_resources = array();
+			foreach ($resources as $item) {
+				$r = array(
+					"id" => $item["id"],
+					"type" => $item["type"],
+					"title" => $item["title"],
+					"subtitle" => $item["subtitle"],
+					"options" => array()
+				);
+				foreach ($item as $key => $val) {
+					if ($key != "id" && $key != "title" && $key != "subtitle" && $key != "type") {
+						$r["options"][$key] = $val;
+					}
+				}
+				$new_resources[] = $r;
+			}
+			return BigTree::json($new_resources,true);
+		};
+		$field_converter = function($fields) {
+			$new_fields = array();
+			foreach ($fields as $id => $field) {
+				$r = array(
+					"column" => $id,
+					"type" => $field["type"],
+					"title" => $field["title"],
+					"subtitle" => $field["subtitle"],
+					"options" => array()
+				);
+				foreach ($field as $key => $val) {
+					if ($key != "id" && $key != "title" && $key != "subtitle" && $key != "type") {
+						$r["options"][$key] = $val;
+					}
+				}
+				$new_fields[] = $r;
+			}
+		};
+
+		// New resource format to be less restrictive on option names
+		$q = sqlquery("SELECT * FROM bigtree_callouts");
+		while ($f = sqlfetch($q)) {
+			$resources = $resource_converter(json_decode($f["resources"],true));
+			sqlquery("UPDATE bigtree_callouts SET resources = '$resources' WHERE id = '".$f["id"]."'");
+		}
+		$q = sqlquery("SELECT * FROM bigtree_templates");
+		while ($f = sqlfetch($q)) {
+			$resources = $resource_converter(json_decode($f["resources"],true));
+			sqlquery("UPDATE bigtree_templates SET resources = '$resources' WHERE id = '".$f["id"]."'");
+		}
+		// Forms and Embedded Forms
+		$q = sqlquery("SELECT * FROM bigtree_module_forms");
+		while ($f = sqlfetch($q)) {
+			$fields = $field_converter(json_decode($f["fields"],true));
+			sqlquery("UPDATE bigtree_module_forms SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
+		}
+		$q = sqlquery("SELECT * FROM bigtree_module_embeds");
+		while ($f = sqlfetch($q)) {
+			$fields = $field_converter(json_decode($f["fields"],true));
+			sqlquery("UPDATE bigtree_module_embeds SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
+		}
 	}
 ?>

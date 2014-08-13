@@ -128,7 +128,7 @@
 					}
 				}
 
-				$fields[$column["name"]] = array_merge(array("title" => $title, "subtitle" => $subtitle, "type" => $type),$options);
+				$fields[] = array("column" => $column["name"],"title" => $title, "subtitle" => $subtitle, "type" => $type,"options" => $options);
 			}
 			
 			if ($f["Field"] == "position") {
@@ -158,7 +158,8 @@
 		<?
 			$mtm_count = 0;
 
-			foreach ($fields as $key => $field) {
+			foreach ($fields as $field) {
+				$key = $field["column"];
 				if ($field["type"] == "many-to-many") {
 					$mtm_count++;
 					$key = "__mtm-".$mtm_count."__";
@@ -171,26 +172,26 @@
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">
 				<span class="icon_sort"></span>
-				<input type="text" name="titles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["title"]?>"<? } ?> />
+				<input type="text" name="fields[<?=$key?>][title]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["title"]?>"<? } ?> />
 			</section>
 			<section class="developer_resource_form_subtitle">
-				<input type="text" name="subtitles[<?=$key?>]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
+				<input type="text" name="fields[<?=$key?>][subtitle]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
 			</section>
 			<section class="developer_resource_type">
 				<?
 					if ($field["type"] == "geocoding") {
 				?>
-				<input type="hidden" name="type[geocoding]" value="geocoding" id="type_geocoding" />
+				<input type="hidden" name="fields[<?=$key?>][type]" value="geocoding" id="type_geocoding" />
 				<span class="resource_name">Geocoding</span>
 				<?
 					} elseif ($field["type"] == "many-to-many") {
 				?>
 				<span class="resource_name">Many to Many</span>
-				<input type="hidden" name="type[<?=$key?>]" value="many-to-many" id="type_<?=$key?>" />
+				<input type="hidden" name="fields[<?=$key?>][type]" value="many-to-many" id="type_<?=$key?>" />
 				<?
 					} else {
 				?>
-				<select name="type[<?=$key?>]" id="type_<?=$key?>">
+				<select name="fields[<?=$key?>][type]" id="type_<?=$key?>">
 					<optgroup label="Default">
 						<? foreach ($types["default"] as $k => $v) { ?>
 						<option value="<?=$k?>"<? if ($k == $field["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
@@ -208,7 +209,7 @@
 					}
 				?>
 				<a href="#" class="options icon_settings" name="<?=$key?>"></a>
-				<input type="hidden" name="options[<?=$key?>]" value="<?=htmlspecialchars(json_encode($field))?>" id="options_<?=$key?>" />
+				<input type="hidden" name="fields[<?=$key?>][options]" value="<?=htmlspecialchars(json_encode($field["options"]))?>" id="options_<?=$key?>" />
 			</section>
 			<section class="developer_resource_action">
 				<a href="#" class="icon_delete" name="<?=$key?>"></a>

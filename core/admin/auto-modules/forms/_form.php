@@ -49,18 +49,18 @@
 					$cached_types = $admin->getCachedFieldTypes();
 					$bigtree["field_types"] = $cached_types["modules"];
 	
-					foreach ($bigtree["form"]["fields"] as $key => $resource) {
+					foreach ($bigtree["form"]["fields"] as $resource) {
 						if (is_array($resource)) {
 							$field = array();
 							// Leaving some variable settings for backwards compatibility — removing in 5.0
 							$field["type"] = $resource["type"];
 							$field["title"] = $title = $resource["title"];
 							$field["subtitle"] = $subtitle = $resource["subtitle"];
-							$field["key"] = $key;
+							$field["key"] = $resource["column"];
 							$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
 							$field["id"] = uniqid("field_");
 							$field["tabindex"] = $tabindex = $bigtree["tabindex"];
-							$field["options"] = $options = $resource;
+							$field["options"] = $options = $resource["options"];
 	
 							// Setup Validation Classes
 							$label_validation_class = "";

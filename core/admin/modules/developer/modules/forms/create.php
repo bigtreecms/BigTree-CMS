@@ -2,21 +2,7 @@
 	BigTree::globalizePOSTVars();
 
 	$module = end($bigtree["path"]);
-
-	$default_position = isset($default_position) ? $default_position : "";
-
-	$fields = array();
-	if (is_array($_POST["type"])) {
-		foreach ($_POST["type"] as $key => $val) {
-			$field = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
-			$field["type"] = $val;
-			$field["title"] = htmlspecialchars($_POST["titles"][$key]);
-			$field["subtitle"] = htmlspecialchars($_POST["subtitles"][$key]);
-			$fields[$key] = $field;
-		}
-	}
-
-	$form_id = $admin->createModuleForm($module,$title,$table,$fields,json_decode($_POST["hooks"]),$default_position,$return_view,$return_url,$tagging);
+	$form_id = $admin->createModuleForm($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
 	
 	// See if add/edit actions already exist
 	$add_route = "add";

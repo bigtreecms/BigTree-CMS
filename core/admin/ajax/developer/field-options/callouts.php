@@ -3,6 +3,7 @@
 	// Stop notices
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();
 	$data["verb"] = isset($data["verb"]) ? $data["verb"] : "";
+	$data["max"] = isset($data["max"]) ? intval($data["max"]) : "";
 ?>
 <fieldset>
 	<label>Groups <small>(if you don't choose at least one group, all callouts will be available)</small></label>
@@ -45,6 +46,10 @@
 <fieldset>
 	<label>Noun <small>(defaults to "Callout")</small></label>
 	<input type="text" name="noun" value="<?=htmlspecialchars($data["noun"])?>" />
+</fieldset>
+<fieldset>
+	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
+	<input type="text" name="max" value="<?=$data["max"]?>" />
 </fieldset>
 <script>
 	BigTreeManyToMany({
