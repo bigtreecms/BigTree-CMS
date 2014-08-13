@@ -35,7 +35,7 @@
 			return false;
 		}
 		
-		new BigTreeDialog("Delete User",'<p class="confirm">Are you sure you want to delete this user?',$.proxy(function() {
+		new BigTreeDialog("Delete User",'<p class="confirm">Are you sure you want to delete this user?</p>',$.proxy(function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
 		},this),"delete",false,"OK");
 		
