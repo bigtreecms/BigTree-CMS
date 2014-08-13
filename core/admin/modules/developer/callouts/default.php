@@ -29,7 +29,7 @@
 	$(".icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Delete Callout",
-			content: '<p class="confirm">Are you sure you want to delete this callout?</p>',
+			content: '<p class="confirm">Are you sure you want to delete this callout?<br /><br />Deleting a callout also deletes its file in /templates/callouts/.</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {

@@ -27,7 +27,7 @@
 	$(".icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Uninstall Extension",
-			content: '<p class="confirm">Are you sure you want to uninstall this extension?</p>',
+			content: '<p class="confirm">Are you sure you want to uninstall this extension?<br /><br />Related components, including those that were added to this package will also <strong>completely deleted</strong> (including related files).</p>',
 			icon: "delete",
 			alternateSaveText: "Uninstall",
 			callback: $.proxy(function() {

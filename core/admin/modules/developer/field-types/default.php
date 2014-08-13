@@ -28,7 +28,7 @@
 	$(".icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Delete Field Type",
-			content: '<p class="confirm">Are you sure you want to delete this field type?<br /><br />Fields using this type will revert to text fields and your source files will be deleted.</p>',
+			content: '<p class="confirm">Are you sure you want to delete this field type?<br /><br />Deleting a field type also deletes its draw, process, and options files.<br /><br />Fields using this type will revert to text fields.</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {

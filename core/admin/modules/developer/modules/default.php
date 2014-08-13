@@ -83,7 +83,7 @@
 	$(".icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Delete Module",
-			content: '<p class="confirm">Are you sure you want to delete this module?</p>',
+			content: '<p class="confirm">Are you sure you want to delete this module?<br /><br />Deleting a module will also delete its class file and related directory in /custom/admin/modules/.</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {

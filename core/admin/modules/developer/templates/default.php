@@ -81,7 +81,7 @@
 	$(".icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Delete Template",
-			content: '<p class="confirm">Are you sure you want to delete this template?</p>',
+			content: '<p class="confirm">Are you sure you want to delete this template?<br /><br />Deleting a template also removes its files in the /templates/ directory.</p>',
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)

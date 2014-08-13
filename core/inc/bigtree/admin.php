@@ -1905,6 +1905,7 @@
 			// Get info and delete the class.
 			$module = $this->getModule($id);
 			unlink(SERVER_ROOT."custom/inc/modules/".$module["route"].".php");
+			BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$module["route"]."/");
 
 			// Delete all the related auto module actions
 			$actions = $this->getModuleActions($id);
@@ -2236,16 +2237,27 @@
 
 		/*
 			Function: deleteTemplate
-				Deletes a template.
+				Deletes a template and its related files.
 
 			Parameters:
 				id - The id of the template.
+
+			Returns:
+				true if successful.
 		*/
 
 		function deleteTemplate($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_templates WHERE id = '$id'");
-			$this->track("bigtree_templates",$id,"deleted");
+			$template = BigTreeCMS::getTemplate($id);
+			if (!$template) {
+				return false;
+			}
+			if ($template["routed"]) {
+				BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$template["id"]."/");
+			} else {
+				@unlink(SERVER_ROOT."templates/basic/".$template["id"].".php");
+			}
+			sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
+			$this->track("bigtree_templates",$template["id"],"deleted");
 		}
 
 		/*
