@@ -14,7 +14,7 @@
 			?>
 			<article<? if ($x > 1) { ?> style="display: none;"<? } ?>>
 				<div class="original">
-					<img src="<?=str_replace(SITE_ROOT,STATIC_ROOT,$crop["image"])?>" id="cropImage<?=$x?>" data-retina="<?=$crop["retina"]?>" data-width="<?=$width?>" data-height="<?=$height?>" data-crop-width="<?=$crop["width"]?>" data-crop-height="<?=$crop["height"]?>" alt="" />
+					<img src="<?=str_replace(SITE_ROOT,WWW_ROOT,$crop["image"])?>" id="cropImage<?=$x?>" data-retina="<?=$crop["retina"]?>" data-width="<?=$width?>" data-height="<?=$height?>" data-crop-width="<?=$crop["width"]?>" data-crop-height="<?=$crop["height"]?>" alt="" />
 				</div>
 				<input type="hidden" name="x[]" id="x<?=$x?>" />
 				<input type="hidden" name="y[]" id="y<?=$x?>" />
