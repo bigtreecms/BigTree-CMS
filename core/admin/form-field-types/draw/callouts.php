@@ -4,6 +4,7 @@
 	}
 
 	$noun = $field["options"]["noun"] ? htmlspecialchars($field["options"]["noun"]) : "Callout";
+	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
 ?>
 <fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
@@ -33,12 +34,16 @@
 		?>
 	</div>
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
+	<? if ($max) { ?>
+	<small class="max">LIMIT <?=$max?></small>
+	<? } ?>
 	<script>
 		BigTreeCallouts({
 			selector: "#<?=$field["id"]?>",
 			key: "<?=$field["key"]?>",
 			noun: "<?=$noun?>",
-			groups: <?=json_encode($field["options"]["groups"])?>
+			groups: <?=json_encode($field["options"]["groups"])?>,
+			max: <?=$max?>
 		});
 	</script>
 </fieldset>

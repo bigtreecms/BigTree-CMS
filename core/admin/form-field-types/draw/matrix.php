@@ -3,6 +3,7 @@
 		$field["value"] = array();
 	}
 	$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
+	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
 ?>
 <fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
@@ -34,11 +35,15 @@
 		?>
 	</div>
 	<a href="#" class="add_item button"><span class="icon_small icon_small_add"></span>Add Item</a>
+	<? if ($max) { ?>
+	<small class="max">LIMIT <?=$max?></small>
+	<? } ?>
+	<script>
+		BigTreeMatrix({
+			selector: "#<?=$field["id"]?>",
+			key: "<?=$field["key"]?>",
+			columns: <?=json_encode($field["options"]["columns"])?>,
+			max: <?=$max?>
+		});
+	</script>
 </fieldset>
-<script>
-	BigTreeMatrix({
-		selector: "#<?=$field["id"]?>",
-		key: "<?=$field["key"]?>",
-		columns: <?=json_encode($field["options"]["columns"])?>
-	});
-</script>

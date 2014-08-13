@@ -1,5 +1,5 @@
 /*---------------------------
-	 BigTree CMS 4.1 CSS
+	 BigTree CMS 4.2 CSS
 ---------------------------*/
 
 /*-----------------------------------------------------------------------------------
@@ -745,6 +745,8 @@
 	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
 	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 	fieldset.callouts_no_margin { margin-top: -31px; }
+	fieldset.callouts .button { float: left; margin: 0 15px 0 0; }
+	fieldset.callouts .max { float: left; line-height: 32px; text-transform: uppercase; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }

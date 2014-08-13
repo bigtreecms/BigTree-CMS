@@ -2427,6 +2427,8 @@ var BigTreeFilesystemBrowser = function(settings) {
 var BigTreeCallouts = function(settings) {
 	return (function($,settings) {
 		var Container = $(settings.selector);
+
+		var AddButton = Container.find(".add_callout");
 		var Count;
 		var CurrentItem;
 		var Description;
@@ -2435,6 +2437,7 @@ var BigTreeCallouts = function(settings) {
 		var Key = settings.key;
 		var LastDialog;
 		var List = Container.find(".contain");
+		var Max = settings.max ? settings.max : 0;
 		var Noun = settings.noun;
 
 		function addCallout(e) {
@@ -2455,6 +2458,10 @@ var BigTreeCallouts = function(settings) {
 							List.append(item);
 							removeDialog();
 							Count++;
+							var count = List.find("article").length;
+							if (count >= Max) {
+								AddButton.hide();
+							}
 						}
 					}
 				});
@@ -2492,7 +2499,13 @@ var BigTreeCallouts = function(settings) {
 			BigTreeDialog({
 				title: "Delete " + Noun,
 				content: '<p class="confirm">Are you sure you want to delete this ' + Noun.toLowerCase() + '?</p>',
-				callback: function() { CurrentItem.remove(); },
+				callback: function() {
+					CurrentItem.remove();
+					var count = List.find("article").length;
+					if (count < Max) {
+						AddButton.show();
+					}
+				},
 				icon: "delete",
 				alternateSaveText: "OK"
 			});
@@ -2552,6 +2565,10 @@ var BigTreeCallouts = function(settings) {
 
 		// Init routine
 		Count = List.find("article").length;
+		// Hide the add button if we're at or above the limit
+		if (Max && Count >= Max) {
+			AddButton.hide();
+		}
 		Container.on("click",".add_callout",addCallout)
 				 .on("click",".icon_edit",editCallout)
 				 .on("click",".icon_delete",deleteCallout);
@@ -2565,6 +2582,7 @@ var BigTreeCallouts = function(settings) {
 var BigTreeMatrix = function(settings) {
 	return (function($,settings) {
 
+		var AddButton;
 		var Columns;
 		var Container;
 		var Count = 0;
@@ -2572,6 +2590,7 @@ var BigTreeMatrix = function(settings) {
 		var Key;
 		var LastDialog;
 		var List;
+		var Max = settings.max ? settings.max : 0;
 		var Subtitle;
 		var Title;
 
@@ -2596,6 +2615,10 @@ var BigTreeMatrix = function(settings) {
 								List.append(item);
 								removeDialog();						
 								Count++;
+								var count = List.find("article").length;
+								if (count >= Max) {
+									AddButton.hide();
+								}
 							}
 						}
 					});
@@ -2612,6 +2635,10 @@ var BigTreeMatrix = function(settings) {
 				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 				callback: function() {
 					CurrentItem.remove();
+					var count = List.find("article").length;
+					if (count < Max) {
+						AddButton.show();
+					}
 				},
 				icon: "delete",
 				alternateSaveText: "OK"
@@ -2712,8 +2739,14 @@ var BigTreeMatrix = function(settings) {
 		Key = settings.key;
 		Columns = settings.columns;
 		Container = $(settings.selector);
+		AddButton = Container.find(".add_item");
 		List = Container.find(".contain");
 		Count = List.find("article").length;
+
+		// If they've exceed or are at the max, hide the add button
+		if (Count >= Max) {
+			AddButton.hide();
+		}
 
 		Container.on("click",".add_item",addItem)
 				 .on("click",".icon_edit",editItem)
