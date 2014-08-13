@@ -2,6 +2,7 @@
 	// Date settings
 	$bigtree["config"]["date_format"] = "m/d/Y"; // Format for default values for date pickers, see http://php.net/manual/en/function.date.php
 
+	// CSS settings
 	$bigtree["config"]["css"]["prefix"] = false; // Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3
 	$bigtree["config"]["css"]["minify"] = false; // Flag for CSS minification
 	
