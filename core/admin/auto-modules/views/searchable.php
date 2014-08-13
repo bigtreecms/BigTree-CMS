@@ -5,13 +5,13 @@
 	$perm = $admin->checkAccess($m);
 	
 	if (isset($_GET["sort"])) {
-		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
+		$sort = "`".$_GET["sort"]."` ".$_GET["sort_direction"];
 	} elseif (isset($options["sort_column"])) {
 		$sort = $options["sort_column"]." ".$options["sort_direction"];
 	} elseif (isset($options["sort"])) {
 		$sort = $options["sort"];
 	} else {
-		$sort = "id DESC";
+		$sort = "`id` DESC";
 	}
 	// Retrieve the column and the sort direction from the consolidated ORDER BY statement.
 	$sort = ltrim($sort,"`");
@@ -39,8 +39,8 @@
 						$achar = "&#9650;";
 						$s_direction = "ASC";
 					} else {
-						$s_direction = "DESC";
 						$achar = "&#9660;";
+						$s_direction = "DESC";
 					}
 				} else {
 					$active = "";
@@ -64,7 +64,7 @@
 <script>
 	BigTree.localSortColumn = "<?=$sort_column?>";
 	BigTree.localSortDirection = "<?=$sort_direction?>";
-	BigTree.localSearchQuery = "";
+	BigTree.localSearchQuery = "<?=$search?>";
 	BigTree.localSearch = function() {
 		BigTree.localSearchQuery = escape($("#search").val());
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);
