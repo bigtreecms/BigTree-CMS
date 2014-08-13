@@ -112,7 +112,7 @@
 						<? } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>
-					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource))?>" id="options_<?=$x?>" />
+					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource["options"]))?>" id="options_<?=$x?>" />
 				</section>
 				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
