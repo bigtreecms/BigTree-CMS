@@ -27,19 +27,19 @@
 		$fields = array();
 		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
-			$table_info = BigTree::describeTable($table);
+			$table_description = BigTree::describeTable($table);
 		} else {
-			$table_info = array("foreign_keys" => array(), "columns" => array());
+			$table_description = array("foreign_keys" => array(), "columns" => array());
 		}
 
 		// Let's relate the foreign keys based on the local column so we can check easier.
 		$foreign_keys = array();
-		foreach ($table_info["foreign_keys"] as $key) {
+		foreach ($table_description["foreign_keys"] as $key) {
 			if (count($key["local_columns"]) == 1) {
 				$foreign_keys[$key["local_columns"][0]] = $key;
 			}
 		}
-		foreach ($table_info["columns"] as $column) {
+		foreach ($table_description["columns"] as $column) {
 			$table_columns[] = $column["name"];
 			if (!in_array($column["name"],$reserved)) {
 				// Do a ton of guessing here to try to save time.
@@ -135,6 +135,17 @@
 				$positioned = true;
 			}
 		}
+	}
+
+	// Make sure this table has an "id" column and is auto increment, if not, throw a warning
+	if (empty($table_description["columns"]["id"])) {
+?>
+<p class="error_message">The chosen table does not have a column named "id" which BigTree requires as a unique identifier.<br />Please an an "id" column INT(11) with Primary Key and Auto Increment settings.</p>
+<?
+	} elseif (!$table_description["columns"]["id"]["auto_increment"]) {
+?>
+<p class="error_message">The chosen table's "id" column is not set to auto increment. If you're adding to this table via BigTree, please set the column to auto increment.</p>
+<?
 	}
 
 	$cached_types = $admin->getCachedFieldTypes(true);
@@ -251,6 +262,10 @@
 		}
 	});
 </script>
+<?
+	} elseif (array_filter((array)$table_description["columns"])) {
+?>
+<p>The chosen table does not have any <a href="http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns" target="_blank">non-reserved columns</a>.</p>
 <?
 	} else {
 ?>
