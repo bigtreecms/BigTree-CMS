@@ -5310,7 +5310,7 @@
 			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-security-policy");
 
 			// Check banned IPs list for the user's IP
-			if (!empty($b["banned_ips"])) {
+			if (!empty($p["banned_ips"])) {
 				$banned = explode("\n",$p["banned_ips"]);
 				foreach ($banned as $address) {
 					if (ip2long(trim($address)) == $ip) {
@@ -5329,7 +5329,7 @@
 					list($begin,$end) = explode(",",$item);
 					$begin = ip2long(trim($begin));
 					$end = ip2long(trim($end));
-					if ($begin < $ip && $end > $ip) {
+					if ($begin <= $ip && $end >= $ip) {
 						$allowed = true;
 					}
 				}
