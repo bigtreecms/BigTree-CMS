@@ -7509,7 +7509,7 @@
 		*/
 
 		static function updateSettingValue($id,$value) {
-			global $bigtree;
+			global $bigtree,$admin;
 
 			$item = self::getSetting($id,false);
 			$id = sqlescape($item["id"]);
@@ -7526,6 +7526,11 @@
 				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
 			} else {
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
+			}
+
+			if ($admin) {
+				// Audit trail.
+				$admin->track("bigtree_settings",$id,"updated");
 			}
 		}
 

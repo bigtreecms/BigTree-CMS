@@ -469,7 +469,7 @@
 		// Drop the group column
 		sqlquery("ALTER TABLE bigtree_callouts DROP COLUMN `group`");
 
-		// Password policy setting
+		// Security policy setting
 		sqlquery("INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-security-policy','{}','on')");
 
 		// New field types
