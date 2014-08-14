@@ -1,32 +1,48 @@
 <script>
-	BigTree.localSearchTimer = false;
+	(function() {
+		var Current = false;
+		var SearchTimer = false;
 
-	$("#search").keyup(function() {
-		clearTimeout(BigTree.localSearchTimer);
-		BigTree.localSearchTimer = setTimeout("BigTree.localSearch();",400);
-	});
-	
-	$(".table").on("click",".icon_delete",function() {
-		BigTreeDialog({
-			title: "Delete Item",
-			content: '<p class="confirm">Are you sure you want to delete this item?</p>',
-			icon: "delete",
-			alternateSaveText: "OK",
-			callback: $.proxy(function() { $.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))); },this)
+		$("#search").keyup(function() {
+			clearTimeout(SearchTimer);
+			SearchTimer = setTimeout("BigTree.localSearch();",400);
 		});
-
-		return false;
-	}).on("click",".icon_approve",function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-		$(this).toggleClass("icon_approve_on");
-		return false;
-	}).on("click",".icon_feature",function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-		$(this).toggleClass("icon_feature_on");
-		return false;
-	}).on("click",".icon_archive",function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-		$(this).toggleClass("icon_archive_on");
-		return false;
-	}).on("click",".icon_disabled",function() { return false; });
+		
+		$(".table").on("click",".icon_delete",function() {
+			Current = $(this);
+			BigTreeDialog({
+				title: "Delete Item",
+				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+				icon: "delete",
+				alternateSaveText: "OK",
+				callback: function() {
+					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref(Current.attr("href")));
+					var row = Current.parents("li");
+					var list = row.parents("ul");
+					row.remove();
+					if (!list.find("li").length) {
+						var header = list.prev();
+						if (header.hasClass("group")) {
+							header.remove();
+							list.remove();
+						}
+					}
+				}
+			});
+	
+			return false;
+		}).on("click",".icon_approve",function() {
+			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$(this).toggleClass("icon_approve_on");
+			return false;
+		}).on("click",".icon_feature",function() {
+			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$(this).toggleClass("icon_feature_on");
+			return false;
+		}).on("click",".icon_archive",function() {
+			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$(this).toggleClass("icon_archive_on");
+			return false;
+		}).on("click",".icon_disabled",function() { return false; });
+	})();
 </script>
