@@ -479,6 +479,22 @@
 		$resource_converter = function($resources) {
 			$new_resources = array();
 			foreach ($resources as $item) {
+				// Array of Items no longer exists, switching to Matrix
+				if ($item["type"] == "array") {
+					$item["type"] = "matrix";
+					$item["columns"] = array();
+					$x = 0;
+					foreach ($item["fields"] as $field) {
+						$x++;
+						$item["columns"][] = array(
+							"id" => $field["key"],
+							"type" => $field["type"],
+							"title" => $field["title"],
+							"display_title" = ($x == 1) ? "on" : ""
+						);
+					}
+					unset($item["fields"]);
+				}
 				$r = array(
 					"id" => $item["id"],
 					"type" => $item["type"],
@@ -498,6 +514,22 @@
 		$field_converter = function($fields) {
 			$new_fields = array();
 			foreach ($fields as $id => $field) {
+				// Array of Items no longer exists, switching to Matrix
+				if ($item["type"] == "array") {
+					$item["type"] = "matrix";
+					$item["columns"] = array();
+					$x = 0;
+					foreach ($item["fields"] as $field) {
+						$x++;
+						$item["columns"][] = array(
+							"id" => $field["key"],
+							"type" => $field["type"],
+							"title" => $field["title"],
+							"display_title" = ($x == 1) ? "on" : ""
+						);
+					}
+					unset($item["fields"]);
+				}
 				$r = array(
 					"column" => $id,
 					"type" => $field["type"],
