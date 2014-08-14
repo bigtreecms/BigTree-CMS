@@ -224,45 +224,6 @@
 		}
 
 		/*
-			Function: apiValidateToken
-				Validates a token and sets up the admin environment for the token's use.
-				Dies with an error message if the token is expired or invalid.
-
-			Parameters:
-				token - The token to use.
-
-			Returns:
-				true if the token is valid.
-				false (and echoes encoded errors) if the token is expired or invalid.
-		*/
-
-		function apiValidateToken($token) {
-			$t = sqlfetch(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
-			if (!$t) {
-				echo BigTree::apiEncode(array("success" => false,"error" => "Token is invalid."));
-				return false;
-			}
-			if ($t["temporary"] && strtotime($t["expires"]) < time()) {
-				echo BigTree::apiEncode(array("success" => false,"error" => "Token has expired."));
-				return false;
-			}
-
-			// If it's a temporary token, update its expiration to keep it fresh.
-			if ($t["temporary"]) {
-				sqlquery("UPDATE bigtree_api_tokens SET expires = '".date("Y-m-d H:i:s",strtotime("+30 minutes"))."' WHERE id = '".$t["id"]."'");
-			}
-
-			$user = self::getUser($t["user"]);
-			$this->ID = $user["id"];
-			$this->User = $user["email"];
-			$this->Level = $user["level"];
-			$this->Name = $user["name"];
-			$this->Permissions = $user["permissions"];
-			$this->ReadOnly = $t["read_only"];
-			return true;
-		}
-
-		/*
 			Function: archivePage
 				Archives a page.
 
@@ -660,44 +621,6 @@
 			sqlquery("DELETE FROM bigtree_404s WHERE redirect_url = ''");
 			$this->track("bigtree_404s","All","Cleared Empty");
 			self::growl("404 Report","Cleared 404s");
-		}
-
-		/*
-			Function: createAPIToken
-				Creates an API token.
-
-			Parameters:
-				user - The user that the token is associated to.
-				read_only - Whether the token has write access.
-				temporary - Whether the token expires (defaults to false).
-				expires - When the token expires (if it does at all).
-
-			Returns:
-				The token that is created.
-		*/
-
-		function createAPIToken($user,$read_only,$temporary = false, $expires = false) {
-			$user = mysql_real_escape_string($user);
-			$read_only = $read_only ? "on" : "";
-			$expires = $temporary ? date("Y-m-d- H:i:s",strtotime($expires)) : false;
-
-			// Generate a unique token
-			$token = mysql_real_escape_string(BigTree::randomString(255));
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_api_tokens WHERE token = '$token'"));
-			while ($r) {
-				$token = mysql_real_escape_string(BigTree::randomString(255));
-				$r = sqlrows(sqlquery("select * from bigtree_api_tokens where token = '$token'"));
-			}
-
-			if ($temporary) {
-				sqlquery("INSERT INTO bigtree_api_tokens (`token`,`user`,`read_only`,`temporary`,`expires`) VALUES ('$token','$user','$read_only','on','$expires')");
-			} else {
-				sqlquery("INSERT INTO bigtree_api_tokens (`token`,`user`,`read_only`) VALUES ('$token','$user','$read_only')");
-			}
-
-			$this->track("bigtree_api_tokens",sqlid(),"created");
-
-			return $token;
 		}
 
 		/*
@@ -2656,47 +2579,6 @@
 		}
 
 		/*
-			Function: getAPITokenById
-				Returns an API token for a given id.
-
-			Parameters:
-				id - The database id of the API token.
-
-			Returns:
-				A token array.
-		*/
-
-		static function getAPITokenById($id) {
-			$id = mysql_real_escape_string($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_api_tokens WHERE id = '$id'"));
-		}
-
-		/*
-			Function: getAPITokensPageCount
-				Returns the number of pages of API tokens that match a given query.
-
-			Parameters:
-				query - A query string to check the tokens against.
-
-			Returns:
-				The number of pages that match the query.
-		*/
-
-		static function getAPITokensPageCount($query = "") {
-			if ($query) {
-				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_api_tokens WHERE temporary = '' AND token LIKE '%".mysql_real_escape_string($query)."%'"));
-			} else {
-				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_api_tokens WHERE temporary = ''"));
-			}
-
-			$pages = ceil($f["count"] / self::$PerPage);
-			if ($pages == 0) {
-				$pages = 1;
-			}
-			return $pages;
-		}
-
-		/*
 			Function: getArchivedNavigationByParent
 				Returns an alphabetic list of navigation that is archived under the given parent.
 
@@ -4073,33 +3955,6 @@
 			}
 			
 			return array(false,false,false);
-		}
-
-		/*
-			Function: getPageOfAPITokens
-				Returns a page of API Tokens (most recent first) and their related users.
-
-			Parameters:
-				page - The page of users to return.
-				query - Optional query string to search against.
-
-			Returns:
-				An array of entries from bigtree_users.
-		*/
-
-		static function getPageOfAPITokens($page = 0,$query = "") {
-			$query = mysql_real_escape_string($query);
-			if ($query) {
-				$q = sqlquery("SELECT bigtree_api_tokens.* FROM bigtree_api_tokens JOIN bigtree_users ON bigtree_api_tokens.user = bigtree_users.id WHERE temporary = '' AND (name LIKE '%$query%' OR token LIKE '%$query%') ORDER BY bigtree_api_tokens.id DESC LIMIT ".($page * self::$PerPage).",".self::$PerPage);
-			} else {
-				$q = sqlquery("SELECT bigtree_api_tokens.* FROM bigtree_api_tokens WHERE temporary = '' ORDER BY id DESC LIMIT ".($page*self::$PerPage).",".self::$PerPage);
-			}
-			$items = array();
-			while ($f = sqlfetch($q)) {
-				$f["user"] = self::getUser($f["user"]);
-				$items[] = $f;
-			}
-			return $items;
 		}
 
 		/*
@@ -6718,29 +6573,6 @@
 		}
 
 		/*
-			Function: updateAPIToken
-				Updates an API token.
-
-			Parameters:
-				id - The database id of the existing API token.
-				user - The user that the token is associated to.
-				read_only - Whether the token has write access.
-				temporary - Whether the token expires (defaults to false).
-				expires - When the token expires (if it does at all).
-		*/
-
-		function updateAPIToken($id,$user,$read_only,$temporary,$expires) {
-			$id = mysql_real_escape_string($id);
-			$user = mysql_real_escape_string($user);
-			$read_only = $read_only ? "on" : "";
-			$temporary = $temporary ? "on" : "";
-			$expires = $temporary ? "'".date("Y-m-d- H:i:s",strtotime($expires))."'" : "NULL";
-
-			sqlquery("UPDATE bigtree_api_tokens SET user = '$user', read_only = '$read_only', temporary = '$temporary', expires = '$expires' WHERE id = '$id'");
-			$this->track("bigtree_api_tokens",$id,"updated");
-		}
-
-		/*
 			Function: updateCallout
 				Updates a callout.
 
@@ -7683,6 +7515,40 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = sqlescape($phpass->HashPassword(trim($password)));
 			sqlquery("UPDATE bigtree_users SET password = '$password' WHERE id = '$id'");
+		}
+
+		/*
+			Function: validatePassword
+				Validates a password against the security policy.
+
+			Parameters:
+				password - Password to validate.
+
+			Returns:
+				true if it passes all password criteria.
+		*/
+
+		static function validatePassword($password) {
+			$policy = $bigtree["security-policy"]["password"];
+			$failed = false;
+
+			// Check length policy
+			if ($policy["length"] && strlen($password) < $policy["length"]) {
+				$failed = true;
+			}
+			// Check case policy
+			if ($policy["multicase"] && strtolower($password) === $password) {
+				$failed = true;
+			}
+			// Check numeric policy
+			if ($policy["numbers"] && !preg_match("/[0-9]/",$password)) {
+				$failed = true;
+			}
+			// Check non-alphanumeric policy
+			if ($policy["nonalphanumeric"] && ctype_alnum($password)) {
+				$failed = true;
+			}
+			return !$failed;
 		}
 	}
 ?>
