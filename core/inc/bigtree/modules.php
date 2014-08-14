@@ -43,9 +43,8 @@
 				<update>
 		*/
 		
-		function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {			
+		function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {	
 			$existing_parts = $key_parts = $value_parts = array();
-			$x = 0;
 
 			// Single column/value add
 			if (is_string($fields)) {
