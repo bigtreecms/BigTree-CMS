@@ -438,7 +438,7 @@
 	ob_start($filter);
 	
 	// If we're in HTTPS, make sure all Javascript, images, and CSS are pulling from HTTPS
-	if ($cms->Secure) {
+	if (BigTreeCMS::$Secure) {
 		// Replace CSS includes
 		$bigtree["content"] = preg_replace_callback('/<link [^>]*href="([^"]*)"/',create_function('$matches','
 			return str_replace(\'href="http://\',\'href="https://\',$matches[0]);
@@ -448,7 +448,7 @@
 	}
 	
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
-	if (isset($bigtree["page"]) && !$cms->Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
+	if (isset($bigtree["page"]) && !BigTreeCMS::$Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
 		include_once BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -468,7 +468,7 @@
 	   - User is logged into the BigTree admin FOR THIS PAGE
 	   - Developer mode is either disabled OR the logged in user is a Developer
 	*/
-	if (isset($bigtree["page"]) && !$cms->Secure && $_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
+	if (isset($bigtree["page"]) && !BigTreeCMS::$Secure && $_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
