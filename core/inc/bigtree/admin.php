@@ -7529,6 +7529,8 @@
 		*/
 
 		static function validatePassword($password) {
+			global $bigtree;
+
 			$policy = $bigtree["security-policy"]["password"];
 			$failed = false;
 

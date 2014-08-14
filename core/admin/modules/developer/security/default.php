@@ -26,8 +26,8 @@
 						<input type="text" name="password[length]" value="<?=$password["length"]?>" />
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[multicase]"<? if ($password["multicase"]) { ?> checked="checked"<? } ?> />
-						<label class="for_checkbox">Require Multi-Case <small>(both lowercase and uppercase characters)</small></label>
+						<input type="checkbox" name="password[mixedcase]"<? if ($password["mixedcase"]) { ?> checked="checked"<? } ?> />
+						<label class="for_checkbox">Require Mixed-Case <small>(both lowercase and uppercase characters)</small></label>
 					</fieldset>
 					<fieldset>
 						<input type="checkbox" name="password[numbers]"<? if ($password["numbers"]) { ?> checked="checked"<? } ?> />

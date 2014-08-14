@@ -897,7 +897,6 @@
 	.table .users_email { text-align: left; width: 250px; }
 	.table .users_company { text-align: left; width: 250px; }
 	.table .users_api_type { text-align: left; width: 250px; }
-	.table .users_api_token { text-align: left; width: 250px; }
 
 	.user_permissions .labels { background: #AFAFAF; border: none; color: #FFF; }
 	.user_permissions .labels .permission_label { padding: 0 0 0 20px; text-align: left; width: 466px; }
@@ -961,6 +960,9 @@
 	.user_permissions section ul.depth_8 li .folder_label { width: 506px; }
 	.user_permissions section ul.depth_9 li .folder_label { width: 496px; }
 	.user_permissions section ul.depth_10 li .folder_label { width: 486px; }
+
+	.password_policy { color: #C0362F; font-size: 10px; padding: 10px 0 0 0; }
+	.password_policy span { display: inline-block; float: none; vertical-align: middle;}
 
 /* Settings Stuff */
 	.table .settings_name { overflow: hidden; padding: 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 272px; }

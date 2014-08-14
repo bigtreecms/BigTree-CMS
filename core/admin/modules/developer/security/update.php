@@ -13,7 +13,7 @@
 		),
 		"password" => array(
 			"length" => $password["length"] ? intval($password["length"]) : "",
-			"multicase" => $password["multicase"] ? "on" : "",
+			"mixedcase" => $password["mixedcase"] ? "on" : "",
 			"numbers" => $password["numbers"] ? "on" : "",
 			"nonalphanumeric" => $password["nonalphanumeric"] ? "on" : ""
 		),

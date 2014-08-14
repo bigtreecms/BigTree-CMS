@@ -168,7 +168,7 @@ var BigTreePasswordInput = function(element) {
 			return false;
 		}
 
-		FakeElement = $('<input type="text" />').attr("tabindex",$(element).attr("tabindex"));
+		FakeElement = $('<input type="text" />').attr("tabindex",$(element).attr("tabindex")).attr("data-tooltip",$(element).attr("data-tooltip"));
 		FakeElement.on("blur",blur).focus(focus).change(change);
 		FakeElement.get(0).className = Element.get(0).className;
 		Element.addClass("custom_control").removeClass("required").hide().after(FakeElement);

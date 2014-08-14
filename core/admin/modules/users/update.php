@@ -8,6 +8,14 @@
 </div>
 <?
 	} else {
+		// Check security policy
+		if ($_POST["password"] && !$admin->validatePassword($_POST["password"])) {
+			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
+			$_SESSION["bigtree_admin"]["update_user"]["error"] = "password";
+			$admin->growl("Users","Invalid Password","error");
+			BigTree::redirect(ADMIN_ROOT."users/edit/".$_POST["id"]."/");
+		}
+
 		$perms = json_decode($_POST["permissions"],true);
 		$_POST["permissions"] = array("page" => $perms["Page"],"module" => $perms["Module"],"resources" => $perms["Resource"],"module_gbp" => $perms["ModuleGBP"]);
 		$_POST["alerts"] = json_decode($_POST["alerts"],true);
@@ -16,7 +24,7 @@
 		if (!$success) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$admin->growl("Users","Update Failed","error");
-			BigTree::redirect(ADMIN_ROOT."users/edit/".end($bigtree["path"])."/");
+			BigTree::redirect(ADMIN_ROOT."users/edit/".$_POST["id"]."/");
 		}
 		
 		$admin->growl("Users","Updated User");
