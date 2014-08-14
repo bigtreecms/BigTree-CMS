@@ -93,6 +93,7 @@
 	h1 .bing, .box_select .bing { background-position: -96px -284px; }
 	h1 .yahooboss, .box_select .yahooboss { background-position: -128px -285px; }
 	h1 .trail, .box_select .trail { background-position: -416px -46px; }
+	h1 .lock, .box_select .lock { background-position: -192px -282px; }
 
 	h2 { color: rgba(51,51,51,0.9); font-size: 22px; font-weight: normal; line-height: 32px; margin: 0 0 15px 0; user-select: none; }
 	h2 small { color: #999999; display: inline-block; font-size: 12px; padding: 0 0 0 10px; }
