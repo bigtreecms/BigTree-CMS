@@ -1,5 +1,5 @@
 <?
-	$security_policy = $cms->getSetting("bigtree-security-policy");
+	$security_policy = $cms->getSetting("bigtree-internal-security-policy");
 	BigTree::globalizeArray($security_policy,"htmlspecialchars");
 ?>
 <div class="container" id="security_settings">

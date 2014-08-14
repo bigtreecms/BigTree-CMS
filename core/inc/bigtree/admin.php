@@ -466,6 +466,7 @@
 			$password = sqlescape($phpass->HashPassword($password));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
+			sqlquery("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE user = '".$user["id"]."'");
 			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 		}
 
@@ -5162,7 +5163,7 @@
 		function initSecurity() {
 			global $bigtree;
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-security-policy");
+			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-internal-security-policy");
 
 			// Check banned IPs list for the user's IP
 			if (!empty($p["banned_ips"])) {
@@ -5313,11 +5314,30 @@
 		*/
 
 		static function login($email,$password,$stay_logged_in = false) {
+			global $bigtree;
+
+			// Check to see if this IP is already banned from logging in.
+			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
+			if ($ban) {
+				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
+				$bigtree["ban_is_user"] = false;
+				return false;
+			}
+
 			// Get rid of whitespace and make the email lowercase for consistency
 			$email = trim(strtolower($email));
 			$password = trim($password);
-
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
+
+			// See if this user is banned due to failed login attempts
+			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".$f["id"]."'"));
+			if ($ban) {
+				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
+				$bigtree["ban_is_user"] = true;
+				return false;
+			}
+
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
@@ -5338,7 +5358,51 @@
 				} else {
 					BigTree::redirect(ADMIN_ROOT);
 				}
+			// Failed login attempt, log it.
 			} else {
+				// Log it as a failed attempt for a user if the email address matched
+				if ($f) {
+					$user = "'".$f["id"]."'";
+				} else {
+					$user = "NULL";
+				}
+				sqlquery("INSERT INTO bigtree_login_attempts (`ip`,`user`) VALUES ('$ip',$user)");
+
+				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
+				if ($f["id"] && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
+					$p = $bigtree["security-policy"]["user_fails"];
+					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `user` = $user AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
+					// Earned a ban
+					if ($r >= $p["count"]) {
+						// See if they have an existing ban that hasn't expired, if so, extend it
+						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `user` = $user AND expires >= NOW()"));
+						if ($existing) {
+							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." MINUTE) WHERE id = '".$existing["id"]."'");
+						} else {
+							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) VALUES ('$ip',$user,DATE_ADD(NOW(),INTERVAL ".$p["ban"]." MINUTE))");
+						}
+						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$p["ban"]." minutes"));
+						$bigtree["ban_is_user"] = true;
+					}
+				}
+
+				// See if this attempt earns the IP as a whole a ban - first verify the policy is completely filled out (3 parts)
+				if (count(array_filter((array)$bigtree["security-policy"]["ip_fails"])) == 3) {
+					$p = $bigtree["security-policy"]["ip_fails"];
+					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `ip` = '$ip' AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
+					// Earned a ban
+					if ($r >= $p["count"]) {
+						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `ip` = '$ip' AND expires >= NOW()"));
+						if ($existing) {
+							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR) WHERE id = '".$existing["id"]."'");						
+						} else {
+							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`expires`) VALUES ('$ip',DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR))");
+						}
+						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$p["ban"]." hours"));
+						$bigtree["ban_is_user"] = false;
+					}
+				}
+
 				return false;
 			}
 		}
