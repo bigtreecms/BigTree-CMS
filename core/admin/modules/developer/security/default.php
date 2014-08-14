@@ -55,8 +55,8 @@
 						<textarea name="allowed_ips" placeholder="i.e. 192.168.1.1, 192.168.1.128"><?=$allowed_ips?></textarea>
 					</fieldset>
 					<fieldset>
-						<h3>Permanant Ban List</h3>
-						<p>Include a list of IP addresses you wish to permanantly ban from logging into the admin area (one per line).</p>
+						<h3>Permanent Ban List</h3>
+						<p>Include a list of IP addresses you wish to permanently ban from logging into the admin area (one per line).</p>
 						<textarea name="banned_ips"><?=$banned_ips?></textarea>
 					</fieldset>
 				</div>
