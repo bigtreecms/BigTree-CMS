@@ -38,6 +38,11 @@
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
 					$resource = $admin->getResourceByFile(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($field["output"],11)));
 					$resource_location = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$resource["file"]);
+
+					// See if the file was actually stored in the cloud
+					if (!file_exists($resource_location)) {
+						$resource_location = $resource["file"];	
+					}
 					$pinfo = BigTree::pathInfo($resource_location);
 	
 					// Emulate a newly uploaded file
