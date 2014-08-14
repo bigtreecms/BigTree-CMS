@@ -588,7 +588,7 @@
 					if (!self::irlExists($href)) {
 						$errors["a"][] = $href;
 					}
-				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:") {
+				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:" || substr($href,0,4) == "tel:") {
 					// Don't do anything, it's a page mark, data URI, or email address
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
@@ -1522,7 +1522,7 @@
 
 		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
 			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
-			$file = sqlescape($file);
+			$file = sqlescape($this->replaceHardRoots($file));
 			$name = sqlescape(htmlspecialchars($name));
 			$type = sqlescape($type);
 			$is_image = sqlescape($is_image);
@@ -5426,8 +5426,9 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
+				// We still set the email for BigTree bar usage.
+				setcookie('bigtree_admin[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 				if ($stay_logged_in) {
-					setcookie('bigtree_admin[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 					setcookie('bigtree_admin[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 				}
 

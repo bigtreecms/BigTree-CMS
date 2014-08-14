@@ -5,5 +5,6 @@
 	} else {
 		$admin->growl("Google Cloud Storage","Connected");
 	}
-	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/google/");
+	$cloud->Settings["google"]["active"] = true;
+	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 ?>

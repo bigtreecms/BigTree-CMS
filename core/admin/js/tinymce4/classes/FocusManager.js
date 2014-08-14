@@ -84,19 +84,35 @@ define("tinymce/FocusManager", [
 			editor.on('init', function() {
 				// Gecko/WebKit has ghost selections in iframes and IE only has one selection per browser tab
 				if (editor.inline || Env.ie) {
-					// On other browsers take snapshot on nodechange in inline mode since they have Ghost selections for iframes
-					editor.on('nodechange keyup', function() {
-						var node = document.activeElement;
+					// Use the onbeforedeactivate event when available since it works better see #7023
+					if ("onbeforedeactivate" in document && Env.ie < 9) {
+						editor.dom.bind(editor.getBody(), 'beforedeactivate', function() {
+							try {
+								editor.lastRng = editor.selection.getRng();
+							} catch (ex) {
+								// IE throws "Unexcpected call to method or property access" some times so lets ignore it
+							}
+						});
+					} else {
+						// On other browsers take snapshot on nodechange in inline mode since they have Ghost selections for iframes
+						editor.on('nodechange mouseup keyup', function(e) {
+							var node = getActiveElement();
 
-						// IE 11 reports active element as iframe not body of iframe
-						if (node && node.id == editor.id + '_ifr') {
-							node = editor.getBody();
-						}
+							// Only act on manual nodechanges
+							if (e.type == 'nodechange' && e.selectionChange) {
+								return;
+							}
 
-						if (editor.dom.isChildOf(node, editor.getBody())) {
-							editor.lastRng = editor.selection.getRng();
-						}
-					});
+							// IE 11 reports active element as iframe not body of iframe
+							if (node && node.id == editor.id + '_ifr') {
+								node = editor.getBody();
+							}
+
+							if (editor.dom.isChildOf(node, editor.getBody())) {
+								editor.lastRng = editor.selection.getRng();
+							}
+						});
+					}
 
 					// Handles the issue with WebKit not retaining selection within inline document
 					// If the user releases the mouse out side the body since a mouse up event wont occur on the body
@@ -174,8 +190,9 @@ define("tinymce/FocusManager", [
 					var activeEditor = editorManager.activeEditor;
 
 					if (activeEditor && e.target.ownerDocument == document) {
-						// Check to make sure we have a valid selection
-						if (activeEditor.selection) {
+						// Check to make sure we have a valid selection don't update the bookmark if it's
+						// a focusin to the body of the editor see #7025
+						if (activeEditor.selection && e.target != activeEditor.getBody()) {
 							activeEditor.selection.lastFocusBookmark = createBookmark(activeEditor.dom, activeEditor.lastRng);
 						}
 

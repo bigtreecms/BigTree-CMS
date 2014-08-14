@@ -11,6 +11,11 @@
 /*jshint loopfunc:true*/
 /*eslint no-loop-func:0 */
 
+/**
+ * This class wraps the browsers native event logic with more convenient methods.
+ *
+ * @class tinymce.dom.EventUtils
+ */
 define("tinymce/dom/EventUtils", [], function() {
 	"use strict";
 
@@ -337,6 +342,7 @@ define("tinymce/dom/EventUtils", [], function() {
 					events[id][name] = callbackList = [{func: callback, scope: scope}];
 					callbackList.fakeName = fakeName;
 					callbackList.capture = capture;
+					//callbackList.callback = callback;
 
 					// Add the nativeHandler to the callback list so that we can later unbind it
 					callbackList.nativeHandler = nativeHandler;
