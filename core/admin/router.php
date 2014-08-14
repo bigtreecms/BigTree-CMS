@@ -208,6 +208,9 @@
 	$bigtree["layout"] = "default";
 	$bigtree["subnav_extras"] = array();
 
+	// Setup security policy
+	$admin->initSecurity();
+
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		if (implode(array_slice($bigtree["path"],1),"/") != "ajax/auto-modules/embeddable-form") {
