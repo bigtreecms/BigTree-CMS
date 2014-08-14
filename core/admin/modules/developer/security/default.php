@@ -37,16 +37,6 @@
 						<input type="checkbox" name="password[nonalphanumeric]"<? if ($password["nonalphanumeric"]) { ?> checked="checked"<? } ?> />
 						<label class="for_checkbox">Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small></label>
 					</fieldset>
-					<br />
-					<h3>Miscellaneous</h3>
-					<fieldset>
-						<input type="checkbox" name="suspect_geo_check"<? if ($suspect_geo_check) { ?> checked="checked"<? } ?> />
-						<label class="for_checkbox">Force email validation check on suspicious logins <span class="icon_small icon_small_help has_tooltip" data-tooltip="<p>If a user logs in from a new location more than 15 mi/ 25 km away from their last login location, an email will be sent requiring them to verify it is an authorized login location before allowing them to login.</p>"></span></label>
-					</fieldset>
-					<fieldset>
-						<input type="checkbox" name="include_daily_bans"<? if ($include_daily_bans) { ?> checked="checked"<? } ?> />
-						<label class="for_checkbox">Include previous day's bans in Daily Digests for Developers</label>
-					</fieldset>
 				</div>
 				<div class="right">
 					<fieldset>
