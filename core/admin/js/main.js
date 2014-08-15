@@ -538,7 +538,14 @@ var BigTreeSelect = Class.extend({
 					// When someone scrolls the overflow, close the select or the dropdown will detach.
 					this.BoundOverflowScroll = $.proxy(this.close,this);
 					setTimeout($.proxy(function() { overflow.scroll(this.BoundOverflowScroll); },this),500);
-				}		
+				}
+
+				// If the options would hang off the window, shrink the options menu down
+				var offset = dList.offset().top - window.scrollY + dList.height();
+				var difference = offset - BigTree.WindowHeight();
+				if (difference > 0) {
+					dList.css({ height: dList.height() - difference - 5 + "px" });
+				}
 			} else {
 				// If the select drops below the visible area, scroll down a bit.
 				dOffset = dList.offset().top + dList.height();
@@ -547,6 +554,8 @@ var BigTreeSelect = Class.extend({
 					$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
 				}
 			}
+
+			// A
 		} else {
 			this.close();
 		}
