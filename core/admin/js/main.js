@@ -522,14 +522,14 @@ var BigTreeSelect = Class.extend({
 			// Find out if we're in a dialog and have an overflow
 			overflow = this.Container.parents(".overflow");
 			if (overflow.length) {
-				if (this.Container.parents("#callout_resources").length) {
+				if (this.Container.parents(".callout_fields").length) {
 					// WebKit needs fixin.
 					if ($.browser.webkit) {
-						dList.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
+						dList.css("marginTop",-1 * $(".callout_fields").scrollTop() + "px");
 					}
 					// When someone scrolls the overflow, close the select or the dropdown will detach.
 					this.BoundCalloutResourcesScroll = $.proxy(this.close,this);
-					setTimeout($.proxy(function() { $("#callout_resources").scroll(this.BoundCalloutResourcesScroll); },this),500);
+					setTimeout($.proxy(function() { $(".callout_fields").scroll(this.BoundCalloutResourcesScroll); },this),500);
 				} else {
 					// WebKit needs fixin.
 					if ($.browser.webkit) {
