@@ -450,8 +450,14 @@
 
 <IfModule mod_headers.c>
 	<FilesMatch "\.(ttf|otf|eot|woff)$">
-	Header set Access-Control-Allow-Origin "*"
+		Header set Access-Control-Allow-Origin "*"
 	</FilesMatch>
+
+	Header set X-UA-Compatible "IE=edge"
+	<FilesMatch "\.(appcache|atom|crx|css|cur|eot|f4[abpv]|flv|geojson|gif|htc|ico|jpe?g|js|json(ld)?|m4[av]|manifest|map|mp4|oex|og[agv]|opus|otf|pdf|png|rdf|rss|safariextz|svgz?|swf|topojson|tt[cf]|txt|vcf|vtt|webapp|web[mp]|woff2?|xml|xpi)$">
+		Header unset X-UA-Compatible
+	</FilesMatch>
+	
 	Header set X-Content-Type-Options "nosniff"
 	Header set X-XSS-Protection "1; mode=block"
 	Header set X-Permitted-Cross-Domain-Policies "master-only"
