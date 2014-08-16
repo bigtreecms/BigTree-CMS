@@ -1,7 +1,7 @@
 <?
 	$cloud->Settings["amazon"] = array(
-		"key" => $_POST["key"],
-		"secret" => $_POST["secret"]
+		"key" => trim($_POST["key"]),
+		"secret" => trim($_POST["secret"])
 	);
 
 	// Try to list buckets

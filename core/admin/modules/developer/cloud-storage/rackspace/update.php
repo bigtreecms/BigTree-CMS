@@ -1,8 +1,8 @@
 <?
 	$cloud->Settings["rackspace"] = array(
-		"username" => $_POST["username"],
-		"api_key" => $_POST["api_key"],
-		"region" => $_POST["region"]
+		"username" => trim($_POST["username"]),
+		"api_key" => trim($_POST["api_key"]),
+		"region" => trim($_POST["region"])
 	);
 	if (!$cloud->_getRackspaceToken()) {
 		$admin->growl("Developer","Rackspace Cloud Files Login Failed","error");
