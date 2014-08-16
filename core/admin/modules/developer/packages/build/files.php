@@ -66,7 +66,7 @@
 				li.html('<input type="hidden" name="files[]" value="<?=SERVER_ROOT?>' + data.directory + data.file + '" /><a href="#" class="icon_small icon_small_delete"></a>' + data.directory + data.file);
 				$("#package_files").append(li);
 			},
-			enableCloudServices: false
+			disableCloud: true
 		});
 	});
 

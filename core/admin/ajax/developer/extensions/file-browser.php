@@ -125,31 +125,3 @@
 	<input type="submit" value="Use Selected File" class="button blue" />
 	<a href="#" class="button">Cancel</a>
 </div>
-
-<script>
-	$("#bigtree_foundry_browser_window .navigation_pane a").click(function(ev) {
-		var type = $(this).attr("data-type");
-		if (type == "location") {
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { location: $(this).attr("href") });
-		} else if (type == "container") {
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { location: "<?=$location?>", container: $(this).attr("href") });	
-		} else {
-			var directory = "<?=$postdirectory?>" + $(this).attr("href") + "/";
-			$("#bigtree_foundry_browser_form").load("<?=ADMIN_ROOT?>ajax/developer/extensions/file-browser/", { base_directory: "<?=$_POST["base_directory"]?>", cloud_disabled: "<?=$_POST["cloud_disabled"]?>", location: "<?=$location?>", container: "<?=$postcontainer?>", directory: directory });
-		}
-		return false;
-	});
-	
-	$("#bigtree_foundry_browser_window .browser_pane li").click(function() {
-		$(".browser_pane li").removeClass("selected");
-		$(this).addClass("selected");
-		$("#bigtree_foundry_file").val($(this).find("p").html());
-		return false;
-	});
-	
-	$("#bigtree_foundry_browser_window a.button").click(function() {
-		$(".bigtree_dialog_overlay, #bigtree_foundry_browser_window").remove();
-		BigTree.ZIndex -= 2;
-		return false;
-	});
-</script>

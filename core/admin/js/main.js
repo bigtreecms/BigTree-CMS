@@ -2380,9 +2380,62 @@ var BigTreeToolTip = function(settings) {
 var BigTreeFilesystemBrowser = function(settings) {
 	return (function($,settings) {
 
-		var Callback = false;
+		var BaseDirectory = settings.baseDir ? settings.baseDir : "";
+		var Bucket = settings.bucket ? settings.bucket : "";
+		var Callback = settings.callback ? settings.callback : false;
+		var CloudServices = settings.disableCloud ? false : true;
 		var Container;
+		var File = settings.file ? settings.file : "";
+		var Directory = settings.directory ? settings.directory : "/";
+		var Form;
+		var Location = settings.location ? settings.location : "";
+		var Overlay;
 		var Settings = { directory: "/", enableCloudServices: true, preventBelowBaseDirectory: true }
+
+		function close(ev) {
+			ev.preventDefault();
+			Overlay.remove();
+			Container.remove();
+			BigTree.ZIndex -= 2;
+		}
+
+		function navigate(ev) {
+			ev.preventDefault();
+			var type = $(this).attr("data-type");
+			if (type == "location") {
+				Location = $(this).attr("href");
+				Bucket = "";
+				Directory = "";
+			} else if (type == "container") {
+				Bucket = $(this).attr("href");
+				Directory = "";
+			} else {
+				var d = $(this).attr("href");
+				if (d == "..") {
+					if (Location && !Directory) {
+						Bucket = "";
+					} else {
+						var parts = Directory.split("/");
+						parts.splice(parts.length - 2,1);
+						Directory = parts.join("/");
+					}
+				} else {
+					Directory = Directory + d + "/";
+				}
+			}
+			reload();
+		}
+
+		function reload() {
+			Form.load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: BaseDirectory, directory: Directory, cloud_disabled: !CloudServices, file: File, location: Location, container: Bucket });
+		}
+
+		function select(ev) {
+			ev.preventDefault();
+			$(".browser_pane li").removeClass("selected");
+			$(this).addClass("selected");
+			$("#bigtree_foundry_file").val($(this).find("p").html());
+		}
 
 		function submit() {
 			var data = { file: $("#bigtree_foundry_file").val(), directory: $("#bigtree_foundry_directory").val(), container: $("#bigtree_foundry_container").val(), location: $("#bigtree_foundry_location").val() };
@@ -2396,30 +2449,19 @@ var BigTreeFilesystemBrowser = function(settings) {
 		};
 
 		// Init routine
-		for (var i in settings) {
-			Settings[i] = settings[i];
-		}
-		if (settings.callback) {
-			Callback = settings.callback;
-		}
-
-		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.ZIndex++) + ';">');
+		Overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.ZIndex++) + ';">');
 		Container = $('<div id="bigtree_foundry_browser_window" style="z-index: ' + (BigTree.ZIndex++) + ';">').html('<h2>File Browser</h2><form id="bigtree_foundry_browser_form" method="post" action="">Loading&hellip;</form>');
-		$("body").append(overlay).append(Container);
-		
-		if (Settings.preventBelowBaseDirectory) {
-			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { base_directory: Settings.directory, directory: Settings.directory, cloud_disabled: !Settings.enableCloudServices, file: Settings.currentFile, location: Settings.cloudLocation, container: Settings.cloudContainer });
-		} else {
-			$("#bigtree_foundry_browser_form").load("admin_root/ajax/developer/extensions/file-browser/", { directory: Settings.directory, cloud_disabled: !Settings.enableCloudServices, file: Settings.currentFile, location: Settings.cloudLocation, container: Settings.cloudContainer });
-		}
+		Container.on("click",".navigation_pane a",navigate)
+				 .on("click",".browser_pane li",select)
+				 .on("click","a.button",close);
 
-		var left_offset = parseInt((BigTree.windowWidth() - 602) / 2);
-		var top_offset = parseInt((BigTree.windowHeight() - 402) / 2);
+		Form = Container.find("form");
+		Form.submit(submit);
+		reload();
 
-		Container.css({ "top": top_offset + "px", "left": left_offset + "px" });
-		Container.find("form").submit(submit);
+		$("body").append(Overlay).append(Container);
 
-		return { Callback: Callback, Container: Container, Settings: Settings, submit: submit };
+		return { Callback: Callback, Container: Container, submit: submit };
 
 	})(jQuery,settings);
 };
