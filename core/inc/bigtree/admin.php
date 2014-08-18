@@ -4255,6 +4255,9 @@
 					$score += 5;
 					$words = $textStats->word_count($stripped_text);
 					$readability = $textStats->flesch_kincaid_reading_ease($stripped_text);
+					if ($readability < 0) {
+						$readability = 0;
+					}
 					$number_of_links = substr_count($regular_text,"<a ");
 					$number_of_external_links = substr_count($regular_text,'href="http://');
 
