@@ -784,6 +784,7 @@
 	.photo_gallery_widget .file_wrapper { margin: 0; }
 	.bigtree_dialog_form .photo_gallery_widget footer { overflow: hidden; }
 	.bigtree_dialog_form .photo_gallery_widget .or, .bigtree_dialog_form .photo_gallery_widget .form_image_browser { display: none; }
+	.bigtree_dialog_form .photo_gallery_widget li:nth-child(9n), .front_end_editor .photo_gallery_widget li:nth-child(9n) { margin-right: 10px; }
 
 /* Cropper Styles */
 	#cropper { overflow: hidden; }
