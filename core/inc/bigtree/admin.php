@@ -659,6 +659,7 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$clean_resources[] = array(
 						"id" => BigTree::safeEncode($resource["id"]),
+						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
 						"options" => json_decode($resource["options"],true)
@@ -6657,6 +6658,7 @@
 				if ($resource["id"] && $resource["id"] != "type") {
 					$clean_resources[] = array(
 						"id" => BigTree::safeEncode($resource["id"]),
+						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
 						"options" => json_decode($resource["options"],true)
