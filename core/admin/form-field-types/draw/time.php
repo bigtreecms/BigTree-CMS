@@ -1,11 +1,10 @@
 <?
 	// We draw the picker inline for callouts
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
-		$bigtree["timepicker_values"][$field["id"]] = $field["value"];		
-		$bigtree["timepickers"][] = $field["id"];
+		$time = strtotime($field["value"] ? $field["value"] : "Today");
 ?>
 <input type="hidden" name="<?=$field["key"]?>" value="<? if ($field["value"]) { echo date("h:i a",strtotime($field["value"])); } ?>" />
-<div id="<?=$field["id"]?>"></div>
+<div class="time_picker_inline" data-hour="<?=date("H",$time)?>" data-minute="<?=date("i",$time)?>"></div>
 <?		
 	} else {
 		$bigtree["timepickers"][] = $field["id"];

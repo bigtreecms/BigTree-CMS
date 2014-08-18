@@ -2,7 +2,6 @@
 	<form method="post" action="<?=ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/".$bigtree["report"]["type"]?>/">
 		<section>
 			<?
-				$bigtree["datepickers"] = array();
 				foreach ($bigtree["report"]["filters"] as $id => $filter) {
 			?>
 			<fieldset>
@@ -47,8 +46,3 @@
 		</footer>
 	</form>
 </div>
-<script>
-	<? foreach ($bigtree["datepickers"] as $id) { ?>
-	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<? } ?>
-</script>

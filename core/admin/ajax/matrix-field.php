@@ -84,40 +84,6 @@
 	</div>
 </div>
 <input type="hidden" name="<?=$bigtree["matrix_key"]?>[<?=$bigtree["matrix_count"]?>][matrix_count]" class="matrix_count" value="<?=$bigtree["matrix_count"]?>" />
-<script>	
-	<?
-		foreach ($bigtree["timepickers"] as $id) {
-			if ($bigtree["timepicker_values"][$id]) {
-				$time = strtotime($bigtree["timepicker_values"][$id]);
-			} else {
-				$time = strtotime("January 1, 2011 12:00am");
-			}
-	?>
-	$("#<?=$id?>").timepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
-	<?
-		}
-		
-		$date_format = BigTree::phpDateTojQuery($bigtree["config"]["date_format"]);
-		foreach ($bigtree["datepickers"] as $id) {
-			if ($bigtree["datepicker_values"][$id]) {
-				$date = date($bigtree["config"]["date_format"],strtotime($bigtree["datepicker_values"][$id]));
-			} else {
-				$date = date($bigtree["config"]["date_format"]);
-			}
-	?>
-	$("#<?=$id?>").datepicker({ dateFormat: "<?=$date_format?>", defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
-	<?
-		}
-
-		foreach ($bigtree["datetimepickers"] as $id) {
-			$time = strtotime($bigtree["datetimepicker_values"][$id]["time"]);
-			$date = date($bigtree["config"]["date_format"],strtotime($bigtree["datetimepicker_values"][$id]["date"]));
-	?>
-	$("#<?=$id?>").datetimepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
-	<?
-		}
-	?>
-</script>
 <?
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	

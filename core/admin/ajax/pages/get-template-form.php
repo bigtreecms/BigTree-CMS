@@ -31,9 +31,6 @@
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <div class="form_fields">
 	<?
-		$bigtree["datepickers"] = array();
-		$bigtree["timepickers"] = array();
-		$bigtree["datetimepickers"] = array();
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
@@ -104,26 +101,5 @@
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 ?>
 <script>
-	<?
-		$date_format = BigTree::phpDateTojQuery($bigtree["config"]["date_format"]);
-		foreach ($bigtree["datepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datepicker({ dateFormat: "<?=$date_format?>", duration: 200, showAnim: "slideDown" });
-	<?
-		}
-		
-		foreach ($bigtree["timepickers"] as $id) {
-	?>
-	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
-	<?
-		}
-		
-		foreach ($bigtree["datetimepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datetimepicker({ dateFormat: "<?=$date_format?>", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<?
-		}
-	?>
-
 	BigTree.TinyMCEFields = <?=json_encode($bigtree["tinymce_fields"])?>;
 </script>

@@ -108,48 +108,16 @@
 <input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
 <input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
 <input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][callout_count]" class="callout_count" value="<?=$bigtree["callout_count"]?>" />
-<script>	
-	<?
-		foreach ($bigtree["timepickers"] as $id) {
-			if ($bigtree["timepicker_values"][$id]) {
-				$time = strtotime($bigtree["timepicker_values"][$id]);
-			} else {
-				$time = strtotime("January 1, 2011 12:00am");
-			}
-	?>
-	$("#<?=$id?>").timepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
-	<?
-		}
-		
-		$date_format = BigTree::phpDateTojQuery($bigtree["config"]["date_format"]);
-		foreach ($bigtree["datepickers"] as $id) {
-			if ($bigtree["datepicker_values"][$id]) {
-				$date = date($bigtree["config"]["date_format"],strtotime($bigtree["datepicker_values"][$id]));
-			} else {
-				$date = date($bigtree["config"]["date_format"]);
-			}
-	?>
-	$("#<?=$id?>").datepicker({ dateFormat: "<?=$date_format?>", defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
-	<?
-		}
-
-		foreach ($bigtree["datetimepickers"] as $id) {
-			$time = strtotime($bigtree["datetimepicker_values"][$id]["time"]);
-			$date = date($bigtree["config"]["date_format"],strtotime($bigtree["datetimepicker_values"][$id]["date"]));
-	?>
-	$("#<?=$id?>").datetimepicker({ hour: <?=date("H",$time)?>, minute: <?=date("i",$time)?>, ampm: true, hourGrid: 6, minuteGrid: 10, defaultDate: "<?=$date?>", onSelect: function(dateText) { $("#<?=$id?>").prev("input").val(dateText); } });
-	<?
-		}
-
-		// Only re-run if we're loading a new callout type
-		if (isset($_POST["type"])) {
-	?>
-	BigTreeCustomControls($("#callout_resources"));
-	<?
-		}
-	?>
-</script>
 <?
+	// Only re-run if we're loading a new callout type
+	if (isset($_POST["type"])) {
+?>
+<script>	
+	BigTreeCustomControls($("#callout_resources"));
+</script>
+
+<?
+	}
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
 	include BigTree::path("admin/layouts/_html-field-loader.php");

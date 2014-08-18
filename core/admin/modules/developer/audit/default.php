@@ -1,7 +1,5 @@
 <?
 	$users = $admin->getUsers();
-	$sd_id = uniqid();
-	$ed_id = uniqid();
 ?>
 <div class="container">
 	<form method="get" action="<?=DEVELOPER_ROOT?>audit/search/">
@@ -31,12 +29,12 @@
 			</fieldset>
 			<fieldset>
 				<label>Start Date</label>
-				<input type="text" name="start" autocomplete="off" id="<?=$sd_id?>" class="date_picker" />
+				<input type="text" name="start" autocomplete="off" class="date_time_picker" />
 				<span class="icon_small icon_small_calendar date_picker_icon"></span>
 			</fieldset>
 			<fieldset>
 				<label>End Date</label>
-				<input type="text" name="end" autocomplete="off" id="<?=$ed_id?>" class="date_picker" />
+				<input type="text" name="end" autocomplete="off" class="date_time_picker" />
 				<span class="icon_small icon_small_calendar date_picker_icon"></span>
 			</fieldset>
 		</section>
@@ -45,7 +43,3 @@
 		</footer>
 	</form>
 </div>
-<script>
-	$("#<?=$sd_id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	$("#<?=$ed_id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-</script>

@@ -18,12 +18,13 @@
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/pages.js"></script>
+		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
 		<?
 			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
 				foreach ($bigtree["js"] as $script) {
 		?>
-		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
+		<script src="<?=ADMIN_ROOT.(defined("EXTENSION_ROOT") ? "*/".$bigtree["module"]["extension"]."/" : "")?>js/<?=$script?>"></script>
 		<?
 				}
 			}

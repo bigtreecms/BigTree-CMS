@@ -25,9 +25,6 @@ var BigTreePages = {
 			}
 		});
 		
-		// Setup the date pickers
-		$("#publish_at, #expire_at").datepicker({ duration: 200, showAnim: "slideDown" });
-		
 		// Tagger
 		BigTreeTagAdder.init();
 		

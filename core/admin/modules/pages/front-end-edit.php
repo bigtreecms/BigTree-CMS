@@ -9,9 +9,6 @@
 	$bigtree["resources"] = $bigtree["current_page"]["resources"];
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
-	$bigtree["timepickers"] = array();
-	$bigtree["datepickers"] = array();
-	$bigtree["datetimepickers"] = array();
 	$bigtree["tabindex"] = 1;
 
 	$cached_types = $admin->getCachedFieldTypes();
@@ -99,27 +96,6 @@
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>
 <script>
-	<?
-		foreach ($bigtree["datepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
-	<?
-		}
-		
-		foreach ($bigtree["timepickers"] as $id) {
-	?>
-	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
-	<?
-		}
-		
-		foreach ($bigtree["datetimepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<?
-		}
-	?>
-
-	BigTreeCustomControls();
 	BigTreeFormValidator(".bigtree_dialog_form");
 	
 	$(".bigtree_dialog_close").click(function() {

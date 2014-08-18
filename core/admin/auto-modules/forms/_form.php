@@ -39,9 +39,6 @@
 			?>
 			<div class="form_fields">
 				<?
-					$bigtree["datepickers"] = array();
-					$bigtree["timepickers"] = array();
-					$bigtree["datetimepickers"] = array();
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					$bigtree["tabindex"] = 1;
@@ -152,27 +149,6 @@
 </div>
 <? include BigTree::path("admin/layouts/_html-field-loader.php") ?>
 <script>
-	<?
-		$date_format = BigTree::phpDateTojQuery($bigtree["config"]["date_format"]);
-		foreach ($bigtree["datepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datepicker({ dateFormat: "<?=$date_format?>", duration: 200, showAnim: "slideDown" });
-	<?
-		}
-
-		foreach ($bigtree["timepickers"] as $id) {
-	?>
-	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<?
-		}
-		
-		foreach ($bigtree["datetimepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<?
-		}
-	?>
-	
 	BigTreeFormValidator("#auto_module_form",false<? if ($bigtree["form"]["embedded"]) { ?>,true<? } ?>);
 	
 	$(".save_and_preview").click(function() {

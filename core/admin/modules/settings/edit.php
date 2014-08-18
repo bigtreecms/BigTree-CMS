@@ -50,9 +50,6 @@
 			<div class="form_fields">
 				<?			
 					// Setup field related nonsense.
-					$bigtree["datepickers"] = array();
-					$bigtree["timepickers"] = array();
-					$bigtree["datetimepickers"] = array();
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					
@@ -120,24 +117,4 @@
 ?>
 <script>
 	BigTreeFormValidator("form.module");
-	
-	<?
-		foreach ($bigtree["datepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datepicker({ duration: 200, showAnim: "slideDown" });
-	<?
-		}
-
-		foreach ($bigtree["timepickers"] as $id) {
-	?>
-	$("#<?=$id?>").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6,	minuteGrid: 10 });
-	<?
-		}
-		
-		foreach ($bigtree["datetimepickers"] as $id) {
-	?>
-	$("#<?=$id?>").datetimepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
-	<?
-		}
-	?>
 </script>

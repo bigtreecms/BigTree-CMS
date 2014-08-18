@@ -2831,6 +2831,7 @@ var BigTree = {
 	},
 
 	formHooks: function(selector) {
+		// Remove Existing Uploads
 		$(selector).on("click",".remove_resource",function() {
 			var p = $(this).parent();
 			if (p.hasClass("currently_file")) {
@@ -2839,12 +2840,34 @@ var BigTree = {
 				p.hide().find("input, img").remove();
 			}
 			return false;
-		}).on("click",".form_image_browser",function() {
 		// Form Image Browser
+		}).on("click",".form_image_browser",function() {
 			var options = $.parseJSON($(this).attr("data-options"));
 			var field = $(this).attr("href").substr(1);
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;
+		});
+		// Pickers
+		$(".date_picker").datepicker({ dateFormat: BigTree.dateFormat, duration: 200, showAnim: "slideDown" });
+		$(".time_picker").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10, timeFormat: "hh:mm tt" });
+		$(".date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });	
+		// Inline pickers
+		$(".date_picker_inline").each(function() {
+			$(this).datepicker({ dateFormat: BigTree.dateFormat, defaultDate: $(this).attr("data-date"), onSelect: function(dateText) {
+				$(this).prev("input").val(dateText);
+			}});
+		});
+		$(".time_picker_inline").each(function() {
+			var hour = $(this).attr("data-hour");
+			var minute = $(this).attr("data-minute");
+			$(this).timepicker({ timeFormat: "hh:mm tt", hour: hour, minute: minute, ampm: true, hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) {
+				$(this).prev("input").val(dateText);
+			}});
+		});
+		$(".date_time_picker_inline").each(function() {
+			$(this).datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", defaultDate: $(this).attr("data-date"), ampm: true, hour: $(this).attr("data-hour"), minute: $(this).attr("data-minute"), hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) {
+				$(this).prev("input").val(dateText);
+			}});
 		});
 	},
 
