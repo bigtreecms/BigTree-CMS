@@ -53,7 +53,7 @@
 							$field["type"] = $resource["type"];
 							$field["title"] = $title = $resource["title"];
 							$field["subtitle"] = $subtitle = $resource["subtitle"];
-							$field["key"] = $resource["column"];
+							$field["key"] = $key = $resource["column"];
 							$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
 							$field["id"] = uniqid("field_");
 							$field["tabindex"] = $tabindex = $bigtree["tabindex"];
