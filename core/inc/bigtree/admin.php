@@ -951,9 +951,7 @@
 				$f = fopen(SERVER_ROOT."custom/inc/modules/$route.php","w");
 				fwrite($f,"<?\n");
 				fwrite($f,"	class $class extends BigTreeModule {\n");
-				fwrite($f,"\n");
 				fwrite($f,'		var $Table = "'.$table.'";'."\n");
-				fwrite($f,'		var $Module = "'.$id.'";'."\n");
 				fwrite($f,"	}\n");
 				fwrite($f,"?>\n");
 				fclose($f);
