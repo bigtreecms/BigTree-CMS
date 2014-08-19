@@ -56,7 +56,7 @@
 	foreach ($bigtree["form"]["fields"] as $resource) {
 		unset($value); // Backwards compat.
 		$field = array();
-		$field["key"] = $resource["column"];
+		$field["key"] = $key = $resource["column"];
 		$field["options"] = $options = $resource["options"];
 		$field["ignore"] = false;
 		$field["input"] = $bigtree["post_data"][$key];
