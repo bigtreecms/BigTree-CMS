@@ -648,13 +648,14 @@
 				directory - The directory to search
 				recursive - Set to false to not recurse subdirectories (defaults to true).
 				extension - Limit the results to a specific file extension (defaults to false).
+				include_git - .git and .gitignore will be ignored unless set to true (defaults to false).
 
 			Returns:
 				An array of files/folder paths.
 				Returns false if the directory cannot be read.
 		*/
 
-		static function directoryContents($directory,$recurse = true,$extension = false) {
+		static function directoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
 			$contents = array();
 			$d = @opendir($directory);
 			if (!$d) {
@@ -662,12 +663,14 @@
 			}
 			while ($r = readdir($d)) {
 				if ($r != "." && $r != ".." && $r != ".DS_Store") {
-					$path = rtrim($directory,"/")."/".$r;
-					if ($extension === false || substr($path,-1 * strlen($extension)) == $extension) {
-						$contents[] = $path;
-					}
-					if (is_dir($path) && $recurse) {
-						$contents = array_merge($contents,BigTree::directoryContents($path,$recurse,$extension));
+					if ($include_git || ($r != ".git" && $r != ".gitignore")) {
+						$path = rtrim($directory,"/")."/".$r;
+						if ($extension === false || substr($path,-1 * strlen($extension)) == $extension) {
+							$contents[] = $path;
+						}
+						if (is_dir($path) && $recurse) {
+							$contents = array_merge($contents,BigTree::directoryContents($path,$recurse,$extension));
+						}
 					}
 				}
 			}
