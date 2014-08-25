@@ -1773,7 +1773,7 @@ var BigTreeFormNavBar = (function() {
 			
 			// Manage the "Next" buttons
 			var index = Nav.index(this);
-			if (index == Nav.length - 1) {
+			if (index == Nav.filter(":visible").length - 1) {
 				NextButton.hide();
 			} else {
 				NextButton.show();				
@@ -1791,7 +1791,7 @@ var BigTreeFormNavBar = (function() {
 			$("#" + next.attr("href").substr(1)).show();
 			$("#" + tab.attr("href").substr(1)).hide();
 			
-			if (Nav.index(tab) == Nav.length - 2) {
+			if (Nav.index(tab) == Nav.filter(":visible").length - 2) {
 				$(this).hide();
 			}
 			
