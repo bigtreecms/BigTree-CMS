@@ -80,31 +80,38 @@
 		sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
+
+	// Setup anonymous function for converting old field type IDs to new ones
+	$field_type_converter = function($table,$field) {
+		global $id,$type;
+		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%'");
+		while ($f = sqlfetch($q)) {
+			$array = json_decode($f[$field],true);
+			foreach ($array as &$item) {
+				if ($item["type"] == $type) {
+					$item["type"] = $id."*".$type;
+				} elseif ($item["type"] == "matrix") {
+					foreach ($item["options"]["columns"] as &$column) {
+						if ($column["type"] == $type) {
+							$column["type"] = $id."*".$type;
+						}
+					}
+				}
+			}
+			sqlquery("UPDATE `$table` SET `$field` = '".BigTree::json($array,true)."' WHERE id = '".$f["id"]."'");
+		}
+	};
 	
 	foreach ((array)$field_types as $type) {
+		// Currently non-extension field type becoming an extension one
 		if (strpos($type,"*") === false) {
 			sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
-			// Find all forms and templates that use this field type and update them.
-			$q = sqlquery("SELECT * FROM bigtree_templates WHERE resources LIKE '%\"type\":\"".sqlescape($type)."\"%'");
-			while ($f = sqlfetch($q)) {
-				$resources = json_decode($f["resources"],true);
-				foreach ($resources as &$r) {
-					if ($r["type"] == $type) {
-						$r["type"] = $id."*".$type;
-					}
-				}
-				sqlquery("UPDATE bigtree_templates SET resources = '".BigTree::json($resources,true)."' WHERE id = '".$f["id"]."'");
-			}
-			$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE fields LIKE '%\"type\":\"".sqlescape($type)."\"%'");
-			while ($f = sqlfetch($q)) {
-				$fields = json_decode($f["fields"],true);
-				foreach ($fields as &$r) {
-					if ($r["type"] == $type) {
-						$r["type"] = $id."*".$type;
-					}
-				}
-				sqlquery("UPDATE bigtree_module_forms SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
-			}
+			// Convert old usage of field type ID to extension usage
+			$field_type_converter("bigtree_templates","resources");
+			$field_type_converter("bigtree_callouts","resources");
+			$field_type_converter("bigtree_module_forms","fields");
+			$field_type_converter("bigtree_module_embeds","fields");
+			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlesacpe($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'")
 		}
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
