@@ -5,6 +5,10 @@ var BigTreeEmbeddableForm{id} = {
 	},
 	resize: function(height) {
 		document.getElementById("bigtree_embeddable_form_{id}").style.height = (parseInt(height) + 260) + "px";
+
+		var event = document.createEvent('Event');
+		event.initEvent('bigtree-embeddable-form-resize', true, true);
+		document.dispatchEvent(event);
 	},
 	scrollToTop: function() {
 		var y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
