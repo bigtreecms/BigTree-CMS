@@ -320,7 +320,13 @@
 					}
 				}
 			}
-			sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			
+			// Insert, if there's a failure return false instead of doing the rest
+			$success = sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			if (!$success) {
+				return false;
+			}
+			
 			$id = sqlid();
 
 			// Handle many to many
