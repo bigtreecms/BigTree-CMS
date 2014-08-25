@@ -31,7 +31,7 @@
 			$this->SettingID = $setting_id;
 
 			// Setup dependency table for cache busting
-			$this->Settings["hash_table"] = is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
+			$this->Settings["hash_table"] = @is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
 			
 			// Check if we're conected
 			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
