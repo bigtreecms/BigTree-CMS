@@ -1509,11 +1509,13 @@
 					$$key = sqlescape(htmlspecialchars($val));
 				}
 			}
+			$extension = $extension ? "'$extension'" : "NULL";
 
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT")) {
 				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
 				$id = "$extension*$id";
+				$extension = "'$extension'";
 			}
 
 			// We don't want this encoded since it's a WYSIWYG field.
@@ -1529,7 +1531,7 @@
 				return false;
 			}
 
-			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`options`,`locked`,`encrypted`,`system`) VALUES ('$id','$name','$description','$type','$options','$locked','$encrypted','$system')");
+			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`options`,`locked`,`encrypted`,`system`,`extension`) VALUES ('$id','$name','$description','$type','$options','$locked','$encrypted','$system',$extension)");
 			$this->track("bigtree_settings",$id,"created");
 
 			return true;
