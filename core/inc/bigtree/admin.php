@@ -1510,6 +1510,12 @@
 				}
 			}
 
+			// If an extension is creating a setting, make it a reference back to the extension
+			if (defined("EXTENSION_ROOT")) {
+				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+				$id = "$extension*$id";
+			}
+
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
 			// We don't want this encoded since it's JSON
@@ -2153,7 +2159,7 @@
 		*/
 
 		function deleteSetting($id) {
-			$id = sqlescape($id);
+			$id = BigTreeCMS::extensionSettingCheck($id);
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
 			$this->track("bigtree_settings",$id,"deleted");
 		}
@@ -4803,43 +4809,29 @@
 
 		static function getSetting($id,$decode = true) {
 			global $bigtree;
-
-			$id = sqlescape($id);
-
-			$f = false;
-			// See if we're in an extension
-			if (defined("EXTENSION_ROOT")) {
-				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
-				if ($f) {
-					$id = "$extension*$id";
-				}
-			}
-			// Try plain id
-			if (!$f) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
-			}
+			$id = BigTreeCMS::extensionSettingCheck($id);
+			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			// Setting doesn't exist
-			if (!$f) {
+			if (!$setting) {
 				return false;
 			}
 
-			if ($f["encrypted"]) {
+			if ($setting["encrypted"]) {
 				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
-				$f["value"] = $v["value"];
+				$setting["value"] = $v["value"];
 			}
 
-			$f["value"] = json_decode($f["value"],true);
+			$setting["value"] = json_decode($f["value"],true);
 
 			if ($decode) {
-				if (is_array($f["value"])) {
-					$f["value"] = BigTree::untranslateArray($f["value"]);
+				if (is_array($setting["value"])) {
+					$setting["value"] = BigTree::untranslateArray($f["value"]);
 				} else {
-					$f["value"] = BigTreeCMS::replaceInternalPageLinks($f["value"]);
+					$setting["value"] = BigTreeCMS::replaceInternalPageLinks($f["value"]);
 				}
 			}
 
-			return $f;
+			return $setting;
 		}
 
 		/*
@@ -6310,6 +6302,7 @@
 		*/
 
 		static function settingExists($id) {
+			$id = BigTreeCMS::extensionSettingCheck($id);
 			return sqlrows(sqlquery("SELECT id FROM bigtree_settings WHERE id = '".sqlescape($id)."'"));
 		}
 
@@ -7401,7 +7394,7 @@
 
 			// Get the existing setting information.
 			$existing = self::getSetting($old_id);
-			$old_id = sqlescape($old_id);
+			$old_id = sqlescape($existing["id"]);
 
 			// Globalize the data and clean it up.
 			foreach ($data as $key => $val) {

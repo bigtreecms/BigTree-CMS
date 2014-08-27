@@ -70,10 +70,17 @@
 		*/
 
 		function &autoSaveSetting($id,$return_object = true) {
+			$id = self::extensionSettingCheck($id);
+
 			// Only want one usage to exist
 			if (!isset($this->AutoSaveSettings[$id])) {
 				$data = $this->getSetting($id);
 				if ($data === false) {
+					// If an extension is creating an auto save setting, make it a reference back to the extension
+					if (defined("EXTENSION_ROOT")) {
+						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+						$id = "$extension*$id";
+					}
 					sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on')");
 					$data = array();
 				}
@@ -283,6 +290,32 @@
 			}
 			echo '</urlset>';
 			die();
+		}
+
+		/*
+			Function: extensionSettingCheck
+				Checks to see if we're in an extension and if we're requesting a setting attached to it.
+				For example, if "test-setting" is requested and "com.test.extension*test-setting" exists it will be used.
+
+			Parameters:
+				id - Setting id
+
+			Returns:
+				An extension setting ID if one is found.
+		*/
+
+		static function extensionSettingCheck($id) {
+			$id = sqlescape($id);
+
+			// See if we're in an extension
+			if (defined("EXTENSION_ROOT")) {
+				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
+				if ($f) {
+					return "$extension*$id";
+				}
+			}
+			return $id;
 		}
 		
 		/*
@@ -890,32 +923,19 @@
 		
 		static function getSetting($id) {
 			global $bigtree;
-			$id = sqlescape($id);
-
-			$f = false;
-			// See if we're in an extension
-			if (defined("EXTENSION_ROOT")) {
-				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
-				if ($f) {
-					$id = "$extension*$id";
-				}
-			}
-			// Try plain id
-			if (!$f) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
-			}
+			$id = self::extensionSettingCheck($id);
+			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			// Setting doesn't exist
-			if (!$f) {
+			if (!$setting) {
 				return false;
 			}
 
 			// If the setting is encrypted, we need to re-pull just the value.
-			if ($f["encrypted"]) {
-				$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
+			if ($setting["encrypted"]) {
+				$setting = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
 			}
 
-			$value = json_decode($f["value"],true);
+			$value = json_decode($setting["value"],true);
 			if (is_array($value)) {
 				return BigTree::untranslateArray($value);
 			} else {
