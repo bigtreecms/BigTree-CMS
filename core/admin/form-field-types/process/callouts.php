@@ -19,7 +19,7 @@
 				
 				foreach ($bigtree["callout"]["resources"] as $resource) {
 					$field = array(
-						"title" => $resource["title"]
+						"title" => $resource["title"],
 						"key" => $resource["id"],
 						"options" => $resource["options"],
 						"ignore" => false,

@@ -24,6 +24,7 @@
 		// Pretend like we're a normal field
 		unset($value); // Backwards compat.
 		$field = array();
+		$field["title"] = $item["title"];
 		$field["key"] = $key;
 		$field["options"] = $options = json_decode($item["options"],true);
 		$field["ignore"] = false;

@@ -16,14 +16,9 @@
 		$field = array(
 			"title" => $ft,
 			"subtitle" => $_POST["subtitles"][$key],
-			"type" => $t
+			"type" => $t,
+			"options" => json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true)
 		);
-		$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true);
-		if (is_array($options)) {
-			foreach ($options as $k => $o) {
-				$field[$k] = $o;
-			}
-		}
 		
 		$x = 2;
 		$field_name = str_replace("-","_",$cms->urlify($ft));
