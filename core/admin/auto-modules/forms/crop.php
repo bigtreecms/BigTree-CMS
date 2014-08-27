@@ -3,8 +3,6 @@
 		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
-	// Load the cropper Javascript.
-	$bigtree["js"][] = "jcrop.min.js";
 	// Override the default H1
 	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");
 ?>
