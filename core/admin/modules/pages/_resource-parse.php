@@ -12,6 +12,7 @@
 	foreach ((array)$bigtree["template"]["resources"] as $resource) {
 		unset($value); // Backwards compat.
 		$field = array();
+		$field["title"] = $resource["title"];
 		$field["key"] = $key = $resource["id"];
 		$field["options"] = $options = $resource["options"];
 		if (empty($field["options"]["directory"])) {
@@ -47,7 +48,7 @@
 		if (!BigTreeAutoModule::validate($field["output"],$field["options"]["validation"])) {
 			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
 			$bigtree["errors"][] = array(
-				"field" => $field["options"]["title"],
+				"field" => $field["title"],
 				"error" => $error
 			);
 		}

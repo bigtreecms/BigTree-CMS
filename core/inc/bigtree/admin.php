@@ -5600,10 +5600,10 @@
 
 			// If a file upload error occurred, return the old image and set errors
 			if ($error == 1 || $error == 2) {
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+				$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
 				return false;
 			} elseif ($error == 3) {
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "The file upload failed ($name).");
+				$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file upload failed ($name).");
 				return false;
 			}
 
@@ -5628,19 +5628,19 @@
 				} elseif ($field["options"]["min_width"]) {
 					$error .= $field["options"]["min_width"]." pixels wide.";
 				}
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => $error);
+				$bigtree["errors"][] = array("field" => $field["title"], "error" => $error);
 				$failed = true;
 			}
 
 			// If it's not a valid image, throw it out!
 			if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
+				$bigtree["errors"][] = array("field" => $field["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 				$failed = true;
 			}
 
 			// See if it's CMYK
 			if ($channels == 4) {
-				$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
+				$bigtree["errors"][] = array("field" => $field["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
 				$failed = true;
 			}
 
@@ -5655,7 +5655,7 @@
 							}
 							// We don't want to add multiple errors so we check if we've already failed
 							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"],$iwidth,$iheight)) {
-								$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
 						}
@@ -5671,7 +5671,7 @@
 							}
 							$sizes = BigTree::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
 							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4],$iwidth,$iheight)) {
-								$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
+								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
 						}
@@ -5754,9 +5754,9 @@
  				// If the upload service didn't return a value, we failed to upload it for one reason or another.
  				if (!$field["output"]) {
  					if ($storage->DisabledFileError) {
-						$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The file extension is not allowed.");
+						$bigtree["errors"][] = array("field" => $field["title"], "error" => "Could not upload file. The file extension is not allowed.");
 					} else {
-						$bigtree["errors"][] = array("field" => $field["options"]["title"], "error" => "Could not upload file. The destination is not writable.");
+						$bigtree["errors"][] = array("field" => $field["title"], "error" => "Could not upload file. The destination is not writable.");
 					}
 					unlink($temp_copy);
 					unlink($first_copy);

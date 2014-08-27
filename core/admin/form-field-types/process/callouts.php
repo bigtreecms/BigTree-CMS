@@ -19,8 +19,9 @@
 				
 				foreach ($bigtree["callout"]["resources"] as $resource) {
 					$field = array(
+						"title" => $resource["title"]
 						"key" => $resource["id"],
-						"options" => $resource,
+						"options" => $resource["options"],
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
@@ -55,7 +56,7 @@
 					if (!BigTreeAutoModule::validate($field["output"],$field["options"]["validation"])) {
 						$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
 						$bigtree["errors"][] = array(
-							"field" => $field["options"]["title"],
+							"field" => $field["title"],
 							"error" => $error
 						);
 					}

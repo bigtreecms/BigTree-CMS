@@ -20,14 +20,13 @@
 					$options = is_array($options) ? $options : array();
 
 					$field = array(
+						"title" => $resource["title"],
 						"key" => $resource["id"],
 						"options" => $options,
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
-					$field["options"]["title"] = $resource["title"];
-					$field["options"]["subtitle"] = $resource["subtitle"];
 	
 					if (empty($field["options"]["directory"])) {
 						$field["options"]["directory"] = "files/pages/";
@@ -53,7 +52,7 @@
 					if (!BigTreeAutoModule::validate($field["output"],$field["options"]["validation"])) {
 						$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
 						$bigtree["errors"][] = array(
-							"field" => $field["options"]["title"],
+							"field" => $field["title"],
 							"error" => $error
 						);
 					}
