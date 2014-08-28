@@ -29,18 +29,18 @@
 						// Figure out what tables and field types the form uses and automatically add them.
 						foreach ($auto["fields"] as $field) {
 							// Database populated list? Include the table it pulls from.
-							if ($field["type"] == "list" && $field["list_type"] == "db") {
-								if (!in_array($field["pop-table"]."#structure",$p["tables"]) && substr($field["pop-table"],0,8) != "bigtree_") {
-									$p["tables"][] = $field["pop-table"]."#structure";
+							if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
+								if (!in_array($field["options"]["pop-table"]."#structure",$p["tables"]) && substr($field["options"]["pop-table"],0,8) != "bigtree_") {
+									$p["tables"][] = $field["options"]["pop-table"]."#structure";
 								}
 							}
 							// Many to many? Include the connecting and "other" table.
 							if ($field["type"] == "many-to-many") {
-								if (!in_array($field["mtm-connecting-table"]."#structure",$p["tables"]) && substr($field["mtm-connecting-table"],0,8) != "bigtree_") {
-									$p["tables"][] = $field["mtm-connecting-table"]."#structure";
+								if (!in_array($field["options"]["mtm-connecting-table"]."#structure",$p["tables"]) && substr($field["options"]["mtm-connecting-table"],0,8) != "bigtree_") {
+									$p["tables"][] = $field["options"]["mtm-connecting-table"]."#structure";
 								}
-								if (!in_array($field["mtm-other-table"]."#structure",$p["tables"]) && substr($field["mtm-other-table"],0,8) != "bigtree_") {
-									$p["tables"][] = $field["mtm-other-table"]."#structure";
+								if (!in_array($field["options"]["mtm-other-table"]."#structure",$p["tables"]) && substr($field["options"]["mtm-other-table"],0,8) != "bigtree_") {
+									$p["tables"][] = $field["options"]["mtm-other-table"]."#structure";
 								}
 							}
 							// Include the custom field type if it was forgotten.

@@ -66,8 +66,8 @@
 						$value = $item[$key];
 						if ($field["parser"]) {
 							$parsers[$key] = $field["parser"];
-						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {
-							$poplists[$key] = array("description" => $form["fields"][$key]["pop-description"], "table" => $form["fields"][$key]["pop-table"]);
+						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
+							$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
 						}
 					}
 					
@@ -228,8 +228,8 @@
 				
 				if ($field["parser"]) {
 					$parsers[$key] = $field["parser"];
-				} elseif ($ff["type"] == "list" && $ff["list_type"] == "db") {
-					$poplists[$key] = array("description" => $ff["pop-description"], "table" => $ff["pop-table"]);
+				} elseif ($ff["type"] == "list" && $ff["options"]["list_type"] == "db") {
+					$poplists[$key] = array("description" => $ff["options"]["pop-description"], "table" => $ff["options"]["pop-table"]);
 				}
 			}
 			
@@ -942,8 +942,8 @@
 				}
 			}
 			foreach ($form["fields"] as $key => $field) {
-				if ($field["type"] == "list" && $field["list_type"] == "db") {
-					$poplists[$key] = array("description" => $form["fields"][$key]["pop-description"], "table" => $form["fields"][$key]["pop-table"]);
+				if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
+					$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
 				}
 			}
 
@@ -1335,10 +1335,10 @@
 							$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
 						// If we know this field is a populated list, get the title they entered in the form.
 						} else {
-							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db") {
+							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
 								$fdata = $form["fields"][$key];
-								$f = sqlfetch(sqlquery("SELECT `".$fdata["pop-description"]."` FROM `".$fdata["pop-table"]."` WHERE `id` = '".sqlescape($value)."'"));
-								$value = $f[$fdata["pop-description"]];
+								$f = sqlfetch(sqlquery("SELECT `".$fdata["options"]["pop-description"]."` FROM `".$fdata["options"]["pop-table"]."` WHERE `id` = '".sqlescape($value)."'"));
+								$value = $f[$fdata["options"]["pop-description"]];
 							}
 							
 							$item[$key] = strip_tags($value);
