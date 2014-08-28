@@ -590,6 +590,13 @@
 				$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
 			}
 
+			// For backwards compatibility
+			$related_fields = array();
+			foreach ($form["fields"] as $field) {
+				$related_fields[$field["column"]] = $field;
+			}
+			$form["fields"] = $related_fields;
+
 			return $form;
 		}
 		
