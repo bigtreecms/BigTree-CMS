@@ -1745,12 +1745,12 @@ var BigTreeFileManager = (function($) {
 
 var BigTreeFormNavBar = (function() {
 
-	var Container = false;
-	var MoreContainer = false;
-	var Nav = false;
-	var NextButton = false;
-	var Sections = false;
-	var ContainerOffset = false;
+	var Container;
+	var ContainerOffset;
+	var MoreContainer;
+	var Nav;
+	var NextButton;
+	var Sections;
 	
 	function init() {
 		Container = $(".container");
@@ -1760,43 +1760,9 @@ var BigTreeFormNavBar = (function() {
 		Sections = Container.find("form > section");
 
 		// Generic tab controls
-		Nav.click(function() {		
-			if (window.scrollY > ContainerOffset) {
-				$("html, body").animate({ scrollTop: ContainerOffset + 3 }, 200);
-			}
-			
-			var href = $(this).attr("href").substr(1);
-			Sections.hide();
-			Nav.removeClass("active");
-			$(this).addClass("active");
-			$("#" + href).show();
-			
-			// Manage the "Next" buttons
-			var index = Nav.index(this);
-			if (index == Nav.filter(":visible").length - 1) {
-				NextButton.hide();
-			} else {
-				NextButton.show();				
-			}
-			
-			return false;
-		});
-
+		Nav.click(tabClick);
 		// Next Button controls
-		NextButton.click(function() {
-			var tab = Nav.filter(".active");
-			tab.removeClass("active");
-			var next = tab.next("a").addClass("active");
-			
-			$("#" + next.attr("href").substr(1)).show();
-			$("#" + tab.attr("href").substr(1)).hide();
-			
-			if (Nav.index(tab) == Nav.filter(":visible").length - 2) {
-				$(this).hide();
-			}
-			
-			return false;
-		});
+		NextButton.click(nextClick);
 
 		// Form Validation
 		BigTreeFormValidator(Container.find("form"),function(errors) {
@@ -1856,9 +1822,65 @@ var BigTreeFormNavBar = (function() {
 			MoreContainer.append(current_page);
 			calc_nav_container.remove();
 		}
+	};
+
+	function nextClick(ev) {
+		ev.preventDefault();
+
+		var tab = Nav.filter(".active");
+		tab.removeClass("active");
+		var next = tab.next("a").addClass("active");
+		
+		$("#" + next.attr("href").substr(1)).show();
+		$("#" + tab.attr("href").substr(1)).hide();
+		
+		if (Nav.index(tab) == Nav.filter(":visible").length - 2) {
+			$(this).hide();
+		}
 	}
 
-	return { init: init };
+	function switchPanel(id) {
+		// Force # to the left of id
+		id = id[0] == "#" ? id : "#" + id;
+
+		// Reset
+		Sections.hide();
+		Nav.removeClass("active");
+
+		// Figure out which tab it is
+		for (var i = 0; i < Nav.length; i++) {
+			if (Nav.eq(i).attr("href") == id) {
+				Nav.eq(i).addClass("active");
+			}
+		}
+
+		// Show new panel
+		$(id).show();
+	}
+
+	function tabClick(ev) {
+		ev.preventDefault();
+
+		if (window.scrollY > ContainerOffset) {
+			$("html, body").animate({ scrollTop: ContainerOffset + 3 }, 200);
+		}
+		
+		var href = $(this).attr("href").substr(1);
+		Sections.hide();
+		Nav.removeClass("active");
+		$(this).addClass("active");
+		$("#" + href).show();
+		
+		// Manage the "Next" buttons
+		var index = Nav.index(this);
+		if (index == Nav.filter(":visible").length - 1) {
+			NextButton.hide();
+		} else {
+			NextButton.show();				
+		}
+	}
+
+	return { init: init, switchPanel: switchPanel };
 }());
 
 
