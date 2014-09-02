@@ -2523,7 +2523,7 @@ var BigTreeCallouts = function(settings) {
 							removeDialog();
 							Count++;
 							var count = List.find("article").length;
-							if (count >= Max) {
+							if (Max && count >= Max) {
 								AddButton.hide();
 							}
 						}
@@ -2680,7 +2680,7 @@ var BigTreeMatrix = function(settings) {
 								removeDialog();						
 								Count++;
 								var count = List.find("article").length;
-								if (count >= Max) {
+								if (Max && count >= Max) {
 									AddButton.hide();
 								}
 							}
