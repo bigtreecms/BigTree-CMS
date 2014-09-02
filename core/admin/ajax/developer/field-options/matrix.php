@@ -76,7 +76,7 @@
 		// Deleting fields
 		}).on("click",".icon_delete",function(e) {
 			e.preventDefault();
-			$(this).parents("li").remove();
+			$(this).parents("article").remove();
 		// Sorting fields
 		}).sortable({ axis: "y", containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
@@ -94,9 +94,9 @@
 													'<label class="for_checkbox">Use as Title</label>' + 
 												'</div>' +
 												'<span class="icon_drag"></span>' + 
+										   		'<a href="#" tabindex="-1" class="icon_delete"></a>' +
 										   		'<a href="#" tabindex="-1" class="icon_edit" name="' + ColumnCount + '"></a>' +
 										   		'<input type="hidden" name="columns[' + ColumnCount + '][options]" value="" />' +
-										   		'<a href="#" tabindex="-1" class="icon_delete"></a>' +
 										   	'</footer>');
 	
 			MatrixTable.sortable({ axis: "y", containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" })
