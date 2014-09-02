@@ -111,7 +111,7 @@
 			$field_type_converter("bigtree_callouts","resources");
 			$field_type_converter("bigtree_module_forms","fields");
 			$field_type_converter("bigtree_module_embeds","fields");
-			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlesacpe($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'")
+			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
 		}
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}

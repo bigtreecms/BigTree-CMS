@@ -591,11 +591,13 @@
 			}
 
 			// For backwards compatibility
-			$related_fields = array();
-			foreach ($form["fields"] as $field) {
-				$related_fields[$field["column"]] = $field;
+			if (is_array($form["fields"])) {
+				$related_fields = array();
+				foreach ($form["fields"] as $field) {
+					$related_fields[$field["column"]] = $field;
+				}
+				$form["fields"] = $related_fields;
 			}
-			$form["fields"] = $related_fields;
 
 			return $form;
 		}

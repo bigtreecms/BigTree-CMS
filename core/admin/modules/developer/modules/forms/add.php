@@ -1,8 +1,6 @@
 <?
 	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
-	$form = array("title" => "","table" => "","tagging" => "","return_view" => "","return_url" => "","hooks" => array());
-
 	$module = $admin->getModule($id);
 
 	// Try to make sense of a plural title into singular
@@ -20,7 +18,7 @@
 		$title = "";
 	}
 
-	$title = htmlspecialchars(urldecode($title));
+	$form = array("title" => htmlspecialchars(urldecode($title)),"table" => $table,"tagging" => "","return_view" => "","return_url" => "","hooks" => array());
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/create/<?=$module["id"]?>/" class="module">
