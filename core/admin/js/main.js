@@ -2971,24 +2971,10 @@ var BigTree = {
 	},
 
 	windowHeight: function() {
-		if (window.innerHeight) {
-			var windowHeight = window.innerHeight;
-		} else if (document.documentElement && document.documentElement.clientHeight) {
-			var windowHeight = document.documentElement.clientHeight;
-		} else if (document.body) {
-			var windowHeight = document.body.clientHeight;
-		}
-		return windowHeight;
+		return $("body").innerHeight();
 	},
 
 	windowWidth: function() {
-		if (window.innerWidth) {
-			var windowWidth = window.innerWidth;
-		} else if (document.documentElement && document.documentElement.clientWidth) {
-			var windowWidth = document.documentElement.clientWidth;
-		} else if (document.body) {
-			var windowWidth = document.body.clientWidth;
-		}
-		return windowWidth;
+		return $("body").innerWidth();
 	}
 }
