@@ -2808,7 +2808,7 @@ var BigTreeMatrix = function(settings) {
 		Count = List.find("article").length;
 
 		// If they've exceed or are at the max, hide the add button
-		if (Count >= Max) {
+		if (Max && Count >= Max) {
 			AddButton.hide();
 		}
 

@@ -1134,7 +1134,7 @@
 	.developer_cloud_key .file_wrapper { float: left; margin: 0 10px 0 0; }
 	.developer_cloud_key span { margin-top: 3px; }
 
-	#matrix_add_column { float: right; cursor: pointer; }
+	#matrix_add_column { cursor: pointer; float: right; margin: 0; }
 	#matrix_table { border: 1px solid #CCC; overflow: hidden; }
 	#matrix_table article { border-bottom: 1px solid #CCC; background: #FFF; }
 	#matrix_table article > div { padding: 10px 10px 0 10px; overflow: hidden; }

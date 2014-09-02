@@ -3,7 +3,7 @@
 	// Stop notices
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();
 	$data["verb"] = isset($data["verb"]) ? $data["verb"] : "";
-	$data["max"] = isset($data["max"]) ? intval($data["max"]) : "";
+	$data["max"] = $data["max"] ? intval($data["max"]) : "";
 ?>
 <fieldset>
 	<label>Groups <small>(if you don't choose at least one group, all callouts will be available)</small></label>

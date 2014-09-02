@@ -2,7 +2,7 @@
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
 	$columns = is_array($data["columns"]) ? $data["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
-	$data["max"] = isset($data["max"]) ? intval($data["max"]) : "";
+	$data["max"] = $data["max"] ? intval($data["max"]) : "";
 ?>
 <fieldset>
 	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
