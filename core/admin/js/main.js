@@ -2971,7 +2971,7 @@ var BigTree = {
 	},
 
 	windowHeight: function() {
-		return $("body").innerHeight();
+		return $(window).innerHeight();
 	},
 
 	windowWidth: function() {
