@@ -1134,23 +1134,6 @@
 	.developer_cloud_key .file_wrapper { float: left; margin: 0 10px 0 0; }
 	.developer_cloud_key span { margin-top: 3px; }
 
-	#matrix_add_column { cursor: pointer; float: right; margin: 0; }
-	#matrix_table { border: 1px solid #CCC; overflow: hidden; }
-	#matrix_table article { border-bottom: 1px solid #CCC; background: #FFF; }
-	#matrix_table article > div { padding: 10px 10px 0 10px; overflow: hidden; }
-	#matrix_table article:last-child { border: none; }
-	#matrix_table article input { width: 177px; float: left; margin: 0 10px 10px 0; }
-	#matrix_table article input:nth-child(odd) { margin-right: 0; }
-	#matrix_table .select { margin: 0 10px 10px 0; }
-	#matrix_table .select > span { width: 143px !important; }
-	#matrix_table .select_options { width: 197px !important; }
-	#matrix_table footer { color: #FCFCFC; border-top: 1px solid #CCC; overflow: hidden; padding: 5px 10px; text-align: center; }
-	#matrix_table footer span { float: right; }
-	#matrix_table footer > a { float: left; }
-	#matrix_table .ui-sortable-placeholder { height: 133px; background: #F3F3F3; }
-	#matrix_table .matrix_display_title { overflow: hidden; display: inline-block; padding: 3px 40px 0 0; }
-	#matrix_table footer .checkbox a { margin: 0; }
-
 	#security_settings .rule { line-height: 22px; margin: 0 0 15px 0; }
 	#security_settings .rule input { display: inline-block; height: 20px; margin: 0 5px 5px 0; padding: 0 5px; text-align: center; width: 30px; }
 	#security_settings .icon_small_help { display: inline-block; float: none; vertical-align: middle; }
@@ -1259,6 +1242,27 @@
 	.bigtree_dialog_form .list_options_widget .icon_sort { height: 22px; margin: -1px 0 0 -5px; width: 22px; }
 	.bigtree_dialog_form .list_options_widget .delete { display: inline-block; margin: 3px 0 0 2px; }
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { background: #FCFCFC; border: 1px dashed #CCC; border-radius: 3px; height: 20px; margin: 0 0 5px 0; width: 100%; }
+
+/* Matrix Settings */
+	
+	.matrix_wrapper { width: 440px; }
+	.matrix_table { border: 1px solid #CCC; border-radius: 2px; overflow: hidden; }
+	.matrix_table article { border-bottom: 1px solid #CCC; background: #FFF; }
+	.matrix_table article > div { padding: 10px 10px 0 10px; overflow: hidden; }
+	.matrix_table article:last-child { border: none; }
+	.matrix_table article input:nth-child(odd) { margin-right: 0; }
+	.matrix_table .select { margin: 0 10px 10px 0; }
+	.matrix_table .select > span { width: 148px !important; }
+	.matrix_table .select_options { width: 202px !important; }
+	.matrix_table footer { color: #FCFCFC; border-top: 1px solid #CCC; overflow: hidden; padding: 5px 10px; }
+	.matrix_table footer span { float: left; margin: 0 10px 0 0; }
+	.matrix_table footer > a { float: right; margin: 0 0 0 10px; }
+	.matrix_table .ui-sortable-placeholder { height: 133px; background: #F3F3F3; }
+	.matrix_table .matrix_display_title { overflow: hidden; display: inline-block; padding: 3px 40px 0 0; }
+	.matrix_table footer .checkbox a { margin: 0; }
+	.bigtree_dialog_form .matrix_table article input { width: 182px; float: left; margin: 0 10px 10px 0; }
+	.bigtree_dialog_form .matrix_table article input:nth-child(odd) { margin-right: 0; }
+	.bigtree_dialog_form .matrix_add_column { cursor: pointer; margin: 0; }
 
 /*---------------------------
 	BigTree File Browser
