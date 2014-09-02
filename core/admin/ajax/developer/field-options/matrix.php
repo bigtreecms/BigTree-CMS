@@ -69,8 +69,13 @@
 			var options = CurrentColumn.find("input[type=hidden]").val();
 
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
-				BigTreeDialog("Column Options",response.responseText,function(data) {
-					CurrentColumn.find("input[type=hidden]").val(JSON.stringify(data));
+				BigTreeDialog({
+					title: "Column Options",
+					content: response.responseText,
+					icon: "edit",
+					callback: function(data) {
+						CurrentColumn.find("input[type=hidden]").val(JSON.stringify(data));
+					}
 				});
 			}});
 		// Deleting fields
