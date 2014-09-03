@@ -17,65 +17,35 @@
 		}
 	}
 	unset($val);
-
-	$bigtree["tabindex"] = 1000;	
-	$bigtree["datepickers"] = array();
-	$bigtree["datepicker_values"] = array();
-	$bigtree["timepickers"] = array();
-	$bigtree["timepicker_values"] = array();
-	$bigtree["datetimepickers"] = array();
-	$bigtree["datetimepicker_values"] = array();
-	$bigtree["html_fields"] = array();
-	$bigtree["simple_html_fields"] = array();
-
-	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["callouts"];
 ?>
 <div id="matrix_resources" class="callout_fields">
 	<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 	<div class="form_fields">
 		<?
 			if (count($bigtree["matrix_columns"])) {
+
+				$bigtree["tabindex"] = 1000;	
+				$bigtree["html_fields"] = array();
+				$bigtree["simple_html_fields"] = array();
+			
+				$cached_types = $admin->getCachedFieldTypes();
+				$bigtree["field_types"] = $cached_types["callouts"];
+
 				foreach ($bigtree["matrix_columns"] as $resource) {
-					$field = array();
-					// Leaving some variable settings for backwards compatibility — removing in 5.0
-					$field["title"] = $title = htmlspecialchars($resource["title"]);
-					$field["subtitle"] = $subtitle = htmlspecialchars($resource["subtitle"]);
-					$field["key"] = $key = $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]";
-					$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
-					$field["id"] = uniqid("field_");
-					$field["tabindex"] = $tabindex = $bigtree["tabindex"];
-	
 					$options = @json_decode($resource["options"],true);
-					$options = is_array($options) ? $options : array();
-					$field["options"] = $options;
-		
-					// Setup Validation Classes
-					$label_validation_class = "";
-					$field["required"] = false;
-					if (isset($options["validation"]) && $options["validation"]) {
-						if (strpos($options["validation"],"required") !== false) {
-							$label_validation_class = ' class="required"';
-							$field["required"] = true;
-						}
-					}
-					$field_type_path = BigTree::path("admin/form-field-types/draw/".$resource["type"].".php");
 					
-					if (file_exists($field_type_path)) {
-		?>
-		<fieldset<? if ($resource["display_title"]) { ?> class="bigtree_matrix_display_title"<? } ?>>
-			<?
-						if ($field["title"] && $resource["type"] != "checkbox") {
-			?>
-			<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
-			<?
-						}
-						include $field_type_path;
-			?>
-		</fieldset>
-		<?
-						$bigtree["tabindex"]++;
-					}
+					$field = array(
+						"type" => $resource["type"],
+						"title" => htmlspecialchars($resource["title"]),
+						"subtitle" => htmlspecialchars($resource["subtitle"]),
+						"key" => $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]",
+						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
+						"id" => uniqid("field_"),
+						"tabindex" => $bigtree["tabindex"],
+						"options" => is_array($options) ? $options : array()
+					);
+
+					BigTree::drawField($field);
 				}
 			} else {
 				echo '<p>There are no resources for the selected callout.</p>';

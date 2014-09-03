@@ -19,6 +19,7 @@
 				
 				foreach ($bigtree["callout"]["resources"] as $resource) {
 					$field = array(
+						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
 						"options" => $resource["options"],
@@ -35,39 +36,8 @@
 						$field["input"] = json_decode($field["input"],true);
 					}
 
-					// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-					if (strpos($resource["type"],"*") !== false) {
-						list($extension,$field_type) = explode("*",$resource["type"]);
-						$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
-					} else {
-						$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
-					}
-
-					if (file_exists($field_type_path)) {
-						include $field_type_path;
-					} else {
-						if (is_array($bigtree["post_data"][$field["key"]])) {
-							$field["output"] = $bigtree["post_data"][$field["key"]];
-						} else {
-							$field["output"] = BigTree::safeEncode($bigtree["post_data"][$field["key"]]);
-						}
-					}
-			
-					if (!BigTreeAutoModule::validate($field["output"],$field["options"]["validation"])) {
-						$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
-						$bigtree["errors"][] = array(
-							"field" => $field["title"],
-							"error" => $error
-						);
-					}
-			
-					if (!$field["ignore"]) {
-						// Translate internal link information to relative links.
-						if (is_array($field["output"])) {
-							$field["output"] = BigTree::translateArray($field["output"]);
-						} else {
-							$field["output"] = $admin->autoIPL($field["output"]);
-						}
+					$output = BigTree::processField($field);
+					if (!is_null($output)) {
 						$bigtree["entry"][$field["key"]] = $field["output"];
 					}
 				}

@@ -49,59 +49,21 @@
 			?>
 			<div class="form_fields">
 				<?			
-					// Setup field related nonsense.
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					
-					$options = json_decode($item["options"],true);
-	
-					$field = array();
-					// Leaving some variable settings for backwards compatibility — removing in 5.0
-					$field["title"] = $title = "";
-					$field["value"] = $value;
-					$field["key"] = $key = $item["id"];
-					$field["options"] = $options;
-					$field["required"] = $required;
-					$field["id"] = uniqid("field_");
-					$field["tabindex"] = "1";
-	
-					// Setup Validation Classes
-					$label_validation_class = "";
-					$field["required"] = false;
-					if (isset($options["validation"]) && $options["validation"]) {
-						if (strpos($options["validation"],"required") !== false) {
-							$label_validation_class = ' class="required"';
-							$field["required"] = true;
-						}
-					}
-	
-					// Draw the field type
-					if (strpos($item["type"],"*") !== false) {
-						list($extension,$field_type) = explode("*",$item["type"]);
-						$field_type_path = SERVER_ROOT."extensions/$extension/field-types/draw/$field_type.php";
-					} else {
-						$field_type_path = BigTree::path("admin/form-field-types/draw/".$item["type"].".php");
-					}
+					$field = array(
+						"type" => $item["type"],
+						"title" => "",
+						"subtitle" => "",
+						"key" => $item["id"],
+						"tabindex" => 1,
+						"id" => uniqid("field_"),
+						"options" => json_decode($item["options"],true),
+						"value" => $value
+					);
 
-					if (file_exists($field_type_path)) {
-						if ($bigtree["field_types"][$item["type"]]["self_draw"]) {
-							include $field_type_path;
-						} else {
-				?>
-				<fieldset>
-					<?
-							if ($field["title"] && $item["type"] != "checkbox") {
-					?>
-					<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
-					<?
-							}
-							include $field_type_path;
-							$bigtree["tabindex"]++;
-					?>
-				</fieldset>
-				<?
-						}
-					}	
+					BigTree::drawField($field);
 				?>
 			</div>
 		</section>

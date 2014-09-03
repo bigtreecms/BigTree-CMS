@@ -40,67 +40,27 @@
 		$admin->stop(file_get_contents(BigTree::path("admin/auto-modules/forms/_denied.php")));
 	}
 
-	// Backwards compatibility.
-	$upload_service = new BigTreeUploadService;
-	
 	$bigtree["crops"] = array();
 	$bigtree["many-to-many"] = array();
 	$bigtree["errors"] = array();
 	$bigtree["entry"] = array();
 
-	// Some backwards compatibility vars thrown in.
-	$bigtree["post_data"] = $data = $_POST;
+	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = BigTree::parsedFilesArray();
-	$file_data = $_FILES;
 
 	foreach ($bigtree["form"]["fields"] as $resource) {
-		unset($value); // Backwards compat.
-		$field = array();
-		$field["title"] = $resource["title"];
-		$field["key"] = $key = $resource["column"];
-		$field["options"] = $options = $resource["options"];
-		$field["ignore"] = false;
-		$field["input"] = $bigtree["post_data"][$key];
-		$field["file_input"] = $bigtree["file_data"][$key];
+		$field = array(
+			"type" => $resource["type"],
+			"title" => $resource["title"],
+			"key" => $resource["column"],
+			"options" => $resource["options"],
+			"ignore" => false,
+			"input" => $bigtree["post_data"][$resource["column"]],
+			"file_input" => $bigtree["file_data"][$resource["column"]]
+		);
 
-		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-		if (strpos($resource["type"],"*") !== false) {
-			list($extension,$field_type) = explode("*",$resource["type"]);
-			$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
-		} else {
-			$field_type_path = BigTree::path("admin/form-field-types/process/".$resource["type"].".php");
-		}
-
-		if (file_exists($field_type_path)) {
-			include $field_type_path;
-		} else {
-			if (is_array($bigtree["post_data"][$field["key"]])) {
-				$field["output"] = $bigtree["post_data"][$field["key"]];
-			} else {
-				$field["output"] = BigTree::safeEncode($bigtree["post_data"][$field["key"]]);
-			}
-		}
-
-		// Backwards compatibility with older custom field types
-		if (!isset($field["output"]) && isset($value)) {
-			$field["output"] = $value;
-		}
-		
-		if (!BigTreeAutoModule::validate($field["output"],$field["options"]["validation"])) {
-			$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($field["output"],$field["options"]["validation"]);
-			$bigtree["errors"][] = array(
-				"field" => $field["title"],
-				"error" => $error
-			);
-		}
-
-		if (!$field["ignore"]) {
-			// Translate internal link information to relative links.
-			if (is_array($field["output"])) {
-				$field["output"] = BigTree::translateArray($field["output"]);
-			} else {
-				$field["output"] = $admin->autoIPL($field["output"]);
-			}
+		$output = BigTree::processField($field);
+		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $field["output"];
 		}
 	}

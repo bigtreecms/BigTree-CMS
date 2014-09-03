@@ -10,59 +10,26 @@
 	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
 		$admin->growl("Settings","Access Denied","error");
 	} else {
-		// Init as $upload_service for backwards compat.
-		$upload_service = new BigTreeUploadService;
-
-		// Some backwards compatibility vars thrown in.
 		$bigtree["crops"] = array();
 		$bigtree["errors"] = array();
-		$bigtree["post_data"] = $data = $_POST;
+		$bigtree["post_data"] = $_POST;
 		$bigtree["file_data"] = BigTree::parsedFilesArray();
-		$file_data = $_FILES;
-		$key = $_POST["id"];
 
 		// Pretend like we're a normal field
-		unset($value); // Backwards compat.
-		$field = array();
-		$field["title"] = $item["title"];
-		$field["key"] = $key;
-		$field["options"] = $options = json_decode($item["options"],true);
-		$field["ignore"] = false;
-		$field["input"] = $bigtree["post_data"][$key];
-		$field["file_input"] = $bigtree["file_data"][$key];
+		$field = array(
+			"type" => $item["type"],
+			"title" => $item["title"],
+			"key" => $_POST["id"],
+			"options" => json_decode($item["options"],true),
+			"ignore" => false,
+			"input" => $bigtree["post_data"][$_POST["id"]],
+			"file_input" => $bigtree["file_data"][$_POST["id"]]
+		);
 
-		// If we have a customized handler for this data type, run it, otherwise, it's simply the post value.
-		if (strpos($item["type"],"*") !== false) {
-			list($extension,$field_type) = explode("*",$item["type"]);
-			$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
-		} else {
-			$field_type_path = BigTree::path("admin/form-field-types/process/".$item["type"].".php");
-		}
-
-		if (file_exists($field_type_path)) {
-			include $field_type_path;
-		} else {
-			if (is_array($bigtree["post_data"][$field["key"]])) {
-				$field["output"] = $bigtree["post_data"][$field["key"]];
-			} else {
-				$field["output"] = BigTree::safeEncode($bigtree["post_data"][$field["key"]]);
-			}
-		}
-
-		// Backwards compatibility with older custom field types
-		if (!isset($field["output"]) && isset($value)) {
-			$field["output"] = $value;
-		}
-
-		// Translate internal link information to relative links.
-		if (is_array($field["output"])) {
-			$field["output"] = BigTree::translateArray($field["output"]);
-		} else {
-			$field["output"] = $admin->autoIPL($field["output"]);
-		}
-		
-		if (!$field["ignore"]) {
-			$admin->updateSettingValue($_POST["id"],$field["output"]);		
+		// Process the input
+		$output = BigTree::processField($field);
+		if (!is_null($output)) {
+			$admin->updateSettingValue($_POST["id"],$output);
 		}
 
 		$admin->growl("Settings","Updated Setting");
