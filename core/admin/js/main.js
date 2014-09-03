@@ -2650,7 +2650,7 @@ var BigTreeMatrix = function(settings) {
 		var Columns;
 		var Container;
 		var Count = 0;
-		var Current;
+		var CurrentItem;
 		var Key;
 		var LastDialog;
 		var List;
