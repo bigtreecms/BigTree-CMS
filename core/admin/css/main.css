@@ -758,9 +758,8 @@
 	.callout_fields .select .select_options { max-width: 438px !important; }
 	.callout_fields .error_message { width: 420px; }
 	.callout_fields .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
-	.callout_fields fieldset.callouts { margin: 30px -20px; width: calc(100% - 20px); }
+	.callout_fields fieldset.callouts { border-top: none; margin: 15px -20px; padding: 0 20px; width: calc(100% - 20px); }
 	.callout_fields fieldset.callouts:first-child { margin-top: 0; padding-top: 0; }
-	.callout_fields fieldset.callouts:last-child { margin-bottom: 0; }
 	.callout_fields fieldset.callouts article { width: calc(50% - 10px); margin: 0 10px 10px 0; }
 	.callout_fields fieldset.callouts article:nth-child(even) { margin-right: 0; }
 	.callout_fields fieldset.callouts h4 { margin: 0; }
