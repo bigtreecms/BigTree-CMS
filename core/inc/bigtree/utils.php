@@ -717,7 +717,7 @@
 					include $field_type_path;
 				} else {
 ?>
-<fieldset>
+<fieldset<? if ($field["matrix_title_field"]) { ?> class="matrix_title_field"<? } ?>>
 	<? if ($field["title"] && $field["type"] != "checkbox") { ?>
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
 	<? } ?>

@@ -2753,7 +2753,7 @@ var BigTreeMatrix = function(settings) {
 	
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
-			LastDialog.find(".bigtree_matrix_display_title").each(function(index,el) {
+			LastDialog.find(".matrix_title_field").each(function(index,el) {
 				var item = $(el).find("input[type=text],textarea,select");
 				if (item.length) {
 					if (item.is("select")) {
