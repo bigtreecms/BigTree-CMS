@@ -52,7 +52,7 @@
 			"file_input" => $bigtree["file_data"][$resource["column"]]
 		);
 
-		$output = BigTree::processField($field);
+		$output = BigTreeAdmin::processField($field);
 		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $field["output"];
 		}

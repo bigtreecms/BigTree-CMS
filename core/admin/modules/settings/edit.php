@@ -63,7 +63,7 @@
 						"value" => $value
 					);
 
-					BigTree::drawField($field);
+					BigTreeAdmin::drawField($field);
 				?>
 			</div>
 		</section>

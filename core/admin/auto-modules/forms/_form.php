@@ -64,7 +64,7 @@
 								$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;
 							}
 	
-							BigTree::drawField($field);
+							BigTreeAdmin::drawField($field);
 						}
 					}
 				?>

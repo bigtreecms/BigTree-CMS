@@ -685,52 +685,6 @@
 		}
 
 		/*
-			Function: drawField
-				A helper function that draws a field type.
-
-			Parameters:
-				field - Field array
-		*/
-
-		function drawField($field) {
-			global $admin,$bigtree,$cms;
-
-			// Setup Validation Classes
-			$label_validation_class = "";
-			$field["required"] = false;
-			if (!empty($field["options"]["validation"])) {
-				if (strpos($field["options"]["validation"],"required") !== false) {
-					$label_validation_class = ' class="required"';
-					$field["required"] = true;
-				}
-			}
-
-			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$field["type"]);
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/draw/$field_type.php";
-			} else {
-				$field_type_path = BigTree::path("admin/form-field-types/draw/".$field["type"].".php");
-			}
-			if (file_exists($field_type_path)) {
-				// Don't draw the fieldset for field types that are declared as self drawing.
-				if ($bigtree["field_types"][$field["type"]]["self_draw"]) {
-					include $field_type_path;
-				} else {
-?>
-<fieldset<? if ($field["matrix_title_field"]) { ?> class="matrix_title_field"<? } ?>>
-	<? if ($field["title"] && $field["type"] != "checkbox") { ?>
-	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
-	<? } ?>
-	<? include $field_type_path ?>
-</fieldset>
-<?
-					$bigtree["tabindex"]++;
-				}
-				$bigtree["last_resource_type"] = $field["type"];
-			}
-		}
-
-		/*
 			Function: formatBytes
 				Formats bytes into larger units to make them more readable.
 			
@@ -1567,67 +1521,6 @@
 			// Remove notices
 			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
-		}
-
-		/*
-			Function: processField
-				A helper function for field type processing.
-
-			Parameters:
-				field - Field information
-
-			Returns:
-				Field output.
-		*/
-
-		static function processField($field) {
-			global $admin,$bigtree,$cms;
-
-			// Check if the field type is stored in an extension
-			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$item["type"]);
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
-			} else {
-				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
-			}
-
-			// If we have a customized handler for this data type, run it.
-			if (file_exists($field_type_path)) {
-				include $field_type_path;
-
-				// If it's explicitly ignored return null
-				if ($field["ignore"]) {
-					$output = null;
-				} else {
-					$output = $field["output"];
-				}
-
-			// Fall back to default handling
-			} else {
-				if (is_array($field["input"])) {
-					$output = $field["input"];
-				} else {
-					$output = self::safeEncode($field["input"]);
-				}
-			}
-
-			// Check validation
-			if (!BigTreeAutoModule::validate($output,$field["options"]["validation"])) {
-				$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($output,$field["options"]["validation"]);
-				$bigtree["errors"][] = array(
-					"field" => $field["title"],
-					"error" => $error
-				);
-			}
-
-			// Translation of internal links
-			if (is_array($output)) {
-				$output = BigTree::translateArray($output);
-			} else {
-				$output = $admin->autoIPL($output);
-			}
-
-			return $output;
 		}
 		
 		/*

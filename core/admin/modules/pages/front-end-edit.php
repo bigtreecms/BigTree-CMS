@@ -45,7 +45,7 @@
 							"options" => $resource["options"]
 						);
 
-						BigTree::drawField($field);
+						BigTreeAdmin::drawField($field);
 					}
 				} else {
 					echo '<p>There are no resources for the selected template.</p>';

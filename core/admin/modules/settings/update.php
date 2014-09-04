@@ -27,7 +27,7 @@
 		);
 
 		// Process the input
-		$output = BigTree::processField($field);
+		$output = BigTreeAdmin::processField($field);
 		if (!is_null($output)) {
 			$admin->updateSettingValue($_POST["id"],$output);
 		}

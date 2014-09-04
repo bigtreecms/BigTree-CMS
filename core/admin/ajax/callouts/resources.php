@@ -60,7 +60,7 @@
 					$field["options"]["directory"] = "files/callouts/";
 				}
 	
-				BigTree::drawField($field);
+				BigTreeAdmin::drawField($field);
 			}
 		} else {
 			echo '<p>There are no resources for the selected callout.</p>';
