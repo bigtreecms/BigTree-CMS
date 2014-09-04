@@ -733,7 +733,7 @@
 	#tag_list li a:hover { }
 	#tag_list li a span { color: #999; display: inline-block; font-weight: bold; padding: 0 0 0 10px; }
 
-/* Callouts */
+/* Callouts / Matrix */
 	fieldset.callouts { border-bottom: 1px solid #CCC; border-top: 1px solid #CCC; clear: both; margin: 30px -30px 30px -30px; padding: 30px; width: 898px; }
 	fieldset.callouts:first-child { border-top: none; margin-top: -30px; }
 	fieldset.callouts:last-child { border-bottom: none; margin-bottom: -30px; }
@@ -748,7 +748,7 @@
 	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 	fieldset.callouts_no_margin { margin-top: -31px; }
 	fieldset.callouts .button { float: left; margin: 0 15px 0 0; }
-	fieldset.callouts .max { float: left; line-height: 32px; text-transform: uppercase; }
+	fieldset.callouts .max, .matrix_list .max { float: left; line-height: 32px; text-transform: uppercase; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }
@@ -1597,12 +1597,13 @@
 	.multi_widget ul { list-style: none; margin: 0; }
 	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
 	.multi_widget li p { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 790px; }
+	.multi_widget li p small { font-size: 10px; margin: 0 0 0 10px; }
 	.right .multi_widget li p, .left .multi_widget li p { width: 330px; }
 	.multi_widget li a { float: right; margin: 5px 0 0 10px; }
 	.multi_widget li:nth-child(even) { background: #F8F8F8; }
 	.multi_widget .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
 	.bigtree_dialog_form .multi_widget li p { width: 330px; }
-	.many_to_many section { border-bottom: 1px solid #CCC; padding: 30px; }
+	.many_to_many section, .matrix_list section { border-bottom: 1px solid #CCC; padding: 30px; }
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
 	.many_to_many footer .select > span { max-width: 679px !important; }
 	.many_to_many footer .select .select_options { max-width: 733px !important; }

@@ -2649,12 +2649,14 @@ var BigTreeMatrix = function(settings) {
 		var AddButton;
 		var Columns;
 		var Container;
-		var Count = 0;
+		var Count;
 		var CurrentItem;
 		var Key;
 		var LastDialog;
 		var List;
-		var Max = settings.max ? settings.max : 0;
+		var Max;
+		var NoItemsMessage;
+		var Style;
 		var Subtitle;
 		var Title;
 
@@ -2677,9 +2679,10 @@ var BigTreeMatrix = function(settings) {
 							if (item = getItem()) {
 								// Add the item, remove the dialog, increase the count.
 								List.append(item);
+								NoItemsMessage.hide();
 								removeDialog();						
 								Count++;
-								var count = List.find("article").length;
+								var count = List.find("article, li").length;
 								if (Max && count >= Max) {
 									AddButton.hide();
 								}
@@ -2693,15 +2696,23 @@ var BigTreeMatrix = function(settings) {
 		function deleteItem(e) {
 			e.preventDefault();
 
-			CurrentItem = $(this).parents("article");
+			if (Style === "list") {
+				CurrentItem = $(this).parents("li");
+			} else {
+				CurrentItem = $(this).parents("article");
+			}
+
 			BigTreeDialog({
 				title: "Delete Item",
 				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 				callback: function() {
 					CurrentItem.remove();
-					var count = List.find("article").length;
+					var count = List.find("article, li").length;
 					if (count < Max) {
 						AddButton.show();
+						if (!count) {
+							NoItemsMessage.show();
+						}
 					}
 				},
 				icon: "delete",
@@ -2713,7 +2724,11 @@ var BigTreeMatrix = function(settings) {
 			e.preventDefault();
 
 			// Set the current element that we're going to replace
-			CurrentItem = $(this).parents("article");
+			if (Style === "list") {
+				CurrentItem = $(this).parents("li");
+			} else {
+				CurrentItem = $(this).parents("article");
+			}
 			
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
@@ -2748,8 +2763,12 @@ var BigTreeMatrix = function(settings) {
 			if (!validator.validateForm(false,true)) {
 				return false;
 			}
-	
-			var article = $('<article>').html('<h4></h4><p></p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
+			
+			if (Style == "list") {
+				var entry = $('<li>').html('<span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a>');
+			} else {
+				var entry = $('<article>').html('<h4></h4><p></p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
+			}
 	
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
@@ -2782,14 +2801,20 @@ var BigTreeMatrix = function(settings) {
 						}
 					}
 					$(this).hide().get(0).className = "";
-					article.append($(this));
+					entry.append($(this));
 				}
 			});
 
-			article.find("h4").html(Title + '<input type="hidden" name="' + Key + '[' + Count + '][__internal-title]" value="' + htmlspecialchars(Title) + '" />');
-			article.find("p").html(Subtitle + '<input type="hidden" name="' + Key + '[' + Count + '][__internal-subtitle]" value="' + htmlspecialchars(Subtitle) + '" />');
-	
-			return article;
+			if (Style == "list") {
+				entry.find("p").html(Title + '<small>' + Subtitle + '</small>');
+				entry.append('<input type="hidden" name="' + Key + '[' + Count + '][__internal-title]" value="' + htmlspecialchars(Title) + '" />');
+				entry.append('<input type="hidden" name="' + Key + '[' + Count + '][__internal-subtitle]" value="' + htmlspecialchars(Subtitle) + '" />');
+			} else {
+				entry.find("h4").html(Title + '<input type="hidden" name="' + Key + '[' + Count + '][__internal-title]" value="' + htmlspecialchars(Title) + '" />');
+				entry.find("p").html(Subtitle + '<input type="hidden" name="' + Key + '[' + Count + '][__internal-subtitle]" value="' + htmlspecialchars(Subtitle) + '" />');
+			}
+
+			return entry;
 		};
 
 		function removeDialog() {
@@ -2804,8 +2829,11 @@ var BigTreeMatrix = function(settings) {
 		Columns = settings.columns;
 		Container = $(settings.selector);
 		AddButton = Container.find(".add_item");
-		List = Container.find(".contain");
-		Count = List.find("article").length;
+		List = Container.find(".contain, ul");
+		Count = List.find("article, li").length;
+		Max = settings.max ? settings.max : 0;
+		Style = settings.style ? settings.style : "list";
+		NoItemsMessage = Container.find("section");
 
 		// If they've exceed or are at the max, hide the add button
 		if (Max && Count >= Max) {
@@ -2815,7 +2843,12 @@ var BigTreeMatrix = function(settings) {
 		Container.on("click",".add_item",addItem)
 				 .on("click",".icon_edit",editItem)
 				 .on("click",".icon_delete",deleteItem);
-		List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+
+		if (Style == "list") {
+			List.sortable({ containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+		} else {
+			List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+		}
 
 		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
 

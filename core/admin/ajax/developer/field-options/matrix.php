@@ -8,6 +8,13 @@
 	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
 	<input type="text" name="max" value="<?=$data["max"]?>" />
 </fieldset>
+<fieldset>
+	<label>Style</label>
+	<select name="style">
+		<option value="list">List (like Many to Many)</option>
+		<option value="callout"<? if ($data["style"] == "callout") { ?> selected="selected"<? } ?>>Blocks (like Callouts)</option>
+	</select>
+</fieldset>
 <div class="matrix_wrapper">
 	<span class="icon_small icon_small_add matrix_add_column"></span>
 	<label>Columns</label>
