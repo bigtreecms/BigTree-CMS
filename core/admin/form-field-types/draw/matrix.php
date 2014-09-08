@@ -60,6 +60,7 @@
 	</section>
 	<ul>
 		<?
+			$x = 0;
 			foreach ($field["value"] as $item) {
 		?>
 		<li>

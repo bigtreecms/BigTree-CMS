@@ -54,7 +54,6 @@
 		?>
 	</div>
 </div>
-<input type="hidden" name="<?=$bigtree["matrix_key"]?>[<?=$bigtree["matrix_count"]?>][matrix_count]" class="matrix_count" value="<?=$bigtree["matrix_count"]?>" />
 <?
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
