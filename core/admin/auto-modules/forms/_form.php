@@ -53,7 +53,7 @@
 								"title" => $resource["title"],
 								"subtitle" => $resource["subtitle"],
 								"key" => $resource["column"],
-								"value" => isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "",
+								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"id" => uniqid("field_"),
 								"tabindex" => $bigtree["tabindex"],
 								"options" => $resource["options"]
@@ -61,7 +61,7 @@
 	
 							// Give many to many its information
 							if ($resource["type"] == "many-to-many") {
-								$field["value"] = isset($bigtree["many-to-many"][$key]) ? $bigtree["many-to-many"][$key]["data"] : false;
+								$field["value"] = isset($bigtree["many-to-many"][$resource["column"]]) ? $bigtree["many-to-many"][$resource["column"]]["data"] : false;
 							}
 	
 							BigTreeAdmin::drawField($field);

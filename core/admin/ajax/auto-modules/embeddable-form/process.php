@@ -54,7 +54,7 @@
 
 		$output = BigTreeAdmin::processField($field);
 		if (!is_null($output)) {
-			$bigtree["entry"][$field["key"]] = $field["output"];
+			$bigtree["entry"][$field["key"]] = $output;
 		}
 	}
 

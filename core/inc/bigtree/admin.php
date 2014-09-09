@@ -5658,7 +5658,7 @@
 				if (is_array($field["input"])) {
 					$output = $field["input"];
 				} else {
-					$output = self::safeEncode($field["input"]);
+					$output = BigTree::safeEncode($field["input"]);
 				}
 			}
 
