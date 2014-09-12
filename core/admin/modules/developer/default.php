@@ -131,7 +131,11 @@
 			<span class="api"></span>
 			<p>Service APIs</p>
 		</a>
-		<a class="box_select" href="<?=DEVELOPER_ROOT?>security/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>media/">
+			<span class="crop"></span>
+			<p>Media</p>
+		</a>
+		<a class="box_select last" href="<?=DEVELOPER_ROOT?>security/">
 			<span class="lock"></span>
 			<p>Security</p>
 		</a>
