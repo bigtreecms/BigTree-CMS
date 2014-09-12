@@ -73,6 +73,18 @@
 			<? } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		<?
+			if ($field["options"]["show_add_all"]) {
+		?>
+		<a href="#" class="add_all button">Add All</a>
+		<?
+			}
+			if ($field["options"]["show_reset"]) {
+		?>
+		<a href="#" class="reset button red">Reset</a>
+		<?
+			}
+		?>
 	</footer>
 </div>
 <script>

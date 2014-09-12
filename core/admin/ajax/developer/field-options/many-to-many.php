@@ -57,4 +57,11 @@
 	<input type="text" name="mtm-list-parser" value="<?=htmlspecialchars($data["mtm-list-parser"])?>" />
 	<p class="note">The first parameter passed in is an array of data. The second is a boolean of whether you're receiving currently tagged entries (false) or the list of available entries that aren't currently tagged (true).</p>
 </fieldset>
-<br />
+<fieldset>
+	<input type="checkbox" name="show_add_all"<? if ($data["show_add_all"]) { ?> checked="checked"<? } ?>>
+	<label class="for_checkbox">Enable Add All Button</label>
+</fieldset>
+<fieldset>
+	<input type="checkbox" name="show_reset"<? if ($data["show_reset"]) { ?> checked="checked"<? } ?>>
+	<label class="for_checkbox">Enable Reset Button</label>
+</fieldset>

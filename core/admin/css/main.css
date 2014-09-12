@@ -140,7 +140,7 @@
 	input[type=submit].green:hover, a.button.green:hover { background-color: #459464; }
 	input[type=submit].blue, a.button.blue { background-color: #59A8E9; border: none; color: #FFF; }
 	input[type=submit].blue:hover, a.button.blue:hover { background-color: #4287CE; }
-	input[type=submit].red, a.button.red { background-color: #C0362F; border: none; color: #FFF; }
+	input[type=submit].red, a.button.red { background-color: #C0362F; border-color: #C0362F; color: #FFF; }
 	input[type=submit].red:hover, a.button.red:hover { background-color: #AB312B; }
 
 	a.button { display: inline-block; height: 34px; line-height: 37px; padding: 0 15px; }

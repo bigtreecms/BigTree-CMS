@@ -2017,9 +2017,46 @@ var BigTreeManyToMany = function(settings) {
 		var Sortable;
 		var KeepOptions;
 
-		function addItem() {
+		function addAll(ev) {
+			ev.preventDefault();
+
+			// Keep track of the stuff we're adding so we can remove it from the dropdown
+			var vals = [];
+
+			for (var i = 0; i < Select.options.length; i++) {
+				var val = Select.options[i].value;
+				var text = Select.options[i].text;
+	
+				if (Sortable) {
+					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
+				} else {
+					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+				}
+				li.find("p").html(text);
+				li.find("input").val(val);
+
+				List.append(li);
+				Field.trigger("addedItem", { element: li, index: Count });
+				Count++;
+				vals.push(val);
+			}
+			
+			// Remove the options from the select.
+			if (!KeepOptions) {
+				for (i = 0; i < vals.length; i++) {
+					Select.customControl.remove(vals[i]);
+				}
+			}
+
+			// Hide the instructions saying there haven't been any items tagged.
+			Field.find("section").hide();
+		}
+
+		function addItem(ev) {
+			ev.preventDefault();
+
 			if (Select.selectedIndex < 0) {
-				return false;
+				return;
 			}
 
 			var val = Select.value;
@@ -2044,11 +2081,11 @@ var BigTreeManyToMany = function(settings) {
 			
 			// Hide the instructions saying there haven't been any items tagged.
 			Field.find("section").hide();
-	
-			return false;
 		};
 	
 		function deleteItem(ev) {
+			ev.preventDefault();
+
 			// If this is the last item we're removing, show the instructions again.
 			if (List.find("li").length == 1) {
 				Field.find("section").show();
@@ -2065,8 +2102,28 @@ var BigTreeManyToMany = function(settings) {
 
 			li.remove();
 			Field.trigger("removedItem", { value: val, description: text });
+		};
+
+		function reset(ev) {
+			ev.preventDefault();
+
+			// Remove everything
+			List.find("li").each(function() {
+				var li = $(this);
+				var val = li.find("input").val();
+				var text = li.find("p").html();
+				
+				// Add the option back to the select
+				if (!KeepOptions) {
+					Select.customControl.add(val,text);
+				}
 	
-			return false;
+				li.remove();
+				Field.trigger("removedItem", { value: val, description: text });
+			});
+
+			// Show the empty message
+			Field.find("section").show();
 		};
 
 		// Init routine
@@ -2088,6 +2145,8 @@ var BigTreeManyToMany = function(settings) {
 		}
 
 		Field.find(".add").click(addItem);
+		Field.find(".add_all").click(addAll);
+		Field.find(".reset").click(reset);
 		Field.on("click",".icon_delete",deleteItem);
 
 		return { Field: Field, List: List, Select: Select };
