@@ -132,7 +132,7 @@
 			<p>Service APIs</p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>media/">
-			<span class="crop"></span>
+			<span class="images"></span>
 			<p>Media</p>
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>security/">

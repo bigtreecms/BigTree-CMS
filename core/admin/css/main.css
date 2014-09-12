@@ -68,6 +68,7 @@
 	h1 .linkpoint, .box_select .linkpoint { background-position: -155px -214px; }
 	h1 .payflow, .box_select .payflow { background-position: -190px -214px; }
 	h1 .crop, .box_select .crop { background-position: -672px -16px; }
+	h1 .images, .box_select .images { background-position: -704px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
 	h1 .edit_page { background-position: -64px -48px; }
