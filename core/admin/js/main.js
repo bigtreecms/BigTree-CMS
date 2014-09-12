@@ -2203,6 +2203,8 @@ var BigTreeFormValidator = function(selector,callback) {
 		// in_dialog and embedded are never called by the submit event, they are only for manual calls to validateForm
 		function validateForm(ev,in_dialog,embedded) {
 			var errors = [];
+
+			Form.data("initial-state",Form.serialize());
 			
 			Form.find(".form_error").removeClass("form_error");
 			Form.find(".form_error_reason").remove();
