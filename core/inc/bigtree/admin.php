@@ -1291,14 +1291,14 @@
 			}
 
 			// If we set a publish at date, make it the proper MySQL format.
-			if ($publish_at) {
+			if ($publish_at && $publish_at != "NULL") {
 				$publish_at = "'".date("Y-m-d",strtotime($publish_at))."'";
 			} else {
 				$publish_at = "NULL";
 			}
 
 			// If we set an expiration date, make it the proper MySQL format.
-			if ($expire_at) {
+			if ($expire_at && $expire_at != "NULL") {
 				$expire_at = "'".date("Y-m-d",strtotime($expire_at))."'";
 			} else {
 				$expire_at = "NULL";
@@ -4316,6 +4316,9 @@
 					$score += 5;
 					$words = $textStats->word_count($stripped_text);
 					$readability = $textStats->flesch_kincaid_reading_ease($stripped_text);
+					if ($readability < 0) {
+						$readability = 0;
+					}
 					$number_of_links = substr_count($regular_text,"<a ");
 					$number_of_external_links = substr_count($regular_text,'href="http://');
 
@@ -7296,14 +7299,14 @@
 			}
 
 			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
-			if ($publish_at) {
+			if ($publish_at && $publish_at != "NULL") {
 				$publish_at = "'".date("Y-m-d",strtotime($publish_at))."'";
 			} else {
 				$publish_at = "NULL";
 			}
 
-			// Same goes for the expiration date.
-			if ($expire_at) {
+			// If we set an expiration date, make it the proper MySQL format.
+			if ($expire_at && $expire_at != "NULL") {
 				$expire_at = "'".date("Y-m-d",strtotime($expire_at))."'";
 			} else {
 				$expire_at = "NULL";

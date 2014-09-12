@@ -352,7 +352,14 @@ var BigTreeSelect = function(element) {
 						}
 						// When someone scrolls the overflow, close the select or the dropdown will detach.
 						setTimeout(function() { overflow.scroll(close); },500);
-					}		
+					}
+
+					// If the options would hang off the window, shrink the options menu down
+					var offset = select_options.offset().top - window.scrollY + select_options.height();
+					var difference = offset - BigTree.WindowHeight();
+					if (difference > 0) {
+						select_options.css({ height: select_options.height() - difference - 5 + "px" });
+					}
 				} else {
 					// If the select drops below the visible area, scroll down a bit.
 					var toScroll = (select_options.offset().top + select_options.height()) - window.scrollY - $(window).height();

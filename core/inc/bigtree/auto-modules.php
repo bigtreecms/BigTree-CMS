@@ -341,7 +341,13 @@
 					}
 				}
 			}
-			sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			
+			// Insert, if there's a failure return false instead of doing the rest
+			$success = sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			if (!$success) {
+				return false;
+			}
+
 			$id = sqlid();
 
 			// Handle many to many
@@ -1281,7 +1287,7 @@
 		}
 		
 		/*
-			Function: getViewForTableChanges
+			Function: getViewForTable
 				Gets a view for a given table for showing change lists in Pending Changes.
 			
 			Parameters:
@@ -1300,7 +1306,24 @@
 				return false;
 			}
 			$view["options"] = json_decode($view["options"],true);
+			$view["actions"] = json_decode($view["actions"],true);
 			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
+			
+			// Get the edit link
+			if (isset($view["actions"]["edit"])) {
+				$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '".$view["module"]."'"));
+				if ($view["related_form"]) {
+					// Try for actions beginning with edit first
+					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."' AND route LIKE 'edit%'"));
+					if (!$f) {
+						// Try any action with this form
+						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
+					}
+					$view["edit_url"] = ADMIN_ROOT.$module["route"]."/".$f["route"]."/";
+				} else {
+					$view["edit_url"] = ADMIN_ROOT.$module["route"]."/edit/";
+				}
+			}
 			
 			$fields = json_decode($view["fields"],true);
 			if (is_array($fields)) {

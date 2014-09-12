@@ -1145,6 +1145,8 @@
 			}
 
 			if ($f["redirect_url"]) {
+				$f["redirect_url"] = $this->getInternalPageLink($f["redirect_url"]);
+
 				if ($f["redirect_url"] == "/") {
 					$f["redirect_url"] = "";
 				}

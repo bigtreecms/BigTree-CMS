@@ -36,7 +36,7 @@
 				// We're trying to use an image from the Image Browser.
 				if (substr($field["output"],0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
-					$resource = $admin->getResourceByFile(str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),substr($field["output"],11)));
+					$resource = $admin->getResourceByFile(substr($field["output"],11));
 					$resource_location = str_replace(array("{wwwroot}",WWW_ROOT,"{staticroot}",STATIC_ROOT),SITE_ROOT,$resource["file"]);
 
 					// See if the file was actually stored in the cloud

@@ -1,5 +1,5 @@
 <h2>Crop Images</h2>
-<form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/">
+<form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/" id="crop_form">
 	<div class="overflow">
 		<p>You have <?=count($bigtree["crops"])?> image<? if (count($bigtree["crops"]) > 1) { ?>s<? } ?> that need<? if (count($bigtree["crops"]) == 1) { ?>s<? } ?> to be cropped.</p>
 		<input type="hidden" name="return_page" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />

@@ -67,7 +67,7 @@
 	h1 .authorize, .box_select .authorize { background-position: -124px -214px; }
 	h1 .linkpoint, .box_select .linkpoint { background-position: -155px -214px; }
 	h1 .payflow, .box_select .payflow { background-position: -190px -214px; }
-	h1 .crop { background-position: -896px -16px; }
+	h1 .crop, .box_select .crop { background-position: -672px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
 	h1 .edit_page { background-position: -64px -48px; }
@@ -793,6 +793,7 @@
 	.photo_gallery_widget .file_wrapper { margin: 0; }
 	.bigtree_dialog_form .photo_gallery_widget footer { overflow: hidden; }
 	.bigtree_dialog_form .photo_gallery_widget .or, .bigtree_dialog_form .photo_gallery_widget .form_image_browser { display: none; }
+	.bigtree_dialog_form .photo_gallery_widget li:nth-child(9n), .front_end_editor .photo_gallery_widget li:nth-child(9n) { margin-right: 10px; }
 
 /* Cropper Styles */
 	#cropper { overflow: hidden; }
@@ -1199,7 +1200,7 @@
 	.bigtree_dialog_form textarea { display: block; width: 418px; }
 	.bigtree_dialog_form p.confirm { font-size: 14px; padding: 20px; }
 	.bigtree_dialog_form hr { background: #ccc; border: none; height: 1px; margin: 0px -20px 15px -20px; }
-	.bigtree_dialog_form footer a { margin: 0 10px 0 0; }
+	.bigtree_dialog_form > footer a { margin: 0 10px 0 0; }
 
 	.bigtree_dialog_form .image_attr { overflow: hidden; }
 	.bigtree_dialog_form .image_attr ul { list-style: none; margin: 0; overflow: hidden; }
