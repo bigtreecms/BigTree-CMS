@@ -157,7 +157,7 @@
 	});
 
 	window.onbeforeunload = function(ev) {
-		BigTree.Growl("Cropping Image","Please crop your images before leaving this page.","error");
+		BigTree.Growl("Cropping Image","Please crop your images before leaving this page.","5000","error");
 		return false;
 	};
 </script>
