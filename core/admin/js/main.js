@@ -356,7 +356,7 @@ var BigTreeSelect = function(element) {
 
 					// If the options would hang off the window, shrink the options menu down
 					var offset = select_options.offset().top - window.scrollY + select_options.height();
-					var difference = offset - BigTree.WindowHeight();
+					var difference = offset - BigTree.windowHeight();
 					if (difference > 0) {
 						select_options.css({ height: select_options.height() - difference - 5 + "px" });
 					}
