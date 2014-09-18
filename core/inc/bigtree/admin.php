@@ -6997,8 +6997,6 @@
 			$page = sqlescape($page);
 
 			// Save the existing copy as a draft, remove drafts for this page that are one month old or older.
-			sqlquery("DELETE FROM bigtree_page_revisions WHERE page = '$page' AND updated_at < '".date("Y-m-d",strtotime("-31 days"))."' AND saved != 'on'");
-			// Get the current copy
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
 			foreach ($current as $key => $val) {
 				$$key = sqlescape($val);
