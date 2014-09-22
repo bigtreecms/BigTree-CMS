@@ -1,6 +1,12 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["templates"];
+
+	if (isset($_GET["return"])) {
+?>
+<input type="hidden" name="return_to_front" value="<?=$_GET["return"]?>" />
+<?
+	}
 ?>
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
