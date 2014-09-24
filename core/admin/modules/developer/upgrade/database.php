@@ -474,6 +474,9 @@
 		sqlquery("CREATE TABLE `bigtree_login_attempts` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `ip` int(11) DEFAULT NULL, `user` int(11) DEFAULT NULL, `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 		sqlquery("CREATE TABLE `bigtree_login_bans` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `ip` int(11) DEFAULT NULL, `user` int(11) DEFAULT NULL, `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP, `expires` datetime DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 
+		// Media settings
+		sqlquery("INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-media-settings','{}','on')");
+
 		// New field types
 		unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
@@ -492,7 +495,7 @@
 							"id" => $field["key"],
 							"type" => $field["type"],
 							"title" => $field["title"],
-							"display_title" = ($x == 1) ? "on" : ""
+							"display_title" => ($x == 1) ? "on" : ""
 						);
 					}
 					unset($item["fields"]);
@@ -527,7 +530,7 @@
 							"id" => $field["key"],
 							"type" => $field["type"],
 							"title" => $field["title"],
-							"display_title" = ($x == 1) ? "on" : ""
+							"display_title" => ($x == 1) ? "on" : ""
 						);
 					}
 					unset($item["fields"]);
@@ -569,6 +572,39 @@
 		while ($f = sqlfetch($q)) {
 			$fields = $field_converter(json_decode($f["fields"],true));
 			sqlquery("UPDATE bigtree_module_embeds SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
+		}
+		// Settings
+		$q = sqlquery("SELECT * FROM bigtree_settings WHERE type = 'array'");
+		while ($f = sqlfetch($q)) {
+			// Update settings options to turn array into matrix
+			$options = json_decode($f["options"],true);
+			$options["columns"] = array();
+			$x = 0;
+			foreach ($options["fields"] as $field) {
+				$x++;
+				$options["columns"][] = array(
+					"id" => $field["key"],
+					"type" => $field["type"],
+					"title" => $field["title"],
+					"display_title" => ($x == 1) ? "on" : ""
+				);
+				if ($x == 1) {
+					$display_key = $field["key"];
+				}
+			}
+			unset($options["fields"]);
+
+			// Update the value to set an internal title key
+			$value = BigTreeCMS::getSetting($f["id"]);
+			foreach ($value as &$entry) {
+				$entry["__internal-title"] = $entry[$display_key];
+			}
+			unset($entry);
+
+			// Update type/options
+			sqlquery("UPDATE bigtree_settings SET type = 'matrix', options = '".BigTree::json($options,true)."' WHERE id = '".$f["id"]."'");
+			// Update value separately
+			BigTreeAdmin::updateSettingValue($f["id"],$value);
 		}
 	}
 ?>
