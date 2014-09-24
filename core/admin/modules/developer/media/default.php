@@ -7,11 +7,6 @@
 		<a class="add" href="#"><span></span>Add</a>
 	</summary>
 	<ul>
-		<li>
-			<section class="developer_templates_name">File Manager Image Presets</section>
-			<section class="view_action"><a href="#" class="icon_edit"></a></section>
-			<section class="view_action"><span class="icon_delete disabled_icon"></span></section>
-		</li>
 		<? foreach (array_filter((array)$settings["presets"]) as $preset) { ?>
 		<li>
 			<input type="hidden" value="<?=htmlspecialchars(json_encode($preset))?>" />
@@ -37,13 +32,17 @@
 					icon: "add",
 					content: e.responseText,
 					callback: function(data) {
-						var li = new $("<li>");
-						li.html('<input type="hidden" />' +
-								'<section class="developer_templates_name">' + htmlspecialchars(data.name) + '</section>' +
-								'<section class="view_action"><a href="#" class="icon_edit"></a></section>' +
-								'<section class="view_action"><a href="#" class="icon_delete"></a></section>');
-						li.find("input").val(JSON.stringify(data));
-						List.append(li);
+						// We update the DB first because we need the random ID that's created
+						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data, complete: function(response) {
+							data.id = response.responseText;
+							var li = new $("<li>");
+							li.html('<input type="hidden" />' +
+									'<section class="developer_templates_name">' + htmlspecialchars(data.name) + '</section>' +
+									'<section class="view_action"><a href="#" class="icon_edit"></a></section>' +
+									'<section class="view_action"><a href="#" class="icon_delete"></a></section>');
+							li.find("input").val(JSON.stringify(data));
+							List.append(li);
+						}});
 					}
 				});
 			}});
@@ -59,7 +58,11 @@
 				icon: "delete",
 				alternateSaveText: "OK",
 				callback: function() {
+					var data = JSON.parse(Current.find("input").val());
+					// Remove from DOM
 					Current.remove();
+					// Remove from DB
+					$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", id: data.id });
 				}
 			});
 		}
@@ -74,8 +77,11 @@
 					icon: "edit",
 					content: e.responseText,
 					callback: function(data) {
+						// Update DOM
 						Current.find(".developer_templates_name").html(htmlspecialchars(data.name));
 						Current.find("input").val(JSON.stringify(data));
+						// Update DB
+						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data });
 					}
 				});
 			}});
