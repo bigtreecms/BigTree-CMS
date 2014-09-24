@@ -1,3 +1,15 @@
+<?
+	// If we're using a preset, the prefix may be there
+	if ($field["options"]["preset"]) {
+		if (!isset($bigtree["media_settings"])) {
+			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
+		}
+		$preset = $bigtree["media_settings"]["presets"][$field["options"]["preset"]];
+		if (!empty($preset["preview_prefix"])) {
+			$field["options"]["preview_prefix"] = $preset["preview_prefix"];
+		}
+	}
+?>
 <div class="<? if (!isset($field["options"]["image"]) || !$field["options"]["image"]) { ?>upload_field<? } else { ?>image_field<? } ?>">
 	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" />
 	<?	

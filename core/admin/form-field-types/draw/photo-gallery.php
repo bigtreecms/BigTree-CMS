@@ -7,11 +7,23 @@
 		"minWidth" => $field["options"]["min_width"],
 		"minHeight" => $field["options"]["min_height"]
 	)));
+
+	// If we're using a preset, the prefix may be there
+	if ($field["options"]["preset"]) {
+		if (!isset($bigtree["media_settings"])) {
+			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
+		}
+		$preset = $bigtree["media_settings"]["presets"][$field["options"]["preset"]];
+		if (!empty($preset["preview_prefix"])) {
+			$field["options"]["preview_prefix"] = $preset["preview_prefix"];
+		}
+	}
 ?>
 <div class="photo_gallery_widget" id="<?=$field["id"]?>">
 	<ul>
 		<?
 			foreach ($photos as $photo) {
+
 				if ($field["options"]["preview_prefix"]) {
 					$preview_image = BigTree::prefixFile($photo["image"],$field["options"]["preview_prefix"]);
 				} else {
