@@ -5728,6 +5728,18 @@
 			$itype = $image_info[2];
 			$channels = $image_info["channels"];
 
+			// See if we're using image presets
+			if ($field["options"]["preset"]) {
+				$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+				$preset = $media_settings["presets"][$field["options"]["preset"]];
+				// If the preset still exists, copy its properties over to our options
+				if ($preset) {
+					foreach ($preset as $key => $val) {
+						$field["options"][$key] = $val;
+					}
+				}
+			}
+
 			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
 			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
 				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
