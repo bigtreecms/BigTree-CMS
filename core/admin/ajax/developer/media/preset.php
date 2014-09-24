@@ -7,5 +7,6 @@
 </fieldset>
 <?
 	$data = $_POST;
+	define("BIGTREE_CREATING_PRESET",true);
 	include BigTree::path("admin/ajax/developer/field-options/_image-options.php");
 ?>

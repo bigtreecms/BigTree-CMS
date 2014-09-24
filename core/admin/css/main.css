@@ -1215,6 +1215,7 @@
 	.bigtree_dialog_form .image_attr ul li.colormode { text-align: center; width: 22px; }
 	.bigtree_dialog_form .image_attr ul li.colormode a { background: url(../images/icon-sprite.svg) -185px -105px; display: inline-block; height: 16px; margin: 3px 0 0 0; width: 16px; }
 	.bigtree_dialog_form .image_attr ul li.colormode a.gray { background-position: -185px -121px; }
+	.bigtree_dialog_form .image_attr ul li a.disabled { cursor: default; opacity: 0.3; }
 	.bigtree_dialog_form .image_attr .thumbed { position: relative; }
 	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 105px; }
 	.bigtree_dialog_form .image_attr input.image_attr_thumbs { padding-left: 23px; width: 89px; }
