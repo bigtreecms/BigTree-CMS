@@ -29,6 +29,7 @@
 		<?
 			$crop_count = 0;
 			$crop_thumb_count = 0;
+			$crop_sub_count = 0;
 			if (is_array($data["crops"])) {
 				foreach ($data["crops"] as $crop) {
 					// In case a crop was added but no options were set
@@ -45,12 +46,13 @@
 			<li>
 				<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" disabled="disabled" />
 			</li>
-			<li class="thumbnail"><a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="disabled"></a></li>
-			<li class="colormode">
+			<li class="actions">
+				<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop disabled"></a>
+				<a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="thumbnail disabled"></a>
 				<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#<?=$crop_count?>" title="Remove" class="disabled delete"></a>
 			</li>
-			<li class="del"><a href="#<?=$crop_count?>" title="Remove" class="disabled"></a></li>
 		</ul>
 		<?
 						if (is_array($crop["thumbs"])) {
@@ -70,12 +72,41 @@
 			<li>
 				<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" disabled="disabled" />
 			</li>
-			<li class="up"><span class="icon_small icon_small_up"></span></li>
-			<li class="colormode">
+			<li class="actions">
+				<span class="icon_small icon_small_up disabled"></span>
 				<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled<? if ($thumb["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($thumb["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Remove" class="disabled delete"></a>
 			</li>
-			<li class="del"><a href="#" title="Remove" class="disabled"></a></li>
+		</ul>
+		<?
+								}
+							}
+						}
+
+						if (is_array($crop["center_crops"])) {
+							foreach ($crop["center_crops"] as $crop) {
+								// In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
+								if (is_array($crop) && $crop["prefix"] && $crop["width"] && $crop["height"]) {
+									$crop_sub_count++;
+		?>
+		<ul class="image_attr_thumbs_<?=$crop_count?>">
+			<li class="thumbed">
+				<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
+				<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" disabled="disabled" />
+			</li>
+			<li>
+				<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" disabled="disabled" />
+			</li>
+			<li>
+				<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" disabled="disabled" />
+			</li>
+			<li class="actions">
+				<span class="disabled icon_small icon_small_up"></span>
+				<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Remove" class="disabled delete"></a>
+			</li>
 		</ul>
 		<?
 								}
@@ -114,11 +145,50 @@
 			<li>
 				<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" disabled="disabled" />
 			</li>
-			<li class="colormode">
-				<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled<? if ($thumb["grayscale"]) { ?> gray<? } ?>"></a>
+			<li class="actions for_thumbnail">
+				<input type="hidden" name="thumbs[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#<?=$crop_count?>" title="Remove" class="disabled delete"></a>
 			</li>
-			<li class="del"><a href="#" title="Remove" class="disabled"></a></li>
+		</ul>
+		<?
+					}
+				}
+			}
+		?>
+	</div>
+</fieldset>
+
+<h4>Center Crops <small>(automatically crops from the center of image)</small> <a href="#" class="add_center_crop icon_small icon_small_add" style="display: none;"></a></h4>
+<fieldset>
+	<div class="image_attr" id="pop_center_crop_list">
+		<ul>
+			<li>Prefix:</li><li>Width:</li><li>Height:</li>
+		</ul>
+		<?
+			// Keep a count of center crops
+			$center_crop_count = 0;
+			if (is_array($data["center_crops"])) {
+				foreach ($data["center_crops"] as $crop) {
+					// Make sure a width and height was entered or it's pointless
+					if (is_array($crop) && ($crop["width"] && $crop["height"])) {
+						$center_crop_count++;
+		?>
+		<ul>
+			<li>
+				<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" disabled="disabled" />
+			</li>
+			<li>
+				<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" disabled="disabled" />
+			</li>
+			<li>
+				<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" disabled="disabled" />
+			</li>
+			<li class="actions for_thumbnail">
+				<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#<?=$center_crop_count?>" title="Remove" class="disabled delete"></a>
+			</li>
 		</ul>
 		<?
 					}
@@ -129,6 +199,6 @@
 </fieldset>
 <script>
 	try {
-		ImageOptions.updateCounts(<?=$crop_count?>,<?=$crop_thumb_count?>,<?=$thumb_count?>);
+		ImageOptions.updateCounts(<?=$crop_count?>,<?=$crop_thumb_count?>,<?=$thumb_count?>,<?=$center_crop_count?>,<?=$crop_sub_count?>);
 	} catch (err) {}
 </script>

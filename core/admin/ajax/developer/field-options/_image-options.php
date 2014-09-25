@@ -224,9 +224,9 @@
 					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="center_crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
 					<a href="#" title="Switch Color Mode" class="color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
-					<a href="#<?=$crop_count?>" title="Remove" class="delete"></a>
+					<a href="#<?=$center_crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
 			<?
@@ -297,10 +297,12 @@
 				'</li></ul>');
 		}
 
-		function updateCounts(crop,crop_thumb,thumb) {
+		function updateCounts(crop,crop_thumb,thumb,center_crop,crop_sub) {
 			CropCount = crop;
 			CropThumbCount = crop_thumb;
 			ThumbCount = thumb;
+			CenterCropCount = center_crop;
+			CropSubCount = crop_sub;
 		}
 
 		// Prevent clicks to disabled things
