@@ -70,12 +70,14 @@
 				newfile - The location to save the new cropped image.
 				cw - The crop width.
 				ch - The crop height.
+				retina - Whether to try to create a retina crop (2x, defaults false)
+				grayscale - Whether to convert to grayscale (defaults false)
 
 			Returns:
 				The new file name if successful, false if there was not enough memory available.
 		*/
 		
-		static function centerCrop($file, $newfile, $cw, $ch) {
+		static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
 			list($w, $h) = getimagesize($file);
 			
 			// Find out what orientation we're cropping at.
@@ -87,11 +89,11 @@
 				$nw = $w * $v;
 				$x = ceil(($nw - $cw) / 2 * $w / $nw);
 				$y = 0;
-				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h);
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h,$retina,$grayscale);
 			} else {
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
-				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2));
+				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2),$retina,$grayscale);
 			}
 		}
 
