@@ -1,11 +1,20 @@
 <?
 	// Generate a hash of everything posted
 	$complete_string = "";
-	foreach ($_POST as $key => $val) {
-		if ($key != "_bigtree_hashcash") {
-			$complete_string .= $val;
+	$hash_recurse = function($array) {
+		global $complete_string,$hash_recurse;
+		foreach ($array as $key => $val) {
+			if ($key != "_bigtree_hashcash") {
+				if (is_array($val)) {
+					$hash_recurse($val);
+				} else {
+					$complete_string .= $val;
+				}
+			}
 		}
-	}
+	};
+	$hash_recurse($_POST);
+
 	// Stop Robots - See if it matches the passed hash and that _bigtree_email wasn't filled out
 	if ($_POST["_bigtree_hashcash"] != md5($complete_string) || $_POST["_bigtree_email"]) {
 		$_SESSION["bigtree_admin"]["post_hash_failed"] = true;
