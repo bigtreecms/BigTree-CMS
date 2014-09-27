@@ -91,7 +91,7 @@
 			elements: "<?=implode(",",$bigtree["html_fields"])?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
-			plugins: "code,anchor,image,link,paste,table,visualblocks,lists",
+			plugins: "code,anchor,image,link,paste,table,visualblocks,lists,hr",
 			toolbar: "undo redo | styleselect | bold italic | bullist numlist outdent indent | hr anchor link unlink image table | paste | visualblocks code",
 			paste_remove_spans: true,
 			paste_remove_styles: true,
