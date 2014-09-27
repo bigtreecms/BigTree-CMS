@@ -2369,6 +2369,7 @@ var BigTreeFormValidator = function(selector,callback) {
 
 				return false;
 			} else {
+				window.onbeforeunload = null;
 				return true;
 			}
 		};
@@ -2383,6 +2384,13 @@ var BigTreeFormValidator = function(selector,callback) {
 		// Make forms verify you wish to leave if you've made changes
 		Form.data("initial-state",Form.serialize());
 		window.onbeforeunload = function(ev) {
+			// Try to save TinyMCE fields
+			try {
+				for (editor_id in tinymce.editors) {
+					tinymce.editors[editor_id].save();
+				}
+			} catch (er) {}
+
 			if (Form.serialize() != Form.data("initial-state")) {
 				BigTree.growl("Unsaved Changes","You have unsaved changes. Verify you wish to leave the page.","5000","error");
 				return false;

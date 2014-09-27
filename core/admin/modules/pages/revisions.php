@@ -178,8 +178,10 @@
 			BigTreeDialog({
 				title: "Use Revision",
 				content: '<p class="confirm">Are you sure you want to overwrite your existing draft with this revision?</p>',
-				alternateSaveText: "Overwrite"
-				callback: $.proxy(function() { document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href")); },this)
+				alternateSaveText: "Overwrite",
+				callback: $.proxy(function() {
+					document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href"));
+				},this)
 			});
 		} else {
 			document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href"));
