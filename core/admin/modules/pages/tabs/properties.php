@@ -8,6 +8,9 @@
 		"180" => "180 Days",
 		"365" => "1 Year"
 	);
+
+	$basic_templates = $admin->getBasicTemplates();
+	$routed_templates = $admin->getRoutedTemplates();
 	
 	if (isset($bigtree["current_page"]["nav_title"])) {
 		$parent_to_check = $bigtree["current_page"]["parent"];
@@ -25,6 +28,7 @@
 			"in_nav" => ($parent_to_check > 0 || $admin->Level > 1) ? "on" : "",
 			"external" => "",
 			"new_window" => "",
+			"template" => isset($basic_templates[0]) ? $basic_templates[0]["id"] : $routed_templates[0]["id"],
 			"resources" => array(),
 			"tags" => false,
 			"route" => "",
@@ -32,9 +36,6 @@
 			"meta_description" => ""
 		);
 	}
-
-	$basic_templates = $admin->getBasicTemplates();
-	$routed_templates = $admin->getRoutedTemplates();
 
 	if ($bigtree["form_action"] == "create" && $_SESSION["bigtree_admin"]["post_max_hit"]) {
 		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
