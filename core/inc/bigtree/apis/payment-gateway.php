@@ -17,16 +17,13 @@
 		*/
 		
 		function __construct() {
-			$admin = new BigTreeAdmin;
-			$s = $admin->getSetting("bigtree-internal-payment-gateway");
+			$s = BigTreeAdmin::getSetting("bigtree-internal-payment-gateway");
+
+			// Setting doesn't exist? Create it.
 			if ($s === false) {
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-payment-gateway",
-					"system" => "on",
-					"encrypted" => "on"
-				));
+				sqlquery("INSERT INTO bigtree_settings (`id`,`system`,`encrypted`) VALUES ('bigtree-internal-payment-gateway','on','on')");
 				$s = array("service" => "", "settings" => array());
-				$admin->updateSettingValue("bigtree-internal-payment-gateway",$s);
+				BigTreeAdmin::updateSettingValue("bigtree-internal-payment-gateway",$s);
 			}
 
 			// If for some reason the setting doesn't exist, make one.
@@ -1106,7 +1103,7 @@
 				Fetches a new authorization token from PayPal's OAuth servers.
 		*/
 
-		protected function paypalRESTTokenRequest() {
+		function paypalRESTTokenRequest() {
 			if ($this->Settings["paypal-rest-environment"] == "test") {
 				$url = "api.sandbox.paypal.com";
 			} else {

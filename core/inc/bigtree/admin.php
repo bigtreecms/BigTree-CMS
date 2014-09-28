@@ -4862,23 +4862,26 @@
 			global $bigtree;
 			$id = BigTreeCMS::extensionSettingCheck($id);
 			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+			
 			// Setting doesn't exist
 			if (!$setting) {
 				return false;
 			}
 
+			// Encrypted setting
 			if ($setting["encrypted"]) {
 				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
 				$setting["value"] = $v["value"];
 			}
 
-			$setting["value"] = json_decode($f["value"],true);
-
+			// Decode the JSON value
 			if ($decode) {
+				$setting["value"] = json_decode($setting["value"],true);
+	
 				if (is_array($setting["value"])) {
-					$setting["value"] = BigTree::untranslateArray($f["value"]);
+					$setting["value"] = BigTree::untranslateArray($setting["value"]);
 				} else {
-					$setting["value"] = BigTreeCMS::replaceInternalPageLinks($f["value"]);
+					$setting["value"] = BigTreeCMS::replaceInternalPageLinks($setting["value"]);
 				}
 			}
 
