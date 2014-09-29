@@ -322,6 +322,7 @@
 			$matches = array();
 			$pattern = "#^(?:".implode("|", $cards).")$#";
 			$result = preg_match($pattern, str_replace(" ", "", $card_number), $matches);
+
 			if ($result > 0) {
 				return $names[count($matches) - 2];
 			}
@@ -612,31 +613,35 @@
 				$transaction_details = false;
 			}
 
+			// Setup credit card payment array
+			$cc_array = array(
+				"number" => $card_number,
+				"type" => $this->cardType($card_number),
+				"expire_month" => $card_expiration_month,
+				"expire_year" => $card_expiration_year,
+				"cvv2" => $cvv,
+				"first_name" => $first_name,
+				"last_name" => $last_name,
+				"billing_address" => array(
+					"line1" => $address["street"],
+					"line2" => $address["street2"],
+					"city" => $address["city"],
+					"state" => $address["state"],
+					"postal_code" => $address["zip"],
+					"country_code" => $country
+				)
+			);
+
+			// Remove blank values, REST API doesn't like them
+			$cc_array["billing_address"] = array_filter($cc_array["billing_address"]);
+			$cc_array = array_filter($cc_array);
+
+			// Full transaction array
 			$data = array(
 				"intent" => $action,
 				"payer" => array(
 					"payment_method" => "credit_card",
-					"funding_instruments" => array(
-						array(
-							"credit_card" => array(
-								"number" => $card_number,
-								"type" => $this->cardType($card_number),
-								"expire_month" => $card_expiration_month,
-								"expire_year" => $card_expiration_year,
-								"cvv2" => $cvv,
-								"first_name" => $first_name,
-								"last_name" => $last_name,
-								"billing_address" => array(
-									"line1" => $address["street"],
-									"line2" => $address["street2"],
-									"city" => $address["city"],
-									"state" => $address["state"],
-									"postal_code" => $address["zip"],
-									"country_code" => $country
-								)
-							)
-						)
-					)
+					"funding_instruments" => array(array("credit_card" => $cc_array))
 				),
 				"transactions" => array(array(
 					"amount" => array(
@@ -644,7 +649,7 @@
 						"currency" => "USD"
 					)
 				))
-			);
+			);			
 
 			if ($transaction_details) {
 				$data["transactions"][0]["amount"]["details"] = $transaction_details;
@@ -1099,11 +1104,11 @@
 		}
 
 		/*
-			Function: paypalRESTTokenRequest
+			Function: payPalRESTTokenRequest
 				Fetches a new authorization token from PayPal's OAuth servers.
 		*/
 
-		function paypalRESTTokenRequest() {
+		function payalRESTTokenRequest() {
 			if ($this->Settings["paypal-rest-environment"] == "test") {
 				$url = "api.sandbox.paypal.com";
 			} else {
@@ -1294,7 +1299,7 @@
 			// See if we can get a country code
 			$country = isset($this->CountryCodes[strtoupper($address["country"])]) ? $this->CountryCodes[strtoupper($address["country"])] : $address["country"];
 
-			$data = json_encode(array(
+			$data = array(
 				"payer_id" => $user_id,
 				"number" => $number,
 				"type" => $this->cardType($number),
@@ -1311,9 +1316,13 @@
 					"postal_code" => $address["zip"],
 					"country_code" => $country
 				)
-			));
+			);
 
-			$response = $this->sendPayPalREST("vault/credit-card",$data);
+			// Remove blank values, REST API doesn't like them
+			$data["billing_address"] = array_filter($data["billing_address"]);
+			$data = array_filter($data);
+
+			$response = $this->sendPayPalREST("vault/credit-card",json_encode($data));
 			if ($response->state == "ok") {
 				return $response->id;
 			}
