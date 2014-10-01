@@ -11,7 +11,7 @@
 
 	$basic_templates = $admin->getBasicTemplates();
 	$routed_templates = $admin->getRoutedTemplates();
-	
+
 	if (isset($bigtree["current_page"]["nav_title"])) {
 		$parent_to_check = $bigtree["current_page"]["parent"];
 	} else {

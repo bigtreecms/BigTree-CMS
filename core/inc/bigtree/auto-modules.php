@@ -1174,7 +1174,9 @@
 			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
 			if (!defined("MODULE_ROOT")) {
 				$module = sqlfetch(sqlquery("SELECT route FROM bigtree_modules WHERE id = '".$view["module"]."'"));
-				define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+				$module_root = ADMIN_ROOT.$module["route"]."/";
+			} else {
+				$module_root = MODULE_ROOT;
 			}
 			
 			$view["actions"] = json_decode($view["actions"],true);
@@ -1192,9 +1194,9 @@
 						// Try any action with this form
 						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
 					}
-					$view["edit_url"] = MODULE_ROOT.$f["route"]."/";
+					$view["edit_url"] = $module_root.$f["route"]."/";
 				} else {
-					$view["edit_url"] = MODULE_ROOT."edit/";
+					$view["edit_url"] = $module_root."edit/";
 				}
 			}
 			

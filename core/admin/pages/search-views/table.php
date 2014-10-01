@@ -67,7 +67,7 @@
 
 <script>
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {
-		document.location.href = "<?=$view["edit_url"]?>/" + $(this).attr("href").substr(1) + "/";
+		document.location.href = "<?=$view["edit_url"]?>" + $(this).attr("href").substr(1) + "/";
 		return false;
 	});
 			
