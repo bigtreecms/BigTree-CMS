@@ -29,7 +29,15 @@
 				$ti = "Link";
 			}
 			foreach ($errors as $error) {
-				echo '<li><section class="integrity_errors"><a href="'.ADMIN_ROOT.'pages/edit/'.$id.'/" target="_blank">Edit</a><span class="icon_small icon_small_warning"></span><p>Broken '.$ti.': '.$error.' on page &ldquo;'.$page["nav_title"].'&rdquo;</p></section></li>';
+?>
+<li>
+	<section class="integrity_errors">
+		<a href="<?=ADMIN_ROOT."pages/edit/$id/"?>" target="_blank">Edit</a>
+		<span class="icon_small icon_small_warning"></span>
+		<p>Broken <?=$ti?>: <?=$error?> on page &ldquo;<?=$page["nav_title"]?>&rdquo;</p>
+	</section>
+</li>
+<?
 			}
 		}
 	}
