@@ -12,8 +12,8 @@
 			}
 		});
 		$(".autosave").blur(function() {
+			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
 			BigTree.localCurrentField = $(this).attr("name");
-			save404();
 		});
 	
 		$(".icon_archive").click(function() {
