@@ -20,6 +20,22 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.6 Release
+- FIXED: Module Designer not setting id columns to UNSIGNED
+- FIXED: Failed BigTreeAutoModule::createItem causing empty cache entries (now properly returns false as well)
+- FIXED: 404 Manager not supporting internal page link encoding
+- FIXED: 404 Manager throwing a Javascript error on blur (could also cause 404s to fail to save properly if you tab through)
+- FIXED: Multiple crops not working when using the front end editor
+- FIXED: Really bad readability scores (i.e. tables of data) leading to negative SEO scores
+- FIXED: Publishing a page from Pending Changes leading to an expired page
+- FIXED: Dropdown options in styled <select>s getting cut off on short screens when used in dialogs.
+- FIXED: Return page when updating a user fails
+- FIXED: Date & Time field using a time format (g:ia) that was inconsistent with other places (h:ia elsewhere)
+- FIXED: Missing </p> in delete user dialog
+- FIXED: Improper grammer in environment alert (thanks to jono_hayward on the forums)
+- FIXED/UPDATED: Default .htaccess for "Advanced" routing now includes latest deflate settings from HTML5 Boilerplate (fixes some edge case deflate issues)
+- FIXED: Sorting issues when returning to a searchable view after interacting with a form
+
 ### 4.0.5 Release
 - FIXED: "Advanced" routing settings should now function properly in Apache 2.4 (requires a new install as .htaccess is written during an install)
 - FIXED: Tab indexes in the installer
