@@ -58,6 +58,7 @@ Changelog
 - FIXED: Advanced Search having wrong edit URLs after the first tab
 - FIXED: Site Integrity Check failing to show edit links for modules
 - FIXED: 404 Manager throwing a Javascript error on blur (could also cause 404s to fail to save properly if you tab through)
+- FIXED: Base SQL being for 4.1 instead of 4.1.1 (resolves warning on first login of a clean install)
 - CHANGED: BigTree::directoryContents no longer includes .git / .gitignore unless requested
 
 ### 4.1.1 Release
