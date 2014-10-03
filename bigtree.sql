@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS `bigtree_audit_trail`;
 CREATE TABLE `bigtree_audit_trail` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`user` int(11) unsigned NOT NULL,`table` varchar(255) NOT NULL,`entry` varchar(255) NOT NULL DEFAULT '',`type` varchar(255) NOT NULL,`date` datetime NOT NULL,PRIMARY KEY (`id`),KEY `user` (`user`),KEY `table` (`table`),KEY `entry` (`entry`),KEY `date` (`date`),CONSTRAINT `bigtree_audit_trail_ibfk_1` FOREIGN KEY (`user`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_caches`;
-CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(1000) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(10000) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_callout_groups`;
 CREATE TABLE `bigtree_callout_groups` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `name` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `bigtree_feeds`;
 CREATE TABLE `bigtree_feeds` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`route` varchar(255) NOT NULL,`name` varchar(255) NOT NULL,`description` text NOT NULL,`type` varchar(255) NOT NULL,`table` varchar(255) NOT NULL,`fields` text NOT NULL,`options` text NOT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_field_types`;
-CREATE TABLE `bigtree_field_types` (`id` varchar(255) NOT NULL DEFAULT '',`name` varchar(255) NOT NULL,`pages` char(2) NOT NULL,`modules` char(2) NOT NULL,`callouts` char(2) NOT NULL DEFAULT '',`settings` char(2) NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_field_types` (`id` varchar(255) NOT NULL DEFAULT '', `name` varchar(255) NOT NULL, `use_cases` text NOT NULL, `self_draw` char(2) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_locks`;
 CREATE TABLE `bigtree_locks` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`user` int(11) unsigned NOT NULL,`table` varchar(255) NOT NULL,`item_id` varchar(255) NOT NULL,`last_accessed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`title` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `user` (`user`),KEY `table` (`table`),KEY `item_id` (`item_id`),CONSTRAINT `bigtree_locks_ibfk_1` FOREIGN KEY (`user`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -97,7 +97,7 @@ INSERT INTO `bigtree_settings` (`id`,`type`,`name`,`description`) VALUES ('bigtr
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-storage','{"service":"local"}','on');
 INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `description`, `locked`, `system`, `encrypted`) VALUES ('bigtree-file-manager-thumbnail-sizes', X'5B7B227469746C65223A22536D616C6C222C22707265666978223A22736D616C6C5F222C227769647468223A22313530222C22686569676874223A22313030227D2C7B227469746C65223A224D656469756D222C22707265666978223A226D656469756D5F222C227769647468223A22333030222C22686569676874223A22323030227D2C7B227469746C65223A224C61726765222C22707265666978223A226C617267655F222C227769647468223A22383030222C22686569676874223A22363030227D5D', 'array', '{\"fields\":[{\"key\":\"title\",\"title\":\"Title\",\"type\":\"text\"},{\"key\":\"prefix\",\"title\":\"File Prefix (i.e. thumb_)\",\"type\":\"text\"},{\"key\":\"width\",\"title\":\"Width\",\"type\":\"text\"},{\"key\":\"height\",\"title\":\"Height\",\"type\":\"text\"}]}', 'File Manager Thumbnail Sizes', '', 'on', '', '');
 INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `description`, `locked`, `system`, `encrypted`) VALUES ('bigtree-internal-per-page', X'3135', 'text', '', 'Number of Items Per Page', '<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>', 'on', '', '');
-INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-revision','100','on');
+INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-revision','103','on');
 
 INSERT INTO `bigtree_templates` (`id`, `name`, `module`, `resources`, `position`, `level`, `routed`) VALUES ('home', 'Home', 0, '[]', 0, 2, ''), ('content', 'Content', 0, '[{"id":"page_header","title":"Page Header","subtitle":"","type":"text","validation":"","seo_h1":"on","sub_type":"","wrapper":"","name":""},{"id":"page_content","title":"Page Content","subtitle":"","type":"html","validation":"","seo_body":"on","wrapper":"","name":""}]', 1, 0, '');
 
