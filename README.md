@@ -20,6 +20,46 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.2 Release
+- FIXED: Editing HTML fields in the Array of Items field type when using TinyMCE 4
+- FIXED: Cloud Storage APIs throwing a warning when in PHP's safe mode
+- FIXED: Sorting issues when returning to a searchable view after interacting with a form
+- FIXED: Cloud Storage allowing you to choose a not-yet-connected storage service as the default storage service.
+- FIXED: Google Cloud Storage instructions and return page
+- FIXED/UPDATED: Default .htaccess for "Advanced" routing now includes latest deflate settings from HTML5 Boilerplate (fixes some edge case deflate issues)
+- FIXED: Cropping and other issues when using a cloud storage URL as your static root.
+- FIXED: Improper grammer in environment alert (thanks to jono_hayward on the forums)
+- FIXED: Missing </p> in delete user dialog
+- FIXED: Date & Time field using a time format (g:ia) that was inconsistent with other places (h:ia elsewhere)
+- FIXED: Return page when updating a user fails
+- FIXED: Dropdowns in WebKit/Blink when using .callout_fields but not #callout_resources.
+- FIXED: Footers in dialogs having improper styling of regular links
+- FIXED: Dropdown options in styled <select>s getting cut off on short screens when used in dialogs.
+- FIXED: Missing edit link for pending changes
+- FIXED: Publishing a page from Pending Changes leading to an expired page
+- FIXED: Really bad readability scores (i.e. tables of data) leading to negative SEO scores
+- FIXED: Multiple crops not working when using the front end editor
+- FIXED: Photo Gallery styles in callouts / front end editor
+- FIXED: Embeddable forms not submitting if not logged into the admin
+- FIXED: Hash table in OAuth classes throwing warnings.
+- FIXED: 404 Manager not supporting internal page link encoding
+- FIXED: Failed BigTreeAutoModule::createItem causing empty cache entries (now properly returns false as well)
+- FIXED: Module Designer not setting id columns to UNSIGNED
+- FIXED: Error Reporting shouldn't throw STRICT errors
+- FIXED: Crop Message icon showing check instead of X
+- FIXED: Crop icon in H1
+- FIXED: Page revisions being deleted if they were > 31 days old (should preserve up to 10 revisions even if they're older than a month)
+- FIXED: Downloading an update field being accessible to non-developers
+- FIXED: Embeddable Form data not validating when using form field types that produced array output
+- FIXED: Horizontal Rule not working in TinyMCE 4
+- FIXED: AJAX call occurring when editing a page (shouldn't need that) that slowed down page edits
+- FIXED: PayPal REST API authentication
+- FIXED: PayPal REST API calls failing if any (optional) fields were left blank (i.e. address line2)
+- FIXED: Advanced Search having wrong edit URLs after the first tab
+- FIXED: Site Integrity Check failing to show edit links for modules
+- FIXED: 404 Manager throwing a Javascript error on blur (could also cause 404s to fail to save properly if you tab through)
+- CHANGED: BigTree::directoryContents no longer includes .git / .gitignore unless requested
+
 ### 4.1.1 Release
 - ADDED: Front ends of sites should now receive the "bigtree_bar_closed" class on the body when the BigTree Bar is in its tab mode.
 - ADDED: A confirmation dialog when trying to navigate away from a page where you are cropping images.
