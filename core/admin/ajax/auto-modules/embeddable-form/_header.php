@@ -10,13 +10,33 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<? if ($form["css"]) { ?>
+		<?
+			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
+				foreach ($bigtree["css"] as $style) {
+		?>
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
+		<?
+				}
+			}
+			if ($form["css"]) {
+		?>
 		<link rel="stylesheet" href="<?=$form["css"]?>" type="text/css" media="screen" />
-		<? } ?>
+		<?
+			}
+		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/jcrop.min.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
+		<?
+			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
+				foreach ($bigtree["js"] as $script) {
+		?>
+		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
+		<?
+				}
+			}
+		?>
 		<!--[if lt IE 9]>
 		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
