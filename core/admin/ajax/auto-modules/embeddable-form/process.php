@@ -124,7 +124,11 @@
 	if (count($bigtree["errors"])) {
 		$item = BigTreeAutoModule::getItem($table,$edit_id);
 		$_SESSION["bigtree_admin"]["form_data"]["saved"] = $item["item"];
-		BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
+		if ($bigtree["form"]["default_pending"]) {
+			BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
+		} else {
+			BigTreeAutoModule::deleteItem($table,$edit_id);
+		}
 	}
 	
 	if (count($bigtree["crops"])) {

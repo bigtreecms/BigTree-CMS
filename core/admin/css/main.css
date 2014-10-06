@@ -175,7 +175,7 @@
 	.checkbox a.focused { background-position: -166px -105px; }
 	.checkbox a.checked.focused { background-position: -166px -121px; }
 	.checkbox a.disabled { cursor: default; opacity: 0.3; }
-	label.for_checkbox { cursor: pointer; float: left; line-height: 17px; margin: 0; user-select: none; }
+	label.for_checkbox { cursor: pointer; line-height: 17px; margin: 0; padding: 0 0 0 23px; user-select: none; }
 	.checkbox_row { margin: 0 0 10px 0; overflow: hidden; }
 
 	.radio_button { float: left; margin: 0 7px 0 0; }
