@@ -4,7 +4,9 @@ var BigTreeEmbeddableForm{id} = {
 		document.location.href = url;
 	},
 	resize: function(height) {
-		document.getElementById("bigtree_embeddable_form_{id}").style.height = (parseInt(height) + 260) + "px";
+		height = parseInt(height);
+		height = height < 250 ? 510 : height + 260;
+		document.getElementById("bigtree_embeddable_form_{id}").style.height = height + "px";
 	},
 	scrollToTop: function() {
 		var y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
