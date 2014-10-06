@@ -103,6 +103,25 @@
 		}
 
 		/*
+			Function: cacheDelete
+				Deletes data from BigTree's cache table.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				key - The key for your data (if no key is passed, deletes all data for a given identifier)
+		*/
+
+		function cacheDelete($identifier,$key = false) {
+			$identifier = sqlescape($identifier);
+			
+			if ($key === false) {
+				sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '$identifier'");
+			} else {
+				sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '".sqlescape($key)."'");
+			}
+		}
+
+		/*
 			Function: cacheGet
 				Retrieves data from BigTree's cache table.
 
