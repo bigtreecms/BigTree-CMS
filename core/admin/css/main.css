@@ -1724,6 +1724,15 @@
 	body.embedded div.error_table { border: 1px solid #CCC; margin: -30px 0 0 0; }
 	body.embedded div.error_table .field { padding: 0 0 0 20px; width: calc(28.1837% - 20px); }
 	body.embedded div.error_table .error { padding: 0 0 0 20px; width: calc(71.8163% - 20px); }
+	body.embedded .bigtree_dialog_overlay { display: none; }
+	body.embedded .bigtree_dialog_window { border: 1px solid #CCC; box-shadow: 0px 0px 5px rgba(0,0,0,0.3); }
+	body.embedded .multi_widget { border: none; }
+	body.embedded .multi_widget li { border-left: 1px solid #CCC; border-right: 1px solid #CCC; }
+	body.embedded .multi_widget li:first-child { border-top: 1px solid #CCC; border-top-left-radius: 3px; border-top-right-radius: 3px; }
+	body.embedded .multi_widget li:last-child { border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
+	body.embedded .multi_widget li p { width: calc(100% - 94px); white-space: normal; }
+	body.embedded .multi_widget footer { margin-top: 15px; }
+
 
 /*----------------------------
 	Custom TinyMCE 3 Styles
