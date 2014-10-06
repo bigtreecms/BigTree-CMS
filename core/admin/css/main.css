@@ -1732,7 +1732,9 @@
 	body.embedded .multi_widget li:last-child { border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
 	body.embedded .multi_widget li p { width: calc(100% - 94px); white-space: normal; }
 	body.embedded .multi_widget footer { margin-top: 15px; }
-
+	body.embedded .photo_gallery_widget { border: none; }
+	body.embedded .photo_gallery_widget ul { padding: 0; }
+	body.embedded .photo_gallery_widget footer { margin-top: 15px; }
 
 /*----------------------------
 	Custom TinyMCE 3 Styles
