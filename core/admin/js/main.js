@@ -2353,11 +2353,13 @@ var BigTreeFormValidator = Class.extend({
 		// If this is an embedded form, we want to generate a hash of everything
 		complete_submission = "";
 		if ($("#bigtree_hashcash_field").length) {
-			this.form.find("input,select,textarea").each(function() {
+			this.form.find("input,select,textarea").not("#bigtree_hashcash_field").each(function() {
 				if ($(this).is("textarea") && $(this).css("display") == "none") {
 					var mce = tinyMCE.get($(this).attr("id"));
 					if (mce) {
 						complete_submission += mce.getContent();
+					} else {
+						complete_submission += $(this).val();
 					}
 				} else {
 					t = $(this).attr("type");

@@ -4,7 +4,7 @@
 	$hash_recurse = function($array) {
 		global $complete_string,$hash_recurse;
 		foreach ($array as $key => $val) {
-			if ($key != "_bigtree_hashcash") {
+			if ($key !== "_bigtree_hashcash") {
 				if (is_array($val)) {
 					$hash_recurse($val);
 				} else {
