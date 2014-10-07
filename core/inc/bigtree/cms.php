@@ -1257,8 +1257,8 @@
 				$html = self::getInternalPageLink($html);
 			} else {
 				$html = self::replaceRelativeRoots($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array(self,"replaceInternalPageLinksHook"),$html);
-				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array(self,"replaceInternalPageLinksHook"),$html);
+				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array("BigTreeCMS","replaceInternalPageLinksHook"),$html);
+				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array("BigTreeCMS","replaceInternalPageLinksHook"),$html);
 			}
 
 			return $html;
