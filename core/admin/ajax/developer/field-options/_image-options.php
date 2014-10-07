@@ -1,4 +1,7 @@
 <?
+	// Prevent warnings
+	$data = is_array($data) ? $data : array();
+
 	$using_preset = false;
 	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
 	// See if we're using a preset and ensure it still exists
