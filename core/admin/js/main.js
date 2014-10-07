@@ -659,6 +659,7 @@ var BigTreeSelect = function(element) {
 			var sectionwidth = $(element).parent().width();
 			if (sectionwidth < (maxwidth + 56)) {
 				spanwidth = sectionwidth - 80;
+				maxwidth = spanwidth - 44;
 				Container.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
 			}
 		}
