@@ -2865,7 +2865,7 @@ var BigTreeMatrix = function(settings) {
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
-				var item = $(el).find("input[type=text],textarea,select");
+				var item = $(el).find("input[type=text],input[type=email],textarea,select").not("[type=file]");
 				if (item.length) {
 					if (item.is("select")) {
 						var value = $.trim(item.find("option:selected").text());
