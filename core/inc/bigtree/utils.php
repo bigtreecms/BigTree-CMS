@@ -1809,11 +1809,28 @@
 
 			if (!$from) {
 				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+			} else {
+				// Parse out from and reply-to names
+				$from_name = false;
+				$from = trim($from);
+				if (strpos($from,"<") !== false && substr($from,-1,1) == ">") {
+					$from_pieces = explode("<",$from);
+					$from_name = trim($from_pieces[0]);
+					$from = substr($from_pieces[1],0,-1);
+				}
 			}
 			$mailer->From = $from;
+			$mailer->FromName = $from_name;
 			
 			if ($return) {
-				$mailer->addReplyTo($return);
+				$return_name = false;
+				$return = trim($return);
+				if (strpos($return,"<") !== false && substr($return,-1,1) == ">") {
+					$return_pieces = explode("<",$return);
+					$return_name = trim($return_pieces[0]);
+					$return = substr($return_pieces[1],0,-1);
+				}
+				$mailer->addReplyTo($return,$return_name);
 			}
 			
 			if ($cc) {
