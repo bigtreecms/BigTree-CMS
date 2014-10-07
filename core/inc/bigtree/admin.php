@@ -293,8 +293,8 @@
 				$html = self::makeIPL($html);
 			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
 			} else {
-				$html = preg_replace_callback('/href="([^"]*)"/',array(self,"autoIPLCallbackHref"),$html);
-				$html = preg_replace_callback('/src="([^"]*)"/',array(self,"autoIPLCallbackSrc"),$html);
+				$html = preg_replace_callback('/href="([^"]*)"/',array("BigTreeAdmin","autoIPLCallbackHref"),$html);
+				$html = preg_replace_callback('/src="([^"]*)"/',array("BigTreeAdmin","autoIPLCallbackSrc"),$html);
 				$html = BigTreeCMS::replaceHardRoots($html);
 			}
 			return $html;

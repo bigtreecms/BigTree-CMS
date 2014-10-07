@@ -248,7 +248,7 @@
 	.container .input_address_state .select > span { width: 104px !important; }
 	.container .input_address_state .select .select_options { width: 158px !important; }
 	.container .text_input .input_address_country { margin: 0; width: 200px; }
-	.container .input_address_country .select > span { width: 144px !important; }
+	.container .input_address_country .select > span { width: 188px !important; }
 	.container .input_address_country .select .select_options { width: 198px !important; }
 	.container .text_input .input_phone_3 { margin: 0; }
 	.container .input_phone_3 input { float: left; text-align: center; width: 30px; }
