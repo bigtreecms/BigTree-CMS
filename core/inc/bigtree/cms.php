@@ -331,6 +331,11 @@
 			// See if we're in an extension
 			if (defined("EXTENSION_ROOT")) {
 				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+				// If we're already asking for it by it's namespaced name, don't append again.
+				if (substr($id,0,strlen($extension)) == $extension) {
+					return $id;
+				}
+				// See if namespaced version exists
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
 				if ($f) {
 					return "$extension*$id";
