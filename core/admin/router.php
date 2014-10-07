@@ -129,6 +129,10 @@
 			header("Content-type: image/gif");
 		} elseif (substr($bigtree["path"][$x],-3,3) == "jpg") {
 			header("Content-type: image/jpeg");
+		} elseif (substr($bigtree["path"][$x],-3,3) == "ttf") {
+			header("Content-type: font/ttf");
+		} elseif (substr($bigtree["path"][$x],-4,4) == "woff") {
+			header("Content-type: font/x-woff");
 		} else {
 			header("Content-type: text/javascript");
 		}
