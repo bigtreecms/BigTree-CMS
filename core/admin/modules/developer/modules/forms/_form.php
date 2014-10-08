@@ -18,10 +18,11 @@
 		</fieldset>
 
 		<fieldset>
-			<input type="checkbox" name="tagging" <? if ($form["tagging"]) { ?>checked="checked" <? } ?>/>
-			<label class="for_checkbox">Enable Tagging</label>
 			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
 			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"]))?>" />
+
+			<input type="checkbox" name="tagging" <? if ($form["tagging"]) { ?>checked="checked" <? } ?>/>
+			<label class="for_checkbox">Enable Tagging</label>
 		</fieldset>
 	</div>
 	<div class="right last">

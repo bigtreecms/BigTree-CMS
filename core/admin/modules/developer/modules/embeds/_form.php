@@ -30,11 +30,11 @@
 		</fieldset>
 
 		<fieldset>
-			<input type="checkbox" name="default_pending"<? if ($default_pending) { ?> checked="checked"<? } ?> />
-			<label class="for_checkbox">Default Submissions to Pending</label>
-
 			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
 			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"]))?>" />
+
+			<input type="checkbox" name="default_pending"<? if ($default_pending) { ?> checked="checked"<? } ?> />
+			<label class="for_checkbox">Default Submissions to Pending</label>
 		</fieldset>
 	</div>
 </section>
