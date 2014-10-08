@@ -441,7 +441,7 @@
 			foreach ($main_lines as $line) {
 				$column = array();
 				$line = rtrim(trim($line),",");
-				if (substr($line,0,3) == "KEY") { // Keys
+				if (strtoupper(substr($line,0,3)) == "KEY") { // Keys
 					$line = substr($line,5); // Take away "KEY `"
 					// Get the key's name.
 					$key_name = self::nextSQLColumnDefinition($line);
@@ -458,7 +458,7 @@
 						}
 					}
 					$result["indexes"][$key_name] = $key_parts;
-				} elseif (substr($line,0,7) == "PRIMARY") { // Primary Keys
+				} elseif (strtoupper(substr($line,0,7)) == "PRIMARY") { // Primary Keys
 					$line = substr($line,14); // Take away PRIMARY KEY (`
 					$key_parts = array();
 					$part = true;
@@ -470,7 +470,7 @@
 						}
 					}
 					$result["primary_key"] = $key_parts;
-				} elseif (substr($line,0,10) == "CONSTRAINT") { // Foreign Keys
+				} elseif (strtoupper(substr($line,0,10)) == "CONSTRAINT") { // Foreign Keys
 					$line = substr($line,12); // Remove CONSTRAINT `
 					$key_name = self::nextSQLColumnDefinition($line);
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
@@ -524,7 +524,7 @@
 						if ($on_hit) {
 							$current_key = strtolower("on_".$piece);
 							$on_hit = false;
-						} elseif ($piece == "ON") {
+						} elseif (strtoupper($piece) == "ON") {
 							if ($current_key) {
 								$result["foreign_keys"][$key_name][$current_key] = $current_val;
 								$current_key = "";
@@ -607,11 +607,11 @@
 					$column["allow_null"] = true;
 					$extras = explode(" ",$line);
 					for ($x = 0; $x < count($extras); $x++) {
-						$part = $extras[$x];
-						if ($part == "NOT" && $extras[$x + 1] == "NULL") {
+						$part = strtoupper($extras[$x]);
+						if ($part == "NOT" && strtoupper($extras[$x + 1]) == "NULL") {
 							$column["allow_null"] = false;
 							$x++; // Skip NULL
-						} elseif ($part == "CHARACTER" && $extras[$x + 1] == "SET") {
+						} elseif ($part == "CHARACTER" && strtoupper($extras[$x + 1]) == "SET") {
 							$column["charset"] = $extras[$x + 2];
 							$x += 2;
 						} elseif ($part == "DEFAULT") {
