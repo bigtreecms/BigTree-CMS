@@ -1000,7 +1000,7 @@
 				$token = $_SESSION["bigtree"]["paypal-rest-payment-id"];
 				$data = array("payer_id" => $payer_id);
 				if ($amount) {
-					$data["transactions"] = array(array("total" => $amount,"currency" => "USD"));
+					$data["transactions"] = array(array("amount" => array("total" => $amount,"currency" => "USD")));
 				}
 				$response = $this->sendPayPalREST("payments/payment/$token/execute",json_encode($data));
 				if ($response->state == "approved") {
