@@ -6,9 +6,8 @@
 	
 	class BigTreeModule {
 	
-		var $Table = "";
-		var $Module = "";
 		var $NavPosition = "bottom";
+		var $Table = "";
 
 		/*
 			Constructor:
