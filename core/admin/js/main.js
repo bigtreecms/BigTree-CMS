@@ -1,6 +1,13 @@
 $(document).ready(function() {
 	BigTreeCustomControls();
 	BigTreePageLoadHooks.init();
+
+	// Set Busy signals for AJAX
+	$(document).ajaxSend(function() {
+		BigTree.Busy = true;
+	}).ajaxStop(function() {
+		BigTree.Busy = false;
+	});
 	
 	// BigTree Quick Search
 	$('nav.main form .qs_query').keyup(function(ev) {
@@ -1382,6 +1389,12 @@ var BigTreeFileManager = (function($) {
 	function deleteFolder(ev) {
 		ev.stopPropagation();
 		ev.preventDefault();
+
+		// Prevent double clicks
+		if (BigTree.Busy) {
+			return;
+		}
+
 		$.ajax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
 			var j = $.parseJSON(r.responseText);
 			if (confirm("This folder has " + j.folders + " sub-folder(s) and " + j.resources + " file(s) which will be deleted.\n\nFiles in this folder are in use in " + j.allocations + " location(s).\n\nAre you sure you want to delete this folder?")) {
@@ -2599,6 +2612,11 @@ var BigTreeCallouts = function(settings) {
 		function addCallout(e) {
 			e.preventDefault();
 
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
 			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key }, complete: function(response) {
 				BigTreeDialog({
 					title: "Add " + Noun,
@@ -2626,6 +2644,11 @@ var BigTreeCallouts = function(settings) {
 
 		function editCallout(e) {
 			e.preventDefault();
+
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
 
 			CurrentItem = $(this).parents("article");
 			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
@@ -2755,6 +2778,11 @@ var BigTreeMatrix = function(settings) {
 		function addItem(e) {
 			e.preventDefault();
 
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
 				data: { columns: Columns, count: Count, key: Key },
@@ -2814,6 +2842,11 @@ var BigTreeMatrix = function(settings) {
 
 		function editItem(e) {
 			e.preventDefault();
+
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
 
 			// Set the current element that we're going to replace
 			if (Style === "list") {
@@ -2948,6 +2981,7 @@ var BigTreeMatrix = function(settings) {
 };
 
 var BigTree = {
+	Busy: false,
 	Growling: false,
 	GrowlTimer: false,
 	ZIndex: 1000,

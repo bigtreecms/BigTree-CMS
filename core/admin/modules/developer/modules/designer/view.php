@@ -62,7 +62,14 @@
 <script>	
 	BigTreeFormValidator("form.module");
 	
-	$(".options").click(function() {
+	$(".options").click(function(ev) {
+		ev.preventDefault();
+
+		// Prevent double clicks
+		if (BigTree.Busy) {
+			return;
+		}
+
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-options/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
 			BigTreeDialog({
 				title: "View Options",
@@ -73,7 +80,5 @@
 				}
 			});
 		}});
-		
-		return false;
 	});
 </script>

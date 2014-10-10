@@ -26,6 +26,11 @@
 		function addPreset(ev) {
 			ev.preventDefault();
 
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { complete: function(e) {
 				BigTreeDialog({
 					title: "Add Image Preset",
@@ -69,6 +74,11 @@
 
 		function editPreset(ev) {
 			ev.preventDefault();
+
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
 
 			Current = $(this).parents("li");
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { method: "POST", data: JSON.parse(Current.find("input").val()), complete: function(e) {

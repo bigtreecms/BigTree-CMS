@@ -71,6 +71,11 @@
 		MatrixTable.on("click",".icon_edit",function(e) {
 			e.preventDefault();
 
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
 			CurrentColumn = $(this).parents("article");
 			var type = CurrentColumn.find("select").val();
 			var options = CurrentColumn.find("input[type=hidden]").val();

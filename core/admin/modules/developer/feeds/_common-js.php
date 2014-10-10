@@ -5,7 +5,14 @@
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-feed-fields/?table=" + data.value);
 	});
 	
-	$(".options").click(function() {
+	$(".options").click(function(ev) {
+		ev.preventDefault();
+
+		// Prevent double clicks
+		if (BigTree.Busy) {
+			return;
+		}
+
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-feed-options/", { type: "POST", data: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() }, complete: function(response) {
 			BigTreeDialog({
 				title: "Feed Options",
@@ -16,7 +23,6 @@
 				}
 			});
 		}});
-		return false;
 	});
 	
 	$("#feed_type").change(function(event,data) {

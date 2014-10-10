@@ -4,25 +4,31 @@
 ?>
 <script>
 	(function() {
-		var currentField = false;
-		var resourceCount = <?=$x?>;
+		var CurrentField = false;
+		var ResourceCount = <?=$x?>;
 
 		BigTreeFormValidator("form.module");
-		$(".form_table").on("click",".icon_settings",function() {
-			currentField = $(this).attr("name");
+		$(".form_table").on("click",".icon_settings",function(ev) {
+			ev.preventDefault();
+
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
+			CurrentField = $(this).attr("name");
 			
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: $("#type_" + currentField).val(), data: $("#options_" + currentField).val() }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: $("#type_" + CurrentField).val(), data: $("#options_" + CurrentField).val() }, complete: function(response) {
 				BigTreeDialog({
 					title: "Field Options",
 					content: response.responseText,
 					icon: "edit",
 					callback: function(data) {
-						$("#options_" + currentField).val(JSON.stringify(data));
+						$("#options_" + CurrentField).val(JSON.stringify(data));
 					}
 				});
 			}});
 			
-			return false;
 		}).on("click",".icon_delete",function(ev) {
 			ev.preventDefault();
 			BigTreeDialog({
@@ -36,9 +42,9 @@
 		
 		$(".add_resource").click(function(ev) {
 			ev.preventDefault();
-			resourceCount++;
+			ResourceCount++;
 			
-			var li = $('<li>').html('<section class="developer_resource_id"><span class="icon_sort"></span><input type="text" name="resources[' + resourceCount + '][id]" value="" /></section><section class="developer_resource_title"><input type="text" name="resources[' + resourceCount + '][title]" value="" /></section><section class="developer_resource_subtitle"><input type="text" name="resources[' + resourceCount + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + resourceCount + '][type]" id="type_' + resourceCount + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + resourceCount + '"></a><input type="hidden" name="resources[' + resourceCount + '][options]" value="" id="options_' + resourceCount + '" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');	
+			var li = $('<li>').html('<section class="developer_resource_id"><span class="icon_sort"></span><input type="text" name="resources[' + ResourceCount + '][id]" value="" /></section><section class="developer_resource_title"><input type="text" name="resources[' + ResourceCount + '][title]" value="" /></section><section class="developer_resource_subtitle"><input type="text" name="resources[' + ResourceCount + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + ResourceCount + '][type]" id="type_' + ResourceCount + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + ResourceCount + '"></a><input type="hidden" name="resources[' + ResourceCount + '][options]" value="" id="options_' + ResourceCount + '" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');	
 			$("#resource_table").append(li)
 								.sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 			

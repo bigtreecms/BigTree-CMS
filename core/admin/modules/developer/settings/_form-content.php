@@ -46,7 +46,14 @@
 	</fieldset>
 </section>
 <script>
-	$(".icon_settings").click(function() {
+	$(".icon_settings").click(function(ev) {
+		ev.preventDefault();
+
+		// Prevent double clicks
+		if (BigTree.Busy) {
+			return;
+		}
+
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
 			BigTreeDialog({
 				title: "Settings Options",
@@ -55,7 +62,5 @@
 				callback: function(data) { $("#options_settings").val(JSON.stringify(data)); }
 			});
 		}});
-		
-		return false;
 	});
 </script>

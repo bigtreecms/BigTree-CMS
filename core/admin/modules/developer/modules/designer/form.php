@@ -67,7 +67,14 @@
 		BigTreeCustomControls();
 	};
 	
-	$(".form_table").on("click",".icon_settings",function() {
+	$(".form_table").on("click",".icon_settings",function(ev) {
+		ev.preventDefault();
+
+		// Prevent double clicks
+		if (BigTree.Busy) {
+			return;
+		}
+
 		BigTree.localCurrentFieldKey = $(this).attr("name");
 		
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + BigTree.localCurrentFieldKey).val(), data: $("#options_" + BigTree.localCurrentFieldKey).val() }, complete: function(response) {
@@ -81,7 +88,6 @@
 			});
 		}});
 		
-		return false;
 	}).on("click",".icon_delete",function() {
 		$(this).parents("li").remove();		
 		return false;

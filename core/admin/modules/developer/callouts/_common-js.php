@@ -20,7 +20,14 @@
 		return false;
 	});
 	
-	$(".form_table").on("click",".icon_settings",function() {
+	$(".form_table").on("click",".icon_settings",function(ev) {
+		ev.preventDefault();
+
+		// Prevent double clicks
+		if (BigTree.Busy) {
+			return;
+		}
+
 		var key = $(this).attr("name");
 		BigTree.localCurrentFieldKey = key;
 		
@@ -35,7 +42,6 @@
 			});
 		}});
 		
-		return false;
 	}).on("click",".icon_delete",function() {
 		BigTreeDialog({
 			title: "Delete Resource",
