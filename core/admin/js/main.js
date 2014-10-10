@@ -1765,7 +1765,7 @@ var BigTreeFormNavBar = (function() {
 		ContainerOffset = Container.offset().top;
 		Nav = Container.find("nav a");
 		NextButton = Container.find("footer .next");
-		Sections = Container.find("form > section");
+		Sections = $(".container > form > section, .container > section");
 
 		// Generic tab controls
 		Nav.click(tabClick);
