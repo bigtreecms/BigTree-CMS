@@ -2417,6 +2417,7 @@
 				}
 
 				// Send it
+				$es = new BigTreeEmailService;
 				if ((is_array($alerts) && count($alerts)) || count($changes) || count($unread)) {
 					$body = file_get_contents(BigTree::path("admin/email/daily-digest.html"));
 					$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
@@ -2427,14 +2428,13 @@
 					$body = str_ireplace("{pending_changes}", $body_changes, $body);
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 
-					$mailer = new PHPMailer;
-					$mailer->From = "no-reply@$no_reply_domain";
-					$mailer->FromName = "BigTree CMS";
-					$mailer->addAddress($user["email"],$user["name"]);
-					$mailer->isHTML(true);
-					$mailer->Subject = "$site_title Daily Digest";
-					$mailer->Body = $body;
-					$mailer->send();
+					// If we don't have a from email set, third parties most likely will fail so we're going to use local sending
+					if ($es->Settings["bigtree_from"]) {
+						$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+						$es->sendEmail("$site_title Daily Digest",$body,$user["email"],$es->Settings["bigtree_from"],"BigTree CMS",$reply_to);
+					} else {
+						BigTree::sendEmail($user["email"],"$site_title Daily Digest",$body);
+					}
 				}
 			}
 		}
@@ -2476,9 +2476,14 @@
 			$html = str_ireplace("{site_title}",$site_title,$html);
 			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 
-			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
+			$es = new BigTreeEmailService;
+			if ($es->Settings["bigtree_from"]) {
+				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+				$es->sendEmail("Reset Your Password",$html,$user["email"],$es->Settings["bigtree_from"],"BigTree CMS",$reply_to);
+			} else {
+				BigTree::sendEmail($user["email"],"Reset Your Password",$html);
+			}
 
-			BigTree::sendEmail($user["email"],"Reset Your Password",$html,$text);
 			BigTree::redirect($login_root."forgot-success/");
 		}
 

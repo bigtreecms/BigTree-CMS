@@ -1809,6 +1809,7 @@
 
 			if (!$from) {
 				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+				$from_name = "BigTree CMS";
 			} else {
 				// Parse out from and reply-to names
 				$from_name = false;

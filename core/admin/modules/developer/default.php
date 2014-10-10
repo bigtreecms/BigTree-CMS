@@ -127,15 +127,19 @@
 			<span class="geocoding"></span>
 			<p>Geocoding</p>
 		</a>
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>email/">
+			<span class="messages"></span>
+			<p>Email Delivery</p>
+		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>services/">
 			<span class="api"></span>
 			<p>Service APIs</p>
 		</a>
-		<a class="box_select" href="<?=DEVELOPER_ROOT?>media/">
+		<a class="box_select last" href="<?=DEVELOPER_ROOT?>media/">
 			<span class="images"></span>
 			<p>Media</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>security/">
+		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>security/">
 			<span class="lock"></span>
 			<p>Security</p>
 		</a>

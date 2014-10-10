@@ -25,6 +25,7 @@
 				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
 				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1),
 				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
+				array("link" => "developer/email", "title" => "Email Delivery", "access" => 2),
 				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
 				array("link" => "developer/media", "title" => "Media", "access" => 2),
 				array("link" => "developer/security", "title" => "Security", "access" => 2)
