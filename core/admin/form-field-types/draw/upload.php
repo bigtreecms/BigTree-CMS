@@ -1,6 +1,6 @@
 <?
 	// If we're using a preset, the prefix may be there
-	if ($field["options"]["preset"]) {
+	if (!empty($field["options"]["preset"])) {
 		if (!isset($bigtree["media_settings"])) {
 			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
 		}
