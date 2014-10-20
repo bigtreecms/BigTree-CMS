@@ -303,13 +303,11 @@
 		$admin->emailDailyDigest();
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalyticsAPI;
-		if ($ga->API && $ga->Profile) {
+		if (!empty($ga->Settings["profile"])) {
 			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {
 				$ga->cacheInformation();
-			} catch (Exception $e) {
-				// We should log this in 4.1
-			}
+			} catch (Exception $e) {}
 		}
 	}
 	
