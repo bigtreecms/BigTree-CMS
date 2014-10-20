@@ -67,8 +67,8 @@
 		
 		function authorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
 			// Clean up the amount and tax.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
-			$tax = round(floatval(str_replace(array('$',','),"",$tax)),2);
+			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
+			$tax = number_format(round(floatval(str_replace(array('$',','),"",$tax)),2),2);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -353,8 +353,8 @@
 		
 		function charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
 			// Clean up the amount and tax.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
-			$tax = round(floatval(str_replace(array('$',','),"",$tax)),2);
+			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
+			$tax = number_format(round(floatval(str_replace(array('$',','),"",$tax)),2),2);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -606,7 +606,7 @@
 			if ($tax) {
 				$transaction_details = array(
 					"subtotal" => $amount - $tax,
-					"tax" => $tax,
+					"tax" => number_format(round($tax,2),2),
 					"shipping" => 0
 				);
 			} else {
@@ -1163,8 +1163,8 @@
 			// Split out tax and subtotals if present
 			if ($tax) {
 				$transaction_details = array(
-					"subtotal" => $amount - $tax,
-					"tax" => $tax,
+					"subtotal" => number_format(round($amount - $tax,2),2),
+					"tax" => number_format(round($tax,2),2),
 					"shipping" => 0
 				);
 			} else {
@@ -1179,7 +1179,7 @@
 				),
 				"transactions" => array(array(
 					"amount" => array(
-						"total" => $amount,
+						"total" => number_format(round($amount,2),2),
 						"currency" => "USD"
 					)
 				))
@@ -1348,7 +1348,7 @@
 		
 		function refund($transaction,$card_number = "",$amount = 0) {
 			// Clean up the amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
