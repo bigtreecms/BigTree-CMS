@@ -178,8 +178,20 @@
 				Protected function used by other table querying functions.
 		*/
 		
-		protected function fetch($sortby = false,$limit = false,$where = false) {
-			$query = "SELECT * FROM `".$this->Table."`";
+		protected function fetch($sortby = false,$limit = false,$where = false,$columns = false) {
+			$query_columns = "*";
+			if ($columns !== false) {
+				if (is_array($columns)) {
+					$query_columns = array();
+					foreach ($columns as $column) {
+						$query_columns[] = "`".str_replace("`","",$column)."`";
+					}
+					$query_columns = implode(",",$query_columns);
+				} else {
+					$query_columns = "`".str_replace("`","",$columns)."`";
+				}
+			}
+			$query = "SELECT $query_columns FROM `".$this->Table."`";
 
 			if ($where) {
 				$query .= " WHERE $where";
@@ -242,25 +254,29 @@
 			
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
+				columns - The columns to return (defaults to all)
 		
 			Returns:
 				An array of items from the table.
 		*/
 
-		function getAll($order = false) {
-			return $this->fetch($order);
+		function getAll($order = false,$columns = false) {
+			return $this->fetch($order,false,false,$columns);
 		}
 		
 		/*
 			Function: getAllPositioned
 				Returns all entries from the table based on position.
+
+			Parameters:
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function getAllPositioned() {
-			return $this->getAll("position DESC, id ASC");
+		function getAllPositioned($columns = false) {
+			return $this->getAll("position DESC, id ASC",false,false,$columns);
 		}
 		
 		/*
@@ -270,6 +286,7 @@
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -278,8 +295,8 @@
 				<getMatching>
 		*/
 		
-		function getApproved($order = false,$limit = false) {
-			return $this->getMatching("approved","on",$order,$limit);
+		function getApproved($order = false,$limit = false,$columns = false) {
+			return $this->getMatching("approved","on",$order,$limit,false,$columns);
 		}
 
 		/*
@@ -289,6 +306,7 @@
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -297,8 +315,8 @@
 				<getMatching>
 		*/
 		
-		function getArchived($order = false,$limit = false) {
-			return $this->getMatching("archived","on",$order,$limit);
+		function getArchived($order = false,$limit = false,$columns) {
+			return $this->getMatching("archived","on",$order,$limit,false,$columns);
 		}
 		
 		/*
@@ -345,6 +363,7 @@
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -353,8 +372,8 @@
 				<getMatching>
 		*/
 		
-		function getFeatured($order = false,$limit = false) {
-			return $this->getMatching("featured","on",$order,$limit);
+		function getFeatured($order = false,$limit = false,$columns = false) {
+			return $this->getMatching("featured","on",$order,$limit,false,$columns);
 		}
 		
 		/*
@@ -414,12 +433,13 @@
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
 				exact - If you want exact matches for NULL, "", and 0, pass true, otherwise 0 = NULL = ""
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false) {
+		function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false,$columns = false) {
 			if (!is_array($fields)) {
 				$search = array($fields => $values);
 			} else {
@@ -434,7 +454,7 @@
 				}
 			}
 			
-			return $this->fetch($sortby,$limit,implode(" AND ",$where));
+			return $this->fetch($sortby,$limit,implode(" AND ",$where),$columns);
 		}
 		
 		/*
@@ -460,6 +480,7 @@
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -468,8 +489,8 @@
 				<getMatching>
 		*/
 		
-		function getNonarchived($order = false,$limit = false) {
-			return $this->getMatching("archived","",$order,$limit);
+		function getNonarchived($order = false,$limit = false,$columns = false) {
+			return $this->getMatching("archived","",$order,$limit,false,$columns);
 		}
 		
 		/*
@@ -481,6 +502,7 @@
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				perpage - The number of results per page (defaults to 15)
 				where - Optional MySQL WHERE conditions
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				Array of entries from the table.
@@ -489,7 +511,7 @@
 				<getPageCount>
 		*/
 		
-		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false) {
+		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$columns = false) {
 			// Backwards compatibility with old argument order
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
@@ -500,7 +522,7 @@
 			if ($page < 1) {
 				$page = 1;
 			}
-			return $this->fetch($order,(($page - 1) * $perpage).", $perpage",$where);
+			return $this->fetch($order,(($page - 1) * $perpage).", $perpage",$where,$columns);
 		}
 		
 		/*
@@ -577,17 +599,18 @@
 			
 			Parameters:
 				count - The number of entries to return (if more than one).
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				If "count" is passed, an array of entries from the table. Otherwise, a single entry from the table.
 		*/
 		
-		function getRandom($count = false) {
+		function getRandom($count = false,$columns = false) {
 			if ($count === false) {
 				$f = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` ORDER BY RAND() LIMIT 1"));
 				return $this->get($f);
 			}
-			return $this->fetch("RAND()",$count);
+			return $this->fetch("RAND()",$count,false,$columns);
 		}
 
 		/*
@@ -597,6 +620,7 @@
 			Parameters:
 				count - Number of entries to return.
 				field - Field to use for the date check.
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -605,8 +629,8 @@
 				<getRecentFeatured>
 		*/
 		
-		function getRecent($count = 5, $field = "date") {
-			return $this->fetch("$field DESC",$count,"`$field` <= '".date("Y-m-d")."'");
+		function getRecent($count = 5, $field = "date",$columns = false) {
+			return $this->fetch("$field DESC",$count,"`$field` <= '".date("Y-m-d")."'",$columns);
 		}
 
 		/*
@@ -616,6 +640,7 @@
 			Parameters:
 				count - Number of entries to return.
 				field - Field to use for the date check.
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -624,8 +649,8 @@
 				<getRecent>
 		*/
 		
-		function getRecentFeatured($count = 5, $field = "date") {
-			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'");
+		function getRecentFeatured($count = 5, $field = "date",$columns = false) {
+			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*
@@ -720,6 +745,7 @@
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -728,8 +754,8 @@
 				<getMatching> <getNonarchived>
 		*/
 		
-		function getUnarchived($order = false,$limit = false) {
-			return $this->getMatching("archived","",$order,$limit);
+		function getUnarchived($order = false,$limit = false,$columns) {
+			return $this->getMatching("archived","",$order,$limit,false,$columns);
 		}
 
 		/*
@@ -739,6 +765,7 @@
 			Parameters:
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
 				limit - Max number of entries to return, defaults to all
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -747,8 +774,8 @@
 				<getMatching>
 		*/
 		
-		function getUnapproved($order = false,$limit = false) {
-			return $this->getMatching("approved","",$order,$limit);
+		function getUnapproved($order = false,$limit = false,$columns = false) {
+			return $this->getMatching("approved","",$order,$limit,false,$columns);
 		}
 		
 		/*
@@ -758,6 +785,7 @@
 			Parameters:
 				count - Number of entries to return.
 				field - Field to use for the date check.
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -766,8 +794,8 @@
 				<getUpcomingFeatured>
 		*/
 		
-		function getUpcoming($count = 5, $field = "date") {
-			return $this->fetch("$field ASC",$count,"`$field` >= '".date("Y-m-d")."'");
+		function getUpcoming($count = 5,$field = "date",$columns = false) {
+			return $this->fetch("$field ASC",$count,"`$field` >= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*
@@ -777,6 +805,7 @@
 			Parameters:
 				count - Number of entries to return.
 				field - Field to use for the date check.
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
@@ -785,8 +814,8 @@
 				<getUpcoming>
 		*/
 		
-		function getUpcomingFeatured($count = 5, $field = "date") {
-			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` >= '".date("Y-m-d")."'");
+		function getUpcomingFeatured($count = 5,$field = "date",$columns = false) {
+			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` >= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*
@@ -821,12 +850,13 @@
 				limit - Max entries to return (defaults to all)
 				split_search - If set to true, splits the query into parts and searches each part (defaults to false).
 				case_sensitive - Case sensitivity (defaults to false / the collation of the database).
+				columns - The columns to retrieve (defaults to all)
 			
 			Returns:
 				An array of entries from the table.
 		*/
 		
-		function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false) {
+		function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false,$columns = false) {
 			$table_description = BigTree::describeTable($this->Table);
 			$where = array();
 
@@ -845,7 +875,7 @@
 						$where[] = "(".implode(" OR ",$where_piece).")";
 					}
 				}
-				return $this->fetch($order,$limit,implode(" AND ",$where));
+				return $this->fetch($order,$limit,implode(" AND ",$where),$columns);
 			} else {
 				foreach ($table_description["columns"] as $field => $parameters) {
 					if ($case_sensitive) {
@@ -854,7 +884,7 @@
 						$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
 					}
 				}
-				return $this->fetch($order,$limit,implode(" OR ",$where));
+				return $this->fetch($order,$limit,implode(" OR ",$where),$columns);
 			}
 		}
 		
