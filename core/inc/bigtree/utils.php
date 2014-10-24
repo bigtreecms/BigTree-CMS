@@ -391,10 +391,10 @@
 		/*
 			Function: dateFromOffset
 				Returns a formatted date from a date and an offset.
-				e.g. "January 1, 2015" and "+2 months" returns "2015-03-01 00:00:00"
+				e.g. "January 1, 2015" and "2 months" returns "2015-03-01 00:00:00"
 
 			Parameters:
-				start_date - Date to start at (in any format that strtotime understands)
+				start_date - Date to start at (in any format that strtotime understands or a unix timestamp)
 				offset - Offset (in any "relative" PHP time format)
 				format - Format for returned date (in any format that PHP's date function understands, defaults to Y-m-d H:i:s)
 
@@ -408,7 +408,7 @@
 		*/
 
 		static function dateFromOffset($start_date,$offset,$format = "Y-m-d H:i:s") {
-			$time = strtotime($start_date);
+			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
 			$date = DateTime::createFromFormat("Y-m-d H:i:s",date("Y-m-d H:i:s",$time));
 			$date->add(DateInterval::createFromDateString($offset));
 			return $date->format($format);
