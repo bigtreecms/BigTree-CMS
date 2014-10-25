@@ -37,15 +37,15 @@
 				from_email - From email address (optional, defaults to no-reply@domain.com where domain.com is the domain of the server/site)
 				from_name - From name (optional, defaults to BigTree CMS if from_email isn't set)
 				reply_to - Reply-to email address (optional)
-				text - Regular text body (optional, will strip_tags body if left a falsey value)
+				text - Regular text body (optional)
 
 			Returns:
 				true if successful
 				Sets $this->Error with error response if not successful.
 		*/
 
-		function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = false) {
-			$text = $text ? $text : strip_tags($body);
+		function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = "") {			
+			// No from email? Use the no-reply address.
 			if (!$from_email) {
 				$from_email = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
 				$from_name = "BigTree CMS";
