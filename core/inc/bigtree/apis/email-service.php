@@ -52,13 +52,13 @@
 			}
 			
 			if ($this->Service == "local") {
-				BigTree::sendEmail($to,$subject,$body,$text,($from_name ? "$from_name <$from_email>" : $from_email),$reply_to);
+				return BigTree::sendEmail($to,$subject,$body,$text,($from_name ? "$from_name <$from_email>" : $from_email),$reply_to);
 			} elseif ($this->Service == "mandrill") {
-				$this->sendMandrill($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
+				return $this->sendMandrill($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} elseif ($this->Service == "mailgun") {				
-				$this->sendMailgun($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
+				return $this->sendMailgun($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} elseif ($this->Service == "postmark") {
-				$this->sendPostmark($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
+				return $this->sendPostmark($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} else {
 				throw Exception("Unknown Email Service");
 			}
