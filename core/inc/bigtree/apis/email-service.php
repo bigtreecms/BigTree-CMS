@@ -50,6 +50,20 @@
 				$from_email = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
 				$from_name = "BigTree CMS";
 			}
+
+			// Parse out from name and reply-to name
+			$from = trim($from_email);
+			if ($from_name === false && strpos($from,"<") !== false && substr($from,-1,1) == ">") {
+				$from_pieces = explode("<",$from);
+				$from_name = trim($from_pieces[0]);
+				$from_email = substr($from_pieces[1],0,-1);
+			}
+			$reply = trim($reply_to);
+			if (strpos($reply,"<") !== false && substr($reply,-1,1) == ">") {
+				$reply_pieces = explode("<",$reply);
+				$reply_name = trim($reply_pieces[0]);
+				$reply_to = substr($reply_pieces[1],0,-1);
+			}			
 			
 			if ($this->Service == "local") {
 				return BigTree::sendEmail($to,$subject,$body,$text,($from_name ? "$from_name <$from_email>" : $from_email),$reply_to);
