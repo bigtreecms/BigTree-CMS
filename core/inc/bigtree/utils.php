@@ -865,6 +865,28 @@
 			}
 			return $file;
 		}
+
+		/*
+			Function: getCookie
+				Gets a cookie set by setCookie and decodes it.
+
+			Parameters:
+				id - The id of the set cookie
+		*/
+
+		static function getCookie($id) {
+			if (strpos($id,"[") !== false) {
+				$pieces = explode("[",$id);
+				$cookie = $_COOKIE;
+				foreach ($pieces as $piece) {
+					$piece = str_replace("]","",$piece);
+					$cookie = $cookie[$piece];
+				}
+				return json_decode($cookie,true);
+			} else {
+				return json_decode($_COOKIE[$id],true);
+			}
+		}
 		
 		/*
 			Function: getFieldSelectOptions
@@ -1889,6 +1911,22 @@
 			}
 			
 			return $mailer->send();
+		}
+
+		/*
+			Function: setCookie
+				Sets a site-wide cookie with support for arrays.
+				Cookies set by setCookie should be retrieved via getCookie (all values are JSON encoded).
+
+			Parameters:
+				id - The cookie identifier
+				value - The value to set for the cookie
+				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
+		*/
+
+		static function setCookie($id,$value,$expiration = 0) {
+			$expiration = is_string($expiration) ? strtotime($expiration) : $expiation;
+			setcookie($id,json_encode($value),$expiration,str_replace(DOMAIN,"",WWW_ROOT));
 		}
 
 		/*
