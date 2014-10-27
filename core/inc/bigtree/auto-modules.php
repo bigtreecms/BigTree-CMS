@@ -398,6 +398,8 @@
 		*/
 
 		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
+			global $admin;
+			
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
