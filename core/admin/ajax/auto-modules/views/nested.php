@@ -68,7 +68,7 @@
 				$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 				foreach ($bigtree["view"]["actions"] as $action => $data) {
 					if ($data == "on") {
-						if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
+						if ($iperm == "n" || !$iperm || (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p")) {
 							if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
 								$class = "icon_delete";
 							} else {
