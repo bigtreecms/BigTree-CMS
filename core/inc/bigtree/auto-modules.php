@@ -564,7 +564,11 @@
 				if (is_array($groups)) {
 					$gfl = array();
 					foreach ($groups as $g) {
-						$gfl[] = "`id` = '".sqlescape($g)."' OR `gbp_field` = '".sqlescape($g)."'";
+						if ($view["type"] == "nested" && $module["gbp"]["group_field"] == $view["options"]["nesting_column"]) {
+							$gfl[] = "`id` = '".sqlescape($g)."' OR `gbp_field` = '".sqlescape($g)."'";
+						} else {
+							$gfl[] = "`gbp_field` = '".sqlescape($g)."'";
+						}
 					}
 					return " AND (".implode(" OR ",$gfl).")";
 				}
