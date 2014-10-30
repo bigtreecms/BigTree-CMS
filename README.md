@@ -21,14 +21,49 @@ Changelog
 ---------
 
 ### 4.2 Release
-- ADDED: Extensions Support
+- ADDED: Extensions Support (see http://www.bigtreecms.org/docs/dev-guide/advanced/extensions/ for more information)
+- ADDED: Security Settings (password policies, temporary bans, IP bans, allowed IP lists)
+- ADDED: Matrix field type (essentially a generic Callout distinct to a template/setting/form).
+- ADDED: One-to-Many field type (similar to Many to Many but stores associations as JSON in the same table).
+- ADDED: Multiple Group support for Callouts. You can add callouts to multiple groups and allow multiple groups of callouts in a given Callouts field. Callouts are no longer supportable in the dropdown -- sorting is now alphabetical.
 - ADDED: On-Publish Hook support for forms
 - ADDED: "clear" method to BigTreeRadio / BigTreeCheckbox to uncheck
-- CHANGED: BigTreeDialog now supports an options object with named parameters instead of a long list of confusing parameters.
+- ADDED: Support for a custom default date format in $bigtree["config"]["date_format"] for date pickers and other fields that use dates.
+- ADDED: Reset / Add All buttons to Many to Many.
+- ADDED: Center Crops to photo-related fields.
+- ADDED: Media presets to re-use thumbnail/crop/center crop settings across fields.
+- ADDED: A country list with two letter abbreviations to BigTree::$CountryListWithAbbreviations
+- ADDED: Email Service settings and BigTreeEmailService class to allow transactional emails (daily digest, forgot password, etc) to be sent via Mandrill, Postmark, or Mailgun.
+- ADDED: Busy state for AJAX calls to prevent double clicking on a slow internet connection bringing up multiple dialogs.
+- ADDED: BigTree::dateFromOffset method to easily add an amount of time to a given date
+- ADDED: BigTree::getCookie and BigTree::setCookie methods to easily set cookies that apply to the whole site (you can also set array values, stored as JSON in the cookies).
+- UPDATED: Installer will now create a database for you if it doesn't exist.
+- UPDATED: BigTreeModule retrieval methods now allow you to pass a columns array to only retrieve the specified columns.
+- UPDATED: The upload field type now works with the FileReader API to provide file size and thumbnail information after selecting a file.
+- UPDATED: The photo gallery field type now works with the FileReader API to provide thumbnail previews of images before uploading.
+- UPDATED: The upload field type will now throw an error before uploading if the selected file will exceed PHP's max upload file size.
+- UPDATED: The File Manager now allows you to upload multiple files at once.
+- UPDATED: BigTreeModule class now supports passing in a table name for generic module classes.
+- UPDATED: When creating module and adding its initial view, if the table has a "position" column it will be assumed Draggable instead of Searchable.
+- UPDATED: When choosing a field type the dropdown is now split into option groups for "Default" and "Custom" to better differentiate your custom field types.
+- UPDATED: Callouts/Matrixes can specify the maximum number of entries in the field options.
+- UPDATED: When in a grouped view, if the last item is deleted from the group it will now disappear as well.
+- UPDATED: Embedded Forms now throw the bigtree-embeddable-form-resize event when resizing their iframe.
+- UPDATED: BigTreeModule's add method parameters now more closely align with the function and names of the update parameters (still backwards compatible, just more functional).
+- UPDATED: BigTreeModule's update method now allows you to pass in a key/value array as the second parameter instead of breaking it into two parameters.
+- UPDATED: Advanced Search's nav is now sticky and won't disappear when scrolling a long list
+- CHANGED: Field drawing and field processing now occurs in function scope with access to $admin, $bigtree, $cms, and $field. This limits the likelihood of one field type somehow breaking the main form's environment variables and also leads to much better code re-use.
+- CHANGED: Field options for templates, settings, and callouts are no longer stored in the top level JSON object but are instead stored in the "options" object -- this allows field options to now include keys such as "title" and "subtitle" (though "type" is still restricted when used in a Callout).
+- CHANGED: htmlMimeMail is no longer included in BigTree as it hadn't been updated in years. PHPMailer is now used as BigTree's default local mail sending tool.
+- CHANGED: Many Javascript classes/objects are now stored in closures and accept an object-based settings parameter instead of a long list of parameters (but should still be backwards compatible with the old parameter format).
 - CHANGED: Pre / Post callbacks for forms are now integrated into Hooks
 - CHANGED: BigTree running on PHP 5.4+ will now save its data in pretty-print JSON without escaped quotes for improved database editability.
 - CHANGED: AJAX folder routing will now include _header.php and _footer.php from the directories like templates.
 - CHANGED: You can now include links in <label class="for_checkbox"> elements.
+- CHANGED: Many BigTreeCMS and BigTreeAdmin methods can now be called statically.
+- CHANGED: Many to Many no longer asks you to confirm removing something.
+- REMOVED: Array of Items field type -- existing fields will be automatically converted to Matrix but their display titles will be lost until they are re-saved.
+- FIXED: Lots of general JavaScript clean-up
 
 ### 4.1.2 Release
 - FIXED: Editing HTML fields in the Array of Items field type when using TinyMCE 4
