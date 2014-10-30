@@ -144,11 +144,14 @@
 			$con = @sqlconnect($host,$user,$password);
 		}
 		if (!$con) {
-			$error = "Could not connect to database.";
+			$error = "Could not connect to MySQL server.";
 		} else {
+			// Try to create the database
+			sqlquery("CREATE DATABASE IF NOT EXISTS `$db`");
+			// Try to select it
 			$select = sqlselectdb($db, $con);
 			if (!$select) {
-				$error = "Could not select database &ldquo;$db&rdquo;.";
+				$error = "Error accessing/creating database &ldquo;$db&rdquo;.";
 			}
 		}
 	}
