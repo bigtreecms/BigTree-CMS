@@ -1,5 +1,5 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.2");
-	define("BIGTREE_REVISION",200);
+	define("BIGTREE_VERSION","4.3");
+	define("BIGTREE_REVISION",300);
 ?>
