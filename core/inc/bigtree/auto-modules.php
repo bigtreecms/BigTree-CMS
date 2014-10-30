@@ -576,7 +576,7 @@
 				if (is_array($groups)) {
 					$gfl = array();
 					foreach ($groups as $g) {
-						$gfl[] = "`gbp_field` = '".sqlescape($g)."'";
+						$gfl[] = "`id` = '".sqlescape($g)."' OR `gbp_field` = '".sqlescape($g)."'";
 					}
 					return " AND (".implode(" OR ",$gfl).")";
 				}
