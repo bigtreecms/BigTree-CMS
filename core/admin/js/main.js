@@ -2408,8 +2408,7 @@ var BigTreeFormValidator = function(selector,callback) {
 			} catch (er) {}
 
 			if (Form.serialize() != Form.data("initial-state")) {
-				BigTree.growl("Unsaved Changes","You have unsaved changes. Verify you wish to leave the page.","5000","error");
-				return false;
+				return "You have unsaved changes.";
 			}
 		};
 
