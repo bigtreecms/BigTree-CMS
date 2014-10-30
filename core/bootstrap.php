@@ -24,6 +24,9 @@
 		$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 	}
 
+	// Set version
+	include SERVER_ROOT."core/version.php";
+
 	// Include required utility functions
 	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
 		include SERVER_ROOT."custom/inc/bigtree/utils.php";

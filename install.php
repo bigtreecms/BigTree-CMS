@@ -1,4 +1,7 @@
 <?php
+	// Set version
+	include "core/version.php";
+
 	// Setup SQL functions for MySQL extension if we have it.
 	if (function_exists("mysql_connect")) {
 		function sqlconnect($server,$user,$password) {
@@ -520,7 +523,7 @@ RewriteRule (.*) site/$1 [L]');
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Install BigTree 4.2</title>
+		<title>Install BigTree <?=BIGTREE_VERSION?></title>
 		<?php if ($installed && $routing != "iis") { ?>
 		<link rel="stylesheet" href="<?php echo $www_root ?>admin/css/main.css" type="text/css" media="all" />
 		<?php } else { ?>
@@ -532,7 +535,7 @@ RewriteRule (.*) site/$1 [L]');
 	<body class="install">
 		<div class="install_wrapper">
 			<?php if ($installed) { ?>
-			<h1>BigTree 4.2 Installed</h1>
+			<h1>BigTree <?=BIGTREE_VERSION?> Installed</h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
@@ -569,7 +572,7 @@ RewriteRule (.*) site/$1 [L]');
 				<br class="clear" /><br />
 			</form>
 			<?php } else { ?>
-			<h1>Install BigTree 4.2</h1>
+			<h1>Install BigTree <?=BIGTREE_VERSION?></h1>
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
