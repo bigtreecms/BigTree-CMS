@@ -1445,7 +1445,7 @@
 
 		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
 			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
-			$file = sqlescape($this->replaceHardRoots($file));
+			$file = sqlescape(BigTreeCMS::replaceHardRoots($file));
 			$name = sqlescape(htmlspecialchars($name));
 			$type = sqlescape($type);
 			$is_image = sqlescape($is_image);
