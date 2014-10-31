@@ -3921,6 +3921,30 @@
 		}
 
 		/*
+			Function: getPageLineage
+				Returns all the ids of pages above this page.
+			
+			Parameters:
+				page - Page ID
+			
+			Returns:
+				Array of IDs
+		*/
+		
+		function getPageLineage($page) {
+			$parents = array();
+			$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
+			$parents[] = $f["parent"];
+			while ($f["parent"]) {
+				$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($f["parent"])."'"));
+				if ($f["parent"]) {
+					$parents[] = $f["parent"];
+				}
+			}
+			return $parents;
+		}
+
+		/*
 			Function: getPageOfAPITokens
 				Returns a page of API Tokens (most recent first) and their related users.
 
@@ -4040,34 +4064,6 @@
 			}
 
 			return $items;
-		}
-
-		/*
-			Function: getPageParents
-				Gets a list of parent IDs for a list of page IDs.
-				This strange function is mainly used for the User Permissions edit screen.
-
-			Parameters:
-				pages - An array of page IDs.
-
-			Returns:
-				An array of parent IDs.
-		*/
-
-		function getPageParents($pages) {
-			$parents = array();
-			$page_query = array();
-			foreach ($pages as $id) {
-				$id = sqlescape($id);
-				$page_query[] = "id = '$id'";
-			}
-			if (count($page_query)) {
-				$q = sqlquery("SELECT parent FROM bigtree_pages WHERE ".implode(" OR ",$page_query));
-				while ($f = sqlfetch($q)) {
-					$parents[] = $f["parent"];
-				}
-			}
-			return $parents;
 		}
 
 		/*
