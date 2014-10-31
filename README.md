@@ -20,6 +20,26 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.3 Release
+- ADDED: BigTreeCMS::deleteCache method
+- FIXED: Checkbox labels not wrapping well when hitting two lines
+- FIXED: Checkbox field type not supporting required
+- FIXED: Embeddable Form entries not being removed when errors occurred in the form but auto-publish was set
+- FIXED: Some TinyMCE 3 dialogs not having borders
+- FIXED: Validation errors in Embeddable forms
+- FIXED: Array of Items styles in embeddable forms
+- FIXED: Embeddable forms not being able to pull custom css/javascript for custom field types
+- FIXED: Embeddable form photo gallery styles
+- FIXED: "Text" field type sub type styles when used in a callout dialog
+- FIXED: TinyMCE 4's fonts being passed with the wrong content type (in some cases they would fail to load and icons wouldn't show)
+- FIXED: Phone field type using old $value setting instead of $field["output"]
+- FIXED: BigTree::describeTable being case sensitive (should now read tables properly when MySQL outputs strange casing)
+- FIXED: BigTreePaymentGateway's PayPal Express Checkout when using PayPal REST API as your gateway
+- FIXED: Google Analytics refresh bugs when not using cron
+- FIXED: Issues with some Payment Gateways where passing a single precision amount (i.e. $4.1) for amount or tax would cause an error
+- FIXED: Nested Views not supporting Advanced Permissions when using the parent column as the grouping column (it's still not advisable to use Nested Views when using Advanced Permissions as disqualifying a parent leads to not showing any children that may qualify -- this update makes the parent column a viable option for your "Main Field").
+- FIXED: Third level and greater depth page permissions not showing up properly when editing a normal user.
+
 ### 4.1.2 Release
 - FIXED: Editing HTML fields in the Array of Items field type when using TinyMCE 4
 - FIXED: Cloud Storage APIs throwing a warning when in PHP's safe mode
