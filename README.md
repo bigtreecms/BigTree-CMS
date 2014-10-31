@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.7 Release
+- FIXED: "Text" field type sub type styles when used in a callout dialog
+- FIXED: BigTreePaymentGateway's PayPal Express Checkout when using PayPal REST API as your gateway
+- FIXED: BigTree::describeTable being case sensitive (should now read tables properly when MySQL outputs strange casing)
+
 ### 4.0.6 Release
 - FIXED: Module Designer not setting id columns to UNSIGNED
 - FIXED: Failed BigTreeAutoModule::createItem causing empty cache entries (now properly returns false as well)
