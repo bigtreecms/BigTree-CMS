@@ -76,7 +76,10 @@
 					$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
 					$used_forms[] = $a["form"];
 				} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-					$module["views"][] = BigTreeAutoModule::getView($a["view"],false);
+					$view = BigTreeAutoModule::getView($a["view"],false);
+					// Unset edit_url as it exposes origin URL
+					unset($view["edit_url"]);
+					$module["views"][] = $view;
 					$used_views[] = $a["view"];
 				} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
 					$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
