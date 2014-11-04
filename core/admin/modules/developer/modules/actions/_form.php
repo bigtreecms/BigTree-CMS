@@ -12,40 +12,34 @@
 		<label>Route</label>
 		<input type="text" name="route" value="<?=$item["route"]?>" />
 	</fieldset>
-	<fieldset class="last">
-		<label>Access Level</label>
-		<select name="level">
-			<option value="0">Normal User</option>
-			<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-			<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
-		</select>
-	</fieldset>
-	<div class="triplets">
-		<fieldset>
-			<label>Form</label>
-			<select name="form"<? if ($item["view"] || $item["report"]) { ?> disabled="disabled"<? } ?>>
-				<option value="">&mdash;</option>
-				<? foreach ($forms as $form) { ?>
-				<option value="<?=$form["id"]?>"<? if ($form["id"] == $item["form"]) { ?> selected="selected"<? } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
-				<? } ?>
+	<div class="contain">
+		<fieldset class="float">
+			<label>Access Level</label>
+			<select name="level">
+				<option value="0">Normal User</option>
+				<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
+				<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
 			</select>
 		</fieldset>
-		<fieldset>
-			<label>View</label>
-			<select name="view"<? if ($item["form"] || $item["report"]) { ?> disabled="disabled"<? } ?>>
-				<option value="">&mdash;</option>
-				<? foreach ($views as $view) { ?>
-				<option value="<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>><?=$view["title"]?> (<?=$view["table"]?>)</option>
-				<? } ?>
-			</select>
-		</fieldset>
-		<fieldset>
-			<label>Report</label>
-			<select name="report"<? if ($item["view"] || $item["form"]) { ?> disabled="disabled"<? } ?>>
-				<option value="">&mdash;</option>
-				<? foreach ($reports as $report) { ?>
-				<option value="<?=$report["id"]?>"<? if ($report["id"] == $item["report"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
-				<? } ?>
+		<fieldset class="float">
+			<label>Related Function</label>
+			<select name="function">
+				<option></option>
+				<optgroup label="Forms">
+					<? foreach ($forms as $form) { ?>
+					<option value="form-<?=$form["id"]?>"<? if ($form["id"] == $item["form"]) { ?> selected="selected"<? } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
+					<? } ?>
+				</optgroup>
+				<optgroup label="Views">
+					<? foreach ($views as $view) { ?>
+					<option value="view-<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
+					<? } ?>
+				</optgroup>
+				<optgroup label="Reports">
+					<? foreach ($reports as $report) { ?>
+					<option value="report-<?=$report["id"]?>"<? if ($report["id"] == $item["report"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
+					<? } ?>
+				</optgroup>
 			</select>
 		</fieldset>
 	</div>
