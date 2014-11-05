@@ -9,7 +9,7 @@
 
 		// These are only applicable to Google Cloud Storage
 		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/storage/v1beta2/";
+		var $EndpointURL = "https://www.googleapis.com/storage/v1/";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "header";
 		var $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
@@ -176,11 +176,11 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$response = $this->call("b/$source_container/o/".urlencode($source_pointer)."/copyTo/b/$destination_container/o/".urlencode($destination_pointer),"{}","POST");
+				$response = $this->call("b/$source_container/o/".rawurlencode($source_pointer)."/copyTo/b/$destination_container/o/".rawurlencode($destination_pointer),"{}","POST");
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$destination_container/o/".urlencode($destination_pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$destination_container/o/".rawurlencode($destination_pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return "http://storage.googleapis.com/$destination_container/$destination_pointer";
 				} else {
@@ -297,11 +297,11 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$container/o/".urlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return "http://storage.googleapis.com/$container/$pointer";
 				} else {
@@ -407,7 +407,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
-				$response = $this->call("b/$container/o/".urlencode($pointer),false,"DELETE");
+				$response = $this->call("b/$container/o/".rawurlencode($pointer),false,"DELETE");
 				if (count($this->Errors) > $error_count) {
 					return false;
 				}
@@ -704,6 +704,45 @@
 		}
 
 		/*
+			Function: makeFilePublic
+				Makes a file readable to the public.
+				Rackspace Cloud Files does not support this method.
+
+			Parameters:
+				container - The container/bucket the file is in
+				pointer - The pointer to the file.
+
+			Returns:
+				The public URL if successful, otherwise false
+		*/
+
+		function makeFilePublic($container,$pointer) {
+			// Amazon S3
+			if ($this->Service == "amazon") {
+				// Get existing ACL
+				$xml = $this->callAmazonS3("GET",$container,$pointer,array("acl" => ""));
+				// Remove XML opening tags
+				$xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>
+','',$xml);
+				// Add in our global read ACL
+				$xml = str_replace('</AccessControlList>','<Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group"><URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission></Grant></AccessControlList>',$xml);
+				// Send back the ACL
+				$response = $this->callAmazonS3("PUT",$container,$pointer,array("acl" => ""),array("Content-Type" => "text/xml"),array(),$xml);
+
+				return "http://s3.amazonaws.com/$container/$pointer";
+			// Google Cloud Storage
+			} elseif ($this->Service == "google") {
+				$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+				if ($response) {
+					return "http://storage.googleapis.com/$container/".str_replace("%2F","/",rawurlencode($pointer));
+				}
+			// Rackspace or no setup at all
+			} else {
+				throw new Exception("The current cloud service provider does not support this method.");
+			}
+		}
+
+		/*
 			Function: resetCache
 				Clears the bigtree_caches table of container data and resets it with new data.
 
@@ -788,12 +827,12 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$file_pointer = fopen($file,"r");
-				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
 				fclose($file_pointer);
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$container/o/".urlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
 					return "http://storage.googleapis.com/$container/$pointer";
 				} else {
@@ -923,10 +962,9 @@
 				$signable_resource = $resource;
 			}
 
-			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->_hash(
-				$this->Settings["amazon"]["secret"],
-				$verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$signable_resource
-			);
+			$string_to_sign = $verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$signable_resource;
+			
+			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->_hash($this->Settings["amazon"]["secret"],$string_to_sign);
 
 			curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
 			curl_setopt($curl,CURLOPT_HEADER,false);
@@ -958,6 +996,7 @@
 			}
 
 			$response = curl_exec($curl);
+
 			if ($file_pointer) {
 				fclose($file_pointer);
 			}
