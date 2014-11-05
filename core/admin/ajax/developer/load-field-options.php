@@ -1,7 +1,6 @@
 <?
-	$t = $_POST["type"];
-	$d = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
-	$data = $d;
+	$field_type = $_POST["type"];
+	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	
 	$validation_options = array(
 		"required" => "Required",
@@ -15,7 +14,7 @@
 	
 	$validation = isset($data["validation"]) ? $data["validation"] : "";
 	
-	if ($t == "text") {
+	if ($field_type == "text") {
 ?>
 <fieldset>
 	<label>Validation</label>
@@ -27,7 +26,7 @@
 	</select>
 </fieldset>
 <?
-	} elseif ($t == "textarea" || $t == "upload" || $t == "html" || $t == "list" || $t == "time" || $t == "date" || $t == "datetime" || $t == "checkbox") {
+	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox") {
 ?>
 <fieldset>
 	<input type="checkbox" name="validation" value="required"<? if ($validation == "required") { ?> checked="checked"<? } ?> />
@@ -36,13 +35,21 @@
 <?	
 	}
 
-	if (file_exists(BigTree::path("admin/ajax/developer/field-options/".$t.".php"))) {
-		if ($t == "text" || $t == "textarea" || $t == "upload" || $t == "html" || $t == "list") {
+	// Check for extension field type
+	if (strpos($field_type,"*") === false) {
+		$path = BigTree::path("admin/ajax/developer/field-options/$field_type.php");
+	} else {
+		list($extension,$field_type) = explode("*",$field_type);
+		$path = SERVER_ROOT."extensions/$extension/ajax/developer/field-options/$field_type.php";	
+	}
+
+	if (file_exists($path)) {
+		if ($field_type == "text" || $field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list") {
 			echo "<hr />";
 		}
-		include BigTree::path("admin/ajax/developer/field-options/".$t.".php");
+		include $path;
 	} else {
-		if ($t != "text" && $t != "textarea" && $t = "upload" && $t != "html" && $t != "list" && $t != "time" && $t != "date" && $t != "datetime") {
+		if ($field_type != "text" && $field_type != "textarea" && $t = "upload" && $field_type != "html" && $field_type != "list" && $field_type != "time" && $field_type != "date" && $field_type != "datetime") {
 ?>
 <p>This field type does not have any options.</p>
 <?
