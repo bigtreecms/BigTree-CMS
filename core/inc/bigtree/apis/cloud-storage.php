@@ -89,7 +89,7 @@
 				A URL
 		*/
 
-		protected function _getRackspaceURL($container,$pointer) {
+		function _getRackspaceURL($container,$pointer) {
 			if ($this->Settings["rackspace"]["container_cdn_urls"][$container]) {
 				return $this->Settings["rackspace"]["container_cdn_urls"][$container]."/$pointer";
 			} else {
