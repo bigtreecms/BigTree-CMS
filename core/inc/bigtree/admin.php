@@ -5664,7 +5664,7 @@
 
 			// Check if the field type is stored in an extension
 			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$item["type"]);
+				list($extension,$field_type) = explode("*",$field["type"]);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
 			} else {
 				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
