@@ -69,7 +69,7 @@
 			$ftp_root = false;
 			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root")."core/inc/bigtree/")) {
 				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
-			} elseif ($ftp->changeDirectory(SERVER_ROOT."inc/bigtree/")) {
+			} elseif ($ftp->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;
 			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
 				$ftp_root = "/";
