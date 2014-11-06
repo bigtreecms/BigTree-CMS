@@ -1135,9 +1135,6 @@
 	.api_account_block img { float: left; width: 50px; }
 	.api_account_block strong { color: #666; display: block; font-size: 16px; font-weight: bold; padding: 8px 0 8px 0; }
 
-	.developer_cloud_key .file_wrapper { float: left; margin: 0 10px 0 0; }
-	.developer_cloud_key span { margin-top: 3px; }
-
 	#security_settings .rule { line-height: 22px; margin: 0 0 15px 0; }
 	#security_settings .rule input { display: inline-block; height: 20px; margin: 0 5px 5px 0; padding: 0 5px; text-align: center; width: 30px; }
 	#security_settings .icon_small_help { display: inline-block; float: none; vertical-align: middle; }
