@@ -51,7 +51,14 @@
 		*/
 
 		function connect($host,$port = 22) {
-			$this->Connection = new Net_SFTP($host,$port);
+			// Test connection
+			$connection = @fsockopen($host, $port);
+			if (is_resource($connection)) {
+				fclose($connection);
+				$this->Connection = new Net_SFTP($host,$port);
+				return true;	
+			}
+			return false;
 		}
 
 		/*
