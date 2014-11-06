@@ -2213,6 +2213,7 @@
 		function disconnectGoogleAnalytics() {
 			unlink(SERVER_ROOT."cache/analytics.cache");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
+			sqlquery("DELETE FROM bigtree_caches WHERE identifier = 'org.bigtreecms.api.analytics.google'");
 			$this->growl("Analytics","Disconnected");
 		}
 

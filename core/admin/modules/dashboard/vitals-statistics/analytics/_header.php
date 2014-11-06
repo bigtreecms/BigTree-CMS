@@ -3,18 +3,18 @@
 	define("MODULE_ROOT",ADMIN_ROOT."dashboard/vitals-statistics/analytics/");
 	
 	$analytics = new BigTreeGoogleAnalyticsAPI;
-
-	if ((!$analytics->Settings["token"] || !$analytics->Settings["profile"]) && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-profile" && end($bigtree["path"]) != "set-token") {
-		BigTree::redirect(MODULE_ROOT."configure/");
-	}
-
-	if (file_exists(SERVER_ROOT."cache/analytics.cache")) {
-		$cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
+	if (file_exists(SERVER_ROOT."cache/analytics.json")) {
+		$cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.json"),true);
 	} else {
 		$cache = false;
 	}
 	
-	if (!$cache && end($bigtree["path"]) != "cache" && end($bigtree["path"]) != "configure" && end($bigtree["path"]) != "set-profile" && end($bigtree["path"]) != "set-token") {
-		BigTree::redirect(MODULE_ROOT."cache/");
+	$restricted = array("analytics","keywords","service-providers","traffic-sources");
+	if (in_array(end($bigtree["path"]),$restricted)) {
+		if (!$analytics->Settings["token"] || !$analytics->Settings["profile"]) {
+			BigTree::redirect(MODULE_ROOT."configure/");		
+		} elseif (!$cache) {
+			BigTree::redirect(MODULE_ROOT."cache/");
+		}
 	}
 ?>
