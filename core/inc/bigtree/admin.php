@@ -2223,7 +2223,7 @@
 		*/
 
 		function disconnectGoogleAnalytics() {
-			unlink(SERVER_ROOT."cache/analytics.cache");
+			unlink(SERVER_ROOT."cache/analytics.json");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
 			self::growl("Analytics","Disconnected");
 		}
