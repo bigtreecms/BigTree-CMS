@@ -277,6 +277,7 @@
 		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
 			// Amazon S3
 			if ($this->Service == "amazon") {
+				$contents = strlen($contents) ? $contents : " ";
 				$response = $this->callAmazonS3("PUT",$container,$pointer,array(),array(
 					"Content-Type" => $type,
 					"Content-Length" => strlen($contents)
