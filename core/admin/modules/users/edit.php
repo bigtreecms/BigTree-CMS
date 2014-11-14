@@ -46,7 +46,13 @@
 			$page_ids[] = $id;
 		}
 	}
-	$pre_opened_parents = $admin->getPageParents($page_ids);
+	
+	$page_ids = array_unique($page_ids);
+
+	$pre_opened_parents = array();
+	foreach ($page_ids as $id) {
+		$pre_opened_parents = array_merge($pre_opened_parents,$admin->getPageLineage($id));
+	}
 
 	// Gather up the parents for resource folders that should be open by default.
 	$pre_opened_folders = array();
