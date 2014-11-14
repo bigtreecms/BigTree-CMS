@@ -395,8 +395,11 @@
 	
 	$("form.module").submit(function(ev) {
 		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");
-		permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
-		alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
+		var permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
+		var alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
+		// Remove the radios / checkboxes from the permissions section as they can cause a post overrun
+		$("#permission_section").find("input").remove();
+		// Add the JSON versions
 		$("#permission_section").append(permissions).append(alerts);
 	});
 	
