@@ -1787,7 +1787,8 @@
 					}
 				}
 			}
-		
+
+			// Delete extension entry
 			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($extension["id"])."'");
 			$this->track("bigtree_extensions",$extension["id"],"deleted");
 		}
