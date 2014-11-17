@@ -1906,6 +1906,11 @@ var BigTreeFormNavBar = (function() {
 
 
 var BigTreeListMaker = function(settings) {
+	// BigTree < 4.2 style
+	if (!is_object(settings)) {
+		settings = { element: arguments[0], name: arguments[1], title: arguments[2], columns: arguments[3], keys: arguments[4], existing: arguments[5] };
+	}
+	
 	return (function($,settings) {
 
 		var Container;
