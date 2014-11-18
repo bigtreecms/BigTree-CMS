@@ -2064,11 +2064,12 @@ var BigTreeListMaker = Class.extend({
 				var x = 0;
 				var rows = this.container.find("li");
 				var name = this.name;
+				var keys = this.keys;
 				rows.each(function() {
 					var fields = $(this).find("input,select");
-					fields.eq(0).attr("name",name + "[" + x + "][key]");
-					fields.eq(1).attr("name",name + "[" + x + "][title]");
-					fields.eq(2).attr("name",name + "[" + x + "][type]");
+					for (i = 0; i < keys.length; i++) {
+						fields.eq(i).attr("name",name + "[" + x + "][" + keys[i].key + "]");
+					}
 					x++;
 				});
 			},this)
