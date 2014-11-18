@@ -1984,7 +1984,7 @@ var BigTreeListMaker = function(settings) {
 					}
 					html += '</select></span>';
 				} else {
-					html += '<span><input type="text" name="' + name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(settings.existing[i][Keys[x].key]) + '" /></span>';
+					html += '<span><input type="text" name="' + Name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(settings.existing[i][Keys[x].key]) + '" /></span>';
 				}
 			}
 			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
