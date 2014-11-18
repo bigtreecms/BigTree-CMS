@@ -2063,11 +2063,12 @@ var BigTreeListMaker = Class.extend({
 				// Reset keys, JSON.stringify doesn't care what order the data was in.
 				var x = 0;
 				var rows = this.container.find("li");
+				var name = this.name;
 				rows.each(function() {
 					var fields = $(this).find("input,select");
-					fields.eq(0).attr("name","fields[" + x + "][key]");
-					fields.eq(1).attr("name","fields[" + x + "][title]");
-					fields.eq(2).attr("name","fields[" + x + "][type]");
+					fields.eq(0).attr("name",name + "[" + x + "][key]");
+					fields.eq(1).attr("name",name + "[" + x + "][title]");
+					fields.eq(2).attr("name",name + "[" + x + "][type]");
 					x++;
 				});
 			},this)
