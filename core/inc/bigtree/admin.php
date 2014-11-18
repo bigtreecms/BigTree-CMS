@@ -5251,7 +5251,8 @@
 		*/
 
 		function login($email,$password,$stay_logged_in = false) {
-			global $path;
+			global $bigtree;
+
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($email)."'"));
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
