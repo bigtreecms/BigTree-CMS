@@ -2009,18 +2009,18 @@ var BigTreeListMaker = function(settings) {
 			containment: "parent",
 			items: "li",
 			placeholder: "ui-sortable-placeholder",
-			update: $.proxy(function() {
+			update: function() {
 				// Reset keys, JSON.stringify doesn't care what order the data was in.
 				var x = 0;
-				var rows = this.container.find("li");
+				var rows = Container.find("li");
 				rows.each(function() {
 					var fields = $(this).find("input,select");
 					for (i = 0; i < Keys.length; i++) {
-						fields.eq(0).attr("name",Name + "[" + x + "][" + Keys[i].key + "]");
+						fields.eq(i).attr("name",Name + "[" + x + "][" + Keys[i].key + "]");
 					}
 					x++;
 				});
-			},this)
+			}
 		});
 
 		return { addOption: addOption };
