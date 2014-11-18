@@ -2015,9 +2015,9 @@ var BigTreeListMaker = function(settings) {
 				var rows = this.container.find("li");
 				rows.each(function() {
 					var fields = $(this).find("input,select");
-					fields.eq(0).attr("name",Name + "[" + x + "][key]");
-					fields.eq(1).attr("name",Name + "[" + x + "][title]");
-					fields.eq(2).attr("name",Name + "[" + x + "][type]");
+					for (i = 0; i < Keys.length; i++) {
+						fields.eq(0).attr("name",Name + "[" + x + "][" + Keys[i].key + "]");
+					}
 					x++;
 				});
 			},this)
