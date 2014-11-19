@@ -39,7 +39,7 @@
 				if ($bigtree["config"]["js"]["minify"]) {
 					$data = JShrink::minify($data);
 				}
-				file_put_contents($cfile,$data);
+				BigTree::putFile($cfile,$data);
 				header("Content-type: text/javascript");
 				die($data);
 			} else {
@@ -118,7 +118,7 @@
 					$minifier = new CSSMin;
 					$data = $minifier->run($data);
 				}	
-				file_put_contents($cfile,$data);
+				BigTree::putFile($cfile,$data);
 				header("Content-type: text/css");
 				die($data);
 			} else {
@@ -494,6 +494,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		file_put_contents(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
+		BigTree::putFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
 	}
 ?>

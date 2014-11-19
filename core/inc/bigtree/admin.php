@@ -682,8 +682,7 @@
 			$display_field = sqlescape($display_field);
 
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
-				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
-				chmod(SERVER_ROOT."templates/callouts/".$id.".php",0777);
+				BigTree::putFile(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
@@ -796,8 +795,7 @@
 
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
+				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
 	/*
 		When drawing a field type you are provided with the $field array with the following keys:
 			"title" — The title given by the developer to draw as the label (drawn automatically)
@@ -815,8 +813,7 @@
 				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
+				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
 	/*
 		When processing a field type you are provided with the $field array with the following keys:
 			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
@@ -1626,13 +1623,11 @@
 					chmod(SERVER_ROOT."templates/routed/".$id,0777);
 				}
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
-					file_put_contents(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
-					chmod(SERVER_ROOT."templates/routed/".$id."/default.php",0777);
+					BigTree::putFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
 				}
 			} else {
 				if (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
-					file_put_contents(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
-					chmod(SERVER_ROOT."templates/basic/".$id.".php",0777);
+					BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
 				}
 			}
 
@@ -2814,7 +2809,7 @@
 					}
 				}
 
-				file_put_contents(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
+				BigTree::putFile(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
 			}
 
 			// Re-merge if we don't want them split

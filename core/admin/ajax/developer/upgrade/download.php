@@ -5,7 +5,7 @@
 	// Try fopen first
 	$resource = @fopen($_POST["file"],"r");
 	if ($resource) {
-		file_put_contents(SERVER_ROOT."cache/update.zip",$resource);
+		BigTree::putFile(SERVER_ROOT."cache/update.zip",$resource);
 	} else {
 		$file = fopen(SERVER_ROOT."cache/update.zip","w");
 		$curl = curl_init();

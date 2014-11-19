@@ -34,7 +34,7 @@
 				}
 				
 				// Cache it so we don't hit the database.
-				file_put_contents(SERVER_ROOT."cache/bigtree-module-class-list.json",BigTree::json($items));
+				BigTree::putFile(SERVER_ROOT."cache/bigtree-module-class-list.json",BigTree::json($items));
 			}
 			
 			$this->ModuleClassList = $items;

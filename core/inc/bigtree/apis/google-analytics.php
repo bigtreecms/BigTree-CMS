@@ -272,7 +272,7 @@
 				$cache["two_week"][$item->date] = $item->visits;
 			}
 			
-			file_put_contents(SERVER_ROOT."cache/analytics.json",BigTree::json($cache));
+			BigTree::putFile(SERVER_ROOT."cache/analytics.json",BigTree::json($cache));
 		}
 		
 		/*

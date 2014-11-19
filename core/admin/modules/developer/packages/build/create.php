@@ -145,7 +145,7 @@
 	
 	// Write the manifest file
 	$json = BigTree::json($package);
-	file_put_contents(SERVER_ROOT."cache/package/manifest.json",$json);
+	BigTree::putFile(SERVER_ROOT."cache/package/manifest.json",$json);
 	
 	// Create the zip
 	@unlink(SERVER_ROOT."cache/package.zip");
