@@ -2521,7 +2521,6 @@ var BigTreeFilesystemBrowser = function(settings) {
 		var Form;
 		var Location = settings.location ? settings.location : "";
 		var Overlay;
-		var Settings = { directory: "/", enableCloudServices: true, preventBelowBaseDirectory: true }
 
 		function close(ev) {
 			ev.preventDefault();
