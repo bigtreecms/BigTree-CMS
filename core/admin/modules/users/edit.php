@@ -222,7 +222,7 @@
 						</nav>
 					</header>
 					<div id="page_permissions">
-						<div class="labels">
+						<div class="labels sticky_controls">
 							<span class="permission_label<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>">Page</span>
 							<span class="permission_alerts">Content Alerts</span>
 							<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>Publisher</span>
@@ -253,7 +253,7 @@
 					</div>
 					
 					<div id="module_permissions" style="display: none;">
-						<div class="labels">
+						<div class="labels sticky_controls">
 							<span class="permission_label permission_label_wider">Module</span>
 							<span class="permission_level">Publisher</span>
 							<span class="permission_level">Editor</span>
@@ -333,7 +333,7 @@
 					</div>
 					
 					<div id="resource_permissions" style="display: none;">
-						<div class="labels">
+						<div class="labels sticky_controls">
 							<span class="permission_label folder_label">Folder</span>
 							<span class="permission_level">Creator</span>
 							<span class="permission_level">Consumer</span>
