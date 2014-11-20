@@ -499,26 +499,36 @@
 			
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				$response = $this->callAmazonS3("GET",$container);
-				$xml = simplexml_load_string($response);
-				if (isset($xml->Name)) {
-					foreach ($xml->Contents as $item) {
-						$flat[(string)$item->Key] = array(
-							"name" => (string)$item->Key,
-							"path" => (string)$item->Key,
-							"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
-							"etag" => (string)$item->ETag,
-							"size" => (int)$item->Size,
-							"owner" => array(
-								"name" => (string)$item->Owner->DisplayName,
-								"id" => (string)$item->Owner->ID
-							),
-							"storage_class" => (string)$item->StorageClass
-						);
+				$continue = true;
+				$marker = "";
+				while ($continue) {
+					$response = $this->callAmazonS3("GET",$container,"",array("marker" => $marker));
+					$xml = simplexml_load_string($response);
+					if (isset($xml->Name)) {
+						foreach ($xml->Contents as $item) {
+							$flat[(string)$item->Key] = array(
+								"name" => (string)$item->Key,
+								"path" => (string)$item->Key,
+								"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
+								"etag" => (string)$item->ETag,
+								"size" => (int)$item->Size,
+								"owner" => array(
+									"name" => (string)$item->Owner->DisplayName,
+									"id" => (string)$item->Owner->ID
+								),
+								"storage_class" => (string)$item->StorageClass
+							);
+						}
+						$continue = false;
+						// Multi-page
+						if ($xml->IsTruncated == "true") {
+							$continue = true;
+							$marker = (string)$item->Key;
+						}
+					} else {
+						$this->_setAmazonError($response);
+						return false;
 					}
-				} else {
-					$this->_setAmazonError($response);
-					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
