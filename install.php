@@ -69,6 +69,9 @@
 	if (!extension_loaded('curl')) {
 		$fails[] = "PHP does not have the cURL extension installed.";
 	}
+	if (!extension_loaded('ctype')) {
+		$fails[] = "PHP does not have the ctype extension installed.";
+	}
 	if (!ini_get('file_uploads')) {
 		$fails[] = "PHP does not have file uploads enabled.";
 	}
