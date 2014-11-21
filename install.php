@@ -5,8 +5,8 @@
 			return mysql_connect($server,$user,$password);
 		}
 
-		function sqlselectdb($con,$db) {
-			return mysql_select_db($con,$db);
+		function sqlselectdb($db) {
+			return mysql_select_db($db);
 		}
 
 		function sqlquery($query) {
@@ -22,16 +22,19 @@
 			return mysqli_connect($server,$user,$password);
 		}
 
-		function sqlselectdb($con,$db) {
-			return mysqli_select_db($con,$db);
+		function sqlselectdb($db) {
+			global $sql_connection;
+			return $sql_connection->select_db($db);
 		}
 
 		function sqlquery($query) {
-			return mysqli_query($query);
+			global $sql_connection;
+			return $sql_connection->query($query);
 		}
 
 		function sqlescape($string) {
-			return mysqli_real_escape_string($string);
+			global $sql_connection;
+			return $sql_connection->real_escape_string($string);
 		}
 	}
 	// Turn off errors
@@ -133,14 +136,14 @@
 		$error = "Errors found! Please fix the highlighted fields and submit the form again.";
 	} elseif (count($_POST)) {
 		if ($write_host && $write_user && $write_password) {
-			$con = @sqlconnect($write_host,$write_user,$write_password);
+			$sql_connection = @sqlconnect($write_host,$write_user,$write_password);
 		} else {
-			$con = @sqlconnect($host,$user,$password);
+			$sql_connection = @sqlconnect($host,$user,$password);
 		}
-		if (!$con) {
+		if (!$sql_connection) {
 			$error = "Could not connect to database.";
 		} else {
-			$select = sqlselectdb($db, $con);
+			$select = sqlselectdb($db);
 			if (!$select) {
 				$error = "Could not select database &ldquo;$db&rdquo;.";
 			}
