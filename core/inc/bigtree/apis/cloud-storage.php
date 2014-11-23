@@ -437,7 +437,7 @@
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$pointer = str_replace(array('%2F', '%2B'),array('/', '+'),rawurlencode($pointer));
-				return "http://s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".$this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer");
+				return "http://s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".urlencode($this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer"));
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				// If we don't have a Temp URL key already set, we need to make one
