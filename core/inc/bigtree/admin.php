@@ -2306,6 +2306,11 @@
 		static function drawField($field) {
 			global $admin,$bigtree,$cms;
 
+			// Make sure options is an array to prevent warnings
+			if (!is_array($field["options"])) {
+				$field["options"] = array();
+			}
+
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$field["required"] = false;
