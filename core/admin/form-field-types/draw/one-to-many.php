@@ -55,9 +55,7 @@
 		?>
 		<li>
 			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-			<? if ($sortable) { ?>
 			<span class="icon_sort"></span>
-			<? } ?>
 			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></p>
 			<a href="#" class="icon_delete"></a>
 		</li>
@@ -92,7 +90,7 @@
 		id: "<?=$field["id"]?>",
 		count: <?=$x?>,
 		key: "<?=$field["key"]?>",
-		sortable: <?=($sortable ? "true" : "false")?>
+		sortable: "true"
 	});
 </script>
 <?
