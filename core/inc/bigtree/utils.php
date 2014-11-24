@@ -530,6 +530,7 @@
 					$key = self::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
+					$size = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ",$line);
 					if (strpos($parts[0],"(") !== false) { // Yes, there's a size definition
@@ -539,7 +540,6 @@
 						$finished_type = false;
 						$finished_size = false;
 						$x = 0;
-						$size = "";
 						$options = array();
 						while (!$finished_size) {
 							$c = substr($line,$x,1);
