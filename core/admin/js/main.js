@@ -2402,20 +2402,34 @@ var BigTreeFormValidator = function(selector,callback) {
 			Callback = callback;
 		}
 
-		// Make forms verify you wish to leave if you've made changes
-		Form.data("initial-state",Form.serialize());
-		window.onbeforeunload = function(ev) {
-			// Try to save TinyMCE fields
-			try {
-				for (editor_id in tinymce.editors) {
-					tinymce.editors[editor_id].save();
-				}
-			} catch (er) {}
-
-			if (Form.serialize() != Form.data("initial-state")) {
-				return "You have unsaved changes.";
-			}
-		};
+		// Make forms verify you wish to leave if you've made changes.
+		// Init this 5 seconds after people hit the page so quick interactions aren't interrupted.
+		$(document).ready(function() {
+			setTimeout(function() {
+				// Save TinyMCE fields before getting initial state, sometimes they alter the markup
+				try {
+					for (editor_id in tinymce.editors) {
+						tinymce.editors[editor_id].save();
+					}
+				} catch (er) {}
+				// Save initial state
+				Form.data("initial-state",Form.serialize());
+				
+				// Hook unload
+				window.onbeforeunload = function(ev) {
+					// Try to save TinyMCE fields
+					try {
+						for (editor_id in tinymce.editors) {
+							tinymce.editors[editor_id].save();
+						}
+					} catch (er) {}
+		
+					if (Form.serialize() != Form.data("initial-state")) {
+						return "You have unsaved changes.";
+					}
+				};
+			},5000);
+		});		
 
 		return { Form: Form, Callback: Callback, validateForm: validateForm };
 
