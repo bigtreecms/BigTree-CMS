@@ -478,9 +478,17 @@
 					$part = true;
 					while ($line && $part) {
 						$part = self::nextSQLColumnDefinition($line);
-						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						$size = false;
+						// See if there's a size definition, include it
+						if (substr($line,strlen($part) + 1,1) == "(") {
+							$line = substr($line,strlen($part) + 1);
+							$size = substr($line,1,strpos($line,")") - 1);
+							$line = substr($line,strlen($size) + 4);
+						} else {
+							$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						}
 						if ($part) {
-							$key_parts[] = $part;
+							$key_parts[$part] = $size;
 						}
 					}
 					$result["indexes"][$key_name] = $key_parts;
@@ -569,6 +577,7 @@
 					$key = self::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
+					$size = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ",$line);
 					if (strpos($parts[0],"(") !== false) { // Yes, there's a size definition
@@ -578,7 +587,6 @@
 						$finished_type = false;
 						$finished_size = false;
 						$x = 0;
-						$size = "";
 						$options = array();
 						while (!$finished_size) {
 							$c = substr($line,$x,1);
@@ -660,6 +668,8 @@
 							$x += 2;
 						} elseif ($part == "AUTO_INCREMENT") {
 							$column["auto_increment"] = true;
+						} elseif ($part == "UNSIGNED") {
+							$column["unsigned"] = true;
 						}
 					}
 					
@@ -1947,6 +1957,114 @@
 			}
 			return false;
 		}
+
+		/*
+			Function: tableMesh
+				Returns a list of SQL commands required to turn one table into another.
+
+			Parameters:
+				table_a - The table that is being translated
+				table_b - The table that the first table will become
+
+			Returns:
+				An array of SQL calls to perform to turn Table A into Table B.
+		*/
+
+		static function tableMesh($table_a,$table_b) {
+			// Get table A's description
+			$table_a_description = BigTree::describeTable($table_a);
+			$table_a_columns = $table_a_description["columns"];
+			// Get table B's description
+			$table_b_description = BigTree::describeTable($table_b);
+			$table_b_columns = $table_b_description["columns"];
+
+			// Setup up query array
+			$queries = array();
+
+			// Transition columns
+			$last_key = "";
+			foreach ($table_b_columns as $key => $column) {
+			    $mod = "";
+			    $action = "";
+			    // If this column doesn't exist in the Table A table, add it.
+			    if (!isset($table_a_columns[$key])) {
+			    	$action = "ADD";
+			    } elseif ($table_a_columns[$key] !== $column) {
+			    	$action = "MODIFY";
+			    }
+			    
+			    if ($action) {
+			    	$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
+			    	if ($column["size"]) {
+			    	    $mod .= "(".$column["size"].")";
+			    	}
+			    	
+			    	if ($column["charset"]) {
+			    		$mod .= " CHARSET ".$column["charset"];
+			    	}
+
+			    	if ($column["collate"]) {
+			    		$mod .= " COLLATE ".$column["collate"];
+			    	}
+
+			    	if (!$column["allow_null"]) {
+			    	    $mod .= " NOT NULL";
+			    	} else {
+			    		$mod .= " NULL";
+			    	}
+			    	
+			    	if ($column["default"]) {
+			    	    $d = $column["default"];
+			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
+			    	    	$mod .= " DEFAULT $d";
+			    	    } else {
+			    	    	$mod .= " DEFAULT '".mysql_real_escape_string($d)."'";
+			    	    }
+			    	}
+			    	
+			    	if ($last_key) {
+			    		$mod .= " AFTER `$last_key`";
+			    	} else {
+			    		$mod .= " FIRST";
+			    	}
+			    	
+			    	$queries[] = $mod;
+			    }
+			    
+			    $last_key = $key;
+			}
+
+			// Drop columns
+			foreach ($table_a_columns as $key => $column) {
+			    // If this key no longer exists in the new table, we should delete it.
+			    if (!isset($table_b_columns[$key])) {
+			    	$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
+			    }	
+			}
+
+			// Import keys
+			foreach ($table_b_description["indexes"] as $key => $index) {
+
+			}
+
+			// Switch engine if different
+			if ($table_a_description["engine"] != $table_b_description["engine"]) {
+				$queries[] = "ALTER TABLE `$table_a` ENGINE = ".$table_b_description["engine"];
+			}
+
+			// Switch character set if different
+			if ($table_a_description["charset"] != $table_b_description["charset"]) {
+				$queries[] = "ALTER TABLE `$table_a` CHARSET = ".$table_b_description["charset"];
+			}
+
+			// Switch auto increment if different
+			if (isset($table_b_description["auto_increment"]) && $table_a_description["auto_increment"] != $table_b_description["auto_increment"]) {
+				$queries[] = "ALTER TABLE `$table_a` AUTO_INCREMENT = ".$table_b_description["auto_increment"];
+			}
+			
+			return $queries;
+		}
+
 		/*
 			Function: touchFile
 				touch()s a file even if the directory for it doesn't exist yet.
