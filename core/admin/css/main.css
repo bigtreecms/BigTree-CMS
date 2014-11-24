@@ -564,7 +564,7 @@
 	.table > summary .add { background: #fff; border: 1px solid #ccc; border-radius: 2px; color: #666; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 6px 0 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
 	.table > summary .add:hover { background: #fff; color: #333; }
 	.table > summary .icon_small_export { float: right; margin: 10px 0 0 0; }
-	.table > summary .more { background: #fff; border: 1px solid #ccc; border-radius: 2px; color: #444; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 6px 0 0 0; padding: 0 10px; transition: background 0.2s; }
+	.table > summary .more, .container summary .more { background: #fff; border: 1px solid #ccc; border-radius: 2px; color: #444; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 6px 0 0 0; padding: 0 10px; transition: background 0.2s; }
 	.table > summary .more:hover { background: #fff; }
 	.table > summary h2, .container summary h2 { float: left; font-size: 14px; height: 36px; line-height: 35px; margin: 0; padding: 1px 0 0 0; text-transform: uppercase; }
 	.table > summary h2.full { float: none; user-select: none; }
