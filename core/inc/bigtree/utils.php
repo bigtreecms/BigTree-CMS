@@ -951,12 +951,12 @@
 			
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
-				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_")) || $tname == $default) {
-					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
-						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
+				$table_name = current($f);
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
+					if ($default == $table_name) {
+						echo '<option selected="selected">'.$table_name.'</option>';
 					} else {
-						echo '<option>'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
+						echo '<option>'.$table_name.'</option>';
 					}
 				}
 			}
