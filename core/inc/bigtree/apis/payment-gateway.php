@@ -960,7 +960,7 @@
 		
 		function paypalExpressCheckoutProcess($token,$payer_id,$amount = false) {
 			// Clean up the amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
 			
 			$params = array();
 			$params["TOKEN"] = $token;
@@ -1034,7 +1034,7 @@
 		
 		function paypalExpressCheckoutRedirect($amount,$success_url,$cancel_url) {
 			// Clean up the amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
 			$params = array();
 			
 			$params["PAYMENTREQUEST_0_AMT"] = $amount;
