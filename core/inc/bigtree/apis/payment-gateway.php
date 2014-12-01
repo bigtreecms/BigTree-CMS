@@ -605,7 +605,7 @@
 			// Split out tax and subtotals if present
 			if ($tax) {
 				$transaction_details = array(
-					"subtotal" => $amount - $tax,
+					"subtotal" => number_format($amount - $tax,2),
 					"tax" => number_format(round($tax,2),2),
 					"shipping" => 0
 				);
