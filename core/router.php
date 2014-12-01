@@ -170,6 +170,7 @@
 		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");
 		} else {
+			header("X-Robots-Tag: noindex");
 			include "../templates/basic/_maintenance.php";
 			$bigtree["content"] = ob_get_clean();
 			include "../templates/layouts/".($bigtree["layout"] ? $bigtree["layout"] : "default").".php";
