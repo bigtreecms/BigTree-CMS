@@ -67,8 +67,8 @@
 		
 		function authorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
 			// Clean up the amount and tax.
-			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
-			$tax = number_format(round(floatval(str_replace(array('$',','),"",$tax)),2),2);
+			$amount = $this->formatCurrency($amount);
+			$tax = $this->formatCurrency($tax);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -146,7 +146,7 @@
 		
 		function capture($transaction,$amount = 0) {
 			// Clean up the amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
+			$amount = $this->formatCurrency($amount);
 
 			if ($this->Service == "authorize.net") {
 				return $this->captureAuthorize($transaction,$amount);
@@ -318,7 +318,7 @@
 				"switch" => "(?:(?:(?:4903|4905|4911|4936|6333|6759)\d{12})|(?:(?:564182|633110)\d{10})(\d\d)?\d?)",
 				"discover" => '(^6(?:011|5[0-9]{2})[0-9]{12}$)'
 			);
-			$names = array("visa","amex","jcb","maestro","solo","mastercrad","switch","discover");
+			$names = array("visa","amex","jcb","maestro","solo","mastercard","switch","discover");
 			$matches = array();
 			$pattern = "#^(?:".implode("|", $cards).")$#";
 			$result = preg_match($pattern, str_replace(" ", "", $card_number), $matches);
@@ -353,8 +353,8 @@
 		
 		function charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
 			// Clean up the amount and tax.
-			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
-			$tax = number_format(round(floatval(str_replace(array('$',','),"",$tax)),2),2);
+			$amount = $this->formatCurrency($amount);
+			$tax = $this->formatCurrency($tax);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -605,8 +605,8 @@
 			// Split out tax and subtotals if present
 			if ($tax) {
 				$transaction_details = array(
-					"subtotal" => number_format($amount - $tax,2),
-					"tax" => number_format(round($tax,2),2),
+					"subtotal" => $this->formatCurrency(floatval($amount) - floatval($tax)),
+					"tax" => $tax,
 					"shipping" => 0
 				);
 			} else {
@@ -776,8 +776,8 @@
 		
 		function createRecurringPayment($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount = false,$trial_period = false,$trial_frequency = false,$trial_length = false) {
 			// Clean up the amount and trial amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
-			$trial_amount = round(floatval(str_replace(array('$',','),"",$trial_amount)),2);
+			$amount = $this->formatCurrency($amount);
+			$trial_amount = $this->formatCurrency($trial_amount);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -889,6 +889,21 @@
 		}
 
 		/*
+			Function: formatCurrency
+				Formats a currency amount for the payment gateways (they're picky).
+
+			Parameters:
+				amount - Currency amount
+
+			Returns:
+				A string
+		*/
+
+		function formatCurrency($amount) {
+			return number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2,".","");
+		}
+
+		/*
 			Function: paypalExpressCheckoutDetails
 				Returns checkout details for an Express Checkout transaciton.
 				For: PayPal Payments Pro and Payflow Gateway ONLY.
@@ -960,7 +975,7 @@
 		
 		function paypalExpressCheckoutProcess($token,$payer_id,$amount = false) {
 			// Clean up the amount.
-			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
+			$amount = $this->formatCurrency($amount);
 			
 			$params = array();
 			$params["TOKEN"] = $token;
@@ -1034,7 +1049,7 @@
 		
 		function paypalExpressCheckoutRedirect($amount,$success_url,$cancel_url) {
 			// Clean up the amount.
-			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
+			$amount = $this->formatCurrency($amount);
 			$params = array();
 			
 			$params["PAYMENTREQUEST_0_AMT"] = $amount;
@@ -1160,11 +1175,14 @@
 		*/
 
 		function paypalRESTVaultCharge($id,$user_id,$amount,$tax = 0,$description = "",$email = "",$action = "sale") {
+			$amount = $this->formatCurrency($amount);
+			$tax = $this->formatCurrency($tax);
+
 			// Split out tax and subtotals if present
 			if ($tax) {
 				$transaction_details = array(
-					"subtotal" => number_format(round($amount - $tax,2),2),
-					"tax" => number_format(round($tax,2),2),
+					"subtotal" => $this->formatCurrency(floatval($amount) - floatval($tax)),
+					"tax" => $tax,
 					"shipping" => 0
 				);
 			} else {
@@ -1179,7 +1197,7 @@
 				),
 				"transactions" => array(array(
 					"amount" => array(
-						"total" => number_format(round($amount,2),2),
+						"total" => $amount,
 						"currency" => "USD"
 					)
 				))
@@ -1348,7 +1366,7 @@
 		
 		function refund($transaction,$card_number = "",$amount = 0) {
 			// Clean up the amount.
-			$amount = number_format(round(floatval(str_replace(array('$',','),"",$amount)),2),2);
+			$amount = $this->formatCurrency($amount);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
