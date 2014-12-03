@@ -554,7 +554,7 @@
 					$line = substr($line,2); // Remove ) 
 					
 					// Setup our keys
-					$result["foreign_keys"][$key_name] = array("name" => $key_name, "local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
+					$result["foreign_keys"][$key_name] = array("local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
 
 					// Figure out all the on delete, on update stuff
 					$pieces = explode(" ",$line);
@@ -2076,9 +2076,28 @@
 				}
 			}
 
+			// Drop old foreign keys -- we do this for all the existing foreign keys that don't directly match because we're going to regenrate key names
+			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
+				$exists = false;
+				foreach ($table_b_description["foreign_keys"] as $d) {
+					if ($d == $definition) {
+						$exists = true;
+					}
+				}
+				if (!$exists) {
+					$queries[] = "ALTER TABLE `$table_a` DROP FOREIGN KEY `$key`";
+				}
+			}
+
 			// Import foreign keys
 			foreach ($table_b_description["foreign_keys"] as $key => $definition) {
-				if (!isset($table_a_description["foreign_keys"][$key]) || $table_a_description["foreign_keys"][$key] != $definition) {
+				$exists = false;
+				foreach ($table_a_description["foreign_keys"] as $d) {
+					if ($d == $definition) {
+						$exists = true;
+					}
+				}
+				if (!$exists) {
 					$source = $destination = array();
 					foreach ($definition["local_columns"] as $column) {
 						$source[] = "`$column`";
@@ -2086,15 +2105,14 @@
 					foreach ($definition["other_columns"] as $column) {
 						$destination[] = "`$column`";
 					}
-					$verb = isset($table_a_description["foreign_keys"][$key]) ? "MODIFY" : "ADD";
-					$queries[] = "ALTER TABLE `$table_a` $verb CONSTRAINT `$key` FOREIGN KEY (".implode(", ",$source).") REFERENCES `".$definition["other_table"]."`(".implode(", ",$destination).")";
-				}
-			}
-
-			// Drop old foreign keys
-			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
-				if (!isset($table_b_description["foreign_keys"][$key])) {
-					$queries[] = "ALTER TABLE `$table_a` DROP FOREIGN KEY `$key`";
+					$query = "ALTER TABLE `$table_a` ADD FOREIGN KEY (".implode(", ",$source).") REFERENCES `".$definition["other_table"]."`(".implode(", ",$destination).")";
+					if ($definition["on_delete"]) {
+						$query .= " ON DELETE ".$definition["on_delete"];
+					}
+					if ($definition["on_update"]) {
+						$query .= " ON UPDATE ".$definition["on_update"];
+					}
+					$queries[] = $query;
 				}
 			}
 
