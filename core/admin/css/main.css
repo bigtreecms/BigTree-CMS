@@ -197,6 +197,7 @@
 	.select a.active { background: #EFF7FD; }
 	.select a:hover { background: #eee; }
 	.select a.optgroup { padding: 5px 20px; }
+	.select a.disabled { color: #CCC; cursor: default; }
 	.select.focused { border-color: #AAA; }
 	.select.open { border-radius: 2px 2px 0px 0px; }
 	.form_error .select { border-color: #C0362F; }

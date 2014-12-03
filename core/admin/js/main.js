@@ -433,14 +433,22 @@ var BigTreeSelect = function(element) {
 			// Up or left arrow pressed
 			if (ev.keyCode == 38 || ev.keyCode == 37) {
 				index--;
-				if (index < 0) {
-					index = 0;
+				// Make sure we're not on a disabled option
+				while (index < 0 || el.options[index].disabled) {
+					index--;
+					if (index < 0) {
+						index = originalIndex;
+					}
 				}
 			// Down or right arrow pressed
 			} else if (ev.keyCode == 40 || ev.keyCode == 39) {
 				index++;
-				if (index == el.options.length) {
-					index--;
+				// Make sure we're not on a disabled option
+				while (index == el.options.length || el.options[index].disabled) {
+					index++;
+					if (index >= el.options.length) {
+						index = originalIndex;
+					}
 				}
 			// A letter key was pressed
 			} else if (ev.keyCode > 64 && ev.keyCode < 91) {
@@ -450,19 +458,7 @@ var BigTreeSelect = function(element) {
 				
 				// Go through all the options in the select to see if any of them start with the letter that was pressed.
 				for (var i = index + 1; i < el.options.length; i++) {
-					var text = el.options[i].text;
-					if (text) {
-						var first_letter = text[0].toLowerCase();
-						if (first_letter == letter) {
-							index = i;
-							break;
-						}
-					}
-				}
-				
-				// If we were already on that letter, find the next one with that same letter.
-				if (index == originalIndex) {
-					for (var i = 0; i < originalIndex; i++) {
+					if (!el.options[i].disabled) {
 						var text = el.options[i].text;
 						if (text) {
 							var first_letter = text[0].toLowerCase();
@@ -473,8 +469,24 @@ var BigTreeSelect = function(element) {
 						}
 					}
 				}
+				
+				// If we were already on that letter, find the next one with that same letter.
+				if (index == originalIndex) {
+					for (var i = 0; i < originalIndex; i++) {
+						if (!el.options[i].disabled) {
+							var text = el.options[i].text;
+							if (text) {
+								var first_letter = text[0].toLowerCase();
+								if (first_letter == letter) {
+									index = i;
+									break;
+								}
+							}
+						}
+					}
+				}
 			}
-			
+
 			// We found a new element, fire an event saying the select changed and update the description in the styled dropdown.
 			if (index != originalIndex) {
 				// Update the new selected option
@@ -537,19 +549,29 @@ var BigTreeSelect = function(element) {
 			}
 		};
 		
-		function select(event) {
-			var el = $(event.target);
+		function select(ev) {
+			ev.preventDefault();
+			var option = $(this);
+
+			// Disabled options aren't clickable
+			if (option.hasClass("disabled")) {
+				ev.stopPropagation();
+				return;
+			}
+
 			// Set the <select> to the new value
-			Element.val(el.attr("data-value"));
+			Element.val(option.attr("data-value"));
+
 			// Update the selected state of the custom dropdown
-			Container.find("span").html('<figure class="handle"></figure>' + el.html());
+			Container.find("span").html('<figure class="handle"></figure>' + option.html());
 			Container.find("a").removeClass("active");
-			el.addClass("active");
+			option.addClass("active");
+			
 			// Close the dropdown
 			close();
+			
 			// Tell the <select> it has changed.
-			Element.trigger("change", { value: el.attr("data-value"), text: el.innerHTML });
-			return false;
+			Element.trigger("change", { value: option.attr("data-value"), text: option.innerHTML });
 		};
 
 		function update() {
@@ -615,11 +637,13 @@ var BigTreeSelect = function(element) {
 						selected_option = text;
 					}
 					
-					if (option.attr("selected")) {
-						html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
+					if (option.prop("selected")) {
+						Options.push($('<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>'));
 						selected_option = text;
+					} else if (option.prop("disabled")) {
+						Options.push($('<a class="optgroup disabled" href="#" data-value="' + val + '">' + text + '</a>'));
 					} else {
-						html += '<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>';
+						Options.push($('<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>'));
 					}
 				}
 			} else {
@@ -649,16 +673,18 @@ var BigTreeSelect = function(element) {
 					selected_option = text;
 				}
 				
-				if (option.attr("selected")) {
-					html += '<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>';		
+				if (option.prop("selected")) {
+					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>'));
 					selected_option = text;
+				} else if (option.prop("disabled")) {
+					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" class="disabled" href="#" data-value="' + val + '">' + text + '</a>'));
 				} else {
-					html += '<a style="border-left: ' + depth + 'px solid #CCC;" href="#" data-value="' + val + '">' + text + '</a>';
+					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" href="#" data-value="' + val + '">' + text + '</a>'));
 				}
 			}
 		}
 		
-		Container.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;">' + html + '</div>');
+		Container.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;"></div>');
 
 		var spanwidth = maxwidth;
 		// If we're in a section cell we may need to be smaller.
@@ -672,7 +698,7 @@ var BigTreeSelect = function(element) {
 		}
 		
 		Container.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click(click);
-		Container.find(".select_options").css({ width: (maxwidth + 64) + "px" });
+		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
 		Container.on("click","a",select);
 		Container.find(".handle").click(click);
 		
@@ -692,7 +718,7 @@ var BigTreeSelect = function(element) {
 		// Cleanup
 		tester.remove();
 
-		return { Container: Container, Element: Element, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove, update: update };
+		return { Container: Container, Element: Element, Options: Options, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove, update: update };
 
 	})(jQuery,element);
 };
