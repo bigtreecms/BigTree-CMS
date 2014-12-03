@@ -455,20 +455,25 @@
 			$result["foreign_keys"] = array();
 			$result["primary_key"] = false;
 			
-			// Make sure we don't throw an exception if the table doesn't exist.
-			if (!self::tableExists($table)) {
+			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+			if (!$f) {
 				return false;
 			}
 
-			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
 			$lines = explode("\n",$f["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines,1,-1);
 			foreach ($main_lines as $line) {
 				$column = array();
 				$line = rtrim(trim($line),",");
-				if (strtoupper(substr($line,0,3)) == "KEY") { // Keys
-					$line = substr($line,5); // Take away "KEY `"
+				if (strtoupper(substr($line,0,3)) == "KEY" || strtoupper(substr($line,0,10)) == "UNIQUE KEY") { // Keys
+					if (strtoupper(substr($line,0,10)) == "UNIQUE KEY") {
+						$line = substr($line,12); // Take away "KEY `"
+						$unique = true;
+					} else {
+						$line = substr($line,5); // Take away "KEY `"
+						$unique = false;
+					}
 					// Get the key's name.
 					$key_name = self::nextSQLColumnDefinition($line);
 					// Get the key's content
@@ -488,10 +493,10 @@
 							$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
 						}
 						if ($part) {
-							$key_parts[$part] = $size;
+							$key_parts[] = array("column" => $part,"length" => $size);
 						}
 					}
-					$result["indexes"][$key_name] = $key_parts;
+					$result["indexes"][$key_name] = array("unique" => $unique,"columns" => $key_parts);
 				} elseif (strtoupper(substr($line,0,7)) == "PRIMARY") { // Primary Keys
 					$line = substr($line,14); // Take away PRIMARY KEY (`
 					$key_parts = array();
@@ -500,7 +505,9 @@
 						$part = self::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
 						if ($part) {
-							$key_parts[] = $part;
+							if (strpos($part,"KEY_BLOCK_SIZE=") === false) {
+								$key_parts[] = $part;
+							}
 						}
 					}
 					$result["primary_key"] = $key_parts;
