@@ -505,12 +505,16 @@ var BigTreeSelect = function(element) {
 		
 				// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
 				if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
+					// Fire delayed change event since Firefox doesn't cooperate
+					setTimeout(function() {
+						Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
+					},200);
 				} else {
 					el.selectedIndex = index;
+					Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 				}
 	
 				Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
-				Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 				
 				return false;
 			}
