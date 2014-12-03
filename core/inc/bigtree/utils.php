@@ -2005,6 +2005,10 @@
 			    	if ($column["size"]) {
 			    	    $mod .= "(".$column["size"].")";
 			    	}
+
+			    	if ($column["unsigned"]) {
+			    		$mod .= " UNSIGNED";
+			    	}
 			    	
 			    	if ($column["charset"]) {
 			    		$mod .= " CHARSET ".$column["charset"];
@@ -2020,7 +2024,7 @@
 			    		$mod .= " NULL";
 			    	}
 			    	
-			    	if ($column["default"]) {
+			    	if (isset($column["default"])) {
 			    	    $d = $column["default"];
 			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
 			    	    	$mod .= " DEFAULT $d";
@@ -2049,9 +2053,59 @@
 			    }	
 			}
 
-			// Import keys
+			// Add new indexes
 			foreach ($table_b_description["indexes"] as $key => $index) {
+				if (!isset($table_a_description["indexes"][$key]) || $table_a_description["indexes"][$key] != $index) {
+					$pieces = array();
+					foreach ($index["columns"] as $column) {
+						if ($column["length"]) {
+							$pieces[] = "`".$column["column"]."`(".$column["length"].")";
+						} else {
+							$pieces[] = "`".$column["column"]."`";
+						}
+					}
+					$verb = isset($table_a_description["indexes"][$key]) ? "MODIFY" : "ADD";
+					$queries[] = "ALTER TABLE `$table_a` $verb ".($index["unique"] ? "UNIQUE " : "")."KEY `$key` (".implode(", ",$pieces).")";
+				}
+			}
 
+			// Drop old indexes
+			foreach ($table_a_description["indexes"] as $key => $index) {
+				if (!isset($table_b_description["indexes"][$key])) {
+					$queries[] = "ALTER TABLE `$table_a` DROP KEY `$key`";
+				}
+			}
+
+			// Import foreign keys
+			foreach ($table_b_description["foreign_keys"] as $key => $definition) {
+				if (!isset($table_a_description["foreign_keys"][$key]) || $table_a_description["foreign_keys"][$key] != $definition) {
+					$source = $destination = array();
+					foreach ($definition["local_columns"] as $column) {
+						$source[] = "`$column`";
+					}
+					foreach ($definition["other_columns"] as $column) {
+						$destination[] = "`$column`";
+					}
+					$verb = isset($table_a_description["foreign_keys"][$key]) ? "MODIFY" : "ADD";
+					$queries[] = "ALTER TABLE `$table_a` $verb CONSTRAINT `$key` FOREIGN KEY (".implode(", ",$source).") REFERENCES `".$definition["other_table"]."`(".implode(", ",$destination).")";
+				}
+			}
+
+			// Drop old foreign keys
+			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
+				if (!isset($table_b_description["foreign_keys"][$key])) {
+					$queries[] = "ALTER TABLE `$table_a` DROP FOREIGN KEY `$key`";
+				}
+			}
+
+			// Drop existing primary key if it's not the same
+			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
+				$pieces = array();
+				foreach ($table_b_description["primary_key"] as $piece) {
+					$pieces[] = "`$piece`";
+				}
+				$queries[] = "ALTER TABLE `$table_a` DROP PRIMARY KEY";
+				$queries[] = "ALTER TABLE `$table_a` ADD PRIMARY KEY (".implode(",",$pieces).")";
 			}
 
 			// Switch engine if different
