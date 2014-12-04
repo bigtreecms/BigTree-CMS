@@ -1506,12 +1506,16 @@
 					$$key = sqlescape(htmlspecialchars($val));
 				}
 			}
+			
 			$extension = $extension ? "'$extension'" : "NULL";
 
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT")) {
 				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-				$id = "$extension*$id";
+				// Don't append extension again if it's already being called via the namespace
+				if (strpos($id,"$extension*") === false) {
+					$id = "$extension*$id";
+				}
 				$extension = "'$extension'";
 			}
 
@@ -7641,7 +7645,7 @@
 			global $bigtree,$admin;
 
 			$item = self::getSetting($id,false);
-			$id = sqlescape($item["id"]);
+			$id = sqlescape(BigTreeCMS::extensionSettingCheck($id));
 
 			if (is_array($value)) {
 				$value = BigTree::translateArray($value);
