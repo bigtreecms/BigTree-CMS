@@ -53,8 +53,7 @@
 				if (!self::cacheViewData($view)) {
 				
 					// Find out what module we're using so we can get the gbp_field
-					$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
-					$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
+					$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".self::getModuleForView($view)."'"));
 					$view["gbp"] = json_decode($module["gbp"],true);
 					
 					$form = self::getRelatedFormForView($view);
@@ -212,8 +211,7 @@
 			}
 			
 			// Find out what module we're using so we can get the gbp_field
-			$action = sqlfetch(sqlquery("SELECT module FROM bigtree_module_actions WHERE view = '".$view["id"]."'"));
-			$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".$action["module"]."'"));
+			$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".self::getModuleForView($view)."'"));
 			$view["gbp"] = json_decode($module["gbp"],true);
 			
 			// Setup information on our parsers and populated lists.
@@ -737,6 +735,9 @@
 		
 		static function getModuleForForm($form) {
 			if (is_array($form)) {
+				if ($form["module"]) {
+					return $form["module"];
+				}
 				$form = $form["id"];
 			}
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form'"));
@@ -756,6 +757,9 @@
 
 		static function getModuleForView($view) {
 			if (is_array($view)) {
+				if ($view["module"]) {
+					return $view["module"];
+				}
 				$view = $view["id"];
 			}
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '$view'"));
