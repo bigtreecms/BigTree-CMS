@@ -7661,7 +7661,7 @@
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
 
-			if ($admin) {
+			if ($admin && !$item["system"]) {
 				// Audit trail.
 				$admin->track("bigtree_settings",$id,"updated");
 			}
