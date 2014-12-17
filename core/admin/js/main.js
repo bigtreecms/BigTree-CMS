@@ -612,7 +612,7 @@ var BigTreeSelect = function(element) {
 			var el = first_level.get(i);
 			if (el.nodeName.toLowerCase() == "optgroup") {
 				var l = $(el).attr("label");
-				html += '<div class="group">' + l + '</div>';
+				Options.push($('<div class="group">' + l + '</div>'));
 				// Get the size of this text.
 				tester.html(l);
 				var width = tester.width();
