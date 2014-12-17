@@ -22,7 +22,7 @@
 			</select>
 		</fieldset>
 		<fieldset class="float">
-			<label>Related Function</label>
+			<label>Interface</label>
 			<select name="function">
 				<option></option>
 				<optgroup label="Forms">
