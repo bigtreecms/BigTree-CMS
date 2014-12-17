@@ -94,93 +94,6 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/views/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2><span class="views"></span>Views</h2>
-	</summary>
-	<header>
-		<span class="developer_view_name">Title</span>
-		<span class="view_action" style="width: 120px;">Actions</span>
-	</header>
-	<ul id="module_views">
-		<? foreach ($views as $view) { ?>
-		<li>
-			<section class="developer_view_name">View <?=$view["title"]?></section>
-			<section class="view_action">
-				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
-				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
-				<? } else { ?>
-				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
-				<? } ?>
-			</section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<? } ?>
-	</ul>
-</div>
-
-<div class="table">
-	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2><span class="forms"></span>Forms</h2>
-	</summary>
-	<header>
-		<span class="developer_templates_name">Title</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
-	</header>
-	<ul id="module_forms">
-		<? foreach ($forms as $form) { ?>
-		<li>
-			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<? } ?>
-	</ul>
-</div>
-
-<div class="table">
-	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/embeds/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2><span class="embeds"></span>Embeddable Forms</h2>
-	</summary>
-	<header>
-		<span class="developer_templates_name">Title</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
-	</header>
-	<ul id="module_forms">
-		<? foreach ($embeds as $form) { ?>
-		<li>
-			<section class="developer_templates_name"><?=$form["title"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<? } ?>
-	</ul>
-</div>
-
-<div class="table">
-	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/reports/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2><span class="reports"></span>Reports</h2>
-	</summary>
-	<header>
-		<span class="developer_templates_name">Title</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
-	</header>
-	<ul id="module_forms">
-		<? foreach ($reports as $report) { ?>
-		<li>
-			<section class="developer_templates_name"><?=$report["title"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<? } ?>
-	</ul>
-</div>
-
-<div class="table">
-	<summary>
 		<a href="<?=DEVELOPER_ROOT?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
 		<h2><span class="actions"></span>Actions</h2>
 	</summary>
@@ -210,6 +123,89 @@
 			<section class="developer_templates_name"><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+	<?
+		}
+	?>
+</div>
+
+<div class="table">
+	<summary>
+		<a href="<?=DEVELOPER_ROOT?>modules/add-interface/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<h2><span class="embeds"></span>Interfaces</h2>
+	</summary>
+	<?
+		if (count($views)) {
+	?>
+	<header>
+		<span class="developer_view_name">Views</span>
+	</header>
+	<ul>
+		<? foreach ($views as $view) { ?>
+		<li>
+			<section class="developer_view_name">View <?=$view["title"]?></section>
+			<section class="view_action">
+				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
+				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
+				<? } else { ?>
+				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
+				<? } ?>
+			</section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+	<?
+		}
+
+		if (count($forms)) {
+	?>
+	<header>
+		<span class="developer_view_name">Forms</span>
+	</header>
+	<ul>
+		<? foreach ($forms as $form) { ?>
+		<li>
+			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+	<?
+		}
+
+		if (count($embeds)) {
+	?>
+	<header>
+		<span class="developer_templates_name">Embeddable Forms</span>
+	</header>
+	<ul>
+		<? foreach ($embeds as $form) { ?>
+		<li>
+			<section class="developer_templates_name"><?=$form["title"]?></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+		</li>
+		<? } ?>
+	</ul>
+	<?
+		}
+
+		if (count($reports)) {
+	?>
+	<header>
+		<span class="developer_templates_name">Reports</span>
+	</header>
+	<ul>
+		<? foreach ($reports as $report) { ?>
+		<li>
+			<section class="developer_templates_name"><?=$report["title"]?></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>

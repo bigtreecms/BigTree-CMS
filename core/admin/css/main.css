@@ -588,7 +588,8 @@
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
 
-	.table > header { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
+	.table > header { background: #eee; border-bottom: 1px solid #ccc; border-top: 1px solid #E0E0E0; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
+	.table > header:first-of-type { border-top: none;; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background: #EFF7FD; border-top: 1px solid #ccc; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-transform: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
@@ -1371,8 +1372,7 @@
 	.disabled_icon { cursor: default; opacity: 0.3; }
 
 /* Smaller Icons */
-	.icon_small { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
-
+	.icon_small, *[class^="icon_small"] { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
 	.icon_small_add { background-position: -32px -140px; }
 	.icon_small_airplane { background-position: -768px -156px; }
 	.icon_small_amazon { background-position: -864px -140px; }
