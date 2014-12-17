@@ -39,7 +39,7 @@
 				if ($bigtree["config"]["js"]["minify"]) {
 					$data = JShrink::minify($data);
 				}
-				file_put_contents($cfile,$data);
+				BigTree::putFile($cfile,$data);
 				header("Content-type: text/javascript");
 				die($data);
 			} else {
@@ -118,7 +118,7 @@
 					$minifier = new CSSMin;
 					$data = $minifier->run($data);
 				}	
-				file_put_contents($cfile,$data);
+				BigTree::putFile($cfile,$data);
 				header("Content-type: text/css");
 				die($data);
 			} else {
@@ -170,6 +170,7 @@
 		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");
 		} else {
+			header("X-Robots-Tag: noindex");
 			include SERVER_ROOT."templates/basic/_maintenance.php";
 			$bigtree["content"] = ob_get_clean();
 			include SERVER_ROOT."templates/layouts/".($bigtree["layout"] ? $bigtree["layout"] : "default").".php";
@@ -494,6 +495,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		file_put_contents(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
+		BigTree::putFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
 	}
 ?>

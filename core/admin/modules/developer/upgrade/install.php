@@ -26,7 +26,9 @@
 </div>
 <?
 	} else {
-		if ($_POST["method"] == "local") {
+		$method = $_SESSION["bigtree_admin"]["upgrade_method"];
+		
+		if ($method == "local") {
 			// Create backups folder
 			if (!file_exists(SERVER_ROOT."backups/")) {
 				mkdir(SERVER_ROOT."backups/");
@@ -56,20 +58,24 @@
 				$_POST = $_SESSION["bigtree_admin"]["ftp"];
 			}
 			
-			// Make sure FTP login works
-			$ftp = new BigTreeFTP;
-			if (!$ftp->connect("localhost")) {
-				BigTree::redirect(DEVELOPER_ROOT."upgrade/failed/");
+			if ($method == "ftp") {
+				$ftp = new BigTreeFTP;
+			} else {
+				$ftp = new BigTreeSFTP;
 			}
+			
+			// Attempt to login
+			$ftp->connect("localhost");
 			if (!$ftp->login($_POST["username"],$_POST["password"])) {
-				$admin->growl("Developer","FTP Login Failed","error");
+				$admin->growl("Developer","Login Failed","error");
 				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
 			}
+			
 			// Try to determine the FTP root.
 			$ftp_root = false;
 			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root")."core/inc/bigtree/")) {
 				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
-			} elseif ($ftp->changeDirectory(SERVER_ROOT."inc/bigtree/")) {
+			} elseif ($ftp->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;
 			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
 				$ftp_root = "/";
@@ -88,15 +94,15 @@
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
 		<section>
-			<p>BigTree could not automatically detect the FTP directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full FTP path below. This would be the directory that contains /core/.</p>
+			<p>BigTree could not automatically detect the <?=$method?> directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full <?=$method?> path below. This would be the directory that contains /core/.</p>
 			<hr />
 			<fieldset>
-				<label>FTP Path</label>
+				<label><?=$method?> Path</label>
 				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Set FTP Directory" />
+			<input type="submit" class="button blue" value="Set <?=$method?> Directory" />
 		</footer>
 	</div>
 </form>

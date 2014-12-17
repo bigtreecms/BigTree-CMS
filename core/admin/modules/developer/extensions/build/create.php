@@ -147,7 +147,11 @@
 				if ($new_route) {
 					sqlquery("UPDATE bigtree_module_views SET preview_url = REPLACE(preview_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["view"]."'");
 				}
-				$module["views"][] = BigTreeAutoModule::getView($a["view"],false);
+
+				$view = BigTreeAutoModule::getView($a["view"],false);
+				// Unset edit_url as it exposes origin URL
+				unset($view["edit_url"]);
+				$module["views"][] = $view;
 				$used_views[] = $a["view"];
 			} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
 				$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
@@ -221,7 +225,7 @@
 	
 	// Write the manifest file
 	$json = BigTree::json($package);
-	file_put_contents(SERVER_ROOT."extensions/$id/manifest.json",$json);
+	BigTree::putFile(SERVER_ROOT."extensions/$id/manifest.json",$json);
 	
 	// Create the zip
 	@unlink(SERVER_ROOT."cache/package.zip");

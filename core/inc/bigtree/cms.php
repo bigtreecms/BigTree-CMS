@@ -34,7 +34,7 @@
 				}
 				
 				// Cache it so we don't hit the database.
-				file_put_contents(SERVER_ROOT."cache/bigtree-module-class-list.json",BigTree::json($items));
+				BigTree::putFile(SERVER_ROOT."cache/bigtree-module-class-list.json",BigTree::json($items));
 			}
 			
 			$this->ModuleClassList = $items;
@@ -75,17 +75,26 @@
 			// Only want one usage to exist
 			if (!isset($this->AutoSaveSettings[$id])) {
 				$data = $this->getSetting($id);
+
+				// Create a setting if it doesn't exist yet
 				if ($data === false) {
 					// If an extension is creating an auto save setting, make it a reference back to the extension
 					if (defined("EXTENSION_ROOT")) {
 						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-						$id = "$extension*$id";
+						
+						// Don't append extension again if it's already being called via the namespace
+						if (strpos($id,"$extension*") === false) {
+							$id = "$extension*$id";
+						}
+						
 						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`,`extension`) VALUES ('".sqlescape($id)."','on','on','$extension')");
 					} else {
 						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on')");
 					}
 					$data = array();
 				}
+
+				// Asking for an object? Return it as an object
 				if ($return_object) {
 					$obj = new stdClass;
 					if (is_array($data)) {
@@ -94,11 +103,13 @@
 						}
 					}
 					$this->AutoSaveSettings[$id] = $obj;
+				// Otherwise return an array
 				} else {
 					$this->AutoSaveSettings[$id] = $data;
 				}
 			}
 
+			// Already exists, return it
 			return $this->AutoSaveSettings[$id];
 		}
 
@@ -1169,7 +1180,7 @@
 			}
 
 			if ($f["redirect_url"]) {
-				$f["redirect_url"] = $this->getInternalPageLink($f["redirect_url"]);
+				$f["redirect_url"] = self::getInternalPageLink($f["redirect_url"]);
 
 				if ($f["redirect_url"] == "/") {
 					$f["redirect_url"] = "";

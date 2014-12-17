@@ -56,8 +56,8 @@
 	}
 
 	// Get Google Analytics Traffic
-	if (file_exists(SERVER_ROOT."cache/analytics.cache")) {
-		$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.cache"),true);
+	if (file_exists(SERVER_ROOT."cache/analytics.json")) {
+		$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.json"),true);
 	} else {
 		$ga_cache = false;
 	}

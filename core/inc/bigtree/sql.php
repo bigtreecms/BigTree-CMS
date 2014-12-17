@@ -114,20 +114,16 @@
 			
 			Parameters:
 				query - The mysql query resource (returned via sqlquery or mysql_query or mysql_db_query)
-				ignore_errors - If set to true an exception will not be thrown on a bad query resource.
 			
 			Returns:
 				A row from the query in array format with key/value pairs.
 		*/
 		
-		function sqlfetch($query,$ignore_errors = false) {
+		function sqlfetch($query) {
 			global $bigtree;
 			// If the query is boolean, it's probably a "false" from a failed sql query.
-			if (is_bool($query) && !$ignore_errors) {
-				global $bigtree;
-				if ($bigtree["config"]["debug"]) {
-					throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
-				}
+			if (is_bool($query)) {
+				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
 				return false;
 			} else {
 				return $query->fetch_assoc();
@@ -168,7 +164,7 @@
 				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 			}
 			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
-				throw new Exception("sqlescape expects a string");
+				trigger_error("sqlescape expects a string");
 			}
 			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
 		}
@@ -260,15 +256,12 @@
 			}
 		}
 		
-		function sqlfetch($query,$ignore_errors = false) {
+		function sqlfetch($query) {
 			global $bigtree;
 			
 			// If the query is boolean, it's probably a "false" from a failed sql query.
-			if (is_bool($query) && !$ignore_errors) {
-				global $bigtree;
-				if ($bigtree["config"]["debug"]) {
-					throw new Exception("sqlfetch() called on invalid query resource. The most likely cause is an invalid sqlquery() call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
-				}
+			if (is_bool($query)) {
+				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
 				return false;
 			} else {
 				return mysql_fetch_assoc($query);
@@ -295,7 +288,7 @@
 				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 			}
 			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
-				throw new Exception("sqlescape expects a string");
+				trigger_error("sqlescape expects a string");
 			}
 			return mysql_real_escape_string($string);
 		}

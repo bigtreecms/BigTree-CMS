@@ -16,16 +16,23 @@
 				icon: "delete",
 				alternateSaveText: "OK",
 				callback: function() {
-					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref(Current.attr("href")));
-					var row = Current.parents("li");
-					var list = row.parents("ul");
-					row.remove();
-					if (!list.find("li").length) {
-						var header = list.prev();
-						if (header.hasClass("group")) {
-							header.remove();
-							list.remove();
+					// Allow custom delete implementations
+					var href = BigTree.cleanHref(Current.attr("href"));
+					// If it's just an ID, we're using the default delete implementation
+					if (parseInt(href)) {
+						$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + href);
+						var row = Current.parents("li");
+						var list = row.parents("ul");
+						row.remove();
+						if (!list.find("li").length) {
+							var header = list.prev();
+							if (header.hasClass("group")) {
+								header.remove();
+								list.remove();
+							}
 						}
+					} else {
+						document.location.href = href;
 					}
 				}
 			});

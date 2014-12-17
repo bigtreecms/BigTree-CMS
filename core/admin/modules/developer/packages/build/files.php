@@ -21,8 +21,10 @@
 				<strong>Tables</strong>
 				<ul>
 					<?
+						$used_tables = array();
 						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] as $table_hash) {
 							list($table,$type) = explode("#",$table_hash);
+							$used_tables[] = $table;
 					?>
 					<li>
 						<input type="hidden" name="tables[]" value="<?=$table_hash?>" />
@@ -36,8 +38,18 @@
 				</ul>
 				<div class="add_table adder">
 					<a class="icon_small icon_small_add" href="#"></a>
-					<select class="custom_control">
-						<? BigTree::getTableSelectOptions(); ?>
+					<select class="custom_control" id="add_table_select">
+						<?
+							$q = sqlquery("SHOW TABLES");
+							while ($f = sqlfetch($q)) {
+								$table = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
+								if (substr($table,0,8) != "bigtree_" && !in_array($table,$used_tables)) {
+						?>
+						<option value="<?=$table?>"><?=$table?></option>
+						<?
+								}
+							}
+						?>
 					</select>
 				</div>
 			</article>
@@ -49,11 +61,14 @@
 </div>
 <script>
 	$(".add_table a").click(function(ev) {
-		var table = $(this).next().val();
+		var table_select = $("#add_table_select");
+		var table = table_select.val();
 		if (table) {
 			var li = $("<li>");
-			li.html('<input type="hidden" name="tables[]" value="' + table + '#structure" /><a href="#" class="icon_small icon_small_delete"></a><a href="#' + table + '" class="icon_small icon_small_list"></a>' + table);
+			li.html('<input type="hidden" name="tables[]" value="' + table + '#structure" /><a href="#' + table + '" class="icon_small icon_small_delete"></a><a href="#' + table + '" class="icon_small icon_small_list"></a>' + table);
 			$(this).parent().parent().find("ul").append(li);
+			// Remove from the select
+			table_select.find("option[value='" + table + "']").remove();
 		}
 		return false;
 	});
@@ -79,6 +94,11 @@
 		$(this).removeClass("icon_small_list").addClass("icon_small_export").attr("title","Structure & Data");
 		return false;
 	}).on("click",".icon_small_delete",function() {
+		// Get table name, add back to the dropdown
+		var table = $(this).attr("href").substr(1);
+		var option = $('<option value="' + table + '">' + table + '</option>');
+		$("#add_table_select").append(option).sortSelect();
+		// Remove it from the list
 		$(this).parent().remove();
 		return false;
 	});

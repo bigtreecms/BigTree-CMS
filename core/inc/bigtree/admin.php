@@ -682,8 +682,7 @@
 			$display_field = sqlescape($display_field);
 
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
-				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
-				chmod(SERVER_ROOT."templates/callouts/".$id.".php",0777);
+				BigTree::putFile(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
@@ -796,8 +795,7 @@
 
 			// Make the files for draw and process and options if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
+				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?
 	/*
 		When drawing a field type you are provided with the $field array with the following keys:
 			"title" — The title given by the developer to draw as the label (drawn automatically)
@@ -815,8 +813,7 @@
 				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
-				file_put_contents(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
+				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?
 	/*
 		When processing a field type you are provided with the $field array with the following keys:
 			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
@@ -1519,12 +1516,16 @@
 					$$key = sqlescape(htmlspecialchars($val));
 				}
 			}
+			
 			$extension = $extension ? "'$extension'" : "NULL";
 
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT")) {
 				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-				$id = "$extension*$id";
+				// Don't append extension again if it's already being called via the namespace
+				if (strpos($id,"$extension*") === false) {
+					$id = "$extension*$id";
+				}
 				$extension = "'$extension'";
 			}
 
@@ -1636,13 +1637,11 @@
 					chmod(SERVER_ROOT."templates/routed/".$id,0777);
 				}
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
-					file_put_contents(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
-					chmod(SERVER_ROOT."templates/routed/".$id."/default.php",0777);
+					BigTree::putFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
 				}
 			} else {
 				if (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
-					file_put_contents(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
-					chmod(SERVER_ROOT."templates/basic/".$id.".php",0777);
+					BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
 				}
 			}
 
@@ -1797,7 +1796,8 @@
 					}
 				}
 			}
-		
+
+			// Delete extension entry
 			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($extension["id"])."'");
 			$this->track("bigtree_extensions",$extension["id"],"deleted");
 		}
@@ -2233,8 +2233,9 @@
 		*/
 
 		function disconnectGoogleAnalytics() {
-			unlink(SERVER_ROOT."cache/analytics.cache");
+			unlink(SERVER_ROOT."cache/analytics.json");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
+			sqlquery("DELETE FROM bigtree_caches WHERE identifier = 'org.bigtreecms.api.analytics.google'");
 			self::growl("Analytics","Disconnected");
 		}
 
@@ -2318,6 +2319,11 @@
 
 		static function drawField($field) {
 			global $admin,$bigtree,$cms;
+
+			// Make sure options is an array to prevent warnings
+			if (!is_array($field["options"])) {
+				$field["options"] = array();
+			}
 
 			// Setup Validation Classes
 			$label_validation_class = "";
@@ -2822,7 +2828,7 @@
 					}
 				}
 
-				file_put_contents(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
+				BigTree::putFile(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
 			}
 
 			// Re-merge if we don't want them split
@@ -3965,6 +3971,30 @@
 		}
 
 		/*
+			Function: getPageLineage
+				Returns all the ids of pages above this page.
+			
+			Parameters:
+				page - Page ID
+			
+			Returns:
+				Array of IDs
+		*/
+		
+		function getPageLineage($page) {
+			$parents = array();
+			$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
+			$parents[] = $f["parent"];
+			while ($f["parent"]) {
+				$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($f["parent"])."'"));
+				if ($f["parent"]) {
+					$parents[] = $f["parent"];
+				}
+			}
+			return $parents;
+		}
+
+		/*
 			Function: getPageIds
 				Returns all the IDs in bigtree_pages for pages that aren't archived.
 
@@ -4118,34 +4148,6 @@
 			}
 
 			return $items;
-		}
-
-		/*
-			Function: getPageParents
-				Gets a list of parent IDs for a list of page IDs.
-				This strange function is mainly used for the User Permissions edit screen.
-
-			Parameters:
-				pages - An array of page IDs.
-
-			Returns:
-				An array of parent IDs.
-		*/
-
-		static function getPageParents($pages) {
-			$parents = array();
-			$page_query = array();
-			foreach ($pages as $id) {
-				$id = sqlescape($id);
-				$page_query[] = "id = '$id'";
-			}
-			if (count($page_query)) {
-				$q = sqlquery("SELECT parent FROM bigtree_pages WHERE ".implode(" OR ",$page_query));
-				while ($f = sqlfetch($q)) {
-					$parents[] = $f["parent"];
-				}
-			}
-			return $parents;
 		}
 
 		/*
@@ -5674,7 +5676,7 @@
 
 			// Check if the field type is stored in an extension
 			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$item["type"]);
+				list($extension,$field_type) = explode("*",$field["type"]);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
 			} else {
 				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
@@ -7662,7 +7664,7 @@
 			global $bigtree,$admin;
 
 			$item = self::getSetting($id,false);
-			$id = sqlescape($item["id"]);
+			$id = sqlescape(BigTreeCMS::extensionSettingCheck($id));
 
 			if (is_array($value)) {
 				$value = BigTree::translateArray($value);
@@ -7678,7 +7680,7 @@
 				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
 			}
 
-			if ($admin) {
+			if ($admin && !$item["system"]) {
 				// Audit trail.
 				$admin->track("bigtree_settings",$id,"updated");
 			}

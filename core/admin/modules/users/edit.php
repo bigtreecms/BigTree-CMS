@@ -46,7 +46,13 @@
 			$page_ids[] = $id;
 		}
 	}
-	$pre_opened_parents = $admin->getPageParents($page_ids);
+	
+	$page_ids = array_unique($page_ids);
+
+	$pre_opened_parents = array();
+	foreach ($page_ids as $id) {
+		$pre_opened_parents = array_merge($pre_opened_parents,$admin->getPageLineage($id));
+	}
 
 	// Gather up the parents for resource folders that should be open by default.
 	$pre_opened_folders = array();
@@ -216,7 +222,7 @@
 						</nav>
 					</header>
 					<div id="page_permissions">
-						<div class="labels">
+						<div class="labels sticky_controls">
 							<span class="permission_label<? if ($user["level"] > 0) { ?> permission_label_admin<? } ?>">Page</span>
 							<span class="permission_alerts">Content Alerts</span>
 							<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>>Publisher</span>
@@ -247,7 +253,7 @@
 					</div>
 					
 					<div id="module_permissions" style="display: none;">
-						<div class="labels">
+						<div class="labels sticky_controls">
 							<span class="permission_label permission_label_wider">Module</span>
 							<span class="permission_level">Publisher</span>
 							<span class="permission_level">Editor</span>
@@ -327,7 +333,7 @@
 					</div>
 					
 					<div id="resource_permissions" style="display: none;">
-						<div class="labels">
+						<div class="labels sticky_controls">
 							<span class="permission_label folder_label">Folder</span>
 							<span class="permission_level">Creator</span>
 							<span class="permission_level">Consumer</span>
@@ -399,6 +405,9 @@
 		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");
 		var permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
 		var alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
+		// Remove the radios / checkboxes from the permissions section as they can cause a post overrun
+		$("#permission_section").find("input").remove();
+		// Add the JSON versions
 		$("#permission_section").append(permissions).append(alerts);
 	});
 	

@@ -10,8 +10,6 @@
 		<p class="clear">
 			Moxiecode Systems AB (LGPL)
 			<br />
-			BigTree skin based on o2k7; Heavy plugin edits.
-			<br />
 			<a href="http://www.tinymce.com/" target="_blank">http://www.tinymce.com/</a>
 		</p>
 		<br />
@@ -106,9 +104,9 @@
 		<br />
 		<h3>reCAPTCHA</h3>
 		<p class="clear">
-			Mike Crawford / Ben Maurer (Open Source)
+			Originally by Mike Crawford and Ben Maurer (Open Source)
 			<br />
-			<a href="http://recaptcha.net/plugins/php/" target="_blank">http://recaptcha.net/plugins/php/</a>
+			<a href="http://www.google.com/recaptcha/intro/index.html" target="_blank">http://www.google.com/recaptcha/intro/index.html</a>
 		</p>
 		<br />
 		<h3>TextStatistics</h3>

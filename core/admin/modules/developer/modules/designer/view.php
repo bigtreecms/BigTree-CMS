@@ -11,7 +11,7 @@
 			$title = substr($title,0,-2)."ies";
 		}
 	}
-	$title = htmlspecialchars($title);
+	$title = BigTree::safeEncode($title);
 ?>
 <div class="container">
 	<header>
@@ -36,14 +36,14 @@
 						<option value="draggable">Draggable List</option>
 					</select>
 					&nbsp; <a href="#" class="options icon_settings centered"></a>
-					<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars($view["options"])?>" />
+					<input type="hidden" name="options" id="view_options" />
 				</fieldset>
 			</div>
 			
 			<div class="right">
 				<fieldset>
 					<label>Page Description <small>(instructions for the user)</small></label>
-					<textarea name="description" tabindex="3"><?=$view["description"]?></textarea>
+					<textarea name="description" tabindex="3"></textarea>
 				</fieldset>
 			</div>
 		</section>

@@ -81,6 +81,12 @@
 			$directory = $postcontainer."/".$postdirectory;
 		}
 	}
+	
+	if (count($cloud_options)) {
+		$bucket_pane_height = 338 - 1 - (26 * count($cloud_options));
+	} else {
+		$bucket_pane_height = 338;
+	}
 ?>
 <div class="directory"><?=str_replace(SERVER_ROOT,"/",$directory)?></div>
 <div class="navigation_pane">
@@ -91,7 +97,7 @@
 		<? } ?>
 	</ul>
 	<? } ?>
-	<ul>
+	<ul style="height: <?=$bucket_pane_height?>px;">
 		<?
 			foreach ($subdirectories as $d) {
 		?>

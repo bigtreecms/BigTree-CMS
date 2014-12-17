@@ -1,5 +1,7 @@
+<?
+	$method = $_SESSION["bigtree_admin"]["upgrade_method"];	
+?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/install/">
-	<input type="hidden" name="method" value="ftp" />
 	<input type="hidden" name="type" value="<?=htmlspecialchars($_GET["type"])?>" />
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
@@ -8,15 +10,15 @@
 				<span></span>
 				<p>
 					<strong>Login Failed:</strong>
-					Please enter the correct FTP username and password below.
+					Please enter the correct <?=$method?> username and password below.
 				</p>
 			</div>
 			<fieldset>
-				<label>FTP Username</label>
+				<label><?=$method?> Username</label>
 				<input type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label>FTP Password</label>
+				<label><?=$method?> Password</label>
 				<input type="password" name="password" autocomplete="off" />
 			</fieldset>
 		</section>

@@ -104,7 +104,8 @@
 					"from_email" => $from_email,
 					"from_name" => $from_name,
 					"to" => $to_array,
-					"headers" => $headers
+					"headers" => $headers,
+					"inline_css" => true
 				)
 			))),true);
 

@@ -455,20 +455,25 @@
 			$result["foreign_keys"] = array();
 			$result["primary_key"] = false;
 			
-			// Make sure we don't throw an exception if the table doesn't exist.
-			if (!self::tableExists($table)) {
+			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+			if (!$f) {
 				return false;
 			}
 
-			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
 			$lines = explode("\n",$f["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines,1,-1);
 			foreach ($main_lines as $line) {
 				$column = array();
 				$line = rtrim(trim($line),",");
-				if (strtoupper(substr($line,0,3)) == "KEY") { // Keys
-					$line = substr($line,5); // Take away "KEY `"
+				if (strtoupper(substr($line,0,3)) == "KEY" || strtoupper(substr($line,0,10)) == "UNIQUE KEY") { // Keys
+					if (strtoupper(substr($line,0,10)) == "UNIQUE KEY") {
+						$line = substr($line,12); // Take away "KEY `"
+						$unique = true;
+					} else {
+						$line = substr($line,5); // Take away "KEY `"
+						$unique = false;
+					}
 					// Get the key's name.
 					$key_name = self::nextSQLColumnDefinition($line);
 					// Get the key's content
@@ -478,12 +483,20 @@
 					$part = true;
 					while ($line && $part) {
 						$part = self::nextSQLColumnDefinition($line);
-						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						$size = false;
+						// See if there's a size definition, include it
+						if (substr($line,strlen($part) + 1,1) == "(") {
+							$line = substr($line,strlen($part) + 1);
+							$size = substr($line,1,strpos($line,")") - 1);
+							$line = substr($line,strlen($size) + 4);
+						} else {
+							$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						}
 						if ($part) {
-							$key_parts[] = $part;
+							$key_parts[] = array("column" => $part,"length" => $size);
 						}
 					}
-					$result["indexes"][$key_name] = $key_parts;
+					$result["indexes"][$key_name] = array("unique" => $unique,"columns" => $key_parts);
 				} elseif (strtoupper(substr($line,0,7)) == "PRIMARY") { // Primary Keys
 					$line = substr($line,14); // Take away PRIMARY KEY (`
 					$key_parts = array();
@@ -492,7 +505,9 @@
 						$part = self::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
 						if ($part) {
-							$key_parts[] = $part;
+							if (strpos($part,"KEY_BLOCK_SIZE=") === false) {
+								$key_parts[] = $part;
+							}
 						}
 					}
 					$result["primary_key"] = $key_parts;
@@ -539,7 +554,7 @@
 					$line = substr($line,2); // Remove ) 
 					
 					// Setup our keys
-					$result["foreign_keys"][$key_name] = array("name" => $key_name, "local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
+					$result["foreign_keys"][$key_name] = array("local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
 
 					// Figure out all the on delete, on update stuff
 					$pieces = explode(" ",$line);
@@ -569,6 +584,7 @@
 					$key = self::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
+					$size = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ",$line);
 					if (strpos($parts[0],"(") !== false) { // Yes, there's a size definition
@@ -578,7 +594,6 @@
 						$finished_type = false;
 						$finished_size = false;
 						$x = 0;
-						$size = "";
 						$options = array();
 						while (!$finished_size) {
 							$c = substr($line,$x,1);
@@ -660,6 +675,8 @@
 							$x += 2;
 						} elseif ($part == "AUTO_INCREMENT") {
 							$column["auto_increment"] = true;
+						} elseif ($part == "UNSIGNED") {
+							$column["unsigned"] = true;
 						}
 					}
 					
@@ -941,12 +958,12 @@
 			
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
-				$tname = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($tname,0,8) !== "bigtree_")) || $tname == $default) {
-					if ($default == $f["Tables_in_".$bigtree["config"]["db"]["name"]]) {
-						echo '<option selected="selected">'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
+				$table_name = current($f);
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
+					if ($default == $table_name) {
+						echo '<option selected="selected">'.$table_name.'</option>';
 					} else {
-						echo '<option>'.$f["Tables_in_".$bigtree["config"]["db"]["name"]].'</option>';
+						echo '<option>'.$table_name.'</option>';
 					}
 				}
 			}
@@ -1947,6 +1964,186 @@
 			}
 			return false;
 		}
+
+		/*
+			Function: tableMesh
+				Returns a list of SQL commands required to turn one table into another.
+
+			Parameters:
+				table_a - The table that is being translated
+				table_b - The table that the first table will become
+
+			Returns:
+				An array of SQL calls to perform to turn Table A into Table B.
+		*/
+
+		static function tableMesh($table_a,$table_b) {
+			// Get table A's description
+			$table_a_description = BigTree::describeTable($table_a);
+			$table_a_columns = $table_a_description["columns"];
+			// Get table B's description
+			$table_b_description = BigTree::describeTable($table_b);
+			$table_b_columns = $table_b_description["columns"];
+
+			// Setup up query array
+			$queries = array();
+
+			// Transition columns
+			$last_key = "";
+			foreach ($table_b_columns as $key => $column) {
+			    $mod = "";
+			    $action = "";
+			    // If this column doesn't exist in the Table A table, add it.
+			    if (!isset($table_a_columns[$key])) {
+			    	$action = "ADD";
+			    } elseif ($table_a_columns[$key] !== $column) {
+			    	$action = "MODIFY";
+			    }
+			    
+			    if ($action) {
+			    	$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
+			    	if ($column["size"]) {
+			    	    $mod .= "(".$column["size"].")";
+			    	}
+
+			    	if ($column["unsigned"]) {
+			    		$mod .= " UNSIGNED";
+			    	}
+			    	
+			    	if ($column["charset"]) {
+			    		$mod .= " CHARSET ".$column["charset"];
+			    	}
+
+			    	if ($column["collate"]) {
+			    		$mod .= " COLLATE ".$column["collate"];
+			    	}
+
+			    	if (!$column["allow_null"]) {
+			    	    $mod .= " NOT NULL";
+			    	} else {
+			    		$mod .= " NULL";
+			    	}
+			    	
+			    	if (isset($column["default"])) {
+			    	    $d = $column["default"];
+			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
+			    	    	$mod .= " DEFAULT $d";
+			    	    } else {
+			    	    	$mod .= " DEFAULT '".mysql_real_escape_string($d)."'";
+			    	    }
+			    	}
+			    	
+			    	if ($last_key) {
+			    		$mod .= " AFTER `$last_key`";
+			    	} else {
+			    		$mod .= " FIRST";
+			    	}
+			    	
+			    	$queries[] = $mod;
+			    }
+			    
+			    $last_key = $key;
+			}
+
+			// Drop columns
+			foreach ($table_a_columns as $key => $column) {
+			    // If this key no longer exists in the new table, we should delete it.
+			    if (!isset($table_b_columns[$key])) {
+			    	$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
+			    }	
+			}
+
+			// Add new indexes
+			foreach ($table_b_description["indexes"] as $key => $index) {
+				if (!isset($table_a_description["indexes"][$key]) || $table_a_description["indexes"][$key] != $index) {
+					$pieces = array();
+					foreach ($index["columns"] as $column) {
+						if ($column["length"]) {
+							$pieces[] = "`".$column["column"]."`(".$column["length"].")";
+						} else {
+							$pieces[] = "`".$column["column"]."`";
+						}
+					}
+					$verb = isset($table_a_description["indexes"][$key]) ? "MODIFY" : "ADD";
+					$queries[] = "ALTER TABLE `$table_a` $verb ".($index["unique"] ? "UNIQUE " : "")."KEY `$key` (".implode(", ",$pieces).")";
+				}
+			}
+
+			// Drop old indexes
+			foreach ($table_a_description["indexes"] as $key => $index) {
+				if (!isset($table_b_description["indexes"][$key])) {
+					$queries[] = "ALTER TABLE `$table_a` DROP KEY `$key`";
+				}
+			}
+
+			// Drop old foreign keys -- we do this for all the existing foreign keys that don't directly match because we're going to regenrate key names
+			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
+				$exists = false;
+				foreach ($table_b_description["foreign_keys"] as $d) {
+					if ($d == $definition) {
+						$exists = true;
+					}
+				}
+				if (!$exists) {
+					$queries[] = "ALTER TABLE `$table_a` DROP FOREIGN KEY `$key`";
+				}
+			}
+
+			// Import foreign keys
+			foreach ($table_b_description["foreign_keys"] as $key => $definition) {
+				$exists = false;
+				foreach ($table_a_description["foreign_keys"] as $d) {
+					if ($d == $definition) {
+						$exists = true;
+					}
+				}
+				if (!$exists) {
+					$source = $destination = array();
+					foreach ($definition["local_columns"] as $column) {
+						$source[] = "`$column`";
+					}
+					foreach ($definition["other_columns"] as $column) {
+						$destination[] = "`$column`";
+					}
+					$query = "ALTER TABLE `$table_a` ADD FOREIGN KEY (".implode(", ",$source).") REFERENCES `".$definition["other_table"]."`(".implode(", ",$destination).")";
+					if ($definition["on_delete"]) {
+						$query .= " ON DELETE ".$definition["on_delete"];
+					}
+					if ($definition["on_update"]) {
+						$query .= " ON UPDATE ".$definition["on_update"];
+					}
+					$queries[] = $query;
+				}
+			}
+
+			// Drop existing primary key if it's not the same
+			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
+				$pieces = array();
+				foreach ($table_b_description["primary_key"] as $piece) {
+					$pieces[] = "`$piece`";
+				}
+				$queries[] = "ALTER TABLE `$table_a` DROP PRIMARY KEY";
+				$queries[] = "ALTER TABLE `$table_a` ADD PRIMARY KEY (".implode(",",$pieces).")";
+			}
+
+			// Switch engine if different
+			if ($table_a_description["engine"] != $table_b_description["engine"]) {
+				$queries[] = "ALTER TABLE `$table_a` ENGINE = ".$table_b_description["engine"];
+			}
+
+			// Switch character set if different
+			if ($table_a_description["charset"] != $table_b_description["charset"]) {
+				$queries[] = "ALTER TABLE `$table_a` CHARSET = ".$table_b_description["charset"];
+			}
+
+			// Switch auto increment if different
+			if (isset($table_b_description["auto_increment"]) && $table_a_description["auto_increment"] != $table_b_description["auto_increment"]) {
+				$queries[] = "ALTER TABLE `$table_a` AUTO_INCREMENT = ".$table_b_description["auto_increment"];
+			}
+			
+			return $queries;
+		}
+
 		/*
 			Function: touchFile
 				touch()s a file even if the directory for it doesn't exist yet.

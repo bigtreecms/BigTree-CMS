@@ -27,7 +27,7 @@
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
 	$forms = array_merge($admin->getModuleForms(),$admin->getModuleEmbedForms());
 	foreach ($forms as $form) {
-		foreach ($form["fields"] as $key => $data) {
+		foreach (array_filter((array)$form["fields"]) as $key => $data) {
 			if ($data["directory"]) {
 				if (!BigTree::isDirectoryWritable(SITE_ROOT.$data["directory"])) {
 					$warnings[] = array(
