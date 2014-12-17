@@ -975,7 +975,7 @@
 		function createModuleGroup($name) {
 			global $cms;
 
-			$name = sqlescape($name);
+			$name = sqlescape(htmlspecialchars($name));
 
 			// Get a unique route
 			$x = 2;
