@@ -973,7 +973,7 @@
 				route - The action route.
 				in_nav - Whether the action is in the navigation.
 				icon - The icon class for the action.
-				function - Related module function.
+				interface - Related module interface.
 				level - The required access level.
 				position - The position in navigation.
 
@@ -981,32 +981,32 @@
 				The action's route.
 		*/
 
-		function createModuleAction($module,$name,$route,$in_nav,$icon,$function,$level = 0,$position = 0) {
+		function createModuleAction($module,$name,$route,$in_nav,$icon,$interface,$level = 0,$position = 0) {
 			$module = sqlescape($module);
 			$route = sqlescape(BigTree::safeEncode($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
 			$name = sqlescape(BigTree::safeEncode($name));
-			$form = $view = $report = $extension_reference = $extension_function = "NULL";
+			$form = $view = $report = $extension_reference = $extension_interface = "NULL";
 			$report = $report ? "'".sqlescape($report)."'" : "NULL";
 			$level = sqlescape($level);
 			$position = sqlescape($position);
 			$route = $this->uniqueModuleActionRoute($module,$route);
 
-			list($function_type,$function_id) = explode("-",$function);
-			$function_id = intval($function_id);
-			if ($function_type == "form") {
-				$form = $function_id;
-			} elseif ($function_type == "view") {
-				$view = $function_id;
-			} elseif ($function_type == "report") {
-				$report = $function_id;
-			} elseif ($function_type) {
-				$extension_function = "'".sqlescape($function_type)."'";
-				$extension_reference = $function_id;
+			list($interface_type,$interface_id) = explode("-",$interface);
+			$interface_id = intval($interface_id);
+			if ($interface_type == "form") {
+				$form = $interface_id;
+			} elseif ($interface_type == "view") {
+				$view = $interface_id;
+			} elseif ($interface_type == "report") {
+				$report = $interface_id;
+			} elseif ($interface_type) {
+				$extension_interface = "'".sqlescape($interface_type)."'";
+				$extension_reference = $extension_reference;
 			}
 
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`extension_function`,`extension_reference`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,$extension_function,$extension_reference,'$position')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`extension_interface`,`extension_reference`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,$extension_interface,$extension_reference,'$position')");
 			
 			$this->track("bigtree_module_actions",sqlid(),"created");
 
@@ -7024,38 +7024,38 @@
 				route - The action route.
 				in_nav - Whether the action is in the navigation.
 				icon - The icon class for the action.
-				function - Related module function.
+				interface - Related module interface.
 				level - The required access level.
 				position - The position in navigation.
 		*/
 
-		function updateModuleAction($id,$name,$route,$in_nav,$icon,$function,$level,$position) {
+		function updateModuleAction($id,$name,$route,$in_nav,$icon,$interface,$level,$position) {
 			$id = sqlescape($id);
 			$route = sqlescape(BigTree::safeEncode($route));
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
 			$name = sqlescape(BigTree::safeEncode($name));
 			$level = sqlescape($level);
-			$form = $view = $report = $extension_reference = $extension_function = "NULL";
+			$form = $view = $report = $extension_reference = $extension_interface = "NULL";
 			$position = sqlescape($position);
 
 			$item = $this->getModuleAction($id);
 			$route = $this->uniqueModuleActionRoute($item["module"],$route,$id);
 
-			list($function_type,$function_id) = explode("-",$function);
-			$function_id = intval($function_id);
-			if ($function_type == "form") {
-				$form = $function_id;
-			} elseif ($function_type == "view") {
-				$view = $function_id;
-			} elseif ($function_type == "report") {
-				$report = $function_id;
-			} elseif ($function_type) {
-				$extension_function = "'".sqlescape($function_type)."'";
+			list($interface_type,$interface_id) = explode("-",$interface);
+			$interface_id = intval($interface_id);
+			if ($interface_type == "form") {
+				$form = $interface_id;
+			} elseif ($interface_type == "view") {
+				$view = $interface_id;
+			} elseif ($interface_type == "report") {
+				$report = $interface_id;
+			} elseif ($interface_type) {
+				$extension_interface = "'".sqlescape($interface_type)."'";
 				$extension_reference = $extension_reference;
 			}
 
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report, extension_function = $extension_function, extension_reference = $extension_reference WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report, extension_interface = $extension_interface, extension_reference = $extension_reference WHERE id = '$id'");
 			$this->track("bigtree_module_actions",$id,"updated");
 		}
 

@@ -23,7 +23,7 @@
 		</fieldset>
 		<fieldset class="float">
 			<label>Interface</label>
-			<select name="function">
+			<select name="interface">
 				<option></option>
 				<optgroup label="Forms">
 					<? foreach ($forms as $form) { ?>
