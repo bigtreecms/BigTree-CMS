@@ -20,6 +20,15 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.8 Release
+- FIXED: Google Analytics not being disconnectable until a profile was set.
+- FIXED: BigTreeAutoModule::publishPendingItem not returning the ID of the published item (thanks jmason03 for catching this)
+- FIXED: MySQLi installation
+- FIXED: Size definitions for columns that didn't have sizes showing up in BigTree::describeTable results
+- FIXED: Table dropdown lists not showing up when a database name was mixed case in some MySQL environments
+- FIXED: Double htmlspecialchar encoding of titles and group names in Module Designer
+- FIXED: Creating a module group not properly encoding the group name
+
 ### 4.0.7 Release
 - FIXED: "Text" field type sub type styles when used in a callout dialog
 - FIXED: BigTreePaymentGateway's PayPal Express Checkout when using PayPal REST API as your gateway
