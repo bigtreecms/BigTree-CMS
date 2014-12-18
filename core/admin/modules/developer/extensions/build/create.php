@@ -103,17 +103,19 @@
 	};
 	
 	foreach ((array)$field_types as $type) {
-		// Currently non-extension field type becoming an extension one
-		if (strpos($type,"*") === false) {
-			sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
-			// Convert old usage of field type ID to extension usage
-			$field_type_converter("bigtree_templates","resources");
-			$field_type_converter("bigtree_callouts","resources");
-			$field_type_converter("bigtree_module_forms","fields");
-			$field_type_converter("bigtree_module_embeds","fields");
-			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
+		if ($type) {
+			// Currently non-extension field type becoming an extension one
+			if (strpos($type,"*") === false) {
+				sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
+				// Convert old usage of field type ID to extension usage
+				$field_type_converter("bigtree_templates","resources");
+				$field_type_converter("bigtree_callouts","resources");
+				$field_type_converter("bigtree_module_forms","fields");
+				$field_type_converter("bigtree_module_embeds","fields");
+				sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
+			}
+			$package["components"]["field_types"][] = $admin->getFieldType($type);
 		}
-		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
 
 	foreach ((array)$templates as $template) {
@@ -166,8 +168,8 @@
 		$x++;
 		list($table,$type) = explode("#",$t);
 		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
-		$package["sql"][] = "DROP TABLE IF EXISTS `$table`";
-		$package["sql"][] = str_replace(array("\r","\n")," ",end($f));
+		// Set the table to the create statement
+		$package["components"]["tables"][$table] = str_replace(array("\r","\n")," ",end($f));
 		if ($type != "structure") {
 			$q = sqlquery("SELECT * FROM `$table`");
 			while ($f = sqlfetch($q)) {
@@ -184,7 +186,6 @@
 				$package["sql"][] = "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).")";
 			}
 		}
-		$package["components"]["tables"][] = $table;
 	}
 	$package["sql"][] = "SET foreign_key_checks = 1";
 	
