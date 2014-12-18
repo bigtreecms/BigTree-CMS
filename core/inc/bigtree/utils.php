@@ -1947,6 +1947,57 @@
 		}
 
 		/*
+			Function: tableContents
+				Returns an array of INSERT statements for the rows of a given table.
+				The INSERT statements will be binary safe with binary columns requested in hex.
+
+			Parameters:
+				table - Table to pull data from.
+
+			Returns:
+				An array.
+		*/
+
+		static function tableContents($table) {
+			$inserts = array();
+
+			// Figure out which columns are binary and need to be pulled as hex
+			$description = BigTree::describeTable($table);
+			$column_query = array();
+			$binary_columns = array();			
+			foreach ($description["columns"] as $key => $column) {
+				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
+					$column_query[] = "HEX(`$key`) AS `$key`";
+					$binary_columns[] = $key;
+				} else {
+					$column_query[] = "`$key`";
+				}
+			}
+
+			// Get the rows out of the table
+			$qq = sqlquery("SELECT ".implode(", ",$column_query)." FROM `$table`");
+			while ($ff = sqlfetch($qq)) {
+				$keys = array();
+				$vals = array();
+				foreach ($ff as $key => $val) {
+					$keys[] = "`$key`";
+					if ($val === null) {
+						$vals[] = "NULL";
+					} else {
+						if (in_array($key,$binary_columns)) {
+							$vals[] = "X'".sqlescape(str_replace("\n","\\n",$val))."'";
+						} else {
+							$vals[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
+						}
+					}
+				}
+				$inserts[] = "INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).")";
+			}
+
+			return $inserts;
+		}
+
+		/*
 			Function: tableExists
 				Determines whether a SQL table exists.
 
