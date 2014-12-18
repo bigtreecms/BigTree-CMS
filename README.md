@@ -20,6 +20,22 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.4 Release
+- FIXED: Google Analytics not being disconnectable until a profile is chosen
+- FIXED: Warnings in Site Status when an embeddable form was left empty
+- FIXED: A path auto-detection failure when doing FTP upgrades (should now be more reliable at guessing where BigTree is installed)
+- FIXED: BigTreeCloudStorage::createFolder failing on Amazon S3
+- FIXED: Issues with large sites losing permissions data when saving a user (thanks to jmason03 on the forums)
+- FIXED: BigTreeListMaker Javascript failing to work properly when using a key other than "fields"
+- FIXED: Amazon S3 only returning the first 1000 objects in a bucket in BigTreeCloudStorage
+- FIXED: MySQLi installation
+- FIXED: Installer not checking that ctype extension exists (should be a default extension, but in rare cases it's not included)
+- FIXED: BigTreeCloudStorage::getAuthenticatedURL failing on URLs that contained a #
+- FIXED: Size definitions showing up on columns that have no size definition in BigTree::describeTable results
+- FIXED: Table selects not functioning properly on databases that were not all lowercase in certain MySQL environments
+- FIXED: Double encoding of titles and group names in Module Designer
+- CHANGED: Maintenance mode now throws a X-Robots-Tag: noindex header to prevent maintenance pages from being indexed
+
 ### 4.1.3 Release
 - ADDED: BigTreeCMS::deleteCache method
 - FIXED: Checkbox labels not wrapping well when hitting two lines
