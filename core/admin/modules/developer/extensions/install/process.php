@@ -110,11 +110,14 @@
 		BigTree::copyFile($file,str_replace(SERVER_ROOT,SERVER_ROOT."site/",$file));
 	}
 
-	// Run SQL
-	foreach ($json["sql"] as $sql) {
-		sqlquery($sql);
+	// Import Tables
+	foreach ($json["components"]["tables"] as $table_name => $sql_statement) {
+		sqlquery("DROP TABLE IF EXISTS `$table_name`");
+		sqlquery($sql_statement);
 	}
+	
 	sqlquery("SET foreign_key_checks = 1");
+
 	// Empty view cache
 	sqlquery("DELETE FROM bigtree_module_view_cache");
 

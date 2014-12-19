@@ -22,7 +22,7 @@
 	foreach ($j["components"] as $k => $v) {
 		if ($k == "tables") {
 			$tables = array();
-			foreach ($v as $table) {
+			foreach ($v as $table => $create_statement) {
 				$_SESSION["bigtree_admin"]["developer"]["package"]["tables"][] = "$table#structure";
 			}
 		} else {

@@ -36,6 +36,7 @@
 		"type" => "extension",
 		"id" => $id,
 		"version" => $version,
+		"revision" => 1,
 		"compatibility" => $compatibility,
 		"title" => $title,
 		"description" => $description,
@@ -51,8 +52,7 @@
 			"feeds" => array(),
 			"field_types" => array(),
 			"tables" => array()
-		),
-		"sql" => array("SET foreign_key_checks = 0")
+		)
 	);
 
 	$used_forms = array();
@@ -164,30 +164,17 @@
 		$package["components"]["modules"][] = $module;
 	}
 	
-	foreach ((array)$tables as $t) {
-		$x++;
-		list($table,$type) = explode("#",$t);
-		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+	foreach ((array)$tables as $table) {
 		// Set the table to the create statement
-		$package["components"]["tables"][$table] = str_replace(array("\r","\n")," ",end($f));
-		if ($type != "structure") {
-			$q = sqlquery("SELECT * FROM `$table`");
-			while ($f = sqlfetch($q)) {
-				$fields = array();
-				$values = array();
-				foreach ($f as $key => $val) {
-					$fields[] = "`$key`";
-					if ($val === null) {
-						$values[] = "NULL";
-					} else {
-						$values[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
-					}
-				}
-				$package["sql"][] = "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).")";
-			}
-		}
+		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+		$create_statement = str_replace(array("\r","\n")," ",end($f));
+
+		// Drop auto increments and constraint names
+		$create_statement = preg_replace('/(AUTO_INCREMENT\=\d*\s)/',"",$create_statement);
+		$create_statement = preg_replace("/CONSTRAINT `([^`]*)`/i","",$create_statement);
+
+		$package["components"]["tables"][$table] = $create_statement;
 	}
-	$package["sql"][] = "SET foreign_key_checks = 1";
 	
 	// Move all the files into the extensions directory
 	if (!file_exists(SERVER_ROOT."extensions/$id/")) {
@@ -223,6 +210,53 @@
 			}
 		}
 	}
+
+	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
+	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+	if ($existing) {
+		$existing_json = json_decode($existing["manifest"],true);
+
+		// Increment revision numbers
+		$revision = $package["revision"] = intval($existing_json["revision"]) + 1;
+		$package["sql_revisions"] = (array)$existing_json["sql_revisions"];
+		$package["sql_revisions"][$revision] = array();
+
+		// Diff the old tables
+		sqlquery("SET foreign_key_checks = 0");
+		foreach ($existing_json["components"]["tables"] as $table => $create_statement) {
+			// If the table exists in the new manifest, we're going to see if they're identical
+			if (isset($package["components"]["tables"][$table])) {
+				// We're going to create a temporary table of the old structure to compare to the current table
+				$create_statement = preg_replace("/CREATE TABLE `([^`]*)`/i","CREATE TABLE `bigtree_extension_temp`",$create_statement);
+				$create_statement = preg_replace("/CONSTRAINT `([^`]*)`/i","",$create_statement);
+				sqlquery("DROP TABLE IF EXISTS `bigtree_extension_temp`");
+				sqlquery($create_statement);
+
+				// Compare the tables, if we have changes to make, store them in a SQL revisions portion of the manifest
+				$transition_statements = BigTree::tableCompare($table,"bigtree_extension_temp");
+				foreach ($transition_statements as $statement) {
+					// Don't include changes to auto increment
+					if (stripos($statement,"auto_increment = ") === false) {
+						$package["sql_revisions"][$revision] += $transition_statements;
+					}
+				}
+			// Table doesn't exist in the new manifest, so we're going to drop it
+			} else {
+				$package["sql_revisions"][$revision][] = "DROP TABLE IF EXISTS `$table`";
+			}
+		}
+		sqlquery("SET foreign_key_checks = 1");
+
+		// Add new tables that don't exist in the old manifest
+		foreach ($package["components"]["tables"] as $table => $create_statement) {
+			if (!isset($existing_json["components"]["tables"][$table])) {
+				$package["sql_revisions"][$revision][] = $create_statement;
+			}
+		}
+
+		// Clean up the revisions (if we don't have any)
+		$package["sql_revisions"] = array_filter($package["sql_revisions"]);
+	}
 	
 	// Write the manifest file
 	$json = BigTree::json($package);
@@ -237,7 +271,7 @@
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 
 	// Store it in the database for future updates
-	if (sqlrows(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
+	if ($existing) {
 		sqlquery("UPDATE bigtree_extensions SET name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
 	} else {
 		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
