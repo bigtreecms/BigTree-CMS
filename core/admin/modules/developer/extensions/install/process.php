@@ -133,8 +133,22 @@
 	@unlink(SERVER_ROOT."cache/module-class-list.btc");
 	@unlink(SERVER_ROOT."cache/form-field-types.btc");
 
-	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','extension','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");
-	
+	// Insert the extension and growl
+	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','extension','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");	
 	$admin->growl("Developer","Installed Extension");
-	BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
+
+	// If we have an install.php file, run it. We're catching the output buffer to see if install.php has anything to show -- if it doesn't, we'll redirect to the complete screen.
+	$install_file_path = SERVER_ROOT."extensions/".$json["id"]."/install.php";
+	if (file_exists($install_file_path)) {
+		ob_clean();
+		include $install_file_path;
+		$ob_contents = ob_get_contents();
+		// If the install file didn't generate any markup, just move on to the completion screen
+		if (!$ob_contents) {
+			BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
+		}
+	// No install file, completion screen
+	} else {
+		BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
+	}
 ?>
