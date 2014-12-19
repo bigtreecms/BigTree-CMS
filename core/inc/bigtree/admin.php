@@ -3639,11 +3639,11 @@
 			Returns:
 				An array of view entries with "fields" decoded.
 		*/
+		
 		function getModuleViews($sort = "title",$module = false) {
 			$items = array();
 			if ($module !== false) {
-				$module = sqlescape($module);
-				$q = sqlquery("SELECT bigtree_module_views.*,bigtree_module_actions.name as `action_name` FROM bigtree_module_views JOIN bigtree_module_actions ON bigtree_module_views.id = bigtree_module_actions.view WHERE bigtree_module_actions.module = '$module'");
+				$q = sqlquery("SELECT * FROM bigtree_module_views WHERE module = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
 				$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
 			}
