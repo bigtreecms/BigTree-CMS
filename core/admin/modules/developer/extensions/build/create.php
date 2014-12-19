@@ -127,40 +127,38 @@
 
 	foreach ((array)$modules as $module) {
 		$module = $admin->getModule($module);
-		$new_route = false;
+		if (!$module) {
+			continue;
+		}
+
+		// If the module isn't namespaced yet, namespace it
 		if (strpos($module["route"],"*") === false) {
 			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
 			$new_route = $extension."*".$module["route"];
 		} else {
 			sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
+			$new_route = false;
 		}
+		
 		$module["actions"] = $admin->getModuleActions($module["id"]);
-		foreach ($module["actions"] as $a) {
-			// If there's an auto module, include it as well.
-			if ($a["form"] && !in_array($a["form"],$used_forms)) {
-				// If we've changed module routes, make sure we adjust return view URLs
-				if ($new_route) {
+		// Loop through actions to update URLs for preview / return if we've moved this module into an extension namespace
+		if ($new_route) {
+			foreach ($module["actions"] as $a) {
+				// Adjust return view URLs for forms
+				if ($a["form"]) {
 					sqlquery("UPDATE bigtree_module_forms SET return_url = REPLACE(return_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["form"]."'");
-				}
-				$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
-				$used_forms[] = $a["form"];
-			} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-				// If we've changed module routes, make sure we adjust preview URLs
-				if ($new_route) {
+				// Adjust preview URLs for views
+				} elseif ($a["view"]) {
 					sqlquery("UPDATE bigtree_module_views SET preview_url = REPLACE(preview_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["view"]."'");
 				}
-
-				$view = BigTreeAutoModule::getView($a["view"],false);
-				// Unset edit_url as it exposes origin URL
-				unset($view["edit_url"]);
-				$module["views"][] = $view;
-				$used_views[] = $a["view"];
-			} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
-				$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
-				$used_reports[] = $a["report"];
 			}
 		}
+
+		$module["views"] = $admin->getModuleViews("title",$module["id"]);
+		$module["forms"] = $admin->getModuleForms("title",$module["id"]);
 		$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
+		$module["reports"] = $admin->getModuleReports("title",$module["id"]);
+
 		$package["components"]["modules"][] = $module;
 	}
 	

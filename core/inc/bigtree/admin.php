@@ -3516,6 +3516,7 @@
 			}
 			while ($f = sqlfetch($q)) {
 				$f["fields"] = json_decode($f["fields"],true);
+				$f["hooks"] = json_decode($f["hooks"],true);
 				$items[] = $f;
 			}
 			return $items;
@@ -3647,6 +3648,8 @@
 				$q = sqlquery("SELECT * FROM bigtree_module_reports ORDER BY $sort");
 			}
 			while ($f = sqlfetch($q)) {
+				$f["fields"] = json_decode($f["fields"],true);
+				$f["filters"] = json_decode($f["filters"],true);
 				$items[] = $f;
 			}
 			return $items;
@@ -3723,14 +3726,15 @@
 		static function getModuleViews($sort = "title",$module = false) {
 			$items = array();
 			if ($module !== false) {
-				$module = sqlescape($module);
-				$q = sqlquery("SELECT bigtree_module_views.*,bigtree_module_actions.name as `action_name` FROM bigtree_module_views JOIN bigtree_module_actions ON bigtree_module_views.id = bigtree_module_actions.view WHERE bigtree_module_actions.module = '$module'");
+				$q = sqlquery("SELECT * FROM bigtree_module_views WHERE module = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
 				$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
 			}
-			while ($f = sqlfetch($q)) {
-				$f["fields"] = json_decode($f["fields"],true);
-				$items[] = $f;
+			while ($view = sqlfetch($q)) {
+				$view["fields"] = json_decode($view["fields"],true);
+				$view["actions"] = json_decode($view["actions"],true);
+				$view["options"] = json_decode($view["options"],true);		
+				$items[] = $view;
 			}
 			return $items;
 		}
