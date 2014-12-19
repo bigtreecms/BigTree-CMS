@@ -130,8 +130,8 @@
 	@rmdir(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
-	@unlink(SERVER_ROOT."cache/module-class-list.btc");
-	@unlink(SERVER_ROOT."cache/form-field-types.btc");
+	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
+	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 	// Insert the extension and growl
 	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','extension','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");	
