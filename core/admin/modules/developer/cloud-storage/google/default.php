@@ -4,7 +4,7 @@
 			<p>To activate Google Cloud Storage you must follow these steps:</p>
 			<hr />
 			<ol>
-				<li>Login to the <a href="https://console.developers.google.com/">Google Developers Console</a> and create a project. Enter the Project ID below.</li>
+				<li>Login to the <a href="https://console.developers.google.com/" target="_blank">Google Developers Console</a> and create a project. Enter the Project ID below.</li>
 				<li>Click into the project and enter the "APIs &amp; auth" / APIs section. Enable access to the Google Cloud Storage and Google Cloud Storage JSON API.</li>
 				<li>Click into the "Credentials" section and click the "Create New Client ID" button.</li>
 				<li>Enter <?=DEVELOPER_ROOT?>cloud-storage/google/return/ as an "Authorized Redirect URI" and choose "Web Application" for the Application Type.</li>
