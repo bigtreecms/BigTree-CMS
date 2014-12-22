@@ -10,6 +10,7 @@
 				<li>Enter <?=DEVELOPER_ROOT?>cloud-storage/google/return/ as an "Authorized Redirect URI" and choose "Web Application" for the Application Type.</li>
 				<li>Enter the Client ID and Client Secret that was created from the previous step below.</li>
 				<li>If you want to use the Temporary Private URLs feature of Cloud Storage (for providing URLs that expire after a certain amount of time), click the "Create New Client ID" button again, this time choosing "Service Account" as the type. Your private key will automatically download. Upload that private key below and enter the email address from the Service Account block as the Certificate Email Address.</li>
+				<li>If you have not yet signed up for Cloud Storage, go into Storage / Cloud Storage / Storage browser and sign up for the Cloud Storage product.</li>
 				<li>Follow the OAuth process of allowing BigTree/your application access to your Google Cloud Storage account.</li>
 			</ol>
 			<hr />
