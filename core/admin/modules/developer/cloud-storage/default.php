@@ -1,6 +1,5 @@
 <?
 	$storage = new BigTreeStorage;
-	$cloud = new BigTreeCloudStorage;
 ?>
 <div class="container">
 	<summary><h2>Configure</h2></summary>
