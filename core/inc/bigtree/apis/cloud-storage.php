@@ -9,7 +9,7 @@
 
 		// These are only applicable to Google Cloud Storage
 		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/storage/v1beta2/";
+		var $EndpointURL = "https://www.googleapis.com/storage/v1/";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "header";
 		var $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
@@ -298,7 +298,7 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
@@ -799,7 +799,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$file_pointer = fopen($file,"r");
-				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1beta2/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
 				fclose($file_pointer);
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
