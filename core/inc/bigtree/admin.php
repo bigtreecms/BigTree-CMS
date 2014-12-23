@@ -7796,5 +7796,28 @@
 			}
 			return !$failed;
 		}
+
+		/*
+			Function: versionToDecimal
+				Returns a decimal number of a BigTree version for numeric comparisons.
+
+			Parameters:
+				version - BigTree version number (i.e. 4.2.0)
+
+			Returns:
+				A number
+		*/
+
+		static function versionToDecimal($version) {
+			$pieces = explode(".",$version);
+			$number = $pieces[0] * 10000;
+			if (isset($pieces[1])) {
+				$number += $pieces[1] * 100;
+			}
+			if (isset($pieces[2])) {
+				$number += $pieces[2];
+			}
+			return $number;
+		}
 	}
 ?>

@@ -138,9 +138,9 @@
 	input[type=submit], a.button { background-color: #CCC; background-color: rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 3px; color: #444; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; padding: 10px 18px 12px 18px; transition: background-color 0.2s, border-color 0.2s; user-select: none; }
 	input[type=submit] { padding: 11px 18px 9px; }
 	input[type=submit]:hover, a.button:hover { background-color: #BBB; background-color: rgba(0, 0, 0, 0.15); }
-	input[type=submit].green, a.button.green { background-color: #4DA46E; border: none; color: #FFF; }
+	input[type=submit].green, a.button.green { background-color: #4DA46E; border-color: #4DA46E; color: #FFF; }
 	input[type=submit].green:hover, a.button.green:hover { background-color: #459464; }
-	input[type=submit].blue, a.button.blue { background-color: #59A8E9; border: none; color: #FFF; }
+	input[type=submit].blue, a.button.blue { background-color: #59A8E9; border-color: #59A8E9; color: #FFF; }
 	input[type=submit].blue:hover, a.button.blue:hover { background-color: #4287CE; }
 	input[type=submit].red, a.button.red { background-color: #C0362F; border-color: #C0362F; color: #FFF; }
 	input[type=submit].red:hover, a.button.red:hover { background-color: #AB312B; }
@@ -1019,6 +1019,10 @@
 	.table .developer_settings_name a { color: #333; display: block; margin: 0; }
 	.table .developer_settings_id { padding: 0 0 0 15px; text-align: left; width: 280px; }
 	.table .developer_settings_type { padding: 0 0 0 15px; text-align: left; width: 145px; }
+	.table .developer_extensions_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 703px; }
+	.table .developer_extensions_name small { display: inline-block; font-size: 11px; padding: 0 0 0 10px; }
+	.table .developer_extensions_action { text-align: center; width: 80px; }
+	.table .developer_extensions_action .button { height: 23px; line-height: 25px; }
 
 	.template_image_list { list-style: none; margin: 10px 0 0 0; }
 	.template_image_list li { float: left; margin: 0 5px 5px 0; }

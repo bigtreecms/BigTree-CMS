@@ -7,6 +7,7 @@
 	class BigTreeUpdater {
 
 		var $Connection = false;
+		var $Extension = false;
 		var $Method = false;
 
 		/*
@@ -18,13 +19,14 @@
 		*/
 
 		function __construct($extension = false) {
+			$this->Extension = $extension;
+
 			// See if local will work
 			$path = $extension ? SERVER_ROOT."extensions/$extension/" : SERVER_ROOT."core/";
 			if (is_writable(SERVER_ROOT) && is_writable($path)) {
 				$this->Method = "Local";
-
-			// Can't use local, see what FTP methods are available
 			} else {
+				// Can't use local, see what FTP methods are available
 				$ftp = new BigTreeFTP;
 				$sftp = new BigTreeSFTP;
 	
@@ -149,9 +151,9 @@
 
 			// Try to determine the FTP root.
 			$ftp_root = "";
-			$saved_root = BigTreeCMS::getSetting("")
-			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root")."core/inc/bigtree/")) {
-				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
+			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
+			if ($saved_root !== false && $ftp->changeDirectory($saved_root)."core/inc/bigtree/") {
+				$ftp_root = $saved_root;
 			} elseif ($ftp->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;
 			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
@@ -172,24 +174,43 @@
 
 			Parameters:
 				ftp_root - The FTP path to the root install directory for BigTree
-				extension - If installing an extension, enter the extension ID (defaults to false)
 		*/
 
-		function installFTP($ftp_root,$extension = false) {
+		function installFTP($ftp_root) {
 			$ftp_root = "/".trim($ftp_root,"/")."/";
 
 			// Create backups folder
 			$this->Connection->createDirectory($ftp_root."backups/");
 
-			// Backup database
-			$admin->backupDatabase(SERVER_ROOT."cache/backup.sql");
-			$this->Connection->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
-			
-			// Backup old core
-			$this->Connection->rename($ftp_root."core/",$ftp_root."backups/core-".BIGTREE_VERSION."/");
+			// Doing a core upgrade
+			if ($this->Extension === false) {
+				// Backup database
+				$admin->backupDatabase(SERVER_ROOT."cache/backup.sql");
+				$this->Connection->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
+				
+				// Backup old core
+				$this->Connection->rename($ftp_root."core/",$ftp_root."backups/core-".BIGTREE_VERSION."/");
+	
+				// Move new core into place
+				$this->Connection->rename($ftp_root."cache/update/core/",$ftp_root."core/");
+			// Doing an extension upgrade
+			} else {
+				$extension = $this->Extension;
 
-			// Move new core into place
-			$this->Connection->rename($ftp_root."cache/update/core/",$ftp_root."core/");
+				// Create a backups folder for this extension
+				$this->Connection->createDirectory($ftp_root."backups/extensions/");
+				$this->Connection->createDirectory($ftp_root."backups/extensions/$extension/");
+
+				// Read manifest file for current version
+				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);
+				$old_version = $current_manifest["version"];
+
+				// Move old extension into backups
+				$this->Connection->rename($ftp_root."extensions/$extension/",$ftp_root."backups/extensions/$extension/$old_version/");
+
+				// Move new extension into place
+				$this->Connection->rename($ftp_root."cache/update/",$ftp_root."extensions/$extension/");
+			}
 			
 			$this->cleanup();
 		}
@@ -197,12 +218,9 @@
 		/*
 			Function: installLocal
 				Installs an update via local file replacement.
-
-			Parameters:
-				extension - If installing an extension, enter the extension ID (defaults to false)
 		*/
 
-		function installLocal($extension = false) {
+		function installLocal() {
 			// Create backups folder
 			if (!file_exists(SERVER_ROOT."backups/")) {
 				mkdir(SERVER_ROOT."backups/");
@@ -210,7 +228,7 @@
 			}
 
 			// Doing a core upgrade
-			if ($extension === false) {
+			if ($this->Extension === false) {
 				// Move old core into backups
 				rename(SERVER_ROOT."core/",SERVER_ROOT."backups/core-".BIGTREE_VERSION."/");
 			
@@ -223,6 +241,8 @@
 
 			// Doing an extension upgrade
 			} else {
+				$extension = $this->Extension;
+
 				// Create a backups folder for this extension
 				@mkdir(SERVER_ROOT."backups/extensions/");
 				@mkdir(SERVER_ROOT."backups/extensions/$extension/");
