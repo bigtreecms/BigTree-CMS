@@ -1,0 +1,3 @@
+<?
+	$updater = new BigTreeUpdater;
+?>

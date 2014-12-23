@@ -1,8 +1,6 @@
 <?
-	include BigTree::path("inc/lib/pclzip.php");
-	$zip = new PclZip(SERVER_ROOT."cache/update.zip");
-	$zip->listContent();
-	if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
+	// Verify zip integrity
+	if (!$updater->checkZip()) {
 ?>
 <div class="container">
 	<summary><h2>Upgrade BigTree</h2></summary>
@@ -16,9 +14,9 @@
 </div>
 <?
 	} else {
-		$method = $_SESSION["bigtree_admin"]["upgrade_method"];
+		// If we're not using local install and the config settings only allow for HTTPS logins, redirect
 		$secure = (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off" || $_SERVER["SERVER_PORT"] == 443);
-		if ($method != "local" && $bigtree["config"]["force_secure_login"] && !$secure) {
+		if ($updater->Method != "Local" && $bigtree["config"]["force_secure_login"] && !$secure) {
 			BigTree::redirect(str_replace("http://","https://",DEVELOPER_ROOT)."upgrade/check-file/");
 		}		
 ?>
@@ -27,14 +25,14 @@
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
 		<section>
-			<? if ($method == "local") { ?>
+			<? if ($updater->Method == "Local") { ?>
 			<p>The upgrade file finished downloading and your file permissions allow for local install.</p>
 			<ul>
 				<li>Your existing /core/ folder will be backed up in /backups/core-<?=BIGTREE_VERSION?>/</li>
 				<li>Your existing database will be backed up as /backups/core-<?=BIGTREE_VERSION?>/backup.sql</li>
 			</ul>
 			<? } else { ?>
-			<p>The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong><?=$method?></strong> credentials below so that BigTree can upgrade.</p>
+			<p>The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong><?=$updater->Method?></strong> credentials below so that BigTree can upgrade.</p>
 			<ul>
 				<li>Your existing /core/ folder will be backed up in /backups/core-<?=BIGTREE_VERSION?>/</li>
 				<li>Your existing database will be backed up as /backups/core-<?=BIGTREE_VERSION?>/backup.sql</li>

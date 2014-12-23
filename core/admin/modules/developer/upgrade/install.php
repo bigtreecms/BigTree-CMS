@@ -1,18 +1,5 @@
-<?	
-	include BigTree::path("inc/lib/pclzip.php");
-	if (!file_exists(SERVER_ROOT."cache/update/")) {
-		mkdir(SERVER_ROOT."cache/update/");
-		chmod(SERVER_ROOT."cache/update/",0777);
-	}
-	$zip = new PclZip(SERVER_ROOT."cache/update.zip");
-	$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,"BigTree-CMS");
-	// Make sure everything extracted is 777.
-	$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
-	foreach ($contents as $c) {
-		chmod($c,0777);
-	}
-
-	if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
+<?
+	if (!$updater->extract()) {
 ?>
 <div class="container">
 	<summary><h2>Upgrade BigTree</h2></summary>
@@ -26,68 +13,28 @@
 </div>
 <?
 	} else {
-		$method = $_SESSION["bigtree_admin"]["upgrade_method"];
-		
-		if ($method == "local") {
-			// Create backups folder
-			if (!file_exists(SERVER_ROOT."backups/")) {
-				mkdir(SERVER_ROOT."backups/");
-				chmod(SERVER_ROOT."backups/",0777);
-			}
-			// Move old core
-			rename(SERVER_ROOT."core/",SERVER_ROOT."backups/core-".BIGTREE_VERSION."/");
-			// Backup database
-			$admin->backupDatabase(SERVER_ROOT."backups/core-".BIGTREE_VERSION."/backup.sql");
-			// Move new core into place
-			rename(SERVER_ROOT."cache/update/core/",SERVER_ROOT."core/");
-			// Delete old files
-			$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/update/"));
-			foreach ($contents as $file) {
-				if (is_dir($file)) {
-					rmdir($file);	
-				} else {
-					unlink($file);
-				}
-			}
-			rmdir(SERVER_ROOT."cache/update/");
-			unlink(SERVER_ROOT."cache/update.zip");
+
+		// Very simple if we're updating locally
+		if ($updater->Method == "local") {
+			$updater->installLocal();
 			BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+		
+		// If we're using FTP or SFTP we have to make sure we know where the files exist
 		} else {
 			// If we had to set a directory path we lost the POST
 			if (!count($_POST)) {
 				$_POST = $_SESSION["bigtree_admin"]["ftp"];
 			}
 			
-			if ($method == "ftp") {
-				$ftp = new BigTreeFTP;
-			} else {
-				$ftp = new BigTreeSFTP;
-			}
-			
-			// Attempt to login
-			$ftp->connect("localhost");
-			if (!$ftp->login($_POST["username"],$_POST["password"])) {
+			// Try to login
+			if (!$updater->ftpLogin($_POST["user"],$_POST["psasword"])) {
 				$admin->growl("Developer","Login Failed","error");
 				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
 			}
 			
-			// Try to determine the FTP root.
-			$ftp_root = false;
-			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root")."core/inc/bigtree/")) {
-				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
-			} elseif ($ftp->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
-				$ftp_root = SERVER_ROOT;
-			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
-				$ftp_root = "/";
-			} elseif ($ftp->changeDirectory("/httpdocs/core/inc/bigtree")) {
-				$ftp_root = "/httpdocs";
-			} elseif ($ftp->changeDirectory("/public_html/core/inc/bigtree")) {
-				$ftp_root = "/public_html";
-			} elseif ($ftp->changeDirectory("/".str_replace(array("http://","https://"),"",DOMAIN)."inc/bigtree/")) {
-				$ftp_root = "/".str_replace(array("http://","https://"),"",DOMAIN);
-			}
-			
-			if ($ftp_root === false) {
+			// Try to get the FTP root
+			$ftp_root = $updater->getFTPRoot($_POST["user"],$_POST["password"]);
+ 			if ($ftp_root === false) {
 				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
@@ -108,27 +55,7 @@
 </form>
 <?
 			} else {
-				$ftp_root = "/".trim($ftp_root,"/")."/";
-				// Create backups folder
-				$ftp->createDirectory($ftp_root."backups/");
-				// Move old core
-				$ftp->rename($ftp_root."core/",$ftp_root."backups/core-".BIGTREE_VERSION."/");
-				// Backup database
-				$admin->backupDatabase(SERVER_ROOT."cache/backup.sql");
-				$ftp->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
-				// Move new core into place
-				$ftp->rename($ftp_root."cache/update/core/",$ftp_root."core/");
-				// Delete old files
-				$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/update/"));
-				foreach ($contents as $file) {
-					if (is_dir($file)) {
-						rmdir($file);	
-					} else {
-						unlink($file);
-					}
-				}
-				rmdir(SERVER_ROOT."cache/update/");
-				unlink(SERVER_ROOT."cache/update.zip");
+				$updater->installFTP($ftp_root);
 				BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
 			}
 		}
