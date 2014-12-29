@@ -2164,9 +2164,9 @@
 						$vals[] = "NULL";
 					} else {
 						if (in_array($key,$binary_columns)) {
-							$vals[] = "X'".sqlescape(str_replace("\n","\\n",$val))."'";
+							$vals[] = "X'".str_replace("\n","\\n",sqlescape($val))."'";
 						} else {
-							$vals[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
+							$vals[] = "'".str_replace("\n","\\n",sqlescape($val))."'";
 						}
 					}
 				}
