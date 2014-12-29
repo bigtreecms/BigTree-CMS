@@ -1750,6 +1750,7 @@
 					@unlink($file);
 				}
 			}
+			@rmdir(SERVER_ROOT."extensions/".$j["id"]."/");
 		
 			// Delete components
 			foreach ($j["components"] as $type => $list) {
