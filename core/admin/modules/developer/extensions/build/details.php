@@ -22,7 +22,7 @@
 				</div>
 				<div class="right last">
 					<fieldset>
-						<label>BigTree Version Compatibility <small>(i.e. 4.0+)</small></label>
+						<label>BigTree Version Compatibility <small>(i.e. 4.2+)</small></label>
 						<input type="text" name="compatibility" value="<?=$compatibility?>" tabindex="2" />
 					</fieldset>
 					<fieldset>
