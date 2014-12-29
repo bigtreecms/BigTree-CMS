@@ -57,7 +57,7 @@
 			}
 			return true;
 		}
-		
+
 		/*
 			Function: cleanup
 				Removes update related files and directories.
@@ -199,6 +199,9 @@
 				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);
 				$old_version = $current_manifest["version"];
 
+				// Get a unique directory name
+				$old_version = BigTree::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
+
 				// Move old extension into backups
 				$this->Connection->rename($ftp_root."extensions/$extension/",$ftp_root."backups/extensions/$extension/$old_version/");
 
@@ -244,6 +247,9 @@
 				// Read manifest file for current version
 				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);
 				$old_version = $current_manifest["version"];
+
+				// Get a unique directory name
+				$old_version = BigTree::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
 
 				// Move old extension into backups
 				rename(SERVER_ROOT."extensions/$extension/",SERVER_ROOT."backups/extensions/$extension/$old_version/");
