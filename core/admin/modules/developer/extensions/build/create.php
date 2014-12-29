@@ -17,18 +17,17 @@
 	foreach ($keywords as &$word) {
 		$word = trim($word);
 	}
+
 	// Fix licenses into an array
-	if ($license_name) {
+	if (array_filter((array)$licenses)) {
+		$license_array = array();
+		foreach ($licenses as $license) {
+			$license_array[$license] = $available_licenses["Open Source"][$license];
+		}
+	} elseif ($license_name) {
 		$license_array = array($license_name => $license_url);
 	} elseif ($license) {
 		$license_array = array($license => $available_licenses["Closed Source"][$license]);
-	} else {
-		$license_array = array();
-		if (is_array($licenses)) {
-			foreach ($licenses as $license) {
-				$license_array[$license] = $available_licenses["Open Source"][$license];
-			}
-		}
 	}
 	
 	// Setup JSON manifest
@@ -231,11 +230,11 @@
 				sqlquery($create_statement);
 
 				// Compare the tables, if we have changes to make, store them in a SQL revisions portion of the manifest
-				$transition_statements = BigTree::tableCompare($table,"bigtree_extension_temp");
+				$transition_statements = BigTree::tableCompare("bigtree_extension_temp",$table);
 				foreach ($transition_statements as $statement) {
 					// Don't include changes to auto increment
 					if (stripos($statement,"auto_increment = ") === false) {
-						$package["sql_revisions"][$revision] += $transition_statements;
+						$package["sql_revisions"][$revision][] = str_replace("`bigtree_extension_temp`","`$table`",$statement);
 					}
 				}
 			// Table doesn't exist in the new manifest, so we're going to drop it

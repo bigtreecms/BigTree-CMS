@@ -57,23 +57,17 @@
 			}
 			return true;
 		}
-
+		
 		/*
 			Function: cleanup
 				Removes update related files and directories.
 		*/
 
 		function cleanup() {
-			$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/update/"));
-			foreach ($contents as $file) {
-				if (is_dir($file)) {
-					rmdir($file);	
-				} else {
-					unlink($file);
-				}
+			if (file_exists(SERVER_ROOT."cache/update/")) {
+				BigTree::deleteDirectory(SERVER_ROOT."cache/update/");
 			}
-			rmdir(SERVER_ROOT."cache/update/");
-			unlink(SERVER_ROOT."cache/update.zip");
+			@unlink(SERVER_ROOT."cache/update.zip");
 		}
 
 		/*
