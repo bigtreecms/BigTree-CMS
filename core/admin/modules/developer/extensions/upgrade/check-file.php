@@ -9,7 +9,7 @@
 	</section>
 	<footer>
 		<a class="button blue" href="<?=$page_link.$page_vars?>">Try Again</a>
-		<a class="button" href="<?=$page_link."remind/".$page_vars?>">Remind Me Later</a>
+		<a class="button" href="<?=DEVELOPER_ROOT?>extensions/">Return to Extensions List</a>
 	</footer>
 </div>
 <?
@@ -20,7 +20,7 @@
 			BigTree::redirect(str_replace("http://","https://",$page_link)."check-file/".$page_vars);
 		}		
 ?>
-<form method="post" action="<?=$page_link?>install/<?=$page_vars?>">
+<form method="post" action="<?=$page_link?>process/<?=$page_vars?>">
 	<div class="container">
 		<summary><h2>Upgrade Extension</h2></summary>
 		<section>

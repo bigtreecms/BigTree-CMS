@@ -10,12 +10,14 @@
 	</section>
 	<footer>
 		<a class="button blue" href="<?=$page_link.$page_vars?>">Try Again</a>
-		<a class="button" href="<?=$page_link."remind/".$page_vars?>">Remind Me Later</a>
+		<a class="button" href="<?=DEVELOPER_ROOT?>extensions/">Return to Extensions List</a>
 	</footer>
 </div>
 <?
 	} else {
-
+		// Save original manifest
+		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$_GET["id"]."/manifest.json"),true);
+		
 		// Very simple if we're updating locally
 		if ($updater->Method == "Local") {
 			$updater->installLocal();
@@ -39,7 +41,7 @@
  			if ($ftp_root === false) {
 				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
 ?>
-<form method="post" action="<?=$page_link."set-ftp-directory/".$page_vars?>">
+<form method="post" action="<?=$page_link?>set-ftp-directory/<?=$page_vars?>">
 	<div class="container">
 		<summary><h2>Upgrade Extension</h2></summary>
 		<section>
@@ -63,6 +65,10 @@
 		}
 
 		if ($installed) {
+			// Install/replace existing extension
+			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$_GET["id"]."/manifest.json"),true);
+			$admin->installExtension($manifest,$original_manifest);
+
 			// If we have an update.php file, run it. We're catching the output buffer to see if update.php has anything to show -- if it doesn't, we'll redirect to the complete screen.
 			$update_file_path = SERVER_ROOT."extensions/".$_GET["id"]."/update.php";
 			if (file_exists($update_file_path)) {
