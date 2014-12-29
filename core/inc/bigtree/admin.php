@@ -5379,6 +5379,16 @@
 					sqlquery($sql_statement);
 				}
 
+				// Make sure destination doesn't exist
+				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/"; 
+				if (file_exists($destination_path)) {
+					$contents = array_reverse(BigTree::directoryContents($destination_path));
+					foreach ($contents as $file) {
+						@unlink($file);
+						@rmdir($file);
+					}
+					@rmdir($destination_path);
+				}
 				// Move the package to the extension directory
 				rename(SERVER_ROOT."cache/package/",SERVER_ROOT."extensions/".$manifest["id"]."/");
 
