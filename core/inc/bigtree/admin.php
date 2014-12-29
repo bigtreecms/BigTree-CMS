@@ -5329,7 +5329,7 @@
 				}
 			}
 		
-			// Import Settings -- 
+			// Import Settings
 			foreach ($manifest["components"]["settings"] as $setting) {
 				if ($setting) {
 					$this->createSetting($setting);
@@ -5393,19 +5393,13 @@
 			sqlquery("DELETE FROM bigtree_module_view_cache");
 
 			// Move public files into the site directory
-			$site_contents = file_exists(SERVER_ROOT."extensions/".$manifest["id"]."/site/") ? BigTree::directoryContents(SERVER_ROOT."extensions/".$manifest["id"]."/site/") : array();
-			foreach ($site_contents as $file) {
-				BigTree::copyFile($file,str_replace(SERVER_ROOT,SERVER_ROOT."site/",$file));
+			$public_dir = SERVER_ROOT."extensions/".$manifest["id"]."/public/";
+			$site_contents = file_exists($public_dir) ? BigTree::directoryContents($public_dir) : array();
+			foreach ($site_contents as $file_path) {
+				$destination_path = str_replace($public_dir,SITE_ROOT."extensions/".$manifest["id"]."/",$file_path);
+				BigTree::copyFile($file_path,$destination_path);
 			}
 
-			// Remove the package directory, we do it backwards because the "deepest" files are last
-			$contents = @array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
-			foreach ($contents as $file) {
-				@unlink($file);
-				@rmdir($file);
-			}
-			@rmdir(SERVER_ROOT."cache/package/");
-		
 			// Clear module class cache and field type cache.
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");

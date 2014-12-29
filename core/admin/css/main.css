@@ -1019,9 +1019,9 @@
 	.table .developer_settings_name a { color: #333; display: block; margin: 0; }
 	.table .developer_settings_id { padding: 0 0 0 15px; text-align: left; width: 280px; }
 	.table .developer_settings_type { padding: 0 0 0 15px; text-align: left; width: 145px; }
-	.table .developer_extensions_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 703px; }
+	.table .developer_extensions_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 683px; }
 	.table .developer_extensions_name small { display: inline-block; font-size: 11px; padding: 0 0 0 10px; }
-	.table .developer_extensions_action { text-align: center; width: 80px; }
+	.table .developer_extensions_action { text-align: center; width: 90px; }
 	.table .developer_extensions_action .button { height: 23px; line-height: 25px; }
 
 	.template_image_list { list-style: none; margin: 10px 0 0 0; }
