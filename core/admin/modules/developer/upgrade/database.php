@@ -417,6 +417,8 @@
 		sqlquery("ALTER TABLE bigtree_field_types ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_modules ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_modules ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
+		sqlquery("ALTER TABLE bigtree_module_groups ADD COLUMN `extension` VARCHAR(255)");
+		sqlquery("ALTER TABLE bigtree_module_groups ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_settings ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_settings ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_templates ADD COLUMN `extension` VARCHAR(255)");

@@ -5268,6 +5268,7 @@
 					$bigtree["group_match"][$group["id"]] = $this->createModuleGroup($group["name"]);
 					// Update the group ID since we're going to save this manifest locally for uninstalling
 					$group["id"] = $bigtree["group_match"][$group["id"]];
+					sqlquery("UPDATE bigtree_module_groups SET extension = '$extension' WHERE id = '".$group["id"]."'");
 				}
 			}
 		
