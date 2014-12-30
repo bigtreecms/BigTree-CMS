@@ -19,6 +19,7 @@
 		if ($module) {
 			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : "NULL";
 			$gbp = sqlescape(is_array($module["gbp"]) ? BigTree::json($module["gbp"]) : $module["gbp"]);
+			
 			// Find a unique route
 			$oroute = $route = $module["route"];
 			$x = 2;
@@ -26,6 +27,7 @@
 				$route = $oroute."-$x";
 				$x++;
 			}
+			
 			// Create the module
 			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp')");
 			$module_id = sqlid();
@@ -38,10 +40,12 @@
 			foreach ($module["embed_forms"] as $form) {
 				$admin->createModuleEmbedForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
 			}
+
 			// Create views
 			foreach ($module["views"] as $view) {
 				$bigtree["view_id_match"][$view["id"]] = $admin->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($view["options"]) ? $view["options"] : json_decode($view["options"],true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["related_form"],$view["preview_url"]);
 			}
+			
 			// Create regular forms
 			foreach ($module["forms"] as $form) {
 				$bigtree["form_id_match"][$form["id"]] = $admin->createModuleForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
@@ -50,10 +54,12 @@
 					sqlquery("UPDATE bigtree_module_views SET related_form = '".$bigtree["form_id_match"][$form["id"]]."' WHERE related_form = '".$form["id"]."' AND id = '$view_id'");
 				}
 			}
+			
 			// Create reports
 			foreach ($module["reports"] as $report) {
 				$bigtree["report_id_match"][$report["id"]] = $admin->createModuleReport($module_id,$report["title"],$report["table"],$report["type"],(is_array($report["filters"]) ? $report["filters"] : json_decode($report["filters"],true)),(is_array($report["fields"]) ? $report["fields"] : json_decode($report["fields"],true)),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
 			}
+			
 			// Create actions
 			foreach ($module["actions"] as $action) {
 				$admin->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$bigtree["form_id_match"][$action["form"]],$bigtree["view_id_match"][$action["view"]],$bigtree["report_id_match"][$action["report"]],$action["level"],$action["position"]);

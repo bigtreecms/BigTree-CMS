@@ -637,13 +637,22 @@
 			foreach ($resources as $resource) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
-					$clean_resources[] = array(
+					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => json_decode($resource["options"],true)
+						"options" => (array)@json_decode($resource["options"],true)
 					);
+
+					// Backwards compatibility with BigTree 4.1 package imports
+					foreach ($resource as $k => $v) {
+						if (!in_array($k,array("id","title","subtitle","type","options"))) {
+							$field["options"][$k] = $v;
+						}
+					}
+
+					$clean_resources[] = $field;
 
 					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 				}
@@ -1066,9 +1075,20 @@
 			$tagging = $tagging ? "on" : "";
 
 			$clean_fields = array();
-			foreach ($fields as $key => $field) {
-				$field["options"] = json_decode($field["options"],true);
-				$field["column"] = $key;
+			foreach ($fields as $key => $data) {
+				$field = array(
+					"column" => $key,
+					"type" => BigTree::safeEncode($data["type"]),
+					"title" => BigTree::safeEncode($data["title"]),
+					"subtitle" => BigTree::safeEncode($data["subtitle"]),
+					"options" => (array)@json_decode($data["options"],true)
+				);
+				// Backwards compatibility with BigTree 4.1 package imports
+				foreach ($data as $k => $v) {
+					if (!in_array($k,array("title","subtitle","type","options"))) {
+						$field["options"][$k] = $v;
+					}
+				}
 				$clean_fields[] = $field;
 			}
 			$fields = BigTree::json($clean_fields,true);
@@ -1583,13 +1603,22 @@
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
-					$clean_resources[] = array(
+					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
+						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"options" => json_decode($resource["options"],true)
+						"options" => (array)@json_decode($resource["options"],true)
 					);
+
+					// Backwards compatibility with BigTree 4.1 package imports
+					foreach ($resource as $k => $v) {
+						if (!in_array($k,array("id","title","subtitle","type","options"))) {
+							$field["options"][$k] = $v;
+						}
+					}
+
+					$clean_resources[] = $field;
 
 					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
 				}
