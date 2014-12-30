@@ -1767,7 +1767,7 @@
 				if ($type == "tables") {
 					// Turn off foreign key checks since we're going to be dropping tables.
 					sqlquery("SET SESSION foreign_key_checks = 0");
-					foreach ($list as $table) {
+					foreach ($list as $table => $create_statement) {
 						sqlquery("DROP TABLE IF EXISTS `$table`");
 					}
 					sqlquery("SET SESSION foreign_key_checks = 1");
