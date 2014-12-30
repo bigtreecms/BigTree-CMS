@@ -1631,10 +1631,6 @@
 			}
 
 			if ($routed == "on") {
-				if (!file_exists(SERVER_ROOT."templates/routed/".$id)) {
-					mkdir(SERVER_ROOT."templates/routed/".$id);
-					chmod(SERVER_ROOT."templates/routed/".$id,0777);
-				}
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
 					BigTree::putFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
 				}
@@ -1762,24 +1758,9 @@
 			$j = json_decode($extension["manifest"],true);
 		
 			// Delete site files
-			$site_files = file_exists(SITE_ROOT."extensions/".$j["id"]."/") ? array_reverse(BigTree::directoryContents(SITE_ROOT."extensions/".$j["id"]."/")) : array();
-			foreach ($site_files as $file) {
-				if (is_dir($file)) {
-					@rmdir($file);
-				} else {
-					@unlink($file);
-				}
-			}
+			BigTree::deleteDirectory(SITE_ROOT."extensions/".$j["id"]."/");
 			// Delete extensions directory
-			$files = array_reverse(BigTree::directoryContents(SERVER_ROOT."extensions/".$j["id"]."/"));
-			foreach ($files as $file) {
-				if (is_dir($file)) {
-					@rmdir($file);
-				} else {
-					@unlink($file);
-				}
-			}
-			@rmdir(SERVER_ROOT."extensions/".$j["id"]."/");
+			BigTree::deleteDirectory(SERVER_ROOT."extensions/".$j["id"]."/");
 		
 			// Delete components
 			foreach ($j["components"] as $type => $list) {
@@ -2337,7 +2318,7 @@
 
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/draw/$field_type.php";
+				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
 			} else {
 				$field_type_path = BigTree::path("admin/form-field-types/draw/".$field["type"].".php");
 			}
@@ -5412,16 +5393,10 @@
 
 				// Make sure destination doesn't exist
 				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/"; 
-				if (file_exists($destination_path)) {
-					$contents = array_reverse(BigTree::directoryContents($destination_path));
-					foreach ($contents as $file) {
-						@unlink($file);
-						@rmdir($file);
-					}
-					@rmdir($destination_path);
-				}
+				BigTree::deleteDirectory($destination_path);
+
 				// Move the package to the extension directory
-				rename(SERVER_ROOT."cache/package/",SERVER_ROOT."extensions/".$manifest["id"]."/");
+				rename(SERVER_ROOT."cache/package/",$destination_path);
 
 				// Create the extension
 				sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($manifest["id"])."','extension','".sqlescape($manifest["title"])."','".sqlescape($manifest["version"])."',NOW(),'".BigTree::json($manifest,true)."')");	
@@ -5867,7 +5842,7 @@
 			// Check if the field type is stored in an extension
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/process/$field_type.php";
+				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
 			} else {
 				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
 			}

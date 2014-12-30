@@ -1,14 +1,4 @@
 <?
-	function _localCleanup() {
-		// Remove the package directory, we do it backwards because the "deepest" files are last
-		$contents = @array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
-		foreach ((array)$contents as $file) {
-			@unlink($file);
-			@rmdir($file);
-		}
-		@rmdir(SERVER_ROOT."cache/package/");
-	}
-
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -47,17 +37,16 @@
 	}
 	
 	// Clean up existing area
-	_localCleanup();
 	$cache_root = SERVER_ROOT."cache/package/";
-	if (!file_exists($cache_root)) {
-		mkdir($cache_root);
-	}
+	BigTree::deleteDirectory($cache_root);
+	BigTree::makeDirectory($cache_root);
+
 	// Unzip the package
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip($file);
 	$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
 	if (!$files) {
-		_localCleanup();
+		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";
 		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
@@ -66,7 +55,7 @@
 	$json = json_decode(file_get_contents($cache_root."manifest.json"),true);
 	// Make sure it's legit
 	if ($json["type"] != "package" || !isset($json["id"]) || !isset($json["title"])) {
-		_localCleanup();
+		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree package.";
 		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}

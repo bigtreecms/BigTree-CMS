@@ -12,7 +12,7 @@
 		$admin->stop();
 	}
 
-	@mkdir(SERVER_ROOT."cache/package/");
+	BigTree::makeDirectory(SERVER_ROOT."cache/package/");
 	
 	// Fix keywords into an array
 	$keywords = explode(",",$keywords);
@@ -153,13 +153,8 @@
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."cache/package/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."cache/package/");
 
-	// Remove the package directory, we do it backwards because the "deepest" files are last
-	$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
-	foreach ($contents as $file) {
-		@unlink($file);
-		@rmdir($file);
-	}
-	@rmdir(SERVER_ROOT."cache/package/");
+	// Remove the package directory
+	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Store it in the database for future updates
 	if (sqlrows(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {

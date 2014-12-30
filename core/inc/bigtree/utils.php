@@ -1283,17 +1283,20 @@
 		*/
 		
 		static function makeDirectory($directory) {
+			if (file_exists($directory)) {
+				return;
+			}
+
 			$dir_parts = explode("/",trim($directory,"/"));
-			
-			$dpath = "/";
-			foreach ($dir_parts as $d) {
-				$dpath .= $d;
+			$dir_path = "/";
+			foreach ($dir_parts as $part) {
+				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.
-				if (!@file_exists($dpath)) {
-					@mkdir($dpath);
-					@chmod($dpath,0777);
+				if (!@file_exists($dir_path)) {
+					@mkdir($dir_path);
+					@chmod($dir_path,0777);
 				}
-				$dpath .= "/";
+				$dir_path .= "/";
 			}
 		}
 		
@@ -2209,21 +2212,10 @@
 			if (!self::isDirectoryWritable($file)) {
 				return false;
 			}
+
 			$pathinfo = self::pathInfo($file);
-			$file_name = $pathinfo["basename"];
-			$directory = $pathinfo["dirname"];
-			$dir_parts = explode("/",ltrim($directory,"/"));
-		
-			$dpath = "/";
-			foreach ($dir_parts as $d) {
-				$dpath .= $d;
-				if (!file_exists($dpath)) {
-					mkdir($dpath);
-					chmod($dpath,0777);
-				}
-				$dpath .= "/";
-			}
-		
+			self::makeDirectory($pathinfo["dirname"]);
+			
 			touch($file);
 			chmod($file,0777);
 			return true;

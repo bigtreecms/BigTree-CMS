@@ -83,10 +83,7 @@
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 
 			// If the temporary update directory doesn't exist, create it
-			if (!file_exists(SERVER_ROOT."cache/update/")) {
-				mkdir(SERVER_ROOT."cache/update/");
-				chmod(SERVER_ROOT."cache/update/",0777);
-			}
+			BigTree::makeDirectory(SERVER_ROOT."cache/update/");
 			
 			// Figure out what the initial directory is so we can remove it
 			$contents = $zip->listContent();
@@ -219,10 +216,7 @@
 
 		function installLocal() {
 			// Create backups folder
-			if (!file_exists(SERVER_ROOT."backups/")) {
-				mkdir(SERVER_ROOT."backups/");
-				chmod(SERVER_ROOT."backups/",0777);
-			}
+			BigTree::makeDirectory(SERVER_ROOT."backups/");
 
 			// Doing a core upgrade
 			if ($this->Extension === false) {
@@ -241,8 +235,7 @@
 				$extension = $this->Extension;
 
 				// Create a backups folder for this extension
-				@mkdir(SERVER_ROOT."backups/extensions/");
-				@mkdir(SERVER_ROOT."backups/extensions/$extension/");
+				BigTree::makeDirectory(SERVER_ROOT."backups/extensions/$extension/");
 
 				// Read manifest file for current version
 				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);

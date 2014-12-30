@@ -134,13 +134,8 @@
 	// Empty view cache
 	sqlquery("DELETE FROM bigtree_module_view_cache");
 
-	// Remove the package directory, we do it backwards because the "deepest" files are last
-	$contents = @array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
-	foreach ($contents as $file) {
-		@unlink($file);
-		@rmdir($file);
-	}
-	@rmdir(SERVER_ROOT."cache/package/");
+	// Remove the package directory
+	BigTree::removeDirectory(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
 	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
