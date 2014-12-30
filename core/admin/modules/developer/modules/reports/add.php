@@ -4,7 +4,7 @@
 	$type = "csv";
 
 	// Find out available views to use
-	$available_views = $admin->getModuleViews("action_name",$module["id"]);
+	$available_views = $admin->getModuleViews("title",$module["id"]);
 ?>
 <div class="container">
 	<form method="post" action="<?=SECTION_ROOT?>create/<?=$module["id"]?>/" class="module">
@@ -43,7 +43,7 @@
 					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
 					<select name="return_view">
 						<? foreach ($available_views as $view) { ?>
-						<option value="<?=$view["id"]?>"<? if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["action_name"]?></option>
+						<option value="<?=$view["id"]?>"<? if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["title"]?></option>
 						<? } ?>
 					</select>
 				</fieldset>

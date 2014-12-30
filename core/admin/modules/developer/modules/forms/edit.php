@@ -6,7 +6,7 @@
 	$fields = $form["fields"];
 
 	// Find out if we have more than one view. If so, give them an option of which one to return to.
-	$available_views = $admin->getModuleViews("action_name",$module["id"]);
+	$available_views = $admin->getModuleViews("title",$module["id"]);
 	
 	if (!BigTree::tableExists($table)) {
 ?>
@@ -56,7 +56,7 @@
 					<label>Return View <small>(after the form is submitted, it will return to this view)</small></label>
 					<select name="return_view">
 						<? foreach ($available_views as $view) { ?>
-						<option value="<?=$view["id"]?>"<? if ($form["return_view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["action_name"]?></option>
+						<option value="<?=$view["id"]?>"<? if ($form["return_view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["title"]?></option>
 						<? } ?>
 					</select>
 				</fieldset>

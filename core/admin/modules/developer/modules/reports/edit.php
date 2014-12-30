@@ -4,7 +4,7 @@
 	BigTree::globalizeArray($report);
 
 	// Find out available views to use
-	$available_views = $admin->getModuleViews("action_name",$action["module"]);
+	$available_views = $admin->getModuleViews("title",$action["module"]);
 ?>
 <div class="container">
 	<form method="post" action="<?=SECTION_ROOT?>update/<?=$report["id"]?>/" class="module">
@@ -46,7 +46,7 @@
 					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
 					<select name="return_view">
 						<? foreach ($available_views as $v) { ?>
-						<option value="<?=$v["id"]?>"<? if ($view == $v["id"]) { ?> selected="selected"<? } ?>><?=$v["action_name"]?></option>
+						<option value="<?=$v["id"]?>"<? if ($view == $v["id"]) { ?> selected="selected"<? } ?>><?=$v["title"]?></option>
 						<? } ?>
 					</select>
 				</fieldset>
