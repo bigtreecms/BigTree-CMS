@@ -1696,7 +1696,7 @@
 	form.module .package_column select { margin: 3px 3px 3px 3px; width: 250px; }
 	form.module .package_column_double select { width: 405px; }
 
-	.package_review label { height: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+	.package_review label { height: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 890px; }
 	.package_review label small { float: left; width: 200px; }
 
 /*---------------------------
