@@ -68,15 +68,12 @@
 	}
 	
 	// Check for table collisions
-	foreach ((array)$json["sql"] as $command) {
-		if (substr($command,0,14) == "CREATE TABLE `") {
-			$table = substr($command,14);
-			$table = substr($table,0,strpos($table,"`"));
-			if (sqlrows(sqlquery("SHOW TABLES LIKE '$table'"))) {
-				$warnings[] = "A table named &ldquo;$table&rdquo; already exists &mdash; the table will be overwritten.";
-			}
+	foreach ((array)$json["components"]["tables"] as $table => $create_statement) {
+		if (sqlrows(sqlquery("SHOW TABLES LIKE '$table'"))) {
+			$warnings[] = "A table named &ldquo;$table&rdquo; already exists &mdash; the table will be overwritten.";
 		}
 	}
+	
 	// Check file permissions and collisions
 	foreach ((array)$json["files"] as $file) {
 		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$file)) {
