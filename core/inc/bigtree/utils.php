@@ -112,8 +112,11 @@
 			} elseif ($route = $bigtree["module_list"][$class]) {
 				if (strpos($route,"*") !== false) {
 					list($extension,$class) = explode("*",$route);
-					include_once SERVER_ROOT."extensions/$extension/classes/$class.php";
-					return;
+					$path = SERVER_ROOT."extensions/$extension/classes/$class.php";
+					if (file_exists($path)) {
+						include_once $path;
+						return;
+					}
 				} else {
 					$path = self::path("inc/modules/$route.php");
 					if (file_exists($path)) {
@@ -121,10 +124,9 @@
 						return;
 					}
 				}
-			} else {
-				// Clear the module class list just in case we're missing something.
-				@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
+			// Clear the module class list just in case we're missing something.
+			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
 		
 		/*
