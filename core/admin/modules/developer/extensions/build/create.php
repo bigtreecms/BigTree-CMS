@@ -200,7 +200,14 @@
 			} elseif (substr($file,0,10) == "templates/") {
 				$d = $file;
 			} elseif (substr($file,0,5) == "site/") {
-				$d = $file;
+				// Already in the proper directory, should be copied to public, not moved
+				if (strpos($file,"site/extensions/$id/") === 0) {
+					BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/public/".str_replace("site/","",$file));
+				// Move into the site/extensions/ folder and then copy into /public/
+				} else {
+					BigTree::moveFile(SERVER_ROOT.$file,SITE_ROOT."extensions/$id/".substr($file,5));
+					BigTree::copyFile(SITE_ROOT."extensions/$id/".substr($file,5),SERVER_ROOT."extensions/$id/public/".substr($file,5));
+				}
 			}
 			if ($d) {
 				BigTree::moveFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/".$d);
