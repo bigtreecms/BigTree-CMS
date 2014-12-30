@@ -29,6 +29,12 @@
 	} elseif ($license) {
 		$license_array = array($license => $available_licenses["Closed Source"][$license]);
 	}
+
+	// Create extension directory if it doesn't exist
+	$extension_root = SERVER_ROOT."extensions/$id/";
+	if (!file_exists($extension_root)) {
+		BigTree::makeDirectory($extension_root);
+	}
 	
 	// Setup JSON manifest
 	$package = array(
@@ -111,6 +117,11 @@
 			$field_type_converter("bigtree_module_forms","fields");
 			$field_type_converter("bigtree_module_embeds","fields");
 			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
+
+			// Move files into new format
+			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php",$extension_root."field-types/$id/draw.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php",$extension_root."field-types/$id/draw.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php",$extension_root."field-types/$id/options.php");
 		}
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
@@ -169,14 +180,11 @@
 	}
 	
 	// Move all the files into the extensions directory
-	if (!file_exists(SERVER_ROOT."extensions/$id/")) {
-		mkdir(SERVER_ROOT."extensions/$id/");
-		chmod(SERVER_ROOT."extensions/$id/",0777);
-	}
 	foreach ((array)$files as $file) {
 		$file = str_replace(SERVER_ROOT,"",$file);
 		if (substr($file,0,11) != "extensions/") {
 			$d = false;
+
 			// We need to determine where files should be moved to based on their original file structure
 			if (substr($file,0,18) == "custom/admin/ajax/") {
 				$d = "ajax/".substr($file,18);
@@ -190,8 +198,6 @@
 				$d = "modules/".substr($file,21);
 			} elseif (substr($file,0,19) == "custom/inc/modules/") {
 				$d = "classes/".substr($file,19);
-			} elseif (substr($file,0,30) == "custom/admin/form-field-types/") {
-				$d = "field-types/".substr($file,30);
 			} elseif (substr($file,0,10) == "templates/") {
 				$d = $file;
 			} elseif (substr($file,0,5) == "site/") {
@@ -204,6 +210,8 @@
 					BigTree::copyFile(SITE_ROOT."extensions/$id/".substr($file,5),SERVER_ROOT."extensions/$id/public/".substr($file,5));
 				}
 			}
+
+			// If we have a place to move it to, move it.
 			if ($d) {
 				BigTree::moveFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/".$d);
 			}
