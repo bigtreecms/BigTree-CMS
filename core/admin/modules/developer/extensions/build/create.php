@@ -59,23 +59,23 @@
 	$used_reports = array();
 	$extension = sqlescape($id);
 
-	foreach ((array)$module_groups as $group) {
+	foreach (array_filter((array)$module_groups) as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
 	}
 	
-	foreach ((array)$callouts as $callout) {
+	foreach (array_filter((array)$callouts) as $callout) {
 		if (strpos($callout,"*") === false) {
 			sqlquery("UPDATE bigtree_callouts SET extension = '$extension', id = '$extension*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
 		}
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
 	
-	foreach ((array)$feeds as $feed) {
+	foreach (array_filter((array)$feeds) as $feed) {
 		sqlquery("UPDATE bigtree_feeds SET route = CONCAT('$extension/',route), extension = '$extension' WHERE id = '".sqlescape($feed)."'");
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
 	}
 	
-	foreach ((array)$settings as $setting) {
+	foreach (array_filter((array)$settings) as $setting) {
 		sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
@@ -83,7 +83,7 @@
 	// Setup anonymous function for converting old field type IDs to new ones
 	$field_type_converter = function($table,$field) {
 		global $id,$type;
-		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%'");
+		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%' OR `$field` LIKE '%\"type\": \"".sqlescape($type)."\"%'");
 		while ($f = sqlfetch($q)) {
 			$array = json_decode($f[$field],true);
 			foreach ($array as &$item) {
@@ -101,35 +101,30 @@
 		}
 	};
 	
-	foreach ((array)$field_types as $type) {
-		if ($type) {
-			// Currently non-extension field type becoming an extension one
-			if (strpos($type,"*") === false) {
-				sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
-				// Convert old usage of field type ID to extension usage
-				$field_type_converter("bigtree_templates","resources");
-				$field_type_converter("bigtree_callouts","resources");
-				$field_type_converter("bigtree_module_forms","fields");
-				$field_type_converter("bigtree_module_embeds","fields");
-				sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
-			}
-			$package["components"]["field_types"][] = $admin->getFieldType($type);
+	foreach (array_filter((array)$field_types) as $type) {
+		// Currently non-extension field type becoming an extension one
+		if (strpos($type,"*") === false) {
+			sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
+			// Convert old usage of field type ID to extension usage
+			$field_type_converter("bigtree_templates","resources");
+			$field_type_converter("bigtree_callouts","resources");
+			$field_type_converter("bigtree_module_forms","fields");
+			$field_type_converter("bigtree_module_embeds","fields");
+			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
 		}
+		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
 
-	foreach ((array)$templates as $template) {
+	foreach (array_filter((array)$templates) as $template) {
 		if (strpos($template,"*") === false) {
 			sqlquery("UPDATE bigtree_templates SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($template)."'");
 		}
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}
 
-	foreach ((array)$modules as $module) {
+	foreach (array_filter((array)$modules) as $module) {
 		$module = $admin->getModule($module);
-		if (!$module) {
-			continue;
-		}
-
+		
 		// If the module isn't namespaced yet, namespace it
 		if (strpos($module["route"],"*") === false) {
 			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
@@ -161,7 +156,7 @@
 		$package["components"]["modules"][] = $module;
 	}
 	
-	foreach ((array)$tables as $table) {
+	foreach (array_filter((array)$tables) as $table) {
 		// Set the table to the create statement
 		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
 		$create_statement = str_replace(array("\r","\n")," ",end($f));
@@ -216,7 +211,7 @@
 	}
 
 	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
-	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."' AND type = 'extension'"));
 	if ($existing) {
 		$existing_json = json_decode($existing["manifest"],true);
 
