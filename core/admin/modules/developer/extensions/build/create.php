@@ -106,7 +106,7 @@
 			sqlquery("UPDATE `$table` SET `$field` = '".BigTree::json($array,true)."' WHERE id = '".$f["id"]."'");
 		}
 	};
-	
+
 	foreach (array_filter((array)$field_types) as $type) {
 		// Currently non-extension field type becoming an extension one
 		if (strpos($type,"*") === false) {
@@ -119,9 +119,12 @@
 			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
 
 			// Move files into new format
-			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php",$extension_root."field-types/$id/draw.php");
-			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php",$extension_root."field-types/$id/draw.php");
-			BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php",$extension_root."field-types/$id/options.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$extension_root."field-types/$type/process.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/options.php");
+			
+			// Change type ID
+			$type = "$id*$type";
 		}
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
@@ -277,8 +280,8 @@
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 
-	// Store it in the database for future updates
-	if ($existing) {
+	// Store it in the database for future updates -- existing packages might be replaced
+	if (sqlrows(sqlquery("SELECT id FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
 		sqlquery("UPDATE bigtree_extensions SET type = 'extension', name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
 	} else {
 		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
