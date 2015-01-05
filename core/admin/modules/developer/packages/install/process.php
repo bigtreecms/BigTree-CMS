@@ -53,6 +53,10 @@
 			
 			// Create regular forms
 			foreach ($module["forms"] as $form) {
+				// 4.1 package compatibility
+				if (!is_array($form["hooks"])) {
+					$form["hooks"] = array("pre" => $form["preprocess"],"post" => $form["callback"],"publish" => false);
+				}
 				$bigtree["form_id_match"][$form["id"]] = $admin->createModuleForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
 				// Update related form values
 				foreach ($bigtree["view_id_match"] as $view_id) {
