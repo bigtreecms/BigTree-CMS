@@ -425,6 +425,10 @@
 		*/
 		
 		static function deleteDirectory($dir) {
+			if (!file_exists($dir)) {
+				return false;
+			}
+			
 			// Make sure it has a trailing /
 			$dir = rtrim($dir,"/")."/";
 			$r = opendir($dir);

@@ -5,6 +5,11 @@
 	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
+	// Run SQL
+	foreach ($json["sql"] as $sql) {
+		sqlquery($sql);
+	}
+	
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {
 		if ($group) {
@@ -127,15 +132,11 @@
 		BigTree::copyFile(SERVER_ROOT."cache/package/$file",SERVER_ROOT.$file);
 	}
 
-	// Run SQL
-	foreach ($json["sql"] as $sql) {
-		sqlquery($sql);
-	}
 	// Empty view cache
 	sqlquery("DELETE FROM bigtree_module_view_cache");
 
 	// Remove the package directory
-	BigTree::removeDirectory(SERVER_ROOT."cache/package/");
+	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
 	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
