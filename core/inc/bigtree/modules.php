@@ -315,7 +315,7 @@
 				<getMatching>
 		*/
 		
-		function getArchived($order = false,$limit = false,$columns) {
+		function getArchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","on",$order,$limit,false,$columns);
 		}
 		
@@ -754,7 +754,7 @@
 				<getMatching> <getNonarchived>
 		*/
 		
-		function getUnarchived($order = false,$limit = false,$columns) {
+		function getUnarchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","",$order,$limit,false,$columns);
 		}
 
