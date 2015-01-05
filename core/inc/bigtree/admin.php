@@ -5259,6 +5259,9 @@
 			$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 			$extension = sqlescape($manifest["id"]);
 
+			// Turn off foreign key checks so we can reference the extension before creating it
+			sqlquery("SET foreign_key_checks = 0");
+
 			// Upgrades drop existing modules, templates, etc -- we don't drop settings because they have user data
 			if (is_array($upgrade)) {
 				sqlquery("DELETE FROM bigtree_module_groups WHERE extension = '$extension'");
@@ -5267,10 +5270,14 @@
 				sqlquery("DELETE FROM bigtree_callouts WHERE extension = '$extension'");
 				sqlquery("DELETE FROM bigtree_field_types WHERE extension = '$extension'");
 				sqlquery("DELETE FROM bigtree_feeds WHERE extension = '$extension'");
-			}
 
-			// Turn off foreign key checks so we can reference the extension before creating it
-			sqlquery("SET foreign_key_checks = 0");
+			// Import tables for new installs
+			} else { 
+				foreach ($manifest["components"]["tables"] as $table_name => $sql_statement) {
+					sqlquery("DROP TABLE IF EXISTS `$table_name`");
+					sqlquery($sql_statement);
+				}
+			}
 
 			// Import module groups
 			foreach ($manifest["components"]["module_groups"] as &$group) {
@@ -5383,14 +5390,8 @@
 				// Update the extension
 				sqlquery("UPDATE bigtree_extensions SET name = '".sqlescape($manifest["title"])."', version = '".sqlescape($manifest["version"])."', last_updated = NOW(), manifest = '".BigTree::json($manifest,true)."' WHERE id = '".sqlescape($manifest["id"])."'");
 			
-			// Straight installs drop existing tables and move files into place locally
+			// Straight installs move files into place locally
 			} else {
-				// Import tables
-				foreach ($manifest["components"]["tables"] as $table_name => $sql_statement) {
-					sqlquery("DROP TABLE IF EXISTS `$table_name`");
-					sqlquery($sql_statement);
-				}
-
 				// Make sure destination doesn't exist
 				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/"; 
 				BigTree::deleteDirectory($destination_path);

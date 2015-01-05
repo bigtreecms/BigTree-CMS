@@ -65,6 +65,7 @@ Changelog
 - CHANGED: Many to Many no longer asks you to confirm removing something.
 - REMOVED: Array of Items field type -- existing fields will be automatically converted to Matrix but their display titles will be lost until they are re-saved.
 - FIXED: Lots of general JavaScript clean-up
+- BACKWARDS COMPATIBILTY: BigTree 4.1 packages that use the Array of Items field type for forms/templates/callouts/settings will need to have that field changed manually to a Matrix field after importing.
 
 ### 4.1.2 Release
 - FIXED: Editing HTML fields in the Array of Items field type when using TinyMCE 4
