@@ -342,8 +342,13 @@
 	$complete = false;
 	// We're routing through a module, so get module information and check permissions
 	if ($module) {
+		// Setup environment vars
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+		if ($module["extension"]) {
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
+		}
+		
 		// Make sure the user has access to the module
 		if (!$admin->checkAccess($module["id"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
