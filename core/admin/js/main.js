@@ -1026,7 +1026,7 @@ var BigTreePhotoGallery = function(settings) {
 		// Init routine
 		Key = settings.key;
 		Container = $("#" + settings.container.replace("#",""));
-		Counter = settings.counter;
+		Counter = settings.counter ? settings.counter : 0;
 		DisableCaptions = settings.disableCaptions;
 		FileInput = Container.find("footer input");
 		
