@@ -1458,7 +1458,7 @@
 
 				// Sanitize Integers
 				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
-					if ($val !== 0 && !$val && $allow_null == "YES") {
+					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
 						$data[$key] = "NULL";	
 					} else {
 						$data[$key] = intval(str_replace(array(",","$"),"",$val));
@@ -1466,7 +1466,7 @@
 				}
 				// Sanitize Floats
 				if ($type == "float" || $type == "double" || $type == "decimal") {
-					if ($val !== 0 && !$val && $allow_null == "YES") {
+					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
 						$data[$key] = "NULL";	
 					} else {
 						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
