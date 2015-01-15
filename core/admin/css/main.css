@@ -351,13 +351,15 @@
 	#quick_search_results a.no_results { border-top: none; }
 	#quick_search_results p.no_results { background: #FFF; }
 
-	#growl { margin: -18px 0 0 714px; position: absolute; width: 246px; z-index: 1000; }
+	#growl { margin: -18px 0 0 714px; opacity: 0; position: absolute; transition: opacity 0.5s; width: 246px; z-index: 1000; }
+	#growl.visible { opacity: 1; }
 	#growl article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; margin: 5px 0 0 0; overflow: hidden; padding: 15px; }
 	#growl article span { display: inline-block; }
 	#growl article .close { background: url(../images/icon-sprite.svg) -135px -104px; height: 10px; margin: -9px 0 0 214px; position: absolute; width: 10px; }
 	#growl article section { float: right; width: 170px; }
 	#growl article section h3 { color: #fff; font-size: 13px; line-height: 17px; margin: -2px 0 3px 0; }
 	#growl article section p { color: #eee; font-size: 12px; margin: 0; padding: 0; }
+	#growl article.hidden { transition: margin 0.5s, opacity 0.5s; opacity: 0; position: absolute; width: 216px; }
 
 	.icon_growl_success { background: url(../images/icon-sprite.svg) 0px -106px; height: 34px; width: 34px; }
 	.icon_growl_alert { background: url(../images/icon-sprite.svg) -34px -106px; height: 34px; width: 34px; }
@@ -873,11 +875,11 @@
 	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	.image_list li.non_draggable { cursor: default; }
 	.image_list li a { cursor: pointer; margin: 0 3px 0 0; }
-	.image_list li a.image { background: #CCC; display: block; height: 108px; margin: 0 0 5px 0; transition: background 0.2s; width: 108px; }
-	.image_list li a.image:hover { background: #DDD; }
-	.image_list li a.image img { max-height: 108px; max-width: 108px; }
-	.image_list li a.image_disabled { cursor: default; }
-	.image_list li a.image_disabled:hover { background: #CCC; }
+	.image_list li .image { background: #CCC; display: block; height: 108px; margin: 0 0 5px 0; transition: background 0.2s; width: 108px; }
+	.image_list li .image:hover { background: #DDD; }
+	.image_list li .image img { max-height: 108px; max-width: 108px; }
+	.image_list li .image_disabled { cursor: default; }
+	.image_list li .image_disabled:hover { background: #CCC; }
 	.image_list li a:last-child { margin: 0; }
 	.image_list .ui-sortable-placeholder { background: #eee; border: 1px dashed #ccc; border-radius: 2px; cursor: move; float: left; height: 145px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	.image_list li p { border-radius: 2px 2px 0 0; color: #222; font-size: 11px; margin: 0; padding: 3px 0; }

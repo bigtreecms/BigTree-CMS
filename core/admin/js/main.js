@@ -3101,19 +3101,32 @@ var BigTree = {
 
 	growl: function(title,message,time,type) {
 		if (!time) {
-			time = 5000;
+			time = 2000;
 		}
 		if (!type) {
 			type = "success";
 		}
+
+		// Reset the fade out timer, show the growl container
+		clearTimeout(BigTree.GrowlTimer);
+		var growl_box = $("#growl").addClass("visible");
+		BigTree.Growling = true;
+
+		// If a growl already exists, fade that one out and slide it up adding another to the box
 		if (BigTree.Growling) {
-			$("#growl").append($('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>'));
-			BigTree.GrowlTimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time);
+			var last_growl = growl_box.find("article:last-child");
+			last_growl.addClass("hidden").css({ marginTop: (last_growl.outerHeight() * -1) + "px" });
+			growl_box.append($('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>'));
+		// If a visible growl doesn't exist, replace the node contents (helps if a bunch of growls filled the DOM via fast clicking rather than adding another)
 		} else {
-			$("#growl").html('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>');
-			BigTree.Growling = true;
-			$("#growl").fadeIn(500, function() { BigTree.GrowlTimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time); });
+			growl_box.html('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>');
 		}
+
+		// Fade in takes half a second, so we set the timer for the time given + 500 milliseconds
+		BigTree.GrowlTimer = setTimeout(function() {
+			growl_box.removeClass("visible");
+			BigTree.Growling = false;
+		},time + 500);
 	},
 	
 	setPageCount: function(selector,pages,current_page) {
