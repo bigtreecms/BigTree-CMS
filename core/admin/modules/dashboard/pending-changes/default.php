@@ -122,10 +122,23 @@
 			?>
 			<li class="non_draggable">
 				<p><?=$change["user"]["name"]?></p>
+				<?
+					if ($view["edit_url"]) {
+				?>
 				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
-				<? if ($view["preview_url"]) { ?>
+				<?
+					} else {
+				?>
+				<figure class="image"><img src="<?=$image?>" alt="" /></figure>
+				<?
+					}
+
+					if ($view["preview_url"]) {
+				?>
 				<a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
-				<? } ?>
+				<?
+					}
+				?>
 				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a>
 				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a>
 			</li>
@@ -185,8 +198,17 @@
 			<section class="changes_action"><a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a></section>
 			<?
 				}
+
+				if ($view["edit_url"]) {
 			?>
 			<section class="changes_action"><a href="<?=$view["edit_url"].$item["id"]?>/" class="icon_edit"></a></section>
+			<?
+				} else {
+			?>
+			<section class="changes_action"><span class="icon_edit disabled_icon"></span></section>
+			<?
+				}
+			?>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a></section>
 		</li>
