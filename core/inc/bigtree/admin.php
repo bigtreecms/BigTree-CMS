@@ -1151,6 +1151,13 @@
 		*/
 
 		function createPage($data) {
+			// Defaults
+			$parent = 0;
+			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = "";
+			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = false;
+			$resources = array();
+			$in_nav = "on";
+
 			// Loop through the posted data, make sure no session hijacking is done.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
@@ -1424,7 +1431,7 @@
 
 		function createSetting($data) {
 			// Setup defaults
-			$id = $name = $description = $type = $options = $locked = $encrypted = $system = "";
+			$id = $name = $extension = $description = $type = $options = $locked = $encrypted = $system = "";
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
 					$$key = sqlescape(htmlspecialchars($val));
@@ -1593,6 +1600,10 @@
 
 		function createUser($data) {
 			global $bigtree;
+
+			// Defaults
+			$level = 0;
+			$email = $name = $company = $daily_digest = "";
 
 			// Safely go through the post data
 			foreach ($data as $key => $val) {
@@ -1947,6 +1958,7 @@
 				return true;
 			}
 			$this->stop("You do not have permission to delete this page.");
+			return false;
 		}
 
 		/*
@@ -2104,6 +2116,7 @@
 			}
 			sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
 			$this->track("bigtree_templates",$template["id"],"deleted");
+			return true;
 		}
 
 		/*
@@ -2272,10 +2285,11 @@
 
 		function emailDailyDigest() {
 			global $bigtree;
+
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
 			$image_root = $bigtree["config"]["admin_root"]."images/email/";
-			$no_reply_domain = str_replace(array("http://www.","https://www.","http://","https://"),"",$bigtree["config"]["domain"]);
+
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
 				$changes = $this->getPublishableChanges($user["id"]);
@@ -2284,7 +2298,7 @@
 				$unread = $messages["unread"];
 
 				// Start building the email
-				$body = $body_alerts = $body_changes = $body_messages = "";
+				$body_alerts = $body_changes = $body_messages = "";
 
 				// Alerts
 				if (is_array($alerts) && count($alerts)) {
@@ -2406,6 +2420,7 @@
 			}
 
 			BigTree::redirect($login_root."forgot-success/");
+			return true;
 		}
 
 		/*
@@ -2428,7 +2443,11 @@
 				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = 'on'"));
 			}
 
-			return $total["total"];
+			if (!empty($total)) {
+				return $total["total"];
+			} else {
+				return false;
+			}
 		}
 
 		/*
