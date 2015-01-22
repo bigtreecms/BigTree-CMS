@@ -5303,7 +5303,8 @@
 			// Import Field Types
 			foreach ($manifest["components"]["field_types"] as $type) {
 				if ($type) {
-					sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`pages`,`modules`,`callouts`,`settings`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["pages"])."','".sqlescape($type["modules"])."','".sqlescape($type["callouts"])."','".sqlescape($type["settings"])."','$extension')");
+					$self_draw = $type["self_draw"] ? "'on'" : "NULL";
+					sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["use_cases"])."',$self_draw,'$extension')");
 				}
 			}
 
@@ -5382,11 +5383,11 @@
 			// Decode the commands attached to the page
 			$commands = json_decode(base64_decode($ipl[2]),true);
 			// If there are no commands, we're good.
-			if (!isset($bigtree["commands"][0]) || !$bigtree["commands"][0]) {
+			if (empty($commands[0])) {
 				return true;
 			}
 			// If it's a hash tag link, we're also good.
-			if (substr($bigtree["commands"][0],0,1) == "#") {
+			if (substr($commands[0],0,1) == "#") {
 				return true;
 			}
 			// Get template for the navigation id to see if it's a routed template
@@ -5568,6 +5569,7 @@
 
 				return false;
 			}
+			return true;
 		}
 
 		/*
