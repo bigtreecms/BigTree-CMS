@@ -6107,14 +6107,14 @@
 
 									// See if we want center crops
 									if (is_array($crop["center_crops"])) {
-										foreach ($crop["center_crops"] as $crop) {
+										foreach ($crop["center_crops"] as $center_crop) {
 											// Make sure the crop has a width and height and it's numeric
-											if ($crop["width"] && is_numeric($crop["width"]) && $crop["height"] && is_numeric($crop["height"])) {
+											if ($center_crop["width"] && is_numeric($center_crop["width"]) && $center_crop["height"] && is_numeric($center_crop["height"])) {
 												// Create a temporary crop of the image on the server before moving it to it's destination.
 												$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-												BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$field["options"]["retina"],$crop["grayscale"]);
+												BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["options"]["retina"],$center_crop["grayscale"]);
 												// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-												$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+												$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
 											}
 										}
 									}
