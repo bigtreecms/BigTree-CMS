@@ -228,12 +228,10 @@
 		}
 		
 		private static function autoIPLCallbackHref($matches) {
-			global $cms;
 			$href = self::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'href="'.$href.'"';
 		}
 		private static function autoIPLCallbackSrc($matches) {
-			global $cms;
 			$src = self::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'src="'.$src.'"';
 		}
@@ -259,7 +257,6 @@
 			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
 
 			// We need to dump the bigtree tables in the proper order or they will not properly be recreated with the right foreign keys
-			$tables = array();
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$table = current($f);
