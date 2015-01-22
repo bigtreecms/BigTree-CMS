@@ -3535,8 +3535,7 @@
 		*/
 
 		static function getModuleGroupByRoute($route) {
-			$name = sqlescape($route);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '$route'"));
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '".sqlescape($route)."'"));
 		}
 
 		/*
@@ -4463,16 +4462,7 @@
 
 			$changes = array();
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE user = '".sqlescape($user)."' ORDER BY date DESC");
-
 			while ($f = sqlfetch($q)) {
-				if (!$f["item_id"]) {
-					$id = "p".$f["id"];
-				} else {
-					$id = $f["item_id"];
-				}
-
-				$mod = self::getModule($f["module"]);
-				$f["mod"] = $mod;
 				$changes[] = $f;
 			}
 
