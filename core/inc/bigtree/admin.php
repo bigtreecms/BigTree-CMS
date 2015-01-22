@@ -5648,14 +5648,16 @@
 
 		static function matchResourceMD5($file,$new_folder) {
 			$md5 = sqlescape(md5_file($file));
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE md5 = '$md5' LIMIT 1"));
-			if (!$f) {
+			$resource = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE md5 = '$md5' LIMIT 1"));
+			if (!$resource) {
 				return false;
 			}
-			if ($f["folder"] == $new_folder) {
-				sqlquery("UPDATE bigtree_resources SET date = NOW() WHERE id = '".$f["id"]."'");
+
+			// If we already have this exact resource in this exact folder, just update its modification time
+			if ($resource["folder"] == $new_folder) {
+				sqlquery("UPDATE bigtree_resources SET date = NOW() WHERE id = '".$resource["id"]."'");
 			} else {
-				foreach ($f as $key => $val) {
+				foreach ($resource as $key => $val) {
 					$$key = "'".sqlescape($val)."'";
 				}
 				$new_folder = $new_folder ? "'".sqlescape($new_folder)."'" : "NULL";
@@ -5692,10 +5694,14 @@
 		static function pingSearchEngines() {
 			$setting = self::getSetting("ping-search-engines");
 			if ($setting["value"] == "on") {
-				$google = file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				$ask = file_get_contents("http://submissions.ask.com/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				$yahoo = file_get_contents("http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				$bing = file_get_contents("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
+				// Google
+				file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				// Ask
+				file_get_contents("http://submissions.ask.com/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				// Yahoo
+				file_get_contents("http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				// Bing
+				file_get_contents("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
 		}
 
@@ -5714,7 +5720,6 @@
 				$image_src = $crop["image"];
 				$target_width = $crop["width"];
 				$target_height = $crop["height"];
-				$prefix = $crop["prefix"];
 				$x = $_POST["x"][$key];
 				$y = $_POST["y"][$key];
 				$width = $_POST["width"][$key];
@@ -6026,9 +6031,9 @@
 								}
 							}
 							if (is_array($crop["center_crops"])) {
-								foreach ($crop["center_crops"] as $crop) {
-									if (!empty($crop["prefix"])) {
-										$prefixes[] = $crop["prefix"];
+								foreach ($crop["center_crops"] as $center_crop) {
+									if (!empty($center_crop["prefix"])) {
+										$prefixes[] = $center_crop["prefix"];
 									}
 								}
 							}
