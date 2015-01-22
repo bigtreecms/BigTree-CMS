@@ -6240,7 +6240,7 @@
 			if ($this->Permissions[$module] != "p") {
 				ob_clean();
 				include BigTree::path("admin/pages/_denied.php");
-				$content = ob_get_clean();
+				$bigtree["content"] = ob_get_clean();
 				include BigTree::path("admin/layouts/default.php");
 				die();
 			}
