@@ -4,5 +4,6 @@
 /site
 /templates
 /cache
+/.idea
 .DS_Store
 .htaccess

@@ -1119,9 +1119,9 @@
 			$sql_title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
-			$default_position - sqlescape($default_position);
+			$preprocess = sqlescape($preprocess);
+			$callback = sqlescape($callback);
+			$default_position = sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
 			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
@@ -1164,9 +1164,9 @@
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
-			$default_position - sqlescape($default_position);
+			$preprocess = sqlescape($preprocess);
+			$callback = sqlescape($callback);
+			$default_position = sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
@@ -1238,7 +1238,7 @@
 			$type = sqlescape($type);
 			$filters = sqlescape(json_encode($filters));
 			$fields = sqlescape(json_encode($fields));
-			$parser - sqlescape($parser);
+			$parser = sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("INSERT INTO bigtree_module_reports (`module`,`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$module','$title','$table','$type','$filters','$fields','$parser',$view)");
 			$id = sqlid();
@@ -6785,9 +6785,9 @@
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
-			$default_position - sqlescape($default_position);
+			$preprocess = sqlescape($preprocess);
+			$callback = sqlescape($callback);
+			$default_position = sqlescape($default_position);
 			$default_pending = $default_pending ? "on" : "";
 			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
 			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
@@ -6818,9 +6818,9 @@
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
 			$fields = sqlescape(json_encode($fields));
-			$preprocess - sqlescape($preprocess);
-			$callback - sqlescape($callback);
-			$default_position - sqlescape($default_position);
+			$preprocess = sqlescape($preprocess);
+			$callback = sqlescape($callback);
+			$default_position = sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
@@ -6888,7 +6888,7 @@
 			$type = sqlescape($type);
 			$filters = sqlescape(json_encode($filters));
 			$fields = sqlescape(json_encode($fields));
-			$parser - sqlescape($parser);
+			$parser = sqlescape($parser);
 			$view = $view ? "'".sqlescape($view)."'" : "NULL";
 			sqlquery("UPDATE bigtree_module_reports SET `title` = '$title', `table` = '$table', `type` = '$type', `filters` = '$filters', `fields` = '$fields', `parser` = '$parser', `view` = $view WHERE id = '$id'");
 			// Update the module action
