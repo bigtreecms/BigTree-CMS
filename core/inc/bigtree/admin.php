@@ -3498,8 +3498,7 @@
 		*/
 
 		function getModuleGroupByRoute($route) {
-			$name = sqlescape($route);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '$route'"));
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '".sqlescape($route)."'"));
 		}
 
 		/*
