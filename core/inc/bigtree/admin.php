@@ -5638,7 +5638,9 @@
 					}
 					unlink($temp_copy);
 					unlink($first_copy);
-					$failed = true;
+
+					// We failed, keep the current value.
+					return false;
 				// If we did upload it successfully, check on thumbs and crops.
 				} else {
 					// Get path info on the file.
