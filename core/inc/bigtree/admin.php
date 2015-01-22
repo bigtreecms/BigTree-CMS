@@ -2864,10 +2864,12 @@
 				$group = $this->getCalloutGroup($group_id);
 				foreach ($group["callouts"] as $callout_id) {
 					if (!in_array($callout_id,$ids)) {
-						$ids[] = $callout_id;
 						$callout = $this->getCallout($callout_id);
-						$items[] = $callout;
-						$names[] = $callout["name"];
+						if (!$auth || $this->Level >= $callout["level"]) {
+							$items[] = $callout;
+							$ids[] = $callout_id;
+							$names[] = $callout["name"];
+						}
 					}
 				}
 			}
