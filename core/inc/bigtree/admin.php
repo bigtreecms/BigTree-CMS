@@ -5154,11 +5154,11 @@
 			// Decode the commands attached to the page
 			$commands = json_decode(base64_decode($ipl[2]),true);
 			// If there are no commands, we're good.
-			if (!isset($bigtree["commands"][0]) || !$bigtree["commands"][0]) {
+			if (empty($commands[0])) {
 				return true;
 			}
 			// If it's a hash tag link, we're also good.
-			if (substr($bigtree["commands"][0],0,1) == "#") {
+			if (substr($commands[0],0,1) == "#") {
 				return true;
 			}
 			// Get template for the navigation id to see if it's a routed template
