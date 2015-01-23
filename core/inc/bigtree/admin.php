@@ -6259,7 +6259,7 @@
 				The new revision id.
 		*/
 
-		static function saveCurrentPageRevision($page,$description) {
+		function saveCurrentPageRevision($page,$description) {
 			$page = sqlescape($page);
 			$description = sqlescape($description);
 
@@ -6469,10 +6469,8 @@
 		*/
 
 		static function searchTags($tag) {
-			$tags = array();
+			$tags = $dist = array();
 			$meta = metaphone($tag);
-			$close_tags = array();
-			$dist = array();
 			$q = sqlquery("SELECT * FROM bigtree_tags");
 			while ($f = sqlfetch($q)) {
 				$distance = levenshtein($f["metaphone"],$meta);
@@ -6483,12 +6481,7 @@
 			}
 
 			array_multisort($dist,SORT_ASC,$tags);
-
-			if (count($tags) > 8) {
-				$tags = array_slice($tags,0,8);
-			}
-
-			return $tags;
+			return array_slice($tags,0,8);
 		}
 
 		/*
@@ -6661,105 +6654,72 @@
 		function submitPageChange($page,$changes) {
 			if ($page[0] == "p") {
 				// It's still pending...
-				$existing_page = array();
-				$pending = true;
 				$type = "NEW";
+				$pending = true;
+				$existing_page = array();
+				$existing_pending_change = array("id" => substr($page,1));
 			} else {
 				// It's an existing page
+				$type = "EDIT";
 				$pending = false;
 				$existing_page = BigTreeCMS::getPage($page);
-				$type = "EDIT";
-			}
-
-			$template = $existing_page["template"];
-			if (!$pending) {
-				$existing_pending_change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
-			} else {
-				$existing_pending_change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
+				$existing_pending_change = sqlfetch(sqlquery("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
 			}
 
 			// Save tags separately
 			$tags = BigTree::json($changes["_tags"],true);
 			unset($changes["_tags"]);
 
+			// Convert to an IPL
+			if (!empty($changes["external"])) {
+				$changes["external"] = $this->makeIPL($changes["external"]);
+			}
+
 			// Unset the trunk flag if the user isn't a developer
 			if ($this->Level < 2) {
 				unset($changes["trunk"]);
-			// Make sure the value is changed
+			// Make sure the value is changed -- since it's a check box it may not have come through
 			} else {
-				$changes["trunk"] = $changes["trunk"];
+				$changes["trunk"] = !empty($changes["trunk"]) ? "on" : "";
 			}
 
 			// Set the in_nav flag, since it's not in the post if the checkbox became unclicked
-			$changes["in_nav"] = $changes["in_nav"];
+			$changes["in_nav"] = !empty($changes["in_nav"]) ? "on" : "";
 
 			// If there's already a change in the queue, update it with this latest info.
 			if ($existing_pending_change) {
-				$comments = json_decode($f["comments"],true);
-				if ($existing_pending_change["user"] == $this->ID) {
-					$comments[] = array(
-						"user" => "BigTree",
-						"date" => date("F j, Y @ g:ia"),
-						"comment" => "A new revision has been made."
-					);
-				} else {
-					$user = self::getUser($this->ID);
-					$comments[] = array(
-						"user" => "BigTree",
-						"date" => date("F j, Y @ g:ia"),
-						"comment" => "A new revision has been made.  Owner switched to ".$user["name"]."."
-					);
-				}
-
 				// If this is a pending page, just replace all the changes
 				if ($pending) {
 					$changes = BigTree::json($changes,true);
 				// Otherwise, we need to check what's changed.
 				} else {
-					$original_changes = json_decode($existing_pending_change["changes"],true);
 
-					if (isset($original_changes["template"])) {
-						$template = $original_changes["template"];
-					}
-					if (isset($changes["external"])) {
-						$changes["external"] = $this->makeIPL($changes["external"]);
-					}
-
+					// We don't want to indiscriminately put post data in as changes, so we ensure it matches a column in the bigtree_pages table
+					$diff = array();
 					foreach ($changes as $key => $val) {
-						if ($val != $original_changes[$key] && array_key_exists($key,$existing_page)) {
-							$original_changes[$key] = $val;
+						if (array_key_exists($key,$existing_page) && $existing_page[$key] != $val) {
+							$diff[$key] = $val;
 						}
 					}
-
-					$changes = BigTree::json($original_changes,true);
+					$changes = BigTree::json($diff,true);
 				}
 
-				$comments = BigTree::json($comments,true);
-				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', tags_changes = '$tags', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
-
+				// Update existing draft and track
+				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', tags_changes = '$tags', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
 				$this->track("bigtree_pages",$page,"updated-draft");
 
 			// We're submitting a change to a presently published page with no pending changes.
 			} else {
-				$original_changes = array();
-
+				$diff = array();
 				foreach ($changes as $key => $val) {
-					if ($key == "external") {
-						$val = $this->makeIPL($val);
-					}
-
 					if (array_key_exists($key,$existing_page) && $val != $existing_page[$key]) {
-						$original_changes[$key] = $val;
+						$diff[$key] = $val;
 					}
 				}
+				$changes = BigTree::json($diff,true);
 
-				$changes = BigTree::json($original_changes,true);
-				if ($type == "DELETE") {
-					sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','DELETE','Page Deletion Pending')");
-				} else {
-					sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`tags_changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','$tags','EDIT','Page Change Pending')");
-				}
-
+				// Create draft and track
+				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`tags_changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','$tags','EDIT','Page Change Pending')");
 				$this->track("bigtree_pages",$page,"saved-draft");
 			}
 

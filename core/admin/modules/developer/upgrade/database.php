@@ -408,6 +408,9 @@
 	function _local_bigtree_update_200() {
 		global $cms,$admin;
 
+		// Drop unused comments column
+		sqlquery("ALTER TABLE bigtree_pending_changes DROP COLUMN `comments`");
+
 		// Add extension columns
 		sqlquery("ALTER TABLE bigtree_callouts ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_callouts ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
