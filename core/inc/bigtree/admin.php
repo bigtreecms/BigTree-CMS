@@ -7413,8 +7413,6 @@
 				$in_nav = sqlescape($data["in_nav"]);
 			}
 
-			$redirect_lower = sqlescape($data["redirect_lower"]);
-
 			// Make an ipl:// or {wwwroot}'d version of the URL
 			if ($external) {
 				$external = self::makeIPL($external);
