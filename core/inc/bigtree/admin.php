@@ -7350,7 +7350,7 @@
 			$view = sqlescape($view);
 			$fields = BigTree::json($fields,true);
 			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '$view'");
-			$this->track("bigtree_module_views",$id,"updated");
+			$this->track("bigtree_module_views",$view,"updated");
 		}
 
 		/*
