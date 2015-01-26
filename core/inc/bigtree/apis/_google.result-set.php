@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeGoogleResultSet
 			Common result set class for Google+, YouTube, and Google Analytics.
@@ -60,4 +60,3 @@
 			return false;
 		}
 	}
-?>

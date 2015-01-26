@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeOAuthAPIBase
 			Other OAuth APIs inherit from this class. Implements common call patterns.
@@ -6,12 +6,22 @@
 
 	class BigTreeOAuthAPIBase {
 
+		var $AuthorizeURL = "";
 		var $Cache = true;
 		var $CacheIdentifier = "";
 		var $Connected = false;
+		var $EndpointURL = "";
 		var $Errors = array();
+		var $LastCacheKey = false;
+		var $OAuthError = false;
+		var $OAuthVersion = false;
+		var $RequestParameters = array();
+		var $RequestType = false;
+		var $ReturnURL = "";
+		var $Scope = false;
 		var $Settings = array();
 		var $SettingID = false;
+		var $TokenURL = "";
 
 		/*
 			Constructor:
@@ -301,4 +311,3 @@
 			return $response;
 		}
 	}
-?>
