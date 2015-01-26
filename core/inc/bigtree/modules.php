@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeModule
 			Base class from which all BigTree module classes inherit from.
@@ -394,12 +394,12 @@
 
 		function getInfo($entry) {
 			$info = array();
-			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
 			if (is_array($entry)) {
 				$entry = sqlescape($entry["id"]);
 			} else {
 				$entry = sqlescape($entry);
 			}
+			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
 
 			$created = sqlfetch(sqlquery($base." AND type = 'created'"));
 			if ($created) {
@@ -1014,4 +1014,3 @@
 			}
 		}
 	}
-?>
