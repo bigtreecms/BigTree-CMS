@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeCMS
 			The primary interface to BigTree that is used by the front end of the site for pulling settings, navigation, and page content.
@@ -180,13 +180,12 @@
 				key - The key for your data.
 				value - The data to store.
 				replace - Whether to replace an existing value (defaults to true).
-				force_object - Use JSON_FORCE_OBJECT (defaults to true).
 
 			Returns:
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		static function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
+		static function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -215,7 +214,7 @@
 			if (self::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
 				$bigtree["layout"] = "default";
 				ob_start();
-				include "../templates/basic/_404.php";
+				include SERVER_ROOT."templates/basic/_404.php";
 				$bigtree["content"] = ob_get_clean();
 				ob_start();
 				include "../templates/layouts/".$bigtree["layout"].".php";
@@ -997,7 +996,7 @@
 
 			// If for some reason we only requested one, just call getSetting
 			if (!is_array($ids)) {
-				return array($self::getSetting($ids));
+				return array(self::getSetting($ids));
 			}
 
 			// If we're in an extension, just call getSetting on the whole array since we need to make inferences on each ID
@@ -1262,8 +1261,6 @@
 		*/
 		
 		static function replaceInternalPageLinks($html) {
-			$drop_count = 0;
-
 			// Save time if there's no content
 			if (trim($html) === "") {
 				return "";
@@ -1322,4 +1319,3 @@
 			return $title;
 		}
 	}
-?>
