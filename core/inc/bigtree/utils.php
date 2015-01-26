@@ -515,7 +515,7 @@
 							if ($current_key) {
 								$result["foreign_keys"][$key_name][$current_key] = $current_val;
 								$current_key = "";
-								$current_Val = "";
+								$current_val = "";
 							}
 							$on_hit = true;
 						} else {
@@ -2034,7 +2034,7 @@
 						continue;
 					}
 					
-					BigTree::putFile($directory.$item["filename"],$item["content"]);
+					BigTree::putFile($destination.$item["filename"],$item["content"]);
 				}
 				
 				return true;
