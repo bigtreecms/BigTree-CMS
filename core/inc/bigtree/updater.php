@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeUpdater
 			Facilitates updating the CMS and extensions.
@@ -49,7 +49,7 @@
 		*/
 
 		function checkZip() {
-			include BigTree::path("inc/lib/pclzip.php");
+			include SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			$zip->listContent();
 			if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
@@ -79,7 +79,7 @@
 		*/
 
 		function extract() {
-			include BigTree::path("inc/lib/pclzip.php");
+			include SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 
 			// If the temporary update directory doesn't exist, create it
@@ -134,26 +134,24 @@
 		*/
 
 		function getFTPRoot($user,$password) {
-			// Attempt to login
-			$ftp->connect("localhost");
-			if (!$ftp->login($user,$password)) {
+			if (!$this->Connection->login($user,$password)) {
 				return false;
 			}
 
 			// Try to determine the FTP root.
 			$ftp_root = "";
 			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
-			if ($saved_root !== false && $ftp->changeDirectory($saved_root)."core/inc/bigtree/") {
+			if ($saved_root !== false && $this->Connection->changeDirectory($saved_root)."core/inc/bigtree/") {
 				$ftp_root = $saved_root;
-			} elseif ($ftp->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
+			} elseif ($this->Connection->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;
-			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
+			} elseif ($this->Connection->changeDirectory("/core/inc/bigtree")) {
 				$ftp_root = "/";
-			} elseif ($ftp->changeDirectory("/httpdocs/core/inc/bigtree")) {
+			} elseif ($this->Connection->changeDirectory("/httpdocs/core/inc/bigtree")) {
 				$ftp_root = "/httpdocs";
-			} elseif ($ftp->changeDirectory("/public_html/core/inc/bigtree")) {
+			} elseif ($this->Connection->changeDirectory("/public_html/core/inc/bigtree")) {
 				$ftp_root = "/public_html";
-			} elseif ($ftp->changeDirectory("/".str_replace(array("http://","https://"),"",DOMAIN)."inc/bigtree/")) {
+			} elseif ($this->Connection->changeDirectory("/".str_replace(array("http://","https://"),"",DOMAIN)."inc/bigtree/")) {
 				$ftp_root = "/".str_replace(array("http://","https://"),"",DOMAIN);
 			}
 			return $ftp_root;
@@ -176,7 +174,7 @@
 			// Doing a core upgrade
 			if ($this->Extension === false) {
 				// Backup database
-				$admin->backupDatabase(SERVER_ROOT."cache/backup.sql");
+				BigTreeAdmin::backupDatabase(SERVER_ROOT."cache/backup.sql");
 				$this->Connection->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
 				
 				// Backup old core
@@ -254,4 +252,3 @@
 			$this->cleanup();
 		}
 	}
-?>
