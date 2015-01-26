@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeAdmin
 			The main class used by the admin for manipulating and retrieving data.
@@ -7923,4 +7923,3 @@
 			return $number;
 		}
 	}
-?>
