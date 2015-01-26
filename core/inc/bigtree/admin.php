@@ -1745,7 +1745,10 @@
 
 			$permissions = sqlescape(json_encode($data["permissions"]));
 
-			// If the user is trying to create a developer user and they're not a developer, then… no.
+			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
+			$level = intval($level);
+
+			// Don't allow the level to be set higher than the logged in user's level
 			if ($level > $this->Level) {
 				$level = $this->Level;
 			}
@@ -7430,12 +7433,11 @@
 			global $bigtree;
 			$id = sqlescape($id);
 
-			// See if there's an email collission
+			// See if there's an email collision
 			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($data["email"])."' AND id != '$id'"));
 			if ($r) {
 				return false;
 			}
-
 
 			// If this person has higher access levels than the person trying to update them, fail.
 			$current = $this->getUser($id);
@@ -7443,19 +7445,26 @@
 				return false;
 			}
 
-			// If we didn't pass in a level because we're editing ourselves, use the current one.
-			if (!$level || $this->ID == $current["id"]) {
-				$level = $current["level"];
-			}
-
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
 					$$key = sqlescape($val);
 				}
 			}
-
 			$permissions = sqlescape(json_encode($data["permissions"]));
 			$alerts = sqlescape(json_encode($data["alerts"]));
+
+			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
+			$level = intval($level);
+
+			// If the user is editing themselves, they can't change the level.
+			if ($this->ID == $current["id"]) {
+				$level = $current["level"];
+			}
+
+			// Don't allow the level to be set higher than the logged in user's level
+			if ($level > $this->Level) {
+				$level = $this->Level;
+			}
 
 			if ($data["password"]) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
