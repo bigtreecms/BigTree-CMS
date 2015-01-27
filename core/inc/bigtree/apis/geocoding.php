@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeGeocoding
 			Geocodes addresses with a variety of services.
@@ -66,6 +66,7 @@
 			}
 
 			// Geocode
+			$geocode = false;
 			if ($this->Service == "google") {
 				$geocode = $this->geocodeGoogle($address);
 			} elseif ($this->Service == "yahoo") {
@@ -105,7 +106,6 @@
 			} catch (Exception $e) {
 				return false;
 			}
-			return false;
 		}
 
 		/*
@@ -128,7 +128,6 @@
 			} catch (Exception $e) {
 				return false;
 			}
-			return false;
 		}
 
 		/*
@@ -151,7 +150,6 @@
 			} catch (Exception $e) {
 				return false;
 			}
-			return false;
 		}
 
 		/*
@@ -175,7 +173,6 @@
 			} catch (Exception $e) {
 				return false;
 			}
-			return false;
 		}
 
 		/*
@@ -197,4 +194,3 @@
 			return false;
 		}
 	}
-?>
