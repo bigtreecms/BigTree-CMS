@@ -4,9 +4,11 @@
 ?>
 <div class="table" id="" class="image_list">
 	<summary><h2>Search Results</h2></summary>
+	<? if (isset($view["actions"]["edit"])) { ?>
 	<header>
 		<span class="view_column">Click an image to edit it.</span>
 	</header>
+	<? } ?>
 	<section>
 		<ul id="image_list_<?=$view["id"]?>" class="image_list">
 			<?
@@ -99,5 +101,10 @@
 		}
 		
 		$(this).css(style);
+	});
+
+	// Stop disabled edit action from working.
+	$(".image_list a.image_disabled").click(function() {
+		return false;
 	});
 </script>

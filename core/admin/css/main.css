@@ -589,9 +589,10 @@
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
 
-	.table > header { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
+	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background: #EFF7FD; border-top: 1px solid #ccc; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-transform: none; }
+	.table > header.group:first-child { border-top: none; }
 	.table > section { background: #FFF; overflow: hidden; padding: 20px; }
 	.table > ul { background: #FFF; overflow: hidden; }
 	.table > ul:last-child { border-radius: 0px 0px 2px 2px; }
@@ -869,8 +870,11 @@
 	.view_paging .first:hover, .view_paging .last:hover { background: #fff; }
 	.view_paging .ellipsis { padding: 0px 5px; }
 
+	.image_list > header:first-child { margin-top: 0; }
+	.image_list > header:nth-of-type(2n) { border-top: 1px solid #CCC; }
 	.image_list > header span { padding: 0 0 0 20px; }
-	.image_list .image_pending_divider { background-gradient: #9A9A9A #AFAFAF; border-radius: 0; color: #FFF; height: 20px; line-height: 22px; margin: 20px -20px; padding: 0px 20px; user-select: none; }
+	.image_list .image_pending_divider { border-top: 1px solid #CCC; font-size: 9px; line-height: 20px; padding: 0 0 0 20px; margin: 20px -20px 20px -20px; }
+	.image_list .image_pending_divider:first-child { border-top: none; margin-top: -20px; }
 	.image_list ul { margin-bottom: -10px; overflow: hidden; }
 	.image_list li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 2px; cursor: move; float: left; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 108px; }
 	.image_list li.non_draggable { cursor: default; }
