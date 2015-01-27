@@ -4,9 +4,11 @@
 ?>
 <div class="table" id="" class="image_list">
 	<summary><h2>Search Results</h2></summary>
+	<? if (isset($view["actions"]["edit"])) { ?>
 	<header>
 		<span class="view_column">Click an image to edit it.</span>
 	</header>
+	<? } ?>
 	<section>
 		<ul id="image_list_<?=$view["id"]?>" class="image_list">
 			<?
@@ -18,7 +20,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>">
-				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<? if (!isset($view["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
 					foreach ($actions as $action => $data) {
 						if ($action != "edit") {
@@ -47,11 +49,6 @@
 	</section>
 </div>
 <script>	
-	$("#image_list_<?=$view["id"]?> .icon_edit").click(function() {
-		document.location.href = "<?=$view["edit_url"]?>" + $(this).attr("href").substr(1) + "/";
-		return false;
-	});
-	
 	$("#image_list_<?=$view["id"]?> .icon_delete").click(function() {
 		new BigTreeDialog("Delete Item",'<p class="confirm">Are you sure you want to delete this item?',$.proxy(function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
@@ -93,5 +90,10 @@
 		}
 		
 		$(this).css(style);
+	});
+
+	// Stop disabled edit action from working.
+	$(".image_list a.image_disabled").click(function() {
+		return false;
 	});
 </script>

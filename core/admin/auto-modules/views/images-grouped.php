@@ -18,10 +18,14 @@
 	}
 ?>
 <div class="table auto_modules image_list">
+	<?
+		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
+	?>
 	<summary>
-		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?>Click an image to edit it.</p>
+		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?><? if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<? } ?></p>
 	</summary>
 	<?
+		}
 		$y = 0;
 		foreach ($groups as $group => $title) {
 			$y++;
