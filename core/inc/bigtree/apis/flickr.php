@@ -1,11 +1,10 @@
-<?
+<?php
 	/*
 		Class: BigTreeFlickrAPI
 			Flickr API class that implements most people and photo related API methods.
 	*/
 
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-	
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeFlickrAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
@@ -643,9 +642,9 @@
 			if (is_array($tags)) {
 				$tags = implode(",",$tags);
 			}
-			$r = $this->call("flickr.photos.setMeta",array("photo_id" => $photo,"title" => $title,"description" => $description),"POST");
-			$r = $this->call("flickr.photos.setTags",array("photo_id" => $photo,"tags" => $tags),"POST");
-			if ($r !== false) {
+			$meta = $this->call("flickr.photos.setMeta",array("photo_id" => $photo,"title" => $title,"description" => $description),"POST");
+			$tags = $this->call("flickr.photos.setTags",array("photo_id" => $photo,"tags" => $tags),"POST");
+			if ($meta !== false && $tags !== false) {
 				return true;
 			}
 			return false;
@@ -790,6 +789,9 @@
 
 	class BigTreeFlickrPhoto {
 		protected $API;
+
+		var $NextPhoto = false;
+		var $PreviousPhoto = false;
 
 		function __construct($photo,&$api) {
 			$image_base = "http://farm".$photo->farm.".staticflickr.com/".$photo->server."/".$photo->id."_".$photo->secret;
@@ -1213,4 +1215,3 @@
 			return $this->API->removeTagFromPhoto($this->ID);
 		}
 	}
-?>
