@@ -494,7 +494,7 @@
 					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
-				return new BigTreeDisqusResultSet($this,"getMostActiveUsers",array($limit,$order,$params),$response->Cursor,$results);
+				return new BigTreeDisqusResultSet($this,"getMostActiveUsers",array($limit,$params),$response->Cursor,$results);
 			}
 			return false;
 		}
@@ -521,7 +521,7 @@
 					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
-				return new BigTreeDisqusResultSet($this,"getMostLikedUsers",array($limit,$order,$params),$response->Cursor,$results);
+				return new BigTreeDisqusResultSet($this,"getMostLikedUsers",array($limit,$params),$response->Cursor,$results);
 			}
 			return false;
 		}
@@ -641,7 +641,7 @@
 					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
-				return new BigTreeDisqusResultSet($this,"getUsers",array($limit,$order,$since,$params),$response->Cursor,$results);
+				return new BigTreeDisqusResultSet($this,"getUsers",array($limit,$params),$response->Cursor,$results);
 			}
 			return false;
 		}
