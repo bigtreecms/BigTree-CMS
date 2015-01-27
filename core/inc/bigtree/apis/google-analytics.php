@@ -1,18 +1,18 @@
-<?
+<?php
 	/*
 		Class: BigTreeGoogleAnalytics
 			An interface layer for grabbing Google Analytics information and storing it alongside BigTree.
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
-
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_google.result-set.php";
 	class BigTreeGoogleAnalyticsAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		var $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
 		var $ClientSecret = "lCP25m_7s7o5ua3Z2JY67mRe";
 		var $EndpointURL = "https://www.googleapis.com/analytics/v3/";
+		var $LastDataTotals = false;
 		var $OAuthVersion = "2.0";
 		var $RequestType = "header";
 		var $Scope = "https://www.googleapis.com/auth/analytics.readonly";
@@ -369,4 +369,3 @@
 			$this->WebsiteURL = $profile->websiteUrl;
 		}
 	}
-?>
