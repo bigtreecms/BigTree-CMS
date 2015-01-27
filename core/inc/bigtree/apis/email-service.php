@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeEmailService
 			A common interface for sending email through various transactional email API providers.
@@ -74,7 +74,7 @@
 			} elseif ($this->Service == "postmark") {
 				return $this->sendPostmark($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} else {
-				throw Exception("Unknown Email Service");
+				throw new Exception("Unknown Email Service");
 			}
 		}
 
@@ -173,4 +173,3 @@
 			return true;
 		}
 	}
-?>
