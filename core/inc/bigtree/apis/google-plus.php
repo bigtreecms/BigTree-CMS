@@ -72,7 +72,6 @@
 
 		function getActivities($user = "me",$count = 100,$params = array()) {
 			$response = $this->call("people/$user/activities/public",array_merge(array(
-				"orderBy" => $order,
 				"maxResults" => $count
 			),$params));
 
@@ -83,7 +82,7 @@
 			foreach ($response->items as $activity) {
 				$results[] = new BigTreeGooglePlusActivity($activity,$this);
 			}
-			return new BigTreeGoogleResultSet($this,"getActivities",array($user,$count,$order,$params),$response,$results);
+			return new BigTreeGoogleResultSet($this,"getActivities",array($user,$count,$params),$response,$results);
 		}
 
 		/*
