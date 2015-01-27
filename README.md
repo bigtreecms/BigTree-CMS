@@ -36,6 +36,7 @@ Changelog
 - FIXED: BigTreeModules::getInfo call not working when a full entry was passed in
 - FIXED: Split read/write MySQL setup not properly routing write commands to the write server
 - FIXED: BigTree::unzip PclZip fallback not unzipping to the proper directory
+- FIXED: Styles related to grouped image lists, invalid instructions for image lists w/o edit, bad links for image lists w/o edit
 - UPDATED: Instructions for Google Cloud Storage (Google insists on changing the way you manage their APIs every 3 months)
 
 ### 4.1.4 Release
