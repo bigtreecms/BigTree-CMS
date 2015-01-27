@@ -20,6 +20,24 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.5 Release
+- SECURITY FIX: A privilege escalation bug exists in BigTree 4.1.4 and lower and BigTree 4.0.8 and lower that allows an Administrator level user to change his or her user level to Developer.
+- FIXED: BigTreeAdmin::getModuleViews still relying on actions to figure out what views a module has
+- FIXED: Developer tab being slow if www.bigtreecms.org was not resolving or connecting quickly (used for checking for system update availability)
+- FIXED: Google Cloud Storage failing due to sunsetting of their beta 2 API
+- FIXED: Return view functionality not working in forms and reports
+- FIXED: "0" not working properly as a value in columns that accept null (thanks jmason03 on the forums)
+- FIXED: BigTree admin bar Javascript not escaping & in its URL.
+- FIXED: Edit links showing up in Pending Changes even if the view doesn't have an edit URL
+- FIXED: Various admin methods failing to properly escape some SQL calls. These were all developer calls so they pose little security risk but could have resulted in failed creation of content involving parsers, preprocess functions, and callbacks if a single quote was included in the entered value.
+- FIXED: Internal Page Link 404 checking
+- FIXED: Image fields dropping their current value if an insecure file type was uploaded instead of an image
+- FIXED: BigTreeAdmin::requirePublisher not showing its content
+- FIXED: BigTreeModules::getInfo call not working when a full entry was passed in
+- FIXED: Split read/write MySQL setup not properly routing write commands to the write server
+- FIXED: BigTree::unzip PclZip fallback not unzipping to the proper directory
+- UPDATED: Instructions for Google Cloud Storage (Google insists on changing the way you manage their APIs every 3 months)
+
 ### 4.1.4 Release
 - FIXED: Google Analytics not being disconnectable until a profile is chosen
 - FIXED: Warnings in Site Status when an embeddable form was left empty
