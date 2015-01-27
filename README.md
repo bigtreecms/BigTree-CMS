@@ -20,6 +20,9 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.9 Release
+- SECURITY FIX: A privilege escalation bug exists in BigTree 4.1.4 and lower and BigTree 4.0.8 and lower that allows an Administrator level user to change his or her user level to Developer.
+
 ### 4.0.8 Release
 - FIXED: Google Analytics not being disconnectable until a profile was set.
 - FIXED: BigTreeAutoModule::publishPendingItem not returning the ID of the published item (thanks jmason03 for catching this)
