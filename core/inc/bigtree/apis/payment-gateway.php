@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreePaymentGateway
 			Controls eCommerce payment systems.
@@ -6,11 +6,39 @@
 	*/
 	
 	class BigTreePaymentGateway {
-		
-		var $Service = "";
-		var $PayPalPeriods = array("day" => "Day", "week" => "Week", "month" => "Month", "year" => "Year");
+
+		var $AVS = "";
 		var $CountryCodes = array("ALAND ISLANDS" => "AX", "ALBANIA" => "AL", "ALGERIA" => "DZ", "AMERICAN SAMOA" => "AS", "ANDORRA" => "AD", "ANGUILLA" => "AI", "ANTARCTICA" => "AQ","ANTIGUA AND BARBUDA" => "AG", "ARGENTINA" => "AR", "ARMENIA" => "AM", "ARUBA" => "AW", "AUSTRALIA" => "AU", "AUSTRIA" => "AT", "AZERBAIJAN" => "AZ", "BAHAMAS" => "BS", "BAHRAIN" => "BH", "BANGLADESH" => "BD", "BARBADOS" => "BB", "BELGIUM" => "BE", "BELIZE" => "BZ", "BENIN" => "BJ", "BERMUDA" => "BM", "BHUTAN" => "BT", "BOSNIA-HERZEGOVINA" => "BA", "BOTSWANA" => "BW", "BOUVET ISLAND" => "BV", "BRAZIL" => "BR", "BRITISH INDIAN OCEAN TERRITORY" => "IO", "BRUNEI DARUSSALAM" => "BN", "BULGARIA" => "BG", "BURKINA FASO" => "BF", "CANADA" => "CA", "CAPE VERDE" => "CV", "CAYMAN ISLANDS" => "KY", "CENTRAL AFRICAN REPUBLIC" => "CF", "CHILE" => "CL", "CHINA" => "CN", "CHRISTMAS ISLAND" => "CX", "COCOS (KEELING) ISLANDS" => "CC", "COLOMBIA" => "CO", "COOK ISLANDS" => "CK", "COSTA RICA" => "CR", "CYPRUS" => "CY", "CZECH REPUBLIC" => "CZ", "DENMARK" => "DK", "DJIBOUTI" => "DJ", "DOMINICA" => "DM", "DOMINICAN REPUBLIC" => "DO", "ECUADOR" => "EC", "EGYPT" => "EG", "EL SALVADOR" => "SV", "ESTONIA" => "EE", "FALKLAND ISLANDS (MALVINAS)" => "FK", "FAROE ISLANDS" => "FO", "FIJI" => "FJ", "FINLAND" => "FI", "FRANCE" => "FR", "FRENCH GUIANA" => "GF", "FRENCH POLYNESIA" => "PF", "FRENCH SOUTHERN TERRITORIES" => "TF", "GABON" => "GA", "GAMBIA" => "GM", "GEORGIA" => "GE", "GERMANY" => "DE", "GHANA" => "GH", "GIBRALTAR" => "GI", "GREECE" => "GR", "GREENLAND" => "GL", "GRENADA" => "GD", "GUADELOUPE" => "GP", "GUAM" => "GU", "GUERNSEY" => "CG", "GUYANA" => "GY", "HEARD ISLAND AND MCDONALD ISLANDS" => "HM", "HOLY SEE (VATICAN CITY STATE)" => "VA", "HONDURAS" => "HN", "HONG KONG" => "HK", "HUNGARY" => "HU", "ICELAND" => "IS", "INDIA" => "IN", "INDONESIA" => "ID", "IRELAND" => "IE", "ISLE OF MAN" => "IM", "ISRAEL" => "IL", "ITALY" => "IT", "JAMAICA" => "JM", "JAPAN" => "JP", "JERSEY" => "JE", "JORDAN" => "JO", "KAZAKHSTAN" => "KZ", "KIRIBATI" => "KI", "KOREA, REPUBLIC OF" => "KR", "KUWAIT" => "KW", "KYRGYZSTAN" => "KG", "LATVIA" => "LV", "LESOTHO" => "LS", "LIECHTENSTEIN" => "LI", "LITHUANIA" => "LT", "LUXEMBOURG" => "LU", "MACAO" => "MO", "MACEDONIA" => "MK", "MADAGASCAR" => "MG", "MALAWI" => "MW", "MALAYSIA" => "MY", "MALTA" => "MT", "MARSHALL ISLANDS" => "MH", "MARTINIQUE" => "MQ", "MAURITANIA" => "MR", "MAURITIUS" => "MU", "MAYOTTE" => "YT", "MEXICO" => "MX", "MICRONESIA, FEDERATED STATES OF" => "FM", "MOLDOVA, REPUBLIC OF" => "MD", "MONACO" => "MC", "MONGOLIA" => "MN", "MONTENEGRO" => "ME", "MONTSERRAT" => "MS", "MOROCCO" => "MA", "MOZAMBIQUE" => "MZ", "NAMIBIA" => "NA", "NAURU" => "NR", "NEPAL" => "NP", "NETHERLANDS" => "NL", "NETHERLANDS ANTILLES" => "AN", "NEW CALEDONIA" => "NC", "NEW ZEALAND" => "NZ", "NICARAGUA" => "NI", "NIGER" => "NE", "NIUE" => "NU", "NORFOLK ISLAND" => "NF", "NORTHERN MARIANA ISLANDS" => "MP", "NORWAY" => "NO", "OMAN" => "OM", "PALAU" => "PW", "PALESTINE" => "PS", "PANAMA" => "PA", "PARAGUAY" => "PY", "PERU" => "PE", "PHILIPPINES" => "PH", "PITCAIRN" => "PN", "POLAND" => "PL", "PORTUGAL" => "PT", "PUERTO RICO" => "PR", "QATAR" => "QA", "REUNION" => "RE", "ROMANIA" => "RO", "RUSSIAN FEDERATION" => "RU", "RWANDA" => "RW", "SAINT HELENA" => "SH", "SAINT KITTS AND NEVIS" => "KN", "SAINT LUCIA" => "LC", "SAINT PIERRE AND MIQUELON" => "PM", "SAINT VINCENT AND THE GRENADINES" => "VC", "SAMOA" => "WS", "SAN MARINO" => "SM", "SAO TOME AND PRINCIPE" => "ST", "SAUDI ARABIA" => "SA", "SENEGAL" => "SN", "SERBIA" => "RS", "SEYCHELLES" => "SC", "SINGAPORE" => "SG", "SLOVAKIA" => "SK", "SLOVENIA" => "SI", "SOLOMON ISLANDS" => "SB", "SOUTH AFRICA" => "ZA", "SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS" => "GS", "SPAIN" => "ES", "SURINAME" => "SR", "SVALBARD AND JAN MAYEN" => "SJ", "SWAZILAND" => "SZ", "SWEDEN" => "SE", "SWITZERLAND" => "CH", "TAIWAN, PROVINCE OF CHINA" => "TW", "TANZANIA, UNITED REPUBLIC OF" => "TZ", "THAILAND" => "TH", "TIMOR-LESTE" => "TL", "TOGO" => "TG", "TOKELAU" => "TK", "TONGA" => "TO", "TRINIDAD AND TOBAGO" => "TT", "TUNISIA" => "TN", "TURKEY" => "TR", "TURKMENISTAN" => "™", "TURKS AND CAICOS ISLANDS " => "TC", "TUVALU" => "TV","UGANDA" => "UG", "UKRAINE" => "UA", "UNITED ARAB EMIRATES" => "AE", "UNITED KINGDOM" => "GB", "UNITED STATES" => "US", "UNITED STATES MINOR OUTLYING ISLANDS" => "UM", "URUGUAY" => "UY", "UZBEKISTAN" => "UZ", "VANUATU" => "VU", "VENEZUELA" => "VE", "VIET NAM" => "VN", "VIRGIN ISLANDS, BRITISH" => "VG", "VIRGIN ISLANDS, U.S." => "VI", "WALLIS AND FUTUNA" => "WF", "WESTERN SAHARA" => "EH", "ZAMBIA" => "ZM");
-		
+		var $CVV = "";
+		var $DefaultParameters = array();
+		var $Environment = "";
+		var $Errors = array();
+		var $Headers = array();
+		var $Last4CC = "";
+		var $Message = "";
+		var $PostURL = "";
+		var $Service = "";
+		var $Transaction = false;
+
+		// Authorize.net Specific Properties
+		var $APILogin = "";
+		var $TransactionKey = "";
+		var $Unresponsive = false;
+
+		// LinkPoint Specific Properties
+		var $Certificate = "";
+		var $Store = "";
+
+		// PayPal & Payflow Specific Properties
+		var $Partner = "";
+		var $Password = "";
+		var $PayPalPeriods = array("day" => "Day", "week" => "Week", "month" => "Month", "year" => "Year");
+		var $PayPalTransaction = "";
+		var $Profile = "";
+		var $Signature = "";
+		var $Username = "";
+		var $Vendor = "";
+
 		/*
 			Constructor:
 				Sets up the currently configured service.
@@ -83,6 +111,8 @@
 				return $this->authorizePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "linkpoint") {
 				return $this->authorizeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);	
+			} else {
+				throw new Exception("Invalid Payment Gateway");
 			}
 		}
 		
@@ -158,6 +188,8 @@
 				return $this->capturePayflow($transaction,$amount);
 			} elseif ($this->Service == "linkpoint") {
 				return $this->captureLinkPoint($transaction,$amount);
+			} else {
+				throw new Exception("Invalid Payment Gateway");
 			}
 		}
 		
@@ -369,6 +401,8 @@
 				return $this->chargePayflow($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} elseif ($this->Service == "linkpoint") {
 				return $this->chargeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
+			} else {
+				throw new Exception("Invalid Payment Gateway");
 			}
 		}
 		
@@ -628,7 +662,8 @@
 					"city" => $address["city"],
 					"state" => $address["state"],
 					"postal_code" => $address["zip"],
-					"country_code" => $country
+					"country_code" => $country,
+					"phone" => $phone
 				)
 			);
 
@@ -788,15 +823,15 @@
 			}
 
 			if ($this->Service == "authorize.net") {
-				return $this->createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+				return $this->createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length);
 			} elseif ($this->Service == "paypal") {
-				return $this->createRecurringPaymentPayPal($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+				return $this->createRecurringPaymentPayPal($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length);
 			} elseif ($this->Service == "paypal-rest") {
-				return $this->createRecurringPaymentPayPalREST($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+				return $this->createRecurringPaymentPayPalREST($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length);
 			} elseif ($this->Service == "payflow") {
-				return $this->createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+				return $this->createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length);
 			} elseif ($this->Service == "linkpoint") {
-				return $this->createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length,$customer);
+				return $this->createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length);
 			}
 			return false;
 		}
@@ -807,7 +842,7 @@
 		*/
 		
 		protected function createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-		
+			throw new Exception("This method is not currently supported for the selected payment gateway.");
 		}
 		
 		/*
@@ -816,7 +851,7 @@
 		*/
 		
 		protected function createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-		
+			throw new Exception("This method is not currently supported for the selected payment gateway.");
 		}
 		
 		/*
@@ -825,7 +860,7 @@
 		*/
 		
 		protected function createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-		
+			throw new Exception("This method is not currently supported for the selected payment gateway.");
 		}
 		
 		/*
@@ -886,6 +921,15 @@
 			} else {
 				return false;
 			}
+		}
+
+		/*
+			Function: createRecurringPaymentPayPalREST
+				PayPal REST API interface for <createRecurringPayment>
+		*/
+
+		protected function createRecurringPaymentPayPalREST($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
+			throw new Exception("This method is not currently supported for the selected payment gateway.");
 		}
 
 		/*
@@ -1067,7 +1111,7 @@
 				$this->Message = $response["RESPMSG"];				
 				
 				if ($response["RESULT"] == "0") {
-					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$total_cost&CURRENCYCODE=USD&RETURNURL=$return_urly&CANCELURL=$cancel_url");
+					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
 				} else {
 					return false;
 				}
@@ -1080,7 +1124,7 @@
 				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 				
 				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
-					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$total_cost&CURRENCYCODE=USD&RETURNURL=$return_urly&CANCELURL=$cancel_url");
+					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
 				} else {
 					return false;
 				}
@@ -1132,7 +1176,7 @@
 			
 			$r = json_decode(BigTree::cURL("https://$url/v1/oauth2/token","grant_type=client_credentials",array(CURLOPT_POST => true, CURLOPT_USERPWD => $this->Settings["paypal-rest-client-id"].":".$this->Settings["paypal-rest-client-secret"])));
 			if ($r->error) {
-				$this->Error = $r->error;
+				$this->Errors[] = $r->error;
 				return false;
 			}
 
@@ -1381,6 +1425,8 @@
 				return $this->refundPayflow($transaction,$card_number,$amount);
 			} elseif ($this->Service == "linkpoint") {
 				return $this->refundLinkPoint($transaction,$card_number,$amount);
+			} else {
+				throw new Exception("Invalid Payment Gateway");
 			}
 		}
 		
@@ -1427,7 +1473,7 @@
 				),
 				"transactiondetails" => array(
 					"ip" => $_SERVER["REMOTE_ADDR"],
-					"oid" => $authorization
+					"oid" => $transaction
 				)
 			);
 			
@@ -1610,7 +1656,7 @@
 				foreach ($data as $key => $val) {
 					if (is_array($val)) {
 						$xml .= "<$key>";
-						foreach ($val as $k => $vl) {
+						foreach ($val as $k => $v) {
 							$xml .= "<$k>".htmlspecialchars($v)."</$k>";
 						}
 						$xml .= "</$key>";
@@ -1890,9 +1936,6 @@
 		*/
 		
 		function void($authorization) {
-			// Clean up the amount.
-			$amount = round(floatval(str_replace(array('$',','),"",$amount)),2);
-
 			if ($this->Service == "authorize.net") {
 				return $this->voidAuthorize($authorization);
 			} elseif ($this->Service == "paypal") {
@@ -1903,6 +1946,8 @@
 				return $this->voidPayflow($authorization);
 			} elseif ($this->Service == "linkpoint") {
 				return $this->voidLinkPoint($authorization);
+			} else {
+				throw new Exception("Invalid Payment Gateway");
 			}
 		}
 		
@@ -2022,4 +2067,3 @@
 			}
 		}
 	}
-?>

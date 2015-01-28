@@ -1,11 +1,10 @@
-<?
+<?php
 	/*
 		Class: BigTreeInstagramAPI
 			Instagram API class that implements most API calls (media posting excluded).
 	*/
-	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
 
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeInstagramAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://api.instagram.com/oauth/authorize/";
@@ -995,4 +994,3 @@
 			return $this->API->setRelationship($this->ID,$action);
 		}
 	}
-?>
