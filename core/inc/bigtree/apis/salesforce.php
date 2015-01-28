@@ -1,11 +1,10 @@
-<?
+<?php
 	/*
 		Class: BigTreeSalesforceAPI
 			Salesforce API class that implements a BigTree-esque module API over Salesforce.
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-
+	require_once SERVER_ROOT."inc/bigtree/apis/_oauth.base.php";
 	class BigTreeSalesforceAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
@@ -270,6 +269,7 @@
 				$where = "$fields = '".sqlescape($values)."'";
 			} else {
 				$x = 0;
+				$where = array();
 				while ($x < count($fields)) {
 					$where[] = $fields[$x]." = '".sqlescape($values[$x])."'";
 					$x++;
@@ -510,4 +510,3 @@
 			return true;
 		}
 	}
-?>
