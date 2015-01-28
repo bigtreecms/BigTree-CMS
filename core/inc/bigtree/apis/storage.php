@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeStorage
 			Facilitates the storage, deletion, and replacement of files (whether local or cloud stored).
@@ -11,7 +11,7 @@
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
 		var $Cloud = false;
-		var $Settings = false;
+		var $Settings;
 
 		/*
 			Constructor:
@@ -19,7 +19,7 @@
 		*/
 
 		function __construct() {
-			global $cms,$admin;
+			global $cms;
 			
 			// Get by reference because we modify it.
 			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
@@ -254,4 +254,3 @@
 			return $this->store($local_file,$file_name,$relative_path,$remove_original);
 		}
 	}
-?>
