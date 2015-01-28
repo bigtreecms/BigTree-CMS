@@ -1054,7 +1054,7 @@
 				$this->Message = $response["RESPMSG"];				
 				
 				if ($response["RESULT"] == "0") {
-					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$total_cost&CURRENCYCODE=USD&RETURNURL=$return_urly&CANCELURL=$cancel_url");
+					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
 				} else {
 					return false;
 				}
@@ -1067,7 +1067,7 @@
 				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 				
 				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
-					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$total_cost&CURRENCYCODE=USD&RETURNURL=$return_urly&CANCELURL=$cancel_url");
+					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
 				} else {
 					return false;
 				}
@@ -1411,7 +1411,7 @@
 				),
 				"transactiondetails" => array(
 					"ip" => $_SERVER["REMOTE_ADDR"],
-					"oid" => $authorization
+					"oid" => $transaction
 				)
 			);
 			
@@ -1594,7 +1594,7 @@
 				foreach ($data as $key => $val) {
 					if (is_array($val)) {
 						$xml .= "<$key>";
-						foreach ($val as $k => $vl) {
+						foreach ($val as $k => $v) {
 							$xml .= "<$k>".htmlspecialchars($v)."</$k>";
 						}
 						$xml .= "</$key>";
