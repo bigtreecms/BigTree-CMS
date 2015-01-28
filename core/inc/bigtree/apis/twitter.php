@@ -5,13 +5,14 @@
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-
+	require_once SERVER_ROOT."inc/bigtree/apis/_oauth.base.php";
 	class BigTreeTwitterAPI extends BigTreeOAuthAPIBase {
-		
+
+		var $Configuration;
 		var $EndpointURL = "https://api.twitter.com/1.1/";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "hash";
+		var $TweetLength;
 		
 		/*
 			Constructor:
@@ -165,7 +166,7 @@
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
 			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($username,$count,$params),$users);
+			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($skip_status,$params),$users);
 		}
 
 		/*
@@ -282,7 +283,7 @@
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
 			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$count,$params),$users);
+			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$skip_status,$params),$users);
 		}
 
 		/*
@@ -311,7 +312,7 @@
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
 			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$count,$params),$users);
+			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$skip_status,$params),$users);
 		}
 
 		/*
@@ -330,7 +331,7 @@
 		*/
 
 		function getHomeTimeline($count = 10, $params = array()) {
-			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("count" => $count)));
 			if (!$response) {
 				return false;
 			}
@@ -594,7 +595,7 @@
 				https://dev.twitter.com/docs/api/1.1/post/statuses/update
 		*/
 
-		function sendTweet($content,$image = false,$auto_truncate = true,$params = array()) {
+		function sendTweet($content,$image = false,$params = array()) {
 			// Figure out how long our content can be
 			if (!$this->Configuration) {
 				$this->getConfiguration();
@@ -660,7 +661,7 @@
 		*/
 
 		function searchPlaces($latitude,$longitude,$count = 20,$params = array()) {
-			$response = $this->call("geo/search.json",array_merge(array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
+			$response = $this->call("geo/search.json",array_merge($params,array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
 			if (!isset($response->result)) {
 				return false;
 			}
@@ -709,7 +710,7 @@
 			foreach ($response->statuses as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
-			return new BigTreeTwitterResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$long,$radius,$user_params),$tweets);
+			return new BigTreeTwitterResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$longitude,$radius,$user_params),$tweets);
 		}
 
 		/*
@@ -983,7 +984,7 @@
 				True if successful.
 		*/
 
-		function retweet($id = false) {
+		function retweet() {
 			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
 
@@ -991,14 +992,11 @@
 			Function: retweets
 				Returns retweets of the tweet.
 
-			Parameters:
-				count - The number of retweets to return (defaults to 10, max 100)
-
 			Returns:
 				An array of BigTreeTwitterTweet objects.
 		*/
 
-		function retweets($count = 10) {
+		function retweets() {
 			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
 			if (!$this->RetweetCount) {
 				return array();
@@ -1244,4 +1242,3 @@
 			return $this->API->sendDirectMessage(false,$content,$this->Sender->ID);
 		}
 	}
-?>
