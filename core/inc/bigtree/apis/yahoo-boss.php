@@ -1,11 +1,10 @@
-<?
+<?php
 	/*
 		Class: BigTreeYahooBOSSAPI
 			Yahoo BOSS API implementation. Currently only supports Geocoding.
 	*/
 
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-
+	require_once SERVER_ROOT."inc/bigtree/apis/_oauth.base.php";
 	class BigTreeYahooBOSSAPI extends BigTreeOAuthAPIBase {
 
 		var $EndpointURL = "http://yboss.yahooapis.com/";
@@ -96,4 +95,3 @@
 			$this->Settings["expires"] = strtotime("+ ".$oauth_expires_in."seconds");
 		}
 	}
-?>
