@@ -280,7 +280,7 @@
 			foreach ($response->items as $video) {
 				$results[] = new BigTreeYouTubeVideo($video,$this);
 			}
-			return new BigTreeGoogleResultSet($this,"getChannelVideos",array($query,$order,$count,$params),$response,$results);
+			return new BigTreeGoogleResultSet($this,"getChannelVideos",array($channel,$count,$order,$params),$response,$results);
 		}	
 
 		/*
