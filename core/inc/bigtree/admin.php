@@ -5307,6 +5307,12 @@
 		*/
 
 		function makeIPL($url) {
+			// See if this is a file
+			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
+			if (file_exists($local_path)) {
+				return $this->replaceHardRoots($url); 
+			}
+
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			// Check for resource link
 			if ($command[0] == "files" && $command[1] == "resources") {
