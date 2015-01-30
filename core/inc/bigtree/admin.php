@@ -4,7 +4,7 @@
 			The main class used by the admin for manipulating and retrieving data.
 	*/
 
-	class BigTreeAdmin {
+	class BigTreeAdminBase {
 		static $IRLPrefixes = false;
 		static $IRLsCreated = array();
 		static $PerPage = 15;		
@@ -121,14 +121,14 @@
 
 			// Update the reserved top level routes with the admin's route
 			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
-			self::$ReservedTLRoutes[] = $ar[0];
+			static::$ReservedTLRoutes[] = $ar[0];
 			unset($ar);
 
 			// Check for Per Page value
-			$pp = self::getSetting("bigtree-internal-per-page",false);
+			$pp = static::getSetting("bigtree-internal-per-page",false);
 			$v = intval($pp["value"]);
 			if ($v) {
-				self::$PerPage = $v;
+				static::$PerPage = $v;
 			}
 		}
 
@@ -145,7 +145,7 @@
 			$module = sqlescape($module);
 			$entry = sqlescape($entry);
 			sqlquery("DELETE FROM bigtree_resource_allocation WHERE module = '$module' AND entry = '$entry'");
-			foreach (self::$IRLsCreated as $resource) {
+			foreach (static::$IRLsCreated as $resource) {
 				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`,`updated_at`) VALUES ('$module','$entry','".sqlescape($resource)."',NOW())");
 			}
 		}
@@ -175,7 +175,7 @@
 			if ($access == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
 				sqlquery("UPDATE bigtree_pages SET archived = 'on' WHERE id = '$page'");
 				$this->archivePageChildren($page);
-				self::growl("Pages","Archived Page");
+				static::growl("Pages","Archived Page");
 				$this->track("bigtree_pages",$page,"archived");
 				return true;
 			}
@@ -217,7 +217,7 @@
 		static function autoIPL($html) {
 			// If this string is actually just a URL, IPL it.
 			if ((substr($html,0,7) == "http://" || substr($html,0,8) == "https://") && strpos($html,"\n") === false && strpos($html,"\r") === false) {
-				$html = self::makeIPL($html);
+				$html = static::makeIPL($html);
 			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
 			} else {
 				$html = preg_replace_callback('/href="([^"]*)"/',array("BigTreeAdmin","autoIPLCallbackHref"),$html);
@@ -228,11 +228,11 @@
 		}
 		
 		private static function autoIPLCallbackHref($matches) {
-			$href = self::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
+			$href = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'href="'.$href.'"';
 		}
 		private static function autoIPLCallbackSrc($matches) {
-			$src = self::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
+			$src = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'src="'.$src.'"';
 		}
 
@@ -442,29 +442,29 @@
 						if (strpos($href,"#") !== false) {
 							$href = substr($href,0,strpos($href,"#")-1);
 						}
-						if (!self::urlExists($href)) {
+						if (!static::urlExists($href)) {
 							$errors["a"][] = $href;
 						}
 					}
 				} elseif (substr($href,0,6) == "ipl://") {
-					if (!self::iplExists($href)) {
+					if (!static::iplExists($href)) {
 						$errors["a"][] = $href;
 					}
 				} elseif (substr($href,0,6) == "irl://") {
-					if (!self::irlExists($href)) {
+					if (!static::irlExists($href)) {
 						$errors["a"][] = $href;
 					}
 				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:" || substr($href,0,4) == "tel:") {
 					// Don't do anything, it's a page mark, data URI, or email address
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
-					if (!self::urlExists($href)) {
+					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
-					if (!self::urlExists($local)) {
+					if (!static::urlExists($local)) {
 						$errors["a"][] = $local;
 					}
 				}
@@ -477,25 +477,25 @@
 				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
-						if (!self::urlExists($href)) {
+						if (!static::urlExists($href)) {
 							$errors["img"][] = $href;
 						}
 					}
 				} elseif (substr($href,0,6) == "irl://") {
-					if (!self::irlExists($href)) {
+					if (!static::irlExists($href)) {
 						$errors["img"][] = $href;
 					}
 				} elseif (substr($href,0,5) == "data:") {
 					// Do nothing, it's a data URI
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
-					if (!self::urlExists($href)) {
+					if (!static::urlExists($href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
-					if (!self::urlExists($local)) {
+					if (!static::urlExists($local)) {
 						$errors["img"][] = $local;
 					}
 				}
@@ -525,7 +525,7 @@
 		function clearDead404s() {
 			sqlquery("DELETE FROM bigtree_404s WHERE redirect_url = ''");
 			$this->track("bigtree_404s","All","Cleared Empty");
-			self::growl("404 Report","Cleared 404s");
+			static::growl("404 Report","Cleared 404s");
 		}
 
 		/*
@@ -1024,7 +1024,7 @@
 			// Get related views for this table and update numeric status
 			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
 			while ($f = sqlfetch($q)) {
-				self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+				static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
 			}
 
 			return $id;
@@ -1132,7 +1132,7 @@
 			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
 
 			$id = sqlid();
-			self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
 			$this->track("bigtree_module_views",$id,"created");
 
 			return $id;
@@ -1194,7 +1194,7 @@
 					$route = $original_route."-".$x;
 					$x++;
 				}
-				while (in_array($route,self::$ReservedTLRoutes)) {
+				while (in_array($route,static::$ReservedTLRoutes)) {
 					$route = $original_route."-".$x;
 					$x++;
 				}
@@ -1948,13 +1948,13 @@
 				// If the page isn't numeric it's most likely prefixed by the "p" so it's pending.
 				if (!is_numeric($page)) {
 					sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'");
-					self::growl("Pages","Deleted Page");
+					static::growl("Pages","Deleted Page");
 					$this->track("bigtree_pages","p$page","deleted-pending");
 				} else {
 					sqlquery("DELETE FROM bigtree_pages WHERE id = '$page'");
 					// Delete the children as well.
 					$this->deletePageChildren($page);
-					self::growl("Pages","Deleted Page");
+					static::growl("Pages","Deleted Page");
 					$this->track("bigtree_pages",$page,"deleted");
 				}
 
@@ -2137,7 +2137,7 @@
 		function deleteUser($id) {
 			$id = sqlescape($id);
 			// If this person has higher access levels than the person trying to update them, fail.
-			$current = self::getUser($id);
+			$current = static::getUser($id);
 			if ($current["level"] > $this->Level) {
 				return false;
 			}
@@ -2157,7 +2157,7 @@
 			unlink(SERVER_ROOT."cache/analytics.json");
 			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
 			sqlquery("DELETE FROM bigtree_caches WHERE identifier = 'org.bigtreecms.api.analytics.google'");
-			self::growl("Analytics","Disconnected");
+			static::growl("Analytics","Disconnected");
 		}
 
 		/*
@@ -2221,7 +2221,7 @@
 			global $field;
 			foreach ($level as $key => $value) {
 				if (is_array($value)) {
-					self::drawArrayLevel(array_merge($keys,array($key)),$value);
+					static::drawArrayLevel(array_merge($keys,array($key)),$value);
 				} else {
 ?>
 <input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
@@ -2334,7 +2334,7 @@
 						} elseif ($change["type"] == "EDIT") {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
 						}
-						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.self::getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
+						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.static::getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
 						$body_changes .= '</tr>';
 					}
 				} else {
@@ -2951,11 +2951,11 @@
 
 		function getContentAlerts($user = false) {
 			if (is_array($user)) {
-				$user = self::getUser($user["id"]);
+				$user = static::getUser($user["id"]);
 			} elseif ($user) {
-				$user = self::getUser($user);
+				$user = static::getUser($user);
 			} else {
-				$user = self::getUser($this->ID);
+				$user = static::getUser($this->ID);
 			}
 
 			if (!is_array($user["alerts"])) {
@@ -3103,7 +3103,7 @@
 			$f = sqlfetch(sqlquery("SELECT route,id,parent FROM bigtree_pages WHERE id = '$id'"));
 			$path[] = BigTreeCMS::urlify($f["route"]);
 			if ($f["parent"] != 0) {
-				return self::getFullNavigationPath($f["parent"],$path);
+				return static::getFullNavigationPath($f["parent"],$path);
 			}
 			$path = implode("/",array_reverse($path));
 			return $path;
@@ -3715,7 +3715,7 @@
 			while ($nav_item = sqlfetch($q)) {
 				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
 				if ($levels > 1) {
-					$nav_item["children"] = self::getNaturalNavigationByParent($nav_item["id"],$levels - 1);
+					$nav_item["children"] = static::getNaturalNavigationByParent($nav_item["id"],$levels - 1);
 				}
 				$nav[] = $nav_item;
 			}
@@ -3804,7 +3804,7 @@
 				$permissions = $this->Permissions;
 			// Not the logged in user? Look up the person.
 			} else {
-				$u = self::getUser($user);
+				$u = static::getUser($user);
 				$level = $u["level"];
 				$permissions = $u["permissions"];
 			}
@@ -4014,18 +4014,18 @@
 				}
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * self::$PerPage).",".self::$PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".(($page - 1) * self::$PerPage).",".self::$PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 				}
 			} else {
 				// If we're not a developer, leave out locked settings
 				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * self::$PerPage).",".self::$PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 				// If we are a developer, show them.
 				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".(($page - 1 ) * self::$PerPage).",".self::$PerPage);
+					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".(($page - 1 ) * static::$PerPage).",".static::$PerPage);
 				}
 			}
 
@@ -4068,10 +4068,10 @@
 					$part = sqlescape(strtolower($part));
 					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
 				}
-				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".(($page - 1) * self::$PerPage).",".self::$PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 			// If we're grabbing anyone.
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".(($page - 1) * self::$PerPage).",".self::$PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 			}
 
 			$items = array();
@@ -4371,9 +4371,9 @@
 
 		function getPublishableChanges($user = false) {
 			if (!$user) {
-				$user = self::getUser($this->ID);
+				$user = static::getUser($this->ID);
 			} else {
-				$user = self::getUser($user);
+				$user = static::getUser($user);
 			}
 
 			$changes = array();
@@ -4427,7 +4427,7 @@
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = $this->getAccessLevel(self::getModule($f["module"]),$item["item"],$f["table"]);
+						$level = $this->getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"]);
 						if ($level == "p") {
 							$ok = true;
 						}
@@ -4436,8 +4436,8 @@
 
 				// We're a publisher, get the info about the change and put it in the change list.
 				if ($ok) {
-					$f["mod"] = self::getModule($f["module"]);
-					$f["user"] = self::getUser($f["user"]);
+					$f["mod"] = static::getModule($f["module"]);
+					$f["user"] = static::getUser($f["user"]);
 					$changes[] = $f;
 				}
 			}
@@ -4552,17 +4552,17 @@
 		*/
 
 		static function getResourceByFile($file) {
-			if (self::$IRLPrefixes === false) {
-				self::$IRLPrefixes = array();
-				$thumbnail_sizes = self::getSetting("bigtree-file-manager-thumbnail-sizes");
+			if (static::$IRLPrefixes === false) {
+				static::$IRLPrefixes = array();
+				$thumbnail_sizes = static::getSetting("bigtree-file-manager-thumbnail-sizes");
 				foreach ($thumbnail_sizes["value"] as $ts) {
-					self::$IRLPrefixes[] = $ts["prefix"];
+					static::$IRLPrefixes[] = $ts["prefix"];
 				}
 			}
 			$last_prefix = false;
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape(BigTreeCMS::replaceHardRoots($file))."'"));
 			if (!$item) {
-				foreach (self::$IRLPrefixes as $prefix) {
+				foreach (static::$IRLPrefixes as $prefix) {
 					if (!$item) {
 						$sfile = str_replace("files/resources/$prefix","files/resources/",$file);
 						$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($sfile)."' OR file = '".sqlescape(BigTreeCMS::replaceHardRoots($sfile))."'"));
@@ -4651,17 +4651,17 @@
 		static function getResourceFolderAllocationCounts($folder) {
 			$allocations = $folders = $resources = 0;
 
-			$items = self::getContentsOfResourceFolder($folder);
+			$items = static::getContentsOfResourceFolder($folder);
 			foreach ($items["folders"] as $folder) {
 				$folders++;
-				$subs = self::getResourceFolderAllocationCounts($folder["id"]);
+				$subs = static::getResourceFolderAllocationCounts($folder["id"]);
 				$allocations += $subs["allocations"];
 				$folders += $subs["folders"];
 				$resources += $subs["resources"];
 			}
 			foreach ($items["resources"] as $resource) {
 				$resources++;
-				$allocations += count(self::getResourceAllocation($resource["id"]));
+				$allocations += count(static::getResourceAllocation($resource["id"]));
 			}
 			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
 		}
@@ -4687,7 +4687,7 @@
 			}
 
 			if ($folder["parent"]) {
-				return self::getResourceFolderBreadcrumb($folder["parent"],$crumb);
+				return static::getResourceFolderBreadcrumb($folder["parent"],$crumb);
 			} else {
 				$crumb[] = array("id" => 0, "name" => "Home");
 				return array_reverse($crumb);
@@ -4899,7 +4899,7 @@
 			}
 
 			$r = sqlrows($q);
-			$pages = ceil($r / self::$PerPage);
+			$pages = ceil($r / static::$PerPage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
@@ -5087,7 +5087,7 @@
 			}
 
 			$r = sqlrows($q);
-			$pages = ceil($r / self::$PerPage);
+			$pages = ceil($r / static::$PerPage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
@@ -5417,7 +5417,7 @@
 
 		static function irlExists($irl) {
 			$irl = explode("//",$irl);
-			$resource = self::getResource($irl[1]);
+			$resource = static::getResource($irl[1]);
 			if ($resource) {
 				return true;
 			}
@@ -5449,7 +5449,7 @@
 
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_locks WHERE `table` = '$table' AND item_id = '$id'"));
 			if ($f && $f["user"] != $this->ID && strtotime($f["last_accessed"]) > (time()-300) && !$force) {
-				$locked_by = self::getUser($f["user"]);
+				$locked_by = static::getUser($f["user"]);
 				$last_accessed = $f["last_accessed"];
 				include BigTree::path($include);
 				if ($in_admin) {
@@ -5610,14 +5610,14 @@
 			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
 			// Check for resource link
 			if ($command[0] == "files" && $command[1] == "resources") {
-				$resource = self::getResourceByFile($url);
+				$resource = static::getResourceByFile($url);
 				if ($resource) {
-					self::$IRLsCreated[] = $resource["id"];
+					static::$IRLsCreated[] = $resource["id"];
 					return "irl://".$resource["id"]."//".$resource["prefix"];
 				}
 			}
 			// Check for page link
-			list($navid,$commands) = self::getPageIDForPath($command);
+			list($navid,$commands) = static::getPageIDForPath($command);
 			if (!$navid) {
 				return BigTreeCMS::replaceHardRoots($url);
 			}
@@ -5701,7 +5701,7 @@
 		*/
 
 		static function pingSearchEngines() {
-			$setting = self::getSetting("ping-search-engines");
+			$setting = static::getSetting("ping-search-engines");
 			if ($setting["value"] == "on") {
 				// Google
 				file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
@@ -6376,7 +6376,7 @@
 			$q = sqlquery($query." ORDER BY `date` DESC");
 			while ($f = sqlfetch($q)) {
 				if (!$users[$f["user"]]) {
-					$u = self::getUser($f["user"]);
+					$u = static::getUser($f["user"]);
 					$users[$f["user"]] = array("id" => $u["id"],"name" => $u["name"],"email" => $u["email"],"level" => $u["level"]);
 				}
 				$f["user"] = $users[$f["user"]];
@@ -6994,12 +6994,12 @@
 			$q = sqlquery("SELECT id,path FROM bigtree_pages WHERE parent = '$page'");
 			while ($f = sqlfetch($q)) {
 				$oldpath = $f["path"];
-				$path = self::getFullNavigationPath($f["id"]);
+				$path = static::getFullNavigationPath($f["id"]);
 				if ($oldpath != $path) {
 					sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '$oldpath'");
 					sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('$oldpath','$path')");
 					sqlquery("UPDATE bigtree_pages SET path = '$path' WHERE id = '".$f["id"]."'");
-					self::updateChildPagePaths($f["id"]);
+					static::updateChildPagePaths($f["id"]);
 				}
 			}
 		}
@@ -7210,7 +7210,7 @@
 			// Get related views for this table and update numeric status
 			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
 			while ($f = sqlfetch($q)) {
-				self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+				static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
 			}
 
 			$this->track("bigtree_module_forms",$id,"updated");
@@ -7311,7 +7311,7 @@
 			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
 
-			self::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
 			$this->track("bigtree_module_views",$id,"updated");
 		}
 
@@ -7395,7 +7395,7 @@
 			}
 
 			// Remove this page from the cache
-			self::unCache($page);
+			static::unCache($page);
 
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			foreach ($data as $key => $val) {
@@ -7424,7 +7424,7 @@
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
 			if ($external) {
-				$external = self::makeIPL($external);
+				$external = static::makeIPL($external);
 			}
 
 			// If somehow we didn't provide a parent page (like, say, the user didn't have the right to change it) then pull the one from before.  Actually, this might be exploitable… look into it later.
@@ -7453,7 +7453,7 @@
 						$route = $oroute."-".$x;
 						$x++;
 					}
-					while (in_array($route,self::$ReservedTLRoutes)) {
+					while (in_array($route,static::$ReservedTLRoutes)) {
 						$route = $oroute."-".$x;
 						$x++;
 					}
@@ -7473,7 +7473,7 @@
 
 			// We have no idea how this affects the nav, just wipe it all.
 			if ($current["nav_title"] != $nav_title || $current["route"] != $route || $current["in_nav"] != $in_nav || $current["parent"] != $parent) {
-				self::clearCache();
+				static::clearCache();
 			}
 
 			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
@@ -7492,7 +7492,7 @@
 
 			// Set the full path, saves DB access time on the front end.
 			if ($parent > 0) {
-				$path = self::getFullNavigationPath($parent)."/".$route;
+				$path = static::getFullNavigationPath($parent)."/".$route;
 			} else {
 				$path = $route;
 			}
@@ -7519,9 +7519,9 @@
 				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('".$current["path"]."','$path')");
 
 				// Update all child page routes, ping those engines, clean those caches
-				self::updateChildPagePaths($page);
-				self::pingSearchEngines();
-				self::clearCache();
+				static::updateChildPagePaths($page);
+				static::pingSearchEngines();
+				static::clearCache();
 			}
 
 			// Handle tags
@@ -7683,7 +7683,7 @@
 			global $bigtree;
 
 			// Get the existing setting information.
-			$existing = self::getSetting($old_id);
+			$existing = static::getSetting($old_id);
 			$old_id = sqlescape($existing["id"]);
 
 			// Globalize the data and clean it up.
@@ -7699,7 +7699,7 @@
 			$options = sqlescape($data["options"]);
 
 			// See if we have an id collision with the new id.
-			if ($old_id != $id && self::settingExists($id)) {
+			if ($old_id != $id && static::settingExists($id)) {
 				return false;
 			}
 
@@ -7731,13 +7731,13 @@
 		static function updateSettingValue($id,$value) {
 			global $bigtree,$admin;
 
-			$item = self::getSetting($id,false);
+			$item = static::getSetting($id,false);
 			$id = sqlescape(BigTreeCMS::extensionSettingCheck($id));
 
 			if (is_array($value)) {
 				$value = BigTree::translateArray($value);
 			} else {
-				$value = self::autoIPL($value);
+				$value = static::autoIPL($value);
 			}
 
 			$value = BigTree::json($value,true);
@@ -7813,7 +7813,7 @@
 			}
 
 			// If this person has higher access levels than the person trying to update them, fail.
-			$current = self::getUser($id);
+			$current = static::getUser($id);
 			if ($current["level"] > $this->Level) {
 				return false;
 			}

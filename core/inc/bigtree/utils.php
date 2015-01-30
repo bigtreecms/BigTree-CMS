@@ -29,7 +29,7 @@
 			$xml = "";
 			foreach ($array as $key => $val) {
 				if (is_array($val)) {
-					$xml .= "$tab<$key>\n".self::arrayToXML($val,"$tab\t")."$tab</$key>\n";
+					$xml .= "$tab<$key>\n".static::arrayToXML($val,"$tab\t")."$tab</$key>\n";
 				} else {
 					if (strpos($val,">") === false && strpos($val,"<") === false && strpos($val,"&") === false) {
 						$xml .= "$tab<$key>$val</$key>\n";
@@ -69,11 +69,11 @@
 				$nw = $w * $v;
 				$x = ceil(($nw - $cw) / 2 * $w / $nw);
 				$y = 0;
-				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h,$retina,$grayscale);
+				return static::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h,$retina,$grayscale);
 			} else {
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
-				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2),$retina,$grayscale);
+				return static::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2),$retina,$grayscale);
 			}
 		}
 
@@ -97,7 +97,7 @@
 						return;
 					}
 				} else {
-					$path = self::path("inc/modules/$route.php");
+					$path = static::path("inc/modules/$route.php");
 					if (file_exists($path)) {
 						include_once $path;
 						return;
@@ -157,14 +157,14 @@
 		*/
 		
 		static function copyFile($from,$to) {
-			if (!self::isDirectoryWritable($to)) {
+			if (!static::isDirectoryWritable($to)) {
 				return false;
 			}
 			// is_readable doesn't work on URLs
 			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
 				return false;
 			}
-			$pathinfo = self::pathInfo($to);
+			$pathinfo = static::pathInfo($to);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
@@ -197,7 +197,7 @@
 			global $bigtree;
 
 			// If we don't have the memory available, fail gracefully.
-			if (!self::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
+			if (!static::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
 				return false;
 			}
 			
@@ -267,7 +267,7 @@
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight);
+			list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$maxwidth,$maxheight);
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
@@ -277,7 +277,7 @@
 			}
 
 			// If we don't have the memory available, fail gracefully.
-			if (!self::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
+			if (!static::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
 				return false;
 			}
 
@@ -420,7 +420,7 @@
 			while ($file = readdir($r)) {
 				if ($file != "." && $file != "..") {
 					if (is_dir($dir.$file)) {
-						self::deleteDirectory($dir.$file);
+						static::deleteDirectory($dir.$file);
 					} else {
 						unlink($dir.$file);
 					}
@@ -466,14 +466,14 @@
 						$unique = false;
 					}
 					// Get the key's name.
-					$key_name = self::nextSQLColumnDefinition($line);
+					$key_name = static::nextSQLColumnDefinition($line);
 					// Get the key's content
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 4); // Skip ` (`
 					$line = substr(rtrim($line,","),0,-1); // Remove trailing , and )
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$size = false;
 						// See if there's a size definition, include it
 						if (substr($line,strlen($part) + 1,1) == "(") {
@@ -493,7 +493,7 @@
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
 						if ($part) {
 							if (strpos($part,"KEY_BLOCK_SIZE=") === false) {
@@ -504,7 +504,7 @@
 					$result["primary_key"] = $key_parts;
 				} elseif (strtoupper(substr($line,0,10)) == "CONSTRAINT") { // Foreign Keys
 					$line = substr($line,12); // Remove CONSTRAINT `
-					$key_name = self::nextSQLColumnDefinition($line);
+					$key_name = static::nextSQLColumnDefinition($line);
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
 					
 					// Get local reference columns
@@ -512,7 +512,7 @@
 					$part = true;
 					$end = false;
 					while (!$end && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + 1); // Take off the trailing `
 						if (substr($line,0,1) == ")") {
 							$end = true;
@@ -524,7 +524,7 @@
 
 					// Get other table name
 					$line = substr($line,14); // Skip ) REFERENCES `
-					$other_table = self::nextSQLColumnDefinition($line);
+					$other_table = static::nextSQLColumnDefinition($line);
 					$line = substr($line,strlen($other_table) + substr_count($other_table,"`") + 4); // Remove ` (`
 
 					// Get other table columns
@@ -532,7 +532,7 @@
 					$part = true;
 					$end = false;
 					while (!$end && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + 1); // Take off the trailing `
 						if (substr($line,0,1) == ")") {
 							$end = true;
@@ -572,7 +572,7 @@
 					}
 				} elseif (substr($line,0,1) == "`") { // Column Definition
 					$line = substr($line,1); // Get rid of the first `
-					$key = self::nextSQLColumnDefinition($line); // Get the column name.
+					$key = static::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
 					$size = "";
@@ -850,7 +850,7 @@
 		*/
 		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			$parts = self::pathInfo($directory.$file);
+			$parts = static::pathInfo($directory.$file);
 			
 			// Clean up the file name
 			$clean_name = BigTreeCMS::urlify($parts["filename"]);
@@ -907,7 +907,7 @@
 		*/
 		
 		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
-			$table_description = self::describeTable($table);
+			$table_description = static::describeTable($table);
 			if (!$table_description) {
 				echo '<option>ERROR: Table Missing</option>';
 				return;
@@ -1029,7 +1029,7 @@
 				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
 					global $$bigtree["key"];
 					if (is_array($bigtree["val"])) {
-						$$bigtree["key"] = self::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
+						$$bigtree["key"] = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -1057,7 +1057,7 @@
 		static function globalizeArrayRecursion($data,$functions) {
 			foreach ($data as $key => $val) {
 				if (is_array($val)) {
-					$data[$key] = self::globalizeArrayRecursion($val,$functions);
+					$data[$key] = static::globalizeArrayRecursion($val,$functions);
 				} else {
 					foreach ($functions as $func) {
 						// Backwards compatibility with old array passed syntax
@@ -1198,7 +1198,7 @@
 					$parts = explode("/",$path);
 					array_pop($parts);
 					if (count($parts)) {
-						return self::isDirectoryWritable(implode("/",$parts));
+						return static::isDirectoryWritable(implode("/",$parts));
 					}
 					return false;
 				}
@@ -1210,7 +1210,7 @@
 				// Remove the last directory from the path and try again
 				$parts = explode("/",$path);
 				array_pop($parts);
-				return self::isDirectoryWritable(implode("/",$parts));
+				return static::isDirectoryWritable(implode("/",$parts));
 			}
 		}
 		
@@ -1243,16 +1243,16 @@
 
 		static function json($var,$sql = false) {
 			// Only run version compare once in case we're encoding a lot of JSON
-			if (self::$JSONEncoding === false) {
+			if (static::$JSONEncoding === false) {
 				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
-					self::$JSONEncoding = 1;
+					static::$JSONEncoding = 1;
 				} else {
-					self::$JSONEncoding = 0;
+					static::$JSONEncoding = 0;
 				}
 			}
 
 			// Use pretty print if we have PHP 5.4 or higher
-			$json = (self::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
+			$json = (static::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
 			// SQL escape if requested
 			if ($sql) {
 				return sqlescape($json);
@@ -1300,7 +1300,7 @@
 		*/
 		
 		static function moveFile($from,$to) {
-			$success = self::copyFile($from,$to);
+			$success = static::copyFile($from,$to);
 			if (!$success) {
 				return false;
 			}
@@ -1358,7 +1358,7 @@
 				if (!is_array($first_level["name"])) {
 					$clean[$key] = $first_level;
 				} else {
-					$clean[$key] = self::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+					$clean[$key] = static::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
 				}
 			}
 			if ($part) {
@@ -1382,7 +1382,7 @@
 					$array[$k]["error"] = $error[$k];
 					$array[$k]["size"] = $size[$k];
 				} else {
-					$array[$k] = self::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+					$array[$k] = static::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
 				}
 			}
 			return $array;
@@ -1561,7 +1561,7 @@
 		static function postMaxSize() {
 			$post_max_size = ini_get("post_max_size");
 			if (!is_integer($post_max_size)) {
-				$post_max_size = self::unformatBytes($post_max_size);
+				$post_max_size = static::unformatBytes($post_max_size);
 			}
 			
 			return $post_max_size;
@@ -1580,7 +1580,7 @@
 		*/
 		
 		static function prefixFile($file,$prefix) {
-			$pinfo = self::pathInfo($file);
+			$pinfo = static::pathInfo($file);
 			// Remove notices
 			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
@@ -1600,11 +1600,11 @@
 		*/
 		
 		static function putFile($file,$contents) {
-			if (!self::isDirectoryWritable($file)) {
+			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
 			
-			$pathinfo = self::pathInfo($file);
+			$pathinfo = static::pathInfo($file);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
@@ -2194,12 +2194,12 @@
 		*/
 		
 		static function touchFile($file) {
-			if (!self::isDirectoryWritable($file)) {
+			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
 
-			$pathinfo = self::pathInfo($file);
-			self::makeDirectory($pathinfo["dirname"]);
+			$pathinfo = static::pathInfo($file);
+			static::makeDirectory($pathinfo["dirname"]);
 			
 			touch($file);
 			chmod($file,0777);
@@ -2223,7 +2223,7 @@
 		static function translateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
-					$piece = self::translateArray($piece);
+					$piece = static::translateArray($piece);
 				} else {
 					$piece = BigTreeAdmin::autoIPL($piece);
 				}
@@ -2369,7 +2369,7 @@
 		static function untranslateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
-					$piece = self::untranslateArray($piece);
+					$piece = static::untranslateArray($piece);
 				} else {
 					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
 				}
@@ -2485,10 +2485,10 @@
 		static function uploadMaxFileSize() {
 			$upload_max_filesize = ini_get("upload_max_filesize");
 			if (!is_integer($upload_max_filesize)) {
-				$upload_max_filesize = self::unformatBytes($upload_max_filesize);
+				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
 			}
 			
-			$post_max_size = self::postMaxSize();
+			$post_max_size = static::postMaxSize();
 			if ($post_max_size < $upload_max_filesize) {
 				$upload_max_filesize = $post_max_size;
 			}
