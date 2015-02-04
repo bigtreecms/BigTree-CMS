@@ -2415,6 +2415,7 @@
 			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 
 			$es = new BigTreeEmailService;
+			// Only use a custom email service if a from email has been set
 			if ($es->Settings["bigtree_from"]) {
 				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
 				$es->sendEmail("Reset Your Password",$html,$user["email"],$es->Settings["bigtree_from"],"BigTree CMS",$reply_to);
