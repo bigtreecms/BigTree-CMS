@@ -3110,7 +3110,6 @@ var BigTree = {
 		// Reset the fade out timer, show the growl container
 		clearTimeout(BigTree.GrowlTimer);
 		var growl_box = $("#growl").addClass("visible");
-		BigTree.Growling = true;
 
 		// If a growl already exists, fade that one out and slide it up adding another to the box
 		if (BigTree.Growling) {
@@ -3123,6 +3122,7 @@ var BigTree = {
 		}
 
 		// Fade in takes half a second, so we set the timer for the time given + 500 milliseconds
+		BigTree.Growling = true;
 		BigTree.GrowlTimer = setTimeout(function() {
 			growl_box.removeClass("visible");
 			BigTree.Growling = false;
