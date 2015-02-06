@@ -5,6 +5,7 @@
 	*/
 	
 	class BigTreeEmailService {
+		var $Error = false;
 		var $Service = "";
 
 		/*
