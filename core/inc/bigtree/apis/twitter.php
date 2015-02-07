@@ -4,8 +4,8 @@
 			Twitter API class that implements most functionality (limited lists support).
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
-	
-	require_once SERVER_ROOT."inc/bigtree/apis/_oauth.base.php";
+
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeTwitterAPI extends BigTreeOAuthAPIBase {
 
 		var $Configuration;
@@ -13,7 +13,7 @@
 		var $OAuthVersion = "1.0";
 		var $RequestType = "hash";
 		var $TweetLength;
-		
+
 		/*
 			Constructor:
 				Sets up the Twitter API connections.
@@ -190,7 +190,7 @@
 
 			Returns:
 				A BigTreeTwitterDirectMessage object.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
@@ -213,7 +213,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
@@ -240,7 +240,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterTweets objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/favorites/list
 		*/
@@ -345,7 +345,7 @@
 		/*
 			Function: getMentions
 				Returns the timeline of mentions for the authenticated user.
-			
+
 			Parameters:
 				count - The number of tweets to return (defaults to 10)
 				params - Additional parameters (key/value array) to pass to the the statuses/mentions_timeline API call.
@@ -398,7 +398,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
@@ -457,14 +457,14 @@
 			if ($id) {
 				$response = $this->call("users/show.json",array("id" => $id));
 			} else {
-				$response = $this->call("users/show.json",array("screen_name" => $username));				
+				$response = $this->call("users/show.json",array("screen_name" => $username));
 			}
 			if ($response) {
 				return new BigTreeTwitterUser($response,$this);
 			}
 			return false;
 		}
-	
+
 		/*
 			Function: getUserTimeline
 				Returns recent tweets from the given user's timeline.
@@ -521,7 +521,7 @@
 		function oAuthSetToken($code) {
 			$response = $this->callAPI("https://api.twitter.com/oauth/access_token","POST",array("oauth_token" => $_GET["oauth_token"],"oauth_verifier" => $_GET["oauth_verifier"]));
 			parse_str($response);
-			
+
 			if (!$oauth_token) {
 				$this->OAuthError = "Authentication failed.";
 				return false;
@@ -554,7 +554,7 @@
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
-			// Figure out how many URLs are 
+			// Figure out how many URLs are
 			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
 			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
 			$url_length = $http_length + $https_length;
@@ -600,7 +600,7 @@
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
-			// Figure out how many URLs are 
+			// Figure out how many URLs are
 			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
 			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
 			$media_length = $image ? $this->Configuration->characters_reserved_per_media : 0;
@@ -611,7 +611,7 @@
   				$this->TweetLength = strlen($content_trimmed) + $url_length;
   				return false;
   			}
-			
+
 			// With image, we call statuses/update_with_media
 			if ($image) {
 				$response = $this->callUncached("statuses/update_with_media.json",array_merge($params,array("status" => $content,"media[]" => $image)),"POST",array("Files" => array("media[]" => array())));
@@ -724,7 +724,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/users/search
 		*/
@@ -1128,7 +1128,7 @@
 			Returns:
 				A BigTreeTwitterUser object on success.
 		*/
-				
+
 		function unblock() {
 			return $this->API->unblockUser($this->ID);
 		}
@@ -1146,7 +1146,7 @@
 		}
 		function unfriend() {
 			return $this->unfollow();
-		}			
+		}
 	}
 
 	/*
