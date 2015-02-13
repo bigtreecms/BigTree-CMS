@@ -10,7 +10,8 @@
 		static $StateList = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
 		static $CountryList = array("United States","Afghanistan","Åland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antarctica","Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia, Plurinational State of","Bonaire, Sint Eustatius and Saba","Bosnia and Herzegovina","Botswana","Bouvet Island","Brazil","British Indian Ocean Territory","Brunei Darussalam","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chad","Chile","China","Christmas Island","Cocos (Keeling) Islands","Colombia","Comoros","Congo","Congo, The Democratic Republic of the","Cook Islands","Costa Rica","Côte d'Ivoire","Croatia","Cuba","Curaçao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands (Malvinas)","Faroe Islands","Fiji","Finland","France","French Guiana","French Polynesia","French Southern Territories","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guyana","Haiti","Heard Island and McDonald Islands","Holy See (Vatican City State)","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran, Islamic Republic of","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Korea, Democratic People's Republic of","Korea, Republic of","Kuwait","Kyrgyzstan","Lao People's Democratic Republic","Latvia","Lebanon","Lesotho","Liberia","Libyan Arab Jamahiriya","Liechtenstein","Lithuania","Luxembourg","Macao","Macedonia, The Former Yugoslav Republic of","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Martinique","Mauritania","Mauritius","Mayotte","Mexico","Micronesia, Federated States of","Moldova, Republic of","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Niue","Norfolk Island","Northern Mariana Islands","Norway","Occupied Palestinian Territory","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Pitcairn","Poland","Portugal","Puerto Rico","Qatar","Réunion","Romania","Russian Federation","Rwanda","Saint Barthélemy","Saint Helena, Ascension and Tristan da Cunha","Saint Kitts and Nevis","Saint Lucia","Saint Martin (French part)","Saint Pierre and Miquelon","Saint Vincent and The Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Sint Maarten (Dutch part)","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Georgia and the South Sandwich Islands","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Svalbard and Jan Mayen","Swaziland","Sweden","Switzerland","Syrian Arab Republic","Taiwan, Province of China","Tajikistan","Tanzania, United Republic of","Thailand","Timor-Leste","Togo","Tokelau","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Turks and Caicos Islands","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States Minor Outlying Islands","Uruguay","Uzbekistan","Vanuatu","Venezuela, Bolivarian Republic of","Viet Nam","Virgin Islands, British","Virgin Islands, U.S.","Wallis and Futuna","Western Sahara","Yemen","Zambia","Zimbabwe");
 		static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
-	
+		static $SUTestResult = null;
+
 		/*
 			Function: apiEncode
 				Turns an array into the currently desired API encoding.
@@ -176,7 +177,8 @@
 			BigTree::makeDirectory($directory);
 			
 			$success = copy($from,$to);
-			@chmod($to,0777);
+			self::setPermissions($to);
+		
 			return $success;
 		}
 		
@@ -243,7 +245,7 @@
 			} elseif ($type == IMAGETYPE_PNG) {
 				imagepng($cropped_image,$new_file);
 			}
-			chmod($new_file,0777);
+			self::setPermissions($new_file);
 		
 			imagedestroy($original_image);
 			imagedestroy($cropped_image);
@@ -311,7 +313,7 @@
 			} elseif ($type == IMAGETYPE_PNG) {
 				imagepng($thumbnailed_image,$new_file);
 			}
-			chmod($new_file,0777);
+			self::setPermissions($new_file);
 			
 			imagedestroy($original_image);
 			imagedestroy($thumbnailed_image);
@@ -1182,7 +1184,7 @@
 				// Silence situations with open_basedir restrictions.
 				if (!@file_exists($dpath)) {
 					@mkdir($dpath);
-					@chmod($dpath,0777);
+					self::setPermissions($dpath);
 				}
 				$dpath .= "/";
 			}
@@ -1374,7 +1376,7 @@
 			
 			if (!file_exists($file)) {
 				file_put_contents($file,$contents);
-				chmod($file,0777);
+				self::setPermissions($file);
 			} else {
 				file_put_contents($file,$contents);
 			}
@@ -1634,6 +1636,33 @@
 		}
 
 		/*
+			Function: runningAsSU
+				Checks if the current script is running as the owner of the script.
+				Useful for determining whether you need to 777 a file you're creating.
+
+			Returns:
+				true if PHP is running as the user that owns the file
+		*/
+
+		static function runningAsSU() {
+			// Already ran the test
+			if (!is_null(self::$SUTestResult)) {
+				return self::$SUTestResult;
+			}
+			// Only works on systems that support posix_getuid
+			if (function_exists("posix_getuid")) {
+				if (posix_getuid() == getmyuid()) {
+					self::$SUTestResult = true;
+				} else {
+					self::$SUTestResult = false;
+				}
+			} else {
+				self::$SUTestResult = false;
+			}
+			return self::$SUTestResult;
+		}
+
+		/*
 			Function: runParser
 				Evaluates code in a function scope with $item and $value
 				Used mostly internally in the admin for parsers.
@@ -1720,6 +1749,21 @@
 		}
 
 		/*
+			Function: setPermissions
+				Checks to see if the current user the web server is running as is the owner of the current script.
+				If they are not the same user, the file/directory is given a 777 permission so that the script owner can still manage the file.
+
+			Parameters:
+				location - The file or directory to set permissions on.
+		*/
+
+		static function setPermissions($location) {
+			if (!self::runningAsSU()) {
+				@chmod($location,0777);
+			}
+		}
+
+		/*
 			Function: tableExists
 				Determines whether a SQL table exists.
 
@@ -1759,13 +1803,14 @@
 				$dpath .= $d;
 				if (!file_exists($dpath)) {
 					mkdir($dpath);
-					chmod($dpath,0777);
+					self::setPermissions($dpath);
 				}
 				$dpath .= "/";
 			}
 		
 			touch($file);
-			chmod($file,0777);
+			self::setPermissions($file);
+
 			return true;
 		}
 		

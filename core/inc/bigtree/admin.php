@@ -781,7 +781,7 @@
 
 			if (!file_exists(SERVER_ROOT."templates/callouts/".$id.".php")) {
 				file_put_contents(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
-				chmod(SERVER_ROOT."templates/callouts/".$id.".php",0777);
+				BigTree::setPermissions(SERVER_ROOT."templates/callouts/".$id.".php");
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
@@ -902,7 +902,7 @@
 
 	include BigTree::path("admin/form-field-types/draw/text.php");
 ?>');
-				chmod(SERVER_ROOT."custom/admin/form-field-types/draw/$file",0777);
+				BigTree::setPermissions(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/form-field-types/process/$file");
@@ -921,11 +921,11 @@
 
 	$field["output"] = htmlspecialchars($field["input"]);
 ?>');
-				chmod(SERVER_ROOT."custom/admin/form-field-types/process/$file",0777);
+				BigTree::setPermissions(SERVER_ROOT."custom/admin/form-field-types/process/$file");
 			}
 			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
 				BigTree::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
-				chmod(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file",0777);
+				BigTree::setPermissions(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
 			}
 
 			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
@@ -1047,7 +1047,7 @@
 				fwrite($f,"	}\n");
 				fwrite($f,"?>\n");
 				fclose($f);
-				chmod(SERVER_ROOT."custom/inc/modules/$route.php",0777);
+				BigTree::setPermissions(SERVER_ROOT."custom/inc/modules/$route.php");
 
 				// Remove cached class list.
 				unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
@@ -1689,16 +1689,16 @@
 			if ($routed == "on") {
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id)) {
 					mkdir(SERVER_ROOT."templates/routed/".$id);
-					chmod(SERVER_ROOT."templates/routed/".$id,0777);
+					BigTree::setPermissions(SERVER_ROOT."templates/routed/".$id);
 				}
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
 					file_put_contents(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
-					chmod(SERVER_ROOT."templates/routed/".$id."/default.php",0777);
+					BigTree::setPermissions(SERVER_ROOT."templates/routed/".$id."/default.php");
 				}
 			} else {
 				if (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
 					file_put_contents(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
-					chmod(SERVER_ROOT."templates/basic/".$id.".php",0777);
+					BigTree::setPermissions(SERVER_ROOT."templates/basic/".$id.".php");
 				}
 			}
 

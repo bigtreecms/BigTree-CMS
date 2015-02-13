@@ -222,15 +222,31 @@
 		$enc_pass = sqlescape($phpass->HashPassword($cms_pass));
 		sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
 		
+		// Determine whether Apache is running as the owner of the BigTree files -- only works if we have posix_getuid
+		// We do this to determine whether we need to make the files the script writes 777
+		if (function_exists("posix_getuid")) {
+			if (posix_getuid() == getmyuid()) {
+				define("BT_SU_EXEC",true);
+			} else {
+				define("BT_SU_EXEC",false);
+			}
+		} else {
+			define("BT_SU_EXEC",false);
+		}
+
 		function bt_mkdir_writable($dir) {
 			global $root;
 			mkdir($root.$dir);
-			chmod($root.$dir,0777);
+			if (!BT_SU_EXEC) {
+				chmod($root.$dir,0777);
+			}
 		}
 		
 		function bt_touch_writable($file,$contents = "") {
 			file_put_contents($file,$contents);
-			chmod($file,0777);
+			if (!BT_SU_EXEC) {
+				chmod($file,0777);
+			}
 		}
 		
 		function bt_copy_dir($from,$to) {
@@ -238,7 +254,9 @@
 			$d = opendir($root.$from);
 			if (!file_exists($root.$to)) {
 				@mkdir($root.$to);
-				@chmod($root.$to,0777);
+				if (!BT_SU_EXEC) {
+					@chmod($root.$to,0777);
+				}
 			}
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
@@ -246,7 +264,9 @@
 						bt_copy_dir($from.$f."/",$to.$f."/");
 					} else {
 						@copy($from.$f,$to.$f);
-						@chmod($to.$f,0777);
+						if (!BT_SU_EXEC) {
+							@chmod($to.$f,0777);
+						}
 					}
 				}
 			}

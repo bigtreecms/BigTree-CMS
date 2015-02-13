@@ -1,15 +1,17 @@
 <?	
 	include BigTree::path("inc/lib/pclzip.php");
 	if (!file_exists(SERVER_ROOT."cache/update/")) {
-		mkdir(SERVER_ROOT."cache/update/");
-		chmod(SERVER_ROOT."cache/update/",0777);
+		BigTree::makeDirectory(SERVER_ROOT."cache/update/");
 	}
 	$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 	$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,"BigTree-CMS");
-	// Make sure everything extracted is 777.
-	$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
-	foreach ($contents as $c) {
-		chmod($c,0777);
+
+	// If we're running as "apache" or another "nobody" user, make sure everything extracted is 777
+	if (!BigTree::runningAsSU()) {
+		$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
+		foreach ($contents as $c) {
+			chmod($c,0777);
+		}
 	}
 
 	if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
@@ -28,10 +30,7 @@
 	} else {
 		if ($_POST["method"] == "local") {
 			// Create backups folder
-			if (!file_exists(SERVER_ROOT."backups/")) {
-				mkdir(SERVER_ROOT."backups/");
-				chmod(SERVER_ROOT."backups/",0777);
-			}
+			BigTree::makeDirectory(SERVER_ROOT."backups/");
 			// Move old core
 			rename(SERVER_ROOT."core/",SERVER_ROOT."backups/core-".BIGTREE_VERSION."/");
 			// Backup database
@@ -39,15 +38,7 @@
 			// Move new core into place
 			rename(SERVER_ROOT."cache/update/core/",SERVER_ROOT."core/");
 			// Delete old files
-			$contents = array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/update/"));
-			foreach ($contents as $file) {
-				if (is_dir($file)) {
-					rmdir($file);	
-				} else {
-					unlink($file);
-				}
-			}
-			rmdir(SERVER_ROOT."cache/update/");
+			BigTree::deleteDirectory(SERVER_ROOT."cache/update/");
 			unlink(SERVER_ROOT."cache/update.zip");
 			BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
 		} else {
