@@ -1316,8 +1316,7 @@ var BigTreeFileManager = (function($) {
 			icon: "folder",
 			alternateSaveText: "Upload Files",
 			preSubmissionCallback: true,
-			callback: createFile,
-			cancelHook: cancelAdd
+			callback: createFile
 		});
 		return false;
 	};
@@ -1329,17 +1328,8 @@ var BigTreeFileManager = (function($) {
 			callback: createFolder,
 			icon: "folder",
 			alternateSaveText: "Create Folder",
-			preSubmissionCallback: true,
-			cancelHook: cancelAdd
+			preSubmissionCallback: true
 		});
-		
-		return false;
-	};
-	
-	function cancelAdd() {
-		$(".bigtree_dialog_overlay").last().remove();
-		$(".bigtree_dialog_window").last().remove();
-		BigTree.ZIndex -= 2;
 		
 		return false;
 	};
