@@ -27,7 +27,7 @@
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][image]" value="<?=$photo["image"]?>" />
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][attribution]" value="<?=$photo["attribution"]?>" class="attribution" />
-			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][link]" value="<?=$photo["link"]?>" class="link" />
+			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][link]" value="<?=$photo["link"]?>" class="link_field" />
 			<? if (!$field["options"]["disable_captions"]) { ?>
 			<a href="#" class="icon_edit"></a>
 			<? } ?>
