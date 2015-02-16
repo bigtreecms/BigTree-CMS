@@ -345,6 +345,7 @@
 
 			Parameters:
 				id - The media ID
+				shortcode - The media shortcode (from instagram.com shortlink URL, optional & replaces ID)
 
 			Returns:
 				A BigTreeInstagramMedia object.
