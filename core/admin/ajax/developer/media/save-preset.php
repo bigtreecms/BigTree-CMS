@@ -13,8 +13,17 @@
 		$_POST["id"] = $id;
 	}
 
-	// Update Settings
+	// Add preset
 	$settings["presets"][$_POST["id"]] = $_POST;
+
+	// Alphabetize the presets
+	$names = array();
+	foreach ($settings["presets"] as $preset) {
+		$names[] = $preset["name"];
+	}
+	array_multisort($names,$settings["presets"]);
+
+	// Update Settings
 	$admin->updateSettingValue("bigtree-internal-media-settings",$settings);
 
 	// Return ID for adding presets
