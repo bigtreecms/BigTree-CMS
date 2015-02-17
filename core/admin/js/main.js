@@ -1026,7 +1026,7 @@ var BigTreePhotoGallery = function(settings) {
 		// Init routine
 		Key = settings.key;
 		Container = $("#" + settings.container.replace("#",""));
-		Counter = settings.counter ? settings.counter : 0;
+		Counter = settings.count ? settings.count : 0;
 		DisableCaptions = settings.disableCaptions;
 		FileInput = Container.find("footer input");
 		
@@ -1740,7 +1740,7 @@ var BigTreeFileManager = (function($) {
 				// If a user already selected something to upload, replace it
 				container.siblings("input").get(0).customControl.clear();
 			} else if (Type == "photo-gallery") {
-				callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
+				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			}
 			return closeFileBrowser();
 		}
