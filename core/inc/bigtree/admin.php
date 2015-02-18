@@ -1153,10 +1153,9 @@
 		function createPage($data) {
 			// Defaults
 			$parent = 0;
-			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = "";
+			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = $in_nav = "";
 			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = false;
 			$resources = array();
-			$in_nav = "on";
 
 			// Loop through the posted data, make sure no session hijacking is done.
 			foreach ($data as $key => $val) {
