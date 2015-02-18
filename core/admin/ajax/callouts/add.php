@@ -33,6 +33,10 @@
 		// TinyMCE tooltips and menus sometimes get stuck
 		$(".mce-tooltip, .mce-menu").remove();
 
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", { type: data.value, count: <?=$bigtree["callout_count"]?>, key: "<?=$bigtree["callout_key"]?>" }).scrollTop(0);
+		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
+			type: data.value,
+			count: <?=$bigtree["callout_count"]?>,
+			key: "<?=$bigtree["callout_key"]?>"
+		},BigTree.formHooks).scrollTop(0);
 	});
 </script>
