@@ -1005,7 +1005,7 @@
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
-					"options" => !is_array($data["options"]) ? (array)@json_decode($data["options"],true) : $data["options"]
+					"options" => is_array($data["options"]) ? $data["options"] : (array)@json_decode($data["options"],true)
 				);
 				// Backwards compatibility with BigTree 4.1 package imports
 				foreach ($data as $k => $v) {
