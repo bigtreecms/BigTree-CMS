@@ -1564,7 +1564,7 @@
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
 					BigTree::putFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
 				}
-			} elseif (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) { {
+			} elseif (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
 				BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
 			}
 
