@@ -2354,7 +2354,7 @@ var BigTreeFormValidator = Class.extend({
 		});
 
 		// If this is an embedded form, we want to generate a hash of everything
-		complete_submission = "";
+		var complete_submission = "";
 		if ($("#bigtree_hashcash_field").length) {
 			this.form.find("input,select,textarea").not("#bigtree_hashcash_field").each(function() {
 				if ($(this).is("textarea") && $(this).css("display") == "none") {
@@ -2373,7 +2373,17 @@ var BigTreeFormValidator = Class.extend({
 					}
 				}
 			});
-			$("#bigtree_hashcash_field").val(md5(complete_submission));
+
+			// Remove carriage return and line feed since PHP and JS disagree on their presence
+			var cleaned_submission = "";
+			for (i = 0; i < complete_submission.length; i++) {
+				var code = complete_submission.charCodeAt(i);
+				if (code != 10 && code != 13) {
+					cleaned_submission += complete_submission[i];
+				}
+			}
+			
+			$("#bigtree_hashcash_field").val(md5(cleaned_submission));
 		}
 		
 		if (this.form.find(".form_error").length) {
