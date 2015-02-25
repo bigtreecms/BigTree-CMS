@@ -37,19 +37,23 @@
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
+		$bigtree["field_namespace"] = uniqid("template_field_");
+		$bigtree["field_counter"] = 0;
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 	
 		if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
 			foreach ($bigtree["template"]["resources"] as $resource) {
-				$field = array();
+				$bigtree["field_counter"]++;
+				
 				// Leaving some variable settings for backwards compatibility — removing in 5.0
+				$field = array();
 				$field["type"] = $resource["type"];
 				$field["title"] = $title = $resource["title"];
 				$field["subtitle"] = $subtitle = $resource["subtitle"];
 				$field["key"] = $key = "resources[".$resource["id"]."]";
 				$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
-				$field["id"] = uniqid("field_");
+				$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 				$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 				$field["options"] = $options = $resource;
 				$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/

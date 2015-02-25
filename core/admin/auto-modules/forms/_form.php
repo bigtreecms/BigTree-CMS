@@ -45,20 +45,24 @@
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					$bigtree["tabindex"] = 1;
-	
+					$bigtree["field_namespace"] = uniqid("form_field_");
+					$bigtree["field_counter"] = 0;
+		
 					$cached_types = $admin->getCachedFieldTypes();
 					$bigtree["field_types"] = $cached_types["modules"];
 	
 					foreach ($bigtree["form"]["fields"] as $key => $resource) {
 						if (is_array($resource)) {
-							$field = array();
+							$bigtree["field_counter"]++;
+
 							// Leaving some variable settings for backwards compatibility — removing in 5.0
+							$field = array();
 							$field["type"] = $resource["type"];
 							$field["title"] = $title = $resource["title"];
 							$field["subtitle"] = $subtitle = $resource["subtitle"];
 							$field["key"] = $key;
 							$field["value"] = $value = isset($bigtree["entry"][$key]) ? $bigtree["entry"][$key] : "";
-							$field["id"] = uniqid("field_");
+							$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 							$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 							$field["options"] = $options = $resource;
 	

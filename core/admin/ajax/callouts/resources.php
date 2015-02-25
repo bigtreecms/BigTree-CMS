@@ -46,19 +46,23 @@
 		$bigtree["datetimepicker_values"] = array();
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
+		$bigtree["field_namespace"] = uniqid("callout_field_");
+		$bigtree["field_counter"] = 0;
 		
 		if (count($bigtree["callout"]["resources"])) {
 			$cached_types = $admin->getCachedFieldTypes();
 			$bigtree["field_types"] = $cached_types["callouts"];
 
 			foreach ($bigtree["callout"]["resources"] as $resource) {
-				$field = array();
+				$bigtree["field_counter"]++;
+				
 				// Leaving some variable settings for backwards compatibility — removing in 5.0
+				$field = array();
 				$field["title"] = $title = $resource["title"];
 				$field["subtitle"] = $subtitle = $resource["subtitle"];
 				$field["key"] = $key = $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$resource["id"]."]";
 				$field["value"] = $value = isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "";
-				$field["id"] = uniqid("field_");
+				$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 				$field["tabindex"] = $tabindex = $bigtree["tabindex"];
 				$field["options"] = $options = $resource;
 				$field["options"]["directory"] = "files/pages/"; // File uploads go to /files/pages/
