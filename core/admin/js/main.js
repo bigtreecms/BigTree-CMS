@@ -1484,7 +1484,7 @@ var BigTreeFileManager = (function($) {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
-		BigTree.ZIndex -= 3;
+		BigTree.ZIndex -= 2;
 		
 		if (Type == "image" || Type == "photo-gallery") {
 			openImageFolder(CurrentFolder);	
