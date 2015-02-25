@@ -44,6 +44,8 @@
 			$bigtree["tabindex"] = 1000;	
 			$bigtree["html_fields"] = array();
 			$bigtree["simple_html_fields"] = array();
+			$bigtree["field_namespace"] = uniqid("callout_field_");
+			$bigtree["field_counter"] = 0;
 
 			foreach ($bigtree["callout"]["resources"] as $resource) {
 				$field = array(
@@ -52,7 +54,6 @@
 					"subtitle" => $resource["subtitle"],
 					"key" => $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$resource["id"]."]",
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
-					"id" => uniqid("field_"),
 					"tabindex" => $bigtree["tabindex"],
 					"options" => $resource["options"]
 				);

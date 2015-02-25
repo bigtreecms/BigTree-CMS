@@ -2238,6 +2238,10 @@
 		static function drawField($field) {
 			global $admin,$bigtree,$cms;
 
+			// Give the field a unique id
+			$bigtree["field_counter"]++;
+			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
+
 			// Make sure options is an array to prevent warnings
 			if (!is_array($field["options"])) {
 				$field["options"] = array();

@@ -27,6 +27,8 @@
 				$bigtree["tabindex"] = 1000;	
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
+				$bigtree["field_namespace"] = uniqid("matrix_field_");
+				$bigtree["field_counter"] = 0;
 			
 				$cached_types = $admin->getCachedFieldTypes();
 				$bigtree["field_types"] = $cached_types["callouts"];
@@ -40,7 +42,6 @@
 						"subtitle" => htmlspecialchars($resource["subtitle"]),
 						"key" => $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]",
 						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
-						"id" => uniqid("field_"),
 						"tabindex" => $bigtree["tabindex"],
 						"options" => is_array($options) ? $options : array(),
 						"matrix_title_field" => $resource["display_title"] ? true : false
