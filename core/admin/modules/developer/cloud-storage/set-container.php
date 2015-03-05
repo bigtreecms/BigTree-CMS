@@ -25,7 +25,7 @@
 		}
 	}
 
-	$container = $cloud->getContainer($storage->Settings->Container);
+	$container = $cloud->getContainer($storage->Settings->Container,true);
 	if ($container === false) {
 		$admin->growl("Developer","Failed to read container.","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");

@@ -488,12 +488,13 @@
 
 			Parameters:
 				container - The name of the container.
+				simple - Simple mode (returns only a flat array with name/path/size, defaults to false)
 
 			Returns:
 				An array of the contents of the container.
 		*/
 
-		function getContainer($container) {
+		function getContainer($container,$simple = false) {
 			$tree = array("folders" => array(),"files" => array());
 			$flat = array();
 			
@@ -506,18 +507,26 @@
 					$xml = simplexml_load_string($response);
 					if (isset($xml->Name)) {
 						foreach ($xml->Contents as $item) {
-							$flat[(string)$item->Key] = array(
-								"name" => (string)$item->Key,
-								"path" => (string)$item->Key,
-								"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
-								"etag" => (string)$item->ETag,
-								"size" => (int)$item->Size,
-								"owner" => array(
-									"name" => (string)$item->Owner->DisplayName,
-									"id" => (string)$item->Owner->ID
-								),
-								"storage_class" => (string)$item->StorageClass
-							);
+							if ($simple) {
+								$flat[] = array(
+									"name" => (string)$item->Key,
+									"path" => (string)$item->Key,
+									"size" => (int)$item->Size
+								);
+							} else {
+								$flat[(string)$item->Key] = array(
+									"name" => (string)$item->Key,
+									"path" => (string)$item->Key,
+									"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
+									"etag" => (string)$item->ETag,
+									"size" => (int)$item->Size,
+									"owner" => array(
+										"name" => (string)$item->Owner->DisplayName,
+										"id" => (string)$item->Owner->ID
+									),
+									"storage_class" => (string)$item->StorageClass
+								);
+							}
 						}
 						$continue = false;
 						// Multi-page
@@ -535,13 +544,21 @@
 				$response = $this->callRackspace($container);
 				if (is_array($response)) {
 					foreach ($response as $item) {
-						$flat[(string)$item->name] = array(
-							"name" => (string)$item->name,
-							"path" => (string)$item->name,
-							"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
-							"etag" => (string)$item->hash,
-							"size" => (int)$item->bytes
-						);
+						if ($simple) {
+							$flat[] = array(
+								"name" => (string)$item->name,
+								"path" => (string)$item->name,
+								"size" => (int)$item->bytes
+							);
+						} else {
+							$flat[(string)$item->name] = array(
+								"name" => (string)$item->name,
+								"path" => (string)$item->name,
+								"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
+								"etag" => (string)$item->hash,
+								"size" => (int)$item->bytes
+							);
+						}
 					}
 				} else {
 					return false;
@@ -552,17 +569,25 @@
 				if (isset($response->kind) && $response->kind == "storage#objects") {
 					if (is_array($response->items)) {
 						foreach ($response->items as $item) {
-							$flat[(string)$item->name] = array(
-								"name" => (string)$item->name,
-								"path" => (string)$item->name,
-								"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
-								"etag" => (string)$item->etag,
-								"size" => (int)$item->size,
-								"owner" => array(
-									"name" => (string)$item->owner->entity,
-									"id" => (string)$item->owner->entityId
-								)
-							);
+							if ($simple) {
+								$flat[] = array(
+									"name" => (string)$item->name,
+									"path" => (string)$item->name,
+									"size" => (int)$item->size
+								);
+							} else {
+								$flat[(string)$item->name] = array(
+									"name" => (string)$item->name,
+									"path" => (string)$item->name,
+									"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
+									"etag" => (string)$item->etag,
+									"size" => (int)$item->size,
+									"owner" => array(
+										"name" => (string)$item->owner->entity,
+										"id" => (string)$item->owner->entityId
+									)
+								);
+							}
 						}
 					}
 				} else {
@@ -570,6 +595,10 @@
 				}
 			} else {
 				return false;
+			}
+
+			if ($simple) {
+				return $flat;
 			}
 
 			foreach ($flat as $raw_item) {
