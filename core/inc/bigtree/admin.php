@@ -7559,10 +7559,16 @@
 			}
 
 			// Get the existing path so we can create a route history
-			$current = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '$page'"));
+			$current = sqlfetch(sqlquery("SELECT in_nav,path FROM bigtree_pages WHERE id = '$page'"));
 			$old_path = sqlescape($current["path"]);
 
-			sqlquery("UPDATE bigtree_pages SET parent = '$parent' WHERE id = '$page'");
+			// If the current user isn't a developer and is moving the page to top level, set it to not be visible
+			$in_nav = $current["in_nav"] ? "on" : "";
+			if ($this->Level < 2 && $parent == 0) {
+				$in_nav = "";
+			}
+
+			sqlquery("UPDATE bigtree_pages SET in_nav = '$in_nav', parent = '$parent' WHERE id = '$page'");
 			$path = sqlescape($this->getFullNavigationPath($page));
 
 			// Set the route history
