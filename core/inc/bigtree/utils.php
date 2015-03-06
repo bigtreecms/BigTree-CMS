@@ -1766,7 +1766,7 @@
 					$inc_file .= $piece."/";
 					$inc_dir .= $piece."/";
 				// File exists, we're ending now.
-				} elseif (file_exists($inc_file.$piece.".php")) {
+				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
 					$inc_file .= $piece.".php";
 					$ended = true;
 					$found_file = true;
