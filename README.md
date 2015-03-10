@@ -38,6 +38,7 @@ Changelog
 - ADDED: BigTree::dateFromOffset method to easily add an amount of time to a given date
 - ADDED: BigTree::getCookie and BigTree::setCookie methods to easily set cookies that apply to the whole site (you can also set array values, stored as JSON in the cookies).
 - ADDED: Confirmation dialog when leaving a page where you've changed form data.
+- ADDED: SFTP support for core updates.
 - UPDATED: Installer will now create a database for you if it doesn't exist.
 - UPDATED: BigTreeModule retrieval methods now allow you to pass a columns array to only retrieve the specified columns.
 - UPDATED: The upload field type now works with the FileReader API to provide file size and thumbnail information after selecting a file.

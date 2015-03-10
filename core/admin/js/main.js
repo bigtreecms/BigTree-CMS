@@ -760,10 +760,38 @@ var BigTreeFileInput = function(element) {
 						// If this is an image, draw a thumbnail
 						if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
 							var img = document.createElement("img");
-							img.file = file;
-							Container.find(".data").prepend(img);
 							var reader = new FileReader();
-							reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+							reader.onload = function(e) {
+								img.src = reader.result;
+								img.onload = function() {
+									var min_height = parseInt(Element.attr("data-min-height"));
+									var min_width = parseInt(Element.attr("data-min-width"));
+									var fieldset = Container.parents("fieldset");
+
+									// Clear any existing errors
+									fieldset.removeClass("form_error").find(".image_field_error").remove();
+									Element.removeClass("error");
+
+									// Minimum dimensions not met? Show an error message
+									if (img.height < min_height || img.width < min_width) {
+										var div = $('<div class="image_field_error">').html('The chosen image does not meet the minimum dimensions of ' + min_width + 'x' + min_height + '.');
+										fieldset.addClass("form_error");
+
+										var currently = fieldset.find(".currently");
+										if (currently.length) {
+											currently.before(div);
+										} else {
+											fieldset.find(".image_field").after(div);
+										}
+										Element.addClass("error");
+									} else {
+										Element.trigger("imageloaded");
+									}
+
+									// Add image preview
+									Container.find(".data").prepend(img);
+								};
+							};
 							reader.readAsDataURL(file);
 						// Not an image? Give more room for the file name
 						} else {
@@ -920,7 +948,7 @@ var BigTreePhotoGallery = function(settings) {
 		var Key = false;
 
 		function addPhoto() {
-			if (!FileInput.val()) {
+			if (!FileInput.val() || FileInput.hasClass("error")) {
 				return false;
 			}
 			if (!DisableCaptions) {
@@ -1004,7 +1032,7 @@ var BigTreePhotoGallery = function(settings) {
 			Counter++;
 			
 			// Create a new hidden file input for the next image to be uploaded
-			var new_file = $('<input type="file" class="custom_control" name="' + Key + '[' + Counter + '][image]">').hide();
+			var new_file = $('<input type="file" class="custom_control photo_gallery_input" name="' + Key + '[' + Counter + '][image]">').hide();
 			Container.find(".file_wrapper").after(new_file);
 			
 			// Wipe existing custom control information, assign the new input to it
@@ -1028,11 +1056,11 @@ var BigTreePhotoGallery = function(settings) {
 		Container = $("#" + settings.container.replace("#",""));
 		Counter = settings.count ? settings.count : 0;
 		DisableCaptions = settings.disableCaptions;
-		FileInput = Container.find("footer input");
+		FileInput = Container.find("footer input").addClass("photo_gallery_input");
 		
 		Container.on("click",".icon_delete",deletePhoto)
 				 .on("click",".icon_edit",editPhoto)
-				 .on("change","input[type=file]",addPhoto);
+				 .on("imageloaded","input[type=file]",addPhoto);
 		Container.find(".form_image_browser").click(openFileManager);
 		Container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 
@@ -1534,7 +1562,7 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
 		
-		data = $.parseJSON($(this).attr("href"));
+		var data = $.parseJSON($(this).attr("href"));
 		AvailableThumbs = data.thumbs;
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		
