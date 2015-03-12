@@ -8,7 +8,8 @@
 	$results = $admin->getPageOfSettings($page,$query);
 	
 	foreach ($results as $item) {
-		if (is_array($item["value"])) {
+		if (is_array($item["value"]) ||
+			(strlen(trim(strip_tags($item["value"]))) === 0)) {
 			$value = "&mdash; Click Edit To View &mdash;";
 		} else {
 			$value = BigTree::trimLength(strip_tags($item["value"]),100);
