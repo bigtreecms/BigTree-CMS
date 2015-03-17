@@ -148,11 +148,11 @@
 
 			if ($this->Cloud) {
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
-				if ($remove_original) {
-					unlink($local_file);
-				}
 				if ($success) {
 					sqlquery("UPDATE bigtree_caches SET value = '".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."' WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'");
+				}
+				if ($remove_original) {
+					unlink($local_file);
 				}
 				return $success;
 			} else {
