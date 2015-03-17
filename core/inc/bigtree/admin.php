@@ -5605,7 +5605,7 @@
 		static function makeIPL($url) {
 			// See if this is a file
 			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
-			if (file_exists($local_path)) {
+			if ((substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && file_exists($local_path)) {
 				return BigTreeCMS::replaceHardRoots($url);
 			}
 
