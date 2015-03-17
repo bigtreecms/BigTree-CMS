@@ -1200,7 +1200,7 @@
 	.bigtree_dialog_form .callouts p { padding: 5px 10px 10px; }
 	.bigtree_dialog_form h4 { border-bottom: 1px solid #e3e3e3; color: #333; font-size: 17px; font-weight: normal; margin: 0 0 15px; padding: 10px 0; }
 	.bigtree_dialog_form h4:first-child { margin-top: -10px; }
-	.bigtree_dialog_form .callouts h4 { border: none; }
+	.bigtree_dialog_form .callouts h4 { border: none; margin: 0; }
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
 	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form fieldset.last { margin: 0; }
