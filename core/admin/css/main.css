@@ -1160,17 +1160,24 @@
 
 	.bigtree_dialog_window.front_end_editor_container { border: none; height: 625px; width: 100%; z-index: 0; }
 	.bigtree_dialog_window.front_end_editor_container > .bigtree_dialog_form > .overflow { height: 469px; max-height: none; width: 800px; }
-	.bigtree.front_end_editor fieldset { width: auto; }
-	.bigtree.front_end_editor fieldset.callouts { margin: 30px -20px; }
-	.bigtree.front_end_editor fieldset.callouts_no_margin { margin-top: -31px; }
-	.bigtree.front_end_editor fieldset.callouts:first-child { margin-top: -30px; }
-	.bigtree.front_end_editor input[type="text"], .bigtree.front_end_editor input[type="email"], .bigtree.front_end_editor input[type="password"], .bigtree.front_end_editor input[type="url"] { width: 760px; }
-	.bigtree.front_end_editor input[type=submit] { margin-right: 10px; }
-	.bigtree.front_end_editor textarea { width: 760px; }
+	.bigtree.front_end_editor .front_end_editor_container fieldset { width: auto; }
+	.bigtree.front_end_editor .front_end_editor_container fieldset.callouts { margin: 30px -20px; }
+	.bigtree.front_end_editor .front_end_editor_container fieldset.callouts_no_margin { margin-top: -31px; }
+	.bigtree.front_end_editor .front_end_editor_container fieldset.callouts:first-child { margin-top: -30px; }
+	.bigtree.front_end_editor .front_end_editor_container input[type="text"],
+	.bigtree.front_end_editor .front_end_editor_container input[type="email"],
+	.bigtree.front_end_editor .front_end_editor_container input[type="password"],
+	.bigtree.front_end_editor .front_end_editor_container input[type="url"] { width: 760px; }
+	.bigtree.front_end_editor .front_end_editor_container input[type=submit] { margin-right: 10px; }
+	.bigtree.front_end_editor .front_end_editor_container textarea { width: 760px; }
 
-	.bigtree.front_end_editor #callout_resources input[type="text"], .bigtree.front_end_editor #callout_resources input[type="email"], .bigtree.front_end_editor #callout_resources input[type="password"], .bigtree.front_end_editor #callout_resources input[type="url"] { width: 418px; }
-	.bigtree.front_end_editor #callout_resources textarea { width: 418px; }
-	.bigtree.front_end_editor #callout_resources fieldset { width: 440px; }
+	.bigtree.front_end_editor .callout_fields input[type="text"],
+	.bigtree.front_end_editor .callout_fields input[type="email"], 
+	.bigtree.front_end_editor .callout_fields input[type="password"], 
+	.bigtree.front_end_editor .callout_fields input[type="url"],
+	.bigtree.front_end_editor .callout_fields textarea { width: 418px; }
+
+	.bigtree.front_end_editor .callout_fields fieldset { width: 440px; }
 
 /*---------------------------
 		BigTree Dialog
