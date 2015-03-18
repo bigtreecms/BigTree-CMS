@@ -1316,7 +1316,6 @@
 				$external = $this->makeIPL($external);
 			}
 
-
 			// Who knows what they may have put in for a route, so we're not going to use the sqlescape version.
 			$route = $data["route"];
 			if (!$route) {
@@ -7027,6 +7026,9 @@
 
 			// Remove this page from the cache
 			$this->unCache($page);
+
+			// Clear existing value
+			$seo_invisible = "";
 
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			foreach ($data as $key => $val) {
