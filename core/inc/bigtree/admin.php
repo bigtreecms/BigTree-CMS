@@ -7504,7 +7504,7 @@
 			$nav_title = htmlspecialchars($nav_title);
 			$meta_description = htmlspecialchars($meta_description);
 			$meta_keywords = htmlspecialchars($meta_keywords);
-			$seo_invisible = $seo_invisible ? "on" : "";
+			$seo_invisible = $data["seo_invisible"] ? "on" : "";
 			$external = htmlspecialchars($external);
 
 			// Update the database
