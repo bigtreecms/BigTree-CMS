@@ -1696,12 +1696,11 @@ var BigTreeFileManager = (function($) {
 	function replaceFile() {
 		BigTreeDialog({
 			title: "Replace File",
-			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',
+			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="files[]" /></fieldset>',
 			callback: replaceFileProcess,
 			icon: "folder",
 			alternateSaveText: "Replace File",
-			preSubmissionCallback: true,
-			cancelHook: cancelAdd
+			preSubmissionCallback: true
 		});
 
 		return false;
