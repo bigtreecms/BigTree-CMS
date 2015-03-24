@@ -26,7 +26,7 @@
 	<section class="integrity_errors">
 		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$_GET["id"]?>/" target="_blank">Edit</a>
 		<span class="icon_small icon_small_warning"></span>
-		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=$error?> in field &ldquo;<?=$field?>&rdquo;</p>
+		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> in field &ldquo;<?=$field?>&rdquo;</p>
 	</section>
 </li>
 <?
