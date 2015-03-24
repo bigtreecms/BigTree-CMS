@@ -38,7 +38,8 @@
 					$callout = BigTreeAdmin::getCallout($callout_data["type"]);
 					if ($callout) {
 						// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
-						foreach ($callout["resources"] as &$column) {
+						$callout_resources = array_filter((array)$callout["resources"]);
+						foreach ($callout_resources as &$column) {
 							// If we have an internal title saved we can give even more context to which matrix entity has the problem
 							if ($callout_data["display_title"]) {
 								$column["title"] = $field." &raquo; ".$callout_data["display_title"]." &raquo; ".$column["title"];
@@ -52,7 +53,7 @@
 			} elseif ($resource["type"] == "matrix" && is_array($data)) {
 				foreach ($data as $matrix_data) {
 					// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
-					$columns = $resource["options"]["columns"];
+					$columns = array_filter((array)$resource["options"]["columns"]);
 					foreach ($columns as &$column) {
 						// If we have an internal title saved we can give even more context to which matrix entity has the problem
 						if ($matrix_data["__internal-title"]) {
