@@ -256,22 +256,30 @@
 				new_file - The location to save the new cropped image.
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
-				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
-				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+				retina - Whether to create a retina-style image (2x, lower quality) if able (defaults to false).
+				grayscale - Whether to make the crop be in grayscale or not (defaults to false).
+				upscale - If set to true, upscales to the maxwidth / maxheight instead of downscaling (defaults to false, disables retina).
 
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
+			
+			See Also:
+				createUpscaledImage
 		*/
 		
-		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false) {
+		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
 			global $bigtree;
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$maxwidth,$maxheight);
+			if ($upscale) {
+				list($type,$w,$h,$result_width,$result_height) = static::getUpscaleSizes($file,$maxwidth,$maxheight);
+			} else {
+				list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$maxwidth,$maxheight);
+			}
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
-			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
+			if ($retina && !$upscale && $result_width * 2 <= $w && $result_height * 2 <= $h) {
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 				$result_width *= 2;
 				$result_height *= 2;
@@ -315,6 +323,27 @@
 			imagedestroy($thumbnailed_image);
 			
 			return $new_file;
+		}
+
+		/*
+			Function: createUpscaledImage
+				Creates a upscaled image from a source image.
+			
+			Parameters:
+				file - The location of the image to crop.
+				new_file - The location to save the new cropped image.
+				min_width - The minimum width of the new image (0 for no max).
+				min_height - The minimum height of the new image (0 for no max).
+			
+			Returns:
+				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
+
+			See Also:
+				createThumbnail
+		*/
+		
+		static function createUpscaledImage($file,$new_file,$min_width,$min_height) {
+			return static::createThumbnail($file,$new_file,$min_width,$min_height,false,false,true);
 		}
 		
 		/*
@@ -375,7 +404,7 @@
 				fclose($file_pointer);
 				return;
 			}
-			
+
 			return $output;
 		}
 		
@@ -1015,6 +1044,47 @@
 				if ($result_width > $maxwidth && $maxwidth) {
 					$perc = $maxwidth / $result_width;
 					$result_width = $maxwidth;
+					$result_height = round($result_height * $perc,0);
+				}
+			} else {
+				$result_width = $w;
+				$result_height = $h;
+			}
+			
+			return array($type,$w,$h,$result_width,$result_height);
+		}
+
+		/*
+			Function: getUpscaleSizes
+				Returns a list of sizes of an image and the result sizes.
+			
+			Parameters:
+				file - The location of the image to crop.
+				min_width - The minimum width of the new image (0 for no min).
+				min_height - The maximum height of the new image (0 for no min).
+			
+			Returns:
+				An array with (type,width,height,result width,result height)
+		*/
+		
+		static function getUpscaleSizes($file,$min_width,$min_height) {
+			list($w, $h, $type) = getimagesize($file);
+			if ($w < $min_width && $min_width) {
+				$perc = $min_width / $w;
+				$result_width = $min_width;
+				$result_height = round($h * $perc,0);
+				if ($result_height < $min_height && $min_height) {
+					$perc = $min_height / $result_height;
+					$result_height = $min_height;
+					$result_width = round($result_width * $perc,0);
+				}
+			} elseif ($h < $min_height && $min_height) {
+				$perc = $min_height / $h;
+				$result_height = $min_height;
+				$result_width = round($w * $perc,0);
+				if ($result_width < $min_width && $min_width) {
+					$perc = $min_width / $result_width;
+					$result_width = $min_width;
 					$result_height = round($result_height * $perc,0);
 				}
 			} else {
