@@ -326,33 +326,56 @@
 				url - The URL to retrieve / POST to.
 				post - A key/value pair array of things to POST (optional).
 				options - A key/value pair of extra cURL options (optional).
-				strict_security - Force SSL verification of the host and peer if true.
+				strict_security - Force SSL verification of the host and peer if true (optional, defaults to false).
+				output_file - A file location to dump the output of the request to (optional, replaces return value).
 			
 			Returns:
 				The string response from the URL.
 		*/
 		
-		static function cURL($url,$post = false,$options = array(),$strict_security = false) {
+		static function cURL($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
 			global $bigtree;
 
+			// Startup cURL and set the URL
 			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($ch,CURLOPT_URL, $url);
+
+			// Determine whether we're forcing valid SSL on the peer and host
 			if (!$strict_security) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+				curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,0);
+				curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,0); 
 			}
+
+			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
+			if ($output_file) {
+				$file_pointer = fopen($output_file,"w");
+				curl_setopt($ch,CURLOPT_FILE,$file_pointer);
+			} else {
+				curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			}
+
+			// Setup post data
 			if ($post) {
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 			}
+
+			// Any additional cURL options
 			if (count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
 				}
 			}
-			$output = curl_exec($ch);
+
 			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
+			$output = curl_exec($ch);
 			curl_close($ch);
+
+			// If we're outputting to a file, close the handle and return nothing
+			if ($output_file) {
+				fclose($file_pointer);
+				return;
+			}
+			
 			return $output;
 		}
 		
