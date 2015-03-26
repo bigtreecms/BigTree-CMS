@@ -483,9 +483,9 @@
 	#link_finder_results { background: #FFF; border: 1px solid #CCC; margin: 34px 0 0 728px; position: absolute; width: 220px; }
 	#link_finder_results span { background: #eee; border-bottom: 1px solid #DDD; color: #666; display: block; font-size: 9px; font-weight: bold; height: auto; line-height: 13px; padding: 4px 10px 3px; text-transform: uppercase; }
 	#link_finder_results a { border-bottom: 1px solid #DDD; color: #333; display: block; font-size: 10px; height: auto; line-height: 14px; padding: 3px 10px; }
-	#link_finder_results a:nth-mchild(odd) { background: #F3F3F3; }
+	#link_finder_results a:nth-child(odd) { background: #FAFAFA; }
 	#link_finder_results a:last-child { border-bottom: none; }
-	#link_finder_results a:hover { background: #EFF7FD; }
+	#link_finder_results a:hover { background: #EEE; }
 
 	.sticky_controls.stuck { height: 44px; padding: 0 0 5px 0; position: fixed; top: 0; width: 958px; z-index: 3; }
 	.sticky_controls.stuck .shadow { background: #eee; border-bottom: 1px solid #ccc; height: 44px; }
