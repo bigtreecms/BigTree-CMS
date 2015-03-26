@@ -6815,33 +6815,20 @@
 		/*
 			Function: urlExists
 				Attempts to connect to a URL using cURL.
+				This is now an alias for BigTree::urlExists
 
 			Parameters:
 				url - The URL to connect to.
 
 			Returns:
 				true if it can connect, false if connection failed.
+
+			See Also:
+				BigTree::urlExists
 		*/
 
 		static function urlExists($url) {
-			// Handle // urls as http://
-			if (substr($url,0,2) == "//") {
-				$url = "http:".$url;
-			}
-
-			$handle = curl_init($url);
-			if ($handle === false) {
-				return false;
-			}
-			curl_setopt($handle, CURLOPT_HEADER, false);
-			curl_setopt($handle, CURLOPT_FAILONERROR, true);
-			// Request as Firefox so that servers don't reject us for not having headers.
-			curl_setopt($handle, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15") );
-			curl_setopt($handle, CURLOPT_NOBODY, true);
-			curl_setopt($handle, CURLOPT_RETURNTRANSFER, false);
-			$connectable = curl_exec($handle);
-			curl_close($handle);
-			return $connectable;
+			return BigTree::urlExists($url);
 		}
 
 		/*
