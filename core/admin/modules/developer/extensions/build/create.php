@@ -221,6 +221,9 @@
 		}
 	}
 
+	// We're going to be associating things to the extension before creating it
+	sqlquery("SET foreign_key_checks = 0");
+
 	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
 	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."' AND type = 'extension'"));
 	if ($existing) {
@@ -232,7 +235,6 @@
 		$package["sql_revisions"][$revision] = array();
 
 		// Diff the old tables
-		sqlquery("SET foreign_key_checks = 0");
 		foreach ($existing_json["components"]["tables"] as $table => $create_statement) {
 			// If the table exists in the new manifest, we're going to see if they're identical
 			if (isset($package["components"]["tables"][$table])) {
@@ -255,7 +257,6 @@
 				$package["sql_revisions"][$revision][] = "DROP TABLE IF EXISTS `$table`";
 			}
 		}
-		sqlquery("SET foreign_key_checks = 1");
 
 		// Add new tables that don't exist in the old manifest
 		foreach ($package["components"]["tables"] as $table => $create_statement) {
@@ -272,7 +273,7 @@
 	$json = BigTree::json($package);
 	BigTree::putFile(SERVER_ROOT."extensions/$id/manifest.json",$json);
 	
-	// Create the zip
+	// Create the zip, clear caches since we may have moved the routes of field types and modules
 	@unlink(SERVER_ROOT."cache/package.zip");
 	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
@@ -286,6 +287,9 @@
 	} else {
 		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
 	}
+
+	// Turn foreign key checks back on
+	sqlquery("SET foreign_key_checks = 1");
 ?>
 <div class="container">
 	<section>
