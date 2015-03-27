@@ -60,6 +60,9 @@
 		)
 	);
 
+	// We're going to be associating things to the extension before creating it
+	sqlquery("SET foreign_key_checks = 0");
+
 	$used_forms = array();
 	$used_views = array();
 	$used_reports = array();
@@ -220,9 +223,6 @@
 			}
 		}
 	}
-
-	// We're going to be associating things to the extension before creating it
-	sqlquery("SET foreign_key_checks = 0");
 
 	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
 	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."' AND type = 'extension'"));
