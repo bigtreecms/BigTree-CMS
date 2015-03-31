@@ -27,6 +27,7 @@
 	$bigtree["config"]["admin_css"] = array(); // Additional CSS Files For the Admin to load, relative to /custom/admin/css/
 	$bigtree["config"]["admin_js"] = array(); // Additional JavaScript Files For the Admin to load, relative to /custom/admin/js/
 	$bigtree["config"]["ignore_admin_updates"] = false; // Set to true to disable pinging bigtreecms.org for version updates
+	$bigtree["config"]["default_gravatar"] = "https://www.bigtreecms.org/images/bigtree-gravatar.png"; // Default gravatar to load for users without an account
 
 	// Default Image Quality Presets
 	$bigtree["config"]["image_quality"] = 90; // 0-100, size increases dramatically after 90
