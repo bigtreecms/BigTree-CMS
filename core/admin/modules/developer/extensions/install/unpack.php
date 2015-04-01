@@ -44,7 +44,15 @@
 	// Unzip the extension
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip($file);
-	$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
+
+	// See if this was downloaded off GitHub (will have a single root folder)
+	$zip_root = BigTreeUpdater::zipRoot($zip);
+	if ($zip_root) {
+		$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root,PCLZIP_OPT_REMOVE_PATH,$zip_root);
+	} else {
+		$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
+	}
+
 	if (!$files) {
 		BigTree::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";

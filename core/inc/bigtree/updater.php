@@ -49,7 +49,7 @@
 		*/
 
 		function checkZip() {
-			include SERVER_ROOT."core/inc/lib/pclzip.php";
+			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			$zip->listContent();
 			if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
@@ -79,16 +79,19 @@
 		*/
 
 		function extract() {
-			include SERVER_ROOT."core/inc/lib/pclzip.php";
+			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 
 			// If the temporary update directory doesn't exist, create it
 			BigTree::makeDirectory(SERVER_ROOT."cache/update/");
 			
-			// Figure out what the initial directory is so we can remove it
-			$contents = $zip->listContent();
-			$initial_path = rtrim($contents[0]["filename"],"/");
-			$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,$initial_path);
+			// Figure out if we have just a single directory at the root
+			$zip_root = $this->zipRoot($zip);
+			if ($zip_root) {
+				$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,$zip_root);
+			} else {				
+				$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/");
+			}
 			
 			// Error occurred extracting? Return false
 			if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
@@ -250,5 +253,34 @@
 			}
 
 			$this->cleanup();
+		}
+
+		/*
+			Function: zipRoot
+				Returns the root of a zip file (if the root is simply a folder)
+
+			Parameters:
+				zip - PclZip instance
+
+			Returns:
+				A folder name or false if the root contains more than just a folder.
+		*/
+
+		static function zipRoot($zip) {
+			$contents = $zip->listContent();
+			$root_count = 0;
+			$root = false;
+			foreach ($contents as $content) {
+				$file = rtrim($content["filename"],"/");
+				$pieces = explode("/",$file);
+				if (count($pieces) == 1) {
+					$root_count++;
+					$root = $file;
+				}
+			}
+			if ($root_count == 1) {
+				return $root;
+			}
+			return false;
 		}
 	}
