@@ -39,6 +39,8 @@ Changelog
 - ADDED: BigTree::getCookie and BigTree::setCookie methods to easily set cookies that apply to the whole site (you can also set array values, stored as JSON in the cookies).
 - ADDED: Confirmation dialog when leaving a page where you've changed form data.
 - ADDED: SFTP support for core updates.
+- ADDED: BigTree::urlExists (better version of BigTreeAdmin::urlExists)
+- ADDED: BigTree::createUpscaledImage (reverse of BigTree::createThumbnail)
 - UPDATED: Installer will now create a database for you if it doesn't exist.
 - UPDATED: BigTreeModule retrieval methods now allow you to pass a columns array to only retrieve the specified columns.
 - UPDATED: The upload field type now works with the FileReader API to provide file size and thumbnail information after selecting a file.
@@ -54,6 +56,7 @@ Changelog
 - UPDATED: BigTreeModule's add method parameters now more closely align with the function and names of the update parameters (still backwards compatible, just more functional).
 - UPDATED: BigTreeModule's update method now allows you to pass in a key/value array as the second parameter instead of breaking it into two parameters.
 - UPDATED: Advanced Search's nav is now sticky and won't disappear when scrolling a long list
+- UPDATED: BigTree::cURL now allows output to a file for less memory-intensive file downloads
 - CHANGED: Field drawing and field processing now occurs in function scope with access to $admin, $bigtree, $cms, and $field. This limits the likelihood of one field type somehow breaking the main form's environment variables and also leads to much better code re-use.
 - CHANGED: Field options for templates, settings, and callouts are no longer stored in the top level JSON object but are instead stored in the "options" object -- this allows field options to now include keys such as "title" and "subtitle" (though "type" is still restricted when used in a Callout).
 - CHANGED: htmlMimeMail is no longer included in BigTree as it hadn't been updated in years. PHPMailer is now used as BigTree's default local mail sending tool.
