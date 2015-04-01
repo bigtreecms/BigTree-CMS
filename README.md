@@ -20,6 +20,39 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.6 Release
+- SECURITY FIX: Fixed cross-site request forgery vulnerability in the /admin/profile/ page (thanks Charlie Clark)
+- FIXED: Paginated results for Disqus getUsers related calls
+- FIXED: Pagination of getActivities in Google+ API
+- FIXED: Recursive LinkPoint Payment Gateway values and LinkPoint void
+- FIXED: PayPal Express Checkout redirect URLs
+- FIXED: Pagination of Twitter API's getBlockedUsers, getFollowers, and getFriends calls
+- FIXED: Invalid parameter chain in Twitter API's sendTweet call
+- FIXED: Twitter API's searchPlaces not using additional parameters
+- FIXED: Twitter API's searchTweets not using passed longitude
+- FIXED: IPL encoding of files when a page exists AND a physical directory is at the same path (thanks jmason03)
+- FIXED: Pagination of getChannelVideos YouTube call
+- FIXED: Warnings being thrown when checking integrity of modules where the text field had a sub type that generates an array (thanks jmason03)
+- FIXED: Module integrity check not checking single line text fields
+- FIXED: Email issues on Exchange servers (thanks jmason03)
+- FIXED: Demo site's link field causing validation to fail if an invalid link was placed in its link field
+- FIXED: Module designer now properly gives callouts a TEXT column
+- FIXED: Embedded form validation issues with CR/LF (thanks jmason03)
+- FIXED: zIndex issues when performing multiple create/uploads in a single File Manager session
+- FIXED: Example site not having the needed admin JS by default
+- FIXED: Issues with some environments not properly assigning IDs to form fields (thanks randyhook and varavin)
+- FIXED: Callouts in front end editor that are the first resource having lots of padding
+- FIXED: Administrators being able to move pages into top level visible navigation
+- FIXED: Google Analytics cache being the wrong file and breaking the analytics section
+- FIXED: Settings appearing to be empty when the stripped tags version of them was empty (thanks atstp)
+- FIXED: "Hide From Search Engines" from not being un-selectable (thanks katyemunger)
+- FIXED: Gravatar images not working properly over HTTPS
+- ADDED: New "simple" mode for BigTreeCloudStorage's getContainer method that drastically reduces memory overhead when setting your cloud storage to an existing bucket
+- ADDED: Default gravatar images can now be set in $bigtree["config"]["default_gravatar"]
+- CHANGED: Servers that run PHP as FastCGI / suPHP / suEXEC now keep permissions to defaults rather than 777
+- CHANGED: Attempting to directly access a header or footer of a routed template / admin module will no longer render it but instead add _header or _footer to the $bigtree["commands"] array and load the default file
+- CHANGED: In future installs, launch logic is now in core/launch.php rather than site/index.php (so it can be updateable across versions)
+
 ### 4.1.5 Release
 - SECURITY FIX: A privilege escalation bug exists in BigTree 4.1.4 and lower and BigTree 4.0.8 and lower that allows an Administrator level user to change his or her user level to Developer.
 - FIXED: BigTreeAdmin::getModuleViews still relying on actions to figure out what views a module has
