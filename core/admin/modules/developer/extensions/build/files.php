@@ -5,13 +5,19 @@
 			<article class="package_column package_column_double">
 				<strong>Files</strong>
 				<ul id="package_files">
-					<? foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) { ?>
+					<?
+						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) {
+							if (file_exists($file)) {
+					?>
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
 						<span><?=str_replace(SERVER_ROOT,"",$file)?></span>
 					</li>
-					<? } ?>
+					<?
+							}
+						}
+					?>
 				</ul>
 				<div class="add_file adder">
 					<a href="#"><span class="icon_small icon_small_folder"></span>Browse For File</a>
