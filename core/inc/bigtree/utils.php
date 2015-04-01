@@ -2059,6 +2059,22 @@
 		}
 
 		/*
+			Function: setDirectoryPermissions
+				Sets writable permissions for a whole directory.
+				If the web server is not running as the owner of the current script, permissions will be 777.
+
+			Parameters:
+				location - The directory to set permissions on.
+		*/
+
+		static function setDirectoryPermissions($location) {
+			$contents = static::directoryContents($location);
+			foreach ($contents as $file) {
+				static::setPermissions($file);
+			}
+		}
+
+		/*
 			Function: setPermissions
 				Checks to see if the current user the web server is running as is the owner of the current script.
 				If they are not the same user, the file/directory is given a 777 permission so that the script owner can still manage the file.

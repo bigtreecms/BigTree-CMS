@@ -5339,6 +5339,7 @@
 
 				// Move the package to the extension directory
 				rename(SERVER_ROOT."cache/package/",$destination_path);
+				BigTree::setDirectoryPermissions($destination_path);
 
 				// Create the extension
 				sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($manifest["id"])."','extension','".sqlescape($manifest["title"])."','".sqlescape($manifest["version"])."',NOW(),'".BigTree::json($manifest,true)."')");	
