@@ -20,6 +20,9 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.10 Release
+- SECURITY FIX: Fixed cross-site request forgery vulnerability in the /admin/profile/ page (thanks Charlie Clark)
+
 ### 4.0.9 Release
 - SECURITY FIX: A privilege escalation bug exists in BigTree 4.1.4 and lower and BigTree 4.0.8 and lower that allows an Administrator level user to change his or her user level to Developer.
 
