@@ -105,6 +105,7 @@ INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `descr
 INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `description`, `locked`, `system`, `encrypted`) VALUES ('bigtree-internal-per-page', X'3135', 'text', '', 'Number of Items Per Page', '<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>', 'on', '', '');
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-revision','200','on');
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-security-policy','{}','on');
+INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-media-settings','{}','on');
 
 INSERT INTO `bigtree_templates` (`id`, `name`, `module`, `resources`, `position`, `level`, `routed`) VALUES ('home', 'Home', 0, '[]', 0, 2, ''), ('content', 'Content', 0, '[{"id":"page_header","title":"Page Header","subtitle":"","type":"text","validation":"","seo_h1":"on","sub_type":"","wrapper":"","name":""},{"id":"page_content","title":"Page Content","subtitle":"","type":"html","validation":"","seo_body":"on","wrapper":"","name":""}]', 1, 0, '');
 
