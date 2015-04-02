@@ -15,8 +15,18 @@
 	};
 	$hash_recurse($_POST);
 
+	// Clean out carriage return and line feed characters since JS and PHP seem to disagree on their presence
+	$cleaned_string = "";
+	for ($i = 0; $i < strlen($complete_string); $i++) {
+		$char = substr($complete_string,$i,1);
+		$code = ord($char);
+		if ($code != 10 && $code != 13) {
+			$cleaned_string .= $char;
+		}
+	}
+
 	// Stop Robots - See if it matches the passed hash and that _bigtree_email wasn't filled out
-	if ($_POST["_bigtree_hashcash"] != md5($complete_string) || $_POST["_bigtree_email"]) {
+	if ($_POST["_bigtree_hashcash"] != md5($cleaned_string) || $_POST["_bigtree_email"]) {
 		$_SESSION["bigtree_admin"]["post_hash_failed"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
