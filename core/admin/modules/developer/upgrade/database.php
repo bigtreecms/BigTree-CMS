@@ -554,6 +554,7 @@
 				}
 				$new_fields[] = $r;
 			}
+			return $new_fields;
 		};
 
 		// New resource format to be less restrictive on option names
