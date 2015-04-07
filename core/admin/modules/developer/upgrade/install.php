@@ -36,6 +36,7 @@
 			$ftp_root = $updater->getFTPRoot($_POST["user"],$_POST["password"]);
  			if ($ftp_root === false) {
 				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
+				$saved_root = htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"));
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
 	<div class="container">
@@ -43,9 +44,12 @@
 		<section>
 			<p>BigTree could not automatically detect the <?=$method?> directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full <?=$method?> path below. This would be the directory that contains /core/.</p>
 			<hr />
+			<? if ($saved_root) { ?>
+			<p class="error_message">A BigTree installation could not be found in <code><?=$saved_root?></code></p>
+			<? } ?>
 			<fieldset>
 				<label><?=$method?> Path</label>
-				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
+				<input type="text" name="ftp_root" value="<?=$saved_root?>" />
 			</fieldset>
 		</section>
 		<footer>
