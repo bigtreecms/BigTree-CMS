@@ -295,9 +295,10 @@
 		bt_mkdir_writable("custom/inc/");
 		bt_mkdir_writable("custom/inc/modules/");
 		bt_mkdir_writable("custom/inc/required/");
-		bt_mkdir_writable("extensions");
+		bt_mkdir_writable("extensions/");
 		bt_mkdir_writable("site");
 		bt_mkdir_writable("site/css/");
+		bt_mkdir_writable("site/extensions/");
 		bt_mkdir_writable("site/files/");
 		bt_mkdir_writable("site/files/pages/");
 		bt_mkdir_writable("site/files/resources/");

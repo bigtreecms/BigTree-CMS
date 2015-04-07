@@ -1,3 +1,16 @@
+<?
+	if (!is_writable(SERVER_ROOT."cache/")) {
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>Your <code>/cache/</code> directory must be writable.</p>
+	</section>
+</div>
+<?
+		$admin->stop();
+	}
+?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/install/unpack/" enctype="multipart/form-data">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
