@@ -56,10 +56,16 @@
 				$admin->growl("Developer","FTP Login Failed","error");
 				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
 			}
+			
 			// Try to determine the FTP root.
 			$ftp_root = false;
-			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root") && $ftp->changeDirectory($cms->getSetting("bigtree-internal-ftp-upgrade-root")."core/inc/bigtree/")) {
-				$ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
+			$setting_ftp_root = false;
+			if ($admin->settingExists("bigtree-internal-ftp-upgrade-root")) {
+				$setting_ftp_root = $cms->getSetting("bigtree-internal-ftp-upgrade-root");
+			}
+			
+			if ($setting_ftp_root !== false && $ftp->changeDirectory($setting_ftp_root."core/inc/bigtree/")) {
+				$ftp_root = $setting_ftp_root;
 			} elseif ($ftp->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;
 			} elseif ($ftp->changeDirectory("/core/inc/bigtree")) {
@@ -81,9 +87,12 @@
 		<section>
 			<p>BigTree could not automatically detect the FTP directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full FTP path below. This would be the directory that contains /core/.</p>
 			<hr />
+			<? if ($setting_ftp_root !== false) { ?>
+			<p class="error_message">A BigTree installation could not be found in <code><?=$setting_ftp_root?></code></p>
+			<? } ?>
 			<fieldset>
 				<label>FTP Path</label>
-				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
+				<input type="text" name="ftp_root" value="<?=htmlspecialchars($setting_ftp_root)?>" />
 			</fieldset>
 		</section>
 		<footer>
