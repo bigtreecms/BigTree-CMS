@@ -138,6 +138,7 @@
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
+				unlink($local_file);
 				return false;
 			}
 
@@ -188,6 +189,7 @@
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
+				unlink($local_file);
 				return false;
 			}
 
