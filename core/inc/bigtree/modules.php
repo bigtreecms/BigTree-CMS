@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeModule
 			Base class from which all BigTree module classes inherit from.
@@ -315,7 +315,7 @@
 				<getMatching>
 		*/
 		
-		function getArchived($order = false,$limit = false,$columns) {
+		function getArchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","on",$order,$limit,false,$columns);
 		}
 		
@@ -394,12 +394,12 @@
 
 		function getInfo($entry) {
 			$info = array();
-			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
 			if (is_array($entry)) {
 				$entry = sqlescape($entry["id"]);
 			} else {
 				$entry = sqlescape($entry);
 			}
+			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
 
 			$created = sqlfetch(sqlquery($base." AND type = 'created'"));
 			if ($created) {
@@ -754,7 +754,7 @@
 				<getMatching> <getNonarchived>
 		*/
 		
-		function getUnarchived($order = false,$limit = false,$columns) {
+		function getUnarchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","",$order,$limit,false,$columns);
 		}
 
@@ -1014,4 +1014,3 @@
 			}
 		}
 	}
-?>

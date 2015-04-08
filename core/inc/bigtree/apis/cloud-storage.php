@@ -1,15 +1,16 @@
-<?
+<?php
 	/*
 		Class: BigTreeCloudStorage
 			A cloud storage interface class that provides service agnostic calls on top of various cloud storage platforms.
 	*/
 
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeCloudStorage extends BigTreeOAuthAPIBase {
 
 		// These are only applicable to Google Cloud Storage
 		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		var $EndpointURL = "https://www.googleapis.com/storage/v1/";
+		var $HTTPResponseCode = false;
 		var $OAuthVersion = "1.0";
 		var $RequestType = "header";
 		var $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
@@ -75,6 +76,8 @@
 				}
 				return true;
 			}
+
+			return false;
 		}
 
 		/*
@@ -94,6 +97,7 @@
 				return $this->Settings["rackspace"]["container_cdn_urls"][$container]."/$pointer";
 			} else {
 				// See if we can get the container's CDN URL
+				$cdn = false;
 				$response = BigTree::cURL($this->RackspaceCDNEndpoint."/$container","",array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 				$lines = explode("\n",$response);
 				foreach ($lines as $line) {
@@ -157,7 +161,7 @@
 		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				$response = $this->callAmazonS3("PUT",$destination_container,$destination_pointer,array(),array("Content-Length" => "0"),array(
+				$this->callAmazonS3("PUT",$destination_container,$destination_pointer,array(),array("Content-Length" => "0"),array(
 					"x-amz-acl" => ($public ? "public-read" : "private"),
 					"x-amz-copy-source" => "/".$source_container."/".rawurlencode($source_pointer)
 				));
@@ -231,7 +235,7 @@
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				$response = $this->callRackspace($name,"",array(CURLOPT_PUT => true));
+				$this->callRackspace($name,"",array(CURLOPT_PUT => true));
 				if ($bigtree["last_curl_response_code"] == 201) {
 					// CDN Enable this container if it's public
 					if ($public) {
@@ -356,7 +360,7 @@
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				$response = $this->callRackspace($container,"",array(CURLOPT_CUSTOMREQUEST => "DELETE"));
+				$this->callRackspace($container,"",array(CURLOPT_CUSTOMREQUEST => "DELETE"));
 				if ($bigtree["last_curl_response_code"] == 204) {
 					return true;
 				} elseif ($bigtree["last_curl_response_code"] == 404) {
@@ -367,7 +371,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
-				$response = $this->call("b/$container",false,"DELETE");
+				$this->call("b/$container",false,"DELETE");
 				if (count($this->Errors) > $error_count) {
 					return false;
 				}
@@ -375,6 +379,7 @@
 			} else {
 				return false;
 			}
+			return false;
 		}
 
 		/*
@@ -392,7 +397,7 @@
 		function deleteFile($container,$pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
-				$response = $this->callAmazonS3("DELETE",$container,$pointer);
+				$this->callAmazonS3("DELETE",$container,$pointer);
 				if ($this->HTTPResponseCode != "204") {
 					return false;
 				}
@@ -400,7 +405,7 @@
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				$response = $this->callRackspace("$container/$pointer","",array(CURLOPT_CUSTOMREQUEST => "DELETE"));
+				$this->callRackspace("$container/$pointer","",array(CURLOPT_CUSTOMREQUEST => "DELETE"));
 				if ($bigtree["last_curl_response_code"] == 204) {
 					return true;
 				}
@@ -408,7 +413,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
-				$response = $this->call("b/$container/o/".rawurlencode($pointer),false,"DELETE");
+				$this->call("b/$container/o/".rawurlencode($pointer),false,"DELETE");
 				if (count($this->Errors) > $error_count) {
 					return false;
 				}
@@ -488,12 +493,13 @@
 
 			Parameters:
 				container - The name of the container.
+				simple - Simple mode (returns only a flat array with name/path/size, defaults to false)
 
 			Returns:
 				An array of the contents of the container.
 		*/
 
-		function getContainer($container) {
+		function getContainer($container,$simple = false) {
 			$tree = array("folders" => array(),"files" => array());
 			$flat = array();
 			
@@ -506,18 +512,26 @@
 					$xml = simplexml_load_string($response);
 					if (isset($xml->Name)) {
 						foreach ($xml->Contents as $item) {
-							$flat[(string)$item->Key] = array(
-								"name" => (string)$item->Key,
-								"path" => (string)$item->Key,
-								"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
-								"etag" => (string)$item->ETag,
-								"size" => (int)$item->Size,
-								"owner" => array(
-									"name" => (string)$item->Owner->DisplayName,
-									"id" => (string)$item->Owner->ID
-								),
-								"storage_class" => (string)$item->StorageClass
-							);
+							if ($simple) {
+								$flat[] = array(
+									"name" => (string)$item->Key,
+									"path" => (string)$item->Key,
+									"size" => (int)$item->Size
+								);
+							} else {
+								$flat[(string)$item->Key] = array(
+									"name" => (string)$item->Key,
+									"path" => (string)$item->Key,
+									"updated_at" => date("Y-m-d H:i:s",strtotime($item->LastModified)),
+									"etag" => (string)$item->ETag,
+									"size" => (int)$item->Size,
+									"owner" => array(
+										"name" => (string)$item->Owner->DisplayName,
+										"id" => (string)$item->Owner->ID
+									),
+									"storage_class" => (string)$item->StorageClass
+								);
+							}
 						}
 						$continue = false;
 						// Multi-page
@@ -535,13 +549,21 @@
 				$response = $this->callRackspace($container);
 				if (is_array($response)) {
 					foreach ($response as $item) {
-						$flat[(string)$item->name] = array(
-							"name" => (string)$item->name,
-							"path" => (string)$item->name,
-							"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
-							"etag" => (string)$item->hash,
-							"size" => (int)$item->bytes
-						);
+						if ($simple) {
+							$flat[] = array(
+								"name" => (string)$item->name,
+								"path" => (string)$item->name,
+								"size" => (int)$item->bytes
+							);
+						} else {
+							$flat[(string)$item->name] = array(
+								"name" => (string)$item->name,
+								"path" => (string)$item->name,
+								"updated_at" => date("Y-m-d H:i:s",strtotime($item->last_modified)),
+								"etag" => (string)$item->hash,
+								"size" => (int)$item->bytes
+							);
+						}
 					}
 				} else {
 					return false;
@@ -552,17 +574,25 @@
 				if (isset($response->kind) && $response->kind == "storage#objects") {
 					if (is_array($response->items)) {
 						foreach ($response->items as $item) {
-							$flat[(string)$item->name] = array(
-								"name" => (string)$item->name,
-								"path" => (string)$item->name,
-								"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
-								"etag" => (string)$item->etag,
-								"size" => (int)$item->size,
-								"owner" => array(
-									"name" => (string)$item->owner->entity,
-									"id" => (string)$item->owner->entityId
-								)
-							);
+							if ($simple) {
+								$flat[] = array(
+									"name" => (string)$item->name,
+									"path" => (string)$item->name,
+									"size" => (int)$item->size
+								);
+							} else {
+								$flat[(string)$item->name] = array(
+									"name" => (string)$item->name,
+									"path" => (string)$item->name,
+									"updated_at" => date("Y-m-d H:i:s",strtotime($item->updated)),
+									"etag" => (string)$item->etag,
+									"size" => (int)$item->size,
+									"owner" => array(
+										"name" => (string)$item->owner->entity,
+										"id" => (string)$item->owner->entityId
+									)
+								);
+							}
 						}
 					}
 				} else {
@@ -570,6 +600,10 @@
 				}
 			} else {
 				return false;
+			}
+
+			if ($simple) {
+				return $flat;
 			}
 
 			foreach ($flat as $raw_item) {
@@ -738,7 +772,7 @@
 				// Add in our global read ACL
 				$xml = str_replace('</AccessControlList>','<Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group"><URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission></Grant></AccessControlList>',$xml);
 				// Send back the ACL
-				$response = $this->callAmazonS3("PUT",$container,$pointer,array("acl" => ""),array("Content-Type" => "text/xml"),array(),$xml);
+				$this->callAmazonS3("PUT",$container,$pointer,array("acl" => ""),array("Content-Type" => "text/xml"),array(),$xml);
 
 				return "http://s3.amazonaws.com/$container/$pointer";
 			// Google Cloud Storage
@@ -873,10 +907,7 @@
 		*/
 	
 		function callAmazonS3($verb = "GET",$bucket = "",$uri = "",$params = array(),$request_headers = array(),$amazon_headers = array(),$data = false,$file = false) {
-			$headers = array();
-			$resource = "";
 			$uri = $uri ? "/".str_replace("%2F","/",rawurlencode($uri)) : "/";
-			$host = false;
 
 			if ($bucket) {
 				// See if it's a valid domain bucket
@@ -1030,4 +1061,3 @@
 			return json_decode(BigTree::cURL($this->RackspaceAPIEndpoint.($endpoint ? "/$endpoint" : ""),$data,$curl_options));
 		}
 	}
-?>

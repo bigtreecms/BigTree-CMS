@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeSFTP
 			A SFTP class based on (and requiring) phpseclib.
@@ -272,4 +272,3 @@
 		}
 
 	}
-?>

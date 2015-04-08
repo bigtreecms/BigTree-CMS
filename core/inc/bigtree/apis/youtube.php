@@ -1,12 +1,11 @@
-<?
+<?php
 	/*
 		Class: BigTreeYouTubeAPI
 			YouTube API class that implements most API calls (media posting excluded).
 	*/
 	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
-
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_google.result-set.php";
 	class BigTreeYouTubeAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
@@ -42,7 +41,7 @@
 				A BigTreeYouTubeActivity object on success.
 		*/
 
-		function createActivity($bulletin,$channel = false) {
+		function createActivity($bulletin) {
 			$object = json_encode(array("snippet" => array("description" => $bulletin)));
 			$response = $this->call("activities?part=snippet",$object,"POST");
 			if (!$response->id) {
@@ -280,7 +279,7 @@
 			foreach ($response->items as $video) {
 				$results[] = new BigTreeYouTubeVideo($video,$this);
 			}
-			return new BigTreeGoogleResultSet($this,"getChannelVideos",array($query,$order,$count,$params),$response,$results);
+			return new BigTreeGoogleResultSet($this,"getChannelVideos",array($channel,$count,$order,$params),$response,$results);
 		}	
 
 		/*
@@ -1079,4 +1078,3 @@
 			return false;
 		}
 	}
-?>

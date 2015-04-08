@@ -194,15 +194,8 @@
 		$bigtree["css"] = array();
 	}
 
-	// Instantiate the $admin var with either a custom class or the normal BigTreeAdmin.
-	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		// Can't instantiate class from a constant name, so we use a variable then unset it.
-		$c = BIGTREE_CUSTOM_ADMIN_CLASS;
-		$admin = new $c;
-		unset($c);
-	} else {
-		$admin = new BigTreeAdmin;
-	}
+	// Instantiate the $admin var (user system)
+	$admin = new BigTreeAdmin;
 
 	// Load the default layout.
 	$bigtree["layout"] = "default";
@@ -342,8 +335,13 @@
 	$complete = false;
 	// We're routing through a module, so get module information and check permissions
 	if ($module) {
+		// Setup environment vars
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+		if ($module["extension"]) {
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
+		}
+		
 		// Make sure the user has access to the module
 		if (!$admin->checkAccess($module["id"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));

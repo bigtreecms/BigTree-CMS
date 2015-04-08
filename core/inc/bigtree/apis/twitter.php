@@ -4,15 +4,16 @@
 			Twitter API class that implements most functionality (limited lists support).
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
-	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
 
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeTwitterAPI extends BigTreeOAuthAPIBase {
-		
+
+		var $Configuration;
 		var $EndpointURL = "https://api.twitter.com/1.1/";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "hash";
-		
+		var $TweetLength;
+
 		/*
 			Constructor:
 				Sets up the Twitter API connections.
@@ -165,7 +166,7 @@
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
 			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($username,$count,$params),$users);
+			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($skip_status,$params),$users);
 		}
 
 		/*
@@ -189,7 +190,7 @@
 
 			Returns:
 				A BigTreeTwitterDirectMessage object.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
@@ -212,7 +213,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
@@ -239,7 +240,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterTweets objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/favorites/list
 		*/
@@ -282,7 +283,7 @@
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
 			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$count,$params),$users);
+			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$skip_status,$params),$users);
 		}
 
 		/*
@@ -311,7 +312,7 @@
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
 			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$count,$params),$users);
+			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$skip_status,$params),$users);
 		}
 
 		/*
@@ -330,7 +331,7 @@
 		*/
 
 		function getHomeTimeline($count = 10, $params = array()) {
-			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("count" => $count)));
 			if (!$response) {
 				return false;
 			}
@@ -344,7 +345,7 @@
 		/*
 			Function: getMentions
 				Returns the timeline of mentions for the authenticated user.
-			
+
 			Parameters:
 				count - The number of tweets to return (defaults to 10)
 				params - Additional parameters (key/value array) to pass to the the statuses/mentions_timeline API call.
@@ -397,7 +398,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
@@ -456,14 +457,14 @@
 			if ($id) {
 				$response = $this->call("users/show.json",array("id" => $id));
 			} else {
-				$response = $this->call("users/show.json",array("screen_name" => $username));				
+				$response = $this->call("users/show.json",array("screen_name" => $username));
 			}
 			if ($response) {
 				return new BigTreeTwitterUser($response,$this);
 			}
 			return false;
 		}
-	
+
 		/*
 			Function: getUserTimeline
 				Returns recent tweets from the given user's timeline.
@@ -520,7 +521,7 @@
 		function oAuthSetToken($code) {
 			$response = $this->callAPI("https://api.twitter.com/oauth/access_token","POST",array("oauth_token" => $_GET["oauth_token"],"oauth_verifier" => $_GET["oauth_verifier"]));
 			parse_str($response);
-			
+
 			if (!$oauth_token) {
 				$this->OAuthError = "Authentication failed.";
 				return false;
@@ -553,7 +554,7 @@
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
-			// Figure out how many URLs are 
+			// Figure out how many URLs are
 			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
 			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
 			$url_length = $http_length + $https_length;
@@ -594,12 +595,12 @@
 				https://dev.twitter.com/docs/api/1.1/post/statuses/update
 		*/
 
-		function sendTweet($content,$image = false,$auto_truncate = true,$params = array()) {
+		function sendTweet($content,$image = false,$params = array()) {
 			// Figure out how long our content can be
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
-			// Figure out how many URLs are 
+			// Figure out how many URLs are
 			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
 			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
 			$media_length = $image ? $this->Configuration->characters_reserved_per_media : 0;
@@ -610,7 +611,7 @@
   				$this->TweetLength = strlen($content_trimmed) + $url_length;
   				return false;
   			}
-			
+
 			// With image, we call statuses/update_with_media
 			if ($image) {
 				$response = $this->callUncached("statuses/update_with_media.json",array_merge($params,array("status" => $content,"media[]" => $image)),"POST",array("Files" => array("media[]" => array())));
@@ -660,7 +661,7 @@
 		*/
 
 		function searchPlaces($latitude,$longitude,$count = 20,$params = array()) {
-			$response = $this->call("geo/search.json",array_merge(array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
+			$response = $this->call("geo/search.json",array_merge($params,array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
 			if (!isset($response->result)) {
 				return false;
 			}
@@ -709,7 +710,7 @@
 			foreach ($response->statuses as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
-			return new BigTreeTwitterResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$long,$radius,$user_params),$tweets);
+			return new BigTreeTwitterResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$longitude,$radius,$user_params),$tweets);
 		}
 
 		/*
@@ -723,7 +724,7 @@
 
 			Returns:
 				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
-			
+
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/users/search
 		*/
@@ -983,7 +984,7 @@
 				True if successful.
 		*/
 
-		function retweet($id = false) {
+		function retweet() {
 			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
 
@@ -991,14 +992,11 @@
 			Function: retweets
 				Returns retweets of the tweet.
 
-			Parameters:
-				count - The number of retweets to return (defaults to 10, max 100)
-
 			Returns:
 				An array of BigTreeTwitterTweet objects.
 		*/
 
-		function retweets($count = 10) {
+		function retweets() {
 			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
 			if (!$this->RetweetCount) {
 				return array();
@@ -1130,7 +1128,7 @@
 			Returns:
 				A BigTreeTwitterUser object on success.
 		*/
-				
+
 		function unblock() {
 			return $this->API->unblockUser($this->ID);
 		}
@@ -1148,7 +1146,7 @@
 		}
 		function unfriend() {
 			return $this->unfollow();
-		}			
+		}
 	}
 
 	/*
@@ -1244,4 +1242,3 @@
 			return $this->API->sendDirectMessage(false,$content,$this->Sender->ID);
 		}
 	}
-?>

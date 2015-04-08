@@ -1,3 +1,24 @@
+<?
+	// Check writability of directories
+	$directories_to_check = array(
+		"cache/",
+		"extensions/",
+		"site/extensions/"
+	);
+	foreach ($directories_to_check as $directory) {
+		if (!is_writable(SERVER_ROOT.$directory)) {
+?>
+<div class="container">
+	<section>
+		<h3>Error</h3>
+		<p>Your <code>/<?=$directory?></code> directory must be writable to install extensions.</p>
+	</section>
+</div>
+<?
+			$admin->stop();
+		}
+	}
+?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/install/unpack/" enctype="multipart/form-data">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />

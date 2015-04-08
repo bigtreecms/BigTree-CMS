@@ -25,7 +25,6 @@
 						?>
 						<li>
 							<input type="hidden" name="callouts[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-							<span class="icon_sort"></span>
 							<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>

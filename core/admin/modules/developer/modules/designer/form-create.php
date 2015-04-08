@@ -31,7 +31,7 @@
 		
 		// Figure out what to make the MySQL field.
 		$a = "ADD COLUMN `$field_name` ";
-		if ($t == "textarea" || $t == "html" || $t == "photo-gallery" || $t == "array") {
+		if ($t == "textarea" || $t == "html" || $t == "photo-gallery" || $t == "array" || $t == "matrix" || $t == "callouts") {
 			$a .= "TEXT";
 		} elseif ($t == "date") {
 			$a .= "DATE";

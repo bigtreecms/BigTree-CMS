@@ -34,6 +34,8 @@
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
+		$bigtree["field_namespace"] = uniqid("template_field_");
+		$bigtree["field_counter"] = 0;
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 	
@@ -45,7 +47,6 @@
 					"subtitle" => $resource["subtitle"],
 					"key" => "resources[".$resource["id"]."]",
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
-					"id" => uniqid("field_"),
 					"tabindex" => $bigtree["tabindex"],
 					"options" => $resource["options"]
 				);

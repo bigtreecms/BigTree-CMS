@@ -34,7 +34,7 @@
 							<optgroup label="<?=$g["name"]?>">
 								<?
 										foreach ($modules as $m) {
-											if (!$m["extension"]) {
+											if (!$m["extension"] || $m["extension"] == $id) {
 								?>
 								<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
 								<?
@@ -74,7 +74,7 @@
 								<?
 									$templates = $admin->getBasicTemplates("name ASC");
 									foreach ($templates as $template) {
-										if (!$template["extension"]) {
+										if (!$template["extension"] || $template["extension"] == $id) {
 								?>
 								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
 								<?
@@ -86,7 +86,7 @@
 								<?
 									$templates = $admin->getRoutedTemplates("name ASC");
 									foreach ($templates as $template) {
-										if (!$template["extension"]) {
+										if (!$template["extension"] || $template["extension"] == $id) {
 								?>
 								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
 								<?
@@ -121,7 +121,7 @@
 							<?
 								$callouts = $admin->getCallouts("name ASC");
 								foreach ($callouts as $callout) {
-									if (!$callout["extension"]) {
+									if (!$callout["extension"] || $callout["extension"] == $id) {
 							?>
 							<option value="<?=$callout["id"]?>"><?=$callout["name"]?></option>
 							<?
@@ -158,7 +158,7 @@
 								<?
 									$settings = $admin->getSettings();
 									foreach ($settings as $setting) {
-										if (!$setting["extension"]) {
+										if (!$setting["extension"] || $setting["extension"] == $id) {
 								?>
 								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
 								<?
@@ -203,7 +203,7 @@
 							<?
 								$feeds = $admin->getFeeds();
 								foreach ($feeds as $feed) {
-									if (!$feed["extension"]) {
+									if (!$feed["extension"] || $feed["extension"] == $id) {
 							?>
 							<option value="<?=$feed["id"]?>"><?=$feed["name"]?></option>
 							<?
@@ -237,7 +237,7 @@
 							<?
 								$field_types = $admin->getFieldTypes();
 								foreach ($field_types as $type) {
-									if (!$type["extension"]) {
+									if (!$type["extension"] || $type["extension"] == $id) {
 							?>
 							<option value="<?=$type["id"]?>"><?=$type["name"]?></option>
 							<?

@@ -1,12 +1,11 @@
-<?
+<?php
 	/*
 		Class: BigTreeGooglePlusAPI
 			Google+ API class that implements people and activity related calls.
 	*/
-	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-	require_once(BigTree::path("inc/bigtree/apis/_google.result-set.php"));
 
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_google.result-set.php";
 	class BigTreeGooglePlusAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
@@ -72,7 +71,6 @@
 
 		function getActivities($user = "me",$count = 100,$params = array()) {
 			$response = $this->call("people/$user/activities/public",array_merge(array(
-				"orderBy" => $order,
 				"maxResults" => $count
 			),$params));
 
@@ -83,7 +81,7 @@
 			foreach ($response->items as $activity) {
 				$results[] = new BigTreeGooglePlusActivity($activity,$this);
 			}
-			return new BigTreeGoogleResultSet($this,"getActivities",array($user,$count,$order,$params),$response,$results);
+			return new BigTreeGoogleResultSet($this,"getActivities",array($user,$count,$params),$response,$results);
 		}
 
 		/*
@@ -521,4 +519,3 @@
 			return $this->API->getCircledPeople($this->ID,$count,$order,$params);
 		}
 	}
-?>

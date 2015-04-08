@@ -1,13 +1,12 @@
-<?
+<?php
 	/*
 		Class: BigTreeSalesforceAPI
 			Salesforce API class that implements a BigTree-esque module API over Salesforce.
 	*/
-	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
 
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeSalesforceAPI extends BigTreeOAuthAPIBase {
-		
+
 		var $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
 		var $EndpointURL = "";
 		var $OAuthVersion = "2.0";
@@ -27,13 +26,13 @@
 
 			// Set OAuth Return URL
 			$this->ReturnURL = ADMIN_ROOT."developer/services/salesforce/return/";
-		
+
 			// Change things if we're in the test environment.
 			if ($this->Settings["test_environment"]) {
 				$this->AuthorizeURL = str_ireplace("login.","test.",$this->AuthorizeURL);
 				$this->TokenURL = str_replace("login.","test.",$this->TokenURL);
 			}
-			
+
 			// Get a new access token for this session.
 			$this->Connected = false;
 			if ($this->Settings["refresh_token"]) {
@@ -127,12 +126,12 @@
 			$this->Triggerable = $object->triggerable;
 			$this->Undeletable = $object->undeletable;
 			$this->Updateable = $object->updateable;
-			
+
 			// Find out the fields of this object.
 			$response = $this->API->call("sobjects/".$this->Name."/describe/");
 			if (!isset($response->name)) {
 				return false;
-			} 
+			}
 			$fields = array();
 			$field_names = array();
 			foreach ($response->fields as $f) {
@@ -164,7 +163,7 @@
 		/*
 			Function: add
 				Adds a record to Salesforce.
-			
+
 			Parameters:
 				keys - An array of column names to add
 				vals - An array of values for each of the columns
@@ -192,7 +191,7 @@
 				$r->ID = $response->id;
 				$r->Type = $this->Name;
 				$r->CreatedAt = $r->UpdatedAt = date("Y-m-d H:i:s");
-				return $r;				
+				return $r;
 			} else {
 				$this->API->Errors[] = (!is_array($response)) ? json_decode($response) : $response;
 				return false;
@@ -242,7 +241,7 @@
 
 			Parameters:
 				order - The sort order (in SOSQL syntax, defaults to "Id ASC")
-			
+
 			Returns:
 				An array of BigTreeSalesforceRecord objects.
 		*/
@@ -260,7 +259,7 @@
 				values - Either a signle field value or an array of field values (if you pass an array you must pass an array for fields as well)
 				order - The sort order (in SOSQL syntax, defaults to "Id ASC")
 				limit - Max number of records to return, defaults to all
-			
+
 			Returns:
 				An array of BigTreeSalesforceRecord objects.
 		*/
@@ -270,6 +269,7 @@
 				$where = "$fields = '".sqlescape($values)."'";
 			} else {
 				$x = 0;
+				$where = array();
 				while ($x < count($fields)) {
 					$where[] = $fields[$x]." = '".sqlescape($values[$x])."'";
 					$x++;
@@ -290,23 +290,23 @@
 		/*
 			Function: getPage
 				Returns a page of records.
-			
+
 			Parameters:
 				page - The page to return.
 				order - The sort order (in SOSQL syntax, defaults to "Id ASC")
 				perpage - The number of results per page (defaults to 15)
 				where - Optional SOSQL WHERE conditions
-			
+
 			Returns:
 				An array of BigTreeSalesforceRecord objects.
 		*/
-		
+
 		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$full_response = false) {
 			// Don't try for page 0
 			if ($page < 1) {
 				$page = 1;
 			}
-			
+
 			if ($where) {
 				$query = "SELECT ".$this->QueryFieldNames." FROM ".$this->Name." WHERE $where ORDER BY $order LIMIT $perpage OFFSET ".(($page - 1) * $perpage);
 			} else {
@@ -327,13 +327,13 @@
 		*/
 
 		function query($query,$full_response = false) {
-			
+
 			if (strpos($query, "query/") > -1) {
 				$response = $this->API->call($query);
 			} else {
 				$response = $this->API->call("query/?q=".urlencode($query));
 			}
-			
+
 			if (!isset($response->records)) {
 				return false;
 			}
@@ -348,16 +348,16 @@
 		/*
 			Function: search
 				Returns an array of records from Salesforce that match the search query.
-			
+
 			Parameters:
 				query - A string to search for.
 				order - The SOQL sort order (defaults to "Id ASC")
 				limit - Max number of records to return, defaults to all
-			
+
 			Returns:
 				An array of BigTreeSalesforceRecord objects.
 		*/
-		
+
 		function search($query,$order = "Id ASC",$limit = false,$full_response = false) {
 			$where = array();
 			$searchable_types = array("string","picklist","textarea","phone","url");
@@ -379,13 +379,13 @@
 		/*
 			Function: update
 				Updates an entry in Salesforce.
-			
+
 			Parameters:
 				id - The Id of the entry.
 				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well)
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 		*/
-		
+
 		function update($id,$fields,$values) {
 			$record = array();
 			if (is_array($fields)) {
@@ -485,12 +485,12 @@
 		/*
 			Function: update
 				Updates this entry in Salesforce.
-			
+
 			Parameters:
 				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well)
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 		*/
-		
+
 		function update($fields,$values) {
 			$record = array();
 			if (is_array($fields)) {
@@ -510,4 +510,3 @@
 			return true;
 		}
 	}
-?>

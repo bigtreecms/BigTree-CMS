@@ -17,18 +17,23 @@
 	foreach ($keywords as &$word) {
 		$word = trim($word);
 	}
+
 	// Fix licenses into an array
-	if ($license_name) {
+	if (array_filter((array)$licenses)) {
+		$license_array = array();
+		foreach ($licenses as $license) {
+			$license_array[$license] = $available_licenses["Open Source"][$license];
+		}
+	} elseif ($license_name) {
 		$license_array = array($license_name => $license_url);
 	} elseif ($license) {
 		$license_array = array($license => $available_licenses["Closed Source"][$license]);
-	} else {
-		$license_array = array();
-		if (is_array($licenses)) {
-			foreach ($licenses as $license) {
-				$license_array[$license] = $available_licenses["Open Source"][$license];
-			}
-		}
+	}
+
+	// Create extension directory if it doesn't exist
+	$extension_root = SERVER_ROOT."extensions/$id/";
+	if (!file_exists($extension_root)) {
+		BigTree::makeDirectory($extension_root);
 	}
 	
 	// Setup JSON manifest
@@ -36,6 +41,7 @@
 		"type" => "extension",
 		"id" => $id,
 		"version" => $version,
+		"revision" => 1,
 		"compatibility" => $compatibility,
 		"title" => $title,
 		"description" => $description,
@@ -51,32 +57,34 @@
 			"feeds" => array(),
 			"field_types" => array(),
 			"tables" => array()
-		),
-		"sql" => array("SET foreign_key_checks = 0")
+		)
 	);
+
+	// We're going to be associating things to the extension before creating it
+	sqlquery("SET foreign_key_checks = 0");
 
 	$used_forms = array();
 	$used_views = array();
 	$used_reports = array();
 	$extension = sqlescape($id);
 
-	foreach ((array)$module_groups as $group) {
+	foreach (array_filter((array)$module_groups) as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
 	}
 	
-	foreach ((array)$callouts as $callout) {
+	foreach (array_filter((array)$callouts) as $callout) {
 		if (strpos($callout,"*") === false) {
 			sqlquery("UPDATE bigtree_callouts SET extension = '$extension', id = '$extension*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
 		}
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
 	
-	foreach ((array)$feeds as $feed) {
+	foreach (array_filter((array)$feeds) as $feed) {
 		sqlquery("UPDATE bigtree_feeds SET route = CONCAT('$extension/',route), extension = '$extension' WHERE id = '".sqlescape($feed)."'");
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
 	}
 	
-	foreach ((array)$settings as $setting) {
+	foreach (array_filter((array)$settings) as $setting) {
 		sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
@@ -84,7 +92,7 @@
 	// Setup anonymous function for converting old field type IDs to new ones
 	$field_type_converter = function($table,$field) {
 		global $id,$type;
-		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%'");
+		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%' OR `$field` LIKE '%\"type\": \"".sqlescape($type)."\"%'");
 		while ($f = sqlfetch($q)) {
 			$array = json_decode($f[$field],true);
 			foreach ($array as &$item) {
@@ -101,8 +109,8 @@
 			sqlquery("UPDATE `$table` SET `$field` = '".BigTree::json($array,true)."' WHERE id = '".$f["id"]."'");
 		}
 	};
-	
-	foreach ((array)$field_types as $type) {
+
+	foreach (array_filter((array)$field_types) as $type) {
 		// Currently non-extension field type becoming an extension one
 		if (strpos($type,"*") === false) {
 			sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
@@ -112,91 +120,77 @@
 			$field_type_converter("bigtree_module_forms","fields");
 			$field_type_converter("bigtree_module_embeds","fields");
 			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
+
+			// Move files into new format
+			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$extension_root."field-types/$type/process.php");
+			BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/options.php");
+			
+			// Change type ID
+			$type = "$id*$type";
 		}
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
 
-	foreach ((array)$templates as $template) {
+	foreach (array_filter((array)$templates) as $template) {
 		if (strpos($template,"*") === false) {
 			sqlquery("UPDATE bigtree_templates SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($template)."'");
 		}
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}
 
-	foreach ((array)$modules as $module) {
+	foreach (array_filter((array)$modules) as $module) {
 		$module = $admin->getModule($module);
-		$new_route = false;
+		
+		// If the module isn't namespaced yet, namespace it
 		if (strpos($module["route"],"*") === false) {
 			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
 			$new_route = $extension."*".$module["route"];
 		} else {
 			sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
+			$new_route = false;
 		}
+		
 		$module["actions"] = $admin->getModuleActions($module["id"]);
-		foreach ($module["actions"] as $a) {
-			// If there's an auto module, include it as well.
-			if ($a["form"] && !in_array($a["form"],$used_forms)) {
-				// If we've changed module routes, make sure we adjust return view URLs
-				if ($new_route) {
+		// Loop through actions to update URLs for preview / return if we've moved this module into an extension namespace
+		if ($new_route) {
+			foreach ($module["actions"] as $a) {
+				// Adjust return view URLs for forms
+				if ($a["form"]) {
 					sqlquery("UPDATE bigtree_module_forms SET return_url = REPLACE(return_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["form"]."'");
-				}
-				$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
-				$used_forms[] = $a["form"];
-			} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-				// If we've changed module routes, make sure we adjust preview URLs
-				if ($new_route) {
+				// Adjust preview URLs for views
+				} elseif ($a["view"]) {
 					sqlquery("UPDATE bigtree_module_views SET preview_url = REPLACE(preview_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["view"]."'");
 				}
-
-				$view = BigTreeAutoModule::getView($a["view"],false);
-				// Unset edit_url as it exposes origin URL
-				unset($view["edit_url"]);
-				$module["views"][] = $view;
-				$used_views[] = $a["view"];
-			} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
-				$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
-				$used_reports[] = $a["report"];
 			}
 		}
+
+		$module["views"] = $admin->getModuleViews("title",$module["id"]);
+		$module["forms"] = $admin->getModuleForms("title",$module["id"]);
 		$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
+		$module["reports"] = $admin->getModuleReports("title",$module["id"]);
+
 		$package["components"]["modules"][] = $module;
 	}
 	
-	foreach ((array)$tables as $t) {
-		$x++;
-		list($table,$type) = explode("#",$t);
+	foreach (array_filter((array)$tables) as $table) {
+		// Set the table to the create statement
 		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
-		$package["sql"][] = "DROP TABLE IF EXISTS `$table`";
-		$package["sql"][] = str_replace(array("\r","\n")," ",end($f));
-		if ($type != "structure") {
-			$q = sqlquery("SELECT * FROM `$table`");
-			while ($f = sqlfetch($q)) {
-				$fields = array();
-				$values = array();
-				foreach ($f as $key => $val) {
-					$fields[] = "`$key`";
-					if ($val === null) {
-						$values[] = "NULL";
-					} else {
-						$values[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
-					}
-				}
-				$package["sql"][] = "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).")";
-			}
-		}
-		$package["components"]["tables"][] = $table;
+		$create_statement = str_replace(array("\r","\n")," ",end($f));
+
+		// Drop auto increments and constraint names
+		$create_statement = preg_replace('/(AUTO_INCREMENT\=\d*\s)/',"",$create_statement);
+		$create_statement = preg_replace("/CONSTRAINT `([^`]*)`/i","",$create_statement);
+
+		$package["components"]["tables"][$table] = $create_statement;
 	}
-	$package["sql"][] = "SET foreign_key_checks = 1";
 	
 	// Move all the files into the extensions directory
-	if (!file_exists(SERVER_ROOT."extensions/$id/")) {
-		mkdir(SERVER_ROOT."extensions/$id/");
-		chmod(SERVER_ROOT."extensions/$id/",0777);
-	}
 	foreach ((array)$files as $file) {
 		$file = str_replace(SERVER_ROOT,"",$file);
 		if (substr($file,0,11) != "extensions/") {
 			$d = false;
+
 			// We need to determine where files should be moved to based on their original file structure
 			if (substr($file,0,18) == "custom/admin/ajax/") {
 				$d = "ajax/".substr($file,18);
@@ -210,24 +204,76 @@
 				$d = "modules/".substr($file,21);
 			} elseif (substr($file,0,19) == "custom/inc/modules/") {
 				$d = "classes/".substr($file,19);
-			} elseif (substr($file,0,30) == "custom/admin/form-field-types/") {
-				$d = "field-types/".substr($file,30);
 			} elseif (substr($file,0,10) == "templates/") {
 				$d = $file;
 			} elseif (substr($file,0,5) == "site/") {
-				$d = $file;
+				// Already in the proper directory, should be copied to public, not moved
+				if (strpos($file,"site/extensions/$id/") === 0) {
+					BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/public/".str_replace("site/extensions/$id/","",$file));
+				// Move into the site/extensions/ folder and then copy into /public/
+				} else {
+					BigTree::moveFile(SERVER_ROOT.$file,SITE_ROOT."extensions/$id/".substr($file,5));
+					BigTree::copyFile(SITE_ROOT."extensions/$id/".substr($file,5),SERVER_ROOT."extensions/$id/public/".substr($file,5));
+				}
 			}
+
+			// If we have a place to move it to, move it.
 			if ($d) {
 				BigTree::moveFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/".$d);
 			}
 		}
+	}
+
+	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
+	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."' AND type = 'extension'"));
+	if ($existing) {
+		$existing_json = json_decode($existing["manifest"],true);
+
+		// Increment revision numbers
+		$revision = $package["revision"] = intval($existing_json["revision"]) + 1;
+		$package["sql_revisions"] = (array)$existing_json["sql_revisions"];
+		$package["sql_revisions"][$revision] = array();
+
+		// Diff the old tables
+		foreach ($existing_json["components"]["tables"] as $table => $create_statement) {
+			// If the table exists in the new manifest, we're going to see if they're identical
+			if (isset($package["components"]["tables"][$table])) {
+				// We're going to create a temporary table of the old structure to compare to the current table
+				$create_statement = preg_replace("/CREATE TABLE `([^`]*)`/i","CREATE TABLE `bigtree_extension_temp`",$create_statement);
+				$create_statement = preg_replace("/CONSTRAINT `([^`]*)`/i","",$create_statement);
+				sqlquery("DROP TABLE IF EXISTS `bigtree_extension_temp`");
+				sqlquery($create_statement);
+
+				// Compare the tables, if we have changes to make, store them in a SQL revisions portion of the manifest
+				$transition_statements = BigTree::tableCompare("bigtree_extension_temp",$table);
+				foreach ($transition_statements as $statement) {
+					// Don't include changes to auto increment
+					if (stripos($statement,"auto_increment = ") === false) {
+						$package["sql_revisions"][$revision][] = str_replace("`bigtree_extension_temp`","`$table`",$statement);
+					}
+				}
+			// Table doesn't exist in the new manifest, so we're going to drop it
+			} else {
+				$package["sql_revisions"][$revision][] = "DROP TABLE IF EXISTS `$table`";
+			}
+		}
+
+		// Add new tables that don't exist in the old manifest
+		foreach ($package["components"]["tables"] as $table => $create_statement) {
+			if (!isset($existing_json["components"]["tables"][$table])) {
+				$package["sql_revisions"][$revision][] = $create_statement;
+			}
+		}
+
+		// Clean up the revisions (if we don't have any)
+		$package["sql_revisions"] = array_filter($package["sql_revisions"]);
 	}
 	
 	// Write the manifest file
 	$json = BigTree::json($package);
 	BigTree::putFile(SERVER_ROOT."extensions/$id/manifest.json",$json);
 	
-	// Create the zip
+	// Create the zip, clear caches since we may have moved the routes of field types and modules
 	@unlink(SERVER_ROOT."cache/package.zip");
 	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
@@ -235,12 +281,15 @@
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 
-	// Store it in the database for future updates
-	if (sqlrows(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
-		sqlquery("UPDATE bigtree_extensions SET name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
+	// Store it in the database for future updates -- existing packages might be replaced
+	if (sqlrows(sqlquery("SELECT id FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
+		sqlquery("UPDATE bigtree_extensions SET type = 'extension', name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
 	} else {
 		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
 	}
+
+	// Turn foreign key checks back on
+	sqlquery("SET foreign_key_checks = 1");
 ?>
 <div class="container">
 	<section>

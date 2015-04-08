@@ -1,11 +1,10 @@
-<?
+<?php
 	/*
 		Class: BigTreeDisqusAPI
 			The main Disqus API class used to retrieve lower level Disqus objects.
 	*/
 
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
-
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeDisqusAPI extends BigTreeOAuthAPIBase {
 
 		var $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
@@ -98,6 +97,7 @@
 			if ($response !== false) {
 				return new BigTreeDisqusForum($response,$this);
 			}
+			return false;
 		}
 
 		/*
@@ -108,7 +108,7 @@
 				id - The category id
 
 			Returns:
-				A BigTreeDisqusCategory object.
+				A BigTreeDisqusCategory object if successful.
 		*/
 
 		function getCategory($id) {
@@ -117,6 +117,7 @@
 				$this->cachePush("category".$response->id);
 				return new BigTreeDisqusCategory($response,$this);
 			}
+			return false;
 		}
 
 		/*
@@ -127,7 +128,7 @@
 				shortname - The forum shortname
 
 			Returns:
-				A BigTreeDisqusForum object.
+				A BigTreeDisqusForum object if successful.
 		*/
 
 		function getForum($shortname) {
@@ -136,6 +137,7 @@
 				$this->cachePush("forum".$response->id);
 				return new BigTreeDisqusForum($response,$this);
 			}
+			return false;
 		}
 
 		/*
@@ -146,7 +148,7 @@
 				post - The post ID
 
 			Returns:
-				A BigTreeDisqusPost object.
+				A BigTreeDisqusPost object if successful.
 		*/
 
 		function getPost($id) {
@@ -155,6 +157,7 @@
 				$this->cachePush("post".$response->id);
 				return new BigTreeDisqusPost($response,$this);
 			}
+			return false;
 		}
 
 		/*
@@ -166,7 +169,7 @@
 				forum - If looking up by link, the shortname for the forum is required.
 
 			Returns:
-				A BigTreeDisqusThread object.
+				A BigTreeDisqusThread object if successful.
 		*/
 
 		function getThread($thread,$forum = false) {
@@ -186,6 +189,7 @@
 				$this->cachePush("thread".$response->id);
 				return new BigTreeDisqusThread($response,$this);
 			}
+			return false;
 		}
 
 		/*
@@ -197,7 +201,7 @@
 				user - The ID of the user or the person's username (leave blank to use the authenticated user)
 
 			Returns:
-				A BigTreeDisqusUser object.
+				A BigTreeDisqusUser object if successful.
 		*/
 
 		function getUser($user = false) {
@@ -212,6 +216,7 @@
 				$this->cachePush("user".$response->id);
 				return new BigTreeDisqusUser($response,$this);
 			}
+			return false;
 		}
 	}
 
@@ -494,7 +499,7 @@
 					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
-				return new BigTreeDisqusResultSet($this,"getMostActiveUsers",array($limit,$order,$params),$response->Cursor,$results);
+				return new BigTreeDisqusResultSet($this,"getMostActiveUsers",array($limit,$params),$response->Cursor,$results);
 			}
 			return false;
 		}
@@ -521,7 +526,7 @@
 					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
-				return new BigTreeDisqusResultSet($this,"getMostLikedUsers",array($limit,$order,$params),$response->Cursor,$results);
+				return new BigTreeDisqusResultSet($this,"getMostLikedUsers",array($limit,$params),$response->Cursor,$results);
 			}
 			return false;
 		}
@@ -641,7 +646,7 @@
 					$this->API->cachePush("user".$user->id);
 					$results[] = new BigTreeDisqusUser($user,$this->API);
 				}
-				return new BigTreeDisqusResultSet($this,"getUsers",array($limit,$order,$since,$params),$response->Cursor,$results);
+				return new BigTreeDisqusResultSet($this,"getUsers",array($limit,$params),$response->Cursor,$results);
 			}
 			return false;
 		}
@@ -1351,4 +1356,3 @@
 			return false;
 		}
 	}
-?>

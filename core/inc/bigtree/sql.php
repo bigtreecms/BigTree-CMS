@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: SQL Wrappers
 			Support for splitting reads/writes and handling error throwing automatically.
@@ -55,7 +55,7 @@
 				
 				if (!$connection) {
 					$commands = explode(" ",$query);
-					$fc = strtolower($bigtree["commands"][0]);
+					$fc = strtolower($commands[0]);
 					if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
 						$connection = &$bigtree["mysql_write_connection"];
 						$type = "write";
@@ -204,7 +204,7 @@
 				
 				if (!$connection) {
 					$commands = explode(" ",$query);
-					$fc = strtolower($bigtree["commands"][0]);
+					$fc = strtolower($commands[0]);
 					if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
 						$connection = &$bigtree["mysql_write_connection"];
 						$type = "write";
@@ -293,4 +293,3 @@
 			return mysql_real_escape_string($string);
 		}
 	}
-?>

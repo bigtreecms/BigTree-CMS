@@ -408,6 +408,9 @@
 	function _local_bigtree_update_200() {
 		global $cms,$admin;
 
+		// Drop unused comments column
+		sqlquery("ALTER TABLE bigtree_pending_changes DROP COLUMN `comments`");
+
 		// Add extension columns
 		sqlquery("ALTER TABLE bigtree_callouts ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_callouts ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
@@ -417,6 +420,8 @@
 		sqlquery("ALTER TABLE bigtree_field_types ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_modules ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_modules ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
+		sqlquery("ALTER TABLE bigtree_module_groups ADD COLUMN `extension` VARCHAR(255)");
+		sqlquery("ALTER TABLE bigtree_module_groups ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_settings ADD COLUMN `extension` VARCHAR(255)");
 		sqlquery("ALTER TABLE bigtree_settings ADD FOREIGN KEY (extension) REFERENCES `bigtree_extensions` (id) ON DELETE CASCADE");
 		sqlquery("ALTER TABLE bigtree_templates ADD COLUMN `extension` VARCHAR(255)");
@@ -478,7 +483,7 @@
 		sqlquery("INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-media-settings','{}','on')");
 
 		// New field types
-		unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+		@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 		// Setup an anonymous function for converting a resource set
 		$resource_converter = function($resources) {
@@ -549,6 +554,7 @@
 				}
 				$new_fields[] = $r;
 			}
+			return $new_fields;
 		};
 
 		// New resource format to be less restrictive on option names

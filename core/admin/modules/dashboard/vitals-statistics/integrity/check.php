@@ -47,7 +47,7 @@
 	BigTree.localCurrentItem = 0;
 	
 	BigTree.localDownloadPage = function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/check-page-integrity/?external=<?=$external?>&id=" + BigTree.localPageList[BigTree.localCurrentPage], {
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/?external=<?=$external?>&id=" + BigTree.localPageList[BigTree.localCurrentPage], {
 			complete: function(response) {
 				if (response.responseText) {
 					$("#pages_updates").append(response.responseText);
@@ -84,7 +84,7 @@
 	};
 	
 	BigTree.localDownloadItem = function(number) {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/check-module-integrity/?external=<?=$external?>&form=" + BigTree.localModuleList[BigTree.localCurrentModule].id + "&id=" + BigTree.localModuleList[BigTree.localCurrentModule].items[number], {
+		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/module/?external=<?=$external?>&form=" + BigTree.localModuleList[BigTree.localCurrentModule].id + "&id=" + BigTree.localModuleList[BigTree.localCurrentModule].items[number], {
 			complete: function(response) {
 				if (response.responseText) {
 					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append(response.responseText);

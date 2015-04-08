@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeFTP
 			An FTP class heavily based on PemFTP by Alexey Dotsenko.
@@ -236,7 +236,7 @@
 				fclose($fp);
 				return false;
 			}
-			$out = $this->_data_read($mode, $fp);
+			$this->_data_read($mode, $fp);
 			fclose($fp);
 			$this->_data_close();
 			if(!$this->_readmsg() || !$this->_checkCode()) {
@@ -464,7 +464,7 @@
 				fclose($fp);
 				return false;
 			}
-			$ret = $this->_data_write($mode, $fp);
+			$this->_data_write($mode, $fp);
 			fclose($fp);
 			$this->_data_close();
 			if (!$this->_readmsg() || !$this->_checkCode()) {
@@ -619,7 +619,7 @@
 					}
 				}
 			} while($go);
-			$this->_code = (int)$regs[1];
+
 			return $result;
 		}
 
@@ -644,4 +644,3 @@
 			return true;
 		}
 	}
-?>

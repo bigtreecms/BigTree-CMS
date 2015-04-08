@@ -5,13 +5,19 @@
 			<article class="package_column package_column_double">
 				<strong>Files</strong>
 				<ul id="package_files">
-					<? foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) { ?>
+					<?
+						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) {
+							if (file_exists($file)) {
+					?>
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
 						<span><?=str_replace(SERVER_ROOT,"",$file)?></span>
 					</li>
-					<? } ?>
+					<?
+							}
+						}
+					?>
 				</ul>
 				<div class="add_file adder">
 					<a href="#"><span class="icon_small icon_small_folder"></span>Browse For File</a>
@@ -22,14 +28,13 @@
 				<ul>
 					<?
 						$used_tables = array();
-						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] as $table_hash) {
-							list($table,$type) = explode("#",$table_hash);
+						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] as $table) {
+							list($table) = explode("#",$table);
 							$used_tables[] = $table;
 					?>
 					<li>
-						<input type="hidden" name="tables[]" value="<?=$table_hash?>" />
+						<input type="hidden" name="tables[]" value="<?=$table?>" />
 						<a href="#<?=$table?>" class="icon_small icon_small_delete"></a>
-						<a href="#<?=$table?>" class="icon_small <? if ($type == "with-data") { ?>icon_small_export<? } else { ?>icon_small_list<? } ?>"></a>
 						<?=$table?>
 					</li>
 					<?
@@ -65,7 +70,7 @@
 		var table = table_select.val();
 		if (table) {
 			var li = $("<li>");
-			li.html('<input type="hidden" name="tables[]" value="' + table + '#structure" /><a href="#' + table + '" class="icon_small icon_small_delete"></a><a href="#' + table + '" class="icon_small icon_small_list"></a>' + table);
+			li.html('<input type="hidden" name="tables[]" value="' + table + '" /><a href="#' + table + '" class="icon_small icon_small_delete"></a>' + table);
 			$(this).parent().parent().find("ul").append(li);
 			// Remove from the select
 			table_select.find("option[value='" + table + "']").remove();
@@ -85,15 +90,7 @@
 		});
 	});
 
-	$(".package_column").on("click",".icon_small_export",function() {
-		$(this).prev("input").val($(this).attr("href").substr(1) + "#structure");
-		$(this).removeClass("icon_small_export").addClass("icon_small_list");
-		return false;
-	}).on("click",".icon_small_list",function() {
-		$(this).prev("input").val($(this).attr("href").substr(1) + "#with-data");
-		$(this).removeClass("icon_small_list").addClass("icon_small_export");
-		return false;
-	}).on("click",".icon_small_delete",function() {
+	$(".package_column").on("click",".icon_small_delete",function() {
 		// Get table name, add back to the dropdown
 		var table = $(this).attr("href").substr(1);
 		var option = $('<option value="' + table + '">' + table + '</option>');

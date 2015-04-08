@@ -1,20 +1,19 @@
-<?
+<?php
 	/*
 		Class: BigTreeInstagramAPI
 			Instagram API class that implements most API calls (media posting excluded).
 	*/
-	
-	require_once(BigTree::path("inc/bigtree/apis/_oauth.base.php"));
 
+	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeInstagramAPI extends BigTreeOAuthAPIBase {
-		
+
 		var $AuthorizeURL = "https://api.instagram.com/oauth/authorize/";
 		var $EndpointURL = "https://api.instagram.com/v1/";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "custom";
 		var $Scope = "basic comments relationships likes";
 		var $TokenURL = "https://api.instagram.com/oauth/access_token";
-		
+
 		/*
 			Constructor:
 				Sets up the Instagram API connections.
@@ -52,7 +51,7 @@
 			Function: comment
 				Leaves a comment on a media post by the authenticated user.
 				This method requires special access permissions for your Instagram application.
-				Please email apidevelopers@instagram.com for access. 
+				Please email apidevelopers@instagram.com for access.
 
 			Parameters:
 				id - The media ID to comment on.
@@ -213,7 +212,7 @@
 			Parameters:
 				count - The number of media results to return (defaults to 10)
 				params - Additional parameters to pass to the users/self/media/liked API call
-			
+
 			Returns:
 				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
 
@@ -346,19 +345,24 @@
 
 			Parameters:
 				id - The media ID
+				shortcode - The media shortcode (from instagram.com shortlink URL, optional & replaces ID)
 
 			Returns:
 				A BigTreeInstagramMedia object.
 		*/
 
-		function getMedia($id) {
-			$response = $this->call("media/$id");
+		function getMedia($id, $shortcode = false) {
+			if ($shortcode) {
+				$response = $this->call("media/shortcode/$id");
+			} else {
+				$response = $this->call("media/$id");
+			}
 			if (!isset($response->data)) {
 				return false;
 			}
 			return new BigTreeInstagramMedia($response->data,$this);
 		}
-		
+
 		/*
 			Function: getRelationship
 				Returns the relationship of the given user to the authenticated user
@@ -393,7 +397,7 @@
 				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
 
 			See Also:
-				http://instagram.com/developer/endpoints/tags/	
+				http://instagram.com/developer/endpoints/tags/
 		*/
 
 		function getTaggedMedia($tag,$params = array()) {
@@ -995,4 +999,3 @@
 			return $this->API->setRelationship($this->ID,$action);
 		}
 	}
-?>

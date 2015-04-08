@@ -42,6 +42,8 @@
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					$bigtree["tabindex"] = 1;
+					$bigtree["field_namespace"] = uniqid("form_field_");
+					$bigtree["field_counter"] = 0;
 	
 					$cached_types = $admin->getCachedFieldTypes();
 					$bigtree["field_types"] = $cached_types["modules"];
@@ -54,7 +56,6 @@
 								"subtitle" => $resource["subtitle"],
 								"key" => $resource["column"],
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
-								"id" => uniqid("field_"),
 								"tabindex" => $bigtree["tabindex"],
 								"options" => $resource["options"]
 							);

@@ -40,7 +40,7 @@
 		$path = BigTree::path("admin/ajax/developer/field-options/$field_type.php");
 	} else {
 		list($extension,$field_type) = explode("*",$field_type);
-		$path = SERVER_ROOT."extensions/$extension/ajax/developer/field-options/$field_type.php";	
+		$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/options.php";	
 	}
 
 	if (file_exists($path)) {

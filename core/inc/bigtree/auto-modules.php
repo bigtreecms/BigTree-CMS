@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeAutoModule
 			Handles functions for auto module forms / views created in Developer.
@@ -62,7 +62,6 @@
 					$poplists = array();
 					
 					foreach ($view["fields"] as $key => $field) {
-						$value = $item[$key];
 						if ($field["parser"]) {
 							$parsers[$key] = $field["parser"];
 						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
@@ -785,10 +784,8 @@
 		*/
 
 		static function getPendingItem($table,$id) {
-			global $cms,$module;
 			$status = "published";
 			$many_to_many = array();
-			$resources = array();
 			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
@@ -844,7 +841,7 @@
 				} elseif (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
-					$item[$key] = $cms->replaceInternalPageLinks($val);
+					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
 				}
 			}
 			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
@@ -1054,9 +1051,6 @@
 		*/
 		
 		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false) {
-			// We're going to read the original table so we know whether the column we're sorting by is numeric.
-			$tableInfo = BigTree::describeTable($view["table"]);
-			
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
 			
@@ -1458,7 +1452,7 @@
 
 				// Sanitize Integers
 				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
-					if ($val !== 0 && !$val && $allow_null == "YES") {
+					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
 						$data[$key] = "NULL";	
 					} else {
 						$data[$key] = intval(str_replace(array(",","$"),"",$val));
@@ -1466,7 +1460,7 @@
 				}
 				// Sanitize Floats
 				if ($type == "float" || $type == "double" || $type == "decimal") {
-					if ($val !== 0 && !$val && $allow_null == "YES") {
+					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
 						$data[$key] = "NULL";	
 					} else {
 						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
@@ -1533,7 +1527,7 @@
 		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
 			global $admin;
 			if (!isset($admin) || get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				throw Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
+				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
 			}
 
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
@@ -1796,4 +1790,3 @@
 			return $message;
 		}
 	}
-?>

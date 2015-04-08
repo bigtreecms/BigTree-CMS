@@ -5,6 +5,11 @@
 	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
+	// Run SQL
+	foreach ($json["sql"] as $sql) {
+		sqlquery($sql);
+	}
+	
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {
 		if ($group) {
@@ -19,6 +24,7 @@
 		if ($module) {
 			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : "NULL";
 			$gbp = sqlescape(is_array($module["gbp"]) ? BigTree::json($module["gbp"]) : $module["gbp"]);
+			
 			// Find a unique route
 			$oroute = $route = $module["route"];
 			$x = 2;
@@ -26,6 +32,7 @@
 				$route = $oroute."-$x";
 				$x++;
 			}
+			
 			// Create the module
 			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp')");
 			$module_id = sqlid();
@@ -38,22 +45,30 @@
 			foreach ($module["embed_forms"] as $form) {
 				$admin->createModuleEmbedForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
 			}
+
 			// Create views
 			foreach ($module["views"] as $view) {
 				$bigtree["view_id_match"][$view["id"]] = $admin->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($view["options"]) ? $view["options"] : json_decode($view["options"],true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["related_form"],$view["preview_url"]);
 			}
+			
 			// Create regular forms
 			foreach ($module["forms"] as $form) {
+				// 4.1 package compatibility
+				if (!is_array($form["hooks"])) {
+					$form["hooks"] = array("pre" => $form["preprocess"],"post" => $form["callback"],"publish" => false);
+				}
 				$bigtree["form_id_match"][$form["id"]] = $admin->createModuleForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
 				// Update related form values
 				foreach ($bigtree["view_id_match"] as $view_id) {
 					sqlquery("UPDATE bigtree_module_views SET related_form = '".$bigtree["form_id_match"][$form["id"]]."' WHERE related_form = '".$form["id"]."' AND id = '$view_id'");
 				}
 			}
+			
 			// Create reports
 			foreach ($module["reports"] as $report) {
 				$bigtree["report_id_match"][$report["id"]] = $admin->createModuleReport($module_id,$report["title"],$report["table"],$report["type"],(is_array($report["filters"]) ? $report["filters"] : json_decode($report["filters"],true)),(is_array($report["fields"]) ? $report["fields"] : json_decode($report["fields"],true)),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
 			}
+			
 			// Create actions
 			foreach ($module["actions"] as $action) {
 				$admin->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$bigtree["form_id_match"][$action["form"]],$bigtree["view_id_match"][$action["view"]],$bigtree["report_id_match"][$action["report"]],$action["level"],$action["position"]);
@@ -121,20 +136,11 @@
 		BigTree::copyFile(SERVER_ROOT."cache/package/$file",SERVER_ROOT.$file);
 	}
 
-	// Run SQL
-	foreach ($json["sql"] as $sql) {
-		sqlquery($sql);
-	}
 	// Empty view cache
 	sqlquery("DELETE FROM bigtree_module_view_cache");
 
-	// Remove the package directory, we do it backwards because the "deepest" files are last
-	$contents = @array_reverse(BigTree::directoryContents(SERVER_ROOT."cache/package/"));
-	foreach ($contents as $file) {
-		@unlink($file);
-		@rmdir($file);
-	}
-	@rmdir(SERVER_ROOT."cache/package/");
+	// Remove the package directory
+	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
 	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");

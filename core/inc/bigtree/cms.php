@@ -1,10 +1,10 @@
-<?
+<?php
 	/*
 		Class: BigTreeCMS
 			The primary interface to BigTree that is used by the front end of the site for pulling settings, navigation, and page content.
 	*/
 
-	class BigTreeCMS {
+	class BigTreeCMSBase {
 	
 		var $AutoSaveSettings = array();
 
@@ -70,7 +70,7 @@
 		*/
 
 		function &autoSaveSetting($id,$return_object = true) {
-			$id = self::extensionSettingCheck($id);
+			$id = static::extensionSettingCheck($id);
 
 			// Only want one usage to exist
 			if (!isset($this->AutoSaveSettings[$id])) {
@@ -148,11 +148,11 @@
 
 		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
 			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-			if (!self::$MySQLTime) {
+			if (!static::$MySQLTime) {
 				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
-				self::$MySQLTime = $t["time"];
+				static::$MySQLTime = $t["time"];
 			}
-			$max_age = date("Y-m-d H:i:s",strtotime(self::$MySQLTime) - $max_age);
+			$max_age = date("Y-m-d H:i:s",strtotime(static::$MySQLTime) - $max_age);
 			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
@@ -180,13 +180,12 @@
 				key - The key for your data.
 				value - The data to store.
 				replace - Whether to replace an existing value (defaults to true).
-				force_object - Use JSON_FORCE_OBJECT (defaults to true).
 
 			Returns:
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		static function cachePut($identifier,$key,$value,$replace = true,$force_object = true) {
+		static function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -212,10 +211,10 @@
 		static function catch404() {
 			global $admin,$bigtree,$cms;
 			
-			if (self::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
 				$bigtree["layout"] = "default";
 				ob_start();
-				include "../templates/basic/_404.php";
+				include SERVER_ROOT."templates/basic/_404.php";
 				$bigtree["content"] = ob_get_clean();
 				ob_start();
 				include "../templates/layouts/".$bigtree["layout"].".php";
@@ -277,7 +276,7 @@
 						$val = BigTree::untranslateArray(json_decode($val,true));
 					} else {
 						// Otherwise it's a string, just replace the {wwwroot} and ipls.
-						$val = self::replaceInternalPageLinks($val);				
+						$val = static::replaceInternalPageLinks($val);				
 					}
 					$data[$key] = $val;
 				}
@@ -299,7 +298,7 @@
 			while ($f = sqlfetch($q)) {
 				if ($f["template"] || strpos($f["external"],DOMAIN)) {	
 					if (!$f["template"]) {
-						$link = self::getInternalPageLink($f["external"]);
+						$link = static::getInternalPageLink($f["external"]);
 					} else {
 						$link = WWW_ROOT.$f["path"].(($f["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
 					}
@@ -371,7 +370,7 @@
 		
 		static function getBreadcrumb($ignore_trunk = false) {
 			global $bigtree;
-			return self::getBreadcrumbByPage($bigtree["page"],$ignore_trunk);
+			return static::getBreadcrumbByPage($bigtree["page"],$ignore_trunk);
 		}
 		
 		/*
@@ -409,7 +408,7 @@
 				// In case we want to know what the trunk is.
 				if ($f["trunk"]) {
 					$trunk_hit = true;
-					self::$BreadcrumbTrunk = $f;
+					static::$BreadcrumbTrunk = $f;
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
@@ -458,7 +457,7 @@
 			$item["options"] = json_decode($item["options"],true);
 			if (is_array($item["options"])) {
 				foreach ($item["options"] as &$option) {
-					$option = self::replaceRelativeRoots($option);
+					$option = static::replaceRelativeRoots($option);
 				}
 			}
 			$item["fields"] = json_decode($item["fields"],true);
@@ -482,7 +481,7 @@
 		static function getFeedByRoute($route) {
 			$route = sqlescape($route);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
-			return self::getFeed($item);
+			return static::getFeed($item);
 		}
 		
 		/*
@@ -500,7 +499,7 @@
 		*/
 		
 		static function getHiddenNavByParent($parent = 0) {
-			return self::getNavByParent($parent,1,false,true);
+			return static::getNavByParent($parent,1,false,true);
 		}
 		
 		/*
@@ -517,7 +516,7 @@
 		static function getInternalPageLink($ipl) {
 			// Regular links
 			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
-				return self::replaceRelativeRoots($ipl);
+				return static::replaceRelativeRoots($ipl);
 			}
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
@@ -525,16 +524,16 @@
 			// Resource Links
 			if ($ipl[0] == "irl:") {
 				// See if it's in the cache.
-				if (isset(self::$IRLCache[$navid])) {
+				if (isset(static::$IRLCache[$navid])) {
 					if ($ipl[2]) {
-						return BigTree::prefixFile(self::$IRLCache[$navid],$ipl[2]);
+						return BigTree::prefixFile(static::$IRLCache[$navid],$ipl[2]);
 					} else {
-						return self::$IRLCache[$navid];
+						return static::$IRLCache[$navid];
 					}
 				} else {
 					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
-					$file = $r ? self::replaceRelativeRoots($r["file"]) : false;
-					self::$IRLCache[$navid] = $file;
+					$file = $r ? static::replaceRelativeRoots($r["file"]) : false;
+					static::$IRLCache[$navid] = $file;
 					if ($ipl[2]) {
 						return BigTree::prefixFile($file,$ipl[2]);
 					} else {
@@ -561,13 +560,13 @@
 			}
 
 			// See if it's in the cache.
-			if (isset(self::$IPLCache[$navid])) {
-				return self::$IPLCache[$navid].$commands;
+			if (isset(static::$IPLCache[$navid])) {
+				return static::$IPLCache[$navid].$commands;
 			} else {
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 				// Set the cache
-				self::$IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
+				static::$IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
 				return WWW_ROOT.$f["path"]."/".$commands;
 			}
 		}
@@ -647,7 +646,7 @@
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
 				if ($f["external"] && $f["template"] == "") {
-					$link = self::getInternalPageLink($f["external"]);
+					$link = static::getInternalPageLink($f["external"]);
 					if ($f["new_window"] == "Yes") {
 						$new_window = true;
 					}
@@ -664,7 +663,7 @@
 			
 			// If we're looking for children, send them all back into getNavByParent, decrease the depth we're looking for by one.
 			if (count($find_children)) {
-				$subnav = self::getNavByParent($find_children,$levels - 1,$follow_module);
+				$subnav = static::getNavByParent($find_children,$levels - 1,$follow_module);
 				foreach ($subnav as $item) {
 					// Reassign these new children back to their parent node.
 					$nav[$item["parent"]]["children"][$item["id"]] = $item;
@@ -786,10 +785,10 @@
 				return false;
 			}
 			if ($f["external"] && $f["template"] == "") {
-				$f["external"] = self::getInternalPageLink($f["external"]);
+				$f["external"] = static::getInternalPageLink($f["external"]);
 			}
 			if ($decode) {
-				$f["resources"] = self::decodeResources($f["resources"]);
+				$f["resources"] = static::decodeResources($f["resources"]);
 				// Backwards compatibility with 4.0 callout system
 				if (isset($f["resources"]["4.0-callouts"])) {
 					$f["callouts"] = $f["resources"]["4.0-callouts"];
@@ -818,13 +817,13 @@
 		static function getPendingPage($id,$decode = true,$return_tags = false) {
 			// Numeric id means the page is live.
 			if (is_numeric($id)) {
-				$page = self::getPage($id);
+				$page = static::getPage($id);
 				if (!$page) {
 					return false;
 				}
 				// If we're looking for tags, apply them to the page.
 				if ($return_tags) {
-					$page["tags"] = self::getTagsForPage($id);
+					$page["tags"] = static::getTagsForPage($id);
 				}
 				// Get pending changes for this page.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
@@ -849,7 +848,7 @@
 				$changes = json_decode($f["changes"],true);
 				foreach ($changes as $key => $val) {
 					if ($key == "external") {
-						$val = self::getInternalPageLink($val);
+						$val = static::getInternalPageLink($val);
 					}
 					$page[$key] = $val;
 				}
@@ -869,7 +868,7 @@
 			// Turn resource entities into arrays that have been IPL decoded.
 			if ($decode) {
 				if (isset($page["resources"]) && is_array($page["resources"])) {
-					$page["resources"] = self::decodeResources($page["resources"]);	
+					$page["resources"] = static::decodeResources($page["resources"]);	
 				}
 
 				// Backwards compatibility with 4.0 callout system
@@ -942,7 +941,7 @@
 			array_multisort($relevance,SORT_DESC,$results);
 			$items = array();
 			foreach ($results as $result) {
-				$items[] = self::getPage($result);
+				$items[] = static::getPage($result);
 			}
 			return $items;
 		}
@@ -960,7 +959,7 @@
 		
 		static function getSetting($id) {
 			global $bigtree;
-			$id = self::extensionSettingCheck($id);
+			$id = static::extensionSettingCheck($id);
 			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
 			// Setting doesn't exist
 			if (!$setting) {
@@ -976,7 +975,7 @@
 			if (is_array($value)) {
 				return BigTree::untranslateArray($value);
 			} else {
-				return self::replaceInternalPageLinks($value);
+				return static::replaceInternalPageLinks($value);
 			}
 		}
 		
@@ -997,14 +996,14 @@
 
 			// If for some reason we only requested one, just call getSetting
 			if (!is_array($ids)) {
-				return array($self::getSetting($ids));
+				return array(static::getSetting($ids));
 			}
 
 			// If we're in an extension, just call getSetting on the whole array since we need to make inferences on each ID
 			if (defined("EXTENSION_ROOT")) {
 				$settings = array();
 				foreach ($ids as $id) {
-					$settings[$id] = self::getSetting($id);
+					$settings[$id] = static::getSetting($id);
 				}
 				return $settings;
 			}
@@ -1025,7 +1024,7 @@
 				if (is_array($value)) {
 					$settings[$f["id"]] = BigTree::untranslateArray($value);
 				} else {
-					$settings[$f["id"]] = self::replaceInternalPageLinks($value);
+					$settings[$f["id"]] = static::replaceInternalPageLinks($value);
 				}
 			}
 			return $settings;
@@ -1124,7 +1123,7 @@
 		
 		static function getTopLevelNavigationId($trunk_as_toplevel = false) {
 			global $bigtree;
-			return self::getTopLevelNavigationIdForPage($bigtree["page"],$trunk_as_toplevel);
+			return static::getTopLevelNavigationIdForPage($bigtree["page"],$trunk_as_toplevel);
 		}
 		
 		/*
@@ -1180,7 +1179,7 @@
 			}
 
 			if ($f["redirect_url"]) {
-				$f["redirect_url"] = self::getInternalPageLink($f["redirect_url"]);
+				$f["redirect_url"] = static::getInternalPageLink($f["redirect_url"]);
 
 				if ($f["redirect_url"] == "/") {
 					$f["redirect_url"] = "";
@@ -1217,7 +1216,7 @@
 			if (!$_SERVER["HTTPS"]) {
 				BigTree::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"],"301");
 			}
-			self::$Secure = true;
+			static::$Secure = true;
 		}
 		
 		/*
@@ -1233,21 +1232,21 @@
 
 		static function replaceHardRoots($string) {
 			// Figure out what roots we can replace
-			if (!count(self::$ReplaceableRootKeys)) {
+			if (!count(static::$ReplaceableRootKeys)) {
 				if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
-					self::$ReplaceableRootKeys[] = ADMIN_ROOT;
-					self::$ReplaceableRootVals[] = "{adminroot}";
+					static::$ReplaceableRootKeys[] = ADMIN_ROOT;
+					static::$ReplaceableRootVals[] = "{adminroot}";
 				}
 				if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
-					self::$ReplaceableRootKeys[] = STATIC_ROOT;
-					self::$ReplaceableRootVals[] = "{staticroot}";
+					static::$ReplaceableRootKeys[] = STATIC_ROOT;
+					static::$ReplaceableRootVals[] = "{staticroot}";
 				}
 				if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
-					self::$ReplaceableRootKeys[] = WWW_ROOT;
-					self::$ReplaceableRootVals[] = "{wwwroot}";
+					static::$ReplaceableRootKeys[] = WWW_ROOT;
+					static::$ReplaceableRootVals[] = "{wwwroot}";
 				}
 			}
-			return str_replace(self::$ReplaceableRootKeys,self::$ReplaceableRootVals,$string);
+			return str_replace(static::$ReplaceableRootKeys,static::$ReplaceableRootVals,$string);
 		}
 
 		/*
@@ -1262,17 +1261,15 @@
 		*/
 		
 		static function replaceInternalPageLinks($html) {
-			$drop_count = 0;
-
 			// Save time if there's no content
 			if (trim($html) === "") {
 				return "";
 			}
 			
 			if (substr($html,0,6) == "ipl://" || substr($html,0,6) == "irl://") {
-				$html = self::getInternalPageLink($html);
+				$html = static::getInternalPageLink($html);
 			} else {
-				$html = self::replaceRelativeRoots($html);
+				$html = static::replaceRelativeRoots($html);
 				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array("BigTreeCMS","replaceInternalPageLinksHook"),$html);
 				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array("BigTreeCMS","replaceInternalPageLinksHook"),$html);
 			}
@@ -1280,7 +1277,7 @@
 			return $html;
 		}
 		static function replaceInternalPageLinksHook($matches) {
-			return '="'.self::getInternalPageLink($matches[1]).'"';
+			return '="'.static::getInternalPageLink($matches[1]).'"';
 		}
 		
 		/*
@@ -1322,4 +1319,3 @@
 			return $title;
 		}
 	}
-?>

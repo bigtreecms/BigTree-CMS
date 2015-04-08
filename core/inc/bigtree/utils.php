@@ -12,27 +12,7 @@
 		static $CountryListWithAbbreviations = array("AF" => "Afghanistan (‫افغانستان‬‎)","AX" => "Åland Islands (Åland)","AL" => "Albania (Shqipëri)","DZ" => "Algeria (‫الجزائر‬‎)","AS" => "American Samoa","AD" => "Andorra","AO" => "Angola","AI" => "Anguilla","AQ" => "Antarctica","AG" => "Antigua and Barbuda","AR" => "Argentina","AM" => "Armenia (Հայաստան)","AW" => "Aruba","AC" => "Ascension Island","AU" => "Australia","AT" => "Austria (Österreich)","AZ" => "Azerbaijan (Azərbaycan)","BS" => "Bahamas","BH" => "Bahrain (‫البحرين‬‎)","BD" => "Bangladesh (বাংলাদেশ)","BB" => "Barbados","BY" => "Belarus (Беларусь)","BE" => "Belgium (België)","BZ" => "Belize","BJ" => "Benin (Bénin)","BM" => "Bermuda","BT" => "Bhutan (འབྲུག)","BO" => "Bolivia","BA" => "Bosnia and Herzegovina (Босна и Херцеговина)","BW" => "Botswana","BV" => "Bouvet Island","BR" => "Brazil (Brasil)","IO" => "British Indian Ocean Territory","VG" => "British Virgin Islands","BN" => "Brunei","BG" => "Bulgaria (България)","BF" => "Burkina Faso","BI" => "Burundi (Uburundi)","KH" => "Cambodia (កម្ពុជា)","CM" => "Cameroon (Cameroun)","CA" => "Canada","IC" => "Canary Islands (islas Canarias)","CV" => "Cape Verde (Kabu Verdi)","BQ" => "Caribbean Netherlands","KY" => "Cayman Islands","CF" => "Central African Republic (République centrafricaine)","EA" => "Ceuta and Melilla (Ceuta y Melilla)","TD" => "Chad (Tchad)","CL" => "Chile","CN" => "China (中国)","CX" => "Christmas Island","CP" => "Clipperton Island","CC" => "Cocos (Keeling) Islands (Kepulauan Cocos (Keeling))","CO" => "Colombia","KM" => "Comoros (‫جزر القمر‬‎)","CD" => "Congo (DRC) (Jamhuri ya Kidemokrasia ya Kongo)","CG" => "Congo (Republic) (Congo-Brazzaville)","CK" => "Cook Islands","CR" => "Costa Rica","CI" => "Côte d’Ivoire","HR" => "Croatia (Hrvatska)","CU" => "Cuba","CW" => "Curaçao","CY" => "Cyprus (Κύπρος)","CZ" => "Czech Republic (Česká republika)","DK" => "Denmark (Danmark)","DG" => "Diego Garcia","DJ" => "Djibouti","DM" => "Dominica","DO" => "Dominican Republic (República Dominicana)","EC" => "Ecuador","EG" => "Egypt (‫مصر‬‎)","SV" => "El Salvador","GQ" => "Equatorial Guinea (Guinea Ecuatorial)","ER" => "Eritrea","EE" => "Estonia (Eesti)","ET" => "Ethiopia","FK" => "Falkland Islands (Islas Malvinas)","FO" => "Faroe Islands (Føroyar)","FJ" => "Fiji","FI" => "Finland (Suomi)","FR" => "France","GF" => "French Guiana (Guyane française)","PF" => "French Polynesia (Polynésie française)","TF" => "French Southern Territories (Terres australes françaises)","GA" => "Gabon","GM" => "Gambia","GE" => "Georgia (საქართველო)","DE" => "Germany (Deutschland)","GH" => "Ghana (Gaana)","GI" => "Gibraltar","GR" => "Greece (Ελλάδα)","GL" => "Greenland (Kalaallit Nunaat)","GD" => "Grenada","GP" => "Guadeloupe","GU" => "Guam","GT" => "Guatemala","GG" => "Guernsey","GN" => "Guinea (Guinée)","GW" => "Guinea-Bissau (Guiné Bissau)","GY" => "Guyana","HT" => "Haiti","HM" => "Heard & McDonald Islands","HN" => "Honduras","HK" => "Hong Kong (香港)","HU" => "Hungary (Magyarország)","IS" => "Iceland (Ísland)","IN" => "India (भारत)","ID" => "Indonesia","IR" => "Iran (‫ایران‬‎)","IQ" => "Iraq (‫العراق‬‎)","IE" => "Ireland","IM" => "Isle of Man","IL" => "Israel (‫ישראל‬‎)","IT" => "Italy (Italia)","JM" => "Jamaica","JP" => "Japan (日本)","JE" => "Jersey","JO" => "Jordan (‫الأردن‬‎)","KZ" => "Kazakhstan (Казахстан)","KE" => "Kenya","KI" => "Kiribati","XK" => "Kosovo (Kosovë)","KW" => "Kuwait (‫الكويت‬‎)","KG" => "Kyrgyzstan (Кыргызстан)","LA" => "Laos (ລາວ)","LV" => "Latvia (Latvija)","LB" => "Lebanon (‫لبنان‬‎)","LS" => "Lesotho","LR" => "Liberia","LY" => "Libya (‫ليبيا‬‎)","LI" => "Liechtenstein","LT" => "Lithuania (Lietuva)","LU" => "Luxembourg","MO" => "Macau (澳門)","MK" => "Macedonia (FYROM) (Македонија)","MG" => "Madagascar (Madagasikara)","MW" => "Malawi","MY" => "Malaysia","MV" => "Maldives","ML" => "Mali","MT" => "Malta","MH" => "Marshall Islands","MQ" => "Martinique","MR" => "Mauritania (‫موريتانيا‬‎)","MU" => "Mauritius (Moris)","YT" => "Mayotte","MX" => "Mexico (México)","FM" => "Micronesia","MD" => "Moldova (Republica Moldova)","MC" => "Monaco","MN" => "Mongolia (Монгол)","ME" => "Montenegro (Crna Gora)","MS" => "Montserrat","MA" => "Morocco (‫المغرب‬‎)","MZ" => "Mozambique (Moçambique)","MM" => "Myanmar (Burma) (မြန်မာ)","NA" => "Namibia (Namibië)","NR" => "Nauru","NP" => "Nepal (नेपाल)","NL" => "Netherlands (Nederland)","NC" => "New Caledonia (Nouvelle-Calédonie)","NZ" => "New Zealand","NI" => "Nicaragua","NE" => "Niger (Nijar)","NG" => "Nigeria","NU" => "Niue","NF" => "Norfolk Island","MP" => "Northern Mariana Islands","KP" => "North Korea (조선 민주주의 인민 공화국)","NO" => "Norway (Norge)","OM" => "Oman (‫عُمان‬‎)","PK" => "Pakistan (‫پاکستان‬‎)","PW" => "Palau","PS" => "Palestine (‫فلسطين‬‎)","PA" => "Panama (Panamá)","PG" => "Papua New Guinea","PY" => "Paraguay","PE" => "Peru (Perú)","PH" => "Philippines","PN" => "Pitcairn Islands","PL" => "Poland (Polska)","PT" => "Portugal","PR" => "Puerto Rico","QA" => "Qatar (‫قطر‬‎)","RE" => "Réunion (La Réunion)","RO" => "Romania (România)","RU" => "Russia (Россия)","RW" => "Rwanda","BL" => "Saint Barthélemy (Saint-Barthélemy)","SH" => "Saint Helena","KN" => "Saint Kitts and Nevis","LC" => "Saint Lucia","MF" => "Saint Martin (Saint-Martin (partie française))","PM" => "Saint Pierre and Miquelon (Saint-Pierre-et-Miquelon)","WS" => "Samoa","SM" => "San Marino","ST" => "São Tomé and Príncipe (São Tomé e Príncipe)","SA" => "Saudi Arabia (‫المملكة العربية السعودية‬‎)","SN" => "Senegal (Sénégal)","RS" => "Serbia (Србија)","SC" => "Seychelles","SL" => "Sierra Leone","SG" => "Singapore","SX" => "Sint Maarten","SK" => "Slovakia (Slovensko)","SI" => "Slovenia (Slovenija)","SB" => "Solomon Islands","SO" => "Somalia (Soomaaliya)","ZA" => "South Africa","GS" => "South Georgia & South Sandwich Islands","KR" => "South Korea (대한민국)","SS" => "South Sudan (‫جنوب السودان‬‎)","ES" => "Spain (España)","LK" => "Sri Lanka (ශ්‍රී ලංකාව)","VC" => "St. Vincent & Grenadines","SD" => "Sudan (‫السودان‬‎)","SR" => "Suriname","SJ" => "Svalbard and Jan Mayen (Svalbard og Jan Mayen)","SZ" => "Swaziland","SE" => "Sweden (Sverige)","CH" => "Switzerland (Schweiz)","SY" => "Syria (‫سوريا‬‎)","TW" => "Taiwan (台灣)","TJ" => "Tajikistan","TZ" => "Tanzania","TH" => "Thailand (ไทย)","TL" => "Timor-Leste","TG" => "Togo","TK" => "Tokelau","TO" => "Tonga","TT" => "Trinidad and Tobago","TA" => "Tristan da Cunha","TN" => "Tunisia (‫تونس‬‎)","TR" => "Turkey (Türkiye)","TM" => "Turkmenistan","TC" => "Turks and Caicos Islands","TV" => "Tuvalu","UM" => "U.S. Outlying Islands","VI" => "U.S. Virgin Islands","UG" => "Uganda","UA" => "Ukraine (Україна)","AE" => "United Arab Emirates (‫الإمارات العربية المتحدة‬‎)","GB" => "United Kingdom","US" => "United States","UY" => "Uruguay","UZ" => "Uzbekistan (Oʻzbekiston)","VU" => "Vanuatu","VA" => "Vatican City (Città del Vaticano)","VE" => "Venezuela","VN" => "Vietnam (Việt Nam)","WF" => "Wallis and Futuna","EH" => "Western Sahara (‫الصحراء الغربية‬‎)","YE" => "Yemen (‫اليمن‬‎)","ZM" => "Zambia","ZW" => "Zimbabwe");
 		static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
 		static $JSONEncoding = false;
-
-		/*
-			Function: apiEncode
-				Turns an array into the currently desired API encoding.
-			
-			Parameters:
-				array - An array of content with key/value pairs.
-		
-			Returns:
-				Either an XML string or JSON string.
-		*/
-		
-		static function apiEncode($array) {
-			if (BIGTREE_API_ENCODING == "json") {
-				header("Content-type: application/json");
-				return self::json($array);
-			} else {
-				header("Content-type: text/xml");
-				return self::arrayToXML($data);
-			}	
-		}
+		static $SUTestResult = null;
 	
 		/*
 			Function: arrayToXML
@@ -50,7 +30,7 @@
 			$xml = "";
 			foreach ($array as $key => $val) {
 				if (is_array($val)) {
-					$xml .= "$tab<$key>\n".self::arrayToXML($val,"$tab\t")."$tab</$key>\n";
+					$xml .= "$tab<$key>\n".static::arrayToXML($val,"$tab\t")."$tab</$key>\n";
 				} else {
 					if (strpos($val,">") === false && strpos($val,"<") === false && strpos($val,"&") === false) {
 						$xml .= "$tab<$key>$val</$key>\n";
@@ -90,11 +70,11 @@
 				$nw = $w * $v;
 				$x = ceil(($nw - $cw) / 2 * $w / $nw);
 				$y = 0;
-				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h,$retina,$grayscale);
+				return static::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h,$retina,$grayscale);
 			} else {
 				$y = ceil(($nh - $ch) / 2 * $h / $nh);
 				$x = 0;
-				return self::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2),$retina,$grayscale);
+				return static::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2),$retina,$grayscale);
 			}
 		}
 
@@ -112,19 +92,21 @@
 			} elseif ($route = $bigtree["module_list"][$class]) {
 				if (strpos($route,"*") !== false) {
 					list($extension,$class) = explode("*",$route);
-					include_once SERVER_ROOT."extensions/$extension/classes/$class.php";
-					return;
+					$path = SERVER_ROOT."extensions/$extension/classes/$class.php";
+					if (file_exists($path)) {
+						include_once $path;
+						return;
+					}
 				} else {
-					$path = self::path("inc/modules/$route.php");
+					$path = static::path("inc/modules/$route.php");
 					if (file_exists($path)) {
 						include_once $path;
 						return;
 					}
 				}
-			} else {
-				// Clear the module class list just in case we're missing something.
-				@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
+			// Clear the module class list just in case we're missing something.
+			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
 		
 		/*
@@ -176,20 +158,19 @@
 		*/
 		
 		static function copyFile($from,$to) {
-			if (!self::isDirectoryWritable($to)) {
+			if (!static::isDirectoryWritable($to)) {
 				return false;
 			}
 			// is_readable doesn't work on URLs
 			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
 				return false;
 			}
-			$pathinfo = self::pathInfo($to);
-			$file_name = $pathinfo["basename"];
+			$pathinfo = static::pathInfo($to);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
 			$success = copy($from,$to);
-			@chmod($to,0777);
+			static::setPermissions($to);
 			return $success;
 		}
 		
@@ -210,14 +191,14 @@
 				grayscale - Whether to make the crop be in grayscale or not, defaults to false
 
 			Returns:
-				The new file name if successful, false if there was not enough memory available.
+				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
 		*/
 		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
 
 			// If we don't have the memory available, fail gracefully.
-			if (!self::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
+			if (!static::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
 				return false;
 			}
 			
@@ -238,6 +219,8 @@
 				$original_image = imagecreatefromgif($file);
 			} elseif ($type == IMAGETYPE_PNG) {
 				$original_image = imagecreatefrompng($file);
+			} else {
+				return false;
 			}
 			
 			imagealphablending($original_image, true);
@@ -256,7 +239,7 @@
 			} elseif ($type == IMAGETYPE_PNG) {
 				imagepng($cropped_image,$new_file);
 			}
-			chmod($new_file,0777);
+			static::setPermissions($new_file);
 		
 			imagedestroy($original_image);
 			imagedestroy($cropped_image);
@@ -273,29 +256,37 @@
 				new_file - The location to save the new cropped image.
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
-				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
-				grayscale - Whether to make the crop be in grayscale or not, defaults to false
+				retina - Whether to create a retina-style image (2x, lower quality) if able (defaults to false).
+				grayscale - Whether to make the crop be in grayscale or not (defaults to false).
+				upscale - If set to true, upscales to the maxwidth / maxheight instead of downscaling (defaults to false, disables retina).
 
 			Returns:
-				The new file name if successful, false if there was not enough memory available.
+				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
+			
+			See Also:
+				createUpscaledImage
 		*/
 		
-		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false) {
+		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
 			global $bigtree;
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
-			list($type,$w,$h,$result_width,$result_height) = self::getThumbnailSizes($file,$maxwidth,$maxheight);
+			if ($upscale) {
+				list($type,$w,$h,$result_width,$result_height) = static::getUpscaleSizes($file,$maxwidth,$maxheight);
+			} else {
+				list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$maxwidth,$maxheight);
+			}
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
-			if ($retina && $result_width * 2 <= $w && $result_height * 2 <= $h) {
+			if ($retina && !$upscale && $result_width * 2 <= $w && $result_height * 2 <= $h) {
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 				$result_width *= 2;
 				$result_height *= 2;
 			}
 
 			// If we don't have the memory available, fail gracefully.
-			if (!self::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
+			if (!static::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
 				return false;
 			}
 
@@ -306,6 +297,8 @@
 				$original_image = imagecreatefromgif($file);
 			} elseif ($type == IMAGETYPE_PNG) {
 				$original_image = imagecreatefrompng($file);
+			} else {
+				return false;
 			}
 		
 			imagealphablending($original_image, true);
@@ -324,12 +317,33 @@
 			} elseif ($type == IMAGETYPE_PNG) {
 				imagepng($thumbnailed_image,$new_file);
 			}
-			chmod($new_file,0777);
+			static::setPermissions($new_file);
 			
 			imagedestroy($original_image);
 			imagedestroy($thumbnailed_image);
 			
 			return $new_file;
+		}
+
+		/*
+			Function: createUpscaledImage
+				Creates a upscaled image from a source image.
+			
+			Parameters:
+				file - The location of the image to crop.
+				new_file - The location to save the new cropped image.
+				min_width - The minimum width of the new image (0 for no max).
+				min_height - The minimum height of the new image (0 for no max).
+			
+			Returns:
+				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
+
+			See Also:
+				createThumbnail
+		*/
+		
+		static function createUpscaledImage($file,$new_file,$min_width,$min_height) {
+			return static::createThumbnail($file,$new_file,$min_width,$min_height,false,false,true);
 		}
 		
 		/*
@@ -341,33 +355,56 @@
 				url - The URL to retrieve / POST to.
 				post - A key/value pair array of things to POST (optional).
 				options - A key/value pair of extra cURL options (optional).
-				strict_security - Force SSL verification of the host and peer if true.
+				strict_security - Force SSL verification of the host and peer if true (optional, defaults to false).
+				output_file - A file location to dump the output of the request to (optional, replaces return value).
 			
 			Returns:
 				The string response from the URL.
 		*/
 		
-		static function cURL($url,$post = false,$options = array(),$strict_security = false) {
+		static function cURL($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
 			global $bigtree;
 
+			// Startup cURL and set the URL
 			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($ch,CURLOPT_URL, $url);
+
+			// Determine whether we're forcing valid SSL on the peer and host
 			if (!$strict_security) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); 
+				curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,0);
+				curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,0); 
 			}
+
+			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
+			if ($output_file) {
+				$file_pointer = fopen($output_file,"w");
+				curl_setopt($ch,CURLOPT_FILE,$file_pointer);
+			} else {
+				curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+			}
+
+			// Setup post data
 			if ($post) {
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 			}
+
+			// Any additional cURL options
 			if (count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
 				}
 			}
-			$output = curl_exec($ch);
+
 			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
+			$output = curl_exec($ch);
 			curl_close($ch);
+
+			// If we're outputting to a file, close the handle and return nothing
+			if ($output_file) {
+				fclose($file_pointer);
+				return;
+			}
+
 			return $output;
 		}
 		
@@ -420,22 +457,29 @@
 			
 			Parameters:
 				dir - The directory to delete.
+
+			Returns:
+				true if successful
 		*/
 		
 		static function deleteDirectory($dir) {
+			if (!file_exists($dir)) {
+				return false;
+			}
+			
 			// Make sure it has a trailing /
 			$dir = rtrim($dir,"/")."/";
 			$r = opendir($dir);
 			while ($file = readdir($r)) {
 				if ($file != "." && $file != "..") {
 					if (is_dir($dir.$file)) {
-						self::deleteDirectory($dir.$file);
+						static::deleteDirectory($dir.$file);
 					} else {
 						unlink($dir.$file);
 					}
 				}
 			}
-			rmdir($dir);
+			return rmdir($dir);
 		}
 		
 		/*
@@ -449,7 +493,7 @@
 				An array of table information.
 		*/
 		
-		static function describeTable($table,$db = false) {
+		static function describeTable($table) {
 			$result["columns"] = array();
 			$result["indexes"] = array();
 			$result["foreign_keys"] = array();
@@ -475,14 +519,14 @@
 						$unique = false;
 					}
 					// Get the key's name.
-					$key_name = self::nextSQLColumnDefinition($line);
+					$key_name = static::nextSQLColumnDefinition($line);
 					// Get the key's content
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 4); // Skip ` (`
 					$line = substr(rtrim($line,","),0,-1); // Remove trailing , and )
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$size = false;
 						// See if there's a size definition, include it
 						if (substr($line,strlen($part) + 1,1) == "(") {
@@ -502,7 +546,7 @@
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
 						if ($part) {
 							if (strpos($part,"KEY_BLOCK_SIZE=") === false) {
@@ -513,7 +557,7 @@
 					$result["primary_key"] = $key_parts;
 				} elseif (strtoupper(substr($line,0,10)) == "CONSTRAINT") { // Foreign Keys
 					$line = substr($line,12); // Remove CONSTRAINT `
-					$key_name = self::nextSQLColumnDefinition($line);
+					$key_name = static::nextSQLColumnDefinition($line);
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
 					
 					// Get local reference columns
@@ -521,7 +565,7 @@
 					$part = true;
 					$end = false;
 					while (!$end && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + 1); // Take off the trailing `
 						if (substr($line,0,1) == ")") {
 							$end = true;
@@ -533,7 +577,7 @@
 
 					// Get other table name
 					$line = substr($line,14); // Skip ) REFERENCES `
-					$other_table = self::nextSQLColumnDefinition($line);
+					$other_table = static::nextSQLColumnDefinition($line);
 					$line = substr($line,strlen($other_table) + substr_count($other_table,"`") + 4); // Remove ` (`
 
 					// Get other table columns
@@ -541,7 +585,7 @@
 					$part = true;
 					$end = false;
 					while (!$end && $part) {
-						$part = self::nextSQLColumnDefinition($line);
+						$part = static::nextSQLColumnDefinition($line);
 						$line = substr($line,strlen($part) + 1); // Take off the trailing `
 						if (substr($line,0,1) == ")") {
 							$end = true;
@@ -569,7 +613,7 @@
 							if ($current_key) {
 								$result["foreign_keys"][$key_name][$current_key] = $current_val;
 								$current_key = "";
-								$current_Val = "";
+								$current_val = "";
 							}
 							$on_hit = true;
 						} else {
@@ -581,7 +625,7 @@
 					}
 				} elseif (substr($line,0,1) == "`") { // Column Definition
 					$line = substr($line,1); // Get rid of the first `
-					$key = self::nextSQLColumnDefinition($line); // Get the column name.
+					$key = static::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
 					$size = "";
@@ -859,7 +903,7 @@
 		*/
 		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			$parts = self::pathInfo($directory.$file);
+			$parts = static::pathInfo($directory.$file);
 			
 			// Clean up the file name
 			$clean_name = BigTreeCMS::urlify($parts["filename"]);
@@ -916,7 +960,7 @@
 		*/
 		
 		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
-			$table_description = self::describeTable($table);
+			$table_description = static::describeTable($table);
 			if (!$table_description) {
 				echo '<option>ERROR: Table Missing</option>';
 				return;
@@ -983,8 +1027,6 @@
 		*/
 		
 		static function getThumbnailSizes($file,$maxwidth,$maxheight) {
-			global $bigtree;
-			
 			list($w, $h, $type) = getimagesize($file);
 			if ($w > $maxwidth && $maxwidth) {
 				$perc = $maxwidth / $w;
@@ -1002,6 +1044,47 @@
 				if ($result_width > $maxwidth && $maxwidth) {
 					$perc = $maxwidth / $result_width;
 					$result_width = $maxwidth;
+					$result_height = round($result_height * $perc,0);
+				}
+			} else {
+				$result_width = $w;
+				$result_height = $h;
+			}
+			
+			return array($type,$w,$h,$result_width,$result_height);
+		}
+
+		/*
+			Function: getUpscaleSizes
+				Returns a list of sizes of an image and the result sizes.
+			
+			Parameters:
+				file - The location of the image to crop.
+				min_width - The minimum width of the new image (0 for no min).
+				min_height - The maximum height of the new image (0 for no min).
+			
+			Returns:
+				An array with (type,width,height,result width,result height)
+		*/
+		
+		static function getUpscaleSizes($file,$min_width,$min_height) {
+			list($w, $h, $type) = getimagesize($file);
+			if ($w < $min_width && $min_width) {
+				$perc = $min_width / $w;
+				$result_width = $min_width;
+				$result_height = round($h * $perc,0);
+				if ($result_height < $min_height && $min_height) {
+					$perc = $min_height / $result_height;
+					$result_height = $min_height;
+					$result_width = round($result_width * $perc,0);
+				}
+			} elseif ($h < $min_height && $min_height) {
+				$perc = $min_height / $h;
+				$result_height = $min_height;
+				$result_width = round($w * $perc,0);
+				if ($result_width < $min_width && $min_width) {
+					$perc = $min_width / $result_width;
+					$result_width = $min_width;
 					$result_height = round($result_height * $perc,0);
 				}
 			} else {
@@ -1040,7 +1123,7 @@
 				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
 					global $$bigtree["key"];
 					if (is_array($bigtree["val"])) {
-						$$bigtree["key"] = self::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
+						$$bigtree["key"] = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -1068,7 +1151,7 @@
 		static function globalizeArrayRecursion($data,$functions) {
 			foreach ($data as $key => $val) {
 				if (is_array($val)) {
-					$data[$key] = self::globalizeArrayRecursion($val,$functions);
+					$data[$key] = static::globalizeArrayRecursion($val,$functions);
 				} else {
 					foreach ($functions as $func) {
 						// Backwards compatibility with old array passed syntax
@@ -1131,14 +1214,15 @@
 				email - User's email address.
 				size - Image size; defaults to 56
 				default - Default profile image; defaults to BigTree icon
-				rating - Defaults to "pg"
+				rating - Defaults to "g" (options include "g", "pg", "r", "x")
 		*/
 		
-		static function gravatar($email = "", $size = 56, $default = false, $rating = "pg") {
+		static function gravatar($email,$size = 56,$default = false,$rating = "g") {
 			if (!$default) {
-				$default = "http://www.bigtreecms.org/images/bigtree-gravatar.png";
+				global $bigtree;
+				$default = !empty($bigtree["config"]["default_gravatar"]) ? $bigtree["config"]["default_gravatar"] : "https://www.bigtreecms.org/images/bigtree-gravatar.png";
 			}
-			return "http://www.gravatar.com/avatar/" . md5(strtolower($email)) . "?s=" . $size . "&d=" . urlencode($default) . "&rating=" . $rating;
+			return "https://secure.gravatar.com/avatar/".md5(strtolower($email))."?s=$size&d=".urlencode($default)."&rating=$rating";
 		}
 		
 		/*
@@ -1209,7 +1293,7 @@
 					$parts = explode("/",$path);
 					array_pop($parts);
 					if (count($parts)) {
-						return self::isDirectoryWritable(implode("/",$parts));
+						return static::isDirectoryWritable(implode("/",$parts));
 					}
 					return false;
 				}
@@ -1221,7 +1305,7 @@
 				// Remove the last directory from the path and try again
 				$parts = explode("/",$path);
 				array_pop($parts);
-				return self::isDirectoryWritable(implode("/",$parts));
+				return static::isDirectoryWritable(implode("/",$parts));
 			}
 		}
 		
@@ -1254,16 +1338,16 @@
 
 		static function json($var,$sql = false) {
 			// Only run version compare once in case we're encoding a lot of JSON
-			if (self::$JSONEncoding === false) {
+			if (static::$JSONEncoding === false) {
 				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
-					self::$JSONEncoding = 1;
+					static::$JSONEncoding = 1;
 				} else {
-					self::$JSONEncoding = 0;
+					static::$JSONEncoding = 0;
 				}
 			}
 
 			// Use pretty print if we have PHP 5.4 or higher
-			$json = (self::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
+			$json = (static::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
 			// SQL escape if requested
 			if ($sql) {
 				return sqlescape($json);
@@ -1281,17 +1365,20 @@
 		*/
 		
 		static function makeDirectory($directory) {
+			if (file_exists($directory)) {
+				return;
+			}
+
 			$dir_parts = explode("/",trim($directory,"/"));
-			
-			$dpath = "/";
-			foreach ($dir_parts as $d) {
-				$dpath .= $d;
+			$dir_path = "/";
+			foreach ($dir_parts as $part) {
+				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.
-				if (!@file_exists($dpath)) {
-					@mkdir($dpath);
-					@chmod($dpath,0777);
+				if (!@file_exists($dir_path)) {
+					@mkdir($dir_path);
+					static::setPermissions($dir_path);
 				}
-				$dpath .= "/";
+				$dir_path .= "/";
 			}
 		}
 		
@@ -1308,7 +1395,7 @@
 		*/
 		
 		static function moveFile($from,$to) {
-			$success = self::copyFile($from,$to);
+			$success = static::copyFile($from,$to);
 			if (!$success) {
 				return false;
 			}
@@ -1366,7 +1453,7 @@
 				if (!is_array($first_level["name"])) {
 					$clean[$key] = $first_level;
 				} else {
-					$clean[$key] = self::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+					$clean[$key] = static::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
 				}
 			}
 			if ($part) {
@@ -1390,7 +1477,7 @@
 					$array[$k]["error"] = $error[$k];
 					$array[$k]["size"] = $size[$k];
 				} else {
-					$array[$k] = self::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+					$array[$k] = static::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
 				}
 			}
 			return $array;
@@ -1569,7 +1656,7 @@
 		static function postMaxSize() {
 			$post_max_size = ini_get("post_max_size");
 			if (!is_integer($post_max_size)) {
-				$post_max_size = self::unformatBytes($post_max_size);
+				$post_max_size = static::unformatBytes($post_max_size);
 			}
 			
 			return $post_max_size;
@@ -1588,7 +1675,7 @@
 		*/
 		
 		static function prefixFile($file,$prefix) {
-			$pinfo = self::pathInfo($file);
+			$pinfo = static::pathInfo($file);
 			// Remove notices
 			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
@@ -1608,18 +1695,17 @@
 		*/
 		
 		static function putFile($file,$contents) {
-			if (!self::isDirectoryWritable($file)) {
+			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
 			
-			$pathinfo = self::pathInfo($file);
-			$file_name = $pathinfo["basename"];
+			$pathinfo = static::pathInfo($file);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
 			if (!file_exists($file)) {
 				file_put_contents($file,$contents);
-				chmod($file,0777);
+				static::setPermissions($file);
 			} else {
 				file_put_contents($file,$contents);
 			}
@@ -1719,7 +1805,6 @@
 		*/
 
 		static function relativeTime($time) {
-			$second = 1;
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;
@@ -1775,7 +1860,7 @@
 					$inc_file .= $piece."/";
 					$inc_dir .= $piece."/";
 				// File exists, we're ending now.
-				} elseif (file_exists($inc_file.$piece.".php")) {
+				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
 					$inc_file .= $piece.".php";
 					$ended = true;
 					$found_file = true;
@@ -1799,6 +1884,33 @@
 				}
 			}
 			return array($inc_file,$commands);
+		}
+
+		/*
+			Function: runningAsSU
+				Checks if the current script is running as the owner of the script.
+				Useful for determining whether you need to 777 a file you're creating.
+
+			Returns:
+				true if PHP is running as the user that owns the file
+		*/
+
+		static function runningAsSU() {
+			// Already ran the test
+			if (!is_null(static::$SUTestResult)) {
+				return static::$SUTestResult;
+			}
+			// Only works on systems that support posix_getuid
+			if (function_exists("posix_getuid")) {
+				if (posix_getuid() == getmyuid()) {
+					static::$SUTestResult = true;
+				} else {
+					static::$SUTestResult = false;
+				}
+			} else {
+				static::$SUTestResult = false;
+			}
+			return static::$SUTestResult;
 		}
 
 		/*
@@ -1921,7 +2033,7 @@
 
 			if (is_array($to)) {
 				foreach ($to as $item) {
-					$mailer->addAddress($to);
+					$mailer->addAddress($item);
 				}
 			} else {
 				$mailer->addAddress($to);
@@ -1942,31 +2054,43 @@
 		*/
 
 		static function setCookie($id,$value,$expiration = 0) {
-			$expiration = is_string($expiration) ? strtotime($expiration) : $expiation;
+			$expiration = is_string($expiration) ? strtotime($expiration) : $expiration;
 			setcookie($id,json_encode($value),$expiration,str_replace(DOMAIN,"",WWW_ROOT));
 		}
 
 		/*
-			Function: tableExists
-				Determines whether a SQL table exists.
+			Function: setDirectoryPermissions
+				Sets writable permissions for a whole directory.
+				If the web server is not running as the owner of the current script, permissions will be 777.
 
 			Parameters:
-				table - The table name.
-
-			Returns:
-				true if table exists, otherwise false.
+				location - The directory to set permissions on.
 		*/
 
-		static function tableExists($table) {
-			$r = sqlrows(sqlquery("SHOW TABLES LIKE '".sqlescape($table)."'"));
-			if ($r) {
-				return true;
+		static function setDirectoryPermissions($location) {
+			$contents = static::directoryContents($location);
+			foreach ($contents as $file) {
+				static::setPermissions($file);
 			}
-			return false;
 		}
 
 		/*
-			Function: tableMesh
+			Function: setPermissions
+				Checks to see if the current user the web server is running as is the owner of the current script.
+				If they are not the same user, the file/directory is given a 777 permission so that the script owner can still manage the file.
+
+			Parameters:
+				location - The file or directory to set permissions on.
+		*/
+
+		static function setPermissions($location) {
+			if (!static::runningAsSU()) {
+				@chmod($location,0777);
+			}
+		}
+
+		/*
+			Function: tableCompare
 				Returns a list of SQL commands required to turn one table into another.
 
 			Parameters:
@@ -1977,7 +2101,7 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 
-		static function tableMesh($table_a,$table_b) {
+		static function tableCompare($table_a,$table_b) {
 			// Get table A's description
 			$table_a_description = BigTree::describeTable($table_a);
 			$table_a_columns = $table_a_description["columns"];
@@ -2029,7 +2153,7 @@
 			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
 			    	    	$mod .= " DEFAULT $d";
 			    	    } else {
-			    	    	$mod .= " DEFAULT '".mysql_real_escape_string($d)."'";
+			    	    	$mod .= " DEFAULT '".sqlescape($d)."'";
 			    	    }
 			    	}
 			    	
@@ -2119,7 +2243,7 @@
 			// Drop existing primary key if it's not the same
 			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
 				$pieces = array();
-				foreach ($table_b_description["primary_key"] as $piece) {
+				foreach (array_filter((array)$table_b_description["primary_key"]) as $piece) {
 					$pieces[] = "`$piece`";
 				}
 				$queries[] = "ALTER TABLE `$table_a` DROP PRIMARY KEY";
@@ -2145,6 +2269,76 @@
 		}
 
 		/*
+			Function: tableContents
+				Returns an array of INSERT statements for the rows of a given table.
+				The INSERT statements will be binary safe with binary columns requested in hex.
+
+			Parameters:
+				table - Table to pull data from.
+
+			Returns:
+				An array.
+		*/
+
+		static function tableContents($table) {
+			$inserts = array();
+
+			// Figure out which columns are binary and need to be pulled as hex
+			$description = BigTree::describeTable($table);
+			$column_query = array();
+			$binary_columns = array();			
+			foreach ($description["columns"] as $key => $column) {
+				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
+					$column_query[] = "HEX(`$key`) AS `$key`";
+					$binary_columns[] = $key;
+				} else {
+					$column_query[] = "`$key`";
+				}
+			}
+
+			// Get the rows out of the table
+			$qq = sqlquery("SELECT ".implode(", ",$column_query)." FROM `$table`");
+			while ($ff = sqlfetch($qq)) {
+				$keys = array();
+				$vals = array();
+				foreach ($ff as $key => $val) {
+					$keys[] = "`$key`";
+					if ($val === null) {
+						$vals[] = "NULL";
+					} else {
+						if (in_array($key,$binary_columns)) {
+							$vals[] = "X'".str_replace("\n","\\n",sqlescape($val))."'";
+						} else {
+							$vals[] = "'".str_replace("\n","\\n",sqlescape($val))."'";
+						}
+					}
+				}
+				$inserts[] = "INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).")";
+			}
+
+			return $inserts;
+		}
+
+		/*
+			Function: tableExists
+				Determines whether a SQL table exists.
+
+			Parameters:
+				table - The table name.
+
+			Returns:
+				true if table exists, otherwise false.
+		*/
+
+		static function tableExists($table) {
+			$r = sqlrows(sqlquery("SHOW TABLES LIKE '".sqlescape($table)."'"));
+			if ($r) {
+				return true;
+			}
+			return false;
+		}
+
+		/*
 			Function: touchFile
 				touch()s a file even if the directory for it doesn't exist yet.
 			
@@ -2153,26 +2347,15 @@
 		*/
 		
 		static function touchFile($file) {
-			if (!self::isDirectoryWritable($file)) {
+			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
-			$pathinfo = self::pathInfo($file);
-			$file_name = $pathinfo["basename"];
-			$directory = $pathinfo["dirname"];
-			$dir_parts = explode("/",ltrim($directory,"/"));
-		
-			$dpath = "/";
-			foreach ($dir_parts as $d) {
-				$dpath .= $d;
-				if (!file_exists($dpath)) {
-					mkdir($dpath);
-					chmod($dpath,0777);
-				}
-				$dpath .= "/";
-			}
-		
+
+			$pathinfo = static::pathInfo($file);
+			static::makeDirectory($pathinfo["dirname"]);
+			
 			touch($file);
-			chmod($file,0777);
+			static::setPermissions($file);
 			return true;
 		}
 		
@@ -2193,7 +2376,7 @@
 		static function translateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
-					$piece = self::translateArray($piece);
+					$piece = static::translateArray($piece);
 				} else {
 					$piece = BigTreeAdmin::autoIPL($piece);
 				}
@@ -2247,7 +2430,6 @@
 						if (substr($tagname,0,1) == "/") {
 							$tagname = str_replace("/","",$tagname);
 							// We're closing the tag. Kill the most recently opened aspect of the tag.
-							$y = sizeof($opentags);
 							$done = false;
 							reset($opentags);
 							while (current($opentags) && !$done) {
@@ -2340,7 +2522,7 @@
 		static function untranslateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
-					$piece = self::untranslateArray($piece);
+					$piece = static::untranslateArray($piece);
 				} else {
 					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
 				}
@@ -2438,7 +2620,7 @@
 						continue;
 					}
 					
-					BigTree::putFile($directory.$item["filename"],$item["content"]);
+					BigTree::putFile($destination.$item["filename"],$item["content"]);
 				}
 				
 				return true;
@@ -2456,15 +2638,55 @@
 		static function uploadMaxFileSize() {
 			$upload_max_filesize = ini_get("upload_max_filesize");
 			if (!is_integer($upload_max_filesize)) {
-				$upload_max_filesize = self::unformatBytes($upload_max_filesize);
+				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
 			}
 			
-			$post_max_size = self::postMaxSize();
+			$post_max_size = static::postMaxSize();
 			if ($post_max_size < $upload_max_filesize) {
 				$upload_max_filesize = $post_max_size;
 			}
 			
 			return $upload_max_filesize;
+		}
+
+		/*
+			Function: urlExists
+				Attempts to connect to a URL using cURL.
+
+			Parameters:
+				url - The URL to connect to.
+
+			Returns:
+				true if it can connect, false if connection failed.
+		*/
+
+		static function urlExists($url) {
+			// Handle // urls as http://
+			if (substr($url,0,2) == "//") {
+				$url = "http:".$url;
+			}
+
+			$handle = curl_init($url);
+			if ($handle === false) {
+				return false;
+			}
+
+			// We want just the header (NOBODY sets it to a HEAD request)
+			curl_setopt($handle,CURLOPT_HEADER,true);
+			curl_setopt($handle,CURLOPT_NOBODY,true);
+			curl_setopt($handle,CURLOPT_RETURNTRANSFER,true);
+
+			// Fail on error should make it so response codes > 400 result in a fail
+			curl_setopt($handle, CURLOPT_FAILONERROR, true);
+
+			// Request as Firefox so that servers don't reject us for not having headers.
+			curl_setopt($handle, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15") );
+
+			// Execute the request and close the handle
+			$success = curl_exec($handle) ? true : false;
+			curl_close($handle);
+
+			return $success;
 		}
 		
 	}
@@ -2476,4 +2698,3 @@
 	if (!function_exists("mb_strtolower")) {
 		function mb_strtolower($string) { return strtolower($string); }
 	}
-?>

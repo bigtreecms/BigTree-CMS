@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeStorage
 			Facilitates the storage, deletion, and replacement of files (whether local or cloud stored).
@@ -7,10 +7,11 @@
 	class BigTreeStorage {
 
 		var $AutoJPEG = false;
+		var $DisabledFileError = false;
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
 		var $Cloud = false;
-		var $Settings = false;
+		var $Settings;
 
 		/*
 			Constructor:
@@ -18,7 +19,7 @@
 		*/
 
 		function __construct() {
-			global $cms,$admin;
+			global $cms;
 			
 			// Get by reference because we modify it.
 			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
@@ -137,6 +138,7 @@
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
+				unlink($local_file);
 				return false;
 			}
 
@@ -147,11 +149,11 @@
 
 			if ($this->Cloud) {
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
-				if ($remove_original) {
-					unlink($local_file);
-				}
 				if ($success) {
 					sqlquery("UPDATE bigtree_caches SET value = '".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."' WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'");
+				}
+				if ($remove_original) {
+					unlink($local_file);
 				}
 				return $success;
 			} else {
@@ -187,6 +189,7 @@
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
+				unlink($local_file);
 				return false;
 			}
 
@@ -253,4 +256,3 @@
 			return $this->store($local_file,$file_name,$relative_path,$remove_original);
 		}
 	}
-?>

@@ -20,12 +20,20 @@
 	$pending_items = BigTreeAutoModule::getViewData($bigtree["view"],$order,"pending");
 ?>
 <div class="table auto_modules image_list">
+	<?
+		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
+	?>
 	<summary>
-		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?>Click an image to edit it.</p>
+		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?><? if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<? } ?></p>
 	</summary>
-	<? if (count($pending_items)) { ?>
+	<?
+		}
+		if (count($pending_items)) {
+	?>
 	<header><span>Active</span></header>
-	<? } ?>
+	<?
+		}
+	?>
 	<section>
 		<ul id="image_list">
 			<?
@@ -97,7 +105,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?
 					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);

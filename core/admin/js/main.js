@@ -345,13 +345,13 @@ var BigTreeSelect = function(element) {
 				// Find out if we're in a dialog and have an overflow
 				var overflow = Container.parents(".overflow");
 				if (overflow.length) {
-					if (Container.parents("#callout_resources").length) {
+					if (Container.parents("#callout_resources, #matrix_resources").length) {
 						// WebKit needs fixin.
 						if ($.browser.webkit) {
-							select_options.css("marginTop",-1 * $("#callout_resources").scrollTop() + "px");
+							select_options.css("marginTop",-1 * $("#callout_resources, #matrix_resources").last().scrollTop() + "px");
 						}
 						// When someone scrolls the overflow, close the select or the dropdown will detach.
-						setTimeout(function() { $("#callout_resources").scroll(close); },500);
+						setTimeout(function() { $("#callout_resources, #matrix_resources").last().scroll(close); },500);
 					} else {
 						// WebKit needs fixin.
 						if ($.browser.webkit) {
@@ -760,10 +760,38 @@ var BigTreeFileInput = function(element) {
 						// If this is an image, draw a thumbnail
 						if (file.type == "image/jpeg" || file.type == "image/png" || file.type == "image/gif") {
 							var img = document.createElement("img");
-							img.file = file;
-							Container.find(".data").prepend(img);
 							var reader = new FileReader();
-							reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+							reader.onload = function(e) {
+								img.src = reader.result;
+								img.onload = function() {
+									var min_height = parseInt(Element.attr("data-min-height"));
+									var min_width = parseInt(Element.attr("data-min-width"));
+									var fieldset = Container.parents("fieldset");
+
+									// Clear any existing errors
+									fieldset.removeClass("form_error").find(".image_field_error").remove();
+									Element.removeClass("error");
+
+									// Minimum dimensions not met? Show an error message
+									if (img.height < min_height || img.width < min_width) {
+										var div = $('<div class="image_field_error">').html('The chosen image does not meet the minimum dimensions of ' + min_width + 'x' + min_height + '.');
+										fieldset.addClass("form_error");
+
+										var currently = fieldset.find(".currently");
+										if (currently.length) {
+											currently.before(div);
+										} else {
+											fieldset.find(".image_field").after(div);
+										}
+										Element.addClass("error");
+									} else {
+										Element.trigger("imageloaded");
+									}
+
+									// Add image preview
+									Container.find(".data").prepend(img);
+								};
+							};
 							reader.readAsDataURL(file);
 						// Not an image? Give more room for the file name
 						} else {
@@ -920,7 +948,7 @@ var BigTreePhotoGallery = function(settings) {
 		var Key = false;
 
 		function addPhoto() {
-			if (!FileInput.val()) {
+			if (!FileInput.val() || FileInput.hasClass("error")) {
 				return false;
 			}
 			if (!DisableCaptions) {
@@ -1004,7 +1032,7 @@ var BigTreePhotoGallery = function(settings) {
 			Counter++;
 			
 			// Create a new hidden file input for the next image to be uploaded
-			var new_file = $('<input type="file" class="custom_control" name="' + Key + '[' + Counter + '][image]">').hide();
+			var new_file = $('<input type="file" class="custom_control photo_gallery_input" name="' + Key + '[' + Counter + '][image]">').hide();
 			Container.find(".file_wrapper").after(new_file);
 			
 			// Wipe existing custom control information, assign the new input to it
@@ -1026,13 +1054,13 @@ var BigTreePhotoGallery = function(settings) {
 		// Init routine
 		Key = settings.key;
 		Container = $("#" + settings.container.replace("#",""));
-		Counter = settings.counter;
+		Counter = settings.count ? settings.count : 0;
 		DisableCaptions = settings.disableCaptions;
-		FileInput = Container.find("footer input");
+		FileInput = Container.find("footer input").addClass("photo_gallery_input");
 		
 		Container.on("click",".icon_delete",deletePhoto)
 				 .on("click",".icon_edit",editPhoto)
-				 .on("change","input[type=file]",addPhoto);
+				 .on("imageloaded","input[type=file]",addPhoto);
 		Container.find(".form_image_browser").click(openFileManager);
 		Container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 
@@ -1316,8 +1344,7 @@ var BigTreeFileManager = (function($) {
 			icon: "folder",
 			alternateSaveText: "Upload Files",
 			preSubmissionCallback: true,
-			callback: createFile,
-			cancelHook: cancelAdd
+			callback: createFile
 		});
 		return false;
 	};
@@ -1329,17 +1356,8 @@ var BigTreeFileManager = (function($) {
 			callback: createFolder,
 			icon: "folder",
 			alternateSaveText: "Create Folder",
-			preSubmissionCallback: true,
-			cancelHook: cancelAdd
+			preSubmissionCallback: true
 		});
-		
-		return false;
-	};
-	
-	function cancelAdd() {
-		$(".bigtree_dialog_overlay").last().remove();
-		$(".bigtree_dialog_window").last().remove();
-		BigTree.ZIndex -= 2;
 		
 		return false;
 	};
@@ -1494,7 +1512,7 @@ var BigTreeFileManager = (function($) {
 		$(".bigtree_dialog_overlay").last().remove();
 		$(".bigtree_dialog_window").last().remove();
 		$("#file_manager_upload_frame").remove();
-		BigTree.ZIndex -= 3;
+		BigTree.ZIndex -= 2;
 		
 		if (Type == "image" || Type == "photo-gallery") {
 			openImageFolder(CurrentFolder);	
@@ -1544,7 +1562,7 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
 		
-		data = $.parseJSON($(this).attr("href"));
+		var data = $.parseJSON($(this).attr("href"));
 		AvailableThumbs = data.thumbs;
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		
@@ -1678,12 +1696,11 @@ var BigTreeFileManager = (function($) {
 	function replaceFile() {
 		BigTreeDialog({
 			title: "Replace File",
-			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="file" /></fieldset>',
+			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="files[]" /></fieldset>',
 			callback: replaceFileProcess,
 			icon: "folder",
 			alternateSaveText: "Replace File",
-			preSubmissionCallback: true,
-			cancelHook: cancelAdd
+			preSubmissionCallback: true
 		});
 
 		return false;
@@ -1750,7 +1767,7 @@ var BigTreeFileManager = (function($) {
 				// If a user already selected something to upload, replace it
 				container.siblings("input").get(0).customControl.clear();
 			} else if (Type == "photo-gallery") {
-				callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
+				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			}
 			return closeFileBrowser();
 		}
@@ -3075,10 +3092,12 @@ var BigTree = {
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;
 		});
+		
 		// Pickers
 		$(".date_picker").datepicker({ dateFormat: BigTree.dateFormat, duration: 200, showAnim: "slideDown" });
 		$(".time_picker").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10, timeFormat: "hh:mm tt" });
 		$(".date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });	
+		
 		// Inline pickers
 		$(".date_picker_inline").each(function() {
 			$(this).datepicker({ dateFormat: BigTree.dateFormat, defaultDate: $(this).attr("data-date"), onSelect: function(dateText) {
@@ -3101,19 +3120,32 @@ var BigTree = {
 
 	growl: function(title,message,time,type) {
 		if (!time) {
-			time = 5000;
+			time = 2000;
 		}
 		if (!type) {
 			type = "success";
 		}
+
+		// Reset the fade out timer, show the growl container
+		clearTimeout(BigTree.GrowlTimer);
+		var growl_box = $("#growl").addClass("visible");
+
+		// If a growl already exists, fade that one out and slide it up adding another to the box
 		if (BigTree.Growling) {
-			$("#growl").append($('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>'));
-			BigTree.GrowlTimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time);
+			var last_growl = growl_box.find("article:last-child");
+			last_growl.addClass("hidden").css({ marginTop: (last_growl.outerHeight() * -1) + "px" });
+			growl_box.append($('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>'));
+		// If a visible growl doesn't exist, replace the node contents (helps if a bunch of growls filled the DOM via fast clicking rather than adding another)
 		} else {
-			$("#growl").html('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>');
-			BigTree.Growling = true;
-			$("#growl").fadeIn(500, function() { BigTree.GrowlTimer = setTimeout("$('#growl').fadeOut(500); BigTree.Growling = false;",time); });
+			growl_box.html('<article><a class="close" href="#"></a><span class="icon_growl_' + type + '"></span><section><h3>' + title + '</h3><p>' + message + '</p></section></article>');
 		}
+
+		// Fade in takes half a second, so we set the timer for the time given + 500 milliseconds
+		BigTree.Growling = true;
+		BigTree.GrowlTimer = setTimeout(function() {
+			growl_box.removeClass("visible");
+			BigTree.Growling = false;
+		},time + 500);
 	},
 	
 	setPageCount: function(selector,pages,current_page) {

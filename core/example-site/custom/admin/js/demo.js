@@ -28,7 +28,7 @@ var CustomPhotoGallery = BigTreePhotoGallery.extend({
 		link = $(ev.target);
 		this.activeCaption = link.siblings(".caption");
 		this.activeAttribution = link.siblings(".attribution");
-		this.activeLink = link.siblings(".link");
+		this.activeLink = link.siblings(".link_field");
 		
 		var html = '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(this.activeCaption.val()) + '"/></fieldset>';
 		html += '<fieldset><label>Attribution</label><input type="text" name="attribution" value="' + htmlspecialchars(this.activeAttribution.val()) + '"/></fieldset>';
@@ -63,7 +63,7 @@ var CustomPhotoGallery = BigTreePhotoGallery.extend({
 		li.append(this.fileInput.hide());
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][caption]" class="caption" />').val(data.caption));
 		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][attribution]" class="attribution" />').val(data.attribution));
-		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][link]" class="link" />').val(data.link));
+		li.append($('<input type="hidden" name="' + this.key + '[' + this.counter + '][link]" class="link_field" />').val(data.link));
 		this.container.find("ul").append(li);
 
 		this.counter++;

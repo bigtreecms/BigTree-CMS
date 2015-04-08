@@ -20,6 +20,8 @@
 
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["settings"];
+	$bigtree["field_namespace"] = uniqid("setting_field_");
+	$bigtree["field_counter"] = 0;
 ?>
 <div class="container">
 	<summary><h2><?=$item["name"]?></h2></summary>
@@ -58,7 +60,6 @@
 						"subtitle" => "",
 						"key" => $item["id"],
 						"tabindex" => 1,
-						"id" => uniqid("field_"),
 						"options" => json_decode($item["options"],true),
 						"value" => $value
 					);

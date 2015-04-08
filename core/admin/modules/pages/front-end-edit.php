@@ -10,6 +10,8 @@
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;
+	$bigtree["field_namespace"] = uniqid("template_field_");
+	$bigtree["field_counter"] = 0;
 ?>
 <h2>Edit Page Content</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
@@ -40,7 +42,6 @@
 							"subtitle" => $resource["subtitle"],
 							"key" => "resources[".$resource["id"]."]",
 							"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
-							"id" => uniqid("field_"),
 							"tabindex" => $bigtree["tabindex"],
 							"options" => $resource["options"]
 						);
