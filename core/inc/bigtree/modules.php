@@ -7,6 +7,11 @@
 	class BigTreeModule {
 	
 		var $NavPosition = "bottom";
+		var $RouteRegistry = array(
+			// array("type" => "admin", "path" => "my-path", "template" => "my-template", "file" => "default.php")
+			// array("type" => "global", "path" => "awesome-route", "template" => "awesome-template", "file" => "awesome.php")
+			// array("type" => "template", "path" => ":route", "template" => "template-id", "file" => "details.php")
+		);
 		var $Table = "";
 
 		/*

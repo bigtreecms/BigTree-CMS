@@ -276,7 +276,7 @@
 	// Create the zip, clear caches since we may have moved the routes of field types and modules
 	@unlink(SERVER_ROOT."cache/package.zip");
 	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
-	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
+	@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");

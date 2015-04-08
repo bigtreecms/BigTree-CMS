@@ -7,6 +7,8 @@
 	class BigTreeCMSBase {
 	
 		var $AutoSaveSettings = array();
+		var $ModuleClassList = array();
+		var $RouteRegistry = array();
 
 		static $BreadcrumbTrunk;
 		static $IRLCache = array();
@@ -23,21 +25,52 @@
 		
 		function __construct() {
 			// If the cache exists, just use it.
-			if (file_exists(SERVER_ROOT."cache/bigtree-module-class-list.json")) {
-				$items = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-class-list.json"),true);
+			if (file_exists(SERVER_ROOT."cache/bigtree-module-cache.json")) {
+				$data = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-cache.json"),true);
 			} else {
-				// Get the Module Class List
-				$q = sqlquery("SELECT * FROM bigtree_modules");
-				$items = array();
+				$data = array(
+					"routes" => array("admin" => array(),"global" => array(),"template" => array()),
+					"classes" => array()
+				);
+
+				// Preload the BigTreeModule class since others are based off it
+				include_once BigTree::path("inc/bigtree/modules.php");
+
+				// Get all modules from the db
+				$q = sqlquery("SELECT route,class FROM bigtree_modules");
 				while ($f = sqlfetch($q)) {
-					$items[$f["class"]] = $f["route"];
+					$class = $f["class"];
+					$route = $f["route"];
+
+					if ($class) {
+						// Get the class file path
+						if (strpos($route,"*") !== false) {
+							list($extension,$file_route) = explode("*",$route);
+							$path = "extensions/$extension/classes/$file_route.php";
+						} else {
+							$path = "custom/inc/modules/$route.php";
+						}
+						$data["classes"][$class] = $path;
+
+						// Get the registered routes, load the class
+						include_once SERVER_ROOT.$path;
+						$mod = new $class;
+						foreach ($mod->RouteRegistry as $registration) {
+							$type = $registration["type"];
+							unset($registration["type"]);
+
+							$data["routes"][$type][] = $registration;
+							$this->RouteRegistry[$type][] = $registration;
+						}
+					}
 				}
 				
 				// Cache it so we don't hit the database.
-				BigTree::putFile(SERVER_ROOT."cache/bigtree-module-class-list.json",BigTree::json($items));
+				BigTree::putFile(SERVER_ROOT."cache/bigtree-module-cache.json",BigTree::json($data));
 			}
-			
-			$this->ModuleClassList = $items;
+
+			$this->ModuleClassList = $data["classes"];
+			$this->RouteRegistry = $data["routes"];
 		}
 
 		/*

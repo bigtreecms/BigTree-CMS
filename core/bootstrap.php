@@ -63,8 +63,7 @@
 	$cms = new BigTreeCMS;
 
 	// Lazy loading of modules
-	$bigtree["module_list"] = $cms->ModuleClassList;
-	$bigtree["other_classes"] = array(
+	$bigtree["class_list"] = array_merge($cms->ModuleClassList,array(
 		"BigTreeAdminBase" => "inc/bigtree/admin.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
 		"BigTreeModule" => "inc/bigtree/modules.php",
@@ -94,7 +93,7 @@
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
 		"lessc" => "inc/lib/less-compiler.php"
-	);
+	));
 	
 	// Auto load classes	
 	spl_autoload_register("BigTree::classAutoLoader");
