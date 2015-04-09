@@ -3,7 +3,7 @@
 		Class: BigTreeEmailService
 			A common interface for sending email through various transactional email API providers.
 	*/
-	
+
 	class BigTreeEmailService {
 		var $Error = false;
 		var $Service = "";
@@ -12,7 +12,7 @@
 			Constructor:
 				Sets up the currently configured service.
 		*/
-		
+
 		function __construct() {
 			$s = BigTreeAdmin::getSetting("bigtree-internal-email-service");
 
@@ -45,7 +45,7 @@
 				Sets $this->Error with error response if not successful.
 		*/
 
-		function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = "") {			
+		function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = "") {
 			// No from email? Use the no-reply address.
 			if (!$from_email) {
 				$from_email = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
@@ -64,16 +64,18 @@
 				$reply_pieces = explode("<",$reply);
 				$reply_name = trim($reply_pieces[0]);
 				$reply_to = substr($reply_pieces[1],0,-1);
-			}			
-			
+			}
+
 			if ($this->Service == "local") {
 				return BigTree::sendEmail($to,$subject,$body,$text,($from_name ? "$from_name <$from_email>" : $from_email),$reply_to);
 			} elseif ($this->Service == "mandrill") {
 				return $this->sendMandrill($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
-			} elseif ($this->Service == "mailgun") {				
+			} elseif ($this->Service == "mailgun") {
 				return $this->sendMailgun($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} elseif ($this->Service == "postmark") {
 				return $this->sendPostmark($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
+			} elseif ($this->Service == "sendgrid") {
+				return $this->sendSendGrid($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} else {
 				throw new Exception("Unknown Email Service");
 			}
@@ -129,7 +131,7 @@
 				"text" => $text,
 				"html" => $body
 			);
-			
+
 			// Add Reply-To header
 			if ($reply_to) {
 				$post["h:Reply-To"] = $reply_to;
@@ -154,7 +156,7 @@
 				"HtmlBody" => $body,
 				"TextBody" => $text
 			);
-			
+
 			// Add reply to info
 			if ($reply_to) {
 				$data["ReplyTo"] = $reply_to;
@@ -165,9 +167,40 @@
 				"Accept: application/json",
 				"X-Postmark-Server-Token: ".$this->Settings["postmark_key"]
 			))),true);
-			
+
 			if ($response["ErrorCode"]) {
 				$this->Error = $response["Message"];
+				return false;
+			}
+
+			return true;
+		}
+
+		protected function sendSendGrid($subject,$body,$to,$from_email,$from_name,$reply_to = false,$text = false) {
+			$url = 'https://api.sendgrid.com/api/mail.send.json';
+			$user = $this->Settings["sendgrid_api_user"];
+			$pass = $this->Settings["sendgrid_api_key"];
+
+			// Build POST data
+			$data = array(
+		    'api_user'  => $this->Settings["sendgrid_api_user"],
+		    'api_key'   => $this->Settings["sendgrid_api_key"],
+		    'to'        => is_array($to) ? implode(",",$to) : $to,
+		    'subject'   => $subject,
+		    'html'      => $body,
+		    'text'      => $text,
+		    'from'      => $from_email,
+		    'fromname'	=> $from_name,
+		    'replyto'		=> $reply_to,
+		  );
+
+			$response = json_decode(BigTree::cURL($url, json_encode($data), array(
+					CURLOPT_HEADER => false,
+					CURLOPT_RETURNTRANSFER => true,
+				)), true);
+
+			if ($response["errors"]) {
+				$this->Error = $response["errors"];
 				return false;
 			}
 

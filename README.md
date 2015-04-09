@@ -21,6 +21,7 @@ Changelog
 ---------
 
 ### 4.2 Release
+- ADDED: Email Service for [SendGrid](https://sendgrid.com/)
 - ADDED: Extensions Support (see http://www.bigtreecms.org/docs/dev-guide/advanced/extensions/ for more information)
 - ADDED: Security Settings (password policies, temporary bans, IP bans, allowed IP lists)
 - ADDED: Matrix field type (essentially a generic Callout distinct to a template/setting/form).

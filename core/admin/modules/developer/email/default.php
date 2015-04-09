@@ -5,7 +5,8 @@
 		"local" => "Local Server",
 		"mandrill" => "Mandrill",
 		"mailgun" => "Mailgun",
-		"postmark" => "Postmark"
+		"postmark" => "Postmark",
+		"sendgrid" => "SendGrid"
 	);
 ?>
 <div class="container">
@@ -71,6 +72,25 @@
 			<fieldset>
 				<label>API Key</label>
 				<input type="text" name="postmark_key" value="<?=htmlspecialchars($email_service->Settings["postmark_key"])?>" />
+			</fieldset>
+			<fieldset>
+				<label>BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small></label>
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+			</fieldset>
+		</form>
+	</section>
+	<section id="sendgrid_tab"<? if ($email_service->Service != "sendgrid") { ?> style="display: none;"<? } ?>>
+		<p><a href="https://www.sendgrid.com/" target="_blank">SendGrid</a> is a transactional email delivery and management service..<br />You must enter both your API user and API key (the password that you use to log into sendgrid.com).</p>
+		<hr />
+		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<input type="hidden" name="service" value="sendgrid" />
+			<fieldset>
+				<label>API User</label>
+				<input type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"])?>" />
+			</fieldset>
+			<fieldset>
+				<label>API Key</small></label>
+				<input type="text" name="sendgrid_api_key" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_key"])?>" />
 			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small></label>
