@@ -280,14 +280,30 @@
 		}
 	}
 	
-	// If we haven't already received our nav id through previewing...
+	// Check route registry if we're not previewing
 	if (!$navid) {
+		$registry_found = false;
+		foreach ($cms->RouteRegistry["global"] as $registration) {
+			if (!$registry_found) {
+				$registry_commands = BigTree::routeRegex($registration["pattern"],implode("/",$bigtree["path"]));
+				if ($registry_commands !== false) {
+					$registry_found = true;
+					$registry_rule = $registration;
+				}
+			}
+		}
+	}
+	
+	// Not in route registry, check BigTree pages
+	if (!$registry_found) {
 		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
 	}
 	
 	// Pre-init a bunch of vars to keep away notices.
 	$bigtree["layout"] = "default";
+
+	// Nav ID found means we're loading a page, not a route registry entry
 	if ($navid !== false) {
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {

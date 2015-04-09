@@ -29,7 +29,7 @@
 				$data = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-cache.json"),true);
 			} else {
 				$data = array(
-					"routes" => array("admin" => array(),"global" => array(),"template" => array()),
+					"routes" => array("admin" => array(),"public" => array(),"template" => array()),
 					"classes" => array()
 				);
 
@@ -55,12 +55,14 @@
 						// Get the registered routes, load the class
 						include_once SERVER_ROOT.$path;
 						$mod = new $class;
-						foreach ($mod->RouteRegistry as $registration) {
-							$type = $registration["type"];
-							unset($registration["type"]);
-
-							$data["routes"][$type][] = $registration;
-							$this->RouteRegistry[$type][] = $registration;
+						if (is_array($mod->RouteRegistry)) {
+							foreach ($mod->RouteRegistry as $registration) {
+								$type = $registration["type"];
+								unset($registration["type"]);
+	
+								$data["routes"][$type][] = $registration;
+								$this->RouteRegistry[$type][] = $registration;
+							}
 						}
 					}
 				}

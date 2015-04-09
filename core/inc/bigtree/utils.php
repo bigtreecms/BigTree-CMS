@@ -1885,6 +1885,7 @@
 		*/ 
 
 		static function routeRegex($path,$pattern) {
+			// This method is based almost entirely on the Slim Framework's routing implementation (http://www.slimframework.com/)
 			static::$RouteParamNames = array();
 			static::$RouteParamNamesPath = array();
 
