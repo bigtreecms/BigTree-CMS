@@ -183,17 +183,9 @@
 	include BigTree::path("admin/_nav-tree.php");
 
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
-	if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
-		$bigtree["js"] = $bigtree["config"]["admin_js"];
-	} else {
-		$bigtree["js"] = array();
-	}
-	if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
-		$bigtree["css"] = $bigtree["config"]["admin_css"];
-	} else {
-		$bigtree["css"] = array();
-	}
-
+	$bigtree["js"] = array();
+	$bigtree["css"] = array();
+	
 	// Instantiate the $admin var (user system)
 	$admin = new BigTreeAdmin;
 
