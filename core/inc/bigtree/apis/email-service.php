@@ -183,20 +183,20 @@
 
 			// Build POST data
 			$data = array(
-				'api_user'	=> $this->Settings["sendgrid_api_user"],
-				'api_key'		=> $this->Settings["sendgrid_api_key"],
-				'to'				=> is_array($to) ? implode(",",$to) : $to,
-				'subject'		=> $subject,
-				'html'			=> $body,
-				'text'			=> $text,
-				'from'			=> $from_email,
-				'fromname'	=> $from_name,
-				'replyto'		=> $reply_to,
+				"api_user" => $this->Settings["sendgrid_api_user"],
+				"api_key" => $this->Settings["sendgrid_api_key"],
+				"to" => is_array($to) ? implode(",",$to) : $to,
+				"subject" => $subject,
+				"html" => $body,
+				"text" => $text,
+				"from" => $from_email,
+				"fromname" => $from_name,
+				"replyto" => $reply_to
 			);
 
 			$response = json_decode(BigTree::cURL($url, $data, array()), true);
 
-			if ($response["message"] === "success" ) {
+			if ($response["message"] === "success") {
 				return true;
 			} else {
 				$this->Error = $response["errors"];

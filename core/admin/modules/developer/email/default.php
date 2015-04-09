@@ -80,16 +80,16 @@
 		</form>
 	</section>
 	<section id="sendgrid_tab"<? if ($email_service->Service != "sendgrid") { ?> style="display: none;"<? } ?>>
-		<p><a href="https://www.sendgrid.com/" target="_blank">SendGrid</a> is a transactional email delivery and management service..<br />You must enter both your API user and API key (the password that you use to log into sendgrid.com).</p>
+		<p><a href="https://www.sendgrid.com/" target="_blank">SendGrid</a> is a transactional email delivery and management service.<br />You must enter both your API user and API key (the password that you use to log into sendgrid.com).</p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<input type="hidden" name="service" value="sendgrid" />
 			<fieldset>
-				<label>API User</label>
+				<label>API User <small>(same as SMTP username)</small></label>
 				<input type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"])?>" />
 			</fieldset>
 			<fieldset>
-				<label>API Key</small></label>
+				<label>API Key <small>(same as SMTP password)</small></small></label>
 				<input type="text" name="sendgrid_api_key" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_key"])?>" />
 			</fieldset>
 			<fieldset>
