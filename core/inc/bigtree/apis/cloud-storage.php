@@ -169,7 +169,7 @@
 				if ($this->HTTPResponseCode != "200") {
 					return false;
 				}
-				return "http://s3.amazonaws.com/$destination_container/$destination_pointer";
+				return "//s3.amazonaws.com/$destination_container/$destination_pointer";
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
@@ -186,7 +186,7 @@
 					if ($public) {
 						$this->call("b/$destination_container/o/".rawurlencode($destination_pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
-					return "http://storage.googleapis.com/$destination_container/$destination_pointer";
+					return "//storage.googleapis.com/$destination_container/$destination_pointer";
 				} else {
 					return false;
 				}
@@ -288,7 +288,7 @@
 				),array("x-amz-acl" => ($public ? "public-read" : "private")),$contents);
 
 				if (!$response) {
-					return "http://s3.amazonaws.com/$container/$pointer";
+					return "//s3.amazonaws.com/$container/$pointer";
 				}
 				$this->_setAmazonError($response);
 				return false;
@@ -308,7 +308,7 @@
 					if ($public) {
 						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
-					return "http://storage.googleapis.com/$container/$pointer";
+					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
@@ -442,7 +442,7 @@
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$pointer = str_replace(array('%2F', '%2B'),array('/', '+'),rawurlencode($pointer));
-				return "http://s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".urlencode($this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer"));
+				return "//s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".urlencode($this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer"));
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				// If we don't have a Temp URL key already set, we need to make one
@@ -481,7 +481,7 @@
 				// Sign the string
 				openssl_sign("GET\n\n\n$expires\n/$container/".str_replace(array("+","%2F"),array("%20","/"),urlencode($pointer)),$signature,$private_key,"sha256");
 
-				return "http://storage.googleapis.com/$container/$pointer?GoogleAccessId=".$this->Settings["certificate_email"]."&Expires=$expires&Signature=".urlencode(base64_encode($signature));
+				return "//storage.googleapis.com/$container/$pointer?GoogleAccessId=".$this->Settings["certificate_email"]."&Expires=$expires&Signature=".urlencode(base64_encode($signature));
 			} else {
 				return false;
 			}
@@ -774,12 +774,12 @@
 				// Send back the ACL
 				$this->callAmazonS3("PUT",$container,$pointer,array("acl" => ""),array("Content-Type" => "text/xml"),array(),$xml);
 
-				return "http://s3.amazonaws.com/$container/$pointer";
+				return "//s3.amazonaws.com/$container/$pointer";
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 				if ($response) {
-					return "http://storage.googleapis.com/$container/".str_replace("%2F","/",rawurlencode($pointer));
+					return "//storage.googleapis.com/$container/".str_replace("%2F","/",rawurlencode($pointer));
 				}
 			// Rackspace or no setup at all
 			} else {
@@ -855,7 +855,7 @@
 				),array("x-amz-acl" => ($public ? "public-read" : "private")),false,$file);
 				
 				if (!$response) {
-					return "http://s3.amazonaws.com/$container/$pointer";
+					return "//s3.amazonaws.com/$container/$pointer";
 				}
 				$this->_setAmazonError($response);
 				return false;
@@ -879,7 +879,7 @@
 					if ($public) {
 						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
-					return "http://storage.googleapis.com/$container/$pointer";
+					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
