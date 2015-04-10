@@ -283,9 +283,9 @@
 	// Check route registry if we're not previewing
 	if (!$navid) {
 		$registry_found = false;
-		foreach ($cms->RouteRegistry["global"] as $registration) {
+		foreach ($cms->RouteRegistry["public"] as $registration) {
 			if (!$registry_found) {
-				$registry_commands = BigTree::routeRegex($registration["pattern"],implode("/",$bigtree["path"]));
+				$registry_commands = BigTree::routeRegex("/".implode("/",$bigtree["path"]),$registration["pattern"]);
 				if ($registry_commands !== false) {
 					$registry_found = true;
 					$registry_rule = $registration;
@@ -293,7 +293,7 @@
 			}
 		}
 	}
-	
+
 	// Not in route registry, check BigTree pages
 	if (!$registry_found) {
 		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
@@ -302,9 +302,68 @@
 	
 	// Pre-init a bunch of vars to keep away notices.
 	$bigtree["layout"] = "default";
+	$bigtree["routed_headers"] = $bigtree["routed_footers"] = array();
 
-	// Nav ID found means we're loading a page, not a route registry entry
-	if ($navid !== false) {
+	// Loading a route registry entry
+	if ($registry_found) {
+		if ($registry_rule["file"]) {
+
+			// Emulate commands at indexes as well as with requested variable keys
+			$bigtree["commands"] = array();
+			$x = 0;
+			foreach ($registry_commands as $key => $value) {
+				$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
+				$x++;
+			}
+
+			// We need to find headers and footers if we're routing to an admin module or front end template
+			$file_location = ltrim($registry_rule["file"],"/");
+			$header_root = false;
+			if (strpos($file_location,"custom/admin/modules/") === 0) {
+				$pieces = explode("/",substr($file_location,21));
+				$header_root = "custom/admin/modules/";
+			}
+			if (strpos($file_location,"templates/routed/") === 0) {
+				$pieces = explode("/",substr($file_location,17));
+				$header_root = "templates/routed/";
+			}
+
+			// Routed directory, load headers and footers
+			if ($header_root) {
+				foreach ($pieces as $piece) {
+					if (substr($piece,-4,4) != ".php") {
+						$inc_path .= $piece."/";
+						$header = SERVER_ROOT.$header_root.$inc_path."_header.php";
+						$footer = SERVER_ROOT.$header_root.$inc_path."_footer.php";
+						if (file_exists($header)) {
+							$bigtree["routed_headers"][] = $header;
+						}
+						if (file_exists($footer)) {
+							$bigtree["routed_footers"][] = $footer;
+						}
+					}
+				}
+				// Draw the headers.
+				foreach ($bigtree["routed_headers"] as $header) {
+					include $header;
+				}
+
+				// Draw the main page.
+				include SERVER_ROOT.$registry_rule["file"];
+
+				// Draw the footers.
+				$bigtree["routed_footers"] = array_reverse($bigtree["routed_footers"]);
+				foreach ($bigtree["routed_footers"] as $footer) {
+					include $footer;
+				}
+			} else {
+				include SERVER_ROOT.$registry_rule["file"];
+			}
+		} elseif ($registry_rule["function"]) {
+			call_user_func_array($registry_rule["function"],$registry_commands);
+		}
+	// Nav ID found means we're loading a page
+	} elseif ($navid !== false) {
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
 			$bigtree["page"] = $cms->getPendingPage($navid);
@@ -354,26 +413,54 @@
 
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
-			// Allow the homepage to be routed
-			if ($bigtree["page"]["path"]) {
-				$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
-			} else {
-				$path_components = $bigtree["path"];
+			// See if a module has hooked this template routing
+			$registry_found = false;
+			foreach ($cms->RouteRegistry["template"] as $registration) {
+				if ($registration["template"] == $bigtree["page"]["template"]) {
+					$registry_commands = BigTree::routeRegex(implode("/",$bigtree["commands"]),$registration["pattern"]);
+					if ($registry_commands !== false) {
+						$registry_found = true;
+						$registry_rule = $registration;
+					}
+				}
 			}
-			if (end($path_components) === "") {
-				array_pop($path_components);
-			}
-			if ($extension) {
-				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
+
+			// Module successfully grabbed the routing
+			if ($registry_found) {
+				// Emulate commands at indexes as well as with requested variable keys
+				$bigtree["commands"] = array();
+				$x = 0;
+				foreach ($registry_commands as $key => $value) {
+					$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
+					$x++;
+				}
+
+				// Set the include file
+				$bigtree["routed_inc"] = $inc = SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/".ltrim($registry_rule["file"],"/");
+
+			// Use BigTree's routing to find the page
 			} else {
-				list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
-			}
-			$bigtree["routed_inc"] = $inc;
-			$bigtree["commands"] = $commands;
-			if (count($commands)) {
-				$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
-			} else {
-				$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0);
+				// Allow the homepage to be routed
+				if ($bigtree["page"]["path"]) {
+					$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
+				} else {
+					$path_components = $bigtree["path"];
+				}
+				if (end($path_components) === "") {
+					array_pop($path_components);
+				}
+				if ($extension) {
+					list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
+				} else {
+					list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+				}
+				$bigtree["routed_inc"] = $inc;
+				$bigtree["commands"] = $commands;
+				if (count($commands)) {
+					$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
+				} else {
+					$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0);
+				}
 			}
 			
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
@@ -383,7 +470,6 @@
 			}
 			// Include all headers in the module directory in the order they occur.
 			$inc_path = "";
-			$bigtree["routed_headers"] = $bigtree["routed_footers"] = array();
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";

@@ -7,12 +7,32 @@
 	class BigTreeModule {
 	
 		var $NavPosition = "bottom";
-		var $RouteRegistry = array(
-			// array("type" => "admin", "pattern" => "my-path", "template" => "my-template", "file" => "default.php")
-			// array("type" => "public", "pattern" => "awesome-route", "template" => "awesome-template", "file" => "awesome.php")
-			// array("type" => "template", "pattern" => ":route", "template" => "template-id", "file" => "details.php")
-		);
 		var $Table = "";
+
+		/*
+			Route Registry
+				A module's route registry allows it to hook routes. Each registry entry array contains the following keys:
+				
+				"type"
+					"admin" - matches patterns in the admin section
+					"public" - matches patterns from the web root
+					"template" - matches patterns in a given routed template (from the location of the page)
+				
+				"pattern"
+					A pattern based on the route parameters from Slim - http://docs.slimframework.com/#Route-Parameters
+				
+				"template"
+					If the template type is used, this should be the ID of the template you're hooking.
+
+				"file"
+					The location, relative to SERVER_ROOT (or the routed template directory if "template" type is used), of the file to include.
+				
+				"function"
+					A function to run (instead of including a file).
+		*/
+		
+		var $RouteRegistry = array();
+
 
 		/*
 			Constructor:

@@ -92,6 +92,8 @@
 			if ($path = $bigtree["class_list"][$class]) {
 				if (substr($path,0,11) != "extensions/" && substr($path,0,7) != "custom/") {
 					$path = static::path($path);
+				} else {
+					$path = SERVER_ROOT.$path;
 				}
 				if (file_exists($path)) {
 					include_once $path;
