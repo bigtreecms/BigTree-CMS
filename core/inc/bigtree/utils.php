@@ -1940,6 +1940,18 @@
 			} elseif (strpos($file_location,"templates/ajax/") === 0) {
 				$include_root = "templates/ajax/";
 				$pieces = explode("/",substr($file_location,15));
+			} elseif (strpos($file_location,"extensions/") === 0) {
+				$pieces = explode("/",$file_location);
+				if ($pieces[2] == "templates" && ($pieces[3] == "routed" || $pieces[3] == "ajax")) {
+					$include_root = "extensions/".$pieces[1]."/templates/".$pieces[3]."/";
+					$pieces = array_slice($pieces,4);
+				} elseif ($pieces[2] == "modules") {
+					$include_root = "extensions/".$pieces[1]."/modules/";
+					$pieces = array_slice($pieces,3);
+				} elseif ($pieces[2] == "ajax") {
+					$include_root = "extensions/".$pieces[1]."/ajax/";
+					$pieces = array_slice($pieces,3);
+				}
 			}
 
 			// Only certain places include headers and footers
