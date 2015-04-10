@@ -138,7 +138,7 @@
 	$package["sql"][] = "SET foreign_key_checks = 1";
 	
 	foreach ((array)$files as $file) {
-		$file = str_replace(SERVER_ROOT,"",$file);
+		$file = BigTree::replaceServerRoot($file);
 		BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."cache/package/".$file);
 		$package["files"][] = $file;
 	}

@@ -9,7 +9,7 @@
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<span><?=str_replace(SERVER_ROOT,"",$file)?></span>
+						<span><?=BigTree::replaceServerRoot($file)?></span>
 					</li>
 					<? } ?>
 				</ul>

@@ -187,7 +187,7 @@
 	
 	// Move all the files into the extensions directory
 	foreach ((array)$files as $file) {
-		$file = str_replace(SERVER_ROOT,"",$file);
+		$file = BigTree::replaceServerRoot($file);
 		if (substr($file,0,11) != "extensions/") {
 			$d = false;
 

@@ -51,7 +51,7 @@
 	}
 	$file_string = array();
 	foreach ((array)$files as $f) {
-		$file = str_replace(SERVER_ROOT,"",$f);
+		$file = BigTree::replaceServerRoot($f);
 		if ($file) {
 			$file_string[] = $file;
 		}

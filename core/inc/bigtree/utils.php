@@ -1828,6 +1828,25 @@
 		}
 
 		/*
+			Function: replaceServerRoot
+				Replaces the server root in a string (as long as it is at the beginning of the string)
+
+			Parameters:
+				string - String to modify
+				replace - Replacement string for SERVER_ROOT
+
+			Returns:
+				A string.
+		*/
+
+		static function replaceServerRoot($string,$replace = "") {
+			if (strpos($string,SERVER_ROOT) === 0) {
+				return $replace.substr($string,strlen(SERVER_ROOT));
+			}
+			return $string;
+		}
+
+		/*
 			Function: route
 				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
 				Used by the CMS for routing ajax and modules.
@@ -1893,45 +1912,37 @@
 		*/
 
 		static function routeLayouts($path) {
-			$file_location = ltrim(str_replace(SERVER_ROOT,"",$path),"/");
+			$file_location = ltrim(static::replaceServerRoot($path),"/");
 			$include_root = false;
 			$pathed_includes = false;
 			$headers = $footers = array();
 
+			// Get our path pieces and include roots setup properly
 			if (strpos($file_location,"custom/admin/modules/") === 0) {
 				$include_root = "admin/modules/";
 				$pathed_includes = true;
 				$pieces = explode("/",substr($file_location,21));
-			}
-
-			if (strpos($file_location,"core/admin/modules/") === 0) {
+			} elseif (strpos($file_location,"core/admin/modules/") === 0) {
 				$include_root = "admin/modules/";
 				$pathed_includes = true;
 				$pieces = explode("/",substr($file_location,19));
-			}
-
-			if (strpos($file_location,"custom/admin/ajax/")) {
+			} elseif (strpos($file_location,"custom/admin/ajax/")) {
 				$include_root = "admin/ajax/";
 				$pathed_includes = true;
 				$pieces = explode("/",substr($file_location,18));
-			}
-
-			if (strpos($file_location,"core/admin/ajax/") === 0) {
+			} elseif (strpos($file_location,"core/admin/ajax/") === 0) {
 				$include_root = "admin/ajax/";
 				$pathed_includes = true;
 				$pieces = explode("/",substr($file_location,16));
-			}
-
-			if (strpos($file_location,"templates/routed/") === 0) {
+			} elseif (strpos($file_location,"templates/routed/") === 0) {
 				$include_root = "templates/routed/";
 				$pieces = explode("/",substr($file_location,17));
-
-			}
-			if (strpos($file_location,"templates/ajax/") === 0) {
+			} elseif (strpos($file_location,"templates/ajax/") === 0) {
 				$include_root = "templates/ajax/";
 				$pieces = explode("/",substr($file_location,15));
 			}
 
+			// Only certain places include headers and footers
 			if ($include_root) {
 				foreach ($pieces as $piece) {
 					if (substr($piece,-4,4) != ".php") {
@@ -1952,6 +1963,7 @@
 					}
 				}
 			}
+
 			return array($headers,array_reverse($footers));
 		}
 
