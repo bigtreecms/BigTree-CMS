@@ -203,7 +203,6 @@
 			BigTree::redirect(ADMIN_ROOT."login/");
 		}
 	}
-	
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
@@ -214,6 +213,47 @@
 	// Redirect to dashboard by default if we're not requesting anything.
 	if (!$bigtree["path"][1]) {
 		BigTree::redirect(ADMIN_ROOT."dashboard/");
+	}
+
+	// Let route registration take over if it finds something
+	$registry_found = false;
+	foreach ($cms->RouteRegistry["admin"] as $registration) {
+		if (!$registry_found) {
+			$registry_commands = BigTree::routeRegex("/".implode("/",array_slice($bigtree["path"],1)),$registration["pattern"]);
+			if ($registry_commands !== false) {
+				$registry_found = true;
+				$registry_rule = $registration;
+			}
+		}
+	}
+	if ($registry_found) {
+		// Emulate commands at indexes as well as with requested variable keys
+		$bigtree["commands"] = array();
+		$x = 0;
+		foreach ($registry_commands as $key => $value) {
+			$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
+			$x++;
+		}
+
+		list($bigtree["routed_headers"],$bigtree["routed_footers"]) = BigTree::routeLayouts($registry_rule["file"]);
+
+		// Draw the headers.
+		foreach ($bigtree["routed_headers"] as $header) {
+			include $header;
+		}
+
+		// Draw the main page.
+		include SERVER_ROOT.$registry_rule["file"];
+
+		// Draw the footers.
+		foreach ($bigtree["routed_footers"] as $footer) {
+			include $footer;
+		}
+
+		$bigtree["content"] = ob_get_clean();
+
+		include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
+		die();
 	}
 
 	// See if we're requesting something in /ajax/
@@ -256,41 +296,23 @@
 			die("File not found.");
 		}
 		$bigtree["commands"] = $commands;
+		$bigtree["ajax_inc"] = $inc;
 
-		// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules or core/admin/modules.
-		$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
-		// Include all headers in the module directory in the order they occur.
-		$inc_path = "";
-		$headers = $footers = array();
-		foreach ($pieces as $piece) {
-			if (substr($piece,-4,4) != ".php") {
-				$inc_path .= $piece."/";
-				if (defined("EXTENSION_ROOT")) {
-					$header = EXTENSION_ROOT."ajax/".$inc_path."_header.php";
-					$footer = EXTENSION_ROOT."ajax/".$inc_path."_footer.php";
-				} else {
-					$header = BigTree::path("admin/ajax/".$inc_path."_header.php");
-					$footer = BigTree::path("admin/ajax/".$inc_path."_footer.php");
-				}
-				if (file_exists($header)) {
-					$headers[] = $header;
-				}
-				if (file_exists($footer)) {
-					$footers[] = $footer;
-				}
-			}
-		}
+		list($bigtree["ajax_headers"],$bigtree["ajax_footers"]) = BigTree::routeLayouts($inc);
+			
 		// Draw the headers.
-		foreach ($headers as $header) {
+		foreach ($bigtree["ajax_headers"] as $header) {
 			include $header;
 		}
+
 		// Draw the main page.
-		include $inc;
+		include $bigtree["ajax_inc"];
+
 		// Draw the footers.
-		$footers = array_reverse($footers);
-		foreach ($footers as $footer) {
+		foreach ($bigtree["ajax_footers"] as $footer) {
 			include $footer;
 		}
+
 		die();
 	}
 
@@ -427,38 +449,20 @@
 		} elseif (!$complete) {
 			// Setup the commands array.
 			$bigtree["commands"] = $commands;
-			// Get the pieces of the location so we can get header and footers. Take away the first 3 routes since they're either custom/admin/modules, core/admin/modules, or extensions/{id}/modules
-			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),3);
-			// Include all headers in the module directory in the order they occur.
-			$inc_path = "";
-			$headers = $footers = array();
-			foreach ($pieces as $piece) {
-				if (substr($piece,-4,4) != ".php") {
-					$inc_path .= $piece."/";
-					if ($module["extension"]) {
-						$header = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_header.php";
-						$footer = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_footer.php";
-					} else {
-						$header = BigTree::path("admin/modules/".$inc_path."_header.php");
-						$footer = BigTree::path("admin/modules/".$inc_path."_footer.php");
-					}
-					if (file_exists($header)) {
-						$headers[] = $header;
-					}
-					if (file_exists($footer)) {
-						$footers[] = $footer;
-					}
-				}
-			}
+			$bigtree["routed_inc"] = $inc;
+
+			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = BigTree::routeLayouts($inc);
+
 			// Draw the headers.
-			foreach ($headers as $header) {
+			foreach ($bigtree["routed_headers"] as $header) {
 				include $header;
 			}
+
 			// Draw the main page.
-			include $inc;
+			include $bigtree["routed_inc"];
+			
 			// Draw the footers.
-			$footers = array_reverse($footers);
-			foreach ($footers as $footer) {
+			foreach ($bigtree["routed_footers"] as $footer) {
 				include $footer;
 			}
 		}

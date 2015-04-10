@@ -1882,6 +1882,80 @@
 		}
 
 		/*
+			Function: routeLayouts
+				Retrieves a list of route layout files (_header.php and _footer.php) for a given file path.
+
+			Parameters:
+				path - A file path
+
+			Returns:
+				An array of headers and an array of footers.
+		*/
+
+		static function routeLayouts($path) {
+			$file_location = ltrim(str_replace(SERVER_ROOT,"",$path),"/");
+			$include_root = false;
+			$pathed_includes = false;
+			$headers = $footers = array();
+
+			if (strpos($file_location,"custom/admin/modules/") === 0) {
+				$include_root = "admin/modules/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,21));
+			}
+
+			if (strpos($file_location,"core/admin/modules/") === 0) {
+				$include_root = "admin/modules/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,19));
+			}
+
+			if (strpos($file_location,"custom/admin/ajax/")) {
+				$include_root = "admin/ajax/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,18));
+			}
+
+			if (strpos($file_location,"core/admin/ajax/") === 0) {
+				$include_root = "admin/ajax/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,16));
+			}
+
+			if (strpos($file_location,"templates/routed/") === 0) {
+				$include_root = "templates/routed/";
+				$pieces = explode("/",substr($file_location,17));
+
+			}
+			if (strpos($file_location,"templates/ajax/") === 0) {
+				$include_root = "templates/ajax/";
+				$pieces = explode("/",substr($file_location,15));
+			}
+
+			if ($include_root) {
+				foreach ($pieces as $piece) {
+					if (substr($piece,-4,4) != ".php") {
+						$inc_path .= $piece."/";
+						if ($pathed_includes) {
+							$header = static::path($include_root.$inc_path."_header.php");
+							$footer = static::path($include_root.$inc_path."_footer.php");
+						} else {
+							$header = SERVER_ROOT.$include_root.$inc_path."_header.php";
+							$footer = SERVER_ROOT.$include_root.$inc_path."_footer.php";
+						}
+						if (file_exists($header)) {
+							$headers[] = $header;
+						}
+						if (file_exists($footer)) {
+							$footers[] = $footer;
+						}
+					}
+				}
+			}
+			return array($headers,array_reverse($footers));
+		}
+
+		/*
 			Function: routeRegex
 				Helper function for pattern based routing.
 		*/ 
