@@ -1991,6 +1991,7 @@
 				return false;
 			}
 
+			$params = array();
 			foreach (static::$RouteParamNames as $name) {
 				if (isset($values[$name])) {
 					if (isset(static::$RouteParamNamesPath[$name])) {
