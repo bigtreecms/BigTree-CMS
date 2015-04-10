@@ -8,7 +8,7 @@
 	
 		var $AutoSaveSettings = array();
 		var $ModuleClassList = array();
-		var $RouteRegistry = array();
+		var $RouteRegistry = array("public" => array(),"admin" => array(),"template" => array());
 
 		static $BreadcrumbTrunk;
 		static $IRLCache = array();
@@ -24,8 +24,10 @@
 		*/
 		
 		function __construct() {
+			global $bigtree;
+
 			// If the cache exists, just use it.
-			if (file_exists(SERVER_ROOT."cache/bigtree-module-cache.json")) {
+			if (!$bigtree["config"]["debug"] && file_exists(SERVER_ROOT."cache/bigtree-module-cache.json")) {
 				$data = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-cache.json"),true);
 			} else {
 				$data = array(
@@ -67,8 +69,10 @@
 					}
 				}
 				
-				// Cache it so we don't hit the database.
-				BigTree::putFile(SERVER_ROOT."cache/bigtree-module-cache.json",BigTree::json($data));
+				if (!$bigtree["config"]["debug"]) {
+					// Cache it so we don't hit the database.
+					BigTree::putFile(SERVER_ROOT."cache/bigtree-module-cache.json",BigTree::json($data));
+				}
 			}
 
 			$this->ModuleClassList = $data["classes"];
