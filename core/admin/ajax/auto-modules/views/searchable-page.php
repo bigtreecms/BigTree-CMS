@@ -3,7 +3,7 @@
 
 	// Grab View Data
 	if (isset($_GET["view"])) {
-		$view = $_GET["view"];
+		$view = sqlescape($_GET["view"]);
 	}
 	if (isset($_GET["module"])) {
 		$module = $admin->getModuleByRoute($_GET["module"]);
