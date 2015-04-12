@@ -5261,9 +5261,9 @@
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
 				// We still set the email for BigTree bar usage.
-				setcookie('bigtree_admin[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
+				setcookie('bigtree_admin[email]',$f["email"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				if ($stay_logged_in) {
-					setcookie('bigtree_admin[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
+					setcookie('bigtree_admin[password]',$f["password"],time()+31*60*60*24,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				}
 
 				$_SESSION["bigtree_admin"]["id"] = $f["id"];

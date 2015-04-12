@@ -160,6 +160,7 @@
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	}
 	ob_start();
+	session_set_cookie_params(0,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 	session_start();
 
 	// Make it easier to extend the nav tree without overwriting important things.
