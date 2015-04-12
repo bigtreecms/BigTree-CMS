@@ -162,6 +162,7 @@
 	
 	// Start output buffering and sessions
 	ob_start();
+	session_set_cookie_params(0,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 	session_start();
 
 	// Check to see if we're in maintenance mode
