@@ -2,14 +2,18 @@
 	header("Content-type: text/javascript");
 	
 	$id = sqlescape($_GET["id"]);
+
 	// Grab View Data
-	$view = BigTreeAutoModule::getView($_GET["view"]);
+	$view = BigTreeAutoModule::getView(sqlescape($_GET["view"]));
 	$table = $view["table"];
+
 	// Get module
-	$module = $admin->getModule(BigTreeAutoModule::getModuleForView($_GET["view"]));
+	$module = $admin->getModule(BigTreeAutoModule::getModuleForView($view["id"]));
+
 	// Get the item
 	$current_item = BigTreeAutoModule::getPendingItem($table,$id);
 	$item = $current_item["item"];
+
 	// Check permission
 	$access_level = $admin->getAccessLevel($module,$item,$table);
 	if ($access_level != "n") {
