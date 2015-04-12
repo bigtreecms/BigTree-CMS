@@ -2,9 +2,17 @@
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
-	$page = isset($_GET["page"]) ? $_GET["page"] : 1;
-	$sort_by = isset($_GET["sort"]) ? $_GET["sort"] : "name";
-	$sort_dir = isset($_GET["sort_direction"]) ? $_GET["sort_direction"] : "ASC";
+	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
+	
+	// Prevent SQL shenanigans
+	$sort_by = "name";
+	if (isset($_GET["sort"])) {
+		$valid_columns = array("name","company","email");
+		if (in_array($_GET["sort"],$valid_columns)) {
+			$sort_by = $_GET["sort"];
+		}
+	}
+	$sort_dir = (isset($_GET["sort_direction"]) && $_GET["sort_direction"] == "DESC") ? "DESC" : "ASC";
 
 	$pages = $admin->getUsersPageCount($query);
 	$results = $admin->getPageOfUsers($page,$query,"`$sort_by` $sort_dir");
@@ -23,5 +31,5 @@
 	}
 ?>
 <script>
-	BigTree.SetPageCount("#view_paging",<?=$pages?>,<?=$page?>);
+	BigTree.setPageCount("#view_paging",<?=$pages?>,<?=$page?>);
 </script>
