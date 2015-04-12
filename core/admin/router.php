@@ -163,6 +163,7 @@
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	}
 	ob_start();
+	session_set_cookie_params(0,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 	session_start();
 
 	// Instantiate the $admin var with either a custom class or the normal BigTreeAdmin.
