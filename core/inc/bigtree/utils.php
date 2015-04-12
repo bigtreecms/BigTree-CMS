@@ -499,7 +499,7 @@
 			$result["foreign_keys"] = array();
 			$result["primary_key"] = false;
 			
-			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
 			if (!$f) {
 				return false;
 			}
