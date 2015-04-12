@@ -11,7 +11,6 @@
 	}
 	
 	if ($table) {
-		$table_description = BigTree::describeTable($table);
 ?>
 <select name="<?=$field?>">
 	<?=BigTree::getFieldSelectOptions($table,$field,$sort)?>

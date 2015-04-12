@@ -374,7 +374,7 @@
 				return false;
 			}
 
-			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
 			$lines = explode("\n",$f["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines,1,-1);

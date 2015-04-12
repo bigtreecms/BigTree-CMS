@@ -32,7 +32,7 @@
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
 <div class="container">
-	<form method="post" action="<?=$developer_root?>modules/update/<?=end($bigtree["path"])?>/" enctype="multipart/form-data" class="module left">
+	<form method="post" action="<?=$developer_root?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
 		<section>
 			<div class="left">
 				<fieldset>
