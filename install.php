@@ -4,7 +4,9 @@
 
 	// Setup SQL functions for MySQL extension if we have it.
 	if (function_exists("mysql_connect")) {
-		function sqlconnect($server,$user,$password) {
+		function sqlconnect($server,$user,$password,$port,$socket) {
+			$port = $port ? $port : 3306;
+			$server = $socket ? ":".ltrim($socket,":") : $server.":".$port;
 			return mysql_connect($server,$user,$password);
 		}
 
@@ -21,8 +23,8 @@
 		}
 	// Otherwise Use MySQLi
 	} else {
-		function sqlconnect($server,$user,$password) {
-			return mysqli_connect($server,$user,$password);
+		function sqlconnect($server,$user,$password,$port,$socket) {
+			return mysqli_connect($server,$user,$password,"",$port,$socket);
 		}
 
 		function sqlselectdb($db) {
@@ -146,9 +148,9 @@
 		$error = "Errors found! Please fix the highlighted fields and submit the form again.";
 	} elseif (count($_POST)) {
 		if ($write_host && $write_user && $write_password) {
-			$sql_connection = @sqlconnect($write_host,$write_user,$write_password);
+			$sql_connection = @sqlconnect($write_host,$write_user,$write_password,$write_port,$write_socket);
 		} else {
-			$sql_connection = @sqlconnect($host,$user,$password);
+			$sql_connection = @sqlconnect($host,$user,$password,$port,$socket);
 		}
 		if (!$sql_connection) {
 			$error = "Could not connect to MySQL server.";
