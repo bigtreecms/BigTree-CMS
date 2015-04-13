@@ -183,10 +183,14 @@
 			"[db]",
 			"[user]",
 			"[password]",
+			"[port]",
+			"[socket]",
 			"[write_host]",
 			"[write_db]",
 			"[write_user]",
 			"[write_password]",
+			"[write_port]",
+			"[write_socket]",
 			"[domain]",
 			"[wwwroot]",
 			"[staticroot]",
@@ -201,10 +205,14 @@
 			$db,
 			$user,
 			$password,
+			$port,
+			$socket,
 			(isset($loadbalanced)) ? $write_host : "",
 			(isset($loadbalanced)) ? $write_db : "",
 			(isset($loadbalanced)) ? $write_user : "",
 			(isset($loadbalanced)) ? $write_password : "",
+			(isset($loadbalanced)) ? $write_port : "",
+			(isset($loadbalanced)) ? $write_socket : "",
 			$domain,
 			$www_root,
 			$static_root,
@@ -573,9 +581,22 @@ RewriteRule (.*) site/$1 [L]');
 					<label>Password</label>
 					<input class="text" type="password" id="db_pass" name="password" value="<?php echo htmlspecialchars($password) ?>" tabindex="4" autocomplete="off" />
 				</fieldset>
+				<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
+					<br class="clear" /><br />
+					<fieldset class="left">
+						<label>Port <small>(defaults to 3306)</small></label>
+						<input class="text" type="text" name="port" value="<?php echo htmlspecialchars($port) ?>" tabindex="7" />
+					</fieldset>
+					<fieldset class="right">
+						<label>Socket</label>
+						<input class="text" type="text" name="socket" value="<?php echo htmlspecialchars($socket) ?>" tabindex="8" />
+					</fieldset>
+				</div>
 				<fieldset>
 					<br /><br />
-					<input type="checkbox" class="checkbox" name="loadbalanced" id="loadbalanced"<?php if ($loadbalanced) { ?> checked="checked"<?php } ?> tabindex="5" />
+					<input type="checkbox" class="checkbox" name="db_port_or_socket" id="db_port_or_socket"<?php if ($db_port_or_socket) { ?> checked="checked"<?php } ?> tabindex="5" />
+					<label class="for_checkbox">Connect via Socket or Alternate Port</label>
+					<input type="checkbox" class="checkbox" name="loadbalanced" id="loadbalanced"<?php if ($loadbalanced) { ?> checked="checked"<?php } ?> tabindex="6" />
 					<label class="for_checkbox">Load Balanced MySQL</label>
 				</fieldset>
 				
@@ -604,8 +625,18 @@ RewriteRule (.*) site/$1 [L]');
 						<label>Password</label>
 						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($password) ?>" tabindex="9" autocomplete="off" />
 					</fieldset>
-					<br class="clear" />
-					<br />
+					<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
+						<br class="clear" /><br />
+						<fieldset class="left">
+							<label>Port <small>(defaults to 3306)</small></label>
+							<input class="text" type="text" name="write_port" value="<?php echo htmlspecialchars($write_port) ?>" tabindex="7" />
+						</fieldset>
+						<fieldset class="right">
+							<label>Socket</label>
+							<input class="text" type="text" name="write_socket" value="<?php echo htmlspecialchars($write_socket) ?>" tabindex="8" />
+						</fieldset>
+					</div>
+					<br class="clear" /><br />
 				</div>
 				
 				<hr />
@@ -703,6 +734,13 @@ RewriteRule (.*) site/$1 [L]');
 		        			$("#loadbalanced_settings").css({ display: "block" });
 		        		} else {
 		        			$("#loadbalanced_settings").css({ display: "none" });
+		        		}
+		        	});
+		        	$("#db_port_or_socket").on("change", function() {
+		        		if ($(this).attr("checked")) {
+		        			$(".db_port_or_socket_settings").css({ display: "block" });
+		        		} else {
+		        			$(".db_port_or_socket_settings").css({ display: "none" });
 		        		}
 		        	});
 		        });
