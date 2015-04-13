@@ -22,9 +22,13 @@
 	$bigtree["config"]["db"]["name"] = "[db]";
 	$bigtree["config"]["db"]["user"] = "[user]";
 	$bigtree["config"]["db"]["password"] = "[password]";
+	$bigtree["config"]["db"]["port"] = "[port]";
+	$bigtree["config"]["db"]["socket"] = "[socket]";
 	// Separate write database info (for load balanced setups)
 	$bigtree["config"]["db_write"]["host"] = "[write_host]";
 	$bigtree["config"]["db_write"]["name"] = "[write_db]";
 	$bigtree["config"]["db_write"]["user"] = "[write_user]";
 	$bigtree["config"]["db_write"]["password"] = "[write_password]";
+	$bigtree["config"]["db_write"]["port"] = "[write_port]";
+	$bigtree["config"]["db_write"]["socket"] = "[write_socket]";
 ?>
