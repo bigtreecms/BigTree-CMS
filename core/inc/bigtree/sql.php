@@ -194,7 +194,7 @@
 			global $bigtree;
 
 			if ($read_write == "read") {
-				$host = !empty($bigtree["config"]["db"]["socket"]) ? ":".ltrim($bigtree["config"]["db"]["socket"]),":") : $bigtree["config"]["db"]["host"].":".$bigtree["config"]["db"]["socket"];
+				$host = !empty($bigtree["config"]["db"]["socket"]) ? ":".ltrim($bigtree["config"]["db"]["socket"],":") : $bigtree["config"]["db"]["host"].":".$bigtree["config"]["db"]["socket"];
 				$connection = mysql_connect($host,$bigtree["config"]["db"]["user"],$bigtree["config"]["db"]["password"]);
 				mysql_select_db($bigtree["config"]["db"]["name"],$connection);
 				mysql_query("SET NAMES 'utf8'",$connection);
@@ -204,7 +204,7 @@
 				unset($bigtree["config"]["db"]["user"]);
 				unset($bigtree["config"]["db"]["password"]);
 			} else {
-				$host = !empty($bigtree["config"]["db_write"]["socket"]) ? ":".ltrim($bigtree["config"]["db_write"]["socket"]),":") : $bigtree["config"]["db_write"]["host"].":".$bigtree["config"]["db_write"]["socket"];
+				$host = !empty($bigtree["config"]["db_write"]["socket"]) ? ":".ltrim($bigtree["config"]["db_write"]["socket"],":") : $bigtree["config"]["db_write"]["host"].":".$bigtree["config"]["db_write"]["socket"];
 				$connection = mysql_connect($bigtree["config"]["db_write"]["host"],$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"]);
 				mysql_select_db($bigtree["config"]["db_write"]["name"],$connection);
 				mysql_query("SET NAMES 'utf8'",$connection);
