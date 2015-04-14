@@ -24,18 +24,6 @@
 		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	
-	if (!is_writable(SERVER_ROOT."cache/")) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>Your cache/ directory must be writable.</p>
-	</section>
-</div>
-<?
-		$admin->stop();
-	}
-	
 	// Clean up existing area
 	$cache_root = SERVER_ROOT."cache/package/";
 	BigTree::deleteDirectory($cache_root);

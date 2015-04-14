@@ -20,7 +20,23 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.1 Release
+- ADDED: SendGrid email service support (thanks zumbrunnen)
+- ADDED: Support for altnernate ports and sockets when connecting to MySQL (thanks zumbrunnen)
+- FIXED: Writability checks for directories when upgrading the CMS or an extension now occur before you try to install the update
+- FIXED: Invalid files (due to security implications) sticking around in /tmp when BigTreeStorage rejects them
+- FIXED: Failing to automatically find the FTP path when upgrading BigTree causing a loop
+- FIXED: Warning being thrown when manually calling processField when "crops" wasn't an array (thanks mdewyer)
+- FIXED: Cloud files URLs for Amazon / Google Cloud to be protocol agnostic
+- FIXED: Configuration based admin_css and admin_js not working properly inside a file routed by an extension (thanks mdewyer)
+- FIXED: Failure to properly encode arrays as strings when caching pending records (thanks jmason03)
+- SECURITY FIX: Fixed several possible SQL injection vulnerabilities that could be run by authenticated BigTree users  (thanks sumitingole)
+- SECURITY FIX: Fixed several XSS attack vectors (thanks sumitingole)
+- SECURITY FIX: Session and login cookies are now set to HTTPOnly (less susceptible to XSS attacks, thanks sumitingole)
+- SECURITY FIX: Login cookies are now more secure one time tokens (based on http://jaspan.com/improved_persistent_login_cookie_best_practice, thanks sumitingole)
+
 ### 4.2 Release
+- ADDED: Email Service for [SendGrid](https://sendgrid.com/)
 - ADDED: Extensions Support (see http://www.bigtreecms.org/docs/dev-guide/advanced/extensions/ for more information)
 - ADDED: Security Settings (password policies, temporary bans, IP bans, allowed IP lists)
 - ADDED: Matrix field type (essentially a generic Callout distinct to a template/setting/form).

@@ -142,7 +142,7 @@
 			}
 
 			// Try to determine the FTP root.
-			$ftp_root = "";
+			$ftp_root = false;
 			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
 			if ($saved_root !== false && $this->Connection->changeDirectory($saved_root)."core/inc/bigtree/") {
 				$ftp_root = $saved_root;

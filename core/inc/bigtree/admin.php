@@ -88,21 +88,54 @@
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
 				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
-				$pass = sqlescape($_COOKIE["bigtree_admin"]["password"]);
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user' AND password = '$pass'"));
-				if ($f) {
-					$this->ID = $f["id"];
-					$this->User = $user;
-					$this->Level = $f["level"];
-					$this->Name = $f["name"];
-					$this->Permissions = json_decode($f["permissions"],true);
-					$_SESSION["bigtree_admin"]["id"] = $f["id"];
-					$_SESSION["bigtree_admin"]["email"] = $f["email"];
-					$_SESSION["bigtree_admin"]["name"] = $f["name"];
-					$_SESSION["bigtree_admin"]["level"] = $f["level"];
+
+				// Get chain and session broken out
+				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"]);
+
+				// See if this is the current chain and session
+				$chain_entry = sqlfetch(sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '$user' AND chain = '".sqlescape($chain)."'"));
+				if ($chain_entry) {
+					// If both chain and session are legit, log them in
+					if ($chain_entry["id"] == $session) {
+						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user'"));
+						if ($f) {
+							// Setup session
+							$this->ID = $f["id"];
+							$this->User = $user;
+							$this->Level = $f["level"];
+							$this->Name = $f["name"];
+							$this->Permissions = json_decode($f["permissions"],true);
+							$_SESSION["bigtree_admin"]["id"] = $f["id"];
+							$_SESSION["bigtree_admin"]["email"] = $f["email"];
+							$_SESSION["bigtree_admin"]["name"] = $f["name"];
+							$_SESSION["bigtree_admin"]["level"] = $f["level"];
+
+							// Delete existing session
+							sqlquery("DELETE FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'");
+							
+							// Generate a random session id
+							$session = uniqid("session-",true);
+							while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
+								$session = uniqid("session-",true);
+							}
+
+							// Create a new session with the same chain
+							sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','$user')");
+							setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+						}
+					// Chain is legit and session isn't -- someone has taken your cookies
+					} else {
+						// Delete existing cookies
+						setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+						setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+						
+						// Delete all sessions for this user
+						sqlquery("DELETE FROM bigtree_user_sessions WHERE email = '$user'");
+					}
 				}
+
 				// Clean up
-				unset($user,$pass,$f);
+				unset($user,$f,$session,$chain,$chain_entry);
 			}
 
 			// Check the permissions to see if we should show the pages tab.
@@ -5511,10 +5544,23 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"],true);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
-				// We still set the email for BigTree bar usage.
-				setcookie('bigtree_admin[email]',$f["email"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT));
+				// Generate a random chain id
+				$chain = uniqid("chain-",true);
+				while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE chain = '".sqlescape($chain)."'"))) {
+					$chain = uniqid("chain-",true);
+				}
+				// Generate a random session id
+				$session = uniqid("session-",true);
+				while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
+					$session = uniqid("session-",true);
+				}
+				// Create the new session chain
+				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($f["email"])."')");
+
+				// We still set the email for BigTree bar usage even if they're not being "remembered"
+				setcookie('bigtree_admin[email]',$f["email"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				if ($stay_logged_in) {
-					setcookie('bigtree_admin[password]',$f["password"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT));
+					setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				}
 
 				$_SESSION["bigtree_admin"]["id"] = $f["id"];
@@ -5586,7 +5632,7 @@
 
 		static function logout() {
 			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			setcookie("bigtree_admin[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			unset($_COOKIE["bigtree_admin"]);
 			unset($_SESSION["bigtree_admin"]);
 			BigTree::redirect(ADMIN_ROOT);
@@ -6074,64 +6120,66 @@
 					$pinfo = BigTree::pathInfo($field["output"]);
 
 					// Handle Crops
-					foreach ($field["options"]["crops"] as $crop) {
-						if (is_array($crop)) {
-							// Make sure the crops have a width/height and it's numeric
-							if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
-								$cwidth = $crop["width"];
-								$cheight = $crop["height"];
-	
-								// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
-								if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
-									// Make a square if for some reason someone only entered one dimension for a crop.
-									if (!$cwidth) {
-										$cwidth = $cheight;
-									} elseif (!$cheight) {
-										$cheight = $cwidth;
-									}
-									$bigtree["crops"][] = array(
-										"image" => $temp_copy,
-										"directory" => $field["options"]["directory"],
-										"retina" => $field["options"]["retina"],
-										"name" => $pinfo["basename"],
-										"width" => $cwidth,
-										"height" => $cheight,
-										"prefix" => $crop["prefix"],
-										"thumbs" => $crop["thumbs"],
-										"center_crops" => $crop["center_crops"],
-										"grayscale" => $crop["grayscale"]
-									);
-								// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
-								} elseif ($iheight == $cheight && $iwidth == $cwidth) {
-									// See if we want thumbnails
-									if (is_array($crop["thumbs"])) {
-										foreach ($crop["thumbs"] as $thumb) {
-											// Make sure the thumbnail has a width or height and it's numeric
-											if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
-												// Create a temporary thumbnail of the image on the server before moving it to it's destination.
-												$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-												BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
-												// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-												$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+					if (is_array($field["options"]["crops"])) {
+						foreach ($field["options"]["crops"] as $crop) {
+							if (is_array($crop)) {
+								// Make sure the crops have a width/height and it's numeric
+								if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
+									$cwidth = $crop["width"];
+									$cheight = $crop["height"];
+		
+									// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
+									if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
+										// Make a square if for some reason someone only entered one dimension for a crop.
+										if (!$cwidth) {
+											$cwidth = $cheight;
+										} elseif (!$cheight) {
+											$cheight = $cwidth;
+										}
+										$bigtree["crops"][] = array(
+											"image" => $temp_copy,
+											"directory" => $field["options"]["directory"],
+											"retina" => $field["options"]["retina"],
+											"name" => $pinfo["basename"],
+											"width" => $cwidth,
+											"height" => $cheight,
+											"prefix" => $crop["prefix"],
+											"thumbs" => $crop["thumbs"],
+											"center_crops" => $crop["center_crops"],
+											"grayscale" => $crop["grayscale"]
+										);
+									// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
+									} elseif ($iheight == $cheight && $iwidth == $cwidth) {
+										// See if we want thumbnails
+										if (is_array($crop["thumbs"])) {
+											foreach ($crop["thumbs"] as $thumb) {
+												// Make sure the thumbnail has a width or height and it's numeric
+												if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
+													// Create a temporary thumbnail of the image on the server before moving it to it's destination.
+													$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
+													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+												}
 											}
 										}
-									}
-
-									// See if we want center crops
-									if (is_array($crop["center_crops"])) {
-										foreach ($crop["center_crops"] as $center_crop) {
-											// Make sure the crop has a width and height and it's numeric
-											if ($center_crop["width"] && is_numeric($center_crop["width"]) && $center_crop["height"] && is_numeric($center_crop["height"])) {
-												// Create a temporary crop of the image on the server before moving it to it's destination.
-												$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-												BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["options"]["retina"],$center_crop["grayscale"]);
-												// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-												$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+	
+										// See if we want center crops
+										if (is_array($crop["center_crops"])) {
+											foreach ($crop["center_crops"] as $center_crop) {
+												// Make sure the crop has a width and height and it's numeric
+												if ($center_crop["width"] && is_numeric($center_crop["width"]) && $center_crop["height"] && is_numeric($center_crop["height"])) {
+													// Create a temporary crop of the image on the server before moving it to it's destination.
+													$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["options"]["retina"],$center_crop["grayscale"]);
+													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
+													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+												}
 											}
 										}
+		
+										$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 									}
-	
-									$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
 								}
 							}
 						}
