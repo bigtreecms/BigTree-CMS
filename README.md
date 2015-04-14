@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.11 Release
+- SECURITY FIX: Fixed several possible SQL injection vulnerabilities that could be run by authenticated BigTree users  (thanks sumitingole)
+- SECURITY FIX: Fixed several XSS attack vectors (thanks sumitingole)
+- SECURITY FIX: Session and login cookies are now set to HTTPOnly (less susceptible to XSS attacks, thanks sumitingole)
+
 ### 4.0.10 Release
 - SECURITY FIX: Fixed cross-site request forgery vulnerability in the /admin/profile/ page (thanks Charlie Clark)
 
