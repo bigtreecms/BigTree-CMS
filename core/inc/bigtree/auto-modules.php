@@ -94,6 +94,13 @@
 				}
 			}
 
+			// Stringify any columns that happen to be arrays (potentially from a pending record)
+			foreach ($item as $key => $val) {
+				if (is_array($val)) {
+					$item[$key] = json_encode($val);
+				}
+			}
+
 			global $cms;
 			
 			// Setup the fields and VALUES to INSERT INTO the cache table.
