@@ -20,6 +20,14 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.7 Release
+- SECURITY FIX: Fixed several possible SQL injection vulnerabilities that could be run by authenticated BigTree users  (thanks sumitingole)
+- SECURITY FIX: Fixed several XSS attack vectors (thanks sumitingole)
+- SECURITY FIX: Session and login cookies are now set to HTTPOnly (less susceptible to XSS attacks, thanks sumitingole)
+- FIXED: Invalid files (due to security implications) sticking around in /tmp when BigTreeStorage rejects them
+- FIXED: When an FTP path is invalid when trying to upgrade, it will now tell you instead of just failing silently and asking again
+- FIXED: Failure to properly encode arrays as strings when caching pending records (thanks jmason03)
+
 ### 4.1.6 Release
 - SECURITY FIX: Fixed cross-site request forgery vulnerability in the /admin/profile/ page (thanks Charlie Clark)
 - FIXED: Paginated results for Disqus getUsers related calls
