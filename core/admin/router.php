@@ -1,6 +1,6 @@
 <?
 	// BigTree Version
-	define("BIGTREE_VERSION","4.1.6");
+	define("BIGTREE_VERSION","4.1.7");
 	define("BIGTREE_REVISION",103);
 
 	// Set static root for those without it
