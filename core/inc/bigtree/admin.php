@@ -88,21 +88,54 @@
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
 				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
-				$pass = sqlescape($_COOKIE["bigtree_admin"]["password"]);
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user' AND password = '$pass'"));
-				if ($f) {
-					$this->ID = $f["id"];
-					$this->User = $user;
-					$this->Level = $f["level"];
-					$this->Name = $f["name"];
-					$this->Permissions = json_decode($f["permissions"],true);
-					$_SESSION["bigtree_admin"]["id"] = $f["id"];
-					$_SESSION["bigtree_admin"]["email"] = $f["email"];
-					$_SESSION["bigtree_admin"]["name"] = $f["name"];
-					$_SESSION["bigtree_admin"]["level"] = $f["level"];
+
+				// Get chain and session broken out
+				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"]);
+
+				// See if this is the current chain and session
+				$chain_entry = sqlfetch(sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '$user' AND chain = '".sqlescape($chain)."'"));
+				if ($chain_entry) {
+					// If both chain and session are legit, log them in
+					if ($chain_entry["id"] == $session) {
+						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user'"));
+						if ($f) {
+							// Setup session
+							$this->ID = $f["id"];
+							$this->User = $user;
+							$this->Level = $f["level"];
+							$this->Name = $f["name"];
+							$this->Permissions = json_decode($f["permissions"],true);
+							$_SESSION["bigtree_admin"]["id"] = $f["id"];
+							$_SESSION["bigtree_admin"]["email"] = $f["email"];
+							$_SESSION["bigtree_admin"]["name"] = $f["name"];
+							$_SESSION["bigtree_admin"]["level"] = $f["level"];
+
+							// Delete existing session
+							sqlquery("DELETE FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'");
+							
+							// Generate a random session id
+							$session = uniqid("session-",true);
+							while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
+								$session = uniqid("session-",true);
+							}
+
+							// Create a new session with the same chain
+							sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','$user')");
+							setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+						}
+					// Chain is legit and session isn't -- someone has taken your cookies
+					} else {
+						// Delete existing cookies
+						setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+						setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+						
+						// Delete all sessions for this user
+						sqlquery("DELETE FROM bigtree_user_sessions WHERE email = '$user'");
+					}
 				}
+
 				// Clean up
-				unset($user,$pass,$f);
+				unset($user,$f,$session,$chain,$chain_entry);
 			}
 
 			// Check the permissions to see if we should show the pages tab.
@@ -5511,10 +5544,23 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"],true);
 			$ok = $phpass->CheckPassword($password,$f["password"]);
 			if ($ok) {
-				// We still set the email for BigTree bar usage.
+				// Generate a random chain id
+				$chain = uniqid("chain-",true);
+				while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE chain = '".sqlescape($chain)."'"))) {
+					$chain = uniqid("chain-",true);
+				}
+				// Generate a random session id
+				$session = uniqid("session-",true);
+				while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
+					$session = uniqid("session-",true);
+				}
+				// Create the new session chain
+				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($f["email"])."')");
+
+				// We still set the email for BigTree bar usage even if they're not being "remembered"
 				setcookie('bigtree_admin[email]',$f["email"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				if ($stay_logged_in) {
-					setcookie('bigtree_admin[password]',$f["password"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+					setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				}
 
 				$_SESSION["bigtree_admin"]["id"] = $f["id"];
@@ -5586,7 +5632,7 @@
 
 		static function logout() {
 			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			setcookie("bigtree_admin[password]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 			unset($_COOKIE["bigtree_admin"]);
 			unset($_SESSION["bigtree_admin"]);
 			BigTree::redirect(ADMIN_ROOT);

@@ -97,6 +97,9 @@ CREATE TABLE `bigtree_templates` (`id` varchar(255) NOT NULL DEFAULT '', `name` 
 DROP TABLE IF EXISTS `bigtree_users`;
 CREATE TABLE `bigtree_users` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`email` varchar(255) NOT NULL DEFAULT '',`password` varchar(255) NOT NULL DEFAULT '',`name` varchar(255) NOT NULL DEFAULT '',`company` varchar(255) NOT NULL DEFAULT '',`level` int(11) unsigned NOT NULL DEFAULT '0',`permissions` text NOT NULL,`alerts` text NOT NULL,`daily_digest` char(2) NOT NULL,`change_password_hash` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `email` (`email`),KEY `password` (`password`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+DROP TABLE IF EXISTS `bigtree_user_sessions`;
+CREATE TABLE `bigtree_user_sessions` (`id` varchar(255) NOT NULL DEFAULT '', `email` varchar(255) DEFAULT NULL, `chain` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `email` (`email`), KEY `chain` (`chain`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 INSERT INTO `bigtree_pages` (`id`, `trunk`, `parent`, `in_nav`, `nav_title`, `route`, `path`, `title`, `meta_keywords`, `meta_description`, `template`, `external`, `new_window`, `resources`, `archived`, `archived_inherited`, `position`, `created_at`, `updated_at`, `publish_at`, `expire_at`, `max_age`, `last_edited_by`, `ga_page_views`) VALUES (0,'on',-1,'on','BigTree Site','','','BigTree Site','','','home','','','{}','','',0,NOW(),NOW(),NULL,NULL,0,0,0);
 
 INSERT INTO `bigtree_settings` (`id`,`type`,`name`,`description`) VALUES ('bigtree-internal-disable-page-tagging','checkbox','Disable Tagging in Pages','<p>Disables the ability for users to tag pages. Check this box if you do not use tags on your front end for related content.</p>');
