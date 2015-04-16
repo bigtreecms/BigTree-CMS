@@ -1557,23 +1557,7 @@
 				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'"));
 			}
 			if ($existing) {
-				$comments = json_decode($existing["comments"],true);
-				if ($existing["user"] == $admin->ID) {
-					$comments[] = array(
-						"user" => "BigTree",
-						"date" => date("F j, Y @ g:ia"),
-						"comment" => "A new revision has been made."
-					);
-				} else {
-					$user = $admin->getUser($admin->ID);
-					$comments[] = array(
-						"user" => "BigTree",
-						"date" => date("F j, Y @ g:ia"),
-						"comment" => "A new revision has been made.  Owner switched to ".$user["name"]."."
-					);
-				}
-				$comments = sqlescape(json_encode($comments));
-				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
+				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
 				
 				// If the id has a "p" it's still pending and we need to recache over the pending one.
 				if (substr($id,0,1) == "p") {
