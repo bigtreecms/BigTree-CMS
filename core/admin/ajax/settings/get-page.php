@@ -2,7 +2,7 @@
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
-	$page = isset($_GET["page"]) ? $_GET["page"] : 1;
+	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
 
 	$pages = $admin->getSettingsPageCount($query);
 	$results = $admin->getPageOfSettings($page,$query);

@@ -4,7 +4,7 @@
 
 	if (isset($_GET["return"])) {
 ?>
-<input type="hidden" name="return_to_front" value="<?=$_GET["return"]?>" />
+<input type="hidden" name="return_to_front" value="<?=htmlspecialchars($_GET["return"])?>" />
 <?
 	}
 ?>

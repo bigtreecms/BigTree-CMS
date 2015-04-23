@@ -156,6 +156,12 @@
 			if (!static::isDirectoryWritable($to)) {
 				return false;
 			}
+
+			// If the origin is a protocol agnostic URL, add http:
+			if (substr($from,0,2) == "//") {
+				$from = "http:".$from;
+			}
+
 			// is_readable doesn't work on URLs
 			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
 				return false;
@@ -494,7 +500,7 @@
 			$result["foreign_keys"] = array();
 			$result["primary_key"] = false;
 			
-			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
 			if (!$f) {
 				return false;
 			}
