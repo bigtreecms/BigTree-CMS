@@ -326,6 +326,10 @@
 		if ($bigtree["page"]["template"] == "!") {
 			$nav = $cms->getNavByParent($bigtree["page"]["id"],1);
 			$first = current($nav);
+			if (!$first) {
+				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
+				$first = current($nav);
+			}
 			BigTree::redirect($first["link"], 303);
 		}
 
