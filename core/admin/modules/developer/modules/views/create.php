@@ -63,7 +63,7 @@
 		}
 
 		// Create an action for the view
-		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
+		$admin->createModuleAction($module,"View $title",$route,"on","list","view-$view_id");
 
 		// If we're not working on a new module, just redirect back to the edit module page
 		if (!$_POST["new_module"]) {
