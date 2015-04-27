@@ -31,5 +31,5 @@
 	}
 ?>
 <script>
-	BigTree.setPageCount("#view_paging",<?=$pages?>,<?=$page?>);
+	BigTree.SetPageCount("#view_paging",<?=$pages?>,<?=$page?>);
 </script>
