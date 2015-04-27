@@ -2355,7 +2355,6 @@
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 
 					$mailer = new htmlMimeMail();
-					$mailer->setCrlf("\r\n");
 					$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
 					$mailer->setSubject("$site_title Daily Digest");
 					$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');
@@ -2406,7 +2405,6 @@
 			$text = "Password Reset:\n\nPlease visit the following link to reset your password:\n$reset_link\n\nIf you did not request a password change, please disregard this email.\n\nYou are receiving this because the address is linked to an account on $site_title.";
 
 			$mailer = new htmlMimeMail();
-			$mailer->setCrlf("\r\n");
 			$mailer->setFrom('"BigTree CMS" <no-reply@'.$no_reply_domain.'>');
 			$mailer->setSubject("Reset Your Password");
 			$mailer->setHeader('X-Mailer','HTML Mime mail class (http://www.phpguru.org)');

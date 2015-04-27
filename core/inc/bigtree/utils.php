@@ -1720,7 +1720,6 @@
 		
 		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array()) {
 			$mailer = new htmlMimeMail;
-			$mailer->setCrlf("\r\n");
 
 			$headers["X-Mailer"] = "BigTree CMS (http://www.bigtreecms.org) + HTML Mime mail class (http://www.phpguru.org)";			
 			foreach ($headers as $key => $val) {
