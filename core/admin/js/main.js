@@ -2356,6 +2356,14 @@ var BigTreeFormValidator = function(selector,callback) {
 				// Regular input fields
 				} else {
 					var val = $(this).val();
+					// If this is a file field, see if there's a regular input with the same name
+					if (!val && $(this).attr("type") == "file") {
+						$("input[name='" + $(this).attr("name") + "']").each(function(index) {
+							if (!val) {
+								val = $(this).val();
+							}
+						});
+					}
 				}
 				if (!val) {
 					errors[errors.length] = $(this);
