@@ -2970,20 +2970,35 @@ var BigTreeMatrix = function(settings) {
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
-				var item = $(el).find("input[type=text],input[type=email],textarea,select").not("[type=file]");
-				if (item.length) {
-					if (item.is("select")) {
-						var value = $.trim(item.find("option:selected").text());
-					} else {
-						var value = $.trim(item.val());
-					}
-					if (value) {
-						if (Title) {
-							Subtitle = value;
+				if (!Title || !Subtitle) {
+					var item = $(el).find("input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
+					if (item.length) {
+						// Going to check for multi-part inputs like names, address, phone
+						var parent = item.parent();
+						if (parent.hasClass("input_name") || parent.hasClass("input_phone_3") || parent.hasClass("input_address_street")) {
+							var value = "";
+							item.parent().siblings('section').each(function() {
+								if (parent.hasClass("input_phone_3")) {
+									value += "-" + $(this).children("input").val();
+								} else {
+									value += " " + $(this).children("input, select").val();
+								}
+							});
+							// Remove the leading -
+							value = $.trim(value.substr(1));
+						} else if (item.is("select")) {
+							var value = $.trim(item.find("option:selected").text());
 						} else {
-							Title = value;
+							var value = $.trim(item.val());
 						}
-					} 
+						if (value) {
+							if (!Title) {
+								Title = value;
+							} else {
+								Subtitle = value;
+							}
+						} 
+					}
 				}
 			});
 			
