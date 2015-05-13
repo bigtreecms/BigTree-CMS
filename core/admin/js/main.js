@@ -201,13 +201,13 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function click() {
-			if (!Element.attr("disabled")) {
+			if (!Element.prop("disabled")) {
 				if (Link.hasClass("checked")) {
 					Link.removeClass("checked");
-					Element.attr("checked",false);
+					Element.prop("checked",false);
 				} else {
 					Link.addClass("checked");
-					Element.attr("checked","checked");
+					Element.prop("checked",true);
 				}
 				Element.triggerHandler("click");
 				Element.triggerHandler("change");
@@ -217,7 +217,7 @@ var BigTreeCheckbox = function(element) {
 	
 		function disable() {
 			Link.addClass("disabled");
-			Element.attr("disabled","disabled");
+			Element.prop("disabled",true);
 		};
 		
 		function enable() {
@@ -226,7 +226,7 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function focus() {
-			if (!Element.attr("disabled")) {
+			if (!Element.prop("disabled")) {
 				Link.addClass("focused");
 			}
 		};
@@ -399,7 +399,7 @@ var BigTreeSelect = function(element) {
 		};
 	
 		function disable() {
-			Element.attr("disabled","disabled");
+			Element.prop("disabled",true);
 			Container.addClass("disabled");
 		};
 	
@@ -710,7 +710,7 @@ var BigTreeSelect = function(element) {
 		Element.after(Container);		
 
 		// See if this select is disabled
-		if (Element.attr("disabled")) {
+		if (Element.prop("disabled")) {
 			Container.addClass("disabled");
 		}
 		
@@ -873,7 +873,7 @@ var BigTreeRadioButton = function(element) {
 				// If it's already clicked, nothing happens for radio buttons.
 			} else {
 				Link.addClass("checked");
-				Element.attr("checked",true);
+				Element.prop("checked",true);
 				$('input[name="' + Element.attr("name") + '"]').not(Element).each(function() {
 					this.customControl.Link.removeClass("checked");
 					$(this).trigger("change");
