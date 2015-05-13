@@ -16,8 +16,8 @@
 				$entries[$g["id"]] = $g[$field["options"]["mtm-other-descriptor"]];
 			}			
 		}
-	// No pending data, let's query the connecting table directly for the entries.
-	} else {
+	// No pending data, let's query the connecting table directly for the entries, but only if this isn't a new entry
+	} elseif ($bigtree["edit_id"]) {
 		if ($sortable) {
 			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."' ORDER BY `position` DESC");
 		} else {
