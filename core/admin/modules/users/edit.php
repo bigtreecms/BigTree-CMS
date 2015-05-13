@@ -394,7 +394,7 @@
 	new BigTreePasswordInput("input[type=password]");
 	
 	$("form.module").submit(function(ev) {
-		$("#edit_user_submit").val("Saving Permisions...").attr("disabled","disabled");
+		$("#edit_user_submit").val("Saving Permisions...").prop("disabled",true);
 		var permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
 		var alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
 		// Remove the radios / checkboxes from the permissions section as they can cause a post overrun
@@ -439,7 +439,7 @@
 				$.fn.reverse = [].reverse;
 				$(this).parentsUntil(".depth_1","li").reverse().each(function(index,el) {
 					id = $(el).find("a").attr("data-id");
-					if ($(el).find("input[type=checkbox]").attr("checked")) {
+					if ($(el).find("input[type=checkbox]").prop("checked")) {
 						inherited_alerts = true;
 					}
 					if (!data) {
@@ -467,7 +467,7 @@
 					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="n" /></span>');
 					li.append('<span class="permission_level"<? if ($user["level"] > 0) { ?> style="display: none;"<? } ?>><input type="radio" data-category="Page" data-key="' + page.i + '" name="permissions[page][' + page.i + ']" value="i" checked="checked" /></span>');
 					if (inherited_alerts) {
-						li.find("input[type=checkbox]").attr("checked","checked").attr("disabled","disabled");
+						li.find("input[type=checkbox]").prop("checked",true).prop("disabled",true);
 					}
 					ul.append(li);
 				}
@@ -484,15 +484,15 @@
 	function _localObservers(selector) {
 		// Observe content alert checkboxes
 		$(selector).find("input[type=checkbox]").on("click",function() {
-			if ($(this).attr("checked")) {
+			if ($(this).prop("checked")) {
 				$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
-					$(this).attr("checked","checked").attr("disabled","disabled");
+					$(this).prop("checked",true).prop("disabled",true);
 					this.customControl.Link.addClass("checked").addClass("disabled");
 				});
 				BigTreeUserForm.Alerts[$(this).attr("data-key")] = "on";
 			} else {
 				$(this).parent().parent().find("ul input[type=checkbox]").each(function() {
-					$(this).attr("checked",false).attr("disabled",false);
+					$(this).prop("checked",false).prop("disabled",false);
 					this.customControl.Link.removeClass("checked").removeClass("disabled");
 				});
 				BigTreeUserForm.Alerts[$(this).attr("data-key")] = "";

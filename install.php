@@ -684,7 +684,7 @@ RewriteRule (.*) site/$1 [L]');
 		    <script>
 		        $(document).ready(function() {
 		        	$("#loadbalanced").on("change", function() {
-		        		if ($(this).attr("checked")) {
+		        		if ($(this).prop("checked")) {
 		        			$("#loadbalanced_settings").css({ display: "block" });
 		        		} else {
 		        			$("#loadbalanced_settings").css({ display: "none" });

@@ -258,7 +258,7 @@ var BigTreeCheckbox = Class.extend({
 	},
 	
 	focus: function() {
-		if (!this.Element.attr("disabled")) {
+		if (!this.Element.prop("disabled")) {
 			this.Link.addClass("focused");
 		}
 	},
@@ -275,13 +275,13 @@ var BigTreeCheckbox = Class.extend({
 	},
 
 	click: function() {
-		if (!this.Element.attr("disabled")) {
+		if (!this.Element.prop("disabled")) {
 			if (this.Link.hasClass("checked")) {
 				this.Link.removeClass("checked");
-				this.Element.attr("checked",false);
+				this.Element.prop("checked",false);
 			} else {
 				this.Link.addClass("checked");
-				this.Element.attr("checked","checked");
+				this.Element.prop("checked",true);
 			}
 			this.Element.triggerHandler("click");
 			this.Element.triggerHandler("change");
@@ -291,7 +291,7 @@ var BigTreeCheckbox = Class.extend({
 
 	disable: function() {
 		this.Link.addClass("disabled");
-		this.Element.attr("disabled","disabled");
+		this.Element.prop("disabled",true);
 	},
 	
 	enable: function() {
@@ -371,7 +371,7 @@ var BigTreeSelect = Class.extend({
 						selected_option = text;
 					}
 					
-					if (option.attr("selected")) {
+					if (option.prop("selected")) {
 						html += '<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>';		
 						selected_option = text;
 					} else {
@@ -405,7 +405,7 @@ var BigTreeSelect = Class.extend({
 					selected_option = text;
 				}
 				
-				if (option.attr("selected")) {
+				if (option.prop("selected")) {
 					html += '<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>';		
 					selected_option = text;
 				} else {
@@ -437,7 +437,7 @@ var BigTreeSelect = Class.extend({
 		this.Container = div;
 
 		// See if this select is disabled
-		if (this.Element.attr("disabled")) {
+		if (this.Element.prop("disabled")) {
 			this.Container.addClass("disabled");
 		}
 		
@@ -590,7 +590,7 @@ var BigTreeSelect = Class.extend({
 	},
 
 	disable: function() {
-		this.Element.attr("disabled","disabled");
+		this.Element.prop("disabled",true);
 		this.Container.addClass("disabled");
 	},
 
@@ -903,7 +903,7 @@ var BigTreeRadioButton = Class.extend({
 			// If it's already clicked, nothing happens for radio buttons.
 		} else {
 			this.Link.addClass("checked");
-			this.Element.attr("checked",true);
+			this.Element.prop("checked",true);
 			$('input[name="' + this.Element.attr("name") + '"]').not(this.Element).each(function() {
 				this.customControl.Link.removeClass("checked");
 				$(this).trigger("change");
