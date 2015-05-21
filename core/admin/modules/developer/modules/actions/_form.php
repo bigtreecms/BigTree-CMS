@@ -25,21 +25,35 @@
 			<label>Interface</label>
 			<select name="interface">
 				<option></option>
+				<?
+					if (count($forms)) {
+				?>
 				<optgroup label="Forms">
 					<? foreach ($forms as $form) { ?>
 					<option value="form-<?=$form["id"]?>"<? if ($form["id"] == $item["form"]) { ?> selected="selected"<? } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
 					<? } ?>
 				</optgroup>
+				<?
+					}
+					if (count($views)) {
+				?>
 				<optgroup label="Views">
 					<? foreach ($views as $view) { ?>
 					<option value="view-<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
 					<? } ?>
 				</optgroup>
+				<?
+					}
+					if (count($reports)) {
+				?>
 				<optgroup label="Reports">
 					<? foreach ($reports as $report) { ?>
 					<option value="report-<?=$report["id"]?>"<? if ($report["id"] == $item["report"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
 					<? } ?>
 				</optgroup>
+				<?
+					}
+				?>
 			</select>
 		</fieldset>
 	</div>

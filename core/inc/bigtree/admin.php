@@ -7,16 +7,42 @@
 	class BigTreeAdminBase {
 		static $IRLPrefixes = false;
 		static $IRLsCreated = array();
-		static $PerPage = 15;		
+		static $PerPage = 15;
 
-		// !View Types
-		static $ViewTypes = array(
-			"searchable" => "Searchable List",
-			"draggable" => "Draggable List",
-			"nested" => "Nested Draggable List",
-			"grouped" => "Grouped List",
-			"images" => "Image List",
-			"images-grouped" => "Grouped Image List"
+		// !Cron Plugins
+		static $CronPlugins = array();
+
+		// !Daily Digest Plugins
+		static $DailyDigestPlugins = array();
+
+		// !Dashboard Plugins
+		static $DashboardPlugins = array();
+
+		// !Interface Types
+		static $InterfaceTypes = array(
+			"core" => array(
+				"views" => array(
+					"name" => "View",
+					"icon" => "category",
+					"description" => "Views are lists of database content. Views can have associated actions such as featuring, archiving, approving, editing, and deleting content."
+				),
+				"reports" => array(
+					"name" => "Report",
+					"icon" => "graph",
+					"description" => "Reports allow your admin users to filter database content. Reports can either generate a filtered view (based on an existing View interface) or export the data to a CSV."
+				),
+				"forms" => array(
+					"name" => "Form",
+					"icon" => "form",
+					"description" => "Forms are used for creating and editing database content by admin users."
+				),
+				"embeds" => array(
+					"name" => "Embeddable Form",
+					"icon" => "file_default",
+					"description" => "Embeddable forms allow your front-end users to create database content using your existing field types via iframes."
+				)
+			),
+			"extension" => array()
 		);
 
 		// !Reserved Column Names
@@ -67,16 +93,63 @@
 			)
 		);
 
-		// !Icon Classes
-		static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
-		static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
+		// !View Types
+		static $ViewTypes = array(
+			"core" => array(
+				"searchable" => "Searchable List",
+				"draggable" => "Draggable List",
+				"nested" => "Nested Draggable List",
+				"grouped" => "Grouped List",
+				"images" => "Image List",
+				"images-grouped" => "Grouped Image List"
+			),
+			"extension" => array()
+		);
 
+		// !Icon Classes
+		static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
+		static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
+		
 		/*
 			Constructor:
 				Initializes the user's permissions.
 		*/
 
 		function __construct() {
+			global $bigtree;
+			$extension_cache_file = SERVER_ROOT."cache/bigtree-extension-cache.json";
+
+			// Handle extension cache
+			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
+				$settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
+				$plugins = array();
+				$q = sqlquery("SELECT id FROM bigtree_extensions");
+				while ($f = sqlfetch($q)) {
+					// Load up the manifest
+					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$f["id"]."/manifest.json"),true);
+					if (is_array($manifest["plugins"])) {
+						foreach ($manifest["plugins"] as $type => $list) {
+							foreach ($list as $id => $plugin) {
+								$plugins[$type][$f["id"]][$id] = $plugin;
+							}
+						}
+					}
+				}
+				// If no longer in debug mode, cache it
+				if (!$bigtree["config"]["debug"]) {
+					file_put_contents($extension_cache_file,BigTree::json($plugins));
+				}
+			} else {
+				$plugins = json_decode(file_get_contents($extension_cache_file),true);
+			}
+			
+			static::$CronPlugins = $plugins["cron_plugins"];
+			static::$DailyDigestPlugins = $plugins["daily_digest_plugins"];
+			static::$DashboardPlugins = $plugins["dashboard_plugins"];
+			static::$InterfaceTypes["extension"] = $plugins["interfaces"];
+			static::$ViewTypes["extension"] = $plugins["view_types"];
+
+			// Handle Login Session
 			if (isset($_SESSION["bigtree_admin"]["email"])) {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
 				if ($f) {
@@ -933,7 +1006,7 @@
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
 			$name = sqlescape(BigTree::safeEncode($name));
-			$form = $view = $report = $extension_reference = $extension_interface = "NULL";
+			$form = $view = $report = $extension_interface = "NULL";
 			$report = $report ? "'".sqlescape($report)."'" : "NULL";
 			$level = sqlescape($level);
 			$position = sqlescape($position);
@@ -949,10 +1022,9 @@
 				$report = $interface_id;
 			} elseif ($interface_type) {
 				$extension_interface = "'".sqlescape($interface_type)."'";
-				$extension_reference = $extension_reference;
 			}
 
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`extension_interface`,`extension_reference`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,$extension_interface,$extension_reference,'$position')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`extension_interface`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,$extension_interface,'$position')");
 			
 			$this->track("bigtree_module_actions",sqlid(),"created");
 
@@ -7163,7 +7235,7 @@
 			$icon = sqlescape($icon);
 			$name = sqlescape(BigTree::safeEncode($name));
 			$level = sqlescape($level);
-			$form = $view = $report = $extension_reference = $extension_interface = "NULL";
+			$form = $view = $report = $extension_interface = "NULL";
 			$position = sqlescape($position);
 
 			$item = $this->getModuleAction($id);
@@ -7179,10 +7251,9 @@
 				$report = $interface_id;
 			} elseif ($interface_type) {
 				$extension_interface = "'".sqlescape($interface_type)."'";
-				$extension_reference = $extension_reference;
 			}
 
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report, extension_interface = $extension_interface, extension_reference = $extension_reference WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report, extension_interface = $extension_interface WHERE id = '$id'");
 			$this->track("bigtree_module_actions",$id,"updated");
 		}
 

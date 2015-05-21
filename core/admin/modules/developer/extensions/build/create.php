@@ -268,11 +268,23 @@
 		// Clean up the revisions (if we don't have any)
 		$package["sql_revisions"] = array_filter($package["sql_revisions"]);
 	}
-	
+		
+	// Store it in the database for future updates -- existing packages might be replaced
+	if (sqlrows(sqlquery("SELECT id FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
+		// Grab existing manifest and get its plugin list since this is handled manually
+		$existing_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
+		$package["plugins"] = $existing_manifest["plugins"];
+		sqlquery("UPDATE bigtree_extensions SET type = 'extension', name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".BigTree::json($package,true)."' WHERE id = '".sqlescape($id)."'");
+	} else {
+		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".BigTree::json($package,true)."')");
+	}
+
+	// Turn foreign key checks back on
+	sqlquery("SET foreign_key_checks = 1");
+
 	// Write the manifest file
-	$json = BigTree::json($package);
-	BigTree::putFile(SERVER_ROOT."extensions/$id/manifest.json",$json);
-	
+	BigTree::putFile(SERVER_ROOT."extensions/$id/manifest.json",BigTree::json($package));
+
 	// Create the zip, clear caches since we may have moved the routes of field types and modules
 	@unlink(SERVER_ROOT."cache/package.zip");
 	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
@@ -280,16 +292,6 @@
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
-
-	// Store it in the database for future updates -- existing packages might be replaced
-	if (sqlrows(sqlquery("SELECT id FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
-		sqlquery("UPDATE bigtree_extensions SET type = 'extension', name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
-	} else {
-		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
-	}
-
-	// Turn foreign key checks back on
-	sqlquery("SET foreign_key_checks = 1");
 ?>
 <div class="container">
 	<section>

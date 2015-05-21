@@ -624,6 +624,8 @@
 	function _local_bigtree_update_300() {
 		// Extension interfaces
 		sqlquery("ALTER TABLE `bigtree_module_actions` ADD COLUMN `extension_interface` VARCHAR(255) AFTER `report`");
-		sqlquery("ALTER TABLE `bigtree_module_actions` ADD COLUMN `extension_reference` VARCHAR(255) AFTER `extension_interface`");
+
+		// Extension settings
+		sqlquery("INSERT INTO `bigtree_settings` (`id`,`system`,`value`) VALUES ('bigtree-internal-extension-settings','on','{}')");
 	}
 ?>
