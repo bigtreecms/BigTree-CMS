@@ -490,7 +490,7 @@
 		*/
 
 		static function getEditAction($module,$form) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".sqlescape($form)."' AND module = '".sqlescape($module)."' AND route LIKE 'edit%'"));
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '".sqlescape($form)."' AND module = '".sqlescape($module)."' AND route LIKE 'edit%'"));
 		}
 
 		/*
@@ -740,45 +740,61 @@
 		/*
 			Function: getModuleForForm
 				Returns the associated module id for the given form.
+				DEPRECATED - Please use getModuleForInterface.
 			
 			Parameters:
 				form - Either a form entry or form id.
 			
 			Returns:
 				The id of the module the form is a member of.
+
+			See Also:
+				<getModuleForInterface>
 		*/
 		
 		static function getModuleForForm($form) {
-			if (is_array($form)) {
-				if ($form["module"]) {
-					return $form["module"];
+			return self::getModuleForInterface($form);
+		}
+
+		/*
+			Function: getModuleForInterface
+				Returns the associated module id for the given interface.
+			
+			Parameters:
+				interface - Either a interface array or interface id.
+			
+			Returns:
+				The id of the module the interface is a member of.
+		*/
+		
+		static function getModuleForInterface($interface) {
+			if (is_array($interface)) {
+				if ($interface["module"]) {
+					return $interface["module"];
 				}
-				$form = $form["id"];
+				$interface = $interface["id"];
 			}
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form'"));
+			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '".sqlescape($interface)."'"));
 			return $f["module"];
 		}
 		
 		/*
 			Function: getModuleForView
 				Returns the associated module id for the given view.
+				DEPRECATED - Please use getModuleForInterface.
 			
 			Parameters:
 				view - Either a view entry or view id.
 			
 			Returns:
 				The id of the module the view is a member of.
+
+			See Also:
+				<getModuleForInterface>
 		*/
 
 		static function getModuleForView($view) {
-			if (is_array($view)) {
-				if ($view["module"]) {
-					return $view["module"];
-				}
-				$view = $view["id"];
-			}
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '$view'"));
-			return $f["module"];
+			return self::getModuleForInterface($view);
 		}
 		
 		/*
@@ -1367,10 +1383,10 @@
 				$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '".$view["module"]."'"));
 				if ($view["related_form"]) {
 					// Try for actions beginning with edit first
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."' AND route LIKE 'edit%'"));
+					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '".$view["related_form"]."' AND route LIKE 'edit%'"));
 					if (!$f) {
 						// Try any action with this form
-						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
+						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '".$view["related_form"]."'"));
 					}
 					$view["edit_url"] = ADMIN_ROOT.$module["route"]."/".$f["route"]."/";
 				} else {

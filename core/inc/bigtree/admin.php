@@ -1027,25 +1027,12 @@
 			$in_nav = sqlescape($in_nav);
 			$icon = sqlescape($icon);
 			$name = sqlescape(BigTree::safeEncode($name));
-			$form = $view = $report = $extension_interface = "NULL";
-			$report = $report ? "'".sqlescape($report)."'" : "NULL";
 			$level = sqlescape($level);
 			$position = sqlescape($position);
 			$route = $this->uniqueModuleActionRoute($module,$route);
+			$interface = $interface ? "'".sqlescape($interface)."'" : "NULL";
 
-			list($interface_type,$interface_id) = explode("-",$interface);
-			$interface_id = intval($interface_id);
-			if ($interface_type == "form") {
-				$form = $interface_id;
-			} elseif ($interface_type == "view") {
-				$view = $interface_id;
-			} elseif ($interface_type == "report") {
-				$report = $interface_id;
-			} elseif ($interface_type) {
-				$extension_interface = "'".sqlescape($interface_type)."'";
-			}
-
-			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`extension_interface`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,$extension_interface,'$position')");
+			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`interface`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$interface,'$position')");
 			
 			$this->track("bigtree_module_actions",sqlid(),"created");
 
@@ -7306,25 +7293,13 @@
 			$icon = sqlescape($icon);
 			$name = sqlescape(BigTree::safeEncode($name));
 			$level = sqlescape($level);
-			$form = $view = $report = $extension_interface = "NULL";
 			$position = sqlescape($position);
+			$interface = $interface ? "'".sqlescape($interface)."'" : "NULL";
 
 			$item = $this->getModuleAction($id);
 			$route = $this->uniqueModuleActionRoute($item["module"],$route,$id);
 
-			list($interface_type,$interface_id) = explode("-",$interface);
-			$interface_id = intval($interface_id);
-			if ($interface_type == "form") {
-				$form = $interface_id;
-			} elseif ($interface_type == "view") {
-				$view = $interface_id;
-			} elseif ($interface_type == "report") {
-				$report = $interface_id;
-			} elseif ($interface_type) {
-				$extension_interface = "'".sqlescape($interface_type)."'";
-			}
-
-			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', form = $form, view = $view, report = $report, extension_interface = $extension_interface WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_actions SET name = '$name', route = '$route', class = '$icon', in_nav = '$in_nav', level = '$level', position = '$position', interface = $interface WHERE id = '$id'");
 			$this->track("bigtree_module_actions",$id,"updated");
 		}
 

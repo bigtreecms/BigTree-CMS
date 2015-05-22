@@ -30,7 +30,7 @@
 				?>
 				<optgroup label="Forms">
 					<? foreach ($forms as $form) { ?>
-					<option value="form-<?=$form["id"]?>"<? if ($form["id"] == $item["form"]) { ?> selected="selected"<? } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
+					<option value="<?=$form["id"]?>"<? if ($form["id"] == $item["interface"]) { ?> selected="selected"<? } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
 					<? } ?>
 				</optgroup>
 				<?
@@ -39,7 +39,7 @@
 				?>
 				<optgroup label="Views">
 					<? foreach ($views as $view) { ?>
-					<option value="view-<?=$view["id"]?>"<? if ($view["id"] == $item["view"]) { ?> selected="selected"<? } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
+					<option value="<?=$view["id"]?>"<? if ($view["id"] == $item["interface"]) { ?> selected="selected"<? } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
 					<? } ?>
 				</optgroup>
 				<?
@@ -48,7 +48,7 @@
 				?>
 				<optgroup label="Reports">
 					<? foreach ($reports as $report) { ?>
-					<option value="report-<?=$report["id"]?>"<? if ($report["id"] == $item["report"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
+					<option value="<?=$report["id"]?>"<? if ($report["id"] == $item["interface"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
 					<? } ?>
 				</optgroup>
 				<?
