@@ -2722,39 +2722,6 @@
 		}
 
 		/*
-			Function: getAutoModuleActions
-				Return a list of module forms and views.
-				Used by the API for reconstructing forms and views.
-
-			Parameters:
-				module - The module id to pull forms/views for.
-
-			Returns:
-				An array of module actions with "form" and "view" columns replaced with form and view data.
-
-			See Also:
-				<BigTreeAutoModule.getForm>
-				<BigTreeAutoModule.getView>
-		*/
-
-		static function getAutoModuleActions($module) {
-			$items = array();
-			$id = sqlescape($module);
-			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$id' AND (form != 0 OR view != 0) AND in_nav = 'on' ORDER BY position DESC, id ASC");
-			while ($f = sqlfetch($q)) {
-				if ($f["form"]) {
-					$f["form"] = BigTreeAutoModule::getForm($f["form"]);
-					$f["type"] = "form";
-				} elseif ($f["view"]) {
-					$f["view"] = BigTreeAutoModule::getView($f["view"]);
-					$f["type"] = "view";
-				}
-				$items[] = $f;
-			}
-			return $items;
-		}
-
-		/*
 			Function: getBasicTemplates
 				Returns a list of non-routed templates ordered by position.
 			
