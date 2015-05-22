@@ -1990,6 +1990,20 @@
 		}
 
 		/*
+			Function: deleteModuleReport
+				Deletes a module report and its related actions.
+
+			Parameters:
+				id - The id of the module report.
+		*/
+
+		function deleteModuleReport($id) {
+			$id = sqlescape($id);
+			sqlquery("DELETE FROM bigtree_module_reports WHERE id = '$id'");
+			sqlquery("DELETE FROM bigtree_module_actions WHERE report = '$id'");
+		}
+
+		/*
 			Function: deleteModuleView
 				Deletes a module view and its related actions.
 
