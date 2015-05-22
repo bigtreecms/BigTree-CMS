@@ -2,7 +2,7 @@
 	BigTree::globalizePOSTVars();
 	$admin->updateModuleReport(end($bigtree["commands"]),$title,$table,$type,$filters,$fields,$parser,$view);
 	$admin->growl("Developer","Updated Module Report");
-	$action = $admin->getModuleActionForReport(end($bigtree["commands"]));
+	$action = $admin->getModuleActionForInterface(end($bigtree["commands"]));
 
 	if ($_POST["return_page"]) {
 		BigTree::redirect($_POST["return_page"]);

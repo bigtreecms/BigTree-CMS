@@ -49,7 +49,7 @@
 						$view = BigTreeAutoModule::getViewForTable($r["table"]);
 						$form = BigTreeAutoModule::getRelatedFormForView($view);
 						$module = BigTreeAutoModule::getModuleForForm($form);
-						$action = $admin->getModuleActionForForm($form);
+						$action = $admin->getModuleActionForInterface($form);
 						if ($module && $action) {
 							$module = $admin->getModule($module);
 							$form_cache[$r["table"]] = ADMIN_ROOT.$module["route"]."/".$action["route"]."/";

@@ -85,7 +85,7 @@
 		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
 		BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		
-		$action = $admin->getModuleActionForView(end($bigtree["path"]));
+		$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");
 
 		if ($_POST["return_page"]) {

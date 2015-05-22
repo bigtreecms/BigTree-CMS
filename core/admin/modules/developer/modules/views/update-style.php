@@ -10,7 +10,7 @@
 	// Update the view
 	$admin->updateModuleViewFields(end($bigtree["path"]),$fields);
 
-	$action = $admin->getModuleActionForView(end($bigtree["path"]));
+	$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
 
 	$admin->growl("Developer","Updated View Styles");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");

@@ -5,7 +5,7 @@
 	$modules = $admin->getModuleForms();
 	// Get the ids of items that are in each module.
 	foreach ($modules as &$m) {
-		$action = $admin->getModuleActionForForm($m);
+		$action = $admin->getModuleActionForInterface($m);
 		$module = $admin->getModule($action["module"]);
 		if ($module["group"]) {
 			$group = $admin->getModuleGroup($module["group"]);

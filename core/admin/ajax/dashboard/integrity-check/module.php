@@ -14,7 +14,7 @@
 
 	// Only retrieve these if we have errors as we only need them for URL generation
 	if (array_filter($integrity_errors)) {
-		$action = $admin->getModuleActionForForm($form);
+		$action = $admin->getModuleActionForInterface($form);
 		$module = $admin->getModule($action["module"]);
 	}
 	

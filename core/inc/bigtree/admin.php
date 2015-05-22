@@ -3435,61 +3435,74 @@
 		/*
 			Function: getModuleActionForForm
 				Returns the related module action for an auto module form. Prioritizes edit action over add.
+				DEPRECATED - Please use getModuleActionForInterface.
 
 			Parameters:
 				form - The id of a form or a form entry.
 
 			Returns:
 				A module action entry.
+
+			See Also:
+				<getModuleActionForInterface>
 		*/
 
 		static function getModuleActionForForm($form) {
-			if (is_array($form)) {
-				$form = sqlescape($form["id"]);
-			} else {
-				$form = sqlescape($form);
-			}
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form' ORDER BY route DESC"));
+			return static::getModuleActionForInterface($form);
+		}
+
+		/*
+			Function: getModuleActionForInterface
+				Returns the related module action for a given module interface. Prioritizes edit action over add.
+		
+			Parameters:
+				interface - The id of an interface or interface array.
+
+			Returns:
+				A module action entry.
+		*/
+
+		static function getModuleActionForInterface($interface) {
+			$interface = sqlescape(is_array($interface) ? $interface["id"] : $interface);
+			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '$interface' ORDER BY route DESC"));
 		}
 
 		/*
 			Function: getModuleActionForReport
 				Returns the related module action for an auto module report.
+				DEPRECATED - Please use getModuleActionForInterface.
 
 			Parameters:
 				report - The id of a report or a report entry.
 
 			Returns:
 				A module action entry.
+
+			See Also:
+				<getModuleActionForInterface>
 		*/
 
 		static function getModuleActionForReport($report) {
-			if (is_array($report)) {
-				$report = sqlescape($report["id"]);
-			} else {
-				$report = sqlescape($report);
-			}
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE report = '$report'"));
+			return static::getModuleActionForInterface($report);
 		}
 
 		/*
 			Function: getModuleActionForView
 				Returns the related module action for an auto module view.
+				DEPRECATED - Please use getModuleActionForInterface.
 
 			Parameters:
 				view - The id of a view or a view entry.
 
 			Returns:
 				A module action entry.
+
+			See Also:
+				<getModuleActionForInterface>
 		*/
 
 		static function getModuleActionForView($view) {
-			if (is_array($view)) {
-				$view = sqlescape($view["id"]);
-			} else {
-				$view = sqlescape($view);
-			}
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '$view'"));
+			return static::getModuleActionForInterface($view);
 		}
 
 		/*

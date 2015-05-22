@@ -1,6 +1,6 @@
 <?
 	$report = BigTreeAutoModule::getReport(end($bigtree["commands"]));
-	$action = $admin->getModuleActionForReport($report);
+	$action = $admin->getModuleActionForInterface($report);
 	BigTree::globalizeArray($report);
 
 	// Find out available views to use

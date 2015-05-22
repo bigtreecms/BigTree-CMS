@@ -3,7 +3,7 @@
 
 	$form_id = end($bigtree["path"]);
 	$admin->updateModuleForm($form_id,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
-	$action = $admin->getModuleActionForForm($form_id);
+	$action = $admin->getModuleActionForInterface($form_id);
 
 	$admin->growl("Developer","Updated Module Form");
 
