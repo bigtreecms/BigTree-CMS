@@ -16,7 +16,7 @@
 		static $RouteParamNames = array();
 		static $RouteParamNamesPath = array();
 		static $SUTestResult = null;
-	
+		
 		/*
 			Function: arrayToXML
 				Turns a PHP array into an XML string.
@@ -43,6 +43,24 @@
 				}
 			}
 			return $xml;
+		}
+
+		/*
+			Function: arrayValue
+				Checks to see if a value is a string. If it is it will be JSON decoded into an array.
+
+			Parameters:
+				value - A variable
+
+			Returns:
+				An array.
+		*/
+
+		static function arrayValue($value) {
+			if (is_string($value)) {
+				$value = (array)@json_decode($value,true);
+			}
+			return $value;
 		}
 
 		/*

@@ -1,5 +1,5 @@
 <?
-	$bigtree["view"] = $view = BigTreeAutoModule::getView($bigtree["module_action"]["view"]);
+	$bigtree["view"] = $view = $bigtree["interface"];
 
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {

@@ -620,12 +620,12 @@
 				"module" => $interface["module"],
 				"title" => $interface["title"],
 				"table" => $interface["table"],
-				"fields" => $settings["fields"],
+				"fields" => BigTree::arrayValue($settings["fields"]),
 				"default_position" => $settings["default_position"],
 				"return_view" => $settings["return_view"],
 				"return_url" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["return_url"]) : $settings["return_url"],
 				"tagging" => $settings["tagging"],
-				"hooks" => $settings["hooks"]
+				"hooks" => BigTree::arrayValue($settings["hooks"])
 			);
 		}
 		
@@ -695,6 +695,41 @@
 			}
 			
 			return $groups;
+		}
+
+		/*
+			Function: getInterface
+				Gets a module interface. If the interface is a core type, the related type will be returned.
+
+			Parameters:
+				id - The interface ID.
+
+			Returns:
+				An interface array (or specialty type for forms, embeddable forms, views, and reports).
+		*/
+
+		static function getInterface($id) {
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			if ($interface["type"] == "form") {
+				$form = self::getForm($id);
+				$form["interface_type"] = "form";
+				return $form;
+			} elseif ($interface["type"] == "embeddable-form") {
+				$form = self::getEmbedForm($id);
+				$form["interface_type"] == "embeddable-form";
+				return $form;
+			} elseif ($interface["type"] == "view") {
+				$view = self::getView($id);
+				$view["interface_type"] = "view";
+				return $view;
+			} elseif ($interface["type"] == "report") {
+				$report = self::getReport($id);
+				$report["interface_type"] = "report";
+				return $report;
+			} else {
+				$interface["settings"] = json_decode($interface["settings"],true);
+				return $interface;
+			}
 		}
 
 		/*
@@ -1228,9 +1263,9 @@
 				"description" => $settings["description"],
 				"type" => $settings["type"],
 				"table" => $interface["table"],
-				"fields" => $settings["fields"],
-				"options" => $settings["options"],
-				"actions" => $settings["actions"],
+				"fields" => BigTree::arrayValue($settings["fields"]),
+				"options" => BigTree::arrayValue($settings["options"]),
+				"actions" => BigTree::arrayValue($settings["actions"]),
 				"preview_url" => BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]),
 				"related_form" => $settings["related_form"]
 			);
@@ -1259,7 +1294,7 @@
 			}
 			
 			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];
-			$fields = json_decode($view["fields"],true);
+			$fields = $view["fields"];
 			if (count($fields)) {
 				$first = current($fields);
 				if (!isset($first["width"]) || !$first["width"]) {

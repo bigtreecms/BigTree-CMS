@@ -1,5 +1,5 @@
 <?
-	$bigtree["report"] = BigTreeAutoModule::getReport($bigtree["module_action"]["report"]);
+	$bigtree["report"] = $bigtree["interface"];
 	$bigtree["form"] = BigTreeAutoModule::getRelatedFormForReport($bigtree["report"]);
 	$bigtree["view"] = $bigtree["report"]["view"] ? BigTreeAutoModule::getView($bigtree["report"]["view"]) : BigTreeAutoModule::getRelatedViewForReport($bigtree["report"]);
 	if ($admin->Level > 1) {

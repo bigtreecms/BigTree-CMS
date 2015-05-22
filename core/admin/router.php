@@ -393,16 +393,15 @@
 			$bigtree["commands"] = $route_response["commands"];
 		}
 
-		// Handle auto actions
-		if ($bigtree["module_action"]["form"]) {
-			include BigTree::path("admin/auto-modules/form.php");
-			$complete = true;
-		} elseif ($bigtree["module_action"]["view"]) {
-			include BigTree::path("admin/auto-modules/view.php");
-			$complete = true;
-		} elseif ($bigtree["module_action"]["report"]) {
-			include BigTree::path("admin/auto-modules/report.php");
-			$complete = true;
+		// Handle interface actions
+		if ($bigtree["module_action"]["interface"]) {
+			$bigtree["interface"] = BigTreeAutoModule::getInterface($bigtree["module_action"]["interface"]);
+			if (isset($bigtree["interface"]["interface_type"])) {
+				include BigTree::path("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
+				$complete = true;
+			} else {
+				// TODO RUN CUSTOM INTERFACES
+			}
 		}
 	}
 
