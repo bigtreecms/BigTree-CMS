@@ -39,15 +39,12 @@
 				$original_item = $item;
 			}
 			
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
-			while ($view = sqlfetch($q)) {
+			$q = sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = '$table'");
+			while ($interface = sqlfetch($q)) {
+				$view = static::getView($interface["id"]);
 				if ($recache) {
-					sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
+					sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$interface["id"]."' AND id = '".$item["id"]."'");
 				}
-				
-				$view["fields"] = json_decode($view["fields"],true);
-				$view["actions"] = json_decode($view["actions"],true);
-				$view["options"] = json_decode($view["options"],true);
 				
 				// In case this view has never been cached, run the whole view, otherwise just this one.
 				if (!self::cacheViewData($view)) {
@@ -101,8 +98,6 @@
 				}
 			}
 
-			global $cms;
-			
 			// Setup the fields and VALUES to INSERT INTO the cache table.
 			$status = "l";
 			$pending_owner = 0;
@@ -184,7 +179,7 @@
 			} else {
 				$x = 1;
 				foreach ($view["fields"] as $field => $options) {
-					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
+					$item[$field] = BigTreeCMS::replaceInternalPageLinks($item[$field]);
 					$fields[] = "column$x";
 					if (isset($parsers[$field]) && $parsers[$field]) {
 						$vals[] = "'".sqlescape(BigTree::safeEncode($item[$field]))."'";					
@@ -307,7 +302,7 @@
 			} elseif (is_numeric($view)) {
 				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '$view'");
 			} else {
-				$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($view)."'");
+				$q = sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = '".sqlescape($view)."'");
 				while ($f = sqlfetch($q)) {
 					sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".$f["id"]."'");
 				}
@@ -463,19 +458,19 @@
 		}
 
 		/*
-			Function: getDependantViews
-				Returns all views that have a dependance on a given table.
+			Function: getDependentViews
+				Returns all views that have a dependence on a given table.
 
 			Parameters:
 				table - Table name
 
 			Returns:
-				An array of rows from bigtree_module_views.
+				An array of view rows from bigtree_module_interfaces
 		*/
 
-		static function getDependantViews($table) {
+		static function getDependentViews($table) {
 			$views = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE options LIKE '%".sqlescape($table)."%'");
+			$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `settings` LIKE '%".sqlescape($table)."%'");
 			while ($f = sqlfetch($q)) {
 				$views[] = $f;
 			}
@@ -511,20 +506,30 @@
 		*/
 
 		static function getEmbedForm($id,$decode_ipl = true) {
-			global $cms;
-
 			if (is_array($id)) {
 				$id = $id["id"];
 			}
 
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE id = '".sqlescape($id)."'"));
-			$form["fields"] = json_decode($form["fields"],true);
-			if ($decode_ipl) {
-				$form["css"] = $cms->getInternalPageLink($form["css"]);
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			if (!$interface) {
+				return false;
 			}
-			$form["hooks"] = json_decode($form["hooks"],true);
-
-			return $form;
+			$settings = json_decode($interface["settings"],true);
+			
+			return array(
+				"id" => $interface["id"],
+				"module" => $interface["module"],
+				"title" => $interface["title"],
+				"table" => $interface["table"],
+				"fields" => $settings["fields"],
+				"default_position" => $settings["default_position"],
+				"default_pending" => $settings["default_pending"],
+				"css" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["css"]) : $settings["css"],
+				"hash" => $settings["hash"],
+				"redirect_url" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["redirect_url"]) : $settings["redirect_url"],
+				"thank_you_message" => $settings["thank_you_message"],
+				"hooks" => $settings["hooks"]
+			);
 		}
 
 		/*
@@ -539,13 +544,10 @@
 		*/
 
 		static function getEmbedFormByHash($hash) {
-			global $cms;
-
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '".sqlescape($hash)."'"));
-			$form["fields"] = json_decode($form["fields"],true);
-			$form["css"] = $cms->getInternalPageLink($form["css"]);
-
-			return $form;
+			$form = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
+									   (`$field` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
+										`$field` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')"));
+			return self::getEmbedForm($form);
 		}
 		
 		/*
@@ -593,29 +595,38 @@
 		*/
 
 		static function getForm($id,$decode_ipl = true) {
-			global $cms;
-
 			if (is_array($id)) {
 				$id = $id["id"];
 			}
 
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '".sqlescape($id)."'"));
-			$form["fields"] = json_decode($form["fields"],true);
-			$form["hooks"] = json_decode($form["hooks"],true);
-			if ($decode_ipl) {
-				$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			if (!$interface) {
+				return false;
 			}
+			$settings = json_decode($interface["settings"],true);
 
 			// For backwards compatibility
-			if (is_array($form["fields"])) {
+			if (is_array($settings["fields"])) {
 				$related_fields = array();
 				foreach ($form["fields"] as $field) {
 					$related_fields[$field["column"]] = $field;
 				}
-				$form["fields"] = $related_fields;
+				$settings["fields"] = $related_fields;
 			}
 
-			return $form;
+			// Old table format
+			return array(
+				"id" => $interface["id"],
+				"module" => $interface["module"],
+				"title" => $interface["title"],
+				"table" => $interface["table"],
+				"fields" => $settings["fields"],
+				"default_position" => $settings["default_position"],
+				"return_view" => $settings["return_view"],
+				"return_url" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["return_url"]) : $settings["return_url"],
+				"tagging" => $settings["tagging"],
+				"hooks" => $settings["hooks"]
+			);
 		}
 		
 		/*
@@ -704,8 +715,6 @@
 		*/
 
 		static function getItem($table,$id) {
-			global $cms;
-
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
 				return self::getPendingItem($table,$id);
@@ -722,7 +731,7 @@
 				if (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
-					$item[$key] = $cms->replaceInternalPageLinks($val);
+					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
 				}
 			}
 			return array("item" => $item, "tags" => $tags);
@@ -866,7 +875,7 @@
 		*/
 
 		static function getRelatedFormForReport($report) {
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($report["table"])."'"));
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = '".sqlescape($report["table"])."'"));
 			return self::getForm($f["id"]);
 		}
 		
@@ -885,7 +894,7 @@
 			if ($view["related_form"]) {
 				return self::getForm($view["related_form"]);
 			}
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = '".sqlescape($view["table"])."'"));
 			return self::getForm($f["id"]);
 		}
 		
@@ -904,11 +913,13 @@
 			$view = false;
 			// Try to find a view that's relating back to this form first
 			if ($form["id"]) {
-				$view = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `related_form` = '".$form["id"]."'"));
+				$view = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces
+													 WHERE `settings` LIKE '%\"related_form\":\"".sqlescape($form["id"])."\"%'
+													 	OR `settings` LIKE '%\"related_form\": \"".sqlescape($form["id"])."\"%'"));
 			}
 			// Fall back to any view that uses the same table
 			if (!$view) {
-				$view = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+				$view = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = '".sqlescape($form["table"])."'"));
 			}
 			return self::getView($view["id"]);
 		}
@@ -925,7 +936,7 @@
 		*/
 
 		static function getRelatedViewForReport($report) {
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($report["table"])."'"));
+			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = '".sqlescape($report["table"])."'"));
 			return self::getView($f["id"]);
 		}
 
@@ -941,10 +952,19 @@
 		*/
 
 		static function getReport($id) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_reports WHERE id = '".sqlescape($id)."'"));
-			$f["fields"] = json_decode($f["fields"],true);
-			$f["filters"] = json_decode($f["filters"],true);
-			return $f;
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			$settings = json_decode($interface["settings"],true);
+			return array(
+				"id" => $interface["id"],
+				"module" => $interface["module"],
+				"title" => $interface["title"],
+				"table" => $interface["table"],
+				"type" => $settings["type"],
+				"filters" => $settings["filters"],
+				"fields" => $settings["fields"],
+				"parser" => $settings["parser"],
+				"view" => $settings["view"]
+			);
 		}
 
 		/*
@@ -952,9 +972,9 @@
 				Returns rows from the table that match the filters provided.
 
 			Parameters:
-				report - A bigtree_module_reports entry.
-				view - A bigtree_module_views entry.
-				form - A bigtree_module_forms entry.
+				report - A report interface entry.
+				view - A view interface array.
+				form - A form interface array.
 				filters - The submitted filters to run.
 				sort_field - The field to sort by.
 				sort_direction - The direction to sort by.
@@ -1174,16 +1194,30 @@
 		*/
 
 		static function getView($id,$decode_ipl = true) {
-			global $cms;
-			
+			// Make sure a full view isn't passed in
 			if (is_array($id)) {
 				$id = $id["id"];
 			}
 			
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
-			if (!$view) {
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '$id'"));
+			if (!$interface) {
 				return false;
 			}
+
+			$settings = json_decode($interface["settings"],true);
+			$view = array(
+				"id" => $interface["id"],
+				"module" => $interface["module"],
+				"title" => $interface["title"],
+				"description" => $settings["description"],
+				"type" => $settings["type"],
+				"table" => $interface["table"],
+				"fields" => $settings["fields"],
+				"options" => $settings["options"],
+				"actions" => $settings["actions"],
+				"preview_url" => BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]),
+				"related_form" => $settings["related_form"]
+			);
 
 			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
 			if (!defined("MODULE_ROOT")) {
@@ -1192,21 +1226,15 @@
 			} else {
 				$module_root = MODULE_ROOT;
 			}
-			
-			$view["actions"] = json_decode($view["actions"],true);
-			$view["options"] = json_decode($view["options"],true);
-			if ($decode_ipl) {
-				$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
-			}
 
 			// Get the edit link
 			if (isset($view["actions"]["edit"])) {
 				if ($view["related_form"]) {
 					// Try for actions beginning with edit first
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."' AND route LIKE 'edit%'"));
+					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '".$view["related_form"]."' AND route LIKE 'edit%'"));
 					if (!$f) {
 						// Try any action with this form
-						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
+						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '".$view["related_form"]."'"));
 					}
 					$view["edit_url"] = $module_root.$f["route"]."/";
 				} else {
@@ -1314,16 +1342,25 @@
 		*/
 		
 		static function getViewForTable($table) {
-			global $cms;
-			
-			$table = sqlescape($table);
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
-			if (!$view) {
+			$interface = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = '".sqlescape($table)."'"));
+			if (!$interface) {
 				return false;
 			}
-			$view["options"] = json_decode($view["options"],true);
-			$view["actions"] = json_decode($view["actions"],true);
-			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
+
+			$settings = json_decode($interface["settings"],true);
+			$view = array(
+				"id" => $interface["id"],
+				"module" => $interface["module"],
+				"title" => $interface["title"],
+				"description" => $settings["description"],
+				"type" => $settings["type"],
+				"table" => $interface["table"],
+				"fields" => $settings["fields"],
+				"options" => $settings["options"],
+				"actions" => $settings["actions"],
+				"preview_url" => BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]),
+				"related_form" => $settings["related_form"]
+			);
 			
 			// Get the edit link
 			if (isset($view["actions"]["edit"])) {
@@ -1605,7 +1642,7 @@
 		*/
 		
 		static function uncacheItem($id,$table) {
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
+			$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = '$table'");
 			while ($view = sqlfetch($q)) {
 				sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '$id'");
 			}

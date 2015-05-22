@@ -862,6 +862,27 @@
 		}
 
 		/*
+			Function: createInterfaceConfiguration
+				Creates an extension interface configuration.
+
+			Parameters:
+				extension - The extension identifier.
+				interface - The interface identifier.
+				module - The module this configuration is being created for.
+				configuration - An array of configuration data.
+
+			Returns:
+				The unique identifier for the created interface configuration.
+		*/
+
+		function createInterfaceConfiguration($extension,$interface,$module,$configuration) {
+			if (is_array($module)) {
+				$module = $module["id"];
+			}
+		}
+
+
+		/*
 			Function: createMessage
 				Creates a message in message center.
 
@@ -1052,34 +1073,31 @@
 		*/
 
 		function createModuleEmbedForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
-			$module = sqlescape($module);
-			$sql_title = sqlescape(BigTree::safeEncode($title));
-			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
-			$default_position = sqlescape($default_position);
-			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
-			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
-			$thank_you_message = sqlescape($thank_you_message);
-			$hash = uniqid();
-
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
 				$field["options"] = json_decode($field["options"],true);
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
-			$fields = BigTree::json($clean_fields,true);
-
-			// Make sure this isn't used already
-			while (sqlrows(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '$hash'"))) {
-				$hash = uniqid();
+	
+			// Make sure we get a unique hash
+			$hash = uniqid("embeddable-form-",true);
+			while (sqlrows(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
+									   (`$field` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
+										`$field` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')"))) {
+				$hash = uniqid("embeddable-form-",true);
 			}
 
-			sqlquery("INSERT INTO bigtree_module_embeds (`module`,`title`,`table`,`fields`,`default_position`,`default_pending`,`css`,`redirect_url`,`thank_you_message`,`hash`,`hooks`) VALUES ('$module','$sql_title','$table','$fields','$default_position','$default_pending','$css','$redirect_url','$thank_you_message','$hash','$hooks')");
-
-			$id = sqlid();
-			$this->track("bigtree_module_embeds",$id,"created");
+			$id = $this->createModuleInterface("embeddable-form",$module,$title,$table,array(
+				"fields" => $clean_fields,
+				"default_position" => $default_position,
+				"default_pending" => $default_pending ? "on" : "",
+				"css" => BigTree::safeEncode($this->makeIPL($css)),
+				"hash" => $hash,
+				"redirect_url" => $redirect_url ? BigTree::safeEncode($this->makeIPL($redirect_url)) : "",
+				"thank_you_message" => $thank_you_message,
+				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
+			));
 
 			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.$title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
 		}
@@ -1104,15 +1122,6 @@
 		*/
 
 		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
-			$module = sqlescape($module);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
-			$default_position = sqlescape($default_position);
-			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
-			$return_url = sqlescape($this->makeIPL($return_url));
-			$tagging = $tagging ? "on" : "";
-
 			$clean_fields = array();
 			foreach ($fields as $key => $data) {
 				$field = array(
@@ -1130,16 +1139,20 @@
 				}
 				$clean_fields[] = $field;
 			}
-			$fields = BigTree::json($clean_fields,true);
 
-			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$hooks')");
-			$id = sqlid();
-			$this->track("bigtree_module_forms",$id,"created");
+			$id = $this->createModuleInterface("form",$module,$title,$table,array(
+				"fields" => $clean_fields,
+				"default_position" => $default_position,
+				"return_view" => $return_view,
+				"return_url" => $return_url ? $this->makeIPL($return_url) : "",
+				"tagging" => $tagging ? "on" : "",
+				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
+			));
 
 			// Get related views for this table and update numeric status
-			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
+			$q = sqlquery("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = '$table'");
 			while ($f = sqlfetch($q)) {
-				static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+				$this->updateModuleViewColumnNumericStatus($f["id"]);
 			}
 
 			return $id;
@@ -1195,20 +1208,13 @@
 		*/
 
 		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$module = sqlescape($module);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$table = sqlescape($table);
-			$type = sqlescape($type);
-			$filters = BigTree::json($filters,true);
-			$fields = BigTree::json($fields,true);
-			$parser = sqlescape($parser);
-			$view = $view ? "'".sqlescape($view)."'" : "NULL";
-
-			sqlquery("INSERT INTO bigtree_module_reports (`module`,`title`,`table`,`type`,`filters`,`fields`,`parser`,`view`) VALUES ('$module','$title','$table','$type','$filters','$fields','$parser',$view)");
-			$id = sqlid();
-			$this->track("bigtree_module_reports",$id,"created");
-
-			return $id;
+			return $this->createModuleInterface("report",$module,$title,$table,array(
+				"type" => $type,
+				"filters" => $filters,
+				"fields" => $fields,
+				"parser" => $parser,
+				"view" => $view ? $view : null
+			));
 		}
 
 		/*
@@ -1232,24 +1238,17 @@
 		*/
 
 		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
-			$module = sqlescape($module);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$description = sqlescape(BigTree::safeEncode($description));
-			$table = sqlescape($table);
-			$type = sqlescape($type);
+			$id = $this->createModuleInterface("view",$module,$title,$table,array(
+				"description" => BigTree::safeEncode($description),
+				"type" => $type,
+				"fields" => $fields,
+				"options" => $options,
+				"actions" => $actions,
+				"preview_url" => $preview_url ? $this->makeIPL($preview_url) : "",
+				"related_form" => $related_form ? intval($related_form) : null
+			));
 
-			$options = BigTree::json($options,true);
-			$fields = BigTree::json($fields,true);
-			$actions = BigTree::json($actions,true);
-			$related_form = $related_form ? intval($related_form) : "NULL";
-			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
-
-			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
-
-			$id = sqlid();
-			static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
-			$this->track("bigtree_module_views",$id,"created");
-
+			$this->updateModuleViewColumnNumericStatus($id);
 			return $id;
 		}
 
@@ -1880,24 +1879,10 @@
 			BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$module["route"]."/");
 
 			// Delete all the related auto module actions
-			$actions = $this->getModuleActions($id);
-			foreach ($actions as $action) {
-				if ($action["form"]) {
-					sqlquery("DELETE FROM bigtree_module_forms WHERE id = '".$action["form"]."'");
-				}
-				if ($action["view"]) {
-					sqlquery("DELETE FROM bigtree_module_views WHERE id = '".$action["view"]."'");
-				}
-				if ($action["report"]) {
-					sqlquery("DELETE FROM bigtree_module_reports WHERE id = '".$action["report"]."'");
-				}
-			}
+			sqlquery("DELETE FROM bigtree_module_interfaces WHERE module = '$id'");
 
 			// Delete actions
 			sqlquery("DELETE FROM bigtree_module_actions WHERE module = '$id'");
-
-			// Delete embeds
-			sqlquery("DELETE FROM bigtree_module_embeds WHERE module = '$id'");
 
 			// Delete the module
 			sqlquery("DELETE FROM bigtree_modules WHERE id = '$id'");
@@ -1908,7 +1893,7 @@
 		/*
 			Function: deleteModuleAction
 				Deletes a module action.
-				Also deletes the related form or view if no other action is using it.
+				Also deletes the related interface if no other action is using it.
 
 			Parameters:
 				id - The id of the action to delete.
@@ -1917,19 +1902,14 @@
 		function deleteModuleAction($id) {
 			$id = sqlescape($id);
 
+			// See if there's a related interface -- if this action is the only one using it, delete it as well.
 			$a = $this->getModuleAction($id);
-			if ($a["form"]) {
-				// Only delete the auto-ness if it's the only one using it.
-				if (sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$a["form"]."'")) == 1) {
-					sqlquery("DELETE FROM bigtree_module_forms WHERE id = '".$a["form"]."'");
+			if ($a["interface"]) {
+				if (sqlrows(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE id = '".$a["interface"]."'")) == 1) {
+					sqlquery("DELETE FROM bigtree_module_interfaces WHERE id = '".$a["interface"]."'");
 				}
 			}
-			if ($a["view"]) {
-				// Only delete the auto-ness if it's the only one using it.
-				if (sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '".$a["view"]."'")) == 1) {
-					sqlquery("DELETE FROM bigtree_module_views WHERE id = '".$a["view"]."'");
-				}
-			}
+
 			sqlquery("DELETE FROM bigtree_module_actions WHERE id = '$id'");
 			$this->track("bigtree_module_actions",$id,"deleted");
 		}
@@ -1937,29 +1917,33 @@
 		/*
 			Function: deleteModuleEmbedForm
 				Deletes an embeddable module form.
+				This method is deprecated in favor of deleteModuleInterface.
 
 			Parameters:
 				id - The id of the embeddable form.
+
+			See Also:
+				<deleteModuleInterface>
 		*/
 
 		function deleteModuleEmbedForm($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_module_embeds WHERE id = '$id'");
+			return $this->deleteModuleInterface($id);
 		}
 
 		/*
 			Function: deleteModuleForm
 				Deletes a module form and its related actions.
+				This method is deprecated in favor of deleteModuleInterface.
 
 			Parameters:
 				id - The id of the module form.
+
+			See Also:
+				<deleteModuleInterface>
 		*/
 
 		function deleteModuleForm($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_module_forms WHERE id = '$id'");
-			sqlquery("DELETE FROM bigtree_module_actions WHERE form = '$id'");
-			$this->track("bigtree_module_forms",$id,"deleted");
+			return $this->deleteModuleInterface($id);
 		}
 
 		/*
@@ -1977,18 +1961,50 @@
 		}
 
 		/*
+			Function: deleteModuleInterface
+				Deletes a module interface and the actions that use it.
+
+			Parameters:
+				id - The id of the module interface.
+		*/
+
+		function deleteModuleInterface($id) {
+			$id = sqlescape($id);
+			sqlquery("DELETE FROM bigtree_module_interfaces WHERE id = '$id'");
+			sqlquery("DELETE FROM bigtree_module_actions WHERE interface = '$id'");
+			$this->track("bigtree_module_interfaces",$id,"deleted");
+		}
+
+		/*
+			Function: deleteModuleReport
+				Deletes a module report and its related actions.
+				This method is deprecated in favor of deleteModuleInterface.
+
+			Parameters:
+				id - The id of the module report.
+
+			See Also:
+				<deleteModuleInterface>
+		*/
+
+		function deleteModuleReport($id) {
+			return $this->deleteModuleInterface($id);
+		}
+
+		/*
 			Function: deleteModuleView
 				Deletes a module view and its related actions.
+				This method is deprecated in favor of deleteModuleInterface.
 
 			Parameters:
 				id - The id of the module view.
+
+			See Also:
+				<deleteModuleInterface>
 		*/
 
 		function deleteModuleView($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_module_views WHERE id = '$id'");
-			sqlquery("DELETE FROM bigtree_module_actions WHERE view = '$id'");
-			$this->track("bigtree_module_views",$id,"deleted");
+			return $this->deleteModuleInterface($id);
 		}
 
 		/*
@@ -3041,8 +3057,8 @@
 
 			$modid = $change["module"];
 			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '$modid'"));
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE `table` = '".$change["table"]."'"));
-			$action = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE `form` = '".$form["id"]."' AND in_nav = ''"));
+			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = '".$change["table"]."'"));
+			$action = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE `interface` = '".$form["id"]."' AND in_nav = ''"));
 
 			if (!$change["item_id"]) {
 				$change["item_id"] = "p".$change["id"];
@@ -3547,53 +3563,77 @@
 
 		/*
 			Function: getModuleEmbedForms
-				Gets forms from bigtree_module_embeds with fields decoded.
+				Gets embeddable forms from bigtree_module_interfaces.
 
 			Parameters:
 				sort - The field to sort by.
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_embeds with "fields" decoded.
+				An array of embeddable form entries from bigtree_module_interfaces.
 		*/
 
 		static function getModuleEmbedForms($sort = "title",$module = false) {
 			$items = array();
 			if ($module) {
-				$q = sqlquery("SELECT * FROM bigtree_module_embeds WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_embeds ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' ORDER BY $sort");
 			}
-			while ($f = sqlfetch($q)) {
-				$f["fields"] = json_decode($f["fields"],true);
-				$items[] = $f;
+			while ($interface = sqlfetch($q)) {
+				$settings = json_decode($interface["settings"],true);
+				$items[] = array(
+					"id" => $interface["id"],
+					"module" => $interface["module"],
+					"title" => $interface["title"],
+					"table" => $interface["table"],
+					"fields" => $settings["fields"],
+					"default_position" => $settings["default_position"],
+					"default_pending" => $settings["default_pending"],
+					"css" => $settings["css"],
+					"hash" => $settings["hash"],
+					"redirect_url" => $settings["redirect_url"],
+					"thank_you_message" => $settings["thank_you_message"],
+					"hooks" => $settings["hooks"]
+				);
 			}
 			return $items;
 		}
 
 		/*
 			Function: getModuleForms
-				Gets forms from bigtree_module_forms with fields decoded.
+				Gets forms from bigtree_module_interfaces with fields decoded.
 
 			Parameters:
 				sort - The field to sort by.
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_forms with "fields" decoded.
+				An array of entries from bigtree_module_interfaces with "fields" decoded.
 		*/
 
 		static function getModuleForms($sort = "title",$module = false) {
 			$items = array();
 			if ($module) {
-				$q = sqlquery("SELECT * FROM bigtree_module_forms WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_forms ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' ORDER BY $sort");
 			}
 			while ($f = sqlfetch($q)) {
-				$f["fields"] = json_decode($f["fields"],true);
-				$f["hooks"] = json_decode($f["hooks"],true);
-				$items[] = $f;
+				// Return previous table format
+				$settings = json_decode($f["settings"],true);
+				$items[] = array(
+					"id" => $f["id"],
+					"module" => $f["module"],
+					"title" => $f["title"],
+					"table" => $f["table"],
+					"fields" => $settings["fields"],
+					"default_position" => $settings["default_position"],
+					"return_view" => $settings["return_view"],
+					"return_url" => $settings["return_url"],
+					"tagging" => $settings["tagging"],
+					"hooks" => $settings["hooks"]
+				);
 			}
 			return $items;
 		}
@@ -3705,27 +3745,36 @@
 
 		/*
 			Function: getModuleReports
-				Gets reports from the bigtree_module_reports table.
+				Gets reports interfaces from the bigtree_module_interfaces table.
 
 			Parameters:
 				sort - The field to sort by.
 				module - Specific module to pull reports for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_reports.
+				An array of report interfaces from bigtree_module_interfaces.
 		*/
 
 		static function getModuleReports($sort = "title",$module = false) {
 			$items = array();
 			if ($module) {
-				$q = sqlquery("SELECT * FROM bigtree_module_reports WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'report' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_reports ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'report' ORDER BY $sort");
 			}
-			while ($f = sqlfetch($q)) {
-				$f["fields"] = json_decode($f["fields"],true);
-				$f["filters"] = json_decode($f["filters"],true);
-				$items[] = $f;
+			while ($interface = sqlfetch($q)) {
+				$settings = json_decode($interface["settings"],true);
+				$items[] = array(
+					"id" => $interface["id"],
+					"module" => $interface["module"],
+					"title" => $interface["title"],
+					"table" => $interface["table"],
+					"type" => $settings["type"],
+					"filters" => $settings["filters"],
+					"fields" => $settings["fields"],
+					"parser" => $settings["parser"],
+					"view" => $settings["view"]
+				);
 			}
 			return $items;
 		}
@@ -3788,7 +3837,7 @@
 
 		/*
 			Function: getModuleViews
-				Returns a list of all entries in the bigtree_module_views table.
+				Returns a list of all view entries in the bigtree_module_interfaces table.
 
 			Parameters:
 				sort - The column to sort by.
@@ -3801,15 +3850,24 @@
 		static function getModuleViews($sort = "title",$module = false) {
 			$items = array();
 			if ($module !== false) {
-				$q = sqlquery("SELECT * FROM bigtree_module_views WHERE module = '".sqlescape($module)."' ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
+				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' ORDER BY $sort");
 			}
 			while ($view = sqlfetch($q)) {
-				$view["fields"] = json_decode($view["fields"],true);
-				$view["actions"] = json_decode($view["actions"],true);
-				$view["options"] = json_decode($view["options"],true);		
-				$items[] = $view;
+				$settings = json_decode($view["settings"]);
+				$items[] = array(
+					"id" => $view["id"],
+					"module" => $view["module"],
+					"title" => $view["title"],
+					"table" => $view["table"],
+					"type" => $settings["type"],
+					"fields" => $settings["fields"],
+					"options" => $settings["options"],
+					"actions" => $settings["actions"],
+					"preview_url" => $settings["preview_url"],
+					"related_form" => $settings["related_form"]
+				);
 			}
 			return $items;
 		}
@@ -7275,26 +7333,27 @@
 		*/
 
 		function updateModuleEmbedForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
-			$id = sqlescape($id);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
-			$default_position = sqlescape($default_position);
-			$default_pending = $default_pending ? "on" : "";
-			$css = sqlescape(BigTree::safeEncode($this->makeIPL($css)));
-			$redirect_url = sqlescape(BigTree::safeEncode($redirect_url));
-			$thank_you_message = sqlescape($thank_you_message);
-
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
 				$field["options"] = json_decode($field["options"],true);
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
-			$fields = BigTree::json($clean_fields,true);
 
-			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message', `hooks` = '$hooks' WHERE id = '$id'");
-			$this->track("bigtree_module_embeds",$id,"updated");
+			// Get existing form to preserve its hash
+			$existing = sqlfetch(sqlquery("SELECT settings FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			$settings = json_decode($existing["settings"],true);
+
+			$this->updateModuleInterface($id,"embeddable-form",$module,$title,$table,array(
+				"fields" => $clean_fields,
+				"default_position" => $default_position,
+				"default_pending" => $default_pending ? "on" : "",
+				"css" => BigTree::safeEncode($this->makeIPL($css)),
+				"hash" => $settings["hash"],
+				"redirect_url" => $redirect_url ? BigTree::safeEncode($this->makeIPL($redirect_url)) : "",
+				"thank_you_message" => $thank_you_message,
+				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
+			));
 		}
 
 		/*
@@ -7315,13 +7374,6 @@
 
 		function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$id = sqlescape($id);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
-			$default_position = sqlescape($default_position);
-			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
-			$return_url = sqlescape($this->makeIPL($return_url));
-			$tagging = $tagging ? "on" : "";
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
@@ -7329,19 +7381,25 @@
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
-			$fields = BigTree::json($clean_fields,true);
 
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging', `hooks` = '$hooks' WHERE id = '$id'");
-			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
-			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE form = '$id' AND route LIKE 'edit%'");
+			$this->updateModuleInterface($id,"form",$module,$title,$table,array(
+				"fields" => $clean_fields,
+				"default_position" => $default_position,
+				"return_view" => $return_view,
+				"return_url" => $return_url ? $this->makeIPL($return_url) : "",
+				"tagging" => $tagging ? "on" : "",
+				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
+			));
+
+			// Update action titles
+			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE interface = '$id' AND route LIKE 'add%'");
+			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE interface = '$id' AND route LIKE 'edit%'");
 
 			// Get related views for this table and update numeric status
-			$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '$table'");
+			$q = sqlquery("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = '$table'");
 			while ($f = sqlfetch($q)) {
-				static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($f["id"]));
+				$this->updateModuleViewColumnNumericStatus($f["id"]);
 			}
-
-			$this->track("bigtree_module_forms",$id,"updated");
 		}
 
 		/*
@@ -7389,18 +7447,16 @@
 		*/
 
 		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$id = sqlescape($id);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$table = sqlescape($table);
-			$type = sqlescape($type);
-			$filters = BigTree::json($filters,true);
-			$fields = BigTree::json($fields,true);
-			$parser = sqlescape($parser);
-			$view = $view ? "'".sqlescape($view)."'" : "NULL";
-			sqlquery("UPDATE bigtree_module_reports SET `title` = '$title', `table` = '$table', `type` = '$type', `filters` = '$filters', `fields` = '$fields', `parser` = '$parser', `view` = $view WHERE id = '$id'");
-			// Update the module action
-			sqlquery("UPDATE bigtree_module_actions SET `name` = '$title' WHERE `report` = '$id'");
-			$this->track("bigtree_module_reports",$id,"updated");
+			$this->updateModuleInterface($id,"report",$module,$title,$table,array(
+				"type" => $type,
+				"filters" => $filters,
+				"fields" => $fields,
+				"parser" => $parser,
+				"view" => $view ? $view : null
+			));
+
+			// Update related module action names
+			sqlquery("UPDATE bigtree_module_actions SET `name` = '$title' WHERE `interface` = '$id'");
 		}
 
 		/*
@@ -7418,29 +7474,23 @@
 				actions - Actions array.
 				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
-
-			Returns:
-				The id for view.
 		*/
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
-			$id = sqlescape($id);
-			$title = sqlescape(BigTree::safeEncode($title));
-			$description = sqlescape(BigTree::safeEncode($description));
-			$table = sqlescape($table);
-			$type = sqlescape($type);
+			$this->updateModuleInterface($id,"view",$module,$title,$table,array(
+				"description" => BigTree::safeEncode($description),
+				"type" => $type,
+				"fields" => $fields,
+				"options" => $options,
+				"actions" => $actions,
+				"preview_url" => $preview_url ? $this->makeIPL($preview_url) : "",
+				"related_form" => $related_form ? intval($related_form) : null
+			));
 
-			$options = BigTree::json($options,true);
-			$fields = BigTree::json($fields,true);
-			$actions = BigTree::json($actions,true);
-			$related_form = $related_form ? intval($related_form) : "NULL";
-			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
+			// Update related action titles
+			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE interface = '$id'");
 
-			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
-			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
-
-			static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
-			$this->track("bigtree_module_views",$id,"updated");
+			$this->updateModuleViewColumnNumericStatus($id);
 		}
 
 		/*
@@ -7448,15 +7498,18 @@
 				Updates a module view's columns to designate whether they are numeric or not based on parsers, column type, and related forms.
 
 			Parameters:
-				view - The view entry to update.
+				id - The view id to perform column analysis on.
 		*/
 
-		static function updateModuleViewColumnNumericStatus($view) {
-			if (is_array($view["fields"])) {
-				$form = BigTreeAutoModule::getRelatedFormForView($view);
-				$table = BigTree::describeTable($view["table"]);
+		function updateModuleViewColumnNumericStatus($id) {
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			$settings = json_decode($interface["settings"],true);
 
-				foreach ($view["fields"] as $key => $field) {
+			if (is_array($settings["fields"])) {
+				$form = BigTreeAutoModule::getRelatedFormForView($interface);
+				$table = BigTree::describeTable($interface["table"]);
+
+				foreach ($settings["fields"] as $key => $field) {
 					$numeric = false;
 					$t = $table["columns"][$key]["type"];
 					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
@@ -7466,11 +7519,10 @@
 						$numeric = false;
 					}
 
-					$view["fields"][$key]["numeric"] = $numeric;
+					$settings["fields"][$key]["numeric"] = $numeric;
 				}
 
-				$fields = BigTree::json($view["fields"],true);
-				sqlquery("UPDATE bigtree_module_views SET fields = '$fields' WHERE id = '".$view["id"]."'");
+				sqlquery("UPDATE bigtree_module_interfaces SET settings = '".BigTree::json($settings,true)."' WHERE id = '".$interface["id"]."'");
 			}
 		}
 
@@ -7479,15 +7531,16 @@
 				Updates the fields for a module view.
 
 			Parameters:
-				view - The view id.
+				id - The view id.
 				fields - A fields array.
 		*/
 
-		function updateModuleViewFields($view,$fields) {
-			$view = sqlescape($view);
-			$fields = BigTree::json($fields,true);
-			sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '$view'");
-			$this->track("bigtree_module_views",$view,"updated");
+		function updateModuleViewFields($id,$fields) {
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
+			$settings = json_decode($interface["settings"],true);
+			$settings["fields"] = $fields;
+			sqlquery("UPDATE bigtree_module_interfaces SET `settings` = '".BigTree::json($settings,true)."' WHERE id = '".$interface["id"]."'");
+			$this->track("bigtree_module_interfaces",$id,"updated");
 		}
 
 		/*

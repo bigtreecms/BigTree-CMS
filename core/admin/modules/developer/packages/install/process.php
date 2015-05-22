@@ -47,8 +47,12 @@
 			}
 
 			// Create views
+			$views_to_update = array();
 			foreach ($module["views"] as $view) {
 				$bigtree["view_id_match"][$view["id"]] = $admin->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($view["options"]) ? $view["options"] : json_decode($view["options"],true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["related_form"],$view["preview_url"]);
+				if ($view["related_form"]) {
+					$views_to_update[] = $bigtree["view_id_match"][$view["id"]];
+				}
 			}
 			
 			// Create regular forms
@@ -58,10 +62,14 @@
 					$form["hooks"] = array("pre" => $form["preprocess"],"post" => $form["callback"],"publish" => false);
 				}
 				$bigtree["form_id_match"][$form["id"]] = $admin->createModuleForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
-				// Update related form values
-				foreach ($bigtree["view_id_match"] as $view_id) {
-					sqlquery("UPDATE bigtree_module_views SET related_form = '".$bigtree["form_id_match"][$form["id"]]."' WHERE related_form = '".$form["id"]."' AND id = '$view_id'");
-				}
+			}
+
+			// Update views with their new related form value
+			foreach ($views_to_update as $id) {
+				$view = sqlfetch(sqlquery("SELECT settings FROM bigtree_module_interfaces WHERE id = '$id'"));
+				$settings = json_decode($view["settings"],true);
+				$settings["related_form"] = $bigtree["form_id_match"][$settings["related_form"]];
+				sqlquery("UPDATE bigtree_module_interfaces SET settings = '".BigTree::json($settings,true)."' WHERE id = '$id'");
 			}
 			
 			// Create reports

@@ -94,7 +94,12 @@
 		global $id,$type;
 		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%' OR `$field` LIKE '%\"type\": \"".sqlescape($type)."\"%'");
 		while ($f = sqlfetch($q)) {
-			$array = json_decode($f[$field],true);
+			if ($field == "settings") {
+				$settings = json_decode($f["settings"]);
+				$array = $settings["fields"];
+			} else {
+				$array = json_decode($f[$field],true);
+			}
 			foreach ($array as &$item) {
 				if ($item["type"] == $type) {
 					$item["type"] = $id."*".$type;
@@ -106,7 +111,12 @@
 					}
 				}
 			}
-			sqlquery("UPDATE `$table` SET `$field` = '".BigTree::json($array,true)."' WHERE id = '".$f["id"]."'");
+			if ($field == "settings") {
+				$settings["fields"] = $array;
+				sqlquery("UPDATE `$table` SET `settings` = '".BigTree::json($settings,true)."' WHERE id = '".$f["id"]."'");
+			} else {
+				sqlquery("UPDATE `$table` SET `$field` = '".BigTree::json($array,true)."' WHERE id = '".$f["id"]."'");
+			}
 		}
 	};
 
@@ -117,8 +127,7 @@
 			// Convert old usage of field type ID to extension usage
 			$field_type_converter("bigtree_templates","resources");
 			$field_type_converter("bigtree_callouts","resources");
-			$field_type_converter("bigtree_module_forms","fields");
-			$field_type_converter("bigtree_module_embeds","fields");
+			$field_type_converter("bigtree_interfaces","settings");
 			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
 
 			// Move files into new format
@@ -155,12 +164,16 @@
 		// Loop through actions to update URLs for preview / return if we've moved this module into an extension namespace
 		if ($new_route) {
 			foreach ($module["actions"] as $a) {
-				// Adjust return view URLs for forms
-				if ($a["form"]) {
-					sqlquery("UPDATE bigtree_module_forms SET return_url = REPLACE(return_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["form"]."'");
-				// Adjust preview URLs for views
-				} elseif ($a["view"]) {
-					sqlquery("UPDATE bigtree_module_views SET preview_url = REPLACE(preview_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["view"]."'");
+				if ($a["interface"]) {
+					$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".$a["interface"]."'"));
+					$settings = json_decode($interface["settings"],true);
+					if ($settings["return_url"]) {
+						$settings["return_url"] = str_replace("{adminroot}".$module["route"]."/","{adminroot}$new_route/",$settings["return_url"]);
+					}
+					if ($settings["preview_url"]) {
+						$settings["preview_url"] = str_replace("{adminroot}".$module["route"]."/","{adminroot}$new_route/",$settings["preview_url"]);
+					}
+					sqlquery("UPDATE bigtree_module_interfaces SET settings = '".BigTree::json($settings,true)."' WHERE id = '".$interface["id"]."'");
 				}
 			}
 		}

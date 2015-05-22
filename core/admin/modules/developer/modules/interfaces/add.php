@@ -29,7 +29,7 @@
 		?>
 		<h3><? if ($interface["icon"]) { ?><span class="icon_small_<?=$interface["icon"]?>"></span> <? } ?><?=$interface["name"]?></h3>
 		<p><?=$interface["description"]?></p>
-		<a href="<?=DEVELOPER_ROOT?>modules/build-interface/<?=htmlspecialchars($extension)?>/<?=$id?>/?module=<?=$_GET["module"]?>" class="button shorter">Add <?=$interface["name"]?></a>
+		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/build/<?=htmlspecialchars($extension)?>/<?=$id?>/?module=<?=$_GET["module"]?>" class="button shorter">Add <?=$interface["name"]?></a>
 		<hr />
 		<?
 				}

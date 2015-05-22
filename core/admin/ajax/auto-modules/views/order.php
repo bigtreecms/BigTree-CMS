@@ -20,7 +20,7 @@
 	}
 
 	// Find any view that uses this table for grouping and wipe its view cache
-	$dependant = BigTreeAutoModule::getDependantViews($table);
+	$dependant = BigTreeAutoModule::getDependentViews($table);
 	foreach ($dependant as $v) {
 		BigTreeAutoModule::clearCache($v["table"]);
 	}

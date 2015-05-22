@@ -622,10 +622,116 @@
 
 	// BigTree 4.3 update -- REVISION 300
 	function _local_bigtree_update_300() {
-		// Extension interfaces
-		sqlquery("ALTER TABLE `bigtree_module_actions` ADD COLUMN `extension_interface` VARCHAR(255) AFTER `report`");
-
 		// Extension settings
 		sqlquery("INSERT INTO `bigtree_settings` (`id`,`system`,`value`) VALUES ('bigtree-internal-extension-settings','on','{}')");
+
+		// New module interface table
+		sqlquery("CREATE TABLE `bigtree_module_interfaces` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `type` varchar(255) DEFAULT NULL, `module` int(11) DEFAULT NULL, `title` varchar(255) DEFAULT NULL, `table` varchar(255) DEFAULT NULL, `settings` longtext, PRIMARY KEY (`id`), KEY `module` (`module`), KEY `interface` (`interface`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		$intMod = new BigTreeModule("bigtree_module_interfaces");
+
+		// Move forms, views, embeds, and reports into the interfaces table
+		$interface_references = array();
+		// Forms
+		$q = sqlquery("SELECT * FROM bigtree_module_forms");
+		while ($f = sqlfetch($q)) {
+			$interface_references["forms"][$f["id"]] = $intMod->add(array(
+				"type" => "form",
+				"module" => $f["module"],
+				"title" => $f["title"],
+				"table" => $f["table"],
+				"settings" => array(
+					"fields" => $f["fields"],
+					"default_position" => $f["default_position"],
+					"return_view" => $f["return_view"],
+					"return_url" => $f["return_url"],
+					"tagging" => $f["tagging"],
+					"hooks" => $f["hooks"]
+				)
+			));
+		}
+		// Views
+		$q = sqlquery("SELECT * FROM bigtree_module_views");
+		while ($f = sqlfetch($q)) {
+			$interface_references["views"][$f["id"]] = $intMod->add(array(
+				"type" => "view",
+				"module" => $f["module"],
+				"title" => $f["title"],
+				"table" => $f["table"],
+				"settings" => array(
+					"type" => $f["type"],
+					"fields" => $f["fields"],
+					"options" => $f["options"],
+					"actions" => $f["actions"],
+					"preview_url" => $f["preview_url"],
+					"related_form" => $interface_references["forms"][$f["related_form"]]
+				)
+			));
+		}
+		// Go through and updated forms' return views
+		$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form'");
+		while ($f = sqlfetch($q)) {
+			$settings = json_decode($f["settings"],true);
+			if ($settings["return_view"]) {
+				$settings["return_view"] = $interface_references["views"][$settings["return_view"]];
+				sqlquery("UPDATE bigtree_module_interfaces SET `settings` = '".BigTree::json($settings,true)."' WHERE id = '".$f["id"]."'");
+			}
+		}
+		// Reports
+		$q = sqlquery("SELECT * FROM bigtree_module_reports");
+		while ($f = sqlfetch($q)) {
+			$interface_references["views"][$f["reports"]] = $intMod->add(array(
+				"type" => "report",
+				"module" => $f["module"],
+				"title" => $f["title"],
+				"table" => $f["table"],
+				"settings" => array(
+					"type" => $f["type"],
+					"fields" => $f["fields"],
+					"filters" => $f["filters"],
+					"parser" => $f["parser"],
+					"view" => $f["view"]
+				)
+			));
+		}
+		// Embeddable Forms
+		$q = sqlquery("SELECT * FROM bigtree_module_embeds");
+		while ($f = sqlfetch($q)) {
+			$intMod->add(array(
+				"type" => "embeddable-form",
+				"module" => $f["module"],
+				"title" => $f["title"],
+				"table" => $f["table"],
+				"settings" => array(
+					"fields" => $f["fields"],
+					"default_position" => $f["default_position"],
+					"default_pending" => $f["default_pending"],
+					"css" => $f["css"],
+					"hash" => $f["hash"],
+					"redirect_url" => $f["redirect_url"],
+					"thank_you_message" => $f["thank_you_message"],
+					"hooks" => $f["hooks"]
+				)
+			));
+		}
+		
+		// Update the module actions to point to the new interface reference
+		sqlquery("ALTER TABLE `bigtree_module_actions` ADD COLUMN `interface` INT(11) UNSIGNED AFTER `in_nav`");
+		sqlquery("ALTER TABLE `bigtree_module_actions` ADD FOREIGN KEY (`interface`) REFERENCES `bigtree_module_interfaces` (`id`)");
+		$q = sqlquery("SELECT * FROM bigtree_module_actions");
+		while ($f = sqlfetch($q)) {
+			if ($f["form"]) {
+				sqlquery("UPDATE bigtree_module_actions SET interface = '".$interface_references["forms"][$f["form"]]."' WHERE id = '".$f["id"]."'");
+			} elseif ($f["view"]) {
+				sqlquery("UPDATE bigtree_module_actions SET interface = '".$interface_references["views"][$f["view"]]."' WHERE id = '".$f["id"]."'");				
+			} elseif ($f["report"]) {
+				sqlquery("UPDATE bigtree_module_actions SET interface = '".$interface_references["reports"][$f["report"]]."' WHERE id = '".$f["id"]."'");				
+			}
+		}
+		sqlquery("ALTER TABLE `bigtree_module_actions` DROP COLUMN `form`");
+		sqlquery("ALTER TABLE `bigtree_module_actions` DROP COLUMN `view`");
+		sqlquery("ALTER TABLE `bigtree_module_actions` DROP COLUMN `report`");
+
+		// Clear view caches
+		sqlquery("DELETE FROM bigtree_module_view_cache");
 	}
 ?>

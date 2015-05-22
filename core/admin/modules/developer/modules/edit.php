@@ -133,7 +133,7 @@
 
 <div class="table">
 	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/add-interface/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
 		<h2><span class="embeds"></span>Interfaces</h2>
 	</summary>
 	<?
@@ -154,7 +154,7 @@
 				<? } ?>
 			</section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -171,7 +171,7 @@
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -188,7 +188,7 @@
 		<li>
 			<section class="developer_templates_name"><?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -205,7 +205,7 @@
 		<li>
 			<section class="developer_templates_name"><?=$report["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
