@@ -132,7 +132,7 @@
 							}
 		
 							if (!$file) {
-								$errors[] = "Uploading $file_name failed (unknown error).";
+								$errors[] = "Uploading ".htmlspecialchars($file_name)." failed (unknown error).";
 							} else {
 								if (!$replacing) {
 									$admin->createResource($folder,$file,$md5,$file_name,$extension,"on",$iheight,$iwidth,$thumbs);

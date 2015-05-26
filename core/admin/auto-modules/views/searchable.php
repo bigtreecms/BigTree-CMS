@@ -19,11 +19,11 @@
 	$sort_pieces = explode(" ",$sort);
 	$sort_direction = end($sort_pieces);
 	// See if we're searching for anything.
-	$search = isset($_GET["search"]) ? $_GET["search"] : "";
+	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table auto_modules">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=htmlspecialchars($search)?>" />
+		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=$search?>" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
@@ -62,8 +62,8 @@
 
 <? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
-	BigTree.localSortColumn = "<?=$sort_column?>";
-	BigTree.localSortDirection = "<?=$sort_direction?>";
+	BigTree.localSortColumn = "<?=htmlspecialchars($sort_column)?>";
+	BigTree.localSortDirection = "<?=htmlspecialchars($sort_direction)?>";
 	BigTree.localSearchQuery = "<?=$search?>";
 	BigTree.localSearch = function() {
 		BigTree.localSearchQuery = escape($("#search").val());

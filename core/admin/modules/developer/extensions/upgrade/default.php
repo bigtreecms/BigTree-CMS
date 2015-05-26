@@ -11,7 +11,7 @@
 	</section>
 </div>
 <script>
-	$.ajax("<?=ADMIN_ROOT?>ajax/developer/upgrade/download/", { type: "POST", data: { file: "<?=rtrim($_GET["url"],"/")?>/archive/master.zip" }, complete: function() {
+	$.ajax("<?=ADMIN_ROOT?>ajax/developer/upgrade/download/", { type: "POST", data: { file: "<?=htmlspecialchars(rtrim($_GET["url"],"/"))?>/archive/master.zip" }, complete: function() {
 		window.location.href = "<?=$page_link?>check-file/<?=$page_vars?>";
 	} });
 </script>

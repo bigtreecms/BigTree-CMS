@@ -8,7 +8,7 @@
 		$bigtree["resources"]["type"] = $_POST["type"];
 	}
 	if (isset($_POST["key"])) {
-		$bigtree["callout_key"] = $_POST["key"];
+		$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	}
 
 	foreach ($bigtree["resources"] as &$val) {
@@ -22,7 +22,7 @@
 	}
 	unset($val);
 
-	$bigtree["callout_count"] = $_POST["count"];
+	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 
 	$cached_types = $admin->getCachedFieldTypes();

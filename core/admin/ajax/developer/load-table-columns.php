@@ -12,7 +12,7 @@
 	
 	if ($table) {
 ?>
-<select name="<?=$field?>">
+<select name="<?=htmlspecialchars($field)?>">
 	<?=BigTree::getFieldSelectOptions($table,$field,$sort)?>
 </select>
 <?

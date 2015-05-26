@@ -1,6 +1,7 @@
 <?
 	$module = $admin->getModule($_GET["module"]);
-	$table = $_GET["table"];
+	$table = htmlspecialchars($_GET["table"]);
+
 	if (!$title) {
 		// Get the title from the route
 		$title = $_GET["title"];
