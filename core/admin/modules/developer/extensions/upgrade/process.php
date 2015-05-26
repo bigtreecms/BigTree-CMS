@@ -15,8 +15,9 @@
 </div>
 <?
 	} else {
-		// Save original manifest
-		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$_GET["id"]."/manifest.json"),true);
+		// Save original manifest, prevent path manipulation
+		$id = str_replace("../","",$_GET["id"]);
+		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
 		
 		// Very simple if we're updating locally
 		if ($updater->Method == "Local") {
@@ -66,11 +67,11 @@
 
 		if ($installed) {
 			// Install/replace existing extension
-			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$_GET["id"]."/manifest.json"),true);
+			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
 			$admin->installExtension($manifest,$original_manifest);
 
 			// If we have an update.php file, run it. We're catching the output buffer to see if update.php has anything to show -- if it doesn't, we'll redirect to the complete screen.
-			$update_file_path = SERVER_ROOT."extensions/".$_GET["id"]."/update.php";
+			$update_file_path = SERVER_ROOT."extensions/$id/update.php";
 			if (file_exists($update_file_path)) {
 				ob_clean();
 				include $update_file_path;

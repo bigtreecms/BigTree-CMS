@@ -1858,6 +1858,10 @@
 			$ended = false;
 			$found_file = false;
 			foreach ($path as $piece) {
+				// Prevent path exploitation
+				if ($piece == "..") {
+					die();
+				}
 				// We're done, everything is a command now.
 				if ($ended) {
 					$commands[] = $piece;

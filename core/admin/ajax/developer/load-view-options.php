@@ -1,6 +1,7 @@
 <?
+	// Prevent path manipulation shenanigans
+	$type = str_replace("../","",$_POST["type"]);
 	$table = $_POST["table"];
-	$type = $_POST["type"];
 	$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	$filter = isset($options["filter"]) ? $options["filter"] : "";
 ?>
@@ -10,7 +11,7 @@
 		<input type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
 	<?
-		$path = BigTree::path("admin/ajax/developer/view-options/".$type.".php");
+		$path = BigTree::path("admin/ajax/developer/view-options/$type.php");
 		if (file_exists($path)) {
 			include $path;
 		}
