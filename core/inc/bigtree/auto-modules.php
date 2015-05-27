@@ -1543,6 +1543,7 @@
 				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
 			}
 
+			$id = sqlescape($id);
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
