@@ -1767,6 +1767,14 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
+			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
+			if (defined("BIGTREE_ADMIN_ROUTED")) {
+				$pieces = explode("/",$url);
+				$bt_domain_pieces = explode("/",DOMAIN);
+				if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
+					return false;
+				}
+			}
 			$status_codes = array(
 				"200" => "OK",
 				"300" => "Multiple Choices",
