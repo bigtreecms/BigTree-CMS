@@ -711,7 +711,7 @@
 				return self::getPendingItem($table,$id);
 			}
 			// Otherwise it's a live entry
-			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 			if (!$item) {
 				return false;
 			}
@@ -796,7 +796,7 @@
 			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
-				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
+				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($id,1))."'"));
 				if (!$change) {
 					return false;
 				}
@@ -814,7 +814,7 @@
 				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 				if (!$item) {
 					return false;
 				}
@@ -1186,7 +1186,7 @@
 				$id = $id["id"];
 			}
 			
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '".sqlescape($id)."'"));
 			if (!$view) {
 				return false;
 			}
