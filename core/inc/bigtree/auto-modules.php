@@ -1544,6 +1544,7 @@
 		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin;
 
+			$id = sqlescape($id);
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
