@@ -72,10 +72,10 @@
 	// Track resource allocation
 	$admin->allocateResources("settings",$_POST["id"]);
 
-	if (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."settings/error/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
 		BigTree::redirect(ADMIN_ROOT."settings/crop/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."settings/error/");
 	}
 
 	BigTree::redirect(ADMIN_ROOT."settings/");
