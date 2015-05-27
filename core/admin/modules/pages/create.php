@@ -58,10 +58,10 @@
 		"crops" => $bigtree["crops"]
 	);
 
-	if (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/crop/$page/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
 	}
 
 	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");
