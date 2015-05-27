@@ -1,16 +1,22 @@
 <?
 	$admin->requireLevel(2);
-	
+
+	// Remove existing update zips
 	@unlink(SERVER_ROOT."cache/update.zip");
+
+	// Get download info
+	$url = $cms->cacheGet("org.bigtreecms.downloads",$_POST["key"]);
+	$cms->cacheDelete("org.bigtreecms.downloads",$_POST["key"]);
+
 	// Try fopen first
-	$resource = @fopen($_POST["file"],"r");
+	$resource = @fopen($url,"r");
 	if ($resource) {
 		BigTree::putFile(SERVER_ROOT."cache/update.zip",$resource);
 	} else {
 		$file = fopen(SERVER_ROOT."cache/update.zip","w");
 		$curl = curl_init();
 		curl_setopt_array($curl,array(
-			CURLOPT_URL => $_POST["file"],
+			CURLOPT_URL => $url,
 			CURLOPT_TIMEOUT => 300,
 			CURLOPT_FILE => $file
 		));

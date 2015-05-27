@@ -10,6 +10,9 @@
 		$admin->growl("Developer","Couldn't Get Download Information","error");
 		BigTree::redirect(DEVELOPER_ROOT);
 	}
+
+	// Store download key for retrieval
+	$download_key = $cms->cacheUnique("org.bigtreecms.downloads",$update["file"]);
 ?>
 <div class="container">
 	<summary><h2>Upgrade BigTree</h2></summary>
@@ -18,7 +21,7 @@
 	</section>
 </div>
 <script>
-	$.ajax("<?=ADMIN_ROOT?>ajax/developer/upgrade/download/", { type: "POST", data: { file: "<?=$update["file"]?>" }, complete: function() {
+	$.ajax("<?=ADMIN_ROOT?>ajax/developer/upgrade/download/", { type: "POST", data: { key: "<?=htmlspecialchars($download_key)?>" }, complete: function() {
 		window.location.href = "<?=DEVELOPER_ROOT?>upgrade/check-file/?type=<?=htmlspecialchars($_GET["type"])?>";
 	} });
 </script>
