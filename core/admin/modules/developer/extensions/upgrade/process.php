@@ -16,7 +16,7 @@
 <?
 	} else {
 		// Save original manifest, prevent path manipulation
-		$id = str_replace("../","",$_GET["id"]);
+		$id = BigTree::cleanFile($_GET["id"]);
 		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
 		
 		// Very simple if we're updating locally

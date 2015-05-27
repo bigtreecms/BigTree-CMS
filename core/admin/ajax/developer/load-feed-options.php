@@ -1,6 +1,6 @@
 <?
 	// Prevent including files outside feed-options
-	$type = str_replace("../","",$_POST["type"]);
+	$type = BigTree::cleanFile($_POST["type"]);
 
 	$table = $_POST["table"];
 	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);

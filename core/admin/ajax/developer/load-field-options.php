@@ -1,6 +1,6 @@
 <?
 	// Prevent directory path shenanigans
-	$field_type = str_replace("../","",$_POST["type"]);
+	$field_type = BigTree::cleanFile($_POST["type"]);
 	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	
 	$validation_options = array(

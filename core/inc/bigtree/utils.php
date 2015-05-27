@@ -108,6 +108,21 @@
 			// Clear the module class list just in case we're missing something.
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
+
+		/*
+			Function: cleanFile
+				Makes sure that a file path doesn't contain abusive characters (i.e. ../)
+
+			Parameters:
+				file - A file name
+
+			Returns:
+				Cleaned up string.
+		*/
+
+		static function cleanFile($file) {
+			return str_replace("../","",$file);
+		}
 		
 		/*
 			Function: colorMesh

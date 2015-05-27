@@ -1,6 +1,6 @@
 <?
 	// Prevent path manipulation shenanigans
-	$type = str_replace("../","",$_POST["type"]);
+	$type = BigTree::cleanFile($_POST["type"]);
 	$table = $_POST["table"];
 	$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	$filter = isset($options["filter"]) ? $options["filter"] : "";

@@ -2305,7 +2305,7 @@
 			}
 
 			// Prevent path abuse
-			$field["type"] = str_replace("../","",$field["type"]);
+			$field["type"] = BigTree::cleanFile($field["type"]);
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
