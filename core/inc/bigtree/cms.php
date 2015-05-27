@@ -191,7 +191,7 @@
 		static function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
-			$f = sqlfetch(sqlquery("SELECT key FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			$f = sqlfetch(sqlquery("SELECT `key` FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			if ($f && !$replace) {
 				return false;
 			}
