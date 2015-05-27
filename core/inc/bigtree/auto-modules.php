@@ -962,6 +962,10 @@
 		*/
 
 		static function getReportResults($report,$view,$form,$filters,$sort_field = "id",$sort_direction = "DESC") {
+			// Prevent SQL injection
+			$sort_field = "`".str_replace("`","",$sort_field)."`";
+			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
+
 			$where = $items = $parsers = $poplists = array();
 			// Figure out if we have db populated lists and parsers
 			if ($report["type"] == "view") {
