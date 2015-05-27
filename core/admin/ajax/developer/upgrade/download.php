@@ -1,6 +1,4 @@
 <?
-	$admin->requireLevel(2);
-
 	// Remove existing update zips
 	@unlink(SERVER_ROOT."cache/update.zip");
 
