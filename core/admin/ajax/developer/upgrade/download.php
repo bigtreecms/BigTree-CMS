@@ -1,6 +1,4 @@
 <?
-	$admin->requireLevel(2);
-	
 	@unlink(SERVER_ROOT."cache/update.zip");
 	// Try fopen first
 	$resource = @fopen($_POST["file"],"r");
