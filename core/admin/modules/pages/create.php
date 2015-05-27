@@ -54,14 +54,14 @@
 		"page" => $page,
 		"return_link" => ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/",
 		"edit_link" => ADMIN_ROOT."pages/edit/$page/",
-		"errors" => $bigtree["errors"],
-		"crops" => $bigtree["crops"]
+		"errors" => $bigtree["errors"]
 	);
 
-	if (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
 		BigTree::redirect(ADMIN_ROOT."pages/crop/$page/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."pages/error/$page/");
 	}
 
 	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$_POST["parent"]."/");

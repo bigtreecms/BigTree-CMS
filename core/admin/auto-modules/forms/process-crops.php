@@ -1,5 +1,5 @@
-<?	
-	$admin->processCrops(json_decode($_POST["crop_info"],true));
+<?
+	$admin->processCrops($_POST["crop_key"]);
 
 	if (count($_SESSION["bigtree_admin"]["form_data"]["errors"])) {
 		BigTree::redirect($bigtree["form_root"]."error/");

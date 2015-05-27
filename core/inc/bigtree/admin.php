@@ -5785,11 +5785,15 @@
 				Processes a list of cropped images.
 
 			Parameters:
-				crops - An array of crop information.
+				crop_key - A cache key pointing to the location of crop data.
 		*/
 
-		static function processCrops($crops) {
+		static function processCrops($crop_key) {
 			$storage = new BigTreeStorage;
+
+			// Get and remove the crop data
+			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops",$crop_key);
+			BigTreeCMS::cacheDelete("org.bigtreecms.crops",$crop_key);
 
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
