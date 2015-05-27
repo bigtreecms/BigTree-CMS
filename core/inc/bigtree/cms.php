@@ -142,23 +142,26 @@
 		*/
 
 		function cacheGet($identifier,$key,$max_age = false,$decode = true) {
-			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-			if (empty($this->MySQLTime)) {
-				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
-				$this->MySQLTime = $t["time"];
-			}
-			$max_age = date("Y-m-d H:i:s",strtotime($this->MySQLTime) - $max_age);
-			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
+
 			if ($max_age) {
+				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
+				if (empty($this->MySQLTime)) {
+					$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
+					$this->MySQLTime = $t["time"];
+				}
+				$max_age = date("Y-m-d H:i:s",strtotime($this->MySQLTime) - $max_age);
+			
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '$max_age'"));
 			} else {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			}
+
 			if (!$f) {
 				return false;
 			}
+			
 			if ($decode) {
 				return json_decode($f["value"],true);
 			} else {
