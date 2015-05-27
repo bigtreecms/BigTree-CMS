@@ -188,7 +188,7 @@
 		static function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			$f = sqlfetch(sqlquery("SELECT key FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			if ($f && !$replace) {
 				return false;
 			}
@@ -201,6 +201,27 @@
 				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
 			}
 			return true;
+		}
+
+		/*
+			Function: cacheUnique
+				Puts data into BigTree's cache table with a random unqiue key and returns the key.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				value - The data to store
+
+			Returns:
+				They unique cache key.
+		*/
+
+		static function cacheUnique($identifier,$value) {
+			$success = false;
+			while (!$success) {
+				$key = uniqid("",true);
+				$success = static::cachePut($identifier,$key,$value,false);
+			}
+			return $key;
 		}
 		
 		/*
