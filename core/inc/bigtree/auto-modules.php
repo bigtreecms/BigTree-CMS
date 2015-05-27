@@ -1128,6 +1128,8 @@
 			if (strtolower($sort) == "position desc, id asc") {
 				$sort_field = "position DESC, id ASC";
 				$sort_direction = "";
+			} else {
+				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
 			}
 			
 			if ($page === "all") {
