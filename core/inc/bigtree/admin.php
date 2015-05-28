@@ -1034,7 +1034,7 @@
 			$clean_fields = array();
 			foreach ($fields as $key => $data) {
 				$field = array(
-					"column" => $key,
+					"column" => $data["column"] ? $data["column"] : $key,
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
