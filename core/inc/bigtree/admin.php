@@ -5409,7 +5409,15 @@
 					}
 					// Create actions
 					foreach ($module["actions"] as $action) {
-						$this->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$bigtree["form_id_match"][$action["form"]],$bigtree["view_id_match"][$action["view"]],$bigtree["report_id_match"][$action["report"]],$action["level"],$action["position"]);
+						// 4.1 and 4.2 compatibility
+						if ($action["report"]) {
+							$action["interface"] = $bigtree["report_id_match"][$action["report"]];
+						} elseif ($action["form"]) {
+							$action["interface"] = $bigtree["form_id_match"][$action["form"]];
+						} elseif ($action["view"]) {
+							$action["interface"] = $bigtree["view_id_match"][$action["view"]];
+						}
+						$this->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$action["interface"],$action["level"],$action["position"]);
 					}
 				}
 			}

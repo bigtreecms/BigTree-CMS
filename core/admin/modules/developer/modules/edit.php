@@ -10,22 +10,16 @@
 	$actions_in_nav = array();
 	$actions_not_in_nav = array();
 	foreach ($actions as $action) {
-		if ($action["view"]) {
-			$view = BigTreeAutoModule::getView($action["view"]);
-			if (!in_array($view,$views)) {
-				$views[] = $view;
-			}
-		}
-		if ($action["form"]) {
-			$form = BigTreeAutoModule::getForm($action["form"]);
-			if (!in_array($form,$forms)) {
-				$forms[] = $form;
-			}
-		}
-		if ($action["report"]) {
-			$report = BigTreeAutoModule::getReport($action["report"]);
-			if (!in_array($report,$reports)) {
-				$reports[] = $report;
+		if ($action["interface"]) {
+			$interface = BigTreeAutoModule::getInterface($action["interface"]);
+			if ($interface["interface_type"] == "view") {
+				$views[] = $interface;
+			} elseif ($interface["interface_type"] == "form") {
+				$forms[] = $interface;
+			} elseif ($interface["interface_type"] == "report") {
+				$reports[] = $interface;
+			} elseif ($interface["interface_type"] == "embeddable-form") {
+				$embeds[] = $interface;
 			}
 		}
 		if ($action["in_nav"]) {
