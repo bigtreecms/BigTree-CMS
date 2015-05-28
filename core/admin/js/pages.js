@@ -7,9 +7,9 @@ var BigTreePages = {
 
 	init: function() {
 		$("input[name=redirect_lower]").click(function() {
-			if ($(this).attr("checked")) {
+			if ($(this).prop("checked")) {
 				$("#template_select").get(0).customControl.disable();
-				$("#external_link").attr("disabled","disabled");
+				$("#external_link").prop("disabled",true);
 				$("#new_window").get(0).customControl.disable();
 			} else {
 				$("#template_select").get(0).customControl.enable();
@@ -51,7 +51,7 @@ var BigTreePages = {
 	CheckTemplate: function() {
 		var template_select = $("select[name=template]");
 		if (template_select.length) {
-			if ($("#redirect_lower").attr("checked")) {
+			if ($("#redirect_lower").prop("checked")) {
 				var current_template = "!";
 			} else if ($("#external_link").val()) {
 				var current_template = "";

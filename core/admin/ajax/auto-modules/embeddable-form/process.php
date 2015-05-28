@@ -116,8 +116,7 @@
 
 	// Put together saved form information for the error or crop page in case we need it.
 	$_SESSION["bigtree_admin"]["form_data"] = array(
-		"errors" => $bigtree["errors"],
-		"crops" => $bigtree["crops"]
+		"errors" => $bigtree["errors"]
 	);
 
 	// If we have errors, we want to save the data and drop the entry from the database but give them the info again
@@ -132,6 +131,7 @@
 	}
 	
 	if (count($bigtree["crops"])) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
 		BigTree::redirect($bigtree["form_root"]."crop/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	} elseif (count($bigtree["errors"])) {
 		BigTree::redirect($bigtree["form_root"]."error/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);

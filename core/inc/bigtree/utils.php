@@ -121,6 +121,21 @@
 			// Clear the module class list just in case we're missing something.
 			@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
 		}
+
+		/*
+			Function: cleanFile
+				Makes sure that a file path doesn't contain abusive characters (i.e. ../)
+
+			Parameters:
+				file - A file name
+
+			Returns:
+				Cleaned up string.
+		*/
+
+		static function cleanFile($file) {
+			return str_replace("../","",$file);
+		}
 		
 		/*
 			Function: colorMesh
@@ -1780,6 +1795,14 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
+			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
+			if (defined("BIGTREE_ADMIN_ROUTED")) {
+				$pieces = explode("/",$url);
+				$bt_domain_pieces = explode("/",DOMAIN);
+				if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
+					return false;
+				}
+			}
 			$status_codes = array(
 				"200" => "OK",
 				"300" => "Multiple Choices",
@@ -1890,6 +1913,10 @@
 			$ended = false;
 			$found_file = false;
 			foreach ($path as $piece) {
+				// Prevent path exploitation
+				if ($piece == "..") {
+					die();
+				}
 				// We're done, everything is a command now.
 				if ($ended) {
 					$commands[] = $piece;

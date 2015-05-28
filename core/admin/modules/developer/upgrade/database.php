@@ -525,20 +525,20 @@
 			$new_fields = array();
 			foreach ($fields as $id => $field) {
 				// Array of Items no longer exists, switching to Matrix
-				if ($item["type"] == "array") {
-					$item["type"] = "matrix";
-					$item["columns"] = array();
+				if ($field["type"] == "array") {
+					$field["type"] = "matrix";
+					$field["columns"] = array();
 					$x = 0;
-					foreach ($item["fields"] as $field) {
+					foreach ($field["fields"] as $field) {
 						$x++;
-						$item["columns"][] = array(
+						$field["columns"][] = array(
 							"id" => $field["key"],
 							"type" => $field["type"],
 							"title" => $field["title"],
 							"display_title" => ($x == 1) ? "on" : ""
 						);
 					}
-					unset($item["fields"]);
+					unset($field["fields"]);
 				}
 				$r = array(
 					"column" => $id,

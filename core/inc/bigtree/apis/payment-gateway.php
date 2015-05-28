@@ -42,9 +42,12 @@
 		/*
 			Constructor:
 				Sets up the currently configured service.
+
+			Parameters:
+				gateway_override - Optionally specify the gateway you want to use (defaults to the admin default)
 		*/
 		
-		function __construct() {
+		function __construct($gateway_override = false) {
 			$s = BigTreeAdmin::getSetting("bigtree-internal-payment-gateway");
 
 			// Setting doesn't exist? Create it.
@@ -57,6 +60,11 @@
 			// If for some reason the setting doesn't exist, make one.
 			$this->Service = isset($s["value"]["service"]) ? $s["value"]["service"] : "";
 			$this->Settings = isset($s["value"]["settings"]) ? $s["value"]["settings"] : array();
+
+			// If you specifically request a certain service, use it instead of the default
+			if ($gateway_override) {
+				$this->Service = $gateway_override;
+			}
 
 			if ($this->Service == "authorize.net") {
 				$this->setupAuthorize();

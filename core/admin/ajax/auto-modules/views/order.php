@@ -6,9 +6,9 @@
 	$table = $view["table"];
 	
 	if ($access_level == "p") {
-		parse_str($_POST["sort"]);
+		parse_str($_POST["sort"],$data);
 	
-		foreach ($row as $position => $id) {
+		foreach ($data["row"] as $position => $id) {
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET position = '".(count($row)-$position)."' WHERE id = '".sqlescape($id)."'");
 				BigTreeAutoModule::recacheItem($id,$table);

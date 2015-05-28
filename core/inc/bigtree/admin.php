@@ -1112,7 +1112,7 @@
 			$clean_fields = array();
 			foreach ($fields as $key => $data) {
 				$field = array(
-					"column" => $key,
+					"column" => $data["column"] ? $data["column"] : $key,
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
@@ -2375,6 +2375,8 @@
 				}
 			}
 
+			// Prevent path abuse
+			$field["type"] = BigTree::cleanFile($field["type"]);
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
@@ -5449,7 +5451,8 @@
 			foreach ($manifest["components"]["field_types"] as $type) {
 				if ($type) {
 					$self_draw = $type["self_draw"] ? "'on'" : "NULL";
-					sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["use_cases"])."',$self_draw,'$extension')");
+					$use_cases = sqlescape(is_array($type["use_cases"]) ? json_encode($type["use_cases"]) : $type["use_cases"]);
+					sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','$use_cases',$self_draw,'$extension')");
 				}
 			}
 
@@ -5875,11 +5878,15 @@
 				Processes a list of cropped images.
 
 			Parameters:
-				crops - An array of crop information.
+				crop_key - A cache key pointing to the location of crop data.
 		*/
 
-		static function processCrops($crops) {
+		static function processCrops($crop_key) {
 			$storage = new BigTreeStorage;
+
+			// Get and remove the crop data
+			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops",$crop_key);
+			BigTreeCMS::cacheDelete("org.bigtreecms.crops",$crop_key);
 
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];

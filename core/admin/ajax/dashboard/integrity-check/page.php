@@ -1,5 +1,5 @@
 <?
-	$id = $_GET["id"];	
+	$id = intval($_GET["id"]);
 	$page = $cms->getPage($id);
 	$template = $cms->getTemplate($page["template"]);
 	$local_path = $cms->getLink($id);
@@ -17,7 +17,7 @@
 ?>
 <li>
 	<section class="integrity_errors">
-		<a href="<?=ADMIN_ROOT."pages/edit/$id/"?>" target="_blank">Edit</a>
+		<a href="<?=ADMIN_ROOT?>pages/edit/<?=$id?>/" target="_blank">Edit</a>
 		<span class="icon_small icon_small_warning"></span>
 		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> on page &ldquo;<?=$page["nav_title"]?>&rdquo; in field &ldquo;<?=$title?>&rdquo;</p>
 	</section>

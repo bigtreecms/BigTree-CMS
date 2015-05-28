@@ -2,11 +2,11 @@
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
-	$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
 
 	// Callout style
 	if ($field["options"]["style"] == "callout") {
+		$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
 <fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>

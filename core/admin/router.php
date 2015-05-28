@@ -1,4 +1,7 @@
 <?
+	// Set a definition to check for being in the admin
+	define("BIGTREE_ADMIN_ROUTED",true);
+	
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
 		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];

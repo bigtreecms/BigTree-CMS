@@ -135,6 +135,9 @@
 		*/
 
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+			// Make sure there are no path exploits
+			$file_name = BigTree::cleanFile($file_name);
+			
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
@@ -186,6 +189,9 @@
 		*/
 
 		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
+			// Make sure there are no path exploits
+			$file_name = BigTree::cleanFile($file_name);
+
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;

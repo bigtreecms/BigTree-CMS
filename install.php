@@ -732,14 +732,14 @@ RewriteRule (.*) site/$1 [L]');
 		    <script>
 		        $(document).ready(function() {
 		        	$("#loadbalanced").on("change", function() {
-		        		if ($(this).attr("checked")) {
+		        		if ($(this).prop("checked")) {
 		        			$("#loadbalanced_settings").css({ display: "block" });
 		        		} else {
 		        			$("#loadbalanced_settings").css({ display: "none" });
 		        		}
 		        	});
 		        	$("#db_port_or_socket").on("change", function() {
-		        		if ($(this).attr("checked")) {
+		        		if ($(this).prop("checked")) {
 		        			$(".db_port_or_socket_settings").css({ display: "block" });
 		        		} else {
 		        			$(".db_port_or_socket_settings").css({ display: "none" });

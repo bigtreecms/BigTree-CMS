@@ -2,8 +2,8 @@
 	// Draw field types as callout resources
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 
-	$bigtree["matrix_count"] = $_POST["count"];
-	$bigtree["matrix_key"] = $_POST["key"];
+	$bigtree["matrix_count"] = intval($_POST["count"]);
+	$bigtree["matrix_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["matrix_columns"] = $_POST["columns"];
 
 	$bigtree["resources"] = isset($_POST["data"]) ? json_decode(base64_decode($_POST["data"]),true) : array();

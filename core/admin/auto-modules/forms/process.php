@@ -194,11 +194,11 @@
 		"id" => $edit_id,
 		"return_link" => $redirect_url,
 		"edit_link" => ADMIN_ROOT.$bigtree["module"]["route"]."/".$edit_action["route"]."/$edit_id/",
-		"errors" => $bigtree["errors"],
-		"crops" => $bigtree["crops"]
+		"errors" => $bigtree["errors"]
 	);
 	
 	if (count($bigtree["crops"])) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
 		BigTree::redirect($bigtree["form_root"]."crop/");
 	} elseif (count($bigtree["errors"])) {
 		BigTree::redirect($bigtree["form_root"]."error/");

@@ -755,7 +755,7 @@
 				return self::getPendingItem($table,$id);
 			}
 			// Otherwise it's a live entry
-			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 			if (!$item) {
 				return false;
 			}
@@ -856,7 +856,7 @@
 			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
-				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
+				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($id,1))."'"));
 				if (!$change) {
 					return false;
 				}
@@ -874,7 +874,7 @@
 				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 				if (!$item) {
 					return false;
 				}
@@ -1035,6 +1035,10 @@
 		*/
 
 		static function getReportResults($report,$view,$form,$filters,$sort_field = "id",$sort_direction = "DESC") {
+			// Prevent SQL injection
+			$sort_field = "`".str_replace("`","",$sort_field)."`";
+			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
+
 			$where = $items = $parsers = $poplists = array();
 			// Figure out if we have db populated lists and parsers
 			if ($report["type"] == "view") {
@@ -1195,6 +1199,8 @@
 			if (strtolower($sort) == "position desc, id asc") {
 				$sort_field = "position DESC, id ASC";
 				$sort_direction = "";
+			} else {
+				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
 			}
 			
 			if ($page === "all") {
@@ -1250,7 +1256,7 @@
 				$id = $id["id"];
 			}
 			
-			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '$id'"));
+			$interface = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
 			if (!$interface) {
 				return false;
 			}
@@ -1625,6 +1631,7 @@
 				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
 			}
 
+			$id = sqlescape($id);
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {

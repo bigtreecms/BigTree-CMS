@@ -513,7 +513,7 @@
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
-			$return_link = $_GET["bigtree_preview_return"];
+			$return_link = htmlspecialchars(urlencode($_GET["bigtree_preview_return"]));
 		}
 		// Pending Pages don't have their ID set.
 		if (!isset($bigtree["page"]["id"])) {
