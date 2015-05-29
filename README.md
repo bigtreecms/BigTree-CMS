@@ -20,6 +20,21 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.8 Release
+- FIXED: Redirect lower in Pages not working when all child pages were not visible in nav
+- FIXED: User and settings pagination
+- FIXED: Outlook change that broke daily digest emails in 4.1.7
+- FIXED: Corrupt many to many data showing when adding new content
+- FIXED: Custom checkboxes in admin sometimes not understanding their current state
+- FIXED: Module reports not being deletable
+- FIXED: BigTreeCMS::cacheGet not working without max_age being passed
+- FIXED: Pages and Settings failing to crop images if errors occurred
+- FIXED: Possible SQL injection vectors by admin users
+- FIXED: Developer AJAX requests often not requiring developer permissions
+- FIXED: Possible variable scope overwriting
+- FIXED: Reports not including their tables automatically when creating packages
+- CHANGED: Removed support for BigTree 3 internal page link format (serialized) to remove a possible object injection attack.
+
 ### 4.1.7 Release
 - SECURITY FIX: Fixed several possible SQL injection vulnerabilities that could be run by authenticated BigTree users  (thanks sumitingole)
 - SECURITY FIX: Fixed several XSS attack vectors (thanks sumitingole)
