@@ -5,8 +5,8 @@
 		$items = $admin->getCallouts("name ASC");
 	}
 
-	$bigtree["callout_count"] = $_POST["count"];
-	$bigtree["callout_key"] = $_POST["key"];
+	$bigtree["callout_count"] = intval($_POST["count"]);
+	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
 ?>
 <div id="callout_type">
@@ -28,6 +28,6 @@
 		// TinyMCE tooltips and menus sometimes get stuck
 		$(".mce-tooltip, .mce-menu").remove();
 
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", { count: <?=$bigtree["callout_count"]?>, key: "<?=$bigtree["callout_key"]?>", resources: "<?=$_POST["data"]?>", type: data.value }, BigTreeCustomControls).scrollTop(0);
+		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", { count: <?=$bigtree["callout_count"]?>, key: "<?=$bigtree["callout_key"]?>", resources: "<?=htmlspecialchars($_POST["data"])?>", type: data.value }, BigTreeCustomControls).scrollTop(0);
 	});
 </script>

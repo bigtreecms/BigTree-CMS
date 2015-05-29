@@ -711,7 +711,7 @@
 				return self::getPendingItem($table,$id);
 			}
 			// Otherwise it's a live entry
-			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 			if (!$item) {
 				return false;
 			}
@@ -796,7 +796,7 @@
 			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
-				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
+				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($id,1))."'"));
 				if (!$change) {
 					return false;
 				}
@@ -814,7 +814,7 @@
 				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 				if (!$item) {
 					return false;
 				}
@@ -964,6 +964,10 @@
 		*/
 
 		static function getReportResults($report,$view,$form,$filters,$sort_field = "id",$sort_direction = "DESC") {
+			// Prevent SQL injection
+			$sort_field = "`".str_replace("`","",$sort_field)."`";
+			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
+
 			$where = $items = $parsers = $poplists = array();
 			// Figure out if we have db populated lists and parsers
 			if ($report["type"] == "view") {
@@ -1124,6 +1128,8 @@
 			if (strtolower($sort) == "position desc, id asc") {
 				$sort_field = "position DESC, id ASC";
 				$sort_direction = "";
+			} else {
+				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
 			}
 			
 			if ($page === "all") {
@@ -1180,7 +1186,7 @@
 				$id = $id["id"];
 			}
 			
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '".sqlescape($id)."'"));
 			if (!$view) {
 				return false;
 			}
@@ -1537,6 +1543,7 @@
 				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
 			}
 
+			$id = sqlescape($id);
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
@@ -1557,23 +1564,7 @@
 				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'"));
 			}
 			if ($existing) {
-				$comments = json_decode($existing["comments"],true);
-				if ($existing["user"] == $admin->ID) {
-					$comments[] = array(
-						"user" => "BigTree",
-						"date" => date("F j, Y @ g:ia"),
-						"comment" => "A new revision has been made."
-					);
-				} else {
-					$user = $admin->getUser($admin->ID);
-					$comments[] = array(
-						"user" => "BigTree",
-						"date" => date("F j, Y @ g:ia"),
-						"comment" => "A new revision has been made.  Owner switched to ".$user["name"]."."
-					);
-				}
-				$comments = sqlescape(json_encode($comments));
-				sqlquery("UPDATE bigtree_pending_changes SET comments = '$comments', changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
+				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
 				
 				// If the id has a "p" it's still pending and we need to recache over the pending one.
 				if (substr($id,0,1) == "p") {

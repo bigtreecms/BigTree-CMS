@@ -12,7 +12,7 @@
 	BigTree::globalizeArray($bigtree["view"]);
 
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
-	$page = isset($_GET["page"]) ? $_GET["page"] : 1;
+	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
 	
 	if (isset($_GET["sort"])) {
 		$sort = $_GET["sort"]." ".$_GET["sort_direction"];

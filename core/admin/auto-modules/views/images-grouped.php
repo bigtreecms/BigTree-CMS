@@ -16,6 +16,19 @@
 			$order = "CAST(id AS UNSIGNED) DESC";
 		}
 	}
+
+	// Setup custom overrides for group titles when we're grouping by a special BigTree column
+	$group_title_overrides = array();
+	if ($bigtree["view"]["options"]["group_field"] == "featured") {
+		$group_title_overrides["on"] = "Featured";
+		$group_title_overrides[""] = "Normal";
+	} elseif ($bigtree["view"]["options"]["group_field"] == "archived") {
+		$group_title_overrides["on"] = "Archived";
+		$group_title_overrides[""] = "Active";
+	} elseif ($bigtree["view"]["options"]["group_field"] == "approved") {
+		$group_title_overrides["on"] = "Approved";
+		$group_title_overrides[""] = "Not Approved";
+	}
 ?>
 <div class="table auto_modules image_list">
 	<?
@@ -33,7 +46,7 @@
 			$items = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"active");
 			$pending_items = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"pending");
 	?>
-	<header class="group"><?=$title?></header>
+	<header class="group"><?=(isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title)?></header>
 	<section>
 		<?
 			if (count($items)) {

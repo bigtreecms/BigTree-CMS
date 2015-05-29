@@ -147,23 +147,26 @@
 		*/
 
 		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
-			// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-			if (!static::$MySQLTime) {
-				$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
-				static::$MySQLTime = $t["time"];
-			}
-			$max_age = date("Y-m-d H:i:s",strtotime(static::$MySQLTime) - $max_age);
-			
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
+
 			if ($max_age) {
+				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
+				if (!static::$MySQLTime) {
+					$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
+					static::$MySQLTime = $t["time"];
+				}
+				$max_age = date("Y-m-d H:i:s",strtotime(static::$MySQLTime) - $max_age);
+
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '$max_age'"));
 			} else {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			}
+
 			if (!$f) {
 				return false;
 			}
+			
 			if ($decode) {
 				return json_decode($f["value"],true);
 			} else {
@@ -188,7 +191,7 @@
 		static function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+			$f = sqlfetch(sqlquery("SELECT `key` FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
 			if ($f && !$replace) {
 				return false;
 			}
@@ -201,6 +204,27 @@
 				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
 			}
 			return true;
+		}
+
+		/*
+			Function: cacheUnique
+				Puts data into BigTree's cache table with a random unqiue key and returns the key.
+
+			Parameters:
+				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
+				value - The data to store
+
+			Returns:
+				They unique cache key.
+		*/
+
+		static function cacheUnique($identifier,$value) {
+			$success = false;
+			while (!$success) {
+				$key = uniqid("",true);
+				$success = static::cachePut($identifier,$key,$value,false);
+			}
+			return $key;
 		}
 		
 		/*
@@ -544,10 +568,7 @@
 			
 			// New IPLs are encoded in JSON
 			$c = json_decode(base64_decode($ipl[2]));
-			// Help with transitions.
-			if (!is_array($c)) {
-				$c = unserialize(base64_decode($ipl[2]));
-			}
+			
 			// If it can't be rectified, we still don't want a warning.
 			if (is_array($c) && count($c)) {
 				$last = end($c);

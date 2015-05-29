@@ -326,6 +326,10 @@
 		if ($bigtree["page"]["template"] == "!") {
 			$nav = $cms->getNavByParent($bigtree["page"]["id"],1);
 			$first = current($nav);
+			if (!$first) {
+				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
+				$first = current($nav);
+			}
 			BigTree::redirect($first["link"], 303);
 		}
 
@@ -477,7 +481,7 @@
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
-			$return_link = $_GET["bigtree_preview_return"];
+			$return_link = htmlspecialchars(urlencode($_GET["bigtree_preview_return"]));
 		}
 		// Pending Pages don't have their ID set.
 		if (!isset($bigtree["page"]["id"])) {

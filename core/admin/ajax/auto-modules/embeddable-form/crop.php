@@ -1,10 +1,13 @@
 <?
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+
+	// Get crop information
+	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
 ?>
 <div class="container">
 	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?id=<?=$bigtree["form"]["id"]?>&hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
-		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($crops))?>" />
+		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
 			<?
 				$x = 0;

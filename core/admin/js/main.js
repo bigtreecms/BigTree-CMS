@@ -201,13 +201,13 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function click() {
-			if (!Element.attr("disabled")) {
+			if (!Element.prop("disabled")) {
 				if (Link.hasClass("checked")) {
 					Link.removeClass("checked");
-					Element.attr("checked",false);
+					Element.prop("checked",false);
 				} else {
 					Link.addClass("checked");
-					Element.attr("checked","checked");
+					Element.prop("checked",true);
 				}
 				Element.triggerHandler("click");
 				Element.triggerHandler("change");
@@ -217,7 +217,7 @@ var BigTreeCheckbox = function(element) {
 	
 		function disable() {
 			Link.addClass("disabled");
-			Element.attr("disabled","disabled");
+			Element.prop("disabled",true);
 		};
 		
 		function enable() {
@@ -226,7 +226,7 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function focus() {
-			if (!Element.attr("disabled")) {
+			if (!Element.prop("disabled")) {
 				Link.addClass("focused");
 			}
 		};
@@ -399,7 +399,7 @@ var BigTreeSelect = function(element) {
 		};
 	
 		function disable() {
-			Element.attr("disabled","disabled");
+			Element.prop("disabled",true);
 			Container.addClass("disabled");
 		};
 	
@@ -710,7 +710,7 @@ var BigTreeSelect = function(element) {
 		Element.after(Container);		
 
 		// See if this select is disabled
-		if (Element.attr("disabled")) {
+		if (Element.prop("disabled")) {
 			Container.addClass("disabled");
 		}
 		
@@ -873,7 +873,7 @@ var BigTreeRadioButton = function(element) {
 				// If it's already clicked, nothing happens for radio buttons.
 			} else {
 				Link.addClass("checked");
-				Element.attr("checked",true);
+				Element.prop("checked",true);
 				$('input[name="' + Element.attr("name") + '"]').not(Element).each(function() {
 					this.customControl.Link.removeClass("checked");
 					$(this).trigger("change");
@@ -2356,6 +2356,14 @@ var BigTreeFormValidator = function(selector,callback) {
 				// Regular input fields
 				} else {
 					var val = $(this).val();
+					// If this is a file field, see if there's a regular input with the same name
+					if (!val && $(this).attr("type") == "file") {
+						$("input[name='" + $(this).attr("name") + "']").each(function(index) {
+							if (!val) {
+								val = $(this).val();
+							}
+						});
+					}
 				}
 				if (!val) {
 					errors[errors.length] = $(this);
@@ -2962,20 +2970,35 @@ var BigTreeMatrix = function(settings) {
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
-				var item = $(el).find("input[type=text],input[type=email],textarea,select").not("[type=file]");
-				if (item.length) {
-					if (item.is("select")) {
-						var value = $.trim(item.find("option:selected").text());
-					} else {
-						var value = $.trim(item.val());
-					}
-					if (value) {
-						if (Title) {
-							Subtitle = value;
+				if (!Title || !Subtitle) {
+					var item = $(el).find("input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
+					if (item.length) {
+						// Going to check for multi-part inputs like names, address, phone
+						var parent = item.parent();
+						if (parent.hasClass("input_name") || parent.hasClass("input_phone_3") || parent.hasClass("input_address_street")) {
+							var value = "";
+							item.parent().siblings('section').each(function() {
+								if (parent.hasClass("input_phone_3")) {
+									value += "-" + $(this).children("input").val();
+								} else {
+									value += " " + $(this).children("input, select").val();
+								}
+							});
+							// Remove the leading -
+							value = $.trim(value.substr(1));
+						} else if (item.is("select")) {
+							var value = $.trim(item.find("option:selected").text());
 						} else {
-							Title = value;
+							var value = $.trim(item.val());
 						}
-					} 
+						if (value) {
+							if (!Title) {
+								Title = value;
+							} else {
+								Subtitle = value;
+							}
+						} 
+					}
 				}
 			});
 			

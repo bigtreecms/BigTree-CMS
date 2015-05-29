@@ -47,5 +47,10 @@
 	</footer>
 </div>
 <script>
-	new CustomPhotoGallery("<?=$field["id"]?>","<?=$field["key"]?>",<?=$current?><? if ($field["options"]["disable_captions"]) { ?>,true<? } ?>);
+	CustomPhotoGallery({
+		container: "<?=$field["id"]?>",
+		key: "<?=$field["key"]?>",
+		count: <?=$current?>
+		<? if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<? } ?>
+	});
 </script>

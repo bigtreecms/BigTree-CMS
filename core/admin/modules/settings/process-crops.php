@@ -1,4 +1,4 @@
 <?	
-	$admin->processCrops(json_decode($_POST["crop_info"],true));
+	$admin->processCrops($_POST["crop_key"]);
 	BigTree::redirect(ADMIN_ROOT."settings/");
 ?>

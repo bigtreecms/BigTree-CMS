@@ -20,6 +20,37 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.2 Release
+- ADDED: You can now instantiate a BigTreePaymentGateway object with the desired payment gateway in the constructor for using multiple services
+- ADDED: When grouping by a special column such as featured, approved, or archived, groups now get meaningful titles and clicking the relevant icons reloads the view to show movement between groups.
+- ADDED: BigTreeCMS::cacheUnique method that allows you to specify only a identifier and will return a unique key for the data being stored
+- FIXED: Making updates to a pending change before publishing failing
+- FIXED: Example site's photo gallery field not functioning
+- FIXED: Protocol agnostic Cloud files URLs not working with copyFile
+- FIXED: Redirect Lower pages option failing if all the child pages were not visible in nav
+- FIXED: Importing a field type from an extension failing to properly set use cases
+- FIXED: 4.1->4.2 array of items to matrix field type conversion failing for modules
+- FIXED: Upload fields in matrix / callouts that were set to required failing to recognize existing data when resaving
+- FIXED: List-style matrix fields not drawing properly after a callout-style matrix or callouts field
+- FIXED: Matrix fields not properly using subtypes of text fields for titles properly
+- FIXED: Corrupt many to many data showing up when adding new content
+- FIXED: Issues with custom checkboxes in the admin sometimes not switching properly
+- FIXED: Module reports not being deletable
+- FIXED: Multiple cross-site scripting vectors that could lead to an admin user being phished
+- FIXED: Potential path abuse vectors that could lead to a admin user storing or including a file outside the proper directory
+- FIXED: BigTreeCMS::cacheGet failing to return values when max_age was not passed
+- FIXED: Potential abuse of cropping images through POSTing to the process-crops URLs with dummy data.
+- FIXED: Crops not occurring in Pages and Settings if errors occurred
+- FIXED: Potential phishing download abuse
+- FIXED: Potential SQL injection vectors that administrative users could possibly exploit
+- FIXED: Developer level AJAX calls often not requiring developer access.
+- FIXED: Possible variable scope override issues.
+- FIXED: Potential cookie manipulation via phishing.
+- FIXED: Module forms for extensions not properly importing.
+- FIXED: Reports in packages and extensions not properly packaging their related tables.
+- CHANGED: Old internal page links that used BigTree 3 format (serialized) are no longer support. This resolves a potential object injection attack.
+- CHANGED: BigTree::redirect can no longer be used to redirect outside the current domain when called within the admin. This helps prevent phishing attempt redirections.
+
 ### 4.2.1 Release
 - ADDED: SendGrid email service support (thanks zumbrunnen)
 - ADDED: Support for altnernate ports and sockets when connecting to MySQL (thanks zumbrunnen)

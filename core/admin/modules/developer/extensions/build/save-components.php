@@ -23,7 +23,7 @@
 			$actions = $admin->getModuleActions($module_id);
 			// Get all the tables of the module's actions.
 			foreach ($actions as $action) {
-				if ($action["form"] || $action["view"]) {
+				if ($action["form"] || $action["view"] || $action["report"]) {
 					if ($action["form"]) {
 						$auto = BigTreeAutoModule::getForm($action["form"]);
 						// Figure out what tables and field types the form uses and automatically add them.
@@ -51,12 +51,10 @@
 							}
 						}
 					// For views/reports we just care about what table it's from
-					} else {
-						if ($action["view"]) {
-							$auto = BigTreeAutoModule::getView($action["view"]);
-						} elseif ($action["report"]) {
-							$auto = BigTreeAutoModule::getReport($action["report"]);
-						}
+					} elseif ($action["view"]) {
+						$auto = BigTreeAutoModule::getView($action["view"]);
+					} elseif ($action["report"]) {
+						$auto = BigTreeAutoModule::getReport($action["report"]);
 					}
 	
 					if (!in_array($auto["table"]."#structure",$p["tables"])) {

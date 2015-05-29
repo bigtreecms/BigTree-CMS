@@ -172,7 +172,7 @@
 					$(iframe).contents().find("body").on("mousemove",this.moveProxyiFrame).on("mouseup",this.upProxy);
 				},this)));
 				<? if ($_COOKIE["bigtree"]["redactor_height"]) { ?>
-				$(this.getIframe()).height(<?=$_COOKIE["bigtree"]["redactor_height"]?>);
+				$(this.getIframe()).height(<?=htmlspecialchars($_COOKIE["bigtree"]["redactor_height"])?>);
 				<? } ?>
 			}
 		});
