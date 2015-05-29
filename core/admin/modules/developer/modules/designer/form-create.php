@@ -3,7 +3,7 @@
 	$fields = array();
 	$adds = array();
 	$module = $_POST["module"];
-	$table = "`".$_POST["table"]."`";
+	$table = "`".str_replace("`","",$_POST["table"])."`";
 	
 	if (!count($_POST["titles"]) || empty($_POST["titles"])) {
 		$_SESSION["developer"]["designer_errors"]["fields"] = true;
@@ -26,7 +26,7 @@
 		}
 		
 		$x = 2;
-		$field_name = str_replace("-","_",$cms->urlify($ft));
+		$field_name = str_replace(array("`","-"),array("","_"),$cms->urlify($ft));
 		$ofn = $field_name;
 		while (isset($fields[$field_name]) && !in_array($field_name,$reserved)) {
 			$field_name = $ofn.$x;

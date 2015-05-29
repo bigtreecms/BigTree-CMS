@@ -20,6 +20,10 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.0.12 Release
+- SECURITY FIX: Fixed several SQL injection vectors accessible to admin area users
+- SECURITY FIX: Fixed developer ajax calls not requiring developer access
+
 ### 4.0.11 Release
 - SECURITY FIX: Fixed several possible SQL injection vulnerabilities that could be run by authenticated BigTree users  (thanks sumitingole)
 - SECURITY FIX: Fixed several XSS attack vectors (thanks sumitingole)

@@ -630,7 +630,7 @@
 				return self::getPendingItem($table,$id);
 			}
 			// Otherwise it's a live entry
-			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 			if (!$item) {
 				return false;
 			}
@@ -711,7 +711,7 @@
 			$owner = false;
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
-				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
+				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($id,1))."'"));
 				if (!$change) {
 					return false;
 				}
@@ -729,7 +729,7 @@
 				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
 				if (!$item) {
 					return false;
 				}
@@ -888,6 +888,8 @@
 			if (strtolower($sort) == "position desc, id asc") {
 				$sort_field = "position DESC, id ASC";
 				$sort_direction = "";
+			} else {
+				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
 			}
 			
 			if ($page === "all") {
@@ -943,7 +945,7 @@
 				$id = $id["id"];
 			}
 			
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '$id'"));
+			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '".sqlescape($id)."'"));
 			$view["actions"] = json_decode($view["actions"],true);
 			$view["options"] = json_decode($view["options"],true);
 			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
@@ -1250,6 +1252,7 @@
 		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin;
 
+			$id = sqlescape($id);
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
