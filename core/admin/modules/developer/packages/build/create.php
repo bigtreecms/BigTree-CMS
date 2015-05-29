@@ -70,22 +70,9 @@
 		$module = $admin->getModule($module);
 		if ($module) {
 			$module["actions"] = $admin->getModuleActions($module["id"]);
-			foreach ($module["actions"] as $a) {
-				// If there's an auto module, include it as well.
-				if ($a["form"] && !in_array($a["form"],$used_forms)) {
-					$module["forms"][] = BigTreeAutoModule::getForm($a["form"],false);
-					$used_forms[] = $a["form"];
-				} elseif ($a["view"] && !in_array($a["view"],$used_views)) {
-					$view = BigTreeAutoModule::getView($a["view"],false);
-					// Unset edit_url as it exposes origin URL
-					unset($view["edit_url"]);
-					$module["views"][] = $view;
-					$used_views[] = $a["view"];
-				} elseif ($a["report"] && !in_array($a["report"],$used_reports)) {
-					$module["reports"][] = BigTreeAutoModule::getReport($a["report"]);
-					$used_reports[] = $a["report"];
-				}
-			}
+			$module["forms"] = $admin->getModuleForms($module["id"]);
+			$module["views"] = $admin->getModuleViews($module["id"]);
+			$module["reports"] = $admin->getModuleReports($module["id"]);
 			$module["embed_forms"] = $admin->getModuleEmbedForms("title",$module["id"]);
 			$package["components"]["modules"][] = $module;
 		}

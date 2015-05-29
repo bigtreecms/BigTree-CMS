@@ -39,39 +39,35 @@
 	
 	// Get every module's results based on auto module views.
 	$modules = $admin->getModules("name ASC");
-	foreach ($modules as $m) {
-		// Get all auto module view actions for this module.
-		$actions = $admin->getModuleActions($m);
-		foreach ($actions as $action) {
-			if ($action["view"]) {
-				$view = BigTreeAutoModule::getView($action["view"]);
-				$m_results = array();
+	foreach ($modules as $module) {
+		$views = $admin->getModuleViews($module["id"]);
+		foreach ($views as $view) {
+			$module_results = array();
 				
-				$table_description = BigTree::describeTable($view["table"]);
-				$qparts = array();
-				foreach ($table_description["columns"] as $column => $data) {
-					$qparts[] = "`$column` LIKE $w";
-				}
+			$table_description = BigTree::describeTable($view["table"]);
+			$qparts = array();
+			foreach ($table_description["columns"] as $column => $data) {
+				$qparts[] = "`$column` LIKE $w";
+			}
 				
-				// Get matching results
-				$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
-				// Ignore SQL failures because we might have bad collation.
-				while ($r = sqlfetch($qs,true)) {
-					foreach ($r as &$piece) {
-						$piece = $cms->replaceInternalPageLinks($piece);
-					}
-					unset($piece);
-					$m_results[] = $r;
-					$total_results++;
+			// Get matching results
+			$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
+			// Ignore SQL failures because we might have bad collation.
+			while ($r = sqlfetch($qs,true)) {
+				foreach ($r as &$piece) {
+					$piece = $cms->replaceInternalPageLinks($piece);
 				}
-				
-				if (count($m_results)) {
-					$results[$m["name"]][] = array(
-						"view" => $view,
-						"results" => $m_results,
-						"module" => $m
-					);
-				}
+				unset($piece);
+				$module_results[] = $r;
+				$total_results++;
+			}
+			
+			if (count($module_results)) {
+				$results[$m["name"]][] = array(
+					"view" => $view,
+					"results" => $module_results,
+					"module" => $module
+				);
 			}
 		}
 	}
