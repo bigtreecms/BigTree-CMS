@@ -3824,7 +3824,7 @@
 				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' ORDER BY $sort");
 			}
 			while ($view = sqlfetch($q)) {
-				$settings = json_decode($view["settings"]);
+				$settings = json_decode($view["settings"],true);
 				$items[] = array(
 					"id" => $view["id"],
 					"module" => $view["module"],

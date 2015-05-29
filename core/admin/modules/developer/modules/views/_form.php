@@ -37,10 +37,17 @@
 		</fieldset>
 		<fieldset class="view_type">
 			<label>View Type</label>
-			<select name="type" id="view_type" class="left" >
-				<? foreach (BigTreeAdmin::$ViewTypes as $key => $t) { ?>
-				<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
-				<? } ?>
+			<select name="type" id="view_type" class="left">
+				<optgroup label="Core">
+					<? foreach (BigTreeAdmin::$ViewTypes["core"] as $key => $t) { ?>
+					<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
+					<? } ?>
+				</optgroup>
+				<optgroup label="Extension">
+					<? foreach (BigTreeAdmin::$ViewTypes["extension"] as $key => $t) { ?>
+					<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
+					<? } ?>
+				</optgroup>
 			</select>
 			&nbsp; <a href="#" class="options icon_settings centered"></a>
 			<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($options))?>" />
