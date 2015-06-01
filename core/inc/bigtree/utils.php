@@ -2233,7 +2233,7 @@
 			$mailer->FromName = $from_name;
 			
 			if ($return) {
-				$return_name = false;
+				$return_name = "";
 				$return = trim($return);
 				if (strpos($return,"<") !== false && substr($return,-1,1) == ">") {
 					$return_pieces = explode("<",$return);
