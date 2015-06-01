@@ -2033,13 +2033,13 @@
 					// Modules might have their own directories
 					if ($type == "modules") {
 						foreach ($list as $item) {
-							@rmdir(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
-							@rmdir(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
-							@rmdir(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
+							BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
+							BigTree::deleteDirectory(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
+							BigTree::deleteDirectory(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
 						}
 					} elseif ($type == "templates") {
 						foreach ($list as $item) {
-							@rmdir(SERVER_ROOT."templates/routed/".$item["id"]."/");
+							BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$item["id"]."/");
 						}
 					}
 				}
