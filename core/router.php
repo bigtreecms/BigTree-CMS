@@ -534,4 +534,3 @@
 		}
 		BigTree::putFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
 	}
-?>

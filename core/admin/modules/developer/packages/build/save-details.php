@@ -9,4 +9,3 @@
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."packages/build/components/");
 	}
-?>

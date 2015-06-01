@@ -14,4 +14,3 @@
 
 	$admin->growl("Developer","Created Template");
 	BigTree::redirect(DEVELOPER_ROOT."templates/");
-?>

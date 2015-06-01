@@ -5,4 +5,3 @@
 	foreach ($data["row"] as $pos => $id) {
 		$admin->setModuleActionPosition($id,$max - $pos);
 	}
-?>

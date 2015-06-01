@@ -11,4 +11,3 @@
 	} else {
 		$field["output"] = BigTree::safeEncode($field["input"]);
 	}
-?>

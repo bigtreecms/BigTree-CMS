@@ -17,4 +17,3 @@
 			BigTree::redirect(MODULE_ROOT."cache/");
 		}
 	}
-?>

@@ -3,4 +3,3 @@
 	
 	$admin->growl("Developer","Created Action");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".end($bigtree["path"])."/");
-?>

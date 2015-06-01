@@ -122,4 +122,3 @@
 	
 	// Clean up
 	unset($d,$r,$custom_required_includes);
-?>

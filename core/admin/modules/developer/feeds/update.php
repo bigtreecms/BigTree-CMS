@@ -3,4 +3,3 @@
 	
 	$admin->growl("Developer","Updated Feed");
 	BigTree::redirect(DEVELOPER_ROOT."feeds/");
-?>

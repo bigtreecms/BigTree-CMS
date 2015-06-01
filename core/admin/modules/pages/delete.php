@@ -12,4 +12,3 @@
 	$admin->deletePage($page);
 	
 	BigTree::redirect(ADMIN_ROOT."pages/view-tree/$parent/");
-?>

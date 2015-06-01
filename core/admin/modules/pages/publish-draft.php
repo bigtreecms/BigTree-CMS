@@ -4,4 +4,3 @@
 
 	$admin->growl("Pages","Published Draft");
 	BigTree::redirect(ADMIN_ROOT."pages/revisions/".end($bigtree["commands"])."/");
-?>

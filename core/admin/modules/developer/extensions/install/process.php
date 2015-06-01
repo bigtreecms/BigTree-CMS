@@ -19,4 +19,3 @@
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
 	}
-?>

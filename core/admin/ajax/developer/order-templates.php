@@ -6,4 +6,3 @@
 		$id = $_POST["rel"][$id];
 		$admin->setTemplatePosition($id,$max - $pos);
 	}
-?>

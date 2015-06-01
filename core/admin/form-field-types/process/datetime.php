@@ -5,4 +5,3 @@
 	} else {
 		$field["output"] = "";
 	}
-?>

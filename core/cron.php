@@ -34,4 +34,3 @@
 	
 	// Tell the admin we've ran cron recently.
 	$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
-?>

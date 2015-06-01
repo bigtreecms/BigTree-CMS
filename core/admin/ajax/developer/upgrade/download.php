@@ -21,4 +21,3 @@
 		curl_exec($curl);
 		fclose($file);
 	}
-?>

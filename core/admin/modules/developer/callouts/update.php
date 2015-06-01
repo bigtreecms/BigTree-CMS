@@ -8,4 +8,3 @@
 
 	$admin->growl("Developer","Updated Callout");
 	BigTree::redirect(DEVELOPER_ROOT."callouts/");
-?>

@@ -26,4 +26,3 @@
 	}
 	
 	include "_recache.php";
-?>

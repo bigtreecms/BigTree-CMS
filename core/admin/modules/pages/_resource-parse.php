@@ -28,4 +28,3 @@
 
 	// We save it back to the post array because we're just going to feed the whole post array to createPage / updatePage
 	$_POST["resources"] = $bigtree["entry"];
-?>

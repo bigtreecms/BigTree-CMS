@@ -31,4 +31,3 @@
 	sqlquery("CREATE TABLE `$table` (`id` int(11) UNSIGNED NOT NULL auto_increment, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
 	
 	BigTree::redirect(DEVELOPER_ROOT."modules/designer/form/?table=".urlencode($table)."&module=$id");
-?>

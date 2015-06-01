@@ -5,4 +5,3 @@
 		unset($_SESSION["bigtree_admin"]["form_data"]["saved"]);
 	}
 	include BigTree::path("admin/auto-modules/forms/add.php");
-?>

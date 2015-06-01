@@ -116,4 +116,3 @@
 	
 	// Return JSON encoded string
 	echo $json->encode($output);
-?>

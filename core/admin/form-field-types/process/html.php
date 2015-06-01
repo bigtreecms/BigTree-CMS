@@ -4,4 +4,3 @@
 		$href = str_replace($_SERVER["HTTP_REFERER"],"",$matches[1]);
 		return \'href="\'.$href.\'"\';'
 	),$field["input"]);
-?>

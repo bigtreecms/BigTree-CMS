@@ -55,4 +55,3 @@
 	
 	$field = $matrix["field"];
 	$field["output"] = $matrix["data"];
-?>

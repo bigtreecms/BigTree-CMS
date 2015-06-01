@@ -34,4 +34,3 @@
 	$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id,0,0,1);
 		
 	BigTree::redirect(DEVELOPER_ROOT."modules/designer/complete/?module=$module");
-?>

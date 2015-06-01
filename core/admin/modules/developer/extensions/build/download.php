@@ -8,4 +8,3 @@
 	flush();
 	readfile(SERVER_ROOT."cache/package.zip");
 	die();
-?>

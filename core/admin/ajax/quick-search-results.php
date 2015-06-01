@@ -17,4 +17,3 @@
 		}
 		echo '<a class="advanced_search" href="#">Advanced Search</a>';
 	}
-?>

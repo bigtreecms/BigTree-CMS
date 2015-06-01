@@ -3,4 +3,3 @@
 	
 	$admin->growl("Developer","Updated Field Type");
 	BigTree::redirect(DEVELOPER_ROOT."field-types/");
-?>

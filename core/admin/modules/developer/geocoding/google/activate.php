@@ -4,4 +4,3 @@
 	$admin->updateSettingValue("bigtree-internal-geocoding-service",$geocoding_service);
 	$admin->growl("Developer","Geocoding Service set to Google");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

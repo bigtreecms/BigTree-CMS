@@ -7,4 +7,3 @@
 		$admin->growl("$name API","Connected");
 	}
 	BigTree::redirect(DEVELOPER_ROOT."services/$route/");
-?>

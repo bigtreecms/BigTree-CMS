@@ -8,4 +8,3 @@
 			$admin->setPagePosition($id,$max - $pos);
 		}
 	}
-?>

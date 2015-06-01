@@ -24,4 +24,3 @@
 	foreach ($dependant as $v) {
 		BigTreeAutoModule::clearCache($v["table"]);
 	}
-?>

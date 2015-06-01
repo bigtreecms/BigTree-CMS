@@ -4,4 +4,3 @@
 	if ($resource) {
 		$admin->deleteResource($resource["id"]);
 	}
-?>

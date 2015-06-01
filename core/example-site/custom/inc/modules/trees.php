@@ -36,4 +36,3 @@
 			return isset($trees[$position + 1]) ? $trees[$position + 1] : false;
 		}
 	}
-?>

@@ -7,4 +7,3 @@
 	}
 	$admin->growl("Developer","Ignored Updates");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

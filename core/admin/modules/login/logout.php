@@ -1,3 +1,2 @@
 <?php
 	$admin->logout();
-?>

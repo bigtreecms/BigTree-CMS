@@ -33,4 +33,3 @@
 	} else {
 		include BigTree::path("admin/auto-modules/forms/$action.php");
 	}
-?>

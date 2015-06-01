@@ -10,4 +10,3 @@
 	} else {
 		include BigTree::path("admin/auto-modules/reports/views/images.php");
 	}
-?>

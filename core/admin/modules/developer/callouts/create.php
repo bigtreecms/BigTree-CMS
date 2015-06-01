@@ -18,4 +18,3 @@
 		
 	$admin->growl("Developer","Created Callout");
 	BigTree::redirect(DEVELOPER_ROOT."callouts/");
-?>

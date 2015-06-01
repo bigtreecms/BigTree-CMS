@@ -17,4 +17,3 @@
 			"MPL 2.0" => "http://opensource.org/licenses/MPL-2.0",
 		)
 	);
-?>

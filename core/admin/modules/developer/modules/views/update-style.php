@@ -14,4 +14,3 @@
 
 	$admin->growl("Developer","Updated View Styles");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
-?>

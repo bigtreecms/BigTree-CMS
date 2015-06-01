@@ -4,4 +4,3 @@
 		var $Table = "demo_quotes";
 		var $Module = "2";
 	}
-?>

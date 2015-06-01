@@ -18,4 +18,3 @@
 
 	$admin->growl("Developer","Created Module Form");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
-?>

@@ -146,4 +146,3 @@
 	}
 
 	BigTree::redirect(DEVELOPER_ROOT."packages/build/files/");
-?>

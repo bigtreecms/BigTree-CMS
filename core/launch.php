@@ -90,4 +90,3 @@
 	} else {
 		include "../core/router.php";
 	}
-?>

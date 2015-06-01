@@ -8,4 +8,3 @@
 	
 	$admin->growl("Message Center","Sent Message");
 	BigTree::redirect(ADMIN_ROOT."dashboard/messages/");
-?>

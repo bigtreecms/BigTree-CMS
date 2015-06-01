@@ -51,4 +51,3 @@
 	$bigtree["file_data"] = $bigtree["saved_file_data"];
 	$field = $bigtree["callout_field"];
 	$field["output"] = $bigtree["parsed_callouts"];
-?>

@@ -16,4 +16,3 @@
 	
 	$admin->growl("Message Center","Replied To Message");
 	BigTree::redirect(ADMIN_ROOT."dashboard/messages/");
-?>

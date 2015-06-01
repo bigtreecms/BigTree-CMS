@@ -13,4 +13,3 @@
 			BigTreeAutoModule::deleteItem($table,$id);
 		}
 	}
-?>

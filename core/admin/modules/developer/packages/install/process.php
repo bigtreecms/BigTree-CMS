@@ -167,4 +167,3 @@
 	
 	$admin->growl("Developer","Installed Package");
 	BigTree::redirect(DEVELOPER_ROOT."packages/install/complete/");
-?>

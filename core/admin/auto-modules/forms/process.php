@@ -205,4 +205,3 @@
 	} else {
 		BigTree::redirect($redirect_url);
 	}
-?>

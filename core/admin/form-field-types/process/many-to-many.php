@@ -8,4 +8,3 @@
 
 	// This field doesn't have it's own key to process.
 	$field["ignore"] = true;
-?>

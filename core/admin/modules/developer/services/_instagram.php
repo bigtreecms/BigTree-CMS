@@ -18,4 +18,3 @@
 		$api->Settings["user_name"] = $user->data->username;
 		$api->Settings["user_image"] = $user->data->profile_picture;
 	}
-?>

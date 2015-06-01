@@ -12,4 +12,3 @@
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."extensions/build/components/");
 	}
-?>

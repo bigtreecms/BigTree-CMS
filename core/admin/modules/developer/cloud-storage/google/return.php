@@ -7,4 +7,3 @@
 	}
 	$cloud->Settings["google"]["active"] = true;
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
-?>

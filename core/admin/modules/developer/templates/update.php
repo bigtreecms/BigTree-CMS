@@ -8,4 +8,3 @@
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."templates/");
 	}
-?>

@@ -13,4 +13,3 @@
 
 	$admin->growl("Developer","Updated Module");
 	BigTree::redirect(DEVELOPER_ROOT."modules/");
-?>

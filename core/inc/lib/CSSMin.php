@@ -775,4 +775,3 @@ class CSSmin
         return (int) $size;
     }
 }
-?>

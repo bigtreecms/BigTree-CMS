@@ -33,4 +33,3 @@
 	}
 	
 	$field["output"] = $photo_gallery;
-?>

@@ -1,3 +1,2 @@
 <?php
-	$treesMod = new DemoTrees;	
-?>
+	$treesMod = new DemoTrees;

@@ -9,4 +9,3 @@
 	if (file_exists($path)) {
 		include $path;
 	}
-?>

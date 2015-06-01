@@ -29,4 +29,3 @@
 	} else {
 		BigTreeAutoModule::recacheItem($item_id,$change["table"]);
 	}
-?>

@@ -122,4 +122,3 @@
 	define("BIGTREE_CUSTOM_ADMIN_CLASS",false);
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS_PATH",false);
-?>

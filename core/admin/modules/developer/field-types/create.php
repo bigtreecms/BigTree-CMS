@@ -13,4 +13,3 @@
 	
 	$admin->growl("Developer","Created Field Type");
 	BigTree::redirect(DEVELOPER_ROOT."field-types/new/$id/");
-?>

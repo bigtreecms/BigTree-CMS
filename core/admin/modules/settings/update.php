@@ -53,4 +53,3 @@
 	}
 
 	BigTree::redirect(ADMIN_ROOT."settings/");
-?>

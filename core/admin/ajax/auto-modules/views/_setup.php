@@ -23,4 +23,3 @@
 			$access_level = $original_access_level;
 		}
 	}
-?>

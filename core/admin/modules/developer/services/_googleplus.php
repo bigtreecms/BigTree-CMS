@@ -20,4 +20,3 @@
 		$api->Settings["user_name"] = $info->DisplayName;
 		$api->Settings["user_image"] = $info->Image;
 	}
-?>

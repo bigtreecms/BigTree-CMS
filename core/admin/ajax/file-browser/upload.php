@@ -160,4 +160,3 @@
 	} else {
 		echo 'parent.BigTreeFileManager.finishedUpload('.json_encode($errors).');</script></body></html>';
 	}
-?>

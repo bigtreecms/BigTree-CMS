@@ -8,4 +8,3 @@
 	if ($bigtree["config"]["force_secure_login"] && !$secure) {
 		BigTree::redirect(str_replace("http://","https://",ADMIN_ROOT)."login/");
 	}
-?>

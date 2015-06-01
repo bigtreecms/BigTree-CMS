@@ -3,4 +3,3 @@
 	
 	$admin->growl("Developer","Deleted Template");
 	BigTree::redirect(DEVELOPER_ROOT."templates/");
-?>

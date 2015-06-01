@@ -18,4 +18,3 @@
 	$admin->updateSettingValue("bigtree-internal-email-service",$settings);
 	$admin->growl("Developer","Updated Email Service");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

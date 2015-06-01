@@ -7,4 +7,3 @@
 		unset($_SESSION["bigtree_admin"]["form_data"]);
 		BigTree::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	}
-?>

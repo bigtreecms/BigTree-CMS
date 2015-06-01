@@ -24,4 +24,3 @@
 	));
 	$admin->growl("Security","Updated Policy");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

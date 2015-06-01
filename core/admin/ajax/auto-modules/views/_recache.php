@@ -4,4 +4,3 @@
 	} else {
 		BigTreeAutoModule::recacheItem(substr($id,1),$table,true);
 	}
-?>

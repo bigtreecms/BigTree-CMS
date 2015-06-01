@@ -138,4 +138,3 @@
 	} else {
 		BigTree::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	}
-?>

@@ -17,4 +17,3 @@
 		$api->Settings["user_image"] = $user->Image;
 		$api->Settings["user_id"] = $user->ID;
 	}
-?>

@@ -5,4 +5,3 @@
 	$admin->updateSettingValue("bigtree-internal-geocoding-service",$geocoding_service);
 	$admin->growl("Developer","Geocoding Service set to MapQuest");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

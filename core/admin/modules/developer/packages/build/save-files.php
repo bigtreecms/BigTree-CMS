@@ -7,4 +7,3 @@
 	$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] = $tables;
 
 	BigTree::redirect(DEVELOPER_ROOT."packages/build/review/");
-?>

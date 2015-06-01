@@ -559,4 +559,3 @@ class JShrink
     }
 
 }
-?>

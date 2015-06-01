@@ -153,4 +153,3 @@
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
 		"credits" => array("title" => "Credits & Licenses","link" => "credits","icon" => "credits","hidden" => true)
 	);
-?>

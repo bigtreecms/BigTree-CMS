@@ -18,4 +18,3 @@
 	}
 
 	echo json_encode(_localRecurseNav(0))
-?>

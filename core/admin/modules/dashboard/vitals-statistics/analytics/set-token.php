@@ -9,4 +9,3 @@
 		$admin->growl("Analytics","Successfully Authenticated");
 		BigTree::redirect(MODULE_ROOT);
 	}
-?>

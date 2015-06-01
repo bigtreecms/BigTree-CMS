@@ -26,4 +26,3 @@
 
 	// Return ID for adding presets
 	echo $id;
-?>

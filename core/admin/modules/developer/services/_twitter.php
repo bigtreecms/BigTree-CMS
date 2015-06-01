@@ -18,4 +18,3 @@
 		$api->Settings["user_name"] = $user->screen_name;
 		$api->Settings["user_image"] = $user->profile_image_url;
 	}
-?>

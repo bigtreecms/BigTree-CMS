@@ -4,4 +4,3 @@
 
 	$admin->growl("Developer","Updated Action");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$item["module"]."/");
-?>

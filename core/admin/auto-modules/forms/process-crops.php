@@ -9,4 +9,3 @@
 		unset($_SESSION["bigtree_admin"]["form_data"]);
 		BigTree::redirect($_POST["return_page"]);
 	}
-?>

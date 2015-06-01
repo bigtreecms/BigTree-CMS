@@ -5,4 +5,3 @@
 	foreach ($data["row"] as $pos => $id) {
 		$admin->setModuleGroupPosition($id,$max - $pos);
 	}
-?>

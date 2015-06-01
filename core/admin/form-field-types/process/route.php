@@ -19,4 +19,3 @@
 	} else {
 		$field["ignore"] = true;
 	}
-?>

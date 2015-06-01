@@ -9,4 +9,3 @@
 	
 	$admin->growl("Developer","Updated Payment Gateway");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>
