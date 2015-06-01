@@ -253,13 +253,14 @@
 		*/
 
 		function oAuthRedirect() {
-			BigTree::redirect($this->AuthorizeURL.
+			header("Location: ".$this->AuthorizeURL.
 				"?client_id=".urlencode($this->Settings["key"]).
 				"&redirect_uri=".urlencode($this->ReturnURL).
 				"&response_type=code".
 				"&scope=".urlencode($this->Scope).
 				"&approval_prompt=force".
 				"&access_type=offline");
+			die();
 		}
 
 		/*
