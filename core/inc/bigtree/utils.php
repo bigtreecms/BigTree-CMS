@@ -2309,6 +2309,9 @@
 
 			Parameters:
 				location - The file or directory to set permissions on.
+
+			Returns:
+				true if successful
 		*/
 
 		static function setPermissions($location) {
@@ -2316,8 +2319,10 @@
 				try {
 					chmod($location,0777);
 				} catch (Exception $e) {
+					return false;
 				}
 			}
+			return true;
 		}
 
 		/*
