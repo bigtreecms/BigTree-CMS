@@ -338,10 +338,11 @@
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalyticsAPI;
 		if (!empty($ga->Settings["profile"])) {
-			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {
 				$ga->cacheInformation();
-			} catch (Exception $e) {}
+			} catch (Exception $e) {
+				// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
+			}
 		}
 	}
 

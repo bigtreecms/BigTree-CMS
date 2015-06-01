@@ -1012,7 +1012,7 @@
 			curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
 			curl_setopt($curl,CURLOPT_HEADER,false);
 			curl_setopt($curl,CURLOPT_RETURNTRANSFER,true);
-			@curl_setopt($curl,CURLOPT_FOLLOWLOCATION,true);
+			curl_setopt($curl,CURLOPT_FOLLOWLOCATION,true);
 
 			// Different methods
 			$file_pointer = false;

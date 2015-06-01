@@ -546,10 +546,12 @@
 		*/
 		
 		static function describeTable($table) {
-			$result["columns"] = array();
-			$result["indexes"] = array();
-			$result["foreign_keys"] = array();
-			$result["primary_key"] = false;
+			$result = array(
+				"columns" => array(),
+				"indexes" => array(),
+				"foreign_keys" => array(),
+				"primary_key" => array()
+			);
 			
 			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
 			if (!$f) {
@@ -1792,10 +1794,12 @@
 		
 		static function randomString($length = 8, $seeds = 'alphanum') {
 			// Possible seeds
-			$seedings['alpha'] = 'abcdefghijklmnopqrstuvwqyz';
-			$seedings['numeric'] = '0123456789';
-			$seedings['alphanum'] = 'ABCDEFGHJKLMNPQRTUVWXY0123456789';
-			$seedings['hexidec'] = '0123456789abcdef';
+			$seedings = array(
+				"alpha" => "abcdefghijklmnopqrstuvwqyz",
+				"numeric" => "0123456789",
+				"alphanum" => "ABCDEFGHJKLMNPQRTUVWXY0123456789",
+				"hexidec" => '0123456789abcdef'
+			);
 		
 			// Choose seed
 			if (isset($seedings[$seeds])) {
