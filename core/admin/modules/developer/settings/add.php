@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	$id = $name = $type = $locked = $encrypted = $description = "";
 	if (isset($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
@@ -15,7 +15,7 @@
 ?>
 <div class="container">
 	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/create/">
-		<? include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>
+		<?php include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
@@ -24,7 +24,7 @@
 <script>
 	BigTreeFormValidator("form.module");
 </script>
-<?
+<?php
 	$bigtree["html_fields"] = array("setting_description");
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 	

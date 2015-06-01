@@ -1,4 +1,4 @@
-<?
+<?php
 	$reserved = BigTreeAdmin::$ReservedColumns;
 	
 	$used = array();
@@ -141,11 +141,11 @@
 	if (empty($table_description["columns"]["id"])) {
 ?>
 <p class="error_message">The chosen table does not have a column named "id" which BigTree requires as a unique identifier.<br />Please an an "id" column INT(11) with Primary Key and Auto Increment settings.</p>
-<?
+<?php
 	} elseif (!$table_description["columns"]["id"]["auto_increment"]) {
 ?>
 <p class="error_message">The chosen table's "id" column is not set to auto increment. If you're adding to this table via BigTree, please set the column to auto increment.</p>
-<?
+<?php
 	}
 
 	$cached_types = $admin->getCachedFieldTypes(true);
@@ -154,7 +154,7 @@
 ?>
 <label>Fields</label>
 
-<div class="form_table<? if (!$positioned) { ?> last<? } ?>">
+<div class="form_table<?php if (!$positioned) { ?> last<?php } ?>">
 	<header>
 		<a href="#" class="add add_geocoding"><span></span>Geocoding</a>
 		<a href="#" class="add add_many_to_many"><span></span>Many-To-Many</a>
@@ -166,7 +166,7 @@
 		<span class="developer_resource_action">Delete</span>
 	</div>
 	<ul id="resource_table">
-		<?
+		<?php
 			$mtm_count = 0;
 
 			foreach ($fields as $field) {
@@ -183,40 +183,40 @@
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">
 				<span class="icon_sort"></span>
-				<input type="text" name="fields[<?=$key?>][title]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<? } else { ?>value="<?=$field["title"]?>"<? } ?> />
+				<input type="text" name="fields[<?=$key?>][title]" <?php if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<?php } else { ?>value="<?=$field["title"]?>"<?php } ?> />
 			</section>
 			<section class="developer_resource_form_subtitle">
-				<input type="text" name="fields[<?=$key?>][subtitle]" <? if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<? } else { ?>value="<?=$field["subtitle"]?>"<? } ?> />
+				<input type="text" name="fields[<?=$key?>][subtitle]" <?php if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<?php } else { ?>value="<?=$field["subtitle"]?>"<?php } ?> />
 			</section>
 			<section class="developer_resource_type">
-				<?
+				<?php
 					if ($field["type"] == "geocoding") {
 				?>
 				<input type="hidden" name="fields[<?=$key?>][type]" value="geocoding" id="type_geocoding" />
 				<span class="resource_name">Geocoding</span>
-				<?
+				<?php
 					} elseif ($field["type"] == "many-to-many") {
 				?>
 				<span class="resource_name">Many to Many</span>
 				<input type="hidden" name="fields[<?=$key?>][type]" value="many-to-many" id="type_<?=$key?>" />
-				<?
+				<?php
 					} else {
 				?>
 				<select name="fields[<?=$key?>][type]" id="type_<?=$key?>">
 					<optgroup label="Default">
-						<? foreach ($types["default"] as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $field["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-						<? } ?>
+						<?php foreach ($types["default"] as $k => $v) { ?>
+						<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
+						<?php } ?>
 					</optgroup>
-					<? if (count($types["custom"])) { ?>
+					<?php if (count($types["custom"])) { ?>
 					<optgroup label="Custom">
-						<? foreach ($types["custom"] as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $field["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-						<? } ?>
+						<?php foreach ($types["custom"] as $k => $v) { ?>
+						<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
+						<?php } ?>
 					</optgroup>
-					<? } ?>
+					<?php } ?>
 				</select>
-				<?
+				<?php
 					}
 				?>
 				<a href="#" class="options icon_settings" name="<?=$key?>"></a>
@@ -226,22 +226,22 @@
 				<a href="#" class="icon_delete" name="<?=$key?>"></a>
 			</section>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>
 	</ul>
 </div>
 
-<? if ($positioned) { ?>
+<?php if ($positioned) { ?>
 <fieldset class="last">
 	<label>Default Position <small>For New Entries</small></label>
 	<select name="default_position">
 		<option>Bottom</option>
-		<option<? if ($form["default_position"] == "Top") { ?> selected="selected"<? } ?>>Top</option>
+		<option<?php if ($form["default_position"] == "Top") { ?> selected="selected"<?php } ?>>Top</option>
 	</select>
 </fieldset>
-<? } ?>
+<?php } ?>
 
 <script>
 	BigTree.localMTMCount = <?=$mtm_count?>;
@@ -254,7 +254,7 @@
 			var key = el.field;
 			
 			var li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="fields[' + key + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="fields[' + key + '][type]" id="type_' + key + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="fields[' + key + '][options]" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_resource_form_subtitle"><input type="text" name="fields[' + key + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="fields[' + key + '][type]" id="type_' + key + '"><optgroup label="Default"><?php foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><?php } ?></optgroup><?php if (count($types["custom"])) { ?><optgroup label="Custom"><?php foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><?php } ?></optgroup><?php } ?></select><a href="#" class="options icon_settings" name="' + key + '"></a><input type="hidden" name="fields[' + key + '][options]" value="" id="options_' + key + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 			
 			$("#resource_table").append(li);
 			fs.removeCurrent();
@@ -262,14 +262,14 @@
 		}
 	});
 </script>
-<?
+<?php
 	} elseif (array_filter((array)$table_description["columns"])) {
 ?>
 <p>The chosen table does not have any <a href="http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns" target="_blank">non-reserved columns</a>.</p>
-<?
+<?php
 	} else {
 ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
 	}
 ?>

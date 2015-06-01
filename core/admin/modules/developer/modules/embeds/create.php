@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
 
 	$module = end($bigtree["path"]);

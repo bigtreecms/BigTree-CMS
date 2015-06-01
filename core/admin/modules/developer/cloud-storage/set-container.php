@@ -1,4 +1,4 @@
-<?
+<?php
 	$storage = new BigTreeStorage;
 	$storage->Settings->Service = $_POST["service"];
 	$cloud = new BigTreeCloudStorage($_POST["service"]);

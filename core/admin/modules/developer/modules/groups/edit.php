@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = end($bigtree["path"]);
 	$group = $admin->getModuleGroup($id);
 ?>

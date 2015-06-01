@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!count($_POST)) {
 		BigTree::redirect(MODULE_ROOT);
 	}

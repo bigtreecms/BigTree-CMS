@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->deleteFeed(end($bigtree["commands"]));
 
 	$admin->growl("Developer","Deleted Feed");

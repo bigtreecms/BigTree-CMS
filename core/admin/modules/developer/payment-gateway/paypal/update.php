@@ -1,4 +1,4 @@
-<?
+<?php
 	$gateway->Service = "paypal";
 	$gateway->Settings["paypal-username"] = $_POST["paypal-username"];
 	$gateway->Settings["paypal-password"] = $_POST["paypal-password"];

@@ -1,4 +1,4 @@
-<section class="sub" id="gbp"<? if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> style="display: none;"<? } ?>>
+<section class="sub" id="gbp"<?php if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> style="display: none;"<?php } ?>>
 	<div class="left">
 		<fieldset>
 			<label>Grouping Name <small>(i.e. "Category")</small></label>
@@ -11,19 +11,19 @@
 			<label>Main Table</label>
 			<select name="gbp[table]" class="table_select">
 				<option></option>
-				<? BigTree::getTableSelectOptions($gbp["table"]) ?>
+				<?php BigTree::getTableSelectOptions($gbp["table"]) ?>
 			</select>
 		</fieldset>
 		<fieldset name="gbp[group_field]">
 			<label>Main Field</label>
 			<div>
-				<? if ($gbp["table"]) { ?>
+				<?php if ($gbp["table"]) { ?>
 				<select name="gbp[group_field]">
-					<? BigTree::getFieldSelectOptions($gbp["table"],$gbp["group_field"]) ?>
+					<?php BigTree::getFieldSelectOptions($gbp["table"],$gbp["group_field"]) ?>
 				</select>
-				<? } else { ?>
+				<?php } else { ?>
 				<input type="text" disabled="disabled" value="Please select &quot;Main Table&quot;" />
-				<? } ?>
+				<?php } ?>
 			</div>
 		</fieldset>
 	</article>
@@ -32,19 +32,19 @@
 			<label>Other Table</label>
 			<select name="gbp[other_table]" class="table_select">
 				<option></option>
-				<? BigTree::getTableSelectOptions($gbp["other_table"]) ?>
+				<?php BigTree::getTableSelectOptions($gbp["other_table"]) ?>
 			</select>
 		</fieldset>
 		<fieldset name="gbp[title_field]">
 			<label>Title Field</label>
 			<div>
-				<? if ($gbp["other_table"]) { ?>
+				<?php if ($gbp["other_table"]) { ?>
 				<select name="gbp[title_field]">
-					<? BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
+					<?php BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
 				</select>
-				<? } else { ?>
+				<?php } else { ?>
 				<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
-				<? } ?>
+				<?php } ?>
 			</div>
 		</fieldset>
 	</article>

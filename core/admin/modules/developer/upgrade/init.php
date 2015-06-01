@@ -1,4 +1,4 @@
-<?
+<?php
 	// If we can't do a local, FTP, or SFTP update then we give instructions on how to manually update
 	if (!$updater->Method) {
 		BigTree::redirect(DEVELOPER_ROOT."upgrade/failed/");

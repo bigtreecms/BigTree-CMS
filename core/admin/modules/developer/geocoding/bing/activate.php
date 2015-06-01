@@ -1,4 +1,4 @@
-<?
+<?php
 	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
 	$geocoding_service["service"] = "bing";
 	$geocoding_service["bing_key"] = $_POST["bing_key"];

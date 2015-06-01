@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeGooglePlusAPI;
 	$name = "Google+";
 	$route = "googleplus";

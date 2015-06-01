@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	
 	$token = $analytics->oAuthSetToken($_GET["code"]);

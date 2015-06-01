@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/csv");
 	header("Content-Disposition: attachment; filename=".$cms->urlify($bigtree["module"]["name"])."-".date("Y-m-d").".csv");
 	header("Pragma: no-cache");

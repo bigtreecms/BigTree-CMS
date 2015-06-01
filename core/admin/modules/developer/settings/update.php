@@ -1,4 +1,4 @@
-<?
+<?php
 	$item = $admin->getSetting(end($bigtree["path"]));
 	if ($item["system"]) {
 		$admin->growl("Developer","Access Denied","error");

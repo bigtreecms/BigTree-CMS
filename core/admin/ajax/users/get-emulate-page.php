@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
@@ -27,7 +27,7 @@
 		<a href="<?=ADMIN_ROOT?>developer/user-emulator/emulate/<?=$item["id"]?>/" class="icon_settings ignore_quick_loader"></a>
 	</section>
 </li>
-<?
+<?php
 	}
 ?>
 <script>

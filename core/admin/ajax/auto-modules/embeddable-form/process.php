@@ -1,4 +1,4 @@
-<?
+<?php
 	// Generate a hash of everything posted
 	$complete_string = "";
 	$hash_recurse = function($array) {

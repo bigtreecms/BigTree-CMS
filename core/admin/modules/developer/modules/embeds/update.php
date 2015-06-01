@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
 
 	$admin->updateModuleEmbedForm(end($bigtree["path"]),$title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);

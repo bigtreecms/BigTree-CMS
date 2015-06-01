@@ -1,4 +1,4 @@
-<?
+<?php
 	if (isset($cloud->Settings["amazon"])) {
 		BigTree::globalizeArray($cloud->Settings["amazon"],"htmlspecialchars");
 	} else {

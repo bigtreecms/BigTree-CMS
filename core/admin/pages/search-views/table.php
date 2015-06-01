@@ -1,4 +1,4 @@
-<?
+<?php
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	BigTree::globalizeArray($view);	
 	
@@ -16,21 +16,21 @@
 <div class="table" style="margin: 0;">
 	<summary><h2>Search Results</h2></summary>
 	<header>
-		<?
+		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
-		<?
+		<?php
 			}
 		?>
 		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;">Actions</span>
 	</header>
 	<ul id="results_table_<?=$view["id"]?>">
-		<? foreach ($items as $item) { ?>
-		<li id="row_<?=$item["id"]?>"<? if ($item["bigtree_pending"]) { ?> class="pending"<? } ?><? if ($item["bigtree_changes"]) { ?> class="changes"<? } ?>>
-		<?
+		<?php foreach ($items as $item) { ?>
+		<li id="row_<?=$item["id"]?>"<?php if ($item["bigtree_pending"]) { ?> class="pending"<?php } ?><?php if ($item["bigtree_changes"]) { ?> class="changes"<?php } ?>>
+		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
 				$x++;
@@ -39,7 +39,7 @@
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
 			<?=$value?>
 		</section>
-		<?
+		<?php
 			}
 	
 			foreach ($actions as $action => $data) {
@@ -47,7 +47,7 @@
 				if ($data == "on") {
 		?>
 		<section class="view_action action_<?=$action?>"><a href="#<?=$item["id"]?>" class="<?=$class?>"></a></section>
-		<?
+		<?php
 				} else {
 					$data = json_decode($data,true);
 					$link = $mpage.$data["route"]."/".$item["id"]."/";
@@ -56,12 +56,12 @@
 					}
 		?>
 		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
-		<?
+		<?php
 				}
 			}
 		?>
 	</li>
-	<? } ?>
+	<?php } ?>
 	</ul>
 </div>
 

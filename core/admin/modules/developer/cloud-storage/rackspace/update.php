@@ -1,4 +1,4 @@
-<?
+<?php
 	$cloud->Settings["rackspace"] = array(
 		"username" => trim($_POST["username"]),
 		"api_key" => trim($_POST["api_key"]),

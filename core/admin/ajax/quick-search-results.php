@@ -1,4 +1,4 @@
-<?
+<?php
 	$results = $admin->searchPages($_POST["query"]);
 	if (!count($results)) {
 		echo '<p class="no_results"><em>No Quick Search Results</em></p>';

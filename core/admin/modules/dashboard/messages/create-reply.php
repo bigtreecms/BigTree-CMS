@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!count($_POST["send_to"]) || !$_POST["subject"] || !$_POST["message"]) {
 		$_SESSION["saved_message"] = $_POST;
 		if (strpos("reply-all",$_SERVER["HTTP_REFERER"])) {

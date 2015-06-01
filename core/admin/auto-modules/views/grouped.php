@@ -1,4 +1,4 @@
-<?
+<?php
 	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
 	$perm = $admin->getAccessLevel($m);
 	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
@@ -9,18 +9,18 @@
 		<span class="form_search_icon"></span>
 	</summary>
 	<article class="table" id="table_contents">
-		<? include BigTree::path("admin/ajax/auto-modules/views/grouped.php") ?>
+		<?php include BigTree::path("admin/ajax/auto-modules/views/grouped.php") ?>
 	</article>
 </div>
 
-<? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	BigTree.localSearch = function() {
 		$("#table_contents").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/grouped/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() }, BigTree.localRefreshSort);
 	};
 
 	BigTree.localRefreshSort = function() {
-		<? if ($permission == "p" && $draggable) { ?>
+		<?php if ($permission == "p" && $draggable) { ?>
 		$("#table_contents ul").each(function() {
 			if ($("#search").val() == "") {
 				$(this).sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
@@ -28,7 +28,7 @@
 				},this) });
 			}
 		});
-		<? } ?>
+		<?php } ?>
 	};
 	
 	BigTree.localRefreshSort();

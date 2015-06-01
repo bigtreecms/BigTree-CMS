@@ -1,4 +1,4 @@
-<?	
+<?php
 	include "_setup.php";
 	
 	if ($item["approved"]) {

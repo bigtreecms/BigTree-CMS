@@ -1,4 +1,4 @@
-<?
+<?php
 	$file = end($bigtree["path"]).".php";
 ?>
 <div class="container">

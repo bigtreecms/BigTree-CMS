@@ -1,4 +1,4 @@
-<?
+<?php
 	$photo_gallery = array();
 	if (is_array($field["input"])) {
 		foreach ($field["input"] as $photo_count => $data) {

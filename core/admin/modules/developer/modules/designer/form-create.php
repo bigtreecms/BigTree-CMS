@@ -1,4 +1,4 @@
-<?
+<?php
 	$reserved = array("id","position");
 	$fields = array();
 	$adds = array();

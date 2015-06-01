@@ -1,4 +1,4 @@
-<?
+<?php
 	$storage = new BigTreeStorage;
 	if ($_POST["service"] != "local") {
 		$cloud = new BigTreeCloudStorage($_POST["service"]);
@@ -17,9 +17,9 @@
 			<label>Existing Container/Bucket <small>(this should be used exclusively by BigTree, if left blank BigTree will make its own)</small></label>
 			<select name="container">
 				<option></option>
-				<? foreach ($containers as $container) { ?>
-				<option value="<?=htmlspecialchars($container["name"])?>"<? if ($storage->Settings->Container == $container["name"] && $storage->Settings->Service == $_POST["service"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars($container["name"])?></option>
-				<? } ?>
+				<?php foreach ($containers as $container) { ?>
+				<option value="<?=htmlspecialchars($container["name"])?>"<?php if ($storage->Settings->Container == $container["name"] && $storage->Settings->Service == $_POST["service"]) { ?> selected="selected"<?php } ?>><?=htmlspecialchars($container["name"])?></option>
+				<?php } ?>
 			</select>
 		</section>
 		<footer>
@@ -27,7 +27,7 @@
 		</footer>
 	</form>
 </container>
-<?
+<?php
 		}
 	} else {
 		$storage->Settings->Service = "local";

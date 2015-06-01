@@ -1,4 +1,4 @@
-<?
+<?php
 	$storage = new BigTreeStorage;
 	
 	// If we're replacing an existing file, find out its name

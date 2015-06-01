@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = end($bigtree["path"]);
 	$page = $cms->getPage($id,false);
 	$access = $admin->archivePage($id);

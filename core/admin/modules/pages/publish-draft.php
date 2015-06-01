@@ -1,4 +1,4 @@
-<?
+<?php
 	$_POST["id"] = $_GET["draft"];
 	include BigTree::path("admin/ajax/dashboard/approve-change.php");
 

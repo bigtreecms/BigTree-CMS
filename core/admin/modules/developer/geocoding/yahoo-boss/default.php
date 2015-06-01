@@ -1,5 +1,5 @@
 <div class="container">
-	<?
+	<?php
 		$geo = new BigTreeGeocoding;
 		$api = new BigTreeYahooBOSSAPI;
 		if ($api->Connected && $geo->Service == "yahoo-boss") {
@@ -7,7 +7,7 @@
 	<section>
 		<p>The Yahoo BOSS Geocoder is connected.</p>
 	</section>
-	<?
+	<?php
 		} elseif ($api->Connected) {
 	?>
 	<section>
@@ -16,7 +16,7 @@
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>geocoding/yahoo-boss/switch/" class="button blue">Activate Yahoo BOSS Geocoder</a>
 	</footer>
-	<?
+	<?php
 		} else { 
 	?>
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/yahoo-boss/activate/">
@@ -45,7 +45,7 @@
 			<input type="submit" class="button blue" value="Activate Yahoo BOSS Geocoder" />
 		</footer>
 	</form>
-	<?
+	<?php
 		}
 	?>
 </div>

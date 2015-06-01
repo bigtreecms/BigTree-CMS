@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
@@ -24,23 +24,23 @@
 	<section class="view_column users_email"><?=$item["email"]?></section>
 	<section class="view_column users_company"><?=$item["company"]?></section>
 	<section class="view_action">
-		<? if ($admin->Level >= $item["level"]) { ?>
+		<?php if ($admin->Level >= $item["level"]) { ?>
 		<a href="<?=ADMIN_ROOT?>users/edit/<?=$item["id"]?>/" class="icon_edit"></a>
-		<? } else { ?>
+		<?php } else { ?>
 		<span class="icon_edit disabled_icon has_tooltip" data-tooltip="<p><strong>Edit User</strong></p><p>You may not edit users with higher permission levels than you.</p>"></span>
-		<? } ?>
+		<?php } ?>
 	</section>
 	<section class="view_action">
-		<? if ($admin->ID == $item["id"]) { ?>
+		<?php if ($admin->ID == $item["id"]) { ?>
 		<span class="icon_delete disabled_icon has_tooltip" data-tooltip="<p><strong>Delete User</strong></p><p>You may not delete yourself.</p>"></span>
-		<? } elseif ($admin->Level >= $item["level"]) { ?>
+		<?php } elseif ($admin->Level >= $item["level"]) { ?>
 		<a href="#<?=$item["id"]?>" class="icon_delete"></a>
-		<? } else { ?>
+		<?php } else { ?>
 		<span class="icon_delete disabled_icon has_tooltip" data-tooltip="<p><strong>Delete User</strong></p><p>You may not delete users with higher permission levels than you.</p>"></span>
-		<? } ?>
+		<?php } ?>
 	</section>
 </li>
-<?
+<?php
 	}
 ?>
 <script>

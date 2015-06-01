@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 ?>
 <div class="container">

@@ -24,7 +24,7 @@
 				<label>Processing Environment</label>
 				<select name="payflow-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway->Settings["payflow-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<?php if ($gateway->Settings["payflow-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

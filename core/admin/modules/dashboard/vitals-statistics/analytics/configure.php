@@ -1,4 +1,4 @@
-<?
+<?php
 	if ($admin->Level < 1) {
 ?>
 <div class="container">
@@ -6,11 +6,11 @@
 		<p>You are not authorized to view this section.</p>
 	</section>
 </div>
-<?
+<?php
 	} else {
 ?>
 <div class="container">
-	<?
+	<?php
 		if ($analytics->Settings["token"]) {
 			$profiles = $analytics->getProfiles();
 	?>
@@ -18,19 +18,19 @@
 		<section>
 			<fieldset>
 				<label>Choose A Profile From The List Below</label>
-				<?
+				<?php
 					if (count($profiles->Results)) {
 				?>
 				<select name="profile">
-					<? foreach ($profiles->Results as $profile) { ?>
+					<?php foreach ($profiles->Results as $profile) { ?>
 					<option value="<?=$profile->ID?>"><?=$profile->WebsiteURL?> &mdash; <?=$profile->Name?></option>
-					<? } ?>
+					<?php } ?>
 				</select>
-				<?
+				<?php
 					} else {
 				?>
 				<p class="error_message">No profiles were found in your Google Analytics account.</p>
-				<?  	
+				<?php  	
 					}
 				?>
 			</fieldset>
@@ -41,7 +41,7 @@
 		</footer>
 	</form>
 	
-	<?
+	<?php
 		} else {
 			$auth_url = $analytics->AuthorizeURL.
 				"?client_id=".urlencode($analytics->ClientID).
@@ -63,7 +63,7 @@
 			<input type="submit" class="button blue" id="profile_button" value="Save Code" style="display: none;" />
 		</footer>
 	</form>
-	<?
+	<?php
 		}
 	?>		
 </div>
@@ -87,6 +87,6 @@
 		return false;
 	});
 </script>
-<?
+<?php
 	}
 ?>

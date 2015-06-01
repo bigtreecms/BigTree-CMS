@@ -1,4 +1,4 @@
-<?
+<?php
 	$change = $admin->getPendingChange($_POST["id"]);
 
 	// See if we have permission.

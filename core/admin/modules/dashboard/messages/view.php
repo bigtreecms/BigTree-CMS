@@ -1,4 +1,4 @@
-<?
+<?php
 	// Get the message chain. It'll return false if the user isn't a sender/recipient.
 	$chain = $admin->getMessageChain(end($bigtree["path"]));
 
@@ -10,12 +10,12 @@
 		<p>This message either does not exist or you do not have permission to view it.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 ?>
 <div class="container message_thread">
-	<?
+	<?php
 
 		// Mark the message read by you.
 		foreach ($chain as $m) {
@@ -28,7 +28,7 @@
 			$sender_name = $u["name"];
 			$sender_gravatar = $u["email"];
 	?>
-	<section<? if ($m["selected"]) { ?> class="selected"<? } ?>>
+	<section<?php if ($m["selected"]) { ?> class="selected"<?php } ?>>
 		<header>
 			<h3><?=$m["subject"]?></h3>
 			<div class="from">
@@ -40,7 +40,7 @@
 			<?=$m["message"]?>
 		</article>
 	</section>
-	<?
+	<?php
 		}
 	?>
 </div>

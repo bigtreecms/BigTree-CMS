@@ -1,4 +1,4 @@
-<?
+<?php
 	$page = end($bigtree["path"]);
 	
 	if (is_numeric($page)) {

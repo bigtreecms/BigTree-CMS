@@ -1,4 +1,4 @@
-<?
+<?php
 	$results = $admin->searchAuditTrail($_GET["user"],$_GET["table"],$_GET["entry"],$_GET["start"],$_GET["end"]);
 	// Setup caches so for big trails we don't retrieve stuff multiple times
 	$page_cache = array();
@@ -16,7 +16,7 @@
 		<span class="view_column audit_action">Action</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($results as $r) {
 				if ($r["table"] == "bigtree_pages") {
 					if (!isset($page_cache[$r["entry"]])) {
@@ -70,7 +70,7 @@
 			<section class="view_column audit_entry"><?=$link?></section>
 			<section class="view_column audit_action"><?=ucwords(str_replace("-"," ",$r["type"]))?></section>
 		</li>
-		<?
+		<?php
 			}
 		?>
 	</ul>

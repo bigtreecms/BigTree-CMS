@@ -318,9 +318,9 @@
 		bt_mkdir_writable("templates/ajax/");
 		bt_mkdir_writable("templates/layouts/");
 		bt_touch_writable("templates/layouts/_header.php");
-		bt_touch_writable("templates/layouts/default.php",'<? include "_header.php" ?>
+		bt_touch_writable("templates/layouts/default.php",'<?php include "_header.php" ?>
 <?=$bigtree["content"]?>
-<? include "_footer.php" ?>');
+<?php include "_footer.php" ?>');
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
@@ -350,7 +350,7 @@
 		}
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
-		bt_touch_writable("site/index.php",'<? include "../core/launch.php" ?>');
+		bt_touch_writable("site/index.php",'<?php include "../core/launch.php" ?>');
 		
 		if ($routing == "advanced") {
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
@@ -454,7 +454,7 @@ RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 		} else {
-			bt_touch_writable("index.php",'<? header("Location: site/index.php/"); ?>');
+			bt_touch_writable("index.php",'<?php header("Location: site/index.php/"); ?>');
 		}
 		
 		if ($routing != "basic" && $routing != "iis") {

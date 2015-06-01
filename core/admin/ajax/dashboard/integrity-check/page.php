@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = intval($_GET["id"]);
 	$page = $cms->getPage($id);
 	$template = $cms->getTemplate($page["template"]);
@@ -22,7 +22,7 @@
 		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> on page &ldquo;<?=$page["nav_title"]?>&rdquo; in field &ldquo;<?=$title?>&rdquo;</p>
 	</section>
 </li>
-<?
+<?php
 			}
 		}
 	}

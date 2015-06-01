@@ -1,4 +1,4 @@
-<?
+<?php
 	class DemoQuotes extends BigTreeModule {
 
 		var $Table = "demo_quotes";

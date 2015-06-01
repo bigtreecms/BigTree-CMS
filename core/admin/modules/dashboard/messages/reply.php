@@ -1,4 +1,4 @@
-<?
+<?php
 	// Make sure the user has the right to see this message
 	$parent = $admin->getMessage(end($bigtree["path"]));
 
@@ -11,7 +11,7 @@
 		<p>This message either does not exist or you do not have permission to view it.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -47,15 +47,15 @@
 	<form method="post" action="<?=ADMIN_ROOT?>dashboard/messages/create-reply/" id="message_form">
 		<input type="hidden" name="response_to" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
-			<p<? if (!$error) { ?> style="display: none;"<? } ?> class="error_message">Errors found! Please fix the highlighted fields before submitting.</p>
-			<fieldset id="send_to"<? if ($error && !count($send_to)) { ?> class="form_error"<? } ?>>
-				<label class="required">Send To<? if ($error && !count($send_to)) { ?><span class="form_error_reason">Required</span><? } ?></label>
+			<p<?php if (!$error) { ?> style="display: none;"<?php } ?> class="error_message">Errors found! Please fix the highlighted fields before submitting.</p>
+			<fieldset id="send_to"<?php if ($error && !count($send_to)) { ?> class="form_error"<?php } ?>>
+				<label class="required">Send To<?php if ($error && !count($send_to)) { ?><span class="form_error_reason">Required</span><?php } ?></label>
 				<div class="multi_widget many_to_many">
 					<section style="display: none;">
 						<p>No users selected. Click "Add User" to add a user to the list.</p>
 					</section>
 					<ul>
-						<?
+						<?php
 							$x = 0;
 							if (is_array($send_to)) {
 								foreach ($send_to as $id) {
@@ -65,7 +65,7 @@
 							<p><?=htmlspecialchars($users[$id]["name"])?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
-						<?
+						<?php
 									$x++;
 								}
 							}
@@ -73,12 +73,12 @@
 					</ul>
 					<footer>
 						<select>
-							<?
+							<?php
 								foreach ($users as $id => $u) {
 									if ($item["id"] != $admin->ID) {
 							?>
 							<option value="<?=$id?>"><?=htmlspecialchars($u["name"])?></option>
-							<?
+							<?php
 									}
 								}
 							?>
@@ -87,12 +87,12 @@
 					</footer>
 				</div>
 			</fieldset>
-			<fieldset<? if ($error && !$subject) { ?> class="form_error"<? } ?>>
-				<label class="required">Subject<? if ($error && !$subject) { ?><span class="form_error_reason">Required</span><? } ?></label>
+			<fieldset<?php if ($error && !$subject) { ?> class="form_error"<?php } ?>>
+				<label class="required">Subject<?php if ($error && !$subject) { ?><span class="form_error_reason">Required</span><?php } ?></label>
 				<input type="text" name="subject"  class="required" value="<?=$subject?>" />
 			</fieldset>
-			<fieldset<? if ($error && !$message) { ?> class="form_error"<? } ?>>
-				<label class="required">Message<? if ($error && !$message) { ?><span class="form_error_reason">Required</span><? } ?></label>
+			<fieldset<?php if ($error && !$message) { ?> class="form_error"<?php } ?>>
+				<label class="required">Message<?php if ($error && !$message) { ?><span class="form_error_reason">Required</span><?php } ?></label>
 				<textarea name="message" id="message" class="required"><?=$message?></textarea>
 			</fieldset>
 		</section>
@@ -102,7 +102,7 @@
 		</footer>
 	</form>
 </div>
-<?
+<?php
 	$bigtree["html_fields"] = array("message");
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>

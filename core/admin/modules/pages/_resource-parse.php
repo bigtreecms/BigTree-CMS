@@ -1,4 +1,4 @@
-<?
+<?php
 	// Parse the resources
 	$bigtree["entry"] = array();
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);

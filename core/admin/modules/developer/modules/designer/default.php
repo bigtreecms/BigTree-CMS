@@ -1,4 +1,4 @@
-<?
+<?php
 	$groups = $admin->getModuleGroups();
 ?>
 <div class="container">
@@ -7,7 +7,7 @@
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/create/" enctype="multipart/form-data" class="module">
 		<section>
-			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
 				<fieldset>
 					<label class="required">Module Name <small>(for example, News)</small></label>
@@ -21,18 +21,18 @@
 				<span>OR</span>
 				<select name="group_existing">
 					<option value="0"></option>
-					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group_existing == $group["id"]) { ?> selected="selected"<? } ?>><?=$group["name"]?></option>
-					<? } ?>
+					<?php foreach ($groups as $group) { ?>
+					<option value="<?=$group["id"]?>"<?php if ($group_existing == $group["id"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+					<?php } ?>
 				</select>
 			</fieldset>
 			<div class="left">
-				<fieldset<? if (isset($e["table"])) { ?> class="form_error"<? } ?>>
-					<label class="required">Table Name <small>(for example, my_site_news)</small><? if (isset($e["table"])) { ?><span class="form_error_reason">Table Already Exists</span><? } ?></label>
+				<fieldset<?php if (isset($e["table"])) { ?> class="form_error"<?php } ?>>
+					<label class="required">Table Name <small>(for example, my_site_news)</small><?php if (isset($e["table"])) { ?><span class="form_error_reason">Table Already Exists</span><?php } ?></label>
 					<input name="table" class="required" type="text" value="<?=$table?>" />
 				</fieldset>
-				<fieldset<? if (isset($e["class"])) { ?> class="form_error"<? } ?>>
-					<label class="required">Class Name <small>(for example, MySiteNews)</small><? if (isset($e["class"])) { ?><span class="form_error_reason">Class Already Exists</span><? } ?></label>
+				<fieldset<?php if (isset($e["class"])) { ?> class="form_error"<?php } ?>>
+					<label class="required">Class Name <small>(for example, MySiteNews)</small><?php if (isset($e["class"])) { ?><span class="form_error_reason">Class Already Exists</span><?php } ?></label>
 					<input name="class" class="required" type="text" value="<?=$class?>" />
 				</fieldset>
 			</div>
@@ -41,11 +41,11 @@
 		        <label class="required">Icon</label>
 		        <input type="hidden" name="icon" id="selected_icon" value="gear" />
 		        <ul class="developer_icon_list">
-		        	<? foreach (BigTreeAdmin::$IconClasses as $class) { ?>
+		        	<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
 		        	<li>
-		        		<a href="#<?=$class?>"<? if ($class == "gear") { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        		<a href="#<?=$class?>"<?php if ($class == "gear") { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 		        	</li>
-		        	<? } ?>
+		        	<?php } ?>
 		        </ul>
 		    </fieldset>
 		</section>
@@ -54,4 +54,4 @@
 		</footer>
 	</form>
 </div>
-<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>
+<?php include BigTree::path("admin/modules/developer/modules/_js.php") ?>

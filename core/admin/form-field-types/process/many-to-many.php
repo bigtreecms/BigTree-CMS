@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["many-to-many"][$field["key"]] = array(
 		"table" => $field["options"]["mtm-connecting-table"],
 		"my-id" => $field["options"]["mtm-my-id"],

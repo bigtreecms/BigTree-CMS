@@ -1,4 +1,4 @@
-<?
+<?php
 	$user = $admin->getUserByHash(end($bigtree["path"]));
 	$failure = false;
 	
@@ -33,17 +33,17 @@
 <div id="login">
 	<form method="post" action="" class="module">
 		<h2>Reset Your Password</h2>
-		<?
+		<?php
 			if ($failure) {
 		?>
 		<p class="error_message clear">
-			<? if ($failure == "match") { ?>
+			<?php if ($failure == "match") { ?>
 			Passwords did not match. Please try again.
-			<? } else { ?>
+			<?php } else { ?>
 			Password did not meet requirements.
-			<? } ?>
+			<?php } ?>
 		</p>
-		<?
+		<?php
 			}
 			if (!$user) {
 		?>
@@ -51,15 +51,15 @@
 			<p>This reset request has expired. <a href="<?=$login_root?>forgot-password/">Click Here</a> to request a new link.</p>
 		</fieldset>
 		<br />
-		<?
+		<?php
 			} else {
 		?>
 		<fieldset>
 			<label>New Password</label>
-			<input class="text<? if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><? } ?>" type="password" name="password" />
-			<? if ($policy) { ?>
+			<input class="text<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
+			<?php if ($policy) { ?>
 			<p class="password_policy">Password Policy In Effect</p>
-			<? } ?>
+			<?php } ?>
 		</fieldset>
 		<fieldset>
 			<label>Confirm New Password</label>
@@ -68,7 +68,7 @@
 		<fieldset class="lower">
 			<input type="submit" class="button blue" value="Reset" />
 		</fieldset>
-		<?
+		<?php
 			}
 		?>
 	</form>

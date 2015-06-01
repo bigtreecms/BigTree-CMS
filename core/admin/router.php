@@ -1,4 +1,4 @@
-<?
+<?php
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
 	

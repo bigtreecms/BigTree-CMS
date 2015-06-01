@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Resources Available:
 		"title" = Title - Text

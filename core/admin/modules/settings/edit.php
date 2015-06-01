@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
@@ -14,7 +14,7 @@
 		<p>The setting you are trying to edit no longer exists or you do not have permission to edit it.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -30,27 +30,27 @@
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
-			<?
+			<?php
 				if ($item["encrypted"]) {
 			?>
 			<div class="alert">
 				<span></span>
 				<p>This setting is encrypted. The current value cannot be shown.</p>
 			</div>
-			<?
+			<?php
 				}
 		
 				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
 					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 			?>
 			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
-			<?
+			<?php
 				}
 
 				echo $item["description"];
 			?>
 			<div class="form_fields">
-				<?			
+				<?php
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					
@@ -73,7 +73,7 @@
 		</footer>
 	</form>
 </div>
-<?
+<?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");

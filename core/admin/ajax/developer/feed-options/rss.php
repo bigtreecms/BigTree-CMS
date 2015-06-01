@@ -11,19 +11,19 @@
 	<input type="text" name="limit" value="<?=$data["limit"]?>" />
 </fieldset>
 <h4>Field Settings</h4>
-<? if (!$table) { ?>
+<?php if (!$table) { ?>
 <p>Please select a table first.</p>
-<? } else { ?>
+<?php } else { ?>
 <fieldset>
 	<label>Title Field</label>
 	<select name="title">
-		<? BigTree::getFieldSelectOptions($table,$data["title"]); ?>
+		<?php BigTree::getFieldSelectOptions($table,$data["title"]); ?>
 	</select>
 </fieldset>
 <fieldset>
 	<label>Description Field</label>
 	<select name="description">
-		<? BigTree::getFieldSelectOptions($table,$data["description"]); ?>
+		<?php BigTree::getFieldSelectOptions($table,$data["description"]); ?>
 	</select>
 </fieldset>
 <fieldset>
@@ -33,7 +33,7 @@
 <fieldset>
 	<label>Link Field</label>
 	<select name="link">
-		<? BigTree::getFieldSelectOptions($table,$data["link"]); ?>
+		<?php BigTree::getFieldSelectOptions($table,$data["link"]); ?>
 	</select>
 </fieldset>
 <fieldset>
@@ -43,7 +43,7 @@
 <fieldset>
 	<label>Order By</label>
 	<select name="sort">
-		<? BigTree::getFieldSelectOptions($table,$data["sort"],true); ?>
+		<?php BigTree::getFieldSelectOptions($table,$data["sort"],true); ?>
 	</select>
 </fieldset>
-<? } ?>
+<?php } ?>

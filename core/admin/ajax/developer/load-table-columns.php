@@ -1,4 +1,4 @@
-<?
+<?php
 	// Notices :(
 	if (count($_GET)) {
 		$field = isset($_GET["field"]) ? $_GET["field"] : "";
@@ -15,7 +15,7 @@
 <select name="<?=htmlspecialchars($field)?>">
 	<?=BigTree::getFieldSelectOptions($table,$field,$sort)?>
 </select>
-<?
+<?php
 	} else {
 		echo "&mdash;";
 	}

@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/json");
 
 	function _localRecurseNav($parent) {

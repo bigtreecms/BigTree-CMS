@@ -1,1 +1,1 @@
-<? $field["output"] = $field["input"] ?>
+<?php $field["output"] = $field["input"] ?>

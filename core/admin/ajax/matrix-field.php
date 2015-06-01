@@ -1,4 +1,4 @@
-<?
+<?php
 	// Draw field types as callout resources
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 
@@ -21,7 +21,7 @@
 <div id="matrix_resources" class="callout_fields">
 	<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 	<div class="form_fields">
-		<?
+		<?php
 			if (count($bigtree["matrix_columns"])) {
 
 				$bigtree["tabindex"] = 1000;	
@@ -55,7 +55,7 @@
 		?>
 	</div>
 </div>
-<?
+<?php
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
 	include BigTree::path("admin/layouts/_html-field-loader.php");

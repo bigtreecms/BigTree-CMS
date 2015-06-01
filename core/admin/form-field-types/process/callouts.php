@@ -1,4 +1,4 @@
-<?
+<?php
 	// Some backwards compat stuff.
 	$upload_service = new BigTreeUploadService;
 	$bigtree["callout_field"] = $field;

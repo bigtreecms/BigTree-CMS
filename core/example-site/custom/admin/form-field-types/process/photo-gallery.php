@@ -1,4 +1,4 @@
-<?
+<?php
 	// Modified Photo Gallery to add Attribution and Link attributes
 	$photo_gallery = array();
 	if (is_array($field["input"])) {

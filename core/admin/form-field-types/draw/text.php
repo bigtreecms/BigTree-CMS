@@ -1,10 +1,10 @@
 <div class="text_input">
-	<?
+	<?php
 		$st = isset($field["options"]["sub_type"]) ? $field["options"]["sub_type"] : false;
 		if (!$st) {
 	?>
 	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
-	<?
+	<?php
 		} elseif ($st == "name") {
 			// To prevent warnings we'll try to extract a first name / last name from a string.
 			if (!is_array($field["value"])) {
@@ -22,7 +22,7 @@
 	<section class="input_name">
 		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=($field["tabindex"] + 1)?>" name="<?=$field["key"]?>[last_name]" value="<?=$field["value"]["last_name"]?>" id="<?=$field["id"]?>_last_name" placeholder="Last" />
 	</section>
-	<?
+	<?php
 			// Increase form tab index since we used extras
 			$bigtree["tabindex"]++;
 		} elseif ($st == "address") {
@@ -40,9 +40,9 @@
 	<section class="input_address_state">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[state]" id="<?=$field["id"]?>_state" tabindex="<?=($field["tabindex"] + 2)?>">
 			<option value="">Select a State</option>
-			<? foreach (BigTree::$StateList as $a => $s) { ?>
-			<option value="<?=$a?>"<? if ($a == $field["value"]["state"]) { ?> selected="selected"<? } ?>><?=$s?></option>
-			<? } ?>
+			<?php foreach (BigTree::$StateList as $a => $s) { ?>
+			<option value="<?=$a?>"<?php if ($a == $field["value"]["state"]) { ?> selected="selected"<?php } ?>><?=$s?></option>
+			<?php } ?>
 		</select>
 	</section>
 	<section class="input_address_zip">
@@ -50,22 +50,22 @@
 	</section>
 	<section class="input_address_country">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[country]" id="<?=$field["id"]?>_country" tabindex="<?=($field["tabindex"] + 4)?>">
-			<? foreach (BigTree::$CountryList as $c) { ?>
-			<option value="<?=$c?>"<? if ($c == $field["value"]["country"]) { ?> selected="selected"<? } ?>><?=$c?></option>
-			<? } ?>
+			<?php foreach (BigTree::$CountryList as $c) { ?>
+			<option value="<?=$c?>"<?php if ($c == $field["value"]["country"]) { ?> selected="selected"<?php } ?>><?=$c?></option>
+			<?php } ?>
 		</select>
 	</section>
-	<?
+	<?php
 			// Increase form tab index since we used extras
 			$bigtree["tabindex"] += 4;
 		} elseif ($st == "email") {
 	?>
 	<input class="<?=$field["options"]["validation"]?>" type="email" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
-	<?
+	<?php
 		} elseif ($st == "website") {
 	?>
 	<input class="<?=$field["options"]["validation"]?>" type="url" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
-	<?
+	<?php
 		} elseif ($st == "phone") {
 			list($area_code,$prefix,$line_number) = explode("-",$field["value"]);
 	?>
@@ -80,7 +80,7 @@
 	<section class="input_phone_4">
 		<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[phone_3]" maxlength="4" value="<?=$line_number?>" id="<?=$field["id"]?>" placeholder="xxxx" />
 	</section>
-	<?
+	<?php
 			// Increase form tab index since we used extras
 			$bigtree["tabindex"] += 2;
 		}

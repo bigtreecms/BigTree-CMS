@@ -1,4 +1,4 @@
-<?
+<?php
 	$success = $admin->createSetting($_POST);
 	if ($success) {
 		$admin->growl("Developer","Created Setting");

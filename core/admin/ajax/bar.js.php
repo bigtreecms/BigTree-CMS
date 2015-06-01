@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/javascript");
 	$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
 ?>
@@ -56,17 +56,17 @@ var BigTreeBar = {
 		bigtree_bar.setAttribute("id","bigtree_bar");
 		
 		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
-		<? if ($permission) { ?>
+		<?php if ($permission) { ?>
 		bigtree_bar_html += '<a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/?return=front">Edit in BigTree</a>';
-		<? } ?>
+		<?php } ?>
 		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><div class="divider"></div><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"])))?></span>';
-		<? if ($_GET["previewing"]) { ?>
+		<?php if ($_GET["previewing"]) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
-		<? } elseif (!empty($bigtree["config"]["maintenance_url"])) { ?>
+		<?php } elseif (!empty($bigtree["config"]["maintenance_url"])) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">MAINTENANCE MODE</span>';
-		<? } elseif (!empty($bigtree["config"]["developer_mode"])) { ?>
+		<?php } elseif (!empty($bigtree["config"]["developer_mode"])) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">DEVELOPER MODE</span>';
-		<? } ?>
+		<?php } ?>
 		bigtree_bar.innerHTML = bigtree_bar_html;
 		
 		BigTreeBar.body.appendChild(bigtree_bar);
@@ -185,10 +185,10 @@ BigTreeBar.body.appendChild(BigTreeBar.tab);
 
 // Add BigTree Bar class to the body, keep outside global namespace
 document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();	
-<? if ($_GET["show_bar"]) { ?>
+<?php if ($_GET["show_bar"]) { ?>
 BigTreeBar.show();
-<? } ?>
+<?php } ?>
 
-<? if ($_GET["show_preview"]) { ?>
+<?php if ($_GET["show_preview"]) { ?>
 BigTreeBar.showPreview("<?=htmlspecialchars(strip_tags($_GET["return_link"]))?>");
-<? } ?>
+<?php } ?>

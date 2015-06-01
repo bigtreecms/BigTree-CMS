@@ -1,4 +1,4 @@
-<?
+<?php
 	// Need to get the names for everything we're including
 	$module_string = array();
 	foreach ((array)$modules as $m) {
@@ -106,14 +106,14 @@
 		</fieldset>
 		<fieldset>
 			<h3>Components</h3>
-			<?
+			<?php
 				if (count($module_string)) {
 			?>
 			<label>
 				<small>modules</small>
 				<?=implode(", ",$module_string)?>
 			</label>
-			<?
+			<?php
 				}
 				if (count($template_string)) {
 			?>
@@ -121,7 +121,7 @@
 				<small>templates</small>
 				<?=implode(", ",$template_string)?>
 			</label>
-			<?	
+			<?php
 				}
 				if (count($callout_string)) {
 			?>
@@ -129,7 +129,7 @@
 				<small>callouts</small>
 				<?=implode(", ",$callout_string)?>
 			</label>
-			<?	
+			<?php
 				}
 				if (count($setting_string)) {
 			?>
@@ -137,7 +137,7 @@
 				<small>settings</small>
 				<?=implode(", ",$setting_string)?>
 			</label>
-			<?	
+			<?php
 				}
 				if (count($feed_string)) {
 			?>
@@ -145,7 +145,7 @@
 				<small>feeds</small>
 				<?=implode(", ",$feed_string)?>
 			</label>
-			<?	
+			<?php
 				}
 				if (count($field_string)) {
 			?>
@@ -153,7 +153,7 @@
 				<small>field types</small>
 				<?=implode(", ",$field_string)?>
 			</label>
-			<?	
+			<?php
 				}
 				if (count($table_string)) {
 			?>
@@ -161,18 +161,18 @@
 				<small>tables</small>
 				<?=implode(", ",$table_string)?>
 			</label>
-			<?	
+			<?php
 				}
 			?>
 		</fieldset>
-		<?
+		<?php
 			if (count($file_string)) {
 		?>
 		<h3>Files</h3>
 		<ul>
 			<li><?=implode("</li><li>",$file_string)?></li>
 		</ul>
-		<?
+		<?php
 			}
 		?>
 	</section>

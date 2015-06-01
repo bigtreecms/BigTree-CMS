@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);	
 	$total = $admin->get404Total("404");
 	$type = "404";
@@ -18,6 +18,6 @@
 		<span class="ignore_404">Delete</span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/dashboard/404/search.php") ?>
+		<?php include BigTree::path("admin/ajax/dashboard/404/search.php") ?>
 	</ul>
 </div>

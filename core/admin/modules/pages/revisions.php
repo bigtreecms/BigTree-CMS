@@ -1,4 +1,4 @@
-<?
+<?php
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {
 ?>
@@ -11,7 +11,7 @@
 		<p>Revisions do not function on unpublished pages.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -27,7 +27,7 @@
 		<p>You must be a publisher to manage revisions.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 	
@@ -70,7 +70,7 @@
 
 	</ul>
 </div>
-<?
+<?php
 	}
 ?>
 <div class="table">
@@ -90,7 +90,7 @@
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>
 		</li>
-		<? foreach ($revisions["unsaved"] as $r) { ?>
+		<?php foreach ($revisions["unsaved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 36)?>" alt="" /></span><?=$r["name"]?></section>
@@ -98,7 +98,7 @@
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <div class="table">
@@ -110,18 +110,18 @@
 		<span class="pages_edit">Delete</span>
 	</header>
 	<ul>
-		<? foreach ($revisions["saved"] as $r) { ?>
+		<?php foreach ($revisions["saved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
 			<section class="pages_draft_description"><?=$r["saved_description"]?></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <script>
-	BigTree.localActiveDraft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
+	BigTree.localActiveDraft = <?php if ($draft) { ?>true<?php } else { ?>false<?php } ?>;
 	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$lock_id?>' } });",60000);
 	
 	$(".icon_save").click(function() {

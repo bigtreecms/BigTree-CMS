@@ -1,4 +1,4 @@
-<?
+<?php
 	//!BigTree Warnings
 	$warnings = array();
 	
@@ -87,7 +87,7 @@
 		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 	</section>
 </div>
-<? if (count($warnings)) { ?>
+<?php if (count($warnings)) { ?>
 <div class="table">
 	<summary>
 		<h2>Warnings</h2>
@@ -98,16 +98,16 @@
 		<span class="site_status_status">Status</span>
 	</header>
 	<ul>
-		<? foreach ($warnings as $w) { ?>
+		<?php foreach ($warnings as $w) { ?>
 		<li>
 			<section class="site_status_message"><?=$w["parameter"]?></section>
 			<section class="site_status_action"><?=$w["rec"]?></section>
 			<section class="site_status_status <?=$w["status"]?>"></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
-<? } ?>
+<?php } ?>
 <div class="table">
 	<summary>
 		<h2>Server Parameters</h2>

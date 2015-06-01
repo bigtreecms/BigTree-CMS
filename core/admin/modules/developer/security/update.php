@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
 	$admin->updateSettingValue("bigtree-internal-security-policy",array(
 		"user_fails" => array(

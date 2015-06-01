@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!$updater->extract()) {
 ?>
 <div class="container">
@@ -11,7 +11,7 @@
 		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me Later</a>
 	</footer>
 </div>
-<?
+<?php
 	} else {
 
 		// Very simple if we're updating locally
@@ -44,9 +44,9 @@
 		<section>
 			<p>BigTree could not automatically detect the <?=$method?> directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full <?=$method?> path below. This would be the directory that contains /core/.</p>
 			<hr />
-			<? if ($saved_root) { ?>
+			<?php if ($saved_root) { ?>
 			<p class="error_message">A BigTree installation could not be found in <code><?=$saved_root?></code></p>
-			<? } ?>
+			<?php } ?>
 			<fieldset>
 				<label><?=$method?> Path</label>
 				<input type="text" name="ftp_root" value="<?=$saved_root?>" />
@@ -57,7 +57,7 @@
 		</footer>
 	</div>
 </form>
-<?
+<?php
 			} else {
 				$updater->installFTP($ftp_root);
 				BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");

@@ -1,3 +1,3 @@
-<?
+<?php
 	$updater = new BigTreeUpdater;
 ?>

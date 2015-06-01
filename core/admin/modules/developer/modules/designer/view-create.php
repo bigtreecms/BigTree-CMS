@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
 	
 	// Make sure at least one field is in this view.

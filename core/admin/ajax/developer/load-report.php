@@ -1,4 +1,4 @@
-<?
+<?php
 	$filter_types = array(
 		"search" => "Simple Search",
 		"dropdown" => "Dropdown Select",
@@ -74,7 +74,7 @@
 			<span class="developer_report_action"></span>
 		</div>
 		<ul>
-			<?
+			<?php
 				foreach ($filters as $key => $filter) {
 					// If this column is no longer in the table, we're going to remove it.
 					if (in_array($key,$table_columns)) {
@@ -87,16 +87,16 @@
 				</section>
 				<section class="developer_report_filter_type">
 					<select name="filters[<?=$key?>][type]">
-						<? foreach ($filter_types as $t => $d) { ?>
-						<option value="<?=$t?>"<? if ($t == $filter["type"]) { ?> selected="selected"<? } ?>><?=$d?></option>
-						<? } ?>
+						<?php foreach ($filter_types as $t => $d) { ?>
+						<option value="<?=$t?>"<?php if ($t == $filter["type"]) { ?> selected="selected"<?php } ?>><?=$d?></option>
+						<?php } ?>
 					</select>
 				</section>
 				<section class="developer_report_action">
 					<a href="#" class="icon_delete" name="<?=$key?>"></a>
 				</section>
 			</li>
-			<?
+			<?php
 					}
 				}
 			?>
@@ -104,7 +104,7 @@
 	</div>
 </fieldset>
 
-<fieldset id="field_table" class="last"<? if ($type != "csv") { ?> style="display: none;"<? } ?>>
+<fieldset id="field_table" class="last"<?php if ($type != "csv") { ?> style="display: none;"<?php } ?>>
 	<br /><br />
 	<label>Fields to Include in CSV File</label>
 	<div class="form_table">
@@ -114,7 +114,7 @@
 			<span class="developer_report_action"></span>
 		</div>
 		<ul>
-			<?
+			<?php
 				foreach ($fields as $key => $field) {
 					// If this column is no longer in the table, we're going to remove it.
 					if (in_array($key,$table_columns)) {
@@ -129,7 +129,7 @@
 					<a href="#" class="icon_delete" name="<?=$key?>"></a>
 				</section>
 			</li>
-			<?
+			<?php
 					}
 				}
 			?>
@@ -162,7 +162,7 @@
 			var key = el.field;
 			
 			var li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><? foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><?php foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><?php } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 			
 			$("#filter_table ul").append(li);
 			fs.removeCurrent();
@@ -170,10 +170,10 @@
 		}
 	});
 </script>
-<?
+<?php
 	} else {
 ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
 	}
 ?>

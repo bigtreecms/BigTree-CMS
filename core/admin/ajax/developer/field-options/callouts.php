@@ -1,4 +1,4 @@
-<?
+<?php
 	$groups = $admin->getCalloutGroups();
 	// Stop notices
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();
@@ -8,11 +8,11 @@
 <fieldset>
 	<label>Groups <small>(if you don't choose at least one group, all callouts will be available)</small></label>
 	<div class="multi_widget many_to_many" id="callout_groups">
-		<section<? if (count($data["groups"])) { ?> style="display: none;"<? } ?>>
+		<section<?php if (count($data["groups"])) { ?> style="display: none;"<?php } ?>>
 			<p>Click "Add Item" to add an item to this list.</p>
 		</section>
 		<ul>
-			<?
+			<?php
 				$x = 0;
 				foreach ($data["groups"] as $id) {
 					$group = $admin->getCalloutGroup($id);
@@ -22,19 +22,19 @@
 				<p><?=$group["name"]?></p>
 				<a href="#" class="icon_delete"></a>
 			</li>
-			<?
+			<?php
 					$x++;
 				}
 			?>
 		</ul>
 		<footer>
 			<select>
-				<?
+				<?php
 					foreach ($groups as $group) {
 						if (!in_array($group["id"],$data["groups"])) {
 				?>
 				<option value="<?=$group["id"]?>"><?=$group["name"]?></option>
-				<?
+				<?php
 						}
 					}
 				?>

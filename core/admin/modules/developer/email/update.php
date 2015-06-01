@@ -1,4 +1,4 @@
-<?
+<?php
 	$settings = $cms->getSetting("bigtree-internal-email-service");
 
 	if ($_POST["service"] == "mandrill") {

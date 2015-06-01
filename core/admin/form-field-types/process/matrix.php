@@ -1,4 +1,4 @@
-<?
+<?php
 	$matrix = array(
 		"data" => array(),
 		"field" => $field,

@@ -1,4 +1,4 @@
-<?
+<?php
 	$db_error = false;
 	$is_group_based_perm = false;
 	$list = array();
@@ -58,7 +58,7 @@
 	if ($db_error) {
 ?>
 <p class="error_message">The table for this field no longer exists (<?=htmlspecialchars($list_table)?>).</p>
-<?
+<?php
 	// Draw the list.
 	} else {
 		$class = array();
@@ -69,14 +69,14 @@
 			$class[] = "required";
 		}
 ?>
-<select<? if (count($class)) { ?> class="<?=implode(" ",$class)?>"<? } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
-	<? if ($field["options"]["allow-empty"] != "No") { ?>
+<select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
+	<?php if ($field["options"]["allow-empty"] != "No") { ?>
 	<option></option>
-	<? } ?>
-	<? foreach ($list as $option) { ?>
-	<option value="<?=BigTree::safeEncode($option["value"])?>"<? if ($field["value"] == $option["value"]) { ?> selected="selected"<? } ?><? if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<? } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
-	<? } ?>
+	<?php } ?>
+	<?php foreach ($list as $option) { ?>
+	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
+	<?php } ?>
 </select>
-<?
+<?php
 	}
 ?>

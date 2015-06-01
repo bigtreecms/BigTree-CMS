@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTree
 			A utilities class with many useful functions.

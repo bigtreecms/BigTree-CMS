@@ -1,4 +1,4 @@
-<?
+<?php
 	$width = isset($bigtree["html_editor_width"]) ? $bigtree["html_editor_width"] : false;
 	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = $cms->getSetting("tinymce-content-css");
@@ -6,12 +6,12 @@
 ?>
 <script>
 	$(document).ready(function() {
-		<?
+		<?php
 			if ($html_editor == "TinyMCE 3") {
 				if (count($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({
-  			<? if ($content_css) { ?>content_css: "<?=$content_css?>",<? } ?>
+  			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
   			skin : "BigTree",
   			inlinepopups_skin: "BigTreeModal",
 			theme: "advanced",
@@ -20,11 +20,11 @@
 			file_browser_callback: "BigTreeFileManager.tinyMCEOpen",
 			plugins: "advimage,paste,table,inlinepopups,spellchecker",
 			theme_advanced_blockformats: "p,h2,h3,h4",
-			<? if (defined("BIGTREE_CALLOUT_RESOURCES")) { ?>
+			<?php if (defined("BIGTREE_CALLOUT_RESOURCES")) { ?>
 			theme_advanced_buttons1: "blockquote,bold,italic,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
-			<? } else { ?>
+			<?php } else { ?>
 			theme_advanced_buttons1: "undo,redo,separator,blockquote,bold,italic,strikethrough,separator,formatselect,justifyleft,justifycenter,justifyright,justifyfull,separator,bullist,numlist,outdent,indent,separator,spellchecker,code",
-			<? } ?>
+			<?php } ?>
 			theme_advanced_buttons2: "link,unlink,anchor,image,separator,hr,removeformat,visualaid,separator,table,row_after,delete_row,col_after,delete_col,separator,pasteword",
 			theme_advanced_buttons3: "",
 			theme_advanced_disable: "cleanup,charmap",
@@ -42,15 +42,15 @@
 			remove_script_host: false,
 			gecko_spellcheck: true,
 			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align],iframe[src|class|width|height|name|align|style],figure[class],figcaption[class]"
-			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
-			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
+			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
+			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
-		<?
+		<?php
 				}
 				if (count($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
-  			<? if ($content_css) { ?>content_css: "<?=$content_css?>",<? } ?>
+  			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
   			skin : "BigTree",
   			inlinepopups_skin: "BigTreeModal",
 			theme: "advanced",
@@ -76,16 +76,16 @@
 			relative_urls: false,
 			remove_script_host: false,
 			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]"
-			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
-			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
+			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
+			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
-		<?
+		<?php
 				}
 			} elseif ($html_editor == "TinyMCE 4") {
 				if (count($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({
-  			<? if ($content_css) { ?>content_css: "<?=$content_css?>",<? } ?>
+  			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
   			theme: "modern",
 			mode: "exact",
 			elements: "<?=implode(",",$bigtree["html_fields"])?>",
@@ -101,15 +101,15 @@
 			remove_script_host: false,
 			gecko_spellcheck: true,
 			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align],iframe[src|class|width|height|name|align|style],figure[class],figcaption[class]"
-			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
-			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
+			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
+			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
-		<?
+		<?php
 				}
 				if (count($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
-  			<? if ($content_css) { ?>content_css: "<?=$content_css?>",<? } ?>
+  			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
   			theme: "modern",
 			mode: "exact",
 			elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
@@ -125,10 +125,10 @@
 			relative_urls: false,
 			remove_script_host: false,
 			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]"
-			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
-			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
+			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
+			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
-		<?
+		<?php
 				}
 			} elseif ($html_editor == "Redactor") {
 				if (count($bigtree["html_fields"])) {
@@ -171,12 +171,12 @@
 					$(window).on("mousemove",this.moveProxy).on("mouseup",this.upProxy);
 					$(iframe).contents().find("body").on("mousemove",this.moveProxyiFrame).on("mouseup",this.upProxy);
 				},this)));
-				<? if ($_COOKIE["bigtree"]["redactor_height"]) { ?>
+				<?php if ($_COOKIE["bigtree"]["redactor_height"]) { ?>
 				$(this.getIframe()).height(<?=htmlspecialchars($_COOKIE["bigtree"]["redactor_height"])?>);
-				<? } ?>
+				<?php } ?>
 			}
 		});
-		<?
+		<?php
 					}
 				}
 			}

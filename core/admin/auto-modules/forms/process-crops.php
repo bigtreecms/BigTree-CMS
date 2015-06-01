@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->processCrops($_POST["crop_key"]);
 
 	if (count($_SESSION["bigtree_admin"]["form_data"]["errors"])) {

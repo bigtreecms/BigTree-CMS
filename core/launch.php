@@ -1,4 +1,4 @@
-<?
+<?php
 	// Setup the BigTree variable "namespace"
 	$bigtree = array();
 	

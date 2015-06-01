@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeTwitterAPI;
 	$name = "Twitter";
 	$route = "twitter";

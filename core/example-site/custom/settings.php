@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["config"]["css"]["prefix"] = false; // Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3
 	$bigtree["config"]["css"]["minify"] = false; // Flag for CSS minification
 	

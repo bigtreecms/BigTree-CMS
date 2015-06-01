@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeInstagramAPI;
 	$name = "Instagram";
 	$route = "instagram";

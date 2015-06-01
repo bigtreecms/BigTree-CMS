@@ -1,4 +1,4 @@
-<?	
+<?php
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();

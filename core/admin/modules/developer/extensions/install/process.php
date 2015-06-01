@@ -1,4 +1,4 @@
-<?
+<?php
 	$manifest = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
 	// Insert the extension and growl

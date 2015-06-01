@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->updateModuleGroup(end($bigtree["path"]),$_POST["name"]);	
 
 	$admin->growl("Developer","Updated Module Group");

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Loop through all the fields to build the address
 	$source_fields = explode(",",$field["options"]["fields"]);
 	$location = array();

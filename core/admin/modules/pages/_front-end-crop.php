@@ -1,11 +1,11 @@
 <h2>Crop Images</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/" id="crop_form">
 	<div class="overflow">
-		<p>You have <?=count($bigtree["crops"])?> image<? if (count($bigtree["crops"]) > 1) { ?>s<? } ?> that need<? if (count($bigtree["crops"]) == 1) { ?>s<? } ?> to be cropped.</p>
+		<p>You have <?=count($bigtree["crops"])?> image<?php if (count($bigtree["crops"]) > 1) { ?>s<?php } ?> that need<?php if (count($bigtree["crops"]) == 1) { ?>s<?php } ?> to be cropped.</p>
 		<input type="hidden" name="return_page" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />
 		<input type="hidden" name="crop_info" value="<?=htmlspecialchars(json_encode($bigtree["crops"]))?>" />
 		<section id="cropper">
-			<?
+			<?php
 				$x = 0;
 				foreach ($bigtree["crops"] as $crop) {
 					$x++;
@@ -46,7 +46,7 @@
 					$initial_x = ceil(($box_width - $min_width) / 2);
 					$initial_y = ceil(($box_height - $min_height) / 2);
 			?>
-			<article<? if ($x > 1) { ?> style="display: none;"<? } ?>>
+			<article<?php if ($x > 1) { ?> style="display: none;"<?php } ?>>
 				<div class="original">
 					<img src="<?=$image?>" id="cropImage<?=$x?>" width="<?=$box_width?>" height="<?=$box_height?>" />
 				</div>			
@@ -73,7 +73,7 @@
 					};
 				</script>
 			</article>
-			<?
+			<?php
 				}
 			?>
 		</section>

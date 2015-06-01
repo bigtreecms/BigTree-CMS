@@ -1,4 +1,4 @@
-<?
+<?php
 	$versions = json_decode($_GET["versions"],true);
 	foreach ($versions as $version) {
 		// Prevent cookie screwage

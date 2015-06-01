@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = $_GET["module"];
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 	$module = $admin->getModule($id);
@@ -22,7 +22,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/create/<?=$module["id"]?>/" class="module">
-		<? include BigTree::path("admin/modules/developer/modules/forms/_form.php") ?>
+		<?php include BigTree::path("admin/modules/developer/modules/forms/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>

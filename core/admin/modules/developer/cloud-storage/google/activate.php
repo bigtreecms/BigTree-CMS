@@ -1,4 +1,4 @@
-<?
+<?php
 	$cloud->Settings["key"] = trim($_POST["key"]);
 	$cloud->Settings["secret"] = trim($_POST["secret"]);
 	$cloud->Settings["project"] = trim($_POST["project"]);

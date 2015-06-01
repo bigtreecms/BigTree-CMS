@@ -1,4 +1,4 @@
-<?
+<?php
 	$user = $admin->getUser(end($bigtree["commands"]));
 	if (!$user) {
 ?>
@@ -8,7 +8,7 @@
 		<p>The user you are trying to emulate no longer exists.</p>
 	</section>
 </div>
-<?
+<?php
 	} else {
 		$_SESSION["bigtree_admin"]["id"] = $user["id"];
 		$_SESSION["bigtree_admin"]["email"] = $user["email"];

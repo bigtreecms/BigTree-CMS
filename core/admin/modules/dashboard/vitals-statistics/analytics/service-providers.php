@@ -8,7 +8,7 @@
 		<span class="analytics_view_count">View Count</span>
 	</header>
 	<ul id="service_providers">
-		<?
+		<?php
 			if (is_array($cache["service_providers"])) {
 				foreach ($cache["service_providers"] as $provider) {
 		?>
@@ -17,12 +17,12 @@
 			<section class="analytics_visit_count"><?=$provider["visits"]?></section>
 			<section class="analytics_view_count"><?=$provider["views"]?></section>
 		</li>
-		<?
+		<?php
 				}
 			} else {
 		?>
 		<li class="no_content">We have no data yet.</li>
-		<?		
+		<?php
 			}
 		?>
 	</ul>

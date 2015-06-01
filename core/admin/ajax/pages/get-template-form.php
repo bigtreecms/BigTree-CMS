@@ -1,4 +1,4 @@
-<?
+<?php
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["templates"];
 
@@ -18,19 +18,19 @@
 ?>
 <div class="alert template_message">
 	<label>Template:</label>
-	<p><? if ($template_id == "") { ?>External Link<? } elseif ($template_id == "!") { ?>Redirect Lower<? } else { ?><?=$bigtree["template"]["name"]?><? } ?></p>
+	<p><?php if ($template_id == "") { ?>External Link<?php } elseif ($template_id == "!") { ?>Redirect Lower<?php } else { ?><?=$bigtree["template"]["name"]?><?php } ?></p>
 </div>
-<?
+<?php
 	if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
 		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 ?>
 <p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
-<?
+<?php
 	}
 ?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <div class="form_fields">
-	<?
+	<?php
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
@@ -58,7 +58,7 @@
 		}
 	?>
 </div>
-<?	
+<?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");

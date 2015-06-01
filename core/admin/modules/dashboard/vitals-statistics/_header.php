@@ -1,1 +1,1 @@
-<? $admin->requireLevel(1) ?>
+<?php $admin->requireLevel(1) ?>

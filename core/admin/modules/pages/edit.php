@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["current_page"] = $page;
 	$bigtree["resources"] = $page["resources"];
 	

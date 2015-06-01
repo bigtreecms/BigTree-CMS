@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeYahooBOSSAPI;
 	$api->Settings["key"] = $_POST["key"];
 	$api->Settings["secret"] = $_POST["secret"];

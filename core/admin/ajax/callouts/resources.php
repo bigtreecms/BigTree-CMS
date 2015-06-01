@@ -1,4 +1,4 @@
-<?
+<?php
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 	
 	if (isset($_POST["resources"])) {
@@ -31,12 +31,12 @@
 	if ($bigtree["callout"]["description"]) {
 ?>
 <p class="callout_description"><?=BigTree::safeEncode($bigtree["callout"]["description"])?></p>
-<?
+<?php
 	}
 ?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <div class="form_fields">
-	<?			
+	<?php
 		if (count($bigtree["callout"]["resources"])) {
 			$cached_types = $admin->getCachedFieldTypes();
 			$bigtree["field_types"] = $cached_types["callouts"];
@@ -70,7 +70,7 @@
 </div>
 <input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
 <input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
-<?
+<?php
 	// Only re-run if we're loading a new callout type
 	if (isset($_POST["type"])) {
 ?>
@@ -78,7 +78,7 @@
 	BigTreeCustomControls($("#callout_resources"));
 </script>
 
-<?
+<?php
 	}
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	

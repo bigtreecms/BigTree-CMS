@@ -1,4 +1,4 @@
-<?
+<?php
 	parse_str($_POST["sort"],$data);
 	$max = count($data["row"]);
 	

@@ -1,4 +1,4 @@
-<?	
+<?php
 	$total_results = 0;
 	$results = array();
 	
@@ -79,20 +79,20 @@
 </form>
 
 <div class="container">
-	<? if (count($results)) { ?>
+	<?php if (count($results)) { ?>
 	<header>
 		<div class="sticky_controls">
 			<div class="shadow">
 				<nav>
 					<div class="more">
 						<div>
-							<?
+							<?php
 								$x = 0;
 								foreach ($results as $key => $r) {
 									$x++;
 							?>
-							<a<? if ($x == 1) { ?> class="active"<? } ?> href="#<?=$cms->urlify($key)?>"><?=htmlspecialchars($key)?></a>
-							<?
+							<a<?php if ($x == 1) { ?> class="active"<?php } ?> href="#<?=$cms->urlify($key)?>"><?=htmlspecialchars($key)?></a>
+							<?php
 								}
 							?>
 						</div>
@@ -102,13 +102,13 @@
 		</div>
 	</header>
 	<div class="content_container">
-		<?
+		<?php
 			$x = 0;
 			foreach ($results as $key => $set) {
 				$x++;
 		?>
-		<section class="content" id="content_<?=$cms->urlify($key)?>"<? if ($x != 1) { ?> style="display: none;"<? } ?>>
-			<?
+		<section class="content" id="content_<?=$cms->urlify($key)?>"<?php if ($x != 1) { ?> style="display: none;"<?php } ?>>
+			<?php
 				if ($key != "Pages") {
 					foreach ($set as $data) {
 						$view = $data["view"];
@@ -125,27 +125,27 @@
 				} else {
 			?>
 			<ul class="adv_search_page_results">
-				<? foreach ($set as $item) { ?>
+				<?php foreach ($set as $item) { ?>
 				<li>
 					<strong><a href="<?=ADMIN_ROOT?>pages/edit/<?=$item["id"]?>/"><?=$item["title"]?></a></strong>
 					<p><?=$item["description"]?></p>
 					<span><?=$item["breadcrumb"]?></span>
 				</li>
-				<? } ?>
+				<?php } ?>
 			</ul>
-			<?
+			<?php
 				}
 			?>
 		</section>
-		<?
+		<?php
 			}
 		?>	
 	</div>
-	<? } else { ?>
+	<?php } else { ?>
 	<section>
 		<p>No results were found.</p>
 	</section>
-	<? } ?>
+	<?php } ?>
 </div>
 <script>
 	// Override default controls

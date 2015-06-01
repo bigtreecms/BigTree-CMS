@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	if (empty($data["directory"])) {
 		if (isset($_POST["template"])) {
@@ -18,13 +18,13 @@
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" class="required" />
 </fieldset>
 <fieldset>
-	<input type="checkbox" name="image"<? if ($data["image"]) { ?> checked="checked"<? } ?> id="image_uploader_enabled" />
+	<input type="checkbox" name="image"<?php if ($data["image"]) { ?> checked="checked"<?php } ?> id="image_uploader_enabled" />
 	<label class="for_checkbox">Image Uploader Enabled <small>(enables crops, thumbs, preview)</small></label>
 </fieldset>
 
-<div id="image_uploader_options"<? if (!$data["image"]) { ?> style="display: none;"<? } ?>>
+<div id="image_uploader_options"<?php if (!$data["image"]) { ?> style="display: none;"<?php } ?>>
 	<h4>Image Options</h4>
-	<? include BigTree::path("admin/ajax/developer/field-options/_image-options.php") ?>
+	<?php include BigTree::path("admin/ajax/developer/field-options/_image-options.php") ?>
 </div>
 
 <script>

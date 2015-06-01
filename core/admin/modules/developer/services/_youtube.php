@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeYouTubeAPI;
 	$name = "YouTube";
 	$route = "youtube";

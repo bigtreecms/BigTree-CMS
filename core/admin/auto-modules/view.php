@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["view"] = $view = $bigtree["interface"];
 
 	// Setup the preview action if we have a preview URL and field.
@@ -22,7 +22,7 @@
 	<span class="hide" data-id="<?=$bigtree["view"]["id"]?>">x</span>
 	<p><?=$bigtree["view"]["description"]?></p>
 </section>
-<?
+<?php
 	}
 	
 	include BigTree::path("admin/auto-modules/views/".$bigtree["view"]["type"].".php");

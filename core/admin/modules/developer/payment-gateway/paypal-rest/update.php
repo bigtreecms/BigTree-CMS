@@ -1,4 +1,4 @@
-<?
+<?php
 	$gateway->Service = "paypal-rest";
 	$gateway->Settings["paypal-rest-client-id"] = trim($_POST["paypal-rest-client-id"]);
 	$gateway->Settings["paypal-rest-client-secret"] = trim($_POST["paypal-rest-client-secret"]);

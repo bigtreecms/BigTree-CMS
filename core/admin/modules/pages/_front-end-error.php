@@ -3,19 +3,19 @@
 	<div class="overflow">
 		<div class="table">
 			<summary>
-				<p>Your submission had <?=count($bigtree["errors"])?> error<? if (count($bigtree["errors"]) != 1) { ?>s<? } ?>.</p>
+				<p>Your submission had <?=count($bigtree["errors"])?> error<?php if (count($bigtree["errors"]) != 1) { ?>s<?php } ?>.</p>
 			</summary>
 			<header>
 				<span class="view_column" style="padding: 0 0 0 20px; width: 250px;">Field</span>
 				<span class="view_column" style="width: 506px;">Error</span>
 			</header>
 			<ul>
-				<? foreach ($bigtree["errors"] as $error) { ?>
+				<?php foreach ($bigtree["errors"] as $error) { ?>
 				<li>
 					<section class="view_column" style="padding: 0 0 0 20px; width: 250px;"><?=$error["field"]?></section>
 					<section class="view_column" style="width: 506px;"><?=$error["error"]?></section>
 				</li>
-				<? } ?>
+				<?php } ?>
 			</ul>
 		</div>
 	</div>

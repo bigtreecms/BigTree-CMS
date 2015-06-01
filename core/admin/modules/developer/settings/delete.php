@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->deleteSetting(end($bigtree["path"]));
 	
 	$admin->growl("Developer","Deleted Setting");

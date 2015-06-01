@@ -19,7 +19,7 @@
 				<label>Processing Environment</label>
 				<select name="linkpoint-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway->Settings["linkpoint-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<?php if ($gateway->Settings["linkpoint-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

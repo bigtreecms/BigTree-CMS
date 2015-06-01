@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	$analytics->Settings["profile"] = $_POST["profile"];
 

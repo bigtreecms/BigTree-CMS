@@ -1,4 +1,4 @@
-<?
+<?php
 	$forms = $admin->getModuleForms("title",$module["id"]);
 	$views = $admin->getModuleViews("title",$module["id"]);
 	$reports = $admin->getModuleReports("title",$module["id"]);
@@ -17,41 +17,41 @@
 			<label>Access Level</label>
 			<select name="level">
 				<option value="0">Normal User</option>
-				<option value="1"<? if ($item["level"] == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-				<option value="2"<? if ($item["level"] == 2) { ?> selected="selected"<? } ?>>Developer</option>
+				<option value="1"<?php if ($item["level"] == 1) { ?> selected="selected"<?php } ?>>Administrator</option>
+				<option value="2"<?php if ($item["level"] == 2) { ?> selected="selected"<?php } ?>>Developer</option>
 			</select>
 		</fieldset>
 		<fieldset class="float">
 			<label>Interface</label>
 			<select name="interface">
 				<option></option>
-				<?
+				<?php
 					if (count($forms)) {
 				?>
 				<optgroup label="Forms">
-					<? foreach ($forms as $form) { ?>
-					<option value="<?=$form["id"]?>"<? if ($form["id"] == $item["interface"]) { ?> selected="selected"<? } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
-					<? } ?>
+					<?php foreach ($forms as $form) { ?>
+					<option value="<?=$form["id"]?>"<?php if ($form["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
+					<?php } ?>
 				</optgroup>
-				<?
+				<?php
 					}
 					if (count($views)) {
 				?>
 				<optgroup label="Views">
-					<? foreach ($views as $view) { ?>
-					<option value="<?=$view["id"]?>"<? if ($view["id"] == $item["interface"]) { ?> selected="selected"<? } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
-					<? } ?>
+					<?php foreach ($views as $view) { ?>
+					<option value="<?=$view["id"]?>"<?php if ($view["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
+					<?php } ?>
 				</optgroup>
-				<?
+				<?php
 					}
 					if (count($reports)) {
 				?>
 				<optgroup label="Reports">
-					<? foreach ($reports as $report) { ?>
-					<option value="<?=$report["id"]?>"<? if ($report["id"] == $item["interface"]) { ?> selected="selected"<? } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
-					<? } ?>
+					<?php foreach ($reports as $report) { ?>
+					<option value="<?=$report["id"]?>"<?php if ($report["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
+					<?php } ?>
 				</optgroup>
-				<?
+				<?php
 					}
 				?>
 			</select>
@@ -61,16 +61,16 @@
 		<label class="required">Icon</label>
 		<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
 		<ul class="developer_icon_list">
-			<? foreach (BigTreeAdmin::$ActionClasses as $class) { ?>
+			<?php foreach (BigTreeAdmin::$ActionClasses as $class) { ?>
 			<li>
-				<a href="#<?=$class?>"<? if ($class == $item["class"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+				<a href="#<?=$class?>"<?php if ($class == $item["class"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 			</li>
-			<? } ?>
+			<?php } ?>
 		</ul>
 	</fieldset>
 	<fieldset>
 		<label>In Navigation</label>
-		<input type="checkbox" name="in_nav" <? if ($item["in_nav"]) { ?>checked="checked" <? } ?>/>
+		<input type="checkbox" name="in_nav" <?php if ($item["in_nav"]) { ?>checked="checked" <?php } ?>/>
 	</fieldset>
 </section>
 <script>

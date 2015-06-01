@@ -33,9 +33,9 @@
 			<fieldset class="developer_cloud_key">
 				<label>Certificate Private Key <small>(optional, needed only for Temporary Private URLs)</small></label>
 				<input type="file" name="private_key" />
-				<? if ($cloud->Settings["private_key"]) { ?>
+				<?php if ($cloud->Settings["private_key"]) { ?>
 				<span class="icon_approve icon_approve_on"></span>
-				<? } ?>
+				<?php } ?>
 			</fieldset>
 		</section>
 		<footer>

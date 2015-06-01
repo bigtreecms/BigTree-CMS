@@ -1,4 +1,4 @@
-<?
+<?php
 	if (isset($_POST["view"])) {
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
 		$bigtree["module"] = $admin->getModule(BigTreeAutoModule::getModuleForView($bigtree["view"]));
@@ -44,23 +44,23 @@
 		}
 ?>
 <li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
-	<?
+	<?php
 		$x = 0;
 		foreach ($bigtree["view"]["fields"] as $key => $field) {
 			$x++;
 			$value = $item["column$x"];
 	?>
 	<section class="view_column" style="width: <?=$field["width"]?>px;">
-		<? if ($x == 1 && $permission == "p" && !$search) { ?>
+		<?php if ($x == 1 && $permission == "p" && !$search) { ?>
 		<span class="icon_sort"></span>
-		<? } ?>
+		<?php } ?>
 		<?=$value?>
 	</section>
-	<?
+	<?php
 		}
 	?>
 	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
-	<?
+	<?php
 		$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 		foreach ($bigtree["view"]["actions"] as $action => $data) {
 			if ($data == "on") {
@@ -83,7 +83,7 @@
 				}
 	?>
 	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
-	<?
+	<?php
 			} else {
 				$data = json_decode($data,true);
 				$link = $module_page.$data["route"]."/".$item["id"]."/";
@@ -92,11 +92,11 @@
 				}
 	?>
 	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
-	<?
+	<?php
 			}
 		}
 	?>
 </li>
-<?
+<?php
 	}
 ?>

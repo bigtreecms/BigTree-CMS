@@ -1,4 +1,4 @@
-<?
+<?php
 	$package = $admin->getPackage($bigtree["commands"][0]);
 	$j = json_decode($package["manifest"],true);
 

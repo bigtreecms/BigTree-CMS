@@ -14,6 +14,6 @@
 	</fieldset>
 </div>
 <fieldset class="last">
-	<input type="checkbox" name="seo_invisible"<? if ($bigtree["current_page"]["seo_invisible"]) { ?> checked="checked"<? } ?> />
+	<input type="checkbox" name="seo_invisible"<?php if ($bigtree["current_page"]["seo_invisible"]) { ?> checked="checked"<?php } ?> />
 	<label class="for_checkbox">Hide From Search Engines</label>
 </fieldset>

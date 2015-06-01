@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	$data["custom_value"] = isset($data["custom_value"]) ? $data["custom_value"] : "";
 ?>

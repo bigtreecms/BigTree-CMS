@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	$data["fields"] = isset($data["fields"]) ? $data["fields"] : array(array("key" => "","title" => "","type" => "text"));
 

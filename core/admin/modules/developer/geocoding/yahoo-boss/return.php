@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeYahooBOSSAPI;
 	$token = $api->oAuthSetToken($_GET["code"]);
 	if ($api->OAuthError) {

@@ -1,4 +1,4 @@
-<?
+<?php
 	$_POST["live"] = true;
 	$_POST["resources"]["page_content"] = $_POST["content"];
 	$seo = $admin->getPageSEORating($_POST,$_POST["resources"]);

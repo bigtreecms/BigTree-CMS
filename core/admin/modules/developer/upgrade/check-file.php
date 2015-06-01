@@ -1,4 +1,4 @@
-<?
+<?php
 	// Verify zip integrity
 	if (!$updater->checkZip()) {
 ?>
@@ -12,7 +12,7 @@
 		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me Later</a>
 	</footer>
 </div>
-<?
+<?php
 	} else {
 		// If we're not using local install and the config settings only allow for HTTPS logins, redirect
 		$secure = (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off" || $_SERVER["SERVER_PORT"] == 443);
@@ -25,13 +25,13 @@
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
 		<section>
-			<? if ($updater->Method == "Local") { ?>
+			<?php if ($updater->Method == "Local") { ?>
 			<p>The upgrade file finished downloading and your file permissions allow for local install.</p>
 			<ul>
 				<li>Your existing /core/ folder will be backed up in /backups/core-<?=BIGTREE_VERSION?>/</li>
 				<li>Your existing database will be backed up as /backups/core-<?=BIGTREE_VERSION?>/backup.sql</li>
 			</ul>
-			<? } else { ?>
+			<?php } else { ?>
 			<p>The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong><?=$updater->Method?></strong> credentials below so that BigTree can upgrade.</p>
 			<ul>
 				<li>Your existing /core/ folder will be backed up in /backups/core-<?=BIGTREE_VERSION?>/</li>
@@ -46,13 +46,13 @@
 				<label><?=$updater->Method?> Password</label>
 				<input type="password" name="password" autocomplete="off" />
 			</fieldset>
-			<? } ?>
+			<?php } ?>
 		</section>
 		<footer>
 			<input type="submit" class="blue" value="Install" />
 		</footer>
 	</div>
 </form>
-<?	
+<?php
 	}
 ?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
 ?>
 <div class="container">

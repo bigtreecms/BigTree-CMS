@@ -1,4 +1,4 @@
-<?
+<?php
 	// BigTree Admin Nav Tree
 	$bigtree["nav_tree"] = array(
 		"dashboard" => array("title" => "Dashboard","link" => "dashboard","icon" => "dashboard","related" => true,"children" => array(

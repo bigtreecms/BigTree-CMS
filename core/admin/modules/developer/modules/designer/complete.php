@@ -1,4 +1,4 @@
-<?
+<?php
 	$module = $admin->getModule($_GET["module"]);
 ?>
 <div class="container">

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Get the form so we can walk through its fields
 	$form = BigTreeAutoModule::getForm($_GET["form"]);
 
@@ -29,7 +29,7 @@
 		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> in field &ldquo;<?=$field?>&rdquo;</p>
 	</section>
 </li>
-<?
+<?php
 			}
 		}
 	}

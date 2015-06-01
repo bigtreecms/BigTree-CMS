@@ -1,9 +1,9 @@
-<?
+<?php
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
 		include "draggable.php";
 ?>
 <script>$("#nested_container").removeClass("nested_table");</script>
-<?
+<?php
 	} else {
 		if (isset($_POST["view"])) {
 			$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
@@ -45,11 +45,11 @@
 ?>
 <li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 	<span class="depth" style="width: <?=($depth * 24)?>px;">
-		<? if ($permission == "p") { ?>
+		<?php if ($permission == "p") { ?>
 		<span class="icon_sort"></span>
-		<? } ?>
+		<?php } ?>
 	</span>
-	<?
+	<?php
 				$x = 0;
 				$depth_minus = ceil((24 * $depth + 1) / count($bigtree["view"]["fields"]));
 				foreach ($bigtree["view"]["fields"] as $key => $field) {
@@ -59,12 +59,12 @@
 						$field["width"] -= 20;
 					}
 	?>
-	<section class="view_column<? if ($x == 1 && !count($children)) { ?> disabled<? } ?>" style="width: <?=($field["width"] - $depth_minus)?>px;"><?=$value?></section>
-	<?
+	<section class="view_column<?php if ($x == 1 && !count($children)) { ?> disabled<?php } ?>" style="width: <?=($field["width"] - $depth_minus)?>px;"><?=$value?></section>
+	<?php
 				}
 	?>
 	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
-	<?
+	<?php
 				$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 				foreach ($bigtree["view"]["actions"] as $action => $data) {
 					if ($data == "on") {
@@ -87,7 +87,7 @@
 						}
 	?>
 	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
-	<?
+	<?php
 					} else {
 						$data = json_decode($data,true);
 						$link = $module_page.$data["route"]."/".$item["id"]."/";
@@ -96,7 +96,7 @@
 						}
 	?>
 	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
-	<?
+	<?php
 					}
 				}
 
@@ -111,7 +111,7 @@
 				}
 	?>
 </li>
-<?
+<?php
 			}
 		}
 
@@ -124,10 +124,10 @@
 ?>
 <script>
 	$("#nested_container").addClass("nested_table");
-	<? if ($permission == "p") { ?>
+	<?php if ($permission == "p") { ?>
 	BigTree.localCreateSortable("#table_data");
-	<? } ?>
+	<?php } ?>
 </script>
-<?
+<?php
 	}
 ?>

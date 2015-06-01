@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeDisqusAPI;
 	$name = "Disqus";
 	$route = "disqus";

@@ -1,4 +1,4 @@
-<?
+<?php
 	$setting = $admin->getSetting($_POST["id"]);
 	if ($setting["locked"]) {
 		$admin->requireLevel(2);
@@ -12,8 +12,8 @@
 ?>
 <div style="width: 460px;">
 	<input type="hidden" name="setting-id" value="<?=htmlspecialchars($_POST["id"])?>" />
-	<? if ($setting["description"]) { ?>
+	<?php if ($setting["description"]) { ?>
 	<p><?=$setting["description"]?></p>
-	<? } ?>
-	<? include BigTree::path("admin/form-field-types/draw/".$setting["type"].".php"); ?>
+	<?php } ?>
+	<?php include BigTree::path("admin/form-field-types/draw/".$setting["type"].".php"); ?>
 </div>

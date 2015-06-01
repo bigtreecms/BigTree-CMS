@@ -1,4 +1,4 @@
-<?
+<?php
 	$proot = ADMIN_ROOT."pages/";
 	$id = isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]);
 	$action = $bigtree["module_path"][0];
@@ -27,7 +27,7 @@
 		<p>You do not have access to this page.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -86,7 +86,7 @@
 		<p>The page you are trying to access no longer exists.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 

@@ -1,4 +1,4 @@
-<?
+<?php
 	$tags = array();
 	$bigtree["form_action"] = "create";
 	$bigtree["current_page"] = array("id" => $bigtree["current_page"]["id"]);

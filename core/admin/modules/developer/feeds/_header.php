@@ -1,4 +1,4 @@
-<?
+<?php
 	$feed_types = array(
 		"custom" => "Custom",
 		"rss" => "RSS 0.91",

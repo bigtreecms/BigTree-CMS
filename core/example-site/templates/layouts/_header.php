@@ -1,4 +1,4 @@
-<?
+<?php
 	$current_url = BigTree::currentURL();
 	$home_page = $cms->getPage(0);
 	

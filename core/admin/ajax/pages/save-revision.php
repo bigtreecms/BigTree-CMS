@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/javascript");
 	
 	if (is_numeric($_POST["id"])) {

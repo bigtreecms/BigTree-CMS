@@ -1,4 +1,4 @@
-<?
+<?php
 	$templates = $admin->getTemplates();
 	
 	// Need to create a ridiculous hack because jQuery's sortable is stupid.
@@ -12,7 +12,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="basic_templates">
-		<?
+		<?php
 			foreach ($templates as $template) {
 				if (!$template["routed"]) {
 					$x++;
@@ -30,7 +30,7 @@
 				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>
@@ -44,7 +44,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="routed_templates">
-		<?
+		<?php
 			foreach ($templates as $template) {
 				if ($template["routed"]) {
 					$x++;
@@ -62,7 +62,7 @@
 				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>

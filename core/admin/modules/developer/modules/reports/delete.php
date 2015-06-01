@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->deleteModuleReport(end($bigtree["commands"]));
 
 	$admin->growl("Developer","Deleted Report");

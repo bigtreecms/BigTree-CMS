@@ -40,27 +40,27 @@
 			return false;
 		}).on("click",".icon_approve",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "approved") { ?>
+			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "approved") { ?>
 			BigTree.localSearch();
-			<? } else { ?>
+			<?php } else { ?>
 			$(this).toggleClass("icon_approve_on");
-			<? } ?>
+			<?php } ?>
 			return false;
 		}).on("click",".icon_feature",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "featured") { ?>
+			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "featured") { ?>
 			BigTree.localSearch();
-			<? } else { ?>
+			<?php } else { ?>
 			$(this).toggleClass("icon_feature_on");
-			<? } ?>
+			<?php } ?>
 			return false;
 		}).on("click",".icon_archive",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "archived") { ?>
+			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "archived") { ?>
 			BigTree.localSearch();
-			<? } else { ?>
+			<?php } else { ?>
 			$(this).toggleClass("icon_archive_on");
-			<? } ?>
+			<?php } ?>
 			return false;
 		}).on("click",".icon_disabled",function() { return false; });
 	})();

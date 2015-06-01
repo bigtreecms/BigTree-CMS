@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/javascript");
 	$data = $_POST;
 	$key = $_POST["setting-id"];

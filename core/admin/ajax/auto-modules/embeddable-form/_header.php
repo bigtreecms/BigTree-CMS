@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["form"] = $form = BigTreeAutoModule::getEmbedFormByHash($_GET["hash"]);
 	$bigtree["form_root"] = ADMIN_ROOT."ajax/auto-modules/embeddable-form/";
 ?><!doctype html> 
@@ -10,29 +10,29 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<?
+		<?php
 			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
 				foreach ($bigtree["css"] as $style) {
 		?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 			if ($form["css"]) {
 		?>
 		<link rel="stylesheet" href="<?=$form["css"]?>" type="text/css" media="screen" />
-		<?
+		<?php
 			}
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
-		<?
+		<?php
 			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
 				foreach ($bigtree["js"] as $script) {
 		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<?
+		<?php
 				}
 			}
 		?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
@@ -8,16 +8,16 @@
 	if ($field["options"]["style"] == "callout") {
 		$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
-<fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
-	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+<fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$field["id"]?>">
+	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
 	<div class="contain">
-		<?
+		<?php
 			$x = 0;
 			foreach ($field["value"] as $item) {
 		?>
 		<article>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-			<? BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
+			<?php BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
 			<h4>
 				<?=BigTree::safeEncode($item["__internal-title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
@@ -32,15 +32,15 @@
 				<a href="#" class="icon_delete"></a>
 			</div>
 		</article>
-		<?
+		<?php
 				$x++;
 			}
 		?>
 	</div>
 	<a href="#" class="add_item button"><span class="icon_small icon_small_add"></span>Add Item</a>
-	<? if ($max) { ?>
+	<?php if ($max) { ?>
 	<small class="max">LIMIT <?=$max?></small>
-	<? } ?>
+	<?php } ?>
 	<script>
 		BigTreeMatrix({
 			selector: "#<?=$field["id"]?>",
@@ -51,23 +51,23 @@
 		});
 	</script>
 </fieldset>
-<?
+<?php
 	} else {
 ?>
 <fieldset>
-	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
 	<div class="multi_widget matrix_list" id="<?=$field["id"]?>">
-		<section<? if (count($field["value"])) { ?> style="display: none;"<? } ?>>
+		<section<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
 			<p>Click "Add Item" to add an item to this list.</p>
 		</section>
 		<ul>
-			<?
+			<?php
 				$x = 0;
 				foreach ($field["value"] as $item) {
 			?>
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-				<? BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
+				<?php BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>
@@ -78,16 +78,16 @@
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit"></a>
 			</li>
-			<?
+			<?php
 					$x++;
 				}
 			?>
 		</ul>
 		<footer>
 			<a href="#" class="add_item button"><span class="icon_small icon_small_add"></span>Add Item</a>
-			<? if ($max) { ?>
+			<?php if ($max) { ?>
 			<small class="max">LIMIT <?=$max?></small>
-			<? } ?>
+			<?php } ?>
 		</footer>
 		<script>
 			BigTreeMatrix({
@@ -100,6 +100,6 @@
 		</script>
 	</div>
 </fieldset>
-<?
+<?php
 	}
 ?>

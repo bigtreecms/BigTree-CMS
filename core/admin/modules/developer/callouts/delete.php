@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->deleteCallout(end($bigtree["path"]));
 	
 	$admin->growl("Developer","Deleted Callout");

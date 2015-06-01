@@ -1,4 +1,4 @@
-<?
+<?php
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
@@ -80,11 +80,11 @@
 		</h2>
 	</summary>
 	<section>
-		<?
+		<?php
 			if ($visits) {
 		?>
 		<div class="graph">
-			<?
+			<?php
 				$x = 0;
 				foreach ($visits as $date => $count) {
 					$height = round($bar_height * ($count - $min) / $max) + 12;
@@ -93,31 +93,31 @@
 						$count = 0;
 					}
 			?>
-			<section class="bar<? if ($x == 14) { ?> last<? } elseif ($x == 1) { ?> first<? } ?>" style="height: <?=$height?>px; margin-top: <?=(82-$height)?>px;">
+			<section class="bar<?php if ($x == 14) { ?> last<?php } elseif ($x == 1) { ?> first<?php } ?>" style="height: <?=$height?>px; margin-top: <?=(82-$height)?>px;">
 				<?=$count?>
 			</section>
-			<?
+			<?php
 				}
 			   	
 			   	$x = 0;
 			   	foreach ($visits as $date => $count) {
 			   		$x++;
 			?>
-			<section class="date<? if ($x == 14) { ?> last<? } elseif ($x == 1) { ?> first<? } ?>"><?=date("n/j/y",strtotime($date))?></section>
-			<?
+			<section class="date<?php if ($x == 14) { ?> last<?php } elseif ($x == 1) { ?> first<?php } ?>"><?=date("n/j/y",strtotime($date))?></section>
+			<?php
 				}
 			?>
 		</div>
-		<?
+		<?php
 			} else {
 		?>
 		<p>No recent traffic</p>
-		<?
+		<?php
 			}
 		?>
 	</section>
 </div>
-<?
+<?php
 	}
 ?>
 
@@ -131,18 +131,18 @@
 	</summary>
 	
 	<div class="split left">
-		<?
+		<?php
 			if (!count($changes)) {
 		?>
 		<section class="no_content">
 			<p>There are no changes awaiting your approval.</p>
 		</section>
-		<?	
+		<?php
 			} else {
 		?>
 		<h3>Changes Pending Your Approval</h3>
 		<section class="changes">
-			<?
+			<?php
 				foreach ($change_modules as $m => $cm) {
 					if ($m == 0) {
 						$icon = "page";
@@ -153,29 +153,29 @@
 					}
 			?>
 			<div>
-				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?></a>
+				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<?php if ($cm["count"] != 1) { ?>s<?php } ?> for <?=$cm["title"]?></a>
 			</div>
-			<?
+			<?php
 				}
 			?>
 		</section>
-		<?
+		<?php
 			}
 		?>
 	</div>
 	<div class="split right">
-		<?
+		<?php
 			if (!count($my_changes)) {
 		?>
 		<section class="no_content">
 			<p>You have no changes awaiting a publisher's approval.</p>
 		</section>
-		<?
+		<?php
 			} else {
 		?>
 		<h3>Your Changes Pending Approval</h3>
 		<section class="changes">
-			<?
+			<?php
 				foreach ($my_change_modules as $m => $cm) {
 					if ($m == 0) {
 						$icon = "page";
@@ -186,13 +186,13 @@
 					}
 			?>
 			<div>
-				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<? if ($cm["count"] != 1) { ?>s<? } ?> for <?=$cm["title"]?>
+				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<?php if ($cm["count"] != 1) { ?>s<?php } ?> for <?=$cm["title"]?>
 			</div>
-			<?
+			<?php
 				}
 			?>
 		</section>
-		<?
+		<?php
 			}
 		?>
 	</div>
@@ -214,11 +214,11 @@
 		<span class="messages_view">View</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			if (count($unread) == 0) {
 		?>
 		<li><section class="no_content"><p>No unread messages</p></section></li>
-		<?
+		<?php
 			} else {
 				foreach ($unread as $item) {
 		?>
@@ -229,7 +229,7 @@
 			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
 			<section class="messages_view"><a href="<?=ADMIN_ROOT?>dashboard/messages/view/<?=$item["id"]?>/" class="icon_message"></a></section>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>

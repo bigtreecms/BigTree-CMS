@@ -1,4 +1,4 @@
-<?
+<?php
 	// Remove existing update zips
 	@unlink(SERVER_ROOT."cache/update.zip");
 

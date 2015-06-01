@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
 
 	$form_id = end($bigtree["path"]);

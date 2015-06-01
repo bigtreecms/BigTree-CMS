@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeTwitterAPI
 			Twitter API class that implements most functionality (limited lists support).

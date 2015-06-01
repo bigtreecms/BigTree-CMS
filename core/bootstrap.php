@@ -1,4 +1,4 @@
-<?
+<?php
 	ini_set("log_errors","false");
 
 	// Set some config vars automatically and setup some globals.

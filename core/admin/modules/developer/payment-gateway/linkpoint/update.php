@@ -1,4 +1,4 @@
-<?
+<?php
 	$gateway->Service = "linkpoint";
 	$gateway->Settings["linkpoint-store"] = $_POST["linkpoint-store"];
 	$gateway->Settings["linkpoint-environment"] = $_POST["linkpoint-environment"];

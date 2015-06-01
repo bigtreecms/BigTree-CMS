@@ -1,4 +1,4 @@
-<?
+<?php
 	$integrity_errors = array();
 	$external = $_GET["external"] ? true : false;
 

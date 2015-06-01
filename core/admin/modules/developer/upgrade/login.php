@@ -1,4 +1,4 @@
-<?
+<?php
 	$method = $_SESSION["bigtree_admin"]["upgrade_method"];	
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/install/">

@@ -16,7 +16,7 @@
 				<label>Processing Environment</label>
 				<select name="paypal-rest-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway->Settings["paypal-rest-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<?php if ($gateway->Settings["paypal-rest-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

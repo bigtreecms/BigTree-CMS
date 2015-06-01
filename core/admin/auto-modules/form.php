@@ -1,4 +1,4 @@
-<?
+<?php
 	// If the last command is numeric then we're editing something.
 	if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
 		$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);

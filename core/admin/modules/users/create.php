@@ -1,4 +1,4 @@
-<?
+<?php
 	if ($_SERVER["HTTP_REFERER"] != ADMIN_ROOT."users/add/") {
 ?>
 <div class="container">
@@ -6,7 +6,7 @@
 		<p>To create a user, please access the <a href="<?=ADMIN_ROOT?>users/add/">Add User</a> page.</p>
 	</section>
 </div>
-<?
+<?php
 	} else {
 		// Check security policy
 		if (!$admin->validatePassword($_POST["password"])) {

@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	if (isset($_POST["clear"])) {
 		$admin->clearDead404s();
@@ -15,6 +15,6 @@
 		</footer>
 	</div>
 </form>
-<?
+<?php
 	}
 ?>

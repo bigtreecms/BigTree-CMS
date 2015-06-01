@@ -1,4 +1,4 @@
-<?
+<?php
 	$groups = $admin->getCalloutGroups();
 ?>
 <div class="table">
@@ -10,7 +10,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<? foreach ($groups as $item) { ?>
+		<?php foreach ($groups as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
 			<section class="developer_templates_name">
 				<?=$item["name"]?>
@@ -22,7 +22,7 @@
 				<a href="<?=DEVELOPER_ROOT?>callouts/groups/delete/<?=$item["id"]?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 

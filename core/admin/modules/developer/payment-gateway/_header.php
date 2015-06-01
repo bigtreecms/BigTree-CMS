@@ -1,3 +1,3 @@
-<?
+<?php
 	$gateway = new BigTreePaymentGateway;
 ?>

@@ -1,3 +1,3 @@
-<?
+<?php
 	$admin->logout();
 ?>

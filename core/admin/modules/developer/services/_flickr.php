@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeFlickrAPI;
 	$name = "Flickr";
 	$route = "flickr";

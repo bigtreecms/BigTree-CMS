@@ -1,4 +1,4 @@
-<?
+<?php
 	$root = str_replace(array("http://","https://"),"//",ADMIN_ROOT);
 ?>
 <!doctype html> 

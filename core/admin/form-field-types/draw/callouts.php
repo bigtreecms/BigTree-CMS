@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
@@ -6,17 +6,17 @@
 	$noun = $field["options"]["noun"] ? htmlspecialchars($field["options"]["noun"]) : "Callout";
 	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
 ?>
-<fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
-	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
+<fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$field["id"]?>">
+	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
 	<div class="contain">
-		<?
+		<?php
 			$x = 0;
 			foreach ($field["value"] as $callout) {
 				$type = $admin->getCallout($callout["type"]);
 		?>
 		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
-			<? BigTreeAdmin::drawArrayLevel(array($x),$callout) ?>
+			<?php BigTreeAdmin::drawArrayLevel(array($x),$callout) ?>
 			<h4>
 				<?=BigTree::safeEncode($callout["display_title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=BigTree::safeEncode($callout["display_title"])?>" />
@@ -28,15 +28,15 @@
 				<a href="#" class="icon_delete"></a>
 			</div>
 		</article>
-		<?
+		<?php
 				$x++;
 			}
 		?>
 	</div>
 	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
-	<? if ($max) { ?>
+	<?php if ($max) { ?>
 	<small class="max">LIMIT <?=$max?></small>
-	<? } ?>
+	<?php } ?>
 	<script>
 		BigTreeCallouts({
 			selector: "#<?=$field["id"]?>",

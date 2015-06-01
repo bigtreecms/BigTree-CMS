@@ -1,4 +1,4 @@
-<?
+<?php
 	$extension = $admin->getExtension($bigtree["commands"][0]);
 	$j = json_decode($extension["manifest"],true);
 

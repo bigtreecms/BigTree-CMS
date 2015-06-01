@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = end($bigtree["path"]);	
 	$module = $admin->getModule($id);
 	
@@ -49,9 +49,9 @@
 				<span>OR</span> 
 				<select name="group_existing">
 					<option value="0"></option>
-					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group["id"] == $module["group"]) { ?> selected="selected"<? } ?>><?=$group["name"]?></option>
-					<? } ?>
+					<?php foreach ($groups as $group) { ?>
+					<option value="<?=$group["id"]?>"<?php if ($group["id"] == $module["group"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+					<?php } ?>
 				</select>
 			</fieldset>
 			<div class="left">
@@ -66,20 +66,20 @@
 		        <label class="required">Icon</label>
 		        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
 		        <ul class="developer_icon_list">
-		        	<? foreach (BigTreeAdmin::$IconClasses as $class) { ?>
+		        	<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
 		        	<li>
-		        		<a href="#<?=$class?>"<? if ($class == $module["icon"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+		        		<a href="#<?=$class?>"<?php if ($class == $module["icon"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 		        	</li>
-		        	<? } ?>
+		        	<?php } ?>
 		        </ul>
 		    </fieldset>
 			
 			<fieldset>
-				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/>
+				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
 				<label class="for_checkbox">Enable Advanced Permissions</label>
 			</fieldset>
 		</section>
-		<? include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
+		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />	
 		</footer>
@@ -95,32 +95,32 @@
 		<span class="developer_templates_name">Title</span>
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
-	<?
+	<?php
 		if (count($actions_in_nav)) {
 	?>
 	<ul id="actions">
-		<? foreach ($actions_in_nav as $action) { ?>
+		<?php foreach ($actions_in_nav as $action) { ?>
 		<li id="row_<?=$action["id"]?>">
 			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 		if (count($actions_not_in_nav)) {
 	?>
-	<ul<? if (count($actions_in_nav)) { ?> class="secondary"<? } ?>>
-		<? foreach ($actions_not_in_nav as $action) { ?>
+	<ul<?php if (count($actions_in_nav)) { ?> class="secondary"<?php } ?>>
+		<?php foreach ($actions_not_in_nav as $action) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 	?>
 </div>
@@ -130,29 +130,29 @@
 		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
 		<h2><span class="embeds"></span>Interfaces</h2>
 	</summary>
-	<?
+	<?php
 		if (count($views)) {
 	?>
 	<header>
 		<span class="developer_view_name">Views</span>
 	</header>
 	<ul>
-		<? foreach ($views as $view) { ?>
+		<?php foreach ($views as $view) { ?>
 		<li>
 			<section class="developer_view_name">View <?=$view["title"]?></section>
 			<section class="view_action">
-				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
+				<?php if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
 				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
-				<? } else { ?>
+				<?php } else { ?>
 				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
-				<? } ?>
+				<?php } ?>
 			</section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 
 		if (count($forms)) {
@@ -161,15 +161,15 @@
 		<span class="developer_view_name">Forms</span>
 	</header>
 	<ul>
-		<? foreach ($forms as $form) { ?>
+		<?php foreach ($forms as $form) { ?>
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 
 		if (count($embeds)) {
@@ -178,15 +178,15 @@
 		<span class="developer_templates_name">Embeddable Forms</span>
 	</header>
 	<ul>
-		<? foreach ($embeds as $form) { ?>
+		<?php foreach ($embeds as $form) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 
 		if (count($reports)) {
@@ -195,20 +195,20 @@
 		<span class="developer_templates_name">Reports</span>
 	</header>
 	<ul>
-		<? foreach ($reports as $report) { ?>
+		<?php foreach ($reports as $report) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$report["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 	?>
 </div>
 
-<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>
+<?php include BigTree::path("admin/modules/developer/modules/_js.php") ?>
 
 <script>
 	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {

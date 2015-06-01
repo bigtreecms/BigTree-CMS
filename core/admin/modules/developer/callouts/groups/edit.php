@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = end($bigtree["path"]);
 	$callouts = $admin->getCallouts("name ASC");
 	$group = $admin->getCalloutGroup($id);
@@ -14,11 +14,11 @@
 			<fieldset>
 				<label>Callouts</label>
 				<div class="multi_widget many_to_many" id="group_callouts">
-					<section<? if (count($group["callouts"])) { ?> style="display: none;"<? } ?>>
+					<section<?php if (count($group["callouts"])) { ?> style="display: none;"<?php } ?>>
 						<p>Click "Add Item" to add an item to this list.</p>
 					</section>
 					<ul>
-						<?
+						<?php
 							$x = 0;
 							foreach ($group["callouts"] as $id) {
 								$callout = $admin->getCallout($id);
@@ -28,19 +28,19 @@
 							<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
-						<?
+						<?php
 								$x++;
 							}
 						?>
 					</ul>
 					<footer>
 						<select>
-							<?
+							<?php
 								foreach ($callouts as $callout) {
 									if (!in_array($callout["id"],$group["callouts"])) {
 							?>
 							<option value="<?=BigTree::safeEncode($callout["id"])?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></option>
-							<?
+							<?php
 									}
 								}
 							?>

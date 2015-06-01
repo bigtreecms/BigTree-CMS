@@ -1,4 +1,4 @@
-<?
+<?php
 	$users = $admin->getUsers();
 ?>
 <div class="container">
@@ -8,9 +8,9 @@
 				<label>User</label>
 				<select name="user">
 					<option></option>
-					<? foreach ($users as $user) { ?>
+					<?php foreach ($users as $user) { ?>
 					<option value="<?=$user["id"]?>"><?=$user["name"]?></option>
-					<? } ?>
+					<?php } ?>
 				</select>
 			</fieldset>
 			<fieldset>
@@ -23,7 +23,7 @@
 						<option value="bigtree_settings">Settings</option>
 					</optgroup>
 					<optgroup label="Modules">
-						<? BigTree::getTableSelectOptions() ?>
+						<?php BigTree::getTableSelectOptions() ?>
 					</optgroup>
 				</select>
 			</fieldset>

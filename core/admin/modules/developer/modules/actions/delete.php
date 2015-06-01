@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->deleteModuleAction(end($bigtree["path"]));
 	$admin->growl("Developer","Deleted Action");
 	

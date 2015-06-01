@@ -5,7 +5,7 @@
 			<div class="contain">
 				<h3>Package Information</h3>
 				<div class="left last">
-					<fieldset<? if (!empty($_GET["invalid"])) { ?> class="form_error"<? } ?>>
+					<fieldset<?php if (!empty($_GET["invalid"])) { ?> class="form_error"<?php } ?>>
 						<label>ID <small>(i.e. com.fastspot.news &mdash; allowed characters: alphanumeric, ".", "-", and "_")</small></label>
 						<input type="text" name="id" value="<?=$id?>" tabindex="1" />
 					</fieldset>
@@ -37,21 +37,21 @@
 			<div class="contain">
 				<div class="left last">
 					<h3>Open Source Licenses</h3>
-					<? foreach ($available_licenses["Open Source"] as $name => $link) { ?>
+					<?php foreach ($available_licenses["Open Source"] as $name => $link) { ?>
 					<div class="checkbox_row">
-						<input type="checkbox" name="licenses[]" value="<?=$name?>" <? if (in_array($name,(array)$licenses)) { ?> checked="checked"<? } ?>/>
+						<input type="checkbox" name="licenses[]" value="<?=$name?>" <?php if (in_array($name,(array)$licenses)) { ?> checked="checked"<?php } ?>/>
 						<label class="for_checkbox"><?=$name?> &mdash; <a href="<?=$link?>" target="_blank">Read License</a></label>
 					</div>
-					<? } ?>
+					<?php } ?>
 				</div>
 				<div class="right last">
 					<h3>Closed Source License</h3>
-					<? foreach ($available_licenses["Closed Source"] as $name => $link) { ?>
+					<?php foreach ($available_licenses["Closed Source"] as $name => $link) { ?>
 					<div class="checkbox_row">
-						<input type="radio" name="license" value="<?=$name?>" <? if ($license == $name) { ?> checked="checked"<? } ?>/>
+						<input type="radio" name="license" value="<?=$name?>" <?php if ($license == $name) { ?> checked="checked"<?php } ?>/>
 						<label class="for_checkbox"><?=$name?></label>
 					</div>
-					<? } ?>
+					<?php } ?>
 					<br /><br />
 					<h3>Custom License</h3>
 					<fieldset>

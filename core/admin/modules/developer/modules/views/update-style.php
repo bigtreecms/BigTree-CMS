@@ -1,4 +1,4 @@
-<?
+<?php
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	
 	$fields = $view["fields"];
