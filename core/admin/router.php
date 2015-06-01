@@ -474,4 +474,3 @@
 	$bigtree["content"] = ob_get_clean();
 
 	include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
-?>

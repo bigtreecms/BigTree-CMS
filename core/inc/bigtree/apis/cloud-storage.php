@@ -609,11 +609,12 @@
 			foreach ($flat as $raw_item) {
 				$keys = explode("/",$raw_item["name"]);
 				// We're going to use by reference vars to figure out which folder to place this in
-				if (count($keys) > 1) {
+				$count = count($keys);
+				if ($count > 1) {
 					$folder = &$tree;
-					for ($i = 0; $i < count($keys); $i++) {
+					for ($i = 0; $i < $count; $i++) {
 						// Last part of the key and also has a . so we know it's actually a file
-						if ($i == count($keys) - 1 && strpos($keys[$i],".") !== false) {
+						if ($i == ($count - 1) && strpos($keys[$i],".") !== false) {
 							$raw_item["name"] = $keys[$i];
 							$folder["files"][] = $raw_item;
 						} else {

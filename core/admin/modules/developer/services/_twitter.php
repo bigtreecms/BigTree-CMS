@@ -12,9 +12,9 @@
 		'Follow the OAuth process of allowing BigTree/your application access to your Twitter account.'
 	);
 
-	function __localBigTreeAPIReturn(&$api) {
+	$bigtree["api_return_function"] = function(&$api) {
 		$user = $api->callUncached("account/verify_credentials.json");
 		$api->Settings["user_id"] = $user->id;
 		$api->Settings["user_name"] = $user->screen_name;
 		$api->Settings["user_image"] = $user->profile_image_url;
-	}
+	};

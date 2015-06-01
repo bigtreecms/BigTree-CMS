@@ -1119,7 +1119,8 @@
 				$this->Message = $response["RESPMSG"];				
 				
 				if ($response["RESULT"] == "0") {
-					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
+					header("Location: https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
+					die();
 				} else {
 					return false;
 				}
@@ -1132,7 +1133,8 @@
 				$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 				
 				if ($response["ACK"] == "Success" || $response["ACK"] == "SuccessWithWarning") {
-					BigTree::redirect("https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
+					header("Location: https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
+					die();
 				} else {
 					return false;
 				}
@@ -1157,7 +1159,8 @@
 					$_SESSION["bigtree"]["paypal-rest-payment-id"] = $response->id;
 					foreach ($response->links as $link) {
 						if ($link->rel == "approval_url") {
-							BigTree::redirect($link->href);
+							header("Location: ".$link->href);
+							die();
 						}
 					}
 				} else {

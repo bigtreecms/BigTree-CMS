@@ -743,7 +743,8 @@
 					}
 					$column["allow_null"] = true;
 					$extras = explode(" ",$line);
-					for ($x = 0; $x < count($extras); $x++) {
+					$extras_count = count($extras);
+					for ($x = 0; $x < $extras_count; $x++) {
 						$part = strtoupper($extras[$x]);
 						if ($part == "NOT" && strtoupper($extras[$x + 1]) == "NULL") {
 							$column["allow_null"] = false;
@@ -860,8 +861,8 @@
 		*/
 
 		static function formatCSS3($css) {
-			// Background Gradients - background-gradient: #top #bottom
-			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',create_function('$data','
+			// Setup function for replacing "background-gradient" property
+			$bg_gradient_callback_replace = function($data) {
 				$d = trim($data[1]);
 				list($stop,$start) = explode(" ",$d);
 				$start_rgb = (substr($start,0,1) == "#") ? "rgb(".hexdec(substr($start,1,2)).",".hexdec(substr($start,3,2)).",".hexdec(substr($start,5,2)).")" : $start;
@@ -871,7 +872,10 @@
 					$response .= "filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop);-ms-filter: \"progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop)\"; zoom:1;";
 				}
 				return $response;
-			'),$css);
+			};
+
+			// Background Gradients - background-gradient: #top #bottom
+			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',$bg_gradient_callback_replace,$css);
 			
 			// Border Radius - border-radius: 0px 0px 0px 0px
 			$css = preg_replace_callback('/border-radius:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
@@ -1414,11 +1418,14 @@
 			
 			Parameters:
 				directory - The full path to the directory to be made.
+
+			Returns:
+				true if successful
 		*/
 		
 		static function makeDirectory($directory) {
 			if (file_exists($directory)) {
-				return;
+				return true;
 			}
 
 			$dir_parts = explode("/",trim($directory,"/"));
@@ -1426,12 +1433,18 @@
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.
-				if (!@file_exists($dir_path)) {
-					@mkdir($dir_path);
-					static::setPermissions($dir_path);
+				try {
+					$exists = file_exists($dir_path);
+					if (!$exists) {
+						mkdir($dir_path);
+						static::setPermissions($dir_path);
+					}
+				} catch (Exception $e) {
+					return false;
 				}
 				$dir_path .= "/";
 			}
+			return true;
 		}
 		
 		/*
@@ -2300,7 +2313,10 @@
 
 		static function setPermissions($location) {
 			if (!static::runningAsSU()) {
-				@chmod($location,0777);
+				try {
+					chmod($location,0777);
+				} catch (Exception $e) {
+				}
 			}
 		}
 

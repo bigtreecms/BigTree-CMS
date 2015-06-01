@@ -199,7 +199,9 @@
 			if ($this->_ready) {
 				$this->_exec("QUIT");
 			}
-			@fclose($this->_ftp_control_sock);
+			if ($this->_ftp_control_sock) {
+				fclose($this->_ftp_control_sock);
+			}
 			$this->_connected=false;
 			$this->_ready = false;
 		}
@@ -489,7 +491,9 @@
 		}
 
 		private function _data_close() {
-			@fclose($this->_ftp_data_sock);
+			if ($this->_ftp_data_sock) {
+				fclose($this->_ftp_data_sock);
+			}
 			return true;
 		}
 

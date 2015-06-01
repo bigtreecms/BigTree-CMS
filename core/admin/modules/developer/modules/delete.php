@@ -3,4 +3,3 @@
 	
 	$admin->growl("Developer","Deleted Module");
 	BigTree::redirect(DEVELOPER_ROOT."modules/");
-?>

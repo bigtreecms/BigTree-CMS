@@ -11,4 +11,3 @@
 		$admin->growl("Yahoo BOSS API","Connected");
 	}
 	BigTree::redirect(DEVELOPER_ROOT."geocoding/yahoo-boss/");
-?>

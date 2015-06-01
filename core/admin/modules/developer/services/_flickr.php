@@ -11,7 +11,7 @@
 		'Follow the OAuth process of allowing BigTree/your application access to your Flickr account.'
 	);
 
-	function __localBigTreeAPIReturn(&$api) {
+	$bigtree["api_return_function"] = function(&$api) {
 		// Get user ID
 		$user = $api->callUncached("flickr.test.login");
 		// Get user info
@@ -26,4 +26,4 @@
 		$api->Settings["user_id"] = $user->person->id;
 		$api->Settings["user_name"] = $user->person->username->_content;
 		$api->Settings["user_image"] = $user_icon;
-	}
+	};

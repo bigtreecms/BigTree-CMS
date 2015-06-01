@@ -535,8 +535,15 @@
 				return array();
 			}
 			$errors = array();
+
+			// Make sure HTML is valid.
 			$doc = new DOMDocument();
-			@$doc->loadHTML($html); // Silenced because the HTML could be invalid.
+			try {
+				$doc->loadHTML($html);
+			} catch (Exception $e) {
+				return array();
+			}
+
 			// Check A tags.
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {
@@ -2635,7 +2642,7 @@
 			$perm = $this->Permissions["module"][$id];
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
-			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
+			if (empty($item) || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 
@@ -2771,7 +2778,7 @@
 			$perm = $this->Permissions["module"][$id];
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
-			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
+			if (empty($item) || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 

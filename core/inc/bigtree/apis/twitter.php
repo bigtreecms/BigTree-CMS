@@ -507,7 +507,8 @@
 				$admin->growl("Twitter API","Consumer Key or Secret invalid.","error");
 				BigTree::redirect(ADMIN_ROOT."developer/services/twitter/");
 			}
-			BigTree::redirect("https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
+			header("Location: https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
+			die();
 		}
 
 		/*

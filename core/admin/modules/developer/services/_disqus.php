@@ -11,9 +11,9 @@
 		'Follow the OAuth process of allowing BigTree/your application access to your Disqus account.'
 	);
 
-	function __localBigTreeAPIReturn(&$api) {
+	$bigtree["api_return_function"] = function(&$api) {
 		$user = $api->getUser();
 		$api->Settings["user_name"] = $user->Name;
 		$api->Settings["user_image"] = $user->Image;
 		$api->Settings["user_id"] = $user->ID;
-	}
+	};

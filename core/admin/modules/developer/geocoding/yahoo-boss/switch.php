@@ -4,4 +4,3 @@
 	$admin->updateSettingValue("bigtree-internal-geocoding-service",$geocoding_service);
 	$admin->growl("Developer","Geocoding Service set to Yahoo BOSS");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

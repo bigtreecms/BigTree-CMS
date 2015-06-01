@@ -478,9 +478,10 @@
 	// If we're in HTTPS, make sure all Javascript, images, and CSS are pulling from HTTPS
 	if (BigTreeCMS::$Secure) {
 		// Replace CSS includes
-		$bigtree["content"] = preg_replace_callback('/<link [^>]*href="([^"]*)"/',create_function('$matches','
-			return str_replace(\'href="http://\',\'href="https://\',$matches[0]);
-		'),$bigtree["content"]);
+		$secure_replace_callback = function($matches) {
+			return str_replace('href="http://','href="https://',$matches[0]);
+		};
+		$bigtree["content"] = preg_replace_callback('/<link [^>]*href="([^"]*)"/',$secure_replace_callback,$bigtree["content"]);
 		// Replace script and image tags.
 		$bigtree["content"] = str_replace('src="http://','src="https://',$bigtree["content"]);
 	}

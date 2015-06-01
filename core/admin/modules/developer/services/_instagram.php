@@ -12,9 +12,9 @@
 		'Follow the OAuth process of allowing BigTree/your application access to your Instagram account.'
 	);
 
-	function __localBigTreeAPIReturn(&$api) {
+	$bigtree["api_return_function"] = function(&$api) {
 		$user = $api->callUncached("users/self");
 		$api->Settings["user_id"] = $user->data->id;
 		$api->Settings["user_name"] = $user->data->username;
 		$api->Settings["user_image"] = $user->data->profile_picture;
-	}
+	};

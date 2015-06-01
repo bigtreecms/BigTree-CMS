@@ -14,9 +14,9 @@
 		'Follow the OAuth process of allowing BigTree/your application access to your Google+ account.'
 	);
 
-	function __localBigTreeAPIReturn(&$api) {
+	$bigtree["api_return_function"] = function(&$api) {
 		$info = $api->getPerson();
 		$api->Settings["user_id"] = $info->ID;
 		$api->Settings["user_name"] = $info->DisplayName;
 		$api->Settings["user_image"] = $info->Image;
-	}
+	};

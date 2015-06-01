@@ -14,4 +14,3 @@
 			BigTree::redirect(DEVELOPER_ROOT."settings/edit/".end($bigtree["path"])."/");
 		}
 	}
-?>
