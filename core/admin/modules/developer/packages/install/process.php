@@ -159,8 +159,8 @@
 	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
-	@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
-	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','package','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");
 	sqlquery("SET foreign_key_checks = 1");

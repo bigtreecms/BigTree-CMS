@@ -135,7 +135,7 @@
 	BigTree::putFile(SERVER_ROOT."cache/package/manifest.json",$json);
 	
 	// Create the zip
-	@unlink(SERVER_ROOT."cache/package.zip");
+	BigTree::deleteFile(SERVER_ROOT."cache/package.zip");
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."cache/package/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."cache/package/");

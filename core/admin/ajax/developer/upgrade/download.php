@@ -1,6 +1,6 @@
 <?php
 	// Remove existing update zips
-	@unlink(SERVER_ROOT."cache/update.zip");
+	BigTree::deleteFile(SERVER_ROOT."cache/update.zip");
 
 	// Get download info
 	$url = $cms->cacheGet("org.bigtreecms.downloads",$_POST["key"]);

@@ -994,7 +994,7 @@
 				BigTree::setPermissions(SERVER_ROOT."custom/inc/modules/$route.php");
 
 				// Remove cached class list.
-				@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
+				BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 			}
 
 			$this->track("bigtree_modules",$id,"created");
@@ -1841,9 +1841,9 @@
 		*/
 
 		function deleteFieldType($id) {
-			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
-			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
-			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
+			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+			BigTree::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 			$this->track("bigtree_field_types",$id,"deleted");
 		}
@@ -2007,7 +2007,7 @@
 		
 			// Delete related files
 			foreach ($j["files"] as $file) {
-				@unlink(SERVER_ROOT.$file);
+				BigTree::deleteFile(SERVER_ROOT.$file);
 			}
 		
 			// Delete components
@@ -2229,7 +2229,7 @@
 			if ($template["routed"]) {
 				BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$template["id"]."/");
 			} else {
-				@unlink(SERVER_ROOT."templates/basic/".$template["id"].".php");
+				BigTree::deleteFile(SERVER_ROOT."templates/basic/".$template["id"].".php");
 			}
 			sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
 			$this->track("bigtree_templates",$template["id"],"deleted");
@@ -5510,8 +5510,8 @@
 			}
 
 			// Clear module class cache and field type cache.
-			@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
-			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			return $manifest;
 		}
@@ -5943,7 +5943,7 @@
 
 			// Remove all the temporary images
 			foreach ($crops as $crop) {
-				@unlink($crop["image"]);
+				BigTree::deleteFile($crop["image"]);
 			}
 		}
 
@@ -7024,7 +7024,7 @@
 					$get["bigtree_htaccess_url"] = str_replace(WWW_ROOT,"",BigTreeCMS::getLink($page));
 				}
 			}
-			@unlink(md5(json_encode($get)).".page");
+			BigTree::deleteFile(md5(json_encode($get)).".page");
 		}
 
 		/*
@@ -7249,7 +7249,7 @@
 			$this->track("bigtree_modules",$id,"updated");
 
 			// Remove cached class list.
-			@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
+			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 		}
 
 		/*

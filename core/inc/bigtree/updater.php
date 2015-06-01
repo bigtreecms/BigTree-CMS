@@ -67,7 +67,7 @@
 			if (file_exists(SERVER_ROOT."cache/update/")) {
 				BigTree::deleteDirectory(SERVER_ROOT."cache/update/");
 			}
-			@unlink(SERVER_ROOT."cache/update.zip");
+			BigTree::deleteFile(SERVER_ROOT."cache/update.zip");
 		}
 
 		/*

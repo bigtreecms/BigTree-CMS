@@ -119,7 +119,7 @@
 				}
 			}
 			// Clear the module class list just in case we're missing something.
-			@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
+			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 		}
 
 		/*
@@ -514,6 +514,24 @@
 				}
 			}
 			return rmdir($dir);
+		}
+
+		/*
+			Function: deleteFile
+				Deletes a file if it exists.
+
+			Parameters:
+				file - The file to delete
+
+			Returns:
+				true if successful
+		*/
+
+		static function deleteFile($file) {
+			if (file_exists($file)) {
+				return unlink($file);
+			}
+			return false;
 		}
 		
 		/*

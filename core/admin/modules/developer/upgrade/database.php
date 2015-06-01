@@ -483,7 +483,7 @@
 		sqlquery("INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-media-settings','{}','on')");
 
 		// New field types
-		@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+		BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 		// Setup an anonymous function for converting a resource set
 		$resource_converter = function($resources) {
