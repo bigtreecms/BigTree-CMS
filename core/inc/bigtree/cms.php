@@ -5,18 +5,20 @@
 	*/
 
 	class BigTreeCMSBase {
-	
-		var $AutoSaveSettings = array();
-		var $ModuleClassList = array();
-		var $RouteRegistry = array("public" => array(),"admin" => array(),"template" => array());
+		
+		// Public properties
+		public $AutoSaveSettings = array();
+		public $ModuleClassList = array();
+		public $RouteRegistry = array("public" => array(),"admin" => array(),"template" => array());
 
-		static $BreadcrumbTrunk;
-		static $IRLCache = array();
-		static $IPLCache = array();
-		static $MySQLTime = false;
-		static $ReplaceableRootKeys = array();
-		static $ReplaceableRootVals = array();
-		static $Secure;
+		// Public static properties
+		public static $BreadcrumbTrunk;
+		public static $IRLCache = array();
+		public static $IPLCache = array();
+		public static $MySQLTime = false;
+		public static $ReplaceableRootKeys = array();
+		public static $ReplaceableRootVals = array();
+		public static $Secure;
 
 		/*
 			Constructor:
