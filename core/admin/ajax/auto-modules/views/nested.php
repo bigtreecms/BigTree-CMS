@@ -81,7 +81,7 @@
 						if ($action == "preview") {
 							$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
 						} elseif ($action == "edit") {
-							$link = $bigtree["view"]["edit_url"].$item["id"]."/".$edit_append;
+							$link = $bigtree["view"]["edit_url"].$item["id"]."/";
 						} else {
 							$link = "#".$item["id"];
 						}
