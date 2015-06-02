@@ -5,21 +5,14 @@
 	*/
 
 	class BigTreeAdminBase {
-		static $IRLPrefixes = false;
-		static $IRLsCreated = array();
-		static $PerPage = 15;
 
-		// !Cron Plugins
-		static $CronPlugins = array();
-
-		// !Daily Digest Plugins
-		static $DailyDigestPlugins = array();
-
-		// !Dashboard Plugins
-		static $DashboardPlugins = array();
-
-		// !Interface Types
-		static $InterfaceTypes = array(
+		// Static variables
+		public static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
+		public static $CronPlugins = array();
+		public static $DailyDigestPlugins = array();
+		public static $DashboardPlugins = array();
+		public static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
+		public static $InterfaceTypes = array(
 			"core" => array(
 				"views" => array(
 					"name" => "View",
@@ -44,17 +37,16 @@
 			),
 			"extension" => array()
 		);
-
-		// !Reserved Column Names
-		static $ReservedColumns = array(
+		public static $IRLPrefixes = false;
+		public static $IRLsCreated = array();
+		public static $PerPage = 15;
+		public static $ReservedColumns = array(
 			"id",
 			"position",
 			"archived",
 			"approved"
 		);
-
-		// !Reserved Top Level Routes
-		static $ReservedTLRoutes = array(
+		public static $ReservedTLRoutes = array(
 			"ajax",
 			"css",
 			"feeds",
@@ -63,9 +55,7 @@
 			"_preview",
 			"_preview-pending"
 		);
-
-		// !View Actions
-		static $ViewActions = array(
+		public static $ViewActions = array(
 			"approve" => array(
 				"key" => "approved",
 				"name" => "Approve",
@@ -92,9 +82,7 @@
 				"class" => "icon_delete"
 			)
 		);
-
-		// !View Types
-		static $ViewTypes = array(
+		public static $ViewTypes = array(
 			"core" => array(
 				"searchable" => "Searchable List",
 				"draggable" => "Draggable List",
@@ -105,10 +93,6 @@
 			),
 			"extension" => array()
 		);
-
-		// !Icon Classes
-		static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
-		static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
 		
 		/*
 			Constructor:
