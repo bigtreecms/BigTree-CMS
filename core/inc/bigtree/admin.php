@@ -1183,6 +1183,35 @@
 		}
 
 		/*
+			Function: createModuleInterface
+				Creates a module interface.
+
+			Parameters:
+				type - Interface type ("view", "form", "report", "embeddable-form", or an extension interface identifier)
+				module - The module ID the interface is for
+				title - The interface title (for admin purposes)
+				table - The related table
+				settings - An array of settings
+
+			Returns:
+				The new interface's ID.
+		*/
+
+		function createModuleInterface($type,$module,$title,$table,$settings = array()) {
+			$type = sqlescape($type);
+			$module = intval($module);
+			$title = sqlescape(BigTree::safeEncode($title));
+			$table = sqlescape($table);
+			$settings = BigTree::json($settings,true);
+
+			sqlquery("INSERT INTO bigtree_module_interfaces (`type`,`module`,`title`,`table`,`settings`) VALUES ('$type','$module','$title','$table','$settings')");
+			$id = sqlid();
+			$this->track("bigtree_module_interfaces",$id,"created");
+
+			return $id;
+		}
+
+		/*
 			Function: createModuleReport
 				Creates a module report and the associated module action.
 

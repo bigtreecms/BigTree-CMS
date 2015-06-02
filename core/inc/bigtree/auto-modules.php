@@ -608,7 +608,7 @@
 			// For backwards compatibility
 			if (is_array($settings["fields"])) {
 				$related_fields = array();
-				foreach ($form["fields"] as $field) {
+				foreach ($settings["fields"] as $field) {
 					$related_fields[$field["column"]] = $field;
 				}
 				$settings["fields"] = $related_fields;
