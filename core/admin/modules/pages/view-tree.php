@@ -4,7 +4,7 @@
 	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
 	
 	// Handy function to show the trees without repeating so much code.
-	function local_drawPageTree($nav,$title,$subtitle,$class,$draggable = false) {
+	$draw_page_tree = function($nav,$title,$class,$draggable = false) {
 		global $proot,$admin,$cms,$ga_on,$bigtree,$page;
 ?>
 <div class="table">
@@ -155,17 +155,17 @@
 	if (count($nav_visible) || count($nav_hidden) || count($nav_archived)) {
 		// Drag Visible Pages
 		if (count($nav_visible)) {
-			local_drawPageTree($nav_visible,"Visible","","pages",true);
+			$draw_page_tree($nav_visible,"Visible","pages",true);
 		}
 		
 		// Draw Hidden Pages
 		if (count($nav_hidden)) {
-			local_drawPageTree($nav_hidden,"Hidden","Not Appearing In Navigation","hidden",false);
+			$draw_page_tree($nav_hidden,"Hidden","hidden",false);
 		}
 		
 		// Draw Archived Pages
 		if (count($nav_archived)) {
-			local_drawPageTree($nav_archived,"Archived","Not Accessible By Users","archived",false);
+			$draw_page_tree($nav_archived,"Archived","archived",false);
 		}
 	} else {
 ?>

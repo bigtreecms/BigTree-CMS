@@ -1513,7 +1513,7 @@
 				A more sensible array, or a piece of that sensible array if "part" is set.
 		*/
 
-		static function parsedFilesArray($part = false) {
+		static function parsedFilesArray($part = "") {
 			$clean = array();
 			foreach ($_FILES as $key => $first_level) {
 				// Hurray, we have a first level entry, just save it to the clean array.

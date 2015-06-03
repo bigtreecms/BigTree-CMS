@@ -137,15 +137,9 @@
 		}
 	}
 	
-	$e = false;
-
+	$error = "";
 	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
-		if ($_SESSION["bigtree_admin"]["update_user"]["error"] == "password") {
-			$e = "password";
-		} else {
-			$e = "email";
-		}
 		unset($_SESSION["bigtree_admin"]["update_user"]);
 	}
 	
@@ -160,16 +154,16 @@
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
 		<input type="hidden" name="id" value="<?=$user["id"]?>" />
 		<section>
-			<p class="error_message"<?php if (!$e) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
-				<fieldset<?php if ($e == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
-					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($e == "email") { ?><span class="form_error_reason">Already In Use By Another User</span><?php } ?></label>
+				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason">Already In Use By Another User</span><?php } ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
 					<span class="gravatar"<?php if ($email) { ?> style="display: block;"<?php } ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
-				<fieldset<?php if ($e == "password") { ?> class="form_error"<?php } ?> >
-					<label>Password <small>(Leave blank to remain unchanged)</small> <?php if ($e == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
+				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?> >
+					<label>Password <small>(Leave blank to remain unchanged)</small> <?php if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
 					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<?php if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
 					<?php if ($policy) { ?>
 					<p class="password_policy">Password Policy In Effect</p>
