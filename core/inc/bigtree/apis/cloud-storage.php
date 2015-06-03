@@ -98,7 +98,7 @@
 			} else {
 				// See if we can get the container's CDN URL
 				$cdn = false;
-				$response = BigTree::cURL($this->RackspaceCDNEndpoint."/$container","",array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				$response = BigTree::cURL($this->RackspaceCDNEndpoint."/$container",false,array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 				$lines = explode("\n",$response);
 				foreach ($lines as $line) {
 					if (substr($line,0,10) == "X-Cdn-Uri:") {
@@ -239,7 +239,7 @@
 				if ($bigtree["last_curl_response_code"] == 201) {
 					// CDN Enable this container if it's public
 					if ($public) {
-						BigTree::cURL($this->RackspaceCDNEndpoint."/$name","",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
+						BigTree::cURL($this->RackspaceCDNEndpoint."/$name",false,array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
 					}
 					return true;
 				} else {

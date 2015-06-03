@@ -104,7 +104,7 @@
 		<li><a href="<?=$d?>"><span class="icon_small icon_small_folder"></span><?=$d?></a></li>
 		<?php
 			}
-			foreach ($containers as $container) {
+			foreach (array_filter((array)$containers) as $container) {
 		?>
 		<li><a data-type="container" href="<?=$container["name"]?>" title="<?=$container["name"]?>"><span class="icon_small icon_small_export"></span><?=$container["name"]?></a></li>
 		<?php

@@ -97,7 +97,7 @@
 							// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
 							if (!$error) {
 								$sizes = BigTree::getThumbnailSizes($first_copy,$thumb["width"],$thumb["height"]);
-								if (!BigTree::imageManipulationMemoryAvailable($first_copy,$sizes[3],$sizes[4],$iwidth,$iheight)) {
+								if (!BigTree::imageManipulationMemoryAvailable($first_copy,$sizes[3],$sizes[4])) {
 									$errors[] = "$file_name is too large for the server to manipulate. Please upload a smaller version of this image.";
 									unlink($first_copy);
 								}

@@ -6,7 +6,7 @@
 		$storage->Settings->Container = $_POST["container"];
 		// If we're using Rackspace, we need to explicitly CDN enable this container.
 		if ($_POST["service"] == "rackspace") {
-			BigTree::cURL($cloud->RackspaceCDNEndpoint."/".$_POST["container"],"",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
+			BigTree::cURL($cloud->RackspaceCDNEndpoint."/".$_POST["container"],false,array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
 		}
 	} else {
 		// We're only going to try to get a unique bucket 10 times to prevent an infinite loop

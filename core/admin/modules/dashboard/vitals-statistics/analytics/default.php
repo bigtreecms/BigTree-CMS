@@ -7,27 +7,27 @@
 	// Get the beginning month of the current quarter
 	$current_quarter_month = date("m") - date("m") % 3 + 1;
 	
-	function _local_compareData($current,$past) {
+	$compare_data = function($current,$past) {
 		if ($past["views"]) {
-			$view_growth = number_format((($current["views"]-$past["views"]) / $past["views"]) * 100,2)."%";
+			$view_growth = number_format((($current["views"] - $past["views"]) / $past["views"]) * 100,2)."%";
 		} else {
 			$view_growth = "N/A";
 		}
 		
 		if ($past["visits"]) {
-			$visits_growth = number_format((($current["visits"]-$past["visits"]) / $past["visits"]) * 100,2)."%";
+			$visits_growth = number_format((($current["visits"] - $past["visits"]) / $past["visits"]) * 100,2)."%";
 		} else {
 			$visits_growth = "N/A";
 		}
 		
 		if ($past["bounce_rate"]) {
-			$bounce_growth = number_format($current["bounce_rate"]-$past["bounce_rate"],2)."%";
+			$bounce_growth = number_format($current["bounce_rate"] - $past["bounce_rate"],2)."%";
 		} else {
 			$bounce_growth = "N/A";
 		}
 		
 		if ($past["average_time_seconds"]) {
-			$time_growth = number_format((($current["average_time_seconds"]-$past["average_time_seconds"]) / $past["average_time_seconds"]) * 100,2)."%";
+			$time_growth = number_format((($current["average_time_seconds"] - $past["average_time_seconds"]) / $past["average_time_seconds"]) * 100,2)."%";
 		} else {
 			$time_growth = "N/A";
 		}
@@ -42,7 +42,7 @@
 		}
 		$c_time = trim($c_min." ".$c_seconds);
 		
-		$p_ = "";
+		$p_min = "";
 		$p_seconds = floor($past["average_time_seconds"])." second(s)";
 		$p_time = $past["average_time_seconds"];
 		if ($p_time > 60) {
@@ -52,24 +52,28 @@
 		}
 		$p_time = trim($p_min." ".$p_seconds);
 		
+		$view_class = "";
 		if ($view_growth > 5) {
 			$view_class = 'growth';
 		} elseif ($view_growth < -5) {
 			$view_class = 'warning';
 		}
 		
+		$visit_class = "";
 		if ($visits_growth > 5) {
 			$visit_class = 'growth';
 		} elseif ($visits_growth < -5) {
 			$visit_class = 'warning';
 		}
 		
+		$time_class = "";
 		if ($time_growth > 5) {
 			$time_class = "growth";
 		} elseif ($time_growth < -5) {
 			$time_class = "warning";
 		}
 		
+		$bounce_class = "";
 		if ($bounce_growth < -2) {
 			$bounce_class = 'growth';
 		} elseif ($bounce_growth > 2) {
@@ -130,7 +134,7 @@
 	</div>
 </div>
 <?php
-	}
+	};
 ?>
 <div class="table">
 	<summary>
@@ -169,14 +173,14 @@
 <section class="analytics_columns">
 	<article>
 		<summary>Current Month <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<?php _local_compareData($cache["month"],$cache["year_ago_month"]); ?>
+		<?php $compare_data($cache["month"],$cache["year_ago_month"]); ?>
 	</article>
 	<article>
 		<summary>Current Quarter <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<?php _local_compareData($cache["quarter"],$cache["year_ago_quarter"]); ?>
+		<?php $compare_data($cache["quarter"],$cache["year_ago_quarter"]); ?>
 	</article>
 	<article class="last">
 		<summary>Current Year <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<?php _local_compareData($cache["year"],$cache["year_ago_year"]); ?>
+		<?php $compare_data($cache["year"],$cache["year_ago_year"]); ?>
 	</article>
 </section>

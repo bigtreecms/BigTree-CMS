@@ -418,7 +418,7 @@
 			}
 
 			// Setup post data
-			if ($post) {
+			if ($post !== false) {
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 			}
 
