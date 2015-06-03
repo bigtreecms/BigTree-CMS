@@ -62,7 +62,6 @@
 			$reply = trim($reply_to);
 			if (strpos($reply,"<") !== false && substr($reply,-1,1) == ">") {
 				$reply_pieces = explode("<",$reply);
-				$reply_name = trim($reply_pieces[0]);
 				$reply_to = substr($reply_pieces[1],0,-1);
 			}
 
@@ -178,8 +177,6 @@
 
 		protected function sendSendGrid($subject,$body,$to,$from_email,$from_name,$reply_to = false,$text = false) {
 			$url = 'https://api.sendgrid.com/api/mail.send.json';
-			$user = $this->Settings["sendgrid_api_user"];
-			$pass = $this->Settings["sendgrid_api_key"];
 
 			// Build POST data
 			$data = array(

@@ -922,7 +922,6 @@
 					$host = "s3.amazonaws.com";
 					if ($bucket) {
 						$uri = "/".$bucket.$uri;
-						$bucket = "";
 					}
 					$resource = $uri;
 				} else {
@@ -935,7 +934,6 @@
 				$resource = $uri;
 			}
 		
-			$query = "";
 			if (count($params)) {
 				$query = (substr($uri,-1) !== "?") ? "?" : "&";
 				// Build out the GET vars
