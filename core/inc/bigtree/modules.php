@@ -42,8 +42,8 @@
 				table - The SQL table you want to perform queries on.
 		*/
 
-		function __construct($table = false) {
-			if ($table !== false) {
+		function __construct($table = "") {
+			if ($table) {
 				$this->Table = $table;
 			}
 		}

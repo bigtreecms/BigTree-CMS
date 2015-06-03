@@ -25,7 +25,7 @@
 		</div>
 		<section class="mobile-full tablet-full desktop-8 desktop-push-2 post_list">
 			<?php
-				foreach ($trees as $tree) {
+				foreach (array_filter(array)$trees) as $tree) {
 			?>
 			<article class="post wallpapered" data-wallpaper-options='{"source":"<?=BigTree::prefixFile($tree["cover"], "large_")?>"}'>
 				<a href="<?=$tree["detail_link"]?>">

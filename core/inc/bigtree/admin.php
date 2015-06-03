@@ -105,7 +105,6 @@
 
 			// Handle extension cache
 			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
-				$settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
 				$plugins = array();
 				$q = sqlquery("SELECT id FROM bigtree_extensions");
 				while ($f = sqlfetch($q)) {
@@ -851,28 +850,7 @@
 
 			return $id;
 		}
-
-		/*
-			Function: createInterfaceConfiguration
-				Creates an extension interface configuration.
-
-			Parameters:
-				extension - The extension identifier.
-				interface - The interface identifier.
-				module - The module this configuration is being created for.
-				configuration - An array of configuration data.
-
-			Returns:
-				The unique identifier for the created interface configuration.
-		*/
-
-		function createInterfaceConfiguration($extension,$interface,$module,$configuration) {
-			if (is_array($module)) {
-				$module = $module["id"];
-			}
-		}
-
-
+		
 		/*
 			Function: createMessage
 				Creates a message in message center.

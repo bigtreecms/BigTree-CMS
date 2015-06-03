@@ -52,8 +52,7 @@
 				
 			// Get matching results
 			$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
-			// Ignore SQL failures because we might have bad collation.
-			while ($r = sqlfetch($qs,true)) {
+			while ($r = sqlfetch($qs)) {
 				foreach ($r as &$piece) {
 					$piece = $cms->replaceInternalPageLinks($piece);
 				}

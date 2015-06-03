@@ -2083,7 +2083,7 @@
 		
 			// Do the regex match
 			if (!preg_match($regex,$path,$values)) {
-				return false;
+				return array();
 			}
 
 			$params = array();
