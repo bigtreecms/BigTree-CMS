@@ -95,7 +95,7 @@
 		if ($template) {
 			if (is_dir(SERVER_ROOT."templates/routed/$template/")) {
 				$contents = BigTree::directoryContents(SERVER_ROOT."templates/routed/$template/");
-				foreach ($contents as $c) {
+				foreach (array_filter((array)$contents) as $c) {
 					if (is_file($c)) {
 						$p["files"][] = $c;					
 					}

@@ -1055,7 +1055,7 @@
 				default - The currently selected value.
 		*/
 		
-		static function getTableSelectOptions($default = false) {
+		static function getTableSelectOptions($default = "") {
 			global $bigtree;
 			
 			$q = sqlquery("SHOW TABLES");
