@@ -545,8 +545,8 @@
 
 		static function getEmbedFormByHash($hash) {
 			$form = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
-									   (`$field` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
-										`$field` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')"));
+									   (`settings` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
+										`settings` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')"));
 			return self::getEmbedForm($form);
 		}
 		
@@ -1272,7 +1272,7 @@
 				"fields" => BigTree::arrayValue($settings["fields"]),
 				"options" => BigTree::arrayValue($settings["options"]),
 				"actions" => BigTree::arrayValue($settings["actions"]),
-				"preview_url" => BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]),
+				"preview_url" => $decode_ipl ? BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]) : $settings["preview_url"],
 				"related_form" => $settings["related_form"]
 			);
 

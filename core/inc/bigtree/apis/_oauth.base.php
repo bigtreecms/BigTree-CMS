@@ -96,7 +96,7 @@
 				Information directly from the API or the cache.
 		*/
 
-		function call($endpoint = false,$params = array(),$method = "GET",$headers = array()) {
+		function call($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			global $cms;
 			
 			if ($this->Cache) {
@@ -174,7 +174,7 @@
 
 			// Build out our new URL with OAuth vars + GET vars we extracted.
 			$url .= "?";
-			foreach ($get as $key => $val) {
+			foreach (array_filter((array)$get) as $key => $val) {
 				$url .= "$key=".rawurlencode($val)."&";
 			}
 
@@ -212,7 +212,7 @@
 				Information directly from the API.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
 				throw new Exception("This API is not connected.");
 			}

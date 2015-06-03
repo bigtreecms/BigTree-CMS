@@ -438,7 +438,6 @@
 			unset($this->Columns->CreatedById);
 			unset($this->Columns->CreatedDate);
 			unset($this->Columns->Id);
-			//unset($this->Columns->IsDeleted);
 			unset($this->Columns->JigsawCompanyId);
 			unset($this->Columns->LastActivityDate);
 			unset($this->Columns->LastModifiedDate);
