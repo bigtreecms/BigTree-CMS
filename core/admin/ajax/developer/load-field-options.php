@@ -41,12 +41,10 @@
 			echo "<hr />";
 		}
 		include BigTree::path("admin/ajax/developer/field-options/".$t.".php");
-	} else {
-		if ($t != "text" && $t != "textarea" && $t = "upload" && $t != "html" && $t != "list" && $t != "time" && $t != "date" && $t != "datetime") {
+	} elseif ($t != "textarea" && $t != "time") {
 ?>
 <p>This field type does not have any options.</p>
 <?
-		}
 	}
 ?>
 <script>	
