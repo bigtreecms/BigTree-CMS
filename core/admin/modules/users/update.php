@@ -25,6 +25,7 @@
 		
 		if (!$success) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
+			$_SESSION["bigtree_admin"]["update_user"]["error"] = "email";
 			$admin->growl("Users","Update Failed","error");
 			BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
 		}

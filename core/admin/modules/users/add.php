@@ -1,14 +1,8 @@
 <?	
-	$e = false;
-
+	$error = "";
 	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["create_user"],array("htmlspecialchars"));
 		$daily_digest = isset($daily_digest) ? $daily_digest : false;
-		if ($error == "password") {
-			$e = "password";
-		} else {
-			$error = "email";
-		}
 		unset($_SESSION["bigtree_admin"]["create_user"]);
 	} else {
 		$email = "";
@@ -21,16 +15,16 @@
 <div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/create/" method="post">	
 		<section>
-			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<? if (!$error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
-				<fieldset<? if ($e == "email") { ?> class="form_error"<? } ?> style="position: relative;">
-					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e == "email") { ?><span class="form_error_reason">Already In Use</span><? } ?></label>
+				<fieldset<? if ($error == "email") { ?> class="form_error"<? } ?> style="position: relative;">
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($error == "email") { ?><span class="form_error_reason">Already In Use</span><? } ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
 					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
-				<fieldset<? if ($e == "password") { ?> class="form_error"<? } ?>>
-					<label class="required">Password <? if ($e == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><? } ?></label>
+				<fieldset<? if ($error == "password") { ?> class="form_error"<? } ?>>
+					<label class="required">Password <? if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><? } ?></label>
 					<input type="password" class="required<? if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><? } ?>" name="password" value="" tabindex="3" />
 					<? if ($policy) { ?>
 					<p class="password_policy">Password Policy In Effect</p>
