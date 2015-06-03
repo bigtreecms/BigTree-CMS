@@ -142,7 +142,7 @@
 </script>
 <?php
 		}
-	}
+	};
 
 	include BigTree::path("admin/modules/pages/_properties.php");
 ?>
