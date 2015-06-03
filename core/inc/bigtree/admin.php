@@ -850,7 +850,7 @@
 
 			return $id;
 		}
-		
+
 		/*
 			Function: createMessage
 				Creates a message in message center.
@@ -1038,8 +1038,8 @@
 			// Make sure we get a unique hash
 			$hash = uniqid("embeddable-form-",true);
 			while (sqlrows(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
-									   (`$field` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
-										`$field` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')"))) {
+									   (`settings` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
+										`settings` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')"))) {
 				$hash = uniqid("embeddable-form-",true);
 			}
 
@@ -1528,7 +1528,7 @@
 
 		function createSetting($data) {
 			// Setup defaults
-			$id = $name = $extension = $description = $type = $options = $locked = $encrypted = $system = "";
+			$id = $name = $extension = $type = $options = $locked = $encrypted = $system = "";
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
 					$$key = sqlescape(htmlspecialchars($val));
@@ -1588,7 +1588,7 @@
 				$route = BigTreeCMS::urlify($tag);
 				$oroute = $route;
 				$x = 2;
-				while ($f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"))) {
+				while (sqlrows(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"))) {
 					$route = $oroute."-".$x;
 					$x++;
 				}
@@ -6100,7 +6100,7 @@
 								$crop["height"] *= 2;
 							}
 							// We don't want to add multiple errors so we check if we've already failed
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"],$iwidth,$iheight)) {
+							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"])) {
 								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
@@ -6116,7 +6116,7 @@
 								$thumb["height"] *= 2;
 							}
 							$sizes = BigTree::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4],$iwidth,$iheight)) {
+							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4])) {
 								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
@@ -6128,7 +6128,7 @@
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
 						if (!$failed && is_array($crop)) {
 							list($w,$h) = getimagesize($temp_name);
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$w,$h,$crop["width"],$crop["height"])) {
+							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$w,$h)) {
 								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
@@ -7313,7 +7313,7 @@
 			$existing = sqlfetch(sqlquery("SELECT settings FROM bigtree_module_interfaces WHERE id = '".sqlescape($id)."'"));
 			$settings = json_decode($existing["settings"],true);
 
-			$this->updateModuleInterface($id,"embeddable-form",$module,$title,$table,array(
+			$this->updateModuleInterface($id,$title,$table,array(
 				"fields" => $clean_fields,
 				"default_position" => $default_position,
 				"default_pending" => $default_pending ? "on" : "",
@@ -7351,7 +7351,7 @@
 				$clean_fields[] = $field;
 			}
 
-			$this->updateModuleInterface($id,"form",$module,$title,$table,array(
+			$this->updateModuleInterface($id,$title,$table,array(
 				"fields" => $clean_fields,
 				"default_position" => $default_position,
 				"return_view" => $return_view,
@@ -7401,6 +7401,27 @@
 		}
 
 		/*
+			Function: updateModuleInterface
+				Updates a module interface.
+
+			Parameters:
+				id - The ID of the interface to update
+				title - The interface title (for admin purposes)
+				table - The related table
+				settings - An array of settings
+		*/
+
+		function updateModuleInterface($id,$title,$table,$settings = array()) {
+			$id = sqlescape($id);
+			$title = sqlescape(BigTree::safeEncode($title));
+			$table = sqlescape($table);
+			$settings = BigTree::json($settings,true);
+
+			sqlquery("UPDATE bigtree_module_interfaces SET `title` = '$title', `table` = '$table', `settings` = '$settings' WHERE id = '$id'");
+			$this->track("bigtree_module_interfaces",$id,"updated");
+		}
+
+		/*
 			Function: updateModuleReport
 				Updates a module report.
 
@@ -7416,7 +7437,7 @@
 		*/
 
 		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$this->updateModuleInterface($id,"report",$module,$title,$table,array(
+			$this->updateModuleInterface($id,$title,$table,array(
 				"type" => $type,
 				"filters" => $filters,
 				"fields" => $fields,
@@ -7446,7 +7467,7 @@
 		*/
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
-			$this->updateModuleInterface($id,"view",$module,$title,$table,array(
+			$this->updateModuleInterface($id,$title,$table,array(
 				"description" => BigTree::safeEncode($description),
 				"type" => $type,
 				"fields" => $fields,
