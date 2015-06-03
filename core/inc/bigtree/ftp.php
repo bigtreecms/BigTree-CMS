@@ -274,7 +274,7 @@
 		*/
 
 		function getDirectoryContents($path = "") {
-			$list = $this->_list(" ".$path,"LIST","getRawDirectoryContents");
+			$list = $this->_list(" ".$path,"LIST");
 			if (is_array($list)) {
 				foreach ($list as &$line) {
 					$line = $this->parseListing($line);
@@ -295,7 +295,7 @@
 		*/
 
 		function getRawDirectoryContents($path = "") {
-			return $this->_list(" ".$path,"LIST","getRawDirectoryContents");
+			return $this->_list(" ".$path,"LIST");
 		}
 
 		/*

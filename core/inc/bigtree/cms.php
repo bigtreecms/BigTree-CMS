@@ -383,7 +383,6 @@
 								echo "<url><loc>".$s["link"]."</loc></url>\n";
 							}
 						}
-						$mod = $subnav = null;
 					}
 				}
 			}

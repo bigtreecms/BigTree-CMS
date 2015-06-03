@@ -1314,6 +1314,8 @@
 			} elseif ($info["mime"] == "image/png") {
 				$source_size = ceil($source_width * $source_height * 4 * 2.45);
 				$target_size = ceil($width * $height * 4 * 2.45);
+			} else {
+				return true;
 			}
 
 			$memory_usage = $source_size + $target_size + memory_get_usage();
@@ -1520,7 +1522,7 @@
 				if (!is_array($first_level["name"])) {
 					$clean[$key] = $first_level;
 				} else {
-					$clean[$key] = static::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+					$clean[$key] = self::parsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
 				}
 			}
 			if ($part) {
@@ -1544,7 +1546,7 @@
 					$array[$k]["error"] = $error[$k];
 					$array[$k]["size"] = $size[$k];
 				} else {
-					$array[$k] = static::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+					$array[$k] = self::parsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
 				}
 			}
 			return $array;
@@ -2352,7 +2354,6 @@
 			// Transition columns
 			$last_key = "";
 			foreach ($table_b_columns as $key => $column) {
-			    $mod = "";
 			    $action = "";
 			    // If this column doesn't exist in the Table A table, add it.
 			    if (!isset($table_a_columns[$key])) {
