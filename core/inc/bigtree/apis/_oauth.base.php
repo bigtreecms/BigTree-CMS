@@ -37,7 +37,7 @@
 			$this->CacheIdentifier = $cache_id;
 
 			// If we don't have the setting for the API, create it.
-			$this->Settings = &$cms->autoSaveSetting($setting_id,false);
+			$this->Settings = &$cms->autoSaveSetting($setting_id,false,$setting_name);
 			$this->SettingID = $setting_id;
 
 			// Setup dependency table for cache busting

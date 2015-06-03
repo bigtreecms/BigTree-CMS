@@ -105,12 +105,13 @@
 			Parameters:
 				id - The bigtree_settings id.
 				return_object - Return the data an object (default, set to false to return as array)
+				name - Optional name for the setting.
 
 			Returns:
 				An object reference.
 		*/
 
-		function &autoSaveSetting($id,$return_object = true) {
+		function &autoSaveSetting($id,$return_object = true,$name = "") {
 			$id = static::extensionSettingCheck($id);
 
 			// Only want one usage to exist
@@ -119,6 +120,8 @@
 
 				// Create a setting if it doesn't exist yet
 				if ($data === false) {
+					$name = sqlescape($name);
+
 					// If an extension is creating an auto save setting, make it a reference back to the extension
 					if (defined("EXTENSION_ROOT")) {
 						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
@@ -128,9 +131,9 @@
 							$id = "$extension*$id";
 						}
 						
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`,`extension`) VALUES ('".sqlescape($id)."','on','on','$extension')");
+						sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`encrypted`,`system`,`extension`) VALUES ('".sqlescape($id)."','$name','on','on','$extension')");
 					} else {
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on')");
+						sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','$name','on','on')");
 					}
 					$data = array();
 				}

@@ -295,6 +295,7 @@
 
 				$bounce_rate = round($d->bounces / $d->visits * 100,2);
 			} else {
+				$time_on_site = 0;
 				$time = "00:00:00";
 				$bounce_rate = 0;
 			}
