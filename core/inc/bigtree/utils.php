@@ -1829,7 +1829,7 @@
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
 		
-		static function redirect($url = false, $codes = array("302")) {
+		static function redirect($url, $codes = array("302")) {
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
 			if (defined("BIGTREE_ADMIN_ROUTED")) {
 				$pieces = explode("/",$url);
@@ -1855,9 +1855,6 @@
 				"503" => "Service Unavailable",
 				"550" => "Permission denied"
 			);
-			if (!$url) {
-				return false;
-			}
 			if (!is_array($codes)) {
 				$codes = array($codes);
 			}
