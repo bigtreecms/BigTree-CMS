@@ -27,13 +27,6 @@
 			<a href="http://trentrichardson.com" target="_blank">http://trentrichardson.com</a>
 		</p>
 		<br />
-		<h3>Simple JavaScript Inheritance</h3>
-		<p class="clear">
-			John Resig (MIT)
-			<br />
-			<a href="http://ejohn.org/" target="_blank">http://ejohn.org/</a>
-		</p>
-		<br />
 		<h3>SerializeJSON jQuery plugin</h3>
 		<p class="clear">
 			Mario Izquierdo
@@ -81,11 +74,11 @@
 			<a href="https://github.com/tedivm/JShrink" target="_blank">https://github.com/tedivm/JShrink</a>
 		</p>
 		<br />
-		<h3>lessphp</h3>
+		<h3>less.php</h3>
 		<p class="clear">
-			Leaf Corcoran (MIT)
+			Matt Agar &amp; Martin Jantošovič (Apache License)
 			<br />
-			<a href="http://leafo.net/lessphp" target="_blank">http://leafo.net/lessphp</a>
+			<a href="https://github.com/oyejorge/less.php" target="_blank">https://github.com/oyejorge/less.php</a>
 		</p>
 		<br />
 		<h3>phpass</h3>
@@ -100,13 +93,6 @@
 			Vincent Blavet (GPL)
 			<br />
 			<a href="http://www.phpconcept.net" target="_blank">http://www.phpconcept.net</a>
-		</p>
-		<br />
-		<h3>reCAPTCHA</h3>
-		<p class="clear">
-			Originally by Mike Crawford and Ben Maurer (Open Source)
-			<br />
-			<a href="http://www.google.com/recaptcha/intro/index.html" target="_blank">http://www.google.com/recaptcha/intro/index.html</a>
 		</p>
 		<br />
 		<h3>TextStatistics</h3>
