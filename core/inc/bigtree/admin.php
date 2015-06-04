@@ -4342,7 +4342,9 @@
 				$body_fields[] = "page_content";
 			}
 
-			$textStats = new TextStatistics;
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/TextStatistics.php";
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Text.php";
+			$textStats = new \DaveChild\TextStatistics\TextStatistics;
 			$recommendations = array();
 
 			$score = 0;
@@ -4358,7 +4360,7 @@
 				} else {
 					$recommendations[] = "Your page title should be unique. ".($r-1)." other page(s) have the same title.";
 				}
-				$words = $textStats->word_count($page["title"]);
+				$words = $textStats->wordCount($page["title"]);
 				$length = mb_strlen($page["title"]);
 				if ($words >= 4 && $length <= 72) {
 					// Fits the bill!
@@ -4405,8 +4407,8 @@
 				// Check to see if there is any content
 				if ($stripped_text) {
 					$score += 5;
-					$words = $textStats->word_count($stripped_text);
-					$readability = $textStats->flesch_kincaid_reading_ease($stripped_text);
+					$words = $textStats->wordCount($stripped_text);
+					$readability = $textStats->fleschKincaidReadingEase($stripped_text);
 					if ($readability < 0) {
 						$readability = 0;
 					}
