@@ -88,14 +88,14 @@
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// if we need LESS
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-						$less_compiler = new lessc();
-						$less_compiler->setImportDir(array(SITE_ROOT."css/"));
+						$parser = new Less_Parser;
 					}
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
 						$style = file_get_contents(SITE_ROOT."css/$style_file");
 						if (strpos($style_file, "less") > -1) {
 							// convert LESS
-							$style = $less_compiler->compile($style);
+							$parser->parse($style);
+							$style = $parser->getCss();
 						} else {
 							// normal CSS
 							if ($bigtree["config"]["css"]["prefix"]) {

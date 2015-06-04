@@ -92,7 +92,7 @@
 		"JShrink" => "inc/lib/JShrink.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
-		"lessc" => "inc/lib/less-compiler.php"
+		"Less_Parser" => "inc/lib/less.php/lessc.inc.php"
 	));
 	
 	// Auto load classes	
