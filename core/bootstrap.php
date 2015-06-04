@@ -88,11 +88,9 @@
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",
-		"PHPMailer" => "inc/lib/phpmailer.php",
-		"JShrink" => "inc/lib/JShrink.php",
+		"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
-		"TextStatistics" => "inc/lib/text-statistics.php",
-		"Less_Parser" => "inc/lib/less.php/lessc.inc.php"
+		"TextStatistics" => "inc/lib/text-statistics.php"
 	));
 	
 	// Auto load classes	

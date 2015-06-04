@@ -37,7 +37,8 @@
 					}
 				}
 				if ($bigtree["config"]["js"]["minify"]) {
-					$data = JShrink::minify($data);
+					include_once SERVER_ROOT."core/inc/lib/JShrink/src/JShrink/Minifier.php";
+					$data = \JShrink\Minifier::minify($data);
 				}
 				BigTree::putFile($cfile,$data);
 				header("Content-type: text/javascript");
@@ -88,6 +89,7 @@
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// if we need LESS
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
+						include_once SERVER_ROOT."core/inc/lib/less.php/lessc.inc.php";
 						$parser = new Less_Parser;
 					}
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
@@ -115,8 +117,17 @@
 				// Replace roots
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
 				if ($bigtree["config"]["css"]["minify"]) {
-					$minifier = new CSSMin;
-					$data = $minifier->run($data);
+					// Courtesy of http://www.lateralcode.com/css-minifier/
+					$data = preg_replace('#\s+#',' ',$data);
+					$data = preg_replace('#/\*.*?\*/#s','',$data);
+					$data = str_replace("; ", ";",$data);
+					$data = str_replace(": ", ":",$data);
+					$data = str_replace(" {", "{",$data);
+					$data = str_replace("{ ", "{",$data);
+					$data = str_replace(", ", ",",$data);
+					$data = str_replace("} ", "}",$data);
+					$data = str_replace(";}", "}",$data);
+					$data = trim($data);
 				}	
 				BigTree::putFile($cfile,$data);
 				header("Content-type: text/css");
