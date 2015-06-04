@@ -54,13 +54,12 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
-			BigTreeDialog({
-				title: "Settings Options",
-				content: response.responseText,
-				icon: "edit",
-				callback: function(data) { $("#options_settings").val(JSON.stringify(data)); }
-			});
-		}});
+		BigTreeDialog({
+			title: "Settings Options",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+			post: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() },
+			icon: "edit",
+			callback: function(data) { $("#options_settings").val(JSON.stringify(data)); }
+		});
 	});
 </script>

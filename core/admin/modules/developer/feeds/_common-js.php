@@ -13,16 +13,15 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-feed-options/", { type: "POST", data: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() }, complete: function(response) {
-			BigTreeDialog({
-				title: "Feed Options",
-				content: response.responseText,
-				icon: "edit",
-				callback: function(data) {
-					$("#feed_options").val(JSON.stringify(data));
-				}
-			});
-		}});
+		BigTreeDialog({
+			title: "Feed Options",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-feed-options/",
+			post: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() },
+			icon: "edit",
+			callback: function(data) {
+				$("#feed_options").val(JSON.stringify(data));
+			}
+		});
 	});
 	
 	$("#feed_type").change(function(event,data) {

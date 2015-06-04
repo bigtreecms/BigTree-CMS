@@ -38,16 +38,15 @@
 		var key = $(this).attr("name");
 		BigTree.localCurrentFieldKey = key;
 		
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
-			BigTreeDialog({
-				title: "Field Options",
-				content: response.responseText,
-				icon: "edit",
-				callback: function(data) {
-					$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
-				}
-			});
-		}});
+		BigTreeDialog({
+			title: "Field Options",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+			post: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#options_" + key).val() },
+			icon: "edit",
+			callback: function(data) {
+				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+			}
+		});
 		
 	}).on("click",".icon_delete",function() {
 		var li = $(this).parents("li");

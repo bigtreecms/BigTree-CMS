@@ -80,16 +80,15 @@
 			var type = CurrentColumn.find("select").val();
 			var options = CurrentColumn.find("input[type=hidden]").val();
 
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
-				BigTreeDialog({
-					title: "Column Options",
-					content: response.responseText,
-					icon: "edit",
-					callback: function(data) {
-						CurrentColumn.find("input[type=hidden]").val(JSON.stringify(data));
-					}
-				});
-			}});
+			BigTreeDialog({
+				title: "Column Options",
+				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+				post: { template: "true", type: type, data: options },
+				icon: "edit",
+				callback: function(data) {
+					CurrentColumn.find("input[type=hidden]").val(JSON.stringify(data));
+				}
+			});
 		// Deleting fields
 		}).on("click",".icon_delete",function(e) {
 			e.preventDefault();

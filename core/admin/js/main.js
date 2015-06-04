@@ -2701,29 +2701,28 @@ var BigTreeCallouts = function(settings) {
 				return;
 			}
 
-			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key }, complete: function(response) {
-				BigTreeDialog({
-					title: "Add " + Noun,
-					content: response.responseText,
-					icon: "callout",
-					preSubmissionCallback: true,
-					callback: function(e) {		
-						e.preventDefault();
-						
-						var item;
-						if (item = getCallout()) {		
-							// Add the callout and hide the dialog.
-							List.append(item);
-							removeDialog();
-							Count++;
-							var count = List.find("article").length;
-							if (Max && count >= Max) {
-								AddButton.hide();
-							}
+			BigTreeDialog({
+				title: "Add " + Noun,
+				url: "admin_root/ajax/callouts/add/",
+				post: { count: Count, groups: Groups, key: Key },
+				icon: "callout",
+				preSubmissionCallback: true,
+				callback: function(e) {		
+					e.preventDefault();
+					
+					var item;
+					if (item = getCallout()) {		
+						// Add the callout and hide the dialog.
+						List.append(item);
+						removeDialog();
+						Count++;
+						var count = List.find("article").length;
+						if (Max && count >= Max) {
+							AddButton.hide();
 						}
 					}
-				});
-			}});
+				}
+			});
 		};
 
 		function editCallout(e) {
@@ -2735,24 +2734,23 @@ var BigTreeCallouts = function(settings) {
 			}
 
 			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
-				BigTreeDialog({
-					title: "Edit " + Noun,
-					content: response.responseText,
-					icon: "callout",
-					preSubmissionCallback: true,
-					callback: function(e) {
-						e.preventDefault();
-						
-						var item;
-						if (item = getCallout()) {
-							CurrentItem.replaceWith(item);
-							removeDialog();
-							Count++;
-						}
+			BigTreeDialog({
+				title: "Edit " + Noun,
+				url: "admin_root/ajax/callouts/edit/",
+				post: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key },
+				icon: "callout",
+				preSubmissionCallback: true,
+				callback: function(e) {
+					e.preventDefault();
+					
+					var item;
+					if (item = getCallout()) {
+						CurrentItem.replaceWith(item);
+						removeDialog();
+						Count++;
 					}
-				});
-			}});
+				}
+			});
 		};
 
 		function deleteCallout(e) {
@@ -2867,32 +2865,27 @@ var BigTreeMatrix = function(settings) {
 				return;
 			}
 
-			$.ajax("admin_root/ajax/matrix-field/", {
-				type: "POST",
-				data: { columns: Columns, count: Count, key: Key },
-				complete: function(response) {
-					BigTreeDialog({
-						title: "Add Item",
-						content: response.responseText,
-						icon: "add",
-						preSubmissionCallback: true,
-						callback: function(e) {		
-							e.preventDefault();
-							
-							var item;
-							if (item = getItem()) {
-								// Add the item, remove the dialog, increase the count.
-								List.append(item);
-								NoItemsMessage.hide();
-								removeDialog();						
-								Count++;
-								var count = List.find("article, li").length;
-								if (Max && count >= Max) {
-									AddButton.hide();
-								}
-							}
+			BigTreeDialog({
+				title: "Add Item",
+				url: "admin_root/ajax/matrix-field/",
+				post: { columns: Columns, count: Count, key: Key },
+				icon: "add",
+				preSubmissionCallback: true,
+				callback: function(e) {		
+					e.preventDefault();
+					
+					var item;
+					if (item = getItem()) {
+						// Add the item, remove the dialog, increase the count.
+						List.append(item);
+						NoItemsMessage.hide();
+						removeDialog();						
+						Count++;
+						var count = List.find("article, li").length;
+						if (Max && count >= Max) {
+							AddButton.hide();
 						}
-					});
+					}
 				}
 			});
 		};
@@ -2939,27 +2932,22 @@ var BigTreeMatrix = function(settings) {
 				CurrentItem = $(this).parents("article");
 			}
 			
-			$.ajax("admin_root/ajax/matrix-field/", {
-				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key },
-				complete: function(response) {
-					BigTreeDialog({
-						title: "Edit Item",
-						content: response.responseText,
-						icon: "edit",
-						preSubmissionCallback: true,
-						callback: function(e) {
-							e.preventDefault();
-							
-							var item;
-							if (item = getItem()) {
-								// Replace the item, remove the dialog, increase the count
-								CurrentItem.replaceWith(item);
-								removeDialog();
-								Count++;
-							}
-						}
-					});
+			BigTreeDialog({
+				title: "Edit Item",
+				url: "admin_root/ajax/matrix-field/",
+				post: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key },
+				icon: "edit",
+				preSubmissionCallback: true,
+				callback: function(e) {
+					e.preventDefault();
+					
+					var item;
+					if (item = getItem()) {
+						// Replace the item, remove the dialog, increase the count
+						CurrentItem.replaceWith(item);
+						removeDialog();
+						Count++;
+					}
 				}
 			});
 		};

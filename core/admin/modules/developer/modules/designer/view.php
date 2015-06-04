@@ -71,15 +71,14 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-options/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
-			BigTreeDialog({
-				title: "View Options",
-				content: response.responseText,
-				icon: "edit",
-				callback: function(data) {
-					$("#view_options").val(JSON.stringify(data));
-				}
-			});
-		}});
+		BigTreeDialog({
+			title: "View Options",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-options/",
+			post: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() },
+			icon: "edit",
+			callback: function(data) {
+				$("#view_options").val(JSON.stringify(data));
+			}
+		});
 	});
 </script>
