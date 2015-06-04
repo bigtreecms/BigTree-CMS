@@ -5,7 +5,7 @@
 			Meant to be method-compatible with BigTreeFTP.
 	*/
 
-	set_include_path(get_include_path().PATH_SEPARATOR.SERVER_ROOT.'core/inc/lib/phpseclib');
+	set_include_path(get_include_path().PATH_SEPARATOR.SERVER_ROOT.'core/inc/lib/phpseclib/phpseclib');
 	require_once("Net/SFTP.php");
 
 	class BigTreeSFTP {
