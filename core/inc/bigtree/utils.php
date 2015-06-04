@@ -2085,7 +2085,7 @@
 		
 			// Do the regex match
 			if (!preg_match($regex,$path,$values)) {
-				return array();
+				return false;
 			}
 
 			$params = array();
