@@ -399,12 +399,17 @@
 
 		// Handle interface actions
 		if ($bigtree["module_action"]["interface"]) {
+			define("INTERFACE_ROOT",ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/");
 			$bigtree["interface"] = BigTreeAutoModule::getInterface($bigtree["module_action"]["interface"]);
 			if (isset($bigtree["interface"]["interface_type"])) {
 				include BigTree::path("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
 				$complete = true;
 			} else {
-				// TODO RUN CUSTOM INTERFACES
+				list($extension,$interface_type) = explode("*",$bigtree["interface"]["type"]);
+				$base_directory = SERVER_ROOT."extensions/$extension/plugins/interfaces/$interface_type/parser/";
+				list($include_file,$bigtree["commands"]) = BigTree::route($base_directory,$bigtree["commands"]);
+				include $include_file;
+				$complete = true;	
 			}
 		}
 	}
