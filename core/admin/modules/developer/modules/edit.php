@@ -1,37 +1,61 @@
 <?php
 	$id = end($bigtree["path"]);	
 	$module = $admin->getModule($id);
-	
 	$actions = $admin->getModuleActions($id);
-	$views = array();
-	$forms = array();
-	$embeds = $admin->getModuleEmbedForms("title",$id);
-	$reports = array();
-	$actions_in_nav = array();
-	$actions_not_in_nav = array();
-	foreach ($actions as $action) {
-		if ($action["interface"]) {
-			$interface = BigTreeAutoModule::getInterface($action["interface"]);
-			if ($interface["interface_type"] == "view") {
-				$views[] = $interface;
-			} elseif ($interface["interface_type"] == "form") {
-				$forms[] = $interface;
-			} elseif ($interface["interface_type"] == "report") {
-				$reports[] = $interface;
-			} elseif ($interface["interface_type"] == "embeddable-form") {
-				$embeds[] = $interface;
+	$interfaces = $admin->getModuleInterfaces($module);
+	$groups = $admin->getModuleGroups("name ASC");
+	$interface_list = array(
+		"form" => array("name" => "Forms","items" => array()),
+		"view" => array("name" => "Views","items" => array()),
+		"embeddable-form" => array("name" => "Embeddable Forms","items" => array()),
+		"report" => array("name" => "Reports","items" => array())
+	);
+	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
+
+	// Sort interfaces into relevant sections
+	foreach ($interfaces as $interface) {
+		if (strpos($interface["type"],"*") === false) {
+			if ($interface["type"] == "form") {
+				$interface["title"] = "Add/Edit ".$interface["title"];
+				$interface["edit_url"] = "forms/edit/".$interface["id"]."/";
+			} elseif ($interface["type"] == "view") {
+				// Views need special treatment for adding their style icon
+				$settings = json_decode($interface["settings"],true);
+				if ($settings["type"] != "images" && $settings["type"] != "images-grouped") {
+					$interface["show_style"] = true;
+				}
+
+				$interface["title"] = "View ".$interface["title"];
+				$interface["edit_url"] = "views/edit/".$interface["id"]."/";
+			} elseif ($interface["type"] == "embeddable-form") {
+				$interface["edit_url"] = "embeds/edit/".$interface["id"]."/";
+			} elseif ($interface["type"] == "report") {
+				$interface["edit_url"] = "reports/edit/".$interface["id"]."/";
+			}
+			$interface_list[$interface["type"]]["items"][] = $interface;
+		} else {
+			list($extension,$type) = explode("*",$interface["type"]);
+			$interface["edit_url"] = "interfaces/build/$extension/$type/?id=".$interface["id"];
+			if (isset($interface_list[$interface["type"]])) {
+				$interface_list[$interface["type"]]["items"][] = $interface;
+			} else {
+				$interface_list[$interface["type"]] = array(
+					"name" => BigTreeAdmin::$InterfaceTypes["extension"][$extension][$type]["name"],
+					"items" => array($interface)
+				);
 			}
 		}
+	}
+
+	// Sort actions into visible and non
+	$actions_in_nav = $actions_not_in_nav = array();
+	foreach ($actions as $action) {
 		if ($action["in_nav"]) {
 			$actions_in_nav[] = $action;
 		} else {
 			$actions_not_in_nav[] = $action;
 		}
-	}
-	
-	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
-	
-	$groups = $admin->getModuleGroups("name ASC");
+	}	
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
@@ -131,79 +155,28 @@
 		<h2><span class="embeds"></span>Interfaces</h2>
 	</summary>
 	<?php
-		if (count($views)) {
+		foreach ($interface_list as $key => $type) {
+			if (count($type["items"])) {
 	?>
 	<header>
-		<span class="developer_view_name">Views</span>
+		<span class="developer_view_name"><?=BigTree::safeEncode($type["name"])?></span>
 	</header>
 	<ul>
-		<?php foreach ($views as $view) { ?>
+		<?php foreach ($type["items"] as $interface) { ?>
 		<li>
-			<section class="developer_view_name">View <?=$view["title"]?></section>
+			<section class="developer_view_name"><?=$interface["title"]?></section>
 			<section class="view_action">
-				<?php if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
-				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
-				<?php } else { ?>
-				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
+				<?php if ($interface["show_style"]) { ?>
+				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$interface["id"]?>/" class="icon_preview"></a>
 				<?php } ?>
 			</section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/<?=$interface["edit_url"]?>" class="icon_edit"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$interface["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
 		</li>
 		<?php } ?>
 	</ul>
 	<?php
-		}
-
-		if (count($forms)) {
-	?>
-	<header>
-		<span class="developer_view_name">Forms</span>
-	</header>
-	<ul>
-		<?php foreach ($forms as $form) { ?>
-		<li>
-			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php
-		}
-
-		if (count($embeds)) {
-	?>
-	<header>
-		<span class="developer_templates_name">Embeddable Forms</span>
-	</header>
-	<ul>
-		<?php foreach ($embeds as $form) { ?>
-		<li>
-			<section class="developer_templates_name"><?=$form["title"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php
-		}
-
-		if (count($reports)) {
-	?>
-	<header>
-		<span class="developer_templates_name">Reports</span>
-	</header>
-	<ul>
-		<?php foreach ($reports as $report) { ?>
-		<li>
-			<section class="developer_templates_name"><?=$report["title"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php
+			}
 		}
 	?>
 </div>
