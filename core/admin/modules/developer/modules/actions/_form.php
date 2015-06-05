@@ -1,7 +1,7 @@
 <?php
-	$forms = $admin->getModuleForms("title",$module["id"]);
-	$views = $admin->getModuleViews("title",$module["id"]);
-	$reports = $admin->getModuleReports("title",$module["id"]);
+	// Get list of interfaces but dump embeddable forms since they're for the front end
+	include BigTree::path("admin/modules/developer/modules/_interface-sort.php");
+	unset($interface_list["embeddable-form"]);
 ?>
 <section>
 	<fieldset>
@@ -26,32 +26,16 @@
 			<select name="interface">
 				<option></option>
 				<?php
-					if (count($forms)) {
+					foreach ($interface_list as $type => $info) {
+						if (count($info["items"])) {
 				?>
-				<optgroup label="Forms">
-					<?php foreach ($forms as $form) { ?>
-					<option value="<?=$form["id"]?>"<?php if ($form["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>>Add/Edit <?=$form["title"]?> (<?=$form["table"]?>)</option>
+				<optgroup label="<?=BigTree::safeEncode($info["name"])?>">
+					<?php foreach ($info["items"] as $interface) { ?>
+					<option value="<?=$interface["id"]?>"<?php if ($interface["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>><?=$interface["title"]?> (<?=$interface["table"]?>)</option>
 					<?php } ?>
 				</optgroup>
 				<?php
-					}
-					if (count($views)) {
-				?>
-				<optgroup label="Views">
-					<?php foreach ($views as $view) { ?>
-					<option value="<?=$view["id"]?>"<?php if ($view["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>>View <?=$view["title"]?> (<?=$view["table"]?>)</option>
-					<?php } ?>
-				</optgroup>
-				<?php
-					}
-					if (count($reports)) {
-				?>
-				<optgroup label="Reports">
-					<?php foreach ($reports as $report) { ?>
-					<option value="<?=$report["id"]?>"<?php if ($report["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
-					<?php } ?>
-				</optgroup>
-				<?php
+						}
 					}
 				?>
 			</select>

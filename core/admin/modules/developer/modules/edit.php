@@ -2,50 +2,11 @@
 	$id = end($bigtree["path"]);	
 	$module = $admin->getModule($id);
 	$actions = $admin->getModuleActions($id);
-	$interfaces = $admin->getModuleInterfaces($module);
 	$groups = $admin->getModuleGroups("name ASC");
-	$interface_list = array(
-		"form" => array("name" => "Forms","items" => array()),
-		"view" => array("name" => "Views","items" => array()),
-		"embeddable-form" => array("name" => "Embeddable Forms","items" => array()),
-		"report" => array("name" => "Reports","items" => array())
-	);
 	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
 
-	// Sort interfaces into relevant sections
-	foreach ($interfaces as $interface) {
-		if (strpos($interface["type"],"*") === false) {
-			if ($interface["type"] == "form") {
-				$interface["title"] = "Add/Edit ".$interface["title"];
-				$interface["edit_url"] = "forms/edit/".$interface["id"]."/";
-			} elseif ($interface["type"] == "view") {
-				// Views need special treatment for adding their style icon
-				$settings = json_decode($interface["settings"],true);
-				if ($settings["type"] != "images" && $settings["type"] != "images-grouped") {
-					$interface["show_style"] = true;
-				}
-
-				$interface["title"] = "View ".$interface["title"];
-				$interface["edit_url"] = "views/edit/".$interface["id"]."/";
-			} elseif ($interface["type"] == "embeddable-form") {
-				$interface["edit_url"] = "embeds/edit/".$interface["id"]."/";
-			} elseif ($interface["type"] == "report") {
-				$interface["edit_url"] = "reports/edit/".$interface["id"]."/";
-			}
-			$interface_list[$interface["type"]]["items"][] = $interface;
-		} else {
-			list($extension,$type) = explode("*",$interface["type"]);
-			$interface["edit_url"] = "interfaces/build/$extension/$type/?id=".$interface["id"];
-			if (isset($interface_list[$interface["type"]])) {
-				$interface_list[$interface["type"]]["items"][] = $interface;
-			} else {
-				$interface_list[$interface["type"]] = array(
-					"name" => BigTreeAdmin::$InterfaceTypes["extension"][$extension][$type]["name"],
-					"items" => array($interface)
-				);
-			}
-		}
-	}
+	// Get a list of interfaces, this is separated out because actions form uses the same logic
+	include BigTree::path("admin/modules/developer/modules/_interface-sort.php");
 
 	// Sort actions into visible and non
 	$actions_in_nav = $actions_not_in_nav = array();
