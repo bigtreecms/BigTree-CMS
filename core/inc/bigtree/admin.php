@@ -3686,6 +3686,28 @@
 		}
 
 		/*
+			Function: getModuleInterfaces
+				Returns an array of interfaces related to the given module.
+
+			Parameters:
+				module - The module or module ID to pull interfaces for
+				order - Sort order (defaults to title ASC)
+
+			Returns:
+				An array of interface entries from bigtree_module_interfaces.
+		*/
+
+		static function getModuleInterfaces($module,$order = "`title` ASC") {
+			$module = sqlescape(is_array($module) ? $module["id"] : $module);
+			$interfaces = array();
+			$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `module` = '$module' ORDER BY $order");
+			while ($f = sqlfetch($q)) {
+				$interfaces[] = $f;
+			}
+			return $interfaces;
+		}
+
+		/*
 			Function: getModuleNavigation
 				Returns a list of module actions that are in navigation.
 
