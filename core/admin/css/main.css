@@ -1013,6 +1013,7 @@
 	.developer #manage_hooks { float: right; height: 16px; line-height: 16px; color: #666; margin: 0 7px 0 15px; }
 	.developer #manage_hooks:hover { background: #F3F3F3; border-radius: 2px; margin-top: -5px; margin-right: 0; margin-bottom: -5px; padding: 4px 6px 4px 4px; border: 1px solid #DDD; }
 
+	.table .developer_pane_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 884px; }
 	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
 	.table .developer_templates_name a { color: #333; display: block; margin: 0; width: 846px; }
 	.table .developer_modules_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 823px; }

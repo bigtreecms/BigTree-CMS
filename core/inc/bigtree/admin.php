@@ -10,7 +10,14 @@
 		public static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
 		public static $CronPlugins = array();
 		public static $DailyDigestPlugins = array();
-		public static $DashboardPlugins = array();
+		public static $DashboardPlugins = array(
+			"core" => array(
+				"analytics" => "Google Analytics",
+				"pending-changes" => "Pending Changes",
+				"messages" => "Messages"
+			),
+			"extension" => array()
+		);
 		public static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
 		public static $InterfaceTypes = array(
 			"core" => array(
@@ -105,7 +112,13 @@
 
 			// Handle extension cache
 			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
-				$plugins = array();
+				$plugins = array(
+					"cron" => array(),
+					"daily_digest" => array(),
+					"dashboard" => array(),
+					"interfaces" => array(),
+					"view_types" => array()
+				);
 				$q = sqlquery("SELECT id FROM bigtree_extensions");
 				while ($f = sqlfetch($q)) {
 					// Load up the manifest
@@ -126,9 +139,9 @@
 				$plugins = json_decode(file_get_contents($extension_cache_file),true);
 			}
 			
-			static::$CronPlugins = $plugins["cron_plugins"];
-			static::$DailyDigestPlugins = $plugins["daily_digest_plugins"];
-			static::$DashboardPlugins = $plugins["dashboard_plugins"];
+			static::$CronPlugins = $plugins["cron"];
+			static::$DailyDigestPlugins = $plugins["daily_digest"];
+			static::$DashboardPlugins["extension"] = $plugins["dashboard"];
 			static::$InterfaceTypes["extension"] = $plugins["interfaces"];
 			static::$ViewTypes["extension"] = $plugins["view_types"];
 
