@@ -1,4 +1,4 @@
-<?
+<?php
 	// Get all the messages we've received.
 	$messages = $admin->getMessages();
 ?>

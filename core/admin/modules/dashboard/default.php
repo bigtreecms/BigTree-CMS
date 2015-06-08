@@ -7,5 +7,4 @@
 	
 	include BigTree::path("admin/modules/dashboard/panes/analytics.php");
 	include BigTree::path("admin/modules/dashboard/panes/pending-changes.php");
-	include BigTree::path("admin/modules/dashboard/panes/messages.php");	
-?>
+	include BigTree::path("admin/modules/dashboard/panes/messages.php");

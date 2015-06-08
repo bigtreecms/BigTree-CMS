@@ -1,4 +1,4 @@
-<?
+<?php
 	$interfaces = $admin->getModuleInterfaces($module);
 	$interface_list = array(
 		"form" => array("name" => "Forms","items" => array()),
@@ -39,4 +39,3 @@
 			}
 		}
 	}
-?>
