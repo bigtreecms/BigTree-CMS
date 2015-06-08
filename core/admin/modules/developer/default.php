@@ -143,6 +143,10 @@
 			<span class="lock"></span>
 			<p>Security</p>
 		</a>
+		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>dashboard/">
+			<span class="home"></span>
+			<p>Dashboard</p>
+		</a>
 	</section>
 </div>
 

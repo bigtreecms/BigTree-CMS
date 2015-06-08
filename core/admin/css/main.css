@@ -39,7 +39,7 @@
 	h1 .last { color: #59A8E9; }
 
 	/* Icons */
-	h1 .home { background-position: 0px -16px; }
+	h1 .home, .box_select .home { background-position: 0px -16px; }
 	h1 .dashboard { background-position: -32px -16px; }
 	h1 .page, .box_select .page { background-position: -64px -16px; }
 	h1 .add_page { background-position: -96px -16px; }
