@@ -49,7 +49,7 @@
 				<?=$pane["name"]?>
 			</section>
 			<section class="view_action">
-				<a class="icon_approve<? if (!$pane["disabled"]) { ?> icon_approve_on<? } ?>" data-id="<?=BigTree::safeEncode($pane["id"])?>" href="#"></a>
+				<a class="icon_approve<?php if (!$pane["disabled"]) { ?> icon_approve_on<?php } ?>" data-id="<?=BigTree::safeEncode($pane["id"])?>" href="#"></a>
 			</section>
 		</li>
 		<?php
