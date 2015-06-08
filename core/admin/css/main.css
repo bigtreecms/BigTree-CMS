@@ -207,9 +207,9 @@
 	.file_wrapper .handle { background: rgba(0, 0, 0, 0.1); border-left: 1px solid #CCC; border-radius: 0px 2px 2px 0px; color: #333; cursor: pointer; display: block; font-size: 14px; height: 30px; line-height: 30px; text-align: center; width: 70px; float: right; }
 	.file_wrapper .handle:hover { background: rgba(0,0,0,0.15); }
 	.file_wrapper .data { float: left; font-size: 12px; height: 30px; line-height: 30px; overflow: hidden; padding: 0 5px; position: relative; text-overflow: ellipsis; white-space: nowrap; width: 219px; }
-	.file_wrapper .data .size { float: right; color: #999; font-size: 10px; height: 30px; max-width: 40px; }
+	.file_wrapper .data .size { float: right; color: #999; font-size: 10px; height: 30px; max-width: 40px; overflow: hidden; text-overflow: ellipsis; }
 	.file_wrapper .data .name { float: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 129px; padding: 0 0 0 5px; }
-	.file_wrapper .data .wider { width: 179px; }
+	.file_wrapper .data .wider { width: 174px; }
 	.file_wrapper .data .error { color: #CC0000; }
 	.file_wrapper .data img { float: left; margin: 0 0 0 -3px; height: 26px; max-width: 40px; position: relative; top: 50%; transform: translateY(-50%); }
 	.file_wrapper input { cursor: pointer; height: 30px; opacity: 0; position: absolute; width: auto; }
