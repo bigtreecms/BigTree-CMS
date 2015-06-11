@@ -147,6 +147,10 @@
 			<span class="home"></span>
 			<p>Dashboard</p>
 		</a>
+		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>cron-digest/">
+			<span class="pending"></span>
+			<p>Daily Digest<br />&amp; Cron</p>
+		</a>
 	</section>
 </div>
 

@@ -48,7 +48,7 @@
 	h1 .settings, .box_select .settings { background-position: -192px -16px; }
 	h1 .developer { background-position: -224px -18px; }
 	h1 .messages, .box_select .messages { background-position: -256px -16px; }
-	h1 .pending { background-position: -288px -16px; }
+	h1 .pending, .box_select .pending { background-position: -288px -16px; }
 	h1 .vitals, .box_select .vitals { background-position: -320px -16px; }
 	h1 .analytics, .box_select .analytics { background-position: -352px -16px; }
 	h1 .page_404, .box_select .page_404 { background-position: -384px -16px; }
