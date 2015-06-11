@@ -4,14 +4,14 @@
 	
 	$bigtree["config"] = array();
 	$bigtree["config"]["debug"] = false;
-	include str_replace("core/launch.php","custom/environment.php",strtr(__FILE__, "\\", "/"));
-	include str_replace("core/launch.php","custom/settings.php",strtr(__FILE__, "\\", "/"));
-	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
-	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
 
-	// For shared core setups
-	$server_root = str_replace("core/launch.php","",strtr(__FILE__, "\\", "/"));
-	
+	// Newer installs should use a strict $server_root variable to launch properly from shared cores
+	if (empty($server_root)) {
+		$server_root = str_replace("core/launch.php","",strtr(__FILE__, "\\", "/"));
+	}
+	include $server_root."custom/environment.php";
+	include $server_root."custom/settings.php";
+
 	// Basic routing
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {

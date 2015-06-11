@@ -331,7 +331,10 @@
 		}
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
-		bt_touch_writable("site/index.php",'<? include "../core/launch.php" ?>');
+		bt_touch_writable("site/index.php",'<?
+	$server_root = str_replace("site/index.php","",__FILE__);	
+	include "../core/launch.php";
+?>');
 		
 		if ($routing == "advanced") {
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
