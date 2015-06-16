@@ -1,8 +1,4 @@
 <?php
-	parse_str($_POST["sort"],$data);
-	$max = count($data["row"]);
-	
-	foreach ($data["row"] as $pos => $id) {
-		$id = $_POST["rel"][$id];
-		$admin->setTemplatePosition($id,$max - $pos);
+	foreach ($_POST as $id => $position) {
+		$admin->setTemplatePosition($id,$position);
 	}

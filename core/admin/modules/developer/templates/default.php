@@ -13,7 +13,7 @@
 <div id="basic_templates"></div>
 <div id="routed_templates"></div>
 <script>
-	var config = {
+	var table_config = {
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>templates/edit/" + id + "/";
@@ -34,19 +34,21 @@
 			name: { title: "Template Name", largeFont: true, actionHook: "edit" }
 		},
 		draggable: function(positioning) {
-			console.log(positioning);
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: positioning });
 		}
 	};
 
 	// Basic table
-	config.data = <?=json_encode($basic_data)?>;
-	config.container = "#basic_templates";
-	config.title = "Basic Templates";
-	BigTreeTable(config);
+	BigTreeTable($.extend(table_config,{
+		container: "#basic_templates",
+		data: <?=json_encode($basic_data)?>,
+		title: "Basic Templates"
+	}));
 
 	// Routed table
-	config.data = <?=json_encode($routed_data)?>;
-	config.container = "#routed_templates";
-	config.title = "Routed Templates";
-	BigTreeTable(config);
+	BigTreeTable($.extend(table_config,{
+		container: "#routed_templates",
+		data: <?=json_encode($routed_data)?>,
+		title: "Routed Templates"
+	}));
 </script>
