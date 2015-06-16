@@ -3187,7 +3187,8 @@ var BigTreeTable = function(settings) {
 		function generateBody(dataset) {
 			var body_html = '';
 			DataRowRelationships = [];
-			for (i = 0; i < dataset.length; i++) {
+			var count = 0;
+			for (var i in dataset) {
 				var row = '<span data-id="' + dataset[i].id + '"></span>';
 				DataRowRelationships.push(dataset[i].id);
 
@@ -3229,7 +3230,8 @@ var BigTreeTable = function(settings) {
 				}
 
 				// Add the row
-				body_html += '<li id="row_' + i + '">' + row + '</li>';
+				body_html += '<li id="row_' + count + '">' + row + '</li>';
+				count++;
 			}
 			return body_html
 		}

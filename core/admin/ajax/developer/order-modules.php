@@ -1,7 +1,5 @@
 <?php
-	parse_str($_POST["sort"],$data);
-	$max = count($data["row"]);
-	
-	foreach ($data["row"] as $pos => $id) {
-		$admin->setModulePosition($id,$max - $pos);
+	print_r($_POST);
+	foreach ($_POST as $id => $position) {
+		$admin->setModulePosition($id,$position);
 	}
