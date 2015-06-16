@@ -624,6 +624,10 @@
 	.table > ul li.pending section.view_status, .table > ul li.scheduled section.view_status, .table > ul li.expired section.view_status,
 	.table > ul li.pending section.pages_status, .table > ul li.scheduled section.pages_status, .table > ul li.expired section.pages_status { opacity: 1 !important; }
 
+	.table .column { padding: 0 0 0 15px; text-align: left; }
+	.table .column.large_font { font-size: 15px; }
+	.table *[class*=" hook_"] { cursor: pointer; }
+
 	/* Pending changes */
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }
 	.table .no_content p { line-height: 35px; }
@@ -1806,6 +1810,7 @@
 	.install_wrapper .checkbox a.checked.focused { background-position: -16px -41px; }
 	.install_wrapper .form_error input { border-color: #C0362F; }
 	.install_wrapper .form_error label { color: #C0362F; }
+
 /*---------------------------
 	Embedded Form Styles
 ---------------------------*/

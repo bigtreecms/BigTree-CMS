@@ -1845,14 +1845,16 @@ var BigTreeFormNavBar = (function() {
 		NextButton.click(nextClick);
 
 		// Form Validation
-		BigTreeFormValidator(Container.find("form"),function(errors) {
-			// Hide all the pages tab sections
-			Sections.hide();
-			// Unset all the active states on tabs
-			Nav.removeClass("active");
-			// Figure out what section the first error occurred in and show that section.
-			Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
-		});
+		if (Container.find("form").length) {
+			BigTreeFormValidator(Container.find("form"),function(errors) {
+				// Hide all the pages tab sections
+				Sections.hide();
+				// Unset all the active states on tabs
+				Nav.removeClass("active");
+				// Figure out what section the first error occurred in and show that section.
+				Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+			});
+		}
 
 		// For when there are too many tabs, we need to setup scrolling
 		var calc_nav_container = Container.find("nav .more div");
@@ -3065,6 +3067,176 @@ var BigTreeMatrix = function(settings) {
 		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
 
 	})(jQuery,settings);
+};
+
+var BigTreeTable = function(settings) {
+	return (function(settings) {
+		// Setup our environment
+		var Actions = settings.actions;
+		var ActionWidth = false;
+		var Columns = settings.columns;
+		var Container = $(settings.container);
+		var Data = settings.data;
+		var DataRowRelationships = {};
+		var Draggable = settings.draggable ? true : false;
+		var DraggableCallback = settings.draggable;
+		var HeaderHTML = "";
+		var Sortable = settings.sortable ? true : false;
+		var Title = settings.title ? settings.title : false;
+
+		function init() {
+			// Hooks
+			for (action_key in Actions) {
+				Container.on("click",".icon_" + action_key + ", .hook_" + action_key,(function(action_key) {
+					return function(ev) {
+						ev.preventDefault();
+		
+						// Handle toggles
+						var toggle_state = false;
+						if ($(this).hasClass("icon_feature")) {
+							$(this).toggleClass("icon_feature_on");
+							toggle_state = $(this).hasClass("icon_feature_on");
+						} else if ($(this).hasClass("icon_approve")) {
+							$(this).toggleClass("icon_approve_on");
+							toggle_state = $(this).hasClass("icon_approve_on");
+						} else if ($(this).hasClass("icon_archive")) {
+							$(this).removeClass("icon_archive").addClass("icon_restore");
+							toggle_state = true;
+						} else if ($(this).hasClass("icon_restore")) {
+							$(this).removeclass("icon_restore").addClass("icon_archive");
+							toggle_state = false;
+						}
+		
+						// Handle custom hook
+						var id = $(this).parents("li").find("span").attr("data-id");
+						Actions[action_key](id,toggle_state);
+					}
+				})(action_key));
+			}
+
+			// Setup widths for calculating column sizes
+			ActionWidth = Object.keys(Actions).length * 40;
+			var container_width = Container.width() - 2; // 2px for borders
+			var available_width = container_width - ActionWidth;
+			var column_count_for_sizing = Object.keys(Columns).length;
+	
+			// See if we have FIXED widths for any columns and subtract them from the picture
+			for (var key in Columns) {
+				if (Columns[key].size && Columns[key].size > 1) {
+					available_width -= Columns[key].size;
+					column_count_for_sizing--;
+				}
+			}
+			// Size all the columns that use percentage widths
+			var percentage_remaining = 1;
+			var remaining_width = available_width;
+			for (key in Columns) {
+				if (Columns[key].size && Columns[key].size <= 1) {
+					Columns[key].size = Math.floor(Columns[key].size * available_width);
+					column_count_for_sizing--;
+					remaining_width -= Columns[key].size;
+				}
+			}
+			// Size all columns that had no mention of size
+			for (key in Columns) {
+				var column = Columns[key];
+				if (!Columns[key].size) {
+					Columns[key].size = Math.floor(remaining_width / column_count_for_sizing);
+				}
+			}
+	
+			// Header HTML
+			if (Title) {
+				HeaderHTML = '<summary><h2>' + Title + '</h2></summary>';
+			}
+			HeaderHTML += '<header>';
+			for (key in Columns) {
+				HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: left;">' + Columns[key].title + '</span>';
+			}
+			if (Actions.length) {
+				HeaderHTML += '<span style="width: ' + ActionWidth + 'px; text-align: center;"></span>';
+			}
+			HeaderHTML += '</header>';
+
+			// Fill the container
+			Container.html('<div class="table">' + HeaderHTML + '<ul>' + generateBody(Data) + '</ul></div>');
+
+			// Draggable setup
+			if (Draggable) {
+				Container.find("ul").sortable({
+					axis: "y",
+					containment: "parent",
+					handle: ".icon_sort",
+					items: "li",
+					placeholder: "ui-sortable-placeholder",
+					tolerance: "pointer",
+					update: function() {
+						var positioning = {};
+						var sort_array = Container.find("ul").sortable("toArray");
+						for (var i = 0; i < sort_array.length; i++) {
+							var key = parseInt(sort_array[i].replace("row_",""));
+							positioning[DataRowRelationships[key]] = sort_array.length - i;
+						}
+						DraggableCallback(positioning);
+					}
+				});
+			}	
+		}
+
+		// Body generation based on data
+		function generateBody(dataset) {
+			var body_html = '';
+			DataRowRelationships = [];
+			for (i = 0; i < dataset.length; i++) {
+				var row = '<span data-id="' + dataset[i].id + '"></span>';
+				DataRowRelationships.push(dataset[i].id);
+
+				// Add Columns
+				var x = 0;
+				for (key in Columns) {
+					x++;
+					// Some columns may want to hook an edit action or have larger font
+					var column_class = "column";
+					if (Columns[key].largeFont) {
+						column_class += " large_font";
+					}
+					if (Columns[key].actionHook) {
+						column_class += " hook_" + Columns[key].actionHook;
+					}
+					// Add the cell
+					row += '<section style="width: ' + (Columns[key].size - 15) + 'px;" class="' + column_class + '">';
+					if (Draggable && x == 1) {
+						row += '<span class="icon_sort"></span>';
+					}
+					row += dataset[i][key] + '</section>';
+				}
+
+				// Add Actions
+				if (ActionWidth) {
+					row += '<section style="width: ' + ActionWidth + 'px; text-align: center;">';
+					for (key in Actions) {
+						var icon_class = "icon_" + key;
+						if (key == "approve" && dataset[i].approved) {
+							icon_class += ' icon_approve_on';
+						} else if (key == "feature" && dataset[i].featured) {
+							icon_class += ' icon_feature_on';
+						} else if (key == "archive" && dataset[i].archived) {
+							icon_class = 'icon_restore';
+						}
+						row += '<div style="float: left; width: 40px; text-align: center;"><a href="#" class="' + icon_class + '"></a></div>';
+					}
+					row += '</section>';
+				}
+
+				// Add the row
+				body_html += '<li id="row_' + i + '">' + row + '</li>';
+			}
+			return body_html
+		}
+
+		init();
+
+	})(settings);
 };
 
 var BigTree = {

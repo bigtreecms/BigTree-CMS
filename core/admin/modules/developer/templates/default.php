@@ -1,92 +1,52 @@
 <?php
 	$templates = $admin->getTemplates();
-	
-	// Need to create a ridiculous hack because jQuery's sortable is stupid.
-	$x = 0;
-	$rel_table = array();
+
+	$basic_data = $routed_data = array();
+	foreach ($templates as $template) {
+		if ($template["routed"]) {
+			$routed_data[] = $template;
+		} else {
+			$basic_data[] = $template;
+		}
+	}
 ?>
-<div class="table">
-	<summary><h2>Basic Templates</h2></summary>
-	<header>
-		<span class="developer_templates_name">Template Name</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
-	</header>
-	<ul id="basic_templates">
-		<?php
-			foreach ($templates as $template) {
-				if (!$template["routed"]) {
-					$x++;
-					$rel_table[$x] = $template["id"];
-		?>
-		<li id="row_<?=$x?>">
-			<section class="developer_templates_name">
-				<span class="icon_sort"></span>
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
-			</section>
-		</li>
-		<?php
-				}
-			}
-		?>
-	</ul>
-</div>
-
-<div class="table">
-	<summary><h2>Routed Templates</h2></summary>
-	<header>
-		<span class="developer_templates_name">Template Name</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
-	</header>
-	<ul id="routed_templates">
-		<?php
-			foreach ($templates as $template) {
-				if ($template["routed"]) {
-					$x++;
-					$rel_table[$x] = $template["id"];
-		?>
-		<li id="row_<?=$x?>">
-			<section class="developer_templates_name">
-				<span class="icon_sort"></span>
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
-			</section>
-		</li>
-		<?php
-				}
-			}
-		?>
-	</ul>
-</div>
-
+<div id="basic_templates"></div>
+<div id="routed_templates"></div>
 <script>
-	$("#basic_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#basic_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
-	}});
-	
-	$("#routed_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#routed_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
-	}});
-	
-	$(".icon_delete").click(function() {
-		BigTreeDialog({
-			title: "Delete Template",
-			content: '<p class="confirm">Are you sure you want to delete this template?<br /><br />Deleting a template also removes its files in the /templates/ directory.</p>',
-			icon: "delete",
-			alternateSaveText: "OK",
-			callback: $.proxy(function() { document.location.href = $(this).attr("href"); },this)
-		});
+	var config = {
+		actions: {
+			edit: function(id,state) {
+				document.location.href = "<?=DEVELOPER_ROOT?>templates/edit/" + id + "/";
+			},
+			delete: function(id,state) {
+				BigTreeDialog({
+					title: "Delete Template",
+					content: '<p class="confirm">Are you sure you want to delete this template?<br /><br />Deleting a template also removes its files in the /templates/ directory.</p>',
+					icon: "delete",
+					alternateSaveText: "OK",
+					callback: function() {
+						document.location.href = "<?=DEVELOPER_ROOT?>templates/delete/" + id + "/";
+					}
+				});
+			}
+		},
+		columns: {
+			name: { title: "Template Name", largeFont: true, actionHook: "edit" }
+		},
+		draggable: function(positioning) {
+			console.log(positioning);
+		}
+	};
 
-		return false;
-	});
+	// Basic table
+	config.data = <?=json_encode($basic_data)?>;
+	config.container = "#basic_templates";
+	config.title = "Basic Templates";
+	BigTreeTable(config);
+
+	// Routed table
+	config.data = <?=json_encode($routed_data)?>;
+	config.container = "#routed_templates";
+	config.title = "Routed Templates";
+	BigTreeTable(config);
 </script>
