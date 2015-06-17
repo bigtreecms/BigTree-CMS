@@ -7,70 +7,52 @@
 		$query[] = "extensions[]=".urlencode($extension["id"]);
 	}
 	$version_info = array_filter((array)@json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+
+	foreach ($extensions as &$extension) {
+		$extension["ignore_link"] = $extension["upgrade_link"] = "";
+
+		if (!isset($_COOKIE["bigtree_admin"]["ignored_extension_updates"][$extension["id"]])) {
+			// Read manifest, see if a new version is available
+			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"),true);
+			if (intval($manifest["revision"]) < intval($version_info[$extension["id"]]["revision"])) {
+				$info = $version_info[$extension["id"]];
+				$extension["ignore_link"] = '<a class="button red" href="'.DEVELOPER_ROOT.'extensions/ignore/?id='.$extension["id"].'">Ignore</a>';
+				$extension["upgrade_link"] = '<a class="button blue" href="'.DEVELOPER_ROOT.'extensions/upgrade/?id='.$extension["id"].'">Upgrade</a>';
+				$extension["version"] .= '<small>(version '.$info["version"].' available, compatible with BigTree '.$info["compatibility"].')</small>';
+			}
+		}
+	}
 ?>
-<div class="table">
-	<summary><h2>Extensions</h2></summary>
-	<header>
-		<span class="developer_templates_name">Extension Name</span>
-		<span style="width: 80px;">Actions</span>
-	</header>
-	<ul>
-		<?php
-			foreach ($extensions as $extension) {
-				$new = false;
-
-				if (!isset($_COOKIE["bigtree_admin"]["ignored_extension_updates"][$extension["id"]])) {
-					// Read manifest, see if a new version is available
-					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"),true);
-					if (intval($manifest["revision"]) < intval($version_info[$extension["id"]]["revision"])) {
-						$new = true;
-						$info = $version_info[$extension["id"]];
-					}
-				}
-		?>
-		<li>
-			<section class="developer_extensions_name">
-				<?=$extension["name"]?> v<?=$extension["version"]?>
-				<?php if ($new) { ?>
-				<small>(version <?=$info["version"]?> available, compatible with BigTree <?=$info["compatibility"]?>)</small>
-				<?php } ?>
-			</section>
-			<section class="developer_extensions_action">
-				<?php if ($new) { ?>
-				<a class="button red" href="<?=DEVELOPER_ROOT?>extensions/ignore/?id=<?=$extension["id"]?>">Ignore</a>
-				<?php } ?>	
-			</section>
-			<section class="developer_extensions_action">
-				<?php if ($new) { ?>
-				<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/upgrade/?id=<?=$extension["id"]?>">Upgrade</a>
-				<?php } ?>	
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>extensions/edit/<?=$extension["id"]?>/" class="icon_edit"></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>extensions/delete/<?=$extension["id"]?>/" class="icon_delete"></a>
-			</section>
-		</li>
-		<?php } ?>
-	</ul>
-</div>
+<div id="extensions_table"></div>
 <script>
-	$(".icon_delete").click(function(ev) {
-		ev.preventDefault();
-
-		BigTreeDialog({
-			title: "Uninstall Extension",
-			content: '<p class="confirm">Are you sure you want to uninstall this extension?<br /><br />Related components, including those that were added to this package will also <strong>completely deleted</strong> (including related files).</p>',
-			icon: "delete",
-			alternateSaveText: "Uninstall",
-			callback: $.proxy(function() {
-				window.location.href = $(this).attr("href");
-			},this)
-		});
+	BigTreeTable({
+		container: "#extensions_table",
+		title: "Extensions",
+		data: <?=json_encode($extensions)?>,
+		actions: {
+			edit: function(id,state) {
+				document.location.href = "<?=DEVELOPER_ROOT?>extensions/edit/" + id + "/";
+			},
+			delete: function(id,state) {
+				BigTreeDialog({
+					title: "Uninstall Extension",
+					content: '<p class="confirm">Are you sure you want to uninstall this extension?<br /><br />Related components, including those that were added to this package will also <strong>completely deleted</strong> (including related files).</p>',
+					icon: "delete",
+					alternateSaveText: "OK",
+					callback: function() {
+						document.location.href = "<?=DEVELOPER_ROOT?>extensions/delete/" + id + "/";
+					}
+				});
+			}
+		},
+		columns: {
+			name: { title: "Extension Name", largeFont: true, actionHook: "edit", size: 1, source: "{name} v{version}" },
+			ignore_link: { title: "", size: 87, center: true },
+			upgrade_link: { title: "", size: 101, center: true }
+		}
 	});
 
-	$(".button.red").click(function(ev) {
+	$("#extensions_table").on("click",".button.red",function(ev) {
 		ev.preventDefault();
 
 		BigTreeDialog({

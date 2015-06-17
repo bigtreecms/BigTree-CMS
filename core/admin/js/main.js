@@ -3151,7 +3151,11 @@ var BigTreeTable = function(settings) {
 			}
 			HeaderHTML += '<header>';
 			for (key in Columns) {
-				HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: left;">' + Columns[key].title + '</span>';
+				if (Columns[key].center) {
+					HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: center;">' + Columns[key].title + '</span>';
+				} else {
+					HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: left;">' + Columns[key].title + '</span>';
+				}
 			}
 			if (Actions.length) {
 				HeaderHTML += '<span style="width: ' + ActionWidth + 'px; text-align: center;"></span>';
@@ -3203,6 +3207,9 @@ var BigTreeTable = function(settings) {
 					}
 					if (Columns[key].actionHook) {
 						column_class += " hook_" + Columns[key].actionHook;
+					}
+					if (Columns[key].center) {
+						column_class += " center";
 					}
 					// Add the cell
 					row += '<section style="width: ' + (Columns[key].size - 15) + 'px;" class="' + column_class + '">';

@@ -626,7 +626,10 @@
 
 	.table .column { padding: 0 0 0 15px; text-align: left; }
 	.table .column.large_font { font-size: 15px; }
+	.table .column.large_font small { display: inline-block; font-size: 11px; padding: 0 0 0 10px; }
+	.table .column.center { text-align: center; }
 	.table *[class*=" hook_"] { cursor: pointer; }
+	.table .column .button { height: 23px; line-height: 25px; }
 
 	/* Pending changes */
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }
