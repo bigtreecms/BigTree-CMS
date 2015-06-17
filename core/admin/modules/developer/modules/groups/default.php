@@ -9,7 +9,7 @@
 			},
 			delete: function(id) {
 				BigTreeDialog({
-					title: "Delete Module",
+					title: "Delete Module Group",
 					content: '<p class="confirm">Are you sure you want to delete this module group?<br /><br />Modules in this group will become uncategorized.</p>',
 					icon: "delete",
 					alternateSaveText: "OK",
@@ -20,7 +20,7 @@
 			}
 		},
 		columns: {
-			name: { title: "Module Group", largeFont: true, actionHook: "edit" }
+			name: { title: "Group Name", largeFont: true, actionHook: "edit" }
 		},
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });
