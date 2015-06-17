@@ -3209,6 +3209,17 @@ var BigTreeTable = function(settings) {
 					if (Draggable && x == 1) {
 						row += '<span class="icon_sort"></span>';
 					}
+
+					// If we have a source, we're going to loop through all the data doing a replace
+					if (Columns[key].source) {
+						var column_data = Columns[key].source;
+						for (k in dataset[i]) {
+							column_data = column_data.replace("{" + k + "}",dataset[i][k]);
+						}
+						dataset[i][key] = column_data;
+					}
+
+					// Add the cell data
 					row += dataset[i][key] + '</section>';
 				}
 

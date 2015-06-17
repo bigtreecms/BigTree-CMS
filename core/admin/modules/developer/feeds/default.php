@@ -1,29 +1,29 @@
-<?php
-	$feeds = $admin->getFeeds();
-?>
-<div class="table">
-	<summary><h2>Feeds</h2></summary>
-	<header>
-		<span class="developer_feeds_name">Feed Name</span>
-		<span class="developer_feeds_url">URL</span>
-		<span class="developer_feeds_type">Type</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
-	</header>
-	<ul>
-		<?php foreach ($feeds as $feed) { ?>
-		<li>
-			<section class="developer_feeds_name">
-				<a href="<?=DEVELOPER_ROOT?>feeds/edit/<?=$feed["id"]?>/"><?=$feed["name"]?></a>
-			</section>
-			<section class="developer_feeds_url"><a href="<?=WWW_ROOT?>feeds/<?=$feed["route"]?>/" target="_blank"><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/</a></section>
-			<section class="developer_feeds_type"><?php if ($feed["type"]) { echo $feed_types[$feed["type"]]; } else { echo "Custom"; } ?></section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>feeds/edit/<?=$feed["id"]?>/" class="icon_edit"></a>
-			</section>
-			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>feeds/delete/<?=$feed["id"]?>/" class="icon_delete"></a>
-			</section>
-		</li>
-		<?php } ?>
-	</ul>
-</div>
+<div id="feeds_table"></div>
+<script>
+	BigTreeTable({
+		container: "#feeds_table",
+		title: "Field Types",
+		data: <?=json_encode($admin->getFeeds())?>,
+		actions: {
+			edit: function(id,state) {
+				document.location.href = "<?=DEVELOPER_ROOT?>feeds/edit/" + id + "/";
+			},
+			delete: function(id,state) {
+				BigTreeDialog({
+					title: "Delete Feed",
+					content: '<p class="confirm">Are you sure you want to delete this feed?</p>',
+					icon: "delete",
+					alternateSaveText: "OK",
+					callback: function() {
+						document.location.href = "<?=DEVELOPER_ROOT?>feeds/delete/" + id + "/";
+					}
+				});
+			}
+		},
+		columns: {
+			name: { title: "Feed Name", largeFont: true, actionHook: "edit", size: 0.3 },
+			url: { title: "URL", size: 0.7, source: "<?=WWW_ROOT?>feeds/{route}/" },
+			type: { title: "Type", size: 140 }
+		}
+	});
+</script>
