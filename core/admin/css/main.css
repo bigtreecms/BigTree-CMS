@@ -630,6 +630,10 @@
 	.table .column.center { text-align: center; }
 	.table *[class*=" hook_"] { cursor: pointer; }
 	.table .column .button { height: 23px; line-height: 25px; }
+	.table .column .status { display: block; height: 35px; }
+	.table .column .status.good { background: #008000; color: #FFF; }
+	.table .column .status.ok { background: #FFA500; }
+	.table .column .status.red { background: #F00; color: #FFF; }
 
 	/* Pending changes */
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }

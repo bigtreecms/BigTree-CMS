@@ -17,9 +17,10 @@
 	foreach ($writable_directories as $directory) {
 		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
 		    $warnings[] = array(
-		    	"parameter" => "Directory Permissions Error",
-		    	"rec" => "Make ".SERVER_ROOT.$directory." writable.",
-		    	"status" => "bad"
+		    	"name" => "Directory Permissions Error",
+		    	"description" => "Make ".SERVER_ROOT.$directory." writable.",
+		    	"status" => "bad",
+		    	"value" => ""
 		    );
 		}
 	}
@@ -31,9 +32,10 @@
 			if ($data["directory"]) {
 				if (!BigTree::isDirectoryWritable(SITE_ROOT.$data["directory"])) {
 					$warnings[] = array(
-						"parameter" => "Directory Permissions Error",
-						"rec" => "Make ".SITE_ROOT.$data["directory"]." writable.",
-						"status" => "bad"
+						"name" => "Directory Permissions Error",
+						"description" => "Make ".SITE_ROOT.$data["directory"]." writable.",
+						"status" => "bad",
+						"value" => ""
 					);
 				}
 			}
@@ -44,33 +46,26 @@
 	$bad = $admin->getPageAdminLinks();
 	foreach ($bad as $f) {
 		$warnings[] = array(
-			"parameter" => "Bad Admin Links",
-			"rec" => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
-			"status" => "ok"
+			"name" => "Bad Admin Links",
+			"description" => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
+			"status" => "ok",
+			"value" => ""
 		);
 	}
 	
 	if (!file_exists(SITE_ROOT."favicon.ico")) {
 		$warnings[] = array(
-			"parameter" => "Missing Favicon",
-			"rec" => "Create a favicon and place it in the /site/ root.",
-			"status" => "ok"
+			"name" => "Missing Favicon",
+			"description" => "Create a favicon and place it in the /site/ root.",
+			"status" => "ok",
+			"value" => ""
 		);
 	}
 
-	//!Server Parameters
-	$mysql = (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad";
-	$magic_quotes_gpc = !get_magic_quotes_gpc() ? "good" : "bad";
-	$magic_quotes_runtime = !get_magic_quotes_runtime() ? "good" : "bad";
-	$file_uploads = ini_get('file_uploads') ? "good" : "bad";
-	$short_tags = ini_get('short_open_tag') ? "good" : "bad";
-	$image_support = extension_loaded('gd') ? "good" : "bad";
-	$curl_support = extension_loaded('curl') ? "good" : "bad";
-	
+	// See what the max file size upload is
 	$upload_max_filesize = ini_get('upload_max_filesize');
 	$post_max_size = ini_get('post_max_size');
-	$max_file = (intval($upload_max_filesize) > intval($post_max_size)) ? intval($post_max_size) : intval($upload_max_filesize);
-	
+	$max_file = (intval($upload_max_filesize) > intval($post_max_size)) ? intval($post_max_size) : intval($upload_max_filesize);	
 	$max_check = "bad";
 	if ($max_file >= 4) {
 		$max_check = "ok";
@@ -78,90 +73,91 @@
 	if ($max_file >= 8) {
 		$max_check = "good";
 	}
-	
-	$mem_limit = ini_get("memory_limit");
-	$memory_limit = (intval($mem_limit) > 32) ? "good" : "bad";
+
+	$server_parameters = array(
+		array(
+			"name" => "Magic Quotes",
+			"description" => "&ldquo;magic_quotes_gpc = Off&rdquo; in php.ini",
+			"status" => !get_magic_quotes_gpc() ? "good" : "bad",
+			"value" => ""
+		),
+		array(
+			"name" => "Magic Quotes Runtime Setting",
+			"description" => "&ldquo;magic_quotes_gpc = Off&rdquo; at runtime",
+			"status" => !get_magic_quotes_runtime() ? "good" : "bad",
+			"value" => ""
+		),
+		array(
+			"name" => "MySQL Support",
+			"description" => 'MySQL or <a href="http://www.php.net/manual/en/mysqli.installation.php" target="_blank">MySQLi extension</a> is required',
+			"status" => (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad",
+			"value" => ""
+		),
+		array(
+			"name" => "Allow File Uploads",
+			"description" => "&ldquo;file_uploads = On&rdquo; in php.ini",
+			"status" => ini_get('file_uploads') ? "good" : "bad",
+			"value" => ""
+		),
+		array(
+			"name" => "Allow 4MB Uploads",
+			"description" => "&ldquo;upload_max_filesize&rdquo; and &ldquo;post_max_size&rdquo; > 4M &mdash; ideally 8M or higher in php.ini",
+			"status" => $max_check,
+			"value" => $max_file."M"
+		),
+		array(
+			"name" => "Memory Limit",
+			"description" => "&ldquo;memory_limit&rdquo; > 32M in php.ini",
+			"status" => (intval(ini_get("memory_limit")) > 32) ? "good" : "bad",
+			"value" => ini_get("memory_limit")
+		),
+		array(
+			"name" => "Image Processing",
+			"description" => '<a href="http://us3.php.net/manual/en/image.installation.php" target="_blank">GD extension</a> is required',
+			"status" => extension_loaded('gd') ? "good" : "bad",
+			"value" => ""
+		),
+		array(
+			"name" => "cURL Support",
+			"description" => '<a href="http://www.php.net/manual/en/curl.installation.php" target="_blank">cURL extension</a> is required',
+			"status" => extension_loaded('curl') ? "good" : "bad",
+			"value" => ""
+		)
+	);
 ?>
 <div class="container">
 	<section>
 		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 	</section>
 </div>
-<?php if (count($warnings)) { ?>
-<div class="table">
-	<summary>
-		<h2>Warnings</h2>
-	</summary>
-	<header>
-		<span class="site_status_message">Warning</span>
-		<span class="site_status_action">Recommended Action</span>
-		<span class="site_status_status">Status</span>
-	</header>
-	<ul>
-		<?php foreach ($warnings as $w) { ?>
-		<li>
-			<section class="site_status_message"><?=$w["parameter"]?></section>
-			<section class="site_status_action"><?=$w["rec"]?></section>
-			<section class="site_status_status <?=$w["status"]?>"></section>
-		</li>
-		<?php } ?>
-	</ul>
-</div>
-<?php } ?>
-<div class="table">
-	<summary>
-		<h2>Server Parameters</h2>
-	</summary>
-	<header>
-		<span class="site_status_message">Site Parameter</span>
-		<span class="site_status_action">Recommended Value</span>
-		<span class="site_status_status">Status</span>
-	</header>
-	<ul>
-		<li>
-			<section class="site_status_message">Magic Quotes</section>
-			<section class="site_status_action">&ldquo;magic_quotes_gpc = Off&rdquo; in php.ini</section>
-			<section class="site_status_status <?=$magic_quotes_gpc?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">Magic Quotes Runtime Setting</section>
-			<section class="site_status_action">&ldquo;magic_quotes_gpc = Off&rdquo; at runtime</section>
-			<section class="site_status_status <?=$magic_quotes_runtime?>"></section>
-		</li>	
-		<li>
-			<section class="site_status_message">Short Tags</section>
-			<section class="site_status_action">&ldquo;short_open_tag = On&rdquo; in php.ini</section>
-			<section class="site_status_status <?=$short_tags?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">Allow File Uploads</section>
-			<section class="site_status_action">&ldquo;file_uploads = On&rdquo; in php.ini</section>
-			<section class="site_status_status <?=$file_uploads?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">Allow 4MB Uploads</section>
-			<section class="site_status_action">&ldquo;upload_max_filesize&rdquo; and &ldquo;post_max_size&rdquo; > 4M &mdash; ideally 8M or higher in php.ini</section>
-			<section class="site_status_status <?=$max_check?>"><?=$max_file?>M</section>
-		</li>
-		<li>
-			<section class="site_status_message">Memory Limit</section>
-			<section class="site_status_action">&ldquo;memory_limit&rdquo; > 32M in php.ini</section>
-			<section class="site_status_status <?=$memory_limit?>"><?=$mem_limit?></section>
-		</li>
-		<li>
-			<section class="site_status_message">MySQL Support</section>
-			<section class="site_status_action">MySQL or <a href="http://www.php.net/manual/en/mysqli.installation.php" target="_blank">MySQLi extension</a> is required</section>
-			<section class="site_status_status <?=$mysql?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">Image Processing</section>
-			<section class="site_status_action"><a href="http://us3.php.net/manual/en/image.installation.php" target="_blank">GD extension</a> is required</section>
-			<section class="site_status_status <?=$image_support?>"></section>
-		</li>
-		<li>
-			<section class="site_status_message">cURL Support</section>
-			<section class="site_status_action"><a href="http://www.php.net/manual/en/curl.installation.php" target="_blank">cURL extension</a> is required</section>
-			<section class="site_status_status <?=$curl_support?>"></section>
-		</li>
-	</ul>
-</div>
+<div id="site_warnings_table"></div>
+<div id="server_status_table"></div>
+<script>
+	<?php if (count($warnings)) { ?>
+	// Site Warnings
+	BigTreeTable({
+		title: "Warnings",
+		container: "#site_warnings_table",
+		data: <?=json_encode($warnings)?>,
+		actions: [],
+		columns: {
+			name: { title: "Problem", size: 0.3 },
+			description: { title: "Recommended Action", size: 0.7 },
+			status: { title: "Status", size: 90, center: true, source: '<span class="status {status}"></span>' }
+		}
+	});
+	<?php } ?>
+
+	// Server Status
+	BigTreeTable({
+		title: "Server Parameters",
+		container: "#server_status_table",
+		data: <?=json_encode($server_parameters)?>,
+		actions: [],
+		columns: {
+			name: { title: "Server Parameter", size: 0.3 },
+			description: { title: "Recommended Value", size: 0.7 },
+			status: { title: "Status", size: 90, center: true, source: '<span class="status {status}">{value}</span>' }
+		}
+	});
+</script>
