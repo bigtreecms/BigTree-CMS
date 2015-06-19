@@ -1414,6 +1414,35 @@
 			}
 			return $json;
 		}
+
+		/*
+			Function: jsonExtract
+				Returns a JSON string of only the specified columns from the dataset in compact format.
+
+			Parameters:
+				data - A dataset array
+				columns - The columns to return in JSON
+				preserve_keys - Whether to perserve keys (false turns the output into a JSON array, defaults to false)
+
+			Returns:
+				A JSON string.
+		*/
+
+		static function jsonExtract($data,$columns = array(),$preserve_keys = false) {
+			$simple_data = array();
+			foreach ($data as $key => $val) {
+				$row = array();
+				foreach ($columns as $column) {
+					$row[$column] = $val[$column];
+				}
+				if ($preserve_keys) {
+					$simple_data[$key] = $row;
+				} else {
+					$simple_data[] = $row;
+				}
+			}
+			return json_encode($simple_data,JSON_UNESCAPED_SLASHES);
+		}
 		
 		/*
 			Function: makeDirectory

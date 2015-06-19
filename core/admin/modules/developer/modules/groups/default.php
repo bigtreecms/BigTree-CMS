@@ -25,6 +25,6 @@
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });
 		},
-		data: <?=json_encode(array_values($admin->getModuleGroups()))?>
+		data: <?=BigTree::jsonExtract($admin->getModuleGroups(),array("id","name"))?>
 	});
 </script>

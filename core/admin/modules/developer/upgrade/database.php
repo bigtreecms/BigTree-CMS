@@ -733,10 +733,12 @@
 		sqlquery("ALTER TABLE `bigtree_module_actions` DROP COLUMN `report`");
 
 		// Drop the old interface tables
+		sqlquery("SET foreign_key_checks = 0");
 		sqlquery("DROP TABLE `bigtree_module_embeds`");
 		sqlquery("DROP TABLE `bigtree_module_forms`");
 		sqlquery("DROP TABLE `bigtree_module_views`");
 		sqlquery("DROP TABLE `bigtree_module_reports`");
+		sqlquery("SET foreign_key_checks = 1");
 
 		// Clear view caches
 		sqlquery("DELETE FROM bigtree_module_view_cache");

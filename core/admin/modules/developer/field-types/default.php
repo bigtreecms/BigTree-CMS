@@ -3,7 +3,7 @@
 	BigTreeTable({
 		container: "#field_types_table",
 		title: "Field Types",
-		data: <?=json_encode($admin->getFieldTypes())?>,
+		data: <?=BigTree::jsonExtract($admin->getFieldTypes(),array("id","name"))?>,
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>field-types/edit/" + id + "/";

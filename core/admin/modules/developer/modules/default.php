@@ -50,7 +50,7 @@
 	BigTreeTable($.extend(table_config,{
 		title: "Ungrouped Modules",
 		container: "#ungrouped_modules",
-		data: <?=json_encode(array_values($ungrouped_modules))?>
+		data: <?=BigTree::jsonExtract($ungrouped_modules,array("id","name"))?>
 	}));
 	<?php
 		}
@@ -59,7 +59,7 @@
 	BigTreeTable($.extend(table_config,{
 		title: "<?=$group["name"]?>",
 		container: "#module_group_<?=$group["id"]?>",
-		data: <?=json_encode(array_values($group["modules"]))?>
+		data: <?=BigTree::jsonExtract($group["modules"],array("name","id"))?>
 	}));
 	<?php
 		}

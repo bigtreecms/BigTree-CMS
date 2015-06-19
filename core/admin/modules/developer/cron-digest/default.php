@@ -24,7 +24,7 @@
 				},
 				container: "#cron_tab",
 				columns: { name: { title: "Plugin Name" } },
-				data: <?=json_encode($cron_table_data)?>,
+				data: <?=BigTree::jsonExtract($cron_table_data,array("name","id"))?>,
 				draggable: function(positioning) {
 					console.log(positioning);
 				}

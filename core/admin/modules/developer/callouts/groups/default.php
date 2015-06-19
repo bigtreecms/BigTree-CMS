@@ -3,7 +3,7 @@
 	BigTreeTable({
 		container: "#callout_groups_table",
 		title: "Callout Groups",
-		data: <?=json_encode(array_values($admin->getCalloutGroups()))?>,
+		data: <?=BigTree::jsonExtract($admin->getCalloutGroups(),array("name","id"))?>,
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>callouts/groups/edit/" + id + "/";

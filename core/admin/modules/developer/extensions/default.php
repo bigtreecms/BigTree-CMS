@@ -28,7 +28,7 @@
 	BigTreeTable({
 		container: "#extensions_table",
 		title: "Extensions",
-		data: <?=json_encode($extensions)?>,
+		data: <?=BigTree::jsonExtract($extensions,array("name","id","version","ignore_link","upgrade_link"))?>,
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>extensions/edit/" + id + "/";

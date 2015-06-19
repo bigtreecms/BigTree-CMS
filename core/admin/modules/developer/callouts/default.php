@@ -3,7 +3,7 @@
 	BigTreeTable({
 		container: "#callouts_table",
 		title: "Callouts",
-		data: <?=json_encode($admin->getCallouts("name ASC"))?>,
+		data: <?=BigTree::jsonExtract($admin->getCallouts("name ASC"),array("name","id"))?>,
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>callouts/edit/" + id + "/";

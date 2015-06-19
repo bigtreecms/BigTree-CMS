@@ -3,7 +3,7 @@
 	BigTreeTable({
 		container: "#feeds_table",
 		title: "Field Types",
-		data: <?=json_encode($admin->getFeeds())?>,
+		data: <?=BigTree::jsonExtract($admin->getFeeds(),array("id","name","route","type"))?>,
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>feeds/edit/" + id + "/";

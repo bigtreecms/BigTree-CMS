@@ -3,7 +3,7 @@
 	BigTreeTable({
 		container: "#settings_table",
 		title: "Settings",
-		data: <?=json_encode($admin->getSettings())?>,
+		data: <?=BigTree::jsonExtract($admin->getSettings(),array("id","name","type"))?>,
 		actions: {
 			edit: function(id,state) {
 				document.location.href = "<?=DEVELOPER_ROOT?>settings/edit/" + id + "/";
