@@ -5,9 +5,7 @@
 		title: "Callout Groups",
 		data: <?=BigTree::jsonExtract($admin->getCalloutGroups(),array("name","id"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>callouts/groups/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>callouts/groups/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Callout Group",
@@ -22,6 +20,7 @@
 		},
 		columns: {
 			name: { title: "Group Name", largeFont: true, actionHook: "edit" }
-		}
+		},
+		searchable: true
 	});
 </script>

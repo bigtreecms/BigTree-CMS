@@ -30,9 +30,7 @@
 		title: "Extensions",
 		data: <?=BigTree::jsonExtract($extensions,array("name","id","version","ignore_link","upgrade_link"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>extensions/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>extensions/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Uninstall Extension",
@@ -49,7 +47,8 @@
 			name: { title: "Extension Name", largeFont: true, actionHook: "edit", size: 1, source: "{name} v{version}" },
 			ignore_link: { title: "", size: 87, center: true },
 			upgrade_link: { title: "", size: 101, center: true }
-		}
+		},
+		searchable: true
 	});
 
 	$("#extensions_table").on("click",".button.red",function(ev) {

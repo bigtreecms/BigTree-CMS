@@ -5,9 +5,7 @@
 		title: "Callouts",
 		data: <?=BigTree::jsonExtract($admin->getCallouts("name ASC"),array("name","id"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>callouts/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>callouts/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Callout",
@@ -22,6 +20,7 @@
 		},
 		columns: {
 			name: { title: "Callout Name", largeFont: true, actionHook: "edit" }
-		}
+		},
+		searchable: true
 	});
 </script>

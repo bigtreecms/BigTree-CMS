@@ -5,9 +5,7 @@
 		title: "Settings",
 		data: <?=BigTree::jsonExtract($admin->getSettings(),array("id","name","type"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>settings/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>settings/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Setting",
@@ -24,6 +22,7 @@
 			name: { title: "Name", largeFont: true, actionHook: "edit", size: 0.5 },
 			id: { title: "ID", size: 0.3 },
 			type: { title: "Type" }
-		}
+		},
+		searchable: true
 	});
 </script>

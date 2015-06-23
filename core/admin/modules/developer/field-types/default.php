@@ -5,9 +5,7 @@
 		title: "Field Types",
 		data: <?=BigTree::jsonExtract($admin->getFieldTypes(),array("id","name"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>field-types/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>field-types/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Field Type",
@@ -22,6 +20,7 @@
 		},
 		columns: {
 			name: { title: "Field Type Name", largeFont: true, actionHook: "edit" }
-		}
+		},
+		searchable: true
 	});
 </script>

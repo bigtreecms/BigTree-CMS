@@ -5,9 +5,7 @@
 		title: "Packages",
 		data: <?=BigTree::jsonExtract($admin->getPackages(),array("id","name"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>packages/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>packages/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Uninstall Package",
@@ -22,6 +20,7 @@
 		},
 		columns: {
 			name: { title: "Package Name", largeFont: true, actionHook: "edit" }
-		}
+		},
+		searchable: true
 	});
 </script>

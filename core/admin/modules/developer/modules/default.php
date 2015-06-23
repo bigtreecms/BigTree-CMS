@@ -21,9 +21,7 @@
 <script>
 	var table_config = {
 		actions: {
-			edit: function(id) {
-				document.location.href = "<?=DEVELOPER_ROOT?>modules/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>modules/edit/{id}/",
 			delete: function(id) {
 				BigTreeDialog({
 					title: "Delete Module",
@@ -41,7 +39,8 @@
 		},
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-modules/", { type: "POST", data: positioning });
-		}
+		},
+		searchable: true
 	};
 
 	<?php

@@ -22,6 +22,7 @@
 			name: { title: "Feed Name", largeFont: true, actionHook: "edit", size: 0.3 },
 			url: { title: "URL", size: 0.7, source: "<?=WWW_ROOT?>feeds/{route}/" },
 			type: { title: "Type", size: 140 }
-		}
+		},
+		searchable: true
 	});
 </script>

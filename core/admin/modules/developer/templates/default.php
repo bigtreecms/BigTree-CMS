@@ -1,6 +1,5 @@
 <?php
 	$templates = $admin->getTemplates();
-
 	$basic_data = $routed_data = array();
 	foreach ($templates as $template) {
 		if ($template["routed"]) {
@@ -15,9 +14,7 @@
 <script>
 	var table_config = {
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>templates/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>templates/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Template",
@@ -35,7 +32,8 @@
 		},
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: positioning });
-		}
+		},
+		searchable: true
 	};
 
 	// Basic table

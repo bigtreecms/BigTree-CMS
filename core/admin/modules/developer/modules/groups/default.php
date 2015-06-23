@@ -4,9 +4,7 @@
 		container: "#module_groups_table",
 		title: "Module Groups",
 		actions: {
-			edit: function(id) {
-				document.location.href = "<?=DEVELOPER_ROOT?>modules/groups/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>modules/groups/edit/{id}/",
 			delete: function(id) {
 				BigTreeDialog({
 					title: "Delete Module Group",
@@ -25,6 +23,7 @@
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });
 		},
-		data: <?=BigTree::jsonExtract($admin->getModuleGroups(),array("id","name"))?>
+		data: <?=BigTree::jsonExtract($admin->getModuleGroups(),array("id","name"))?>,
+		searchable: true
 	});
 </script>
