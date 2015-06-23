@@ -266,8 +266,10 @@
 		$route = $bigtree["path"][1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
-			header("Content-type: text/xml");
-			echo '<?xml version="1.0" encoding="UTF-8" ?>';
+			if ($feed["type"] != "json") {
+				header("Content-type: text/xml");
+				echo '<?xml version="1.0" encoding="UTF-8" ?>';
+			}
 			include BigTree::path("feeds/".$feed["type"].".php");
 			die();
 		}

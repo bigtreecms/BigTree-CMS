@@ -5,9 +5,7 @@
 		title: "Field Types",
 		data: <?=BigTree::jsonExtract($admin->getFeeds(),array("id","name","route","type"))?>,
 		actions: {
-			edit: function(id,state) {
-				document.location.href = "<?=DEVELOPER_ROOT?>feeds/edit/" + id + "/";
-			},
+			edit: "<?=DEVELOPER_ROOT?>feeds/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Feed",
