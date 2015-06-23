@@ -3076,42 +3076,52 @@ var BigTreeTable = function(settings) {
 		var ActionWidth = false;
 		var Columns = settings.columns;
 		var Container = $(settings.container);
+		var CurrentDataset = settings.data;
 		var Data = settings.data;
 		var DataRowRelationships = {};
 		var Draggable = settings.draggable ? true : false;
+		var DraggableSavedState;
 		var DraggableCallback = settings.draggable;
 		var HeaderHTML = "";
+		var PageCount = 0;
+		var PerPage = settings.perPage ? parseInt(settings.perPage) : 0;
+		var Searchable = settings.searchable ? true : false;
+		var SearchField = false;
+		var SearchTimer = false;
 		var Sortable = settings.sortable ? true : false;
+		var SummaryHTML = "";
 		var Title = settings.title ? settings.title : false;
 
 		function init() {
 			// Hooks
 			for (action_key in Actions) {
-				Container.on("click",".icon_" + action_key + ", .hook_" + action_key,(function(action_key) {
-					return function(ev) {
-						ev.preventDefault();
-		
-						// Handle toggles
-						var toggle_state = false;
-						if ($(this).hasClass("icon_feature")) {
-							$(this).toggleClass("icon_feature_on");
-							toggle_state = $(this).hasClass("icon_feature_on");
-						} else if ($(this).hasClass("icon_approve")) {
-							$(this).toggleClass("icon_approve_on");
-							toggle_state = $(this).hasClass("icon_approve_on");
-						} else if ($(this).hasClass("icon_archive")) {
-							$(this).removeClass("icon_archive").addClass("icon_restore");
-							toggle_state = true;
-						} else if ($(this).hasClass("icon_restore")) {
-							$(this).removeclass("icon_restore").addClass("icon_archive");
-							toggle_state = false;
+				if (typeof Actions[action_key] != "string") {
+					Container.on("click",".icon_" + action_key + ", .hook_" + action_key,(function(action_key) {
+						return function(ev) {
+							ev.preventDefault();
+			
+							// Handle toggles
+							var toggle_state = false;
+							if ($(this).hasClass("icon_feature")) {
+								$(this).toggleClass("icon_feature_on");
+								toggle_state = $(this).hasClass("icon_feature_on");
+							} else if ($(this).hasClass("icon_approve")) {
+								$(this).toggleClass("icon_approve_on");
+								toggle_state = $(this).hasClass("icon_approve_on");
+							} else if ($(this).hasClass("icon_archive")) {
+								$(this).removeClass("icon_archive").addClass("icon_restore");
+								toggle_state = true;
+							} else if ($(this).hasClass("icon_restore")) {
+								$(this).removeclass("icon_restore").addClass("icon_archive");
+								toggle_state = false;
+							}
+			
+							// Handle custom hook
+							var id = $(this).parents("li").find("span").attr("data-id");
+							Actions[action_key](id,toggle_state);
 						}
-		
-						// Handle custom hook
-						var id = $(this).parents("li").find("span").attr("data-id");
-						Actions[action_key](id,toggle_state);
-					}
-				})(action_key));
+					})(action_key));
+				}
 			}
 
 			// Setup widths for calculating column sizes
@@ -3145,11 +3155,18 @@ var BigTreeTable = function(settings) {
 				}
 			}
 	
-			// Header HTML
+			// Summary HTML
 			if (Title) {
-				HeaderHTML = '<summary><h2>' + Title + '</h2></summary>';
+				SummaryHTML += '<h2>' + Title + '</h2>';
 			}
-			HeaderHTML += '<header>';
+			if (PerPage) {
+				SummaryHTML += '<div class="view_paging"></div>';
+			}
+			if (Searchable) {
+				SummaryHTML += '<div class="table_search_wrapper"><input name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" type="search"><span class="form_search_icon"></span></div>';
+			}
+
+			// Header HTML
 			for (key in Columns) {
 				if (Columns[key].center) {
 					HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: center;">' + Columns[key].title + '</span>';
@@ -3160,10 +3177,23 @@ var BigTreeTable = function(settings) {
 			if (Actions.length) {
 				HeaderHTML += '<span style="width: ' + ActionWidth + 'px; text-align: center;"></span>';
 			}
-			HeaderHTML += '</header>';
 
-			// Fill the container
-			Container.html('<div class="table">' + HeaderHTML + '<ul>' + generateBody(Data) + '</ul></div>');
+			// Pagination setup
+			if (PerPage) {
+				var page = Data.slice(0,PerPage);
+				PageCount = Math.ceil(Data.length / PerPage);
+				
+				// Draw the content
+				Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(page) + '</ul></div>');
+
+				// Draw the pagination
+				BigTree.setPageCount(Container.find(".view_paging"),PageCount,1);
+
+				// Hook pagination
+				Container.on("click",".view_paging a",switchPage);
+			} else {
+				Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');
+			}
 
 			// Draggable setup
 			if (Draggable) {
@@ -3185,6 +3215,13 @@ var BigTreeTable = function(settings) {
 					}
 				});
 			}	
+
+			// Searchable setup
+			if (Searchable) {
+				DraggableSavedState = Draggable;
+				SearchField = Container.find(".form_search");
+				SearchField.on("keyup",searchData);
+			}
 		}
 
 		// Body generation based on data
@@ -3242,7 +3279,17 @@ var BigTreeTable = function(settings) {
 						} else if (key == "archive" && dataset[i].archived) {
 							icon_class = 'icon_restore';
 						}
-						row += '<div style="float: left; width: 40px; text-align: center;"><a href="#" class="' + icon_class + '"></a></div>';
+						row += '<div style="float: left; width: 40px; text-align: center;">';
+						if (typeof Actions[key] == "string") {
+							var link = Actions[key];
+							for (k in dataset[i]) {
+								link = link.replace("{" + k + "}",dataset[i][k]);
+							}
+							row += '<a href="' + link + '" class="' + icon_class + '"></a>';
+						} else {
+							row += '<a href="#" class="' + icon_class + '"></a>';
+						}
+						row += '</div>';
 					}
 					row += '</section>';
 				}
@@ -3252,6 +3299,62 @@ var BigTreeTable = function(settings) {
 				count++;
 			}
 			return body_html
+		}
+
+		// Helper function to regenerate content
+		function regenerate(page) {
+			// Paginated
+			if (PerPage) {
+				PageCount = Math.ceil(CurrentDataset.length / PerPage);
+				var data = CurrentDataset.slice((page - 1) * PerPage,page * PerPage);
+				Container.find("ul").html(generateBody(data));
+				BigTree.setPageCount(Container.find(".view_paging"),PageCount,page,true);
+			// Standard
+			} else {
+				Container.find("ul").html(generateBody(CurrentDataset));
+			}
+		}
+
+		// Hook when a user begins typing in search
+		function searchData() {
+			var results = [];
+			var query = SearchField.val().toLowerCase();
+			// Switch draggable state to false if there's a query
+			if (query.length) {
+				Draggable = false;
+				for (var i in Data) {
+					var success = false;
+					for (var x in Data[i]) {
+						if (Data[i][x].toLowerCase().indexOf(query) > -1) {
+							success = true;
+						}
+					}
+					if (success) {
+						results.push(Data[i]);
+					}
+				}
+
+				// Save the new current dataset and get number of pages
+				CurrentDataset = results;
+				regenerate(1);
+
+			// Return to default draggable state, load full data set
+			} else {
+				Draggable = DraggableSavedState;
+				CurrentDataset = Data;
+				regenerate(1);
+			}
+		}
+
+		// Hook when a user clicks the pagination arrows / numbers
+		function switchPage(ev) {
+			ev.preventDefault();
+			if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
+				return;
+			}
+
+			var number = parseInt(BigTree.cleanHref($(this).attr("href")));
+			regenerate(number);
 		}
 
 		init();
@@ -3363,7 +3466,7 @@ var BigTree = {
 		},time + 500);
 	},
 	
-	setPageCount: function(selector,pages,current_page) {
+	setPageCount: function(selector,pages,current_page,always_show) {
 		// We have to have at least one page.
 		if (pages == 0) {
 			pages = 1;
@@ -3416,7 +3519,7 @@ var BigTree = {
 		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
 		
 		$(selector).html(content);
-		if (pages == 1) {
+		if (pages == 1 && !always_show) {
 			$(selector).hide();
 		} else {
 			$(selector).show();
