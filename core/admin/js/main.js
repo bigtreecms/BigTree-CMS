@@ -3083,6 +3083,7 @@ var BigTreeTable = function(settings) {
 		var DraggableSavedState;
 		var DraggableCallback = settings.draggable;
 		var HeaderHTML = "";
+		var NoContentMessage = settings.noContentMessage ? settings.noContentMessage : false;
 		var PageCount = 0;
 		var PerPage = settings.perPage ? parseInt(settings.perPage) : 0;
 		var Searchable = settings.searchable ? true : false;
@@ -3157,7 +3158,11 @@ var BigTreeTable = function(settings) {
 	
 			// Summary HTML
 			if (Title) {
-				SummaryHTML += '<h2>' + Title + '</h2>';
+				SummaryHTML += '<h2>';
+				if (settings.icon) {
+					SummaryHTML += '<span class="icon_medium_' + settings.icon + '"></span>';
+				}
+				SummaryHTML += Title + '</h2>';
 			}
 			if (Searchable) {
 				SummaryHTML += '<div class="table_search_wrapper"><input name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" type="search"><span class="form_search_icon"></span></div>';
@@ -3221,6 +3226,12 @@ var BigTreeTable = function(settings) {
 				DraggableSavedState = Draggable;
 				SearchField = Container.find(".form_search");
 				SearchField.on("keyup",searchData);
+			}
+
+			// Empty content check
+			if (!Data.length && NoContentMessage) {
+				Container.find("ul").html('<li><section class="no_content">' + NoContentMessage + '</section></li>');
+				Container.find(".view_paging, .table_search_wrapper").hide();
 			}
 		}
 

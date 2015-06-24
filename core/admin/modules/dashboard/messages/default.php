@@ -11,144 +11,121 @@
 	$sent_pages = ceil(count($sent) / 5);
 ?>
 
-<div class="table">
-	<summary>
-		<h2><span class="unread"></span>Unread Messages</h2>
-		<?php if (count($unread)) { ?>
-		<nav id="unread_paging" class="view_paging"></nav>
-		<?php } ?>
-	</summary>
-	<header>
-		<span class="messages_from_to">From</span>
-		<span class="messages_subject">Subject</span>
-		<span class="messages_date_time">Date</span>
-		<span class="messages_date_time">Time</span>
-		<span class="messages_view">View</span>
-	</header>
-	<ul>
-		<?php
-			if (count($unread) == 0) {
-		?>
-		<li><section class="no_content">You have no unread messages.</section></li>
-		<?php
-			} else {
-				$page = 0;
-				$x = 0;
-				foreach ($unread as $item) {
-					if ($x == 5) {
-						$page++;
-						$x = 0;
-					}
-					$x++;
-		?>
-		<li class="page_<?=$page?>"<?php if ($page > 0) { ?> style="display: none;"<?php } ?>>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
-			<section class="messages_subject"><?=$item["subject"]?></section>
-			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
-			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="<?=$message_root?>view/<?=$item["id"]?>/" class="icon_message"></a></section>
-		</li>
-		<?php
-				}
-			}
-		?>
-	</ul>
-</div>
 
-<div class="table">
-	<summary>
-		<h2><span class="read"></span>Read Messages</h2>
-		<?php if (count($read)) { ?>
-		<nav id="read_paging" class="view_paging"></nav>
-		<?php } ?>
-	</summary>
-	<header>
-		<span class="messages_from_to">From</span>
-		<span class="messages_subject">Subject</span>
-		<span class="messages_date_time">Date</span>
-		<span class="messages_date_time">Time</span>
-		<span class="messages_view">View</span>
-	</header>
-	<ul>
-		<?php
-			if (count($read) == 0) {
-		?>
-		<li><section class="no_content">You have no read messages.</section></li>
-		<?php
-			} else {
-				$page = 0;
-				$x = 0;
-				foreach ($read as $item) {
-					if ($x == 5) {
-						$page++;
-						$x = 0;
-					}
-					$x++;
-		?>
-		<li class="page_<?=$page?>"<?php if ($page > 0) { ?> style="display: none;"<?php } ?>>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
-			<section class="messages_subject"><?=$item["subject"]?></section>
-			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
-			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="<?=$message_root?>view/<?=$item["id"]?>/" class="icon_message"></a></section>
-		</li>
-		<?php
-				}
-			}
-		?>
-	</ul>
-</div>
+<?php
+	// Going to be querying a lot of user names
+	$user_cache = array();
 
-<div class="table">
-	<summary>
-		<h2><span class="sent"></span>Sent Messages</h2>
-		<?php if (count($sent)) { ?>
-		<nav id="sent_paging" class="view_paging"></nav>
-		<?php } ?>
-	</summary>
-	<header>
-		<span class="messages_from_to">To</span>
-		<span class="messages_subject">Subject</span>
-		<span class="messages_date_time">Date</span>
-		<span class="messages_date_time">Time</span>
-		<span class="messages_view">View</span>
-	</header>
-	<ul>
-		<?php
-			if (count($sent) == 0) {
-		?>
-		<li><section class="no_content">You have no sent messages.</section></li>
-		<?php
-			} else {
-				$page = 0;
-				$x = 0;
-				foreach ($sent as $item) {
-					if ($x == 5) {
-						$page++;
-						$x = 0;
-					}
-					$x++;
-					// Get the recipient names
-					$recipients = explode("|",trim($item["recipients"],"|"));
-					$r_names = array();
-					foreach ($recipients as $r) {
-						$u = $admin->getUser($r);
-						$r_names[] = $u["name"];
-					}
-		?>
-		<li class="page_<?=$page?>"<?php if ($page > 0) { ?> style="display: none;"<?php } ?>>
-			<section class="messages_from_to"><?=implode(", ",$r_names)?></section>
-			<section class="messages_subject"><?=$item["subject"]?></section>
-			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
-			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="<?=$message_root?>view/<?=$item["id"]?>/" class="icon_message"></a></section>
-		</li>
-		<?php
-				}
+	// Sent messages table data
+	$sent_data = array();
+	foreach ($messages["sent"] as $message) {
+		$recipients = explode("|",trim($message["recipients"],"|"));
+		$recipient_names = array();
+		foreach ($recipients as $recipient) {
+			if (!isset($user_cache[$recipient])) {
+				$user_cache[$recipient] = $admin->getUser($recipient);
 			}
-		?>
-	</ul>
-</div>
+			$recipient_names[] = $user_cache[$recipient]["name"];
+		}
+
+		$sent_data[] = array(
+			"id" => $message["id"],
+			"to" => implode(", ",$recipient_names),
+			"subject" => $message["subject"],
+			"date" => date("n/j/y",strtotime($message["date"])),
+			"time" => date("g:ia",strtotime($message["date"]))
+		);
+	}
+
+	// Unread messages table data 
+	$unread_data = array();
+	foreach ($messages["unread"] as $message) {
+		$unread_data[] = array(
+			"id" => $message["id"],
+			"from" => '<span class="gravatar"><img src="'.BigTree::gravatar($message["sender_email"], 36).'" alt="" /></span>'.$message["sender_name"],
+			"subject" => $message["subject"],
+			"date" => date("n/j/y",strtotime($message["date"])),
+			"time" => date("g:ia",strtotime($message["date"]))
+		);
+	}
+
+	// Read messages table data 
+	$read_data = array();
+	foreach ($messages["read"] as $message) {
+		$read_data[] = array(
+			"id" => $message["id"],
+			"from" => '<span class="gravatar"><img src="'.BigTree::gravatar($message["sender_email"], 36).'" alt="" /></span>'.$message["sender_name"],
+			"subject" => $message["subject"],
+			"date" => date("n/j/y",strtotime($message["date"])),
+			"time" => date("g:ia",strtotime($message["date"]))
+		);
+	}
+?>
+<div id="unread_messages_table"></div>
+<div id="read_messages_table"></div>
+<div id="sent_messages_table"></div>
+<script>
+	// Unread Messages
+	BigTreeTable({
+		container: "#unread_messages_table",
+		title: "Unread Messages",
+		icon: "unread",
+		noContentMessage: "You have no unread messages.",
+		perPage: 5,
+		searchable: true,
+		columns: {
+			from: { title: "From", size: 0.4 },
+			subject: { title: "Subject", size: 0.6 },
+			date: { title: "Date", size: 80 },
+			time: { title: "Time", size: 80 }
+		},
+		actions: {
+			view: "<?=$message_root?>view/{id}/"
+		},
+		data: <?=json_encode($unread_data)?>
+	});
+
+	// Read Messages
+	BigTreeTable({
+		container: "#read_messages_table",
+		title: "Read Messages",
+		icon: "read",
+		noContentMessage: "You have no read messages.",
+		perPage: 5,
+		searchable: true,
+		columns: {
+			from: { title: "From", size: 0.4 },
+			subject: { title: "Subject", size: 0.6 },
+			date: { title: "Date", size: 80 },
+			time: { title: "Time", size: 80 }
+		},
+		actions: {
+			view: "<?=$message_root?>view/{id}/"
+		},
+		data: <?=json_encode($read_data)?>
+	});
+
+	// Sent Messages
+	BigTreeTable({
+		container: "#sent_messages_table",
+		title: "Sent Messages",
+		icon: "sent",
+		noContentMessage: "You have no sent messages.",
+		perPage: 5,
+		searchable: true,
+		columns: {
+			to: { title: "To", size: 0.4 },
+			subject: { title: "Subject", size: 0.6 },
+			date: { title: "Date", size: 80 },
+			time: { title: "Time", size: 80 }
+		},
+		actions: {
+			view: "<?=$message_root?>view/{id}/"
+		},
+		data: <?=json_encode($sent_data)?>
+	});
+</script>
+
 <script>
 	BigTree.localPagesOfMessages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
 	

@@ -574,23 +574,7 @@
 	.table > summary .more:hover { background: #fff; }
 	.table > summary h2, .container summary h2 { float: left; font-size: 14px; height: 36px; line-height: 35px; margin: 0; padding: 1px 0 0 0; text-transform: uppercase; }
 	.table > summary h2.full { float: none; user-select: none; }
-	.table > summary h2 span { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 24px; margin: 5px 10px 0 0; width: 24px; }
-	.table > summary h2 .pages { background-position: 0px -80px; }
-	.table > summary h2 .hidden { background-position: -24px -80px; }
-	.table > summary h2 .archived { background-position: -48px -80px; }
-	.table > summary h2 .pending { background-position: -72px -80px; }
-	.table > summary h2 .unread { background-position: -96px -82px; }
-	.table > summary h2 .read { background-position: -120px -80px; }
-	.table > summary h2 .sent { background-position: -144px -80px; }
-	.table > summary h2 .analytics { background-position: -168px -80px; }
-	.table > summary h2 .published { background-position: -192px -80px; }
-	.table > summary h2 .saved { background-position: -216px -80px; }
-	.table > summary h2 .modules { background-position: -240px -80px; }
-	.table > summary h2 .views { background-position: -454px -52px; }
-	.table > summary h2 .forms { background-position: -477px -52px; }
-	.table > summary h2 .embeds { background-position: -501px -53px; }
-	.table > summary h2 .reports { background-position: -525px -52px; }
-	.table > summary h2 .actions { background-position: -548px -53px; }
+	
 	.table > summary .table_search_wrapper { float: right; margin: 5px 0 0 10px; }
 	.table > summary .table_search_wrapper input { margin: 0; }
 	.table > summary .table_search_wrapper .form_search_icon { margin: 5px 0 0 200px; }
@@ -1404,6 +1388,25 @@
 	.icon_menu { background: url(../images/icon-sprite.svg); background-position: -792px -80px; display: inline-block; height: 24px; width: 24px; }
 
 	.disabled_icon { cursor: default; opacity: 0.3; }
+
+/* Medium Icons (24x24) */
+	.icon_medium, *[class^="icon_medium"] { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 24px; margin: 5px 10px 0 0; width: 24px; }
+	.icon_medium_pages { background-position: 0px -80px; }
+	.icon_medium_hidden { background-position: -24px -80px; }
+	.icon_medium_archived { background-position: -48px -80px; }
+	.icon_medium_pending { background-position: -72px -80px; }
+	.icon_medium_unread { background-position: -96px -82px; }
+	.icon_medium_read { background-position: -120px -80px; }
+	.icon_medium_sent { background-position: -144px -80px; }
+	.icon_medium_analytics { background-position: -168px -80px; }
+	.icon_medium_published { background-position: -192px -80px; }
+	.icon_medium_saved { background-position: -216px -80px; }
+	.icon_medium_modules { background-position: -240px -80px; }
+	.icon_medium_views { background-position: -454px -52px; }
+	.icon_medium_forms { background-position: -477px -52px; }
+	.icon_medium_interfaces { background-position: -501px -53px; }
+	.icon_medium_reports { background-position: -525px -52px; }
+	.icon_medium_actions { background-position: -548px -53px; }
 
 /* Smaller Icons */
 	.icon_small, *[class^="icon_small"] { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }

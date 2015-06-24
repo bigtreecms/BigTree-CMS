@@ -51,7 +51,7 @@
 		$draft_author = $admin->getUser($draft["user"]);
 ?>
 <div class="table">
-	<summary><h2><span class="pages"></span>Current Draft</h2></summary>
+	<summary><h2><span class="icon_medium_pages"></span>Current Draft</h2></summary>
 	<header>
 		<span class="pages_last_edited">Last Edited</span>
 		<span class="pages_draft_author">Draft Author</span>
@@ -74,7 +74,7 @@
 	}
 ?>
 <div class="table">
-	<summary><h2><span class="published"></span>Published Revisions</h2></summary>
+	<summary><h2><span class="icon_medium_published"></span>Published Revisions</h2></summary>
 	<header>
 		<span class="pages_last_edited">Published</span>
 		<span class="pages_draft_author">Author</span>
@@ -102,7 +102,7 @@
 	</ul>
 </div>
 <div class="table">
-	<summary><h2><span class="saved"></span>Saved Revisions</h2></summary>
+	<summary><h2><span class="icon_medium_saved"></span>Saved Revisions</h2></summary>
 	<header>
 		<span class="pages_last_edited">Saved</span>
 		<span class="pages_draft_description">Description</span>

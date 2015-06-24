@@ -74,7 +74,7 @@
 <div class="table">
 	<summary>
 		<a href="<?=DEVELOPER_ROOT?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
-		<h2><span class="actions"></span>Actions</h2>
+		<h2><span class="icon_medium_actions"></span>Actions</h2>
 	</summary>
 	<header>
 		<span class="developer_templates_name">Title</span>
@@ -113,7 +113,7 @@
 <div class="table">
 	<summary>
 		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2><span class="embeds"></span>Interfaces</h2>
+		<h2><span class="icon_medium_interfaces"></span>Interfaces</h2>
 	</summary>
 	<?php
 		foreach ($interface_list as $key => $type) {

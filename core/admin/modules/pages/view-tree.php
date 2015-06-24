@@ -9,7 +9,7 @@
 ?>
 <div class="table">
 	<summary>
-		<h2><span class="<?=$class?>"></span><?=$title?></h2>
+		<h2><span class="icon_medium_<?=$class?>"></span><?=$title?></h2>
 	</summary>
 	<header>
 		<?php
