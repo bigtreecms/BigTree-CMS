@@ -1,77 +1,233 @@
 <?php
 	$results = $admin->searchAuditTrail($_GET["user"],$_GET["table"],$_GET["entry"],$_GET["start"],$_GET["end"]);
-	// Setup caches so for big trails we don't retrieve stuff multiple times
-	$page_cache = array();
-	$user_cache = array();
-	$setting_cache = array();
-	$form_cache = array();
-?>
-<div class="table audit_trail">
-	<summary><h2>Search Results</h2></summary>
-	<header>
-		<span class="view_column audit_date">Date</span>
-		<span class="view_column audit_user">User</span>
-		<span class="view_column audit_table">Table</span>
-		<span class="view_column audit_entry">Entry</span>
-		<span class="view_column audit_action">Action</span>
-	</header>
-	<ul>
-		<?php
-			foreach ($results as $r) {
-				if ($r["table"] == "bigtree_pages") {
-					if (!isset($page_cache[$r["entry"]])) {
-						$page_cache[$r["entry"]] = $cms->getPage($r["entry"],false);
-					}
-					$page = $page_cache[$r["entry"]];
-					$link = '<a target="_blank" href="'.ADMIN_ROOT.'pages/edit/'.$page["id"].'/">'.$page["nav_title"].'</a>';
-				} elseif ($r["table"] == "bigtree_settings") {
-					if (!isset($setting_cache[$r["entry"]])) {
-						$setting_cache[$r["entry"]] = $admin->getSetting($r["entry"]);
-					}
-					$setting = $setting_cache[$r["entry"]];
-					if ($setting && !$setting["system"]) {
-						$link = '<a target="_blank" href="'.ADMIN_ROOT.'settings/edit/'.$setting["id"].'/">'.($setting["name"] ? $setting["name"] : $setting["id"]).'</a>';
-					} else {
-						$link = $r["entry"];
-					}
-				} elseif ($r["table"] == "bigtree_users") {
-					if (!isset($user_cache[$r["entry"]])) {
-						$user_cache[$r["entry"]] = $admin->getUser($r["entry"]);
-					}
-					$user = $user_cache[$r["entry"]];
-					if ($user) {
-						$link = '<a target="_blank" href="'.ADMIN_ROOT.'users/edit/'.$user["id"].'/">'.$user["name"].'</a>';
-					} else {
-						$link = 'Deleted User: '.$r["entry"];
-					}
-				} else {
-					if (!isset($form_cache[$r["table"]])) {
-						$view = BigTreeAutoModule::getViewForTable($r["table"]);
-						$form = BigTreeAutoModule::getRelatedFormForView($view);
-						$module = BigTreeAutoModule::getModuleForForm($form);
-						$action = $admin->getModuleActionForInterface($form);
-						if ($module && $action) {
-							$module = $admin->getModule($module);
-							$form_cache[$r["table"]] = ADMIN_ROOT.$module["route"]."/".$action["route"]."/";
-						}
-					}
-					$form_link = $form_cache[$r["table"]];
-					if ($form_link) {
-						$link = '<a target="_blank" href="'.$form_link.$r["entry"].'/">View Entry (id: '.$r["entry"].')</a>';
-					} else {
-						$link = $r["entry"]." (Unknown Form)";
-					}
-				}
-		?>
-		<li>
-			<section class="view_column audit_date"><?=date($bigtree["config"]["date_format"]." @ g:ia",strtotime($r["date"]))?></section>
-			<section class="view_column audit_user"><a target="_blank" href="<?=ADMIN_ROOT?>users/edit/<?=$r["user"]["id"]?>/"><?=$r["user"]["name"]?></a></section>
-			<section class="view_column audit_table"><?=$r["table"]?></section>
-			<section class="view_column audit_entry"><?=$link?></section>
-			<section class="view_column audit_action"><?=ucwords(str_replace("-"," ",$r["type"]))?></section>
-		</li>
-		<?php
+	$json_data = array();
+
+	// Setup a cache so we don't query for things more than once
+	$cache = array();
+	$colors = array(
+		"created" => '<span style="color: green;">Created</span>',
+		"deleted" => '<span style="color: #CC0000;">Deleted</span>',
+		"updated" => "Updated",
+		"updated-value" => "Updated"
+	);
+
+	foreach ($results as $result) {
+		$link = $data = false;
+		$title = $result["entry"];
+
+		// Grab related data from the cache if it exists
+		if (isset($cache[$result["table"]][$result["entry"]])) {
+			$data = $cache[$result["table"]][$result["entry"]];
+		}
+
+		// Extensions
+		if ($result["table"] == "bigtree_extensions") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_extensions WHERE id = '".sqlescape($result["entry"])."'"));
 			}
-		?>
-	</ul>
-</div>
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."extensions/edit/".$result["entry"]."/" : false;
+		}
+
+		// Feeds
+		if ($result["table"] == "bigtree_feeds") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_feeds WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."feeds/edit/".$result["entry"]."/" : false;
+		}
+
+		// Field Types
+		if ($result["table"] == "bigtree_field_types") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_field_types WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."field-types/edit/".$result["entry"]."/" : false;
+		}
+
+		// Settings
+		if ($result["table"] == "bigtree_settings") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name,system FROM bigtree_settings WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			if (!$data || $data["system"]) {
+				$title = $result["entry"];
+			} elseif ($data) {
+				$title = $data["name"];
+				$link = DEVELOPER_ROOT."settings/edit/".$result["entry"]."/";
+			}
+		}
+
+		// Callouts
+		if ($result["table"] == "bigtree_callouts") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_callouts WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."callouts/edit/".$result["entry"]."/" : false;
+		}
+
+		// Callout Groups
+		if ($result["table"] == "bigtree_callout_groups") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_callout_groups WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."callouts/groups/edit/".$result["entry"]."/" : false;
+		}
+
+		// Templates
+		if ($result["table"] == "bigtree_templates") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_templates WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."templates/edit/".$result["entry"]."/" : false;
+		}
+
+		// Modules
+		if ($result["table"] == "bigtree_modules") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_modules WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."modules/edit/".$result["entry"]."/" : false;
+		}
+
+		// Module Groups
+		if ($result["table"] == "bigtree_module_groups") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_module_groups WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."modules/groups/edit/".$result["entry"]."/" : false;
+		}
+
+		// Module Interfaces
+		if ($result["table"] == "bigtree_module_interfaces") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT title,type FROM bigtree_module_interfaces WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			if (!$data) {
+				$title = $result["entry"];
+			} else {
+				$title = $data["title"];
+				if ($data["type"] == "form") {
+					$link = DEVELOPER_ROOT."modules/forms/edit/".$result["entry"]."/";
+				} elseif ($data["type"] == "view") {					
+					$link = DEVELOPER_ROOT."modules/views/edit/".$result["entry"]."/";
+				} elseif ($data["type"] == "embeddable-form") {					
+					$link = DEVELOPER_ROOT."modules/embeds/edit/".$result["entry"]."/";
+				} elseif ($data["type"] == "report") {					
+					$link = DEVELOPER_ROOT."modules/reports/edit/".$result["entry"]."/";
+				} else {
+					list($extension,$interface) = explode("*",$data["type"]);
+					$link = DEVELOPER_ROOT."modules/interfaces/build/$extension/$interface/?id=".$result["entry"];
+				}
+			}
+		}
+
+		// Module Actions
+		if ($result["table"] == "bigtree_module_actions") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_module_actions WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? DEVELOPER_ROOT."modules/actions/edit/".$result["entry"]."/" : false;
+		}
+
+		// Users
+		if ($result["table"] == "bigtree_users") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_users WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+			$link = $data ? ADMIN_ROOT."users/edit/".$result["entry"]."/" : false;
+		}
+
+		// Pages
+		if ($result["table"] == "bigtree_pages") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT nav_title FROM bigtree_pages WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["nav_title"] : $result["entry"];
+			$link = $data ? ADMIN_ROOT."pages/edit/".$result["entry"]."/" : false;
+		}
+
+		// Resources
+		if ($result["table"] == "bigtree_resources") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT file FROM bigtree_resources WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			if ($data) {
+				$path = BigTree::pathInfo($data["file"]);
+				$title = $path["basename"];
+			} else {
+				$title = $result["entry"];
+			}
+		}
+
+		// Resource Folders
+		if ($result["table"] == "bigtree_resource_folders") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT name FROM bigtree_resource_folders WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["name"] : $result["entry"];
+		}
+
+		// Tags
+		if ($result["table"] == "bigtree_tags") {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT tag FROM bigtree_tags WHERE id = '".sqlescape($result["entry"])."'"));
+			}
+			$title = $data ? $data["tag"] : $result["entry"];
+		}
+
+		// Not a bigtree_ table? See if we have a form for it.
+		if (strpos($result["table"],"bigtree_") === false) {
+			if (!$data) {
+				$data = sqlfetch(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE type = 'form' AND `table` = '".sqlescape($result["table"])."'"));
+			}
+			if ($data) {
+				$action = sqlfetch(sqlquery("SELECT route,module FROM bigtree_module_actions WHERE interface = '".$data["id"]."' AND route LIKE 'edit%'"));
+				$module = sqlfetch(sqlquery("SELECT route FROM bigtree_modules WHERE id = '".$action["module"]."'"));
+				if ($action && $module) {
+					$title = "View Entry";
+					$link = ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$result["entry"]."/";
+				}
+			}
+		}
+
+		$json_data[] = array(
+			"date" => date($bigtree["config"]["date_format"]." @ g:ia",strtotime($result["date"])),
+			"user" => '<a target="_blank" href="'.ADMIN_ROOT.'users/edit/'.$result["user"]["id"].'/">'.$result["user"]["name"].'</a>',
+			"table" => $result["table"],
+			"entry" => $link ? '<a href="'.$link.'" target="_blank">'.$title.'</a>' : $title,
+			"action" => $colors[$result["type"]]
+		);
+
+		// Save data to cache if we retrieved some
+		if ($data && !isset($cache[$result["table"]][$result["entry"]])) {
+			$cache[$result["table"]][$result["entry"]] = $data;
+		}
+	}
+?>
+<div id="audit_trail_table"></div>
+<script>
+	BigTreeTable({
+		container: "#audit_trail_table",
+		columns: {
+			date: { title: "Date" },
+			user: { title: "User" },
+			table: { title: "Table" },
+			entry: { title: "Entry", size: 0.35 },
+			action: { title: "Action", size: 100, center: true }
+		},
+		data: <?=json_encode($json_data)?>,
+		searchable: true,
+		perPage: 10,
+		title: "Audit Results"
+	});
+</script>
