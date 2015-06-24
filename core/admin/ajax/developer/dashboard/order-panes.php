@@ -1,18 +1,12 @@
 <?php
 	// Grab the settings list
 	$settings = $cms->getSetting("bigtree-internal-dashboard-settings");
-
-	// Parse out the posts
-	parse_str($_POST["sort"]);
-	$max = count($row);
 	
-	foreach ($row as $pos => $id) {
-		$id = $_POST["rel"][$id];
-
+	foreach ($_POST["positions"] as $id => $position) {
 		if (isset($settings[$id])) {
-			$settings[$id]["position"] = $max - $pos;
+			$settings[$id]["position"] = $position;
 		} else {
-			$settings[$id] = array("position" => $max - $pos, "disabled" => "");
+			$settings[$id] = array("position" => $position, "disabled" => "");
 		}
 	}
 

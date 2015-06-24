@@ -3,9 +3,9 @@
 	$settings = $cms->getSetting("bigtree-internal-dashboard-settings");
 	
 	// Toggle it
-	$id = $_GET["id"];
+	$id = $_POST["id"];
 	if (isset($settings[$id])) {
-		if ($settings[$id]["disabled"]) {
+		if ($_POST["state"] == "true") {
 			$settings[$id]["disabled"] = "";
 		} else {
 			$settings[$id]["disabled"] = "on";
