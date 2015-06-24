@@ -11,6 +11,7 @@
 <script>
 	BigTreeTable({
 		container: "#user_table",
+		title: "Users",
 		columns: {
 			name: { title: "Name", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.4 },
 			email: { title: "Email", size: 0.3 },
