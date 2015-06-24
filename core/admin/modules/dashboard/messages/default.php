@@ -1,18 +1,6 @@
 <?php
-	$message_root = ADMIN_ROOT."dashboard/messages/";
-	// Get all the messages we've sent or received.  We're going to paginate them in a hidden type fashion and just load them all at once.
-	$messages = $admin->getMessages();
-	$unread = $messages["unread"];
-	$read = $messages["read"];
-	$sent = $messages["sent"];
-	
-	$unread_pages = ceil(count($unread) / 5);
-	$read_pages = ceil(count($read) / 5);
-	$sent_pages = ceil(count($sent) / 5);
-?>
+	$messages = $admin->getMessages();	
 
-
-<?php
 	// Going to be querying a lot of user names
 	$user_cache = array();
 
@@ -80,7 +68,7 @@
 			time: { title: "Time", size: 80 }
 		},
 		actions: {
-			view: "<?=$message_root?>view/{id}/"
+			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
 		},
 		data: <?=json_encode($unread_data)?>
 	});
@@ -100,7 +88,7 @@
 			time: { title: "Time", size: 80 }
 		},
 		actions: {
-			view: "<?=$message_root?>view/{id}/"
+			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
 		},
 		data: <?=json_encode($read_data)?>
 	});
@@ -120,7 +108,7 @@
 			time: { title: "Time", size: 80 }
 		},
 		actions: {
-			view: "<?=$message_root?>view/{id}/"
+			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
 		},
 		data: <?=json_encode($sent_data)?>
 	});

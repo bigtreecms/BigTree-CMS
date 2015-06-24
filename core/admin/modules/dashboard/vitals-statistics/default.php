@@ -2,7 +2,7 @@
 	$root = ADMIN_ROOT."dashboard/vitals-statistics/";
 ?>
 <div class="developer">
-	<div class="table">
+	<div class="container">
 		<section>
 			<a class="box_select" href="<?=$root?>analytics/">
 				<span class="analytics"></span>

@@ -3158,7 +3158,11 @@ var BigTreeTable = function(settings) {
 	
 			// Summary HTML
 			if (Title) {
-				SummaryHTML += '<h2>';
+				if (settings.button) {
+					SummaryHTML += '<h2 class="full"><a class="button" href="' + settings.button.link + '">' + settings.button.title + '</a>';
+				} else {
+					SummaryHTML += '<h2>';
+				}
 				if (settings.icon) {
 					SummaryHTML += '<span class="icon_medium_' + settings.icon + '"></span>';
 				}

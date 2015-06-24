@@ -570,11 +570,11 @@
 	.table > summary .add { background: #fff; border: 1px solid #ccc; border-radius: 2px; color: #666; display: block; float: right; font-size: 11px; height: 21px; line-height: 21px; margin: 6px 0 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
 	.table > summary .add:hover { background: #fff; color: #333; }
 	.table > summary .icon_small_export { float: right; margin: 10px 0 0 0; }
-	.table > summary .more, .container summary .more { background: #fff; border: 1px solid #ccc; border-radius: 2px; color: #444; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 6px 0 0 0; padding: 0 10px; transition: background 0.2s; }
-	.table > summary .more:hover { background: #fff; }
+	.table > summary .button, .container summary .button { background: #fff; border: 1px solid #ccc; border-radius: 2px; color: #444; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 6px 0 0 0; padding: 0 10px; transition: background 0.2s; }
+	.table > summary .button:hover { background: #fff; }
 	.table > summary h2, .container summary h2 { float: left; font-size: 14px; height: 36px; line-height: 35px; margin: 0; padding: 1px 0 0 0; text-transform: uppercase; }
-	.table > summary h2.full { float: none; user-select: none; }
-	
+	.table > summary h2.full, .container summary h2.full { float: none; user-select: none; }
+
 	.table > summary .table_search_wrapper { float: right; margin: 5px 0 0 10px; }
 	.table > summary .table_search_wrapper input { margin: 0; }
 	.table > summary .table_search_wrapper .form_search_icon { margin: 5px 0 0 200px; }
@@ -841,6 +841,8 @@
 	.graph .date { color: #333; display: block; float: left; font-size: 10px; margin: 7px 4px 0 2px; text-align: center; width: 60px; }
 	.graph .date.last { margin-right: 0; }
 	.graph .date.first { margin-left: 0; }
+	.container .graph { margin-left: -11px; }
+	.container .date { padding: 0; }
 
 	#analytics_profiles_loading { line-height: 16px; }
 	#analytics_profiles_loading img { float: left; margin: 0 10px 0 0; }

@@ -1,41 +1,39 @@
 <?php
 	// Get all the messages we've received.
 	$messages = $admin->getMessages();
+
+	// Unread messages table data 
+	$unread_data = array();
+	foreach ($messages["unread"] as $message) {
+		$unread_data[] = array(
+			"id" => $message["id"],
+			"from" => '<span class="gravatar"><img src="'.BigTree::gravatar($message["sender_email"], 36).'" alt="" /></span>'.$message["sender_name"],
+			"subject" => $message["subject"],
+			"date" => date("n/j/y",strtotime($message["date"])),
+			"time" => date("g:ia",strtotime($message["date"]))
+		);
+	}
 ?>
-<div class="table">
-	<summary>
-		<h2 class="full">
-			<span class="unread"></span>
-			Unread Messages
-			<a href="<?=ADMIN_ROOT?>dashboard/messages/" class="more">View All Messages</a>
-		</h2>
-	</summary>
-	<header>
-		<span class="messages_from_to">From</span>
-		<span class="messages_subject">Subject</span>
-		<span class="messages_date_time">Date</span>
-		<span class="messages_date_time">Time</span>
-		<span class="messages_view">View</span>
-	</header>
-	<ul>
-		<?php
-			if (count($messages["unread"]) == 0) {
-		?>
-		<li><section class="no_content"><p>No unread messages</p></section></li>
-		<?php
-			} else {
-				foreach ($messages["unread"] as $item) {
-		?>
-		<li>
-			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
-			<section class="messages_subject"><?=$item["subject"]?></section>
-			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
-			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
-			<section class="messages_view"><a href="<?=ADMIN_ROOT?>dashboard/messages/view/<?=$item["id"]?>/" class="icon_message"></a></section>
-		</li>
-		<?php
-				}
-			}
-		?>
-	</ul>
-</div>
+<div id="unread_messages_table"></div>
+<script>
+	// Unread Messages
+	BigTreeTable({
+		container: "#unread_messages_table",
+		title: "Unread Messages",
+		icon: "unread",
+		button: { title: "View All Messages", link: "<?=ADMIN_ROOT?>dashboard/messages/" },
+		noContentMessage: "You have no unread messages.",
+		perPage: 5,
+		searchable: true,
+		columns: {
+			from: { title: "From", size: 0.4 },
+			subject: { title: "Subject", size: 0.6 },
+			date: { title: "Date", size: 80 },
+			time: { title: "Time", size: 80 }
+		},
+		actions: {
+			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
+		},
+		data: <?=json_encode($unread_data)?>
+	});
+</script>
