@@ -3230,12 +3230,18 @@ var BigTreeTable = function(settings) {
 			DataRowRelationships = [];
 			var count = 0;
 			for (var i in dataset) {
-				var row = '<span data-id="' + dataset[i].id + '"></span>';
-				DataRowRelationships.push(dataset[i].id);
+				// Have to copy the object to stop by reference from modifying data
+				var row_copy = {};
+				for (var k in dataset[i]) {
+					row_copy[k] = dataset[i][k];
+				}
+
+				var row = '<span data-id="' + row_copy.id + '"></span>';
+				DataRowRelationships.push(row_copy.id);
 
 				// Add Columns
 				var x = 0;
-				for (key in Columns) {
+				for (var key in Columns) {
 					x++;
 					// Some columns may want to hook an edit action or have larger font
 					var column_class = "column";
@@ -3257,14 +3263,14 @@ var BigTreeTable = function(settings) {
 					// If we have a source, we're going to loop through all the data doing a replace
 					if (Columns[key].source) {
 						var column_data = Columns[key].source;
-						for (k in dataset[i]) {
-							column_data = column_data.replace("{" + k + "}",dataset[i][k]);
+						for (k in row_copy) {
+							column_data = column_data.replace("{" + k + "}",row_copy[k]);
 						}
-						dataset[i][key] = column_data;
+						row_copy[key] = column_data;
 					}
 
 					// Add the cell data
-					row += dataset[i][key] + '</section>';
+					row += row_copy[key] + '</section>';
 				}
 
 				// Add Actions
@@ -3272,18 +3278,18 @@ var BigTreeTable = function(settings) {
 					row += '<section style="width: ' + ActionWidth + 'px; text-align: center;">';
 					for (key in Actions) {
 						var icon_class = "icon_" + key;
-						if (key == "approve" && dataset[i].approved) {
+						if (key == "approve" && row_copy.approved) {
 							icon_class += ' icon_approve_on';
-						} else if (key == "feature" && dataset[i].featured) {
+						} else if (key == "feature" && row_copy.featured) {
 							icon_class += ' icon_feature_on';
-						} else if (key == "archive" && dataset[i].archived) {
+						} else if (key == "archive" && row_copy.archived) {
 							icon_class = 'icon_restore';
 						}
 						row += '<div style="float: left; width: 40px; text-align: center;">';
 						if (typeof Actions[key] == "string") {
 							var link = Actions[key];
-							for (k in dataset[i]) {
-								link = link.replace("{" + k + "}",dataset[i][k]);
+							for (k in row_copy) {
+								link = link.replace("{" + k + "}",row_copy[k]);
 							}
 							row += '<a href="' + link + '" class="' + icon_class + '"></a>';
 						} else {
