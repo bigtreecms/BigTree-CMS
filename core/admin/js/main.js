@@ -3072,7 +3072,7 @@ var BigTreeMatrix = function(settings) {
 var BigTreeTable = function(settings) {
 	return (function(settings) {
 		// Setup our environment
-		var Actions = settings.actions;
+		var Actions = settings.actions ? settings.actions : false;
 		var ActionWidth = false;
 		var Columns = settings.columns;
 		var Container = $(settings.container);
@@ -3125,7 +3125,7 @@ var BigTreeTable = function(settings) {
 			}
 
 			// Setup widths for calculating column sizes
-			ActionWidth = Object.keys(Actions).length * 40;
+			ActionWidth = Actions ? Object.keys(Actions).length * 40 : 0; 
 			var container_width = Container.width() - 2; // 2px for borders
 			var available_width = container_width - ActionWidth;
 			var column_count_for_sizing = Object.keys(Columns).length;
@@ -3159,11 +3159,11 @@ var BigTreeTable = function(settings) {
 			if (Title) {
 				SummaryHTML += '<h2>' + Title + '</h2>';
 			}
-			if (PerPage) {
-				SummaryHTML += '<div class="view_paging"></div>';
-			}
 			if (Searchable) {
 				SummaryHTML += '<div class="table_search_wrapper"><input name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" type="search"><span class="form_search_icon"></span></div>';
+			}
+			if (PerPage) {
+				SummaryHTML += '<div class="view_paging"></div>';
 			}
 
 			// Header HTML

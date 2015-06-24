@@ -591,7 +591,7 @@
 	.table > summary h2 .embeds { background-position: -501px -53px; }
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
-	.table > summary .table_search_wrapper { float: right; margin: 5px 0 0 0; }
+	.table > summary .table_search_wrapper { float: right; margin: 5px 0 0 10px; }
 	.table > summary .table_search_wrapper input { margin: 0; }
 	.table > summary .table_search_wrapper .form_search_icon { margin: 5px 0 0 200px; }
 
