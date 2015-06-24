@@ -1014,11 +1014,9 @@
 
 /* Developer Stuff */
 	.developer .box_select span { margin: 0 0 10px 0; }
-
-	.developer .table .box_select { margin: 0 20px 0 0; }
-	.developer .table .box_select.last { margin: 0; }
-	.developer .table .box_select.second_row { margin-top: 20px; }
-	.developer .table > section { padding: 30px; }
+	.developer .container .box_select { margin: 0 20px 0 0; }
+	.developer .container .box_select.last { margin: 0; }
+	.developer .container .box_select.second_row { margin-top: 20px; }
 
 	.developer form fieldset.view_type .select > span { width: 193px !important; }
 	.developer form fieldset.view_type .select .select_options { width: 247px !important; }

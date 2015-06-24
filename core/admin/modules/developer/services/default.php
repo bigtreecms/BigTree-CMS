@@ -17,7 +17,7 @@
 		$disqus = new BigTreeDisqusAPI;
 		$salesforce = new BigTreeSalesforceAPI;
 ?>
-<div class="table">
+<div class="container">
 	<summary><h2>Configure</h2></summary>
 	<section>
 		<a class="box_select<?php if ($twitter->Connected) { ?> connected<?php } ?>" href="twitter/">

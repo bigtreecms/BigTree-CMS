@@ -69,7 +69,7 @@
 <?php
 	} else {
 ?>
-<div class="table">
+<div class="container">
 	<summary><h2>Create</h2></summary>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>templates/">
@@ -108,7 +108,7 @@
 	</section>
 </div>
 
-<div class="table">
+<div class="container">
 	<summary><h2>Configure</h2></summary>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>cloud-storage/">
@@ -154,7 +154,7 @@
 	</section>
 </div>
 
-<div class="table">
+<div class="container">
 	<summary><h2>Debug</h2></summary>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>status/">
