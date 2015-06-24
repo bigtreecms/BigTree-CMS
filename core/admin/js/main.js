@@ -3187,7 +3187,7 @@ var BigTreeTable = function(settings) {
 				Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(page) + '</ul></div>');
 
 				// Draw the pagination
-				BigTree.setPageCount(Container.find(".view_paging"),PageCount,1);
+				BigTree.setPageCount(Container.find(".view_paging"),PageCount,1,true);
 
 				// Hook pagination
 				Container.on("click",".view_paging a",switchPage);
