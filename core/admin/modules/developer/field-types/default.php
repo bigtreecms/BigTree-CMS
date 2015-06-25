@@ -21,6 +21,7 @@
 		columns: {
 			name: { title: "Field Type Name", largeFont: true, actionHook: "edit" }
 		},
-		searchable: true
+		searchable: true,
+		sortable: true
 	});
 </script>

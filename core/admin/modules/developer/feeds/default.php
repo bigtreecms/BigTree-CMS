@@ -23,6 +23,7 @@
 			url: { title: "URL", size: 0.7, source: "<?=WWW_ROOT?>feeds/{route}/" },
 			type: { title: "Type", size: 140 }
 		},
-		searchable: true
+		searchable: true,
+		sortable: true
 	});
 </script>

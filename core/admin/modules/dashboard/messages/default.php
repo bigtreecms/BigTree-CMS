@@ -61,6 +61,7 @@
 		noContentMessage: "You have no unread messages.",
 		perPage: 5,
 		searchable: true,
+		sortable: true,
 		columns: {
 			from: { title: "From", size: 0.4 },
 			subject: { title: "Subject", size: 0.6 },
@@ -81,6 +82,7 @@
 		noContentMessage: "You have no read messages.",
 		perPage: 5,
 		searchable: true,
+		sortable: true,
 		columns: {
 			from: { title: "From", size: 0.4 },
 			subject: { title: "Subject", size: 0.6 },
@@ -101,6 +103,7 @@
 		noContentMessage: "You have no sent messages.",
 		perPage: 5,
 		searchable: true,
+		sortable: true,
 		columns: {
 			to: { title: "To", size: 0.4 },
 			subject: { title: "Subject", size: 0.6 },

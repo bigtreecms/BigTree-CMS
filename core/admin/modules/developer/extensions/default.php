@@ -48,7 +48,8 @@
 			ignore_link: { title: "", size: 87, center: true },
 			upgrade_link: { title: "", size: 101, center: true }
 		},
-		searchable: true
+		searchable: true,
+		sortable: true
 	});
 
 	$("#extensions_table").on("click",".button.red",function(ev) {

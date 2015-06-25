@@ -23,6 +23,7 @@
 			id: { title: "ID", size: 0.3 },
 			type: { title: "Type" }
 		},
-		searchable: true
+		searchable: true,
+		sortable: true
 	});
 </script>
