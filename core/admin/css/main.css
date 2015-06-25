@@ -621,6 +621,8 @@
 	.table .column .status.good { background: #008000; color: #FFF; }
 	.table .column .status.ok { background: #FFA500; }
 	.table .column .status.red { background: #F00; color: #FFF; }
+	.table .table_sort_column { cursor: pointer; }
+	.table .table_sort_column em { font-size: 7px; padding: 0 0 0 5px; }
 
 	/* Pending changes */
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }

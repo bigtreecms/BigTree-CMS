@@ -3090,12 +3090,27 @@ var BigTreeTable = function(settings) {
 		var SearchField = false;
 		var SearchTimer = false;
 		var Sortable = settings.sortable ? true : false;
+		var SortColumn = "";
+		var SortDirection = "";
 		var SummaryHTML = "";
 		var Title = settings.title ? settings.title : false;
 
 		function init() {
+			// Modify all columns that use source
+			for (var column_key in Columns) {
+				if (Columns[column_key].source) {
+					for (var i = 0; i < Data.length; i++) {
+						var source = Columns[column_key].source;
+						for (var k in Data[i]) {
+							source = source.replace("{" + k + "}",Data[i][k]);							
+						}
+						Data[i][column_key] = source;
+					}
+				}
+			}
+
 			// Hooks
-			for (action_key in Actions) {
+			for (var action_key in Actions) {
 				if (typeof Actions[action_key] != "string") {
 					Container.on("click",".icon_" + action_key + ", .hook_" + action_key,(function(action_key) {
 						return function(ev) {
@@ -3177,10 +3192,14 @@ var BigTreeTable = function(settings) {
 
 			// Header HTML
 			for (key in Columns) {
+				var text_align = "left";
 				if (Columns[key].center) {
-					HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: center;">' + Columns[key].title + '</span>';
+					text_align = "center";
+				}
+				if (Sortable) {
+					HeaderHTML += '<span class="table_sort_column" data-column="' + key + '" style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: ' + text_align + ';">' + Columns[key].title + '</span>';
 				} else {
-					HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: left;">' + Columns[key].title + '</span>';
+					HeaderHTML += '<span style="width: ' + (Columns[key].size - 15) + 'px; padding: 0 0 0 15px; text-align: ' + text_align + ';">' + Columns[key].title + '</span>';
 				}
 			}
 			if (Actions.length) {
@@ -3223,13 +3242,52 @@ var BigTreeTable = function(settings) {
 						DraggableCallback(positioning);
 					}
 				});
-			}	
+			}
 
 			// Searchable setup
 			if (Searchable) {
 				DraggableSavedState = Draggable;
 				SearchField = Container.find(".form_search");
 				SearchField.on("keyup",searchData);
+			}
+
+			// Sortable setup
+			if (Sortable) {
+				// Figure out which columns are numeric
+				for (var column_key in Columns) {
+					var type = "numeric";
+					for (var i = 0; i < Data.length; i++) {
+						if (!$.isNumeric(Data[i][column_key])) {
+							type = "string";
+						}
+					}
+					Columns[column_key].sortType = type;
+				}
+
+				Container.on("click",".table_sort_column",function() {
+					// Switch directions if we are currently sorting by this column already
+					var column = $(this).attr("data-column");
+					var direction = $(this).attr("data-direction");
+					var em_content = "&#9650;";
+					if (!direction || direction == "desc") {
+						direction = "asc";
+					} else {
+						direction = "desc";
+						em_content = "&#9660;";
+					}
+
+					// Remove sort arrow and direction from any other columns
+					Container.find("header span").each(function() {
+						$(this).attr("data-direction","").find("em").remove();
+					});
+
+					// Add sort arrow and dirction
+					$('<em>' + em_content + '</em>').appendTo(this);
+					$(this).attr("data-direction",direction);
+
+					// Sort data
+					sort(column,direction);
+				});
 			}
 
 			// Empty content check
@@ -3245,14 +3303,8 @@ var BigTreeTable = function(settings) {
 			DataRowRelationships = [];
 			var count = 0;
 			for (var i in dataset) {
-				// Have to copy the object to stop by reference from modifying data
-				var row_copy = {};
-				for (var k in dataset[i]) {
-					row_copy[k] = dataset[i][k];
-				}
-
-				var row = '<span data-id="' + row_copy.id + '"></span>';
-				DataRowRelationships.push(row_copy.id);
+				var row = '<span data-id="' + dataset[i].id + '"></span>';
+				DataRowRelationships.push(dataset[i].id);
 
 				// Add Columns
 				var x = 0;
@@ -3275,17 +3327,8 @@ var BigTreeTable = function(settings) {
 						row += '<span class="icon_sort"></span>';
 					}
 
-					// If we have a source, we're going to loop through all the data doing a replace
-					if (Columns[key].source) {
-						var column_data = Columns[key].source;
-						for (k in row_copy) {
-							column_data = column_data.replace("{" + k + "}",row_copy[k]);
-						}
-						row_copy[key] = column_data;
-					}
-
 					// Add the cell data
-					row += row_copy[key] + '</section>';
+					row += dataset[i][key] + '</section>';
 				}
 
 				// Add Actions
@@ -3293,18 +3336,18 @@ var BigTreeTable = function(settings) {
 					row += '<section style="width: ' + ActionWidth + 'px; text-align: center;">';
 					for (key in Actions) {
 						var icon_class = "icon_" + key;
-						if (key == "approve" && row_copy.approved) {
+						if (key == "approve" && dataset[i].approved) {
 							icon_class += ' icon_approve_on';
-						} else if (key == "feature" && row_copy.featured) {
+						} else if (key == "feature" && dataset[i].featured) {
 							icon_class += ' icon_feature_on';
-						} else if (key == "archive" && row_copy.archived) {
+						} else if (key == "archive" && dataset[i].archived) {
 							icon_class = 'icon_restore';
 						}
 						row += '<div style="float: left; width: 40px; text-align: center;">';
 						if (typeof Actions[key] == "string") {
 							var link = Actions[key];
-							for (k in row_copy) {
-								link = link.replace("{" + k + "}",row_copy[k]);
+							for (k in dataset[i]) {
+								link = link.replace("{" + k + "}",dataset[i][k]);
 							}
 							row += '<a href="' + link + '" class="' + icon_class + '"></a>';
 						} else {
@@ -3367,6 +3410,41 @@ var BigTreeTable = function(settings) {
 			}
 		}
 
+		// Method to sort by a different column
+		function sort(column,direction) {
+			SortColumn = column;
+			SortDirection = direction;
+			Data.sort(sorter);
+			CurrentDataset.sort(sorter);
+			regenerate(1);
+		}
+
+		function sorter(a,b) {
+			var a_val = a[SortColumn];
+			var b_val = b[SortColumn];
+
+			if (Columns[SortColumn].sortType == "numeric") {
+				a_val = parseFloat(a_val);
+				b_val = parseFloat(b_val);
+			}
+
+			if (a_val > b_val) {
+				if (SortDirection == "desc") {
+					return -1;
+				} else {
+					return 1;
+				}
+			} else if (a_val == b_val) {
+				return 0;
+			} else {
+				if (SortDirection == "desc") {
+					return 1;
+				} else {
+					return -1;
+				}
+			}
+		}
+
 		// Hook when a user clicks the pagination arrows / numbers
 		function switchPage(ev) {
 			ev.preventDefault();
@@ -3379,6 +3457,8 @@ var BigTreeTable = function(settings) {
 		}
 
 		init();
+
+		return { sort: sort, switchPage: switchPage };
 
 	})(settings);
 };
