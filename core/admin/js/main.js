@@ -3423,9 +3423,14 @@ var BigTreeTable = function(settings) {
 			var a_val = a[SortColumn];
 			var b_val = b[SortColumn];
 
+			// Make sure we're not comparing strings if it's a numeric column
 			if (Columns[SortColumn].sortType == "numeric") {
 				a_val = parseFloat(a_val);
 				b_val = parseFloat(b_val);
+			// If it's string based, remove all tags.
+			} else {
+				a_val = a_val.replace(/(<([^>]+)>)/ig,"");
+				b_val = b_val.replace(/(<([^>]+)>)/ig,"");
 			}
 
 			if (a_val > b_val) {
