@@ -850,15 +850,14 @@
 	#analytics_profiles_loading img { float: left; margin: 0 10px 0 0; }
 
 /* Modules */
-	.table section.modules { border-radius: 0px 0px 5px 5px; overflow: hidden; padding-bottom: 10px; }
-	.table section.modules_no_header { border-radius: 5px; }
-
-	.table p.module { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: left; margin: 0 10px 10px 0; transition: background 0.2s, border-color 0.2s; width: 452px; }
-	.table p.module:hover { background: #EFF7FD; }
-	.table p.module:nth-child(even) { margin-right: 0; }
-	.table p.module a { color: #333; display: block; font-size: 15px; height: 35px; line-height: 35px; margin: 0; padding: 0 0 0 10px; }
-	.table p.module a.add { float: right; height: 16px; padding: 9px 10px 10px; width: 16px; }
-	.table p.module .module_name .icon_small { float: left; margin: 9px 5px 0 0; }
+	.container section.modules { border-radius: 0px 0px 5px 5px; overflow: hidden; padding: 20px 20px 10px 20px; }
+	.container section.modules_no_header { border-radius: 5px; }
+	.container p.module { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: left; margin: 0 10px 10px 0; transition: background 0.2s, border-color 0.2s; width: 452px; }
+	.container p.module:hover { background: #EFF7FD; }
+	.container p.module:nth-child(even) { margin-right: 0; }
+	.container p.module a { color: #333; display: block; font-size: 15px; height: 35px; line-height: 35px; margin: 0; padding: 0 0 0 10px; }
+	.container p.module a.add { float: right; height: 16px; padding: 9px 10px 10px; width: 16px; }
+	.container p.module .module_name .icon_small { float: left; margin: 9px 5px 0 0; }
 
 	.table .view_column { overflow: hidden; padding: 0 0 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 	.table .view_column a { color: #666; display: block; overflow: hidden; text-overflow: ellipsis; }

@@ -5,7 +5,7 @@
 			$modules = $admin->getModulesByGroup($group["id"]);
 			if (count($modules)) {
 ?>
-<div class="table">
+<div class="container">
 	<summary><h2><?=$group["name"]?></h2></summary>
 	<section class="modules">
 		<?php
@@ -30,7 +30,7 @@
 		$misc = $admin->getModulesByGroup(0);
 		if (count($misc)) {
 ?>
-<div class="table">
+<div class="container">
 	<summary><h2>Ungrouped</h2></summary>
 	<section class="modules">
 		<?php
@@ -53,7 +53,7 @@
    		
 		if ($module_count < 1) {
 ?>
-<div class="table">
+<div class="container">
 	<summary><h2>Ungrouped</h2></summary>
 	<ul>
 		<li class="no_content">No modules available</li>

@@ -13,7 +13,7 @@
 		container: "#user_table",
 		title: "Users",
 		columns: {
-			name: { title: "Name", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.4 },
+			name: { title: "Name", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.4, sort: "asc" },
 			email: { title: "Email", size: 0.3 },
 			company: { title: "Company", size: 0.3 }
 		},
