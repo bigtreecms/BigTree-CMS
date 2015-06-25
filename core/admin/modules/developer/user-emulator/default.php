@@ -22,6 +22,7 @@
 		},
 		data: <?=BigTree::jsonExtract($users,array("id","gravatar","name","email","company"))?>,
 		searchable: true,
+		sortable: true,
 		perPage: 10
 	});
 </script>
