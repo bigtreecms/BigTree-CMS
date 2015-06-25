@@ -48,7 +48,7 @@
 		<h2 class="full">
 			<span class="pending"></span>
 			Pending Changes
-			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="more">View All Pending Changes</a>
+			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="button">View All Pending Changes</a>
 		</h2>
 	</summary>
 	
