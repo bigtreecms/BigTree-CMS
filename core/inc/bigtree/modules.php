@@ -276,7 +276,7 @@
 		*/
 		
 		function getAllPositioned($columns = false) {
-			return $this->getAll("position DESC, id ASC",false,false,$columns);
+			return $this->getAll("position DESC, id ASC",$columns);
 		}
 		
 		/*

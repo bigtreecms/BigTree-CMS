@@ -17,7 +17,7 @@
 	}
 
 	$bigtree["gravatar"] = $user["email"];
-	BigTree::globalizeArray($user,array("htmlspecialchars"));
+	BigTree::globalizeArray($user);
 	
 	if (!$permissions) {
 		$permissions = array(
@@ -137,15 +137,9 @@
 		}
 	}
 	
-	$e = false;
-
+	$error = "";
 	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
-		if ($_SESSION["bigtree_admin"]["update_user"]["error"] == "password") {
-			$e = "password";
-		} else {
-			$e = "email";
-		}
 		unset($_SESSION["bigtree_admin"]["update_user"]);
 	}
 	
@@ -160,16 +154,16 @@
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
 		<input type="hidden" name="id" value="<?=$user["id"]?>" />
 		<section>
-			<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<? if (!$error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
-				<fieldset<? if ($e == "email") { ?> class="form_error"<? } ?> style="position: relative;">
-					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($e == "email") { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
-					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
+				<fieldset<? if ($error == "email") { ?> class="form_error"<? } ?> style="position: relative;">
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($error == "email") { ?><span class="form_error_reason">Already In Use By Another User</span><? } ?></label>
+					<input type="text" class="required email" name="email" autocomplete="off" value="<?=htmlspecialchars($email)?>" tabindex="1" />
 					<span class="gravatar"<? if ($email) { ?> style="display: block;"<? } ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
-				<fieldset<? if ($e == "password") { ?> class="form_error"<? } ?> >
-					<label>Password <small>(Leave blank to remain unchanged)</small> <? if ($e == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><? } ?></label>
+				<fieldset<? if ($error == "password") { ?> class="form_error"<? } ?> >
+					<label>Password <small>(Leave blank to remain unchanged)</small> <? if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><? } ?></label>
 					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<? if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<? } ?> />
 					<? if ($policy) { ?>
 					<p class="password_policy">Password Policy In Effect</p>
