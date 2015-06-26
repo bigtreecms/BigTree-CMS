@@ -20,6 +20,12 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.9 Release
+- FIXED: BigTreeYouTubeAPI timeSplit method being protected (and unable to be called by other classes that needed it)
+- FIXED: Launcher now works better with sym-linked cores (in fresh installs)
+- FIXED: User's names and company names not being encoded properly
+- FIXED: Draggable views setting positions to be negative numbers (failed to sort if you were using unsigned columns)
+
 ### 4.1.8 Release
 - FIXED: Redirect lower in Pages not working when all child pages were not visible in nav
 - FIXED: User and settings pagination
