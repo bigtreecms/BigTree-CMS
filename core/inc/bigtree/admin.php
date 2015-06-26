@@ -1622,7 +1622,7 @@
 				Checks for developer access.
 
 			Parameters:
-				data - An array of user data. ("email", "password", "name", "company", "level", "permissions")
+				data - An array of user data. ("email", "password", "name", "company", "level", "permissions","alerts")
 
 			Returns:
 				id of the newly created user or false if a user already exists with the provided email.
@@ -1631,16 +1631,11 @@
 		function createUser($data) {
 			global $bigtree;
 
-			// Defaults
-			$level = 0;
-			$email = $name = $company = $daily_digest = "";
-
-			// Safely go through the post data
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
+			$level = intval($data["level"]);
+			$email = sqlescape($data["email"]);
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
 
 			// See if the user already exists
 			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
@@ -1648,10 +1643,8 @@
 				return false;
 			}
 
-			$permissions = BigTree::json($data["permissions"],true);
-
-			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
-			$level = intval($level);
+			$permissions = $data["permissions"] ? BigTree::json($data["permissions"],true) : "[]";
+			$alerts = $data["alerts"] ? BigTree::json($data["alerts"],true) : "[]";
 
 			// Don't allow the level to be set higher than the logged in user's level
 			if ($level > $this->Level) {
@@ -1662,7 +1655,7 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = sqlescape($phpass->HashPassword(trim($data["password"])));
 
-			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
+			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`alerts`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$alerts','$daily_digest')");
 			$id = sqlid();
 			$this->track("bigtree_users",$id,"created");
 
@@ -7883,16 +7876,14 @@
 				return false;
 			}
 
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
+			$level = intval($data["level"]);
+			$email = sqlescape($data["email"]);
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
+
 			$permissions = BigTree::json($data["permissions"],true);
 			$alerts = BigTree::json($data["alerts"],true);
-
-			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
-			$level = intval($level);
 
 			// If the user is editing themselves, they can't change the level.
 			if ($this->ID == $current["id"]) {
