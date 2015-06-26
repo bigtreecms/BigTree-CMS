@@ -1729,12 +1729,11 @@
 		function createUser($data) {
 			global $bigtree;
 
-			// Safely go through the post data
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
+			$level = intval($data["level"]);
+			$email = sqlescape($data["email"]);
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
 
 			// See if the user already exists
 			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
@@ -1743,9 +1742,6 @@
 			}
 
 			$permissions = sqlescape(json_encode($data["permissions"]));
-
-			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
-			$level = intval($level);
 
 			// Don't allow the level to be set higher than the logged in user's level
 			if ($level > $this->Level) {
@@ -7473,11 +7469,12 @@
 				return false;
 			}
 
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
+			$level = intval($data["level"]);
+			$email = sqlescape($data["email"]);
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
+			
 			$permissions = sqlescape(json_encode($data["permissions"]));
 			$alerts = sqlescape(json_encode($data["alerts"]));
 
