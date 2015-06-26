@@ -26,18 +26,7 @@
 	
 	// Work out the permissions	
 	if (!$bigtree["access_level"]) {
-?>
-<div class="container">
-	<section>
-		<div class="alert">
-			<span></span>
-			<h3>Error</h3>
-		</div>
-		<p>You do not have access to this page.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("You do not have access to this page.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	// Adjust template

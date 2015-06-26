@@ -7,15 +7,7 @@
 	);
 	foreach ($directories_to_check as $directory) {
 		if (!is_writable(SERVER_ROOT.$directory)) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>Your <code>/<?=$directory?></code> directory must be writable to install extensions.</p>
-	</section>
-</div>
-<?php
-			$admin->stop();
+			$admin->stop("Your <code>/$directory</code> directory must be writable to install extensions.",BigTree::path("admin/layouts/_error.php"));
 		}
 	}
 ?>

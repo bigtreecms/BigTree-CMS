@@ -1,15 +1,7 @@
 <?php
 	// First we need to package the file so they can download it manually if they wish.
 	if (!is_writable(SERVER_ROOT."cache/") || !BigTree::isDirectoryWritable(SERVER_ROOT."extensions/$id/")) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>Your /cache/ and /extensions/<?=$id?>/ directories must be writable.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("Your /cache/ and /extensions/$id/ directories must be writable.",BigTree::path("admin/layouts/_error.php"));
 	}
 	
 	// Fix keywords into an array

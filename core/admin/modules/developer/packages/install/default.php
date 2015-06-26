@@ -1,14 +1,6 @@
 <?php
 	if (!is_writable(SERVER_ROOT."cache/")) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>Your <code>/cache/</code> directory must be writable.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("Your <code>/cache/</code> directory must be writable.",BigTree::path("admin/layouts/_error.php"));
 	}
 ?>
 <div class="container">

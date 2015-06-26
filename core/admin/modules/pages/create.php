@@ -7,15 +7,7 @@
 
 	$access_level = $admin->getPageAccessLevel($_POST["parent"]);
 	if ($access_level != "p" && $access_level != "e") {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>You do not have access to create a child for this page.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("You do not have access to create a child for this page.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	// Adjust template

@@ -17,18 +17,7 @@
 
 	// Stop the user if they don't have access to this page.
 	if (!$bigtree["access_level"] && $id !== false && $action != "view-tree") {
-?>
-<div class="container">
-	<section>
-		<div class="alert">
-			<span></span>
-			<h3>Access Denied</h3>
-		</div>
-		<p>You do not have access to this page.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("You do not have access to this page.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	// Create custom breadcrumb
@@ -79,15 +68,8 @@
 		);
 		$pages_nav["children"]["view-tree"]["icon"] = "page";
 		$pages_nav["children"]["view-tree"]["title_override"] = "Error";
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>The page you are trying to access no longer exists.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+
+		$admin->stop("The page you are trying to access no longer exists.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	// Stop them from getting butchered later.

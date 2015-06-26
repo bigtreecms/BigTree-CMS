@@ -3,15 +3,7 @@
 	$chain = $admin->getMessageChain(end($bigtree["path"]));
 
 	if (!$chain) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>This message either does not exist or you do not have permission to view it.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("This message either does not exist or you do not have permission to view it.",BigTree::path("admin/layouts/_error.php"));
 	}
 ?>
 <div class="container message_thread">

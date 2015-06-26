@@ -5,15 +5,7 @@
 
 	// Stop if this is a 404 or the user is editing someone higher than them.
 	if (!$user || $user["level"] > $admin->Level) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>The user you are trying to edit no longer exists or you are not allowed to edit this user.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	$bigtree["gravatar"] = $user["email"];

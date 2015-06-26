@@ -1,15 +1,7 @@
 <?php
 	// First we need to package the file so they can download it manually if they wish.
 	if (!BigTree::isDirectoryWritable(SERVER_ROOT."cache/package/")) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>Your cache/ and cache/package/ directories must be writable.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("Your cache/ and cache/package/ directories must be writable.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	BigTree::makeDirectory(SERVER_ROOT."cache/package/");

@@ -3,15 +3,7 @@
 	$revision = $admin->getPageRevision($_GET["id"]);
 	$access = $admin->getPageAccessLevel($revision["page"]);
 	if ($access != "p") {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>You must be a publisher to manage revisions.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("You must be a publisher to manage revisions.",BigTree::path("admin/layouts/_error.php"));
 	}
 	
 	foreach ($revision as $key => $val) {

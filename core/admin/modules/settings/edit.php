@@ -7,15 +7,7 @@
 	}
 
 	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>The setting you are trying to edit no longer exists or you do not have permission to edit it.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	$cached_types = $admin->getCachedFieldTypes();

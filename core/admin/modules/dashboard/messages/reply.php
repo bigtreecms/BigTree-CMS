@@ -4,15 +4,7 @@
 
 	// If the original message doesn't exist or you don't have access to it.
 	if (!$parent) {
-?>
-<div class="container">
-	<section>
-		<h3>Error</h3>
-		<p>This message either does not exist or you do not have permission to view it.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("This message either does not exist or you do not have permission to view it.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	$users = $admin->getUsers();

@@ -1,34 +1,12 @@
 <?php
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {
-?>
-<div class="container">
-	<section>
-		<div class="alert">
-			<span></span>
-			<h3>Error</h3>
-		</div>
-		<p>Revisions do not function on unpublished pages.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("Revisions do not function on unpublished pages.",BigTree::path("admin/layouts/_error.php"));
 	}
 
 	// Make sure the user is a publisher.
 	if ($bigtree["access_level"] != "p") {
-?>
-<div class="container">
-	<section>
-		<div class="alert">
-			<span></span>
-			<h3>Error</h3>
-		</div>
-		<p>You must be a publisher to manage revisions.</p>
-	</section>
-</div>
-<?php
-		$admin->stop();
+		$admin->stop("You must be a publisher to manage revisions.",BigTree::path("admin/layouts/_error.php"));
 	}
 	
 	// Check for a page lock

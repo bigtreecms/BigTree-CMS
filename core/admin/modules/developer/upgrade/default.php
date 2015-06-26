@@ -14,24 +14,11 @@
 	}
 	// If we're ignoring updates through config, still ignore them
 	if (!empty($bigtree["config"]["ignore_admin_updates"])) {
-?>
-<div class="container">
-	<section>
-		<div class="alert">
-			<span></span>
-			<h3>Error</h3>
-		</div>
-		<p>
-			BigTree updates have been ignored in the configuration file ($bigtree["config"]["ignore_admin_updates"] is set to a truthy value).
-		</p>
-	</section>
-	<footer>
-		<a href="javascript:history.go(-1);" class="button white">Return</a>
-	</footer>
-</div>
-<?php
+		$admin->stop('BigTree updates have been ignored in the configuration file ($bigtree["config"]["ignore_admin_updates"] is set to a truthy value).',BigTree::path("admin/layouts/_error.php"));
+	}
+
 	// Non-ignored updates are available
-	} else if (!$ignored_all && count($updates)) {
+	if (!$ignored_all && count($updates)) {
 ?>
 <div class="container">
 	<summary><h2>Update Available</h2></summary>
@@ -45,13 +32,13 @@
 			<li>
 				<strong><?=$update["version"]?></strong> &mdash; Released <?=date("F j, Y",strtotime($update["release_date"]))?> &mdash; 
 				<?php
-					if ($type == "revision") {
-						echo "This is a bugfix release and is recommended for all users.";
-					} elseif ($type == "minor") {
-						echo "This is a feature release. Though it should be backwards compatible it is recommended that you test the update on your development site before running it on your live site.";
-					} elseif ($type == "major") {
-						echo "This is a major update and is not backwards compatible. You must install this release manually.";
-					}
+						if ($type == "revision") {
+							echo "This is a bugfix release and is recommended for all users.";
+						} elseif ($type == "minor") {
+							echo "This is a feature release. Though it should be backwards compatible it is recommended that you test the update on your development site before running it on your live site.";
+						} elseif ($type == "major") {
+							echo "This is a major update and is not backwards compatible. You must install this release manually.";
+						}
 				?>
 			</li>
 			<?php

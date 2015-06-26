@@ -6845,11 +6845,16 @@
 
 			Parameters:
 				message - Content to show (error, permission denied, etc)
+				file - A file to load (optional, replaces message but $message will be available in the file)
 		*/
 
-		function stop($message = "") {
+		function stop($message = "",$file = "") {
 			global $admin,$bigtree,$cms;
-			echo $message;
+			if ($file) {
+				include $file;
+			} else {
+				echo $message;
+			}
 			$bigtree["content"] = ob_get_clean();
 			include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
 			die();
