@@ -10,10 +10,10 @@
 	
 		foreach ($data["row"] as $position => $id) {
 			if (is_numeric($id)) {
-				sqlquery("UPDATE `$table` SET position = '".(count($row)-$position)."' WHERE id = '".sqlescape($id)."'");
+				sqlquery("UPDATE `$table` SET position = '".(count($data["row"]) - $position)."' WHERE id = '".sqlescape($id)."'");
 				BigTreeAutoModule::recacheItem($id,$table);
 			} else {
-				BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($row)-$position));
+				BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($data["row"]) - $position));
 				BigTreeAutoModule::recacheItem(substr($id,1),$table,true);
 			}
 		}
