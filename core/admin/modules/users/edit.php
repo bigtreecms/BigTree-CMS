@@ -17,7 +17,7 @@
 	}
 
 	$bigtree["gravatar"] = $user["email"];
-	BigTree::globalizeArray($user,array("htmlspecialchars"));
+	BigTree::globalizeArray($user);
 	
 	if (!$permissions) {
 		$permissions = array(
@@ -158,7 +158,7 @@
 			<div class="left">
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
 					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason">Already In Use By Another User</span><?php } ?></label>
-					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
+					<input type="text" class="required email" name="email" autocomplete="off" value="<?=htmlspecialchars($email)?>" tabindex="1" />
 					<span class="gravatar"<?php if ($email) { ?> style="display: block;"<?php } ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				

@@ -529,12 +529,12 @@
 					$field["type"] = "matrix";
 					$field["columns"] = array();
 					$x = 0;
-					foreach ($field["fields"] as $field) {
+					foreach ($field["fields"] as $subfield) {
 						$x++;
 						$field["columns"][] = array(
-							"id" => $field["key"],
-							"type" => $field["type"],
-							"title" => $field["title"],
+							"id" => $subfield["key"],
+							"type" => $subfield["type"],
+							"title" => $subfield["title"],
 							"display_title" => ($x == 1) ? "on" : ""
 						);
 					}
