@@ -1025,7 +1025,7 @@
 			$module = sqlescape($module);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
+			$hooks = BigTree::json(is_array($hooks) ? $hooks : json_decode($hooks),true);
 			$default_position = sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
