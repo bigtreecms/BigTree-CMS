@@ -1837,7 +1837,7 @@ var BigTreeFormNavBar = (function() {
 		ContainerOffset = Container.offset().top;
 		Nav = Container.find("nav a");
 		NextButton = Container.find("footer .next");
-		Sections = $(".container > form > section, .container > section");
+		Sections = $(".container > form > section, .container > section, .container .section");
 
 		// Generic tab controls
 		Nav.click(tabClick);
@@ -1913,8 +1913,8 @@ var BigTreeFormNavBar = (function() {
 		tab.removeClass("active");
 		var next = tab.next("a").addClass("active");
 		
-		$("#" + next.attr("href").substr(1)).show();
-		$("#" + tab.attr("href").substr(1)).hide();
+		$("#" + next.attr("href").substr(1)).show().find(".watcher").trigger("visible");
+		$("#" + tab.attr("href").substr(1)).hide().find(".watcher").trigger("hidden");
 		
 		if (Nav.index(tab) == Nav.filter(":visible").length - 2) {
 			$(this).hide();
@@ -1926,7 +1926,7 @@ var BigTreeFormNavBar = (function() {
 		id = id[0] == "#" ? id : "#" + id;
 
 		// Reset
-		Sections.hide();
+		Sections.hide().find(".watcher").trigger("hidden");
 		Nav.removeClass("active");
 
 		// Figure out which tab it is
@@ -1937,7 +1937,7 @@ var BigTreeFormNavBar = (function() {
 		}
 
 		// Show new panel
-		$(id).show();
+		$(id).show().find(".watcher").trigger("visible");
 	}
 
 	function tabClick(ev) {
@@ -1948,10 +1948,10 @@ var BigTreeFormNavBar = (function() {
 		}
 		
 		var href = $(this).attr("href").substr(1);
-		Sections.hide();
+		Sections.hide().find(".watcher").trigger("hidden");
 		Nav.removeClass("active");
 		$(this).addClass("active");
-		$("#" + href).show();
+		$("#" + href).show().find(".watcher").trigger("visible");
 		
 		// Manage the "Next" buttons
 		var index = Nav.index(this);
@@ -3172,19 +3172,22 @@ var BigTreeTable = function(settings) {
 			}
 	
 			// Summary HTML
+			if (settings.button) {
+				SummaryHTML += '<a class="button ' + settings.button.className + '" href="' + settings.button.link + '">' + settings.button.title + '</a>';
+			}
 			if (Title) {
-				if (settings.button) {
-					SummaryHTML += '<h2 class="full"><a class="button" href="' + settings.button.link + '">' + settings.button.title + '</a>';
-				} else {
-					SummaryHTML += '<h2>';
-				}
+				SummaryHTML += '<h2>';
 				if (settings.icon) {
 					SummaryHTML += '<span class="icon_medium_' + settings.icon + '"></span>';
 				}
 				SummaryHTML += Title + '</h2>';
 			}
 			if (Searchable) {
-				SummaryHTML += '<div class="table_search_wrapper"><input name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" type="search"><span class="form_search_icon"></span></div>';
+				SummaryHTML += '<div class="table_search_wrapper';
+				if (!Title) {
+					SummaryHTML += ' table_search_wrapper_left';
+				}
+				SummaryHTML += '"><input name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" type="search"><span class="form_search_icon"></span></div>';
 			}
 			if (PerPage) {
 				SummaryHTML += '<div class="view_paging"></div>';
@@ -3295,6 +3298,9 @@ var BigTreeTable = function(settings) {
 				Container.find("ul").html('<li><section class="no_content">' + NoContentMessage + '</section></li>');
 				Container.find(".view_paging, .table_search_wrapper").hide();
 			}
+
+			// Remove any watcher
+			Container.off("visible");
 		}
 
 		// Body generation based on data
@@ -3321,9 +3327,12 @@ var BigTreeTable = function(settings) {
 					if (Columns[key].center) {
 						column_class += " center";
 					}
+					if (Columns[key].noPadding) {
+						column_class += " no_padding";
+					}
 					// Add the cell
-					row += '<section style="width: ' + (Columns[key].size - 15) + 'px;" class="' + column_class + '">';
-					if (Draggable && x == 1) {
+					row += '<section style="width: ' + (Columns[key].size - (Columns[key].noPadding ? 0 : 15)) + 'px;" class="' + column_class + '">';
+					if (Draggable && x == 1 && !dataset[i]["!disable_drag"]) {
 						row += '<span class="icon_sort"></span>';
 					}
 
@@ -3362,7 +3371,7 @@ var BigTreeTable = function(settings) {
 				body_html += '<li id="row_' + count + '">' + row + '</li>';
 				count++;
 			}
-			return body_html
+			return body_html;
 		}
 
 		// Helper function to regenerate content
@@ -3461,7 +3470,12 @@ var BigTreeTable = function(settings) {
 			regenerate(number);
 		}
 
-		init();
+		// If this table currently isn't visible we can't properly calculate widths, wait for it to become shown
+		if (Container.get(0).offsetParent == null) {
+			Container.addClass("watcher").on("visible",init);
+		} else {
+			init();
+		}
 
 		return { sort: sort, switchPage: switchPage };
 

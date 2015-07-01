@@ -23,7 +23,6 @@
 ?>
 <div class="table">
 	<summary>
-		<div class="integrity_progress"></div>
 		<p>Running site integrity check with external link checking <?php if ($external) { ?>enabled<?php } else { ?>disabled<?php } ?>.</p>
 	</summary>
 	<header>

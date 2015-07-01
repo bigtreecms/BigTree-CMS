@@ -8,158 +8,156 @@
 	// Get a list of interfaces, this is separated out because actions form uses the same logic
 	include BigTree::path("admin/modules/developer/modules/_interface-sort.php");
 
-	// Sort actions into visible and non
-	$actions_in_nav = $actions_not_in_nav = array();
+	// Set the drag disabled flag for non-visible actions
+	$action_data = array();
 	foreach ($actions as $action) {
-		if ($action["in_nav"]) {
-			$actions_in_nav[] = $action;
-		} else {
-			$actions_not_in_nav[] = $action;
+		$action_data[] = array(
+			"id" => $action["id"],
+			"name" => $action["name"],
+			"!disable_drag" => $action["in_nav"] ? false : true
+		);
+	}
+
+	// Put together our interface list
+	$interface_data = array();
+	foreach ($interface_list as $key => $type) {
+		foreach ($type["items"] as $item) {
+			$interface_data[] = array(
+				"id" => $item["id"],
+				"type" => ucwords($item["type"]),
+				"title" => $item["title"],
+				"style_link" => $item["show_style"] ? '<a href="'.DEVELOPER_ROOT.'modules/views/style/{id}/" class="icon_preview"></a>' : "",
+				"edit_link" => '<a href="'.DEVELOPER_ROOT.'modules/'.$item["edit_url"].'" class="icon_edit"></a>'
+			);
 		}
-	}	
+	}
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
-		<section>
-			<div class="left">
-				<fieldset>
-					<label class="required">Name</label>
-					<input name="name" type="text" value="<?=$module["name"]?>" class="required" />
-				</fieldset>
-			</div>
-			<br class="clear" /><br />
-			<fieldset class="clear developer_module_group">
-				<label>Group <small>(if a new group name is chosen, the select box is ignored)</small></label>
-				<input name="group_new" type="text" placeholder="New Group" />
-				<span>OR</span> 
-				<select name="group_existing">
-					<option value="0"></option>
-					<?php foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<?php if ($group["id"] == $module["group"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
-					<?php } ?>
-				</select>
-			</fieldset>
-			<div class="left">
-				<fieldset>
-					<label>Class Name <small>(only change this if you renamed your class manually)</small></label>
-					<input name="class" type="text" value="<?=htmlspecialchars($module["class"])?>" />
-				</fieldset>
-			</div>
-			
-			<br class="clear" />
-			<fieldset>
-		        <label class="required">Icon</label>
-		        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
-		        <ul class="developer_icon_list">
-		        	<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
-		        	<li>
-		        		<a href="#<?=$class?>"<?php if ($class == $module["icon"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
-		        	</li>
-		        	<?php } ?>
-		        </ul>
-		    </fieldset>
-			
-			<fieldset>
-				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
-				<label class="for_checkbox">Enable Advanced Permissions</label>
-			</fieldset>
-		</section>
-		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
-		<footer>
-			<input type="submit" class="button blue" value="Update" />	
-		</footer>
-	</form>
-</div>
-
-<div class="table">
-	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/actions/add/<?=$module["id"]?>/" class="add"><span></span>Add</a>
-		<h2><span class="icon_medium_actions"></span>Actions</h2>
-	</summary>
 	<header>
-		<span class="developer_templates_name">Title</span>
-		<span class="view_action" style="width: 80px;">Actions</span>
+		<nav class="left">
+			<a href="#details_tab" class="active">Details</a>
+			<a href="#actions_tab">Actions</a>
+			<a href="#interfaces_tab">Interfaces</a>
+		</nav>
 	</header>
-	<?php
-		if (count($actions_in_nav)) {
-	?>
-	<ul id="actions">
-		<?php foreach ($actions_in_nav as $action) { ?>
-		<li id="row_<?=$action["id"]?>">
-			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php
-		}
-		if (count($actions_not_in_nav)) {
-	?>
-	<ul<?php if (count($actions_in_nav)) { ?> class="secondary"<?php } ?>>
-		<?php foreach ($actions_not_in_nav as $action) { ?>
-		<li>
-			<section class="developer_templates_name"><?=$action["name"]?></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php
-		}
-	?>
-</div>
-
-<div class="table">
-	<summary>
-		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$module["id"]?>" class="add"><span></span>Add</a>
-		<h2><span class="icon_medium_interfaces"></span>Interfaces</h2>
-	</summary>
-	<?php
-		foreach ($interface_list as $key => $type) {
-			if (count($type["items"])) {
-	?>
-	<header>
-		<span class="developer_view_name"><?=BigTree::safeEncode($type["name"])?></span>
-	</header>
-	<ul>
-		<?php foreach ($type["items"] as $interface) { ?>
-		<li>
-			<section class="developer_view_name"><?=$interface["title"]?></section>
-			<section class="view_action">
-				<?php if ($interface["show_style"]) { ?>
-				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$interface["id"]?>/" class="icon_preview"></a>
-				<?php } ?>
+	<div id="details_tab" class="section">
+		<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
+			<section>
+				<div class="left">
+					<fieldset>
+						<label class="required">Name</label>
+						<input name="name" type="text" value="<?=$module["name"]?>" class="required" />
+					</fieldset>
+				</div>
+				<br class="clear" /><br />
+				<fieldset class="clear developer_module_group">
+					<label>Group <small>(if a new group name is chosen, the select box is ignored)</small></label>
+					<input name="group_new" type="text" placeholder="New Group" />
+					<span>OR</span> 
+					<select name="group_existing">
+						<option value="0"></option>
+						<?php foreach ($groups as $group) { ?>
+						<option value="<?=$group["id"]?>"<?php if ($group["id"] == $module["group"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+						<?php } ?>
+					</select>
+				</fieldset>
+				<div class="left">
+					<fieldset>
+						<label>Class Name <small>(only change this if you renamed your class manually)</small></label>
+						<input name="class" type="text" value="<?=htmlspecialchars($module["class"])?>" />
+					</fieldset>
+				</div>
+				
+				<br class="clear" />
+				<fieldset>
+			        <label class="required">Icon</label>
+			        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
+			        <ul class="developer_icon_list">
+			        	<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
+			        	<li>
+			        		<a href="#<?=$class?>"<?php if ($class == $module["icon"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+			        	</li>
+			        	<?php } ?>
+			        </ul>
+			    </fieldset>
+				
+				<fieldset>
+					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
+					<label class="for_checkbox">Enable Advanced Permissions</label>
+				</fieldset>
 			</section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/<?=$interface["edit_url"]?>" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$interface["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php
-			}
-		}
-	?>
+			<?php include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
+			<footer>
+				<input type="submit" class="button blue" value="Update" />	
+			</footer>
+		</form>
+	</div>
+
+	<section id="actions_tab" style="display: none;">
+		<div id="actions_table"></div>
+	</section>
+
+	<section id="interfaces_tab" style="display: none;">
+		<div id="interfaces_table"></div>
+	</div>
 </div>
 
 <?php include BigTree::path("admin/modules/developer/modules/_js.php") ?>
-
 <script>
-	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-actions/", { type: "POST", data: { sort: $("#actions").sortable("serialize") } }); 
-	}});
-
-	$(".table .icon_delete").click(function() {
-		BigTreeDialog({
-			title: "Delete Item",
-			content: '<p class="confirm">Are you sure you want to delete this?</p>',
-			icon: "delete",
-			alternateSaveText: "OK",
-			callback: $.proxy(function() {
-				document.location.href = $(this).attr("href");
-			},this)
-		});
-		
-		return false;
+	BigTreeTable({
+		container: "#actions_table",
+		title: "Actions",
+		icon: "actions",
+		button: { title: "<span></span>Add", className: "add", link: "<?=DEVELOPER_ROOT?>modules/actions/add/?module=<?=$id?>" },
+		columns: {
+			name: { title: "Name" }
+		},
+		actions: {
+			edit: "<?=DEVELOPER_ROOT?>modules/actions/edit/{id}/",
+			delete: function(id,state) {
+				BigTreeDialog({
+					title: "Delete Action",
+					content: '<p class="confirm">Are you sure you want to delete this module action?</p>',
+					icon: "delete",
+					alternateSaveText: "OK",
+					callback: function() {
+						document.location.href = "<?=DEVELOPER_ROOT?>modules/actions/delete/" + id + "/";
+					}
+				});
+			}
+		},
+		data: <?=json_encode($action_data)?>,
+		draggable: function(positioning) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-actions/", { type: "POST", data: { positioning: positioning } }); 	
+		}
 	});
+
+	BigTreeTable({
+		container: "#interfaces_table",
+		title: "Interfaces",
+		icon: "interfaces",
+		button: { title: "<span></span>Add", className: "add", link: "<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$id?>" },
+		columns: {
+			type: { title: "Type", size: 175 },
+			title: { title: "Title" },
+			style_link: { title: "", size: 40, center: true, noPadding: true },
+			edit_link: { title: "", size: 40, center: true, noPadding: true }
+		},
+		actions: {
+			delete: function(id,state) {
+				BigTreeDialog({
+					title: "Delete Interface",
+					content: '<p class="confirm">Are you sure you want to delete this module interface?</p>',
+					icon: "delete",
+					alternateSaveText: "OK",
+					callback: function() {
+						document.location.href = "<?=DEVELOPER_ROOT?>modules/interfaces/delete/" + id + "/?module=<?=$id?>";
+					}
+				});
+			}
+		},
+		data: <?=json_encode($interface_data)?>
+	});
+
+	BigTreeFormNavBar.init();
 </script>

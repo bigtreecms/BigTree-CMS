@@ -17,10 +17,10 @@
 ?>
 <div class="container">
 	<summary>
-		<h2 class="full">
+		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="button">View Analytics</a>
+		<h2>
 			<span class="icon_medium_analytics"></span>
 			Recent Traffic <small>Visits In The Past Two Weeks</small>
-			<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="button">View Analytics</a>
 		</h2>
 	</summary>
 	<section>

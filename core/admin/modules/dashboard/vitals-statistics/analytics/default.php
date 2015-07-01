@@ -136,7 +136,7 @@
 <?php
 	};
 ?>
-<div class="table">
+<div class="container">
 	<summary>
 		<h2>Two Week Heads-Up <small>(visits)</small></h2>
 	</summary>
