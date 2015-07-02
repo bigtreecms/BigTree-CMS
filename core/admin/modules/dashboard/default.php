@@ -33,6 +33,7 @@
 	// Draw the panes
 	foreach ($panes as $pane) {
 		if (!$pane["disabled"]) {
+			echo '<div class="dashboard_pane">';
 			// Core pane
 			if (strpos($pane["id"],"*") === false) {
 				include BigTree::path("admin/modules/dashboard/panes/".$pane["id"].".php");
@@ -41,5 +42,6 @@
 				list($extension,$id) = explode("*",$pane["id"]);
 				include SERVER_ROOT."extensions/$extension/plugins/dashboard/$id.php";
 			}
+			echo '</div>';
 		}
 	}

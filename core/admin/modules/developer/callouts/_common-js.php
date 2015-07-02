@@ -12,14 +12,6 @@
 		$(this).parents("li").find(".developer_resource_display_title input").val($(this).val());
 	});
 	
-	$(".template_image_list a").click(function() {
-		$(".template_image_list a.active").removeClass("active");
-		$(this).addClass("active");
-		$("#existing_image").val($(this).attr("href").substr(1));
-		
-		return false;
-	});
-	
 	$(".form_table").on("click",".icon_settings",function(ev) {
 		ev.preventDefault();
 

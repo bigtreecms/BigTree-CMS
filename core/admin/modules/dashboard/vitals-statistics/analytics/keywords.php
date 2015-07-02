@@ -1,29 +1,15 @@
-<div class="table">
-	<summary>
-		<p>Your visitor's search keywords over the past month.</p>
-	</summary>
-	<header>
-		<span class="analytics_metric_name">Keyword</span>
-		<span class="analytics_visit_count">Visit Count</span>
-		<span class="analytics_view_count">View Count</span>
-	</header>
-	<ul>
-		<?php
-			if (is_array($cache["keywords"])) {
-				foreach ($cache["keywords"] as $keyword) {
-		?>
-		<li>
-			<section class="analytics_metric_name"><?=ucwords($keyword["name"])?></section>
-			<section class="analytics_visit_count"><?=$keyword["visits"]?></section>
-			<section class="analytics_view_count"><?=$keyword["views"]?></section>
-		</li>
-		<?php
-				}
-			} else {
-		?>
-		<li class="no_content">We have no data yet.</li>
-		<?php
-			}
-		?>
-	</ul>
-</div>
+<div id="analytics_tab"></div>
+<script>
+	BigTreeTable({
+		container: "#analytics_tab",
+		title: "Keywords",
+		columns: {
+			name: { title: "Keyword" },
+			visits: { title: "Visits", size: 115, center: true },
+			views: { title: "Views", size: 115, center: true }
+		},
+		data: <?=BigTree::jsonExtract($cache["keywords"],array("name","visits","views"))?>,
+		searchable: true,
+		sortable: true
+	});
+</script>

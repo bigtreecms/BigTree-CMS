@@ -10,7 +10,7 @@
 		<?php foreach (array_filter((array)$settings["presets"]) as $preset) { ?>
 		<li>
 			<input type="hidden" value="<?=htmlspecialchars(json_encode($preset))?>" />
-			<section class="developer_templates_name"><?=$preset["name"]?></section>
+			<section class="developer_image_preset"><?=$preset["name"]?></section>
 			<section class="view_action"><a href="#" class="icon_edit"></a></section>
 			<section class="view_action"><a href="#" class="icon_delete"></a></section>
 		</li>
@@ -42,7 +42,7 @@
 							data.id = response.responseText;
 							var li = new $("<li>");
 							li.html('<input type="hidden" />' +
-									'<section class="developer_templates_name">' + htmlspecialchars(data.name) + '</section>' +
+									'<section class="developer_image_preset">' + htmlspecialchars(data.name) + '</section>' +
 									'<section class="view_action"><a href="#" class="icon_edit"></a></section>' +
 									'<section class="view_action"><a href="#" class="icon_delete"></a></section>');
 							li.find("input").val(JSON.stringify(data));
@@ -88,7 +88,7 @@
 					content: e.responseText,
 					callback: function(data) {
 						// Update DOM
-						Current.find(".developer_templates_name").html(htmlspecialchars(data.name));
+						Current.find(".developer_image_preset").html(htmlspecialchars(data.name));
 						Current.find("input").val(JSON.stringify(data));
 						// Update DB
 						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data });

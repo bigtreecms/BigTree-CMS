@@ -1,29 +1,15 @@
-<div class="table">
-	<summary>
-		<p>Your visitor's traffic sources over the past month.</p>
-	</summary>
-	<header>
-		<span class="analytics_metric_name">Referrer</span>
-		<span class="analytics_visit_count">Visit Count</span>
-		<span class="analytics_view_count">View Count</span>
-	</header>
-	<ul id="traffic_sources">
-		<?php
-			if (is_array($cache["referrers"])) {
-				foreach ($cache["referrers"] as $source) {
-		?>
-		<li>
-			<section class="analytics_metric_name"><?=ucwords($source["name"])?></section>
-			<section class="analytics_visit_count"><?=$source["visits"]?></section>
-			<section class="analytics_view_count"><?=$source["views"]?></section>
-		</li>
-		<?php
-				}
-			} else {
-		?>
-		<li class="no_content">We have no data yet.</li>
-		<?php
-			}
-		?>
-	</ul>
-</div>
+<div id="analytics_tab"></div>
+<script>
+	BigTreeTable({
+		container: "#analytics_tab",
+		title: "Traffic sources",
+		columns: {
+			name: { title: "Referrer" },
+			visits: { title: "Visits", size: 115, center: true },
+			views: { title: "Views", size: 115, center: true }
+		},
+		data: <?=BigTree::jsonExtract($cache["referrers"],array("name","visits","views"))?>,
+		searchable: true,
+		sortable: true
+	});
+</script>

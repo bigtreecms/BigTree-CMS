@@ -557,6 +557,9 @@
 	#properties_tab .external input { width: 270px; }
 	#properties_tab .checkbox_bump { float: left; }
 
+/* Dashboard Styles */
+	.dashboard_pane { margin: 0 0 20px 0; }
+
 /* Table Styles */
 	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; }
 	div.table:last-child { margin: 0; }
@@ -627,6 +630,24 @@
 	.table .table_sort_column { cursor: pointer; }
 	.table .table_sort_column em { font-size: 7px; padding: 0 0 0 5px; }
 
+	/* Pagination Styles */
+	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 24px; margin: 5px 0 0 10px; overflow: hidden; padding: 0 0 0 1px; user-select: none; }
+	.view_paging a { background: #fff; color: #999; display: block; float: left; font-size: 12px; height: 24px; line-height: 24px; margin: 0; padding: 0 10px; transition: background-color 0.2s; }
+	.view_paging a:hover { color: #666; }
+	.view_paging .active, .view_paging .active:hover { background-color: #eee; color: #666; }
+	.view_paging .first { border-radius: 2px 0 0 2px; height: 17px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging .first span { background: url(../images/icon-sprite.svg) no-repeat -137px -116px; display: block; height: 9px; width: 6px; }
+	.view_paging .last { border-radius: 0 2px 2px 0; border-right: none; height: 17px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging .last span { background: url(../images/icon-sprite.svg) no-repeat -137px -125px; display: block; height: 9px; width: 6px; }
+	.view_paging .first:hover, .view_paging .last:hover { background: #fff; }
+	.view_paging .ellipsis { padding: 0px 5px; }
+
+	/* Module publish / page status columns */
+	.table .status_published { color: #4DA46E; font-size: 9px; }
+	.table .status_pending a, .table .status_pending { color: #838383; font-size: 9px; }
+	.table .status_scheduled { color: #59A8E9; font-size: 9px; }
+	.table .status_expired { color: #CC3B46; font-size: 9px; }
+
 	/* Pending changes */
 	.table .no_content { padding: 0 0 0 20px; text-align: left; user-select: none; width: 938px; }
 	.table .no_content p { line-height: 35px; }
@@ -659,24 +680,14 @@
 	.table .pages_publish { width: 75px; }
 	.table .active_draft { background: #D2DEE6; border-radius: 3px; color: #315264; float: right; font-size: 10px; height: 20px; line-height: 22px; margin: 7px 20px 0 0; text-align: center; text-transform: uppercase; width: 55px; }
 
+	/* 404s Report */
 	.table .requests_404 { text-align: center; width: 90px; }
 	.table .url_404 { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 370px; }
 	.table .redirect_404 { text-align: left; width: 368px; }
 	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 345px; }
 	.table .ignore_404 { width: 65px; }
 
-	.table .site_status_message { padding: 0 0 0 15px; text-align: left; width: 300px; }
-	.table .site_status_action { text-align: left; width: 568px; }
-	.table .site_status_status { color: #666; width: 75px; }
-	.table .site_status_status.good { background: green; color: #FFF; }
-	.table .site_status_status.ok { background: orange; color: #FFF; }
-	.table .site_status_status.bad { background: red; color: #FFF; }
-
-	.table .status_published { color: #4DA46E; font-size: 9px; }
-	.table .status_pending a, .table .status_pending { color: #838383; font-size: 9px; }
-	.table .status_scheduled { color: #59A8E9; font-size: 9px; }
-	.table .status_expired { color: #CC3B46; font-size: 9px; }
-
+	/* Site Integrity Check */
 	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 958px; }
 	.table .integrity_errors span { margin: 8px 8px 0 0; }
 	.table .integrity_errors a { background: #EEE; border-left: 1px solid #DDD; float: right; height: 35px; margin: 0 20px 0 0; padding: 0px 30px; }
@@ -684,15 +695,7 @@
 	.table .integrity_errors p { height: 35px; line-height: 35px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 830px; }
 	.table .integrity_progress { float: right; font-size: 12px !important; height: 37px; line-height: 35px; }
 
-	.table .analytics_metric_name { padding: 0 0 0 20px; text-align: left; width: 668px; }
-	.table .analytics_visit_count { width: 135px; }
-	.table .analytics_view_count { width: 135px; }
-
-	.table .messages_from_to { padding: 0 0 0 20px; text-align: left; width: 230px; }
-	.table .messages_subject { padding: 0 0 0 20px; text-align: left; width: 453px; }
-	.table .messages_date_time { padding: 0 20px 0 0; text-align: right; width: 65px; }
-	.table .messages_view { padding: 0 20px 0 0; text-align: center; width: 45px; }
-
+	/* Pending Changes */
 	.table .changes_page { padding: 0 0 0 20px; text-align: left; width: 358px; }
 	.table .changes_type { padding: 0 0 0 20px; text-align: left; width: 50px; }
 	.table section.changes_type { color: #999; font-size: 10px; }
@@ -701,13 +704,6 @@
 	.table .changes_author { padding: 0 0 0 20px; text-align: left; width: 140px; }
 	.table .changes_entry { padding: 0 0 0 20px; text-align: left; width: 668px; }
 	.table .changes_action { padding: 0 20px 0 0; text-align: center; width: 35px; }
-
-	.table.audit_trail .view_column a { color: #59A8E9; margin: 0; }
-	.table .audit_date { width: 120px; }
-	.table .audit_user { width: 148px; }
-	.table .audit_table { width: 150px; }
-	.table .audit_entry { width: 300px; }
-	.table .audit_action { font-size: 10px; width: 130px; }
 
 /* Nested Table Styles */
 	.nested_table .depth { background: #EEE; border-right: 1px solid #E3E3E3; float: left; height: 35px; text-align: right; }
@@ -868,17 +864,6 @@
 	.table .view_action { width: 40px; }
 	.table .view_status { width: 70px; }
 
-	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 24px; margin: 5px 0 0 10px; overflow: hidden; padding: 0 0 0 1px; user-select: none; }
-	.view_paging a { background: #fff; color: #999; display: block; float: left; font-size: 12px; height: 24px; line-height: 24px; margin: 0; padding: 0 10px; transition: background-color 0.2s; }
-	.view_paging a:hover { color: #666; }
-	.view_paging .active, .view_paging .active:hover { background-color: #eee; color: #666; }
-	.view_paging .first { border-radius: 2px 0 0 2px; height: 17px; padding-top: 7px; text-indent: -1000px; width: 6px; }
-	.view_paging .first span { background: url(../images/icon-sprite.svg) no-repeat -137px -116px; display: block; height: 9px; width: 6px; }
-	.view_paging .last { border-radius: 0 2px 2px 0; border-right: none; height: 17px; padding-top: 7px; text-indent: -1000px; width: 6px; }
-	.view_paging .last span { background: url(../images/icon-sprite.svg) no-repeat -137px -125px; display: block; height: 9px; width: 6px; }
-	.view_paging .first:hover, .view_paging .last:hover { background: #fff; }
-	.view_paging .ellipsis { padding: 0px 5px; }
-
 	.image_list > header:first-child { margin-top: 0; }
 	.image_list > header:nth-of-type(2n) { border-top: 1px solid #CCC; }
 	.image_list > header span { padding: 0 0 0 20px; }
@@ -912,12 +897,6 @@
 	.message_thread .selected header { border-bottom: 1px solid #CCC; margin-bottom: 30px; opacity: 1; }
 
 /* Users Stuff */
-	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 318px; }
-	.table .users_name_emulate { padding: 0 0 0 20px; text-align: left; width: 358px; }
-	.table .users_email { text-align: left; width: 250px; }
-	.table .users_company { text-align: left; width: 250px; }
-	.table .users_api_type { text-align: left; width: 250px; }
-
 	.user_permissions .labels { background: #AFAFAF; border: none; color: #FFF; position: absolute; }
 	.user_permissions .labels.stuck { height: 20px; padding: 0; width: 896px; position: fixed; }
 	.user_permissions .labels .permission_label { padding: 0 0 0 20px; text-align: left; width: 466px; }
@@ -985,10 +964,6 @@
 
 	.password_policy { color: #C0362F; font-size: 10px; padding: 10px 0 0 0; }
 
-/* Settings Stuff */
-	.table .settings_name { overflow: hidden; padding: 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 272px; }
-	.table .settings_value { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 606px; }
-
 /* Advanced Search Page */
 	.adv_search { margin: 0 0 15px 0; overflow: hidden; }
 	.adv_search h3 { height: 26px; line-height: 26px; margin: 0 0 0 460px; position: absolute; }
@@ -1015,34 +990,9 @@
 	.developer #manage_hooks { float: right; height: 16px; line-height: 16px; color: #666; margin: 0 7px 0 15px; }
 	.developer #manage_hooks:hover { background: #F3F3F3; border-radius: 2px; margin-top: -5px; margin-right: 0; margin-bottom: -5px; padding: 4px 6px 4px 4px; border: 1px solid #DDD; }
 
-	.table .developer_pane_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 884px; }
-	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
-	.table .developer_templates_name a { color: #333; display: block; margin: 0; width: 846px; }
-	.table .developer_modules_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 823px; }
-	.table .developer_modules_name a { color: #333; display: block; margin: 0; width: 806px; }
-	.table .developer_view_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 823px; }
-	.table .developer_field_types_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 819px; }
-	.table .developer_field_types_name a { color: #333; display: block; margin: 0; }
-	.table .developer_field_types_version { padding: 0 0 0 15px; text-align: left; width: 150px; }
-	.table .developer_field_types_author { padding: 0 0 0 15px; text-align: left; width: 319px; }
-	.table .developer_feeds_name { padding: 0 0 0 15px; text-align: left; width: 242px; }
-	.table .developer_feeds_name a { color: #333; display: block; margin: 0; }
-	.table .developer_feeds_url { padding: 0 0 0 15px; text-align: left; width: 442px; }
-	.table .developer_feeds_type { padding: 0 0 0 15px; text-align: left; width: 149px; }
-	.table .developer_settings_name { padding: 0 0 0 15px; text-align: left; width: 408px; }
-	.table .developer_settings_name a { color: #333; display: block; margin: 0; }
-	.table .developer_settings_id { padding: 0 0 0 15px; text-align: left; width: 280px; }
-	.table .developer_settings_type { padding: 0 0 0 15px; text-align: left; width: 145px; }
-	.table .developer_extensions_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 683px; }
-	.table .developer_extensions_name small { display: inline-block; font-size: 11px; padding: 0 0 0 10px; }
-	.table .developer_extensions_action { text-align: center; width: 90px; }
-	.table .developer_extensions_action .button { height: 23px; line-height: 25px; }
-
-	.template_image_list { list-style: none; margin: 10px 0 0 0; }
-	.template_image_list li { float: left; margin: 0 5px 5px 0; }
-	.template_image_list a { border: 1px solid #CCC; border-radius: 3px; display: block; height: 32px; padding: 5px; text-align: center; transition: background 0.2s, border-color 0.2s; width: 32px; }
-	.template_image_list a.active, .template_image_list a:hover { background: #EFF7FD; border-color: #9DBDD9; }
-
+	.table .developer_image_preset { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
+	.table .developer_image_preset a { color: #333; display: block; margin: 0; width: 846px; }
+	
 	.form_table .add { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #666; display: block; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 5px 5px 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
 	.form_table .add:hover { color: #333; }
 
@@ -1182,7 +1132,6 @@
 	.bigtree.front_end_editor .callout_fields input[type="password"], 
 	.bigtree.front_end_editor .callout_fields input[type="url"],
 	.bigtree.front_end_editor .callout_fields textarea { width: 418px; }
-
 	.bigtree.front_end_editor .callout_fields fieldset { width: 440px; }
 
 /*---------------------------
