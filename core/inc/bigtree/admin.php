@@ -78,7 +78,7 @@
 
 		function __construct() {
 			if (isset($_SESSION["bigtree_admin"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
 				if ($f) {
 					$this->ID = $f["id"];
 					$this->User = $f["email"];
