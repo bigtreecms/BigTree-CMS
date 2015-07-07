@@ -47,7 +47,7 @@
 	$pages_nav = &$bigtree["nav_tree"]["pages"];
 	// Replace all the {id}s in the links.
 	foreach ($pages_nav["children"] as &$child) {
-		$child["link"] = str_replace("{id}",end($bigtree["commands"]),$child["link"]);
+		$child["link"] = str_replace("{id}",$id,$child["link"]);
 	}
 	// Pass the current page into $_GET vars for the edit.
 	$pages_nav["children"]["edit"]["get_vars"] = array("return_to_self" => true);
