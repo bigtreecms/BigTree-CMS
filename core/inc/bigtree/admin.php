@@ -4253,7 +4253,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".$page["id"]."'"));
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
