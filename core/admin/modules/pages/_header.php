@@ -1,6 +1,6 @@
 <?
 	$proot = ADMIN_ROOT."pages/";
-	$id = isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]);
+	$id = preg_replace("/[^a-z0-9.]+/i","",isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
 	$action = $bigtree["module_path"][0];
 
 	// Get the end command as the current working page, only decode resources and get tags if we're editing
