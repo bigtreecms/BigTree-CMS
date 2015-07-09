@@ -2135,13 +2135,18 @@
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
 			if ($r) {
-				sqlquery("DELETE FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'");
-				$storage = new BigTreeStorage;
-				$storage->delete($r["file"]);
-				foreach ($r["thumbs"] as $thumb) {
-					$storage->delete($thumb);
+				sqlquery("DELETE FROM bigtree_resources WHERE id = '".sqlescape($r["id"])."'");
+
+				// If this file isn't located in any other folders, delete it from the file system
+				if (!sqlrows(sqlquery("SELECT id FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'"))) {
+					$storage = new BigTreeStorage;
+					$storage->delete($r["file"]);
+					foreach ($r["thumbs"] as $thumb) {
+						$storage->delete($thumb);
+					}
 				}
 			}
+			$this->track("bigtree_resources",$id,"deleted");
 		}
 
 		/*
