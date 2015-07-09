@@ -76,7 +76,7 @@
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
 			// Cloud
-			if (substr($file_location,0,4) == "http") {
+			if (substr($file_location,0,4) == "http" || substr($file_location,0,2) == "//") {
 				// Try to get the container and pointer
 				$parts = explode("/",$file_location);
 				$domain = $parts[2];

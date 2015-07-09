@@ -81,7 +81,7 @@
 
 		function __construct() {
 			if (isset($_SESSION["bigtree_admin"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
 				if ($f) {
 					$this->ID = $f["id"];
 					$this->User = $f["email"];
@@ -3761,7 +3761,7 @@
 		function getPageAccessLevelByUser($page,$user) {
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'"));
 				$changes = json_decode($f["changes"],true);
 				return $this->getPageAccessLevelByUser($changes["parent"],$user);
 			}
@@ -4207,7 +4207,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".$page["id"]."'"));
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
