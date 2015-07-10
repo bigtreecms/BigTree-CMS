@@ -266,7 +266,7 @@
 		if ($bigtree["path"][2] != "auto-modules") {
 			// If the current user isn't allowed in the module for the ajax, stop them.
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
-			if ($module && !$admin->checkAccess($module["id"])) {
+			if ($module && !$admin->checkAccess($module)) {
 				die("Permission denied to module: ".$module["name"]);
 			} elseif (!$admin->ID) {
 				die("Please login.");
@@ -362,7 +362,7 @@
 		}
 		
 		// Make sure the user has access to the module
-		if (!$admin->checkAccess($module["id"])) {
+		if (!$admin->checkAccess($module)) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 		}
 

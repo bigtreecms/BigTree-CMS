@@ -54,10 +54,10 @@
 		if ($module_count < 1) {
 ?>
 <div class="container">
-	<summary><h2>Ungrouped</h2></summary>
-	<ul>
-		<li class="no_content">No modules available</li>
-	</ul>
+	<summary><h2>No Modules</h2></summary>
+	<section>
+		<p>You do not have access to any modules (or none exist).</p>
+	</section>
 </div>
 <?php
 		}

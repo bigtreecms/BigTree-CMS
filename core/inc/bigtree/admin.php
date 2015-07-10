@@ -481,28 +481,31 @@
 				Determines whether the logged in user has access to a module or not.
 
 			Parameters:
-				module - Either a module id or module entry.
+				module - A module from the bigtree_modules table.
 
 			Returns:
 				true if the user can access the module, otherwise false.
 		*/
 
 		function checkAccess($module) {
-			if (is_array($module)) {
-				$module = $module["id"];
+			// Developer only module
+			if ($module["developer_only"] && $this->Level < 2) {
+				return false;
 			}
 
+			// Not developer-only and we're an admin? You have access
 			if ($this->Level > 0) {
 				return true;
 			}
 
-			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
+			$module_id = $module["id"];
+			if ($this->Permissions["module"][$module_id] && $this->Permissions["module"][$module_id] != "n") {
 				return true;
 			}
 
 			if (isset($this->Permissions["module_gbp"])) {
-				if (is_array($this->Permissions["module_gbp"][$module])) {
-					foreach ($this->Permissions["module_gbp"][$module] as $p) {
+				if (is_array($this->Permissions["module_gbp"][$module_id])) {
+					foreach ($this->Permissions["module_gbp"][$module_id] as $p) {
 						if ($p != "n") {
 							return true;
 						}
@@ -906,12 +909,13 @@
 				permissions - The group-based permissions.
 				icon - The icon to use.
 				route - Desired route to use (defaults to auto generating if this is left false).
+				developer_only - Sets a module to be only accessible/visible to developers (defaults to false).
 
 			Returns:
 				The new module id.
 		*/
 
-		function createModule($name,$group,$class,$table,$permissions,$icon,$route = false) {
+		function createModule($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
 			// Find an available module route.
 			$route = $route ? $route : BigTreeCMS::urlify($name);
 			if (!ctype_alnum(str_replace("-","",$route)) || strlen($route) > 127) {
@@ -961,8 +965,9 @@
 			$group = $group ? "'".sqlescape($group)."'" : "NULL";
 			$gbp = BigTree::json($permissions,true);
 			$icon = sqlescape($icon);
+			$developer_only = $developer_only ? "on" : "";
 
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('$name','$route','$class','$icon',$group,'$gbp')");
+			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`,`developer_only`) VALUES ('$name','$route','$class','$icon',$group,'$gbp','$developer_only')");
 			$id = sqlid();
 
 			if ($class) {
@@ -3793,9 +3798,9 @@
 		function getModules($sort = "id ASC",$auth = true) {
 			$items = array();
 			$q = sqlquery("SELECT bigtree_modules.*,bigtree_module_groups.name AS group_name FROM bigtree_modules LEFT JOIN bigtree_module_groups ON bigtree_modules.`group` = bigtree_module_groups.id ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				if (!$auth || $this->checkAccess($f["id"])) {
-					$items[$f["id"]] = $f;
+			while ($module = sqlfetch($q)) {
+				if (!$auth || $this->checkAccess($module)) {
+					$items[$module["id"]] = $module;
 				}
 			}
 			return $items;
@@ -3826,9 +3831,9 @@
 			} else {
 				$q = sqlquery("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
 			}
-			while ($f = sqlfetch($q)) {
-				if ($this->checkAccess($f["id"]) || !$auth) {
-					$items[$f["id"]] = $f;
+			while ($module = sqlfetch($q)) {
+				if ($this->checkAccess($module) || !$auth) {
+					$items[$module["id"]] = $module;
 				}
 			}
 			return $items;
@@ -7273,9 +7278,10 @@
 				class - The module class to create.
 				permissions - The group-based permissions.
 				icon - The icon to use.
+				developer_only - Sets a module to be accessible/visible to only developers.
 		*/
 
-		function updateModule($id,$name,$group,$class,$permissions,$icon) {
+		function updateModule($id,$name,$group,$class,$permissions,$icon,$developer_only = false) {
 			// If this has a permissions table, wipe that table's view cache
 			if ($permissions["table"]) {
 				BigTreeAutoModule::clearCache($permissions["table"]);
@@ -7287,8 +7293,9 @@
 			$class = sqlescape($class);
 			$permissions = BigTree::json($permissions,true);
 			$icon = sqlescape($icon);
+			$developer_only = $developer_only ? "on" : "";
 
-			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_modules SET name = '$name', `group` = $group, class = '$class', icon = '$icon', `gbp` = '$permissions', `developer_only` = '$developer_only' WHERE id = '$id'");
 			$this->track("bigtree_modules",$id,"updated");
 
 			// Remove cached class list.

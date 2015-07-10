@@ -7,7 +7,7 @@
 		$group = $group_existing;
 	}
 	
-	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route);
+	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route,$developer_only);
 	// Route was incorrect if we failed
 	if (!$id) {
 		$_POST["group_existing"] = $group;

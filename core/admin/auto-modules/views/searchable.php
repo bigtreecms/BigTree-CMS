@@ -1,8 +1,9 @@
 <?php
 	BigTree::globalizeArray($bigtree["view"]);
 		
-	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$perm = $admin->checkAccess($m);
+	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
+	$module = $admin->getModule($module_id);
+	$perm = $admin->checkAccess($module);
 	
 	if (isset($_GET["sort"])) {
 		$sort = "`".$_GET["sort"]."` ".$_GET["sort_direction"];

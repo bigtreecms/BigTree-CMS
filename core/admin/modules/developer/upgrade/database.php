@@ -742,5 +742,8 @@
 
 		// Clear view caches
 		sqlquery("DELETE FROM bigtree_module_view_cache");
+
+		// Add Developer Only setting to Modules
+		sqlquery("ALTER TABLE `bigtree_modules` ADD COLUMN `developer_only` CHAR(2) NOT NULL AFTER `gbp`");
 	}
 ?>

@@ -65,9 +65,13 @@
 		        </ul>
 		    </fieldset>
 
-			<fieldset>
-				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
+			<fieldset class="left last">
+				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?><?php if ($developer_only) { ?>disabled="disabled"<?php } ?> />
 				<label class="for_checkbox">Enable Advanced Permissions</label>
+			</fieldset>
+			<fieldset class="right last">
+				<input type="checkbox" name="developer_only" id="developer_only" <?php if ($developer_only) { ?>checked="checked" <?php } ?>/>
+				<label class="for_checkbox">Limit Access to Developers</label>
 			</fieldset>
 		</section>
 		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
