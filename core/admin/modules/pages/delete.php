@@ -1,14 +1,7 @@
 <?php
 	$page = end($bigtree["path"]);
 	
-	if (is_numeric($page)) {
-		$f = $cms->getPage($page);
-		$parent = $f["parent"];
-	} else {
-		$f = $cms->getPendingPage(substr($page,1));
-		$parent = $f["changes"]["parent"];
-	}
-	
+	$page_data = $cms->getPendingPage($page);
 	$admin->deletePage($page);
 	
-	BigTree::redirect(ADMIN_ROOT."pages/view-tree/$parent/");
+	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$page_data["parent"]."/");

@@ -20,6 +20,21 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.3 Release
+- FIXED: Ignoring an update notification not sticking
+- FIXED: Example site using old style index.php
+- FIXED: Service APIs that used off site redirects failing after 4.2.2 security hardening
+- FIXED: Incorrect error messages in Users section
+- FIXED: "columns" parameter not working in BigTreeModule's getAllPositioned method
+- FIXED: BigTreeYouTubeAPI's timeSplit method being protected (it's needed by other classes in the API)
+- FIXED: Launcher now works better with sym-linked cores (in fresh installs)
+- FIXED: Converting Array of Items (4.0/4.1 field type) into Matrix when upgrading (for real this time)
+- FIXED: Incorrect message when deleting callout groups
+- FIXED: BigTree admin bar not working on secure pages
+- FIXED: User's names and company names not being encoded properly (XSS)
+- FIXED: Date and Date/Time pickers losing their value if used in Matrix / Callouts and not edited
+- FIXED: Draggable views setting positions to be negative numbers (failed to sort if you were using unsigned columns)
+
 ### 4.2.2 Release
 - ADDED: You can now instantiate a BigTreePaymentGateway object with the desired payment gateway in the constructor for using multiple services
 - ADDED: When grouping by a special column such as featured, approved, or archived, groups now get meaningful titles and clicking the relevant icons reloads the view to show movement between groups.

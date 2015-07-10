@@ -1,6 +1,6 @@
 <?php
 	$proot = ADMIN_ROOT."pages/";
-	$id = isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]);
+	$id = preg_replace("/[^a-z0-9.]+/i","",isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
 	$action = $bigtree["module_path"][0];
 
 	// Get the end command as the current working page, only decode resources and get tags if we're editing
@@ -36,7 +36,7 @@
 	$pages_nav = &$bigtree["nav_tree"]["pages"];
 	// Replace all the {id}s in the links.
 	foreach ($pages_nav["children"] as &$child) {
-		$child["link"] = str_replace("{id}",end($bigtree["commands"]),$child["link"]);
+		$child["link"] = str_replace("{id}",$id,$child["link"]);
 	}
 	// Pass the current page into $_GET vars for the edit.
 	$pages_nav["children"]["edit"]["get_vars"] = array("return_to_self" => true);
