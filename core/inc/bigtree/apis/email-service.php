@@ -76,7 +76,7 @@
 			} elseif ($this->Service == "sendgrid") {
 				return $this->sendSendGrid($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} else {
-				throw new Exception("Unknown Email Service");
+				trigger_error("Unknown Email Service",E_USER_ERROR);
 			}
 		}
 

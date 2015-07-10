@@ -120,7 +120,7 @@
 			} elseif ($this->Service == "linkpoint") {
 				return $this->authorizeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);	
 			} else {
-				throw new Exception("Invalid Payment Gateway");
+				trigger_error("Invalid Payment Gateway",E_USER_ERROR);
 			}
 		}
 		
@@ -197,7 +197,7 @@
 			} elseif ($this->Service == "linkpoint") {
 				return $this->captureLinkPoint($transaction,$amount);
 			} else {
-				throw new Exception("Invalid Payment Gateway");
+				trigger_error("Invalid Payment Gateway",E_USER_ERROR);
 			}
 		}
 		
@@ -410,7 +410,7 @@
 			} elseif ($this->Service == "linkpoint") {
 				return $this->chargeLinkPoint($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer);
 			} else {
-				throw new Exception("Invalid Payment Gateway");
+				trigger_error("Invalid Payment Gateway",E_USER_ERROR);
 			}
 		}
 		
@@ -850,7 +850,7 @@
 		*/
 		
 		protected function createRecurringPaymentAuthorize($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-			throw new Exception("This method is not currently supported for the selected payment gateway.");
+			trigger_error("This method is not currently supported for the selected payment gateway.",E_USER_ERROR);
 		}
 		
 		/*
@@ -859,7 +859,7 @@
 		*/
 		
 		protected function createRecurringPaymentLinkPoint($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-			throw new Exception("This method is not currently supported for the selected payment gateway.");
+			trigger_error("This method is not currently supported for the selected payment gateway.",E_USER_ERROR);
 		}
 		
 		/*
@@ -868,7 +868,7 @@
 		*/
 		
 		protected function createRecurringPaymentPayflow($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-			throw new Exception("This method is not currently supported for the selected payment gateway.");
+			trigger_error("This method is not currently supported for the selected payment gateway.",E_USER_ERROR);
 		}
 		
 		/*
@@ -937,7 +937,7 @@
 		*/
 
 		protected function createRecurringPaymentPayPalREST($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount,$trial_period,$trial_frequency,$trial_length) {
-			throw new Exception("This method is not currently supported for the selected payment gateway.");
+			trigger_error("This method is not currently supported for the selected payment gateway.",E_USER_ERROR);
 		}
 
 		/*
@@ -1437,7 +1437,7 @@
 			} elseif ($this->Service == "linkpoint") {
 				return $this->refundLinkPoint($transaction,$card_number,$amount);
 			} else {
-				throw new Exception("Invalid Payment Gateway");
+				trigger_error("Invalid Payment Gateway",E_USER_ERROR);
 			}
 		}
 		
@@ -1958,7 +1958,7 @@
 			} elseif ($this->Service == "linkpoint") {
 				return $this->voidLinkPoint($authorization);
 			} else {
-				throw new Exception("Invalid Payment Gateway");
+				trigger_error("Invalid Payment Gateway",E_USER_ERROR);
 			}
 		}
 		

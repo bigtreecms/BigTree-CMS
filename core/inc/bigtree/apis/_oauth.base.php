@@ -214,7 +214,7 @@
 
 		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
-				throw new Exception("This API is not connected.");
+				trigger_warning("This API is not connected.",E_USER_ERROR);
 			}
 
 			// Some APIs expect us to send a JSON string as the content body instead of POST... and they also want a Content-type header.

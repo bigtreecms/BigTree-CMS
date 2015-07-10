@@ -467,15 +467,15 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				if (!function_exists('openssl_x509_read')) {
-					throw new Exception("PHP's OpenSSL extension is required to use authenticated URLs with Google Cloud Storage.");
+					trigger_error("PHP's OpenSSL extension is required to use authenticated URLs with Google Cloud Storage.",E_USER_ERROR);
 				}
 				if (!$this->Settings["private_key"] || !$this->Settings["certificate_email"]) {
-					throw new Exception("You must upload your Google Cloud Storage private key and set your Certificate Email Address to use authenticated URLs.");
+					trigger_error("You must upload your Google Cloud Storage private key and set your Certificate Email Address to use authenticated URLs.",E_USER_ERROR);
 				}
 				// Google's default password for these is "notasecret"
 				$certificates = array();
 				if (!openssl_pkcs12_read(file_get_contents($this->Settings["private_key"]),$certificates,"notasecret")) {
-	  				throw new Exception("Unable to parse Google Cloud Storage private key file:".openssl_error_string());
+	  				trigger_error("Unable to parse Google Cloud Storage private key file:".openssl_error_string(),E_USER_ERROR);
 				}
 				$private_key = openssl_pkey_get_private($certificates["pkey"]);
 				// Sign the string
@@ -784,7 +784,7 @@
 				}
 			// Rackspace or no setup at all
 			} else {
-				throw new Exception("The current cloud service provider does not support this method.");
+				trigger_error("The current cloud service provider does not support this method.",E_USER_ERROR);
 			}
 		}
 

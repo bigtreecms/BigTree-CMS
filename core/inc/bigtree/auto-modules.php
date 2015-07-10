@@ -1628,7 +1628,7 @@
 		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
 			global $admin;
 			if (!isset($admin) || get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
+				trigger_error("BigTreeAutoModule::submitChange must be called by a logged in user.",E_USER_ERROR);
 			}
 
 			$id = sqlescape($id);
