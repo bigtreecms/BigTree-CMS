@@ -165,9 +165,13 @@
 			<span class="trail"></span>
 			<p>Audit Trail</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>user-emulator/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>user-emulator/">
 			<span class="users"></span>
 			<p>User Emulator</p>
+		</a>
+		<a class="box_select last" href="<?=DEVELOPER_ROOT?>content-generator/">
+			<span class="edit_page"></span>
+			<p>Content Generator</p>
 		</a>
 	</section>
 </div>

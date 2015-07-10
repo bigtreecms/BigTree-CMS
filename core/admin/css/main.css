@@ -71,7 +71,7 @@
 	h1 .images, .box_select .images { background-position: -704px -16px; }
 	h1 .page_error { background-position: 0px -48px; }
 	h1 .move_page { background-position: -32px -48px; }
-	h1 .edit_page { background-position: -64px -48px; }
+	h1 .edit_page, .box_select .edit_page { background-position: -64px -48px; }
 	h1 .page_versions { background-position: -96px -48px; }
 	h1 .search { background-position: -195px -48px; }
 	h1 .add_message { background-position: -256px -48px; }
