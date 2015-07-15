@@ -1,14 +1,14 @@
 <?
 	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 
-	sqlquery("SET foreign_key_checks = 0");
-	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
 	// Run SQL
 	foreach ($json["sql"] as $sql) {
 		sqlquery($sql);
 	}
+	
+	sqlquery("SET foreign_key_checks = 0");
 	
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {
