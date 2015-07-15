@@ -107,12 +107,32 @@
 				$p["files"][] = SERVER_ROOT."templates/basic/$template.php";
 			}
 		}
+		// Get template info to bring in extra field types
+		$template_data = $cms->getTemplate($template);
+		foreach ($template_data["resources"] as $field) {
+			// Include the custom field type if it was forgotten.
+			if (isset($custom_field_types[$field["type"]])) {
+				if (!in_array($field["type"],$p["field_types"])) {
+					$p["field_types"][] = $field["type"];
+				}
+			}
+		}
 	}
 	// Files for callouts
 	foreach ((array)$callouts as $callout) {
 		if ($callout) {
 			if (file_exists(SERVER_ROOT."templates/callouts/$callout.php")) {
 				$p["files"][] = SERVER_ROOT."templates/callouts/$callout.php";
+			}
+			// Get callout info to bring in extra field types
+			$callout_data = $admin->getCallout($callout);
+			foreach ($callout_data["resources"] as $field) {
+				// Include the custom field type if it was forgotten.
+				if (isset($custom_field_types[$field["type"]])) {
+					if (!in_array($field["type"],$p["field_types"])) {
+						$p["field_types"][] = $field["type"];
+					}
+				}
 			}
 		}
 	}
@@ -129,7 +149,17 @@
 				$p["files"][] = SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php";
 			}
 		}
-	}	
+	}
+
+	// Get settings to make sure they don't use a custom field type
+	foreach (array_filter((array)$p["settings"]) as $setting_id) {
+		$setting = $admin->getSetting($setting_id);
+		if (isset($custom_field_types[$setting["type"]])) {
+			if (!in_array($setting["type"],$p["field_types"])) {
+				$p["field_types"][] = $setting["type"];
+			}
+		}
+	}
 
 	// Make sure we have no dupes
 	$p["module_groups"] = array_unique($p["module_groups"]);
