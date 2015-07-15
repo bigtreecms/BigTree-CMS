@@ -136,6 +136,17 @@
 			}
 		}
 	}
+
+	// Get settings to make sure they don't use a custom field type
+	foreach (array_filter((array)$p["settings"]) as $setting_id) {
+		$setting = $admin->getSetting($setting_id);
+		if (isset($custom_field_types[$setting["type"]])) {
+			if (!in_array($setting["type"],$p["field_types"])) {
+				$p["field_types"][] = $setting["type"];
+			}
+		}
+	}
+
 	// Files for field types -- we use the $p version here because we may have added some when checking the module
 	foreach ((array)$p["field_types"] as $type) {
 		if ($type) {
@@ -147,16 +158,6 @@
 			}
 			if (file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php")) {
 				$p["files"][] = SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php";
-			}
-		}
-	}
-
-	// Get settings to make sure they don't use a custom field type
-	foreach (array_filter((array)$p["settings"]) as $setting_id) {
-		$setting = $admin->getSetting($setting_id);
-		if (isset($custom_field_types[$setting["type"]])) {
-			if (!in_array($setting["type"],$p["field_types"])) {
-				$p["field_types"][] = $setting["type"];
 			}
 		}
 	}
