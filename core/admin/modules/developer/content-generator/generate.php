@@ -180,14 +180,15 @@
 			$file_name = SITE_ROOT."files/temp/".uniqid("temp-",true).".jpg";
 		}
 
-		$w = false;
-		while (!$w) {
+		// Some image services might be down, so we keep trying til we get one
+		$created_image_width = false;
+		while (!$created_image_width) {
 			if ($options["min_width"] && $options["min_height"]) {
 				$random_image($options["min_width"],$options["min_height"],$file_name);
 			} else {
 				$random_image(1280,800,$file_name);
 			}
-			list($w,$h) = getimagesize($file_name);
+			list($created_image_width) = getimagesize($file_name);
 		}
 
 		foreach (array_filter((array)$options["crops"]) as $crop) {
@@ -223,9 +224,7 @@
 				return BigTree::$CountryList[array_rand(BigTree::$CountryList)];
 			} else {
 				$list_table = $options["pop-table"];
-				$list_id = $options["pop-id"];
 				$list_title = $options["pop-description"];
-				$list_sort = $options["pop-sort"];
 				$f = sqlfetch(sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY RAND() LIMIT 1"));
 				return $f["id"];
 			}
