@@ -3223,7 +3223,11 @@ var BigTreeTable = function(settings) {
 				// Hook pagination
 				Container.on("click",".view_paging a",switchPage);
 			} else {
-				Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');
+				if (!SummaryHTML) {
+					Container.html('<div class="table table_no_summary"><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');
+				} else {
+					Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');					
+				}
 			}
 
 			// Draggable setup

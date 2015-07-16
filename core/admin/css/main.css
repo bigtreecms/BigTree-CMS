@@ -578,13 +578,13 @@
 	.table > summary .button:hover, .container summary .button:hover { background: #fff; }
 	.table > summary h2, .container summary h2 { float: left; font-size: 14px; height: 36px; line-height: 35px; margin: 0; padding: 1px 0 0 0; text-transform: uppercase; }
 	.table > summary h2.full, .container summary h2.full { float: none; user-select: none; }
-
 	.table > summary .table_search_wrapper { float: right; margin: 5px 0 0 10px; }
 	.table > summary .table_search_wrapper input { margin: 0; }
 	.table > summary .table_search_wrapper .form_search_icon { margin: 5px 0 0 200px; }
 	.table > summary .table_search_wrapper_left { float: left; margin: 5px 0 0 -10px; }
 
 	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-top: 1px solid #E0E0E0; border-radius: 0; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
+	.table_no_summary > header { margin-top: 0; }
 	.table > header:first-of-type { border-top: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
 	.table > header.group { background: #EFF7FD; border-top: 1px solid #ccc; font-size: 15px; height: 37px; line-height: 37px; margin-top: -1px; overflow: hidden; padding: 0px 20px; position: relative; text-transform: none; }
