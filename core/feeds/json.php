@@ -30,4 +30,3 @@
 	} else {
 		echo BigTree::json($json_data);
 	}
-?>

@@ -74,4 +74,4 @@
 
 	// Stop them from getting butchered later.
 	unset($child,$pages_nav);
-?>
+	

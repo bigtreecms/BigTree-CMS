@@ -2,7 +2,7 @@
 <p>Please select a table first.</p>
 <?php } else { ?>
 <fieldset>
-	<input type="checkbox" name="condensed"<? if ($data["condensed"]) { ?> checked="checked"<? } ?> />
+	<input type="checkbox" name="condensed"<?php if ($data["condensed"]) { ?> checked="checked"<?php } ?> />
 	<label class="for_checkbox">Condensed Output <small>(defaults to pretty print if unchecked)</small></label>
 </fieldset>
 <fieldset>

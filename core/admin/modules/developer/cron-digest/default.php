@@ -1,4 +1,4 @@
-<?
+<?php
 	$cron_table_data = array();
 	foreach (BigTreeAdmin::$CronPlugins as $extension => $plugins) {
 		foreach ($plugins as $id => $details) {
