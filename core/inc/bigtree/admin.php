@@ -78,7 +78,7 @@
 
 		function __construct() {
 			if (isset($_SESSION["bigtree_admin"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
 				if ($f) {
 					$this->ID = $f["id"];
 					$this->User = $f["email"];
@@ -1025,7 +1025,7 @@
 			$module = sqlescape($module);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
+			$hooks = BigTree::json(is_array($hooks) ? $hooks : json_decode($hooks),true);
 			$default_position = sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
@@ -2089,11 +2089,15 @@
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
 			if ($r) {
-				sqlquery("DELETE FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'");
-				$storage = new BigTreeStorage;
-				$storage->delete($r["file"]);
-				foreach ($r["thumbs"] as $thumb) {
-					$storage->delete($thumb);
+				sqlquery("DELETE FROM bigtree_resources WHERE id = '".sqlescape($r["id"])."'");
+
+				// If this file isn't located in any other folders, delete it from the file system
+				if (!sqlrows(sqlquery("SELECT id FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'"))) {
+					$storage = new BigTreeStorage;
+					$storage->delete($r["file"]);
+					foreach ($r["thumbs"] as $thumb) {
+						$storage->delete($thumb);
+					}
 				}
 			}
 			$this->track("bigtree_resources",$id,"deleted");
@@ -3837,7 +3841,7 @@
 		function getPageAccessLevelByUser($page,$user) {
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'"));
 				$changes = json_decode($f["changes"],true);
 				return $this->getPageAccessLevelByUser($changes["parent"],$user);
 			}
@@ -4253,7 +4257,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".$page["id"]."'"));
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
