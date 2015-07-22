@@ -829,6 +829,8 @@
 		*/
 
 		static function formatCSS3($css) {
+			global $bigtree;
+
 			// Background Gradients - background-gradient: #top #bottom
 			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',create_function('$data','
 				$d = trim($data[1]);
@@ -865,6 +867,9 @@
 
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
+
+			// Replace roots
+			$css = str_replace(array("www_root/","admin_root/","static_root/"), array($bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]), $css);
 			
 			return $css;
 		}
