@@ -20,6 +20,19 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.4 Release
+- ADDED: CSS loaded in the admin now has access to the www_root/, static_root/, and admin_root/ variables
+- ADDED: BigTree::dateFormat method that parses dates set in $bigtree["config"]["date_format"] into another format
+- FIXED: Extensions that used module form hooks failing to import the form hooks properly
+- FIXED: "Trees" module in the example site not generating its URL routes properly
+- FIXED: Several XSS and SQL injection vectors that could possibly be exploited by users with admin access (thanks to Tim Coen @ Curesec GmbH)
+- FIXED: Deleting a pending page returning you to the wrong page tree
+- FIXED: Deleting cloud files with protocol agnostic URLs failing
+- FIXED: Packages that contained related forms for views failing to import the views properly
+- FIXED: Creating packages/extensions with callouts and templates failing to also include custom field types used by them
+- FIXED: Importing templates and callouts from a 4.1 package not importing the resource fields properly
+- CHANGED: A file is now only deleted from the file system / file manager after it has been removed from all the containing folders in the file manager
+
 ### 4.2.3 Release
 - FIXED: Ignoring an update notification not sticking
 - FIXED: Example site using old style index.php
