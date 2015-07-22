@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.10 Release
+- FIXED: Several XSS and SQL injection vectors that could possibly be exploited by users with admin access (thanks to Tim Coen @ Curesec GmbH)
+- FIXED: Creating packages with callouts and templates failing to also include custom field types used by them
+- CHANGED: A file is now only deleted from the file system / file manager after it has been removed from all the containing folders in the file manager
+
 ### 4.1.9 Release
 - FIXED: BigTreeYouTubeAPI timeSplit method being protected (and unable to be called by other classes that needed it)
 - FIXED: Launcher now works better with sym-linked cores (in fresh installs)
