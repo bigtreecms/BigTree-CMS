@@ -447,6 +447,34 @@
 		}
 
 		/*
+			Function: dateFormat
+				Formats a date that originates in the config defined date format into another.
+
+			Parameters:
+				date - Date (in any format that strtotime understands or a unix timestamp)
+				format - Format (in any format that PHP's date function understands, defaults to Y-m-d H:i:s)
+
+			Returns:
+				A date string or false if date parsing failed
+		*/
+
+		static function dateFormat($date,$format = "Y-m-d H:i:s") {
+			global $bigtree;
+			
+			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
+
+			// Fallback to SQL standards for handling pre 4.2 values
+			if (!$date_object) {
+				$date_object = DateTime::createFromFormat("Y-m-d",$date);
+			}
+
+			if ($date_object) {
+				return $date_object->format($format);
+			}
+			return false;
+		}
+
+		/*
 			Function: dateFromOffset
 				Returns a formatted date from a date and an offset.
 				e.g. "January 1, 2015" and "2 months" returns "2015-03-01 00:00:00"
