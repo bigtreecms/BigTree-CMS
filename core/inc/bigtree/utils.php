@@ -1177,17 +1177,26 @@
 		*/
 		
 		static function makeDirectory($directory) {
+			if (file_exists($directory)) {
+				return;
+			}
+
+			// Windows systems aren't going to start with /
+			if (substr($directory,0,1) == "/") {
+				$dir_path = "/";
+			} else {
+				$dir_path = "";
+			}
+
 			$dir_parts = explode("/",trim($directory,"/"));
-			
-			$dpath = "/";
-			foreach ($dir_parts as $d) {
-				$dpath .= $d;
+			foreach ($dir_parts as $part) {
+				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.
-				if (!@file_exists($dpath)) {
-					@mkdir($dpath);
-					self::setPermissions($dpath);
+				if (!@file_exists($dir_path)) {
+					@mkdir($dir_path);
+					static::setPermissions($dir_path);
 				}
-				$dpath .= "/";
+				$dir_path .= "/";
 			}
 		}
 		
