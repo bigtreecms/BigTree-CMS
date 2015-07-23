@@ -1,8 +1,8 @@
 /**
  * FocusManager.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -86,7 +86,11 @@ define("tinymce/FocusManager", [
 				if (editor.inline || Env.ie) {
 					// Use the onbeforedeactivate event when available since it works better see #7023
 					if ("onbeforedeactivate" in document && Env.ie < 9) {
-						editor.dom.bind(editor.getBody(), 'beforedeactivate', function() {
+						editor.dom.bind(editor.getBody(), 'beforedeactivate', function(e) {
+							if (e.target != editor.getBody()) {
+								return;
+							}
+
 							try {
 								editor.lastRng = editor.selection.getRng();
 							} catch (ex) {
@@ -157,7 +161,7 @@ define("tinymce/FocusManager", [
 						focusedEditor.fire('blur', {focusedEditor: editor});
 					}
 
-					editorManager.activeEditor = editor;
+					editorManager.setActive(editor);
 					editorManager.focusedEditor = editor;
 					editor.fire('focus', {blurredEditor: focusedEditor});
 					editor.focus(true);
@@ -197,7 +201,7 @@ define("tinymce/FocusManager", [
 						}
 
 						// Fire a blur event if the element isn't a UI element
-						if (!isUIElement(e.target) && editorManager.focusedEditor == activeEditor) {
+						if (e.target != document.body && !isUIElement(e.target) && editorManager.focusedEditor == activeEditor) {
 							activeEditor.fire('blur', {focusedEditor: null});
 							editorManager.focusedEditor = null;
 						}

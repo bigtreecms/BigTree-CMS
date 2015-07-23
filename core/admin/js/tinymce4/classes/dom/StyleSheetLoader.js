@@ -1,8 +1,8 @@
 /**
  * StyleSheetLoader.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -14,7 +14,9 @@
  * @class tinymce.dom.StyleSheetLoader
  * @private
  */
-define("tinymce/dom/StyleSheetLoader", [], function() {
+define("tinymce/dom/StyleSheetLoader", [
+	"tinymce/util/Tools"
+], function(Tools) {
 	"use strict";
 
 	return function(document, settings) {
@@ -110,6 +112,8 @@ define("tinymce/dom/StyleSheetLoader", [], function() {
 					}
 				}, waitForGeckoLinkLoaded);
 			}
+
+			url = Tools._addCacheSuffix(url);
 
 			if (!loadedStates[url]) {
 				state = {

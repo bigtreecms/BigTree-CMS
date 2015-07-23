@@ -1,8 +1,8 @@
 /**
  * ColorBox.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -32,30 +32,41 @@ define("tinymce/ui/ColorBox", [
 			var self = this;
 
 			settings.spellcheck = false;
-			settings.icon = 'none';
+
+			if (settings.onaction) {
+				settings.icon = 'none';
+			}
 
 			self._super(settings);
 
-			self.addClass('colorbox');
+			self.classes.add('colorbox');
 			self.on('change keyup postrender', function() {
 				self.repaintColor(self.value());
 			});
 		},
 
 		repaintColor: function(value) {
-			this.getEl().getElementsByTagName('i')[0].style.background = value;
-		},
+			var elm = this.getEl().getElementsByTagName('i')[0];
 
-		value: function(value) {
-			var self = this;
-
-			if (typeof value != "undefined") {
-				if (self._rendered) {
-					self.repaintColor(value);
+			if (elm) {
+				try {
+					elm.style.background = value;
+				} catch (ex) {
+					// Ignore
 				}
 			}
+		},
 
-			return self._super(value);
+		bindStates: function() {
+			var self = this;
+
+			self.state.on('change:value', function(e) {
+				if (self._rendered) {
+					self.repaintColor(e.value);
+				}
+			});
+
+			return self._super();
 		}
 	});
 });
