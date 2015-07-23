@@ -1,8 +1,8 @@
 /**
  * ControlSelection.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -30,14 +30,14 @@ define("tinymce/dom/ControlSelection", [
 		// Details about each resize handle how to scale etc
 		resizeHandles = {
 			// Name: x multiplier, y multiplier, delta size x, delta size y
-			n:  [0.5,   0,     0,   -1],
-			e:  [1,    0.5,    1,    0],
-			s:  [0.5,   1,     0,    1],
-			w:  [0,    0.5,   -1,    0],
-			nw: [0,     0,    -1,   -1],
-			ne: [1,     0,     1,   -1],
-			se: [1,     1,     1,    1],
-			sw: [0,     1,    -1,    1]
+			/*n: [0.5, 0, 0, -1],
+			e: [1, 0.5, 1, 0],
+			s: [0.5, 1, 0, 1],
+			w: [0, 0.5, -1, 0],*/
+			nw: [0, 0, -1, -1],
+			ne: [1, 0, 1, -1],
+			se: [1, 1, 1, 1],
+			sw: [0, 1, -1, 1]
 		};
 
 		// Add CSS for resize handles, cloned element and selected
@@ -47,8 +47,8 @@ define("tinymce/dom/ControlSelection", [
 				'position: absolute;' +
 				'border: 1px solid black;' +
 				'background: #FFF;' +
-				'width: 5px;' +
-				'height: 5px;' +
+				'width: 7px;' +
+				'height: 7px;' +
 				'z-index: 10000' +
 			'}' +
 			rootClass + ' .mce-resizehandle:hover {' +
@@ -66,8 +66,8 @@ define("tinymce/dom/ControlSelection", [
 				'z-index: 10000' +
 			'}' +
 			rootClass + ' .mce-resize-helper {' +
-				'background-color: #555;' +
-				'background-color: rgba(0,0,0,0.75);' +
+				'background: #555;' +
+				'background: rgba(0,0,0,0.75);' +
 				'border-radius: 3px;' +
 				'border: 1px;' +
 				'color: white;' +
@@ -246,7 +246,7 @@ define("tinymce/dom/ControlSelection", [
 
 			if (isResizable(targetElm) && !e.isDefaultPrevented()) {
 				each(resizeHandles, function(handle, name) {
-					var handleElm, handlerContainerElm;
+					var handleElm;
 
 					function startDrag(e) {
 						startX = e.screenX;
@@ -303,35 +303,31 @@ define("tinymce/dom/ControlSelection", [
 
 					// Get existing or render resize handle
 					handleElm = dom.get('mceResizeHandle' + name);
-					if (!handleElm) {
-						handlerContainerElm = rootElement;
-
-						handleElm = dom.add(handlerContainerElm, 'div', {
-							id: 'mceResizeHandle' + name,
-							'data-mce-bogus': 'all',
-							'class': 'mce-resizehandle',
-							unselectable: true,
-							style: 'cursor:' + name + '-resize; margin:0; padding:0'
-						});
-
-						// Hides IE move layer cursor
-						// If we set it on Chrome we get this wounderful bug: #6725
-						if (Env.ie) {
-							handleElm.contentEditable = false;
-						}
-					} else {
-						dom.show(handleElm);
+					if (handleElm) {
+						dom.remove(handleElm);
 					}
 
-					if (!handle.elm) {
-						dom.bind(handleElm, 'mousedown', function(e) {
-							e.stopImmediatePropagation();
-							e.preventDefault();
-							startDrag(e);
-						});
+					handleElm = dom.add(rootElement, 'div', {
+						id: 'mceResizeHandle' + name,
+						'data-mce-bogus': 'all',
+						'class': 'mce-resizehandle',
+						unselectable: true,
+						style: 'cursor:' + name + '-resize; margin:0; padding:0'
+					});
 
-						handle.elm = handleElm;
+					// Hides IE move layer cursor
+					// If we set it on Chrome we get this wounderful bug: #6725
+					if (Env.ie) {
+						handleElm.contentEditable = false;
 					}
+
+					dom.bind(handleElm, 'mousedown', function(e) {
+						e.stopImmediatePropagation();
+						e.preventDefault();
+						startDrag(e);
+					});
+
+					handle.elm = handleElm;
 
 					// Position element
 					dom.setStyles(handleElm, {
@@ -375,6 +371,11 @@ define("tinymce/dom/ControlSelection", [
 						}
 					} while ((node = node.parentNode));
 				}
+			}
+
+			// Ignore all events while resizing or if the editor instance was removed
+			if (resizeStarted || editor.removed) {
+				return;
 			}
 
 			// Remove data-mce-selected from all elements since they might have been copied using Ctrl+c/v
@@ -550,7 +551,15 @@ define("tinymce/dom/ControlSelection", [
 				}
 			}
 
-			editor.on('nodechange ResizeEditor', updateResizeRect);
+			editor.on('nodechange ResizeEditor ResizeWindow', function(e) {
+				if (window.requestAnimationFrame) {
+					window.requestAnimationFrame(function() {
+						updateResizeRect(e);
+					});
+				} else {
+					updateResizeRect(e);
+				}
+			});
 
 			// Update resize rect while typing in a table
 			editor.on('keydown keyup', function(e) {
