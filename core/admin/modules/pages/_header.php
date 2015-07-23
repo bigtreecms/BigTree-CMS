@@ -14,7 +14,7 @@
 	}
 
 	// Stop the user if they don't have access to this page.
-	if (!$bigtree["access_level"] && $id !== false && $action != "view-tree") {
+	if (!$bigtree["access_level"] && $id && $action != "view-tree") {
 ?>
 <div class="container">
 	<section>
