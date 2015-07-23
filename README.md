@@ -20,6 +20,12 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.11 Release
+- FIXED: A permissions breaking bug that prevented normal users from hitting the Pages tab
+- FIXED: Installation on Windows server setups
+- FIXED: BigTree::makeDirectory failing on Windows environments
+- FIXED: Missing underline icon in TinyMCE 4
+
 ### 4.1.10 Release
 - FIXED: Several XSS and SQL injection vectors that could possibly be exploited by users with admin access (thanks to Tim Coen @ Curesec GmbH)
 - FIXED: Creating packages with callouts and templates failing to also include custom field types used by them
