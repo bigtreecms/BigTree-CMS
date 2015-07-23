@@ -351,7 +351,7 @@
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
 		bt_touch_writable("site/index.php",'<?
-	$server_root = str_replace("site/index.php","",__FILE__);	
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));	
 	include "../core/launch.php";
 ?>');
 		
