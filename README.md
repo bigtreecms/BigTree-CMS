@@ -20,6 +20,12 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.5 Release
+- FIXED: A permissions breaking bug that prevented normal users from hitting the Pages tab
+- FIXED: Installation on Windows server setups
+- FIXED: BigTree::makeDirectory failing on Windows environments
+- FIXED: Missing underline icon in TinyMCE 4
+
 ### 4.2.4 Release
 - ADDED: CSS loaded in the admin now has access to the www_root/, static_root/, and admin_root/ variables
 - ADDED: BigTree::dateFormat method that parses dates set in $bigtree["config"]["date_format"] into another format

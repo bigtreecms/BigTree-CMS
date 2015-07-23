@@ -1423,8 +1423,14 @@
 				return;
 			}
 
+			// Windows systems aren't going to start with /
+			if (substr($directory,0,1) == "/") {
+				$dir_path = "/";
+			} else {
+				$dir_path = "";
+			}
+
 			$dir_parts = explode("/",trim($directory,"/"));
-			$dir_path = "/";
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.
