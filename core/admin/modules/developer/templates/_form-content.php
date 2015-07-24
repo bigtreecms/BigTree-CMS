@@ -27,7 +27,9 @@
 			</fieldset>
 		</div>
 	</div>
-	<?php if (!isset($template)) { ?>
+	<?php
+		if (!isset($template)) {
+	?>
 	<fieldset class="float_margin">
 		<label>Type</label>
 		<select name="routed">
@@ -35,7 +37,10 @@
 			<option value="on">Routed</option>
 		</select>
 	</fieldset>
-	<?php } ?>
+	<?php
+		}
+		if (!isset($template) || $routed) {
+	?>poop
 	<fieldset class="float_margin">
 		<label>Related Module</label>
 		<select name="module">
@@ -62,6 +67,9 @@
 			?>
 		</select>	
 	</fieldset>
+	<?php
+		}
+	?>
 	<fieldset class="float_margin">
 		<label>Access Level</label>
 		<select name="level">
