@@ -80,6 +80,13 @@
 		<![endif]-->
 	</head>
 	<body class="bigtree">
+		<script>
+			if ($.browser.name == "msie" && $.browser.versionNumber > 11) {
+				$("body").addClass("browser_msedge browser_msedge_" + $.browser.versionNumber);
+			} else {
+				$("body").addClass("browser_" + $.browser.name).addClass("browser_" + $.browser.name + "_" + $.browser.versionNumber);
+			}
+		</script>
 		<header class="main">
 			<section>
 				<a href="<? if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span>Logout</a>
