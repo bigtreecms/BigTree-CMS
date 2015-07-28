@@ -1969,3 +1969,8 @@
 	.ie9 nav.main li li a { filter: none; }
 	.ie9 .form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
 	.ie9 .table summary .form_search { margin: 5px 25px 0 -10px; }
+
+	/* Internet Explorer refuses to show this correctly, even 10+, so we have to draw it a different way */
+	.browser_msie .jump_group .icon { white-space: nowrap; }
+	.browser_msie .jump_group .icon:before { background: url(../images/icon-sprite.svg) -242px -107px; content: ''; display: block; float: right; height: 16px; margin: 0 0 0 10px; width: 14px; }
+	.browser_msie .jump_group .icon:after { display: none; }
