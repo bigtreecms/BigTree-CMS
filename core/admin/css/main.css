@@ -439,7 +439,14 @@
 	.container .alert label { color: #999; display: block; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; }
 	.container .alert p { color: #666; font-size: 13px; line-height: 29px; margin: 0; }
 	.container .alert h3 { line-height: 29px; margin: 0; }
-	.container .error_message, #callout_resources .error_message, .container .warning_message, .bigtree_dialog_form .overflow .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; }
+	.container .error_message,
+	#callout_resources .error_message,
+	.container .warning_message,
+	.bigtree_dialog_form .overflow .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; }
+	.container .error_message a,
+	#callout_resources .error_message a,
+	.container .warning_message a,
+	.bigtree_dialog_form .overflow .error_message a { color: #FFF; text-decoration: underline; }
 	.container .template_message { user-select: none; }
 	.container .template_message label { float: left; margin: 0 10px 0 0; }
 	.container .template_message p { float: left; font-size: 14px; line-height: 13px; margin: 0; }
@@ -1952,3 +1959,8 @@
 	.ie9 nav.main li li a { filter: none; }
 	.ie9 .form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
 	.ie9 .table summary .form_search { margin: 5px 25px 0 -10px; }
+
+	/* Internet Explorer refuses to show this correctly, even 10+, so we have to draw it a different way */
+	.browser_msie .jump_group .icon { white-space: nowrap; }
+	.browser_msie .jump_group .icon:before { background: url(../images/icon-sprite.svg) -242px -107px; content: ''; display: block; float: right; height: 16px; margin: 0 0 0 10px; width: 14px; }
+	.browser_msie .jump_group .icon:after { display: none; }

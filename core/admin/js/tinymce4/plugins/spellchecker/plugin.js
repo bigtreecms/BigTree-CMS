@@ -85,8 +85,8 @@
 /**
  * DomTextMatcher.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -325,7 +325,7 @@ define("tinymce/spellcheckerplugin/DomTextMatcher", [], function() {
 		function getWrappersByIndex(index) {
 			var elements = node.getElementsByTagName('*'), wrappers = [];
 
-			index = typeof(index) == "number" ? "" + index : null;
+			index = typeof index == "number" ? "" + index : null;
 
 			for (var i = 0; i < elements.length; i++) {
 				var element = elements[i], dataIndex = element.getAttribute('data-mce-index');
@@ -558,8 +558,8 @@ define("tinymce/spellcheckerplugin/DomTextMatcher", [], function() {
 /**
  * Plugin.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -771,8 +771,6 @@ define("tinymce/spellcheckerplugin/Plugin", [
 				finish();
 			}
 
-			started = true;
-
 			function errorCallback(message) {
 				editor.windowManager.alert(message);
 				editor.setProgressState(false);
@@ -832,7 +830,7 @@ define("tinymce/spellcheckerplugin/Plugin", [
 		function getElmIndex(elm) {
 			var value = elm.getAttribute('data-mce-index');
 
-			if (typeof(value) == "number") {
+			if (typeof value == "number") {
 				return "" + value;
 			}
 
@@ -885,6 +883,8 @@ define("tinymce/spellcheckerplugin/Plugin", [
 			selectable: true,
 			onPostRender: function() {
 				var self = this;
+
+				self.active(started);
 
 				editor.on('SpellcheckStart SpellcheckEnd', function() {
 					self.active(started);
@@ -943,6 +943,7 @@ define("tinymce/spellcheckerplugin/Plugin", [
 				});
 			});
 
+			started = true;
 			editor.fire('SpellcheckStart');
 		}
 

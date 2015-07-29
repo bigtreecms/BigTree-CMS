@@ -1,14 +1,14 @@
 <?php
 	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 
-	sqlquery("SET foreign_key_checks = 0");
-	
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
 	// Run SQL
 	foreach ($json["sql"] as $sql) {
 		sqlquery($sql);
 	}
+	
+	sqlquery("SET foreign_key_checks = 0");
 	
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {
@@ -95,18 +95,18 @@
 	// Import templates
 	foreach ($json["components"]["templates"] as $template) {
 		if ($template) {
-			$resources = sqlescape(is_array($template["resources"]) ? BigTree::json($template["resources"]) : $template["resources"]);
-			sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
-			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."')");
+			$resources = is_array($template["resources"]) ? $template["resources"] : json_decode($template["resources"],true);
+			$admin->deleteTemplate($template["id"]);
+			$admin->createTemplate($template["id"],$template["name"],$template["routed"],$template["level"],$bigtree["module_match"][$template["module"]],$resources);
 		}
 	}
 
 	// Import callouts
 	foreach ($json["components"]["callouts"] as $callout) {
 		if ($callout) {
-			$resources = sqlescape(is_array($callout["resources"]) ? BigTree::json($callout["resources"]) : $callout["resources"]);
-			sqlquery("DELETE FROM bigtree_callouts WHERE id = '".sqlescape($callout["id"])."'");
-			sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."')");	
+			$resources = is_array($callout["resources"]) ? $callout["resources"] : json_decode($callout["resources"],true);
+			$admin->deleteCallout($callout["id"]);
+			$admin->createCallout($callout["id"],$callout["name"],$callout["description"],$callout["level"],$resources,$callout["display_field"],$callout["display_default"]);
 		}
 	}
 

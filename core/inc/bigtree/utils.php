@@ -460,6 +460,34 @@
 		}
 
 		/*
+			Function: dateFormat
+				Formats a date that originates in the config defined date format into another.
+
+			Parameters:
+				date - Date (in any format that strtotime understands or a unix timestamp)
+				format - Format (in any format that PHP's date function understands, defaults to Y-m-d H:i:s)
+
+			Returns:
+				A date string or false if date parsing failed
+		*/
+
+		static function dateFormat($date,$format = "Y-m-d H:i:s") {
+			global $bigtree;
+			
+			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
+
+			// Fallback to SQL standards for handling pre 4.2 values
+			if (!$date_object) {
+				$date_object = DateTime::createFromFormat("Y-m-d",$date);
+			}
+
+			if ($date_object) {
+				return $date_object->format($format);
+			}
+			return false;
+		}
+
+		/*
 			Function: dateFromOffset
 				Returns a formatted date from a date and an offset.
 				e.g. "January 1, 2015" and "2 months" returns "2015-03-01 00:00:00"
@@ -863,6 +891,8 @@
 		*/
 
 		static function formatCSS3($css) {
+			global $bigtree;
+
 			// Setup function for replacing "background-gradient" property
 			$bg_gradient_callback_replace = function($data) {
 				$d = trim($data[1]);
@@ -902,6 +932,9 @@
 
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
+
+			// Replace roots
+			$css = str_replace(array("www_root/","admin_root/","static_root/"), array($bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]), $css);
 			
 			return $css;
 		}
@@ -1461,8 +1494,14 @@
 				return true;
 			}
 
+			// Windows systems aren't going to start with /
+			if (substr($directory,0,1) == "/") {
+				$dir_path = "/";
+			} else {
+				$dir_path = "";
+			}
+
 			$dir_parts = explode("/",trim($directory,"/"));
-			$dir_path = "/";
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.

@@ -40,7 +40,7 @@
 	<?php
 		}
 		if (!isset($template) || $routed) {
-	?>poop
+	?>
 	<fieldset class="float_margin">
 		<label>Related Module</label>
 		<select name="module">

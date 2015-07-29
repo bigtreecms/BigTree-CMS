@@ -263,7 +263,8 @@
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
 		$module = false;
-		if ($bigtree["path"][2] != "auto-modules") {
+		$core_ajax_directories = array("auto-modules","callouts","dashboard","file-browser","pages","tags");
+		if (!in_array($bigtree["path"][2],$core_ajax_directories) && $bigtree["path"]) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
 			if ($module && !$admin->checkAccess($module)) {

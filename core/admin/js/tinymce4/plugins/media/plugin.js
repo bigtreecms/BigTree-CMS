@@ -1,8 +1,8 @@
 /**
  * plugin.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -24,6 +24,8 @@ tinymce.PluginManager.add('media', function(editor, url) {
 	var embedChange = (tinymce.Env.ie && tinymce.Env.ie <= 8) ? 'onChange' : 'onInput';
 
 	function guessMime(url) {
+		url = url.toLowerCase();
+
 		if (url.indexOf('.mp3') != -1) {
 			return 'audio/mpeg';
 		}
@@ -94,10 +96,16 @@ tinymce.PluginManager.add('media', function(editor, url) {
 			if (win.find('#constrain')[0].checked() && width && height && newWidth && newHeight) {
 				if (e.control == widthCtrl) {
 					newHeight = Math.round((newWidth / width) * newHeight);
-					heightCtrl.value(newHeight);
+
+					if (!isNaN(newHeight)) {
+						heightCtrl.value(newHeight);
+					}
 				} else {
 					newWidth = Math.round((newHeight / height) * newWidth);
-					widthCtrl.value(newWidth);
+
+					if (!isNaN(newWidth)) {
+						widthCtrl.value(newWidth);
+					}
 				}
 			}
 
@@ -121,9 +129,9 @@ tinymce.PluginManager.add('media', function(editor, url) {
 				align: 'center',
 				spacing: 5,
 				items: [
-					{name: 'width', type: 'textbox', maxLength: 3, size: 3, onchange: recalcSize},
+					{name: 'width', type: 'textbox', maxLength: 5, size: 3, onchange: recalcSize, ariaLabel: 'Width'},
 					{type: 'label', text: 'x'},
-					{name: 'height', type: 'textbox', maxLength: 3, size: 3, onchange: recalcSize},
+					{name: 'height', type: 'textbox', maxLength: 5, size: 3, onchange: recalcSize, ariaLabel: 'Height'},
 					{name: 'constrain', type: 'checkbox', checked: true, text: 'Constrain proportions'}
 				]
 			});
@@ -144,7 +152,7 @@ tinymce.PluginManager.add('media', function(editor, url) {
 		};
 
 		function updateValueOnChange() {
-			data = htmlToData( this.value() );
+			data = htmlToData(this.value());
 			this.parent().parent().fromJSON(data);
 		}
 
@@ -167,7 +175,7 @@ tinymce.PluginManager.add('media', function(editor, url) {
 
 				{
 					title: 'Embed',
-					type: "panel",
+					type: "container",
 					layout: 'flex',
 					direction: 'column',
 					align: 'stretch',
@@ -379,6 +387,56 @@ tinymce.PluginManager.add('media', function(editor, url) {
 		}
 
 		return {};
+	}
+
+	function sanitize(html) {
+		if (editor.settings.media_filter_html === false) {
+			return html;
+		}
+
+		var writer = new tinymce.html.Writer();
+
+		new tinymce.html.SaxParser({
+			validate: false,
+			allow_conditional_comments: false,
+			special: 'script,noscript',
+
+			comment: function(text) {
+				writer.comment(text);
+			},
+
+			cdata: function(text) {
+				writer.cdata(text);
+			},
+
+			text: function(text, raw) {
+				writer.text(text, raw);
+			},
+
+			start: function(name, attrs, empty) {
+				if (name == 'script' || name == 'noscript') {
+					return;
+				}
+
+				for (var i = 0; i < attrs.length; i++) {
+					if (attrs[i].name.indexOf('on') === 0) {
+						return;
+					}
+				}
+
+				writer.start(name, attrs, empty);
+			},
+
+			end: function(name) {
+				if (name == 'script' || name == 'noscript') {
+					return;
+				}
+
+				writer.end(name);
+			}
+		}, new tinymce.html.Schema({})).parse(html);
+
+		return writer.getContent();
 	}
 
 	function updateHtml(html, data, updateAll) {
@@ -674,7 +732,7 @@ tinymce.PluginManager.add('media', function(editor, url) {
 				if (innerHtml) {
 					innerNode = new tinymce.html.Node('#text', 3);
 					innerNode.raw = true;
-					innerNode.value = unescape(innerHtml);
+					innerNode.value = sanitize(unescape(innerHtml));
 					realElm.append(innerNode);
 				}
 
@@ -716,7 +774,7 @@ tinymce.PluginManager.add('media', function(editor, url) {
 
 	editor.addMenuItem('media', {
 		icon: 'media',
-		text: 'Insert video',
+		text: 'Insert/edit video',
 		onclick: showDialog,
 		context: 'insert',
 		prependToContext: true
