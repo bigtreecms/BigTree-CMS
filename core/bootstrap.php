@@ -115,6 +115,9 @@
 	foreach ($custom_required_includes as $r) {
 		include $r;
 	}
+	foreach ($cms->ExtensionRequiredFiles as $file) {
+		include $file;
+	}
 	
 	// Clean up
 	unset($d,$r,$custom_required_includes);

@@ -8,6 +8,7 @@
 		
 		// Public properties
 		public $AutoSaveSettings = array();
+		public $ExtensionRequiredFiles = array();
 		public $ModuleClassList = array();
 		public $RouteRegistry = array("public" => array(),"admin" => array(),"template" => array());
 
@@ -34,7 +35,8 @@
 			} else {
 				$data = array(
 					"routes" => array("admin" => array(),"public" => array(),"template" => array()),
-					"classes" => array()
+					"classes" => array(),
+					"extension_required_files" => array()
 				);
 
 				// Preload the BigTreeModule class since others are based off it
@@ -70,6 +72,15 @@
 						}
 					}
 				}
+
+				// Get all extension required files and add them to a required list
+				$q = sqlquery("SELECT id FROM bigtree_extensions");
+				while ($f = sqlfetch($q)) {
+					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/".$f["id"]."/required/");
+					foreach (array_filter((array)$required_contents) as $file) {
+						$data["extension_required_files"][] = $file;
+					}
+				}
 				
 				if (!$bigtree["config"]["debug"]) {
 					// Cache it so we don't hit the database.
@@ -77,6 +88,7 @@
 				}
 			}
 
+			$this->ExtensionRequiredFiles = $data["extension_required_files"];
 			$this->ModuleClassList = $data["classes"];
 			$this->RouteRegistry = $data["routes"];
 		}
