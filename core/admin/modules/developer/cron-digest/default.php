@@ -1,10 +1,50 @@
 <?php
+	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$cron_settings = $extension_settings["cron"];
+	$digest_settings = $extension_settings["digest"];
+
+	// Generate data for the cron tab table
+	$cron_titles = array();
 	$cron_table_data = array();
 	foreach (BigTreeAdmin::$CronPlugins as $extension => $plugins) {
 		foreach ($plugins as $id => $details) {
-			$cron_table_data[] = array("id" => $extension."*".$id,"name" => $details["name"]);
+			$id = $extension."*".$id;
+			$cron_table_data[] = array(
+				"id" => $id,
+				"name" => $details["name"],
+				"approved" => empty($cron_settings[$id]["disabled"]) ? "on" : ""
+			);
+			$cron_titles[] = $details["name"];
 		}
 	}
+	// Alphabetize the list
+	array_multisort($cron_titles,$cron_table_data);
+
+	// Generate daily digest table
+	$panes = array();
+	$positions = array();
+
+	// We're going to get the position setups and the multi-sort the list to get it in order
+	foreach (BigTreeAdmin::$DailyDigestPlugins["core"] as $id => $name) {
+		$panes[] = array(
+			"id" => $id,
+			"name" => $name,
+			"approved" => empty($digest_settings[$id]["disabled"]) ? "on" : ""
+		);
+		$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
+	}
+	foreach (BigTreeAdmin::$DailyDigestPlugins["extension"] as $extension => $set) {
+		foreach ($set as $id => $name) {
+			$id = $extension."*".$id;
+			$panes[] = array(
+				"id" => $id,
+				"name" => $name,
+				"approved" => empty($digest_settings[$id]["disabled"]) ? "on" : ""
+			);
+			$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
+		}
+	}
+	array_multisort($positions,SORT_DESC,$panes);
 ?>
 <div class="container">
 	<header>
@@ -16,23 +56,40 @@
 	</header>
 	<section id="cron_tab">
 		<h3>Cron Plugins</h3>
-		<div id="cron_tab"></div>
+		<div id="cron_table"></div>
 		<script>
 			BigTreeTable({
 				actions: {
-					approve: function(id,state) { console.log(id,state); }
+					approve: function(id,state) {
+						$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/toggle-extension-plugin/", { type: "POST", data: { type: "cron", id: id, state: state } });
+					}
 				},
-				container: "#cron_tab",
+				container: "#cron_table",
 				columns: { name: { title: "Plugin Name" } },
-				data: <?=BigTree::jsonExtract($cron_table_data,array("name","id"))?>,
-				draggable: function(positioning) {
-					console.log(positioning);
-				}
+				data: <?=json_encode($cron_table_data)?>,
+				searchable: true
 			});
 		</script>
 	</section>
 	<section id="digest_tab" style="display: none;">
 		<h3>Daily Digest Plugins</h3>
+		<div id="daily_digest_table"></div>
+		<script>
+			BigTreeTable({
+				container: "#daily_digest_table",
+				columns: { name: { title: "Name", largeText: true } },
+				actions: {
+					approve: function(id,state) {
+						$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/toggle-extension-plugin/", { type: "POST", data: { type: "digest", id: id, state: state } });
+					}
+				},
+				searchable: true,
+				draggable: function(positions) {
+					$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/order-extension-plugins/", { type: "POST", data: { type: "digest", positions: positions } });
+				},
+				data: <?=json_encode($panes)?>
+			});
+		</script>
 	</section>
 	<section id="help_tab" style="display: none;">
 		<h3>Cron Setup</h3>

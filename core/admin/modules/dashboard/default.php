@@ -6,7 +6,8 @@
 	}
 
 	// Get pane settings
-	$settings = $cms->getSetting("bigtree-internal-dashboard-settings");
+	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$settings = $extension_settings["dashboard"];
 
 	// Sort the panes
 	foreach (BigTreeAdmin::$DashboardPlugins["core"] as $id => $name) {

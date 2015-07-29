@@ -624,7 +624,6 @@
 	function _local_bigtree_update_300() {
 		// Extension settings
 		sqlquery("INSERT INTO `bigtree_settings` (`id`,`system`,`value`) VALUES ('bigtree-internal-extension-settings','on','{}')");
-		sqlquery("INSERT INTO `bigtree_settings` (`id`,`system`,`value`) VALUES ('bigtree-internal-dashboard-settings','on','{}')");
 
 		// New module interface table
 		sqlquery("CREATE TABLE `bigtree_module_interfaces` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `type` varchar(255) DEFAULT NULL, `module` int(11) DEFAULT NULL, `title` varchar(255) DEFAULT NULL, `table` varchar(255) DEFAULT NULL, `settings` longtext, PRIMARY KEY (`id`), KEY `module` (`module`), KEY `type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");

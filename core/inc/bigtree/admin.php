@@ -9,7 +9,14 @@
 		// Static variables
 		public static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
 		public static $CronPlugins = array();
-		public static $DailyDigestPlugins = array();
+		public static $DailyDigestPlugins = array(
+			"core" => array(
+				"pending-changes" => "Pending Changes",
+				"messages" => "Unread Messages",
+				"alerts" => "Content Age Alerts"
+			),
+			"extension" => array()
+		);
 		public static $DashboardPlugins = array(
 			"core" => array(
 				"analytics" => "Google Analytics",
@@ -140,7 +147,7 @@
 			}
 			
 			static::$CronPlugins = $plugins["cron"];
-			static::$DailyDigestPlugins = $plugins["daily_digest"];
+			static::$DailyDigestPlugins["extension"] = $plugins["daily_digest"];
 			static::$DashboardPlugins["extension"] = $plugins["dashboard"];
 			static::$InterfaceTypes["extension"] = $plugins["interfaces"];
 			static::$ViewTypes["extension"] = $plugins["view_types"];

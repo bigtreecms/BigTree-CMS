@@ -1,9 +1,11 @@
 <?php
-	$settings = $cms->getSetting("bigtree-internal-dashboard-settings");
+	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$settings = $extension_settings["dashboard"];
+
 	$panes = array();
 	$positions = array();
 
-	// We're going to get the position setups and the multi-sort the whole shebang
+	// We're going to get the position setups and the multi-sort the list to get it in order
 	foreach (BigTreeAdmin::$DashboardPlugins["core"] as $id => $name) {
 		$panes[] = array(
 			"id" => $id,
@@ -33,12 +35,12 @@
 		columns: { name: { title: "Name", largeText: true } },
 		actions: {
 			approve: function(id,state) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/toggle-pane/", { type: "POST", data: { id: id, state: state } });
+				$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/toggle-extension-plugin/", { type: "POST", data: { type: "dashboard", id: id, state: state } });
 			}
 		},
 		searchable: true,
 		draggable: function(positions) {
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/order-panes/", { type: "POST", data: { positions: positions } });
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/dashboard/order-extension-plugins/", { type: "POST", data: { type: "dashboard", positions: positions } });
 		},
 		data: <?=json_encode($panes)?>
 	});
