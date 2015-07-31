@@ -110,7 +110,7 @@
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
-				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
+				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span>Welcome back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site">View Site</a>
 			</section>
