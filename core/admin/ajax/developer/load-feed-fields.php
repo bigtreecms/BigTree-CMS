@@ -80,7 +80,7 @@
 		var key = tf.attr("name").substr(7);
 		key = key.substr(0,key.length-8);
 		
-		localFieldSelect.addField(key,title);
+		BigTree.localFieldSelect.addField(key,title);
 
 		$(this).parents("li").remove();		
 		return false;
