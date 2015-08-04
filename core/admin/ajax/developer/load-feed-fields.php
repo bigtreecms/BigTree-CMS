@@ -61,7 +61,7 @@
 					<input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" />
 				</section>
 				<section class="developer_view_parser">
-					<input type="text" name="fields[<?=$key?>][parser]" value="<?=$field["parser"]?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
+					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
 				</section>
 				<section class="developer_resource_action">
 					<a href="#" class="icon_delete"></a>
