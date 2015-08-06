@@ -1,22 +1,28 @@
 <?php
-	$server_root = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
-	include $server_root."custom/environment.php";
-	include $server_root."custom/settings.php";
-	include $server_root."core/bootstrap.php";
-	
-	if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-		include BigTree::path(BIGTREE_CUSTOM_ADMIN_CLASS_PATH);
-		// Can't instantiate class from a constant name, so we use a variable then unset it.
-		$c = BIGTREE_CUSTOM_ADMIN_CLASS;
-		$admin = new $c;
-		unset($c);
-	} else {
-		include BigTree::path("inc/bigtree/admin.php");
-		$admin = new BigTreeAdmin;
+	// If we're not currently bootstrapped, bootstrap
+	if (!isset($cms)) {
+		$server_root = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
+		include $server_root."custom/environment.php";
+		include $server_root."custom/settings.php";
+		include $server_root."core/bootstrap.php";		
 	}
-	
-	// Send out Daily Digests and Content Alerts
-	$admin->emailDailyDigest();
+
+	$admin = new BigTreeAdmin;
+
+	// Track when we last sent a daily digest
+	if (!$admin->settingExists("bigtree-internal-cron-daily-digest-last-sent")) {
+		$admin->createSetting(array(
+			"id" => "bigtree-internal-cron-daily-digest-last-sent",
+			"system" => "on"
+		));
+	}
+	$last_sent_daily_digest = $cms->getSetting("bigtree-internal-cron-daily-digest-last-sent");
+
+	// If we last sent the daily digest > ~24 hours ago, send it again
+	if ($last_sent_daily_digest < strtotime("-23 hours 59 minutes")) {
+		$admin->updateSettingValue("bigtree-internal-cron-daily-digest-last-sent",time());
+		$admin->emailDailyDigest();
+	}
 	
 	// Cache Google Analytics Information
 	$analytics = new BigTreeGoogleAnalyticsAPI;
