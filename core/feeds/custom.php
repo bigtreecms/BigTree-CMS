@@ -20,6 +20,11 @@
 				if ($options["parser"]) {
 					$value = BigTree::runParser($item,$value,$options["parser"]);
 				}
+
+				// If there's a title, use it for a key
+				if ($options["title"]) {
+					$key = str_replace(" ","",$options["title"]);
+				}
 		?>
 		<<?=$key?>><![CDATA[<?=$value?>]]></<?=$key?>>
 		<?php
