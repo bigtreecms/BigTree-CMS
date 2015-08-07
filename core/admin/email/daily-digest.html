@@ -31,56 +31,8 @@
 												</p>
 												<hr style="border: 1px solid #fff; border-top-color: #eee;" />
 												
-												<div style="margin: 20px 0 30px;">
-													<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Pending Changes</h3>
-													<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-														<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-															<tr>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Author</th>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Module</th>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Type</th>
-																<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">View</th>
-															</tr>
-														</thead>
-														<tbody style="color: #333; font-size: 13px;">
-															{pending_changes}
-														</tbody>
-													</table>
-												</div>
-					
-												<div style="margin: 20px 0 30px;">
-													<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
-													<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-														<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-															<tr>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Sender</th>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Subject</th>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Date</th>
-															</tr>
-														</thead>
-														<tbody style="color: #333; font-size: 13px;">
-															{unread_messages}
-														</tbody>
-													</table>
-												</div>
-					
-												<div style="margin: 20px 0 30px;">
-													<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
-													<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-														<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-															<tr>
-																<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Page</th>
-																<th style="font-weight: normal; padding: 4px 20px 3px 15px; text-align: right; width: 50px;" align="left">Age</th>
-																<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">View</th>
-																<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">Edit</th>
-															</tr>
-														</thead>
-														<tbody style="color: #333; font-size: 13px;">
-															{content_alerts}
-														</tbody>
-													</table>
-												</div>
-												
+												{blocks}
+
 												<hr style="border: 1px solid #fff; border-top-color: #eee;" />
 												<p style="color: #666; font-size: 12px; line-height: 1.4;">
 													You are receiving this because the address is linked to an account on <a href="{www_root}" style="color: #578FB1;">{site_title}</a>.

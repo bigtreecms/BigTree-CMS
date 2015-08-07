@@ -11,9 +11,18 @@
 		public static $CronPlugins = array();
 		public static $DailyDigestPlugins = array(
 			"core" => array(
-				"pending-changes" => "Pending Changes",
-				"messages" => "Unread Messages",
-				"alerts" => "Content Age Alerts"
+				"pending-changes" => array(
+					"name" => "Pending Changes",
+					"function" => "BigTreeAdmin::dailyDigestChanges"
+				),
+				"messages" => array(
+					"name" => "Unread Messages",
+					"function" => "BigTreeAdmin::dailyDigestMessages"
+				),
+				"alerts" => array(
+					"name" => "Content Age Alerts",
+					"function" => "BigTreeAdmin::dailyDigestAlerts"
+				)
 			),
 			"extension" => array()
 		);
@@ -2422,6 +2431,155 @@
 		}
 
 		/*
+			Function: dailyDigestAlerts
+				Generates markup for daily digest alerts for a given user.
+
+			Parameters:
+				user - A user entry
+
+			Returns:
+				HTML markup for daily digest email
+		*/
+
+		static function dailyDigestAlerts($user) {
+			$alerts = static::getContentAlerts($user);
+			$alerts_markup = "";
+			$wrapper = '<div style="margin: 20px 0 30px;">
+							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
+							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+									<tr>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Page</th>
+										<th style="font-weight: normal; padding: 4px 20px 3px 15px; text-align: right; width: 50px;" align="left">Age</th>
+										<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">View</th>
+										<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">Edit</th>
+									</tr>
+								</thead>
+								<tbody style="color: #333; font-size: 13px;">
+									{content_alerts}
+								</tbody>
+							</table>
+						</div>';
+
+			// Alerts
+			if (is_array($alerts) && count($alerts)) {
+				foreach ($alerts as $alert) {
+					$alerts_markup .= '<tr>
+										<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$alert["nav_title"].'</td>
+										<td style="border-bottom: 1px solid #eee; padding: 10px 20px 10px 15px; text-align: right;">'.$alert["current_age"].' Days</td>
+										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.WWW_ROOT.$alert["path"].'/"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>
+										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.ADMIN_ROOT."pages/edit/".$alert["id"].'/"><img src="'.$ADMIN_ROOT.'images/email/edit.gif" alt="Edit" /></a></td>
+									 </tr>';
+				}
+			}
+
+			if ($alert_markup) {
+				return str_replace("{content_alerts}",$alert_markup,$wrapper);
+			}
+			return "";
+		}
+
+		/*
+			Function: dailyDigestChanges
+				Generates markup for daily digest pending changes for a given user.
+
+			Parameters:
+				user - A user entry
+
+			Returns:
+				HTML markup for daily digest email
+		*/
+
+		static function dailyDigestChanges($user) {
+			$changes = static::getPublishableChanges($user["id"]);
+			$changes_markup = "";
+			$wrapper = '<div style="margin: 20px 0 30px;">
+							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Pending Changes</h3>
+							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+									<tr>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Author</th>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Module</th>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Type</th>
+										<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">View</th>
+									</tr>
+								</thead>
+								<tbody style="color: #333; font-size: 13px;">
+									{pending_changes}
+								</tbody>
+							</table>
+						</div>';
+
+			if (count($changes)) {
+				foreach ($changes as $change) {
+					$changes_markup .= '<tr>';
+					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["user"]["name"].'</td>';
+					if ($change["title"]) {
+						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Pages</td>';
+					} else {
+						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
+					}
+					if ($change["type"] == "NEW") {
+						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
+					} elseif ($change["type"] == "EDIT") {
+						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
+					}
+					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.static::getChangeEditLink($change).'"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>' . "\r\n";
+					$changes_markup .= '</tr>';
+				}
+
+				return str_replace("{pending_changes}",$changes_markup,$wrapper);
+			} else {
+				return "";
+			}
+		}
+
+		/*
+			Function: dailyDigestMessages
+				Generates markup for daily digest messages for a given user.
+
+			Parameters:
+				user - A user entry
+
+			Returns:
+				HTML markup for daily digest email
+		*/
+
+		static function dailyDigestMessages($user) {
+			$messages = $this->getMessages($user["id"]);
+			$messages_markup = "";
+			$wrapper = '<div style="margin: 20px 0 30px;">
+							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
+							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
+								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
+									<tr>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Sender</th>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Subject</th>
+										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Date</th>
+									</tr>
+								</thead>
+								<tbody style="color: #333; font-size: 13px;">
+									{unread_messages}
+								</tbody>
+							</table>
+						</div>';
+
+			if (count($messages["unread"])) {
+				foreach ($messages["unread"] as $message) {
+					$messages_markup .= '<tr>
+											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>
+											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>
+											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia",strtotime($message["date"])).'</td>
+										</tr>';
+				}
+
+				return str_replace("{unread_messages}",$messages_markup,$wrapper);
+			} else {
+				return "";
+			}
+		}
+
+		/*
 			Function: emailDailyDigest
 				Sends out a daily digest email to all who have subscribed.
 		*/
@@ -2429,87 +2587,61 @@
 		function emailDailyDigest() {
 			global $bigtree;
 
+			// We're going to show the site's title in the email
 			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
 			$site_title = $home_page["nav_title"];
-			$image_root = $bigtree["config"]["admin_root"]."images/email/";
 
+			// Find out what blocks are on
+			$extension_settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
+			$digest_settings = $extension_settings["digest"];
+
+			// Get a list of blocks we'll draw in emails
+			$blocks = array();
+			$positions = array();
+
+			// Start email service
+			$email_service = new BigTreeEmailService;
+		
+			// We're going to get the position setups and the multi-sort the list to get it in order
+			foreach (BigTreeAdmin::$DailyDigestPlugins["core"] as $id => $details) {
+				if (empty($digest_settings[$id]["disabled"])) {
+					$blocks[] = $details["function"];
+					$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
+				}
+			}
+			foreach (BigTreeAdmin::$DailyDigestPlugins["extension"] as $extension => $set) {
+				foreach ($set as $id => $details) {
+					$id = $extension."*".$id;
+					if (empty($digest_settings[$id]["disabled"])) {
+						$blocks[] = $details["function"];
+						$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
+					}
+				}
+			}
+			array_multisort($positions,SORT_DESC,$blocks);
+
+			// Loop through each user who has opted in to emails
 			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
 			while ($user = sqlfetch($qusers)) {
-				$changes = $this->getPublishableChanges($user["id"]);
-				$alerts = $this->getContentAlerts($user["id"]);
-				$messages = $this->getMessages($user["id"]);
-				$unread = $messages["unread"];
+				$block_markup = "";
 
-				// Start building the email
-				$body_alerts = $body_changes = $body_messages = "";
-
-				// Alerts
-				if (is_array($alerts) && count($alerts)) {
-					foreach ($alerts as $alert) {
-						$body_alerts .= '<tr>';
-						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$alert["nav_title"].'</td>';
-						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 20px 10px 15px; text-align: right;">'.$alert["current_age"].' Days</td>';
-
-						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$bigtree["config"]["www_root"].$alert["path"].'/"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>';
-
-						$body_alerts .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$bigtree["config"]["admin_root"]."pages/edit/".$alert["id"].'/"><img src="'.$image_root.'edit.gif" alt="Edit" /></a></td>';
-						$body_alerts .= '</tr>';
-					}
-				} else {
-					$body_alerts = '<tr><td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Content Age Alerts</p></td></tr>';
-				}
-
-				// Changes
-				if (count($changes)) {
-					foreach ($changes as $change) {
-						$body_changes .= '<tr>';
-						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["user"]["name"].'</td>';
-						if ($change["title"]) {
-							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Pages</td>';
-						} else {
-							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
-						}
-						if ($change["type"] == "NEW") {
-							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
-						} elseif ($change["type"] == "EDIT") {
-							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
-						}
-						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.static::getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
-						$body_changes .= '</tr>';
-					}
-				} else {
-					$body_changes = '<tr><td colspan="4" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Pending Changes</p></td></tr>';
-				}
-
-				// Messages
-				if (count($unread)) {
-					foreach ($unread as $message) {
-						$body_messages .= '<tr>';
-						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>';
-						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>';
-						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia",strtotime($message["date"])).'</td>';
-						$body_messages .= '</tr>';
-					}
-				} else {
-					$body_messages = '<tr><td colspan="3" style="border-bottom: 1px solid #eee; color: #999; padding: 10px 0 10px 15px;"><p>No Unread Messages</p></td></tr>';
+				foreach ($blocks as $function) {
+					$block_markup .= call_user_func($function,$user);
 				}
 
 				// Send it
-				$es = new BigTreeEmailService;
-				if ((is_array($alerts) && count($alerts)) || count($changes) || count($unread)) {
+				if (trim($block_markup)) {
 					$body = file_get_contents(BigTree::path("admin/email/daily-digest.html"));
 					$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
 					$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
 					$body = str_ireplace("{site_title}", $site_title, $body);
 					$body = str_ireplace("{date}", date("F j, Y",time()), $body);
-					$body = str_ireplace("{content_alerts}", $body_alerts, $body);
-					$body = str_ireplace("{pending_changes}", $body_changes, $body);
-					$body = str_ireplace("{unread_messages}", $body_messages, $body);
+					$body = str_ireplace("{blocks}", $block_markup, $body);
 
 					// If we don't have a from email set, third parties most likely will fail so we're going to use local sending
-					if ($es->Settings["bigtree_from"]) {
+					if ($email_service->Settings["bigtree_from"]) {
 						$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-						$es->sendEmail("$site_title Daily Digest",$body,$user["email"],$es->Settings["bigtree_from"],"BigTree CMS",$reply_to);
+						$email_service->sendEmail("$site_title Daily Digest",$body,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
 					} else {
 						BigTree::sendEmail($user["email"],"$site_title Daily Digest",$body);
 					}
@@ -2632,11 +2764,13 @@
 		/*
 			Function: getAccessLevel
 				Returns the permission level for a given module and item.
+				Can be called non-statically to check for the logged in user.
 
 			Parameters:
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
+				user - A user entry (defaults to false, only allowed when called in a non-static context)
 
 			Returns:
 				The permission level for the given item or module (if item was not passed).
@@ -2645,23 +2779,32 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getAccessLevel($module,$item = array(),$table = "") {
-			if ($this->Level > 0) {
+		static function getAccessLevel($module,$item = array(),$table = "",$user = false) {
+			// Allow backwards compatibility with < 4.3 style calls
+			if (!$user && (isset($this) && get_class($this) == __CLASS__)) {
+				$user = array(
+					"id" => $this->ID,
+					"level" => $this->Level,
+					"permissions" => $this->Permissions
+				);
+			}
+
+			if ($user["level"] > 0) {
 				return "p";
 			}
 
 			$id = is_array($module) ? $module["id"] : $module;
 
-			$perm = $this->Permissions["module"][$id];
+			$perm = $user["permissions"]["module"][$id];
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
 			if (empty($item) || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$id])) {
+			if (is_array($user["permissions"]["module_gbp"][$id])) {
 				$gv = $item[$module["gbp"]["group_field"]];
-				$gp = $this->Permissions["module_gbp"][$id][$gv];
+				$gp = $user["permissions"]["module_gbp"][$id][$gv];
 
 				if ($gp != "n") {
 					return $gp;
@@ -3052,19 +3195,15 @@
 				Gets a list of pages with content older than their Max Content Age that a user follows.
 
 			Parameters:
-				user - The user id to pull alerts for or a user entry (defaults to the logged in user)
+				user - The user id to pull alerts for or a user entry
 
 			Returns:
 				An array of arrays containing a page title, path, and id.
 		*/
 
-		function getContentAlerts($user = false) {
-			if (is_array($user)) {
-				$user = static::getUser($user["id"]);
-			} elseif ($user) {
+		static function getContentAlerts($user) {
+			if (!is_array($user)) {
 				$user = static::getUser($user);
-			} else {
-				$user = static::getUser($this->ID);
 			}
 
 			if (!is_array($user["alerts"])) {
@@ -3958,16 +4097,20 @@
 		*/
 
 		function getPageAccessLevel($page) {
-			return $this->getPageAccessLevelByUser($page,$this->ID);
+			return $this->getPageAccessLevelByUser($page,array(
+				"id" => $this->ID,
+				"level" => $this->Level,
+				"permissions" => $this->Permissions
+			));
 		}
 
 		/*
 			Function: getPageAccessLevelByUser
-				Returns the access level for the given user to a given page.
+				Returns the access level for the provided user to a page.
 
 			Parameters:
 				page - The page id.
-				user - The user id.
+				user - The user entry or user id.
 
 			Returns:
 				"p" for publisher, "e" for editor, false for no access.
@@ -3976,25 +4119,22 @@
 				<getPageAccessLevel>
 		*/
 
-		function getPageAccessLevelByUser($page,$user) {
+		static function getPageAccessLevelByUser($page,$user) {
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'"));
 				$changes = json_decode($f["changes"],true);
-				return $this->getPageAccessLevelByUser($changes["parent"],$user);
+				return static::getPageAccessLevelByUser($changes["parent"],$user);
 			}
 
-			// If we're checking the logged in user, just use the info we already have
-			if ($user == $this->ID) {
-				$level = $this->Level;
-				$permissions = $this->Permissions;
-			// Not the logged in user? Look up the person.
-			} else {
-				$u = static::getUser($user);
-				$level = $u["level"];
-				$permissions = $u["permissions"];
+			// If we don't have a user entry, turn it into an entry
+			if (!is_array($user)) {
+				$user = static::getUser($user);
 			}
 
+			$level = $user["level"];
+			$permissions = $user["permissions"];
+		
 			// See if the user is an administrator, if so we can skip permissions.
 			if ($level > 0) {
 				return "p";
@@ -4552,23 +4692,22 @@
 
 		/*
 			Function: getPublishableChanges
-				Returns a list of changes that the logged in user has access to publish.
+				Returns a list of changes that the given user has access to publish.
 
 			Parameters:
-				user - The user id to retrieve changes for. Defaults to the logged in user.
+				user - A user entry or user ID
 
 			Returns:
 				An array of changes sorted by most recent.
 		*/
 
-		function getPublishableChanges($user = false) {
-			if (!$user) {
-				$user = static::getUser($this->ID);
-			} else {
+		static function getPublishableChanges($user) {
+			if (!is_array($user)) {
 				$user = static::getUser($user);
 			}
 
 			$changes = array();
+
 			// Setup the default search array to just be pages
 			$search = array("`module` = ''");
 			// Add each module the user has publisher permissions to
@@ -4607,7 +4746,7 @@
 					$ok = true;
 				// Check permissions on a page if it's a page.
 				} elseif ($f["table"] == "bigtree_pages") {
-					$r = $this->getPageAccessLevelByUser($id,$user["id"]);
+					$r = static::getPageAccessLevelByUser($id,$user);
 					// If we're a publisher, this is ours!
 					if ($r == "p") {
 						$ok = true;
@@ -4619,7 +4758,7 @@
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = $this->getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"]);
+						$level = static::getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"],$user);
 						if ($level == "p") {
 							$ok = true;
 						}

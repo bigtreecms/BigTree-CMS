@@ -25,20 +25,20 @@
 	$positions = array();
 
 	// We're going to get the position setups and the multi-sort the list to get it in order
-	foreach (BigTreeAdmin::$DailyDigestPlugins["core"] as $id => $name) {
+	foreach (BigTreeAdmin::$DailyDigestPlugins["core"] as $id => $details) {
 		$panes[] = array(
 			"id" => $id,
-			"name" => $name,
+			"name" => $details["name"],
 			"approved" => empty($digest_settings[$id]["disabled"]) ? "on" : ""
 		);
 		$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
 	}
 	foreach (BigTreeAdmin::$DailyDigestPlugins["extension"] as $extension => $set) {
-		foreach ($set as $id => $name) {
+		foreach ($set as $id => $details) {
 			$id = $extension."*".$id;
 			$panes[] = array(
 				"id" => $id,
-				"name" => $name,
+				"name" => $details["name"],
 				"approved" => empty($digest_settings[$id]["disabled"]) ? "on" : ""
 			);
 			$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
