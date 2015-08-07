@@ -2781,11 +2781,12 @@
 
 		static function getAccessLevel($module,$item = array(),$table = "",$user = false) {
 			// Allow backwards compatibility with < 4.3 style calls
-			if (!$user && (isset($this) && get_class($this) == __CLASS__)) {
+			if (!$user) {
+				global $admin;
 				$user = array(
-					"id" => $this->ID,
-					"level" => $this->Level,
-					"permissions" => $this->Permissions
+					"id" => $admin->ID,
+					"level" => $admin->Level,
+					"permissions" => $admin->Permissions
 				);
 			}
 
