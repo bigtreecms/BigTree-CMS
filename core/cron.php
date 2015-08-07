@@ -18,18 +18,32 @@
 	}
 	$last_sent_daily_digest = $cms->getSetting("bigtree-internal-cron-daily-digest-last-sent");
 
-	// If we last sent the daily digest > ~24 hours ago, send it again
+	// If we last sent the daily digest > ~24 hours ago, send it again. Also refresh analytics.
 	if ($last_sent_daily_digest < strtotime("-23 hours 59 minutes")) {
 		$admin->updateSettingValue("bigtree-internal-cron-daily-digest-last-sent",time());
+
+		// Send daily digest
 		$admin->emailDailyDigest();
+
+		// Cache Google Analytics Information
+		$analytics = new BigTreeGoogleAnalyticsAPI;
+		if ($analytics->API && $analytics->Profile) {
+			$analytics->cacheInformation();
+		}
 	}
-	
-	// Cache Google Analytics Information
-	$analytics = new BigTreeGoogleAnalyticsAPI;
-	if ($analytics->API && $analytics->Profile) {
-		$analytics->cacheInformation();
+
+	// Run any extension cron jobs
+	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$cron_settings = $extension_settings["cron"];
+	foreach (BigTreeAdmin::$CronPlugins as $extension => $plugins) {
+		foreach ($plugins as $id => $details) {
+			$id = $extension."*".$id;
+			if (empty($cron_settings[$id]["disabled"])) {
+				call_user_func($details["function"]);
+			}
+		}
 	}
-	
+
 	// Let the CMS know we're running cron properly
 	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
 		$admin->createSetting(array(
