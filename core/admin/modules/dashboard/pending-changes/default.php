@@ -1,6 +1,6 @@
 <?php
 	// Get pending changes awaiting this user's approval.
-	$changes = $admin->getPublishableChanges();
+	$changes = $admin->getPublishableChanges($admin->ID);
 	
 	// Go through and get all the modules and pages, separate them out.
 	$modules = array();
