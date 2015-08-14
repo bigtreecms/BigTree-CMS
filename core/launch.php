@@ -28,6 +28,15 @@
 	
 		$bigtree["path"] = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
 	}
+
+	// Prevent path manipulations
+	$bigtree["path"] = array_filter($bigtree["path"],function($val) {
+		if ($val == "..") {
+			die();
+		}
+		return true;
+	});
+
 	$path = $bigtree["path"]; // Backwards compatibility
 	
 	// Figure out if we're requesting a page in the admin
