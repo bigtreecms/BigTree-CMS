@@ -1,8 +1,8 @@
 /**
  * DomParser.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -106,7 +106,7 @@ define("tinymce/html/DomParser", [
 							tempNode = currentNode;
 						}
 
-						for (childNode = parents[i].firstChild; childNode && childNode != parents[i + 1]; ) {
+						for (childNode = parents[i].firstChild; childNode && childNode != parents[i + 1];) {
 							nextNode = childNode.next;
 							tempNode.append(childNode);
 							childNode = nextNode;
@@ -353,19 +353,36 @@ define("tinymce/html/DomParser", [
 			}
 
 			function removeWhitespaceBefore(node) {
-				var textNode, textVal, sibling;
+				var textNode, textNodeNext, textVal, sibling, blockElements = schema.getBlockElements();
 
-				for (textNode = node.prev; textNode && textNode.type === 3; ) {
+				for (textNode = node.prev; textNode && textNode.type === 3;) {
 					textVal = textNode.value.replace(endWhiteSpaceRegExp, '');
 
+					// Found a text node with non whitespace then trim that and break
 					if (textVal.length > 0) {
 						textNode.value = textVal;
-						textNode = textNode.prev;
-					} else {
-						sibling = textNode.prev;
-						textNode.remove();
-						textNode = sibling;
+						return;
 					}
+
+					textNodeNext = textNode.next;
+
+					// Fix for bug #7543 where bogus nodes would produce empty
+					// text nodes and these would be removed if a nested list was before it
+					if (textNodeNext) {
+						if (textNodeNext.type == 3 && textNodeNext.value.length) {
+							textNode = textNode.prev;
+							continue;
+						}
+
+						if (!blockElements[textNodeNext.name] && textNodeNext.name != 'script' && textNodeNext.name != 'style') {
+							textNode = textNode.prev;
+							continue;
+						}
+					}
+
+					sibling = textNode.prev;
+					textNode.remove();
+					textNode = sibling;
 				}
 			}
 
@@ -573,7 +590,13 @@ define("tinymce/html/DomParser", [
 									// Leave nodes that have a name like <a name="name">
 									if (!node.attributes.map.name && !node.attributes.map.id) {
 										tempNode = node.parent;
-										node.unwrap();
+
+										if (blockElements[node.name]) {
+											node.empty().remove();
+										} else {
+											node.unwrap();
+										}
+
 										node = tempNode;
 										return;
 									}
@@ -773,7 +796,7 @@ define("tinymce/html/DomParser", [
 						}
 
 						validClassesMap = validClasses[node.name];
-						if (!valid && validClassesMap && !validClassesMap[className]) {
+						if (!valid && validClassesMap && validClassesMap[className]) {
 							valid = true;
 						}
 

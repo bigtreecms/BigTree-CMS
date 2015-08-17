@@ -1,8 +1,8 @@
 /**
  * Selection.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -476,7 +476,7 @@ define("tinymce/dom/Selection", [
 		getRng: function(w3c) {
 			var self = this, selection, rng, elm, doc = self.win.document, ieRng;
 
-			function tryCompareBounderyPoints(how, sourceRange, destinationRange) {
+			function tryCompareBoundaryPoints(how, sourceRange, destinationRange) {
 				try {
 					return sourceRange.compareBoundaryPoints(how, destinationRange);
 				} catch (ex) {
@@ -556,8 +556,8 @@ define("tinymce/dom/Selection", [
 			}
 
 			if (self.selectedRange && self.explicitRange) {
-				if (tryCompareBounderyPoints(rng.START_TO_START, rng, self.selectedRange) === 0 &&
-					tryCompareBounderyPoints(rng.END_TO_END, rng, self.selectedRange) === 0) {
+				if (tryCompareBoundaryPoints(rng.START_TO_START, rng, self.selectedRange) === 0 &&
+					tryCompareBoundaryPoints(rng.END_TO_END, rng, self.selectedRange) === 0) {
 					// Safari, Opera and Chrome only ever select text which causes the range to change.
 					// This lets us use the originally set range if the selection hasn't been changed by the user.
 					rng = self.explicitRange;
@@ -577,7 +577,11 @@ define("tinymce/dom/Selection", [
 		 * @param {Range} rng Range to select.
 		 */
 		setRng: function(rng, forward) {
-			var self = this, sel;
+			var self = this, sel, node;
+
+			if (!rng) {
+				return;
+			}
 
 			// Is IE specific range
 			if (rng.select) {
@@ -611,6 +615,18 @@ define("tinymce/dom/Selection", [
 
 					// adding range isn't always successful so we need to check range count otherwise an exception can occur
 					self.selectedRange = sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+				}
+
+				// WebKit egde case selecting images works better using setBaseAndExtent
+				if (!rng.collapsed && rng.startContainer == rng.endContainer && sel.setBaseAndExtent) {
+					if (rng.endOffset - rng.startOffset < 2) {
+						if (rng.startContainer.hasChildNodes()) {
+							node = rng.startContainer.childNodes[rng.startOffset];
+							if (node && node.tagName == 'IMG') {
+								self.getSel().setBaseAndExtent(node, 0, node, 1);
+							}
+						}
+					}
 				}
 			} else {
 				// Is W3C Range fake range on IE
@@ -778,7 +794,7 @@ define("tinymce/dom/Selection", [
 		normalize: function() {
 			var self = this, rng = self.getRng();
 
-			if (!isIE && new RangeUtils(self.dom).normalize(rng)) {
+			if (Env.range && new RangeUtils(self.dom).normalize(rng)) {
 				self.setRng(rng, self.isForward());
 			}
 
@@ -786,7 +802,8 @@ define("tinymce/dom/Selection", [
 		},
 
 		/**
-		 * Executes callback of the current selection matches the specified selector or not and passes the state and args to the callback.
+		 * Executes callback when the current selection starts/stops matching the specified selector. The current
+		 * state will be passed to the callback as it's first argument.
 		 *
 		 * @method selectorChanged
 		 * @param {String} selector CSS selector to check for.
@@ -896,6 +913,30 @@ define("tinymce/dom/Selection", [
 			if (y < viewPort.y || y + 25 > viewPortY + viewPortH) {
 				self.editor.getWin().scrollTo(0, y < viewPortY ? y : y - viewPortH + 25);
 			}
+		},
+
+		placeCaretAt: function(clientX, clientY) {
+			var doc = this.editor.getDoc(), rng, point;
+
+			if (doc.caretPositionFromPoint) {
+				point = doc.caretPositionFromPoint(clientX, clientY);
+				rng = doc.createRange();
+				rng.setStart(point.offsetNode, point.offset);
+				rng.collapse(true);
+			} else if (doc.caretRangeFromPoint) {
+				rng = doc.caretRangeFromPoint(clientX, clientY);
+			} else if (doc.body.createTextRange) {
+				rng = doc.body.createTextRange();
+
+				try {
+					rng.moveToPoint(clientX, clientY);
+					rng.collapse(true);
+				} catch (ex) {
+					rng.collapse(clientY < doc.body.clientHeight);
+				}
+			}
+
+			this.setRng(rng);
 		},
 
 		_moveEndPoint: function(rng, node, start) {

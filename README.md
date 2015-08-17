@@ -20,6 +20,17 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.6 Release
+- SECURITY FIX: Fixed a critical path manipulation bug that could expose private files
+- FIXED: Cron failing when using a custom admin class
+- FIXED: Fields that were set to ignore sometimes nulling the value of a good column.
+- FIXED: Feed parsers containing a " character not being editable
+- FIXED: Removing fields from a feed not working
+- FIXED: Related Menu dropdown looking broken in IE10/11
+- FIXED: Template editor showing related module for basic templates
+- FIXED: Permission errors when a module has the same route as a core ajax directory (i.e. callouts)
+- FIXED: Chrome issues with TinyMCE (updated to latest release)
+
 ### 4.2.5 Release
 - FIXED: A permissions breaking bug that prevented normal users from hitting the Pages tab
 - FIXED: Installation on Windows server setups

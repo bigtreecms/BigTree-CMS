@@ -5872,7 +5872,7 @@
 
 				// If it's explicitly ignored return null
 				if ($field["ignore"]) {
-					$output = null;
+					return null;
 				} else {
 					$output = $field["output"];
 				}
