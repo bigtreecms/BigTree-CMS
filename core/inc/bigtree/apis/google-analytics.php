@@ -23,10 +23,10 @@
 				Sets up the Google Analytics API connections.
 
 			Parameters:
-				cache - Whether to use cached information (15 minute cache, defaults to true)
+				cache - Whether to use cached information (15 minute cache, defaults to false)
 		*/
 
-		function __construct($cache = true) {
+		function __construct($cache = false) {
 			parent::__construct("bigtree-internal-google-analytics-api","Google Analytics API","org.bigtreecms.api.analytics.google",$cache);
 			$this->Settings["key"] = $this->ClientID;
 			$this->Settings["secret"] = $this->ClientSecret;
