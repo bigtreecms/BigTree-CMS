@@ -5,6 +5,11 @@
 
 	$noun = $field["options"]["noun"] ? htmlspecialchars($field["options"]["noun"]) : "Callout";
 	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
+
+	// Work with older group info from 4.1 and lower
+	if (!is_array($field["options"]["groups"]) && $field["options"]["group"]) {
+		$field["options"]["groups"] = array($field["options"]["group"]);
+	}
 ?>
 <fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
