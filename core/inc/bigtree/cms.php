@@ -79,7 +79,7 @@
 				// Create a setting if it doesn't exist yet
 				if ($data === false) {
 					// If an extension is creating an auto save setting, make it a reference back to the extension
-					if (defined("EXTENSION_ROOT")) {
+					if (defined("EXTENSION_ROOT") && strpos($id,"bigtree-internal-") !== 0) {
 						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
 						
 						// Don't append extension again if it's already being called via the namespace
