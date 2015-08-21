@@ -2495,6 +2495,7 @@
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
+				user - (optional) User object if checking for a user other than the logged in user.
 
 			Returns:
 				The permission level for the given item or module (if item was not passed).
@@ -2503,23 +2504,31 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getAccessLevel($module,$item = array(),$table = "") {
-			if ($this->Level > 0) {
+		function getAccessLevel($module,$item = array(),$table = "",$user = false) {
+			if (!$user) {
+				$level = $this->Level;
+				$permissions = $this->Permissions;
+			} else {
+				$level = $user["level"];
+				$permissions = $user["permissions"];
+			}
+
+			if ($level > 0) {
 				return "p";
 			}
 
 			$id = is_array($module) ? $module["id"] : $module;
 
-			$perm = $this->Permissions["module"][$id];
+			$perm = $permissions["module"][$id];
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
 			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$id])) {
+			if (is_array($permissions["module_gbp"][$id])) {
 				$gv = $item[$module["gbp"]["group_field"]];
-				$gp = $this->Permissions["module_gbp"][$id][$gv];
+				$gp = $permissions["module_gbp"][$id][$gv];
 
 				if ($gp != "n") {
 					return $gp;
@@ -4430,7 +4439,7 @@
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = $this->getAccessLevel($this->getModule($f["module"]),$item["item"],$f["table"]);
+						$level = $this->getAccessLevel($this->getModule($f["module"]),$item["item"],$f["table"],$user);
 						if ($level == "p") {
 							$ok = true;
 						}
