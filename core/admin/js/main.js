@@ -707,7 +707,7 @@ var BigTreeSelect = function(element) {
 		Container.find(".handle").click(click);
 		
 		// Add it to the DOM
-		Element.after(Container);		
+		Element.before(Container);		
 
 		// See if this select is disabled
 		if (Element.prop("disabled")) {
