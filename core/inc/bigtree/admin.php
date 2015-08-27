@@ -7264,6 +7264,8 @@
 			foreach ($fields as $key => $field) {
 				$field["options"] = json_decode($field["options"],true);
 				$field["column"] = $key;
+				$field["title"] = BigTree::safeEncode($field["title"]);
+				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
 				$clean_fields[] = $field;
 			}
 			$fields = BigTree::json($clean_fields,true);
