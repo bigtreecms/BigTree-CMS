@@ -1636,7 +1636,7 @@
 /* Array of Items / Many to Many Widget */
 	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; }
 	.multi_widget footer { border-radius: 0 0 2px 2px; border-top: none; overflow: hidden; padding: 20px; }
-	.multi_widget footer .button { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
+	.multi_widget footer .button { border-radius: 3px; float: left; height: 30px; line-height: 30px; margin-right: 15px; }
 	.multi_widget footer .button .icon_small { height: 16px; margin-top: 6px; }
 	.multi_widget ul { list-style: none; margin: 0; }
 	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
