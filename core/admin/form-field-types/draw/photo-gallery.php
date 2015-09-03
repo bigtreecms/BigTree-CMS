@@ -46,7 +46,7 @@
 			<a href="#" class="icon_delete"></a>
 		</li>
 		<?
-					$current++;
+				$current++;
 			}
 		?>
 	</ul>
