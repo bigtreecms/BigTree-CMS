@@ -1213,7 +1213,7 @@
 				}
 				
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
-				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
+				BigTree::redirect($redirect,"301");
 				return false;
 			} else {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
