@@ -19,7 +19,7 @@
 					// Allow custom delete implementations
 					var href = BigTree.cleanHref(Current.attr("href"));
 					// If it's just an ID, we're using the default delete implementation
-					if (parseInt(href)) {
+					if (parseInt(href) || parseInt(href.substr(1))) {
 						$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + href);
 						var row = Current.parents("li");
 						var list = row.parents("ul");
