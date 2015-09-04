@@ -1855,7 +1855,7 @@
 	.bigtree .mce-edit-area { border-color: #CCC; }
 	.bigtree .mce-menubar { background: #EEE; border-bottom: 1px solid #CCC; }
 	.bigtree .mce-statusbar { background: #EEE; border-color: #CCC; }
-	.bigtree .mce-btn-group { border-right: 1px solid #DDD; margin: 0; }
+	.bigtree .mce-btn-group { margin: 0; }
 	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0px; box-shadow: none; }
 	.bigtree .mce-btn-group .mce-first.mce-last { border-radius: 0; }
 	.bigtree .mce-btn-group:last-child { border: none; }
@@ -1883,7 +1883,7 @@
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
-	.bigtree #callout_resources .mce-btn-group { border: none; }
+	.bigtree .callout_fields .mce-btn-group { border: none; }
 
 /*----------------------------
 	Custom Redactor Styles
