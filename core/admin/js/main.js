@@ -2348,8 +2348,8 @@ var BigTreeFormValidator = function(selector,callback) {
 				} else if ($(this).prevAll(".mce-tinymce").length) {
 					var val = tinymce.get($(this).attr("id")).getContent();
 				// File/Image Uploads
-				} else if ($(this).parents("div").nextAll(".currently, .currently_file").length) {
-					var val = $(this).parents("div").nextAll(".currently, .currently_file").find("input").val();
+				} else if ($(this).parents("fieldset").find(".currently, .currently_file").length) {
+					var val = $(this).parents("fieldset").find(".currently, .currently_file").find("input").val();
 					if (!val) {
 						val = $(this).val();
 					}
