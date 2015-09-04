@@ -29,8 +29,12 @@
 			<p><?=$type["name"]?></p>
 			<div class="bottom">
 				<span class="icon_drag"></span>
+				<? if ($type["level"] > $admin->Level) { ?>
+				<span class="icon_disabled has_tooltip" data-tooltip="<p>This callout requires a higher user level to edit.</p>"></span>
+				<? } else { ?>
 				<a href="#" class="icon_edit"></a>
 				<a href="#" class="icon_delete"></a>
+				<? } ?>
 			</div>
 		</article>
 		<?

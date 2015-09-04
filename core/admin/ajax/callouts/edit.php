@@ -2,7 +2,7 @@
 	if ($_POST["groups"]) {
 		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
-		$items = $admin->getCallouts("name ASC");
+		$items = $admin->getCalloutsAllowed("name ASC");
 	}
 
 	$bigtree["callout_count"] = intval($_POST["count"]);

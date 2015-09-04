@@ -2,7 +2,7 @@
 	if ($_POST["groups"]) {
 		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
-		$items = $admin->getCallouts("name ASC");
+		$items = $admin->getCalloutsAllowed("name ASC");
 	}
 
 	$type = $items[0]["id"];

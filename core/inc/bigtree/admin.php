@@ -2904,6 +2904,26 @@
 		}
 
 		/*
+			Function: getCalloutAllowed
+				Returns a list of callouts the logged-in user is allowed access to.
+
+			Parameters:
+				sort - The order to return the callouts. Defaults to positioned.
+
+			Returns:
+				An array of callout entries from bigtree_callouts.
+		*/
+
+		function getCalloutsAllowed($sort = "position DESC, id ASC") {
+			$callouts = array();
+			$q = sqlquery("SELECT * FROM bigtree_callouts WHERE level <= '".$this->Level."' ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$callouts[] = $f;
+			}
+			return $callouts;
+		}
+
+		/*
 			Function: getCalloutsInGroups
 				Returns a list of callouts in a given set of groups.
 
