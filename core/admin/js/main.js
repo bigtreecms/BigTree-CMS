@@ -42,6 +42,9 @@ $(document).ready(function() {
 
 		return false;
 	});
+
+	// Fire ready
+	BigTree.ready();
 });
 
 function BigTreeCustomControls(selector) {
@@ -3071,6 +3074,8 @@ var BigTree = {
 	Busy: false,
 	Growling: false,
 	GrowlTimer: false,
+	ReadyCountdown: 0,
+	ReadyHooks: [],
 	ZIndex: 1000,
 
 	cleanHref: function(href) {
@@ -3169,6 +3174,22 @@ var BigTree = {
 			growl_box.removeClass("visible");
 			BigTree.Growling = false;
 		},time + 500);
+	},
+
+	hookReady: function(callback) {
+		BigTree.ReadyHooks.push(callback);
+	},
+
+	ready: function() {
+		// We need to wait for something to finish loading
+		if (BigTree.ReadyCountdown > 0) {
+			setTimeout(BigTree.ready,100);
+		} else {
+			for (var i = 0; callback = BigTree.ReadyHooks[i]; i++) {
+				callback();
+			}
+			BigTree.ReadyHooks = [];
+		}
 	},
 	
 	setPageCount: function(selector,pages,current_page) {
