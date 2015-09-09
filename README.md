@@ -20,6 +20,13 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.13 Release
+- FIXED: 30 day page views not showing in Pages when Google Analytics is setup
+- FIXED: Incorrect permission checking when sending out lists of pending changes in Daily Digest emails
+- FIXED: Google Analytics API storing things in bigtree_caches that it never uses
+- FIXED: 301 redirects containing special characters (i.e. # or &) not redirecting correctly
+- FIXED: Callout access levels not functioning properly
+
 ### 4.1.12 Release
 - SECURITY FIX: Fixed a critical path manipulation bug that could expose private files
 - FIXED: Related Menu dropdown looking broken in IE10/11
