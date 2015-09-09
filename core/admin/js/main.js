@@ -42,6 +42,9 @@ $(document).ready(function() {
 
 		return false;
 	});
+
+	// Fire ready
+	BigTree.ready();
 });
 
 function BigTreeCustomControls(selector) {
@@ -707,7 +710,7 @@ var BigTreeSelect = function(element) {
 		Container.find(".handle").click(click);
 		
 		// Add it to the DOM
-		Element.after(Container);		
+		Element.before(Container);		
 
 		// See if this select is disabled
 		if (Element.prop("disabled")) {
@@ -2348,8 +2351,8 @@ var BigTreeFormValidator = function(selector,callback) {
 				} else if ($(this).prevAll(".mce-tinymce").length) {
 					var val = tinymce.get($(this).attr("id")).getContent();
 				// File/Image Uploads
-				} else if ($(this).parents("div").nextAll(".currently, .currently_file").length) {
-					var val = $(this).parents("div").nextAll(".currently, .currently_file").find("input").val();
+				} else if ($(this).parents("fieldset").find(".currently, .currently_file").length) {
+					var val = $(this).parents("fieldset").find(".currently, .currently_file").find("input").val();
 					if (!val) {
 						val = $(this).val();
 					}
@@ -3071,6 +3074,8 @@ var BigTree = {
 	Busy: false,
 	Growling: false,
 	GrowlTimer: false,
+	ReadyCountdown: 0,
+	ReadyHooks: [],
 	ZIndex: 1000,
 
 	cleanHref: function(href) {
@@ -3169,6 +3174,22 @@ var BigTree = {
 			growl_box.removeClass("visible");
 			BigTree.Growling = false;
 		},time + 500);
+	},
+
+	hookReady: function(callback) {
+		BigTree.ReadyHooks.push(callback);
+	},
+
+	ready: function() {
+		// We need to wait for something to finish loading
+		if (BigTree.ReadyCountdown > 0) {
+			setTimeout(BigTree.ready,100);
+		} else {
+			for (var i = 0; callback = BigTree.ReadyHooks[i]; i++) {
+				callback();
+			}
+			BigTree.ReadyHooks = [];
+		}
 	},
 	
 	setPageCount: function(selector,pages,current_page) {

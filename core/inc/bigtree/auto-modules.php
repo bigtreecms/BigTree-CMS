@@ -544,6 +544,7 @@
 			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '".sqlescape($hash)."'"));
 			$form["fields"] = json_decode($form["fields"],true);
 			$form["css"] = $cms->getInternalPageLink($form["css"]);
+			$form["hooks"] = json_decode($form["hooks"],true);
 
 			return $form;
 		}

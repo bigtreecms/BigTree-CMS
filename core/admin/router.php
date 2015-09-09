@@ -150,6 +150,8 @@
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
 			$find[] = '$'.$key;
+			$find[] = "{".$key."}";
+			$replace[] = $val;
 			$replace[] = $val;
 		}
 		die(str_replace($find,$replace,file_get_contents($js_file)));

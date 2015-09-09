@@ -611,7 +611,7 @@
 
 					$clean_resources[] = $field;
 
-					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
 				}
 			}
 
@@ -1583,7 +1583,7 @@
 
 					$clean_resources[] = $field;
 
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
 				}
 			}
 
@@ -2544,6 +2544,7 @@
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
+				user - (optional) User object if checking for a user other than the logged in user.
 
 			Returns:
 				The permission level for the given item or module (if item was not passed).
@@ -2552,23 +2553,31 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getAccessLevel($module,$item = array(),$table = "") {
-			if ($this->Level > 0) {
+		function getAccessLevel($module,$item = array(),$table = "",$user = false) {
+			if (!$user) {
+				$level = $this->Level;
+				$permissions = $this->Permissions;
+			} else {
+				$level = $user["level"];
+				$permissions = $user["permissions"];
+			}
+
+			if ($level > 0) {
 				return "p";
 			}
 
 			$id = is_array($module) ? $module["id"] : $module;
 
-			$perm = $this->Permissions["module"][$id];
+			$perm = $permissions["module"][$id];
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
 			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$id])) {
+			if (is_array($permissions["module_gbp"][$id])) {
 				$gv = $item[$module["gbp"]["group_field"]];
-				$gp = $this->Permissions["module_gbp"][$id][$gv];
+				$gp = $permissions["module_gbp"][$id][$gv];
 
 				if ($gp != "n") {
 					return $gp;
@@ -2888,6 +2897,26 @@
 		static function getCallouts($sort = "position DESC, id ASC") {
 			$callouts = array();
 			$q = sqlquery("SELECT * FROM bigtree_callouts ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$callouts[] = $f;
+			}
+			return $callouts;
+		}
+
+		/*
+			Function: getCalloutAllowed
+				Returns a list of callouts the logged-in user is allowed access to.
+
+			Parameters:
+				sort - The order to return the callouts. Defaults to positioned.
+
+			Returns:
+				An array of callout entries from bigtree_callouts.
+		*/
+
+		function getCalloutsAllowed($sort = "position DESC, id ASC") {
+			$callouts = array();
+			$q = sqlquery("SELECT * FROM bigtree_callouts WHERE level <= '".$this->Level."' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				$callouts[] = $f;
 			}
@@ -4475,7 +4504,7 @@
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = $this->getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"]);
+						$level = $this->getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"],$user);
 						if ($level == "p") {
 							$ok = true;
 						}
@@ -7255,6 +7284,8 @@
 			foreach ($fields as $key => $field) {
 				$field["options"] = json_decode($field["options"],true);
 				$field["column"] = $key;
+				$field["title"] = BigTree::safeEncode($field["title"]);
+				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
 				$clean_fields[] = $field;
 			}
 			$fields = BigTree::json($clean_fields,true);
