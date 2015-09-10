@@ -5578,7 +5578,7 @@
 			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
 				if (is_array($field["options"]["crops"])) {
 					foreach ($field["options"]["crops"] as $crop) {
-						if (!$failed && is_array($crop)) {
+						if (!$failed && is_array($crop) && array_filter($crop)) {
 							if ($field["options"]["retina"]) {
 								$crop["width"] *= 2;
 								$crop["height"] *= 2;
@@ -5594,7 +5594,7 @@
 				if (is_array($field["options"]["thumbs"])) {
 					foreach ($field["options"]["thumbs"] as $thumb) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($thumb)) {
+						if (!$failed && is_array($thumb) && array_filter($thumb)) {
 							if ($field["options"]["retina"]) {
 								$thumb["width"] *= 2;
 								$thumb["height"] *= 2;
