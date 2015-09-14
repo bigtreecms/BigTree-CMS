@@ -2861,7 +2861,7 @@
 			if (!$f) {
 				return false;
 			}
-			$f["callouts"] = json_decode($f["callouts"],true);
+			$f["callouts"] = array_filter((array)json_decode($f["callouts"],true));
 			return $f;
 		}
 
