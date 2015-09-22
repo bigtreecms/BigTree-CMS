@@ -416,8 +416,8 @@
 				}
 			}
 
-			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 			$output = curl_exec($ch);
+			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 			curl_close($ch);
 
 			// If we're outputting to a file, close the handle and return nothing
