@@ -9,6 +9,7 @@
 		}
 	} else {	
 		// Figure out which are connected
+		$facebook = new BigTreeFacebookAPI;
 		$twitter = new BigTreeTwitterAPI;
 		$instagram = new BigTreeInstagramAPI;
 		$google = new BigTreeGooglePlusAPI;
@@ -20,6 +21,11 @@
 <div class="table">
 	<summary><h2>Configure</h2></summary>
 	<section>
+		<a class="box_select<? if ($facebook->Connected) { ?> connected<? } ?>" href="facebook/">
+			<span class="facebook"></span>
+			<p>Facebook</p>
+		</a>
+
 		<a class="box_select<? if ($twitter->Connected) { ?> connected<? } ?>" href="twitter/">
 			<span class="twitter"></span>
 			<p>Twitter</p>
@@ -45,12 +51,12 @@
 			<p>Flickr</p>
 		</a>
 		
-		<a class="box_select<? if ($disqus->Connected) { ?> connected<? } ?>" href="disqus/">
+		<a class="box_select last<? if ($disqus->Connected) { ?> connected<? } ?>" href="disqus/">
 			<span class="disqus"></span>
 			<p>Disqus</p>
 		</a>
 
-		<a class="box_select last<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
+		<a class="box_select second_row<? if ($salesforce->Connected) { ?> connected<? } ?>" href="salesforce/">
 			<span class="cloud"></span>
 			<p>Salesforce</p>
 		</a>
