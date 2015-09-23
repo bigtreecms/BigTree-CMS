@@ -1882,21 +1882,20 @@
 			if ($delta < 2 * $minute) {
 				return "1 min ago";
 			} elseif ($delta < 45 * $minute) {
-				return floor($delta / $minute) . " min ago";
-			} elseif ($delta < 90 * $minute) {
-				return "1 hour ago";
+				$minutes = floor($delta / $minute);
+				return  $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
 			} elseif ($delta < 24 * $hour) {
-				return floor($delta / $hour) . " hours ago";
-			} elseif ($delta < 48 * $hour) {
-				return "yesterday";
+				$hours = floor($delta / $hour);
+				return $hours == 1 ? "1 hour ago" : "$hours hours ago";
 			} elseif ($delta < 30 * $day) {
-				return floor($delta / $day) . " days ago";
+				$days = floor($delta / $day);
+				return  $days == 1 ? "yesterday" : "$days days ago";
 			} elseif ($delta < 12 * $month) {
 				$months = floor($delta / $day / 30);
-				return $months <= 1 ? "1 month ago" : $months . " months ago";
+				return $months == 1 ? "1 month ago" : "$months months ago";
 			} else {
 				$years = floor($delta / $day / 365);
-				return $years <= 1 ? "1 year ago" : $years . " years ago";
+				return $years == 1 ? "1 year ago" : "$years years ago";
 			}
 		}
 
