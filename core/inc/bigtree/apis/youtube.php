@@ -972,6 +972,7 @@
 			$this->API = $api;
 			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;
 			isset($video->snippet->categoryId) ? $this->CategoryID = $video->snippet->categoryId : false;
+			isset($video->snippet->channelId) ? $this->ChannelID = $video->snippet->channelId : false;
 			isset($video->snippet->channelTitle) ? $this->ChannelTitle = $video->snippet->channelTitle : false;
 			isset($video->statistics->commentCount) ? $this->CommentCount = $video->statistics->commentCount : false;
 			isset($video->contentDetails->contentRating) ? $this->ContentRatings = $video->contentDetails->contentRating : false;
