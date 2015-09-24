@@ -1514,7 +1514,7 @@
 		*/
 
 		function createTag($tag) {
-			$tag = strtolower(html_entity_decode($tag));
+			$tag = strtolower(html_entity_decode(trim($tag)));
 			// Check if the tag exists already.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 
