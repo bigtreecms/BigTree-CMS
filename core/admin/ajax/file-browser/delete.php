@@ -1,7 +1,8 @@
-<?
+<?php
+
 	$admin->requireLevel(1);
-	$resource = $admin->getResourceByFile($_POST["file"]);
+	$resource = $admin->getResourceByFile($_POST['file']);
 	if ($resource) {
-		$admin->deleteResource($resource["id"]);
+	    $admin->deleteResource($resource['id']);
 	}
 ?>

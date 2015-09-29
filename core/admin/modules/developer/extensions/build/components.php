@@ -6,44 +6,50 @@
 				<article class="package_column">
 					<strong>Modules</strong>
 					<ul>
-						<?
-							foreach ((array)$modules as $mid) {
-								$module = $admin->getModule($mid);
-								if ($module) {
-						?>
+						<?php
+							foreach ((array) $modules as $mid) {
+							    $module = $admin->getModule($mid);
+							    if ($module) {
+							        ?>
 						<li>
 							<input type="hidden" name="modules[]" value="<?=$mid?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$module["name"]?></span>
+							<span><?=$module['name']?></span>
 						</li>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="modules">
-							<?
-								$groups = $admin->getModuleGroups("name ASC");
-								$groups[] = array("id" => "0", "name" => "Ungrouped");
+							<?php
+								$groups = $admin->getModuleGroups('name ASC');
+								$groups[] = array('id' => '0', 'name' => 'Ungrouped');
 								foreach ($groups as $g) {
-									$modules = $admin->getModulesByGroup($g["id"],"name ASC");
-									if (count($modules)) {
-							?>
-							<optgroup label="<?=$g["name"]?>">
-								<?
+								    $modules = $admin->getModulesByGroup($g['id'], 'name ASC');
+								    if (count($modules)) {
+								        ?>
+							<optgroup label="<?=$g['name']?>">
+								<?php
 										foreach ($modules as $m) {
-											if (!$m["extension"] || $m["extension"] == $id) {
-								?>
-								<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
-								<?
-											}
+										    if (!$m['extension'] || $m['extension'] == $id) {
+										        ?>
+								<option value="<?=$m['id']?>"<?php if ($m['id'] == $module) {
+    ?> selected="selected"<?php 
+}
+										        ?>><?=$m['name']?></option>
+								<?php
+
+										    }
 										}
-								?>
+								        ?>
 							</optgroup>
-							<?
-									}
+							<?php
+
+								    }
 								}
 							?>
 						</select>
@@ -52,18 +58,19 @@
 				<article class="package_column">
 					<strong>Templates</strong>
 					<ul>
-						<?
-							foreach ((array)$templates as $tid) {
-								$template = $cms->getTemplate($tid);
-								if ($template) {
-						?>
+						<?php
+							foreach ((array) $templates as $tid) {
+							    $template = $cms->getTemplate($tid);
+							    if ($template) {
+							        ?>
 						<li>
 							<input type="hidden" name="templates[]" value="<?=$tid?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$template["name"]?></span>
+							<span><?=$template['name']?></span>
 						</li>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</ul>
@@ -71,26 +78,28 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="templates">
 							<optgroup label="Basic Templates">
-								<?
-									$templates = $admin->getBasicTemplates("name ASC");
+								<?php
+									$templates = $admin->getBasicTemplates('name ASC');
 									foreach ($templates as $template) {
-										if (!$template["extension"] || $template["extension"] == $id) {
-								?>
-								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
-								<?
-										}
+									    if (!$template['extension'] || $template['extension'] == $id) {
+									        ?>
+								<option value="<?=$template['id']?>"><?=$template['name']?></option>
+								<?php
+
+									    }
 									}
 								?>
 							</optgroup>
 							<optgroup label="Routed Templates">
-								<?
-									$templates = $admin->getRoutedTemplates("name ASC");
+								<?php
+									$templates = $admin->getRoutedTemplates('name ASC');
 									foreach ($templates as $template) {
-										if (!$template["extension"] || $template["extension"] == $id) {
-								?>
-								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
-								<?
-										}
+									    if (!$template['extension'] || $template['extension'] == $id) {
+									        ?>
+								<option value="<?=$template['id']?>"><?=$template['name']?></option>
+								<?php
+
+									    }
 									}
 								?>
 							</optgroup>
@@ -100,32 +109,34 @@
 				<article class="package_column package_column_last">
 					<strong>Callouts</strong>
 					<ul>
-						<?
-							foreach ((array)$callouts as $cid) {
-								$callout = $admin->getCallout($cid);
-								if ($callout) {
-						?>
+						<?php
+							foreach ((array) $callouts as $cid) {
+							    $callout = $admin->getCallout($cid);
+							    if ($callout) {
+							        ?>
 						<li>
 							<input type="hidden" name="callouts[]" value="<?=$cid?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$callout["name"]?></span>
+							<span><?=$callout['name']?></span>
 						</li>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="callouts">
-							<?
-								$callouts = $admin->getCallouts("name ASC");
+							<?php
+								$callouts = $admin->getCallouts('name ASC');
 								foreach ($callouts as $callout) {
-									if (!$callout["extension"] || $callout["extension"] == $id) {
-							?>
-							<option value="<?=$callout["id"]?>"><?=$callout["name"]?></option>
-							<?
-									}
+								    if (!$callout['extension'] || $callout['extension'] == $id) {
+								        ?>
+							<option value="<?=$callout['id']?>"><?=$callout['name']?></option>
+							<?php
+
+								    }
 								}
 							?>
 						</select>
@@ -136,18 +147,19 @@
 				<article class="package_column">
 					<strong>Settings</strong>
 					<ul>
-						<?
-							foreach ((array)$settings as $sid) {
-								$setting = $admin->getSetting($sid);
-								if ($setting) {
-						?>
+						<?php
+							foreach ((array) $settings as $sid) {
+							    $setting = $admin->getSetting($sid);
+							    if ($setting) {
+							        ?>
 						<li>
 							<input type="hidden" name="settings[]" value="<?=$sid?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$setting["name"]?></span>
+							<span><?=$setting['name']?></span>
 						</li>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</ul>
@@ -155,24 +167,26 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="settings">
 							<optgroup label="Public">
-								<?
+								<?php
 									$settings = $admin->getSettings();
 									foreach ($settings as $setting) {
-										if (!$setting["extension"] || $setting["extension"] == $id) {
-								?>
-								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
-								<?
-										}
+									    if (!$setting['extension'] || $setting['extension'] == $id) {
+									        ?>
+								<option value="<?=$setting['id']?>"><?=$setting['name']?></option>
+								<?php
+
+									    }
 									}
 								?>
 							</optgroup>
 							<optgroup label="System">
-								<?
+								<?php
 									$settings = $admin->getSystemSettings();
 									foreach ($settings as $setting) {
-								?>
-								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
-								<?
+									    ?>
+								<option value="<?=$setting['id']?>"><?=$setting['name']?></option>
+								<?php
+
 									}
 								?>
 							</optgroup>
@@ -182,32 +196,34 @@
 				<article class="package_column">
 					<strong>Feeds</strong>
 					<ul>
-						<?
-							foreach ((array)$feeds as $fid) {
-								$feed = $cms->getFeed($fid);
-								if ($feed) {
-						?>
+						<?php
+							foreach ((array) $feeds as $fid) {
+							    $feed = $cms->getFeed($fid);
+							    if ($feed) {
+							        ?>
 						<li>
 							<input type="hidden" name="feeds[]" value="<?=$fid?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$feed["name"]?></span>
+							<span><?=$feed['name']?></span>
 						</li>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</ul>
 					<div class="add_feed adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="feeds">
-							<?
+							<?php
 								$feeds = $admin->getFeeds();
 								foreach ($feeds as $feed) {
-									if (!$feed["extension"] || $feed["extension"] == $id) {
-							?>
-							<option value="<?=$feed["id"]?>"><?=$feed["name"]?></option>
-							<?
-									}
+								    if (!$feed['extension'] || $feed['extension'] == $id) {
+								        ?>
+							<option value="<?=$feed['id']?>"><?=$feed['name']?></option>
+							<?php
+
+								    }
 								}
 							?>
 						</select>
@@ -216,32 +232,34 @@
 				<article class="package_column package_column_last">
 					<strong>Field Types</strong>
 					<ul>
-						<?
-							foreach ((array)$field_types as $fid) {
-								$field_type = $admin->getFieldType($fid);
-								if ($field_type) {
-						?>
+						<?php
+							foreach ((array) $field_types as $fid) {
+							    $field_type = $admin->getFieldType($fid);
+							    if ($field_type) {
+							        ?>
 						<li>
 							<input type="hidden" name="field_types[]" value="<?=$fid?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$field_type["name"]?></span>
+							<span><?=$field_type['name']?></span>
 						</li>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</ul>
 					<div class="add_field_type adder">
 						<a  href="#"></a>
 						<select class="custom_control" data-key="field_types">
-							<?
+							<?php
 								$field_types = $admin->getFieldTypes();
 								foreach ($field_types as $type) {
-									if (!$type["extension"] || $type["extension"] == $id) {
-							?>
-							<option value="<?=$type["id"]?>"><?=$type["name"]?></option>
-							<?
-									}
+								    if (!$type['extension'] || $type['extension'] == $id) {
+								        ?>
+							<option value="<?=$type['id']?>"><?=$type['name']?></option>
+							<?php
+
+								    }
 								}
 							?>
 						</select>

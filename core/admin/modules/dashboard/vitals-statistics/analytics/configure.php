@@ -1,38 +1,43 @@
-<?
+<?php
 	if ($admin->Level < 1) {
-?>
+	    ?>
 <div class="container">
 	<section>
 		<p>You are not authorized to view this section.</p>
 	</section>
 </div>
-<?
+<?php
+
 	} else {
-?>
+	    ?>
 <div class="container">
-	<?
-		if ($analytics->Settings["token"]) {
-			$profiles = $analytics->getProfiles();
-	?>
+	<?php
+		if ($analytics->Settings['token']) {
+		    $profiles = $analytics->getProfiles();
+		    ?>
 	<form method="post" action="<?=MODULE_ROOT?>set-profile/" class="module">
 		<section>
 			<fieldset>
 				<label>Choose A Profile From The List Below</label>
-				<?
+				<?php
 					if (count($profiles->Results)) {
-				?>
+					    ?>
 				<select name="profile">
-					<? foreach ($profiles->Results as $profile) { ?>
+					<?php foreach ($profiles->Results as $profile) {
+    ?>
 					<option value="<?=$profile->ID?>"><?=$profile->WebsiteURL?> &mdash; <?=$profile->Name?></option>
-					<? } ?>
+					<?php 
+}
+					    ?>
 				</select>
-				<?
+				<?php
+
 					} else {
-				?>
+					    ?>
 				<p class="error_message">No profiles were found in your Google Analytics account.</p>
-				<?  	
+				<?php 
 					}
-				?>
+		    ?>
 			</fieldset>
 		</section>
 		<footer>
@@ -41,16 +46,17 @@
 		</footer>
 	</form>
 	
-	<?
+	<?php
+
 		} else {
-			$auth_url = $analytics->AuthorizeURL.
-				"?client_id=".urlencode($analytics->ClientID).
-				"&redirect_uri=".urlencode($analytics->ReturnURL).
-				"&response_type=code".
-				"&scope=".urlencode($analytics->Scope).
-				"&approval_prompt=force".
-				"&access_type=offline";
-	?>
+		    $auth_url = $analytics->AuthorizeURL.
+				'?client_id='.urlencode($analytics->ClientID).
+				'&redirect_uri='.urlencode($analytics->ReturnURL).
+				'&response_type=code'.
+				'&scope='.urlencode($analytics->Scope).
+				'&approval_prompt=force'.
+				'&access_type=offline';
+		    ?>
 	<form method="get" action="<?=MODULE_ROOT?>set-token/" class="module">	
 		<section>
 			<p>To connect Google Analytics you will need to login to your Google Analytics account by clicking the Authenticate button below. Once you have logged in you will be taken to a screen with a code in a box. Copy that code into the field that appears below to allow BigTree to access your Google Analytics information.</p>
@@ -63,9 +69,10 @@
 			<input type="submit" class="button blue" id="profile_button" value="Save Code" style="display: none;" />
 		</footer>
 	</form>
-	<?
+	<?php
+
 		}
-	?>		
+	    ?>		
 </div>
 <script>
 	$("#google_button").click(function() {
@@ -87,6 +94,7 @@
 		return false;
 	});
 </script>
-<?
+<?php
+
 	}
 ?>

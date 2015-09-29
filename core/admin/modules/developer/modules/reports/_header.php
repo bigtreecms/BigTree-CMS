@@ -1,3 +1,4 @@
-<?
-	define("SECTION_ROOT",DEVELOPER_ROOT."modules/reports/");
+<?php
+
+	define('SECTION_ROOT', DEVELOPER_ROOT.'modules/reports/');
 ?>

@@ -1,42 +1,65 @@
-<?	
-	$error = "";
-	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["create_user"],array("htmlspecialchars"));
-		$daily_digest = isset($daily_digest) ? $daily_digest : false;
-		unset($_SESSION["bigtree_admin"]["create_user"]);
+<?php	
+	$error = '';
+	if (isset($_SESSION['bigtree_admin']['create_user'])) {
+	    BigTree::globalizeArray($_SESSION['bigtree_admin']['create_user'], array('htmlspecialchars'));
+	    $daily_digest = isset($daily_digest) ? $daily_digest : false;
+	    unset($_SESSION['bigtree_admin']['create_user']);
 	} else {
-		$email = "";
-		$name = "";
-		$company = "";
-		$daily_digest = "on";
-		$level = 0;
+	    $email = '';
+	    $name = '';
+	    $company = '';
+	    $daily_digest = 'on';
+	    $level = 0;
 	}
 ?>
 <div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/create/" method="post">	
 		<section>
-			<p class="error_message"<? if (!$error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<?php if (!$error) {
+    ?> style="display: none;"<?php 
+} ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
-				<fieldset<? if ($error == "email") { ?> class="form_error"<? } ?> style="position: relative;">
-					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <? if ($error == "email") { ?><span class="form_error_reason">Already In Use</span><? } ?></label>
+				<fieldset<?php if ($error == 'email') {
+    ?> class="form_error"<?php 
+} ?> style="position: relative;">
+					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == 'email') {
+    ?><span class="form_error_reason">Already In Use</span><?php 
+} ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
-					<span class="gravatar"<? if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
+					<span class="gravatar"<?php if ($email != '') {
+    echo ' style="display: block;"';
+} ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
-				<fieldset<? if ($error == "password") { ?> class="form_error"<? } ?>>
-					<label class="required">Password <? if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><? } ?></label>
-					<input type="password" class="required<? if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><? } ?>" name="password" value="" tabindex="3" />
-					<? if ($policy) { ?>
+				<fieldset<?php if ($error == 'password') {
+    ?> class="form_error"<?php 
+} ?>>
+					<label class="required">Password <?php if ($error == 'password') {
+    ?><span class="form_error_reason">Did Not Meet Requirements</span><?php 
+} ?></label>
+					<input type="password" class="required<?php if ($policy) {
+    ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php 
+} ?>" name="password" value="" tabindex="3" />
+					<?php if ($policy) {
+    ?>
 					<p class="password_policy">Password Policy In Effect</p>
-					<? } ?>
+					<?php 
+} ?>
 				</fieldset>
 				
 				<fieldset>
 					<label class="required">User Level</label>
 					<select name="level" tabindex="5">
 						<option value="0">Normal User</option>
-						<option value="1"<? if ($level == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-						<? if ($admin->Level > 1) { ?><option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option><? } ?>
+						<option value="1"<?php if ($level == 1) {
+    ?> selected="selected"<?php 
+} ?>>Administrator</option>
+						<?php if ($admin->Level > 1) {
+    ?><option value="2"<?php if ($level == 2) {
+    ?> selected="selected"<?php 
+}
+    ?>>Developer</option><?php 
+} ?>
 					</select>
 				</fieldset>
 			</div>
@@ -53,7 +76,9 @@
 				
 				<br />
 				<fieldset>
-					<input type="checkbox" name="daily_digest" <? if ($daily_digest) { ?>checked="checked" <? } ?>/>
+					<input type="checkbox" name="daily_digest" <?php if ($daily_digest) {
+    ?>checked="checked" <?php 
+} ?>/>
 					<label class="for_checkbox">Daily Digest Email</label>
 				</fieldset>
 			</div>

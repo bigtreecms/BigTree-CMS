@@ -5,13 +5,15 @@
 			<article class="package_column package_column_double">
 				<strong>Files</strong>
 				<ul id="package_files">
-					<? foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) { ?>
+					<?php foreach ((array) $_SESSION['bigtree_admin']['developer']['package']['files'] as $file) {
+    ?>
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<span><?=str_replace(SERVER_ROOT,"",$file)?></span>
+						<span><?=str_replace(SERVER_ROOT, '', $file)?></span>
 					</li>
-					<? } ?>
+					<?php 
+} ?>
 				</ul>
 				<div class="add_file adder">
 					<a href="#"><span class="icon_small icon_small_folder"></span>Browse For File</a>
@@ -20,34 +22,46 @@
 			<article class="package_column package_column_double package_column_last">
 				<strong>Tables</strong>
 				<ul>
-					<?
+					<?php
 						$used_tables = array();
-						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] as $table_hash) {
-							list($table,$type) = explode("#",$table_hash);
-							$used_tables[] = $table;
-					?>
+						foreach ((array) $_SESSION['bigtree_admin']['developer']['package']['tables'] as $table_hash) {
+						    list($table, $type) = explode('#', $table_hash);
+						    $used_tables[] = $table;
+						    ?>
 					<li>
 						<input type="hidden" name="tables[]" value="<?=$table_hash?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<a href="#<?=$table?>" class="icon_small <? if ($type == "with-data") { ?>icon_small_export<? } else { ?>icon_small_list<? } ?>" title="<? if ($type == "with-data") { ?>Structure &amp; Data<? } else { ?>Structure Only<? } ?>"></a>
+						<a href="#<?=$table?>" class="icon_small <?php if ($type == 'with-data') {
+    ?>icon_small_export<?php 
+} else {
+    ?>icon_small_list<?php 
+}
+						    ?>" title="<?php if ($type == 'with-data') {
+    ?>Structure &amp; Data<?php 
+} else {
+    ?>Structure Only<?php 
+}
+						    ?>"></a>
 						<?=$table?>
 					</li>
-					<?
+					<?php
+
 						}
 					?>
 				</ul>
 				<div class="add_table adder">
 					<a class="icon_small icon_small_add" href="#"></a>
 					<select class="custom_control" id="add_table_select">
-						<?
-							$q = sqlquery("SHOW TABLES");
+						<?php
+							$q = sqlquery('SHOW TABLES');
 							while ($f = sqlfetch($q)) {
-								$table = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-								if (substr($table,0,8) != "bigtree_" && !in_array($table,$used_tables)) {
-						?>
+							    $table = $f['Tables_in_'.$bigtree['config']['db']['name']];
+							    if (substr($table, 0, 8) != 'bigtree_' && !in_array($table, $used_tables)) {
+							        ?>
 						<option value="<?=$table?>"><?=$table?></option>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</select>

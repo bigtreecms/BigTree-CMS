@@ -1,5 +1,5 @@
-<?
-	$route = $admin->createFeed($_POST["name"],$_POST["description"],$_POST["table"],$_POST["type"],$_POST["options"],$_POST["fields"]);
+<?php
+	$route = $admin->createFeed($_POST['name'], $_POST['description'], $_POST['table'], $_POST['type'], $_POST['options'], $_POST['fields']);
 ?>
 <div class="container">
 	<section>

@@ -1,91 +1,100 @@
-<?
-	if (!$_SESSION["bigtree_admin"]["form_data"]) {
-		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
+<?php
+	if (!$_SESSION['bigtree_admin']['form_data']) {
+	    BigTree::redirect($_SESSION['bigtree_admin']['cropper_previous_page']);
 	}
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	BigTree::globalizeArray($_SESSION['bigtree_admin']['form_data']);
 
 	// Override the default H1
-	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");
+	$bigtree['page_override'] = array('title' => 'Crop Images','icon' => 'crop');
 
 	// Get crop information
-	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
+	$crops = $cms->cacheGet('org.bigtreecms.crops', $crop_key);
 ?>
 <div class="container">
-	<? if (count($crops) > 1) { ?>
+	<?php if (count($crops) > 1) {
+    ?>
 	<header>
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
-	<? } ?>
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<? if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
+	<?php 
+} ?>
+	<form method="post" action="<?=$bigtree['form_root']?>process-crops/<?php if (is_array($bigtree['current_page'])) {
+    echo $bigtree['current_page']['id'];
+} elseif (is_numeric($bigtree['current_page'])) {
+    echo $bigtree['current_page'];
+} ?>/" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
-			<?
+			<?php
 				$x = 0;
 				foreach ($crops as $crop) {
-					$x++;
-					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
-					$image = str_replace(SITE_ROOT,WWW_ROOT,$crop["image"]);
-					$cwidth = $crop["width"];
-					$cheight = $crop["height"];
-					
-					$box_width = $width;
-					$box_height = $height;
-					
-					if ($box_width > 420) {
-						$box_height = ceil($box_height * 420 / $box_width);
-						$box_width = 420;
-					}
-					
-					$preview_width = $cwidth;
-					$preview_height = $cheight;
-					
-					if ($preview_width > 420) {
-						$preview_height = ceil($preview_height * 420 / $preview_width);
-						$preview_width = 420;
-					}
-					
-					$image_ratio = $box_width / $width;
-					
-					$min_width = ceil($cwidth * $image_ratio);
-					$min_height = ceil($cheight * $image_ratio);
-					
-					if ($preview_height < $box_height) {
-						$preview_margin = floor(($box_height - $preview_height) / 2);
-						$box_margin = 0;
-					} else {
-						$box_margin = floor(($preview_height - $box_height) / 2);
-						$preview_margin = 0;
-					}
-					
+				    ++$x;
+				    list($width, $height, $type, $attr) = getimagesize($crop['image']);
+				    $image = str_replace(SITE_ROOT, WWW_ROOT, $crop['image']);
+				    $cwidth = $crop['width'];
+				    $cheight = $crop['height'];
+
+				    $box_width = $width;
+				    $box_height = $height;
+
+				    if ($box_width > 420) {
+				        $box_height = ceil($box_height * 420 / $box_width);
+				        $box_width = 420;
+				    }
+
+				    $preview_width = $cwidth;
+				    $preview_height = $cheight;
+
+				    if ($preview_width > 420) {
+				        $preview_height = ceil($preview_height * 420 / $preview_width);
+				        $preview_width = 420;
+				    }
+
+				    $image_ratio = $box_width / $width;
+
+				    $min_width = ceil($cwidth * $image_ratio);
+				    $min_height = ceil($cheight * $image_ratio);
+
+				    if ($preview_height < $box_height) {
+				        $preview_margin = floor(($box_height - $preview_height) / 2);
+				        $box_margin = 0;
+				    } else {
+				        $box_margin = floor(($preview_height - $box_height) / 2);
+				        $preview_margin = 0;
+				    }
+
 					// Fill the cropper to ~90% of the available area by default.
 					if ($min_width > $min_height) {
-						$initial_width = ceil($box_width * 0.90);
-						$initial_height = ceil($initial_width / $min_width * $min_height);
+					    $initial_width = ceil($box_width * 0.90);
+					    $initial_height = ceil($initial_width / $min_width * $min_height);
 					} else {
-						$initial_height = ceil($box_height * 0.90);
-						$initial_width = ceil($initial_height / $min_height * $min_width);
+					    $initial_height = ceil($box_height * 0.90);
+					    $initial_width = ceil($initial_height / $min_height * $min_width);
 					}
-					
-					if (($initial_width < $min_width || $initial_height < $min_height) || ($crop["retina"] && ($initial_width < $min_width * 2 || $initial_height < $min_height * 2))) {
-						// If we're doing a retina crop, make the initial crop area fit the retina version.
-						if ($crop["retina"]) {
-							$initial_width = $min_width * 2;
-							$initial_height = $min_height * 2;
+
+				    if (($initial_width < $min_width || $initial_height < $min_height) || ($crop['retina'] && ($initial_width < $min_width * 2 || $initial_height < $min_height * 2))) {
+				        // If we're doing a retina crop, make the initial crop area fit the retina version.
+						if ($crop['retina']) {
+						    $initial_width = $min_width * 2;
+						    $initial_height = $min_height * 2;
 						} else {
-							$initial_width = $min_width;
-							$initial_height = $min_height;
+						    $initial_width = $min_width;
+						    $initial_height = $min_height;
 						}
-					}
-					
+				    }
+
 					// Figure out where we're starting the cropping box (should be centered)
 					$initial_x = ceil(($box_width - $initial_width) / 2);
-					$initial_y = ceil(($box_height - $initial_height) / 2);
+				    $initial_y = ceil(($box_height - $initial_height) / 2);
 
 					// Figure out where the arrow should be
 					$arrow_margin = 13 + ceil($box_height / 2);
-			?>
-			<article<? if ($x > 1) { ?> style="display: none;"<? } ?>>
+				    ?>
+			<article<?php if ($x > 1) {
+    ?> style="display: none;"<?php 
+}
+				    ?>>
 				<div class="original">
 					<p>Original</p>
 					<img src="<?=$image?>" id="cropImage<?=$x?>" width="<?=$box_width?>" height="<?=$box_height?>" />
@@ -127,14 +136,15 @@
 							marginTop: '-' + Math.round(by * coords.y) + 'px'
 						});
 						
-						$("#x<?=$x?>").val(Math.round(coords.x * <?=($width/$box_width)?>));
-						$("#y<?=$x?>").val(Math.round(coords.y * <?=($height/$box_height)?>));
-						$("#width<?=$x?>").val(Math.round(coords.w * <?=($width/$box_width)?>));
-						$("#height<?=$x?>").val(Math.round(coords.h * <?=($height/$box_height)?>));
+						$("#x<?=$x?>").val(Math.round(coords.x * <?=($width / $box_width)?>));
+						$("#y<?=$x?>").val(Math.round(coords.y * <?=($height / $box_height)?>));
+						$("#width<?=$x?>").val(Math.round(coords.w * <?=($width / $box_width)?>));
+						$("#height<?=$x?>").val(Math.round(coords.h * <?=($height / $box_height)?>));
 					};
 				</script>
 			</article>
-			<?
+			<?php
+
 				}
 			?>
 		</section>

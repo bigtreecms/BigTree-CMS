@@ -1,8 +1,8 @@
-<?
-	if (isset($_GET["table"])) {
-		$table = $_GET["table"];
+<?php
+	if (isset($_GET['table'])) {
+	    $table = $_GET['table'];
 	}
-	
+
 	$reserved = BigTreeAdmin::$ReservedColumns;
 
 	$used = array();
@@ -11,32 +11,35 @@
 	$tblfields = array();
 	// To tolerate someone selecting the blank spot again when creating a view.
 	if ($table) {
-		$table_description = BigTree::describeTable($table);
+	    $table_description = BigTree::describeTable($table);
 	} else {
-		$table_description = array("columns" => array());
+	    $table_description = array('columns' => array());
 	}
-	foreach ($table_description["columns"] as $column => $details) {
-		$tblfields[] = $column;
+	foreach ($table_description['columns'] as $column => $details) {
+	    $tblfields[] = $column;
 	}
-	
+
 	if (isset($fields)) {
-		foreach ($fields as $key => $field) {
-			$used[] = $key;
-		}
+	    foreach ($fields as $key => $field) {
+	        $used[] = $key;
+	    }
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($tblfields as $field) {
-			if (!in_array($field,$reserved) && !in_array($field,$used)) {
-				$unused[] = array("field" => $field, "title" => ucwords(str_replace("_"," ",$field)));
-			}
-		}		
+		    if (!in_array($field, $reserved) && !in_array($field, $used)) {
+		        $unused[] = array('field' => $field, 'title' => ucwords(str_replace('_', ' ', $field)));
+		    }
+		}
 	}
-	
-	$preview_field = isset($view["preview_field"]) ? $view["preview_field"] : "id";
-	
-	$unused[] = array("field" => "— Custom —", "title" => "");
+
+	$preview_field = isset($view['preview_field']) ? $view['preview_field'] : 'id';
+
+	$unused[] = array('field' => '— Custom —', 'title' => '');
 	if (count($tblfields)) {
-?>
-<fieldset id="fields"<? if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<? } ?>>
+	    ?>
+<fieldset id="fields"<?php if ($type == 'images' || $type == 'images-grouped') {
+    ?> style="display: none;"<?php 
+}
+	    ?>>
 	<label>Fields</label>
 	
 	<div class="form_table">
@@ -47,36 +50,37 @@
 			<span class="developer_resource_action">Delete</span>
 		</div>
 		<ul id="sort_table">
-			<?
+			<?php
 				// If we're loading an existing data set.
 				$mtm_count = 0;
-				if (isset($fields)) {
-					foreach ($fields as $key => $field) {
-						$used[] = $key;
-			?>
+	    if (isset($fields)) {
+	        foreach ($fields as $key => $field) {
+	            $used[] = $key;
+	            ?>
 			<li id="row_<?=$key?>">
-				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"]?>" />
-				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" /></section>
-				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
+				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field['width']?>" />
+				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=$field['title']?>" /></section>
+				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field['parser'])?>" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
-			<?
-					}			
+			<?php
+
+	        }			
 				// Otherwise we're loading a new data set based on a table.
-				} else {
-					foreach ($tblfields as $key) {
-						if (!in_array($key,$reserved)) {
-			?>
+	    } else {
+	        foreach ($tblfields as $key) {
+	            if (!in_array($key, $reserved)) {
+	                ?>
 			<li id="row_<?=$key?>">
-				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(ucwords(str_replace("_"," ",$key)))?>" /></section>
+				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(ucwords(str_replace('_', ' ', $key)))?>" /></section>
 				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
-			<?	
-						}
-					}
-				}
-			?>
+			<?php	
+	            }
+	        }
+	    }
+	    ?>
 		</ul>
 	</div>
 </fieldset>
@@ -84,50 +88,61 @@
 	<label>Actions <small>(click to deselect, drag bottom tab to rearrange)</small></label>
 	<div class="developer_action_list">
 		<ul>
-			<?
+			<?php
 				$used_actions = array();
-				if (!empty($actions)) {
-					foreach ($actions as $key => $action) {
-						if ($action != "on") {
-							$data = json_decode($action,true);
-							$key = $data["route"];
-							$class = $data["class"];
-						} else {
-							$class = "icon_$key";
-							if ($key == "feature" || $key == "approve") {
-								$class .= " icon_".$key."_on";
-							}
-						}
-						$used_actions[] = $key;
-			?>
+	    if (!empty($actions)) {
+	        foreach ($actions as $key => $action) {
+	            if ($action != 'on') {
+	                $data = json_decode($action, true);
+	                $key = $data['route'];
+	                $class = $data['class'];
+	            } else {
+	                $class = "icon_$key";
+	                if ($key == 'feature' || $key == 'approve') {
+	                    $class .= ' icon_'.$key.'_on';
+	                }
+	            }
+	            $used_actions[] = $key;
+	            ?>
 			<li>
 				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" checked="checked" value="<?=htmlspecialchars($action)?>" />
 				<a href="#" class="action active">
 					<span class="<?=$class?>"></span>
 				</a>
-				<div class="handle"><? if ($action != "on") { ?><span class="edit"></span><? } ?></div>
+				<div class="handle"><?php if ($action != 'on') {
+    ?><span class="edit"></span><?php 
+}
+	            ?></div>
 			</li>
-			<?
-					}
-				}
-				foreach (BigTreeAdmin::$ViewActions as $key => $action) {
-					if (!in_array($key,$used_actions) && (in_array($action["key"],$tblfields) || isset($bigtree["module_designer_view"]))) {
-						$checked = false;
-						if (isset($actions[$key]) || (!isset($actions) && !isset($bigtree["module_designer_view"])) || (isset($bigtree["module_designer_view"]) && ($key == "edit" || $key == "delete"))) {
-							$checked = true;
-						}
-			?>
+			<?php
+
+	        }
+	    }
+	    foreach (BigTreeAdmin::$ViewActions as $key => $action) {
+	        if (!in_array($key, $used_actions) && (in_array($action['key'], $tblfields) || isset($bigtree['module_designer_view']))) {
+	            $checked = false;
+	            if (isset($actions[$key]) || (!isset($actions) && !isset($bigtree['module_designer_view'])) || (isset($bigtree['module_designer_view']) && ($key == 'edit' || $key == 'delete'))) {
+	                $checked = true;
+	            }
+	            ?>
 			<li>
-				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" value="on" <? if ($checked) { ?>checked="checked" <? } ?>/>
-				<a href="#" class="action<? if ($checked) { ?> active<? } ?>">
-					<span class="<?=$action["class"]?>"></span>
+				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" value="on" <?php if ($checked) {
+    ?>checked="checked" <?php 
+}
+	            ?>/>
+				<a href="#" class="action<?php if ($checked) {
+    ?> active<?php 
+}
+	            ?>">
+					<span class="<?=$action['class']?>"></span>
 				</a>
 				<div class="handle"></div>
 			</li>
-			<?
-					}
-				}
-			?>
+			<?php
+
+	        }
+	    }
+	    ?>
 		</ul>
 		<a href="#" class="button add_action">Add</a>
 	</div>
@@ -229,10 +244,12 @@
 		}
 	});
 </script>
-<?
+<?php
+
 	} else {
-?>
+	    ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
+
 	}
 ?>

@@ -1,9 +1,15 @@
 <section>
-	<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message"<?php if (!$e) {
+    ?> style="display: none;"<?php 
+} ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	<div class="contain">
 		<div class="left">
-			<fieldset<? if ($e) { ?> class="form_error"<? } ?>>
-				<label class="required">ID <small>(unique &mdash; this will be used to query for this setting)</small><? if ($e) { ?><span class="form_error_reason">ID Already In Use</span><? } ?></label>
+			<fieldset<?php if ($e) {
+    ?> class="form_error"<?php 
+} ?>>
+				<label class="required">ID <small>(unique &mdash; this will be used to query for this setting)</small><?php if ($e) {
+    ?><span class="form_error_reason">ID Already In Use</span><?php 
+} ?></label>
 				<input type="text" name="id" value="<?=$id?>" class="required" />
 			</fieldset>
 			<fieldset>
@@ -16,26 +22,43 @@
 				<label class="required">Type</label>
 				<select name="type" id="settings_type">
 					<optgroup label="Default">
-						<? foreach ($types["default"] as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-						<? } ?>
+						<?php foreach ($types['default'] as $k => $v) {
+    ?>
+						<option value="<?=$k?>"<?php if ($k == $type) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$v['name']?></option>
+						<?php 
+} ?>
 					</optgroup>
-					<? if (count($types["custom"])) { ?>
+					<?php if (count($types['custom'])) {
+    ?>
 					<optgroup label="Custom">
-						<? foreach ($types["custom"] as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $type) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-						<? } ?>
+						<?php foreach ($types['custom'] as $k => $v) {
+    ?>
+						<option value="<?=$k?>"<?php if ($k == $type) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$v['name']?></option>
+						<?php 
+}
+    ?>
 					</optgroup>
-					<? } ?>
+					<?php 
+} ?>
 				</select> &nbsp; <a class="icon_settings" href="#"></a>
 				<input type="hidden" name="options" value="<?=$options?>" id="options_settings" />
 			</fieldset>
 			<fieldset>
-				 <input type="checkbox" name="locked"<? if ($locked) { ?> checked="checked"<? } ?> />
+				 <input type="checkbox" name="locked"<?php if ($locked) {
+    ?> checked="checked"<?php 
+} ?> />
 				<label class="for_checkbox">Locked to Developers</label>
 			</fieldset>
 			<fieldset>
-				<input type="checkbox" name="encrypted"<? if ($encrypted) { ?> checked="checked"<? } ?> />
+				<input type="checkbox" name="encrypted"<?php if ($encrypted) {
+    ?> checked="checked"<?php 
+} ?> />
 				<label class="for_checkbox">Encrypted</label>
 			</fieldset>
 		</div>

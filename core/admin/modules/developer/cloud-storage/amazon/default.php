@@ -1,8 +1,8 @@
-<?
-	if (isset($cloud->Settings["amazon"])) {
-		BigTree::globalizeArray($cloud->Settings["amazon"],"htmlspecialchars");
+<?php
+	if (isset($cloud->Settings['amazon'])) {
+	    BigTree::globalizeArray($cloud->Settings['amazon'], 'htmlspecialchars');
 	} else {
-		$key = $secret = "";
+	    $key = $secret = '';
 	}
 ?>
 <div class="container">

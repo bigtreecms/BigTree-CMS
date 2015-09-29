@@ -1,6 +1,7 @@
-<?
-	$admin->deleteModuleForm(end($bigtree["commands"]));
+<?php
 
-	$admin->growl("Developer","Deleted Form");
-	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$_GET["module"]."/");
+	$admin->deleteModuleForm(end($bigtree['commands']));
+
+	$admin->growl('Developer', 'Deleted Form');
+	BigTree::redirect(DEVELOPER_ROOT.'modules/edit/'.$_GET['module'].'/');
 ?>

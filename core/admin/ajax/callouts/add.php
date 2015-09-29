@@ -1,31 +1,38 @@
-<?
-	if ($_POST["groups"]) {
-		$items = $admin->getCalloutsInGroups($_POST["groups"]);
+<?php
+	if ($_POST['groups']) {
+	    $items = $admin->getCalloutsInGroups($_POST['groups']);
 	} else {
-		$items = $admin->getCalloutsAllowed("name ASC");
+	    $items = $admin->getCalloutsAllowed('name ASC');
 	}
 
-	$type = $items[0]["id"];
-	$bigtree["resources"] = array("type" => $type);
-	$bigtree["callout_count"] = intval($_POST["count"]);
-	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
+	$type = $items[0]['id'];
+	$bigtree['resources'] = array('type' => $type);
+	$bigtree['callout_count'] = intval($_POST['count']);
+	$bigtree['callout_key'] = htmlspecialchars($_POST['key']);
 ?>
 <div id="callout_type">
 	<fieldset>
 		<label>Callout Type</label>
-		<? if (count($items) > 0) { ?>
-		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
-			<? foreach ($items as $item) { ?>
-			<option value="<?=$item["id"]?>"><?=$item["name"]?></option>
-			<? } ?>
+		<?php if (count($items) > 0) {
+    ?>
+		<select name="<?=$bigtree['callout_key']?>[<?=$bigtree['callout_count']?>][type]">
+			<?php foreach ($items as $item) {
+    ?>
+			<option value="<?=$item['id']?>"><?=$item['name']?></option>
+			<?php 
+}
+    ?>
 		</select>
-		<? } else { ?>
+		<?php 
+} else {
+    ?>
 		<input type="text" disabled="disabled" value="No callouts available" />
-		<? } ?>
+		<?php 
+} ?>
 	</fieldset>
 </div>
 <div id="callout_resources" class="callout_fields">
-	<? include BigTree::path("admin/ajax/callouts/resources.php") ?>
+	<?php include BigTree::path('admin/ajax/callouts/resources.php') ?>
 </div>
 
 <script>
@@ -35,8 +42,8 @@
 
 		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
 			type: data.value,
-			count: <?=$bigtree["callout_count"]?>,
-			key: "<?=$bigtree["callout_key"]?>"
+			count: <?=$bigtree['callout_count']?>,
+			key: "<?=$bigtree['callout_key']?>"
 		},BigTree.formHooks).scrollTop(0);
 	});
 </script>

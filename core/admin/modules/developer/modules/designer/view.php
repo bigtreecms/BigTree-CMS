@@ -1,15 +1,15 @@
-<?
-	$module = $admin->getModule($_GET["module"]);
-	$table = htmlspecialchars($_GET["table"]);
+<?php
+	$module = $admin->getModule($_GET['module']);
+	$table = htmlspecialchars($_GET['table']);
 
 	if (!$title) {
-		// Get the title from the route
-		$title = $_GET["title"];
+	    // Get the title from the route
+		$title = $_GET['title'];
 		// Add an s to the name (i.e. View Goods)
-		$title = (substr($title,-1,1) != "s") ? $title."s" : $title;
+		$title = (substr($title, -1, 1) != 's') ? $title.'s' : $title;
 		// If it ends in ys like Buddys then change it to Buddies
-		if (substr($title,-2) == "ys") {
-			$title = substr($title,0,-2)."ies";
+		if (substr($title, -2) == 'ys') {
+		    $title = substr($title, 0, -2).'ies';
 		}
 	}
 	$title = BigTree::safeEncode($title);
@@ -19,10 +19,12 @@
 		<p>Step 3: Creating Your View</p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/view-create/" class="module">
-		<input type="hidden" name="module" value="<?=$module["id"]?>" />
+		<input type="hidden" name="module" value="<?=$module['id']?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>
-			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please ensure you have entered an Item Title and one or more Fields.</p>
+			<p class="error_message"<?php if (!count($e)) {
+    ?> style="display: none;"<?php 
+} ?>>Errors found! Please ensure you have entered an Item Title and one or more Fields.</p>
 			
 			<div class="left">
 				<fieldset>
@@ -49,9 +51,9 @@
 			</div>
 		</section>
 		<section id="field_area" class="sub">
-			<?
-				$bigtree["module_designer_view"] = true;
-				include BigTree::path("admin/ajax/developer/load-view-fields.php");
+			<?php
+				$bigtree['module_designer_view'] = true;
+				include BigTree::path('admin/ajax/developer/load-view-fields.php');
 			?>
 		</section>
 		<footer>

@@ -5,17 +5,18 @@
 			<article class="package_column package_column_double">
 				<strong>Files</strong>
 				<ul id="package_files">
-					<?
-						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) {
-							if (file_exists($file)) {
-					?>
+					<?php
+						foreach ((array) $_SESSION['bigtree_admin']['developer']['package']['files'] as $file) {
+						    if (file_exists($file)) {
+						        ?>
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<span><?=str_replace(SERVER_ROOT,"",$file)?></span>
+						<span><?=str_replace(SERVER_ROOT, '', $file)?></span>
 					</li>
-					<?
-							}
+					<?php
+
+						    }
 						}
 					?>
 				</ul>
@@ -26,33 +27,35 @@
 			<article class="package_column package_column_double package_column_last">
 				<strong>Tables</strong>
 				<ul>
-					<?
+					<?php
 						$used_tables = array();
-						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] as $table) {
-							list($table) = explode("#",$table);
-							$used_tables[] = $table;
-					?>
+						foreach ((array) $_SESSION['bigtree_admin']['developer']['package']['tables'] as $table) {
+						    list($table) = explode('#', $table);
+						    $used_tables[] = $table;
+						    ?>
 					<li>
 						<input type="hidden" name="tables[]" value="<?=$table?>" />
 						<a href="#<?=$table?>" class="icon_small icon_small_delete"></a>
 						<?=$table?>
 					</li>
-					<?
+					<?php
+
 						}
 					?>
 				</ul>
 				<div class="add_table adder">
 					<a class="icon_small icon_small_add" href="#"></a>
 					<select class="custom_control" id="add_table_select">
-						<?
-							$q = sqlquery("SHOW TABLES");
+						<?php
+							$q = sqlquery('SHOW TABLES');
 							while ($f = sqlfetch($q)) {
-								$table = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
-								if (substr($table,0,8) != "bigtree_" && !in_array($table,$used_tables)) {
-						?>
+							    $table = $f['Tables_in_'.$bigtree['config']['db']['name']];
+							    if (substr($table, 0, 8) != 'bigtree_' && !in_array($table, $used_tables)) {
+							        ?>
 						<option value="<?=$table?>"><?=$table?></option>
-						<?
-								}
+						<?php
+
+							    }
 							}
 						?>
 					</select>

@@ -7,7 +7,7 @@
 					if (height != Height) {
 						Height = height;
 						try {
-							window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.resize(height);
+							window.parent.BigTreeEmbeddableForm<?=$bigtree['form']['id']?>.resize(height);
 						} catch (e) {}
 					}
 				}

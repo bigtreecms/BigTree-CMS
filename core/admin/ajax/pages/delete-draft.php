@@ -1,3 +1,4 @@
-<?
-	$admin->deletePageDraft($_GET["id"]);
+<?php
+
+	$admin->deletePageDraft($_GET['id']);
 ?>

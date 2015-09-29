@@ -1,8 +1,14 @@
-<?
-	$tags = $admin->searchTags($_POST["tag"]);
+<?php
+	$tags = $admin->searchTags($_POST['tag']);
 	foreach ($tags as $tag) {
-?>
-<li><a href="#"><? if ($tag == $_POST["tag"]) { ?><span><?=htmlspecialchars($tag)?></span><? } else { ?><?=htmlspecialchars($tag)?><? } ?></a></li>
-<?
+	    ?>
+<li><a href="#"><?php if ($tag == $_POST['tag']) {
+    ?><span><?=htmlspecialchars($tag)?></span><?php 
+} else {
+    ?><?=htmlspecialchars($tag)?><?php 
+}
+	    ?></a></li>
+<?php
+
 	}
 ?>

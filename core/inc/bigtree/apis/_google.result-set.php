@@ -1,62 +1,69 @@
 <?php
-	/*
-		Class: BigTreeGoogleResultSet
-			Common result set class for Google+, YouTube, and Google Analytics.
-	*/
+    /*
+        Class: BigTreeGoogleResultSet
+            Common result set class for Google+, YouTube, and Google Analytics.
+    */
 
-	class BigTreeGoogleResultSet {
+    class BigTreeGoogleResultSet
+    {
+        /*
+            Constructor:
+                Creates a result set of Google data.
 
-		/*
-			Constructor:
-				Creates a result set of Google data.
+            Parameters:
+                api - An instance of your Google-related API class.
+                last_call - Method called on the API class.
+                params - The parameters sent to last call
+                results - Results to store
+        */
 
-			Parameters:
-				api - An instance of your Google-related API class.
-				last_call - Method called on the API class.
-				params - The parameters sent to last call
-				results - Results to store
-		*/
+        public function __construct(&$api, $last_call, $params, $data, $results)
+        {
+            $this->API = $api;
+            $this->LastCall = $last_call;
+            $this->LastParameters = $params;
+            $this->NextPageToken = $data->nextPageToken;
+            $this->PreviousPageToken = $data->prevPageToken;
+            $this->Results = $results;
+        }
 
-		function __construct(&$api,$last_call,$params,$data,$results) {
-			$this->API = $api;
-			$this->LastCall = $last_call;
-			$this->LastParameters = $params;
-			$this->NextPageToken = $data->nextPageToken;
-			$this->PreviousPageToken = $data->prevPageToken;
-			$this->Results = $results;
-		}
+        /*
+            Function: nextPage
+                Calls the previous method and gets the next page of results.
 
-		/*
-			Function: nextPage
-				Calls the previous method and gets the next page of results.
+            Returns:
+                A BigTreeGoogleResultSet or false if there is not another page.
+        */
 
-			Returns:
-				A BigTreeGoogleResultSet or false if there is not another page.
-		*/
+        public function nextPage()
+        {
+            if ($this->NextPageToken) {
+                $params = $this->LastParameters;
+                $params[count($params) - 1]['pageToken'] = $this->NextPageToken;
 
-		function nextPage() {
-			if ($this->NextPageToken) {
-				$params = $this->LastParameters;
-				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
-				return call_user_func_array(array($this->API,$this->LastCall),$params);
-			}
-			return false;
-		}
+                return call_user_func_array(array($this->API, $this->LastCall), $params);
+            }
 
-		/*
-			Function: previousPage
-				Calls the previous method and gets the previous page of results.
+            return false;
+        }
 
-			Returns:
-				A BigTreeGoogleResultSet or false if there is not a previous page.
-		*/
+        /*
+            Function: previousPage
+                Calls the previous method and gets the previous page of results.
 
-		function previousPage() {
-			if ($this->PreviousPageToken) {
-				$params = $this->LastParameters;
-				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;
-				return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
-			}
-			return false;
-		}
-	}
+            Returns:
+                A BigTreeGoogleResultSet or false if there is not a previous page.
+        */
+
+        public function previousPage()
+        {
+            if ($this->PreviousPageToken) {
+                $params = $this->LastParameters;
+                $params[count($params) - 1]['pageToken'] = $this->PreviousPageToken;
+
+                return call_user_func_array(array($this->API, $this->LastCall), $this->LastParameters);
+            }
+
+            return false;
+        }
+    }

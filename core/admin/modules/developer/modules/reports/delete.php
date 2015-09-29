@@ -1,6 +1,7 @@
-<?
-	$admin->deleteModuleReport(end($bigtree["commands"]));
+<?php
 
-	$admin->growl("Developer","Deleted Report");
-	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$_GET["module"]."/");
+	$admin->deleteModuleReport(end($bigtree['commands']));
+
+	$admin->growl('Developer', 'Deleted Report');
+	BigTree::redirect(DEVELOPER_ROOT.'modules/edit/'.$_GET['module'].'/');
 ?>

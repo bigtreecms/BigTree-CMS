@@ -1,17 +1,17 @@
-<?
+<?php
 	$regions = array(
-		"ORD" => "Chicago, IL (USA)",
-		"DFW" => "Dallas/Ft. Worth, TX (USA)",
-		"HKG" => "Hong Kong",
-		"LON" => "London (UK)",
-		"IAD" => "Northern Virginia (USA)",
-		"SYD" => "Sydney (Australia)"
+		'ORD' => 'Chicago, IL (USA)',
+		'DFW' => 'Dallas/Ft. Worth, TX (USA)',
+		'HKG' => 'Hong Kong',
+		'LON' => 'London (UK)',
+		'IAD' => 'Northern Virginia (USA)',
+		'SYD' => 'Sydney (Australia)',
 	);
 
-	if (isset($cloud->Settings["rackspace"])) {
-		BigTree::globalizeArray($cloud->Settings["rackspace"],"htmlspecialchars");
+	if (isset($cloud->Settings['rackspace'])) {
+	    BigTree::globalizeArray($cloud->Settings['rackspace'], 'htmlspecialchars');
 	} else {
-		$api_key = $username = $region = "";
+	    $api_key = $username = $region = '';
 	}
 ?>
 <div class="container">
@@ -28,9 +28,14 @@
 			<fieldset>
 				<label>Region <small>(choose the location closest to your server)</small></label>
 				<select name="region">
-					<? foreach ($regions as $r => $name) { ?>
-					<option value="<?=$r?>"<? if ($r == $region) { ?> selected="selected"<? } ?>><?=$name?></option>
-					<<? } ?>
+					<?php foreach ($regions as $r => $name) {
+    ?>
+					<option value="<?=$r?>"<?php if ($r == $region) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$name?></option>
+					<<?php 
+} ?>
 				</select>
 			</fieldset>
 		</section>

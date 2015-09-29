@@ -1,49 +1,49 @@
-<?	
-	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
-		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
-			array("link" => "", "title" => "Overview", "access" => 0),
-			array("link" => "pending-changes", "title" => "Pending Changes", "access" => 0),
-			array("link" => "messages", "title" => "Message Center", "access" => 0),
-			array("link" => "vitals-statistics", "title" => "Vitals &amp; Statistics", "access" => 1)
+<?php	
+	$nav = isset($bigtree['nav_override']) ? $bigtree['nav_override'] : array(
+		array('link' => 'dashboard', 'title' => 'Dashboard', 'access' => 0, 'children' => array(
+			array('link' => '', 'title' => 'Overview', 'access' => 0),
+			array('link' => 'pending-changes', 'title' => 'Pending Changes', 'access' => 0),
+			array('link' => 'messages', 'title' => 'Message Center', 'access' => 0),
+			array('link' => 'vitals-statistics', 'title' => 'Vitals &amp; Statistics', 'access' => 1),
 		)),
-		array("link" => "pages", "title" => "Pages", "access" => 0),
-		array("link" => "modules", "title" => "Modules", "access" => 0),
-		array("link" => "users", "title" => "Users", "access" => 1),
-		array("link" => "settings", "title" => "Settings", "access" => 1),
-		array("link" => "developer", "title" => "Developer", "access" => 2, "children" => array(
-			array("link" => "", "title" => "Create", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/templates", "title" => "Templates", "access" => 2),
-				array("link" => "developer/modules", "title" => "Modules", "access" => 2),
-				array("link" => "developer/callouts", "title" => "Callouts", "access" => 2),
-				array("link" => "developer/field-types", "title" => "Field Types", "access" => 2),
-				array("link" => "developer/feeds", "title" => "Feeds", "access" => 2),
-				array("link" => "developer/settings", "title" => "Settings", "access" => 2),
-				array("link" => "developer/extensions", "title" => "Extensions &amp; Packages", "access" => 2),
+		array('link' => 'pages', 'title' => 'Pages', 'access' => 0),
+		array('link' => 'modules', 'title' => 'Modules', 'access' => 0),
+		array('link' => 'users', 'title' => 'Users', 'access' => 1),
+		array('link' => 'settings', 'title' => 'Settings', 'access' => 1),
+		array('link' => 'developer', 'title' => 'Developer', 'access' => 2, 'children' => array(
+			array('link' => '', 'title' => 'Create', 'access' => 2, 'group' => true, 'children' => array(
+				array('link' => 'developer/templates', 'title' => 'Templates', 'access' => 2),
+				array('link' => 'developer/modules', 'title' => 'Modules', 'access' => 2),
+				array('link' => 'developer/callouts', 'title' => 'Callouts', 'access' => 2),
+				array('link' => 'developer/field-types', 'title' => 'Field Types', 'access' => 2),
+				array('link' => 'developer/feeds', 'title' => 'Feeds', 'access' => 2),
+				array('link' => 'developer/settings', 'title' => 'Settings', 'access' => 2),
+				array('link' => 'developer/extensions', 'title' => 'Extensions &amp; Packages', 'access' => 2),
 			)),
-			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
-				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
-				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1),
-				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
-				array("link" => "developer/email", "title" => "Email Delivery", "access" => 2),
-				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
-				array("link" => "developer/media", "title" => "Media", "access" => 2),
-				array("link" => "developer/security", "title" => "Security", "access" => 2)
-			))
-		))
+			array('link' => '', 'title' => 'Configure', 'access' => 2, 'group' => true, 'children' => array(
+				array('link' => 'developer/cloud-storage', 'title' => 'Cloud Storage', 'access' => 2),
+				array('link' => 'developer/payment-gateway', 'title' => 'Payment Gateway', 'access' => 2),
+				array('link' => 'dashboard/vitals-statistics/analytics/configure/', 'title' => 'Analytics', 'access' => 1),
+				array('link' => 'developer/geocoding', 'title' => 'Geocoding', 'access' => 2),
+				array('link' => 'developer/email', 'title' => 'Email Delivery', 'access' => 2),
+				array('link' => 'developer/services', 'title' => 'Service APIs', 'access' => 2),
+				array('link' => 'developer/media', 'title' => 'Media', 'access' => 2),
+				array('link' => 'developer/security', 'title' => 'Security', 'access' => 2),
+			)),
+		)),
 	);
-	
+
 	$unread_messages = $admin->getUnreadMessageCount();	
-	$site = $cms->getPage(0,false);
+	$site = $cms->getPage(0, false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;
-	if (!empty($bigtree["config"]["maintenance_url"])) {
-		$environment_alert = '<span><strong>Maintenance Mode</strong> &middot; Entire Site Restricted To Developers</span>';
-	} elseif (!empty($bigtree["config"]["developer_mode"])) {
-		$environment_alert = '<span><strong>Developer Mode</strong> &middot; Admin Area Restricted To Developers</span>';
-	} elseif ($bigtree["config"]["environment"] == "dev" && $bigtree["config"]["environment_live_url"]) {
-		$environment_alert = '<span><strong>Development Site</strong> &middot; Changes Will Not Affect Live Site!</span><a href="'.$bigtree["config"]["environment_live_url"].'">Go Live</a>';
+	if (!empty($bigtree['config']['maintenance_url'])) {
+	    $environment_alert = '<span><strong>Maintenance Mode</strong> &middot; Entire Site Restricted To Developers</span>';
+	} elseif (!empty($bigtree['config']['developer_mode'])) {
+	    $environment_alert = '<span><strong>Developer Mode</strong> &middot; Admin Area Restricted To Developers</span>';
+	} elseif ($bigtree['config']['environment'] == 'dev' && $bigtree['config']['environment_live_url']) {
+	    $environment_alert = '<span><strong>Development Site</strong> &middot; Changes Will Not Affect Live Site!</span><a href="'.$bigtree['config']['environment_live_url'].'">Go Live</a>';
 	}
 ?>
 <!doctype html> 
@@ -55,75 +55,81 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><? if (isset($bigtree["admin_title"])) { ?><?=BigTree::safeEncode($bigtree["admin_title"])?> | <? } ?><?=$site["nav_title"]?> Admin</title>
+		<title><?php if (isset($bigtree['admin_title'])) {
+    ?><?=BigTree::safeEncode($bigtree['admin_title'])?> | <?php 
+} ?><?=$site['nav_title']?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<?
+		<?php
 			// Configuration based CSS
-			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
-				foreach ($bigtree["config"]["admin_css"] as $style) {
-		?>
+			if (isset($bigtree['config']['admin_css']) && is_array($bigtree['config']['admin_css'])) {
+			    foreach ($bigtree['config']['admin_css'] as $style) {
+			        ?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<?
-				}
+		<?php
+
+			    }
 			}
-			
+
 			// Runtime based CSS
-			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
-				$bigtree["css"] = array_unique($bigtree["css"]);
-				foreach ($bigtree["css"] as $style) {
-					$css_path = explode("/",$style);
+			if (isset($bigtree['css']) && is_array($bigtree['css'])) {
+			    $bigtree['css'] = array_unique($bigtree['css']);
+			    foreach ($bigtree['css'] as $style) {
+			        $css_path = explode('/', $style);
 
 					// This is an extension piece acknowledging it could be used outside the extension root
-					if ($css_path[0] == "*") {
-						$include_path = ADMIN_ROOT.$style;
+					if ($css_path[0] == '*') {
+					    $include_path = ADMIN_ROOT.$style;
 					// This is an extension inside its routed directory loading its own styles
-					} elseif (defined("EXTENSION_ROOT")) {
-						$include_path = ADMIN_ROOT."*/".$bigtree["module"]["extension"]."/css/".$style;
+					} elseif (defined('EXTENSION_ROOT')) {
+					    $include_path = ADMIN_ROOT.'*/'.$bigtree['module']['extension'].'/css/'.$style;
 					// This is just a regular old include
 					} else {
-						$include_path = ADMIN_ROOT."css/".$style;
+					    $include_path = ADMIN_ROOT.'css/'.$style;
 					}
-		?>
+			        ?>
 		<link rel="stylesheet" href="<?=$include_path?>" type="text/css" media="screen" />
-		<?
-				}
+		<?php
+
+			    }
 			}
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
-		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
-		<?
+		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree['config']['date_format'])?>";</script>
+		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree['config']['html_editor']) ? $bigtree['config']['html_editor']['src'] : 'tinymce3/tiny_mce.js'?>"></script>
+		<?php
 			// Configuration based JS
-			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
-				foreach ($bigtree["config"]["admin_js"] as $script) {
-		?>
+			if (isset($bigtree['config']['admin_js']) && is_array($bigtree['config']['admin_js'])) {
+			    foreach ($bigtree['config']['admin_js'] as $script) {
+			        ?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<?
-				}
+		<?php
+
+			    }
 			}
 
 			// Runtime based JS
-			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
-				$bigtree["js"] = array_unique($bigtree["js"]);
-				foreach ($bigtree["js"] as $script) {
-					$js_path = explode("/",$script);
+			if (isset($bigtree['js']) && is_array($bigtree['js'])) {
+			    $bigtree['js'] = array_unique($bigtree['js']);
+			    foreach ($bigtree['js'] as $script) {
+			        $js_path = explode('/', $script);
 
 					// This is an extension piece acknowledging it could be used outside the extension root
-					if ($js_path[0] == "*") {
-						$include_path = ADMIN_ROOT.$script;
+					if ($js_path[0] == '*') {
+					    $include_path = ADMIN_ROOT.$script;
 					// This is an extension inside its routed directory loading its own scripts
-					} elseif (defined("EXTENSION_ROOT")) {
-						$include_path = ADMIN_ROOT."*/".$bigtree["module"]["extension"]."/js/".$script;
+					} elseif (defined('EXTENSION_ROOT')) {
+					    $include_path = ADMIN_ROOT.'*/'.$bigtree['module']['extension'].'/js/'.$script;
 					// This is just a regular old include
 					} else {
-						$include_path = ADMIN_ROOT."js/".$script;
+					    $include_path = ADMIN_ROOT.'js/'.$script;
 					}
 
-		?>
+			        ?>
 		<script src="<?=$include_path?>"></script>
-		<?
-				}
+		<?php
+
+			    }
 			}
 		?>
 		<!--[if lt IE 9]>
@@ -140,56 +146,70 @@
 		</script>
 		<header class="main">
 			<section>
-				<a href="<? if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span>Logout</a>
+				<a href="<?php if ($bigtree['config']['force_secure_login']) {
+    echo str_replace('http://', 'https://', ADMIN_ROOT);
+} else {
+    echo ADMIN_ROOT;
+} ?>login/logout/" class="logout"><span></span>Logout</a>
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
 				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
-				<strong><?=$site["nav_title"]?></strong>
+				<strong><?=$site['nav_title']?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site">View Site</a>
 			</section>
 		</header>
 		<nav class="main">
 			<section>
 				<ul>
-					<?
+					<?php
 						$x = -1;
 						foreach ($nav as $item) {
-							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
-								$x++;
+						    if ($admin->Level >= $item['access'] && (!$admin->HidePages || $item['link'] != 'pages')) {
+						        ++$x;
 								// Need to check custom nav states better
-								$link_pieces = explode("/",$item["link"]);
-								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
-					?>
+								$link_pieces = explode('/', $item['link']);
+						        $path_pieces = array_slice($bigtree['path'], 1, count($link_pieces));
+						        ?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
-						<? if (isset($item["children"]) && count($item["children"])) { ?>
+						<a href="<?=ADMIN_ROOT?><?=$item['link']?>/"<?php if ($link_pieces == $path_pieces || ($item['link'] == 'modules' && isset($bigtree['module']))) {
+    $bigtree['active_nav_item'] = $x;
+    ?> class="active"<?php 
+}
+						        ?>><span class="<?=$cms->urlify($item['title'])?>"></span><?=$item['title']?></a>
+						<?php if (isset($item['children']) && count($item['children'])) {
+    ?>
 						<ul>
-							<?
-								foreach ($item["children"] as $child) {
-									if ($admin->Level >= $child["access"]) {
-										if (isset($child["group"]) && count($child["children"])) {
-							?>
-							<li class="grouper"><?=$child["title"]?></li>
-							<? 
-											foreach ($child["children"] as $c) {
-							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=$c["title"]?></a></li>
-							<?
+							<?php
+								foreach ($item['children'] as $child) {
+								    if ($admin->Level >= $child['access']) {
+								        if (isset($child['group']) && count($child['children'])) {
+								            ?>
+							<li class="grouper"><?=$child['title']?></li>
+							<?php 
+											foreach ($child['children'] as $c) {
+											    ?>
+							<li><a href="<?=ADMIN_ROOT?><?=$c['link']?>/"><?=$c['title']?></a></li>
+							<?php
+
 											}
-										} elseif (!isset($child["group"])) {
-							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=$child["title"]?></a></li>
-							<?
-										}
-									}
+								        } elseif (!isset($child['group'])) {
+								            ?>
+							<li><a href="<?=ADMIN_ROOT?><?=$item['link']?>/<?=$child['link']?>/"><?=$child['title']?></a></li>
+							<?php
+
+								        }
+								    }
 								}
-							?>
+    ?>
 						</ul>
-						<? } ?>
+						<?php 
+}
+						        ?>
 					</li>
-					<?
-							}	
+					<?php
+
+						    }
 						}
 					?>
 				</ul>
@@ -202,9 +222,11 @@
 		</nav>
 		<div class="body">
 			<div class="wrapper">
-				<? if ($environment_alert) { ?>
+				<?php if ($environment_alert) {
+    ?>
 				<div class="environment_alert">
 					<?=$environment_alert?>
 				</div>
-				<? } ?>
+				<?php 
+} ?>
 				<aside id="growl"></aside>

@@ -1,17 +1,21 @@
-<?
+<?php
 	// Defaults
-	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
-	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
+	$sort = isset($options['sort']) ? $options['sort'] : 'id DESC';
+	$per_page = isset($options['per_page']) ? $options['per_page'] : 15;
 ?>
 <fieldset>
 	<label>Sort By</label>
-	<? if ($table) { ?>
+	<?php if ($table) {
+    ?>
 	<select name="sort">
-		<? BigTree::getFieldSelectOptions($table,$sort,true) ?>
+		<?php BigTree::getFieldSelectOptions($table, $sort, true) ?>
 	</select>
-	<? } else { ?>
+	<?php 
+} else {
+    ?>
 	<input name="sort" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
-	<? } ?>
+	<?php 
+} ?>
 </fieldset>
 <fieldset>
 	<label>Items Per Page</label>

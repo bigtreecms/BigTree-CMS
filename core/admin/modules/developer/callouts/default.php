@@ -1,5 +1,5 @@
-<?
-	$callouts = $admin->getCallouts("name ASC");	
+<?php
+	$callouts = $admin->getCallouts('name ASC');	
 ?>
 <div class="table">
 	<summary>
@@ -10,19 +10,21 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<? foreach ($callouts as $item) { ?>
+		<?php foreach ($callouts as $item) {
+    ?>
 		<li>
 			<section class="developer_templates_name">
-				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$item['id']?>/"><?=$item['name']?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$item["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$item['id']?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>callouts/delete/<?=$item["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/delete/<?=$item['id']?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php 
+} ?>
 	</ul>
 </div>
 <script>

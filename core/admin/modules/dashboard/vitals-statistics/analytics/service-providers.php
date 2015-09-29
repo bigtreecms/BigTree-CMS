@@ -8,21 +8,22 @@
 		<span class="analytics_view_count">View Count</span>
 	</header>
 	<ul id="service_providers">
-		<?
-			if (is_array($cache["service_providers"])) {
-				foreach ($cache["service_providers"] as $provider) {
-		?>
+		<?php
+			if (is_array($cache['service_providers'])) {
+			    foreach ($cache['service_providers'] as $provider) {
+			        ?>
 		<li>
-			<section class="analytics_metric_name"><?=ucwords($provider["name"])?></section>
-			<section class="analytics_visit_count"><?=$provider["visits"]?></section>
-			<section class="analytics_view_count"><?=$provider["views"]?></section>
+			<section class="analytics_metric_name"><?=ucwords($provider['name'])?></section>
+			<section class="analytics_visit_count"><?=$provider['visits']?></section>
+			<section class="analytics_view_count"><?=$provider['views']?></section>
 		</li>
-		<?
-				}
+		<?php
+
+			    }
 			} else {
-		?>
+			    ?>
 		<li class="no_content">We have no data yet.</li>
-		<?		
+		<?php	
 			}
 		?>
 	</ul>

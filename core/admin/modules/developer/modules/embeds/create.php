@@ -1,12 +1,12 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
 
-	$module = end($bigtree["path"]);
+	$module = end($bigtree['path']);
 
-	$default_position = isset($default_position) ? $default_position : "";
-	$embed = $admin->createModuleEmbedForm($module,$title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
+	$default_position = isset($default_position) ? $default_position : '';
+	$embed = $admin->createModuleEmbedForm($module, $title, $table, $fields, $hooks, $default_position, $default_pending, $css, $redirect_url, $thank_you_message);
 
-	$admin->growl("Developer","Created Embeddable Form");
+	$admin->growl('Developer', 'Created Embeddable Form');
 ?>
 <div class="container">
 	<section>

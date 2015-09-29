@@ -1,5 +1,5 @@
-<?
-	$id = end($bigtree["path"]);
+<?php
+	$id = end($bigtree['path']);
 	$group = $admin->getModuleGroup($id);
 ?>
 <div class="container">
@@ -7,7 +7,7 @@
 		<section>
 			<fieldset>
 			    <label class="required">Name</label>
-			    <input type="text" name="name" value="<?=$group["name"]?>" class="required" />
+			    <input type="text" name="name" value="<?=$group['name']?>" class="required" />
 			</fieldset>
 		</section>
 		<footer>

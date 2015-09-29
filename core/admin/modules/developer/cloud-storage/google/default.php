@@ -16,26 +16,28 @@
 			<hr />
 			<fieldset>
 				<label>Project ID</label>
-				<input type="text" name="project" value="<?=htmlspecialchars($cloud->Settings["project"])?>" />
+				<input type="text" name="project" value="<?=htmlspecialchars($cloud->Settings['project'])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Client ID</label>
-				<input type="text" name="key" value="<?=htmlspecialchars($cloud->Settings["key"])?>" />
+				<input type="text" name="key" value="<?=htmlspecialchars($cloud->Settings['key'])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Client Secret</label>
-				<input type="text" name="secret" value="<?=htmlspecialchars($cloud->Settings["secret"])?>" />
+				<input type="text" name="secret" value="<?=htmlspecialchars($cloud->Settings['secret'])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Certificate Email Address <small>(optional, needed only for Temporary Private URLs)</small></label>
-				<input type="text" name="certificate_email" value="<?=htmlspecialchars($cloud->Settings["certificate_email"])?>" />
+				<input type="text" name="certificate_email" value="<?=htmlspecialchars($cloud->Settings['certificate_email'])?>" />
 			</fieldset>
 			<fieldset class="developer_cloud_key">
 				<label>Certificate Private Key <small>(optional, needed only for Temporary Private URLs)</small></label>
 				<input type="file" name="private_key" />
-				<? if ($cloud->Settings["private_key"]) { ?>
+				<?php if ($cloud->Settings['private_key']) {
+    ?>
 				<span class="icon_approve icon_approve_on"></span>
-				<? } ?>
+				<?php 
+} ?>
 			</fieldset>
 		</section>
 		<footer>

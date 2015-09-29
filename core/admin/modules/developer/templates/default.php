@@ -1,6 +1,6 @@
-<?
+<?php
 	$templates = $admin->getTemplates();
-	
+
 	// Need to create a ridiculous hack because jQuery's sortable is stupid.
 	$x = 0;
 	$rel_table = array();
@@ -12,26 +12,27 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="basic_templates">
-		<?
+		<?php
 			foreach ($templates as $template) {
-				if (!$template["routed"]) {
-					$x++;
-					$rel_table[$x] = $template["id"];
-		?>
+			    if (!$template['routed']) {
+			        ++$x;
+			        $rel_table[$x] = $template['id'];
+			        ?>
 		<li id="row_<?=$x?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template['id']?>/"><?=$template['name']?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template['id']?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template['id']?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<?
-				}
+		<?php
+
+			    }
 			}
 		?>
 	</ul>
@@ -44,26 +45,27 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="routed_templates">
-		<?
+		<?php
 			foreach ($templates as $template) {
-				if ($template["routed"]) {
-					$x++;
-					$rel_table[$x] = $template["id"];
-		?>
+			    if ($template['routed']) {
+			        ++$x;
+			        $rel_table[$x] = $template['id'];
+			        ?>
 		<li id="row_<?=$x?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/"><?=$template["name"]?></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template['id']?>/"><?=$template['name']?></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template['id']?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template['id']?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<?
-				}
+		<?php
+
+			    }
 			}
 		?>
 	</ul>

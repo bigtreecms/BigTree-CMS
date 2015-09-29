@@ -1,47 +1,50 @@
-<?
-	$id = end($bigtree["path"]);
-	$callouts = $admin->getCallouts("name ASC");
+<?php
+	$id = end($bigtree['path']);
+	$callouts = $admin->getCallouts('name ASC');
 	$group = $admin->getCalloutGroup($id);
-	$group["callouts"] = is_array($group["callouts"]) ? $group["callouts"] : array();
+	$group['callouts'] = is_array($group['callouts']) ? $group['callouts'] : array();
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$id?>/" class="module">
 		<section>
 			<fieldset>
 			    <label class="required">Name</label>
-			    <input type="text" name="name" value="<?=$group["name"]?>" class="required" />
+			    <input type="text" name="name" value="<?=$group['name']?>" class="required" />
 			</fieldset>
 			<fieldset>
 				<label>Callouts</label>
 				<div class="multi_widget many_to_many" id="group_callouts">
-					<section<? if (count($group["callouts"])) { ?> style="display: none;"<? } ?>>
+					<section<?php if (count($group['callouts'])) {
+    ?> style="display: none;"<?php 
+} ?>>
 						<p>Click "Add Item" to add an item to this list.</p>
 					</section>
 					<ul>
-						<?
+						<?php
 							$x = 0;
-							foreach ($group["callouts"] as $id) {
-								$callout = $admin->getCallout($id);
-						?>
+							foreach ($group['callouts'] as $id) {
+							    $callout = $admin->getCallout($id);
+							    ?>
 						<li>
 							<input type="hidden" name="callouts[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-							<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
+							<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout['name']), 100))?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
-						<?
-								$x++;
+						<?php
+								++$x;
 							}
 						?>
 					</ul>
 					<footer>
 						<select>
-							<?
+							<?php
 								foreach ($callouts as $callout) {
-									if (!in_array($callout["id"],$group["callouts"])) {
-							?>
-							<option value="<?=BigTree::safeEncode($callout["id"])?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></option>
-							<?
-									}
+								    if (!in_array($callout['id'], $group['callouts'])) {
+								        ?>
+							<option value="<?=BigTree::safeEncode($callout['id'])?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout['name']), 100))?></option>
+							<?php
+
+								    }
 								}
 							?>
 						</select>

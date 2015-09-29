@@ -1,8 +1,8 @@
-<?
-	$method = $_SESSION["bigtree_admin"]["upgrade_method"];	
+<?php
+	$method = $_SESSION['bigtree_admin']['upgrade_method'];	
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/install/">
-	<input type="hidden" name="type" value="<?=htmlspecialchars($_GET["type"])?>" />
+	<input type="hidden" name="type" value="<?=htmlspecialchars($_GET['type'])?>" />
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
 		<section>

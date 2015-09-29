@@ -1,30 +1,34 @@
-<?
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+<?php
+	BigTree::globalizeArray($_SESSION['bigtree_admin']['form_data']);
 
 	// Get crop information
-	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
+	$crops = $cms->cacheGet('org.bigtreecms.crops', $crop_key);
 ?>
 <div class="container">
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?id=<?=$bigtree["form"]["id"]?>&hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
+	<form method="post" action="<?=$bigtree['form_root']?>process-crops/?id=<?=$bigtree['form']['id']?>&hash=<?=$bigtree['form']['hash']?>" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
-			<?
+			<?php
 				$x = 0;
 				foreach ($crops as $crop) {
-					$x++;
-					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
-			?>
-			<article<? if ($x > 1) { ?> style="display: none;"<? } ?>>
+				    ++$x;
+				    list($width, $height, $type, $attr) = getimagesize($crop['image']);
+				    ?>
+			<article<?php if ($x > 1) {
+    ?> style="display: none;"<?php 
+}
+				    ?>>
 				<div class="original">
-					<img src="<?=str_replace(SITE_ROOT,WWW_ROOT,$crop["image"])?>" id="cropImage<?=$x?>" data-retina="<?=$crop["retina"]?>" data-width="<?=$width?>" data-height="<?=$height?>" data-crop-width="<?=$crop["width"]?>" data-crop-height="<?=$crop["height"]?>" alt="" />
+					<img src="<?=str_replace(SITE_ROOT, WWW_ROOT, $crop['image'])?>" id="cropImage<?=$x?>" data-retina="<?=$crop['retina']?>" data-width="<?=$width?>" data-height="<?=$height?>" data-crop-width="<?=$crop['width']?>" data-crop-height="<?=$crop['height']?>" alt="" />
 				</div>
 				<input type="hidden" name="x[]" id="x<?=$x?>" />
 				<input type="hidden" name="y[]" id="y<?=$x?>" />
 				<input type="hidden" name="width[]" id="width<?=$x?>" />
 				<input type="hidden" name="height[]" id="height<?=$x?>" />
 			</article>
-			<?
+			<?php
+
 				}
 			?>
 		</section>
@@ -141,7 +145,7 @@
 		}
 	};
 
-	window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.scrollToTop();
+	window.parent.BigTreeEmbeddableForm<?=$bigtree['form']['id']?>.scrollToTop();
 	BigTree.localCurrentCrop = 1;
 	BigTree.localMaxCrops = <?=count($crops)?>;
 	BigTree.localWindowWidth = window.innerWidth;

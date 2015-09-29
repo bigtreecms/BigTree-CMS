@@ -1,11 +1,12 @@
-<?
-	header("Content-type: text/json");
+<?php
 
-	$analytics = new BigTreeGoogleAnalyticsAPI;
+	header('Content-type: text/json');
+
+	$analytics = new BigTreeGoogleAnalyticsAPI();
 	try {
-		$analytics->cacheInformation();
-		echo "true";
+	    $analytics->cacheInformation();
+	    echo 'true';
 	} catch (Exception $e) {
-		echo "false";
+	    echo 'false';
 	}
 ?>

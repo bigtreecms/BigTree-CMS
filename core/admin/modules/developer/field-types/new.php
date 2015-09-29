@@ -1,5 +1,5 @@
-<?
-	$file = end($bigtree["path"]).".php";
+<?php
+	$file = end($bigtree['path']).'.php';
 ?>
 <div class="container">
 	<section>

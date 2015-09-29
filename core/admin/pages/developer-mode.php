@@ -1,6 +1,6 @@
-<?
-	$bigtree["layout"] = "login";
-	$site = $cms->getPage(0,false);
+<?php
+	$bigtree['layout'] = 'login';
+	$site = $cms->getPage(0, false);
 ?>
 <form method="post" action="" class="maintenance">
 	<fieldset>
