@@ -1,68 +1,68 @@
-<?
+<?php
 	$filter_types = array(
-		"search" => "Simple Search",
-		"dropdown" => "Dropdown Select",
-		"boolean" => "Yes/No/Both Select",
-		"date-range" => "Date Range"
+		'search' => 'Simple Search',
+		'dropdown' => 'Dropdown Select',
+		'boolean' => 'Yes/No/Both Select',
+		'date-range' => 'Date Range',
 	);
-	$type = isset($_POST["report_type"]) ? $_POST["report_type"] : $type;
-	
+	$type = isset($_POST['report_type']) ? $_POST['report_type'] : $type;
+
 	$used_fields = array();
 	$used_filters = array();
 	$unused_fields = array();
 	$unused_filters = array();
-	
-	$table = isset($_POST["table"]) ? $_POST["table"] : $table;
+
+	$table = isset($_POST['table']) ? $_POST['table'] : $table;
 	$table_columns = array();
 
 	if (isset($fields)) {
-		foreach ($fields as $key => $field) {
-			$used_fields[] = $key;
-		}
-		foreach ($filters as $key => $field) {
-			$used_filters[] = $key;
-		}
+	    foreach ($fields as $key => $field) {
+	        $used_fields[] = $key;
+	    }
+	    foreach ($filters as $key => $field) {
+	        $used_filters[] = $key;
+	    }
 		// Figure out the fields we're not using so we can offer them back.
 		$table_description = BigTree::describeTable($table);
-		foreach ($table_description["columns"] as $column => $details) {
-			if (!in_array($column,$used_fields)) {
-				$unused_fields[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
-			}
-			if (!in_array($column,$used_filters)) {
-				$unused_filters[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
-			}
-			$table_columns[] = $column;
-		}
+	    foreach ($table_description['columns'] as $column => $details) {
+	        if (!in_array($column, $used_fields)) {
+	            $unused_fields[] = array('field' => $column, 'title' => str_replace(array('Url', 'Pdf', 'Sql'), array('URL', 'PDF', 'SQL'), ucwords(str_replace(array('-', '_'), ' ', $details['name']))));
+	        }
+	        if (!in_array($column, $used_filters)) {
+	            $unused_filters[] = array('field' => $column, 'title' => str_replace(array('Url', 'Pdf', 'Sql'), array('URL', 'PDF', 'SQL'), ucwords(str_replace(array('-', '_'), ' ', $details['name']))));
+	        }
+	        $table_columns[] = $column;
+	    }
 	} else {
-		$fields = array();
-		$filters = array();
+	    $fields = array();
+	    $filters = array();
 
 		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
-			$table_info = BigTree::describeTable($table);
+		    $table_info = BigTree::describeTable($table);
 		} else {
-			$table_info = array("foreign_keys" => array(), "columns" => array());
+		    $table_info = array('foreign_keys' => array(), 'columns' => array());
 		}
 
-		foreach ($table_info["columns"] as $column) {
-			$table_columns[] = $column["name"];
-			$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
-			$fields[$column["name"]] = $title;
+	    foreach ($table_info['columns'] as $column) {
+	        $table_columns[] = $column['name'];
+	        $title = str_replace(array('Url', 'Pdf', 'Sql'), array('URL', 'PDF', 'SQL'), ucwords(str_replace(array('-', '_'), ' ', $column['name'])));
+	        $fields[$column['name']] = $title;
 
-			$type = "search";
-			if ($column["type"] == "date" || $column["type"] == "datetime" || $column["type"] == "timestamp") {
-				$type = "date-range";
-			}
-			if ($column["name"] == "approved" || $column["name"] == "archived" || $column["name"] == "featured") {
-				$type = "boolean";
-			}
+	        $type = 'search';
+	        if ($column['type'] == 'date' || $column['type'] == 'datetime' || $column['type'] == 'timestamp') {
+	            $type = 'date-range';
+	        }
+	        if ($column['name'] == 'approved' || $column['name'] == 'archived' || $column['name'] == 'featured') {
+	            $type = 'boolean';
+	        }
 
-			$filters[$column["name"]] = array("title" => $title,"type" => $type);
-		}
+	        $filters[$column['name']] = array('title' => $title,'type' => $type);
+	    }
 	}
 
 	if (count($fields)) {
-?>
+	    ?>
 <fieldset id="filter_table" class="last">
 	<label>Report Filters</label>
 	
@@ -74,37 +74,47 @@
 			<span class="developer_report_action"></span>
 		</div>
 		<ul>
-			<?
+			<?php
 				foreach ($filters as $key => $filter) {
-					// If this column is no longer in the table, we're going to remove it.
-					if (in_array($key,$table_columns)) {
-						$used[] = $key;
-			?>
+				    // If this column is no longer in the table, we're going to remove it.
+					if (in_array($key, $table_columns)) {
+					    $used[] = $key;
+					    ?>
 			<li>
 				<section class="developer_report_filter_title">
 					<span class="icon_sort"></span>
-					<input type="text" name="filters[<?=$key?>][title]" value="<?=htmlspecialchars($filter["title"])?>" />
+					<input type="text" name="filters[<?=$key?>][title]" value="<?=htmlspecialchars($filter['title'])?>" />
 				</section>
 				<section class="developer_report_filter_type">
 					<select name="filters[<?=$key?>][type]">
-						<? foreach ($filter_types as $t => $d) { ?>
-						<option value="<?=$t?>"<? if ($t == $filter["type"]) { ?> selected="selected"<? } ?>><?=$d?></option>
-						<? } ?>
+						<?php foreach ($filter_types as $t => $d) {
+    ?>
+						<option value="<?=$t?>"<?php if ($t == $filter['type']) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$d?></option>
+						<?php 
+}
+					    ?>
 					</select>
 				</section>
 				<section class="developer_report_action">
 					<a href="#" class="icon_delete" name="<?=$key?>"></a>
 				</section>
 			</li>
-			<?
+			<?php
+
 					}
 				}
-			?>
+	    ?>
 		</ul>
 	</div>
 </fieldset>
 
-<fieldset id="field_table" class="last"<? if ($type != "csv") { ?> style="display: none;"<? } ?>>
+<fieldset id="field_table" class="last"<?php if ($type != 'csv') {
+    ?> style="display: none;"<?php 
+}
+	    ?>>
 	<br /><br />
 	<label>Fields to Include in CSV File</label>
 	<div class="form_table">
@@ -114,12 +124,12 @@
 			<span class="developer_report_action"></span>
 		</div>
 		<ul>
-			<?
+			<?php
 				foreach ($fields as $key => $field) {
-					// If this column is no longer in the table, we're going to remove it.
-					if (in_array($key,$table_columns)) {
-						$used[] = $key;
-			?>
+				    // If this column is no longer in the table, we're going to remove it.
+					if (in_array($key, $table_columns)) {
+					    $used[] = $key;
+					    ?>
 			<li>
 				<section class="developer_report_field_title">
 					<span class="icon_sort"></span>
@@ -129,10 +139,11 @@
 					<a href="#" class="icon_delete" name="<?=$key?>"></a>
 				</section>
 			</li>
-			<?
+			<?php
+
 					}
 				}
-			?>
+	    ?>
 		</ul>
 	</div>
 </fieldset>
@@ -162,7 +173,10 @@
 			var key = el.field;
 			
 			var li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><? foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><? } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
+			li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><?php foreach ($filter_types as $k => $v) {
+    ?><option value="<?=$k?>"><?=$v?></option><?php 
+}
+	    ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 			
 			$("#filter_table ul").append(li);
 			fs.removeCurrent();
@@ -170,10 +184,12 @@
 		}
 	});
 </script>
-<?
+<?php
+
 	} else {
-?>
+	    ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
+
 	}
 ?>

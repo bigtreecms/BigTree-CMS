@@ -1,61 +1,82 @@
-<?
+<?php
 	$cached_types = $admin->getCachedFieldTypes(true);
-	$types = $cached_types["callouts"];
-	$columns = is_array($data["columns"]) ? $data["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
-	$data["max"] = $data["max"] ? intval($data["max"]) : "";
+	$types = $cached_types['callouts'];
+	$columns = is_array($data['columns']) ? $data['columns'] : array(array('id' => '','title' => '','subtitle' => '','type' => 'text'));
+	$data['max'] = $data['max'] ? intval($data['max']) : '';
 ?>
 <fieldset>
 	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
-	<input type="text" name="max" value="<?=$data["max"]?>" />
+	<input type="text" name="max" value="<?=$data['max']?>" />
 </fieldset>
 <fieldset>
 	<label>Style</label>
 	<select name="style">
 		<option value="list">List (like Many to Many)</option>
-		<option value="callout"<? if ($data["style"] == "callout") { ?> selected="selected"<? } ?>>Blocks (like Callouts)</option>
+		<option value="callout"<?php if ($data['style'] == 'callout') {
+    ?> selected="selected"<?php 
+} ?>>Blocks (like Callouts)</option>
 	</select>
 </fieldset>
 <div class="matrix_wrapper">
 	<span class="icon_small icon_small_add matrix_add_column"></span>
 	<label>Columns</label>
 	<section class="matrix_table">
-		<?
+		<?php
 			$x = 0;
 			foreach ($columns as $column) {
-				$x++;
-		?>
+			    ++$x;
+			    ?>
 		<article>
 			<div>
 				<select name="columns[][type]">
 					<optgroup label="Default">
-						<? foreach ($types["default"] as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $column["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-						<? } ?>
+						<?php foreach ($types['default'] as $k => $v) {
+    ?>
+						<option value="<?=$k?>"<?php if ($k == $column['type']) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$v['name']?></option>
+						<?php 
+}
+			    ?>
 					</optgroup>
-					<? if (count($types["custom"])) { ?>
+					<?php if (count($types['custom'])) {
+    ?>
 					<optgroup label="Custom">
-						<? foreach ($types["custom"] as $k => $v) { ?>
-						<option value="<?=$k?>"<? if ($k == $column["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-						<? } ?>
+						<?php foreach ($types['custom'] as $k => $v) {
+    ?>
+						<option value="<?=$k?>"<?php if ($k == $column['type']) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$v['name']?></option>
+						<?php 
+}
+    ?>
 					</optgroup>
-					<? } ?>
+					<?php 
+}
+			    ?>
 				</select>		
-				<input type="text" name="columns[][id]" value="<?=htmlspecialchars($column["id"])?>" placeholder="ID" />
-				<input type="text" name="columns[][title]" value="<?=htmlspecialchars($column["title"])?>" placeholder="Title" />
-				<input type="text" name="columns[][subtitle]" value="<?=htmlspecialchars($column["subtitle"])?>" placeholder="Subtitle" />
+				<input type="text" name="columns[][id]" value="<?=htmlspecialchars($column['id'])?>" placeholder="ID" />
+				<input type="text" name="columns[][title]" value="<?=htmlspecialchars($column['title'])?>" placeholder="Title" />
+				<input type="text" name="columns[][subtitle]" value="<?=htmlspecialchars($column['subtitle'])?>" placeholder="Subtitle" />
 			</div>
 			<footer>
 				<div class="matrix_display_title">
-					<input type="checkbox" name="columns[][display_title]"<? if ($column["display_title"]) { ?> checked="checked"<? } ?> />
+					<input type="checkbox" name="columns[][display_title]"<?php if ($column['display_title']) {
+    ?> checked="checked"<?php 
+}
+			    ?> />
 					<label class="for_checkbox">Use as Title</label>
 				</div>
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][options]" value="<?=htmlspecialchars($column["options"])?>" />
+				<input type="hidden" name="columns[][options]" value="<?=htmlspecialchars($column['options'])?>" />
 			</footer>
 		</article>
-		<?
+		<?php
+
 			}
 		?>
 	</section>
@@ -101,7 +122,14 @@
 		$(".bigtree_dialog_window").last().find(".matrix_add_column").click(function() {
 			ColumnCount++;
 			
-			var item = $('<article>').html('<div><select name="columns[' + ColumnCount + '][type]"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select>' +
+			var item = $('<article>').html('<div><select name="columns[' + ColumnCount + '][type]"><optgroup label="Default"><?php foreach ($types['default'] as $k => $v) {
+    ?><option value="<?=$k?>"><?=$v['name']?></option><?php 
+} ?></optgroup><?php if (count($types['custom'])) {
+    ?><optgroup label="Custom"><?php foreach ($types['custom'] as $k => $v) {
+    ?><option value="<?=$k?>"><?=$v['name']?></option><?php 
+}
+    ?></optgroup><?php 
+} ?></select>' +
 										   '<input type="text" name="columns[' + ColumnCount + '][id]" value="" placeholder="ID" />' +
 										   '<input type="text" name="columns[' + ColumnCount + '][title]" value="" placeholder="Title" />' +
 										   '<input type="text" name="columns[' + ColumnCount + '][subtitle]" value="" placeholder="Subtitle" /></div>' +

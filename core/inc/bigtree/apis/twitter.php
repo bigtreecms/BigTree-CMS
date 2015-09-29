@@ -1,18 +1,19 @@
-<?
+<?php
+
 	/*
 		Class: BigTreeTwitterAPI
 			Twitter API class that implements most functionality (limited lists support).
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
 
-	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
-	class BigTreeTwitterAPI extends BigTreeOAuthAPIBase {
-
-		var $Configuration;
-		var $EndpointURL = "https://api.twitter.com/1.1/";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "hash";
-		var $TweetLength;
+	require_once SERVER_ROOT.'core/inc/bigtree/apis/_oauth.base.php';
+	class BigTreeTwitterAPI extends BigTreeOAuthAPIBase
+	{
+	    public $Configuration;
+	    public $EndpointURL = 'https://api.twitter.com/1.1/';
+	    public $OAuthVersion = '1.0';
+	    public $RequestType = 'hash';
+	    public $TweetLength;
 
 		/*
 			Constructor:
@@ -22,11 +23,12 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
-			parent::__construct("bigtree-internal-twitter-api","Twitter API","org.bigtreecms.api.twitter",$cache);
+		public function __construct($cache = true)
+		{
+		    parent::__construct('bigtree-internal-twitter-api', 'Twitter API', 'org.bigtreecms.api.twitter', $cache);
 
 			// Set OAuth Return URL
-			$this->ReturnURL = ADMIN_ROOT."developer/services/twitter/return/";
+			$this->ReturnURL = ADMIN_ROOT.'developer/services/twitter/return/';
 		}
 
 		/*
@@ -40,12 +42,14 @@
 				A BigTreeTwitterUser object if successful.
 		*/
 
-		function block($username) {
-			$response = $this->call("blocks/create.json",array("screen_name" => $username),"POST");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterUser($response,$this);
+		public function block($username)
+		{
+		    $response = $this->call('blocks/create.json', array('screen_name' => $username), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterUser($response, $this);
 		}
 
 		/*
@@ -53,15 +57,18 @@
 				Piggybacks on the base call to provide error checking for Twitter.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
-			$response = parent::callUncached($endpoint,$params,$method,$headers);
-			if (isset($response->errors) && count($response->errors)) {
-				foreach ($response->errors as $e) {
-					$this->Errors[] = $e->message;
-				}
-				return false;
-			}
-			return $response;
+		public function callUncached($endpoint, $params = array(), $method = 'GET', $headers = array())
+		{
+		    $response = parent::callUncached($endpoint, $params, $method, $headers);
+		    if (isset($response->errors) && count($response->errors)) {
+		        foreach ($response->errors as $e) {
+		            $this->Errors[] = $e->message;
+		        }
+
+		        return false;
+		    }
+
+		    return $response;
 		}
 
 		/*
@@ -75,12 +82,14 @@
 				true if successful.
 		*/
 
-		function deleteDirectMessage($id) {
-			$response = $this->call("direct_messages/destroy.json",array("id" => $id),"POST");
-			if (!$response) {
-				return false;
-			}
-			return true;
+		public function deleteDirectMessage($id)
+		{
+		    $response = $this->call('direct_messages/destroy.json', array('id' => $id), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return true;
 		}
 
 		/*
@@ -94,12 +103,14 @@
 				True if successful.
 		*/
 
-		function deleteTweet($id) {
-			$response = $this->callUncached("statuses/destroy/$id.json",array(),"POST");
-			if (!$response) {
-				return false;
-			}
-			return true;
+		public function deleteTweet($id)
+		{
+		    $response = $this->callUncached("statuses/destroy/$id.json", array(), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return true;
 		}
 
 		/*
@@ -113,12 +124,14 @@
 				A BigTreeTwitterTweet object if successful.
 		*/
 
-		function favoriteTweet($id) {
-			$response = $this->callUncached("favorites/create.json",array("id" => $id),"POST");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterTweet($response,$this);
+		public function favoriteTweet($id)
+		{
+		    $response = $this->callUncached('favorites/create.json', array('id' => $id), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterTweet($response, $this);
 		}
 
 		/*
@@ -132,14 +145,19 @@
 				A BigTreeTwitterUser object on success.
 		*/
 
-		function followUser($username) {
-			$response = $this->call("friendships/create.json",array("screen_name" => $username),"POST");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterUser($response,$this);
+		public function followUser($username)
+		{
+		    $response = $this->call('friendships/create.json', array('screen_name' => $username), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterUser($response, $this);
 		}
-		function friendUser($username) { return $this->followUser($username); }
+	    public function friendUser($username)
+	    {
+	        return $this->followUser($username);
+	    }
 
 		/*
 			Function: getBlockedUsers
@@ -156,17 +174,19 @@
 				https://dev.twitter.com/docs/api/1.1/get/blocks/list
 		*/
 
-		function getBlockedUsers($skip_status = true,$params = array()) {
-			$response = $this->call("blocks/list.json",array_merge($params,array("skip_status" => $skip_status)));
-			if (!$response) {
-				return false;
-			}
-			$users = array();
-			foreach ($response->users as $user) {
-				$users[] = new BigTreeTwitterUser($user,$this);
-			}
-			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($skip_status,$params),$users);
+		public function getBlockedUsers($skip_status = true, $params = array())
+		{
+		    $response = $this->call('blocks/list.json', array_merge($params, array('skip_status' => $skip_status)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $users = array();
+		    foreach ($response->users as $user) {
+		        $users[] = new BigTreeTwitterUser($user, $this);
+		    }
+		    $params['cursor'] = $response->next_cursor;
+
+		    return new BigTreeTwitterResultSet($this, 'getBlockedUsers', array($skip_status, $params), $users);
 		}
 
 		/*
@@ -174,11 +194,12 @@
 				Sets up information such as the length of reserved characters for URLs and media uploads.
 		*/
 
-		function getConfiguration() {
-			$response = $this->call("help/configuration.json");
-			if ($response) {
-				$this->Configuration = $response;
-			}
+		public function getConfiguration()
+		{
+		    $response = $this->call('help/configuration.json');
+		    if ($response) {
+		        $this->Configuration = $response;
+		    }
 		}
 
 		/*
@@ -195,12 +216,14 @@
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
 
-		function getDirectMessage($id) {
-			$response = $this->call("direct_messages/show.json",array("id" => $id));
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterDirectMessage($response,$this);
+		public function getDirectMessage($id)
+		{
+		    $response = $this->call('direct_messages/show.json', array('id' => $id));
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterDirectMessage($response, $this);
 		}
 
 		/*
@@ -218,16 +241,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
 
-		function getDirectMessages($count = 10,$params = array()) {
-			$response = $this->call("direct_messages.json",array_merge($params,array("count" => $count)));
-			if (!$response) {
-				return false;
-			}
-			$results = array();
-			foreach ($response as $message) {
-				$results[] = new BigTreeTwitterDirectMessage($message,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"getDirectMessages",array($count,$params),$results);
+		public function getDirectMessages($count = 10, $params = array())
+		{
+		    $response = $this->call('direct_messages.json', array_merge($params, array('count' => $count)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $results = array();
+		    foreach ($response as $message) {
+		        $results[] = new BigTreeTwitterDirectMessage($message, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'getDirectMessages', array($count, $params), $results);
 		}
 
 		/*
@@ -245,16 +270,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/favorites/list
 		*/
 
-		function getFavoriteTweets($count = 10,$params = array()) {
-			$response = $this->call("favorites/list.json",array_merge($params,array("count" => $count)));
-			if (!$response) {
-				return false;
-			}
-			$results = array();
-			foreach ($response as $tweet) {
-				$results[] = new BigTreeTwitterTweet($tweet,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"getFavoriteTweets",array($count,$params),$results);
+		public function getFavoriteTweets($count = 10, $params = array())
+		{
+		    $response = $this->call('favorites/list.json', array_merge($params, array('count' => $count)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $results = array();
+		    foreach ($response as $tweet) {
+		        $results[] = new BigTreeTwitterTweet($tweet, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'getFavoriteTweets', array($count, $params), $results);
 		}
 
 		/*
@@ -273,17 +300,19 @@
 				https://dev.twitter.com/docs/api/1.1/get/followers/list
 		*/
 
-		function getFollowers($username,$skip_status = true,$params = array()) {
-			$response = $this->call("followers/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
-			if (!$response) {
-				return false;
-			}
-			$users = array();
-			foreach ($response->users as $user) {
-				$users[] = new BigTreeTwitterUser($user,$this);
-			}
-			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$skip_status,$params),$users);
+		public function getFollowers($username, $skip_status = true, $params = array())
+		{
+		    $response = $this->call('followers/list.json', array_merge($params, array('screen_name' => $username, 'skip_status' => $skip_status)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $users = array();
+		    foreach ($response->users as $user) {
+		        $users[] = new BigTreeTwitterUser($user, $this);
+		    }
+		    $params['cursor'] = $response->next_cursor;
+
+		    return new BigTreeTwitterResultSet($this, 'getFollowers', array($username, $skip_status, $params), $users);
 		}
 
 		/*
@@ -302,17 +331,19 @@
 				https://dev.twitter.com/docs/api/1.1/get/friends/list
 		*/
 
-		function getFriends($username,$skip_status = true,$params = array()) {
-			$response = $this->call("friends/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
-			if (!$response) {
-				return false;
-			}
-			$users = array();
-			foreach ($response->users as $user) {
-				$users[] = new BigTreeTwitterUser($user,$this);
-			}
-			$params["cursor"] = $response->next_cursor;
-			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$skip_status,$params),$users);
+		public function getFriends($username, $skip_status = true, $params = array())
+		{
+		    $response = $this->call('friends/list.json', array_merge($params, array('screen_name' => $username, 'skip_status' => $skip_status)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $users = array();
+		    foreach ($response->users as $user) {
+		        $users[] = new BigTreeTwitterUser($user, $this);
+		    }
+		    $params['cursor'] = $response->next_cursor;
+
+		    return new BigTreeTwitterResultSet($this, 'getFriends', array($username, $skip_status, $params), $users);
 		}
 
 		/*
@@ -330,16 +361,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline
 		*/
 
-		function getHomeTimeline($count = 10, $params = array()) {
-			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("count" => $count)));
-			if (!$response) {
-				return false;
-			}
-			$tweets = array();
-			foreach ($response as $tweet) {
-				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"getHomeTimeline",array($count,$params),$tweets);
+		public function getHomeTimeline($count = 10, $params = array())
+		{
+		    $response = $this->call('statuses/home_timeline.json', array_merge($params, array('count' => $count)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $tweets = array();
+		    foreach ($response as $tweet) {
+		        $tweets[] = new BigTreeTwitterTweet($tweet, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'getHomeTimeline', array($count, $params), $tweets);
 		}
 
 		/*
@@ -357,16 +390,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/statuses/mentions_timeline
 		*/
 
-		function getMentions($count = 10,$params = array()) {
-			$response = $this->call("statuses/mentions_timeline.json",array_merge($params,array("count" => $count)));
-			if (!$response) {
-				return false;
-			}
-			$tweets = array();
-			foreach ($response as $tweet) {
-				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"getMentions",array($count,$params),$tweets);
+		public function getMentions($count = 10, $params = array())
+		{
+		    $response = $this->call('statuses/mentions_timeline.json', array_merge($params, array('count' => $count)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $tweets = array();
+		    foreach ($response as $tweet) {
+		        $tweets[] = new BigTreeTwitterTweet($tweet, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'getMentions', array($count, $params), $tweets);
 		}
 
 		/*
@@ -380,12 +415,14 @@
 				A BigTreeTwitterPlace object.
 		*/
 
-		function getPlace($id) {
-			$response = $this->call("geo/id/$id.json");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterPlace($response,$this);
+		public function getPlace($id)
+		{
+		    $response = $this->call("geo/id/$id.json");
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterPlace($response, $this);
 		}
 
 		/*
@@ -403,16 +440,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
 
-		function getSentDirectMessages($count = 10,$params = array()) {
-			$response = $this->call("direct_messages/sent.json",array_merge($params,array("count" => $count)));
-			if (!$response) {
-				return false;
-			}
-			$results = array();
-			foreach ($response as $message) {
-				$results[] = new BigTreeTwitterDirectMessage($message,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"getSentDirectMessages",array($count,$params),$results);
+		public function getSentDirectMessages($count = 10, $params = array())
+		{
+		    $response = $this->call('direct_messages/sent.json', array_merge($params, array('count' => $count)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $results = array();
+		    foreach ($response as $message) {
+		        $results[] = new BigTreeTwitterDirectMessage($message, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'getSentDirectMessages', array($count, $params), $results);
 		}
 
 		/*
@@ -430,12 +469,14 @@
 				https://dev.twitter.com/docs/api/1.1/get/statuses/show
 		*/
 
-		function getTweet($id,$params = array()) {
-			$response = $this->call("statuses/show.json",array_merge($params,array("id" => $id)));
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterTweet($response,$this);
+		public function getTweet($id, $params = array())
+		{
+		    $response = $this->call('statuses/show.json', array_merge($params, array('id' => $id)));
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterTweet($response, $this);
 		}
 
 		/*
@@ -453,16 +494,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/users/show
 		*/
 
-		function getUser($username,$id = false) {
-			if ($id) {
-				$response = $this->call("users/show.json",array("id" => $id));
-			} else {
-				$response = $this->call("users/show.json",array("screen_name" => $username));
-			}
-			if ($response) {
-				return new BigTreeTwitterUser($response,$this);
-			}
-			return false;
+		public function getUser($username, $id = false)
+		{
+		    if ($id) {
+		        $response = $this->call('users/show.json', array('id' => $id));
+		    } else {
+		        $response = $this->call('users/show.json', array('screen_name' => $username));
+		    }
+		    if ($response) {
+		        return new BigTreeTwitterUser($response, $this);
+		    }
+
+		    return false;
 		}
 
 		/*
@@ -481,16 +524,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
 		*/
 
-		function getUserTimeline($user_name, $count = 10, $params = array()) {
-			$response = $this->call("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
-			if (!$response) {
-				return false;
-			}
-			$tweets = array();
-			foreach ($response as $tweet) {
-				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"getUserTimeline",array($user_name,$count,$params),$tweets);
+		public function getUserTimeline($user_name, $count = 10, $params = array())
+		{
+		    $response = $this->call('statuses/user_timeline.json', array_merge($params, array('screen_name' => $user_name, 'count' => $count)));
+		    if (!$response) {
+		        return false;
+		    }
+		    $tweets = array();
+		    foreach ($response as $tweet) {
+		        $tweets[] = new BigTreeTwitterTweet($tweet, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'getUserTimeline', array($user_name, $count, $params), $tweets);
 		}
 
 		/*
@@ -498,17 +543,18 @@
 				Redirects to the OAuth API to authenticate.
 		*/
 
-		function oAuthRedirect() {
-			// Get a token first because Twitter is silly.
-			$response = $this->callAPI("https://api.twitter.com/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
-			parse_str($response);
-			if ($oauth_callback_confirmed != "true") {
-				global $admin;
-				$admin->growl("Twitter API","Consumer Key or Secret invalid.","error");
-				BigTree::redirect(ADMIN_ROOT."developer/services/twitter/");
-			}
-			header("Location: https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
-			die();
+		public function oAuthRedirect()
+		{
+		    // Get a token first because Twitter is silly.
+			$response = $this->callAPI('https://api.twitter.com/oauth/request_token', 'GET', array('oauth_callback' => $this->ReturnURL));
+		    parse_str($response);
+		    if ($oauth_callback_confirmed != 'true') {
+		        global $admin;
+		        $admin->growl('Twitter API', 'Consumer Key or Secret invalid.', 'error');
+		        BigTree::redirect(ADMIN_ROOT.'developer/services/twitter/');
+		    }
+		    header("Location: https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
+		    die();
 		}
 
 		/*
@@ -519,21 +565,24 @@
 				A stdClass object of information if successful.
 		*/
 
-		function oAuthSetToken($code) {
-			$response = $this->callAPI("https://api.twitter.com/oauth/access_token","POST",array("oauth_token" => $_GET["oauth_token"],"oauth_verifier" => $_GET["oauth_verifier"]));
-			parse_str($response);
+		public function oAuthSetToken($code)
+		{
+		    $response = $this->callAPI('https://api.twitter.com/oauth/access_token', 'POST', array('oauth_token' => $_GET['oauth_token'], 'oauth_verifier' => $_GET['oauth_verifier']));
+		    parse_str($response);
 
-			if (!$oauth_token) {
-				$this->OAuthError = "Authentication failed.";
-				return false;
-			}
+		    if (!$oauth_token) {
+		        $this->OAuthError = 'Authentication failed.';
+
+		        return false;
+		    }
 
 			// Update Token information and save it back.
-			$this->Settings["token"] = $oauth_token;
-			$this->Settings["token_secret"] = $oauth_token_secret;
+			$this->Settings['token'] = $oauth_token;
+		    $this->Settings['token_secret'] = $oauth_token_secret;
 
-			$this->Connected = true;
-			return true;
+		    $this->Connected = true;
+
+		    return true;
 		}
 
 		/*
@@ -550,32 +599,35 @@
 				$this->TweetLength will be set to the length of the tweet if it is > 140 characters.
 		*/
 
-		function sendDirectMessage($recipient_username,$content,$recipient_id = false) {
-			// Figure out how long our content can be
+		public function sendDirectMessage($recipient_username, $content, $recipient_id = false)
+		{
+		    // Figure out how long our content can be
 			if (!$this->Configuration) {
-				$this->getConfiguration();
+			    $this->getConfiguration();
 			}
 			// Figure out how many URLs are
-			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
-			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
-			$url_length = $http_length + $https_length;
+			$http_length = substr_count($content, 'http://') * $this->Configuration->short_url_length;
+		    $https_length = substr_count($content, 'https://') * $this->Configuration->short_url_length_https;
+		    $url_length = $http_length + $https_length;
 			// Replace URLs so they no longer count toward length
-  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
-  			if (strlen($content_trimmed) + $url_length > 140) {
-  				$this->TweetLength = strlen($content_trimmed) + $url_length;
-  				return false;
-  			}
+  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is', '', $content);
+		    if (strlen($content_trimmed) + $url_length > 140) {
+		        $this->TweetLength = strlen($content_trimmed) + $url_length;
 
-  			if ($recipient_id) {
-  				$response = $this->callUncached("direct_messages/new.json",array("user_id" => $recipient_id,"text" => $content),"POST");
-  			} else {
-  				$response = $this->callUncached("direct_messages/new.json",array("screen_name" => $recipient_username,"text" => $content),"POST");
-  			}
+		        return false;
+		    }
 
-  			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterDirectMessage($response,$this);
+		    if ($recipient_id) {
+		        $response = $this->callUncached('direct_messages/new.json', array('user_id' => $recipient_id, 'text' => $content), 'POST');
+		    } else {
+		        $response = $this->callUncached('direct_messages/new.json', array('screen_name' => $recipient_username, 'text' => $content), 'POST');
+		    }
+
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterDirectMessage($response, $this);
 		}
 
 		/*
@@ -596,33 +648,36 @@
 				https://dev.twitter.com/docs/api/1.1/post/statuses/update
 		*/
 
-		function sendTweet($content,$image = false,$params = array()) {
-			// Figure out how long our content can be
+		public function sendTweet($content, $image = false, $params = array())
+		{
+		    // Figure out how long our content can be
 			if (!$this->Configuration) {
-				$this->getConfiguration();
+			    $this->getConfiguration();
 			}
 			// Figure out how many URLs are
-			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
-			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
-			$media_length = $image ? $this->Configuration->characters_reserved_per_media : 0;
-			$url_length = $http_length + $https_length + $media_length;
+			$http_length = substr_count($content, 'http://') * $this->Configuration->short_url_length;
+		    $https_length = substr_count($content, 'https://') * $this->Configuration->short_url_length_https;
+		    $media_length = $image ? $this->Configuration->characters_reserved_per_media : 0;
+		    $url_length = $http_length + $https_length + $media_length;
 			// Replace URLs so they no longer count toward length
-  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
-  			if (strlen($content_trimmed) + $url_length > 140) {
-  				$this->TweetLength = strlen($content_trimmed) + $url_length;
-  				return false;
-  			}
+  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is', '', $content);
+		    if (strlen($content_trimmed) + $url_length > 140) {
+		        $this->TweetLength = strlen($content_trimmed) + $url_length;
+
+		        return false;
+		    }
 
 			// With image, we call statuses/update_with_media
 			if ($image) {
-				$response = $this->callUncached("statuses/update_with_media.json",array_merge($params,array("status" => $content,"media[]" => $image)),"POST",array("Files" => array("media[]" => array())));
+			    $response = $this->callUncached('statuses/update_with_media.json', array_merge($params, array('status' => $content, 'media[]' => $image)), 'POST', array('Files' => array('media[]' => array())));
 			} else {
-				$response = $this->callUncached("statuses/update.json",array_merge($params,array("status" => $content)),"POST");
+			    $response = $this->callUncached('statuses/update.json', array_merge($params, array('status' => $content)), 'POST');
 			}
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterTweet($response,$this);
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterTweet($response, $this);
 		}
 
 		/*
@@ -636,12 +691,14 @@
 				True if successful.
 		*/
 
-		function retweetTweet($id) {
-			$response = $this->callUncached("statuses/retweet/$id.json",array(),"POST");
-			if (!$response) {
-				return false;
-			}
-			return true;
+		public function retweetTweet($id)
+		{
+		    $response = $this->callUncached("statuses/retweet/$id.json", array(), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return true;
 		}
 
 		/*
@@ -661,16 +718,18 @@
 				https://dev.twitter.com/docs/api/1.1/get/geo/search
 		*/
 
-		function searchPlaces($latitude,$longitude,$count = 20,$params = array()) {
-			$response = $this->call("geo/search.json",array_merge($params,array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
-			if (!isset($response->result)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->result->places as $place) {
-				$results[] = new BigTreeTwitterPlace($place,$this);
-			}
-			return $results;
+		public function searchPlaces($latitude, $longitude, $count = 20, $params = array())
+		{
+		    $response = $this->call('geo/search.json', array_merge($params, array('lat' => $latitude, 'long' => $longitude, 'max_results' => $count)));
+		    if (!isset($response->result)) {
+		        return false;
+		    }
+		    $results = array();
+		    foreach ($response->result->places as $place) {
+		        $results[] = new BigTreeTwitterPlace($place, $this);
+		    }
+
+		    return $results;
 		}
 
 		/*
@@ -693,25 +752,27 @@
 				https://dev.twitter.com/docs/api/1.1/get/search/tweets
 		*/
 
-		function searchTweets($query,$count = 10,$type = "recent",$latitude = false,$longitude = false,$radius = false,$params = array()) {
-			// We're saving user_params for pagination
+		public function searchTweets($query, $count = 10, $type = 'recent', $latitude = false, $longitude = false, $radius = false, $params = array())
+		{
+		    // We're saving user_params for pagination
 			$user_params = $params;
 			// Setup default parameters
-			$params["q"] = $query;
-			$params["count"] = $count;
-			$params["result_type"] = $type;
-			if ($latitude) {
-				$params["geocode"] = "$latitude,$longitude,$radius";
-			}
-			$response = $this->call("search/tweets.json",$params);
-			if (!$response) {
-				return false;
-			}
-			$tweets = array();
-			foreach ($response->statuses as $tweet) {
-				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$longitude,$radius,$user_params),$tweets);
+			$params['q'] = $query;
+		    $params['count'] = $count;
+		    $params['result_type'] = $type;
+		    if ($latitude) {
+		        $params['geocode'] = "$latitude,$longitude,$radius";
+		    }
+		    $response = $this->call('search/tweets.json', $params);
+		    if (!$response) {
+		        return false;
+		    }
+		    $tweets = array();
+		    foreach ($response->statuses as $tweet) {
+		        $tweets[] = new BigTreeTwitterTweet($tweet, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'searchTweets', array($query, $count, $type, $latitude, $longitude, $radius, $user_params), $tweets);
 		}
 
 		/*
@@ -730,22 +791,24 @@
 				https://dev.twitter.com/docs/api/1.1/get/users/search
 		*/
 
-		function searchUsers($query,$count = 10,$params = array()) {
-			// Little hack since BigTreeTwitterResultSet expects to use max_id but we're looking for page here, so ask for the next one.
-			if ($params["page"]) {
-				$params["page"]++;
+		public function searchUsers($query, $count = 10, $params = array())
+		{
+		    // Little hack since BigTreeTwitterResultSet expects to use max_id but we're looking for page here, so ask for the next one.
+			if ($params['page']) {
+			    ++$params['page'];
 			} else {
-				$params["page"] = 1;
+			    $params['page'] = 1;
 			}
-			$response = $this->call("users/search.json",array_merge(array("q" => $query,"count" => $count),$params));
-			if (!$response) {
-				return false;
-			}
-			$users = array();
-			foreach ($response as $user) {
-				$users[] = new BigTreeTwitterUser($user,$this);
-			}
-			return new BigTreeTwitterResultSet($this,"searchUsers",array($query,$count,$params),$users);
+		    $response = $this->call('users/search.json', array_merge(array('q' => $query, 'count' => $count), $params));
+		    if (!$response) {
+		        return false;
+		    }
+		    $users = array();
+		    foreach ($response as $user) {
+		        $users[] = new BigTreeTwitterUser($user, $this);
+		    }
+
+		    return new BigTreeTwitterResultSet($this, 'searchUsers', array($query, $count, $params), $users);
 		}
 
 		/*
@@ -759,12 +822,14 @@
 				A BigTreeTwitterUser object if successful.
 		*/
 
-		function unblockUser($username) {
-			$response = $this->call("blocks/destroy.json",array("screen_name" => $username),"POST");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterUser($response,$this);
+		public function unblockUser($username)
+		{
+		    $response = $this->call('blocks/destroy.json', array('screen_name' => $username), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterUser($response, $this);
 		}
 
 		/*
@@ -778,12 +843,14 @@
 				A BigTreeTwitterTweet object if successful.
 		*/
 
-		function unfavoriteTweet($id) {
-			$response = $this->callUncached("favorites/destroy.json",array("id" => $id),"POST");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterTweet($response,$this);
+		public function unfavoriteTweet($id)
+		{
+		    $response = $this->callUncached('favorites/destroy.json', array('id' => $id), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterTweet($response, $this);
 		}
 
 		/*
@@ -797,14 +864,19 @@
 				A BigTreeTwitterUser object on success.
 		*/
 
-		function unfollowUser($username) {
-			$response = $this->call("friendships/destroy.json",array("screen_name" => $username),"POST");
-			if (!$response) {
-				return false;
-			}
-			return new BigTreeTwitterUser($response,$this);
+		public function unfollowUser($username)
+		{
+		    $response = $this->call('friendships/destroy.json', array('screen_name' => $username), 'POST');
+		    if (!$response) {
+		        return false;
+		    }
+
+		    return new BigTreeTwitterUser($response, $this);
 		}
-		function unfriendUser($username) { return $this->unfollowUser($username); }
+	    public function unfriendUser($username)
+	    {
+	        return $this->unfollowUser($username);
+	    }
 	}
 
 	/*
@@ -812,9 +884,9 @@
 			An object that contains multiple results from a Twitter API query.
 	*/
 
-	class BigTreeTwitterResultSet {
-
-		/*
+	class BigTreeTwitterResultSet
+	{
+	    /*
 			Constructor:
 				Creates a result set of Twitter data.
 
@@ -825,14 +897,15 @@
 				results - Results to store
 		*/
 
-		function __construct(&$api,$last_call,$params,$results) {
-			$this->API = $api;
-			$this->LastCall = $last_call;
-			$last = end($results);
+		public function __construct(&$api, $last_call, $params, $results)
+		{
+		    $this->API = $api;
+		    $this->LastCall = $last_call;
+		    $last = end($results);
 			// Set the max_id field on what would be the $params array sent to any call (since it's always last)
-			$params[count($params) - 1]["max_id"] = $last->ID - 1;
-			$this->LastParameters = $params;
-			$this->Results = $results;
+			$params[count($params) - 1]['max_id'] = $last->ID - 1;
+		    $this->LastParameters = $params;
+		    $this->Results = $results;
 		}
 
 		/*
@@ -843,8 +916,9 @@
 				A BigTreeTwitterResultSet with the next page of results.
 		*/
 
-		function nextPage() {
-			return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
+		public function nextPage()
+		{
+		    return call_user_func_array(array($this->API, $this->LastCall), $this->LastParameters);
 		}
 	}
 
@@ -853,8 +927,9 @@
 			A Twitter object that contains information about and methods you can perform on a tweet.
 	*/
 
-	class BigTreeTwitterTweet {
-		protected $API;
+	class BigTreeTwitterTweet
+	{
+	    protected $API;
 
 		/*
 			Constructor:
@@ -865,82 +940,83 @@
 				api - Reference to the BigTreeTwitterAPI class instance
 		*/
 
-		function __construct($tweet,&$api) {
-			$this->API = $api;
-			isset($tweet->text) ? $this->Content = $tweet->text : false;
-			isset($tweet->favorite_count) ? $this->FavoriteCount = $tweet->favorite_count : false;
-			isset($tweet->favorited) ? $this->Favorited = $tweet->favorited : false;
-			if (isset($tweet->entities->hashtags)) {
-				$this->Hashtags = array();
-				if (is_array($tweet->entities->hashtags)) {
-					foreach ($tweet->entities->hashtags as $hashtag) {
-						$this->Hashtags[] = $hashtag->text;
-					}
-				}
-			}
-			$this->ID = $tweet->id;
-			isset($tweet->retweeted_status) ? ($this->IsRetweet = $tweet->retweeted_status ? true : false) : false;
-			isset($tweet->lang) ? $this->Language = $tweet->lang : false;
-			isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text))) : false;
-			if (isset($tweet->entities->media)) {
-				$this->Media = array();
-				if (is_array($tweet->entities->media)) {
-					foreach ($tweet->entities->media as $media) {
-						$m = new stdClass;
-						$m->DisplayURL = $media->display_url;
-						$m->ID = $media->id;
-						$m->ExpandedURL = $media->expanded_url;
-						$m->SecureURL = $media->media_url_https;
-						foreach ($media->sizes as $size => $info) {
-							$size_key = ucwords($size);
-							$m->Sizes = new stdClass;
-							$m->Sizes->$size_key = new stdClass;
-							$m->Sizes->$size_key->Height = $info->h;
-							$m->Sizes->$size_key->Width = $info->w;
-							$m->Sizes->$size_key->SecureURL = $media->media_url_https.":".$size;
-							$m->Sizes->$size_key->URL = $media->media_url.":".$size;
-						}
-						$m->Type = $media->type;
-						$m->URL = $media->media_url;
-						$this->Media[] = $m;
-					}
-				}
-			}
-			if (isset($tweet->entities->user_mentions)) {
-				$this->Mentions = array();
-				if (is_array($tweet->entities->user_mentions)) {
-					foreach ($tweet->entities->user_mentions as $mention) {
-						$this->Mentions[] = new BigTreeTwitterUser($mention,$api);
-					}
-				}
-			}
-			$tweet->retweeted_status ? $this->OriginalTweet = new BigTreeTwitterTweet($tweet->retweeted_status,$api) : false;
-			isset($tweet->place) ? $this->Place = new BigTreeTwitterPlace($tweet->place,$api) : false;
-			isset($tweet->retweet_count) ? $this->RetweetCount = $tweet->retweet_count : false;
-			isset($tweet->retweeted) ? $this->Retweeted = $tweet->retweeted : false;
-			isset($tweet->source) ? $this->Source = $tweet->source : false;
-			if (isset($tweet->entities->symbols)) {
-				$this->Symbols = array();
-				if (is_array($tweet->entities->symbols)) {
-					foreach ($tweet->entities->symbols as $symbol) {
-						$this->Symbols[] = $symbol->text;
-					}
-				}
-			}
-			isset($tweet->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at)) : false;
-			if (isset($tweet->entities->url)) {
-				$this->URLs = array();
-				if (is_array($tweet->entities->url)) {
-					foreach ($tweet->entities->urls as $url) {
-						$this->URLs[] = (object) array(
-							"URL" => $url->url,
-							"ExpandedURL" => $url->expanded_url,
-							"DisplayURL" => $url->display_url
+		public function __construct($tweet, &$api)
+		{
+		    $this->API = $api;
+		    isset($tweet->text) ? $this->Content = $tweet->text : false;
+		    isset($tweet->favorite_count) ? $this->FavoriteCount = $tweet->favorite_count : false;
+		    isset($tweet->favorited) ? $this->Favorited = $tweet->favorited : false;
+		    if (isset($tweet->entities->hashtags)) {
+		        $this->Hashtags = array();
+		        if (is_array($tweet->entities->hashtags)) {
+		            foreach ($tweet->entities->hashtags as $hashtag) {
+		                $this->Hashtags[] = $hashtag->text;
+		            }
+		        }
+		    }
+		    $this->ID = $tweet->id;
+		    isset($tweet->retweeted_status) ? ($this->IsRetweet = $tweet->retweeted_status ? true : false) : false;
+		    isset($tweet->lang) ? $this->Language = $tweet->lang : false;
+		    isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/', '\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>', preg_replace('/(^|\s)@(\w+)/', '\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>', preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@", '<a href="\0" target="_blank">\0</a>', $tweet->text))) : false;
+		    if (isset($tweet->entities->media)) {
+		        $this->Media = array();
+		        if (is_array($tweet->entities->media)) {
+		            foreach ($tweet->entities->media as $media) {
+		                $m = new stdClass();
+		                $m->DisplayURL = $media->display_url;
+		                $m->ID = $media->id;
+		                $m->ExpandedURL = $media->expanded_url;
+		                $m->SecureURL = $media->media_url_https;
+		                foreach ($media->sizes as $size => $info) {
+		                    $size_key = ucwords($size);
+		                    $m->Sizes = new stdClass();
+		                    $m->Sizes->$size_key = new stdClass();
+		                    $m->Sizes->$size_key->Height = $info->h;
+		                    $m->Sizes->$size_key->Width = $info->w;
+		                    $m->Sizes->$size_key->SecureURL = $media->media_url_https.':'.$size;
+		                    $m->Sizes->$size_key->URL = $media->media_url.':'.$size;
+		                }
+		                $m->Type = $media->type;
+		                $m->URL = $media->media_url;
+		                $this->Media[] = $m;
+		            }
+		        }
+		    }
+		    if (isset($tweet->entities->user_mentions)) {
+		        $this->Mentions = array();
+		        if (is_array($tweet->entities->user_mentions)) {
+		            foreach ($tweet->entities->user_mentions as $mention) {
+		                $this->Mentions[] = new BigTreeTwitterUser($mention, $api);
+		            }
+		        }
+		    }
+		    $tweet->retweeted_status ? $this->OriginalTweet = new self($tweet->retweeted_status, $api) : false;
+		    isset($tweet->place) ? $this->Place = new BigTreeTwitterPlace($tweet->place, $api) : false;
+		    isset($tweet->retweet_count) ? $this->RetweetCount = $tweet->retweet_count : false;
+		    isset($tweet->retweeted) ? $this->Retweeted = $tweet->retweeted : false;
+		    isset($tweet->source) ? $this->Source = $tweet->source : false;
+		    if (isset($tweet->entities->symbols)) {
+		        $this->Symbols = array();
+		        if (is_array($tweet->entities->symbols)) {
+		            foreach ($tweet->entities->symbols as $symbol) {
+		                $this->Symbols[] = $symbol->text;
+		            }
+		        }
+		    }
+		    isset($tweet->created_at) ? $this->Timestamp = date('Y-m-d H:i:s', strtotime($tweet->created_at)) : false;
+		    if (isset($tweet->entities->url)) {
+		        $this->URLs = array();
+		        if (is_array($tweet->entities->url)) {
+		            foreach ($tweet->entities->urls as $url) {
+		                $this->URLs[] = (object) array(
+							'URL' => $url->url,
+							'ExpandedURL' => $url->expanded_url,
+							'DisplayURL' => $url->display_url,
 						);
-					}
-				}
-			}
-			isset($tweet->user) ? $this->User = new BigTreeTwitterUser($tweet->user,$api) : false;
+		            }
+		        }
+		    }
+		    isset($tweet->user) ? $this->User = new BigTreeTwitterUser($tweet->user, $api) : false;
 		}
 
 		/*
@@ -948,8 +1024,9 @@
 				Returns the Tweet's content when this object is treated as a string.
 		*/
 
-		function __toString() {
-			return $this->Content;
+		public function __toString()
+		{
+		    return $this->Content;
 		}
 
 		/*
@@ -961,8 +1038,9 @@
 				True if successful.
 		*/
 
-		function delete() {
-			return $this->API->deleteTweet($this->ID);
+		public function delete()
+		{
+		    return $this->API->deleteTweet($this->ID);
 		}
 
 		/*
@@ -973,8 +1051,9 @@
 				A BigTreeTwitterTweet object if successful.
 		*/
 
-		function favorite() {
-			return $this->API->favoriteTweet($this->ID);
+		public function favorite()
+		{
+		    return $this->API->favoriteTweet($this->ID);
 		}
 
 		/*
@@ -985,8 +1064,9 @@
 				True if successful.
 		*/
 
-		function retweet() {
-			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
+		public function retweet()
+		{
+		    return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
 
 		/*
@@ -997,21 +1077,23 @@
 				An array of BigTreeTwitterTweet objects.
 		*/
 
-		function retweets() {
-			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
+		public function retweets()
+		{
+		    // We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
 			if (!$this->RetweetCount) {
-				return array();
+			    return array();
 			}
-			if ($this->OriginalTweet) {
-				$response = $this->API->call("statuses/retweets/".$this->OriginalTweet->ID.".json");
-			} else {
-				$response = $this->API->call("statuses/retweets/".$this->ID.".json");
-			}
-			$tweets = array();
-			foreach ($response as $tweet) {
-				$tweets[] = new BigTreeTwitterTweet($tweet,$this->API);
-			}
-			return $tweets;
+		    if ($this->OriginalTweet) {
+		        $response = $this->API->call('statuses/retweets/'.$this->OriginalTweet->ID.'.json');
+		    } else {
+		        $response = $this->API->call('statuses/retweets/'.$this->ID.'.json');
+		    }
+		    $tweets = array();
+		    foreach ($response as $tweet) {
+		        $tweets[] = new self($tweet, $this->API);
+		    }
+
+		    return $tweets;
 		}
 
 		/*
@@ -1022,13 +1104,15 @@
 				An array of Twitter IDs
 		*/
 
-		function retweeters() {
-			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
-			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
-			if ($response->ids) {
-				return $response->ids;
-			}
-			return false;
+		public function retweeters()
+		{
+		    $id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
+		    $response = $this->API->call('statuses/retweeters/ids.json', array('id' => $id));
+		    if ($response->ids) {
+		        return $response->ids;
+		    }
+
+		    return false;
 		}
 
 		/*
@@ -1039,8 +1123,9 @@
 				A BigTreeTwitterTweet object if successful.
 		*/
 
-		function unfavorite() {
-			return $this->API->unfavoriteTweet($this->ID);
+		public function unfavorite()
+		{
+		    return $this->API->unfavoriteTweet($this->ID);
 		}
 	}
 
@@ -1049,8 +1134,9 @@
 			A Twitter object that contains information about and methods you can perform on a user.
 	*/
 
-	class BigTreeTwitterUser {
-		protected $API;
+	class BigTreeTwitterUser
+	{
+	    protected $API;
 
 		/*
 			Constructor:
@@ -1061,29 +1147,30 @@
 				api - Reference to the BigTreeTwiterAPI class instance
 		*/
 
-		function __construct($user,&$api) {
-			$this->API = $api;
-			isset($user->description) ? $this->Description = $user->description : false;
-			isset($user->favourites_count) ? $this->Favorites = $user->favourites_count : false;
-			isset($user->followers_count) ? $this->FollowersCount = $user->followers_count : false;
-			isset($user->following) ? $this->Following = $user->following : false;
-			isset($user->friends_count) ? $this->FriendsCount = $user->friends_count : false;
-			isset($user->geo_enabled) ? $this->GeoEnabled = $user->geo_enabled : false;
-			isset($user->id) ? $this->ID = $user->id : false;
-			isset($user->profile_image_url) ? $this->Image = $user->profile_image_url : false;
-			isset($user->profile_image_url_https) ? $this->ImageHTTPS = $user->profile_image_url_https : false;
-			isset($user->lang) ? $this->Language = $user->lang : false;
-			isset($user->listed_count) ? $this->ListedCount = $user->listed_count : false;
-			isset($user->location) ? $this->Location = $user->location : false;
-			isset($user->name) ? $this->Name = $user->name : false;
-			isset($user->protected) ? $this->Protected = $user->protected : false;
-			isset($user->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($user->created_at)) : false;
-			isset($user->time_zone) ? $this->Timezone = $user->time_zone : false;
-			isset($user->utc_offset) ? $this->TimezoneOffset = $user->utc_offset : false;
-			isset($user->statuses_count) ? $this->TweetCount = $user->statuses_count : false;
-			isset($user->screen_name) ? $this->Username = $user->screen_name : false;
-			isset($user->url) ? $this->URL = $user->url : false;
-			isset($user->verified) ? $this->Verified = $user->verified : false;
+		public function __construct($user, &$api)
+		{
+		    $this->API = $api;
+		    isset($user->description) ? $this->Description = $user->description : false;
+		    isset($user->favourites_count) ? $this->Favorites = $user->favourites_count : false;
+		    isset($user->followers_count) ? $this->FollowersCount = $user->followers_count : false;
+		    isset($user->following) ? $this->Following = $user->following : false;
+		    isset($user->friends_count) ? $this->FriendsCount = $user->friends_count : false;
+		    isset($user->geo_enabled) ? $this->GeoEnabled = $user->geo_enabled : false;
+		    isset($user->id) ? $this->ID = $user->id : false;
+		    isset($user->profile_image_url) ? $this->Image = $user->profile_image_url : false;
+		    isset($user->profile_image_url_https) ? $this->ImageHTTPS = $user->profile_image_url_https : false;
+		    isset($user->lang) ? $this->Language = $user->lang : false;
+		    isset($user->listed_count) ? $this->ListedCount = $user->listed_count : false;
+		    isset($user->location) ? $this->Location = $user->location : false;
+		    isset($user->name) ? $this->Name = $user->name : false;
+		    isset($user->protected) ? $this->Protected = $user->protected : false;
+		    isset($user->created_at) ? $this->Timestamp = date('Y-m-d H:i:s', strtotime($user->created_at)) : false;
+		    isset($user->time_zone) ? $this->Timezone = $user->time_zone : false;
+		    isset($user->utc_offset) ? $this->TimezoneOffset = $user->utc_offset : false;
+		    isset($user->statuses_count) ? $this->TweetCount = $user->statuses_count : false;
+		    isset($user->screen_name) ? $this->Username = $user->screen_name : false;
+		    isset($user->url) ? $this->URL = $user->url : false;
+		    isset($user->verified) ? $this->Verified = $user->verified : false;
 		}
 
 		/*
@@ -1091,8 +1178,9 @@
 				Returns the User's username when this object is treated as a string.
 		*/
 
-		function __toString() {
-			return $this->Username;
+		public function __toString()
+		{
+		    return $this->Username;
 		}
 
 		/*
@@ -1103,8 +1191,9 @@
 				A BigTreeTwitterUser object on success.
 		*/
 
-		function block() {
-			return $this->API->blockUser($this->ID);
+		public function block()
+		{
+		    return $this->API->blockUser($this->ID);
 		}
 
 		/*
@@ -1115,12 +1204,14 @@
 				A BigTreeTwitterUser object on success.
 		*/
 
-		function follow() {
-			return $this->API->followUser($this->ID);
+		public function follow()
+		{
+		    return $this->API->followUser($this->ID);
 		}
-		function friend() {
-			return $this->follow();
-		}
+	    public function friend()
+	    {
+	        return $this->follow();
+	    }
 
 		/*
 			Function: unblock
@@ -1130,8 +1221,9 @@
 				A BigTreeTwitterUser object on success.
 		*/
 
-		function unblock() {
-			return $this->API->unblockUser($this->ID);
+		public function unblock()
+		{
+		    return $this->API->unblockUser($this->ID);
 		}
 
 		/*
@@ -1142,12 +1234,14 @@
 				A BigTreeTwitterUser object on success.
 		*/
 
-		function unfollow() {
-			return $this->API->unfollowUser($this->ID);
+		public function unfollow()
+		{
+		    return $this->API->unfollowUser($this->ID);
 		}
-		function unfriend() {
-			return $this->unfollow();
-		}
+	    public function unfriend()
+	    {
+	        return $this->unfollow();
+	    }
 	}
 
 	/*
@@ -1155,8 +1249,9 @@
 			A Twitter object that contains information about and methods you can perform on a place.
 	*/
 
-	class BigTreeTwitterPlace {
-		protected $API;
+	class BigTreeTwitterPlace
+	{
+	    protected $API;
 
 		/*
 			Constructor:
@@ -1167,16 +1262,17 @@
 				api - Reference to the BigTreeTwitterAPI class instance
 		*/
 
-		function __construct($place,&$api) {
-			$this->API = $api;
-			isset($place->bounding_box->coordinates) ? $this->BoundingBox = $place->bounding_box->coordinates : false;
-			isset($place->country) ? $this->Country = $place->country : false;
-			isset($place->country_code) ? $this->CountryCode = $place->country_code : false;
-			isset($place->full_name) ? $this->FullName = $place->full_name : false;
-			isset($place->id) ? $this->ID = $place->id : false;
-			isset($place->name) ? $this->Name = $place->name : false;
-			isset($place->place_type) ? $this->Type = $place->place_type : false;
-			isset($place->url) ? $this->URL = $place->url : false;
+		public function __construct($place, &$api)
+		{
+		    $this->API = $api;
+		    isset($place->bounding_box->coordinates) ? $this->BoundingBox = $place->bounding_box->coordinates : false;
+		    isset($place->country) ? $this->Country = $place->country : false;
+		    isset($place->country_code) ? $this->CountryCode = $place->country_code : false;
+		    isset($place->full_name) ? $this->FullName = $place->full_name : false;
+		    isset($place->id) ? $this->ID = $place->id : false;
+		    isset($place->name) ? $this->Name = $place->name : false;
+		    isset($place->place_type) ? $this->Type = $place->place_type : false;
+		    isset($place->url) ? $this->URL = $place->url : false;
 		}
 
 		/*
@@ -1184,8 +1280,9 @@
 				Returns the Places's name when this object is treated as a string.
 		*/
 
-		function __toString() {
-			return $this->Name;
+		public function __toString()
+		{
+		    return $this->Name;
 		}
 	}
 
@@ -1194,8 +1291,9 @@
 			A Twitter object that contains information about and methods you can perform on a direct message.
 	*/
 
-	class BigTreeTwitterDirectMessage {
-		protected $API;
+	class BigTreeTwitterDirectMessage
+	{
+	    protected $API;
 
 		/*
 			Constructor:
@@ -1206,14 +1304,15 @@
 				api - Reference to BigTreeTwitterAPI class instance
 		*/
 
-		function __construct($message,&$api) {
-			$this->API = $api;
-			isset($message->text) ? $this->Content = $message->text : false;
-			isset($message->id) ? $this->ID = $message->id : false;
-			isset($message->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://search.twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$message->text))) : false;
-			isset($message->recipient) ? $this->Recipient = new BigTreeTwitterUser($message->recipient,$api) : false;
-			isset($message->sender) ? $this->Sender = new BigTreeTwitterUser($message->sender,$api) : false;
-			isset($message->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($message->created_at)) : false;
+		public function __construct($message, &$api)
+		{
+		    $this->API = $api;
+		    isset($message->text) ? $this->Content = $message->text : false;
+		    isset($message->id) ? $this->ID = $message->id : false;
+		    isset($message->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/', '\1<a href="http://search.twitter.com/search?q=%23\2" target="_blank">#\2</a>', preg_replace('/(^|\s)@(\w+)/', '\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>', preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@", '<a href="\0" target="_blank">\0</a>', $message->text))) : false;
+		    isset($message->recipient) ? $this->Recipient = new BigTreeTwitterUser($message->recipient, $api) : false;
+		    isset($message->sender) ? $this->Sender = new BigTreeTwitterUser($message->sender, $api) : false;
+		    isset($message->created_at) ? $this->Timestamp = date('Y-m-d H:i:s', strtotime($message->created_at)) : false;
 		}
 
 		/*
@@ -1221,8 +1320,9 @@
 				Returns the Message's content when this object is treated as a string.
 		*/
 
-		function __toString() {
-			return $this->Content;
+		public function __toString()
+		{
+		    return $this->Content;
 		}
 
 		/*
@@ -1230,8 +1330,9 @@
 				Alias for BigTreeTwitterTweet::deleteDirectMessage
 		*/
 
-		function delete() {
-			return $this->API->deleteDirectMessage($this->ID);
+		public function delete()
+		{
+		    return $this->API->deleteDirectMessage($this->ID);
 		}
 
 		/*
@@ -1239,7 +1340,8 @@
 				Alias for BigTreeTwitterTweet::sendDirectMessage
 		*/
 
-		function reply($content) {
-			return $this->API->sendDirectMessage(false,$content,$this->Sender->ID);
+		public function reply($content)
+		{
+		    return $this->API->sendDirectMessage(false, $content, $this->Sender->ID);
 		}
 	}

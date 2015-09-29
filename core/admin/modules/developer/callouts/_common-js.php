@@ -1,6 +1,6 @@
-<?
+<?php
 	$cached_types = $admin->getCachedFieldTypes(true);
-	$types = $cached_types["callouts"];
+	$types = $cached_types['callouts'];
 ?>
 <script>
 	BigTreeFormValidator("form.module");
@@ -67,7 +67,14 @@
 		BigTree.localResourceCount++;
 		
 		var li = $('<li id="row_' + BigTree.localResourceCount + '">');
-		li.html('<section class="developer_resource_callout_id"><span class="icon_sort"></span><input type="text" name="resources[' + BigTree.localResourceCount + '][id]" value="" /></section><section class="developer_resource_callout_title"><input type="text" name="resources[' + BigTree.localResourceCount + '][title]" value="" /></section><section class="developer_resource_callout_subtitle"><input type="text" name="resources[' + BigTree.localResourceCount + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + BigTree.localResourceCount + '][type]" id="type_' + BigTree.localResourceCount + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + BigTree.localResourceCount + '"></a><input type="hidden" name="resources[' + BigTree.localResourceCount + '][options]" value="" id="options_' + BigTree.localResourceCount + '" /></section><section class="developer_resource_display_title"><input type="radio" name="display_field" value="" id="display_title_' + BigTree.localResourceCount + '" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
+		li.html('<section class="developer_resource_callout_id"><span class="icon_sort"></span><input type="text" name="resources[' + BigTree.localResourceCount + '][id]" value="" /></section><section class="developer_resource_callout_title"><input type="text" name="resources[' + BigTree.localResourceCount + '][title]" value="" /></section><section class="developer_resource_callout_subtitle"><input type="text" name="resources[' + BigTree.localResourceCount + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + BigTree.localResourceCount + '][type]" id="type_' + BigTree.localResourceCount + '"><optgroup label="Default"><?php foreach ($types['default'] as $k => $v) {
+    ?><option value="<?=$k?>"><?=$v['name']?></option><?php 
+} ?></optgroup><?php if (count($types['custom'])) {
+    ?><optgroup label="Custom"><?php foreach ($types['custom'] as $k => $v) {
+    ?><option value="<?=$k?>"><?=$v['name']?></option><?php 
+}
+    ?></optgroup><?php 
+} ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + BigTree.localResourceCount + '"></a><input type="hidden" name="resources[' + BigTree.localResourceCount + '][options]" value="" id="options_' + BigTree.localResourceCount + '" /></section><section class="developer_resource_display_title"><input type="radio" name="display_field" value="" id="display_title_' + BigTree.localResourceCount + '" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
 
 		$("#resource_table").append(li);
 		li.find("select").get(0).customControl = new BigTreeSelect(li.find("select").get(0));

@@ -1,3 +1,4 @@
-<?
-	$admin->deletePageRevision($_GET["id"]);
+<?php
+
+	$admin->deletePageRevision($_GET['id']);
 ?>

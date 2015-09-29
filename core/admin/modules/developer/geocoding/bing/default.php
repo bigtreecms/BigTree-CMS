@@ -1,5 +1,5 @@
-<?
-	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
+<?php
+	$geocoding_service = $cms->getSetting('bigtree-internal-geocoding-service');
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/bing/activate/">
@@ -8,7 +8,7 @@
 			<hr />
 			<fieldset>
 				<label>Bing Maps Key</label>
-				<input type="text" name="bing_key" value="<?=htmlspecialchars($geocoding_service["bing_key"])?>" />
+				<input type="text" name="bing_key" value="<?=htmlspecialchars($geocoding_service['bing_key'])?>" />
 			</fieldset>
 		</section>
 		<footer>

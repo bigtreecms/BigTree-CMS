@@ -6,17 +6,19 @@
 			</div>
 			<fieldset>
 				<label>Client ID</label>
-				<input type="text" name="paypal-rest-client-id" value="<?=htmlspecialchars($gateway->Settings["paypal-rest-client-id"])?>" />
+				<input type="text" name="paypal-rest-client-id" value="<?=htmlspecialchars($gateway->Settings['paypal-rest-client-id'])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Client Secret</label>
-				<input type="text" name="paypal-rest-client-secret" value="<?=htmlspecialchars($gateway->Settings["paypal-rest-client-secret"])?>" />
+				<input type="text" name="paypal-rest-client-secret" value="<?=htmlspecialchars($gateway->Settings['paypal-rest-client-secret'])?>" />
 			</fieldset>
 			<fieldset>
 				<label>Processing Environment</label>
 				<select name="paypal-rest-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway->Settings["paypal-rest-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<?php if ($gateway->Settings['paypal-rest-environment'] == 'test') {
+    ?> selected="selected"<?php 
+} ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

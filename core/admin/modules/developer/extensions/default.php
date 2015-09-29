@@ -1,12 +1,12 @@
-<?
+<?php
 	$extensions = $admin->getExtensions();
 
 	// Get version info on our installed extensions
 	$query = array();
 	foreach ($extensions as $extension) {
-		$query[] = "extensions[]=".urlencode($extension["id"]);
+	    $query[] = 'extensions[]='.urlencode($extension['id']);
 	}
-	$version_info = array_filter((array)@json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+	$version_info = array_filter((array) @json_decode(BigTree::cURL('http://www.bigtreecms.org/ajax/extensions/version/?'.implode('&', $query), false, array(CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 5)), true));
 ?>
 <div class="table">
 	<summary><h2>Extensions</h2></summary>
@@ -15,44 +15,54 @@
 		<span style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($extensions as $extension) {
-				$new = false;
+			    $new = false;
 
-				if (!isset($_COOKIE["bigtree_admin"]["ignored_extension_updates"][$extension["id"]])) {
-					// Read manifest, see if a new version is available
-					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"),true);
-					if (intval($manifest["revision"]) < intval($version_info[$extension["id"]]["revision"])) {
-						$new = true;
-						$info = $version_info[$extension["id"]];
-					}
-				}
-		?>
+			    if (!isset($_COOKIE['bigtree_admin']['ignored_extension_updates'][$extension['id']])) {
+			        // Read manifest, see if a new version is available
+					$manifest = json_decode(file_get_contents(SERVER_ROOT.'extensions/'.$extension['id'].'/manifest.json'), true);
+			        if (intval($manifest['revision']) < intval($version_info[$extension['id']]['revision'])) {
+			            $new = true;
+			            $info = $version_info[$extension['id']];
+			        }
+			    }
+			    ?>
 		<li>
 			<section class="developer_extensions_name">
-				<?=$extension["name"]?> v<?=$extension["version"]?>
-				<? if ($new) { ?>
-				<small>(version <?=$info["version"]?> available, compatible with BigTree <?=$info["compatibility"]?>)</small>
-				<? } ?>
+				<?=$extension['name']?> v<?=$extension['version']?>
+				<?php if ($new) {
+    ?>
+				<small>(version <?=$info['version']?> available, compatible with BigTree <?=$info['compatibility']?>)</small>
+				<?php 
+}
+			    ?>
 			</section>
 			<section class="developer_extensions_action">
-				<? if ($new) { ?>
-				<a class="button red" href="<?=DEVELOPER_ROOT?>extensions/ignore/?id=<?=$extension["id"]?>">Ignore</a>
-				<? } ?>	
+				<?php if ($new) {
+    ?>
+				<a class="button red" href="<?=DEVELOPER_ROOT?>extensions/ignore/?id=<?=$extension['id']?>">Ignore</a>
+				<?php 
+}
+			    ?>	
 			</section>
 			<section class="developer_extensions_action">
-				<? if ($new) { ?>
-				<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/upgrade/?id=<?=$extension["id"]?>">Upgrade</a>
-				<? } ?>	
+				<?php if ($new) {
+    ?>
+				<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/upgrade/?id=<?=$extension['id']?>">Upgrade</a>
+				<?php 
+}
+			    ?>	
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>extensions/edit/<?=$extension["id"]?>/" class="icon_edit"></a>
+				<a href="<?=DEVELOPER_ROOT?>extensions/edit/<?=$extension['id']?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>extensions/delete/<?=$extension["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>extensions/delete/<?=$extension['id']?>/" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php 
+			} ?>
 	</ul>
 </div>
 <script>

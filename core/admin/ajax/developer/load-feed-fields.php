@@ -1,47 +1,47 @@
-<?
-	if ($_GET["table"]) {
-		$table = $_GET["table"];
+<?php
+	if ($_GET['table']) {
+	    $table = $_GET['table'];
 	}
 
 	$used = array();
 	$unused = array();
-	
+
 	$tblfields = array();
 
 	// To tolerate someone selecting the blank spot again when creating a feed.
 	if ($table) {
-		$table_description = BigTree::describeTable($table);
+	    $table_description = BigTree::describeTable($table);
 	} else {
-		$table_description = array("columns" => array());
+	    $table_description = array('columns' => array());
 	}
-	foreach ($table_description["columns"] as $column => $details) {
-		$tblfields[] = $column;
+	foreach ($table_description['columns'] as $column => $details) {
+	    $tblfields[] = $column;
 	}
 
 	if (isset($fields)) {
-		foreach ($fields as $key => $field) {
-			$used[] = $key;
-		}
+	    foreach ($fields as $key => $field) {
+	        $used[] = $key;
+	    }
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($tblfields as $field) {
-			if (!in_array($field,$used)) {
-				$unused[] = array(
-					"title" => ucwords(str_replace("_"," ",$field)),
-					"field" => $field
+		    if (!in_array($field, $used)) {
+		        $unused[] = array(
+					'title' => ucwords(str_replace('_', ' ', $field)),
+					'field' => $field,
 				);
-			}
-		}		
-	} else {
-		$fields = array();
-		foreach ($tblfields as $f) {
-			$title = ucwords(str_replace(array("-","_")," ",$f));
-			$title = str_replace(array("Url","Pdf","Sql","Id"),array("URL","PDF","SQL","ID"),$title);
-			$fields[$f] = array("title" => ucwords(str_replace(array("-","_")," ",$title)));
+		    }
 		}
+	} else {
+	    $fields = array();
+	    foreach ($tblfields as $f) {
+	        $title = ucwords(str_replace(array('-', '_'), ' ', $f));
+	        $title = str_replace(array('Url', 'Pdf', 'Sql', 'Id'), array('URL', 'PDF', 'SQL', 'ID'), $title);
+	        $fields[$f] = array('title' => ucwords(str_replace(array('-', '_'), ' ', $title)));
+	    }
 	}
 
 	if (count($fields)) {
-?>
+	    ?>
 <fieldset class="last">
 	<label>Fields</label>
 
@@ -53,21 +53,24 @@
 			<span class="developer_resource_action">Delete</span>
 		</div>
 		<ul id="sort_table">
-			<? foreach ($fields as $key => $field) { ?>
+			<?php foreach ($fields as $key => $field) {
+    ?>
 			<li id="row_<?=$key?>">
-				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"]?>" />
+				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field['width']?>" />
 				<section class="developer_view_title">
 					<span class="icon_sort"></span>
-					<input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" />
+					<input type="text" name="fields[<?=$key?>][title]" value="<?=$field['title']?>" />
 				</section>
 				<section class="developer_view_parser">
-					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
+					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field['parser'])?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
 				</section>
 				<section class="developer_resource_action">
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>
-			<? } ?>
+			<?php 
+}
+	    ?>
 		</ul>
 	</div>
 </fieldset>
@@ -108,10 +111,12 @@
 	});
 
 </script>
-<?
+<?php
+
 	} else {
-?>
+	    ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
+
 	}
 ?>

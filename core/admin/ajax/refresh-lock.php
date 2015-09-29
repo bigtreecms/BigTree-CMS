@@ -1,3 +1,4 @@
-<?
-	$admin->refreshLock($_POST["table"],$_POST["id"]);
+<?php
+
+	$admin->refreshLock($_POST['table'], $_POST['id']);
 ?>

@@ -1,25 +1,25 @@
-<?
-	BigTree::globalizeArray($bigtree["view"]);
-		
-	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
+<?php
+	BigTree::globalizeArray($bigtree['view']);
+
+	$m = BigTreeAutoModule::getModuleForView($bigtree['view']);
 	$perm = $admin->checkAccess($m);
-	
-	if (isset($_GET["sort"])) {
-		$sort = "`".$_GET["sort"]."` ".$_GET["sort_direction"];
-	} elseif (isset($options["sort_column"])) {
-		$sort = $options["sort_column"]." ".$options["sort_direction"];
-	} elseif (isset($options["sort"])) {
-		$sort = $options["sort"];
+
+	if (isset($_GET['sort'])) {
+	    $sort = '`'.$_GET['sort'].'` '.$_GET['sort_direction'];
+	} elseif (isset($options['sort_column'])) {
+	    $sort = $options['sort_column'].' '.$options['sort_direction'];
+	} elseif (isset($options['sort'])) {
+	    $sort = $options['sort'];
 	} else {
-		$sort = "`id` DESC";
+	    $sort = '`id` DESC';
 	}
 	// Retrieve the column and the sort direction from the consolidated ORDER BY statement.
-	$sort = ltrim($sort,"`");
+	$sort = ltrim($sort, '`');
 	$sort_column = BigTree::nextSQLColumnDefinition($sort);
-	$sort_pieces = explode(" ",$sort);
+	$sort_pieces = explode(' ', $sort);
 	$sort_direction = end($sort_pieces);
 	// See if we're searching for anything.
-	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
+	$search = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
 ?>
 <div class="table auto_modules">
 	<summary>
@@ -28,46 +28,49 @@
 		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
 	<header>
-		<?
+		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
-				$x++;
-				
-				if ($key == $sort_column) {
-					$active = " ".strtolower($sort_direction);
-					if ($sort_direction == "ASC") {
-						$achar = "&#9650;";
-						$s_direction = "ASC";
-					} else {
-						$achar = "&#9660;";
-						$s_direction = "DESC";
-					}
-				} else {
-					$active = "";
-					$s_direction = "ASC";
-					$achar = "";
-				}
-		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
-		<?
+			    ++$x;
+
+			    if ($key == $sort_column) {
+			        $active = ' '.strtolower($sort_direction);
+			        if ($sort_direction == 'ASC') {
+			            $achar = '&#9650;';
+			            $s_direction = 'ASC';
+			        } else {
+			            $achar = '&#9660;';
+			            $s_direction = 'DESC';
+			        }
+			    } else {
+			        $active = '';
+			        $s_direction = 'ASC';
+			        $achar = '';
+			    }
+			    ?>
+		<span class="view_column" style="width: <?=$field['width']?>px;"><a class="sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field['title']?> <em><?=$achar?></em></a></span>
+		<?php
+
 			}
 		?>
 		<span class="view_status">Status</span>
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
+		<span class="view_action" style="width: <?=(count($bigtree['view']['actions']) * 40)?>px;"><?php if (count($bigtree['view']['actions']) > 1) {
+    ?>Actions<?php 
+} ?></span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/auto-modules/views/searchable-page.php") ?>
+		<?php include BigTree::path('admin/ajax/auto-modules/views/searchable-page.php') ?>
 	</ul>
 </div>
 
-<? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php include BigTree::path('admin/auto-modules/views/_common-js.php') ?>
 <script>
 	BigTree.localSortColumn = "<?=htmlspecialchars($sort_column)?>";
 	BigTree.localSortDirection = "<?=htmlspecialchars($sort_direction)?>";
 	BigTree.localSearchQuery = "<?=$search?>";
 	BigTree.localSearch = function() {
 		BigTree.localSearchQuery = escape($("#search").val());
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree['view']['id']?>&module=<?=$bigtree['module']['route']?>&search=" + BigTree.localSearchQuery);
 	};
 	
 	$(".table").on("click",".sort_column",function() {
@@ -93,13 +96,13 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(BigTree.localSortDirection.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=1");
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree['view']['id']?>&module=<?=$bigtree['module']['route']?>&search=" + BigTree.localSearchQuery + "&page=1");
 		return false;
 	}).on("click","#view_paging a",function() {
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree['view']['id']?>&module=<?=$bigtree['module']['route']?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
 
 		return false;
 	});

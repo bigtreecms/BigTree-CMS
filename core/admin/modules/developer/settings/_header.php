@@ -1,4 +1,5 @@
-<?
+<?php
+
 	$t = $admin->getCachedFieldTypes(true);
-	$types = $t["settings"];
+	$types = $t['settings'];
 ?>

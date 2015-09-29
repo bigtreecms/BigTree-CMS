@@ -1,5 +1,5 @@
-<?
-	$root = ADMIN_ROOT."dashboard/vitals-statistics/";
+<?php
+	$root = ADMIN_ROOT.'dashboard/vitals-statistics/';
 ?>
 <div class="developer">
 	<div class="table">

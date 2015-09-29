@@ -1,6 +1,6 @@
-<?
-	header("Content-type: text/javascript");
-	$id = intval($_POST["id"]);
+<?php
+	header('Content-type: text/javascript');
+	$id = intval($_POST['id']);
 	$admin->requireLevel(1);
 	$admin->deleteUser($id);
 ?>

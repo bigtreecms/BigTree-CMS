@@ -1,8 +1,8 @@
-<?
+<?php
 	$installed = false;
 
 	if (!$updater->extract()) {
-?>
+	    ?>
 <div class="container">
 	<summary><h2>Upgrade Extension</h2></summary>
 	<section>
@@ -13,35 +13,36 @@
 		<a class="button" href="<?=DEVELOPER_ROOT?>extensions/">Return to Extensions List</a>
 	</footer>
 </div>
-<?
+<?php
+
 	} else {
-		// Save original manifest, prevent path manipulation
-		$id = BigTree::cleanFile($_GET["id"]);
-		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
-		
+	    // Save original manifest, prevent path manipulation
+		$id = BigTree::cleanFile($_GET['id']);
+	    $original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"), true);
+
 		// Very simple if we're updating locally
-		if ($updater->Method == "Local") {
-			$updater->installLocal();
-			$installed = true;
+		if ($updater->Method == 'Local') {
+		    $updater->installLocal();
+		    $installed = true;
 
 		// If we're using FTP or SFTP we have to make sure we know where the files exist
 		} else {
-			// If we had to set a directory path we lost the POST
+		    // If we had to set a directory path we lost the POST
 			if (!count($_POST)) {
-				$_POST = $_SESSION["bigtree_admin"]["ftp"];
+			    $_POST = $_SESSION['bigtree_admin']['ftp'];
 			}
-			
+
 			// Try to login
-			if (!$updater->ftpLogin($_POST["user"],$_POST["psasword"])) {
-				$admin->growl("Developer","Login Failed","error");
-				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
+			if (!$updater->ftpLogin($_POST['user'], $_POST['psasword'])) {
+			    $admin->growl('Developer', 'Login Failed', 'error');
+			    BigTree::redirect(DEVELOPER_ROOT.'upgrade/login/?type='.$_POST['type']);
 			}
-			
+
 			// Try to get the FTP root
-			$ftp_root = $updater->getFTPRoot($_POST["user"],$_POST["password"]);
- 			if ($ftp_root === false) {
-				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
-?>
+			$ftp_root = $updater->getFTPRoot($_POST['user'], $_POST['password']);
+		    if ($ftp_root === false) {
+		        $_SESSION['bigtree_admin']['ftp'] = array('username' => $_POST['username'],'password' => $_POST['password']);
+		        ?>
 <form method="post" action="<?=$page_link?>set-ftp-directory/<?=$page_vars?>">
 	<div class="container">
 		<summary><h2>Upgrade Extension</h2></summary>
@@ -50,7 +51,7 @@
 			<hr />
 			<fieldset>
 				<label><?=$method?> Path</label>
-				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
+				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting('bigtree-internal-ftp-upgrade-root'))?>" />
 			</fieldset>
 		</section>
 		<footer>
@@ -58,32 +59,33 @@
 		</footer>
 	</div>
 </form>
-<?
-			} else {
-				$updater->installFTP($ftp_root);
-				$installed = true;
-			}
+<?php
+
+		    } else {
+		        $updater->installFTP($ftp_root);
+		        $installed = true;
+		    }
 		}
 
-		if ($installed) {
-			// Install/replace existing extension
-			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
-			$admin->installExtension($manifest,$original_manifest);
+	    if ($installed) {
+	        // Install/replace existing extension
+			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"), true);
+	        $admin->installExtension($manifest, $original_manifest);
 
 			// If we have an update.php file, run it. We're catching the output buffer to see if update.php has anything to show -- if it doesn't, we'll redirect to the complete screen.
 			$update_file_path = SERVER_ROOT."extensions/$id/update.php";
-			if (file_exists($update_file_path)) {
-				ob_clean();
-				include $update_file_path;
-				$ob_contents = ob_get_contents();
+	        if (file_exists($update_file_path)) {
+	            ob_clean();
+	            include $update_file_path;
+	            $ob_contents = ob_get_contents();
 				// If the update file didn't generate any markup, just move on to the completion screen
 				if (!$ob_contents) {
-					BigTree::redirect($page_link."complete/".$page_vars);
+				    BigTree::redirect($page_link.'complete/'.$page_vars);
 				}
 			// No update file, completion screen
-			} else {
-				BigTree::redirect($page_link."complete/".$page_vars);
-			}
-		}
+	        } else {
+	            BigTree::redirect($page_link.'complete/'.$page_vars);
+	        }
+	    }
 	}
 ?>

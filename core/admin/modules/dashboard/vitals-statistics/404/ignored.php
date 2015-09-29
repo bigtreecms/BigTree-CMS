@@ -1,8 +1,8 @@
-<?
+<?php
 	$admin->requireLevel(1);
-	$total = $admin->get404Total("ignored");
-	$type = "ignored";
-	$delete_action = "unignore";
+	$total = $admin->get404Total('ignored');
+	$type = 'ignored';
+	$delete_action = 'unignore';
 ?>
 <div class="table">
 	<summary>
@@ -18,6 +18,6 @@
 		<span class="ignore_404">Delete</span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/dashboard/404/search.php") ?>
+		<?php include BigTree::path('admin/ajax/dashboard/404/search.php') ?>
 	</ul>
 </div>

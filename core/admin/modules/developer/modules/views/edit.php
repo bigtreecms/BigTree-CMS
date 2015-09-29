@@ -1,10 +1,10 @@
-<?	
-	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
+<?php	
+	$view = BigTreeAutoModule::getView(end($bigtree['path']));
 	BigTree::globalizeArray($view);
 	$module = $admin->getModule($module);
 
 	if (!BigTree::tableExists($table)) {
-?>
+	    ?>
 <div class="container">
 	<section>
 		<div class="alert">
@@ -15,28 +15,30 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete View</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view['id']?>/?module=<?=$module['id']?>" class="button red">Delete View</a>
 	</footer>
 </div>
-<?
+<?php
+
 	} else {
-?>
+	    ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
-		<?
-			if ($_GET["return"] == "front") {
-		?>
-		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
-		<?
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=end($bigtree['path'])?>/" class="module">
+		<?php
+			if ($_GET['return'] == 'front') {
+			    ?>
+		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER['HTTP_REFERER'])?>" />
+		<?php
+
 			}
-			include BigTree::path("admin/modules/developer/modules/views/_form.php");
-		?>
+	    include BigTree::path('admin/modules/developer/modules/views/_form.php');
+	    ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>
 	</form>
 </div>
-<?
-		include BigTree::path("admin/modules/developer/modules/views/_js.php");
+<?php
+		include BigTree::path('admin/modules/developer/modules/views/_js.php');
 	}
 ?>

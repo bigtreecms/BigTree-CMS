@@ -1,8 +1,8 @@
-<?
+<?php
 	$admin->requireLevel(1);
-	$total = $admin->get404Total("301");
-	$type = "301";
-	$delete_action = "ignore";
+	$total = $admin->get404Total('301');
+	$type = '301';
+	$delete_action = 'ignore';
 ?>
 <div class="table">
 	<summary>
@@ -18,6 +18,6 @@
 		<span class="ignore_404">Delete</span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/dashboard/404/search.php") ?>
+		<?php include BigTree::path('admin/ajax/dashboard/404/search.php') ?>
 	</ul>
 </div>

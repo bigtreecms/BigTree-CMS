@@ -1,6 +1,7 @@
-<?
-	$admin->createModuleGroup($_POST["name"]);
-	
-	$admin->growl("Developer","Created Module Group");
-	BigTree::redirect(DEVELOPER_ROOT."modules/groups/");
+<?php
+
+	$admin->createModuleGroup($_POST['name']);
+
+	$admin->growl('Developer', 'Created Module Group');
+	BigTree::redirect(DEVELOPER_ROOT.'modules/groups/');
 ?>

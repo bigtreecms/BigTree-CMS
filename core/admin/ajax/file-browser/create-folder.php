@@ -1,5 +1,5 @@
-<?
-	$admin->createResourceFolder($_POST["folder"],$_POST["name"]);
+<?php
+	$admin->createResourceFolder($_POST['folder'], $_POST['name']);
 ?>
 <html>
 	<head>

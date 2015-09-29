@@ -1,44 +1,50 @@
-<?
-	$external = ($_GET["external"] == "true") ? true : false;
+<?php
+	$external = ($_GET['external'] == 'true') ? true : false;
 	$admin->requireLevel(1);
 	$pages = $admin->getPageIds();
 	$modules = $admin->getModuleForms();
 	// Get the ids of items that are in each module.
 	foreach ($modules as &$m) {
-		$action = $admin->getModuleActionForForm($m);
-		$module = $admin->getModule($action["module"]);
-		if ($module["group"]) {
-			$group = $admin->getModuleGroup($module["group"]);
-			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
-		} else {
-			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
-		}
+	    $action = $admin->getModuleActionForForm($m);
+	    $module = $admin->getModule($action['module']);
+	    if ($module['group']) {
+	        $group = $admin->getModuleGroup($module['group']);
+	        $m['module_name'] = 'Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;'.$group['name'].'&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;'.$module['name'].'&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;'.$m['title'];
+	    } else {
+	        $m['module_name'] = 'Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;'.$module['name'].'&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;'.$m['title'];
+	    }
 
-	    $m["items"] = array();
-	    $q = sqlquery("SELECT id FROM `".$m["table"]."`");
+	    $m['items'] = array();
+	    $q = sqlquery('SELECT id FROM `'.$m['table'].'`');
 	    while ($f = sqlfetch($q)) {
-	    	$m["items"][] = $f["id"];
+	        $m['items'][] = $f['id'];
 	    }
 	}
 ?>
 <div class="table">
 	<summary>
 		<div class="integrity_progress"></div>
-		<p>Running site integrity check with external link checking <? if ($external) { ?>enabled<? } else { ?>disabled<? } ?>.</p>
+		<p>Running site integrity check with external link checking <?php if ($external) {
+    ?>enabled<?php 
+} else {
+    ?>disabled<?php 
+} ?>.</p>
 	</summary>
 	<header>
 		<span class="integrity_errors">Errors</span>
 	</header>
 	<header class="group"><span class="integrity_progress" id="pages_progress">0%</span>Pages</header>
 	<ul id="pages_updates"></ul>
-	<? foreach ($modules as $module) { ?>
-	<header class="group"><span class="integrity_progress" id="module_<?=$module["id"]?>_progress">0%</span><?=$module["module_name"]?></header>
-	<ul id="module_<?=$module["id"]?>_updates"></ul>
-	<? } ?>
+	<?php foreach ($modules as $module) {
+    ?>
+	<header class="group"><span class="integrity_progress" id="module_<?=$module['id']?>_progress">0%</span><?=$module['module_name']?></header>
+	<ul id="module_<?=$module['id']?>_updates"></ul>
+	<?php 
+} ?>
 </div>
 
 <script>
-	BigTree.localPageList = [<? echo implode(",",$pages) ?>];
+	BigTree.localPageList = [<?php echo implode(',', $pages) ?>];
 	BigTree.localModuleList = <?=json_encode($modules)?>;
 	BigTree.localTotalPages = BigTree.localPageList.length;
 	BigTree.localCurrentPage = 0;

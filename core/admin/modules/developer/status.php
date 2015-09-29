@@ -1,93 +1,94 @@
-<?
+<?php
 	//!BigTree Warnings
 	$warnings = array();
-	
+
 	$writable_directories = array(
-		"cache/",
-		"custom/inc/modules/",
-		"custom/admin/ajax/developer/field-options/",
-		"custom/admin/form-field-types/draw/",
-		"custom/admin/form-field-types/process/",
-		"templates/routed/",
-		"templates/basic/",
-		"templates/callouts/",
-		"site/files/"
+		'cache/',
+		'custom/inc/modules/',
+		'custom/admin/ajax/developer/field-options/',
+		'custom/admin/form-field-types/draw/',
+		'custom/admin/form-field-types/process/',
+		'templates/routed/',
+		'templates/basic/',
+		'templates/callouts/',
+		'site/files/',
 	);
-	
+
 	foreach ($writable_directories as $directory) {
-		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
-		    $warnings[] = array(
-		    	"parameter" => "Directory Permissions Error",
-		    	"rec" => "Make ".SERVER_ROOT.$directory." writable.",
-		    	"status" => "bad"
+	    if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
+	        $warnings[] = array(
+		    	'parameter' => 'Directory Permissions Error',
+		    	'rec' => 'Make '.SERVER_ROOT.$directory.' writable.',
+		    	'status' => 'bad',
 		    );
-		}
+	    }
 	}
-	
+
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
-	$forms = array_merge($admin->getModuleForms(),$admin->getModuleEmbedForms());
+	$forms = array_merge($admin->getModuleForms(), $admin->getModuleEmbedForms());
 	foreach ($forms as $form) {
-		foreach (array_filter((array)$form["fields"]) as $key => $data) {
-			if ($data["directory"]) {
-				if (!BigTree::isDirectoryWritable(SITE_ROOT.$data["directory"])) {
-					$warnings[] = array(
-						"parameter" => "Directory Permissions Error",
-						"rec" => "Make ".SITE_ROOT.$data["directory"]." writable.",
-						"status" => "bad"
+	    foreach (array_filter((array) $form['fields']) as $key => $data) {
+	        if ($data['directory']) {
+	            if (!BigTree::isDirectoryWritable(SITE_ROOT.$data['directory'])) {
+	                $warnings[] = array(
+						'parameter' => 'Directory Permissions Error',
+						'rec' => 'Make '.SITE_ROOT.$data['directory'].' writable.',
+						'status' => 'bad',
 					);
-				}
-			}
-		}
+	            }
+	        }
+	    }
 	}
-	
+
 	// Search all content for links to the admin.
 	$bad = $admin->getPageAdminLinks();
 	foreach ($bad as $f) {
-		$warnings[] = array(
-			"parameter" => "Bad Admin Links",
-			"rec" => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
-			"status" => "ok"
+	    $warnings[] = array(
+			'parameter' => 'Bad Admin Links',
+			'rec' => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f['id'].'/">'.$f['nav_title'].'</a>',
+			'status' => 'ok',
 		);
 	}
-	
-	if (!file_exists(SITE_ROOT."favicon.ico")) {
-		$warnings[] = array(
-			"parameter" => "Missing Favicon",
-			"rec" => "Create a favicon and place it in the /site/ root.",
-			"status" => "ok"
+
+	if (!file_exists(SITE_ROOT.'favicon.ico')) {
+	    $warnings[] = array(
+			'parameter' => 'Missing Favicon',
+			'rec' => 'Create a favicon and place it in the /site/ root.',
+			'status' => 'ok',
 		);
 	}
 
 	//!Server Parameters
-	$mysql = (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad";
-	$magic_quotes_gpc = !get_magic_quotes_gpc() ? "good" : "bad";
-	$magic_quotes_runtime = !get_magic_quotes_runtime() ? "good" : "bad";
-	$file_uploads = ini_get('file_uploads') ? "good" : "bad";
-	$short_tags = ini_get('short_open_tag') ? "good" : "bad";
-	$image_support = extension_loaded('gd') ? "good" : "bad";
-	$curl_support = extension_loaded('curl') ? "good" : "bad";
-	
+	$mysql = (extension_loaded('mysql') || extension_loaded('mysqli')) ? 'good' : 'bad';
+	$magic_quotes_gpc = !get_magic_quotes_gpc() ? 'good' : 'bad';
+	$magic_quotes_runtime = !get_magic_quotes_runtime() ? 'good' : 'bad';
+	$file_uploads = ini_get('file_uploads') ? 'good' : 'bad';
+	$short_tags = ini_get('short_open_tag') ? 'good' : 'bad';
+	$image_support = extension_loaded('gd') ? 'good' : 'bad';
+	$curl_support = extension_loaded('curl') ? 'good' : 'bad';
+
 	$upload_max_filesize = ini_get('upload_max_filesize');
 	$post_max_size = ini_get('post_max_size');
 	$max_file = (intval($upload_max_filesize) > intval($post_max_size)) ? intval($post_max_size) : intval($upload_max_filesize);
-	
-	$max_check = "bad";
+
+	$max_check = 'bad';
 	if ($max_file >= 4) {
-		$max_check = "ok";
+	    $max_check = 'ok';
 	}
 	if ($max_file >= 8) {
-		$max_check = "good";
+	    $max_check = 'good';
 	}
-	
-	$mem_limit = ini_get("memory_limit");
-	$memory_limit = (intval($mem_limit) > 32) ? "good" : "bad";
+
+	$mem_limit = ini_get('memory_limit');
+	$memory_limit = (intval($mem_limit) > 32) ? 'good' : 'bad';
 ?>
 <div class="container">
 	<section>
 		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 	</section>
 </div>
-<? if (count($warnings)) { ?>
+<?php if (count($warnings)) {
+    ?>
 <div class="table">
 	<summary>
 		<h2>Warnings</h2>
@@ -98,16 +99,20 @@
 		<span class="site_status_status">Status</span>
 	</header>
 	<ul>
-		<? foreach ($warnings as $w) { ?>
+		<?php foreach ($warnings as $w) {
+    ?>
 		<li>
-			<section class="site_status_message"><?=$w["parameter"]?></section>
-			<section class="site_status_action"><?=$w["rec"]?></section>
-			<section class="site_status_status <?=$w["status"]?>"></section>
+			<section class="site_status_message"><?=$w['parameter']?></section>
+			<section class="site_status_action"><?=$w['rec']?></section>
+			<section class="site_status_status <?=$w['status']?>"></section>
 		</li>
-		<? } ?>
+		<?php 
+}
+    ?>
 	</ul>
 </div>
-<? } ?>
+<?php 
+} ?>
 <div class="table">
 	<summary>
 		<h2>Server Parameters</h2>

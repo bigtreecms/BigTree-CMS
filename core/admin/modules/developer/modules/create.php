@@ -1,25 +1,25 @@
-<?
+<?php
 	BigTree::globalizePOSTVars();
-	
+
 	if ($group_new) {
-		$group = $admin->createModuleGroup($group_new,"on");
+	    $group = $admin->createModuleGroup($group_new, 'on');
 	} else {
-		$group = $group_existing;
+	    $group = $group_existing;
 	}
-	
-	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route);
+
+	$id = $admin->createModule($name, $group, $class, $table, $gbp, $icon, $route);
 	// Route was incorrect if we failed
 	if (!$id) {
-		$_POST["group_existing"] = $group;
-		unset($_POST["group_new"]);
-		$_SESSION["bigtree_admin"]["saved"] = $_POST;
-		$admin->growl("Developer","Invalid Route");
-		BigTree::redirect(DEVELOPER_ROOT."modules/add/?error=route");
+	    $_POST['group_existing'] = $group;
+	    unset($_POST['group_new']);
+	    $_SESSION['bigtree_admin']['saved'] = $_POST;
+	    $admin->growl('Developer', 'Invalid Route');
+	    BigTree::redirect(DEVELOPER_ROOT.'modules/add/?error=route');
 	}
-	
+
 	if (!$table) {
-		$admin->growl("Developer","Created Module");
-		BigTree::redirect(DEVELOPER_ROOT."modules/");
+	    $admin->growl('Developer', 'Created Module');
+	    BigTree::redirect(DEVELOPER_ROOT.'modules/');
 	}
 ?>
 <div class="container">

@@ -1,5 +1,5 @@
-<?
-	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
+<?php
+	$geocoding_service = $cms->getSetting('bigtree-internal-geocoding-service');
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/mapquest/activate/">
@@ -8,7 +8,7 @@
 			<hr />
 			<fieldset>
 				<label>MapQuest AppKey</label>
-				<input type="text" name="mapquest_key" value="<?=htmlspecialchars($geocoding_service["mapquest_key"])?>" />
+				<input type="text" name="mapquest_key" value="<?=htmlspecialchars($geocoding_service['mapquest_key'])?>" />
 			</fieldset>
 		</section>
 		<footer>

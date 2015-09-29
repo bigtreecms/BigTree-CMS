@@ -1,3 +1,4 @@
-<?
-	$gateway = new BigTreePaymentGateway;
+<?php
+
+	$gateway = new BigTreePaymentGateway();
 ?>

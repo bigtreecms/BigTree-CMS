@@ -7,7 +7,7 @@
 				</article>
 				<article class="fastspot">
 					<p>
-						Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> Fastspot
+						Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date('Y')?> Fastspot
 					</p>
 					<a href="<?=ADMIN_ROOT?>credits/">Credits &amp; Licenses</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
 					<a href="http://www.bigtreecms.org/" target="_blank">Support</a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
@@ -15,12 +15,12 @@
 				</article>
 			</section>
 		</footer>
-		<?
-			if (isset($_SESSION["bigtree_admin"]["growl"])) {
-		?>
-		<script>BigTree.growl("<?=BigTree::safeEncode($_SESSION["bigtree_admin"]["growl"]["title"])?>","<?=BigTree::safeEncode($_SESSION["bigtree_admin"]["growl"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["growl"]["type"])?>");</script>
-		<?
-				unset($_SESSION["bigtree_admin"]["growl"]);
+		<?php
+			if (isset($_SESSION['bigtree_admin']['growl'])) {
+			    ?>
+		<script>BigTree.growl("<?=BigTree::safeEncode($_SESSION['bigtree_admin']['growl']['title'])?>","<?=BigTree::safeEncode($_SESSION['bigtree_admin']['growl']['message'])?>",5000,"<?=htmlspecialchars($_SESSION['bigtree_admin']['growl']['type'])?>");</script>
+		<?php
+				unset($_SESSION['bigtree_admin']['growl']);
 			}
 		?>
  	</body>

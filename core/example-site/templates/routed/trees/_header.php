@@ -1,3 +1,3 @@
-<?
-	$treesMod = new DemoTrees;	
+<?php
+	$treesMod = new DemoTrees();	
 ?>

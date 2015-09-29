@@ -6,6 +6,6 @@
 			<?=$page_content?>
 			<hr />
 		</div>
-		<? include "../templates/layouts/_callouts.php" ?>
+		<?php include '../templates/layouts/_callouts.php' ?>
 	</article>
 </div>

@@ -1,64 +1,72 @@
-<?
+<?php
 	// Prevent warnings
 	$data = is_array($data) ? $data : array();
 
 	$using_preset = false;
-	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$settings = BigTreeCMS::getSetting('bigtree-internal-media-settings');
 	// See if we're using a preset and ensure it still exists
-	if ($data["preset"]) {
-		if ($settings["presets"][$data["preset"]]) {
-			$using_preset = true;
-		} else {
-			$data = array();
-		}
+	if ($data['preset']) {
+	    if ($settings['presets'][$data['preset']]) {
+	        $using_preset = true;
+	    } else {
+	        $data = array();
+	    }
 	} 
 
-	$data["min_width"] = isset($data["min_width"]) ? $data["min_width"] : "";
-	$data["min_height"] = isset($data["min_height"]) ? $data["min_height"] : "";
-	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
-	$data["crops"] = isset($data["crops"]) ? $data["crops"] : array();
-	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : array();
+	$data['min_width'] = isset($data['min_width']) ? $data['min_width'] : '';
+	$data['min_height'] = isset($data['min_height']) ? $data['min_height'] : '';
+	$data['preview_prefix'] = isset($data['preview_prefix']) ? $data['preview_prefix'] : '';
+	$data['crops'] = isset($data['crops']) ? $data['crops'] : array();
+	$data['thumbs'] = isset($data['thumbs']) ? $data['thumbs'] : array();
 
 	// We use this file for creating presets so we don't want to show the dropdown in that context
-	if (!defined("BIGTREE_CREATING_PRESET") && array_filter((array)$settings["presets"])) {
-?>
+	if (!defined('BIGTREE_CREATING_PRESET') && array_filter((array) $settings['presets'])) {
+	    ?>
 <fieldset>
 	<label>Existing Preset</label>
 	<select name="preset" id="preset_select">
 		<option></option>
-		<?
-			foreach ($settings["presets"] as $preset) {
-		?>
-		<option value="<?=$preset["id"]?>"<? if ($preset["id"] == $data["preset"]) { ?> selected="selected"<? } ?>><?=$preset["name"]?></option>
-		<?
+		<?php
+			foreach ($settings['presets'] as $preset) {
+			    ?>
+		<option value="<?=$preset['id']?>"<?php if ($preset['id'] == $data['preset']) {
+    ?> selected="selected"<?php 
+}
+			    ?>><?=$preset['name']?></option>
+		<?php
+
 			}
-		?>
+	    ?>
 	</select>
 </fieldset>
-<?
+<?php
+
 	}
 ?>
 <div id="image_options_container">
-	<?
+	<?php
 		if ($using_preset) {
-			include "_image-preset.php";
+		    include '_image-preset.php';
 		} else {
-	?>
+		    ?>
 	<fieldset>
 		<label>Minimum Width <small>(numeric value in pixels)</small></label>
-		<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />
+		<input type="text" name="min_width" value="<?=htmlspecialchars($data['min_width'])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Minimum Height <small>(numeric value in pixels)</small></label>
-		<input type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" />
+		<input type="text" name="min_height" value="<?=htmlspecialchars($data['min_height'])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Preview Prefix <small>(for forms)</small></label>
-		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
+		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data['preview_prefix'])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-		<input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?>/>
+		<input type="checkbox" name="retina" <?php if ($data['retina']) {
+    ?>checked="checked" <?php 
+}
+		    ?>/>
 		<label class="for_checkbox"> When Available</label>
 	</fieldset>
 	
@@ -68,96 +76,107 @@
 			<ul>
 				<li>Prefix:</li><li>Width:</li><li>Height:</li>
 			</ul>
-			<?
+			<?php
 				$crop_count = 0;
-				$crop_thumb_count = 0;
-				$crop_sub_count = 0;
-				if (is_array($data["crops"])) {
-					foreach ($data["crops"] as $crop) {
-						// In case a crop was added but no options were set
-						if (is_array($crop) && $crop["width"] && $crop["height"]) {
-							$crop_count++;
-			?>
+		    $crop_thumb_count = 0;
+		    $crop_sub_count = 0;
+		    if (is_array($data['crops'])) {
+		        foreach ($data['crops'] as $crop) {
+		            // In case a crop was added but no options were set
+						if (is_array($crop) && $crop['width'] && $crop['height']) {
+						    ++$crop_count;
+						    ?>
 			<ul>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][prefix]" value="<?=htmlspecialchars($crop['prefix'])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][width]" value="<?=htmlspecialchars($crop['width'])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop['height'])?>" />
 				</li>
 				<li class="actions">
 					<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop"></a>
 					<a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="thumbnail"></a>
-					<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+					<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop['grayscale']?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop['grayscale']) {
+    ?> gray<?php 
+}
+						    ?>"></a>
 					<a href="#<?=$crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
-			<?
-							if (is_array($crop["thumbs"])) {
-								foreach ($crop["thumbs"] as $thumb) {
-									// In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
-									if (is_array($thumb) && $thumb["prefix"] && ($thumb["width"] || $thumb["height"])) {
-										$crop_thumb_count++;
-			?>
+			<?php
+							if (is_array($crop['thumbs'])) {
+							    foreach ($crop['thumbs'] as $thumb) {
+							        // In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
+									if (is_array($thumb) && $thumb['prefix'] && ($thumb['width'] || $thumb['height'])) {
+									    ++$crop_thumb_count;
+									    ?>
 			<ul class="image_attr_thumbs_<?=$crop_count?>">
 				<li class="thumbed">
 					<span class="icon_small icon_small_picture" title="Thumbnail"></span>
-					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
+					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb['prefix'])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb['width'])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb['height'])?>" />
 				</li>
 				<li class="actions">
 					<span class="icon_small icon_small_up"></span>
-					<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<? if ($thumb["grayscale"]) { ?> gray<? } ?>"></a>
+					<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb['grayscale']?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb['grayscale']) {
+    ?> gray<?php 
+}
+									    ?>"></a>
 					<a href="#" title="Remove" class="delete"></a>
 				</li>
 			</ul>
-			<?
+			<?php
+
 									}
-								}
+							    }
 							}
-	
-							if (is_array($crop["center_crops"])) {
-								foreach ($crop["center_crops"] as $crop) {
-									// In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
-									if (is_array($crop) && $crop["prefix"] && $crop["width"] && $crop["height"]) {
-										$crop_sub_count++;
-			?>
+
+						    if (is_array($crop['center_crops'])) {
+						        foreach ($crop['center_crops'] as $crop) {
+						            // In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
+									if (is_array($crop) && $crop['prefix'] && $crop['width'] && $crop['height']) {
+									    ++$crop_sub_count;
+									    ?>
 			<ul class="image_attr_thumbs_<?=$crop_count?>">
 				<li class="thumbed">
 					<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
-					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop['prefix'])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop['width'])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop['height'])?>" />
 				</li>
 				<li class="actions">
 					<span class="icon_small icon_small_up"></span>
-					<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+					<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop['grayscale']?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop['grayscale']) {
+    ?> gray<?php 
+}
+									    ?>"></a>
 					<a href="#" title="Remove" class="delete"></a>
 				</li>
 			</ul>
-			<?
+			<?php
+
 									}
-								}
-							}
+						        }
+						    }
 						}
-					}
-				}
-			?>
+		        }
+		    }
+		    ?>
 		</div>
 	</fieldset>
 	
@@ -168,36 +187,40 @@
 			<ul>
 				<li>Prefix:</li><li>Width:</li><li>Height:</li>
 			</ul>
-			<?
+			<?php
 				// Keep a count of thumbs
 				$thumb_count = 0;
-				if (is_array($data["thumbs"])) {
-					foreach ($data["thumbs"] as $thumb) {
-						// Make sure a width or height was entered or it's pointless
-						if (is_array($thumb) && ($thumb["width"] || $thumb["height"])) {
-							$thumb_count++;
-			?>
+		    if (is_array($data['thumbs'])) {
+		        foreach ($data['thumbs'] as $thumb) {
+		            // Make sure a width or height was entered or it's pointless
+						if (is_array($thumb) && ($thumb['width'] || $thumb['height'])) {
+						    ++$thumb_count;
+						    ?>
 			<ul>
 				<li>
-					<input type="text" name="thumbs[<?=$thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
+					<input type="text" name="thumbs[<?=$thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb['prefix'])?>" />
 				</li>
 				<li>
-					<input type="text" name="thumbs[<?=$thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"])?>" />
+					<input type="text" name="thumbs[<?=$thumb_count?>][width]" value="<?=htmlspecialchars($thumb['width'])?>" />
 				</li>
 				<li>
-					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
+					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb['height'])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$crop['grayscale']?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop['grayscale']) {
+    ?> gray<?php 
+}
+						    ?>"></a>
 					<a href="#<?=$thumb_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
-			<?
+			<?php
+
 						}
-					}
-				}
-			?>
+		        }
+		    }
+		    ?>
 		</div>
 	</fieldset>
 	
@@ -207,39 +230,44 @@
 			<ul>
 				<li>Prefix:</li><li>Width:</li><li>Height:</li>
 			</ul>
-			<?
+			<?php
 				// Keep a count of center crops
 				$center_crop_count = 0;
-				if (is_array($data["center_crops"])) {
-					foreach ($data["center_crops"] as $crop) {
-						// Make sure a width and height was entered or it's pointless
-						if (is_array($crop) && ($crop["width"] && $crop["height"])) {
-							$center_crop_count++;
-			?>
+		    if (is_array($data['center_crops'])) {
+		        foreach ($data['center_crops'] as $crop) {
+		            // Make sure a width and height was entered or it's pointless
+						if (is_array($crop) && ($crop['width'] && $crop['height'])) {
+						    ++$center_crop_count;
+						    ?>
 			<ul>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=htmlspecialchars($crop['prefix'])?>" />
 				</li>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=htmlspecialchars($crop['width'])?>" />
 				</li>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($crop['height'])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop['grayscale']?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop['grayscale']) {
+    ?> gray<?php 
+}
+						    ?>"></a>
 					<a href="#<?=$center_crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
-			<?
+			<?php
+
 						}
-					}
-				}
-			?>
+		        }
+		    }
+		    ?>
 		</div>
 	</fieldset>
-	<?
+	<?php
+
 		}
 	?>
 </div>

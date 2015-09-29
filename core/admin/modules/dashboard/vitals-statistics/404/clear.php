@@ -1,10 +1,10 @@
-<?
+<?php
 	$admin->requireLevel(1);
-	if (isset($_POST["clear"])) {
-		$admin->clearDead404s();
-		BigTree::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/");
+	if (isset($_POST['clear'])) {
+	    $admin->clearDead404s();
+	    BigTree::redirect(ADMIN_ROOT.'dashboard/vitals-statistics/404/');
 	} else {
-?>
+	    ?>
 <form method="post" action="">
 	<div class="container">
 		<section>
@@ -15,6 +15,7 @@
 		</footer>
 	</div>
 </form>
-<?
+<?php
+
 	}
 ?>

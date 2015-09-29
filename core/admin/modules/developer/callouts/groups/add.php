@@ -1,5 +1,5 @@
-<?
-	$callouts = $admin->getCallouts("name ASC");
+<?php
+	$callouts = $admin->getCallouts('name ASC');
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/create/" class="module">
@@ -11,15 +11,19 @@
 			<fieldset>
 				<label>Callouts</label>
 				<div class="multi_widget many_to_many" id="group_callouts">
-					<section<? if (count($entries)) { ?> style="display: none;"<? } ?>>
+					<section<?php if (count($entries)) {
+    ?> style="display: none;"<?php 
+} ?>>
 						<p>Click "Add Item" to add an item to this list.</p>
 					</section>
 					<ul></ul>
 					<footer>
 						<select>
-							<? foreach ($callouts as $callout) { ?>
-							<option value="<?=BigTree::safeEncode($callout["id"])?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></option>
-							<? } ?>
+							<?php foreach ($callouts as $callout) {
+    ?>
+							<option value="<?=BigTree::safeEncode($callout['id'])?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout['name']), 100))?></option>
+							<?php 
+} ?>
 						</select>
 						<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Callout</a>
 					</footer>

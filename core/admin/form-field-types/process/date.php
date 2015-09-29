@@ -1,3 +1,4 @@
-<?
-	$field["output"] = BigTree::dateFormat($field["input"],"Y-m-d");
+<?php
+
+	$field['output'] = BigTree::dateFormat($field['input'], 'Y-m-d');
 ?>

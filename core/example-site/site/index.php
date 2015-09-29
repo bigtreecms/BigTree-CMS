@@ -1,1 +1,1 @@
-<? include "../core/launch.php" ?>
+<?php include '../core/launch.php' ?>

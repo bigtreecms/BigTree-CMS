@@ -1,3 +1,4 @@
-<?
-	$cloud = new BigTreeCloudStorage;
+<?php
+
+	$cloud = new BigTreeCloudStorage();
 ?>

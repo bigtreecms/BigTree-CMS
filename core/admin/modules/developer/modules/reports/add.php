@@ -1,13 +1,13 @@
-<?
-	$id = $_GET["module"];
+<?php
+	$id = $_GET['module'];
 	$module = $admin->getModule($id);
-	$type = "csv";
+	$type = 'csv';
 
 	// Find out available views to use
-	$available_views = $admin->getModuleViews("title",$module["id"]);
+	$available_views = $admin->getModuleViews('title', $module['id']);
 ?>
 <div class="container">
-	<form method="post" action="<?=SECTION_ROOT?>create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=SECTION_ROOT?>create/<?=$module['id']?>/" class="module">
 		<section>
 			<div class="left last">
 				<fieldset>
@@ -19,7 +19,7 @@
 					<label class="required">Data Table</label>
 					<select name="table" id="report_table" class="required">
 						<option></option>
-						<? BigTree::getTableSelectOptions(); ?>
+						<?php BigTree::getTableSelectOptions(); ?>
 					</select>
 				</fieldset>
 			</div>
@@ -42,19 +42,24 @@
 				<fieldset id="filtered_view" style="display: none;">
 					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
 					<select name="return_view">
-						<? foreach ($available_views as $view) { ?>
-						<option value="<?=$view["id"]?>"<? if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<? } ?>><?=$view["title"]?></option>
-						<? } ?>
+						<?php foreach ($available_views as $view) {
+    ?>
+						<option value="<?=$view['id']?>"<?php if (isset($_GET['view']) && $_GET['view'] == $view['id']) {
+    ?> selected="selected"<?php 
+}
+    ?>><?=$view['title']?></option>
+						<?php 
+} ?>
 					</select>
 				</fieldset>
 			</div>
 		</section>
 		<section class="sub" id="field_area">
-			<?
+			<?php
 				if ($table) {
-					include BigTree::path("admin/ajax/developer/load-report.php");
+				    include BigTree::path('admin/ajax/developer/load-report.php');
 				} else {
-					echo "<p>Please choose a table to populate this area.</p>";
+				    echo '<p>Please choose a table to populate this area.</p>';
 				}
 			?>
 		</section>
@@ -63,4 +68,4 @@
 		</footer>
 	</form>
 </div>
-<? include BigTree::path("admin/modules/developer/modules/reports/_js.php") ?>
+<?php include BigTree::path('admin/modules/developer/modules/reports/_js.php') ?>
