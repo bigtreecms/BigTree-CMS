@@ -5740,8 +5740,10 @@
 											}
 										}
 									}
-	
-									$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+									
+									if ($crop["prefix"]) {
+										$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+									}
 								}
 							}
 						}
