@@ -3091,6 +3091,9 @@ var BigTree = {
 			var field = $(this).attr("href").substr(1);
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;
+		}).on("click",".date_picker_clear",function() {
+			$(this).parent().siblings('input').val('');
+			$(this).siblings('.ui-datepicker').find('.ui-state-default.ui-state-active').removeClass('ui-state-active');
 		});
 		
 		// Pickers
@@ -3103,6 +3106,11 @@ var BigTree = {
 			$(this).datepicker({ dateFormat: BigTree.dateFormat, defaultDate: $(this).attr("data-date"), onSelect: function(dateText) {
 				$(this).prev("input").val(dateText);
 			}});
+			
+			if(typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '')
+			{
+				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
+			}
 		});
 		$(".time_picker_inline").each(function() {
 			var hour = $(this).attr("data-hour");
@@ -3115,6 +3123,11 @@ var BigTree = {
 			$(this).datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", defaultDate: $(this).attr("data-date"), ampm: true, hour: $(this).attr("data-hour"), minute: $(this).attr("data-minute"), hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) {
 				$(this).prev("input").val(dateText);
 			}});
+			
+			if(typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '')
+			{
+				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
+			}
 		});
 	},
 

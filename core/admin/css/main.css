@@ -1548,6 +1548,8 @@
 	.ui-datepicker .ui-datepicker-buttonpane { background-image: none; border-bottom: 0; border-left: 0; border-right: 0; margin: .7em 0 0 0; padding: 0 .2em; }
 	.ui-datepicker .ui-datepicker-buttonpane button { cursor: pointer; float: right; margin: .5em .2em .4em; overflow: visible; padding: .2em .6em .3em .6em; width: auto; }
 	.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float: left; }
+	
+	.date_picker_clear { display: inline-block; float: right; margin-right: 35%; padding: 7px 8px; background: #C0362F; color: #FFF; cursor: pointer; }
 
 	.ui-datepicker-prev:before { content: "\21E6"; cursor: pointer; font-size: 16px; }
 	.ui-datepicker-next:before { content: "\21E8"; cursor: pointer; font-size: 16px; }
