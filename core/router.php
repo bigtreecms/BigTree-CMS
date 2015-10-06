@@ -171,7 +171,7 @@
         }
     }
 
-    if (substr($requestedRoute, strlen($requestedRoute) - 1) != "/") {
+    if (strlen($requestedRoute) > 1 && substr($requestedRoute, strlen($requestedRoute) - 1) != "/") {
         BigTree::redirect(WWW_ROOT . $requestedRoute . "/", 301);
     }
 
