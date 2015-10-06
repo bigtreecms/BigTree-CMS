@@ -451,6 +451,11 @@
 		'),$bigtree["content"]);
 		// Replace script and image tags.
 		$bigtree["content"] = str_replace('src="http://','src="https://',$bigtree["content"]);
+		//Replace inline background images
+		$patterns = array("/url\('http:\/\//", '/url\("http:\/\//', '/url\(http:\/\//');
+		$replacements = array("url('https://", 'url("https://', "url(https://");
+		$bigtree["content"] = preg_replace($patterns, $replacements, $bigtree["content"]);
+		unset($patterns, $replacements);
 	}
 	
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
