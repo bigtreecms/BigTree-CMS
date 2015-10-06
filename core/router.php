@@ -160,6 +160,21 @@
 		}
 	}
 	
+    $requestedRoute = "";
+	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
+		if (!empty($_SERVER["PATH_INFO"])) {
+            $requestedRoute = $_SERVER["PATH_INFO"];
+        }
+    } else {
+        if (!empty($_GET["bigtree_htaccess_url"])) {
+            $requestedRoute = $_GET["bigtree_access_url"];
+        }
+    }
+
+    if (substr($requestedRoute, strlen($requestedRoute) - 1) != "/") {
+        BigTree::redirect(WWW_ROOT . $requestedRoute . "/", 301);
+    }
+
 	// Start output buffering and sessions
 	ob_start();
 	session_set_cookie_params(0,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
