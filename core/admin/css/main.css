@@ -752,18 +752,17 @@
 	fieldset.callouts { border-bottom: 1px solid #CCC; border-top: 1px solid #CCC; clear: both; margin: 30px -30px 30px -30px; padding: 30px; width: 898px; }
 	fieldset.callouts:first-child { border-top: none; margin-top: -30px; }
 	fieldset.callouts:last-child { border-bottom: none; margin-bottom: -30px; }
-	fieldset.callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
-	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
-	fieldset.callouts article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
-	fieldset.callouts .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
-	fieldset.callouts h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
-	fieldset.callouts h4 span { background: url(../images/icons.png); height: 20px; width: 16px; }
-	fieldset.callouts .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
-	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
-	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 	fieldset.callouts_no_margin { margin-top: -31px; }
-	fieldset.callouts .button { float: left; margin: 0 15px 0 0; }
+	fieldset.callouts .button { border-radius: 3px; float: left; height: 30px; line-height: 33px; margin: 0 15px 0 0; padding: 0 13px; }
+	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
 	fieldset.callouts .max, .matrix_list .max { float: left; line-height: 32px; text-transform: uppercase; }
+	fieldset.callouts .contain article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
+	fieldset.callouts .contain article .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
+	fieldset.callouts .contain article h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
+	fieldset.callouts .contain article h4 span { background: url(../images/icons.png); height: 20px; width: 16px; }
+	fieldset.callouts .contain article .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
+	fieldset.callouts .contain article .bottom * { margin: 0 10px 0 0; }
+	fieldset.callouts .contain article p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }
