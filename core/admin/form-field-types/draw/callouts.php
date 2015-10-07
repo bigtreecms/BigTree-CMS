@@ -21,7 +21,7 @@
 		?>
 		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
-			<? BigTreeAdmin::drawArrayLevel(array($x),$callout) ?>
+			<? BigTreeAdmin::drawArrayLevel(array($x),$callout,$field) ?>
 			<h4>
 				<?=BigTree::safeEncode($callout["display_title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=BigTree::safeEncode($callout["display_title"])?>" />

@@ -2258,11 +2258,14 @@
 				An internal function used for drawing callout and matrix resource data.
 		*/
 
-		static function drawArrayLevel($keys,$level) {
-			global $field;
+		static function drawArrayLevel($keys,$level,$field = false) {
+			// Backwards compatibility in case any external developers used this
+			if ($field === false) {
+				global $field;
+			}
 			foreach ($level as $key => $value) {
 				if (is_array($value)) {
-					static::drawArrayLevel(array_merge($keys,array($key)),$value);
+					static::drawArrayLevel(array_merge($keys,array($key)),$value,$field);
 				} else {
 ?>
 <input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />

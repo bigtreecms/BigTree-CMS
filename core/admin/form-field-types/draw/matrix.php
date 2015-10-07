@@ -17,7 +17,7 @@
 		?>
 		<article>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-			<? BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
+			<? BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
 			<h4>
 				<?=BigTree::safeEncode($item["__internal-title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
@@ -67,7 +67,7 @@
 			?>
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-				<? BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
+				<? BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>
