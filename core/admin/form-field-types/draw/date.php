@@ -9,12 +9,10 @@
 	
 	// We draw the picker inline for callouts
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
-		if (!isset($field["value"])) {
-			$field["value"] = date($bigtree["config"]["date_format"]);
-		}
 ?>
 <input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
-<div class="date_picker_inline" data-date="<?=$field["value"]?>"><div class="date_picker_clear">Clear Date</div></div>
+<div class="date_picker_inline" data-date="<?=$field["value"]?>"></div>
+<div class="date_picker_clear">Clear Date</div>
 <?
 	} else {
 ?>

@@ -3120,8 +3120,8 @@ var BigTree = {
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;
 		}).on("click",".date_picker_clear",function() {
-			$(this).parent().siblings('input').val('');
-			$(this).siblings('.ui-datepicker').find('.ui-state-default.ui-state-active').removeClass('ui-state-active');
+			$(this).siblings('input').val("");
+			$(this).siblings('.date_picker_inline, .date_time_picker_inline').find('.ui-state-default.ui-state-active').removeClass('ui-state-active');
 		});
 		
 		// Pickers
@@ -3135,8 +3135,7 @@ var BigTree = {
 				$(this).prev("input").val(dateText);
 			}});
 			
-			if(typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '')
-			{
+			if (typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '') {
 				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
 			}
 		});
@@ -3152,8 +3151,7 @@ var BigTree = {
 				$(this).prev("input").val(dateText);
 			}});
 			
-			if(typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '')
-			{
+			if (typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '') {
 				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
 			}
 		});

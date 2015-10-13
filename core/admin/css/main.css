@@ -1555,7 +1555,9 @@
 	.ui-datepicker .ui-datepicker-buttonpane button { cursor: pointer; float: right; margin: .5em .2em .4em; overflow: visible; padding: .2em .6em .3em .6em; width: auto; }
 	.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float: left; }
 	
-	.date_picker_clear { display: inline-block; float: right; margin-right: 35%; padding: 7px 8px; background: #C0362F; color: #FFF; cursor: pointer; }
+	.date_picker_inline, .date_time_picker_inline { float: left; }
+	.date_picker_clear { background: #C0362F; color: #FFF; cursor: pointer; float: left; margin-left: 10px; padding: 7px 8px; }
+	.date_picker_clear:hover{ background: #AB312B; }
 
 	.ui-datepicker-prev:before { content: "\21E6"; cursor: pointer; font-size: 16px; }
 	.ui-datepicker-next:before { content: "\21E8"; cursor: pointer; font-size: 16px; }

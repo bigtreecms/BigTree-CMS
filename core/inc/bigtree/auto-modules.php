@@ -1739,7 +1739,7 @@
 				// Requires url and it isn't
 				} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
 					return false;
-				} elseif (in_array("required",$parts) && $data === false) {
+				} elseif (in_array("required",$parts) && ($data === false || $data === "")) {
 					return false;
 				// It exists and validates as numeric, an email, or URL
 				} else {
