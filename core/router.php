@@ -160,36 +160,11 @@
 		}
 	}
 	
-    if (!empty($bigtree["config"]["trailing_slash_behavior"]) && strtolower($bigtree["config"]["trailing_slash_behavior"]) != 'none') {
-        // Get the route requested
-        $requestedRoute = '';
-
-        // Basic routing
-        if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
-            if (!empty($_SERVER["PATH_INFO"])) {
-                $requestedRoute = $_SERVER["PATH_INFO"];
-            }
-        // "Advanced" or "Simple Rewrite" routing
-        } else {
-            if (!empty($_GET["bigtree_htaccess_url"])) {
-                $requestedRoute = $_GET["bigtree_htaccess_url"];
-            }
-        }
-
-        switch (strtolower($bigtree["config"]["trailing_slash_behavior"])) {
-            case "append":
-                // If a trailing slash does not exist on the requested URL, add the slash and 301 redirect to it
-                if (strlen($requestedRoute) > 1 && substr($requestedRoute, strlen($requestedRoute) - 1) != "/") {
-                    BigTree::redirect(WWW_ROOT . $requestedRoute . "/", 301);
-                }
-                break;
-            case "remove":
-                // If a trailing slash is present, remove and redirect
-                if (strlen($requestedRoute) > 0 && substr($requestedRoute, strlen($requestedRoute) - 1) == "/") {
-                    BigTree::redirect(WWW_ROOT . substr($requestedRoute, 0, strlen($requestedRoute) - 1), 301);
-                }
-                break;
-        }
+	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
+    if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+    	BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+    } elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+    	BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
     }
 
 	// Start output buffering and sessions

@@ -1787,7 +1787,7 @@
 	.install_logo { background: url(../images/icon-sprite.svg) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; width: 100px; }
 	.install_copyright:hover { color: #ccc; }
-	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 20px 30px; }
+	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 0 30px; }
 	.install_wrapper ul li { margin: 5px 0; }
 	.install_wrapper code { background: #FCFCFC; border: 1px solid #CCC; color: #333; display: block; line-height: 200%; margin: 20px 0; padding: 10px 20px; }
 	.install_wrapper .select .handle { background: url(../images/install-sprite.png) -32px -25px; }

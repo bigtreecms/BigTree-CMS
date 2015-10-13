@@ -16,7 +16,6 @@
 	$bigtree["config"]["routing"] = "[routing]";
 	$bigtree["config"]["cache"] = false; // Enable Simple Caching
 	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
-    $bigtree["config"]["trailing_slash_behavior"] = "none"; // Options are none, append, remove
 
 	// Database Environment
 	$bigtree["config"]["db"]["host"] = "[host]";
