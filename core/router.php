@@ -145,7 +145,7 @@
 			die();
 		}
 	}
-	
+
 	// Serve Placeholder Image
 	if ($bigtree["path"][0] == "images" && $bigtree["path"][1] == "placeholder") {
 		if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])) {
@@ -161,10 +161,12 @@
 	}
 	
 	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
-    if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-    	BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
-    } elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-    	BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
+    if (count($bigtree["path"])) {
+    	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+    	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
+    	}
     }
 
 	// Start output buffering and sessions
