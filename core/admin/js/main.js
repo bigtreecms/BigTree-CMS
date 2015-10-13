@@ -2692,7 +2692,9 @@ var BigTreeCallouts = function(settings) {
 				return;
 			}
 
-			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key }, complete: function(response) {
+			BigTree.TabIndexDepth++;
+
+			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth }, complete: function(response) {
 				BigTreeDialog({
 					title: "Add " + Noun,
 					content: response.responseText,
@@ -2725,8 +2727,10 @@ var BigTreeCallouts = function(settings) {
 				return;
 			}
 
+			BigTree.TabIndexDepth++;
+
 			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth }, complete: function(response) {
 				BigTreeDialog({
 					title: "Edit " + Noun,
 					content: response.responseText,
@@ -2768,6 +2772,7 @@ var BigTreeCallouts = function(settings) {
 
 		function getCallout() {
 			LastDialog = $(".bigtree_dialog_form").last();
+			BigTree.TabIndexDepth--;
 	
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
@@ -2858,9 +2863,11 @@ var BigTreeMatrix = function(settings) {
 				return;
 			}
 
+			BigTree.TabIndexDepth++;
+
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, key: Key },
+				data: { columns: Columns, count: Count, key: Key, tab_depth: BigTree.TabIndexDepth },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Add Item",
@@ -2923,6 +2930,8 @@ var BigTreeMatrix = function(settings) {
 				return;
 			}
 
+			BigTree.TabIndexDepth++;
+
 			// Set the current element that we're going to replace
 			if (Style === "list") {
 				CurrentItem = $(this).parents("li");
@@ -2932,7 +2941,7 @@ var BigTreeMatrix = function(settings) {
 			
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key },
+				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, tab_depth: BigTree.TabIndexDepth },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Edit Item",
@@ -2957,6 +2966,7 @@ var BigTreeMatrix = function(settings) {
 		
 		function getItem() {
 			LastDialog = $(".bigtree_dialog_form").last();
+			BigTree.TabIndexDepth--;
 	
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
@@ -3076,6 +3086,7 @@ var BigTree = {
 	GrowlTimer: false,
 	ReadyCountdown: 0,
 	ReadyHooks: [],
+	TabIndexDepth: 0,
 	ZIndex: 1000,
 
 	cleanHref: function(href) {
