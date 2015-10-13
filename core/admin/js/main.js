@@ -2797,7 +2797,7 @@ var BigTreeCallouts = function(settings) {
 						var mce = tinyMCE.get($(this).attr("id"));
 						if (mce) {
 							mce.save();
-							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
+							mce.remove();
 						}
 					}
 					$(this).hide().get(0).className = "";
@@ -3012,7 +3012,7 @@ var BigTreeMatrix = function(settings) {
 						var mce = tinyMCE.get($(this).attr("id"));
 						if (mce) {
 							mce.save();
-							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
+							mce.remove();
 						}
 					}
 					$(this).hide().get(0).className = "";
