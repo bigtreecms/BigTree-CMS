@@ -29,9 +29,12 @@
  */
 define("tinymce/file/Uploader", [
 	"tinymce/util/Promise",
-	"tinymce/util/Tools"
-], function(Promise, Tools) {
+	"tinymce/util/Tools",
+	"tinymce/util/Fun"
+], function(Promise, Tools, Fun) {
 	return function(settings) {
+		var cachedPromises = {};
+
 		function fileName(blobInfo) {
 			var ext, extensions;
 
@@ -60,7 +63,7 @@ define("tinymce/file/Uploader", [
 				id: blobInfo.id,
 				blob: blobInfo.blob,
 				base64: blobInfo.base64,
-				filename: Tools.constant(fileName(blobInfo))
+				filename: Fun.constant(fileName(blobInfo))
 			};
 		}
 
@@ -68,8 +71,8 @@ define("tinymce/file/Uploader", [
 			var xhr, formData;
 
 			xhr = new XMLHttpRequest();
-			xhr.withCredentials = settings.credentials;
 			xhr.open('POST', settings.url);
+			xhr.withCredentials = settings.credentials;
 
 			xhr.onload = function() {
 				var json;
@@ -96,53 +99,57 @@ define("tinymce/file/Uploader", [
 		}
 
 		function upload(blobInfos) {
-			return new Promise(function(resolve, reject) {
-				var handler = settings.handler, queue, index = 0, uploadedIdMap = {};
+			var promises;
 
-				// If no url is configured then resolve
-				if (!settings.url && handler === defaultHandler) {
+			// If no url is configured then resolve
+			if (!settings.url && settings.handler === defaultHandler) {
+				return new Promise(function(resolve) {
 					resolve([]);
-					return;
+				});
+			}
+
+			function uploadBlobInfo(blobInfo) {
+				return new Promise(function(resolve) {
+					var handler = settings.handler;
+
+					handler(blobInfoToData(blobInfo), function(url) {
+						resolve({
+							url: url,
+							blobInfo: blobInfo,
+							status: true
+						});
+					}, function(failure) {
+						resolve({
+							url: '',
+							blobInfo: blobInfo,
+							status: false,
+							error: failure
+						});
+					});
+				});
+			}
+
+			promises = Tools.map(blobInfos, function(blobInfo) {
+				var newPromise, id = blobInfo.id();
+
+				if (cachedPromises[id]) {
+					return cachedPromises[id];
 				}
 
-				queue = Tools.map(blobInfos, function(blobInfo) {
-					return {
-						status: false,
-						blobInfo: blobInfo,
-						url: ''
-					};
+				newPromise = uploadBlobInfo(blobInfo).then(function(result) {
+					delete cachedPromises[id];
+					return result;
+				})['catch'](function(error) {
+					delete cachedPromises[id];
+					return error;
 				});
 
-				function uploadNext() {
-					var previousResult, queueItem = queue[index++];
+				cachedPromises[id] = newPromise;
 
-					if (!queueItem) {
-						resolve(queue);
-						return;
-					}
-
-					// Only upload unique blob once
-					previousResult = uploadedIdMap[queueItem.blobInfo.id()];
-					if (previousResult) {
-						queueItem.url = previousResult;
-						queueItem.status = true;
-						uploadNext();
-						return;
-					}
-
-					handler(blobInfoToData(queueItem.blobInfo), function(url) {
-						uploadedIdMap[queueItem.blobInfo.id()] = url;
-						queueItem.url = url;
-						queueItem.status = true;
-						uploadNext();
-					}, function(failure) {
-						queueItem.status = false;
-						reject(failure);
-					});
-				}
-
-				uploadNext();
+				return newPromise;
 			});
+
+			return Promise.all(promises);
 		}
 
 		settings = Tools.extend({

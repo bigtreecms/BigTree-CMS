@@ -133,8 +133,8 @@ define("tinymce/html/Schema", [
 			globalAttributes.push.apply(globalAttributes, split("contenteditable contextmenu draggable dropzone " +
 				"hidden spellcheck translate"));
 			blockContent.push.apply(blockContent, split("article aside details dialog figure header footer hgroup section nav"));
-			phrasingContent.push.apply(phrasingContent, split("audio canvas command datalist mark meter output progress time wbr " +
-				"video ruby bdi keygen"));
+			phrasingContent.push.apply(phrasingContent, split("audio canvas command datalist mark meter output picture " +
+				"progress time wbr video ruby bdi keygen"));
 		}
 
 		// Add HTML4 elements unless it's html5-strict
@@ -623,6 +623,9 @@ define("tinymce/html/Schema", [
 		function addValidChildren(validChildren) {
 			var childRuleRegExp = /^([+\-]?)(\w+)\[([^\]]+)\]$/;
 
+			// Invalidate the schema cache if the schema is mutated
+			mapCache[settings.schema] = null;
+
 			if (validChildren) {
 				each(split(validChildren, ','), function(rule) {
 					var matches = childRuleRegExp.exec(rule), parent, prefix;
@@ -641,10 +644,6 @@ define("tinymce/html/Schema", [
 
 						each(split(matches[3], '|'), function(child) {
 							if (prefix === '-') {
-								// Clone the element before we delete
-								// things in it to not mess up default schemas
-								children[matches[2]] = parent = extend({}, children[matches[2]]);
-
 								delete parent[child];
 							} else {
 								parent[child] = {};

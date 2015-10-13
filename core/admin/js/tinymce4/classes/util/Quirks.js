@@ -13,6 +13,7 @@
 /**
  * This file includes fixes for various browser quirks it's made to make it easy to add/remove browser specific fixes.
  *
+ * @private
  * @class tinymce.util.Quirks
  */
 define("tinymce/util/Quirks", [
@@ -72,7 +73,7 @@ define("tinymce/util/Quirks", [
 		 * @param {DragEvent} e Event object
 		 */
 		function setMceInteralContent(e) {
-			var selectionHtml;
+			var selectionHtml, internalContent;
 
 			if (e.dataTransfer) {
 				if (editor.selection.isCollapsed() && e.target.tagName == 'IMG') {
@@ -83,7 +84,8 @@ define("tinymce/util/Quirks", [
 
 				// Safari/IE doesn't support custom dataTransfer items so we can only use URL and Text
 				if (selectionHtml.length > 0) {
-					e.dataTransfer.setData(mceInternalDataType, mceInternalUrlPrefix + escape(selectionHtml));
+					internalContent = mceInternalUrlPrefix + escape(editor.id) + ',' + escape(selectionHtml);
+					e.dataTransfer.setData(mceInternalDataType, internalContent);
 				}
 			}
 		}
@@ -98,17 +100,22 @@ define("tinymce/util/Quirks", [
 		 * @returns {String} mce-internal content
 		 */
 		function getMceInternalContent(e) {
-			var internalContent, content;
+			var internalContent;
 
 			if (e.dataTransfer) {
 				internalContent = e.dataTransfer.getData(mceInternalDataType);
 
 				if (internalContent && internalContent.indexOf(mceInternalUrlPrefix) >= 0) {
-					content = unescape(internalContent.substr(mceInternalUrlPrefix.length));
+					internalContent = internalContent.substr(mceInternalUrlPrefix.length).split(',');
+
+					return {
+						id: unescape(internalContent[0]),
+						html: unescape(internalContent[1])
+					};
 				}
 			}
 
-			return content;
+			return null;
 		}
 
 		/**
@@ -480,6 +487,11 @@ define("tinymce/util/Quirks", [
 				if (!isDefaultPrevented(e) && (isForward || e.keyCode == BACKSPACE)) {
 					var rng = editor.selection.getRng(), container = rng.startContainer, offset = rng.startOffset;
 
+					// Shift+Delete is cut
+					if (isForward && e.shiftKey) {
+						return;
+					}
+
 					// Ignore non meta delete in the where there is text before/after the caret
 					if (!isMetaOrCtrl && rng.collapsed && container.nodeType == 3) {
 						if (isForward ? offset < container.data.length : offset > 0) {
@@ -576,6 +588,7 @@ define("tinymce/util/Quirks", [
 			editor.on('drop', function(e) {
 				if (!isDefaultPrevented(e)) {
 					var internalContent = getMceInternalContent(e);
+
 					if (internalContent) {
 						e.preventDefault();
 
@@ -593,7 +606,7 @@ define("tinymce/util/Quirks", [
 
 							customDelete();
 							selection.setRng(pointRng);
-							insertClipboardContents(internalContent);
+							insertClipboardContents(internalContent.html);
 						}, 0);
 					}
 				}
@@ -1332,8 +1345,15 @@ define("tinymce/util/Quirks", [
 			if (!editor.inline) {
 				editor.contentStyles.push('body {min-height: 150px}');
 				editor.on('click', function(e) {
+					var rng;
+
 					if (e.target.nodeName == 'HTML') {
-						var rng;
+						// Edge seems to only need focus if we set the range
+						// the caret will become invisible and moved out of the iframe!!
+						if (Env.ie > 11) {
+							editor.getBody().focus();
+							return;
+						}
 
 						// Need to store away non collapsed ranges since the focus call will mess that up see #7382
 						rng = editor.selection.getRng();
@@ -1366,25 +1386,6 @@ define("tinymce/util/Quirks", [
 		 */
 		function disableAutoUrlDetect() {
 			setEditorCommandState("AutoUrlDetect", false);
-		}
-
-		/**
-		 * IE 11 has a fantastic bug where it will produce two trailing BR elements to iframe bodies when
-		 * the iframe is hidden by display: none on a parent container. The DOM is actually out of sync
-		 * with innerHTML in this case. It's like IE adds shadow DOM BR elements that appears on innerHTML
-		 * but not as the lastChild of the body. However is we add a BR element to the body then remove it
-		 * it doesn't seem to add these BR elements makes sence right?!
-		 *
-		 * Example of what happens: <body>text</body> becomes <body>text<br><br></body>
-		 */
-		function doubleTrailingBrElements() {
-			if (!editor.inline) {
-				editor.on('focus blur beforegetcontent', function() {
-					var br = editor.dom.create('br');
-					editor.getBody().appendChild(br);
-					br.parentNode.removeChild(br);
-				}, true);
-			}
 		}
 
 		/**
@@ -1508,12 +1509,13 @@ define("tinymce/util/Quirks", [
 			editor.on('drop', function(e) {
 				if (!isDefaultPrevented(e)) {
 					var internalContent = getMceInternalContent(e);
-					if (internalContent) {
+
+					if (internalContent && internalContent.id != editor.id) {
 						e.preventDefault();
 
 						var rng = RangeUtils.getCaretRangeFromPoint(e.x, e.y, editor.getDoc());
 						selection.setRng(rng);
-						insertClipboardContents(internalContent);
+						insertClipboardContents(internalContent.html);
 					}
 				}
 			});
@@ -1559,7 +1561,6 @@ define("tinymce/util/Quirks", [
 
 		if (Env.ie >= 11) {
 			bodyHeight();
-			doubleTrailingBrElements();
 			disableBackspaceIntoATable();
 		}
 

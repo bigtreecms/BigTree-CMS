@@ -12,6 +12,7 @@
  * Selection class for old explorer versions. This one fakes the
  * native selection object available on modern browsers.
  *
+ * @private
  * @class tinymce.dom.TridentSelection
  */
 define("tinymce/dom/TridentSelection", [], function() {
@@ -465,10 +466,10 @@ define("tinymce/dom/TridentSelection", [], function() {
 							sibling.innerHTML = '';
 						}
 						return;
-					} else {
-						startOffset = dom.nodeIndex(startContainer);
-						startContainer = startContainer.parentNode;
 					}
+
+					startOffset = dom.nodeIndex(startContainer);
+					startContainer = startContainer.parentNode;
 				}
 
 				if (startOffset == endOffset - 1) {

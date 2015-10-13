@@ -33,7 +33,7 @@ define("tinymce/imagetoolsplugin/Dialog", [
 
 	function destroyState(state) {
 		if (state) {
-			URL.revokeObjectURL(state.blob);
+			URL.revokeObjectURL(state.url);
 		}
 	}
 
@@ -94,7 +94,7 @@ define("tinymce/imagetoolsplugin/Dialog", [
 
 		function switchPanel(targetPanel) {
 			return function() {
-				var hidePanels = Tools.filter(panels, function(panel) {
+				var hidePanels = Tools.grep(panels, function(panel) {
 					return panel.settings.name != targetPanel;
 				});
 

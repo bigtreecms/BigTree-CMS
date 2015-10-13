@@ -29,6 +29,8 @@ tinymce.PluginManager.add('anchor', function(editor) {
 		});
 	}
 
+	editor.addCommand('mceAnchor', showDialog);
+
 	editor.addButton('anchor', {
 		icon: 'anchor',
 		tooltip: 'Anchor',
