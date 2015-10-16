@@ -562,6 +562,22 @@
 		}
 
 		/*
+			Function: create301
+				Creates a 301 redirect.
+
+			Parameters:
+				from - The 404 path
+				to - The 301 target
+		*/
+
+		function create301($from,$to) {
+			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/"))));
+			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
+			sqlquery("INSERT INTO bigtree_404s (`broken_url`,`redirect_url`) VALUES ('$from','$to')");
+			$this->track("bigtree_404s",sqlid(),"create");
+		}
+
+		/*
 			Function: createCallout
 				Creates a callout and its files.
 
@@ -6432,6 +6448,7 @@
 			// Get the results
 			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
+				$f["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($f["redirect_url"]);
 				$items[] = $f;
 			}
 
@@ -6609,7 +6626,7 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
-			$url = sqlescape(htmlspecialchars($url));
+			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 			$this->track("bigtree_404s",$id,"updated");
 		}
