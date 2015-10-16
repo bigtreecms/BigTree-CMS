@@ -215,6 +215,7 @@
 		function catch404() {
 			global $cms,$bigtree;
 			
+			ob_clean();
 			if ($this->handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
 				$bigtree["layout"] = "default";
 				ob_start();
