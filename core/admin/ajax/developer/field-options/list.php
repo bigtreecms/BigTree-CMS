@@ -63,6 +63,12 @@
 			<? } ?>
 		</div>	
 	</fieldset>
+
+	<fieldset>
+		<label>List Parser Function</label>
+		<input type="text" name="parser" value="<?=htmlspecialchars($data["parser"])?>" />
+		<p class="note">Your function will receive an array of the available entries and should return a modified array.</p>
+	</fieldset>
 	<br />
 </div>
 

@@ -54,6 +54,11 @@
 		$list = $field["options"]["list"];
 	}
 
+	// If we have a parser, send a list of the available items through it.
+	if (isset($field["options"]["parser"]) && $field["options"]["parser"]) {
+		$list = call_user_func($field["options"]["parser"],$list);
+	}
+
 	// If the table was deleted for a database populated list, throw an error.
 	if ($db_error) {
 ?>
