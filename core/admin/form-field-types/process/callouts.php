@@ -1,24 +1,26 @@
 <?
-	// Some backwards compat stuff.
-	$upload_service = new BigTreeUploadService;
-	$bigtree["callout_field"] = $field;
-	$bigtree["saved_entry"] = $bigtree["entry"];
-	$bigtree["saved_post_data"] = $bigtree["post_data"];
-	$bigtree["saved_file_data"] = $bigtree["file_data"];
-	$bigtree["parsed_callouts"] = array();
+	// We're going to change these $bigtree entries, so save them to revert back.
+	$saved = array(
+		"entry" => $bigtree["entry"],
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	);
 
-	if (count($bigtree["callout_field"]["input"])) {
-		foreach ($bigtree["callout_field"]["input"] as $number => $data) {
-			// Make sure there's a callout here...
+	$callouts = array();
+
+	if (count($field["input"])) {
+		foreach ($field["input"] as $number => $data) {
+			// Make sure there's a callout here
 			if ($data["type"]) {
-				// Setup the new callout for fun-ness.
+
+				// Setup the new callout to emulate a normal field processing environment
 				$bigtree["entry"] = array("type" => $data["type"],"display_title" => $data["display_title"]);
-				$bigtree["callout"] = $admin->getCallout($data["type"]);
 				$bigtree["post_data"] = $data;
-				$bigtree["file_data"] = $bigtree["callout_field"]["file_input"][$number];
-				
-				foreach ($bigtree["callout"]["resources"] as $resource) {
-					$field = array(
+				$bigtree["file_data"] = $field["file_input"][$number];
+
+				$callout_info = $admin->getCallout($data["type"]);
+				foreach ($callout_info["resources"] as $resource) {
+					$sub_field = array(
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
@@ -27,28 +29,29 @@
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
-					if (empty($field["options"]["directory"])) {
-						$field["options"]["directory"] = "files/pages/";
+					if (empty($sub_field["options"]["directory"])) {
+						$sub_field["options"]["directory"] = "files/pages/";
 					}
 					
 					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-					if (is_string($field["input"]) && is_array(json_decode($field["input"],true))) {
-						$field["input"] = json_decode($field["input"],true);
+					if (is_string($sub_field["input"]) && is_array(json_decode($sub_field["input"],true))) {
+						$sub_field["input"] = json_decode($sub_field["input"],true);
 					}
 
-					$output = BigTreeAdmin::processField($field);
+					$output = BigTreeAdmin::processField($sub_field);
 					if (!is_null($output)) {
-						$bigtree["entry"][$field["key"]] = $output;
+						$bigtree["entry"][$sub_field["key"]] = $output;
 					}
 				}
-				$bigtree["parsed_callouts"][] = $bigtree["entry"];
+				$callouts[] = $bigtree["entry"];
 			}
 		}
 	}
-	
-	$bigtree["entry"] = $bigtree["saved_entry"];
-	$bigtree["post_data"] = $bigtree["saved_post_data"];
-	$bigtree["file_data"] = $bigtree["saved_file_data"];
-	$field = $bigtree["callout_field"];
-	$field["output"] = $bigtree["parsed_callouts"];
+
+	// Revert to saved values	
+	foreach ($saved as $key => $val) {
+		$bigtree[$key] = $val;
+	}
+
+	$field["output"] = $callouts;
 ?>

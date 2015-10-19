@@ -2819,7 +2819,6 @@
 				);
 
 				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
-				unset($types["callouts"]["default"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
