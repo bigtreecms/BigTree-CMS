@@ -41,7 +41,7 @@
 			$cached_types = $admin->getCachedFieldTypes();
 			$bigtree["field_types"] = $cached_types["callouts"];
 	
-			$bigtree["tabindex"] = 1000;	
+			$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);	
 			$bigtree["html_fields"] = array();
 			$bigtree["simple_html_fields"] = array();
 			$bigtree["field_namespace"] = uniqid("callout_field_");
@@ -83,4 +83,5 @@
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
 	include BigTree::path("admin/layouts/_html-field-loader.php");
-?>
+	include BigTree::path("admin/layouts/_ajax-ready-loader.php");
+?>	

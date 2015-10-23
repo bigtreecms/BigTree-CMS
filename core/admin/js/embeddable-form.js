@@ -11,6 +11,8 @@ var BigTreeEmbeddableForm{id} = {
 		var event = document.createEvent('Event');
 		event.initEvent('bigtree-embeddable-form-resize', true, true);
 		document.dispatchEvent(event);
+
+		return height;
 	},
 	scrollToTop: function() {
 		var y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;

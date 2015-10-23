@@ -31,10 +31,14 @@
 	}
 ?>
 <div class="table auto_modules image_list">
+	<?php
+		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
+	?>
 	<summary>
-		<p><?php if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <?php } ?>Click an image to edit it.</p>
+		<p><?php if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <?php } ?><?php if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<?php } ?></p>
 	</summary>
 	<?php
+		}
 		$y = 0;
 		foreach ($groups as $group => $title) {
 			$y++;

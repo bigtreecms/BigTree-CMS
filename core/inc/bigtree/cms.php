@@ -135,7 +135,7 @@
 					$name = sqlescape($name);
 
 					// If an extension is creating an auto save setting, make it a reference back to the extension
-					if (defined("EXTENSION_ROOT")) {
+					if (defined("EXTENSION_ROOT") && strpos($id,"bigtree-internal-") !== 0) {
 						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
 						
 						// Don't append extension again if it's already being called via the namespace
@@ -291,6 +291,7 @@
 		static function catch404() {
 			global $admin,$bigtree,$cms;
 			
+			ob_clean();
 			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
 				$bigtree["layout"] = "default";
 				ob_start();
@@ -1268,7 +1269,7 @@
 				}
 				
 				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
-				BigTree::redirect($redirect,"301");
+				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
 				return false;
 			} else {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");

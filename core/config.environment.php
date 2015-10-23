@@ -31,3 +31,4 @@
 	$bigtree["config"]["db_write"]["password"] = "[write_password]";
 	$bigtree["config"]["db_write"]["port"] = "[write_port]";
 	$bigtree["config"]["db_write"]["socket"] = "[write_socket]";
+	

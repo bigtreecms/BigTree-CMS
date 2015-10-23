@@ -85,6 +85,7 @@
 		"BigTreeSalesforceAPI" => "inc/bigtree/apis/salesforce.php",
 		"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
 		"BigTreeYahooBOSSAPI" => "inc/bigtree/apis/yahoo-boss.php",
+		"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",

@@ -30,7 +30,7 @@
 
 	/* Hack To Stop WebKit From Styling input[type=search] */
 	input { -webkit-appearance: none; }
-	input[type=search] { -webkit-box-sizing: content-box; }
+	input[type=search] { box-sizing: content-box; }
 	input::-webkit-search-decoration, input::-webkit-search-cancel-button { display: none; }
 
 	h1 { color: #333; font-size: 30px; font-weight: normal; line-height: 26px; margin: 0 0 20px 0; user-select: none; }
@@ -754,18 +754,17 @@
 	fieldset.callouts { border-bottom: 1px solid #CCC; border-top: 1px solid #CCC; clear: both; margin: 30px -30px 30px -30px; padding: 30px; width: 898px; }
 	fieldset.callouts:first-child { border-top: none; margin-top: -30px; }
 	fieldset.callouts:last-child { border-bottom: none; margin-bottom: -30px; }
-	fieldset.callouts .button { border-radius: 3px; height: 30px; line-height: 33px; padding: 0 13px; }
-	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
-	fieldset.callouts article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
-	fieldset.callouts .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
-	fieldset.callouts h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
-	fieldset.callouts h4 span { background: url(../images/icons.png); height: 20px; width: 16px; }
-	fieldset.callouts .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
-	fieldset.callouts .bottom * { margin: 0 10px 0 0; }
-	fieldset.callouts p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 	fieldset.callouts_no_margin { margin-top: -31px; }
-	fieldset.callouts .button { float: left; margin: 0 15px 0 0; }
+	fieldset.callouts .button { border-radius: 3px; float: left; height: 30px; line-height: 33px; margin: 0 15px 0 0; padding: 0 13px; }
+	fieldset.callouts .button span { height: 16px; margin: 7px 7px 0px -3px; }
 	fieldset.callouts .max, .matrix_list .max { float: left; line-height: 32px; text-transform: uppercase; }
+	fieldset.callouts .contain article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
+	fieldset.callouts .contain article .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
+	fieldset.callouts .contain article h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
+	fieldset.callouts .contain article h4 span { background: url(../images/icons.png); height: 20px; width: 16px; }
+	fieldset.callouts .contain article .bottom { background: #f9f9f9; border-radius: 0 0 2px 2px; border-top: 1px solid #ccc; height: 24px; padding: 5px 10px; }
+	fieldset.callouts .contain article .bottom * { margin: 0 10px 0 0; }
+	fieldset.callouts .contain article p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 
 	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
 	#callout_type fieldset { margin: 0; }
@@ -775,8 +774,10 @@
 	.callout_fields .select .select_options { max-width: 438px !important; }
 	.callout_fields .error_message { width: 420px; }
 	.callout_fields .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
-	.callout_fields fieldset.callouts { border-top: none; margin: 15px -20px; padding: 0 20px; width: calc(100% - 20px); }
+	.callout_fields fieldset.callouts { margin: 15px 0 15px -20px; padding: 20px; width: 100%; }
 	.callout_fields fieldset.callouts:first-child { margin-top: 0; padding-top: 0; }
+	.callout_fields fieldset.callouts.callouts_no_margin { margin-top: -16px; }
+	.callout_fields fieldset.callouts:last-child { margin-bottom: 0; }
 	.callout_fields fieldset.callouts article { width: calc(50% - 10px); margin: 0 10px 10px 0; }
 	.callout_fields fieldset.callouts article:nth-child(even) { margin-right: 0; }
 	.callout_fields fieldset.callouts h4 { margin: 0; }
@@ -801,7 +802,7 @@
 	.photo_gallery_widget li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 3px; cursor: move; float: left; line-height: 100%; margin: 0 10px 10px 0; overflow: hidden; padding: 5px; text-align: center; }
 	.photo_gallery_widget li:nth-child(9n) { margin-right: 0; }
 	.photo_gallery_widget li a { margin: 5px 5px 0 0; }
-	.photo_gallery_widget li a:last-child { margin: 5px 0 0 0; }
+	.photo_gallery_widget li a:last-of-type { margin: 5px 0 0 0; }
 	.photo_gallery_widget figure { background: #CCC; display: block; height: 75px; margin: 0; overflow: hidden; width: 75px; }
 	.photo_gallery_widget figure figcaption { background: #FFF; color: #333; display: block; font-size: 10px; line-height: 15px; padding: 6px 0; text-align: center; }
 	.photo_gallery_widget img { max-height: 75px; max-width: 75px; position: relative; top: 50%; transform: translateY(-50%); }
@@ -1544,6 +1545,10 @@
 	.ui-datepicker .ui-datepicker-buttonpane { background-image: none; border-bottom: 0; border-left: 0; border-right: 0; margin: .7em 0 0 0; padding: 0 .2em; }
 	.ui-datepicker .ui-datepicker-buttonpane button { cursor: pointer; float: right; margin: .5em .2em .4em; overflow: visible; padding: .2em .6em .3em .6em; width: auto; }
 	.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float: left; }
+	
+	.date_picker_inline, .date_time_picker_inline { float: left; }
+	.date_picker_clear { background: #C0362F; color: #FFF; cursor: pointer; float: left; margin-left: 10px; padding: 7px 8px; }
+	.date_picker_clear:hover{ background: #AB312B; }
 
 	.ui-datepicker-prev:before { content: "\21E6"; cursor: pointer; font-size: 16px; }
 	.ui-datepicker-next:before { content: "\21E8"; cursor: pointer; font-size: 16px; }
@@ -1625,7 +1630,7 @@
 /* Array of Items / Many to Many Widget */
 	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; }
 	.multi_widget footer { border-radius: 0 0 2px 2px; border-top: none; overflow: hidden; padding: 20px; }
-	.multi_widget footer .button { border-radius: 3px; float: left; height: 30px; line-height: 30px; }
+	.multi_widget footer .button { border-radius: 3px; float: left; height: 30px; line-height: 30px; margin-right: 15px; }
 	.multi_widget footer .button .icon_small { height: 16px; margin-top: 6px; }
 	.multi_widget ul { list-style: none; margin: 0; }
 	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
@@ -1773,7 +1778,7 @@
 	.install_logo { background: url(../images/icon-sprite.svg) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
 	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; width: 100px; }
 	.install_copyright:hover { color: #ccc; }
-	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 20px 30px; }
+	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 0 30px; }
 	.install_wrapper ul li { margin: 5px 0; }
 	.install_wrapper code { background: #FCFCFC; border: 1px solid #CCC; color: #333; display: block; line-height: 200%; margin: 20px 0; padding: 10px 20px; }
 	.install_wrapper .select .handle { background: url(../images/install-sprite.png) -32px -25px; }
@@ -1793,7 +1798,7 @@
 	body.embedded .container > form > section { padding: 0; }
 	body.embedded textarea, body.embedded input[type="text"], body.embedded input[type="password"], body.embedded input[type="email"], body.embedded input[type="url"] { *behavior: url(admin_root/css/boxsizing.htc); -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; -webkitablet-box-sizing: border-box; box-sizing: border-box; width: 100%; }
 	body.embedded input.date_picker, body.embedded input.time_picker { width: 202px !important; }
-	body.embedded .container footer { background: transparent; border: none; margin: 30px 0 0 0; padding: 0; }
+	body.embedded .container form > footer { background: transparent; border: none; margin: 30px 0 0 0; padding: 0; }
 	body.embedded .container form > fieldset { display: none; }
 	body.embedded .container .alert { background: transparent; margin: 0 0 30px -30px; }
 	body.embedded div.error_table { border: 1px solid #CCC; margin: -30px 0 0 0; }
@@ -1801,15 +1806,8 @@
 	body.embedded div.error_table .error { padding: 0 0 0 20px; width: calc(71.8163% - 20px); }
 	body.embedded .bigtree_dialog_overlay { display: none; }
 	body.embedded .bigtree_dialog_window { border: 1px solid #CCC; box-shadow: 0px 0px 5px rgba(0,0,0,0.3); }
-	body.embedded .multi_widget { border: none; }
-	body.embedded .multi_widget li { border-left: 1px solid #CCC; border-right: 1px solid #CCC; }
-	body.embedded .multi_widget li:first-child { border-top: 1px solid #CCC; border-top-left-radius: 3px; border-top-right-radius: 3px; }
-	body.embedded .multi_widget li:last-child { border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
-	body.embedded .multi_widget li p { width: calc(100% - 94px); white-space: normal; }
-	body.embedded .multi_widget footer { margin-top: 15px; }
-	body.embedded .photo_gallery_widget { border: none; }
-	body.embedded .photo_gallery_widget ul { padding: 0; }
-	body.embedded .photo_gallery_widget footer { margin-top: 15px; }
+	body.embedded .multi_widget li p { width: calc(100% - 34px); }
+	body.embedded fieldset.callouts { border: none; }
 
 /*----------------------------
 	Custom TinyMCE 3 Styles
@@ -1845,7 +1843,7 @@
 	.bigtree .mce-edit-area { border-color: #CCC; }
 	.bigtree .mce-menubar { background: #EEE; border-bottom: 1px solid #CCC; }
 	.bigtree .mce-statusbar { background: #EEE; border-color: #CCC; }
-	.bigtree .mce-btn-group { border-right: 1px solid #DDD; margin: 0; }
+	.bigtree .mce-btn-group { margin: 0; }
 	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0px; box-shadow: none; }
 	.bigtree .mce-btn-group .mce-first.mce-last { border-radius: 0; }
 	.bigtree .mce-btn-group:last-child { border: none; }
@@ -1863,6 +1861,7 @@
 	.bigtree .mce-listbox:focus { background: #EEE; border-color: #AAA; }
 	.bigtree .mce-listbox:hover, .bigtree .mce-listbox.mce-active { background: #E5E5E5 !important; box-shadow: none !important; }
 	.bigtree .mce-menu-item-normal.mce-active { background: #F3F3F3; color: #333; }
+	.bigtree .mce-menu-item-normal.mce-active .mce-text { color: #333; }
 	.bigtree .mce-menu-item-normal.mce-active:hover { background: #59A8E9; }
 	.bigtree .mce-btn button { line-height: 21px; padding: 5px 10px; }
 	.bigtree .mce-ico { -moz-osx-font-smoothing: grayscale; color: #777; font-size: 16px; line-height: 16px; text-shadow: none; }
@@ -1873,7 +1872,7 @@
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
-	.bigtree #callout_resources .mce-btn-group { border: none; }
+	.bigtree .callout_fields .mce-btn-group { border: none; }
 
 /*----------------------------
 	Custom Redactor Styles

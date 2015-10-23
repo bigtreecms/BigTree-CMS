@@ -100,7 +100,7 @@
 			relative_urls: false,
 			remove_script_host: false,
 			gecko_spellcheck: true,
-			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align],iframe[src|class|width|height|name|align|style],figure[class],figcaption[class]"
+			extended_valid_elements : "*[*]"
 			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
 			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
@@ -124,7 +124,7 @@
 			gecko_spellcheck: true,
 			relative_urls: false,
 			remove_script_host: false,
-			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]"
+			extended_valid_elements : "*[*]"
 			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
 			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});

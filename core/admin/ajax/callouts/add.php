@@ -2,7 +2,7 @@
 	if ($_POST["groups"]) {
 		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
-		$items = $admin->getCallouts("name ASC");
+		$items = $admin->getCalloutsAllowed("name ASC");
 	}
 
 	$type = $items[0]["id"];
@@ -36,7 +36,8 @@
 		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
 			type: data.value,
 			count: <?=$bigtree["callout_count"]?>,
-			key: "<?=$bigtree["callout_key"]?>"
+			key: "<?=$bigtree["callout_key"]?>",
+			tab_depth: <?=intval($_POST["tab_depth"])?>
 		},BigTree.formHooks).scrollTop(0);
 	});
 </script>

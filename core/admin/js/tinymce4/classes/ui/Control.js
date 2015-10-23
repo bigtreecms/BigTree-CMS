@@ -84,7 +84,7 @@ define("tinymce/ui/Control", [
 			self.settings = settings = Tools.extend({}, self.Defaults, settings);
 
 			// Initial states
-			self._id = settings.id || ("tinymce-" + (idCounter++));
+			self._id = settings.id || ('mceu_' + (idCounter++));
 			self._aria = {role: settings.role};
 			self._elmCache = {};
 			self.$ = $;
@@ -687,9 +687,9 @@ define("tinymce/ui/Control", [
 
 			if (typeof value === "undefined") {
 				return self._aria[name];
-			} else {
-				self._aria[name] = value;
 			}
+
+			self._aria[name] = value;
 
 			if (self.state.get('rendered')) {
 				elm.setAttribute(name == 'role' ? name : 'aria-' + name, value);

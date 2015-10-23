@@ -16,8 +16,10 @@
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {
 			$bigtree["path"] = array();
+			$bigtree["trailing_slash_present"] = false;
 		} else {
 			$bigtree["path"] = explode("/",trim($_SERVER["PATH_INFO"],"/"));
+			$bigtree["trailing_slash_present"] = (substr($_SERVER["PATH_INFO"],-1,1) === "/");
 		}
 
 	// "Advanced" or "Simple Rewrite" routing
@@ -27,7 +29,17 @@
 		}
 	
 		$bigtree["path"] = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
+		$bigtree["trailing_slash_present"] = (substr($_GET["bigtree_htaccess_url"],-1,1) === "/");
 	}
+
+	// Prevent path manipulations
+	$bigtree["path"] = array_filter($bigtree["path"],function($val) {
+		if ($val == "..") {
+			die();
+		}
+		return true;
+	});
+	
 	$path = $bigtree["path"]; // Backwards compatibility
 	
 	// Figure out if we're requesting a page in the admin

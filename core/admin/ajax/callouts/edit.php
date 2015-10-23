@@ -2,7 +2,7 @@
 	if ($_POST["groups"]) {
 		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
-		$items = $admin->getCallouts("name ASC");
+		$items = $admin->getCalloutsAllowed("name ASC");
 	}
 
 	$bigtree["callout_count"] = intval($_POST["count"]);
@@ -28,6 +28,12 @@
 		// TinyMCE tooltips and menus sometimes get stuck
 		$(".mce-tooltip, .mce-menu").remove();
 
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", { count: <?=$bigtree["callout_count"]?>, key: "<?=$bigtree["callout_key"]?>", resources: "<?=htmlspecialchars($_POST["data"])?>", type: data.value }, BigTreeCustomControls).scrollTop(0);
+		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
+			count: <?=$bigtree["callout_count"]?>,
+			key: "<?=$bigtree["callout_key"]?>",
+			resources: "<?=htmlspecialchars($_POST["data"])?>",
+			type: data.value,
+			tab_depth: <?=intval($_POST["tab_depth"])?>
+		}, BigTreeCustomControls).scrollTop(0);
 	});
 </script>

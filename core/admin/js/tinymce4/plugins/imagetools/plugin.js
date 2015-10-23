@@ -63,10 +63,12 @@
 	}
 
 	function expose(ids) {
-		for (var i = 0; i < ids.length; i++) {
-			var target = exports;
-			var id = ids[i];
-			var fragments = id.split(/[.\/]/);
+		var i, target, id, fragments, privateModules;
+
+		for (i = 0; i < ids.length; i++) {
+			target = exports;
+			id = ids[i];
+			fragments = id.split(/[.\/]/);
 
 			for (var fi = 0; fi < fragments.length - 1; ++fi) {
 				if (target[fragments[fi]] === undefined) {
@@ -77,6 +79,21 @@
 			}
 
 			target[fragments[fragments.length - 1]] = modules[id];
+		}
+		
+		// Expose private modules for unit tests
+		if (exports.AMDLC_TESTS) {
+			privateModules = exports.privateModules || {};
+
+			for (id in modules) {
+				privateModules[id] = modules[id];
+			}
+
+			for (i = 0; i < ids.length; i++) {
+				delete privateModules[ids[i]];
+			}
+
+			exports.privateModules = privateModules;
 		}
 	}
 
@@ -1468,7 +1485,7 @@ define("tinymce/imagetoolsplugin/Dialog", [
 
 	function destroyState(state) {
 		if (state) {
-			URL.revokeObjectURL(state.blob);
+			URL.revokeObjectURL(state.url);
 		}
 	}
 
@@ -1529,7 +1546,7 @@ define("tinymce/imagetoolsplugin/Dialog", [
 
 		function switchPanel(targetPanel) {
 			return function() {
-				var hidePanels = Tools.filter(panels, function(panel) {
+				var hidePanels = Tools.grep(panels, function(panel) {
 					return panel.settings.name != targetPanel;
 				});
 
@@ -1950,7 +1967,7 @@ define("tinymce/imagetoolsplugin/Plugin", [
 	"tinymce/imagetoolsplugin/Dialog"
 ], function(PluginManager, Env, Promise, URI, Tools, ImageTools, Conversions, Dialog) {
 	PluginManager.add('imagetools', function(editor) {
-		var count = 0;
+		var count = 0, imageUploadTimer, lastSelectedImage;
 
 		if (!Env.fileApi) {
 			return;
@@ -2097,9 +2114,10 @@ define("tinymce/imagetoolsplugin/Plugin", [
 			}
 
 			if (!isLocalImage(img)) {
-				img = new Image();
 				src = editor.settings.imagetools_proxy;
-				img.src += (src.indexOf('?') === -1 ? '?' : '&') + 'url=' + encodeURIComponent(img.src);
+				src += (src.indexOf('?') === -1 ? '?' : '&') + 'url=' + encodeURIComponent(img.src);
+				img = new Image();
+				img.src = src;
 			}
 
 			return Conversions.imageToBlob(img);
@@ -2123,7 +2141,17 @@ define("tinymce/imagetoolsplugin/Plugin", [
 			});
 		}
 
-		function updateSelectedImage(blob) {
+		function startTimedUpload() {
+			imageUploadTimer = setTimeout(function() {
+								editor.editorUpload.uploadImagesAuto();
+							}, 30000);
+		}
+
+		function cancelTimedUpload() {
+			clearTimeout(imageUploadTimer);
+		}
+
+		function updateSelectedImage(blob, uploadImmediately) {
 			return Conversions.blobToDataUri(blob).then(function(dataUri) {
 				var id, base64, blobCache, blobInfo, selectedImage;
 
@@ -2139,6 +2167,13 @@ define("tinymce/imagetoolsplugin/Plugin", [
 					function imageLoadedHandler() {
 						editor.$(selectedImage).off('load', imageLoadedHandler);
 						editor.nodeChanged();
+
+						if (uploadImmediately) {
+							editor.editorUpload.uploadImagesAuto();
+						} else {
+							cancelTimedUpload();
+							startTimedUpload();
+						}
 					}
 
 					editor.$(selectedImage).on('load', imageLoadedHandler);
@@ -2202,7 +2237,11 @@ define("tinymce/imagetoolsplugin/Plugin", [
 							resolve(blob);
 						});
 					});
-				}).then(updateSelectedImage, function() {});
+				}).then(function(blob) {
+					updateSelectedImage(blob, true);
+				}, function() {
+					// Close dialog
+				});
 			}
 		}
 
@@ -2246,6 +2285,24 @@ define("tinymce/imagetoolsplugin/Plugin", [
 			*/
 		}
 
+		function addEvents() {
+			editor.on('NodeChange', function(e) {
+				//If the last node we selected was an image
+				//And had a source that doesn't match the current blob url
+				//We need to attempt to upload it
+				if (lastSelectedImage && lastSelectedImage.src != e.element.src) {
+					cancelTimedUpload();
+					editor.editorUpload.uploadImagesAuto();
+					lastSelectedImage = undefined;
+				}
+
+				//Set up the lastSelectedImage
+				if (isEditableImage(e.element)) {
+					lastSelectedImage = e.element;
+				}
+			});
+		}
+
 		function isEditableImage(img) {
 			var selectorMatched = editor.dom.is(img, 'img:not([data-mce-object],[data-mce-placeholder])');
 
@@ -2267,6 +2324,9 @@ define("tinymce/imagetoolsplugin/Plugin", [
 
 		addButtons();
 		addToolbars();
+		addEvents();
+
+		editor.addCommand('mceEditImage', editImageDialog);
 	});
 });
 

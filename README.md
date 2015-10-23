@@ -1,4 +1,4 @@
-BigTree CMS 4.1
+BigTree CMS 4.2
 ===============
 <http://www.bigtreecms.org/>
 
@@ -19,6 +19,39 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 
 Changelog
 ---------
+
+### 4.2.7 Release
+- ADDED: Extension field types can now more easily add their own CSS and JS into the admin header by specifying the full path to their CSS file or JS file. For instance: $bigtree["css"][] = "*/com.fastspot.video-field/css/video-field.css";
+- ADDED: You can now hook BigTree's ready events via the Javascript BigTree.hookReady() function. BigTree will run the passed in function when it hits a ready state. Ready states include page load after BigTree init routines and callout/matrix dialog opening (after any requested Javascript is loaded).
+- UPDATED: jQuery to latest 1.11.3 stable build
+- FIXED: 30 day page views not showing in Pages when Google Analytics is setup
+- FIXED: Extensions that checked for the existence of BigTree internal settings that were not yet created (i.e. service APIs) should no longer create extension namespaced versions of the internal settings.
+- FIXED: Incorrect permission checking when sending out lists of pending changes in Daily Digest emails
+- FIXED: Google Analytics API storing things in bigtree_caches that it never uses
+- FIXED: Callout fields from an upgraded 4.1 installation not properly loading their groups in 4.2+
+- FIXED: Missing older style {key} replacements in Javascript (fixes embedded form issues)
+- FIXED: Embeddable Forms not processing their hooks properly
+- FIXED: Chrome in Windows rendering some select fields strangely (i.e. in the "Address" type of a Text field)
+- FIXED: Form fields' title and subtitle attributes not encoding properly on update (lead to issues with titles that had < or > or " in them)
+- FIXED: "Max" message not aligning properly in a matrix nested inside a matrix or callout
+- FIXED: The return-to-the-page-you-were-editing functionality when editing the template of the home page
+- FIXED: 301 redirects containing special characters (i.e. # or &) not redirecting correctly
+- FIXED: Deleting of pending items leading to a 404 page
+- FIXED: Callout access levels not functioning properly
+- FIXED: Resource type hints in template / callout files always being "Array"
+- CHANGED: TinyMCE 4's default configuration now allows for all tags and attributes rather than stripping tags randomly that it doesn't understand.
+- CHANGED: "Required" Javascript logic to work better with custom field types
+
+### 4.2.6 Release
+- SECURITY FIX: Fixed a critical path manipulation bug that could expose private files
+- FIXED: Cron failing when using a custom admin class
+- FIXED: Fields that were set to ignore sometimes nulling the value of a good column.
+- FIXED: Feed parsers containing a " character not being editable
+- FIXED: Removing fields from a feed not working
+- FIXED: Related Menu dropdown looking broken in IE10/11
+- FIXED: Template editor showing related module for basic templates
+- FIXED: Permission errors when a module has the same route as a core ajax directory (i.e. callouts)
+- FIXED: Chrome issues with TinyMCE (updated to latest release)
 
 ### 4.2.5 Release
 - FIXED: A permissions breaking bug that prevented normal users from hitting the Pages tab

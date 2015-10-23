@@ -111,7 +111,7 @@
 				)
 			))),true);
 
-			if ($response["status"] == "error") {
+			if ($response["status"] == "error" || $response["status"] == "invalid") {
 				$this->Error = $response["message"];
 				return false;
 			}

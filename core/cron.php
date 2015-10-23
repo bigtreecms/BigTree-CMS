@@ -16,6 +16,7 @@
 			"system" => "on"
 		));
 	}
+
 	$last_sent_daily_digest = $cms->getSetting("bigtree-internal-cron-daily-digest-last-sent");
 
 	// If we last sent the daily digest > ~24 hours ago, send it again. Also refresh analytics.

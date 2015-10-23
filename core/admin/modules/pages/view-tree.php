@@ -1,6 +1,6 @@
 <?php
 	// Check to see if we're using Google Analytics.
-	$ga = $cms->getSetting("bigtree-internal-google-analytics");
+	$ga = $cms->getSetting("bigtree-internal-google-analytics-api");
 	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
 	
 	// Handy function to show the trees without repeating so much code.
@@ -93,11 +93,13 @@
 					if ($ga_on) {
 			?>
 			<section class="pages_views">
-				<?php if ($item["template"]) { ?>
-				<?=number_format($item["ga_page_views"])?>
-				<?php } else { ?>
-				&mdash;
-				<?php } ?>
+				<?php
+					if ($item["template"] && $item["template"] != "!") {
+						echo number_format($item["ga_page_views"]);
+					} else {
+						echo "&mdash;";
+					}
+				?>
 			</section>
 			<?php
 					}

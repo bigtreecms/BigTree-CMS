@@ -498,12 +498,13 @@
 
 			Parameters:
 				module - A module from the bigtree_modules table.
+				action - Optionally, a module action array to also check levels against.
 
 			Returns:
 				true if the user can access the module, otherwise false.
 		*/
 
-		function checkAccess($module) {
+		function checkAccess($module,$action = false) {
 			// Developer only module
 			if ($module["developer_only"] && $this->Level < 2) {
 				return false;
@@ -512,6 +513,10 @@
 			// Not developer-only and we're an admin? You have access
 			if ($this->Level > 0) {
 				return true;
+			}
+
+			if (is_array($action) && $action["level"] > $this->Level) {
+				return false;
 			}
 
 			$module_id = $module["id"];
@@ -657,6 +662,22 @@
 		}
 
 		/*
+			Function: create301
+				Creates a 301 redirect.
+
+			Parameters:
+				from - The 404 path
+				to - The 301 target
+		*/
+
+		function create301($from,$to) {
+			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/"))));
+			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
+			sqlquery("INSERT INTO bigtree_404s (`broken_url`,`redirect_url`) VALUES ('$from','$to')");
+			$this->track("bigtree_404s",sqlid(),"create");
+		}
+
+		/*
 			Function: createCallout
 				Creates a callout and its files.
 
@@ -706,7 +727,7 @@
 
 					$clean_resources[] = $field;
 
-					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
 				}
 			}
 
@@ -1613,7 +1634,7 @@
 		*/
 
 		function createTag($tag) {
-			$tag = strtolower(html_entity_decode($tag));
+			$tag = strtolower(html_entity_decode(trim($tag)));
 			// Check if the tag exists already.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 
@@ -1682,7 +1703,7 @@
 
 					$clean_resources[] = $field;
 
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
 				}
 			}
 
@@ -2360,11 +2381,14 @@
 				An internal function used for drawing callout and matrix resource data.
 		*/
 
-		static function drawArrayLevel($keys,$level) {
-			global $field;
+		static function drawArrayLevel($keys,$level,$field = false) {
+			// Backwards compatibility in case any external developers used this
+			if ($field === false) {
+				global $field;
+			}
 			foreach ($level as $key => $value) {
 				if (is_array($value)) {
-					static::drawArrayLevel(array_merge($keys,array($key)),$value);
+					static::drawArrayLevel(array_merge($keys,array($key)),$value,$field);
 				} else {
 ?>
 <input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
@@ -2996,7 +3020,6 @@
 				);
 
 				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
-				unset($types["callouts"]["default"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
@@ -3057,7 +3080,7 @@
 			if (!$f) {
 				return false;
 			}
-			$f["callouts"] = json_decode($f["callouts"],true);
+			$f["callouts"] = array_filter((array)json_decode($f["callouts"],true));
 			return $f;
 		}
 
@@ -3093,6 +3116,26 @@
 		static function getCallouts($sort = "position DESC, id ASC") {
 			$callouts = array();
 			$q = sqlquery("SELECT * FROM bigtree_callouts ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$callouts[] = $f;
+			}
+			return $callouts;
+		}
+
+		/*
+			Function: getCalloutAllowed
+				Returns a list of callouts the logged-in user is allowed access to.
+
+			Parameters:
+				sort - The order to return the callouts. Defaults to positioned.
+
+			Returns:
+				An array of callout entries from bigtree_callouts.
+		*/
+
+		function getCalloutsAllowed($sort = "position DESC, id ASC") {
+			$callouts = array();
+			$q = sqlquery("SELECT * FROM bigtree_callouts WHERE level <= '".$this->Level."' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				$callouts[] = $f;
 			}
@@ -6165,7 +6208,7 @@
 
 				// If it's explicitly ignored return null
 				if ($field["ignore"]) {
-					$output = null;
+					return null;
 				} else {
 					$output = $field["output"];
 				}
@@ -6284,7 +6327,7 @@
 			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
 				if (is_array($field["options"]["crops"])) {
 					foreach ($field["options"]["crops"] as $crop) {
-						if (!$failed && is_array($crop)) {
+						if (!$failed && is_array($crop) && array_filter($crop)) {
 							if ($field["options"]["retina"]) {
 								$crop["width"] *= 2;
 								$crop["height"] *= 2;
@@ -6300,7 +6343,7 @@
 				if (is_array($field["options"]["thumbs"])) {
 					foreach ($field["options"]["thumbs"] as $thumb) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($thumb)) {
+						if (!$failed && is_array($thumb) && array_filter($thumb)) {
 							if ($field["options"]["retina"]) {
 								$thumb["width"] *= 2;
 								$thumb["height"] *= 2;
@@ -6316,7 +6359,7 @@
 				if (is_array($field["options"]["center_crops"])) {
 					foreach ($field["options"]["center_crops"] as $crop) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($crop)) {
+						if (!$failed && is_array($crop) && array_filter($crop)) {
 							list($w,$h) = getimagesize($temp_name);
 							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$w,$h)) {
 								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
@@ -6488,8 +6531,10 @@
 												}
 											}
 										}
-		
-										$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+										
+										if ($crop["prefix"]) {
+											$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+										}
 									}
 								}
 							}
@@ -6691,6 +6736,7 @@
 			// Get the results
 			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
+				$f["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($f["redirect_url"]);
 				$items[] = $f;
 			}
 
@@ -6868,7 +6914,7 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
-			$url = sqlescape(htmlspecialchars($url));
+			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 			$this->track("bigtree_404s",$id,"updated");
 		}
@@ -7545,6 +7591,8 @@
 			foreach ($fields as $key => $field) {
 				$field["options"] = json_decode($field["options"],true);
 				$field["column"] = $key;
+				$field["title"] = BigTree::safeEncode($field["title"]);
+				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
 				$clean_fields[] = $field;
 			}
 

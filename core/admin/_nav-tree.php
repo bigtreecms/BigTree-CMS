@@ -20,7 +20,8 @@
 					array("title" => "Active 404s","link" => "dashboard/vitals-statistics/404","nav_icon" => "error"),
 					array("title" => "Ignored 404s","link" => "dashboard/vitals-statistics/404/ignored","nav_icon" => "ignored"),
 					array("title" => "301 Redirects","link" => "dashboard/vitals-statistics/404/301","nav_icon" => "redirect"),
-					array("title" => "Clear 404s","link" => "dashboard/vitals-statistics/404/clear","nav_icon" => "delete")
+					array("title" => "Clear 404s","link" => "dashboard/vitals-statistics/404/clear","nav_icon" => "delete"),
+					array("title" => "Add 301 Redirect","link" => "dashboard/vitals-statistics/404/add-301","nav_icon" => "add","hidden" => true)
 				)),
 				array("title" => "Site Integrity","link" => "dashboard/vitals-statistics/integrity","icon" => "integrity","hidden" => true,"level" => 1)
 			))

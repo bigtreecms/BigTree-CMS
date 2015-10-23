@@ -20,7 +20,7 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>">
-				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<?php if (!isset($view["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
 					foreach ($actions as $action => $data) {
 						if ($action != "edit") {
@@ -49,11 +49,6 @@
 	</section>
 </div>
 <script>	
-	$("#image_list_<?=$view["id"]?> .icon_edit").click(function() {
-		document.location.href = "<?=$view["edit_url"]?>" + $(this).attr("href").substr(1) + "/";
-		return false;
-	});
-	
 	$("#image_list_<?=$view["id"]?> .icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Delete Item",
