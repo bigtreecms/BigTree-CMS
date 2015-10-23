@@ -1808,7 +1808,7 @@
 	body.embedded .container > form > section { padding: 0; }
 	body.embedded textarea, body.embedded input[type="text"], body.embedded input[type="password"], body.embedded input[type="email"], body.embedded input[type="url"] { *behavior: url(admin_root/css/boxsizing.htc); -moz-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box; -webkitablet-box-sizing: border-box; box-sizing: border-box; width: 100%; }
 	body.embedded input.date_picker, body.embedded input.time_picker { width: 202px !important; }
-	body.embedded .container footer { background: transparent; border: none; margin: 30px 0 0 0; padding: 0; }
+	body.embedded .container form > footer { background: transparent; border: none; margin: 30px 0 0 0; padding: 0; }
 	body.embedded .container form > fieldset { display: none; }
 	body.embedded .container .alert { background: transparent; margin: 0 0 30px -30px; }
 	body.embedded div.error_table { border: 1px solid #CCC; margin: -30px 0 0 0; }
@@ -1816,15 +1816,8 @@
 	body.embedded div.error_table .error { padding: 0 0 0 20px; width: calc(71.8163% - 20px); }
 	body.embedded .bigtree_dialog_overlay { display: none; }
 	body.embedded .bigtree_dialog_window { border: 1px solid #CCC; box-shadow: 0px 0px 5px rgba(0,0,0,0.3); }
-	body.embedded .multi_widget { border: none; }
-	body.embedded .multi_widget li { border-left: 1px solid #CCC; border-right: 1px solid #CCC; }
-	body.embedded .multi_widget li:first-child { border-top: 1px solid #CCC; border-top-left-radius: 3px; border-top-right-radius: 3px; }
-	body.embedded .multi_widget li:last-child { border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
-	body.embedded .multi_widget li p { width: calc(100% - 94px); white-space: normal; }
-	body.embedded .multi_widget footer { margin-top: 15px; }
-	body.embedded .photo_gallery_widget { border: none; }
-	body.embedded .photo_gallery_widget ul { padding: 0; }
-	body.embedded .photo_gallery_widget footer { margin-top: 15px; }
+	body.embedded .multi_widget li p { width: calc(100% - 34px); }
+	body.embedded fieldset.callouts { border: none; }
 
 /*----------------------------
 	Custom TinyMCE 3 Styles
