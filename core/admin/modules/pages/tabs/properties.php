@@ -93,7 +93,7 @@
 		<? } ?>
 	</fieldset>
 	<?
-		if (!$hide_template_section) {
+		if (!$hide_template_section && $bigtree["current_page"]["id"]) {
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="redirect_lower" id="redirect_lower"<? if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<? } ?> />
@@ -101,7 +101,7 @@
 	</fieldset>
 	<?
 		}
-		if ($admin->Level > 1) {
+		if ($admin->Level > 1 && $bigtree["current_page"]["id"]) {
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" />
@@ -131,6 +131,7 @@
 			</optgroup>
 		</select>
 	</fieldset>
+	<? if ($bigtree["current_page"]["id"]) { ?>
 	<fieldset class="external last">
 		<label>External Link <small>(include http://, overrides template)</small></label>
 		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
@@ -139,5 +140,6 @@
 		<input id="new_window" type="checkbox" name="new_window" value="Yes"<? if ($bigtree["current_page"]["new_window"] == "Yes") { ?> checked="checked"<? } ?><? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
 		<label class="for_checkbox">Open in New Window</label>
 	</fieldset>
+	<? } ?>
 </div>
 <? } ?>
