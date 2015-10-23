@@ -130,10 +130,10 @@
 			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
 				$plugins = array(
 					"cron" => array(),
-					"daily_digest" => array(),
+					"daily-digest" => array(),
 					"dashboard" => array(),
 					"interfaces" => array(),
-					"view_types" => array()
+					"view-types" => array()
 				);
 				$q = sqlquery("SELECT id FROM bigtree_extensions");
 				while ($f = sqlfetch($q)) {
@@ -156,10 +156,10 @@
 			}
 			
 			static::$CronPlugins = $plugins["cron"];
-			static::$DailyDigestPlugins["extension"] = $plugins["daily_digest"];
+			static::$DailyDigestPlugins["extension"] = $plugins["daily-digest"];
 			static::$DashboardPlugins["extension"] = $plugins["dashboard"];
 			static::$InterfaceTypes["extension"] = $plugins["interfaces"];
-			static::$ViewTypes["extension"] = $plugins["view_types"];
+			static::$ViewTypes["extension"] = $plugins["view-types"];
 
 			// Handle Login Session
 			if (isset($_SESSION["bigtree_admin"]["email"])) {

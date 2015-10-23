@@ -192,10 +192,19 @@
 		}
 
 		foreach (array_filter((array)$options["crops"]) as $crop) {
-			BigTree::centerCrop($file_name,BigTree::prefixFile($file_name,$crop["prefix"]),$crop["width"],$crop["height"]);
+			$crop_file = BigTree::prefixFile($file_name,$crop["prefix"]);
+			BigTree::centerCrop($file_name,$crop_file,$crop["width"],$crop["height"]);
+			foreach (array_filter((array)$crop["thumbs"]) as $thumb) {
+				BigTree::createThumbnail($crop_file,BigTree::prefixFile($file_name,$thumb["prefix"]),$thumb["width"],$thumb["height"]);	
+			}
 		}
+
 		foreach (array_filter((array)$options["thumbs"]) as $thumb) {
 			BigTree::createThumbnail($file_name,BigTree::prefixFile($file_name,$thumb["prefix"]),$thumb["width"],$thumb["height"]);
+		}
+				
+		foreach (array_filter((array)$options["center_crops"]) as $crop) {
+			BigTree::centerCrop($file_name,BigTree::prefixFile($file_name,$crop["prefix"]),$crop["width"],$crop["height"]);
 		}
 
 		return $file_name;
@@ -257,6 +266,38 @@
 				$count--;
 			}
 			return $data;
+		} elseif ($type == "route") {
+			global $data,$form;
+			$oroute = BigTreeCMS::urlify(strip_tags($data[$options["source"]]));
+			$output = $oroute;
+			$x = 2;
+			// We're going to try 1000 times at most so we don't time out
+			while ($x < 1000 && sqlrows(sqlquery("SELECT * FROM `".$form["table"]."` WHERE `".$field["key"]."` = '".sqlescape($output)."'"))) {
+				$output = $oroute."-".$x;
+				$x++;
+			}
+			if ($x == 1000) {
+				$output = "";
+			}
+			return $output;
+		} elseif ($type == "many-to-many") {
+			global $many_to_many;
+			$total = sqlrows(sqlquery("SELECT id FROM `".$options["mtm-other-table"]."`"));
+			$number_to_make = rand(1,$total);
+			$used = array();
+			while ($number_to_make) {
+				$g = sqlfetch(sqlquery("SELECT * FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1"));
+				if (!in_array($g["id"],$used)) {
+					$many_to_many[] = array(
+						"table" => $options["mtm-connecting-table"],
+						"my_field" => $options["mtm-my-id"],
+						"other_field" => $options["mtm-other-id"],
+						"value" => $g["id"]
+					);
+					$used[] = $g["id"];
+				}
+				$number_to_make--;
+			}
 		}
 		return "";
 	};
@@ -270,6 +311,7 @@
 
 	// Loop until we're done generating
 	while ($count) {
+		$many_to_many = array();
 		$data = array();
 		foreach ($form["fields"] as $field) {
 			$value = $generate_data($field["type"],$field["options"]);
@@ -277,7 +319,10 @@
 				$data[$field["column"]] = $value;
 			}
 		}
-		BigTreeAutoModule::createItem($form["table"],$data);
+		$id = BigTreeAutoModule::createItem($form["table"],$data);
+		foreach ($many_to_many as $mtm) {
+			sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my_field"]."`,`".$mtm["other_field"]."`) VALUES ('$id','".$mtm["value"]."')");
+		}
 		$count--;
 	}
 
