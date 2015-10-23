@@ -1871,6 +1871,7 @@
 	.bigtree .mce-listbox:focus { background: #EEE; border-color: #AAA; }
 	.bigtree .mce-listbox:hover, .bigtree .mce-listbox.mce-active { background: #E5E5E5 !important; box-shadow: none !important; }
 	.bigtree .mce-menu-item-normal.mce-active { background: #F3F3F3; color: #333; }
+	.bigtree .mce-menu-item-normal.mce-active .mce-text { color: #333; }
 	.bigtree .mce-menu-item-normal.mce-active:hover { background: #59A8E9; }
 	.bigtree .mce-btn button { line-height: 21px; padding: 5px 10px; }
 	.bigtree .mce-ico { -moz-osx-font-smoothing: grayscale; color: #777; font-size: 16px; line-height: 16px; text-shadow: none; }
