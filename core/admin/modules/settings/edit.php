@@ -10,13 +10,23 @@
 		$admin->stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",BigTree::path("admin/layouts/_error.php"));
 	}
 
+	// Provide developers a nice handy link for edit/return of this view
+	if ($admin->Level > 1) {
+		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/settings/edit/".$item["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+	}
+
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["settings"];
 	$bigtree["field_namespace"] = uniqid("setting_field_");
 	$bigtree["field_counter"] = 0;
 ?>
 <div class="container">
-	<summary><h2><?=$item["name"]?></h2></summary>
+	<summary>
+		<h2><?=$item["name"]?></h2>
+		<?php if ($admin->Level > 1) { ?>
+		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/?return=front">Edit in Developer</a>
+		<?php } ?>
+	</summary>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />

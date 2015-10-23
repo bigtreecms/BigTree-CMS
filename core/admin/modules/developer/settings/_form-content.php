@@ -1,3 +1,6 @@
+<?php if (isset($_GET["return"])) { ?>
+<input type="hidden" name="return_to_front" value="true" />
+<?php } ?>
 <section>
 	<p class="error_message"<?php if (!$e) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	<div class="contain">
