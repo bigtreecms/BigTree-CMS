@@ -340,9 +340,16 @@
 		if ($module["extension"]) {
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		}
+
+		// Find out what module action we're trying to hit
+		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+		if ($route_response) {
+			$bigtree["module_action"] = $route_response["action"];
+			$bigtree["commands"] = $route_response["commands"];
+		}
 		
 		// Make sure the user has access to the module
-		if (!$admin->checkAccess($module["id"])) {
+		if (!$admin->checkAccess($module["id"],$route_response["action"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 		}
 
@@ -368,13 +375,6 @@
 					$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
 				}
 			}
-		}
-
-		// Find out what module action we're trying to hit
-		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
-		if ($route_response) {
-			$bigtree["module_action"] = $route_response["action"];
-			$bigtree["commands"] = $route_response["commands"];
 		}
 
 		// Handle auto actions

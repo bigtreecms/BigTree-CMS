@@ -413,18 +413,23 @@
 
 			Parameters:
 				module - Either a module id or module entry.
+				action - Optionally, a module action array to also check levels against.
 
 			Returns:
 				true if the user can access the module, otherwise false.
 		*/
 
-		function checkAccess($module) {
+		function checkAccess($module,$action = false) {
 			if (is_array($module)) {
 				$module = $module["id"];
 			}
 
 			if ($this->Level > 0) {
 				return true;
+			}
+
+			if (is_array($action) && $action["level"] > $this->Level) {
+				return false;
 			}
 
 			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
