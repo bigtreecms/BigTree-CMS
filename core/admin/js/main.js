@@ -2370,7 +2370,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				}
 				if (!val) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 					$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 				}
@@ -2378,7 +2378,7 @@ var BigTreeFormValidator = function(selector,callback) {
 			Form.find("input.numeric").each(function() {
 				if (isNaN($(this).val())) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be Numeric</span>'));
 				}
 			});
@@ -2387,7 +2387,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				var val = $(this).val();
 				if (val && !reg.test(val)) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be An Email Address</span>'));
 				}
 			});
@@ -2396,7 +2396,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				var val = $(this).val();
 				if (val && !reg.test(val)) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
 				}
 			});
