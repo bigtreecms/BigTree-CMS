@@ -190,6 +190,7 @@
 	load('classes/ui/Window.js');
 	load('classes/ui/MessageBox.js');
 	load('classes/WindowManager.js');
+	load('classes/dom/NodePath.js');
 	load('classes/util/Quirks.js');
 	load('classes/EditorObservable.js');
 	load('classes/Shortcuts.js');
@@ -257,4 +258,4 @@
 	writeScripts();
 })(this);
 
-// $hash: ac5f16130da8aea3f3201c94479dad82
+// $hash: de52c29ab980ca83672fca9cf05c0121
