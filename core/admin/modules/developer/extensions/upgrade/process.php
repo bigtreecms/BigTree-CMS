@@ -34,7 +34,7 @@
 			// Try to login
 			if (!$updater->ftpLogin($_POST["username"],$_POST["password"])) {
 				$admin->growl("Developer","Login Failed","error");
-				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
+				BigTree::redirect(DEVELOPER_ROOT."extensions/upgrade/login/check-file/?id=".$_GET["id"]);
 			}
 			
 			// Try to get the FTP root
