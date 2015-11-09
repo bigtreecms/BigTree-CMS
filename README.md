@@ -20,6 +20,46 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.8 Release
+- ADDED: Very limited Facebook API support to Service APIs.
+- ADDED: ChannelID property to BigTreeYouTubeVideo class.
+- ADDED: A $bigtree["config"]["trailing_slash_behavior"] configuration setting to always add or removing trailing slashes from URLS (thanks Randy Hook @ MindScape)
+- ADDED: BigTree front end bar's Edit button can now be changed by setting $bigtree["bar_edit_link"] to another URL in your template (thanks mdewyer)
+- ADDED: You can now manually add 301 redirects in the 301 Redirects section of the 404 report
+- ADDED: List Parser functions to the List field type (similar to the existing functionality for One/Many-to-Many)
+- ADDED: Callouts can now be nested inside callouts
+- UPDATED: Google API instructions
+- UPDATED: TinyMCE 4 to latest version (4.2.7)
+- FIXED: Grayscale and Delete button for thumbnails being assigned to the wrong row.
+- FIXED: Background images not properly rewriting to https when BigTreeCMS::makeSecure is called.
+- FIXED: Media Presets not properly throwing inline errors on image uploads.
+- FIXED: BigTree::cURL's $bigtree["last_curl_response_code"] always being 0.
+- FIXED: BigTree::relativeTime returning plurals when it shouldn't
+- FIXED: Tags not having whitespace trimmed on creation
+- FIXED: Duplicate images being created when a crop didn't have a prefix and the exact file size was uploaded
+- FIXED: BigTreeAdmin::drawArrayLevel so that it can accept an array directly for recursive calling (i.e. nesting Matrix/Callout)
+- FIXED: BigTreeCMS::catch404 not clearing the existing buffer before drawing the 404 page
+- FIXED: Issues with TinyMCE not saving in Safari when used inside of Callouts or Matrixes
+- FIXED: Current date always being used in date pickers inside of callouts/matrixes and added ability to remove a date (thanks jmason03)
+- FIXED: 0 being considiered empty when doing type validation in auto modules (thanks jmason03)
+- FIXED: Tab indexing in nested matrixes and callouts
+- FIXED: Some configuration variables not properly being in the demo site's config
+- FIXED: Box sizing issue on input[type=search] that Firefox 41 introduced
+- FIXED: Mandrill API returning true for failed calls
+- FIXED: Various style issues inside of callout dialogs
+- FIXED: Missing column in bigtree_module_reports when upgrading from 4.0
+- FIXED: Not being able to add unused fields to an embeddable form after its creation
+- FIXED: Several field types not drawing properly in embeddable forms
+- FIXED: Embeddable forms not loading configuration-based Javascript and CSS
+- FIXED: Properties that were dangerous / not useful for the homepage no longer appear when editing the homepage.
+- FIXED: Date pickers failing on embeddable forms
+- FIXED: Errors bubbling up to higher fieldsets when fieldsets were nested
+- FIXED: Infinitely resizing embeddable forms
+- FIXED: Module actions permissions not being properly enforced (thanks Randy Hook @ MindScape)
+- FIXED: Packaging a setting, template, or callout into an extension not always working as intended (thanks Randy Hook @ MindScape)
+- FIXED: BigTreeModule::getRecentFeatured sorting by ASC rather than DESC by default
+- FIXED: FTP and SFTP upgrades failing for both Extensions and System upgrades.
+
 ### 4.2.7 Release
 - ADDED: Extension field types can now more easily add their own CSS and JS into the admin header by specifying the full path to their CSS file or JS file. For instance: $bigtree["css"][] = "*/com.fastspot.video-field/css/video-field.css";
 - ADDED: You can now hook BigTree's ready events via the Javascript BigTree.hookReady() function. BigTree will run the passed in function when it hits a ready state. Ready states include page load after BigTree init routines and callout/matrix dialog opening (after any requested Javascript is loaded).
