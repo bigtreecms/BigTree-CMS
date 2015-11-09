@@ -34,7 +34,7 @@
 					$this->Connection = $ftp;
 					$this->Method = "FTP";
 				} elseif ($sftp->connect("localhost")) {
-					$this->Connection = $ftp;
+					$this->Connection = $sftp;
 					$this->Method = "SFTP";
 				}
 			}
