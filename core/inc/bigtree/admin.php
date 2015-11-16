@@ -499,6 +499,11 @@
 					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic link
+					if (!static::urlExists("http:".$href)) {
+						$errors["a"][] = $href;
+					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
@@ -528,6 +533,11 @@
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
 					if (!static::urlExists($href)) {
+						$errors["img"][] = $href;
+					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic src
+					if (!static::urlExists("http:".$href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
