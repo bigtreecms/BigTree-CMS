@@ -3093,18 +3093,22 @@
 			// If we care about the whole tree, skip the madness.
 			if ($user["alerts"][0] == "on") {
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
+				while ($f = sqlfetch($q)) {
+					$alerts[] = $f;
+				}
 			} else {
 				$paths = array();
 				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
 				while ($f = sqlfetch($q)) {
 					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
 				}
-				// Find all the pages that are old that contain our paths
-				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
-			}
-
-			while ($f = sqlfetch($q)) {
-				$alerts[] = $f;
+				if (count($paths)) {
+					// Find all the pages that are old that contain our paths
+					$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
+					while ($f = sqlfetch($q)) {
+						$alerts[] = $f;
+					}
+				}
 			}
 
 			return $alerts;
