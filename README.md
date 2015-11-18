@@ -29,7 +29,9 @@ Changelog
 - ADDED: List Parser functions to the List field type (similar to the existing functionality for One/Many-to-Many)
 - ADDED: Callouts can now be nested inside callouts
 - UPDATED: Google API instructions
-- UPDATED: TinyMCE 4 to latest version (4.2.7)
+- UPDATED: TinyMCE 4 to latest version (4.2.8)
+- UPDATED: 301 redirect URLs now only show the short slug version of the destination URL
+- UPDATED: 301 redirects now attempt to make internal page links out of short slug destination URLs for better tranisitioning over time
 - FIXED: Grayscale and Delete button for thumbnails being assigned to the wrong row.
 - FIXED: Background images not properly rewriting to https when BigTreeCMS::makeSecure is called.
 - FIXED: Media Presets not properly throwing inline errors on image uploads.
