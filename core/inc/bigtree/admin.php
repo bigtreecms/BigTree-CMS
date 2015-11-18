@@ -6648,7 +6648,18 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
+
+			// Try to convert the short URL into a full one
+			if (strpos($url,"//") === false) {
+				$url = WWW_ROOT.ltrim($url,"/");
+			}
 			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
+
+			// Don't use static roots if they're the same as www just in case they are different when moving environments
+			if (WWW_ROOT === STATIC_ROOT) {
+				$url = str_replace("{staticroot}","{wwwroot}",$url);
+			}
+
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 			$this->track("bigtree_404s",$id,"updated");
 		}
