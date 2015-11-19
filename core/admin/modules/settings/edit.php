@@ -58,7 +58,7 @@
 						"type" => $item["type"],
 						"title" => "",
 						"subtitle" => "",
-						"key" => $item["id"],
+						"key" => "value",
 						"tabindex" => 1,
 						"options" => json_decode($item["options"],true),
 						"value" => $value
