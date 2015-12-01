@@ -26,6 +26,7 @@ Changelog
 - FIXED: Google Analytics API storing things in bigtree_caches that it never uses
 - FIXED: 301 redirects containing special characters (i.e. # or &) not redirecting correctly
 - FIXED: Callout access levels not functioning properly
+- FIXED: Cloud caches not being populated properly when selecting a container
 
 ### 4.1.12 Release
 - SECURITY FIX: Fixed a critical path manipulation bug that could expose private files
