@@ -61,6 +61,7 @@ Changelog
 - FIXED: Packaging a setting, template, or callout into an extension not always working as intended (thanks Randy Hook @ MindScape)
 - FIXED: BigTreeModule::getRecentFeatured sorting by ASC rather than DESC by default
 - FIXED: FTP and SFTP upgrades failing for both Extensions and System upgrades.
+- FIXED: Cloud caches not being populated properly when selecting a container
 
 ### 4.2.7 Release
 - ADDED: Extension field types can now more easily add their own CSS and JS into the admin header by specifying the full path to their CSS file or JS file. For instance: $bigtree["css"][] = "*/com.fastspot.video-field/css/video-field.css";
