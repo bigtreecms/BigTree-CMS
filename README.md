@@ -21,6 +21,7 @@ Changelog
 ---------
 
 ### 4.2.8 Release
+- ADDED: A ping to bigtreecms.org to help us maintain version usage numbers (you can disable this by setting $bigtree["config"]["disable_ping"] to true)
 - ADDED: Very limited Facebook API support to Service APIs.
 - ADDED: ChannelID property to BigTreeYouTubeVideo class.
 - ADDED: A $bigtree["config"]["trailing_slash_behavior"] configuration setting to always add or removing trailing slashes from URLS (thanks Randy Hook @ MindScape)
@@ -29,7 +30,7 @@ Changelog
 - ADDED: List Parser functions to the List field type (similar to the existing functionality for One/Many-to-Many)
 - ADDED: Callouts can now be nested inside callouts
 - UPDATED: Google API instructions
-- UPDATED: TinyMCE 4 to latest version (4.2.8)
+- UPDATED: TinyMCE 4 to 4.2.8
 - UPDATED: 301 redirect URLs now only show the short slug version of the destination URL
 - UPDATED: 301 redirects now attempt to make internal page links out of short slug destination URLs for better tranisitioning over time
 - FIXED: Grayscale and Delete button for thumbnails being assigned to the wrong row.
@@ -60,8 +61,12 @@ Changelog
 - FIXED: Module actions permissions not being properly enforced (thanks Randy Hook @ MindScape)
 - FIXED: Packaging a setting, template, or callout into an extension not always working as intended (thanks Randy Hook @ MindScape)
 - FIXED: BigTreeModule::getRecentFeatured sorting by ASC rather than DESC by default
-- FIXED: FTP and SFTP upgrades failing for both Extensions and System upgrades.
+- FIXED: FTP and SFTP upgrades failing for both Extensions and System upgrades
 - FIXED: Cloud caches not being populated properly when selecting a container
+- FIXED: Protocol agnostic URLs failing integrity checks
+- FIXED: Editing extension settings via the admin's Settings section failing
+- FIXED: Site status to better check all the directories that need writable permissions
+- REMOVED: Paste button from TinyMCE as modern browsers don't support it
 
 ### 4.2.7 Release
 - ADDED: Extension field types can now more easily add their own CSS and JS into the admin header by specifying the full path to their CSS file or JS file. For instance: $bigtree["css"][] = "*/com.fastspot.video-field/css/video-field.css";
