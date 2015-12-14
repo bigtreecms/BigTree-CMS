@@ -6664,6 +6664,67 @@
 		}
 
 		/*
+			Function: runCron
+				Runs cron jobs
+		*/
+
+		function runCron() {
+			global $bigtree;
+
+			// Track when we last sent a daily digest
+			if (!$this->settingExists("bigtree-internal-cron-daily-digest-last-sent")) {
+				$this->createSetting(array(
+					"id" => "bigtree-internal-cron-daily-digest-last-sent",
+					"system" => "on"
+				));
+			}
+		
+			$last_sent_daily_digest = BigTreeCMS::getSetting("bigtree-internal-cron-daily-digest-last-sent");
+		
+			// If we last sent the daily digest > ~24 hours ago, send it again. Also refresh analytics.
+			if ($last_sent_daily_digest < strtotime("-23 hours 59 minutes")) {
+				$this->updateSettingValue("bigtree-internal-cron-daily-digest-last-sent",time());
+		
+				// Send daily digest
+				$this->emailDailyDigest();
+		
+				// Cache Google Analytics Information
+				$analytics = new BigTreeGoogleAnalyticsAPI;
+				if ($analytics->API && $analytics->Profile) {
+					$analytics->cacheInformation();
+				}
+			}
+		
+			// Run any extension cron jobs
+			$extension_settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
+			$cron_settings = $extension_settings["cron"];
+			foreach (BigTreeAdmin::$CronPlugins as $extension => $plugins) {
+				foreach ($plugins as $id => $details) {
+					$id = $extension."*".$id;
+					if (empty($cron_settings[$id]["disabled"])) {
+						call_user_func($details["function"]);
+					}
+				}
+			}
+
+			// Ping bigtreecms.org with current version stats
+			if (!$bigtree["config"]["disable_ping"]) {
+				BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
+			}
+		
+			// Let the CMS know we're running cron properly
+			if (!$this->settingExists("bigtree-internal-cron-last-run")) {
+				$this->createSetting(array(
+					"id" => "bigtree-internal-cron-last-run",
+					"system" => "on"
+				));
+			}
+			
+			// Tell the admin we've ran cron recently.
+			$this->updateSettingValue("bigtree-internal-cron-last-run",time());
+		}
+
+		/*
 			Function: saveCurrentPageRevision
 				Saves the currently published page as a revision.
 

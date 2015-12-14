@@ -325,28 +325,8 @@
 
 	// Execute cron tab functions if they haven't been run in 24 hours
 	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
-	if ($last_check === false) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-cron-last-run",
-			"system" => "on"
-		));
-	}
-
-	// It's been more than 24 hours since we last ran cron.
 	if ((time() - $last_check) > (24 * 60 * 60)) {
-		// Update the setting.
-		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
-		// Email the daily digest
-		$admin->emailDailyDigest();
-		// Cache google analytics
-		$ga = new BigTreeGoogleAnalyticsAPI;
-		if (!empty($ga->Settings["profile"])) {
-			try {
-				$ga->cacheInformation();
-			} catch (Exception $e) {
-				// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
-			}
-		}
+		$admin->runCron();
 	}
 
 	$ispage = false;
