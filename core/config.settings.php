@@ -47,6 +47,9 @@
 	// Encryption key for encrypted settings
 	$bigtree["config"]["settings_key"] = "[settings_key]";
 
+	// Version Ping - Change to true to disable reporting of your current version to the BigTree developers
+	$bigtree["config"]["disable_ping"] = false;
+
 	// Base classes for BigTree.  If you want to extend / overwrite core features of the CMS, change these to your new class names
 	// Set BIGTREE_CUSTOM_BASE_CLASS_PATH to the directory path (relative to /site/) of the file that will extend BigTreeCMS
 	// Set BIGTREE_CUSTOM_ADMIN_CLASS_PATH to the directory path (relative to /site/) of the file that will extend BigTreeAdmin

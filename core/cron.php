@@ -34,4 +34,9 @@
 	
 	// Tell the admin we've ran cron recently.
 	$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
+
+	// Ping bigtreecms.org with current version stats
+	if (!$bigtree["config"]["disable_ping"]) {
+		BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=4.1.14");
+	}
 ?>

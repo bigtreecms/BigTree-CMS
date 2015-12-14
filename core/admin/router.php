@@ -301,8 +301,10 @@
 	if ((time() - $last_check) > (24 * 60 * 60)) {
 		// Update the setting.
 		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
+		
 		// Email the daily digest
 		$admin->emailDailyDigest();
+		
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalyticsAPI;
 		if (!empty($ga->Settings["profile"])) {
@@ -310,6 +312,11 @@
 			try {
 				$ga->cacheInformation();
 			} catch (Exception $e) {}
+		}
+
+		// Ping bigtreecms.org with current version stats
+		if (!$bigtree["config"]["disable_ping"]) {
+			BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 		}
 	}
 	
