@@ -20,6 +20,20 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.14 Release
+- ADDED: A ping to bigtreecms.org to help us maintain version usage numbers (you can disable this by setting $bigtree["config"]["disable_ping"] to true)
+- UPDATED: Google API notes and made it trim keys for easier copy/paste
+- FIXED: Processing of empty crop/thumb entries
+- FIXED: Duplicate image uploads when exact image dimensions were met
+- FIXED: Firefox 41+ breaking search input styles
+- FIXED: BigTreeCMS::catch404 not properly clearing the output buffer
+- FIXED: Module reports table not getting proper columns when upgrading from BigTree 4.0
+- FIXED: Several field types appearing incorrectly in embeddable forms
+- FIXED: TinyMCE color issues in dropdowns
+- FIXED: BigTreeModule::getRecentFeatured ordering by ascending date rather than descending by default
+- FIXED: Protocol agnostic URLs failing integrity checks
+- FIXED: Cloud file caches not clearing properly when switching buckets
+
 ### 4.1.13 Release
 - FIXED: 30 day page views not showing in Pages when Google Analytics is setup
 - FIXED: Incorrect permission checking when sending out lists of pending changes in Daily Digest emails
