@@ -19,11 +19,11 @@
 		$field = array(
 			"type" => $item["type"],
 			"title" => $item["title"],
-			"key" => $_POST["id"],
+			"key" => "value",
 			"options" => json_decode($item["options"],true),
 			"ignore" => false,
-			"input" => $bigtree["post_data"][$_POST["id"]],
-			"file_input" => $bigtree["file_data"][$_POST["id"]]
+			"input" => $bigtree["post_data"]["value"],
+			"file_input" => $bigtree["file_data"]["value"]
 		);
 
 		// Process the input

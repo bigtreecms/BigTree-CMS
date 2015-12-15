@@ -92,6 +92,7 @@ define("tinymce/dom/RangeUtils", [
 			 * @private
 			 * @param {Node} node Node to collect siblings from.
 			 * @param {String} name Name of the sibling to check for.
+			 * @param {Node} end_node
 			 * @return {Array} Array of collected siblings.
 			 */
 			function collectSiblings(node, name, end_node) {
@@ -269,6 +270,10 @@ define("tinymce/dom/RangeUtils", [
 				var container, offset, walker, body = dom.getRoot(), node, nonEmptyElementsMap;
 				var directionLeft, isAfterNode;
 
+				function isTableCell(node) {
+					return node && /^(TD|TH|CAPTION)$/.test(node.nodeName);
+				}
+
 				function hasBrBeforeAfter(node, left) {
 					var walker = new TreeWalker(node, dom.getParent(node.parentNode, dom.isBlock) || body);
 
@@ -382,7 +387,7 @@ define("tinymce/dom/RangeUtils", [
 								}
 
 								// Found a BR/IMG element that we can place the caret before
-								if (nonEmptyElementsMap[node.nodeName.toLowerCase()]) {
+								if (nonEmptyElementsMap[node.nodeName.toLowerCase()] && !isTableCell(node)) {
 									offset = dom.nodeIndex(node);
 									container = node.parentNode;
 

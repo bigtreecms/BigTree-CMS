@@ -164,6 +164,10 @@ define("tinymce/tableplugin/TableGrid", [
 	return function(editor, table) {
 		var grid, gridWidth, startPos, endPos, selectedCell, selection = editor.selection, dom = selection.dom;
 
+		function isEditorBody(node) {
+			return node === editor.getBody();
+		}
+
 		function buildGrid() {
 			var startY = 0;
 
@@ -264,6 +268,10 @@ define("tinymce/tableplugin/TableGrid", [
 
 		function deleteTable() {
 			var rng = dom.createRng();
+
+			if (isEditorBody(table)) {
+				return;
+			}
 
 			rng.setStartAfter(table);
 			rng.setEndAfter(table);
@@ -636,8 +644,34 @@ define("tinymce/tableplugin/TableGrid", [
 			});
 		}
 
+		function getSelectedCells(grid) {
+			return Tools.grep(getAllCells(grid), isCellSelected);
+		}
+
+		function getAllCells(grid) {
+			var cells = [];
+
+			each(grid, function(row) {
+				each(row, function(cell) {
+					cells.push(cell);
+				});
+			});
+
+			return cells;
+		}
+
 		function deleteCols() {
 			var cols = [];
+
+			if (isEditorBody(table)) {
+				if (grid[0].length == 1) {
+					return;
+				}
+
+				if (getSelectedCells(grid).length == getAllCells(grid).length) {
+					return;
+				}
+			}
 
 			// Get selected column indexes
 			each(grid, function(row) {
@@ -704,6 +738,10 @@ define("tinymce/tableplugin/TableGrid", [
 			// Get selected rows and move selection out of scope
 			rows = getSelectedRows();
 
+			if (isEditorBody(table) && rows.length == table.rows.length) {
+				return;
+			}
+
 			// Delete all selected rows
 			each(rows.reverse(), function(tr) {
 				deleteRow(tr);
@@ -714,6 +752,10 @@ define("tinymce/tableplugin/TableGrid", [
 
 		function cutRows() {
 			var rows = getSelectedRows();
+
+			if (isEditorBody(table) && rows.length == table.rows.length) {
+				return;
+			}
 
 			dom.remove(rows);
 			cleanup();
@@ -1367,12 +1409,14 @@ define("tinymce/tableplugin/Quirks", [
 
 						e.preventDefault();
 
-						if (tableCells.length == selectedTableCells.length) {
-							editor.execCommand('mceTableDelete');
-						} else {
-							Tools.each(selectedTableCells, clearCell);
-							placeCaretInCell(selectedTableCells[0]);
-						}
+						editor.undoManager.transact(function() {
+							if (tableCells.length == selectedTableCells.length) {
+								editor.execCommand('mceTableDelete');
+							} else {
+								Tools.each(selectedTableCells, clearCell);
+								placeCaretInCell(selectedTableCells[0]);
+							}
+						});
 					}
 				}
 			});

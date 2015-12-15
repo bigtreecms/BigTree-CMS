@@ -27,13 +27,13 @@
 			}
 			
 			// Try to login
-			if (!$updater->ftpLogin($_POST["user"],$_POST["psasword"])) {
+			if (!$updater->ftpLogin($_POST["username"],$_POST["password"])) {
 				$admin->growl("Developer","Login Failed","error");
 				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
 			}
 			
 			// Try to get the FTP root
-			$ftp_root = $updater->getFTPRoot($_POST["user"],$_POST["password"]);
+			$ftp_root = $updater->getFTPRoot($_POST["username"],$_POST["password"]);
  			if ($ftp_root === false) {
 				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
 				$saved_root = htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"));

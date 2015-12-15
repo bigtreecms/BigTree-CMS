@@ -33,7 +33,7 @@
 	}
 
 	// Remove all existing cloud file caches and import new data
-	$cloud->resetCache($container["flat"]);
+	$cloud->resetCache($container);
 
 	$admin->growl("Developer","Changed Default Storage");
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");

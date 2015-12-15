@@ -34,7 +34,7 @@
 					$this->Connection = $ftp;
 					$this->Method = "FTP";
 				} elseif ($sftp->connect("localhost")) {
-					$this->Connection = $ftp;
+					$this->Connection = $sftp;
 					$this->Method = "SFTP";
 				}
 			}
@@ -137,14 +137,10 @@
 		*/
 
 		function getFTPRoot($user,$password) {
-			if (!$this->Connection->login($user,$password)) {
-				return false;
-			}
-
 			// Try to determine the FTP root.
 			$ftp_root = false;
 			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
-			if ($saved_root !== false && $this->Connection->changeDirectory($saved_root)."core/inc/bigtree/") {
+			if ($saved_root !== false && $this->Connection->changeDirectory($saved_root."core/inc/bigtree/")) {
 				$ftp_root = $saved_root;
 			} elseif ($this->Connection->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
 				$ftp_root = SERVER_ROOT;

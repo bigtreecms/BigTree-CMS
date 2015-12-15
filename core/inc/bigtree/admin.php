@@ -594,6 +594,11 @@
 					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic link
+					if (!static::urlExists("http:".$href)) {
+						$errors["a"][] = $href;
+					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
@@ -623,6 +628,11 @@
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
 					if (!static::urlExists($href)) {
+						$errors["img"][] = $href;
+					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic src
+					if (!static::urlExists("http:".$href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
@@ -673,8 +683,16 @@
 		function create301($from,$to) {
 			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/"))));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
-			sqlquery("INSERT INTO bigtree_404s (`broken_url`,`redirect_url`) VALUES ('$from','$to')");
-			$this->track("bigtree_404s",sqlid(),"create");
+
+			// See if the from already exists
+			$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));
+			if ($existing) {
+				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
+				$this->track("bigtree_404s",$existing["id"],"updated");
+			} else {
+				sqlquery("INSERT INTO bigtree_404s (`broken_url`,`redirect_url`) VALUES ('$from','$to')");
+				$this->track("bigtree_404s",sqlid(),"created");
+			}
 		}
 
 		/*
@@ -3267,18 +3285,22 @@
 			// If we care about the whole tree, skip the madness.
 			if ($user["alerts"][0] == "on") {
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
+				while ($f = sqlfetch($q)) {
+					$alerts[] = $f;
+				}
 			} else {
 				$paths = array();
 				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
 				while ($f = sqlfetch($q)) {
 					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
 				}
-				// Find all the pages that are old that contain our paths
-				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
-			}
-
-			while ($f = sqlfetch($q)) {
-				$alerts[] = $f;
+				if (count($paths)) {
+					// Find all the pages that are old that contain our paths
+					$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
+					while ($f = sqlfetch($q)) {
+						$alerts[] = $f;
+					}
+				}
 			}
 
 			return $alerts;
@@ -6975,7 +6997,18 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
+
+			// Try to convert the short URL into a full one
+			if (strpos($url,"//") === false) {
+				$url = WWW_ROOT.ltrim($url,"/");
+			}
 			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
+
+			// Don't use static roots if they're the same as www just in case they are different when moving environments
+			if (WWW_ROOT === STATIC_ROOT) {
+				$url = str_replace("{staticroot}","{wwwroot}",$url);
+			}
+
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 			$this->track("bigtree_404s",$id,"updated");
 		}

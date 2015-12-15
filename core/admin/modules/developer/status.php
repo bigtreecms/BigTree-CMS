@@ -25,23 +25,42 @@
 		}
 	}
 	
-	// Go through every module form and look for uploads, make sure the directories exist and are writable.
-	$forms = array_merge($admin->getModuleForms(),$admin->getModuleEmbedForms());
-	foreach ($forms as $form) {
-		foreach (array_filter((array)$form["fields"]) as $key => $data) {
-			if ($data["directory"]) {
-				if (!BigTree::isDirectoryWritable(SITE_ROOT.$data["directory"])) {
-					$warnings[] = array(
-						"name" => "Directory Permissions Error",
-						"description" => "Make ".SITE_ROOT.$data["directory"]." writable.",
-						"status" => "bad",
-						"value" => ""
-					);
+	// Setup a recursive function to loop through fields
+	$directory_warnings = array();
+	$recurse_fields = function($fields) {
+		global $directory_warnings,$recurse_fields,$warnings;
+		foreach (array_filter((array)$fields) as $key => $data) {			
+			$options = is_string($data["options"]) ? array_filter((array)json_decode($data["options"],true)) : $data["options"];
+			
+			if ($data["type"] == "matrix") {
+				$recurse_fields($options["columns"]);
+			} else {
+				if ($options["directory"]) {
+					if (!BigTree::isDirectoryWritable(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
+						$directory_warnings[] = $options["directory"];
+						$warnings[] = array(
+							"parameter" => "Directory Permissions Error",
+							"rec" => "Make ".SITE_ROOT.$options["directory"]." writable.",
+							"status" => "bad"
+						);
+					}
 				}
 			}
 		}
+	};
+	
+	// Go through every module form and look for uploads, make sure the directories exist and are writable.
+	$forms = array_merge($admin->getModuleForms(),$admin->getModuleEmbedForms());
+	foreach ($forms as $form) {
+		$recurse_fields($form["fields"]);
 	}
 	
+	// Now templates and callouts
+	$templates = array_merge($admin->getTemplates(),$admin->getCallouts());
+	foreach ($templates as $template) {
+		$recurse_fields(json_decode($template["resources"],true));
+	}
+		
 	// Search all content for links to the admin.
 	$bad = $admin->getPageAdminLinks();
 	foreach ($bad as $f) {

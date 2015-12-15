@@ -10,7 +10,7 @@
 
 	if (isset($fields)) {
 		foreach ($fields as $field) {
-			$used[] = $key["column"];
+			$used[] = $field["column"];
 		}
 		// Figure out the fields we're not using so we can offer them back.
 		$table_description = BigTree::describeTable($table);

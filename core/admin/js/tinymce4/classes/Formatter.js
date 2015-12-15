@@ -208,8 +208,8 @@ define("tinymce/Formatter", [
 		 * Returns the format by name or all formats if no name is specified.
 		 *
 		 * @method get
-		 * @param {String} name Optional name to retrive by.
-		 * @return {Array/Object} Array/Object with all registred formats or a specific format.
+		 * @param {String} name Optional name to retrieve by.
+		 * @return {Array/Object} Array/Object with all registered formats or a specific format.
 		 */
 		function get(name) {
 			return name ? formats[name] : formats;
@@ -549,7 +549,7 @@ define("tinymce/Formatter", [
 
 					// Remove empty nodes but only if there is multiple wrappers and they are not block
 					// elements so never remove single <h1></h1> since that would remove the
-					// currrent empty block element where the caret is at
+					// current empty block element where the caret is at
 					if ((newWrappers.length > 1 || !isBlock(node)) && childCount === 0) {
 						dom.remove(node, 1);
 						return;
@@ -1248,8 +1248,8 @@ define("tinymce/Formatter", [
 		 * Compares two string/nodes regardless of their case.
 		 *
 		 * @private
-		 * @param {String/Node} Node or string to compare.
-		 * @param {String/Node} Node or string to compare.
+		 * @param {String/Node} str1 Node or string to compare.
+		 * @param {String/Node} str2 Node or string to compare.
 		 * @return {boolean} True/false if they match.
 		 */
 		function isEq(str1, str2) {
@@ -1280,7 +1280,7 @@ define("tinymce/Formatter", [
 		 * to make it more easy to match. This will resolve a few browser issues.
 		 *
 		 * @private
-		 * @param {Node} node to get style from.
+		 * @param {String} value Value to get style from.
 		 * @param {String} name Style name to get.
 		 * @return {String} Style item value.
 		 */
@@ -1344,7 +1344,8 @@ define("tinymce/Formatter", [
 		 *
 		 * @private
 		 * @param {Object} rng Range like object.
-		 * @param {Array} formats Array with formats to expand by.
+		 * @param {Array} format Array with formats to expand by.
+		 * @param {Boolean} remove
 		 * @return {Object} Expanded range like object.
 		 */
 		function expandRng(rng, format, remove) {
@@ -2261,9 +2262,13 @@ define("tinymce/Formatter", [
 
 					removeCaretContainer();
 
-					// Remove caret container on keydown and it's a backspace, enter or left/right arrow keys
-					// Backspace key needs to check if the range is collapsed due to bug #6780
-					if ((keyCode == 8 && selection.isCollapsed()) || keyCode == 37 || keyCode == 39) {
+					// Remove caret container if it's empty
+					if (keyCode == 8 && selection.isCollapsed() && selection.getStart().innerHTML == INVISIBLE_CHAR) {
+						removeCaretContainer(getParentCaretContainer(selection.getStart()));
+					}
+
+					// Remove caret container on keydown and it's left/right arrow keys
+					if (keyCode == 37 || keyCode == 39) {
 						removeCaretContainer(getParentCaretContainer(selection.getStart()));
 					}
 
