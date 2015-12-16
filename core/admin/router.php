@@ -352,7 +352,7 @@
 		}
 		
 		// Make sure the user has access to the module
-		if (!$admin->checkAccess($module["id"],$route_response["action"])) {
+		if (!$admin->checkAccess($module,$route_response["action"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 		}
 

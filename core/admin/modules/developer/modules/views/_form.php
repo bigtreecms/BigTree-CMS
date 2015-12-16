@@ -44,9 +44,16 @@
 					<?php } ?>
 				</optgroup>
 				<optgroup label="Extension">
-					<?php foreach (BigTreeAdmin::$ViewTypes["extension"] as $key => $t) { ?>
-					<option value="<?=$key?>"<?php if ($key == $type) { ?> selected="selected"<?php } ?>><?=$t?></option>
-					<?php } ?>
+					<?php
+						foreach (BigTreeAdmin::$ViewTypes["extension"] as $extension => $extension_types) {
+							foreach ($extension_types as $key => $name) {
+								$view_key = "$extension*$key";
+					?>
+					<option value="<?=$view_key?>"<?php if ($view_key == $type) { ?> selected="selected"<?php } ?>><?=$name?></option>
+					<?php
+							}
+						}
+					?>
 				</optgroup>
 			</select>
 			&nbsp; <a href="#" class="options icon_settings centered"></a>

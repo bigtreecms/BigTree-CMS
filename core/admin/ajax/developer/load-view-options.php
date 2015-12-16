@@ -11,7 +11,12 @@
 		<input type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
 	<?php
-		$path = BigTree::path("admin/ajax/developer/view-options/$type.php");
+		if (strpos($type,"*") !== false) {
+			list($extension,$view_type) = explode("*",$type);
+			$path = SERVER_ROOT."extensions/$extension/plugins/view-types/$view_type/options.php";
+		} else {
+			$path = BigTree::path("admin/ajax/developer/view-options/$type.php");
+		}
 		if (file_exists($path)) {
 			include $path;
 		}
