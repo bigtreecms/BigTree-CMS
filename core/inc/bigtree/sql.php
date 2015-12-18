@@ -1,318 +1,312 @@
 <?php
 	/*
-		Class: SQL Wrappers
-			Support for splitting reads/writes and handling error throwing automatically.
+		Class: BigTreeSQL
+			A MySQL helper class that wraps the pre-4.3 functions.
+			When BigTree is bootstrapped, $db, $cms->DB, and $admin->DB are instances of this class.
 	*/
 
-	$bigtree["sql"]["errors"] = array();
-	$bigtree["sql"]["queries"] = array();
+	class BigTreeSQL {
 
-	// Initializing optional params, if they don't exist yet due to older install
-	!empty($bigtree["config"]["db"]["host"]) || $bigtree["config"]["db"]["host"] = null;
-	!empty($bigtree["config"]["db"]["port"]) || $bigtree["config"]["db"]["port"] = 3306;
-	!empty($bigtree["config"]["db"]["socket"]) || $bigtree["config"]["db"]["socket"] = null;
+		var $ActiveQuery;
+		var $Connection = "disconnected";
+		var $ErrorLog = array();
+		var $QueryLog = array();
+		var $WriteConnection = "disconnected";
 
-	if (isset($bigtree["config"]["sql_interface"]) && $bigtree["config"]["sql_interface"] == "mysqli") {
-
-		function bigtree_setup_sql_connection($read_write = "read") {
-			global $bigtree;
-
-			if ($read_write == "read") {
-				$connection = new mysqli(
-					$bigtree["config"]["db"]["host"],
-					$bigtree["config"]["db"]["user"],
-					$bigtree["config"]["db"]["password"],
-					$bigtree["config"]["db"]["name"],
-					$bigtree["config"]["db"]["port"],
-					$bigtree["config"]["db"]["socket"]
-				);
-				$connection->query("SET NAMES 'utf8'");
-				$connection->query("SET SESSION sql_mode = ''");
-				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db"]["user"]);
-				unset($bigtree["config"]["db"]["password"]);
-			} else {
-				$connection = new mysqli(
-					$bigtree["config"]["db_write"]["host"],
-					$bigtree["config"]["db_write"]["user"],
-					$bigtree["config"]["db_write"]["password"],
-					$bigtree["config"]["db_write"]["name"],
-					$bigtree["config"]["db_write"]["port"],
-					$bigtree["config"]["db_write"]["socket"]
-				);
-				$connection->query("SET NAMES 'utf8'");
-				$connection->query("SET SESSION sql_mode = ''");
-				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db_write"]["user"]);
-				unset($bigtree["config"]["db_write"]["password"]);
+		function __construct($chain_query = false) {
+			// Chained instances should use the primary connection
+			if ($chain_query) {
+				$this->ActiveQuery = $chain_query;
+				$this->Connection = BigTreeCMS::$DB->Connection;
+				$this->WriteConnection = BigTreeCMS::$DB->WriteConnection;
 			}
-			return $connection;
 		}
 
 		/*
-			Function: sqlquery
-				Equivalent to mysqli_query / mysql_query in most cases.
-				If BigTree has enabled splitting off to a separate write server this function will send all write related queries to the write server and all read queries to the read server.
-				If BigTree has not enabled a separate write server the type parameter does not exist.
+			Function: connect
+				Sets up the internal connections to the MySQL server(s).
+		*/
+
+		function connect($property,$type) {
+			global $bigtree;
+
+			// Initializing optional params, if they don't exist yet due to older install
+			!empty($bigtree["config"][$type]["host"]) || $bigtree["config"][$type]["host"] = null;
+			!empty($bigtree["config"][$type]["port"]) || $bigtree["config"][$type]["port"] = 3306;
+			!empty($bigtree["config"][$type]["socket"]) || $bigtree["config"][$type]["socket"] = null;
+
+			$this->$property = new mysqli(
+				$bigtree["config"][$type]["host"],
+				$bigtree["config"][$type]["user"],
+				$bigtree["config"][$type]["password"],
+				$bigtree["config"][$type]["name"],
+				$bigtree["config"][$type]["port"],
+				$bigtree["config"][$type]["socket"]
+			);
+
+			// Make sure everything is run in UTF8, turn off strict mode if set
+			$this->$property->query("SET NAMES 'utf8'");
+			$this->$property->query("SET SESSION sql_mode = ''");
+
+			// Remove BigTree connection parameters once it is setup.
+			unset($bigtree["config"][$type]["user"]);
+			unset($bigtree["config"][$type]["password"]);
+
+			return $this->$property;
+		}
+
+		/*
+			Function: escape
+				Equivalent to mysql_real_escape_string.
+				Escapes non-string values by first encoding them as JSON.
 
 			Parameters:
-				query - A query string.
-				connection - An optional MySQL connection (normally this is chosen automatically)
-				type - Chosen automatically if a connection isn't passed. "read" or "write" to specify which server to use.
+				string - Value to escape
 
 			Returns:
-				A MySQL query resource.
+				Escaped string
 		*/
 
-		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
-			function sqlquery($query,$connection = false,$type = "read") {
-				global $bigtree;
-
-				if ($bigtree["config"]["debug"]) {
-					$bigtree["sql"]["queries"][] = $query;
-				}
-
-				if (!$connection) {
-					$commands = explode(" ",$query);
-					$fc = strtolower($commands[0]);
-					if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
-						$connection = &$bigtree["mysql_write_connection"];
-						$type = "write";
-					} else {
-						$connection = &$bigtree["mysql_read_connection"];
-						$type = "read";
-					}
-				}
-
-				if ($connection === "disconnected") {
-					$connection = bigtree_setup_sql_connection($type);
-				}
-
-				$q = $connection->query($query);
-				$e = $connection->error;
-				if ($e) {
-					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($bigtree["sql"]["errors"],$sqlerror);
-					return false;
-				}
-
-				return $q;
+		function escape($string) {
+			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
+				$string = BigTree::json($string);
 			}
-		} else {
-			function sqlquery($query,$connection = false) {
-				global $bigtree;
-
-				if ($bigtree["config"]["debug"]) {
-					$bigtree["sql"]["queries"][] = $query;
-				}
-
-				if (!$connection) {
-					$connection = &$bigtree["mysql_read_connection"];
-				}
-
-				if ($connection === "disconnected") {
-					$connection = bigtree_setup_sql_connection();
-				}
-
-				$q = $connection->query($query);
-				$e = $connection->error;
-				if ($e) {
-					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($bigtree["sql"]["errors"],$sqlerror);
-					return false;
-				}
-
-				return $q;
-			}
+			
+			$connection = ($this->Connection && $this->Connection !== "disconnected") ? $this->Connection : $this->connect("Connection","db");
+			return $connection->real_escape_string($string);
 		}
 
 		/*
-			Function: sqlfetch
-				Equivalent to mysqli_fetch_assoc / mysql_fetch_assoc.
-				Throws an exception if it is called on an invalid query resource which includes the most recent MySQL errors.
+			Function: exists
+				Checks to see if an entry exists for given key/value pairs.
 
 			Parameters:
-				query - The mysql query resource (returned via sqlquery or mysql_query or mysql_db_query)
+				table - The table to search
+				values - An array of key/value pairs to match against (i.e. "id" => "10")
 
 			Returns:
-				A row from the query in array format with key/value pairs.
+				true if a row already exists that matches the passed in key/value pairs.
 		*/
 
-		function sqlfetch($query) {
-			global $bigtree;
-			// If the query is boolean, it's probably a "false" from a failed sql query.
-			if (is_bool($query)) {
-				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
+		function exists($table,$values) {
+			if (!is_array($values) || !array_filter($values)) {
+				trigger_error("BigTreeSQL::exists expects a non-empty array as its second parameter");
+				return false;
+			}
+
+			$where = array();
+			foreach ($values as $key => $value) {
+				$where[] = "`$key` = ?";
+			}
+
+			// Push the query onto the array stack so it's the first query parameter
+			array_unshift($values,"SELECT COUNT(*) FROM `$table` WHERE ".implode(" AND ",$where));
+
+			// Execute query, return a single result
+			$query = call_user_func_array(array($this,"query"),$values);
+			return $query->fetch(false,true) ? true : false;
+		}
+
+		/*
+			Function: fetch
+				Equivalent to calling mysql_fetch_assoc on a query.
+				If a query string is passed rather than a chained call it will return a single row after executing the query.
+
+			Parameters:
+				query - Optional, a query to execute before fetching
+				single - Optional, if set to true only returns the first column of the row instead of an array
+
+			Returns:
+				A row from the active query (or false if no more rows exist)
+		*/
+
+		function fetch($query = false,$single = false) {
+			if ($query) {
+				return $this->query($query)->fetch(false,$single);
+			}
+
+			if (is_bool($this->ActiveQuery)) {
+				trigger_error("BigTreeSQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
-				return $query->fetch_assoc();
-			}
-		}
-
-		/*
-			Function: sqlrows
-				Equivalent to mysqli_num_rows / mysql_num_rows.
-		*/
-
-		function sqlrows($result) {
-			return $result->num_rows;
-		}
-
-		/*
-			Function: sqlid
-				Equivalent to mysqli_insert_id / mysql_insert_id.
-		*/
-
-		function sqlid() {
-			global $bigtree;
-			if ($bigtree["mysql_write_connection"] !== "disconnected") {
-				return $bigtree["mysql_write_connection"]->insert_id;
-			} else {
-				return $bigtree["mysql_read_connection"]->insert_id;
-			}
-		}
-
-		/*
-			Function: sqlescape
-				Equivalent to mysqli_real_escape_string / mysql_real_escape_string
-		*/
-
-		function sqlescape($string) {
-			global $bigtree;
-			if ($bigtree["mysql_read_connection"] === "disconnected") {
-				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
-			}
-			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
-				trigger_error("sqlescape expects a string");
-			}
-			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
-		}
-
-	// These are the older MySQL extension versions
-	} else {
-		function bigtree_setup_sql_connection($read_write = "read") {
-			global $bigtree;
-
-			if ($read_write == "read") {
-				$host = !empty($bigtree["config"]["db"]["socket"]) ? ":".ltrim($bigtree["config"]["db"]["socket"],":") : $bigtree["config"]["db"]["host"].":".$bigtree["config"]["db"]["socket"];
-				$connection = mysql_connect($host,$bigtree["config"]["db"]["user"],$bigtree["config"]["db"]["password"]);
-				mysql_select_db($bigtree["config"]["db"]["name"],$connection);
-				mysql_query("SET NAMES 'utf8'",$connection);
-				mysql_query("SET SESSION sql_mode = ''",$connection);
-
-				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db"]["user"]);
-				unset($bigtree["config"]["db"]["password"]);
-			} else {
-				$host = !empty($bigtree["config"]["db_write"]["socket"]) ? ":".ltrim($bigtree["config"]["db_write"]["socket"],":") : $bigtree["config"]["db_write"]["host"].":".$bigtree["config"]["db_write"]["socket"];
-				$connection = mysql_connect($host,$bigtree["config"]["db_write"]["user"],$bigtree["config"]["db_write"]["password"]);
-				mysql_select_db($bigtree["config"]["db_write"]["name"],$connection);
-				mysql_query("SET NAMES 'utf8'",$connection);
-				mysql_query("SET SESSION sql_mode = ''",$connection);
-				
-				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db_write"]["user"]);
-				unset($bigtree["config"]["db_write"]["password"]);
-			}
-			return $connection;
-		}
-
-		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
-			function sqlquery($query,$connection = false,$type = "read") {
-				global $bigtree;
-
-				if ($bigtree["config"]["debug"]) {
-					$bigtree["sql"]["queries"][] = $query;
+				$result = $this->ActiveQuery->fetch_assoc();
+				if ($single) {
+					return current($result);
 				}
+				return $result;
+			}
+		}
 
-				if (!$connection) {
-					$commands = explode(" ",$query);
-					$fc = strtolower($commands[0]);
-					if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
-						$connection = &$bigtree["mysql_write_connection"];
-						$type = "write";
+		/*
+			Function: fetchAll
+				Returns all remaining rows for the active query.
+				If a query string is passed rather than a chained call it will return the results after executing the query.
+
+			Parameters:
+				query - Optional, a query to execute before fetching
+				single - Optional, if set to true only returns the first column of each row instead of an array
+
+			
+			Returns:
+				An array of rows from the active query.
+		*/
+
+		function fetchAll($query = false,$single = false) {
+			if ($query) {
+				return $this->query($query)->fetchAll(false,$single);
+			}
+
+			if (is_bool($this->ActiveQuery)) {
+				trigger_error("BigTreeSQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				return false;
+			} else {
+				$results = array();
+				while ($result = $this->ActiveQuery->fetch_assoc()) {
+					if ($single) {
+						$results[] = current($result);
 					} else {
-						$connection = &$bigtree["mysql_read_connection"];
-						$type = "read";
+						$results[] = $result;
 					}
 				}
-
-				if ($connection === "disconnected") {
-					$connection = bigtree_setup_sql_connection($type);
-				}
-
-				$q = mysql_query($query,$connection);
-				$e = mysql_error();
-				if ($e) {
-					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($bigtree["sql"]["errors"],$sqlerror);
-					return false;
-				}
-
-				return $q;
-			}
-		} else {
-			function sqlquery($query,$connection = false) {
-				global $bigtree;
-
-				if ($bigtree["config"]["debug"]) {
-					$bigtree["sql"]["queries"][] = $query;
-				}
-
-				if (!$connection) {
-					$connection = &$bigtree["mysql_read_connection"];
-				}
-
-				if ($connection === "disconnected") {
-					$connection = bigtree_setup_sql_connection();
-				}
-
-				$q = mysql_query($query,$connection);
-				$e = mysql_error();
-				if ($e) {
-					$sqlerror = "<b>".$e."</b> in query &mdash; ".$query;
-					array_push($bigtree["sql"]["errors"],$sqlerror);
-					return false;
-				}
-
-				return $q;
+				return $results;
 			}
 		}
 
-		function sqlfetch($query) {
-			global $bigtree;
+		/*
+			Function: insert
+				Inserts a row into the database and returns the primary key
 
-			// If the query is boolean, it's probably a "false" from a failed sql query.
-			if (is_bool($query)) {
-				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
-				return false;
+			Parameters:
+				table - The table to insert a row into
+				row - An associative array of columns and values (i.e. "column" => "value")
+
+			Returns:
+				Primary key of the inserted row
+		*/
+
+		function insert($table,$row) {
+			$query = "INSERT INTO `$table` ";
+			$columns = array();
+			$values = array();
+			foreach ($row as $column => $value) {
+				$columns[] = "`$column`";
+				$values[] = "'".$this->escape($value)."'";
+			}
+			return $this->query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$values).")")
+						->insertID();
+		}
+
+		/*
+			Function: insertID
+				Equivalent to calling mysql_insert_id.
+
+			Returns:
+				The primary key for the most recently inserted row.
+		*/
+
+		function insertID() {
+			if ($this->WriteConnection) {
+				return $this->WriteConnection->insert_id;
 			} else {
-				return mysql_fetch_assoc($query);
+				return $this->Connection->insert_id;
 			}
 		}
 
-		function sqlrows($result) {
-			return mysql_num_rows($result);
-		}
+		/*
+			Function: query
+				Queries the MySQL server(s).
+				If you pass additional parameters "?" characters in your query statement
+				  will be replaced with escaped values in the order they are found.
 
-		function sqlid() {
+			Parameters:
+				query - The MYSQL query to execute
+				... - Optional parameters that will invoke MySQL prepared statement fills
+
+			Returns:
+				Another instance of BigTreeSQL for chaining fetch, fetchAll, insertID, or rows methods.
+		*/
+
+		function query($query) {
 			global $bigtree;
 
-			if ($bigtree["mysql_write_connection"] !== "disconnected") {
-				return mysql_insert_id($bigtree["mysql_write_connection"]);
+			// Debug should log queries
+			if ($bigtree["config"]["debug"]) {
+				$this->QueryLog[] = $query;
+			}
+
+			// Setup our read connection if it disconnected for some reason
+			$connection = ($this->Connection && $this->Connection !== "disconnected") ? $this->Connection : $this->connect("Connection","db");
+
+			// If we have a separate write host, let's find out if we're writing and use it if so
+			if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
+				$commands = explode(" ",$query);
+				$fc = strtolower($commands[0]);
+				if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
+					$connection = ($this->WriteConnection && $this->WriteConnection !== "disconnected") ? $this->WriteConnection : $this->connect("WriteConnection","db_write");
+				}
+			}
+
+			// If we only have a single argument we're not doing a prepared statement thing
+			$args = func_get_args();
+			if (count($args) == 1) {
+				$query_response = $connection->query($query);
 			} else {
-				return mysql_insert_id($bigtree["mysql_read_connection"]);
+				// Check argument and ? count to trigger warnings
+				$wildcard_count = substr_count($query,"?");
+				if ($wildcard_count != (count($args) - 1)) {
+					trigger_error("BigTreeSQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)",E_USER_WARNING);
+				}
+
+				// Do the replacements and escapes
+				$x = 1;
+				while (($position = strpos($query,"?")) !== false) {
+					$query = substr($query,0,$position)."'".$this->Connection->real_escape_string($args[$x])."'".substr($query,$position + 1);
+					$x++;
+				}
+
+				// Return the query object
+				$query_response = $connection->query($query);
 			}
+
+			// Log errors
+			if (is_bool($query_response)) {
+				$this->ErrorLog[] = $connection->error;
+			}
+
+			return new BigTreeSQL($query_response);
 		}
 
-		function sqlescape($string) {
-			global $bigtree;
-			if ($bigtree["mysql_read_connection"] === "disconnected") {
-				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
-			}
-			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
-				trigger_error("sqlescape expects a string");
-			}
-			return mysql_real_escape_string($string);
+		/*
+			Function: rows
+				Equivalent to calling mysql_num_rows.
+
+			Returns:
+				Number of rows for the active query.
+		*/
+
+		function rows($query) {
+			return $query->num_rows;
 		}
+	}
+
+	// Backwards compatibility
+
+	function sqlquery($query) {
+		return BigTreeCMS::$DB->query($query);
+	}
+
+	function sqlfetch($query) {
+		return $query->fetch();
+	}
+
+	function sqlrows($result) {
+		return $result->num_rows;
+	}
+
+	function sqlid() {
+		return BigTreeCMS::$DB->insertID();
+	}
+
+	function sqlescape($string) {
+		return BigTreeCMS::$DB->escape($string);
 	}

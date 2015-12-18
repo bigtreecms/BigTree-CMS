@@ -14,6 +14,7 @@
 
 		// Public static properties
 		public static $BreadcrumbTrunk;
+		public static $DB;
 		public static $IRLCache = array();
 		public static $IPLCache = array();
 		public static $MySQLTime = false;
@@ -43,10 +44,10 @@
 				include_once BigTree::path("inc/bigtree/modules.php");
 
 				// Get all modules from the db
-				$q = sqlquery("SELECT route,class FROM bigtree_modules");
-				while ($f = sqlfetch($q)) {
-					$class = $f["class"];
-					$route = $f["route"];
+				$modules = static::$DB->fetchAll("SELECT route,class FROM bigtree_modules");
+				foreach ($modules as $module) {
+					$class = $module["class"];
+					$route = $module["route"];
 
 					if ($class) {
 						// Get the class file path
@@ -74,9 +75,9 @@
 				}
 
 				// Get all extension required files and add them to a required list
-				$q = sqlquery("SELECT id FROM bigtree_extensions");
-				while ($f = sqlfetch($q)) {
-					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/".$f["id"]."/required/");
+				$extensions = static::$DB->fetchAll("SELECT id FROM bigtree_extensions",true);
+				foreach ($extensions as $id) {
+					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/$id/required/");
 					foreach (array_filter((array)$required_contents) as $file) {
 						$data["extension_required_files"][] = $file;
 					}
@@ -132,20 +133,30 @@
 
 				// Create a setting if it doesn't exist yet
 				if ($data === false) {
-					$name = sqlescape($name);
 
 					// If an extension is creating an auto save setting, make it a reference back to the extension
 					if (defined("EXTENSION_ROOT") && strpos($id,"bigtree-internal-") !== 0) {
-						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+						$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
 						
 						// Don't append extension again if it's already being called via the namespace
 						if (strpos($id,"$extension*") === false) {
 							$id = "$extension*$id";
 						}
 						
-						sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`encrypted`,`system`,`extension`) VALUES ('".sqlescape($id)."','$name','on','on','$extension')");
+						static::$DB->insert("bigtree_settings",array(
+							"id" => $id,
+							"name" => $name,
+							"encrypted" => "on",
+							"system" => "on",
+							"extension" => $extension
+						));
 					} else {
-						sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','$name','on','on')");
+						static::$DB->insert("bigtree_settings",array(
+							"id" => $id,
+							"name" => $name,
+							"encrypted" => "on",
+							"system" => "on"
+						));
 					}
 					$data = array();
 				}
@@ -179,12 +190,10 @@
 		*/
 
 		function cacheDelete($identifier,$key = false) {
-			$identifier = sqlescape($identifier);
-			
 			if ($key === false) {
-				sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '$identifier'");
+				static::$DB->query("DELETE FROM bigtree_caches WHERE `identifier` = ?",$identifier);
 			} else {
-				sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '".sqlescape($key)."'");
+				static::$DB->query("DELETE FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
 			}
 		}
 
@@ -199,35 +208,25 @@
 				decode - Decode JSON (defaults to true, specify false to return JSON)
 
 			Returns:
-				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
+				Data from the table (json decoded, objects convert to keyed arrays) if it exists.
 		*/
 
 		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
-			$identifier = sqlescape($identifier);
-			$key = sqlescape($key);
-
 			if ($max_age) {
 				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
 				if (!static::$MySQLTime) {
-					$t = sqlfetch(sqlquery("SELECT NOW() as `time`"));
-					static::$MySQLTime = $t["time"];
+					static::$MySQLTime = static::$DB->fetch("SELECT NOW()",true);
 				}
 				$max_age = date("Y-m-d H:i:s",strtotime(static::$MySQLTime) - $max_age);
 
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key' AND timestamp >= '$max_age'"));
+				$entry = static::$DB->query("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age)
+									->fetch(false,true);
 			} else {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
+				$entry = static::$DB->query("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key)
+									->fetch(false,true);
 			}
 
-			if (!$f) {
-				return false;
-			}
-			
-			if ($decode) {
-				return json_decode($f["value"],true);
-			} else {
-				return $f["value"];
-			}
+			return $decode ? json_decode($entry,true) : $entry;
 		}
 
 		/*
@@ -821,20 +820,26 @@
 			}
 			
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape(implode("/",$path));
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
-			if ($f) {
-				return array($f["id"],$commands,$f["routed"]);
+			$escaped_path = sqlescape(implode("/",$path));
+			$page = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed
+									   FROM bigtree_pages LEFT JOIN bigtree_templates
+									   ON bigtree_pages.template = bigtree_templates.id
+									   WHERE path = '$escaped_path' AND archived = '' $publish_at"));
+			if ($page) {
+				return array($page["id"],array(),$page["routed"]);
 			}
-			
+
 			// Guess we don't, let's chop off commands until we find a page.
 			$x = 0;
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path)-$x];
-				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+				$escaped_path = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
+				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id
+										FROM bigtree_pages JOIN bigtree_templates 
+										ON bigtree_pages.template = bigtree_templates.id 
+										WHERE bigtree_pages.path = '$escaped_path' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
 				if ($f) {
 					return array($f["id"],array_reverse($commands),"on");
 				}

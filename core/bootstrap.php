@@ -60,6 +60,9 @@
 	} else {
 		class BigTreeCMS extends BigTreeCMSBase {};
 	}
+	// Initialize DB instance
+	BigTreeCMS::$DB = $db = new BigTreeSQL;
+	// Initialize CMS instance
 	$cms = new BigTreeCMS;
 
 	// Lazy loading of modules
