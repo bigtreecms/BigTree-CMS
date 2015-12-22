@@ -75,7 +75,7 @@
 				}
 
 				// Get all extension required files and add them to a required list
-				$extensions = static::$DB->fetchAll("SELECT id FROM bigtree_extensions",true);
+				$extensions = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
 				foreach ($extensions as $id) {
 					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/$id/required/");
 					foreach (array_filter((array)$required_contents) as $file) {
@@ -215,15 +215,13 @@
 			if ($max_age) {
 				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
 				if (!static::$MySQLTime) {
-					static::$MySQLTime = static::$DB->fetch("SELECT NOW()",true);
+					static::$MySQLTime = static::$DB->fetchSingle("SELECT NOW()");
 				}
 				$max_age = date("Y-m-d H:i:s",strtotime(static::$MySQLTime) - $max_age);
 
-				$entry = static::$DB->query("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age)
-									->fetch(false,true);
+				$entry = static::$DB->fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age);
 			} else {
-				$entry = static::$DB->query("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key)
-									->fetch(false,true);
+				$entry = static::$DB->fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
 			}
 
 			return $decode ? json_decode($entry,true) : $entry;
@@ -244,21 +242,18 @@
 		*/
 
 		static function cachePut($identifier,$key,$value,$replace = true) {
-			$identifier = sqlescape($identifier);
-			$key = sqlescape($key);
-			$f = sqlfetch(sqlquery("SELECT `key` FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
-			if ($f && !$replace) {
+			$exists = static::$DB->exists("bigtree_caches",array("identifier" => $identifier,"key" => $key));
+			if (!$replace && $exists) {
 				return false;
 			}
 
-			$value = BigTree::json($value,true);
+			$value = BigTree::json($value);
 			
-			if ($f) {
-				sqlquery("UPDATE bigtree_caches SET `value` = '$value', `timestamp` = NOW() WHERE `identifier` = '$identifier' AND `key` = '$key'");
+			if ($exists) {
+				return static::$DB->update("bigtree_caches",array("identifier" => $identifier,"key" => $key),array("value" => $value));
 			} else {
-				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('$identifier','$key','$value')");
+				return static::$DB->insert("bigtree_caches",array("identifier" => $identifier,"key" => $key,"value" => $value));
 			}
-			return true;
 		}
 
 		/*
@@ -314,10 +309,10 @@
 			$found = false;
 			$x = count($path);
 			while ($x) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_route_history WHERE old_route = '".sqlescape(implode("/",array_slice($path,0,$x)))."'"));
-				if ($f) {
-					$old = $f["old_route"];
-					$new = $f["new_route"];
+				$result = static::$DB->fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?",implode("/",array_slice($path,0,$x)));
+				if ($result) {
+					$old = $result["old_route"];
+					$new = $result["new_route"];
 					$found = true;
 					break;
 				}
@@ -373,31 +368,35 @@
 			header("Content-type: text/xml");
 			echo '<?xml version="1.0" encoding="UTF-8" ?>';
 			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
-			$q = sqlquery("SELECT id,template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
-
-			while ($f = sqlfetch($q)) {
-				if ($f["template"] || strpos($f["external"],DOMAIN)) {	
-					if (!$f["template"]) {
-						$link = static::getInternalPageLink($f["external"]);
+			
+			$pages = static::$DB->fetchAll("SELECT id,template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
+			foreach ($pages as $page) {
+				if ($page["template"] || strpos($page["external"],DOMAIN)) {	
+					if (!$page["template"]) {
+						$link = static::getInternalPageLink($page["external"]);
 					} else {
-						$link = WWW_ROOT.$f["path"].(($f["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
+						$link = WWW_ROOT.$page["path"].(($page["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
 					}
 					
 					echo "<url><loc>".$link."</loc></url>\n";
 					
 					// Added routed template support
-					$tf = sqlfetch(sqlquery("SELECT bigtree_modules.class AS module_class FROM bigtree_templates JOIN bigtree_modules ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$f["template"]."'"));
-					if ($tf["module_class"]) {
-						$mod = new $tf["module_class"];
-						if (method_exists($mod,"getSitemap")) {
-							$subnav = $mod->getSitemap($f);
-							foreach ($subnav as $s) {
-								echo "<url><loc>".$s["link"]."</loc></url>\n";
+					$module_class = static::$DB->fetchSingle("SELECT bigtree_modules.class
+															  FROM bigtree_templates JOIN bigtree_modules 
+															  ON bigtree_modules.id = bigtree_templates.module
+															  WHERE bigtree_templates.id = ?",$page["template"]);
+					if ($module_class) {
+						$module = new $module_class;
+						if (method_exists($module,"getSitemap")) {
+							$subnav = $module->getSitemap($page);
+							foreach ($subnav as $entry) {
+								echo "<url><loc>".$entry["link"]."</loc></url>\n";
 							}
 						}
 					}
 				}
 			}
+
 			echo '</urlset>';
 			die();
 		}
@@ -415,21 +414,21 @@
 		*/
 
 		static function extensionSettingCheck($id) {
-			$id = sqlescape($id);
-
 			// See if we're in an extension
 			if (defined("EXTENSION_ROOT")) {
-				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+				$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
+				
 				// If we're already asking for it by it's namespaced name, don't append again.
 				if (substr($id,0,strlen($extension)) == $extension) {
 					return $id;
 				}
+				
 				// See if namespaced version exists
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
-				if ($f) {
+				if (static::$DB->exists("bigtree_settings",array("id" => "$extension*$id"))) {
 					return "$extension*$id";
 				}
 			}
+			
 			return $id;
 		}
 		
@@ -469,6 +468,8 @@
 		*/
 		
 		static function getBreadcrumbByPage($page,$ignore_trunk = false) {
+			global $bigtree;
+
 			$bc = array();
 			
 			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
@@ -477,34 +478,40 @@
 			$path = "";
 			foreach ($pieces as $piece) {
 				$path = $path.$piece."/";
-				$paths[] = "path = '".sqlescape(trim($path,"/"))."'";
+				$paths[] = "path = '".static::$DB->escape(trim($path,"/"))."'";
 			}
 			
 			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
-			$q = sqlquery("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
+			$ancestors = static::$DB->fetchAll("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
 			$trunk_hit = false;
-			while ($f = sqlfetch($q)) {
+			foreach ($ancestors as $ancestor) {
 				// In case we want to know what the trunk is.
-				if ($f["trunk"]) {
+				if ($ancestor["trunk"]) {
 					$trunk_hit = true;
-					static::$BreadcrumbTrunk = $f;
+					static::$BreadcrumbTrunk = $ancestor;
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
-					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => WWW_ROOT.$f["path"]."/","id" => $f["id"]);
+					if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+						$link = WWW_ROOT.$ancestor["path"];
+					} else {						
+						$link = WWW_ROOT.$ancestor["path"]."/";
+					}
+					$bc[] = array("title" => stripslashes($ancestor["nav_title"]),"link" => $link,"id" => $ancestor["id"]);
 				}
 			}
-			
 			$bc = array_reverse($bc);
 			
 			// Check for module breadcrumbs
-			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
-			if ($mod["class"]) {
-				if (class_exists($mod["class"])) {
-					$module = new $mod["class"];
-					if (method_exists($module, "getBreadcrumb")) {
-						$bc = array_merge($bc,$module->getBreadcrumb($page));
-					}
+			$module_class = static::$DB->fetchSingle("SELECT bigtree_modules.class
+												FROM bigtree_modules JOIN bigtree_templates
+												ON bigtree_modules.id = bigtree_templates.module
+												WHERE bigtree_templates.id = ?",$page["template"]);
+
+			if ($module_class && class_exists($module_class)) {
+				$module = new $module_class;
+				if (method_exists($module, "getBreadcrumb")) {
+					$bc = array_merge($bc,$module->getBreadcrumb($page));
 				}
 			}
 			
@@ -527,19 +534,21 @@
 		
 		static function getFeed($item) {
 			if (!is_array($item)) {
-				$item = sqlescape($item);
-				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
+				$item = static::$DB->fetch("SELECT * FROM bigtree_feeds WHERE id = ?",$item);
 			}
+
 			if (!$item) {
 				return false;
 			}
+
+			$item["fields"] = json_decode($item["fields"],true);
 			$item["options"] = json_decode($item["options"],true);
 			if (is_array($item["options"])) {
 				foreach ($item["options"] as &$option) {
 					$option = static::replaceRelativeRoots($option);
 				}
 			}
-			$item["fields"] = json_decode($item["fields"],true);
+			
 			return $item;
 		}
 		
@@ -558,9 +567,7 @@
 		*/
 		
 		static function getFeedByRoute($route) {
-			$route = sqlescape($route);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
-			return static::getFeed($item);
+			return static::getFeed(static::$DB->fetch("SELECT * FROM bigtree_feeds WHERE route = ?",$route));
 		}
 		
 		/*
@@ -610,8 +617,8 @@
 						return static::$IRLCache[$navid];
 					}
 				} else {
-					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
-					$file = $r ? static::replaceRelativeRoots($r["file"]) : false;
+					$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?",$navid);
+					$file = $resource ? static::replaceRelativeRoots($resource["file"]) : false;
 					static::$IRLCache[$navid] = $file;
 					if ($ipl[2]) {
 						return BigTree::prefixFile($file,$ipl[2]);
@@ -640,10 +647,10 @@
 				return static::$IPLCache[$navid].$commands;
 			} else {
 				// Get the page's path
-				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
+				$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$navid);
 				// Set the cache
-				static::$IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
-				return WWW_ROOT.$f["path"]."/".$commands;
+				static::$IPLCache[$navid] = WWW_ROOT.$path."/";
+				return WWW_ROOT.$path."/".$commands;
 			}
 		}
 		
@@ -660,18 +667,28 @@
 		
 		static function getLink($id) {
 			global $bigtree;
+
 			// Homepage, just return the web root.
 			if ($id == 0) {
 				return WWW_ROOT;
 			}
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
-				return WWW_ROOT.$bigtree["page"]["path"]."/";
+				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					return WWW_ROOT.$bigtree["page"]["path"];					
+				} else {
+					return WWW_ROOT.$bigtree["page"]["path"]."/";
+				}
 			}
+
 			// Otherwise we'll grab the page path from the db.
-			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
-			if ($f) {
-				return WWW_ROOT.$f["path"]."/";
+			$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?",$id);
+			if ($path) {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					return WWW_ROOT.$path;
+				} else {
+					return WWW_ROOT.$path."/";
+				}
 			}
 			return false;
 		}
@@ -713,27 +730,42 @@
 			$in_nav = $only_hidden ? "" : "on";
 			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
 			
-			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY $sort");
+			$children = static::$DB->fetchAll("SELECT id,nav_title,parent,external,new_window,template,route,path 
+											   FROM bigtree_pages
+											   WHERE $where_parent AND
+											   		 in_nav = '$in_nav' AND
+											   		 archived != 'on' AND
+											   		 (publish_at <= NOW() OR publish_at IS NULL) AND 
+											   		 (expire_at >= NOW() OR expire_at IS NULL) 
+											   ORDER BY $sort");
 			
 			// Wrangle up some kids
-			while ($f = sqlfetch($q)) {
-				$link = WWW_ROOT.$f["path"]."/";
+			foreach ($children as $child) {
+				$link = WWW_ROOT.$child["path"]."/";
 				$new_window = false;
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
-				if ($f["external"] && $f["template"] == "") {
-					$link = static::getInternalPageLink($f["external"]);
-					if ($f["new_window"] == "Yes") {
+				if ($child["external"] && $child["template"] == "") {
+					$link = static::getInternalPageLink($child["external"]);
+					if ($child["new_window"] == "Yes") {
 						$new_window = true;
 					}
 				}
 				
 				// Add it to the nav array
-				$nav[$f["id"]] = array("id" => $f["id"], "parent" => $f["parent"], "title" => $f["nav_title"], "route" => $f["route"], "link" => $link, "new_window" => $new_window, "children" => array());
+				$nav[$child["id"]] = array(
+					"id" => $child["id"],
+					"parent" => $child["parent"],
+					"title" => $child["nav_title"],
+					"route" => $child["route"],
+					"link" => $link,
+					"new_window" => $new_window,
+					"children" => array()
+				);
 				
 				// If we're going any deeper, mark down that we're looking for kids of this kid.
 				if ($levels > 1) {
-					$find_children[] = $f["id"];
+					$find_children[] = $child["id"];
 				}
 			}
 			
@@ -754,17 +786,27 @@
 					foreach ($parent as $p) {
 						$where_parent[] = "bigtree_pages.id = '".sqlescape($p)."'";
 					}
-					$q = sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND (".implode(" OR ",$where_parent).")");
-					while ($f = sqlfetch($q)) {
+
+					$module_pages = static::$DB->fetchAll("SELECT bigtree_modules.class,
+														   		  bigtree_templates.routed,
+																  bigtree_templates.module,
+																  bigtree_pages.id,
+																  bigtree_pages.path,
+																  bigtree_pages.template
+														   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
+														   ON bigtree_templates.id = bigtree_pages.template 
+														   WHERE bigtree_modules.id = bigtree_templates.module AND 
+														   		 (".implode(" OR ",$where_parent).")");
+					foreach ($module_pages as $module_page) {
 						// If the class exists, instantiate it and call it
-						if ($f["class"] && class_exists($f["class"])) {
-							$module = new $f["class"];
+						if ($module_page["class"] && class_exists($module_page["class"])) {
+							$module = new $module_page["class"];
 							if (method_exists($module,"getNav")) {
-								$modNav = $module->getNav($f);
+								$modNav = $module->getNav($module_page);
 								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
 								$module_nav = array();
 								foreach ($modNav as $item) {
-									$item["parent"] = $f["id"];
+									$item["parent"] = $module_page["id"];
 									$item["id"] = "module_nav_".$module_nav_count;
 									$module_nav[] = $item;
 									$module_nav_count++;
@@ -779,15 +821,24 @@
 					}
 				// This is the first iteration.
 				} else {
-					$f = sqlfetch(sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND bigtree_pages.id = '$parent'"));
+					$module_page = static::$DB->fetch("SELECT bigtree_modules.class,
+															  bigtree_templates.routed,
+															  bigtree_templates.module,
+															  bigtree_pages.id,
+															  bigtree_pages.path,
+															  bigtree_pages.template 
+													   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
+													   ON bigtree_templates.id = bigtree_pages.template 
+													   WHERE bigtree_modules.id = bigtree_templates.module AND 
+													   		 bigtree_pages.id = ?",$parent);
 					// If the class exists, instantiate it and call it.
-					if ($f["class"] && class_exists($f["class"])) {
-						$module = new $f["class"];
+					if ($module_page["class"] && class_exists($module_page["class"])) {
+						$module = new $module_page["class"];
 						if (method_exists($module,"getNav")) {
 							if ($module->NavPosition == "top") {
-								$nav = array_merge($module->getNav($f),$nav);
+								$nav = array_merge($module->getNav($module_page),$nav);
 							} else {
-								$nav = array_merge($nav,$module->getNav($f));
+								$nav = array_merge($nav,$module->getNav($module_page));
 							}
 						}
 					}
@@ -812,19 +863,13 @@
 		
 		static function getNavId($path,$previewing = false) {
 			$commands = array();
-			
-			if (!$previewing) {
-				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
-			} else {
-				$publish_at = "";
-			}
+			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
 			
 			// See if we have a straight up perfect match to the path.
-			$escaped_path = sqlescape(implode("/",$path));
-			$page = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed
-									   FROM bigtree_pages LEFT JOIN bigtree_templates
-									   ON bigtree_pages.template = bigtree_templates.id
-									   WHERE path = '$escaped_path' AND archived = '' $publish_at"));
+			$page = static::$DB->fetch("SELECT bigtree_pages.id,bigtree_templates.routed
+										FROM bigtree_pages LEFT JOIN bigtree_templates
+										ON bigtree_pages.template = bigtree_templates.id
+										WHERE path = ? AND archived = '' $publish_at",implode("/",$path));
 			if ($page) {
 				return array($page["id"],array(),$page["routed"]);
 			}
@@ -834,14 +879,16 @@
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path)-$x];
-				$escaped_path = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+				$path_string = implode("/",array_slice($path,0,-1 * $x));
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id
-										FROM bigtree_pages JOIN bigtree_templates 
-										ON bigtree_pages.template = bigtree_templates.id 
-										WHERE bigtree_pages.path = '$escaped_path' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
-				if ($f) {
-					return array($f["id"],array_reverse($commands),"on");
+				$page_id = static::$DB->fetchSingle("SELECT bigtree_pages.id
+													 FROM bigtree_pages JOIN bigtree_templates 
+													 ON bigtree_pages.template = bigtree_templates.id 
+													 WHERE bigtree_pages.path = ? AND 
+														   bigtree_pages.archived = '' AND
+														   bigtree_templates.routed = 'on' $publish_at",$path_string);
+				if ($page_id) {
+					return array($page_id,array_reverse($commands),"on");
 				}
 			}
 			
@@ -861,26 +908,28 @@
 		*/
 		
 		static function getPage($id,$decode = true) {
-			$id = sqlescape($id);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$id'"));
-			if (!$f) {
+			$page = static::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?",$id);
+			if (!$page) {
 				return false;
 			}
-			if ($f["external"] && $f["template"] == "") {
-				$f["external"] = static::getInternalPageLink($f["external"]);
+
+			if ($page["external"] && $page["template"] == "") {
+				$page["external"] = static::getInternalPageLink($page["external"]);
 			}
+
 			if ($decode) {
-				$f["resources"] = static::decodeResources($f["resources"]);
+				$page["resources"] = static::decodeResources($page["resources"]);
+				
 				// Backwards compatibility with 4.0 callout system
-				if (isset($f["resources"]["4.0-callouts"])) {
-					$f["callouts"] = $f["resources"]["4.0-callouts"];
-				} elseif (isset($f["resources"]["callouts"])) {
-					$f["callouts"] = $f["resources"]["callouts"];
+				if (isset($page["resources"]["4.0-callouts"])) {
+					$page["callouts"] = $page["resources"]["4.0-callouts"];
+				} elseif (isset($page["resources"]["callouts"])) {
+					$page["callouts"] = $page["resources"]["callouts"];
 				} else {
-					$f["callouts"] = array();
+					$page["callouts"] = array();
 				}
 			}
-			return $f;
+			return $page;
 		}
 		
 		/*
@@ -903,32 +952,35 @@
 				if (!$page) {
 					return false;
 				}
+
 				// If we're looking for tags, apply them to the page.
 				if ($return_tags) {
 					$page["tags"] = static::getTagsForPage($id);
 				}
+
 				// Get pending changes for this page.
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
+				$changes = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?",$page["id"]);
 
 			// If it's prefixed with a "p" then it's a pending entry.
 			} else {
 				// Set the page to empty, we're going to loop through the change later and apply the fields.
 				$page = array();
+
 				// Get the changes.
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
-				if ($f) {
-					$f["id"] = $id;
-				} else {
+				$changes = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `id` = ?",substr($id,1));
+				if (!$changes) {
 					return false;
 				}
+				
+				$changes["id"] = $id;
 			}
 
 			// If we have changes, apply them.
-			if ($f) {
+			if ($changes) {
 				$page["changes_applied"] = true;
-				$page["updated_at"] = $f["date"];
-				$changes = json_decode($f["changes"],true);
-				foreach ($changes as $key => $val) {
+				$page["updated_at"] = $change["date"];
+				$resource_changes = json_decode($changes["changes"],true);
+				foreach ($resource_changes as $key => $val) {
 					if ($key == "external") {
 						$val = static::getInternalPageLink($val);
 					}
@@ -937,10 +989,10 @@
 				if ($return_tags) {
 					// Decode the tag changes, apply them back.
 					$tags = array();
-					$tags_changes = json_decode($f["tags_changes"],true);
+					$tags_changes = json_decode($changes["tags_changes"],true);
 					if (is_array($tags_changes)) {
 						foreach ($tags_changes as $tag) {
-							$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$tag'"));
+							$tags[] = static::$DB->fetch("SELECT * FROM bigtree_tags WHERE id = ?",$tag);
 						}
 					}
 					$page["tags"] = $tags;
@@ -979,12 +1031,12 @@
 		
 		static function getPreviewLink($id) {
 			if (substr($id,0,1) == "p") {
-				return WWW_ROOT."_preview-pending/$id/";
+				return WWW_ROOT."_preview-pending/".htmlspecialchars($id)."/";
 			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
 			} else {
-				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
-				return WWW_ROOT."_preview/".$f["path"]."/";
+				$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$id);
+				return WWW_ROOT."_preview/$path/";
 			}
 		}
 		
@@ -994,37 +1046,52 @@
 			
 			Parameters:
 				tags - An array of tags to search for.
+				only_id - Whether to return only the page IDs (defaults to false)
 			
 			Returns:
 				An array of related pages sorted by relevance (how many tags get matched).
 		*/
 		
-		static function getRelatedPagesByTags($tags = array()) {
+		static function getRelatedPagesByTags($tags = array(),$only_id = false) {
 			$results = array();
 			$relevance = array();
+
+			// Loop through each tag finding related pages
 			foreach ($tags as $tag) {
+				// In case a whole tag row was passed
 				if (is_array($tag)) {
 					$tag = $tag["tag"];
 				}
-				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
-				if ($tdat) {
-					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = 'bigtree_pages'");
-					while ($f = sqlfetch($q)) {
-						$id = $f["entry"];
-						if (in_array($id,$results)) {
-							$relevance[$id]++;
+
+				$tag_id = static::$DB->fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?",$tag);
+				if ($tag_id) {
+					$related_pages = static::$DB->fetchAllSingle("SELECT entry FROM bigtree_tags_rel WHERE tag = ? AND `table` = 'bigtree_pages'",$tag_id);
+
+					foreach ($related_pages as $page_id) {
+						// If we already have this result, add relevance
+						if (in_array($page_id,$results)) {
+							$relevance[$page_id]++;
 						} else {
-							$results[] = $id;
-							$relevance[$id] = 1;
+							$results[] = $page_id;
+							$relevance[$page_id] = 1;
 						}
 					}
 				}
 			}
+
+			// Sort by most relevant
 			array_multisort($relevance,SORT_DESC,$results);
+
+			if ($only_id) {
+				return $results;
+			}
+
+			// Get the actual page data for each result
 			$items = array();
 			foreach ($results as $result) {
 				$items[] = static::getPage($result);
 			}
+
 			return $items;
 		}
 		
@@ -1042,7 +1109,8 @@
 		static function getSetting($id) {
 			global $bigtree;
 			$id = static::extensionSettingCheck($id);
-			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+
+			$setting = static::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?",$id);
 			// Setting doesn't exist
 			if (!$setting) {
 				return false;
@@ -1050,7 +1118,7 @@
 
 			// If the setting is encrypted, we need to re-pull just the value.
 			if ($setting["encrypted"]) {
-				$setting = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
+				$setting["value"] = static::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) FROM bigtree_settings WHERE id = ?",$bigtree["config"]["settings_key"],$id);
 			}
 
 			$value = json_decode($setting["value"],true);
@@ -1093,22 +1161,25 @@
 			// Not in an extension, we can query them all at once
 			$parts = array();
 			foreach ($ids as $id) {
-				$parts[] = "id = '".sqlescape($id)."'";
+				$parts[] = "id = '".static::$DB->escape($id)."'";
 			}
+
 			$settings = array();
-			$q = sqlquery("SELECT * FROM bigtree_settings WHERE (".implode(" OR ",$parts).") ORDER BY id ASC");
-			while ($f = sqlfetch($q)) {
+			$settings_list = static::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE (".implode(" OR ",$parts).") ORDER BY id ASC");
+			foreach ($settings_list as $setting) {
 				// If the setting is encrypted, we need to re-pull just the value.
-				if ($f["encrypted"]) {
-					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
+				if ($setting["encrypted"]) {
+					$setting["value"] = static::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) FROM bigtree_settings WHERE id = ?",$bigtree["config"]["settings_key"],$setting["id"]);
 				}
-				$value = json_decode($f["value"],true);
+
+				$value = json_decode($setting["value"],true);
 				if (is_array($value)) {
-					$settings[$f["id"]] = BigTree::untranslateArray($value);
+					$settings[$setting["id"]] = BigTree::untranslateArray($value);
 				} else {
-					$settings[$f["id"]] = static::replaceInternalPageLinks($value);
+					$settings[$setting["id"]] = static::replaceInternalPageLinks($value);
 				}
 			}
+
 			return $settings;
 		}
 		
@@ -1124,8 +1195,7 @@
 		*/
 		
 		static function getTag($id) {
-			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE id = ?",$id);
 		}
 		
 		/*
@@ -1140,8 +1210,7 @@
 		*/
 		
 		static function getTagByRoute($route) {
-			$route = sqlescape($route);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE route = ?",$id);
 		}
 		
 		/*
@@ -1159,12 +1228,13 @@
 			if (!is_numeric($page)) {
 				$page = $page["id"];
 			}
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND bigtree_tags_rel.entry = '".sqlescape($page)."' ORDER BY bigtree_tags.tag");
-			$tags = array();
-			while ($f = sqlfetch($q)) {
-				$tags[] = $f;
-			}
-			return $tags;
+
+			return static::$DB->fetchAll("SELECT bigtree_tags.*
+										  FROM bigtree_tags JOIN bigtree_tags_rel 
+										  ON bigtree_tags.id = bigtree_tags_rel.tag 
+										  WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND 
+												bigtree_tags_rel.entry = ?
+										  ORDER BY bigtree_tags.tag",$page);
 		}
 		
 		/*
@@ -1179,11 +1249,11 @@
 		*/
 		
 		static function getTemplate($id) {
-			$id = sqlescape($id);
-			$template = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
+			$template = static::$DB->fetch("SELECT * FROM bigtree_templates WHERE id = ?",$id);
 			if (!$template) {
 				return false;
 			}
+
 			$template["resources"] = json_decode($template["resources"],true);
 			return $template;
 		}
@@ -1228,21 +1298,36 @@
 			$paths = array();
 			$path = "";
 			$parts = explode("/",$page["path"]);
+
 			foreach ($parts as $part) {
 				$path .= "/".$part;
 				$path = ltrim($path,"/");
-				$paths[] = "path = '".sqlescape($path)."'";
+				$paths[] = "path = '".static::$DB->escape($path)."'";
 			}
+
 			// Get either the trunk or the top level nav id.
-			$f = sqlfetch(sqlquery("SELECT id,trunk,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '0') ORDER BY LENGTH(path) DESC LIMIT 1"));
-			if ($f["trunk"] && !$trunk_as_toplevel) {
+			$page = static::$DB->fetch("SELECT id, trunk, path
+										FROM bigtree_pages
+										WHERE (".implode(" OR ",$paths).") AND
+											  (trunk = 'on' OR parent = '0')
+										ORDER BY LENGTH(path) DESC
+										LIMIT 1");
+
+			// If we don't want the trunk, look higher
+			if ($page["trunk"] && $page["parent"] && !$trunk_as_toplevel) {
 				// Get the next item in the path.
-				$g = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND LENGTH(path) < ".strlen($f["path"])." ORDER BY LENGTH(path) ASC LIMIT 1"));
-				if ($g) {
-					$f = $g;
+				$id = static::$DB->fetchSingle("SELECT id 
+												FROM bigtree_pages 
+												WHERE (".implode(" OR ",$paths).") AND 
+													  LENGTH(path) < ".strlen($page["path"])." 
+												ORDER BY LENGTH(path) ASC
+												LIMIT 1");
+				if ($id) {
+					return $id;
 				}
 			}
-			return $f["id"];
+
+			return $page["id"];
 		}
 		
 		/*
@@ -1254,37 +1339,53 @@
 		*/
 		
 		static function handle404($url) {
-			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
+			$url = htmlspecialchars(strip_tags(rtrim($url,"/")));
 			if (!$url) {
-				return true;
+				return;
 			}
 
-			if ($f["redirect_url"]) {
-				$f["redirect_url"] = static::getInternalPageLink($f["redirect_url"]);
+			$entry = static::$DB->fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?",$url);
+			
+			// We already have a redirect
+			if ($entry["redirect_url"]) {
+				$entry["redirect_url"] = static::getInternalPageLink($entry["redirect_url"]);
 
-				if ($f["redirect_url"] == "/") {
-					$f["redirect_url"] = "";
+				// If we're redirecting to the homepage, don't add additional trailing slashes
+				if ($entry["redirect_url"] == "/") {
+					$entry["redirect_url"] = "";
 				}
 				
-				if (substr($f["redirect_url"],0,7) == "http://" || substr($f["redirect_url"],0,8) == "https://") {
-					$redirect = $f["redirect_url"];
+				// Full URL, use the whole thing
+				if (substr($entry["redirect_url"],0,7) == "http://" || substr($entry["redirect_url"],0,8) == "https://") {
+					$redirect = $entry["redirect_url"];
+				
+				// Partial URL, append WWW_ROOT
 				} else {
-					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$f["redirect_url"]);
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$entry["redirect_url"]);
 				}
 				
-				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
+				// Update request count
+				static::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?",$entry["id"]);
+
+				// Redirect with a 301
 				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
-				return false;
+
+			// No redirect, log the 404 and throw the 404 headers
 			} else {
+				// Throw 404 header
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-				if ($f) {
-					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
+
+				if ($entry) {
+					static::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?",$entry["id"]);
 				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('$url','1')");
+					static::$DB->insert("bigtree_404s",array(
+						"broken_url" => $url,
+						"requests" => 1
+					));
 				}
+
+				// Tell BigTree to not cache this page
 				define("BIGTREE_DO_NOT_CACHE",true);
-				return true;
 			}
 		}
 		

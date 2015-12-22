@@ -114,26 +114,26 @@
 
 			Parameters:
 				query - Optional, a query to execute before fetching
-				single - Optional, if set to true only returns the first column of the row instead of an array
+				parameters - Additional parameters to send to the query method
 
 			Returns:
 				A row from the active query (or false if no more rows exist)
 		*/
 
-		function fetch($query = false,$single = false) {
-			if ($query) {
-				return $this->query($query)->fetch(false,$single);
+		function fetch() {
+			// Allow this to be called without calling query first
+			$args = func_get_args();
+			if (count($args)) {
+				$query = call_user_func_array(array($this,"query"),$args);
+				return $query->fetch();
 			}
 
+			// Chained call
 			if (is_bool($this->ActiveQuery)) {
 				trigger_error("BigTreeSQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
-				$result = $this->ActiveQuery->fetch_assoc();
-				if ($single) {
-					return current($result);
-				}
-				return $result;
+				return $this->ActiveQuery->fetch_assoc();
 			}
 		}
 
@@ -144,31 +144,99 @@
 
 			Parameters:
 				query - Optional, a query to execute before fetching
-				single - Optional, if set to true only returns the first column of each row instead of an array
-
+				parameters - Additional parameters to send to the query method
 			
 			Returns:
 				An array of rows from the active query.
 		*/
 
-		function fetchAll($query = false,$single = false) {
-			if ($query) {
-				return $this->query($query)->fetchAll(false,$single);
+		function fetchAll() {
+			// Allow this to be called without calling query first
+			$args = func_get_args();
+			if (count($args)) {
+				$query = call_user_func_array(array($this,"query"),$args);
+				return $query->fetchAll();
 			}
 
+			// Chained call
 			if (is_bool($this->ActiveQuery)) {
 				trigger_error("BigTreeSQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
 				$results = array();
 				while ($result = $this->ActiveQuery->fetch_assoc()) {
-					if ($single) {
-						$results[] = current($result);
-					} else {
-						$results[] = $result;
-					}
+					$results[] = $result;
 				}
 				return $results;
+			}
+		}
+
+		/*
+			Function: fetchAllSingle
+				Equivalent to the fetchAll method but only the first column of each row is returned.
+
+			Parameters:
+				query - Optional, a query to execute before fetching
+				parameters - Additional parameters to send to the query method
+			
+			Returns:
+				An array of the first column of each row from the active query.
+
+			See Also:
+				<fetchAll>
+		*/
+
+		function fetchAllSingle() {
+			// Allow this to be called without calling query first
+			$args = func_get_args();
+			if (count($args)) {
+				$query = call_user_func_array(array($this,"query"),$args);
+				return $query->fetchAllSingle();
+			}
+
+			// Chained call
+			if (is_bool($this->ActiveQuery)) {
+				trigger_error("BigTreeSQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				return false;
+			} else {
+				$results = array();
+				while ($result = $this->ActiveQuery->fetch_assoc()) {
+					$results[] = current($result);
+				}
+				return $results;
+			}
+		}
+
+		/*
+			Function: fetchSingle
+				Equivalent to the fetch method but only the first column of the row is returned.
+			
+			Parameters:
+				query - Optional, a query to execute before fetching
+				parameters - Additional parameters to send to the query method
+
+			Returns:
+				The first column from the returned row.
+
+			See Also:
+				<fetch>
+		*/
+
+		function fetchSingle() {
+			// Allow this to be called without calling query first
+			$args = func_get_args();
+			if (count($args)) {
+				$query = call_user_func_array(array($this,"query"),$args);
+				return $query->fetchSingle();
+			}
+
+			// Chained call
+			if (is_bool($this->ActiveQuery)) {
+				trigger_error("BigTreeSQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				return false;
+			} else {
+				$result = $this->ActiveQuery->fetch_assoc();
+				return is_array($result) ? current($result) : false;
 			}
 		}
 
@@ -178,22 +246,28 @@
 
 			Parameters:
 				table - The table to insert a row into
-				row - An associative array of columns and values (i.e. "column" => "value")
+				values - An associative array of columns and values (i.e. "column" => "value")
 
 			Returns:
 				Primary key of the inserted row
 		*/
 
-		function insert($table,$row) {
-			$query = "INSERT INTO `$table` ";
-			$columns = array();
-			$values = array();
-			foreach ($row as $column => $value) {
-				$columns[] = "`$column`";
-				$values[] = "'".$this->escape($value)."'";
+		function insert($table,$values) {
+			if (!is_array($values) || !array_filter($values)) {
+				trigger_error("BigTreeSQL::inserts expects a non-empty array as its second parameter");
+				return false;
 			}
-			return $this->query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$values).")")
-						->insertID();
+
+			$columns = array();
+			$vals = array();
+			foreach ($values as $column => $value) {
+				$columns[] = "`$column`";
+				$vals[] = "'".$this->escape($value)."'";
+			}
+			
+			$query_response = $this->query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$vals).")");
+			$id = $query_response->insertID();
+			return $id ? $id : $query_response->ActiveQuery;
 		}
 
 		/*
@@ -286,6 +360,52 @@
 
 		function rows($query) {
 			return $query->num_rows;
+		}
+
+		/*
+			Function: update
+				Updates a row in the database
+
+			Parameters:
+				table - The table to insert a row into
+				id - The ID of the row to update (or an associate array of key/value pairs to match)
+				values - An associative array of columns and values (i.e. "column" => "value")
+
+			Returns:
+				true if successful (even if no rows match)
+		*/
+
+		function update($table,$id,$values) {
+			if (!is_array($values) || !array_filter($values)) {
+				trigger_error("BigTreeSQL::update expects a non-empty array as its third parameter");
+				return false;
+			}
+
+			// Setup our array to implode into a query
+			$set = array();
+			foreach ($values as $column => $value) {
+				$set[] = "`$column` = ?";
+			}
+
+			$where = array();
+			// If the ID is an associative array we match based on the given columns
+			if (is_array($id)) {
+				foreach ($id as $column => $value) {
+					$where[] = "`$column` = ?";
+					array_push($values,$value);
+				}
+			// Otherwise default to id
+			} else {
+				$where[] = "`id` = ?";
+				array_push($values,$id);
+			}
+
+			// Add the query and the id parameter into the function parameters
+			array_unshift($values,"UPDATE `$table` SET ".implode(", ",$set)." WHERE ".implode(" AND ",$where));
+
+			// Call BigTreeSQL::query
+			$response = call_user_func_array(array($this,"query"),$values);
+			return $response->ActiveQuery ? true : false;
 		}
 	}
 
