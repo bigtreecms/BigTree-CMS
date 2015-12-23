@@ -1696,6 +1696,14 @@
 		function deleteCallout($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
+			$groups = sqlquery("SELECT id, callouts FROM bigtree_callout_groups WHERE callouts LIKE '%\"$id\"%'");
+			if($groups && count($groups)){
+				while ($f = sqlfetch($groups)) {
+					$callouts = json_decode($f["callouts"],true);
+					$new = BigTree::json(array_diff($callouts, array($id)), true);
+					sqlquery("UPDATE bigtree_callout_groups SET callouts = '$new' WHERE id = " . $f["id"]);
+				}
+			}
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 			$this->track("bigtree_callouts",$id,"deleted");
 		}
