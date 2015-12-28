@@ -2984,7 +2984,7 @@ var BigTreeMatrix = function(settings) {
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
 				if (!Title || !Subtitle) {
-					var item = $(el).find("input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
+					var item = $(el).find("input[type=checkbox],input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
 					if (item.length) {
 						// Going to check for multi-part inputs like names, address, phone
 						var parent = item.parent();
@@ -3003,6 +3003,10 @@ var BigTreeMatrix = function(settings) {
 							var value = $.trim(item.find("option:selected").text());
 						} else {
 							var value = $.trim(item.val());
+						}
+						// Reset value if item is an unchecked checkbox
+						if (item.attr('type') == 'checkbox' && !item.is(":checked")){
+							value = false;
 						}
 						if (value) {
 							if (!Title) {
