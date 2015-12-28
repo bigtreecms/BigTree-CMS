@@ -744,5 +744,8 @@
 
 		// Add Developer Only setting to Modules
 		sqlquery("ALTER TABLE `bigtree_modules` ADD COLUMN `developer_only` CHAR(2) NOT NULL AFTER `gbp`");
+
+		// Change the datetime column of bigtree_resource_allocation to a timestamp
+		sqlquery("ALTER TABLE `bigtree_resource_allocation` CHANGE `updated_at` `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 	}
 ?>

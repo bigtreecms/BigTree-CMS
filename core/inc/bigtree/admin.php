@@ -34,6 +34,7 @@
 			),
 			"extension" => array()
 		);
+		public static $DB;
 		public static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
 		public static $InterfaceTypes = array(
 			"core" => array(
@@ -135,18 +136,20 @@
 					"interfaces" => array(),
 					"view-types" => array()
 				);
-				$q = sqlquery("SELECT id FROM bigtree_extensions");
-				while ($f = sqlfetch($q)) {
+
+				$extension_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
+				foreach ($extension_ids as $extension_id) {
 					// Load up the manifest
-					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$f["id"]."/manifest.json"),true);
+					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"),true);
 					if (is_array($manifest["plugins"])) {
 						foreach ($manifest["plugins"] as $type => $list) {
 							foreach ($list as $id => $plugin) {
-								$plugins[$type][$f["id"]][$id] = $plugin;
+								$plugins[$type][$extension_id][$id] = $plugin;
 							}
 						}
 					}
 				}
+
 				// If no longer in debug mode, cache it
 				if (!$bigtree["config"]["debug"]) {
 					file_put_contents($extension_cache_file,BigTree::json($plugins));
@@ -163,59 +166,64 @@
 
 			// Handle Login Session
 			if (isset($_SESSION["bigtree_admin"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
-				if ($f) {
-					$this->ID = $f["id"];
-					$this->User = $f["email"];
-					$this->Level = $f["level"];
-					$this->Name = $f["name"];
-					$this->Permissions = json_decode($f["permissions"],true);
+				$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE id = ? AND email = ?",
+										   $_SESSION["bigtree_admin"]["id"],
+										   $_SESSION["bigtree_admin"]["email"]);
+				if ($user) {
+					$this->ID = $user["id"];
+					$this->User = $user["email"];
+					$this->Level = $user["level"];
+					$this->Name = $user["name"];
+					$this->Permissions = json_decode($user["permissions"],true);
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
-				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
-
 				// Get chain and session broken out
 				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"]);
 
 				// See if this is the current chain and session
-				$chain_entry = sqlfetch(sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '$user' AND chain = '".sqlescape($chain)."'"));
+				$chain_entry = static::$DB->fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
+												  $_COOKIE["bigtree_admin"]["email"],$chain);
 				if ($chain_entry) {
 					// If both chain and session are legit, log them in
 					if ($chain_entry["id"] == $session) {
-						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user'"));
-						if ($f) {
+						$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE email = ?",$_COOKIE["bigtree_admin"]["email"]);
+						if ($user) {
 							// Setup session
-							$this->ID = $f["id"];
-							$this->User = $user;
-							$this->Level = $f["level"];
-							$this->Name = $f["name"];
-							$this->Permissions = json_decode($f["permissions"],true);
-							$_SESSION["bigtree_admin"]["id"] = $f["id"];
-							$_SESSION["bigtree_admin"]["email"] = $f["email"];
-							$_SESSION["bigtree_admin"]["name"] = $f["name"];
-							$_SESSION["bigtree_admin"]["level"] = $f["level"];
+							$this->ID = $user["id"];
+							$this->User = $user["email"];
+							$this->Level = $user["level"];
+							$this->Name = $user["name"];
+							$this->Permissions = json_decode($user["permissions"],true);
+							$_SESSION["bigtree_admin"]["id"] = $user["id"];
+							$_SESSION["bigtree_admin"]["email"] = $user["email"];
+							$_SESSION["bigtree_admin"]["name"] = $user["name"];
+							$_SESSION["bigtree_admin"]["level"] = $user["level"];
 
 							// Delete existing session
-							sqlquery("DELETE FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'");
+							static::$DB->delete("bigtree_user_sessions",$session);
 							
 							// Generate a random session id
 							$session = uniqid("session-",true);
-							while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
+							while (static::$DB->exists("bigtree_user_sessions",array("id" => $session))) {
 								$session = uniqid("session-",true);
 							}
 
 							// Create a new session with the same chain
-							sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','$user')");
-							setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+							static::$DB->insert("bigtree_user_sessions",array(
+								"id" => $session,
+								"chain" => $chain,
+								"email" => $this->User
+							));
+							BigTree::setCookie("bigtree_admin[login]",json_encode(array($session,$chain)),"+1 month");
 						}
 					// Chain is legit and session isn't -- someone has taken your cookies
 					} else {
 						// Delete existing cookies
-						setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-						setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+						BigTree::setCookie("bigtree_admin[login]","",time() - 3600);
+						BigTree::setCookie("bigtree_admin[email]","",time() - 3600);
 						
 						// Delete all sessions for this user
-						sqlquery("DELETE FROM bigtree_user_sessions WHERE email = '$user'");
+						static::$DB->delete("bigtree_user_sessions",array("email" => $_COOKIE["bigtree_admin"]["email"]));
 					}
 				}
 
@@ -238,15 +246,13 @@
 			}
 
 			// Update the reserved top level routes with the admin's route
-			$ar = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
-			static::$ReservedTLRoutes[] = $ar[0];
-			unset($ar);
+			list($admin_route) = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
+			static::$ReservedTLRoutes[] = $admin_route;
 
 			// Check for Per Page value
-			$pp = static::getSetting("bigtree-internal-per-page",false);
-			$v = intval($pp["value"]);
-			if ($v) {
-				static::$PerPage = $v;
+			$per_page = intval(BigTreeCMS::getSetting("bigtree-internal-per-page"));
+			if ($per_page) {
+				static::$PerPage = $per_page;
 			}
 		}
 
@@ -260,11 +266,19 @@
 		*/
 
 		static function allocateResources($module,$entry) {
-			$module = sqlescape($module);
-			$entry = sqlescape($entry);
-			sqlquery("DELETE FROM bigtree_resource_allocation WHERE module = '$module' AND entry = '$entry'");
+			// Wipe existing allocations
+			static::$DB->delete("bigtree_resource_allocation",array(
+				"module" => $module,
+				"entry" => $entry
+			));
+
+			// Add new allocations
 			foreach (static::$IRLsCreated as $resource) {
-				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`,`updated_at`) VALUES ('$module','$entry','".sqlescape($resource)."',NOW())");
+				static::$DB->insert("bigtree_resource_allocation",array(
+					"module" => $module,
+					"entry" => $entry,
+					"resource" => $resource
+				));
 			}
 		}
 
@@ -283,20 +297,22 @@
 		*/
 
 		function archivePage($page) {
-			if (is_array($page)) {
-				$page = sqlescape($page["id"]);
-			} else {
-				$page = sqlescape($page);
-			}
-
+			$page = is_array($page) ? $page["id"] : $page;
 			$access = $this->getPageAccessLevel($page);
+
+			// Only users with publisher access that can also modify this page's children can archive it
 			if ($access == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
-				sqlquery("UPDATE bigtree_pages SET archived = 'on' WHERE id = '$page'");
+				// Archive the page and the page children
+				static::$DB->update("bigtree_pages",$page,array("archived" => "on"));
 				$this->archivePageChildren($page);
+
+				// Track and growl
 				static::growl("Pages","Archived Page");
 				$this->track("bigtree_pages",$page,"archived");
 				return true;
 			}
+
+			// No access
 			return false;
 		}
 
@@ -312,13 +328,17 @@
 		*/
 
 		function archivePageChildren($page) {
-			$page = sqlescape($page);
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page' AND archived != 'on'");
-			while ($f = sqlfetch($q)) {
-				$this->track("bigtree_pages",$f["id"],"archived-inherited");
-				$this->archivePageChildren($f["id"]);
+			// Track and recursively archive
+			$children = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'",$page);
+			foreach ($children as $child_id) {
+				$this->track("bigtree_pages",$child_id,"archived-inherited");
+				$this->archivePageChildren($child_id);
 			}
-			sqlquery("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' WHERE parent = '$page' AND archived != 'on'");
+
+			// Archive this level
+			static::$DB->query("UPDATE bigtree_pages
+								SET archived = 'on', archived_inherited = 'on' 
+								WHERE parent = ? AND archived != 'on'",$page);
 		}
 
 		/*
@@ -349,6 +369,7 @@
 			$href = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'href="'.$href.'"';
 		}
+
 		private static function autoIPLCallbackSrc($matches) {
 			$src = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'src="'.$src.'"';
@@ -374,14 +395,11 @@
 			fwrite($pointer,"SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
 			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
 
-			// We need to dump the bigtree tables in the proper order or they will not properly be recreated with the right foreign keys
-			$q = sqlquery("SHOW TABLES");
-			while ($f = sqlfetch($q)) {
-				$table = current($f);
-				
+			$tables = static::$DB->fetchAllSingle("SHOW TABLES");
+			foreach ($tables as $table) {				
 				// Write the drop / create statements
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
-				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+				$definition = static::$DB->fetch("SHOW CREATE TABLE `$table`");
 				fwrite($pointer,str_replace(array("\n  ","\n"),"",end($definition)).";\n");
 
 				// Get all the table contents, write them out
@@ -394,7 +412,7 @@
 				fwrite($pointer,"\n");
 			}
 
-			fwrite($pointer,"\nSET foreign_key_checks = 1;");
+			fwrite($pointer,"SET foreign_key_checks = 1;");
 			fclose($pointer);
 
 			return true;
@@ -454,10 +472,13 @@
 				return true;
 			}
 
-			$q = sqlquery("SELECT id FROM bigtree_pages WHERE path LIKE '".sqlescape($page["path"])."%'");
-			while ($f = sqlfetch($q)) {
-				$perm = $this->Permissions["page"][$f["id"]];
-				if ($perm == "n" || $perm == "e") {
+			$path = static::$DB->escape($page["path"]);
+			$descendant_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
+
+			// Check all the descendants for an explicit "no" or "editor" permission
+			foreach ($descendant_ids as $id) {
+				$permission = $this->Permissions["page"][$id];
+				if ($permission == "n" || $permission == "e") {
 					return false;
 				}
 			}
@@ -473,6 +494,9 @@
 				hash - The unique hash generated by <forgotPassword>.
 				password - The user's new password.
 
+			Returns:
+				true if successful
+
 			See Also:
 				<forgotPassword>
 
@@ -481,15 +505,24 @@
 		static function changePassword($hash,$password) {
 			global $bigtree;
 
-			$hash = sqlescape($hash);
-			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
+			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?",$hash);
+			if (!$user) {
+				return false;
+			}
 
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = sqlescape($phpass->HashPassword($password));
 
-			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
-			sqlquery("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE user = '".$user["id"]."'");
-			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
+			// Update password
+			static::$DB->update("bigtree_users",$user["id"],array(
+				"password" => $password,
+				"change_password_hash" => ""
+			));
+
+			// Remove any login bans
+			static::$DB->delete("bigtree_login_bans",array("user" => $user["id"]));
+
+			return true;
 		}
 
 		/*

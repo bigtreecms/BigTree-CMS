@@ -60,8 +60,10 @@
 	} else {
 		class BigTreeCMS extends BigTreeCMSBase {};
 	}
+
 	// Initialize DB instance
 	BigTreeCMS::$DB = $db = new BigTreeSQL;
+
 	// Initialize CMS instance
 	$cms = new BigTreeCMS;
 
@@ -105,6 +107,9 @@
 	} else {
 		class BigTreeAdmin extends BigTreeAdminBase {};
 	}
+
+	// Give BigTreeAdmin a copy of the DB
+	BigTreeAdmin::$DB = $db;
 
 	// Load everything in the custom extras folder.
 	$d = opendir(SERVER_ROOT."custom/inc/required/");

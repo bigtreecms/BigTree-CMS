@@ -56,6 +56,41 @@
 		}
 
 		/*
+			Function: delete
+				Deletes a row in the given table
+
+			Parameters:
+				table - The table to insert a row into
+				id - The ID of the row to delete (or an associate array of key/value pairs to match)
+
+			Returns:
+				true if successful (even if no rows match)
+		*/
+
+		function delete($table,$id) {
+			$values = $where = array();
+
+			// If the ID is an associative array we match based on the given columns
+			if (is_array($id)) {
+				foreach ($id as $column => $value) {
+					$where[] = "`$column` = ?";
+					array_push($values,$value);
+				}
+			// Otherwise default to id
+			} else {
+				$where[] = "`id` = ?";
+				array_push($values,$id);
+			}
+
+			// Add the query and the id parameter into the function parameters
+			array_unshift($values,"DELETE FROM `$table` WHERE ".implode(" AND ",$where));
+
+			// Call BigTreeSQL::query
+			$response = call_user_func_array(array($this,"query"),$values);
+			return $response->ActiveQuery ? true : false;
+		}
+
+		/*
 			Function: escape
 				Equivalent to mysql_real_escape_string.
 				Escapes non-string values by first encoding them as JSON.
