@@ -2067,9 +2067,9 @@
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$id'");
 			while ($f = sqlfetch($q)) {
 				$this->deletePageChildren($f["id"]);
+				$this->track("bigtree_pages",$f["id"],"deleted-inherited");
 			}
 			sqlquery("DELETE FROM bigtree_pages WHERE parent = '$id'");
-			$this->track("bigtree_pages",$id,"deleted");
 		}
 
 		/*
