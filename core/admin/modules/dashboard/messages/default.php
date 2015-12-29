@@ -1,5 +1,5 @@
 <?php
-	$messages = $admin->getMessages();	
+	$messages = $admin->getMessages($admin->ID);	
 
 	// Going to be querying a lot of user names
 	$user_cache = array();

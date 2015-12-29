@@ -2641,7 +2641,7 @@
 		*/
 
 		static function dailyDigestMessages($user) {
-			$messages = $this->getMessages($user["id"]);
+			$messages = static::getMessages($user["id"]);
 			$messages_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
 							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
@@ -2683,8 +2683,7 @@
 			global $bigtree;
 
 			// We're going to show the site's title in the email
-			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
-			$site_title = $home_page["nav_title"];
+			$site_title = static::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
 
 			// Find out what blocks are on
 			$extension_settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
@@ -2716,8 +2715,8 @@
 			array_multisort($positions,SORT_DESC,$blocks);
 
 			// Loop through each user who has opted in to emails
-			$qusers = sqlquery("SELECT * FROM bigtree_users where daily_digest = 'on'");
-			while ($user = sqlfetch($qusers)) {
+			$daily_digest_users = static::$DB->fetchAll("SELECT * FROM bigtree_users WHERE daily_digest = 'on'");
+			foreach ($daily_digest_users as $user) {
 				$block_markup = "";
 
 				foreach ($blocks as $function) {
@@ -2761,17 +2760,18 @@
 		static function forgotPassword($email) {
 			global $bigtree;
 
-			$home_page = sqlfetch(sqlquery("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0"));
-			$site_title = $home_page["nav_title"];
-
-			$email = sqlescape($email);
-			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
+			// Make sure this is a valid user's email
+			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE email = ?",$email);
 			if (!$user) {
 				return false;
 			}
 
-			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
-			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
+			// Update the user's password reset hash code
+			$hash = md5(md5(md5(uniqid("bigtree-hash".microtime(true)))));
+			static::$DB->update("bigtree_users",$user["id"],array("change_password_hash" => $hash));
+
+			// Get site title for email
+			$site_title = static::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
 
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 
@@ -2781,11 +2781,11 @@
 			$html = str_ireplace("{site_title}",$site_title,$html);
 			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 
-			$es = new BigTreeEmailService;
+			$email_service = new BigTreeEmailService;
 			// Only use a custom email service if a from email has been set
-			if ($es->Settings["bigtree_from"]) {
+			if ($email_service->Settings["bigtree_from"]) {
 				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-				$es->sendEmail("Reset Your Password",$html,$user["email"],$es->Settings["bigtree_from"],"BigTree CMS",$reply_to);
+				$email_service->sendEmail("Reset Your Password",$html,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
 			} else {
 				BigTree::sendEmail($user["email"],"Reset Your Password",$html);
 			}
@@ -2807,18 +2807,13 @@
 
 		static function get404Total($type) {
 			if ($type == "404") {
-				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''"));
+				return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
 			} elseif ($type == "301") {
-				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''"));
+				return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''");
 			} elseif ($type == "ignored") {
-				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = 'on'"));
+				return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on'");
 			}
-
-			if (!empty($total)) {
-				return $total["total"];
-			} else {
-				return false;
-			}
+			return false;
 		}
 
 		/*
@@ -2972,13 +2967,7 @@
 		*/
 
 		static function getArchivedNavigationByParent($parent) {
-			$nav = array();
-			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title asc");
-			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
-				$nav[] = $nav_item;
-			}
-			return $nav;
+			return static::$DB->fetchAll("SELECT id, nav_title as title FROM bigtree_pages  WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title ASC");
 		}
 
 		/*
@@ -3561,18 +3550,14 @@
 				Returns all a user's messages.
 
 			Parameters:
-				user - Optional user ID (defaults to logged in user)
+				user - User ID to retrieve messages for
 
 			Returns:
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
 
-		function getMessages($user = false) {
-			if ($user) {
-				$user = sqlescape($user);
-			} else {
-				$user = $this->ID;
-			}
+		static function getMessages($user = false) {
+			$user = sqlescape($user);
 			$sent = array();
 			$read = array();
 			$unread = array();
@@ -6865,7 +6850,7 @@
 			}
 
 			// Get the page count
-			$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_404s WHERE $where"));
+			$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where"));
 			$pages = ceil($f["count"] / 20);
 			$pages = ($pages < 1) ? 1 : $pages;
 

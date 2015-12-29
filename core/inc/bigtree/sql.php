@@ -142,7 +142,7 @@
 			}
 
 			// Push the query onto the array stack so it's the first query parameter
-			array_unshift($values,"SELECT COUNT(*) FROM `$table` WHERE ".implode(" AND ",$where));
+			array_unshift($values,"SELECT 1 FROM `$table` WHERE ".implode(" AND ",$where));
 
 			// Execute query, return a single result
 			return call_user_func_array(array($this,"fetchSingle"),$values) ? true : false;

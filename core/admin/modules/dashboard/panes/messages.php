@@ -1,6 +1,6 @@
 <?php
 	// Get all the messages we've received.
-	$messages = $admin->getMessages();
+	$messages = $admin->getMessages($admin->ID);
 
 	// Unread messages table data 
 	$unread_data = array();
