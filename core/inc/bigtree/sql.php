@@ -325,7 +325,7 @@
 		*/
 
 		function insertID() {
-			if ($this->WriteConnection) {
+			if ($this->WriteConnection && $this->WriteConnection !== "disconnected") {
 				return $this->WriteConnection->insert_id;
 			} else {
 				return $this->Connection->insert_id;
@@ -407,12 +407,18 @@
 			Function: rows
 				Equivalent to calling mysql_num_rows.
 
+			Parameters:
+				query - Optional returned query object (defaults to using chained method)
+
 			Returns:
 				Number of rows for the active query.
 		*/
 
-		function rows($query) {
-			return $query->num_rows;
+		function rows($query = false) {
+			if ($query) {
+				return $query->ActiveQuery->num_rows;
+			}
+			return $this->ActiveQuery->num_rows;
 		}
 
 		/*
@@ -530,7 +536,7 @@
 	}
 
 	function sqlrows($result) {
-		return $result->num_rows;
+		return $result->rows();
 	}
 
 	function sqlid() {

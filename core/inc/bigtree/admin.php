@@ -1666,26 +1666,21 @@
 
 		function createTag($tag) {
 			$tag = strtolower(html_entity_decode(trim($tag)));
-			// Check if the tag exists already.
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 
-			if (!$f) {
-				$meta = metaphone($tag);
-				$route = BigTreeCMS::urlify($tag);
-				$oroute = $route;
-				$x = 2;
-				while (sqlrows(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"))) {
-					$route = $oroute."-".$x;
-					$x++;
-				}
-				sqlquery("INSERT INTO bigtree_tags (`tag`,`metaphone`,`route`) VALUES ('".sqlescape($tag)."','$meta','$route')");
-				$id = sqlid();
-			} else {
-				$id = $f["id"];
+			// If this tag already exists, just ignore it and return the ID
+			$existing = static::$DB->fetch("SELECT id FROM bigtree_tags WHERE tag = ?",$tag);
+			if ($existing) {
+				return $existing["id"];
 			}
 
-			$this->track("bigtree_tags",$id,"created");
+			// Create tag
+			$id = static::$DB->insert("bigtree_tags",array(
+				"tag" => $tag,
+				"metaphone" => metaphone($tag),
+				"route" => static::$DB->unique("bigtree_tags","route",BigTreeCMS::urlify($tag))
+			));
 
+			$this->track("bigtree_tags",$id,"created");
 			return $id;
 		}
 
