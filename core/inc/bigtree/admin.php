@@ -1821,6 +1821,8 @@
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 			$this->track("bigtree_field_types",$id,"deleted");
 		}
@@ -2430,9 +2432,9 @@
 						} else {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
 						}
-						if ($change["type"] == "NEW") {
+						if (is_null($change["item_id"])) {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
-						} elseif ($change["type"] == "EDIT") {
+						} else {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
 						}
 						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.static::getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
