@@ -8,15 +8,17 @@
 </div>
 <?php
 	} else {
+		BigTree::globalizePOSTVars();
+
 		// Check security policy
-		if (!$admin->validatePassword($_POST["password"])) {
+		if (!$admin->validatePassword($password)) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "password";
 			$admin->growl("Users","Invalid Password","error");
 			BigTree::redirect(ADMIN_ROOT."users/add/");
 		}
 
-		$id = $admin->createUser($_POST);	
+		$id = $admin->createUser($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);	
 		if (!$id) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";

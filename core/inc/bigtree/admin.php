@@ -960,7 +960,7 @@
 			}
 
 			// Clear field type cache
-			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			$this->track("bigtree_field_types",$id,"created");
 			return $id;
@@ -1605,19 +1605,22 @@
 				True if successful, false if a setting already exists with the ID given.
 		*/
 
-		function createSetting($id,$name,$description,$type,$options = array(),$extension = "",$system = false,$encrypted = false,$locked = false) {
+		function createSetting($id,$name = "",$description = "",$type = "",$options = array(),$extension = "",$system = false,$encrypted = false,$locked = false) {
 			// Allow for backwards compatibility with pre-4.3 syntax
 			if (is_array($id)) {
-				// Setup defaults
 				$data = $id;
-				$id = $name = $extension = $type = $options = $locked = $encrypted = $system = "";
-
+				$id = false;
 				// Loop through and create our expected parameters.
 				foreach ($data as $key => $val) {
 					if (substr($key,0,1) != "_" && !is_array($val)) {
 						$$key = $val;
 					}
 				}
+			}
+
+			// No id, bad call.
+			if (!$id) {
+				return false;
 			}
 			
 			// If an extension is creating a setting, make it a reference back to the extension
@@ -1695,6 +1698,9 @@
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
 				resources - An array of resources
+
+			Returns:
+				true if successful, false if there's an id collision or a bad ID is passed
 		*/
 
 		function createTemplate($id,$name,$routed,$level,$module,$resources) {
@@ -1703,9 +1709,15 @@
 				return false;
 			}
 
+			// Check to see if the id already exists
+			if (static::$DB->exists("bigtree_templates",$id)) {
+				return false;
+			}
+
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
 			$file_contents = "<?\n	/*\n		Resources Available:\n";
 
+			// Grabbing field types so we can put their name in the template file
 			$types = $this->getCachedFieldTypes();
 			$types = $types["templates"];
 
@@ -1747,50 +1759,69 @@
 				BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
 			}
 
-			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$module = sqlescape($module);
-			$resources = BigTree::json($clean_resources,true);
-			$level = sqlescape($level);
-			$routed = sqlescape($routed);
-
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			sqlquery("UPDATE bigtree_templates SET position = position + 1");
-			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('$id','$name','$module','$resources','$level','$routed')");
-			$this->track("bigtree_templates",$id,"created");
+			static::$DB->query("UPDATE bigtree_templates SET position = position + 1");
 
-			return $id;
+			// Insert template
+			static::$DB->insert("bigtree_templates",array(
+				"id" => $id,
+				"name" => BigTree::safeEncode($name),
+				"module" => $module,
+				"resources" => $resources,
+				"level" => $level,
+				"routed" => $routed ? "on" : ""
+			));
+
+			$this->track("bigtree_templates",$id,"created");
+			return true;
 		}
 
 		/*
 			Function: createUser
-				Creates a user.
-				Checks for developer access.
+				Creates a user (and checks access levels to ensure permissions are met).
+				Supports pre-4.3 syntax by passing an array as the first parameter.
 
 			Parameters:
-				data - An array of user data. ("email", "password", "name", "company", "level", "permissions","alerts")
+				email - Email Address
+				password - Password
+				name - Name
+				company - Company
+				level - User Level (0 for regular, 1 for admin, 2 for developer)
+				permission - Array of permissions data
+				alerts - Array of alerts data
+				daily_digest - Whether the user wishes to receive the daily digest email
 
 			Returns:
 				id of the newly created user or false if a user already exists with the provided email.
 		*/
 
-		function createUser($data) {
+		function createUser($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
 			global $bigtree;
 
-			$level = intval($data["level"]);
-			$email = sqlescape($data["email"]);
-			$name = sqlescape(htmlspecialchars($data["name"]));
-			$company = sqlescape(htmlspecialchars($data["company"]));
-			$daily_digest = $data["daily_digest"] ? "on" : "";
+			// Allow for backwards compatibility with pre-4.3 syntax
+			if (is_array($email)) {
+				$data = $email;
+				$email = false;
+				// Loop through and create our expected parameters.
+				foreach ($data as $key => $val) {
+					if (substr($key,0,1) != "_" && !is_array($val)) {
+						$$key = $val;
+					}
+				}
+			}
 
-			// See if the user already exists
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
-			if ($r > 0) {
+			// Make sure email was passed
+			if (!$email) {
 				return false;
 			}
 
-			$permissions = $data["permissions"] ? BigTree::json($data["permissions"],true) : "[]";
-			$alerts = $data["alerts"] ? BigTree::json($data["alerts"],true) : "[]";
+			// See if user exists already
+			if (static::$DB->exists("bigtree_users",array("email" => $email))) {
+				return false;
+			}
+
+			// Make sure level is numeric
+			$level = intval($level);
 
 			// Don't allow the level to be set higher than the logged in user's level
 			if ($level > $this->Level) {
@@ -1799,12 +1830,21 @@
 
 			// Hash the password.
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword(trim($data["password"])));
+			$password = $phpass->HashPassword(trim($password));
 
-			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`alerts`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$alerts','$daily_digest')");
-			$id = sqlid();
+			// Create the user
+			$id = static::$DB->insert("bigtree_users",array(
+				"email" => $email,
+				"password" => $password,
+				"name" => BigTree::safeEncode($name),
+				"company" => BigTree::safeEncode($company),
+				"level" => $level,
+				"permissions" => $permissions,
+				"alerts" => $alerts,
+				"daily_digest" => ($daily_digest ? "on" : "")
+			));
+
 			$this->track("bigtree_users",$id,"created");
-
 			return $id;
 		}
 
@@ -1819,8 +1859,8 @@
 
 		function delete404($id) {
 			$this->requireLevel(1);
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_404s WHERE id = '$id'");
+
+			static::$DB->delete("bigtree_404s",$id);
 			$this->track("bigtree_404s",$id,"deleted");
 		}
 
@@ -1833,9 +1873,10 @@
 		*/
 
 		function deleteCallout($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
+			// Delete template file
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
+
+			static::$DB->delete("bigtree_callouts",$id);
 			$this->track("bigtree_callouts",$id,"deleted");
 		}
 
@@ -1848,7 +1889,7 @@
 		*/
 
 		function deleteCalloutGroup($id) {
-			sqlquery("DELETE FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'");
+			static::$DB->delete("bigtree_callout_groups",$id);
 			$this->track("bigtree_callout_groups",$id,"deleted");
 		}
 
@@ -1862,31 +1903,36 @@
 
 		function deleteExtension($id) {
 			$extension = $this->getExtension($id);
-			$j = json_decode($extension["manifest"],true);
+			$manifest = json_decode($extension["manifest"],true);
 		
 			// Delete site files
-			BigTree::deleteDirectory(SITE_ROOT."extensions/".$j["id"]."/");
+			BigTree::deleteDirectory(SITE_ROOT."extensions/".$manifest["id"]."/");
 			// Delete extensions directory
-			BigTree::deleteDirectory(SERVER_ROOT."extensions/".$j["id"]."/");
+			BigTree::deleteDirectory(SERVER_ROOT."extensions/".$manifest["id"]."/");
 		
 			// Delete components
-			foreach ($j["components"] as $type => $list) {
+			foreach ($manifest["components"] as $type => $list) {
 				if ($type == "tables") {
 					// Turn off foreign key checks since we're going to be dropping tables.
-					sqlquery("SET SESSION foreign_key_checks = 0");
+					static::$DB->query("SET SESSION foreign_key_checks = 0");
+					
+					// Drop all the tables the extension created
 					foreach ($list as $table => $create_statement) {
-						sqlquery("DROP TABLE IF EXISTS `$table`");
+						static::$DB->query("DROP TABLE IF EXISTS `$table`");
 					}
-					sqlquery("SET SESSION foreign_key_checks = 1");
+					
+					// Re-enable foreign key checks
+					static::$DB->query("SET SESSION foreign_key_checks = 1");
 				} else {
+					// Remove other database entries
 					foreach ($list as $item) {
-						sqlquery("DELETE FROM `bigtree_$type` WHERE id = '".sqlescape($item["id"])."'");
+						static::$DB->delete("bigtree_".$type,$item["id"]);
 					}
 				}
 			}
 
 			// Delete extension entry
-			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($extension["id"])."'");
+			static::$DB->delete("bigtree_extensions",$extension["id"]);
 			$this->track("bigtree_extensions",$extension["id"],"deleted");
 		}
 
@@ -1899,8 +1945,7 @@
 		*/
 
 		function deleteFeed($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_feeds WHERE id = '$id'");
+			static::$DB->delete("bigtree_feeds",$id);
 			$this->track("bigtree_feeds",$id,"deleted");
 		}
 
@@ -1913,10 +1958,15 @@
 		*/
 
 		function deleteFieldType($id) {
+			// Remove related files
 			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			BigTree::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
-			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
+
+			// Clear cache
+			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+
+			static::$DB->delete("bigtree_field_types",$id);
 			$this->track("bigtree_field_types",$id,"deleted");
 		}
 
@@ -1929,21 +1979,21 @@
 		*/
 
 		function deleteModule($id) {
-			$id = sqlescape($id);
-
 			// Get info and delete the class.
 			$module = $this->getModule($id);
-			unlink(SERVER_ROOT."custom/inc/modules/".$module["route"].".php");
+			
+			// Delete class file and custom directory
+			BigTree::deleteFile(SERVER_ROOT."custom/inc/modules/".$module["route"].".php");
 			BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$module["route"]."/");
 
 			// Delete all the related auto module actions
-			sqlquery("DELETE FROM bigtree_module_interfaces WHERE module = '$id'");
+			static::$DB->delete("bigtree_module_interfaces",array("module" => $id));
 
 			// Delete actions
-			sqlquery("DELETE FROM bigtree_module_actions WHERE module = '$id'");
+			static::$DB->delete("bigtree_module_actions",array("module" => $id));
 
 			// Delete the module
-			sqlquery("DELETE FROM bigtree_modules WHERE id = '$id'");
+			static::$DB->delete("bigtree_modules",$id);
 
 			$this->track("bigtree_modules",$id,"deleted");
 		}
@@ -1958,17 +2008,18 @@
 		*/
 
 		function deleteModuleAction($id) {
-			$id = sqlescape($id);
-
 			// See if there's a related interface -- if this action is the only one using it, delete it as well.
-			$a = $this->getModuleAction($id);
-			if ($a["interface"]) {
-				if (sqlrows(sqlquery("SELECT id FROM bigtree_module_interfaces WHERE id = '".$a["interface"]."'")) == 1) {
-					sqlquery("DELETE FROM bigtree_module_interfaces WHERE id = '".$a["interface"]."'");
+			$action = $this->getModuleAction($id);
+			if ($action["interface"]) {
+				$interface_count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_actions WHERE interface = ?",$action["interface"]);
+				if ($interface_count == 1) {
+					static::$DB->delete("bigtree_module_interfaces",$action["interface"]);
+					$this->track("bigtree_module_interfaces",$action["interface"],"deleted");
 				}
 			}
 
-			sqlquery("DELETE FROM bigtree_module_actions WHERE id = '$id'");
+			// Delete the action
+			static::$DB->delete("bigtree_module_actions",$id);
 			$this->track("bigtree_module_actions",$id,"deleted");
 		}
 
@@ -2013,8 +2064,7 @@
 		*/
 
 		function deleteModuleGroup($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_module_groups WHERE id = '$id'");
+			static::$DB->delete("bigtree_module_groups",$id);
 			$this->track("bigtree_module_groups",$id,"deleted");
 		}
 
@@ -2027,9 +2077,8 @@
 		*/
 
 		function deleteModuleInterface($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_module_interfaces WHERE id = '$id'");
-			sqlquery("DELETE FROM bigtree_module_actions WHERE interface = '$id'");
+			static::$DB->delete("bigtree_module_actions",array("interface" => $id));
+			static::$DB->delete("bigtree_module_interfaces",$id);
 			$this->track("bigtree_module_interfaces",$id,"deleted");
 		}
 
@@ -2075,26 +2124,32 @@
 
 		function deletePackage($id) {
 			$package = $this->getPackage($id);
-			$j = json_decode($package["manifest"],true);
+			$manifest = json_decode($package["manifest"],true);
 		
 			// Delete related files
-			foreach ($j["files"] as $file) {
+			foreach ($manifest["files"] as $file) {
 				BigTree::deleteFile(SERVER_ROOT.$file);
 			}
 		
 			// Delete components
-			foreach ($j["components"] as $type => $list) {
+			foreach ($manifest["components"] as $type => $list) {
 				if ($type == "tables") {
 					// Turn off foreign key checks since we're going to be dropping tables.
-					sqlquery("SET SESSION foreign_key_checks = 0");
+					static::$DB->query("SET SESSION foreign_key_checks = 0");
+
+					// Remove all the tables the package added
 					foreach ($list as $table) {
-						sqlquery("DROP TABLE IF EXISTS `$table`");
+						static::$DB->query("DROP TABLE IF EXISTS `$table`");
 					}
-					sqlquery("SET SESSION foreign_key_checks = 1");
+
+					// Re-enable key checks
+					static::$DB->query("SET SESSION foreign_key_checks = 1");
 				} else {
+					// Remove all the bigtree components the package made
 					foreach ($list as $item) {
-						sqlquery("DELETE FROM `bigtree_$type` WHERE id = '".sqlescape($item["id"])."'");
+						static::$DB->delete("bigtree_$type",$item["id"]);
 					}
+
 					// Modules might have their own directories
 					if ($type == "modules") {
 						foreach ($list as $item) {
@@ -2109,8 +2164,8 @@
 					}
 				}
 			}
-		
-			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($package["id"])."'");
+
+			static::$DB->delete("bigtree_extensions",$package["id"]);
 			$this->track("bigtree_extensions",$package["id"],"deleted");
 		}
 
@@ -2127,25 +2182,25 @@
 		*/
 
 		function deletePage($page) {
-			$page = sqlescape($page);
-
-			$r = $this->getPageAccessLevel($page);
-			if ($r == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
+			$permission = $this->getPageAccessLevel($page);
+			if ($permission == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
 				// If the page isn't numeric it's most likely prefixed by the "p" so it's pending.
 				if (!is_numeric($page)) {
-					sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'");
-					static::growl("Pages","Deleted Page");
-					$this->track("bigtree_pages","p$page","deleted-pending");
+					static::$DB->delete("bigtree_pending_changes",substr($page,1));
+					static::growl("Pages","Deleted Pending Page");
+					$this->track("bigtree_pages",$page,"deleted-pending");
 				} else {
-					sqlquery("DELETE FROM bigtree_pages WHERE id = '$page'");
 					// Delete the children as well.
 					$this->deletePageChildren($page);
+
+					static::$DB->delete("bigtree_pages",$page);
 					static::growl("Pages","Deleted Page");
 					$this->track("bigtree_pages",$page,"deleted");
 				}
 
 				return true;
 			}
+
 			$this->stop("You do not have permission to delete this page.");
 			return false;
 		}
@@ -2160,12 +2215,15 @@
 		*/
 
 		function deletePageChildren($id) {
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$id'");
-			while ($f = sqlfetch($q)) {
-				$this->deletePageChildren($f["id"]);
+			$children = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?",$id);
+			foreach ($children as $child) {
+				// Recurse to this child's children
+				$this->deletePageChildren($child);
+
+				// Delete and track
+				static::$DB->delete("bigtree_pages",$child);
+				$this->track("bigtree_pages",$child,"deleted-inherited");
 			}
-			sqlquery("DELETE FROM bigtree_pages WHERE parent = '$id'");
-			$this->track("bigtree_pages",$id,"deleted");
 		}
 
 		/*
@@ -2178,16 +2236,17 @@
 		*/
 
 		function deletePageDraft($id) {
-			$id = sqlescape($id);
 			// Get the version, check if the user has access to the page the version refers to.
-			$access = $this->getPageAccessLevel($id);
-			if ($access != "p") {
+			$permission = $this->getPageAccessLevel($id);
+			if ($permission != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
+			// Get the draft copy's ID
+			$draft_id = static::$DB->fetchSingle("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?",$id);
+
 			// Delete draft copy
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'");
-			$this->track("bigtree_pending_changes",$id,"deleted");
+			$this->deletePendingChange($draft_id);
 		}
 
 		/*
@@ -2202,13 +2261,17 @@
 		function deletePageRevision($id) {
 			// Get the version, check if the user has access to the page the version refers to.
 			$revision = $this->getPageRevision($id);
-			$access = $this->getPageAccessLevel($revision["page"]);
-			if ($access != "p") {
+			if (!$revision) {
+				return false;
+			}
+
+			$permission = $this->getPageAccessLevel($revision["page"]);
+			if ($permission != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
 			// Delete the revision
-			sqlquery("DELETE FROM bigtree_page_revisions WHERE id = '".$revision["id"]."'");
+			static::$DB->delete("bigtree_page_revisions",$id);
 			$this->track("bigtree_page_revisions",$id,"deleted");
 		}
 
@@ -2221,8 +2284,7 @@
 		*/
 
 		function deletePendingChange($id) {
-			$id = sqlescape($id);
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '$id'");
+			static::$DB->delete("bigtree_pending_changes",$id);
 			$this->track("bigtree_pending_changes",$id,"deleted");
 		}
 
@@ -2235,21 +2297,25 @@
 		*/
 
 		function deleteResource($id) {
-			$id = sqlescape($id);
-			$r = $this->getResource($id);
-			if ($r) {
-				sqlquery("DELETE FROM bigtree_resources WHERE id = '".sqlescape($r["id"])."'");
+			$resource = $this->getResource($id);
+			if (!$resource) {
+				return false;
+			}
 
-				// If this file isn't located in any other folders, delete it from the file system
-				if (!sqlrows(sqlquery("SELECT id FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'"))) {
-					$storage = new BigTreeStorage;
-					$storage->delete($r["file"]);
-					foreach ($r["thumbs"] as $thumb) {
-						$storage->delete($thumb);
-					}
+			// Delete resource record
+			static::$DB->delete("bigtree_resources",$id);
+			$this->track("bigtree_resources",$id,"deleted");
+
+			// If this file isn't located in any other folders, delete it from the file system
+			if (!static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?",$resource["file"])) {
+				$storage = new BigTreeStorage;
+				$storage->delete($resource["file"]);
+
+				// Delete any thumbnails as well
+				foreach (array_filter((array)$resource["thumbs"]) as $thumb) {
+					$storage->delete($thumb);
 				}
 			}
-			$this->track("bigtree_resources",$id,"deleted");
 		}
 
 		/*
@@ -2261,14 +2327,21 @@
 		*/
 
 		function deleteResourceFolder($id) {
+			// Get everything inside the folder
 			$items = $this->getContentsOfResourceFolder($id);
+
+			// Delete all subfolders
 			foreach ($items["folders"] as $folder) {
 				$this->deleteResourceFolder($folder["id"]);
 			}
+
+			// Delete all files
 			foreach ($items["resources"] as $resource) {
 				$this->deleteResource($resource["id"]);
 			}
-			sqlquery("DELETE FROM bigtree_resource_folders WHERE id = '".sqlescape($id)."'");
+
+			// Delete the folder
+			static::$DB->delete("bigtree_resource_folders",$id);
 			$this->track("bigtree_resource_folders",$id,"deleted");
 		}
 
@@ -2281,8 +2354,11 @@
 		*/
 
 		function deleteSetting($id) {
+			// Grab extension based ID if we're calling from an extension
 			$id = BigTreeCMS::extensionSettingCheck($id);
-			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
+
+			// Delete setting
+			static::$DB->delete("bigtree_settings",$id);
 			$this->track("bigtree_settings",$id,"deleted");
 		}
 
@@ -2302,13 +2378,16 @@
 			if (!$template) {
 				return false;
 			}
+
+			// Delete related files
 			if ($template["routed"]) {
 				BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$template["id"]."/");
 			} else {
 				BigTree::deleteFile(SERVER_ROOT."templates/basic/".$template["id"].".php");
 			}
-			sqlquery("DELETE FROM bigtree_templates WHERE id = '".sqlescape($template["id"])."'");
-			$this->track("bigtree_templates",$template["id"],"deleted");
+
+			static::$DB->delete("bigtree_templates",$id);
+			$this->track("bigtree_templates",$id,"deleted");
 			return true;
 		}
 
@@ -2325,16 +2404,14 @@
 		*/
 
 		function deleteUser($id) {
-			$id = sqlescape($id);
 			// If this person has higher access levels than the person trying to update them, fail.
 			$current = static::getUser($id);
 			if ($current["level"] > $this->Level) {
 				return false;
 			}
 
-			sqlquery("DELETE FROM bigtree_users WHERE id = '$id'");
+			static::$DB->delete("bigtree_users",$id);
 			$this->track("bigtree_users",$id,"deleted");
-
 			return true;
 		}
 
@@ -2344,9 +2421,13 @@
 		*/
 
 		function disconnectGoogleAnalytics() {
-			unlink(SERVER_ROOT."cache/analytics.json");
-			sqlquery("UPDATE bigtree_pages SET ga_page_views = NULL");
-			sqlquery("DELETE FROM bigtree_caches WHERE identifier = 'org.bigtreecms.api.analytics.google'");
+			// Delete cache
+			BigTree::deleteFile(SERVER_ROOT."cache/analytics.json");
+			static::$DB->delete("bigtree_caches",array("identifier" => "org.bigtreecms.api.analytics.google"));
+
+			// Remove page views from Pages
+			static::$DB->query("UPDATE bigtree_pages SET ga_page_views = NULL");
+
 			static::growl("Analytics","Disconnected");
 		}
 
@@ -2363,43 +2444,7 @@
 		*/
 
 		static function doesModuleActionExist($module,$route) {
-			$module = sqlescape($module);
-			$route = sqlescape($route);
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_actions WHERE module = '$module' AND route = '$route'"));
-			if ($f) {
-				return true;
-			}
-			return false;
-		}
-
-		/*
-			Function: doesModuleEditActionExist
-				Determines whether there is already an edit action for a module.
-
-			Parameters:
-				module - The module id to check.
-
-			Returns:
-				1 or 0, for true or false.
-		*/
-
-		static function doesModuleEditActionExist($module) {
-			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".sqlescape($module)."' AND route = 'edit'"));
-		}
-
-		/*
-			Function: doesModuleLandingActionExist
-				Determines whether there is already a landing action for a module.
-
-			Parameters:
-				module - The module id to check.
-
-			Returns:
-				1 or 0, for true or false.
-		*/
-
-		static function doesModuleLandingActionExist($module) {
-			return sqlrows(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '".sqlescape($module)."' AND route = ''"));
+			return static::$DB->exists("bigtree_module_actions",array("module" => $module,"route" => $route));
 		}
 
 		/*

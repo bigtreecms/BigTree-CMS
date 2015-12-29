@@ -57,7 +57,7 @@
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";
-		$landing_exists = $admin->doesModuleLandingActionExist($module);
+		$landing_exists = $admin->doesModuleActionExist($module,"");
 		if ($landing_exists) {
 			$route = $admin->uniqueModuleActionRoute($module,$cms->urlify("View $title"));
 		}
