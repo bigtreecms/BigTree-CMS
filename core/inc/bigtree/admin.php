@@ -2089,9 +2089,12 @@
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
+			// Get draft copy's ID
+			$draft = sqlfetch(sqlquery("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'"));
+
 			// Delete draft copy
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'");
-			$this->track("bigtree_pending_changes",$id,"deleted");
+			sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".$draft["id"]."'");
+			$this->track("bigtree_pending_changes",$draft["id"],"deleted");
 		}
 
 		/*
