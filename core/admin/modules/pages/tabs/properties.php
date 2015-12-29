@@ -137,7 +137,7 @@
 		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 	</fieldset>
 	<fieldset class="checkbox_bump last">
-		<input id="new_window" type="checkbox" name="new_window" value="Yes"<?php if ($bigtree["current_page"]["new_window"] == "Yes") { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
+		<input id="new_window" type="checkbox" name="new_window"<?php if ($bigtree["current_page"]["new_window"]) { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 		<label class="for_checkbox">Open in New Window</label>
 	</fieldset>
 	<?php } ?>

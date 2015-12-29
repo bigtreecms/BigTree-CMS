@@ -745,7 +745,17 @@
 		// Add Developer Only setting to Modules
 		sqlquery("ALTER TABLE `bigtree_modules` ADD COLUMN `developer_only` CHAR(2) NOT NULL AFTER `gbp`");
 
-		// Change the datetime column of bigtree_resource_allocation to a timestamp
+		// Change some datetime columns that were only ever the current time of creation / update to be timestamps
 		sqlquery("ALTER TABLE `bigtree_resource_allocation` CHANGE `updated_at` `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+		sqlquery("ALTER TABLE `bigtree_messages` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+		sqlquery("ALTER TABLE `bigtree_pages` CHANGE `updated_at` `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+		sqlquery("ALTER TABLE `bigtree_resources` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+
+		// Fix new window status
+		sqlquery("UPDATE `bigtree_pages` SET new_window = 'on' WHERE new_window = 'Yes'");
+		sqlquery("UPDATE `bigtree_pages` SET new_window = '' WHERE new_window != 'on'");
+
+		// Remove unused type column
+		sqlquery("ALTER TABLE `bigtree_pending_changes` DROP COLUMN `type`");
 	}
 ?>

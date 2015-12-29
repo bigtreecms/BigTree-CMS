@@ -1,5 +1,7 @@
 <?php
-	$success = $admin->createSetting($_POST);
+	BigTree::globalizePOSTVars();
+	$success = $admin->createSetting($id,$name,$description,$type,$options,false,false,$encrypted,$locked);
+
 	if ($success) {
 		$admin->growl("Developer","Created Setting");
 		BigTree::redirect(DEVELOPER_ROOT."settings/");

@@ -747,7 +747,7 @@
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
 				if ($child["external"] && $child["template"] == "") {
 					$link = static::getInternalPageLink($child["external"]);
-					if ($child["new_window"] == "Yes") {
+					if ($child["new_window"]) {
 						$new_window = true;
 					}
 				}

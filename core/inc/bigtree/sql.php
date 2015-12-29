@@ -117,7 +117,7 @@
 
 			Parameters:
 				table - The table to search
-				values - An array of key/value pairs to match against (i.e. "id" => "10")
+				values - An array of key/value pairs to match against (i.e. "id" => "10") or just an ID
 
 			Returns:
 				true if a row already exists that matches the passed in key/value pairs.
@@ -129,17 +129,23 @@
 				return false;
 			}
 
-			$where = array();
-			foreach ($values as $key => $value) {
-				$where[] = "`$key` = ?";
+			// Passing an array of key/value pairs
+			if (is_array($values)) {
+				$where = array();
+				foreach ($values as $key => $value) {
+					$where[] = "`$key` = ?";
+				}
+			// Allow for just passing an ID
+			} else {
+				$where = array("`id` = ?");
+				$values = array($values);
 			}
 
 			// Push the query onto the array stack so it's the first query parameter
 			array_unshift($values,"SELECT COUNT(*) FROM `$table` WHERE ".implode(" AND ",$where));
 
 			// Execute query, return a single result
-			$query = call_user_func_array(array($this,"query"),$values);
-			return $query->fetch(false,true) ? true : false;
+			return call_user_func_array(array($this,"fetchSingle"),$values) ? true : false;
 		}
 
 		/*
@@ -164,7 +170,7 @@
 			}
 
 			// Chained call
-			if (is_bool($this->ActiveQuery)) {
+			if (is_bool($this->ActiveQuery) || is_null($this->ActiveQuery)) {
 				trigger_error("BigTreeSQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
@@ -297,7 +303,12 @@
 			$vals = array();
 			foreach ($values as $column => $value) {
 				$columns[] = "`$column`";
-				$vals[] = "'".$this->escape($value)."'";
+
+				if ($value === "NULL" || $value === "NOW()") {
+					$vals[] = $value;
+				} else {
+					$vals[] = "'".$this->escape($value)."'";
+				}
 			}
 			
 			$query_response = $this->query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$vals).")");
@@ -363,13 +374,20 @@
 				// Check argument and ? count to trigger warnings
 				$wildcard_count = substr_count($query,"?");
 				if ($wildcard_count != (count($args) - 1)) {
-					trigger_error("BigTreeSQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)",E_USER_WARNING);
+					throw new Exception("BigTreeSQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
 				}
 
 				// Do the replacements and escapes
 				$x = 1;
 				while (($position = strpos($query,"?")) !== false) {
-					$query = substr($query,0,$position)."'".$this->Connection->real_escape_string($args[$x])."'".substr($query,$position + 1);
+					// Allow for these reserved keywords to be let through unescaped
+					if ($args[$x] === "NULL" || $args[$x] === "NOW()") {
+						$replacement = $args[$x];
+					} else {
+						$replacement = "'".$this->Connection->real_escape_string($args[$x])."'";
+					}
+
+					$query = substr($query,0,$position).$replacement.substr($query,$position + 1);
 					$x++;
 				}
 
@@ -395,6 +413,63 @@
 
 		function rows($query) {
 			return $query->num_rows;
+		}
+
+		/*
+			Function: unique
+				Retrieves a unique version of a given field for a table.
+				Appends trailing numbers to the string until a unique version is found (i.e. value-2)
+				Useful for creating unique routes.
+
+			Parameters:
+				table - Table to search
+				field - Field that must be unique
+				value - Value to check
+				id - An optional ID for a record to disregard (either a single value for checking "id" column or key/value pair)
+				inverse - Set to true to force the id column to true rather than false
+
+			Returns:
+				Unique version of value.
+		*/
+
+		function unique($table,$field,$value,$id = false,$inverse = false) {
+			$original_value = $value;
+			$count = 1;
+
+			// If we're checking against an ID
+			if ($id) {
+
+				// Allow for passing array("column" => "value")
+				if (is_array($id)) {
+					list($id_column) = array_keys($id);
+					$id_value = current($id);
+				// Allow for passing "value"
+				} else {
+					$id_column = "id";
+					$id_value = $id;
+				}
+
+				// If inverse, switch ID requirement to be = rather than !=
+				if ($inverse) {
+					$query = "SELECT COUNT(*) FROM `$table` WHERE `$field` = ? AND `$id_column` = ?";
+				} else {
+					$query = "SELECT COUNT(*) FROM `$table` WHERE `$field` = ? AND `$id_column` != ?";
+				}
+
+				while ($this->fetchSingle($query,$value,$id_value)) {
+					$count++;
+					$value = $original_value."-$count";
+				}
+
+			// Checking the whole table
+			} else {
+				while ($this->fetchSingle("SELECT COUNT(*) FROM `$table` WHERE `$field` = ?",$value)) {
+					$count++;
+					$value = $original_value."-$count";
+				}
+			}
+
+			return $value;
 		}
 
 		/*
