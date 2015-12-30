@@ -2967,12 +2967,12 @@
 		*/
 
 		static function getArchivedNavigationByParent($parent) {
-			return static::$DB->fetchAll("SELECT id, nav_title as title FROM bigtree_pages  WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title ASC");
+			return static::$DB->fetchAll("SELECT id, nav_title as title FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title ASC");
 		}
 
 		/*
 			Function: getBasicTemplates
-				Returns a list of non-routed templates ordered by position.
+				Returns a list of non-routed templates ordered by position that the logged in user has access to.
 			
 			Parameters:
 				sort - Sort order, defaults to positioned
@@ -2982,14 +2982,7 @@
 		*/
 
 		function getBasicTemplates($sort = "position DESC, id ASC") {
-			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY $sort");
-			$items = array();
-			while ($f = sqlfetch($q)) {
-				if (!$f["routed"]) {
-					$items[] = $f;
-				}
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' AND routed = '' ORDER BY $sort");
 		}
 
 		/*
@@ -3081,12 +3074,12 @@
 
 				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
 
-				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
-				while ($f = sqlfetch($q)) {
-					$use_cases = json_decode($f["use_cases"],true);
+				$field_types = static::$DB->fetchAll("SELECT * FROM bigtree_field_types ORDER BY name");
+				foreach ($field_types as $field_type) {
+					$use_cases = json_decode($field_type["use_cases"],true);
 					foreach ((array)$use_cases as $case => $val) {
 						if ($val) {
-							$types[$case]["custom"][$f["id"]] = array("name" => $f["name"],"self_draw" => $f["self_draw"]);
+							$types[$case]["custom"][$field_type["id"]] = array("name" => $field_type["name"],"self_draw" => $field_type["self_draw"]);
 						}
 					}
 				}
@@ -3116,12 +3109,13 @@
 		*/
 
 		static function getCallout($id) {
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_callouts WHERE id = '".sqlescape($id)."'"));
-			if (!$item) {
+			$callout = static::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?",$id);
+			if (!$callout) {
 				return false;
 			}
-			$item["resources"] = json_decode($item["resources"],true);
-			return $item;
+
+			$callout["resources"] = json_decode($callout["resources"],true);
+			return $callout;
 		}
 
 		/*
@@ -3136,12 +3130,13 @@
 		*/
 
 		static function getCalloutGroup($id) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_callout_groups WHERE id = '".sqlescape($id)."'"));
-			if (!$f) {
+			$group = static::$DB->fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?",$id);
+			if (!$group) {
 				return false;
 			}
-			$f["callouts"] = array_filter((array)json_decode($f["callouts"],true));
-			return $f;
+
+			$group["callouts"] = array_filter((array)json_decode($group["callouts"],true));
+			return $group;
 		}
 
 		/*
@@ -3153,13 +3148,13 @@
 		*/
 
 		static function getCalloutGroups() {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
-			while ($f = sqlfetch($q)) {
-				$f["callouts"] = json_decode($f["callouts"]);
-				$items[$f["id"]] = $f;
+			$groups = static::$DB->fetchAll("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
+
+			foreach ($groups as &$group) {
+				$group["callouts"] = array_filter((array)json_decode($group["callouts"],true));
 			}
-			return $items;
+
+			return $groups;
 		}
 
 		/*
@@ -3174,12 +3169,7 @@
 		*/
 
 		static function getCallouts($sort = "position DESC, id ASC") {
-			$callouts = array();
-			$q = sqlquery("SELECT * FROM bigtree_callouts ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$callouts[] = $f;
-			}
-			return $callouts;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_callouts ORDER BY $sort");
 		}
 
 		/*
@@ -3194,12 +3184,7 @@
 		*/
 
 		function getCalloutsAllowed($sort = "position DESC, id ASC") {
-			$callouts = array();
-			$q = sqlquery("SELECT * FROM bigtree_callouts WHERE level <= '".$this->Level."' ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$callouts[] = $f;
-			}
-			return $callouts;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $this->Level);
 		}
 
 		/*
@@ -3211,45 +3196,32 @@
 				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_callouts table.
+				An alphabetized array of entries from the bigtree_callouts table.
 		*/
 
 		function getCalloutsInGroups($groups,$auth = true) {
-			$ids = array();
-			$items = array();
-			$names = array();
+			$ids = $callouts = $names = array();
 
 			foreach ($groups as $group_id) {
 				$group = $this->getCalloutGroup($group_id);
+
 				foreach ($group["callouts"] as $callout_id) {
+					// Only grab each callout once
 					if (!in_array($callout_id,$ids)) {
 						$callout = $this->getCallout($callout_id);
+						$ids[] = $callout_id;
+
+						// If we're looking at only the ones the user is allowed to access, check levels
 						if (!$auth || $this->Level >= $callout["level"]) {
-							$items[] = $callout;
-							$ids[] = $callout_id;
+							$callouts[] = $callout;
 							$names[] = $callout["name"];
 						}
 					}
 				}
 			}
 			
-			array_multisort($names,$items);
-			return $items;
-		}
-
-		/*
-			Function: getChange
-				Get a pending change.
-
-			Parameters:
-				id - The id of the pending change.
-
-			Returns:
-				A pending change entry from the bigtree_pending_changes table.
-		*/
-
-		static function getChange($id) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
+			array_multisort($names,$callouts);
+			return $callouts;
 		}
 
 		/*
@@ -3267,31 +3239,42 @@
 			global $bigtree;
 
 			if (!is_array($change)) {
-				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$change'"));
+				// We don't need the changes decoded
+				$change = static::getPendingChange($change,false);
 			}
 
-			if ($change["table"] == "bigtree_pages" && $change["item_id"]) {
-				return $bigtree["config"]["admin_root"]."pages/edit/".$change["item_id"]."/";
-			}
-
+			// Pages are easy
 			if ($change["table"] == "bigtree_pages") {
-				return $bigtree["config"]["admin_root"]."pages/edit/p".$change["id"]."/";
+				if ($change["item_id"]) {
+					return $bigtree["config"]["admin_root"]."pages/edit/".$change["item_id"]."/";
+				} else {
+					return $bigtree["config"]["admin_root"]."pages/edit/p".$change["id"]."/";
+				}
 			}
 
-			$modid = $change["module"];
-			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '$modid'"));
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = '".$change["table"]."'"));
-			$action = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE `interface` = '".$form["id"]."' AND in_nav = ''"));
-
+			// Items pending creation don't have an item_id so we assign one
 			if (!$change["item_id"]) {
 				$change["item_id"] = "p".$change["id"];
 			}
 
-			if ($action) {
-				return $bigtree["config"]["admin_root"].$module["route"]."/".$action["route"]."/".$change["item_id"]."/";
-			} else {
-				return $bigtree["config"]["admin_root"].$module["route"]."/edit/".$change["item_id"]."/";
+			// Find a form that uses this table (it's our best guess here)
+			$form_id = static::$DB->fetchSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $change["table"]);
+			if (!$form_id) {
+				return false;
 			}
+
+			// Get the module route
+			$module_route = static::$DB->fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $change["module"]);
+			// We set in_nav to empty because edit links aren't in nav (and add links are) so we can predict where the edit action will be this way
+			$action_route = static::$DB->fetchSingle("SELECT route FROM bigtree_module_actions WHERE `interface` = ? AND in_nav = ''", $form_id);
+
+			// Got an action
+			if ($action_route) {
+				return $bigtree["config"]["admin_root"].$module_route."/".$action_route."/".$change["item_id"]."/";
+			}
+
+			// Couldn't find a link
+			return false;
 		}
 
 		/*
@@ -3310,42 +3293,43 @@
 				$user = static::getUser($user);
 			}
 
-			if (!is_array($user["alerts"])) {
-				return false;
-			}
-
-			$alerts = array();
-			// We're going to generate a list of pages the user cares about first to get their paths.
-			$where = array();
-			foreach ($user["alerts"] as $alert => $status) {
-				$where[] = "id = '".sqlescape($alert)."'";
-			}
-			if (!count($where)) {
-				return false;
+			// Alerts is empty, nothing to check
+			$user["alerts"] = array_filter((array)$user["alerts"]);
+			if (!$user["alerts"]) {
+				return array();
 			}
 
 			// If we care about the whole tree, skip the madness.
 			if ($user["alerts"][0] == "on") {
-				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
-				while ($f = sqlfetch($q)) {
-					$alerts[] = $f;
-				}
+				return static::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
+											  FROM bigtree_pages 
+											  WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+											  ORDER BY current_age DESC");
 			} else {
-				$paths = array();
-				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
-				while ($f = sqlfetch($q)) {
-					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
+				// We're going to generate a list of pages the user cares about first to get their paths.
+				foreach ($user["alerts"] as $alert => $status) {
+					$where[] = "id = '".static::$DB->escape($alert)."'";
 				}
-				if (count($paths)) {
+
+				// Now from this we'll build a path query
+				$path_query = array();
+				$path_strings = static::$DB->fetchAllSingle("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
+				foreach ($path_strings as $path) {
+					$path = static::$DB->escape($path);
+					$path_query[] = "path = '$path' OR path LIKE '$path/%'";
+				}
+
+				// Only run if the pages requested still exist
+				if (count($path_query)) {
 					// Find all the pages that are old that contain our paths
-					$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
-					while ($f = sqlfetch($q)) {
-						$alerts[] = $f;
-					}
+					$alerts = static::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
+													 FROM bigtree_pages 
+													 WHERE max_age > 0 AND (".implode(" OR ",$path_query).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+													 ORDER BY current_age DESC");
 				}
 			}
 
-			return $alerts;
+			return array();
 		}
 
 		/*
@@ -3360,7 +3344,7 @@
 		*/
 		
 		static function getExtension($id) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $id);
 		}
 
 		/*
@@ -3375,12 +3359,7 @@
 		*/
 		
 		static function getExtensions($sort = "last_updated DESC") {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'extension' ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_extensions WHERE type = 'extension' ORDER BY $sort");
 		}
 
 		/*
@@ -3395,12 +3374,7 @@
 		*/
 
 		static function getFeeds($sort = "name ASC") {
-			$feeds = array();
-			$q = sqlquery("SELECT * FROM bigtree_feeds ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$feeds[] = $f;
-			}
-			return $feeds;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_feeds ORDER BY $sort");
 		}
 
 		/*
@@ -3411,17 +3385,17 @@
 				id - The id of the file type.
 
 			Returns:
-				A field type entry with the "files" column decoded.
+				A field type entry with the "use_cases" column decoded.
 		*/
 
 		static function getFieldType($id) {
-			$id = sqlescape($id);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_field_types WHERE id = '$id'"));
-			if (!$item) {
+			$field_type = static::$DB->fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $id);
+			if (!$field_type) {
 				return false;
 			}
-			$item["use_cases"] = json_decode($item["use_cases"],true);
-			return $item;
+
+			$field_type["use_cases"] = json_decode($field_type["use_cases"],true);
+			return $field_type;
 		}
 
 		/*
@@ -3436,12 +3410,7 @@
 		*/
 
 		static function getFieldTypes($sort = "name ASC") {
-			$types = array();
-			$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$types[] = $f;
-			}
-			return $types;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_field_types ORDER BY $sort");
 		}
 
 		/*
@@ -3456,11 +3425,15 @@
 		*/
 
 		static function getFullNavigationPath($id, $path = array()) {
-			$f = sqlfetch(sqlquery("SELECT route,id,parent FROM bigtree_pages WHERE id = '$id'"));
-			$path[] = BigTreeCMS::urlify($f["route"]);
-			if ($f["parent"] != 0) {
-				return static::getFullNavigationPath($f["parent"],$path);
+			$page_info = static::$DB->fetch("SELECT route, parent FROM bigtree_pages WHERE id = ?", $id);
+			$path[] = $page_info["route"];
+			
+			// If we have a higher page, keep recursing up
+			if ($page_info["parent"]) {
+				return static::getFullNavigationPath($page_info["parent"],$path);
 			}
+
+			// Reverse since we started with the deepest level but want the inverse
 			$path = implode("/",array_reverse($path));
 			return $path;
 		}
@@ -3477,13 +3450,10 @@
 		*/
 
 		static function getHiddenNavigationByParent($parent) {
-			$nav = array();
-			$q = sqlquery("SELECT id,nav_title as title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' ORDER BY nav_title asc");
-			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
-				$nav[] = $nav_item;
-			}
-			return $nav;
+			return static::$DB->fetchAll("SELECT id, nav_title as title, publish_at, expire_at, template, ga_page_views 
+										  FROM bigtree_pages 
+										  WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' 
+										  ORDER BY nav_title ASC");
 		}
 
 		/*
@@ -4777,22 +4747,26 @@
 
 			Parameters:
 				id - The id of the change.
+				decode - Whether to decode change columns (defaults to true)
 
 			Returns:
 				A entry from the table with the "changes" column decoded.
 		*/
 
-		static function getPendingChange($id) {
-			$id = sqlescape($id);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
-			if (!$item) {
-				return false;
+		static function getPendingChange($id,$decode = true) {
+			$change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?",$id);
+			if (!$change || !$decode) {
+				return $change;
 			}
-			$item["changes"] = json_decode($item["changes"],true);
-			$item["mtm_changes"] = json_decode($item["mtm_changes"],true);
-			$item["tags_changes"] = json_decode($item["tags_changes"],true);
-			return $item;
+
+			$change["changes"] = json_decode($change["changes"],true);
+			$change["mtm_changes"] = json_decode($change["mtm_changes"],true);
+			$change["tags_changes"] = json_decode($change["tags_changes"],true);
+			return $change;
 		}
+
+		// For backwards compatibility
+		static function getChange($id) { return static::getPendingChange($id,false); }
 
 		/*
 			Function: getPublishableChanges

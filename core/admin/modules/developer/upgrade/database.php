@@ -757,5 +757,15 @@
 
 		// Remove unused type column
 		sqlquery("ALTER TABLE `bigtree_pending_changes` DROP COLUMN `type`");
+
+		// Add indexes
+		sqlquery("CREATE INDEX `name` ON `bigtree_field_types` (`name`)");
+		sqlquery("CREATE INDEX `name` ON `bigtree_callout_groups` (`name`)");
+		sqlquery("CREATE INDEX `position` ON `bigtree_callouts` (`position`)");
+		sqlquery("CREATE INDEX `name` ON `bigtree_callouts` (`name`)");
+		sqlquery("CREATE INDEX `name` ON `bigtree_extensions` (`name`)");
+		sqlquery("CREATE INDEX `last_updated` ON `bigtree_extensions` (`last_updated`)");
+		sqlquery("CREATE INDEX `name` ON `bigtree_feeds` (`name`)");
+		sqlquery("CREATE INDEX `name` ON `bigtree_field_types` (`name`)");
 	}
 ?>
