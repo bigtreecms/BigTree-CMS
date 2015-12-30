@@ -3469,13 +3469,15 @@
 		*/
 
 		function getMessage($id) {
-			$message = sqlfetch(sqlquery("SELECT * FROM bigtree_messages WHERE id = '".sqlescape($id)."'"));
+			$message = static::$DB->fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id);
 			if (!$message) {
 				return false;
 			}
+
 			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
 				return false;
 			}
+
 			return $message;
 		}
 
@@ -3491,25 +3493,29 @@
 		*/
 
 		function getMessageChain($id) {
-			$message = $m = $this->getMessage($id);
-			$message["selected"] = true;
+			$message = $this->getMessage($id);
 			if (!$message) {
 				return false;
 			}
+
+			// Show this message as special in the chain
+			$message["selected"] = true;
 			$chain = array($message);
 
 			// Find parents
-			while ($m["response_to"]) {
-				$m = $this->getMessage($m["response_to"]);
+			while ($message["response_to"]) {
+				$message = $this->getMessage($message["response_to"]);
 				// Prepend this message to the chain
-				$chain = array_merge(array($m),$chain);
+				array_unshift($chain,$message);
 			}
 
 			// Find children
-			$m = $message;
-			while ($f = sqlfetch(sqlquery("SELECT id FROM bigtree_messages WHERE response_to = '".$m["id"]."'"))) {
-				$m = $this->getMessage($f["id"]);
-				$chain[] = $m;
+			$id = $chain[count($chain) - 1]["id"];
+			while ($id = static::fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
+				$message = $this->getMessage($id);
+				if ($message) {
+					$chain[] = $message;
+				}
 			}
 
 			return $chain;
@@ -3527,22 +3533,26 @@
 		*/
 
 		static function getMessages($user = false) {
-			$user = sqlescape($user);
-			$sent = array();
-			$read = array();
-			$unread = array();
-			$q = sqlquery("SELECT bigtree_messages.*, bigtree_users.name AS sender_name, bigtree_users.email AS sender_email FROM bigtree_messages JOIN bigtree_users ON bigtree_messages.sender = bigtree_users.id WHERE sender = '$user' OR recipients LIKE '%|$user|%' ORDER BY date DESC");
+			$user = static::$DB->escape($user);
+			$sent = $read = $unread = array();
+			$messages = static::$DB->fetchAll("SELECT bigtree_messages.*, 
+													  bigtree_users.name AS sender_name, 
+													  bigtree_users.email AS sender_email 
+											   FROM bigtree_messages JOIN bigtree_users 
+											   ON bigtree_messages.sender = bigtree_users.id 
+											   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
+											   ORDER BY date DESC");
 
-			while ($f = sqlfetch($q)) {
+			foreach ($messages as $message) {
 				// If we're the sender put it in the sent array.
-				if ($f["sender"] == $user) {
-					$sent[] = $f;
+				if ($message["sender"] == $user) {
+					$sent[] = $message;
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($f["read_by"] && strpos($f["read_by"],"|".$user."|") !== false) {
-						$read[] = $f;
+					if ($message["read_by"] && strpos($message["read_by"],"|".$user."|") !== false) {
+						$read[] = $message;
 					} else {
-						$unread[] = $f;
+						$unread[] = $message;
 					}
 				}
 			}
@@ -3562,8 +3572,7 @@
 		*/
 
 		static function getModule($id) {
-			$id = sqlescape($id);
-			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '$id'"));
+			$module = static::$DB->fetch("SELECT * FROM bigtree_modules WHERE id = ?", $id);
 			if (!$module) {
 				return false;
 			}
@@ -3584,8 +3593,7 @@
 		*/
 
 		static function getModuleAction($id) {
-			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE id = '$id'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE id = ?", $id);
 		}
 
 		/*
@@ -3605,17 +3613,19 @@
 			if (!count($route)) {
 				$route = array("");
 			}
-			$module = sqlescape($module);
+
 			$commands = array();
-			$action = false;
-			while (count($route) && !$action) {
-				$route_string = sqlescape(implode("/",$route));
-				$action = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND route = '$route_string'"));
+
+			while (count($route)) {
+				$action = static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE module = ? AND route = ?", $module, implode("/",$route));
+
+				// If we found an action for this sequence, return it with the extra URL route commands
 				if ($action) {
 					return array("action" => $action, "commands" => array_reverse($commands));
 				}
-				$commands[] = end($route);
-				$route = array_slice($route,0,-1);
+
+				// Otherwise strip off the last route as a command and try again
+				$commands[] = array_pop($route);
 			}
 
 			return false;
@@ -3652,8 +3662,8 @@
 		*/
 
 		static function getModuleActionForInterface($interface) {
-			$interface = sqlescape(is_array($interface) ? $interface["id"] : $interface);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE interface = '$interface' ORDER BY route DESC"));
+			return static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC",
+									  is_array($interface) ? $interface["id"] : $interface);
 		}
 
 		/*
@@ -3706,17 +3716,8 @@
 		*/
 
 		static function getModuleActions($module) {
-			if (is_array($module)) {
-				$module = sqlescape($module["id"]);
-			} else {
-				$module = sqlescape($module);
-			}
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' ORDER BY position DESC, id ASC");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? ORDER BY position DESC, id ASC",
+										 is_array($module) ? $module["id"] : $module);
 		}
 
 		/*
@@ -3731,8 +3732,7 @@
 		*/
 
 		static function getModuleByClass($class) {
-			$class = sqlescape($class);
-			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE class = '$class'"));
+			$module = static::$DB->fetch("SELECT * FROM bigtree_modules WHERE class = ?", $class);
 			if (!$module) {
 				return false;
 			}
@@ -3753,8 +3753,7 @@
 		*/
 
 		static function getModuleByRoute($route) {
-			$route = sqlescape($route);
-			$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE route = '$route'"));
+			$module = static::$DB->fetch("SELECT * FROM bigtree_modules WHERE route = ?", $route);
 			if (!$module) {
 				return false;
 			}
@@ -3768,23 +3767,21 @@
 				Gets embeddable forms from bigtree_module_interfaces.
 
 			Parameters:
-				sort - The field to sort by.
+				sort - The field to sort by (defaults to title ASC)
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
 				An array of embeddable form entries from bigtree_module_interfaces.
 		*/
 
-		static function getModuleEmbedForms($sort = "title",$module = false) {
-			$items = array();
-			if ($module) {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' ORDER BY $sort");
-			}
-			while ($interface = sqlfetch($q)) {
+		static function getModuleEmbedForms($sort = "title ASC",$module = false) {
+			$interfaces = static::getModuleInterfaces($module,$sort,"embeddable-form");
+
+			// Return previous table format
+			$forms = array();
+			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"],true);
-				$items[] = array(
+				$forms[] = array(
 					"id" => $interface["id"],
 					"module" => $interface["module"],
 					"title" => $interface["title"],
@@ -3799,7 +3796,8 @@
 					"hooks" => $settings["hooks"]
 				);
 			}
-			return $items;
+
+			return $forms;
 		}
 
 		/*
@@ -3807,28 +3805,25 @@
 				Gets forms from bigtree_module_interfaces with fields decoded.
 
 			Parameters:
-				sort - The field to sort by.
+				sort - The field to sort by (defaults to title ASC)
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
 				An array of entries from bigtree_module_interfaces with "fields" decoded.
 		*/
 
-		static function getModuleForms($sort = "title",$module = false) {
-			$items = array();
-			if ($module) {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' ORDER BY $sort");
-			}
-			while ($f = sqlfetch($q)) {
-				// Return previous table format
-				$settings = json_decode($f["settings"],true);
-				$items[] = array(
-					"id" => $f["id"],
-					"module" => $f["module"],
-					"title" => $f["title"],
-					"table" => $f["table"],
+		static function getModuleForms($sort = "title ASC",$module = false) {
+			$interfaces = static::getModuleInterfaces($module,$sort,"form");
+
+			// Return previous table format
+			$forms = array();
+			foreach ($interfaces as $interface) {
+				$settings = json_decode($interface["settings"],true);
+				$forms[] = array(
+					"id" => $interface["id"],
+					"module" => $interface["module"],
+					"title" => $interface["title"],
+					"table" => $interface["table"],
 					"fields" => BigTree::arrayValue($settings["fields"]),
 					"default_position" => $settings["default_position"],
 					"return_view" => $settings["return_view"],
@@ -3837,7 +3832,7 @@
 					"hooks" => $settings["hooks"]
 				);
 			}
-			return $items;
+			return $forms;
 		}
 
 		/*
@@ -3856,8 +3851,7 @@
 		*/
 
 		static function getModuleGroup($id) {
-			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE id = '$id'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $id);
 		}
 
 		/*
@@ -3877,8 +3871,7 @@
 
 
 		static function getModuleGroupByName($name) {
-			$name = sqlescape(strtolower($name));
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE LOWER(name) = '$name'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE LOWER(name) = ?", strtolower($name));
 		}
 
 		/*
@@ -3897,7 +3890,7 @@
 		*/
 
 		static function getModuleGroupByRoute($route) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_groups WHERE route = '".sqlescape($route)."'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE route = ?", $route);
 		}
 
 		/*
@@ -3912,12 +3905,14 @@
 		*/
 
 		static function getModuleGroups($sort = "position DESC, id ASC") {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_groups ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[$f["id"]] = $f;
+			$groups = array();
+			
+			$query = static::$DB->query("SELECT * FROM bigtree_module_groups ORDER BY $sort");
+			while ($group = $query->fetch()) {
+				$groups[$group["id"]] = $group;
 			}
-			return $items;
+
+			return $groups;
 		}
 
 		/*
@@ -3925,21 +3920,34 @@
 				Returns an array of interfaces related to the given module.
 
 			Parameters:
-				module - The module or module ID to pull interfaces for
+				module - The module or module ID to pull interfaces for (if false, returns all interfaces)
 				order - Sort order (defaults to title ASC)
+				type - The type of interface to return (defaults to false for all types)
 
 			Returns:
 				An array of interface entries from bigtree_module_interfaces.
 		*/
 
-		static function getModuleInterfaces($module,$order = "`title` ASC") {
-			$module = sqlescape(is_array($module) ? $module["id"] : $module);
-			$interfaces = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `module` = '$module' ORDER BY $order");
-			while ($f = sqlfetch($q)) {
-				$interfaces[] = $f;
+		static function getModuleInterfaces($module = false,$order = "`title` ASC",$type = false) {
+			$where = $parameters = array();
+
+			// Add module restriction
+			if ($module !== false) {
+				$where[] = "`module` = ?";
+				$parameters[] = is_array($module) ? $module["id"] : $module;
 			}
-			return $interfaces;
+
+			// Add type restriciton
+			if ($type !== false) {
+				$where[] = "`type` = ?";
+				$parameters[] = $type;
+			}
+
+			// Add the query
+			$where = count($where) ? " WHERE ".implode(" AND ",$where) : "";
+			array_unshift($parameters,"SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
+
+			return call_user_func_array(array(static::$DB,"fetchAll"),$parameters);
 		}
 
 		/*
@@ -3954,17 +3962,8 @@
 		*/
 
 		static function getModuleNavigation($module) {
-			if (is_array($module)) {
-				$module = sqlescape($module["id"]);
-			} else {
-				$module = sqlescape($module);
-			}
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_actions WHERE module = '$module' AND in_nav = 'on' ORDER BY position DESC, id ASC");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' ORDER BY position DESC, id ASC",
+										 is_array($module) ? $module["id"] : $module);
 		}
 
 		/*
@@ -3972,23 +3971,21 @@
 				Gets reports interfaces from the bigtree_module_interfaces table.
 
 			Parameters:
-				sort - The field to sort by.
+				sort - The field to sort by (defaults to title ASC)
 				module - Specific module to pull reports for (defaults to all modules).
 
 			Returns:
 				An array of report interfaces from bigtree_module_interfaces.
 		*/
 
-		static function getModuleReports($sort = "title",$module = false) {
-			$items = array();
-			if ($module) {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'report' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'report' ORDER BY $sort");
-			}
-			while ($interface = sqlfetch($q)) {
+		static function getModuleReports($sort = "title ASC",$module = false) {
+			$interfaces = static::getModuleInterfaces($module,$sort,"report");
+
+			// Support the old table format
+			$reports = array();
+			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"],true);
-				$items[] = array(
+				$reports[] = array(
 					"id" => $interface["id"],
 					"module" => $interface["module"],
 					"title" => $interface["title"],
@@ -4000,12 +3997,12 @@
 					"view" => $settings["view"]
 				);
 			}
-			return $items;
+			return $reports;
 		}
 
 		/*
 			Function: getModules
-				Returns a list of modules.
+				Returns an array of modules.
 
 			Parameters:
 				sort - The sort order (defaults to oldest first).
@@ -4016,14 +4013,20 @@
 		*/
 
 		function getModules($sort = "id ASC",$auth = true) {
-			$items = array();
-			$q = sqlquery("SELECT bigtree_modules.*,bigtree_module_groups.name AS group_name FROM bigtree_modules LEFT JOIN bigtree_module_groups ON bigtree_modules.`group` = bigtree_module_groups.id ORDER BY $sort");
-			while ($module = sqlfetch($q)) {
+			$modules = arary();
+			$results = static::$DB->fetchAll("SELECT bigtree_modules.*, bigtree_module_groups.name AS group_name 
+											  FROM bigtree_modules LEFT JOIN bigtree_module_groups 
+											  ON bigtree_modules.`group` = bigtree_module_groups.id 
+											  ORDER BY $sort");
+
+			foreach ($results as $module) {
+				// Check auth
 				if (!$auth || $this->checkAccess($module)) {
-					$items[$module["id"]] = $module;
+					$modules[$module["id"]] = $module;
 				}
 			}
-			return $items;
+
+			return $modules;
 		}
 
 		/*
@@ -4040,23 +4043,23 @@
 		*/
 
 		function getModulesByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
-			if (is_array($group)) {
-				$group = sqlescape($group["id"]);
-			} else {
-				$group = sqlescape($group);
-			}
-			$items = array();
+			$modules = array();
+			$group = is_array($group) ? $group["id"] : $group;
+
 			if ($group) {
-				$q = sqlquery("SELECT * FROM bigtree_modules WHERE `group` = '$group' ORDER BY $sort");
+				$results = static::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+				$results = static::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
 			}
-			while ($module = sqlfetch($q)) {
-				if ($this->checkAccess($module) || !$auth) {
-					$items[$module["id"]] = $module;
+
+			foreach ($results as $module) {
+				// Check auth
+				if (!$auth || $this->checkAccess($module)) {
+					$modules[$module["id"]] = $module;
 				}
 			}
-			return $items;
+
+			return $modules;
 		}
 
 		/*
@@ -4064,27 +4067,25 @@
 				Returns a list of all view entries in the bigtree_module_interfaces table.
 
 			Parameters:
-				sort - The column to sort by.
+				sort - The column to sort by (defaults to title ASC)
 				module - Specific module to pull views for (defaults to all modules).
 
 			Returns:
 				An array of view entries with "fields" decoded.
 		*/
 
-		static function getModuleViews($sort = "title",$module = false) {
-			$items = array();
-			if ($module !== false) {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `module` = '".sqlescape($module)."' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' ORDER BY $sort");
-			}
-			while ($view = sqlfetch($q)) {
-				$settings = json_decode($view["settings"],true);
-				$items[] = array(
-					"id" => $view["id"],
-					"module" => $view["module"],
-					"title" => $view["title"],
-					"table" => $view["table"],
+		static function getModuleViews($sort = "title ASC",$module = false) {
+			$interfaces = static::getModuleInterfaces($module,$sort,"view");
+
+			// Support the old table format
+			$views = array();
+			foreach ($interfaces as $interface) {
+				$settings = json_decode($interface["settings"],true);
+				$views[] = array(
+					"id" => $interface["id"],
+					"module" => $interface["module"],
+					"title" => $interface["title"],
+					"table" => $interface["table"],
 					"type" => $settings["type"],
 					"fields" => $settings["fields"],
 					"options" => $settings["options"],
@@ -4093,7 +4094,8 @@
 					"related_form" => $settings["related_form"]
 				);
 			}
-			return $items;
+
+			return $views;
 		}
 
 		/*
@@ -4109,15 +4111,16 @@
 		*/
 
 		static function getNaturalNavigationByParent($parent,$levels = 1) {
-			$nav = array();
-			$q = sqlquery("SELECT id,nav_title AS title,parent,external,new_window,template,publish_at,expire_at,path,ga_page_views FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' ORDER BY position DESC, id ASC");
-			while ($nav_item = sqlfetch($q)) {
-				$nav_item["external"] = BigTreeCMS::replaceRelativeRoots($nav_item["external"]);
-				if ($levels > 1) {
-					$nav_item["children"] = static::getNaturalNavigationByParent($nav_item["id"],$levels - 1);
+			$nav = static::$DB->fetchAll("SELECT id, nav_title AS title, template, publish_at, expire_at, ga_page_views 
+										  FROM bigtree_pages 
+										  WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' 
+										  ORDER BY position DESC, id ASC");
+			if ($levels > 1) {
+				foreach ($nav as &$item) {
+					$item["children"] = static::getNaturalNavigationByParent($item["id"],$levels - 1);
 				}
-				$nav[] = $nav_item;
 			}
+
 			return $nav;
 		}
 
