@@ -4136,7 +4136,7 @@
 		*/
 
 		static function getPackage($id) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $id);
 		}
 
 		/*
@@ -4151,12 +4151,7 @@
 		*/
 
 		static function getPackages($sort = "last_updated DESC") {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
 		}
 
 		/*
@@ -4199,8 +4194,8 @@
 		static function getPageAccessLevelByUser($page,$user) {
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'"));
-				$changes = json_decode($f["changes"],true);
+				$pending_change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($page,1));
+				$changes = json_decode($pending_change["changes"],true);
 				return static::getPageAccessLevelByUser($changes["parent"],$user);
 			}
 
@@ -4226,13 +4221,13 @@
 			}
 
 			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
+			$page_parent = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
 
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$parent_permission = $permissions["page"][$page_data["parent"]];
-			while ((!$parent_permission || $parent_permission == "i") && $page_data["parent"]) {
-				$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".$page_data["parent"]."'"));
-				$parent_permission = $permissions["page"][$page_data["parent"]];
+			$parent_permission = $permissions["page"][$page_parent];
+			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
+				$parent_id = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
+				$parent_permission = $permissions["page"][$parent_id];
 			}
 
 			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
@@ -4254,12 +4249,15 @@
 
 		static function getPageAdminLinks() {
 			global $bigtree;
-			$pages = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
-			while ($f = sqlfetch($q)) {
-				$pages[] = $f;
-			}
-			return $pages;
+
+			$admin_root = static::$DB->escape($bigtree["config"]["admin_root"]);
+			$partial_root = static::$DB->escape(str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"]));
+
+			return static::$DB->fetchAll("SELECT * FROM bigtree_pages 
+										  WHERE resources LIKE '%$admin_root%' OR 
+										  		resources LIKE '%$partial_root%' OR
+										  		resources LIKE '%{adminroot}%'
+										  ORDER BY nav_title ASC");
 		}
 
 		/*
@@ -4274,13 +4272,13 @@
 		*/
 
 		static function getPageChanges($page) {
-			$page = sqlescape($page);
-			$c = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'"));
-			if (!$c) {
+			$change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
+			if (!$change) {
 				return false;
 			}
-			$c["changes"] = json_decode($c["changes"],true);
-			return $c;
+
+			$change["changes"] = json_decode($change["changes"],true);
+			return $change;
 		}
 
 		/*
@@ -4296,18 +4294,12 @@
 		*/
 
 		static function getPageChildren($page,$sort = "nav_title ASC") {
-			$page = sqlescape($page);
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$page' AND archived != 'on' ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $page);
 		}
 
 		/*
 			Function: getPageLineage
-				Returns all the ids of pages above this page.
+				Returns all the ids of pages above this page not including the homepage.
 			
 			Parameters:
 				page - Page ID
@@ -4318,14 +4310,11 @@
 		
 		function getPageLineage($page) {
 			$parents = array();
-			$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
-			$parents[] = $f["parent"];
-			while ($f["parent"]) {
-				$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($f["parent"])."'"));
-				if ($f["parent"]) {
-					$parents[] = $f["parent"];
-				}
+
+			while ($page = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
+				$parents[] = $page;
 			}
+
 			return $parents;
 		}
 
@@ -4338,12 +4327,7 @@
 		*/
 
 		static function getPageIds() {
-			$ids = array();
-			$q = sqlquery("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
-			while ($f = sqlfetch($q)) {
-				$ids[] = $f["id"];
-			}
-			return $ids;
+			return static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
 		}
 
 		/*
@@ -4369,10 +4353,12 @@
 			}
 			
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape(implode("/",$path));
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
-			if ($f) {
-				return array($f["id"],$commands,$f["routed"]);
+			$page = static::$DB->fetch("SELECT bigtree_pages.id, bigtree_templates.routed 
+										FROM bigtree_pages LEFT JOIN bigtree_templates 
+										ON bigtree_pages.template = bigtree_templates.id 
+										WHERE path = ? AND archived = '' $publish_at", implode("/",$path));
+			if ($page) {
+				return array($page["id"],$commands,$page["routed"]);
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.
@@ -4380,11 +4366,16 @@
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path)-$x];
-				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+				$path_string = implode("/",array_slice($path,0,-1 * $x));
+				
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
-				if ($f) {
-					return array($f["id"],array_reverse($commands),"on");
+				$page = static::$DB->fetch("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates 
+											ON bigtree_pages.template = bigtree_templates.id 
+											WHERE bigtree_pages.path = ? AND 
+												  bigtree_pages.archived = '' AND 
+												  bigtree_templates.routed = 'on' $publish_at", $path_string);
+				if ($page) {
+					return array($page["id"],array_reverse($commands),"on");
 				}
 			}
 			
@@ -4407,46 +4398,43 @@
 		*/
 
 		function getPageOfSettings($page = 1,$query = "") {
+			$query_parts = array(1);
+
 			// If we're querying...
 			if ($query) {
-				$qparts = explode(" ",$query);
-				$qp = array();
-				foreach ($qparts as $part) {
-					$part = sqlescape(strtolower($part));
-					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(`value`) LIKE '%$part%')";
-				}
-				// If we're not a developer, leave out locked settings
-				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
-				// If we are a developer, show them.
-				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE ".implode(" AND ",$qp)." AND system = '' ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
-				}
-			} else {
-				// If we're not a developer, leave out locked settings
-				if ($this->Level < 2) {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
-				// If we are a developer, show them.
-				} else {
-					$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY name LIMIT ".(($page - 1 ) * static::$PerPage).",".static::$PerPage);
+				$string_parts = explode(" ",$query);
+				foreach ($string_parts as $part) {
+					$part = static::$DB->escape($part);
+					$query_parts[] = "(name LIKE '%$part%' OR `value` LIKE '%$part%')";
 				}
 			}
 
-			$items = array();
-			while ($f = sqlfetch($q)) {
-				$f["value"] = json_decode($f["value"],true);
-				if (is_array($f["value"])) {
-					$f["value"] = BigTree::untranslateArray($f["value"]);
+			// Check whether we should return developer only settings
+			$locked = ($this->Level < 2) ? " AND locked = ''" : "";
+
+			// Get the page
+			$settings = static::$DB->fetchAll("SELECT * FROM bigtree_settings 
+											   WHERE ".implode(" AND ",$query_parts)." $locked AND system = '' 
+											   ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+
+			// Decode values
+			foreach ($settings as &$setting) {
+				if ($setting["encrypted"]) {
+
 				} else {
-					$f["value"] = BigTreeCMS::replaceInternalPageLinks($f["value"]);
+					$setting["value"] = json_decode($setting["value"],true);
+	
+					if (is_array($setting["value"])) {
+						$setting["value"] = BigTree::untranslateArray($setting["value"]);
+					} else {
+						$setting["value"] = BigTreeCMS::replaceInternalPageLinks($setting["value"]);
+					}
 				}
-				$f["description"] = BigTreeCMS::replaceInternalPageLinks($f["description"]);
-				if ($f["encrypted"]) {
-					$f["value"] = "[Encrypted Text]";
-				}
-				$items[] = $f;
+
+				$setting["description"] = BigTreeCMS::replaceInternalPageLinks($f["description"]);
 			}
-			return $items;
+
+			return $settings;
 		}
 
 		/*
@@ -4465,24 +4453,23 @@
 		static function getPageOfUsers($page = 1,$query = "",$sort = "name ASC") {
 			// If we're searching.
 			if ($query) {
-				$qparts = explode(" ",$query);
-				$qp = array();
-				foreach ($qparts as $part) {
-					$part = sqlescape(strtolower($part));
-					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(email) LIKE '%$part%' OR LOWER(company) LIKE '%$part%')";
+				$string_parts = explode(" ",$query);
+				$query_parts = array();
+
+				foreach ($string_parts as $part) {
+					$part = static::$DB->escape($part);
+					$query_parts[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
 				}
-				$q = sqlquery("SELECT * FROM bigtree_users WHERE ".implode(" AND ",$qp)." ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+
+				return static::$DB->fetchAll("SELECT * FROM bigtree_users 
+											  WHERE ".implode(" AND ",$query_parts)." 
+											  ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 			// If we're grabbing anyone.
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_users ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+				return static::$DB->fetchAll("SELECT * FROM bigtree_users 
+											  ORDER BY $sort 
+											  LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 			}
-
-			$items = array();
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-
-			return $items;
 		}
 
 		/*
@@ -4497,9 +4484,7 @@
 		*/
 
 		static function getPageRevision($id) {
-			$id = sqlescape($id);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_page_revisions WHERE id = '$id'"));
-			return $item;
+			return static::$DB->fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $id);
 		}
 
 		/*
@@ -4514,17 +4499,23 @@
 		*/
 
 		static function getPageRevisions($page) {
-			$page = sqlescape($page);
+			$saved = $unsaved = array();
+			$revisions = static::$DB->fetchAll("SELECT bigtree_users.name, 
+													   bigtree_users.email, 
+													   bigtree_page_revisions.saved, 
+													   bigtree_page_revisions.saved_description, 
+													   bigtree_page_revisions.updated_at, 
+													   bigtree_page_revisions.id 
+												FROM bigtree_page_revisions JOIN bigtree_users 
+												ON bigtree_page_revisions.author = bigtree_users.id 
+												WHERE page = ? 
+												ORDER BY updated_at DESC", $page);
 
-			// Get all previous revisions, add them to the saved or unsaved list
-			$unsaved = array();
-			$saved = array();
-			$q = sqlquery("SELECT bigtree_users.name, bigtree_users.email, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
-			while ($f = sqlfetch($q)) {
-				if ($f["saved"]) {
-					$saved[] = $f;
+			foreach ($revisions as $revision) {
+				if ($revision["saved"]) {
+					$saved[] = $revision;
 				} else {
-					$unsaved[] = $f;
+					$unsaved[] = $revision;
 				}
 			}
 
@@ -4540,12 +4531,7 @@
 		*/
 
 		static function getPages() {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages ORDER BY id ASC");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_pages ORDER BY id ASC");
 		}
 
 		/*
@@ -4617,18 +4603,23 @@
 			// Check if they have a page title.
 			if ($page["title"]) {
 				$score += 5;
+
 				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
-				if ($r == 0) {
+				$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
+												   WHERE title = ? AND id != ?", $page["title"], $page["id"]);
+				if (!$count) {
 					// They have a unique title
 					$score += 5;
 				} else {
-					$recommendations[] = "Your page title should be unique. ".($r-1)." other page(s) have the same title.";
+					$recommendations[] = "Your page title should be unique. ".($count - 1)." other page(s) have the same title.";
 				}
+
+				// Check title length / word count
 				$words = $textStats->wordCount($page["title"]);
 				$length = mb_strlen($page["title"]);
+
+				// Minimum of 4 words, less than 72 characters
 				if ($words >= 4 && $length <= 72) {
-					// Fits the bill!
 					$score += 5;
 				} else {
 					$recommendations[] = "Your page title should be no more than 72 characters and should contain at least 4 words.";
@@ -4640,11 +4631,13 @@
 			// Check for meta description
 			if ($page["meta_description"]) {
 				$score += 5;
+
 				// They have a meta description, let's see if it's no more than 165 characters.
-				if (mb_strlen($page["meta_description"]) <= 165) {
+				$meta_length = mb_strlen($page["meta_description"]);
+				if ($meta_length <= 165) {
 					$score += 5;
 				} else {
-					$recommendations[] = "Your meta description should be no more than 165 characters.  It is currently ".mb_strlen($page["meta_description"])." characters.";
+					$recommendations[] = "Your meta description should be no more than 165 characters.  It is currently $meta_length characters.";
 				}
 			} else {
 				$recommendations[] = "You should enter a meta description.";
@@ -4656,6 +4649,7 @@
 			} else {
 				$recommendations[] = "You should enter a page header.";
 			}
+
 			// Check the content!
 			if (!count($body_fields)) {
 				// If this template doesn't for some reason have a seo body resource, give the benefit of the doubt.
@@ -4720,10 +4714,10 @@
 
 				// Check page freshness
 				$updated = strtotime($page["updated_at"]);
-				$age = time()-$updated-(60*24*60*60);
+				$age = time() - $updated - (60 * 24 * 60 * 60);
 				// See how much older it is than 2 months.
 				if ($age > 0) {
-					$age_score = 10 - floor(2 * ($age / (30*24*60*60)));
+					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
 					if ($age_score < 0) {
 						$age_score = 0;
 					}
@@ -4736,9 +4730,9 @@
 
 			$color = "#008000";
 			if ($score <= 50) {
-				$color = BigTree::colorMesh("#CCAC00","#FF0000",100-(100 * $score / 50));
+				$color = BigTree::colorMesh("#CCAC00","#FF0000",100 - (100 * $score / 50));
 			} elseif ($score <= 80) {
-				$color = BigTree::colorMesh("#008000","#CCAC00",100-(100 * ($score-50) / 30));
+				$color = BigTree::colorMesh("#008000","#CCAC00",100 - (100 * ($score - 50) / 30));
 			}
 
 			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
@@ -4783,11 +4777,11 @@
 		*/
 
 		static function getPublishableChanges($user) {
+			$publishable_changes = array();
+
 			if (!is_array($user)) {
 				$user = static::getUser($user);
 			}
-
-			$changes = array();
 
 			// Setup the default search array to just be pages
 			$search = array("`module` = ''");
@@ -4811,36 +4805,39 @@
 				}
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE ".implode(" OR ",$search)." ORDER BY date DESC");
+			$changes = static::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
+											  WHERE ".implode(" OR ",$search)." 
+											  ORDER BY date DESC");
 
-			while ($f = sqlfetch($q)) {
+			foreach ($changes as $change) {
 				$ok = false;
 
-				if (!$f["item_id"]) {
-					$id = "p".$f["id"];
+				// Append a p if this isn't a change but rather a pending item
+				if (!$change["item_id"]) {
+					$id = "p".$change["id"];
 				} else {
-					$id = $f["item_id"];
+					$id = $change["item_id"];
 				}
 
 				// If they're an admin, they've got it.
 				if ($user["level"] > 0) {
 					$ok = true;
 				// Check permissions on a page if it's a page.
-				} elseif ($f["table"] == "bigtree_pages") {
-					$r = static::getPageAccessLevelByUser($id,$user);
+				} elseif ($change["table"] == "bigtree_pages") {
+					$access_level = static::getPageAccessLevelByUser($id,$user);
 					// If we're a publisher, this is ours!
-					if ($r == "p") {
+					if ($access_level == "p") {
 						$ok = true;
 					}
 				} else {
 					// Check our list of modules.
-					if ($user["permissions"]["module"][$f["module"]] == "p") {
+					if ($user["permissions"]["module"][$change["module"]] == "p") {
 						$ok = true;
 					} else {
 						// Check our group based permissions
-						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = static::getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"],$user);
-						if ($level == "p") {
+						$item = BigTreeAutoModule::getPendingItem($change["table"],$id);
+						$access_level = static::getAccessLevel(static::getModule($change["module"]),$item["item"],$change["table"],$user);
+						if ($access_level == "p") {
 							$ok = true;
 						}
 					}
@@ -4848,13 +4845,13 @@
 
 				// We're a publisher, get the info about the change and put it in the change list.
 				if ($ok) {
-					$f["mod"] = static::getModule($f["module"]);
-					$f["user"] = static::getUser($f["user"]);
-					$changes[] = $f;
+					$change["mod"] = static::getModule($change["module"]);
+					$change["user"] = static::getUser($change["user"]);
+					$publishable_changes[] = $change;
 				}
 			}
 
-			return $changes;
+			return $publishable_changes;
 		}
 
 		/*
@@ -4875,13 +4872,7 @@
 				$user = $this->ID;
 			}
 
-			$changes = array();
-			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE user = '".sqlescape($user)."' ORDER BY date DESC");
-			while ($f = sqlfetch($q)) {
-				$changes[] = $f;
-			}
-
-			return $changes;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_pending_changes WHERE user = ? ORDER BY date DESC", $user);
 		}
 
 		/*
@@ -4897,19 +4888,26 @@
 		*/
 
 		static function getPendingNavigationByParent($parent,$in_nav = true) {
-			$nav = array();
-			$titles = array();
-			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE pending_page_parent = '$parent' AND `table` = 'bigtree_pages' AND item_id IS NULL ORDER BY date DESC");
-			while ($f = sqlfetch($q)) {
-				$page = json_decode($f["changes"],true);
+			$nav = $titles = array();
+			$changes = static::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
+										  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
+										  ORDER BY date DESC", $parent);
+
+			foreach ($changes as $change) {
+				$page = json_decode($change["changes"],true);
+
+				// Only get the portion we're asking for
 				if (($page["in_nav"] && $in_nav) || (!$page["in_nav"] && !$in_nav)) {
-					$titles[] = $page["nav_title"];
 					$page["bigtree_pending"] = true;
 					$page["title"] = $page["nav_title"];
-					$page["id"] = "p".$f["id"];
+					$page["id"] = "p".$change["id"];
+					
+					$titles[] = $page["nav_title"];
 					$nav[] = $page;
 				}
 			}
+
+			// Sort by title
 			array_multisort($titles,$nav);
 			return $nav;
 		}
@@ -4930,24 +4928,10 @@
 			if (is_array($folder)) {
 				$folder = $folder["id"];
 			}
-			$folder = sqlescape($folder);
+			$null_query = $folder ? "" : "OR folder IS NULL";
 
-			$folders = array();
-			$resources = array();
-
-			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE parent = '$folder' ORDER BY name");
-			while ($f = sqlfetch($q)) {
-				$folders[] = $f;
-			}
-
-			if ($folder) {
-				$q = sqlquery("SELECT * FROM bigtree_resources WHERE folder = '$folder' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_resources WHERE folder = 0 OR folder IS NULL ORDER BY $sort");
-			}
-			while ($f = sqlfetch($q)) {
-				$resources[] = $f;
-			}
+			$folders = static::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $folder);
+			$resources = static::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $folder);
 
 			return array("folders" => $folders, "resources" => $resources);
 		}
@@ -4964,6 +4948,7 @@
 		*/
 
 		static function getResourceByFile($file) {
+			// Populate a list of resource prefixes if we don't already have it cached
 			if (static::$IRLPrefixes === false) {
 				static::$IRLPrefixes = array();
 				$thumbnail_sizes = static::getSetting("bigtree-file-manager-thumbnail-sizes");
@@ -4971,27 +4956,34 @@
 					static::$IRLPrefixes[] = $ts["prefix"];
 				}
 			}
+
 			$last_prefix = false;
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape(BigTreeCMS::replaceHardRoots($file))."'"));
-			if (!$item) {
+			$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", $file, BigTreeCMS::replaceHardRoots($file));
+			
+			// If we didn't find the resource, check all the prefixes
+			if (!$resource) {
 				foreach (static::$IRLPrefixes as $prefix) {
-					if (!$item) {
-						$sfile = str_replace("files/resources/$prefix","files/resources/",$file);
-						$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($sfile)."' OR file = '".sqlescape(BigTreeCMS::replaceHardRoots($sfile))."'"));
+					if (!$resource) {
+						$prefixed_file = str_replace("files/resources/$prefix","files/resources/",$file);
+						$resource = static::$DB->fetch("SELECT * FROM bigtree_resources
+														WHERE file = ? OR file = ?", $file, BigTreeCMS::replaceHardRoots($prefixed_file));
 						$last_prefix = $prefix;
 					}
 				}
-				if (!$item) {
+				if (!$resource) {
 					return false;
 				}
 			}
-			$item["prefix"] = $last_prefix;
-			$item["file"] = BigTreeCMS::replaceRelativeRoots($item["file"]);
-			$item["thumbs"] = json_decode($item["thumbs"],true);
-			foreach ($item["thumbs"] as &$thumb) {
+
+			// Decode some things
+			$resource["prefix"] = $last_prefix;
+			$resource["file"] = BigTreeCMS::replaceRelativeRoots($resource["file"]);
+			$resource["thumbs"] = json_decode($resource["thumbs"],true);
+			foreach ($resource["thumbs"] as &$thumb) {
 				$thumb = BigTreeCMS::replaceRelativeRoots($thumb);
 			}
-			return $item;
+
+			return $resource;
 		}
 
 		/*
@@ -5002,14 +4994,13 @@
 				id - The id of the resource.
 
 			Returns:
-				A resource entry.
+				A resource entry with thumbnails decoded.
 		*/
 
 		static function getResource($id) {
-			$id = sqlescape($id);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
-			$f["thumbs"] = json_decode($f["thumbs"],true);
-			return $f;
+			$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			$resource["thumbs"] = json_decode($resource["thumbs"],true);
+			return $resource;
 		}
 
 		/*
@@ -5024,13 +5015,7 @@
 		*/
 
 		static function getResourceAllocation($id) {
-			$id = sqlescape($id);
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_resource_allocation WHERE resource = '$id' ORDER BY updated_at DESC");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
 		}
 
 		/*
@@ -5045,8 +5030,7 @@
 		*/
 
 		static function getResourceFolder($id) {
-			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '$id'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $id);
 		}
 
 		/*
@@ -5062,8 +5046,9 @@
 
 		static function getResourceFolderAllocationCounts($folder) {
 			$allocations = $folders = $resources = 0;
-
 			$items = static::getContentsOfResourceFolder($folder);
+
+			// Loop through subfolders
 			foreach ($items["folders"] as $folder) {
 				$folders++;
 				$subs = static::getResourceFolderAllocationCounts($folder["id"]);
@@ -5071,10 +5056,12 @@
 				$folders += $subs["folders"];
 				$resources += $subs["resources"];
 			}
+
 			foreach ($items["resources"] as $resource) {
 				$resources++;
 				$allocations += count(static::getResourceAllocation($resource["id"]));
 			}
+
 			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
 		}
 
@@ -5091,15 +5078,19 @@
 
 		static function getResourceFolderBreadcrumb($folder,$crumb = array()) {
 			if (!is_array($folder)) {
-				$folder = sqlfetch(sqlquery("SELECT * FROM bigtree_resource_folders WHERE id = '".sqlescape($folder)."'"));
+				$folder = static::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
 			}
 
+			// Append the folder to the running breadcrumb
 			if ($folder) {
 				$crumb[] = array("id" => $folder["id"], "name" => $folder["name"]);
 			}
 
+			// If we have a parent, go higher up
 			if ($folder["parent"]) {
 				return static::getResourceFolderBreadcrumb($folder["parent"],$crumb);
+			
+			// Append home, reverse, return
 			} else {
 				$crumb[] = array("id" => 0, "name" => "Home");
 				return array_reverse($crumb);
@@ -5118,13 +5109,7 @@
 		*/
 
 		static function getResourceFolderChildren($id) {
-			$items = array();
-			$id = sqlescape($id);
-			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE parent = '$id' ORDER BY name ASC");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name ASC", $id);
 		}
 
 		/*
@@ -5163,8 +5148,9 @@
 
 				// If a folder entry wasn't passed in, we need it to find its parent.
 				if (!is_array($folder)) {
-					$folder = sqlfetch(sqlquery("SELECT parent FROM bigtree_resource_folders WHERE id = '".sqlescape($id)."'"));
+					$folder = static::$DB->fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
 				}
+
 				// If we couldn't find the folder anymore, just say they can consume.
 				if (!$folder) {
 					return "e";
@@ -5187,14 +5173,7 @@
 		*/
 
 		function getRoutedTemplates($sort = "position DESC, id ASC") {
-			$q = sqlquery("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' ORDER BY $sort");
-			$items = array();
-			while ($f = sqlfetch($q)) {
-				if ($f["routed"]) {
-					$items[] = $f;
-				}
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_templates WHERE routed = 'on' AND level <= ? ORDER BY $sort", $this->Level);
 		}
 
 		/*
@@ -5213,7 +5192,7 @@
 		static function getSetting($id,$decode = true) {
 			global $bigtree;
 			$id = BigTreeCMS::extensionSettingCheck($id);
-			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+			$setting = static::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
 			
 			// Setting doesn't exist
 			if (!$setting) {
@@ -5222,8 +5201,9 @@
 
 			// Encrypted setting
 			if ($setting["encrypted"]) {
-				$v = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '$id'"));
-				$setting["value"] = $v["value"];
+				$setting["value"] = static::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` 
+															  FROM bigtree_settings 
+															  WHERE id = ?", $bigtree["config"]["settings_key"], $id);
 			}
 
 			// Decode the JSON value
@@ -5254,23 +5234,19 @@
 		*/
 
 		function getSettings($sort = "name ASC") {
-			$items = array();
-			if ($this->Level < 2) {
-				$q = sqlquery("SELECT * FROM bigtree_settings WHERE locked = '' AND system = '' ORDER BY $sort");
-			} else {
-				$q = sqlquery("SELECT * FROM bigtree_settings WHERE system = '' ORDER BY $sort");
-			}
-			while ($f = sqlfetch($q)) {
-				foreach ($f as $key => $val) {
-					$f[$key] = BigTreeCMS::replaceRelativeRoots($val);
+			$lock_check = ($this->Level < 2) ? "locked = '' AND " : "";
+
+			$settings = static::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE $lock_check system = '' ORDER BY $sort");
+			foreach ($settings as &$setting) {
+				if ($setting["encrypted"] == "on") {
+					$setting["value"] = "[Encrypted Text]";
+				} else {
+					$setting["value"] = json_decode($f["value"],true);
 				}
-				$f["value"] = json_decode($f["value"],true);
-				if ($f["encrypted"] == "on") {
-					$f["value"] = "[Encrypted Text]";
-				}
-				$items[] = $f;
+				$setting = BigTree::untranslateArray($setting);
 			}
-			return $items;
+
+			return $settings;
 		}
 
 		/*
@@ -5285,33 +5261,22 @@
 		*/
 
 		function getSettingsPageCount($query = "") {
+			$lock_check = ($this->Level < 2) ? " AND locked = ''" : "";
+			$query_parts = array(1);
+
 			// If we're searching.
 			if ($query) {
-				$qparts = explode(" ",$query);
-				$qp = array();
-				foreach ($qparts as $part) {
-					$part = sqlescape(strtolower($part));
-					$qp[] = "(LOWER(name) LIKE '%$part%' OR LOWER(value) LIKE '%$part%')";
-				}
-				// Administrator
-				if ($this->Level < 2) {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = '' AND locked = '' AND ".implode(" AND ",$qp));
-				// Developer
-				} else {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = '' AND ".implode(" AND ",$qp));
-				}
-			} else {
-				// Administrator
-				if ($this->Level < 2) {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = '' AND locked = ''");
-				// Developer
-				} else {
-					$q = sqlquery("SELECT id FROM bigtree_settings WHERE system = ''");
+				$string_parts = explode(" ",$query);
+				foreach ($string_parts as $part) {
+					$part = static::$DB->escape($part);
+					$query_parts[] = "(name LIKE '%$part%' OR value LIKE '%$part%')";
 				}
 			}
 
-			$r = sqlrows($q);
-			$pages = ceil($r / static::$PerPage);
+			$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_settings 
+											   WHERE ".implode(" AND ",$query_parts)." AND system = '' $lock_check");
+
+			$pages = ceil($count / static::$PerPage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
@@ -5331,12 +5296,8 @@
 		*/
 
 		static function getSystemSettings($sort = "name ASC") {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_settings WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_settings 
+										  WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
 		}
 
 		/*
@@ -5351,8 +5312,7 @@
 		*/
 
 		static function getTag($id) {
-			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
+			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE id = ?", $id);
 		}
 
 		/*
@@ -5367,12 +5327,7 @@
 		*/
 
 		static function getTemplates($sort = "position DESC, name ASC") {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_templates ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return static::$DB->fetchAll("SELECT * FROM bigtree_templates ORDER BY $sort");
 		}
 
 		/*
@@ -5384,7 +5339,8 @@
 		*/
 
 		function getUnreadMessageCount() {
-			return sqlrows(sqlquery("SELECT id FROM bigtree_messages WHERE recipients LIKE '%|".$this->ID."|%' AND read_by NOT LIKE '%|".$this->ID."|%'"));
+			return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
+											 WHERE recipients LIKE '%|".$this->ID."|%' AND read_by NOT LIKE '%|".$this->ID."|%'");
 		}
 
 		/*
@@ -5399,23 +5355,14 @@
 		*/
 
 		static function getUser($id) {
-			$id = sqlescape($id);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '$id'"));
-			if (!$item) {
+			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE id = ?", $id);
+			if (!$user) {
 				return false;
 			}
-			if ($item["level"] > 0) {
-				$permissions = array();
-				$q = sqlquery("SELECT * FROM bigtree_modules");
-				while ($f = sqlfetch($q)) {
-					$permissions["module"][$f["id"]] = "p";
-				}
-				$item["permissions"] = $permissions;
-			} else {
-				$item["permissions"] = json_decode($item["permissions"],true);
-			}
-			$item["alerts"] = json_decode($item["alerts"],true);
-			return $item;
+
+			$user["permissions"] = json_decode($user["permissions"],true);
+			$user["alerts"] = json_decode($user["alerts"],true);
+			return $user;
 		}
 
 		/*
