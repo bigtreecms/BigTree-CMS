@@ -457,6 +457,8 @@
 	.form_table header nav a, .form_table header nav a:hover { background: #D4D4D4; border: 1px solid #D4D4D4; border-radius: 3px 3px 0 0; border-top-color: #B9B9B9; border-width: 1px 1px 0 1px; color: #666; display: block; float: left; height: 26px; line-height: 26px; margin: 0 5px 0 0; padding: 0 15px; transition: background-color 0.2s, color 0.2s; }
 	.form_table header nav a:hover { background: #DCDCDC; color: #333; }
 	.form_table header nav a.active { background: #AFAFAF; border-color: #AFAFAF; color: #fff; padding: 0 15px; }
+	.form_table .add, .form_table header .button { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #666; display: block; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 5px 5px 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
+	.form_table .add:hover, .form_table header .button:hover { color: #333; }
 	.form_table header .add span, .table summary .add span { background: url(../images/icon-sprite.svg) no-repeat -32px -140px; float: left; height: 16px; margin: 2px 4px 0 -4px; width: 16px; }
 	.form_table ul { list-style: none; margin: 0; }
 	.form_table .labels { background: #eee; border-bottom: 1px solid #ccc; color: #666; height: 20px; line-height: 20px; margin-top: -1px; overflow: hidden; text-transform: uppercase; }
@@ -1044,9 +1046,6 @@
 	.template_image_list li { float: left; margin: 0 5px 5px 0; }
 	.template_image_list a { border: 1px solid #CCC; border-radius: 3px; display: block; height: 32px; padding: 5px; text-align: center; transition: background 0.2s, border-color 0.2s; width: 32px; }
 	.template_image_list a.active, .template_image_list a:hover { background: #EFF7FD; border-color: #9DBDD9; }
-
-	.form_table .add { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #666; display: block; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 5px 5px 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
-	.form_table .add:hover { color: #333; }
 
 	.developer .form_table li { background: #fff; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
 	.developer .form_table li:first-child { border-top-color: transparent; }

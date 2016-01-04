@@ -199,7 +199,7 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function clear() {
-			Element.removeAttr("checked");
+			Element.prop("checked",false);
 			Link.removeClass("checked");
 		};
 
@@ -225,7 +225,7 @@ var BigTreeCheckbox = function(element) {
 		
 		function enable() {
 			Link.removeClass("disabled");
-			Element.removeAttr("disabled");
+			Element.prop("disabled",false);
 		};
 
 		function focus() {
@@ -407,7 +407,7 @@ var BigTreeSelect = function(element) {
 		};
 	
 		function enable() {
-			Element.removeAttr("disabled");
+			Element.prop("disabled",false);
 			Container.removeClass("disabled");
 		};
 	
@@ -866,7 +866,7 @@ var BigTreeRadioButton = function(element) {
 		function clear(ev) {
 			$('input[name="' + Element.attr("name") + '"]').each(function() {
 				this.customControl.Link.removeClass("checked");
-				$(this).removeAttr("checked");
+				$(this).prop("checked",true);
 				$(this).trigger("change");
 			});
 		};
