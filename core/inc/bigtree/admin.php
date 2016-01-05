@@ -7554,7 +7554,7 @@
 			$r = sqlrows(sqlquery("SELECT id FROM bigtree_page_revisions WHERE page = '$page' AND saved = ''"));
 			// If we have more than 10, delete any that are more than a month old
 			if ($r > 10) {
-				sqlquery("DELETE FROM bigtree_page_revisions WHERE updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND saved = ''");
+				sqlquery("DELETE FROM bigtree_page_revisions WHERE page = '$page' AND updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND saved = '' ORDER BY updated_at ASC LIMIT ".($r - 10));
 			}
 
 			// Remove this page from the cache
