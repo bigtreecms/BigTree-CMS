@@ -124,11 +124,6 @@
 		*/
 
 		function exists($table,$values) {
-			if (!is_array($values) || !array_filter($values)) {
-				trigger_error("BigTreeSQL::exists expects a non-empty array as its second parameter");
-				return false;
-			}
-
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = array();
@@ -294,7 +289,7 @@
 		*/
 
 		function insert($table,$values) {
-			if (!is_array($values) || !array_filter($values)) {
+			if (!is_array($values) || !count($values)) {
 				trigger_error("BigTreeSQL::inserts expects a non-empty array as its second parameter");
 				return false;
 			}
@@ -304,7 +299,9 @@
 			foreach ($values as $column => $value) {
 				$columns[] = "`$column`";
 
-				if ($value === "NULL" || $value === "NOW()") {
+				if (is_null($value)) {
+					$vals[] = "NULL";
+				} elseif ($value === "NOW()") {
 					$vals[] = $value;
 				} else {
 					$vals[] = "'".$this->escape($value)."'";
@@ -381,7 +378,9 @@
 				$x = 1;
 				while (($position = strpos($query,"?")) !== false) {
 					// Allow for these reserved keywords to be let through unescaped
-					if ($args[$x] === "NULL" || $args[$x] === "NOW()") {
+					if (is_null($args[$x])) {
+						$replacement = "NULL";
+					} elseif ($args[$x] === "NOW()") {
 						$replacement = $args[$x];
 					} else {
 						$replacement = "'".$this->Connection->real_escape_string($args[$x])."'";
@@ -443,7 +442,7 @@
 			$count = 1;
 
 			// If we're checking against an ID
-			if ($id) {
+			if ($id !== false) {
 
 				// Allow for passing array("column" => "value")
 				if (is_array($id)) {
@@ -492,7 +491,7 @@
 		*/
 
 		function update($table,$id,$values) {
-			if (!is_array($values) || !array_filter($values)) {
+			if (!is_array($values) || !count($values)) {
 				trigger_error("BigTreeSQL::update expects a non-empty array as its third parameter");
 				return false;
 			}
