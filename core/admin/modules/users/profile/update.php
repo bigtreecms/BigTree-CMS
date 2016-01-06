@@ -13,7 +13,7 @@
 			$admin->growl("Users","Invalid Password","error");
 			BigTree::redirect(ADMIN_ROOT."users/profile/");	
 		}
-		$admin->updateProfile($_POST);
+		$admin->updateProfile($_POST["name"],$_POST["company"],$_POST["daily_digest"],$_POST["password"]);
 		$admin->growl("Users","Updated Profile");
 		BigTree::redirect(ADMIN_ROOT."dashboard/");
 	}

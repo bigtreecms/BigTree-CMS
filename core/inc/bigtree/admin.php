@@ -511,11 +511,10 @@
 			}
 
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword($password));
 
 			// Update password
 			static::$DB->update("bigtree_users",$user["id"],array(
-				"password" => $password,
+				"password" => $phpass->HashPassword(trim($password)),
 				"change_password_hash" => ""
 			));
 
@@ -1045,16 +1044,13 @@
 				}
 			}
 			// Go through already created modules
-			$q = sqlquery("SELECT route FROM bigtree_modules");
-			while ($f = sqlfetch($q)) {
-				$existing[] = $f["route"];
-			}
+			array_merge($existing,static::$DB->fetchAllSingle("SELECT route FROM bigtree_modules"));
 
 			// Get a unique route
 			$x = 2;
-			$oroute = $route;
+			$original_route = $route;
 			while (in_array($route,$existing)) {
-				$route = $oroute."-".$x;
+				$route = $original_route."-".$x;
 				$x++;
 			}
 
@@ -1612,7 +1608,7 @@
 				$id = false;
 				// Loop through and create our expected parameters.
 				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_" && !is_array($val)) {
+					if (substr($key,0,1) != "_") {
 						$$key = $val;
 					}
 				}
@@ -1804,7 +1800,7 @@
 				$email = false;
 				// Loop through and create our expected parameters.
 				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_" && !is_array($val)) {
+					if (substr($key,0,1) != "_") {
 						$$key = $val;
 					}
 				}
@@ -5594,7 +5590,6 @@
 			foreach ($manifest["components"]["modules"] as &$module) {
 				if (array_filter((array)$module)) {
 					$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
-					$gbp = sqlescape(is_array($module["gbp"]) ? BigTree::json($module["gbp"]) : $module["gbp"]);
 					
 					// Find a unique route
 					$route = static::$DB->unique("bigtree_modules","route",$route);
@@ -8185,14 +8180,16 @@
 		function updatePageRevision($id,$description) {
 			// Get the version, check if the user has access to the page the version refers to.
 			$revision = $this->getPageRevision($id);
-			$access = $this->getPageAccessLevel($revision["page"]);
-			if ($access != "p") {
+			$access_level = $this->getPageAccessLevel($revision["page"]);
+			if ($access_level != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
 			// Save the version's description and saved status
-			$description = sqlescape(htmlspecialchars($description));
-			sqlquery("UPDATE bigtree_page_revisions SET saved = 'on', saved_description = '$description' WHERE id = '".$revision["id"]."'");
+			static::$DB->update("bigtree_page_revisions",$id,array(
+				"saved" => "on",
+				"saved_description" => BigTree::safeEncode($description)
+			));
 			$this->track("bigtree_page_revisions",$id,"updated");
 		}
 
@@ -8208,41 +8205,53 @@
 		*/
 
 		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
-			$id = sqlescape($id);
-			$changes = BigTree::json($changes,true);
-			$mtm_changes = BigTree::json($mtm_changes,true);
-			$tags_changes = BigTree::json($tags_changes,true);
-
-			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
+			static::$DB->update("bigtree_pending_changes",$id,array(
+				"changes" => $changes,
+				"mtm_changes" => $mtm_changes,
+				"tags_changes" => $tags_changes,
+				"user" => $this->ID
+			));
 			$this->track("bigtree_pending_changes",$id,"updated");
 		}
 
 		/*
 			Function: updateProfile
-				Updates a user's name, company, digest setting, and (optionally) password.
+				Updates the logged-in user's name, company, digest setting, and (optionally) password.
 
 			Parameters:
-				data - Array containing name / company / daily_digest / password.
+				name - Name
+				company - Company
+				daily_digest - Whether to receive the daily digest (truthy value) or not (falsey value)
+				password - Password (leave empty or false to not update)
 		*/
 
-		function updateProfile($data) {
+		function updateProfile($name,$company = "",$daily_digest = "",$password = false) {
 			global $bigtree;
 
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
+			// Allow for pre-4.3 style parameters
+			if (is_array($name)) {
+				$data = $name;
+				$name = "";
+
+				foreach ($data as $key => $val) {
+					if (substr($key,0,1) != "_") {
+						$$key = $val;
+					}
 				}
 			}
 
-			$id = sqlescape($this->ID);
+			$update_values = array(
+				"name" => BigTree::safeEncode($name),
+				"company" => BigTree::safeEncode($company),
+				"daily_digest" => $daily_digest ? "on" : "",
+			);
 
-			if ($data["password"]) {
+			if ($password !== "" && $password !== false) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = sqlescape($phpass->HashPassword($data["password"]));
-				sqlquery("UPDATE bigtree_users SET `password` = '$password', `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
-			} else {
-				sqlquery("UPDATE bigtree_users SET `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
+				$update_values["password"] = $phpass->HashPassword($password);
 			}
+
+			static::$DB->update("bigtree_users",$this->ID,$update_values);
 		}
 
 		/*
@@ -8255,12 +8264,7 @@
 		*/
 
 		function updateResource($id,$attributes) {
-			$id = sqlescape($id);
-			$fields = array();
-			foreach ($attributes as $key => $val) {
-				$fields[] = "`$key` = '".sqlescape($val)."'";
-			}
-			sqlquery("UPDATE bigtree_resources SET ".implode(", ",$fields)." WHERE id = '$id'");
+			static::$DB->update("bigtree_resources",$id,$attributes);
 			$this->track("bigtree_resources",$id,"updated");
 		}
 
@@ -8270,48 +8274,65 @@
 
 			Parameters:
 				old_id - The current id of the setting to update.
-				data - The new data for the setting ("id", "type", "name", "description", "locked", "system", "encrypted")
+				id - New ID for the setting
+				type - Field Type
+				name - Name
+				description - Description (HTML)
+				locked - Whether the setting is locked to developers (truthy) or not (falsey)
+				encrypted - Whether the setting's value should be encrypted in the database (truthy) or not (falsey)
+				system - Whether the setting should be hidden from the Settings panel (truthy) or not (falsey)
 
 			Returns:
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		function updateSetting($old_id,$data) {
+		function updateSetting($old_id,$id,$type = "",$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
 			global $bigtree;
 
-			// Get the existing setting information.
-			$existing = static::getSetting($old_id);
-			$old_id = sqlescape($existing["id"]);
+			// Allow for pre-4.3 parameter syntax
+			if (is_array($id)) {
+				$data = $id;
+				$id = "";
 
-			// Globalize the data and clean it up.
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape(htmlspecialchars($val));
+				foreach ($data as $key => $val) {
+					if (substr($key,0,1) != "_") {
+						$$key = $val;
+					}
 				}
 			}
 
-			// We don't want this encoded since it's a WYSIWYG field.
-			$description = sqlescape($data["description"]);
-			// We don't want this encoded since it's JSON
-			$options = sqlescape($data["options"]);
+			// Get the existing setting information.
+			$existing = static::getSetting($old_id);
 
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && static::settingExists($id)) {
 				return false;
 			}
 
-			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', `options` = '$options', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
+			// Update base setting
+			static::$DB->update("bigtree_settings",$old_id,array(
+				"id" => $id,
+				"type" => $type,
+				"options" => $options,
+				"name" => BigTree::safeEncode($name),
+				"description" => $description,
+				"locked" => $locked ? "on" : "",
+				"system" => $system ? "on" : "",
+				"encrypted" => $encrypted ? "on" : ""
+			));
 
 			// If encryption status has changed, update the value
 			if ($existing["encrypted"] && !$encrypted) {
-				sqlquery("UPDATE bigtree_settings SET value = AES_DECRYPT(value,'".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
-			}
-			if (!$existing["encrypted"] && $encrypted) {
-				sqlquery("UPDATE bigtree_settings SET value = AES_ENCRYPT(value,'".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
+				static::$DB->query("UPDATE bigtree_settings SET value = AES_DECRYPT(value, ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);
+			} elseif (!$existing["encrypted"] && $encrypted) {
+				static::$DB->query("UPDATE bigtree_settings SET value = AES_ENCRYPT(value, ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);
 			}
 
 			// Audit trail.
 			$this->track("bigtree_settings",$id,"updated");
+			if ($id != $old_id) {
+				$this->track("bigtree_settings",$old_id,"changed-id");
+			}
 
 			return true;
 		}
@@ -8328,21 +8349,21 @@
 		static function updateSettingValue($id,$value) {
 			global $bigtree,$admin;
 
-			$item = static::getSetting($id,false);
-			$id = sqlescape(BigTreeCMS::extensionSettingCheck($id));
+			$id = BigTreeCMS::extensionSettingCheck($id);
+			$item = static::$DB->fetch("SELECT encrypted, system FROM bigtree_settings WHERE id = ?", $id);
 
+			// Do encoding
 			if (is_array($value)) {
 				$value = BigTree::translateArray($value);
 			} else {
 				$value = static::autoIPL($value);
 			}
-
 			$value = BigTree::json($value,true);
 
 			if ($item["encrypted"]) {
-				sqlquery("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value','".sqlescape($bigtree["config"]["settings_key"])."') WHERE id = '$id'");
+				static::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value', ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);
 			} else {
-				sqlquery("UPDATE bigtree_settings SET `value` = '$value' WHERE id = '$id'");
+				static::$DB->update("bigtree_settings",$id,array("value" => $value));
 			}
 
 			if ($admin && !$item["system"]) {
@@ -8372,18 +8393,17 @@
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
 						"type" => BigTree::safeEncode($resource["type"]),
-						"options" => json_decode($resource["options"],true)
+						"options" => is_array($resource["options"]) ? $resource["options"] : json_decode($resource["options"],true)
 					);
 				}
 			}
 
-			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$module = sqlescape($module);
-			$resources = BigTree::json($clean_resources,true);
-			$level = sqlescape($level);
-
-			sqlquery("UPDATE bigtree_templates SET resources = '$resources', name = '$name', module = '$module', level = '$level' WHERE id = '$id'");
+			static::$DB->update("bigtree_templates",$id,array(
+				"name" => BigTree::safeEncode($name),
+				"module" => $module,
+				"level" => $level,
+				"resources" => $clean_resources
+			));
 			$this->track("bigtree_templates",$id,"updated");
 		}
 
@@ -8392,37 +8412,46 @@
 				Updates a user.
 
 			Parameters:
-				id - The user's "id"
-				data - A key/value array containing email, name, company, level, permissions, alerts, daily_digest, and (optionally) password.
+				id - The user's ID
+				email - Email Address
+				password - Password
+				name - Name
+				company - Company
+				level - User Level (0 for regular, 1 for admin, 2 for developer)
+				permission - Array of permissions data
+				alerts - Array of alerts data
+				daily_digest - Whether the user wishes to receive the daily digest email
 
 			Returns:
 				True if successful.  False if the logged in user doesn't have permission to change the user or there was an email collision.
 		*/
 
-		function updateUser($id,$data) {
+		function updateUser($id,$email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
 			global $bigtree;
-			$id = sqlescape($id);
+
+			// Allow for pre-4.3 syntax
+			if (is_array($email)) {
+				$data = $email;
+				foreach ($data as $key => $val) {
+					if (substr($key,0,1) != "_") {
+						$$key = $val;
+					}
+				}
+			}
 
 			// See if there's an email collission
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($data["email"])."' AND id != '$id'"));
-			if ($r) {
+			if (static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_users WHERE email = ? AND id != ?", $email, $id)) {
 				return false;
 			}
+
+			// Going to do permission checks
+			$level = intval($level);
 
 			// If this person has higher access levels than the person trying to update them, fail.
 			$current = static::getUser($id);
 			if ($current["level"] > $this->Level) {
 				return false;
 			}
-
-			$level = intval($data["level"]);
-			$email = sqlescape($data["email"]);
-			$name = sqlescape(htmlspecialchars($data["name"]));
-			$company = sqlescape(htmlspecialchars($data["company"]));
-			$daily_digest = $data["daily_digest"] ? "on" : "";
-
-			$permissions = BigTree::json($data["permissions"],true);
-			$alerts = BigTree::json($data["alerts"],true);
 
 			// If the user is editing themselves, they can't change the level.
 			if ($this->ID == $current["id"]) {
@@ -8434,16 +8463,23 @@
 				$level = $this->Level;
 			}
 
-			if ($data["password"]) {
+			$update_values = array(
+				"email" => $email,
+				"name" => BigTree::safeEncode($name),
+				"company" => BigTree::safeEncode($company),
+				"level" => $level,
+				"permissions" => $permissions,
+				"alerts" => $alerts,
+				"daily_digest" => $daily_digest ? "on" : ""
+			);
+
+			if ($password) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = sqlescape($phpass->HashPassword(trim($data["password"])));
-				sqlquery("UPDATE bigtree_users SET `email` = '$email', `password` = '$password', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
-			} else {
-				sqlquery("UPDATE bigtree_users SET `email` = '$email', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
+				$update_values["password"] = $phpass->HashPassword(trim($password));
 			}
 
+			static::$DB->update("bigtree_users",$id,$update_values);
 			$this->track("bigtree_users",$id,"updated");
-
 			return true;
 		}
 
@@ -8459,10 +8495,8 @@
 		static function updateUserPassword($id,$password) {
 			global $bigtree;
 
-			$id = sqlescape($id);
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword(trim($password)));
-			sqlquery("UPDATE bigtree_users SET password = '$password' WHERE id = '$id'");
+			static::$DB->update("bigtree_users",$id,array("password" => $phpass->HashPassword(trim($password))));
 		}
 
 		/*
@@ -8498,6 +8532,7 @@
 			if ($policy["nonalphanumeric"] && ctype_alnum($password)) {
 				$failed = true;
 			}
+
 			return !$failed;
 		}
 
