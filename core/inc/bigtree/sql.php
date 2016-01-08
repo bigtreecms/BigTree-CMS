@@ -6,11 +6,11 @@
 	*/
 
 	class BigTreeSQL {
+		static $ErrorLog = array();
+		static $QueryLog = array();
 
 		var $ActiveQuery;
 		var $Connection = "disconnected";
-		var $ErrorLog = array();
-		var $QueryLog = array();
 		var $WriteConnection = "disconnected";
 
 		function __construct($chain_query = false) {
@@ -166,7 +166,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("BigTreeSQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("BigTreeSQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
 				return $this->ActiveQuery->fetch_assoc();
@@ -196,7 +196,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("BigTreeSQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("BigTreeSQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
 				$results = array();
@@ -232,7 +232,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("BigTreeSQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("BigTreeSQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
 				$results = array();
@@ -268,7 +268,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("BigTreeSQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".$this->ErrorLog[count($this->ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("BigTreeSQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
 				return false;
 			} else {
 				$result = $this->ActiveQuery->fetch_assoc();
@@ -348,7 +348,7 @@
 
 			// Debug should log queries
 			if ($bigtree["config"]["debug"]) {
-				$this->QueryLog[] = $query;
+				static::$QueryLog[] = $query;
 			}
 
 			// Setup our read connection if it disconnected for some reason
@@ -395,8 +395,8 @@
 			}
 
 			// Log errors
-			if (!is_object($query_response)) {
-				$this->ErrorLog[] = $connection->error;
+			if (!is_object($query_response) && $connection->error) {
+				static::$ErrorLog[] = $connection->error;
 			}
 
 			return new BigTreeSQL($query_response);
