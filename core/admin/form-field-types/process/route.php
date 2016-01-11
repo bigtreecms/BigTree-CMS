@@ -4,17 +4,8 @@
 		if ($field["options"]["not_unique"]) {
 			$field["output"] = $cms->urlify(strip_tags($bigtree["post_data"][$field["options"]["source"]]));
 		} else {
-			$oroute = $cms->urlify(strip_tags($bigtree["post_data"][$field["options"]["source"]]));
-			$field["output"] = $oroute;
-			$x = 2;
-			// We're going to try 1000 times at most so we don't time out
-			while ($x < 1000 && sqlrows(sqlquery("SELECT * FROM `".$bigtree["form"]["table"]."` WHERE `".$field["key"]."` = '".sqlescape($field["output"])."' AND id != '".sqlescape($bigtree["edit_id"])."'"))) {
-				$field["output"] = $oroute."-".$x;
-				$x++;
-			}
-			if ($x == 1000) {
-				$field["output"] = "";
-			}
+			$route = $cms->urlify(strip_tags($bigtree["post_data"][$field["options"]["source"]]));
+			$route = $db->unique($bigtree["form"]["table"],$field["key"],$route,$bigtree["edit_id"]);
 		}
 	} else {
 		$field["ignore"] = true;

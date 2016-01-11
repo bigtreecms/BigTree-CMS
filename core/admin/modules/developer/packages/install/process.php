@@ -5,10 +5,10 @@
 
 	// Run SQL
 	foreach ($json["sql"] as $sql) {
-		sqlquery($sql);
+		$db->query($sql);
 	}
 	
-	sqlquery("SET foreign_key_checks = 0");
+	$db->query("SET foreign_key_checks = 0");
 	
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {

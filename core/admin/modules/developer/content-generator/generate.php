@@ -211,7 +211,7 @@
 	};
 
 	$generate_data = function($type,$options) {
-		global $generate_image;
+		global $db, $generate_image;
 
 		$lipsum = new BigTreeTestContentLoremIpsum;  
 		if ($type == "text") {  
@@ -232,10 +232,7 @@
 			} elseif ($options["list_type"] == "country") {
 				return BigTree::$CountryList[array_rand(BigTree::$CountryList)];
 			} else {
-				$list_table = $options["pop-table"];
-				$list_title = $options["pop-description"];
-				$f = sqlfetch(sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY RAND() LIMIT 1"));
-				return $f["id"];
+				return $db->fetchSingle("SELECT `id` FROM `".$options["pop-table"]."` ORDER BY RAND() LIMIT 1");
 			}
 		} elseif ($type == "checkbox") {
 			if (rand(0,1) == 1) {
@@ -268,33 +265,24 @@
 			return $data;
 		} elseif ($type == "route") {
 			global $data,$form;
-			$oroute = BigTreeCMS::urlify(strip_tags($data[$options["source"]]));
-			$output = $oroute;
-			$x = 2;
-			// We're going to try 1000 times at most so we don't time out
-			while ($x < 1000 && sqlrows(sqlquery("SELECT * FROM `".$form["table"]."` WHERE `".$field["key"]."` = '".sqlescape($output)."'"))) {
-				$output = $oroute."-".$x;
-				$x++;
-			}
-			if ($x == 1000) {
-				$output = "";
-			}
-			return $output;
+
+			$route = BigTreeCMS::urlify(strip_tags($data[$options["source"]]));
+			return $db->unique($form["table"],$field["key"],$route);
 		} elseif ($type == "many-to-many") {
 			global $many_to_many;
-			$total = sqlrows(sqlquery("SELECT id FROM `".$options["mtm-other-table"]."`"));
+			$total = $db->fetchSingle("SELECT COUNT(*) FROM `".$options["mtm-other-table"]."`");
 			$number_to_make = rand(1,$total);
 			$used = array();
 			while ($number_to_make) {
-				$g = sqlfetch(sqlquery("SELECT * FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1"));
-				if (!in_array($g["id"],$used)) {
+				$random_id = $db->fetchSingle("SELECT id FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1");
+				if (!in_array($random_id,$used)) {
 					$many_to_many[] = array(
 						"table" => $options["mtm-connecting-table"],
 						"my_field" => $options["mtm-my-id"],
 						"other_field" => $options["mtm-other-id"],
-						"value" => $g["id"]
+						"value" => $random_id
 					);
-					$used[] = $g["id"];
+					$used[] = $random_id;
 				}
 				$number_to_make--;
 			}
@@ -321,7 +309,10 @@
 		}
 		$id = BigTreeAutoModule::createItem($form["table"],$data);
 		foreach ($many_to_many as $mtm) {
-			sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my_field"]."`,`".$mtm["other_field"]."`) VALUES ('$id','".$mtm["value"]."')");
+			$db->insert($mtm["table"],array(
+				$mtm["my_field"] => $id,
+				$mtm["other_field"] => $mtm["value"]
+			));
 		}
 		$count--;
 	}

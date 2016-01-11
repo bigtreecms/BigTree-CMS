@@ -45,9 +45,8 @@
 					<a class="icon_small icon_small_add" href="#"></a>
 					<select class="custom_control" id="add_table_select">
 						<?php
-							$q = sqlquery("SHOW TABLES");
-							while ($f = sqlfetch($q)) {
-								$table = $f["Tables_in_".$bigtree["config"]["db"]["name"]];
+							$tables = $db->fetchAllSingle("SHOW TABLES");
+							foreach ($tables as $table) {
 								if (substr($table,0,8) != "bigtree_" && !in_array($table,$used_tables)) {
 						?>
 						<option value="<?=$table?>"><?=$table?></option>

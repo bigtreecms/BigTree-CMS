@@ -14,11 +14,7 @@
 			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
 		}
 
-	    $m["items"] = array();
-	    $q = sqlquery("SELECT id FROM `".$m["table"]."`");
-	    while ($f = sqlfetch($q)) {
-	    	$m["items"][] = $f["id"];
-	    }
+	    $m["items"] = $db->fetchAllSingle("SELECT id FROM `".$m["table"]."`");
 	}
 ?>
 <div class="table">

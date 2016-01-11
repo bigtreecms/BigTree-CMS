@@ -93,12 +93,12 @@
 	foreach ((array)$tables as $t) {
 		$x++;
 		list($table,$type) = explode("#",$t);
-		$f = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
+		$f = $db->fetch("SHOW CREATE TABLE `$table`");
 		$package["sql"][] = "DROP TABLE IF EXISTS `$table`";
 		$package["sql"][] = str_replace(array("\r","\n")," ",end($f));
 		if ($type != "structure") {
-			$q = sqlquery("SELECT * FROM `$table`");
-			while ($f = sqlfetch($q)) {
+			$q = $db->query("SELECT * FROM `$table`");
+			while ($f = $q->fetch()) {
 				$fields = array();
 				$values = array();
 				foreach ($f as $key => $val) {
@@ -136,10 +136,20 @@
 	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Store it in the database for future updates
-	if (sqlrows(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
-		sqlquery("UPDATE bigtree_extensions SET name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
+	if ($db->exists("bigtree_extensions",$id)) {
+		$db->update("bigtree_extensions",$id,array(
+			"name" => $title,
+			"version" => $version,
+			"manifest" => $json
+		));
 	} else {
-		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','package','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
+		$db->insert("bigtree_extensions",array(
+			"id" => $id,
+			"type" => "package",
+			"name" => $title,
+			"version" => $version,
+			"manifest" => $json
+		));
 	}
 ?>
 <div class="container">

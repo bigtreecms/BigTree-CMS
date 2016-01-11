@@ -46,7 +46,7 @@
 	}
 	
 	// Update the table
-	sqlquery("ALTER TABLE $table ".implode(", ",$adds));
+	$db->query("ALTER TABLE $table ".implode(", ",$adds));
 	
 	// Add the module form	
 	$form_id = $admin->createModuleForm($module,$_POST["title"],$_POST["table"],$fields);
