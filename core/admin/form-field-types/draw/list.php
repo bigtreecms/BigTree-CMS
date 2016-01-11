@@ -14,22 +14,22 @@
 		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
 			$db_error = true;
 		} else {
-			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
+			$entries = $db->fetchAll("SELECT `id`,`$list_title` AS `title` FROM `$list_table` ORDER BY $list_sort");
 			
 			// Check if we're doing module based permissions on this table.
 			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $key == $bigtree["module"]["gbp"]["group_field"]) {
 				$is_group_based_perm = true;
-				while ($f = sqlfetch($q)) {
+				foreach ($entries as $entry) {
 					// Find out whether the logged in user can access a given group, and if so, specify the access level.
-					$access_level = $admin->canAccessGroup($bigtree["module"],$f["id"]);
+					$access_level = $admin->canAccessGroup($bigtree["module"],$entry["id"]);
 					if ($access_level) {
-						$list[] = array("value" => $f["id"],"description" => $f[$list_title],"access_level" => $access_level);
+						$list[] = array("value" => $entry["id"],"description" => $entry["title"],"access_level" => $access_level);
 					}
 				}
 			// We're not doing module group based permissions, get a regular list.
 			} else {
-				while ($f = sqlfetch($q)) {
-					$list[] = array("value" => $f["id"],"description" => $f[$list_title]);
+				foreach ($entries as $entry) {
+					$list[] = array("value" => $entry["id"],"description" => $entry["title"]);
 				}
 			}
 		}

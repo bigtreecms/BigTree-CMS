@@ -399,8 +399,10 @@
 			foreach ($tables as $table) {				
 				// Write the drop / create statements
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
-				$definition = static::$DB->fetch("SHOW CREATE TABLE `$table`");
-				fwrite($pointer,str_replace(array("\n  ","\n"),"",end($definition)).";\n");
+				$definition = static::$DB->fetchSingle("SHOW CREATE TABLE `$table`");
+				if (is_array($definition)) {
+					fwrite($pointer, str_replace(array("\n  ", "\n"), "", end($definition)) . ";\n");
+				}
 
 				// Get all the table contents, write them out
 				$rows = BigTree::tableContents($table);
@@ -2559,13 +2561,13 @@
 										<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$alert["nav_title"].'</td>
 										<td style="border-bottom: 1px solid #eee; padding: 10px 20px 10px 15px; text-align: right;">'.$alert["current_age"].' Days</td>
 										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.WWW_ROOT.$alert["path"].'/"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>
-										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.ADMIN_ROOT."pages/edit/".$alert["id"].'/"><img src="'.$ADMIN_ROOT.'images/email/edit.gif" alt="Edit" /></a></td>
+										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.ADMIN_ROOT."pages/edit/".$alert["id"].'/"><img src="'.ADMIN_ROOT.'images/email/edit.gif" alt="Edit" /></a></td>
 									 </tr>';
 				}
 			}
 
-			if ($alert_markup) {
-				return str_replace("{content_alerts}",$alert_markup,$wrapper);
+			if ($alerts_markup) {
+				return str_replace("{content_alerts}",$alerts_markup,$wrapper);
 			}
 			return "";
 		}
@@ -4427,7 +4429,7 @@
 					}
 				}
 
-				$setting["description"] = BigTreeCMS::replaceInternalPageLinks($f["description"]);
+				$setting["description"] = BigTreeCMS::replaceInternalPageLinks($setting["description"]);
 			}
 
 			return $settings;
@@ -5237,7 +5239,7 @@
 				if ($setting["encrypted"] == "on") {
 					$setting["value"] = "[Encrypted Text]";
 				} else {
-					$setting["value"] = json_decode($f["value"],true);
+					$setting["value"] = json_decode($setting["value"],true);
 				}
 				$setting = BigTree::untranslateArray($setting);
 			}
@@ -5592,7 +5594,7 @@
 					$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
 					
 					// Find a unique route
-					$route = static::$DB->unique("bigtree_modules","route",$route);
+					$route = static::$DB->unique("bigtree_modules","route",$module["route"]);
 
 					// Create the module
 					$module_id = static::$DB->insert("bigtree_modules",array(
@@ -5989,7 +5991,7 @@
 						if ($existing_ban) {
 							static::$DB->query("UPDATE bigtree_login_bans 
 												SET expires = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE) 
-												WHERE id = ?", $existing["id"]);
+												WHERE id = ?", $existing_ban["id"]);
 						} else {
 							static::$DB->query("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) 
 												VALUES (?, ?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE))", $ip, $user);
@@ -6011,7 +6013,7 @@
 						if ($existing_ban) {
 							static::$DB->query("UPDATE bigtree_login_bans 
 												SET expires = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR) 
-												WHERE id = ?", $existing["id"]);						
+												WHERE id = ?", $existing_ban["id"]);
 						} else {
 							static::$DB->query("INSERT INTO bigtree_login_bans (`ip`,`expires`) 
 												VALUES (?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR))", $ip);
@@ -7793,7 +7795,7 @@
 		function updateModuleGroup($id,$name) {
 			static::$DB->update("bigtree_module_groups",$id,array(
 				"name" => BigTree::safeEncode($name),
-				"route" => static::$DB->unique("bigtree_module_groups","route",$route)
+				"route" => static::$DB->unique("bigtree_module_groups","route",BigTreeCMS::urlify($name))
 			));
 
 			$this->track("bigtree_module_groups",$id,"updated");
@@ -7982,6 +7984,10 @@
 			static::unCache($page);
 
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
+			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_keywords = $meta_description = $seo_invisible = "";
+			$parent = $max_age = 0;
+			$resources = array();
+
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
 					$kkey = $val;
@@ -8276,6 +8282,7 @@
 				old_id - The current id of the setting to update.
 				id - New ID for the setting
 				type - Field Type
+				options - Field Type options
 				name - Name
 				description - Description (HTML)
 				locked - Whether the setting is locked to developers (truthy) or not (falsey)
@@ -8286,7 +8293,7 @@
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		function updateSetting($old_id,$id,$type = "",$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
+		function updateSetting($old_id,$id,$type = "",$options = array(), $name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
 			global $bigtree;
 
 			// Allow for pre-4.3 parameter syntax
@@ -8358,7 +8365,6 @@
 			} else {
 				$value = static::autoIPL($value);
 			}
-			$value = BigTree::json($value,true);
 
 			if ($item["encrypted"]) {
 				static::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value', ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);

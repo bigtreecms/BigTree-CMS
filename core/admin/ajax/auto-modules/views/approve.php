@@ -7,7 +7,7 @@
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now unapproved.");';
 			if (is_numeric($id)) {
-				sqlquery("UPDATE `$table` SET approved = '' WHERE id = '$id'");
+				$db->update($table,$id,array("approved" => ""));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"approved","");
 			}
@@ -18,7 +18,7 @@
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now approved.");';
 			if (is_numeric($id)) {
-				sqlquery("UPDATE `$table` SET approved = 'on' WHERE id = '$id'");
+				$db->update($table,$id,array("approved" => "on"));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"approved","on");
 			}

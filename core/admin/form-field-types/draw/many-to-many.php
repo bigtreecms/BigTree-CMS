@@ -10,34 +10,38 @@
 	$entries = array();
 	// If we have existing data then this item is either pending or has pending changes so we use that data.
 	if (is_array($field["value"])) {
-		foreach ($field["value"] as $oid) {
-			$g = sqlfetch(sqlquery("SELECT * FROM `".$field["options"]["mtm-other-table"]."` WHERE id = '$oid'"));
-			if ($g) {
-				$entries[$g["id"]] = $g[$field["options"]["mtm-other-descriptor"]];
+		foreach ($field["value"] as $other_id) {
+			$other_descriptor = $db->fetchSingle("SELECT `".$field["options"]["mtm-other-descriptor"]."` 
+												  FROM `".$field["options"]["mtm-other-table"]."` WHERE id = ?", $other_id);
+			if ($other_descriptor !== false) {
+				$entries[$other_id] = $other_descriptor;
 			}			
 		}
 	// No pending data, let's query the connecting table directly for the entries, but only if this isn't a new entry
 	} elseif ($bigtree["edit_id"]) {
+		$query_string = "SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = ?";
 		if ($sortable) {
-			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."' ORDER BY `position` DESC");
-		} else {
-			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."'");
+			$query_string .= "ORDER BY `position` DESC";
 		}
 		
-		while ($f = sqlfetch($q)) {
-			// Get the title from the other table.
-			$g = sqlfetch(sqlquery("SELECT * FROM `".$field["options"]["mtm-other-table"]."` WHERE id = '".$f[$field["options"]["mtm-other-id"]]."'"));
-			if ($g) {
-				$entries[$g["id"]] = $g[$field["options"]["mtm-other-descriptor"]];
+		$query = $db->query($query_string, $bigtree["edit_id"]);
+		
+		while ($entry = $query->fetch()) {
+			$other_descriptor = $db->fetchSingle("SELECT `".$field["options"]["mtm-other-descriptor"]."` 
+												  FROM `".$field["options"]["mtm-other-table"]."`
+												  WHERE id = ?", $entry[$field["options"]["mtm-other-id"]]);
+			if ($other_descriptor !== false) {
+				$entries[$entry["id"]] = $other_descriptor;
 			}
 		}
 	}
 
 	// Gather a list of the items that could possibly be tagged.
 	$list = array();
-	$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-other-table"]."` ORDER BY ".$field["options"]["mtm-sort"]);
-	while ($f = sqlfetch($q)) {
-		$list[$f["id"]] = $f[$field["options"]["mtm-other-descriptor"]];
+	$query = $db->query("SELECT `id`, `".$field["options"]["mtm-other-descriptor"]."` AS `title`
+						 FROM `".$field["options"]["mtm-other-table"]."` ORDER BY ".$field["options"]["mtm-sort"]);
+	while ($item = $query->fetch()) {
+		$list[$item["id"]] = $item["title"];
 	}
 	
 	// If we have a parser, send a list of the entries and available items through it.
@@ -47,12 +51,12 @@
 	}
 
 	// Remove items from the list that have already been tagged.
-	foreach ($entries as $k => $v) {
-		unset($list[$k]);
+	foreach ($entries as $key => $value) {
+		unset($list[$key]);
 	}
 	
 	// A count of the number of entries
-	$x = 0;
+	$entry_counter = 0;
 	
 	// Only show the field if there are items that could be tagged.
 	if (count($list) || count($entries)) {
@@ -66,7 +70,7 @@
 			foreach ($entries as $id => $description) {
 		?>
 		<li>
-			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
+			<input type="hidden" name="<?=$field["key"]?>[<?=$entry_counter?>]" value="<?=BigTree::safeEncode($id)?>" />
 			<?php if ($sortable) { ?>
 			<span class="icon_sort"></span>
 			<?php } ?>
@@ -74,14 +78,14 @@
 			<a href="#" class="icon_delete"></a>
 		</li>
 		<?php
-				$x++;
+				$entry_counter++;
 			}
 		?>
 	</ul>
 	<footer>
 		<select>
-			<?php foreach ($list as $k => $v) { ?>
-			<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v),100))?></option>
+			<?php foreach ($list as $key => $value) { ?>
+			<option value="<?=BigTree::safeEncode($key)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($value),100))?></option>
 			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
@@ -102,7 +106,7 @@
 <script>
 	BigTreeManyToMany({
 		id: "<?=$field["id"]?>",
-		count: <?=$x?>,
+		count: <?=$entry_counter?>,
 		key: "<?=$field["key"]?>",
 		sortable: <?=($sortable ? "true" : "false")?>,
 	});

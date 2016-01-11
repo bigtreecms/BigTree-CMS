@@ -978,7 +978,7 @@
 			// If we have changes, apply them.
 			if ($changes) {
 				$page["changes_applied"] = true;
-				$page["updated_at"] = $change["date"];
+				$page["updated_at"] = $changes["date"];
 				$resource_changes = json_decode($changes["changes"],true);
 				foreach ($resource_changes as $key => $val) {
 					if ($key == "external") {
@@ -1210,7 +1210,7 @@
 		*/
 		
 		static function getTagByRoute($route) {
-			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE route = ?",$id);
+			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE route = ?", $route);
 		}
 		
 		/*
@@ -1341,7 +1341,7 @@
 		static function handle404($url) {
 			$url = htmlspecialchars(strip_tags(rtrim($url,"/")));
 			if (!$url) {
-				return;
+				return false;
 			}
 
 			$entry = static::$DB->fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?",$url);
@@ -1387,6 +1387,8 @@
 				// Tell BigTree to not cache this page
 				define("BIGTREE_DO_NOT_CACHE",true);
 			}
+
+			return true;
 		}
 		
 		/*

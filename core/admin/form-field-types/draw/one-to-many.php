@@ -15,17 +15,18 @@
 
 	// Get existing entries' titles
 	foreach ($field["value"] as $entry) {
-		$g = sqlfetch(sqlquery("SELECT `id`,`".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` WHERE id = '".sqlescape($entry)."'"));
-		if ($g) {
-			$entries[$g["id"]] = $g[$field["options"]["title_column"]];
+		$title = $db->fetchSingle("SELECT `".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` WHERE id = ?", $entry);
+		if ($title !== false) {
+			$entries[$entry = $title;
 		}			
 	}
 
 	// Gather a list of the items that could possibly be used
 	$list = array();
-	$q = sqlquery("SELECT `id`,`".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` ORDER BY $sort");
-	while ($f = sqlfetch($q)) {
-		$list[$f["id"]] = $f[$field["options"]["title_column"]];
+	$query = $db->query("SELECT `id`, `".$field["options"]["title_column"]."` AS `title` 
+						 FROM `".$field["options"]["table"]."` ORDER BY $sort");
+	while ($entry = $query->fetch()) {
+		$list[$entry["id"]] = $entry["title"];
 	}
 
 	// If we have a parser, send a list of the entries and available items through it.

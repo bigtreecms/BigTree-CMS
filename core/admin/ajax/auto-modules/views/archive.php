@@ -7,7 +7,7 @@
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now unarchived.");';
 			if (is_numeric($id)) {
-				sqlquery("UPDATE `$table` SET archived = '' WHERE id = '$id'");
+				$db->update($table,$id,array("archived" => ""));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"archived","");
 			}
@@ -18,7 +18,7 @@
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now archived.");';
 			if (is_numeric($id)) {
-				sqlquery("UPDATE `$table` SET archived = 'on' WHERE id = '$id'");
+				$db->update($table,$id,array("archived" => "on"));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"archived","on");
 			}
