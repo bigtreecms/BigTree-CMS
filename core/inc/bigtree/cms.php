@@ -415,6 +415,7 @@
 		*/
 		
 		static function getBreadcrumbByPage($page,$ignore_trunk = false) {
+			global $bigtree;
 			$bc = array();
 			
 			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
@@ -437,7 +438,12 @@
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
-					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => WWW_ROOT.$f["path"]."/","id" => $f["id"]);
+					if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+						$link = WWW_ROOT.$f["path"];
+					} else {						
+						$link = WWW_ROOT.$f["path"]."/";
+					}
+					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => $link,"id" => $f["id"]);
 				}
 			}
 			
@@ -539,6 +545,8 @@
 		*/
 		
 		static function getInternalPageLink($ipl) {
+			global $bigtree;
+
 			// Regular links
 			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
 				return static::replaceRelativeRoots($ipl);
@@ -583,13 +591,23 @@
 
 			// See if it's in the cache.
 			if (isset(static::$IPLCache[$navid])) {
-				return static::$IPLCache[$navid].$commands;
+				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+					return static::$IPLCache[$navid]."/".$commands;
+				} else {
+					return static::$IPLCache[$navid];
+				}
 			} else {
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
+
 				// Set the cache
-				static::$IPLCache[$navid] = WWW_ROOT.$f["path"]."/";
-				return WWW_ROOT.$f["path"]."/".$commands;
+				static::$IPLCache[$navid] = WWW_ROOT.$f["path"];
+
+				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+					return WWW_ROOT.$child["path"]."/".$commands;
+				} else {
+					return WWW_ROOT.$child["path"];
+				}
 			}
 		}
 		
@@ -606,18 +624,29 @@
 		
 		static function getLink($id) {
 			global $bigtree;
+
 			// Homepage, just return the web root.
 			if ($id == 0) {
 				return WWW_ROOT;
 			}
+
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
-				return WWW_ROOT.$bigtree["page"]["path"]."/";
+				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					return WWW_ROOT.$bigtree["page"]["path"];					
+				} else {
+					return WWW_ROOT.$bigtree["page"]["path"]."/";
+				}
 			}
+
 			// Otherwise we'll grab the page path from the db.
 			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
 			if ($f) {
-				return WWW_ROOT.$f["path"]."/";
+				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					return WWW_ROOT.$f["path"];
+				} else {
+					return WWW_ROOT.$f["path"]."/";
+				}
 			}
 			return false;
 		}
@@ -638,6 +667,7 @@
 		*/
 			
 		static function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
+			global $bigtree;
 			static $module_nav_count = 0;
 			$nav = array();
 			$find_children = array();
@@ -663,7 +693,11 @@
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
-				$link = WWW_ROOT.$f["path"]."/";
+				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					$link = WWW_ROOT.$f["path"];
+				} else {
+					$link = WWW_ROOT.$f["path"]."/";
+				}
 				$new_window = false;
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
