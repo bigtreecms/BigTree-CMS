@@ -600,6 +600,8 @@
 		*/
 		
 		static function getInternalPageLink($ipl) {
+			global $bigtree;
+
 			// Regular links
 			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
 				return static::replaceRelativeRoots($ipl);
@@ -644,13 +646,23 @@
 
 			// See if it's in the cache.
 			if (isset(static::$IPLCache[$navid])) {
-				return static::$IPLCache[$navid].$commands;
+				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+					return static::$IPLCache[$navid]."/".$commands;
+				} else {
+					return static::$IPLCache[$navid];
+				}
 			} else {
 				// Get the page's path
 				$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$navid);
+
 				// Set the cache
-				static::$IPLCache[$navid] = WWW_ROOT.$path."/";
-				return WWW_ROOT.$path."/".$commands;
+				static::$IPLCache[$navid] = WWW_ROOT.$path;
+
+				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+					return WWW_ROOT.$path."/".$commands;
+				} else {
+					return WWW_ROOT.$path;
+				}
 			}
 		}
 		
@@ -709,6 +721,8 @@
 		*/
 			
 		static function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
+			global $bigtree;
+
 			static $module_nav_count = 0;
 			$nav = array();
 			$find_children = array();
@@ -741,7 +755,12 @@
 			
 			// Wrangle up some kids
 			foreach ($children as $child) {
-				$link = WWW_ROOT.$child["path"]."/";
+				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					$link = WWW_ROOT.$child["path"];
+				} else {
+					$link = WWW_ROOT.$child["path"]."/";
+				}
+
 				$new_window = false;
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
