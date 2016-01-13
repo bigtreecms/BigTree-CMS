@@ -1,10 +1,8 @@
 <?php
 	header("Content-type: text/javascript");
 	
-	$id = sqlescape($_GET["id"]);
-
 	// Grab View Data
-	$view = BigTreeAutoModule::getView(sqlescape($_GET["view"]));
+	$view = BigTreeAutoModule::getView($_GET["view"]));
 	$table = $view["table"];
 
 	// Get module

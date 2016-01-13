@@ -797,9 +797,17 @@
 		*/
 
 		function resetCache($data) {
-			sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles'");
+			BigTreeCMS::$DB->delete("bigtree_caches", array("identifier" => "org.bigtreecms.cloudfiles"));
 			foreach ($data as $item) {
-				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($item["path"])."','".sqlescape(json_encode(array("name" => $item["name"],"path" => $item["path"],"size" => $item["size"])))."')");
+				BigTreeCMS::$DB->insert("bigtree_caches", array(
+					"identifier" => "org.bigtreecms.cloudfiles",
+					"key" => $item["path"],
+					"value" => array(
+						"name" => $item["name"],
+						"path" => $item["path"],
+						"size" => $item["size"]
+					)
+				));
 			}
 		}
 

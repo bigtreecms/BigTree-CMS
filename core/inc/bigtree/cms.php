@@ -732,12 +732,12 @@
 			if (is_array($parent)) {
 				$where_parent = array();
 				foreach ($parent as $p) {
-					$where_parent[] = "parent = '".sqlescape($p)."'";
+					$where_parent[] = "parent = '".static::$DB->escape($p)."'";
 				}
 				$where_parent = "(".implode(" OR ",$where_parent).")";
 			// If it's an integer, let's just pull the children for the provided parent.
 			} else {
-				$parent = sqlescape($parent);
+				$parent = static::$DB->escape($parent);
 				$where_parent = "parent = '$parent'";
 			}
 			
@@ -803,7 +803,7 @@
 				if (is_array($parent)) {
 					$where_parent = array();
 					foreach ($parent as $p) {
-						$where_parent[] = "bigtree_pages.id = '".sqlescape($p)."'";
+						$where_parent[] = "bigtree_pages.id = '".static::$DB->escape($p)."'";
 					}
 
 					$module_pages = static::$DB->fetchAll("SELECT bigtree_modules.class,

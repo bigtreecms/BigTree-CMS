@@ -58,7 +58,7 @@
 	$used_forms = array();
 	$used_views = array();
 	$used_reports = array();
-	$extension = sqlescape($id);
+	$extension = $db->escape($id);
 
 	foreach (array_filter((array)$module_groups) as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);

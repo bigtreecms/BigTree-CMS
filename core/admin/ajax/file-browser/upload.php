@@ -13,7 +13,7 @@
 		$replacing = false;
 	}
 
-	$folder = isset($_POST["folder"]) ? sqlescape($_POST["folder"]) : false;
+	$folder = isset($_POST["folder"]) ? $_POST["folder"] : false;
 	$errors = array();
 	$successes = 0;
 

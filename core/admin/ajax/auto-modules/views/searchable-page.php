@@ -3,7 +3,7 @@
 
 	// Grab View Data
 	if (isset($_GET["view"])) {
-		$bigtree["view"] = BigTreeAutoModule::getView(sqlescape($_GET["view"]));
+		$bigtree["view"] = BigTreeAutoModule::getView($_GET["view"]);
 	}
 	if (isset($_GET["module"])) {
 		$bigtree["module"] = $admin->getModuleByRoute($_GET["module"]);

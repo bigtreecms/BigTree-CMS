@@ -158,7 +158,7 @@
 		*/
 
 		private function geocodeYahoo($address) {
-			$response = BigTree::cURL("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.sqlescape($address).'"'));
+			$response = BigTree::cURL("http://query.yahooapis.com/v1/public/yql?format=json&q=".urlencode('SELECT * FROM geo.placefinder WHERE text="'.addslashes($address).'"'));
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);

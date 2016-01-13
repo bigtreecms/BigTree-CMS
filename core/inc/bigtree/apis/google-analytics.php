@@ -215,14 +215,15 @@
 			$results = $this->getData($this->Settings["profile"],"1 month ago","today","pageviews","pagePath");
 			$used_paths = array();
 			foreach ($results as $item) {
-				$clean_path = sqlescape(trim($item->pagePath,"/"));
-				$views = sqlescape($item->pageviews);
+				$clean_path = trim($item->pagePath,"/");
+				$views = intval($item->pageviews);
 				
 				// Sometimes Google has slightly different routes like "cheese" and "cheese/" so we need to add these page views together.
 				if (in_array($clean_path,$used_paths)) {
-					sqlquery("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) WHERE `path` = '$clean_path'");
+					BigTreeCMS::$DB->query("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) 
+											WHERE `path` = ?", $clean_path);
 				} else {
-					sqlquery("UPDATE bigtree_pages SET ga_page_views = $views WHERE `path` = '$clean_path'");
+					BigTreeCMS::$DB->update("bigtree_pages", array("path" => $clean_path), array("ga_page_views" => $views));
 					$used_paths[] = $clean_path;
 				}
 			}

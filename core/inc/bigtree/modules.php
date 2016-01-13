@@ -68,49 +68,47 @@
 		*/
 		
 		function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {	
-			$existing_parts = $key_parts = $value_parts = array();
+			$insert_array = array();
 
 			// Single column/value add
 			if (is_string($fields)) {
-				$value = is_array($values) ? sqlescape(json_encode(BigTree::translateArray($values))) : sqlescape(BigTreeAdmin::autoIPL($values));
-				$existing_parts[] = "`$fields` = '$value'";
-				$key_parts[] = "`$fields`";
-				$value_parts[] = "$value";
+				$insert_array[$fields] = $values;
 			// Multiple columns / values
 			} else {
 				// If we didn't pass in values (=== false) then we're using a key => value array
 				if ($values === false) {
-					foreach ($fields as $key => $value) {
-						$value = is_array($value) ? sqlescape(json_encode(BigTree::translateArray($value))) : sqlescape(BigTreeAdmin::autoIPL($value));
-						$existing_parts[] = "`$key` = '$value'";
-						$key_parts[] = "`$key`";
-						$value_parts[] = "'$value'";
-					}
+					$insert_array = $fields;
 				// Separate arrays for keys and values
 				} else {
 					foreach ($fields as $key) {
-						$val = current($values);
-						$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape(BigTreeAdmin::autoIPL($val));
-						$existing_parts[] = "`$key` = '$val'";
-						$key_parts[] = "`$key`";
-						$value_parts[] = "'$val'";
+						$insert_array[$key] = current($values);
 						next($values);
 					}
 				}
 			}
 
+			// Do auto IPL stuff
+			$insert_array = BigTree::translateArray($insert_array);
+
 			// Prevent Duplicates
 			if ($enforce_unique) {
-				$row = sqlfetch(sqlquery("SELECT id FROM `".$this->Table."` WHERE ".implode(" AND ",$existing_parts)." LIMIT 1"));
+				$existing_parts = array();
+				foreach ($insert_array as $key => $val) {
+					$val = is_array($val) ? BigTree::json($val,true) : BigTreeCMS::$DB->escape($val);
+					$existing_parts[] = "`$key` = '$val'";
+				}
+
+				$existing_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM `".$this->Table."` 
+															 WHERE ".implode(" AND ",$existing_parts)." LIMIT 1");
 				// If it's the same as an existing entry, return that entry's id
-				if ($row) {
-					return $row["id"];
+				if ($existing_id) {
+					return $existing_id;
 				}
 			}
 			
 			// Add the entry and cache it.
-			sqlquery("INSERT INTO `".$this->Table."` (".implode(",",$key_parts).") VALUES (".implode(",",$value_parts).")");
-			$id = sqlid();
+			$id = BigTreeCMS::$DB->insert($this->Table,$insert_array);
+
 			if (!$ignore_cache) {
 				BigTreeAutoModule::cacheNewItem($id,$this->Table);
 			}
@@ -173,9 +171,8 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$item = sqlescape($item);
-			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$item'");
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$item'");
+			BigTreeCMS::$DB->delete($this->Table,$item);
+			BigTreeCMS::$DB->delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $item));
 			BigTreeAutoModule::uncacheItem($item,$this->Table);
 		}
 		
@@ -231,9 +228,9 @@
 			}
 			
 			$items = array();
-			$q = sqlquery($query);
-			while ($f = sqlfetch($q)) {
-				$items[] = $this->get($f);
+			$query = BigTreeCMS::$DB->query($query);
+			while ($item = $query->fetch()) {
+				$items[] = $this->get($item);
 			}
 			
 			return $items;
@@ -253,7 +250,7 @@
 		
 		function get($item) {
 			if (!is_array($item)) {
-				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '".sqlescape($item)."'"));
+				$item = BigTreeCMS::$DB->fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $item);
 			}
 			
 			if (!$item) {
@@ -372,7 +369,7 @@
 		*/
 		
 		function getByRoute($route) {
-			$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE route = '".sqlescape($route)."'"));
+			$item = BigTreeCMS::$DB->fetch("SELECT * FROM `".$this->Table."` WHERE route = ?", $route);
 
 			if (!$item) {
 				return false;
@@ -420,25 +417,24 @@
 		function getInfo($entry) {
 			$info = array();
 			if (is_array($entry)) {
-				$entry = sqlescape($entry["id"]);
-			} else {
-				$entry = sqlescape($entry);
+				$entry = $entry["id"];
 			}
-			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
 
-			$created = sqlfetch(sqlquery($base." AND type = 'created'"));
+			$base_query = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = ?";
+
+			$created = BigTreeCMS::$DB->fetch($base_query." AND type = 'created'", $entry);
 			if ($created) {
 				$info["created_at"] = $created["date"];
 				$info["creator"] = $created["user"];
 			}
 
-			$updated = sqlfetch(sqlquery($base." AND type = 'updated' ORDER BY date DESC LIMIT 1"));
+			$updated = BigTreeCMS::$DB->fetch($base_query." AND type = 'updated' ORDER BY date DESC LIMIT 1", $entry);
 			if ($updated) {
 				$info["updated_at"] = $updated["date"];
 				$info["last_updated_by"] = $updated["user"];
 			}
 			
-			$changed = sqlfetch(sqlquery($base." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1"));
+			$changed = BigTreeCMS::$DB->fetch($base_query." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1", $entry);
 			if ($changed && strtotime($changed) > strtotime($info["updated_at"])) {
 				$info["status"] = "changed";
 			} else {
@@ -470,12 +466,13 @@
 			} else {
 				$search = array_combine($fields,$values);
 			}
+
 			$where = array();
 			foreach ($search as $key => $value) {
 				if (!$exact && ($value === "NULL" || !$value)) {
 					$where[] = "(`$key` IS NULL OR `$key` = '' OR `$key` = '0')";
 				} else {
-					$where[] = "`$key` = '".sqlescape($value)."'";
+					$where[] = "`$key` = '".BigTreeCMS::$DB->escape($value)."'";
 				}
 			}
 			
@@ -572,12 +569,14 @@
 				$perpage = is_numeric($where) ? $where : 15;
 				$where = $saved;
 			}
+
 			if ($where) {
-				$query = "SELECT id FROM `".$this->Table."` WHERE $where";
+				$query = "SELECT COUNT(*) FROM `".$this->Table."` WHERE $where";
 			} else {
-				$query = "SELECT id FROM `".$this->Table."`";
-			}			
-			$pages = ceil(sqlrows(sqlquery($query)) / $perpage);
+				$query = "SELECT COUNT(*) FROM `".$this->Table."`";
+			}
+
+			$pages = ceil(BigTreeCMS::$DB->fetchSingle($query) / $perpage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
@@ -596,17 +595,17 @@
 		*/
 		
 		function getPending($id) {
-			$id = sqlescape($id);
-			
+			// Completely pending
 			if (substr($id,0,1) == "p") {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
-				$item = json_decode($f["changes"],true);
+				$pending = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id,1));
+				$item = json_decode($pending["changes"],true);
 				$item["id"] = $id;
+			// Published with changes
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '$id'"));
-				$c = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE item_id = '$id' AND `table` = '".$this->Table."'"));
-				if ($c) {
-					$changes = json_decode($c["changes"],true);
+				$item = BigTreeCMS::$DB->fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $id);
+				$pending = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE item_id = ? AND `table` = '".$this->Table."'", $id);
+				if ($pending) {
+					$changes = json_decode($pending["changes"],true);
 					foreach ($changes as $key => $val) {
 						$item[$key] = $val;
 					}
@@ -614,7 +613,7 @@
 			
 			}
 			
-			// Translate it's roots and return it
+			// Translate its roots and return it
 			return $this->get($item);
 		}
 		
@@ -631,11 +630,12 @@
 		*/
 		
 		function getRandom($count = false,$columns = false) {
+			$results = $this->fetch("RAND()",$count,false,$columns);
+
 			if ($count === false) {
-				$f = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` ORDER BY RAND() LIMIT 1"));
-				return $this->get($f);
+				return $results[0];
 			}
-			return $this->fetch("RAND()",$count,false,$columns);
+			return $results;
 		}
 
 		/*
@@ -684,23 +684,28 @@
 			
 			Parameters:
 				tags - An array of tags to match against.
+				count - Number to return (defaults to all)
 			
 			Returns:
 				An array of entries from the table sorted by most relevant to least.
 		*/
 		
-		function getRelatedByTags($tags = array()) {
-			$results = array();
-			$relevance = array();
+		function getRelatedByTags($tags = array(), $count = false) {
+			$results = $relevance = array();
+
 			foreach ($tags as $tag) {
 				if (is_array($tag)) {
-					$tag = $tag["tag"];
+					$tag_id = $tag["id"];
+				} else {
+					$tag_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?", $tag);
 				}
-				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
-				if ($tdat) {
-					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = '".sqlescape($this->Table)."'");
-					while ($f = sqlfetch($q)) {
-						$id = $f["entry"];
+
+				if ($tag_id) {
+					$query = BigTreeCMS::$DB->query("SELECT * FROM bigtree_tags_rel WHERE tag = '$tag_id' AND `table` = '".$this->Table."'");
+					while ($relationship = $query->fetch()) {
+						$id = $relationship["entry"];
+
+						// If we already have this relationship, increase the relevance
 						if (in_array($id,$results)) {
 							$relevance[$id]++;
 						} else {
@@ -710,11 +715,21 @@
 					}
 				}
 			}
+
+			// Sort by most relevant
 			array_multisort($relevance,SORT_DESC,$results);
+
+			// If we asked for a certain number, only return that many
+			if ($count !== false) {
+				$results = array_slice($results,0,$count);
+			}
+
+			// Parse result IDs into items 
 			$items = array();
 			foreach ($results as $result) {
 				$items[] = $this->get($result);
 			}
+
 			return $items;
 		}
 		
@@ -746,20 +761,15 @@
 		*/
 		
 		function getTagsForItem($item) {
-			if (!is_numeric($item)) {
+			if (is_array($item)) {
 				$item = $item["id"];
 			}
 			
-			$item = sqlescape($item);
-			
-			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = '".sqlescape($this->Table)."' AND bigtree_tags_rel.entry = '$item' ORDER BY bigtree_tags.tag");
-
-			$tags = array();
-			while ($f = sqlfetch($q)) {
-				$tags[] = $f["tag"];
-			}
-			
-			return $tags;
+			return BigTreeCMS::$DB->fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel 
+													ON bigtree_tags.id = bigtree_tags_rel.tag 
+													WHERE bigtree_tags_rel.`table` = ? 
+													  AND bigtree_tags_rel.entry = ? 
+													ORDER BY bigtree_tags.tag", $this->Table, $item);
 		}
 
 		/*
@@ -889,12 +899,14 @@
 				$pieces = explode(" ",$query);
 				foreach ($pieces as $piece) {
 					if ($piece) {
+						$piece = BigTreeCMS::$DB->escape($piece);
+
 						$where_piece = array();
 						foreach ($table_description["columns"] as $field => $parameters) {
 							if ($case_sensitive) {
-								$where_piece[] = "`$field` LIKE '%".sqlescape($piece)."%'";
+								$where_piece[] = "`$field` LIKE '%$piece%'";
 							} else {
-								$where_piece[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($piece))."%'";
+								$where_piece[] = "LOWER(`$field`) LIKE '%".strtolower($piece)."%'";
 							}
 						}
 						$where[] = "(".implode(" OR ",$where_piece).")";
@@ -904,9 +916,9 @@
 			} else {
 				foreach ($table_description["columns"] as $field => $parameters) {
 					if ($case_sensitive) {
-						$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
+						$where[] = "`$field` LIKE '%".BigTreeCMS::$DB->escape($query)."%'";
 					} else {
-						$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
+						$where[] = "LOWER(`$field`) LIKE '%".BigTreeCMS::$DB->escape(strtolower($query))."%'";
 					}
 				}
 				return $this->fetch($order,$limit,implode(" OR ",$where),$columns);
@@ -1004,36 +1016,27 @@
 		*/
 		
 		function update($id,$fields,$values = false,$ignore_cache = false) {
-			$id = sqlescape($id);
+			$update_fields = array();
+
 			// Turn a key => value array into pairs
 			if ($values === false && is_array($fields)) {
-				$values = $fields;
-				$fields = array_keys($fields);
-			}
+				$update_fields = $fields;
+
 			// Multiple columns to update			
-			if (is_array($fields)) {
-				$query_parts = array();
+			} elseif (is_array($fields)) {
 				foreach ($fields as $key) {
-					$val = current($values);
-					if (is_array($val)) {
-						$val = BigTree::json(BigTree::translateArray($val));
-					} else {
-						$val = BigTreeAdmin::autoIPL($val);
-					}
-					$query_parts[] = "`$key` = '".sqlescape($val)."'";
+					$update_fields[$key] = current($values);
 					next($values);
 				}
-			
-				sqlquery("UPDATE `".$this->Table."` SET ".implode(", ",$query_parts)." WHERE id = '$id'");
+
 			// Single column to update
 			} else {
-				if (is_array($values)) {
-					$val = json_encode(BigTree::translateArray($values));
-				} else {
-					$val = BigTreeAdmin::autoIPL($values);
-				}
-				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($val)."' WHERE id = '$id'");
+				$update_fields[$fields] = $values;
 			}
+
+			// Update
+			BigTreeCMS::$DB->update($this->Table, $id, $update_fields);
+
 			if (!$ignore_cache) {
 				BigTreeAutoModule::recacheItem($id,$this->Table);
 			}

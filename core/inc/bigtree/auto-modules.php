@@ -564,10 +564,11 @@
 		*/
 
 		static function getEmbedFormByHash($hash) {
+			$hash = BigTreeCMS::$DB->escape($hash);
 			$form = BigTreeCMS::$DB->fetch("SELECT id FROM bigtree_module_interfaces 
 											WHERE `type` = 'embeddable-form' AND 
-									   			  (`settings` LIKE '%\"hash\":\"".sqlescape($hash)."\"%' OR
-												   `settings` LIKE '%\"hash\": \"".sqlescape($hash)."\"%')");
+									   			  (`settings` LIKE '%\"hash\":\"$hash\"%' OR
+												   `settings` LIKE '%\"hash\": \"$hash\"%')");
 			return self::getEmbedForm($form);
 		}
 		
@@ -900,6 +901,7 @@
 			$status = "published";
 			$many_to_many = array();
 			$owner = false;
+
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
 				$change = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id,1));
@@ -923,6 +925,7 @@
 
 				$status = "pending";
 				$owner = $change["user"];
+				
 			// Otherwise it's a live entry
 			} else {
 				$item = BigTreeCMS::$DB->fetch("SELECT * FROM `$table` WHERE id = ?", $id);

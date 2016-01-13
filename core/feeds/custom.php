@@ -1,13 +1,15 @@
 <feed>
 	<?php
-		$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id desc";
+		$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
 		$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
-		$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
+		$query = $db->query("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
 		
-		while ($item = sqlfetch($q)) {
+		while ($item = $query->fetch()) {
 			foreach ($item as $key => $val) {
-				if (is_array(json_decode($val,true))) {
-					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
+				$array_val = @json_decode($val,true);
+
+				if (is_array($array_val)) {
+					$item[$key] = BigTree::untranslateArray($array_val);
 				} else {
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}

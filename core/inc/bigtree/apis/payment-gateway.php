@@ -52,7 +52,12 @@
 
 			// Setting doesn't exist? Create it.
 			if ($s === false) {
-				sqlquery("INSERT INTO bigtree_settings (`id`,`system`,`encrypted`) VALUES ('bigtree-internal-payment-gateway','on','on')");
+				BigTreeCMS::$DB->insert("bigtree_settings", array(
+					"id" => "bigtree-internal-payment-gateway",
+					"system" => "on",
+					"encrypted" => "on"
+				));
+
 				$s = array("service" => "", "settings" => array());
 				BigTreeAdmin::updateSettingValue("bigtree-internal-payment-gateway",$s);
 			}

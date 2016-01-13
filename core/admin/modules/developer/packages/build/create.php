@@ -106,7 +106,7 @@
 					if ($val === null) {
 						$values[] = "NULL";
 					} else {
-						$values[] = "'".sqlescape(str_replace("\n","\\n",$val))."'";
+						$values[] = "'".$db->escape(str_replace("\n","\\n",$val))."'";
 					}
 				}
 				$package["sql"][] = "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).")";

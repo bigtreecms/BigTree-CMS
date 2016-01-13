@@ -8,7 +8,7 @@
 		$search_term = $admin->makeIPL($search_term);
 	}
 	
-	$w = "'%".sqlescape($search_term)."%'";
+	$w = "'%".$db->escape($search_term)."%'";
 	
 	// Get the "Pages" results.
 	$r = $admin->searchPages($search_term,array("title","resources","meta_keywords","meta_description","nav_title"),"50");
@@ -51,8 +51,8 @@
 			}
 				
 			// Get matching results
-			$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
-			while ($r = sqlfetch($qs)) {
+			$query = $db->query("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
+			while ($r = $query->fetch()) {
 				foreach ($r as &$piece) {
 					$piece = $cms->replaceInternalPageLinks($piece);
 				}

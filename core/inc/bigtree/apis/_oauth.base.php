@@ -62,7 +62,10 @@
 		function cacheBust($id) {
 			if (is_array($this->Settings["hash_table"][$id])) {
 				foreach ($this->Settings["hash_table"][$id] as $i) {
-					sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '".sqlescape($this->CacheIdentifier)."' AND `key` = '".sqlescape($i)."'");
+					BigTreeCMS::$DB->delete("bigtree_caches", array(
+						"identifier" => $this->CacheIdentifier,
+						"key" => $i
+					));
 				}
 			}
 		}
@@ -243,8 +246,8 @@
 		*/
 
 		function disconnect() {
-			sqlquery("DELETE FROM bigtree_caches WHERE identifier = '".sqlescape($this->CacheIdentifier)."'");
-			sqlquery("DELETE FROM bigtree_settings WHERE id = '".$this->SettingID."'");
+			BigTreeCMS::$DB->delete("bigtree_caches", array("identifier" => $this->CacheIdentifier));
+			BigTreeCMS::$DB->delete("bigtree_settings", $this->SettingID);
 		}
 
 		/*

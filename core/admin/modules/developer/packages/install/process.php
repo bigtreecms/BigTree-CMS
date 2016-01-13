@@ -22,20 +22,19 @@
 	// Import modules
 	foreach ($json["components"]["modules"] as &$module) {
 		if ($module) {
-			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : "NULL";
-			$gbp = sqlescape(is_array($module["gbp"]) ? BigTree::json($module["gbp"]) : $module["gbp"]);
-			
-			// Find a unique route
-			$oroute = $route = $module["route"];
-			$x = 2;
-			while (sqlrows(sqlquery("SELECT * FROM bigtree_modules WHERE route = '".sqlescape($route)."'"))) {
-				$route = $oroute."-$x";
-				$x++;
-			}
+			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
+			$route = $db->unique("bigtree_modules",array("route" => $module["route"]));
 			
 			// Create the module
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp')");
-			$module_id = sqlid();
+			$module_id = $db->insert("bigtree_modules",array(
+				"name" => $module["name"],
+				"route" => $route,
+				"class" => $module["class"],
+				"icon" => $module["icon"],
+				"group" => $group,
+				"gbp" => $module["gbp"]
+			));
+
 			$bigtree["module_match"][$module["id"]] = $module_id;
 			$bigtree["route_match"][$module["route"]] = $route;
 			// Update the module ID since we're going to save this manifest locally for uninstalling
@@ -66,10 +65,9 @@
 
 			// Update views with their new related form value
 			foreach ($views_to_update as $id) {
-				$view = sqlfetch(sqlquery("SELECT settings FROM bigtree_module_interfaces WHERE id = '$id'"));
-				$settings = json_decode($view["settings"],true);
+				$settings = json_decode($db->fetchSingle("SELECT settings FROM bigtree_module_interfaces WHERE id = ?", $id), true);
 				$settings["related_form"] = $bigtree["form_id_match"][$settings["related_form"]];
-				sqlquery("UPDATE bigtree_module_interfaces SET settings = '".BigTree::json($settings,true)."' WHERE id = '$id'");
+				$db->update("bigtree_module_interfaces",$id,array("settings" => $settings));
 			}
 			
 			// Create reports
@@ -113,7 +111,7 @@
 	// Import Settings
 	foreach ($json["components"]["settings"] as $setting) {
 		if ($setting) {
-			sqlquery("DELETE FROM bigtree_settings WHERE id = '".sqlescape($setting["id"])."'");
+			$db->delete("bigtree_settings",$setting["id"]);
 			$admin->createSetting($setting);
 		}
 	}
@@ -121,17 +119,22 @@
 	// Import Feeds
 	foreach ($json["components"]["feeds"] as $feed) {
 		if ($feed) {
-			$fields = sqlescape(is_array($feed["fields"]) ? BigTree::json($feed["fields"]) : $feed["fields"]);
-			$options = sqlescape(is_array($feed["options"]) ? BigTree::json($feed["options"]) : $feed["options"]);
-			sqlquery("DELETE FROM bigtree_feeds WHERE route = '".sqlescape($feed["route"])."'");
-			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options')");
+			$db->delete("bigtree_feeds",array("route" => $feed["route"]));
+			$db->insert("bigtree_feeds",array(
+				"route" => $feed["route"],
+				"name" => $feed["name"],
+				"description" => $feed["description"],
+				"type" => $feed["type"],
+				"table" => $feed["table"],
+				"fields" => $feed["fields"],
+				"options" => $feed["options"]
+			));
 		}
 	}
 
 	// Import Field Types
 	foreach ($json["components"]["field_types"] as $type) {
 		if ($type) {
-			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($type["id"])."'");
 			// Backwards compatibility with field types packaged for 4.1
 			if (!isset($type["use_cases"])) {
 				$type["use_cases"] = array(
@@ -141,9 +144,14 @@
 					"settings" => $type["settings"]
 				);
 			}
-			$use_cases = is_array($type["use_cases"]) ? sqlescape(json_encode($type["use_cases"])) : sqlescape($type["use_cases"]);
-			$self_draw = $type["self_draw"] ? "'on'" : "NULL";
-			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','$use_cases',$self_draw)");
+
+			$db->delete("bigtree_field_types",$type["id"]);
+			$db->insert("bigtree_field_types",array(
+				"id" => $type["id"],
+				"name" => $type["name"],
+				"use_cases" => $type["use_cases"],
+				"self_draw" => $type["self_draw"] ? "on" : null
+			));
 		}
 	}
 
@@ -153,7 +161,7 @@
 	}
 
 	// Empty view cache
-	sqlquery("DELETE FROM bigtree_module_view_cache");
+	$db->query("DELETE FROM bigtree_module_view_cache");
 
 	// Remove the package directory
 	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
@@ -162,8 +170,17 @@
 	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
-	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','package','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");
-	sqlquery("SET foreign_key_checks = 1");
+	// Create package
+	$db->insert("bigtree_extensions",array(
+		"id" => $json["id"],
+		"type" => "package",
+		"name" => $json["title"],
+		"version" => $json["version"],
+		"manifest" => $json
+	));
+	
+	// Turn key checks back on
+	$db->query("SET foreign_key_checks = 1");
 	
 	$admin->growl("Developer","Installed Package");
 	BigTree::redirect(DEVELOPER_ROOT."packages/install/complete/");

@@ -266,12 +266,12 @@
 
 		function getMatching($fields,$values,$order = "Id ASC",$limit = false,$full_response = false) {
 			if (!is_array($fields)) {
-				$where = "$fields = '".sqlescape($values)."'";
+				$where = "$fields = '".addslashes($values)."'";
 			} else {
 				$x = 0;
 				$where = array();
 				while ($x < count($fields)) {
-					$where[] = $fields[$x]." = '".sqlescape($values[$x])."'";
+					$where[] = $fields[$x]." = '".addslashes($values[$x])."'";
 					$x++;
 				}
 				$where = implode(" AND ",$where);

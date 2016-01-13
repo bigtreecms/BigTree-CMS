@@ -581,12 +581,12 @@
 				"primary_key" => array()
 			);
 			
-			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
-			if (!$f) {
+			$result = BigTreeCMS::$DB->fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
+			if (!$result) {
 				return false;
 			}
 
-			$lines = explode("\n",$f["Create Table"]);
+			$lines = explode("\n",$result["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines,1,-1);
 			foreach ($main_lines as $line) {
@@ -1091,9 +1091,8 @@
 		static function getTableSelectOptions($default = "") {
 			global $bigtree;
 			
-			$q = sqlquery("SHOW TABLES");
-			while ($f = sqlfetch($q)) {
-				$table_name = current($f);
+			$tables = BigTreeCMS::$DB->fetchAllSingle("SHOW TABLES");
+			foreach ($tables as $table_name) {
 				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
 					if ($default == $table_name) {
 						echo '<option selected="selected">'.$table_name.'</option>';
@@ -1443,7 +1442,7 @@
 			$json = (static::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
 			// SQL escape if requested
 			if ($sql) {
-				return sqlescape($json);
+				return BigTree::$DB->escape($json);
 			}
 			return $json;
 		}
@@ -2458,7 +2457,7 @@
 			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
 			    	    	$mod .= " DEFAULT $d";
 			    	    } else {
-			    	    	$mod .= " DEFAULT '".sqlescape($d)."'";
+			    	    	$mod .= " DEFAULT '".BigTreeCMS::$DB->escape($d)."'";
 			    	    }
 			    	}
 			    	
@@ -2602,19 +2601,19 @@
 			}
 
 			// Get the rows out of the table
-			$qq = sqlquery("SELECT ".implode(", ",$column_query)." FROM `$table`");
-			while ($ff = sqlfetch($qq)) {
-				$keys = array();
-				$vals = array();
-				foreach ($ff as $key => $val) {
+			$query = BigTreeCMS::$DB->query("SELECT ".implode(", ",$column_query)." FROM `$table`");
+			while ($row = $query->fetch()) {
+				$keys = $vals = array();
+
+				foreach ($row as $key => $val) {
 					$keys[] = "`$key`";
 					if ($val === null) {
 						$vals[] = "NULL";
 					} else {
 						if (in_array($key,$binary_columns)) {
-							$vals[] = "X'".str_replace("\n","\\n",sqlescape($val))."'";
+							$vals[] = "X'".str_replace("\n","\\n",BigTreeCMS::$DB->escape($val))."'";
 						} else {
-							$vals[] = "'".str_replace("\n","\\n",sqlescape($val))."'";
+							$vals[] = "'".str_replace("\n","\\n",BigTreeCMS::$DB->escape($val))."'";
 						}
 					}
 				}
@@ -2636,8 +2635,8 @@
 		*/
 
 		static function tableExists($table) {
-			$r = sqlrows(sqlquery("SHOW TABLES LIKE '".sqlescape($table)."'"));
-			if ($r) {
+			$rows = BigTreeCMS::$DB->query("SHOW TABLES LIKE ?", $table)->rows();
+			if ($rows) {
 				return true;
 			}
 			return false;
