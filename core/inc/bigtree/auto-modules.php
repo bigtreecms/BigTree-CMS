@@ -971,7 +971,7 @@
 				} else {
 					$array_val = @json_decode($val, true);
 					if (is_array($array_val)) {
-						$item[$key] = BigTree::untranslateArray(json_decode($array_val,true));
+						$item[$key] = BigTree::untranslateArray($array_val);
 					} else {
 						$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
 					}
