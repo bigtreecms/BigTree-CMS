@@ -581,7 +581,7 @@
 				"primary_key" => array()
 			);
 			
-			$result = BigTreeCMS::$DB->fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
+			$result = BigTreeCMS::$DB->fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`");
 			if (!$result) {
 				return false;
 			}
@@ -710,7 +710,7 @@
 					$key = static::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
-					$size = "";
+					$size = $current_option = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ",$line);
 					if (strpos($parts[0],"(") !== false) { // Yes, there's a size definition
@@ -2107,6 +2107,7 @@
 
 			// Only certain places include headers and footers
 			if ($include_root) {
+				$inc_path = "";
 				foreach ($pieces as $piece) {
 					if (substr($piece,-4,4) != ".php") {
 						$inc_path .= $piece."/";
