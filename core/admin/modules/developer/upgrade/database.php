@@ -384,7 +384,7 @@
 		while ($f = $q->fetch()) {
 			$suffix = $db->escape($f["suffix"]);
 			// Find the related form
-			$form_id = $db->fetchSingle("SELECT form FROM bigtree_module_actions WHERE module = '".$f["module"]."' AND (route = 'add-$suffix' OR route = 'edit-$suffix')"));
+			$form_id = $db->fetchSingle("SELECT form FROM bigtree_module_actions WHERE module = '".$f["module"]."' AND (route = 'add-$suffix' OR route = 'edit-$suffix')");
 			if ($form_id) {
 				$db->update("bigtree_module_views", $f["id"], array("related_form" => $form_id));
 			}
@@ -626,7 +626,7 @@
 
 		// New resource format to be less restrictive on option names
 		$q = $db->query("SELECT * FROM bigtree_callouts");
-		while ($f = $q->fetch())) {
+		while ($f = $q->fetch()) {
 			$resources = $resource_converter(json_decode($f["resources"],true));
 			$db->query("UPDATE bigtree_callouts SET resources = '$resources' WHERE id = '".$f["id"]."'");
 		}
@@ -776,7 +776,7 @@
 
 		// Embeddable Forms
 		$query = $db->query("SELECT * FROM bigtree_module_embeds");
-		while ($form = $q->fetch()) {
+		while ($form = $query->fetch()) {
 			$intMod->add(array(
 				"type" => "embeddable-form",
 				"module" => $form["module"],
@@ -827,7 +827,7 @@
 		$db->query("ALTER TABLE `bigtree_modules` ADD COLUMN `developer_only` CHAR(2) NOT NULL AFTER `gbp`");
 
 		// Change some datetime columns that were only ever the current time of creation / update to be timestamps
-		$db->query("ALTER TABLE `bigtree_resource_allocation` CHANGE `updated_at` `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+		$db->query("ALTER TABLE `bigtree_resource_allocation` CHANGE `updated_at` `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 		$db->query("ALTER TABLE `bigtree_messages` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 		$db->query("ALTER TABLE `bigtree_pages` CHANGE `updated_at` `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 		$db->query("ALTER TABLE `bigtree_resources` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
@@ -852,4 +852,3 @@
 		$db->query("CREATE INDEX `name` ON `bigtree_feeds` (`name`)");
 		$db->query("CREATE INDEX `name` ON `bigtree_field_types` (`name`)");
 	}
-?>
