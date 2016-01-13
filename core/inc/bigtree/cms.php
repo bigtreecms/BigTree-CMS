@@ -61,7 +61,7 @@
 
 						// Get the registered routes, load the class
 						include_once SERVER_ROOT.$path;
-						if (isset($class::$RouteRegistry && is_array($class::$RouteRegistry)) {
+						if (isset($class::$RouteRegistry) && is_array($class::$RouteRegistry)) {
 							foreach ($class::$RouteRegistry as $registration) {
 								$type = $registration["type"];
 								unset($registration["type"]);
