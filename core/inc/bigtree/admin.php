@@ -1061,6 +1061,7 @@
 				// Class file
 				BigTree::putFile(SERVER_ROOT."custom/inc/modules/$route.php",'<?php
 	class '.$class.' extends BigTreeModule {
+		static $RouteRegistry = array();
 		var $Table = "'.$table.'";
 	}
 ');
