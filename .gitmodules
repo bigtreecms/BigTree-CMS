@@ -12,4 +12,4 @@
 	url = https://github.com/tedious/JShrink
 [submodule "core/inc/lib/Text-Statistics"]
 	path = core/inc/lib/Text-Statistics
-	url = https://github.com/DaveChild/Text-Statistics
+	url = https://github.com/DaveChild/Text-Statistics.git
