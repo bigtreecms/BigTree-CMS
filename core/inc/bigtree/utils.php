@@ -1520,8 +1520,12 @@
 				} else {
 					$directory_to_check = $directory;
 				}
-				if ($directory_to_check && !file_exists($directory_to_check)) {
-					$directories_to_create[] = $directory_to_check;
+				if ($directory_to_check) {
+					if (!file_exists($directory_to_check)) {
+						$directories_to_create[] = $directory_to_check;
+					} else {
+						break;
+					}
 				}
 			}
 
