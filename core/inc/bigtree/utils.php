@@ -1509,21 +1509,30 @@
 				$dir_path = "";
 			}
 
-			$dir_parts = explode("/",trim($directory,"/"));
-			foreach ($dir_parts as $part) {
-				$dir_path .= $part;
-				// Silence situations with open_basedir restrictions.
-				try {
-					$exists = file_exists($dir_path);
-					if (!$exists) {
-						mkdir($dir_path);
-						static::setPermissions($dir_path);
-					}
-				} catch (Exception $e) {
+			$dir_parts = explode("/",rtrim($directory,"/"));
+			$dir_part_count = count($dir_parts);
+			$directories_to_create = array();
+
+			// Find all the directories we need to create. We're going backwards to avoid open_basedir restrictions.
+			for ($x = 0; $x < $dir_part_count; $x++) {
+				if ($x) {
+					$directory_to_check = implode("/",array_slice($dir_parts,0,-1 * $x));
+				} else {
+					$directory_to_check = $directory;
+				}
+				if ($directory_to_check && !file_exists($directory_to_check)) {
+					$directories_to_create[] = $directory_to_check;
+				}
+			}
+
+			// Make the directories
+			foreach (array_reverse($directories_to_create) as $directory_to_create) {
+				if (!mkdir($directory_to_create)) {
+					trigger_error("BigTree::makeDirectory failed to create directory: ".$directory_to_create, E_USER_WARNING);
 					return false;
 				}
-				$dir_path .= "/";
 			}
+			
 			return true;
 		}
 		
