@@ -42,6 +42,12 @@
 					}
 				}
 			}
+
+			// Remove trailing new line
+			if ($tab === "") {
+				$xml = trim($xml);
+			}
+
 			return $xml;
 		}
 
@@ -1211,7 +1217,10 @@
 			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
 				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
-					global $$bigtree["key"];
+					// Fix for PHP 7
+					$key = $bigtree["key"];
+					global $$key;
+
 					if (is_array($bigtree["val"])) {
 						$$bigtree["key"] = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
