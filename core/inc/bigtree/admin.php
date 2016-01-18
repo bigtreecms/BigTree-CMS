@@ -6759,6 +6759,11 @@
 				if ($analytics->API && $analytics->Profile) {
 					$analytics->cacheInformation();
 				}
+
+				// Ping bigtreecms.org with current version stats
+				if (!$bigtree["config"]["disable_ping"]) {
+					BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
+				}
 			}
 		
 			// Run any extension cron jobs
@@ -6771,11 +6776,6 @@
 						call_user_func($details["function"]);
 					}
 				}
-			}
-
-			// Ping bigtreecms.org with current version stats
-			if (!$bigtree["config"]["disable_ping"]) {
-				BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 			}
 		
 			// Let the CMS know we're running cron properly
