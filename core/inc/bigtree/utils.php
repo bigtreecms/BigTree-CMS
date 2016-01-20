@@ -2760,6 +2760,19 @@
 			}
 			return 0;
 		}
+
+		/*
+			Function: unsetCookie
+				Removes a site-wide cookie set by setCookie.
+
+			Parameters:
+				id - The cookie identifier
+		*/
+
+		static function unsetCookie($id) {
+			setcookie($id,"",strtotime("-1 week"),str_replace(DOMAIN,"",WWW_ROOT));
+			unset($_COOKIE[$id]);
+		}
 		
 		/*
 			Function: untranslateArray
