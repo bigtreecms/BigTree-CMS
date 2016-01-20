@@ -122,7 +122,12 @@
 
 		static function cleanFile($file) {
 			$pieces = array_filter(explode("/",$file), function($val) {
-				if ($val == "..") {
+				// Let empties through
+				if (!trim($val)) {
+					return true;
+				}
+				// Strip path manipulation
+				if (trim(str_replace(".","",$val)) === "") {
 					return false;
 				}
 				return true;
