@@ -19,8 +19,7 @@
 		    $warnings[] = array(
 		    	"name" => "Directory Permissions Error",
 		    	"description" => "Make ".SERVER_ROOT.$directory." writable.",
-		    	"status" => "bad",
-		    	"value" => ""
+		    	"status" => "bad"
 		    );
 		}
 	}
@@ -39,8 +38,8 @@
 					if (!BigTree::isDirectoryWritable(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
 						$directory_warnings[] = $options["directory"];
 						$warnings[] = array(
-							"parameter" => "Directory Permissions Error",
-							"rec" => "Make ".SITE_ROOT.$options["directory"]." writable.",
+							"name" => "Directory Permissions Error",
+							"description" => "Make ".SITE_ROOT.$options["directory"]." writable.",
 							"status" => "bad"
 						);
 					}
@@ -67,8 +66,7 @@
 		$warnings[] = array(
 			"name" => "Bad Admin Links",
 			"description" => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
-			"status" => "ok",
-			"value" => ""
+			"status" => "ok"
 		);
 	}
 	
@@ -76,8 +74,7 @@
 		$warnings[] = array(
 			"name" => "Missing Favicon",
 			"description" => "Create a favicon and place it in the /site/ root.",
-			"status" => "ok",
-			"value" => ""
+			"status" => "ok"
 		);
 	}
 

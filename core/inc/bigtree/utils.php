@@ -372,8 +372,8 @@
 			Parameters:
 				file - The location of the image to crop.
 				new_file - The location to save the new cropped image.
-				min_width - The minimum width of the new image (0 for no max).
-				min_height - The minimum height of the new image (0 for no max).
+				min_width - The minimum width of the new image (0 for no min).
+				min_height - The minimum height of the new image (0 for no min).
 			
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.

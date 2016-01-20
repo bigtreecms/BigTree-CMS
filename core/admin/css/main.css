@@ -633,7 +633,7 @@
 	.table .column .status { display: block; height: 35px; }
 	.table .column .status.good { background: #008000; color: #FFF; }
 	.table .column .status.ok { background: #FFA500; }
-	.table .column .status.red { background: #F00; color: #FFF; }
+	.table .column .status.bad { background: #F00; color: #FFF; }
 	.table .table_sort_column { cursor: pointer; }
 	.table .table_sort_column em { font-size: 7px; padding: 0 0 0 5px; }
 
@@ -1117,6 +1117,8 @@
 	#security_settings .rule { line-height: 22px; margin: 0 0 15px 0; }
 	#security_settings .rule input { display: inline-block; height: 20px; margin: 0 5px 5px 0; padding: 0 5px; text-align: center; width: 30px; }
 	#security_settings .icon_small_help { display: inline-block; float: none; vertical-align: middle; }
+
+	#site_warnings_table { margin: 0 0 25px 0; }
 
 /*---------------------------
 		Front End Editor
