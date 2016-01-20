@@ -121,7 +121,13 @@
 		*/
 
 		static function cleanFile($file) {
-			return str_replace("../","",$file);
+			$pieces = array_filter(explode("/",$file), function($val) {
+				if ($val == "..") {
+					return false;
+				}
+				return true;
+			});
+			return implode("/",$pieces);
 		}
 		
 		/*
@@ -157,7 +163,7 @@
 		
 			$new_color = "#".str_pad(dechex($fc_r + $r_diff),2,"0",STR_PAD_LEFT).str_pad(dechex($fc_g + $g_diff),2,"0",STR_PAD_LEFT).str_pad(dechex($fc_b + $b_diff),2,"0",STR_PAD_LEFT);
 		
-			return $new_color;
+			return strtoupper($new_color);
 		}
 		
 		/*
