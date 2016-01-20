@@ -140,7 +140,13 @@
 		*/
 
 		static function cleanFile($file) {
-			return str_replace("../","",$file);
+			$pieces = array_filter(explode("/",$file), function($val) {
+				if ($val == "..") {
+					return false;
+				}
+				return true;
+			});
+			return implode("/",$pieces);
 		}
 		
 		/*
