@@ -84,9 +84,34 @@
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
+
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		die(BigTree::formatCSS3(file_get_contents($css_file)));
+
+		// Handle LESS
+		if (strtolower(substr($css_file,-5,5)) == ".less") {
+			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php","",strtr(__FILE__, "\\", "/"));
+			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
+			
+			// Already compiled this, just return it
+			if (file_exists($cache_file) && filemtime($cache_file) >= $last_modified) {
+				readfile($cache_file);
+				die();
+			}
+
+			// Load LESS compiler
+			include_once $server_root."core/inc/lib/less.php/lessc.inc.php";
+			$parser = new Less_Parser(array("compress" => true));
+			$parser->parseFile($css_file);
+			$css = $parser->getCss();
+
+			// Cache and return
+			file_put_contents($cache_file, $css);
+			die($css);
+		}
+
+		// Regular old CSS
+		readfile($css_file);
 	}
 
 	// JavaScript

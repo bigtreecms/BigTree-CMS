@@ -77,12 +77,14 @@
 		$cfile = SERVER_ROOT."cache/".$css_file.".css";
 		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
 		if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+			// Check modification times on each included CSS file
 			foreach ($bigtree["config"]["css"]["files"][$css_file] as $style) {
 				$m = (file_exists(SITE_ROOT."css/$style")) ? filemtime(SITE_ROOT."css/$style") : 0;
 				if ($m > $mtime) {
 					$mtime = $m;
 				}
 			}
+
 			// If we have a newer CSS file to include or we haven't cached yet, do it now.
 			if (!file_exists($cfile) || $mtime > $last_modified) {
 				$data = "";
@@ -98,24 +100,22 @@
 							// convert LESS
 							$parser->parse($style);
 							$style = $parser->getCss();
-						} else {
-							// normal CSS
-							if ($bigtree["config"]["css"]["prefix"]) {
-								// Replace CSS3 easymode
-								$style = BigTree::formatCSS3($style);
-							}
 						}
 						$data .= $style."\n";
 					}
 				}
+				
 				// Should only loop once, not with every file
 				if (is_array($bigtree["config"]["css"]["vars"])) {
 					foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key,$val,$data);
 					}
 				}
+				
 				// Replace roots
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
+				
+				// Minify a little bit if requested
 				if ($bigtree["config"]["css"]["minify"]) {
 					// Courtesy of http://www.lateralcode.com/css-minifier/
 					$data = preg_replace('#\s+#',' ',$data);
@@ -129,7 +129,11 @@
 					$data = str_replace(";}", "}",$data);
 					$data = trim($data);
 				}	
+
+				// Cache
 				BigTree::putFile($cfile,$data);
+
+				// Return
 				header("Content-type: text/css");
 				die($data);
 			} else {
