@@ -2302,6 +2302,8 @@
 
 		static function setCookie($id,$value,$expiration = 0) {
 			$expiration = is_string($expiration) ? strtotime($expiration) : $expiration;
+
+			$_COOKIE[$id] = json_encode($value);
 			setcookie($id,json_encode($value),$expiration,str_replace(DOMAIN,"",WWW_ROOT));
 		}
 
