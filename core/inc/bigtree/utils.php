@@ -963,7 +963,7 @@
 
 			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
-				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
+				if (substr($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
 					global $$bigtree["key"];
 					if (is_array($bigtree["val"])) {
 						$$bigtree["key"] = self::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
