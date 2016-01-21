@@ -1185,13 +1185,13 @@
 
 			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
-				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
+				if (substr($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
 					// Fix for PHP 7
 					$key = $bigtree["key"];
 					global $$key;
 
 					if (is_array($bigtree["val"])) {
-						$$bigtree["key"] = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
+						$$key = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -1203,7 +1203,7 @@
 								$bigtree["val"] = $bigtree["function"]($bigtree["val"]);
 							}
 						}
-						$$bigtree["key"] = $bigtree["val"];
+						$$key = $bigtree["val"];
 					}
 				}
 			}
