@@ -957,6 +957,9 @@
 
 			Parameters:
 				id - The id of the set cookie
+
+			Returns:
+				Decoded cookie or false if the cookie was not found.
 		*/
 
 		static function getCookie($id) {
@@ -965,11 +968,19 @@
 				$cookie = $_COOKIE;
 				foreach ($pieces as $piece) {
 					$piece = str_replace("]","",$piece);
-					$cookie = $cookie[$piece];
+					if (isset($cookie[$piece])) {
+						$cookie = $cookie[$piece];
+					} else {
+						return false;
+					}
 				}
 				return json_decode($cookie,true);
 			} else {
-				return json_decode($_COOKIE[$id],true);
+				if (isset($_COOKIE[$id])) {
+					return json_decode($_COOKIE[$id],true);
+				} else {
+					return false;
+				}
 			}
 		}
 		
