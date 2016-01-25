@@ -171,7 +171,7 @@
 	// If we've specified a preview URL in our module and the user clicked Save & Preview, return to preview page.
 	if ($_POST["_bigtree_preview"]) {
 		$admin->ungrowl();
-		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
+		$redirect_url = rtrim($view["preview_url"],"/")."/".$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
 	}
 
 	// If there's a callback function for this module, let's get'r'done.
