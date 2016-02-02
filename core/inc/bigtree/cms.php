@@ -604,9 +604,9 @@
 				static::$IPLCache[$navid] = WWW_ROOT.$f["path"];
 
 				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
-					return WWW_ROOT.$child["path"]."/".$commands;
+					return WWW_ROOT.$f["path"]."/".$commands;
 				} else {
-					return WWW_ROOT.$child["path"];
+					return WWW_ROOT.$f["path"];
 				}
 			}
 		}
