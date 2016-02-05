@@ -532,7 +532,7 @@
 				Joins a time object made by timeSplit into one readable by the YouTube API.
 		*/
 
-		protected function timeJoin($time) {
+		function timeJoin($time) {
 			$t = "PT";
 			if ($time->Hours) {
 				$t .= $time->Hours."H";
@@ -548,7 +548,7 @@
 				Splits a YouTube video time length into an object.
 		*/
 
-		protected function timeSplit($time) {
+		function timeSplit($time) {
 			$t = new stdClass;
 			$t->Hours = 0;
 			$t->Minutes = 0;
@@ -972,6 +972,7 @@
 			$this->API = $api;
 			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;
 			isset($video->snippet->categoryId) ? $this->CategoryID = $video->snippet->categoryId : false;
+			isset($video->snippet->channelId) ? $this->ChannelID = $video->snippet->channelId : false;
 			isset($video->snippet->channelTitle) ? $this->ChannelTitle = $video->snippet->channelTitle : false;
 			isset($video->statistics->commentCount) ? $this->CommentCount = $video->statistics->commentCount : false;
 			isset($video->contentDetails->contentRating) ? $this->ContentRatings = $video->contentDetails->contentRating : false;

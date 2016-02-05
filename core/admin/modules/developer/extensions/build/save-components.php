@@ -23,24 +23,24 @@
 			$actions = $admin->getModuleActions($module_id);
 			// Get all the tables of the module's actions.
 			foreach ($actions as $action) {
-				if ($action["form"] || $action["view"]) {
+				if ($action["form"] || $action["view"] || $action["report"]) {
 					if ($action["form"]) {
 						$auto = BigTreeAutoModule::getForm($action["form"]);
 						// Figure out what tables and field types the form uses and automatically add them.
 						foreach ($auto["fields"] as $field) {
 							// Database populated list? Include the table it pulls from.
-							if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
-								if (!in_array($field["options"]["pop-table"]."#structure",$p["tables"]) && substr($field["options"]["pop-table"],0,8) != "bigtree_") {
-									$p["tables"][] = $field["options"]["pop-table"]."#structure";
+							if ($field["type"] == "list" && $field["list_type"] == "db") {
+								if (!in_array($field["pop-table"]."#structure",$p["tables"]) && substr($field["pop-table"],0,8) != "bigtree_") {
+									$p["tables"][] = $field["pop-table"]."#structure";
 								}
 							}
 							// Many to many? Include the connecting and "other" table.
 							if ($field["type"] == "many-to-many") {
-								if (!in_array($field["options"]["mtm-connecting-table"]."#structure",$p["tables"]) && substr($field["options"]["mtm-connecting-table"],0,8) != "bigtree_") {
-									$p["tables"][] = $field["options"]["mtm-connecting-table"]."#structure";
+								if (!in_array($field["mtm-connecting-table"]."#structure",$p["tables"]) && substr($field["mtm-connecting-table"],0,8) != "bigtree_") {
+									$p["tables"][] = $field["mtm-connecting-table"]."#structure";
 								}
-								if (!in_array($field["options"]["mtm-other-table"]."#structure",$p["tables"]) && substr($field["options"]["mtm-other-table"],0,8) != "bigtree_") {
-									$p["tables"][] = $field["options"]["mtm-other-table"]."#structure";
+								if (!in_array($field["mtm-other-table"]."#structure",$p["tables"]) && substr($field["mtm-other-table"],0,8) != "bigtree_") {
+									$p["tables"][] = $field["mtm-other-table"]."#structure";
 								}
 							}
 							// Include the custom field type if it was forgotten.
@@ -51,12 +51,10 @@
 							}
 						}
 					// For views/reports we just care about what table it's from
-					} else {
-						if ($action["view"]) {
-							$auto = BigTreeAutoModule::getView($action["view"]);
-						} elseif ($action["report"]) {
-							$auto = BigTreeAutoModule::getReport($action["report"]);
-						}
+					} elseif ($action["view"]) {
+						$auto = BigTreeAutoModule::getView($action["view"]);
+					} elseif ($action["report"]) {
+						$auto = BigTreeAutoModule::getReport($action["report"]);
 					}
 	
 					if (!in_array($auto["table"]."#structure",$p["tables"])) {
@@ -109,6 +107,16 @@
 				$p["files"][] = SERVER_ROOT."templates/basic/$template.php";
 			}
 		}
+		// Get template info to bring in extra field types
+		$template_data = $cms->getTemplate($template);
+		foreach ($template_data["resources"] as $field) {
+			// Include the custom field type if it was forgotten.
+			if (isset($custom_field_types[$field["type"]])) {
+				if (!in_array($field["type"],$p["field_types"])) {
+					$p["field_types"][] = $field["type"];
+				}
+			}
+		}
 	}
 	// Files for callouts
 	foreach ((array)$callouts as $callout) {
@@ -116,8 +124,29 @@
 			if (file_exists(SERVER_ROOT."templates/callouts/$callout.php")) {
 				$p["files"][] = SERVER_ROOT."templates/callouts/$callout.php";
 			}
+			// Get callout info to bring in extra field types
+			$callout_data = $admin->getCallout($callout);
+			foreach ($callout_data["resources"] as $field) {
+				// Include the custom field type if it was forgotten.
+				if (isset($custom_field_types[$field["type"]])) {
+					if (!in_array($field["type"],$p["field_types"])) {
+						$p["field_types"][] = $field["type"];
+					}
+				}
+			}
 		}
 	}
+
+	// Get settings to make sure they don't use a custom field type
+	foreach (array_filter((array)$p["settings"]) as $setting_id) {
+		$setting = $admin->getSetting($setting_id);
+		if (isset($custom_field_types[$setting["type"]])) {
+			if (!in_array($setting["type"],$p["field_types"])) {
+				$p["field_types"][] = $setting["type"];
+			}
+		}
+	}
+
 	// Files for field types -- we use the $p version here because we may have added some when checking the module
 	foreach ((array)$p["field_types"] as $type) {
 		if ($type) {

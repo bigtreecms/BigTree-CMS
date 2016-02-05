@@ -91,8 +91,8 @@
 			elements: "<?=implode(",",$bigtree["html_fields"])?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
-			plugins: "code,anchor,image,link,paste,table,visualblocks,lists,hr",
-			toolbar: "undo redo | styleselect | bold italic | bullist numlist outdent indent | hr anchor link unlink image table | paste | visualblocks code",
+			plugins: "code,anchor,image,link,table,visualblocks,lists,hr",
+			toolbar: "undo redo | styleselect | bold italic underline | bullist numlist outdent indent | hr anchor link unlink image table | visualblocks code",
 			paste_remove_spans: true,
 			paste_remove_styles: true,
 			paste_strip_class_attributes: true,
@@ -100,7 +100,7 @@
 			relative_urls: false,
 			remove_script_host: false,
 			gecko_spellcheck: true,
-			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align],iframe[src|class|width|height|name|align|style],figure[class],figcaption[class]"
+			extended_valid_elements : "*[*]"
 			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
 			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
 		});
@@ -115,8 +115,8 @@
 			elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
-			plugins: "paste,link,code,visualblocks,lists",
-			toolbar: "link unlink bold italic underline paste code",
+			plugins: "link,code,visualblocks,lists",
+			toolbar: "link unlink bold italic underline code",
 			paste_remove_spans: true,
 			paste_remove_styles: true,
 			paste_strip_class_attributes: true,
@@ -124,7 +124,7 @@
 			gecko_spellcheck: true,
 			relative_urls: false,
 			remove_script_host: false,
-			extended_valid_elements : "object[classid|codebase|width|height|align],param[name|value],embed[quality|type|pluginspage|width|height|src|align]"
+			extended_valid_elements : "*[*]"
 			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
 			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
 		});
@@ -172,7 +172,7 @@
 					$(iframe).contents().find("body").on("mousemove",this.moveProxyiFrame).on("mouseup",this.upProxy);
 				},this)));
 				<? if ($_COOKIE["bigtree"]["redactor_height"]) { ?>
-				$(this.getIframe()).height(<?=$_COOKIE["bigtree"]["redactor_height"]?>);
+				$(this.getIframe()).height(<?=htmlspecialchars($_COOKIE["bigtree"]["redactor_height"])?>);
 				<? } ?>
 			}
 		});

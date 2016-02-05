@@ -19,11 +19,11 @@
 		$field = array(
 			"type" => $item["type"],
 			"title" => $item["title"],
-			"key" => $_POST["id"],
+			"key" => "value",
 			"options" => json_decode($item["options"],true),
 			"ignore" => false,
-			"input" => $bigtree["post_data"][$_POST["id"]],
-			"file_input" => $bigtree["file_data"][$_POST["id"]]
+			"input" => $bigtree["post_data"]["value"],
+			"file_input" => $bigtree["file_data"]["value"]
 		);
 
 		// Process the input
@@ -39,17 +39,17 @@
 		"page" => true,
 		"return_link" => ADMIN_ROOT."settings/",
 		"edit_link" => ADMIN_ROOT."settings/edit/".$_POST["id"]."/",
-		"errors" => $bigtree["errors"],
-		"crops" => $bigtree["crops"]
+		"errors" => $bigtree["errors"]
 	);
 
 	// Track resource allocation
 	$admin->allocateResources("settings",$_POST["id"]);
 
-	if (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."settings/error/");
-	} elseif (count($bigtree["crops"])) {
+	if (count($bigtree["crops"])) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
 		BigTree::redirect(ADMIN_ROOT."settings/crop/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."settings/error/");
 	}
 
 	BigTree::redirect(ADMIN_ROOT."settings/");

@@ -20,12 +20,24 @@
 				<label><?=$secret_name?></label>
 				<input type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"])?>" />
 			</fieldset>
-			<? if ($show_test_environment) { ?>
+			<?
+				if ($scope_default) {
+			?>
+			<fieldset>
+				<label>Scope<? if ($scope_help) { echo $scope_help; } ?></label>
+				<input type="text" name="scope" value="<?=htmlspecialchars($api->Settings["scope"] ? $api->Settings["scope"] : $scope_default)?>" />
+			</fieldset>
+			<?
+				}
+				if ($show_test_environment) {
+			?>
 			<fieldset>
 				<input name="test_environment" type="checkbox"<? if ($api->Settings["test_environment"]) { ?> checked="checked"<? } ?> />
 				<label class="for_checkbox">Use Test Environment</label>
 			</fieldset>
-			<? } ?>
+			<?
+				}
+			?>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Activate <?=$name?> API" />

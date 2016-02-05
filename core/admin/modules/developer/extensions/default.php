@@ -42,7 +42,7 @@
 			</section>
 			<section class="developer_extensions_action">
 				<? if ($new) { ?>
-				<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/upgrade/?id=<?=$extension["id"]?>&url=<?=urlencode($info["github_url"])?>">Upgrade</a>
+				<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/upgrade/?id=<?=$extension["id"]?>">Upgrade</a>
 				<? } ?>	
 			</section>
 			<section class="view_action">

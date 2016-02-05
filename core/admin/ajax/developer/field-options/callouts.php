@@ -4,6 +4,11 @@
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();
 	$data["verb"] = isset($data["verb"]) ? $data["verb"] : "";
 	$data["max"] = $data["max"] ? intval($data["max"]) : "";
+
+	// Work with older group info from 4.1 and lower
+	if (!array_filter($data["groups"]) && $data["group"]) {
+		$data["groups"] = array($data["group"]);
+	}
 ?>
 <fieldset>
 	<label>Groups <small>(if you don't choose at least one group, all callouts will be available)</small></label>

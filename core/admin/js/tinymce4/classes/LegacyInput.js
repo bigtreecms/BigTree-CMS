@@ -1,13 +1,19 @@
 /**
  * LegacyInput.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
  */
 
+/**
+ * Converts legacy input to modern HTML.
+ *
+ * @class tinymce.LegacyInput
+ * @private
+ */
 define("tinymce/LegacyInput", [
 	"tinymce/EditorManager",
 	"tinymce/util/Tools"
@@ -54,9 +60,12 @@ define("tinymce/LegacyInput", [
 					},
 
 					u: function(dom, node) {
-						replaceWithSpan(node, {
-							textDecoration: 'underline'
-						});
+						// HTML5 allows U element
+						if (editor.settings.schema === "html4") {
+							replaceWithSpan(node, {
+								textDecoration: 'underline'
+							});
+						}
 					},
 
 					strike: function(dom, node) {

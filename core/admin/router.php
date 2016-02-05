@@ -1,4 +1,7 @@
 <?
+	// Set a definition to check for being in the admin
+	define("BIGTREE_ADMIN_ROUTED",true);
+	
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
 		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
@@ -147,6 +150,8 @@
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
 			$find[] = '$'.$key;
+			$find[] = "{".$key."}";
+			$replace[] = $val;
 			$replace[] = $val;
 		}
 		die(str_replace($find,$replace,file_get_contents($js_file)));
@@ -220,7 +225,8 @@
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
 		$module = false;
-		if ($bigtree["path"][2] != "auto-modules") {
+		$core_ajax_directories = array("auto-modules","callouts","dashboard","file-browser","pages","tags");
+		if (!in_array($bigtree["path"][2],$core_ajax_directories) && $bigtree["path"]) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
 			if ($module && !$admin->checkAccess($module["id"])) {
@@ -308,8 +314,10 @@
 	if ((time() - $last_check) > (24 * 60 * 60)) {
 		// Update the setting.
 		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
+
 		// Email the daily digest
 		$admin->emailDailyDigest();
+
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalyticsAPI;
 		if (!empty($ga->Settings["profile"])) {
@@ -317,6 +325,11 @@
 			try {
 				$ga->cacheInformation();
 			} catch (Exception $e) {}
+		}
+
+		// Ping bigtreecms.org with current version stats
+		if (!$bigtree["config"]["disable_ping"]) {
+			BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 		}
 	}
 
@@ -334,9 +347,16 @@
 		if ($module["extension"]) {
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		}
+
+		// Find out what module action we're trying to hit
+		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+		if ($route_response) {
+			$bigtree["module_action"] = $route_response["action"];
+			$bigtree["commands"] = $route_response["commands"];
+		}
 		
 		// Make sure the user has access to the module
-		if (!$admin->checkAccess($module["id"])) {
+		if (!$admin->checkAccess($module["id"],$route_response["action"])) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 		}
 
@@ -362,13 +382,6 @@
 					$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
 				}
 			}
-		}
-
-		// Find out what module action we're trying to hit
-		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
-		if ($route_response) {
-			$bigtree["module_action"] = $route_response["action"];
-			$bigtree["commands"] = $route_response["commands"];
 		}
 
 		// Handle auto actions

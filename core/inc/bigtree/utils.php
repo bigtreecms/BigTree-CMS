@@ -108,6 +108,21 @@
 			// Clear the module class list just in case we're missing something.
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
+
+		/*
+			Function: cleanFile
+				Makes sure that a file path doesn't contain abusive characters (i.e. ../)
+
+			Parameters:
+				file - A file name
+
+			Returns:
+				Cleaned up string.
+		*/
+
+		static function cleanFile($file) {
+			return str_replace("../","",$file);
+		}
 		
 		/*
 			Function: colorMesh
@@ -161,6 +176,12 @@
 			if (!static::isDirectoryWritable($to)) {
 				return false;
 			}
+
+			// If the origin is a protocol agnostic URL, add http:
+			if (substr($from,0,2) == "//") {
+				$from = "http:".$from;
+			}
+
 			// is_readable doesn't work on URLs
 			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
 				return false;
@@ -395,8 +416,8 @@
 				}
 			}
 
-			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 			$output = curl_exec($ch);
+			$bigtree["last_curl_response_code"] = curl_getinfo($ch,CURLINFO_HTTP_CODE);
 			curl_close($ch);
 
 			// If we're outputting to a file, close the handle and return nothing
@@ -423,6 +444,34 @@
 			} else {
 				return $protocol.$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
 			}
+		}
+
+		/*
+			Function: dateFormat
+				Formats a date that originates in the config defined date format into another.
+
+			Parameters:
+				date - Date (in any format that strtotime understands or a unix timestamp)
+				format - Format (in any format that PHP's date function understands, defaults to Y-m-d H:i:s)
+
+			Returns:
+				A date string or false if date parsing failed
+		*/
+
+		static function dateFormat($date,$format = "Y-m-d H:i:s") {
+			global $bigtree;
+			
+			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
+
+			// Fallback to SQL standards for handling pre 4.2 values
+			if (!$date_object) {
+				$date_object = DateTime::createFromFormat("Y-m-d",$date);
+			}
+
+			if ($date_object) {
+				return $date_object->format($format);
+			}
+			return false;
 		}
 
 		/*
@@ -808,6 +857,8 @@
 		*/
 
 		static function formatCSS3($css) {
+			global $bigtree;
+
 			// Background Gradients - background-gradient: #top #bottom
 			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',create_function('$data','
 				$d = trim($data[1]);
@@ -844,6 +895,9 @@
 
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
+
+			// Replace roots
+			$css = str_replace(array("www_root/","admin_root/","static_root/"), array($bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]), $css);
 			
 			return $css;
 		}
@@ -1369,8 +1423,14 @@
 				return;
 			}
 
+			// Windows systems aren't going to start with /
+			if (substr($directory,0,1) == "/") {
+				$dir_path = "/";
+			} else {
+				$dir_path = "";
+			}
+
 			$dir_parts = explode("/",trim($directory,"/"));
-			$dir_path = "/";
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
 				// Silence situations with open_basedir restrictions.
@@ -1761,6 +1821,14 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
+			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
+			if (defined("BIGTREE_ADMIN_ROUTED")) {
+				$pieces = explode("/",$url);
+				$bt_domain_pieces = explode("/",DOMAIN);
+				if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
+					return false;
+				}
+			}
 			$status_codes = array(
 				"200" => "OK",
 				"300" => "Multiple Choices",
@@ -1814,21 +1882,20 @@
 			if ($delta < 2 * $minute) {
 				return "1 min ago";
 			} elseif ($delta < 45 * $minute) {
-				return floor($delta / $minute) . " min ago";
-			} elseif ($delta < 90 * $minute) {
-				return "1 hour ago";
+				$minutes = floor($delta / $minute);
+				return  $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
 			} elseif ($delta < 24 * $hour) {
-				return floor($delta / $hour) . " hours ago";
-			} elseif ($delta < 48 * $hour) {
-				return "yesterday";
+				$hours = floor($delta / $hour);
+				return $hours == 1 ? "1 hour ago" : "$hours hours ago";
 			} elseif ($delta < 30 * $day) {
-				return floor($delta / $day) . " days ago";
+				$days = floor($delta / $day);
+				return  $days == 1 ? "yesterday" : "$days days ago";
 			} elseif ($delta < 12 * $month) {
 				$months = floor($delta / $day / 30);
-				return $months <= 1 ? "1 month ago" : $months . " months ago";
+				return $months == 1 ? "1 month ago" : "$months months ago";
 			} else {
 				$years = floor($delta / $day / 365);
-				return $years <= 1 ? "1 year ago" : $years . " years ago";
+				return $years == 1 ? "1 year ago" : "$years years ago";
 			}
 		}
 
@@ -1852,6 +1919,10 @@
 			$ended = false;
 			$found_file = false;
 			foreach ($path as $piece) {
+				// Prevent path exploitation
+				if ($piece == "..") {
+					die();
+				}
 				// We're done, everything is a command now.
 				if ($ended) {
 					$commands[] = $piece;

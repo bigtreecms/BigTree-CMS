@@ -42,6 +42,9 @@ $(document).ready(function() {
 
 		return false;
 	});
+
+	// Fire ready
+	BigTree.ready();
 });
 
 function BigTreeCustomControls(selector) {
@@ -201,13 +204,13 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function click() {
-			if (!Element.attr("disabled")) {
+			if (!Element.prop("disabled")) {
 				if (Link.hasClass("checked")) {
 					Link.removeClass("checked");
-					Element.attr("checked",false);
+					Element.prop("checked",false);
 				} else {
 					Link.addClass("checked");
-					Element.attr("checked","checked");
+					Element.prop("checked",true);
 				}
 				Element.triggerHandler("click");
 				Element.triggerHandler("change");
@@ -217,7 +220,7 @@ var BigTreeCheckbox = function(element) {
 	
 		function disable() {
 			Link.addClass("disabled");
-			Element.attr("disabled","disabled");
+			Element.prop("disabled",true);
 		};
 		
 		function enable() {
@@ -226,7 +229,7 @@ var BigTreeCheckbox = function(element) {
 		};
 
 		function focus() {
-			if (!Element.attr("disabled")) {
+			if (!Element.prop("disabled")) {
 				Link.addClass("focused");
 			}
 		};
@@ -399,7 +402,7 @@ var BigTreeSelect = function(element) {
 		};
 	
 		function disable() {
-			Element.attr("disabled","disabled");
+			Element.prop("disabled",true);
 			Container.addClass("disabled");
 		};
 	
@@ -707,10 +710,10 @@ var BigTreeSelect = function(element) {
 		Container.find(".handle").click(click);
 		
 		// Add it to the DOM
-		Element.after(Container);		
+		Element.before(Container);		
 
 		// See if this select is disabled
-		if (Element.attr("disabled")) {
+		if (Element.prop("disabled")) {
 			Container.addClass("disabled");
 		}
 		
@@ -873,7 +876,7 @@ var BigTreeRadioButton = function(element) {
 				// If it's already clicked, nothing happens for radio buttons.
 			} else {
 				Link.addClass("checked");
-				Element.attr("checked",true);
+				Element.prop("checked",true);
 				$('input[name="' + Element.attr("name") + '"]').not(Element).each(function() {
 					this.customControl.Link.removeClass("checked");
 					$(this).trigger("change");
@@ -2348,18 +2351,26 @@ var BigTreeFormValidator = function(selector,callback) {
 				} else if ($(this).prevAll(".mce-tinymce").length) {
 					var val = tinymce.get($(this).attr("id")).getContent();
 				// File/Image Uploads
-				} else if ($(this).parents("div").nextAll(".currently, .currently_file").length) {
-					var val = $(this).parents("div").nextAll(".currently, .currently_file").find("input").val();
+				} else if ($(this).parents("fieldset").find(".currently, .currently_file").length) {
+					var val = $(this).parents("fieldset").find(".currently, .currently_file").find("input").val();
 					if (!val) {
 						val = $(this).val();
 					}
 				// Regular input fields
 				} else {
 					var val = $(this).val();
+					// If this is a file field, see if there's a regular input with the same name
+					if (!val && $(this).attr("type") == "file") {
+						$("input[name='" + $(this).attr("name") + "']").each(function(index) {
+							if (!val) {
+								val = $(this).val();
+							}
+						});
+					}
 				}
 				if (!val) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 					$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 				}
@@ -2367,7 +2378,7 @@ var BigTreeFormValidator = function(selector,callback) {
 			Form.find("input.numeric").each(function() {
 				if (isNaN($(this).val())) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be Numeric</span>'));
 				}
 			});
@@ -2376,7 +2387,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				var val = $(this).val();
 				if (val && !reg.test(val)) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be An Email Address</span>'));
 				}
 			});
@@ -2385,7 +2396,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				var val = $(this).val();
 				if (val && !reg.test(val)) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").addClass("form_error");
+					$(this).parents("fieldset").eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
 				}
 			});
@@ -2681,7 +2692,9 @@ var BigTreeCallouts = function(settings) {
 				return;
 			}
 
-			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key }, complete: function(response) {
+			BigTree.TabIndexDepth++;
+
+			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth }, complete: function(response) {
 				BigTreeDialog({
 					title: "Add " + Noun,
 					content: response.responseText,
@@ -2714,8 +2727,10 @@ var BigTreeCallouts = function(settings) {
 				return;
 			}
 
+			BigTree.TabIndexDepth++;
+
 			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth }, complete: function(response) {
 				BigTreeDialog({
 					title: "Edit " + Noun,
 					content: response.responseText,
@@ -2757,6 +2772,7 @@ var BigTreeCallouts = function(settings) {
 
 		function getCallout() {
 			LastDialog = $(".bigtree_dialog_form").last();
+			BigTree.TabIndexDepth--;
 	
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
@@ -2786,7 +2802,7 @@ var BigTreeCallouts = function(settings) {
 						var mce = tinyMCE.get($(this).attr("id"));
 						if (mce) {
 							mce.save();
-							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
+							mce.remove();
 						}
 					}
 					$(this).hide().get(0).className = "";
@@ -2847,9 +2863,11 @@ var BigTreeMatrix = function(settings) {
 				return;
 			}
 
+			BigTree.TabIndexDepth++;
+
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, key: Key },
+				data: { columns: Columns, count: Count, key: Key, tab_depth: BigTree.TabIndexDepth },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Add Item",
@@ -2912,6 +2930,8 @@ var BigTreeMatrix = function(settings) {
 				return;
 			}
 
+			BigTree.TabIndexDepth++;
+
 			// Set the current element that we're going to replace
 			if (Style === "list") {
 				CurrentItem = $(this).parents("li");
@@ -2921,7 +2941,7 @@ var BigTreeMatrix = function(settings) {
 			
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key },
+				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, tab_depth: BigTree.TabIndexDepth },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Edit Item",
@@ -2946,6 +2966,7 @@ var BigTreeMatrix = function(settings) {
 		
 		function getItem() {
 			LastDialog = $(".bigtree_dialog_form").last();
+			BigTree.TabIndexDepth--;
 	
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
@@ -2962,20 +2983,35 @@ var BigTreeMatrix = function(settings) {
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
-				var item = $(el).find("input[type=text],input[type=email],textarea,select").not("[type=file]");
-				if (item.length) {
-					if (item.is("select")) {
-						var value = $.trim(item.find("option:selected").text());
-					} else {
-						var value = $.trim(item.val());
-					}
-					if (value) {
-						if (Title) {
-							Subtitle = value;
+				if (!Title || !Subtitle) {
+					var item = $(el).find("input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
+					if (item.length) {
+						// Going to check for multi-part inputs like names, address, phone
+						var parent = item.parent();
+						if (parent.hasClass("input_name") || parent.hasClass("input_phone_3") || parent.hasClass("input_address_street")) {
+							var value = "";
+							item.parent().siblings('section').each(function() {
+								if (parent.hasClass("input_phone_3")) {
+									value += "-" + $(this).children("input").val();
+								} else {
+									value += " " + $(this).children("input, select").val();
+								}
+							});
+							// Remove the leading -
+							value = $.trim(value.substr(1));
+						} else if (item.is("select")) {
+							var value = $.trim(item.find("option:selected").text());
 						} else {
-							Title = value;
+							var value = $.trim(item.val());
 						}
-					} 
+						if (value) {
+							if (!Title) {
+								Title = value;
+							} else {
+								Subtitle = value;
+							}
+						} 
+					}
 				}
 			});
 			
@@ -2986,7 +3022,7 @@ var BigTreeMatrix = function(settings) {
 						var mce = tinyMCE.get($(this).attr("id"));
 						if (mce) {
 							mce.save();
-							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
+							mce.remove();
 						}
 					}
 					$(this).hide().get(0).className = "";
@@ -3048,6 +3084,9 @@ var BigTree = {
 	Busy: false,
 	Growling: false,
 	GrowlTimer: false,
+	ReadyCountdown: 0,
+	ReadyHooks: [],
+	TabIndexDepth: 0,
 	ZIndex: 1000,
 
 	cleanHref: function(href) {
@@ -3092,8 +3131,8 @@ var BigTree = {
 			BigTreeFileManager.formOpen("image",field,options);
 			return false;
 		}).on("click",".date_picker_clear",function() {
-			$(this).parent().siblings('input').val('');
-			$(this).siblings('.ui-datepicker').find('.ui-state-default.ui-state-active').removeClass('ui-state-active');
+			$(this).siblings('input').val("");
+			$(this).siblings('.date_picker_inline, .date_time_picker_inline').find('.ui-state-default.ui-state-active').removeClass('ui-state-active');
 		});
 		
 		// Pickers
@@ -3107,8 +3146,7 @@ var BigTree = {
 				$(this).prev("input").val(dateText);
 			}});
 			
-			if(typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '')
-			{
+			if (typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '') {
 				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
 			}
 		});
@@ -3124,8 +3162,7 @@ var BigTree = {
 				$(this).prev("input").val(dateText);
 			}});
 			
-			if(typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '')
-			{
+			if (typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '') {
 				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
 			}
 		});
@@ -3159,6 +3196,22 @@ var BigTree = {
 			growl_box.removeClass("visible");
 			BigTree.Growling = false;
 		},time + 500);
+	},
+
+	hookReady: function(callback) {
+		BigTree.ReadyHooks.push(callback);
+	},
+
+	ready: function() {
+		// We need to wait for something to finish loading
+		if (BigTree.ReadyCountdown > 0) {
+			setTimeout(BigTree.ready,100);
+		} else {
+			for (var i = 0; callback = BigTree.ReadyHooks[i]; i++) {
+				callback();
+			}
+			BigTree.ReadyHooks = [];
+		}
 	},
 	
 	setPageCount: function(selector,pages,current_page) {

@@ -2,11 +2,11 @@
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
-	$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
 
 	// Callout style
 	if ($field["options"]["style"] == "callout") {
+		$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
 <fieldset class="callouts<? if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<? } ?>" id="<?=$field["id"]?>">
 	<label<?=$label_validation_class?>><?=$field["title"]?><? if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><? } ?></label>
@@ -17,7 +17,7 @@
 		?>
 		<article>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-			<? BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
+			<? BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
 			<h4>
 				<?=BigTree::safeEncode($item["__internal-title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
@@ -67,7 +67,7 @@
 			?>
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-				<? BigTreeAdmin::drawArrayLevel(array($x),$item) ?>
+				<? BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>

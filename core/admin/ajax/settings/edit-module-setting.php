@@ -11,7 +11,7 @@
 	$key = $setting["id"];
 ?>
 <div style="width: 460px;">
-	<input type="hidden" name="setting-id" value="<?=$_POST["id"]?>" />
+	<input type="hidden" name="setting-id" value="<?=htmlspecialchars($_POST["id"])?>" />
 	<? if ($setting["description"]) { ?>
 	<p><?=$setting["description"]?></p>
 	<? } ?>

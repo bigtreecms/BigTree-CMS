@@ -1,8 +1,8 @@
 /**
  * ScriptLoader.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -59,7 +59,6 @@ define("tinymce/dom/ScriptLoader", [
 		 * @method load
 		 * @param {String} url Absolute URL to script to add.
 		 * @param {function} callback Optional callback function to execute ones this script gets loaded.
-		 * @param {Object} scope Optional scope to execute callback in.
 		 */
 		function loadScript(url, callback) {
 			var dom = DOM, elm, id;
@@ -79,7 +78,7 @@ define("tinymce/dom/ScriptLoader", [
 				/*eslint no-console:0 */
 
 				// Report the error so it's easier for people to spot loading errors
-				if (typeof(console) !== "undefined" && console.log) {
+				if (typeof console !== "undefined" && console.log) {
 					console.log("Failed to load: " + url);
 				}
 
@@ -95,7 +94,7 @@ define("tinymce/dom/ScriptLoader", [
 			elm = document.createElement('script');
 			elm.id = id;
 			elm.type = 'text/javascript';
-			elm.src = url;
+			elm.src = Tools._addCacheSuffix(url);
 
 			// Seems that onreadystatechange works better on IE 10 onload seems to fire incorrectly
 			if ("onreadystatechange" in elm) {
@@ -131,7 +130,7 @@ define("tinymce/dom/ScriptLoader", [
 		 * the script loader or to skip it from loading some script.
 		 *
 		 * @method markDone
-		 * @param {string} u Absolute URL to the script to mark as loaded.
+		 * @param {string} url Absolute URL to the script to mark as loaded.
 		 */
 		this.markDone = function(url) {
 			states[url] = LOADED;

@@ -78,7 +78,7 @@
 
 		function __construct() {
 			if (isset($_SESSION["bigtree_admin"]["email"])) {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".$_SESSION["bigtree_admin"]["email"]."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
 				if ($f) {
 					$this->ID = $f["id"];
 					$this->User = $f["email"];
@@ -413,18 +413,23 @@
 
 			Parameters:
 				module - Either a module id or module entry.
+				action - Optionally, a module action array to also check levels against.
 
 			Returns:
 				true if the user can access the module, otherwise false.
 		*/
 
-		function checkAccess($module) {
+		function checkAccess($module,$action = false) {
 			if (is_array($module)) {
 				$module = $module["id"];
 			}
 
 			if ($this->Level > 0) {
 				return true;
+			}
+
+			if (is_array($action) && $action["level"] > $this->Level) {
+				return false;
 			}
 
 			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
@@ -494,6 +499,11 @@
 					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic link
+					if (!static::urlExists("http:".$href)) {
+						$errors["a"][] = $href;
+					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
@@ -523,6 +533,11 @@
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
 					if (!static::urlExists($href)) {
+						$errors["img"][] = $href;
+					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic src
+					if (!static::urlExists("http:".$href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
@@ -559,6 +574,30 @@
 			sqlquery("DELETE FROM bigtree_404s WHERE redirect_url = ''");
 			$this->track("bigtree_404s","All","Cleared Empty");
 			static::growl("404 Report","Cleared 404s");
+		}
+
+		/*
+			Function: create301
+				Creates a 301 redirect.
+
+			Parameters:
+				from - The 404 path
+				to - The 301 target
+		*/
+
+		function create301($from,$to) {
+			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/"))));
+			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
+
+			// See if the from already exists
+			$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));
+			if ($existing) {
+				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
+				$this->track("bigtree_404s",$existing["id"],"updated");
+			} else {
+				sqlquery("INSERT INTO bigtree_404s (`broken_url`,`redirect_url`) VALUES ('$from','$to')");
+				$this->track("bigtree_404s",sqlid(),"created");
+			}
 		}
 
 		/*
@@ -611,7 +650,7 @@
 
 					$clean_resources[] = $field;
 
-					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
 				}
 			}
 
@@ -1025,7 +1064,7 @@
 			$module = sqlescape($module);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
-			$hooks = BigTree::json(json_decode($hooks),true);
+			$hooks = BigTree::json(is_array($hooks) ? $hooks : json_decode($hooks),true);
 			$default_position = sqlescape($default_position);
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
@@ -1034,7 +1073,7 @@
 			$clean_fields = array();
 			foreach ($fields as $key => $data) {
 				$field = array(
-					"column" => $key,
+					"column" => $data["column"] ? $data["column"] : $key,
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
@@ -1514,7 +1553,7 @@
 		*/
 
 		function createTag($tag) {
-			$tag = strtolower(html_entity_decode($tag));
+			$tag = strtolower(html_entity_decode(trim($tag)));
 			// Check if the tag exists already.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 
@@ -1583,7 +1622,7 @@
 
 					$clean_resources[] = $field;
 
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]."\n";
+					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
 				}
 			}
 
@@ -1622,7 +1661,7 @@
 				Checks for developer access.
 
 			Parameters:
-				data - An array of user data. ("email", "password", "name", "company", "level", "permissions")
+				data - An array of user data. ("email", "password", "name", "company", "level", "permissions","alerts")
 
 			Returns:
 				id of the newly created user or false if a user already exists with the provided email.
@@ -1631,16 +1670,11 @@
 		function createUser($data) {
 			global $bigtree;
 
-			// Defaults
-			$level = 0;
-			$email = $name = $company = $daily_digest = "";
-
-			// Safely go through the post data
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
+			$level = intval($data["level"]);
+			$email = sqlescape($data["email"]);
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
 
 			// See if the user already exists
 			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
@@ -1648,10 +1682,8 @@
 				return false;
 			}
 
-			$permissions = BigTree::json($data["permissions"],true);
-
-			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
-			$level = intval($level);
+			$permissions = $data["permissions"] ? BigTree::json($data["permissions"],true) : "[]";
+			$alerts = $data["alerts"] ? BigTree::json($data["alerts"],true) : "[]";
 
 			// Don't allow the level to be set higher than the logged in user's level
 			if ($level > $this->Level) {
@@ -1662,7 +1694,7 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
 			$password = sqlescape($phpass->HashPassword(trim($data["password"])));
 
-			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$daily_digest')");
+			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`alerts`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$alerts','$daily_digest')");
 			$id = sqlid();
 			$this->track("bigtree_users",$id,"created");
 
@@ -1695,16 +1727,20 @@
 
 		function deleteCallout($id) {
 			$id = sqlescape($id);
+
+			// Delete the callout and its related file
 			sqlquery("DELETE FROM bigtree_callouts WHERE id = '$id'");
-			$groups = sqlquery("SELECT id, callouts FROM bigtree_callout_groups WHERE callouts LIKE '%\"$id\"%'");
-			if($groups && count($groups)){
-				while ($f = sqlfetch($groups)) {
-					$callouts = json_decode($f["callouts"],true);
-					$new = BigTree::json(array_diff($callouts, array($id)), true);
-					sqlquery("UPDATE bigtree_callout_groups SET callouts = '$new' WHERE id = " . $f["id"]);
-				}
-			}
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
+
+			// Remove the callout from any groups it lives in
+			$groups = sqlquery("SELECT id, callouts FROM bigtree_callout_groups WHERE callouts LIKE '%\"$id\"%'");
+			while ($f = sqlfetch($groups)) {
+				$callouts = array_filter((array)json_decode($f["callouts"],true));
+				$new = BigTree::json(array_diff($callouts, array($id)), true);
+				sqlquery("UPDATE bigtree_callout_groups SET callouts = '$new' WHERE id = '".$f["id"]."'");
+			}
+
+			// Track deletion
 			$this->track("bigtree_callouts",$id,"deleted");
 		}
 
@@ -1785,6 +1821,8 @@
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 			$this->track("bigtree_field_types",$id,"deleted");
 		}
@@ -1903,6 +1941,20 @@
 		}
 
 		/*
+			Function: deleteModuleReport
+				Deletes a module report and its related actions.
+
+			Parameters:
+				id - The id of the module report.
+		*/
+
+		function deleteModuleReport($id) {
+			$id = sqlescape($id);
+			sqlquery("DELETE FROM bigtree_module_reports WHERE id = '$id'");
+			sqlquery("DELETE FROM bigtree_module_actions WHERE report = '$id'");
+		}
+
+		/*
 			Function: deleteModuleView
 				Deletes a module view and its related actions.
 
@@ -2015,9 +2067,9 @@
 			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$id'");
 			while ($f = sqlfetch($q)) {
 				$this->deletePageChildren($f["id"]);
+				$this->track("bigtree_pages",$f["id"],"deleted-inherited");
 			}
 			sqlquery("DELETE FROM bigtree_pages WHERE parent = '$id'");
-			$this->track("bigtree_pages",$id,"deleted");
 		}
 
 		/*
@@ -2037,9 +2089,12 @@
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
+			// Get draft copy's ID
+			$draft = sqlfetch(sqlquery("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'"));
+
 			// Delete draft copy
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = '$id'");
-			$this->track("bigtree_pending_changes",$id,"deleted");
+			sqlquery("DELETE FROM bigtree_pending_changes WHERE id = '".$draft["id"]."'");
+			$this->track("bigtree_pending_changes",$draft["id"],"deleted");
 		}
 
 		/*
@@ -2090,11 +2145,15 @@
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
 			if ($r) {
-				sqlquery("DELETE FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'");
-				$storage = new BigTreeStorage;
-				$storage->delete($r["file"]);
-				foreach ($r["thumbs"] as $thumb) {
-					$storage->delete($thumb);
+				sqlquery("DELETE FROM bigtree_resources WHERE id = '".sqlescape($r["id"])."'");
+
+				// If this file isn't located in any other folders, delete it from the file system
+				if (!sqlrows(sqlquery("SELECT id FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'"))) {
+					$storage = new BigTreeStorage;
+					$storage->delete($r["file"]);
+					foreach ($r["thumbs"] as $thumb) {
+						$storage->delete($thumb);
+					}
 				}
 			}
 			$this->track("bigtree_resources",$id,"deleted");
@@ -2255,11 +2314,14 @@
 				An internal function used for drawing callout and matrix resource data.
 		*/
 
-		static function drawArrayLevel($keys,$level) {
-			global $field;
+		static function drawArrayLevel($keys,$level,$field = false) {
+			// Backwards compatibility in case any external developers used this
+			if ($field === false) {
+				global $field;
+			}
 			foreach ($level as $key => $value) {
 				if (is_array($value)) {
-					static::drawArrayLevel(array_merge($keys,array($key)),$value);
+					static::drawArrayLevel(array_merge($keys,array($key)),$value,$field);
 				} else {
 ?>
 <input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
@@ -2298,6 +2360,8 @@
 				}
 			}
 
+			// Prevent path abuse
+			$field["type"] = BigTree::cleanFile($field["type"]);
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
@@ -2371,9 +2435,9 @@
 						} else {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
 						}
-						if ($change["type"] == "NEW") {
+						if (is_null($change["item_id"])) {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
-						} elseif ($change["type"] == "EDIT") {
+						} else {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
 						}
 						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.static::getChangeEditLink($change).'"><img src="'.$image_root.'launch.gif" alt="Launch" /></a></td>' . "\r\n";
@@ -2539,6 +2603,7 @@
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
+				user - (optional) User object if checking for a user other than the logged in user.
 
 			Returns:
 				The permission level for the given item or module (if item was not passed).
@@ -2547,23 +2612,31 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getAccessLevel($module,$item = array(),$table = "") {
-			if ($this->Level > 0) {
+		function getAccessLevel($module,$item = array(),$table = "",$user = false) {
+			if (!$user) {
+				$level = $this->Level;
+				$permissions = $this->Permissions;
+			} else {
+				$level = $user["level"];
+				$permissions = $user["permissions"];
+			}
+
+			if ($level > 0) {
 				return "p";
 			}
 
 			$id = is_array($module) ? $module["id"] : $module;
 
-			$perm = $this->Permissions["module"][$id];
+			$perm = $permissions["module"][$id];
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
 			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
 				return $perm;
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$id])) {
+			if (is_array($permissions["module_gbp"][$id])) {
 				$gv = $item[$module["gbp"]["group_field"]];
-				$gp = $this->Permissions["module_gbp"][$id][$gv];
+				$gp = $permissions["module_gbp"][$id][$gv];
 
 				if ($gp != "n") {
 					return $gp;
@@ -2786,7 +2859,6 @@
 				);
 
 				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
-				unset($types["callouts"]["default"]["callouts"]);
 
 				$q = sqlquery("SELECT * FROM bigtree_field_types ORDER BY name");
 				while ($f = sqlfetch($q)) {
@@ -2847,7 +2919,7 @@
 			if (!$f) {
 				return false;
 			}
-			$f["callouts"] = json_decode($f["callouts"],true);
+			$f["callouts"] = array_filter((array)json_decode($f["callouts"],true));
 			return $f;
 		}
 
@@ -2883,6 +2955,26 @@
 		static function getCallouts($sort = "position DESC, id ASC") {
 			$callouts = array();
 			$q = sqlquery("SELECT * FROM bigtree_callouts ORDER BY $sort");
+			while ($f = sqlfetch($q)) {
+				$callouts[] = $f;
+			}
+			return $callouts;
+		}
+
+		/*
+			Function: getCalloutAllowed
+				Returns a list of callouts the logged-in user is allowed access to.
+
+			Parameters:
+				sort - The order to return the callouts. Defaults to positioned.
+
+			Returns:
+				An array of callout entries from bigtree_callouts.
+		*/
+
+		function getCalloutsAllowed($sort = "position DESC, id ASC") {
+			$callouts = array();
+			$q = sqlquery("SELECT * FROM bigtree_callouts WHERE level <= '".$this->Level."' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				$callouts[] = $f;
 			}
@@ -3018,18 +3110,22 @@
 			// If we care about the whole tree, skip the madness.
 			if ($user["alerts"][0] == "on") {
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
+				while ($f = sqlfetch($q)) {
+					$alerts[] = $f;
+				}
 			} else {
 				$paths = array();
 				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
 				while ($f = sqlfetch($q)) {
 					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
 				}
-				// Find all the pages that are old that contain our paths
-				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
-			}
-
-			while ($f = sqlfetch($q)) {
-				$alerts[] = $f;
+				if (count($paths)) {
+					// Find all the pages that are old that contain our paths
+					$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
+					while ($f = sqlfetch($q)) {
+						$alerts[] = $f;
+					}
+				}
 			}
 
 			return $alerts;
@@ -3836,7 +3932,7 @@
 		function getPageAccessLevelByUser($page,$user) {
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($page,1)."'"));
+				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'"));
 				$changes = json_decode($f["changes"],true);
 				return $this->getPageAccessLevelByUser($changes["parent"],$user);
 			}
@@ -3895,7 +3991,7 @@
 		static function getPageAdminLinks() {
 			global $bigtree;
 			$pages = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%{adminroot}%' OR resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
 			while ($f = sqlfetch($q)) {
 				$pages[] = $f;
 			}
@@ -4252,7 +4348,7 @@
 			if ($page["title"]) {
 				$score += 5;
 				// They have a title, let's see if it's unique
-				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".$page["id"]."'"));
+				$r = sqlrows(sqlquery("SELECT * FROM bigtree_pages WHERE title = '".sqlescape($page["title"])."' AND id != '".sqlescape($page["id"])."'"));
 				if ($r == 0) {
 					// They have a unique title
 					$score += 5;
@@ -4470,7 +4566,7 @@
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"],$id);
-						$level = $this->getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"]);
+						$level = $this->getAccessLevel(static::getModule($f["module"]),$item["item"],$f["table"],$user);
 						if ($level == "p") {
 							$ok = true;
 						}
@@ -5350,7 +5446,8 @@
 			foreach ($manifest["components"]["field_types"] as $type) {
 				if ($type) {
 					$self_draw = $type["self_draw"] ? "'on'" : "NULL";
-					sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','".sqlescape($type["use_cases"])."',$self_draw,'$extension')");
+					$use_cases = sqlescape(is_array($type["use_cases"]) ? json_encode($type["use_cases"]) : $type["use_cases"]);
+					sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`,`extension`) VALUES ('".sqlescape($type["id"])."','".sqlescape($type["name"])."','$use_cases',$self_draw,'$extension')");
 				}
 			}
 
@@ -5776,11 +5873,15 @@
 				Processes a list of cropped images.
 
 			Parameters:
-				crops - An array of crop information.
+				crop_key - A cache key pointing to the location of crop data.
 		*/
 
-		static function processCrops($crops) {
+		static function processCrops($crop_key) {
 			$storage = new BigTreeStorage;
+
+			// Get and remove the crop data
+			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops",$crop_key);
+			BigTreeCMS::cacheDelete("org.bigtreecms.crops",$crop_key);
 
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
@@ -5862,7 +5963,7 @@
 
 				// If it's explicitly ignored return null
 				if ($field["ignore"]) {
-					$output = null;
+					return null;
 				} else {
 					$output = $field["output"];
 				}
@@ -5981,7 +6082,7 @@
 			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
 				if (is_array($field["options"]["crops"])) {
 					foreach ($field["options"]["crops"] as $crop) {
-						if (!$failed && is_array($crop)) {
+						if (!$failed && is_array($crop) && array_filter($crop)) {
 							if ($field["options"]["retina"]) {
 								$crop["width"] *= 2;
 								$crop["height"] *= 2;
@@ -5997,7 +6098,7 @@
 				if (is_array($field["options"]["thumbs"])) {
 					foreach ($field["options"]["thumbs"] as $thumb) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($thumb)) {
+						if (!$failed && is_array($thumb) && array_filter($thumb)) {
 							if ($field["options"]["retina"]) {
 								$thumb["width"] *= 2;
 								$thumb["height"] *= 2;
@@ -6013,7 +6114,7 @@
 				if (is_array($field["options"]["center_crops"])) {
 					foreach ($field["options"]["center_crops"] as $crop) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($crop)) {
+						if (!$failed && is_array($crop) && array_filter($crop)) {
 							list($w,$h) = getimagesize($temp_name);
 							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$w,$h,$crop["width"],$crop["height"])) {
 								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
@@ -6185,8 +6286,10 @@
 												}
 											}
 										}
-		
-										$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+										
+										if ($crop["prefix"]) {
+											$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+										}
 									}
 								}
 							}
@@ -6388,6 +6491,7 @@
 			// Get the results
 			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			while ($f = sqlfetch($q)) {
+				$f["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($f["redirect_url"]);
 				$items[] = $f;
 			}
 
@@ -6565,7 +6669,18 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
-			$url = sqlescape(htmlspecialchars($url));
+
+			// Try to convert the short URL into a full one
+			if (strpos($url,"//") === false) {
+				$url = WWW_ROOT.ltrim($url,"/");
+			}
+			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
+
+			// Don't use static roots if they're the same as www just in case they are different when moving environments
+			if (WWW_ROOT === STATIC_ROOT) {
+				$url = str_replace("{staticroot}","{wwwroot}",$url);
+			}
+
 			sqlquery("UPDATE bigtree_404s SET redirect_url = '$url' WHERE id = '$id'");
 			$this->track("bigtree_404s",$id,"updated");
 		}
@@ -7245,6 +7360,8 @@
 			foreach ($fields as $key => $field) {
 				$field["options"] = json_decode($field["options"],true);
 				$field["column"] = $key;
+				$field["title"] = BigTree::safeEncode($field["title"]);
+				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
 				$clean_fields[] = $field;
 			}
 			$fields = BigTree::json($clean_fields,true);
@@ -7870,16 +7987,14 @@
 				return false;
 			}
 
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
+			$level = intval($data["level"]);
+			$email = sqlescape($data["email"]);
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
+
 			$permissions = BigTree::json($data["permissions"],true);
 			$alerts = BigTree::json($data["alerts"],true);
-
-			// Make level an int, just in case some fancy pants type inference could make PHP and MySQL think of two different values
-			$level = intval($level);
 
 			// If the user is editing themselves, they can't change the level.
 			if ($this->ID == $current["id"]) {

@@ -20,6 +20,152 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.8 Release
+- ADDED: A ping to bigtreecms.org to help us maintain version usage numbers (you can disable this by setting $bigtree["config"]["disable_ping"] to true)
+- ADDED: Very limited Facebook API support to Service APIs.
+- ADDED: ChannelID property to BigTreeYouTubeVideo class.
+- ADDED: A $bigtree["config"]["trailing_slash_behavior"] configuration setting to always add or removing trailing slashes from URLS (thanks Randy Hook @ MindScape)
+- ADDED: BigTree front end bar's Edit button can now be changed by setting $bigtree["bar_edit_link"] to another URL in your template (thanks mdewyer)
+- ADDED: You can now manually add 301 redirects in the 301 Redirects section of the 404 report
+- ADDED: List Parser functions to the List field type (similar to the existing functionality for One/Many-to-Many)
+- ADDED: Callouts can now be nested inside callouts
+- UPDATED: Google API instructions
+- UPDATED: TinyMCE 4 to 4.2.8
+- UPDATED: 301 redirect URLs now only show the short slug version of the destination URL
+- UPDATED: 301 redirects now attempt to make internal page links out of short slug destination URLs for better tranisitioning over time
+- FIXED: Grayscale and Delete button for thumbnails being assigned to the wrong row.
+- FIXED: Background images not properly rewriting to https when BigTreeCMS::makeSecure is called.
+- FIXED: Media Presets not properly throwing inline errors on image uploads.
+- FIXED: BigTree::cURL's $bigtree["last_curl_response_code"] always being 0.
+- FIXED: BigTree::relativeTime returning plurals when it shouldn't
+- FIXED: Tags not having whitespace trimmed on creation
+- FIXED: Duplicate images being created when a crop didn't have a prefix and the exact file size was uploaded
+- FIXED: BigTreeAdmin::drawArrayLevel so that it can accept an array directly for recursive calling (i.e. nesting Matrix/Callout)
+- FIXED: BigTreeCMS::catch404 not clearing the existing buffer before drawing the 404 page
+- FIXED: Issues with TinyMCE not saving in Safari when used inside of Callouts or Matrixes
+- FIXED: Current date always being used in date pickers inside of callouts/matrixes and added ability to remove a date (thanks jmason03)
+- FIXED: 0 being considiered empty when doing type validation in auto modules (thanks jmason03)
+- FIXED: Tab indexing in nested matrixes and callouts
+- FIXED: Some configuration variables not properly being in the demo site's config
+- FIXED: Box sizing issue on input[type=search] that Firefox 41 introduced
+- FIXED: Mandrill API returning true for failed calls
+- FIXED: Various style issues inside of callout dialogs
+- FIXED: Missing column in bigtree_module_reports when upgrading from 4.0
+- FIXED: Not being able to add unused fields to an embeddable form after its creation
+- FIXED: Several field types not drawing properly in embeddable forms
+- FIXED: Embeddable forms not loading configuration-based Javascript and CSS
+- FIXED: Properties that were dangerous / not useful for the homepage no longer appear when editing the homepage.
+- FIXED: Date pickers failing on embeddable forms
+- FIXED: Errors bubbling up to higher fieldsets when fieldsets were nested
+- FIXED: Infinitely resizing embeddable forms
+- FIXED: Module actions permissions not being properly enforced (thanks Randy Hook @ MindScape)
+- FIXED: Packaging a setting, template, or callout into an extension not always working as intended (thanks Randy Hook @ MindScape)
+- FIXED: BigTreeModule::getRecentFeatured sorting by ASC rather than DESC by default
+- FIXED: FTP and SFTP upgrades failing for both Extensions and System upgrades
+- FIXED: Cloud caches not being populated properly when selecting a container
+- FIXED: Protocol agnostic URLs failing integrity checks
+- FIXED: Editing extension settings via the admin's Settings section failing
+- FIXED: Site status to better check all the directories that need writable permissions
+- REMOVED: Paste button from TinyMCE as modern browsers don't support it
+
+### 4.2.7 Release
+- ADDED: Extension field types can now more easily add their own CSS and JS into the admin header by specifying the full path to their CSS file or JS file. For instance: $bigtree["css"][] = "*/com.fastspot.video-field/css/video-field.css";
+- ADDED: You can now hook BigTree's ready events via the Javascript BigTree.hookReady() function. BigTree will run the passed in function when it hits a ready state. Ready states include page load after BigTree init routines and callout/matrix dialog opening (after any requested Javascript is loaded).
+- UPDATED: jQuery to latest 1.11.3 stable build
+- FIXED: 30 day page views not showing in Pages when Google Analytics is setup
+- FIXED: Extensions that checked for the existence of BigTree internal settings that were not yet created (i.e. service APIs) should no longer create extension namespaced versions of the internal settings.
+- FIXED: Incorrect permission checking when sending out lists of pending changes in Daily Digest emails
+- FIXED: Google Analytics API storing things in bigtree_caches that it never uses
+- FIXED: Callout fields from an upgraded 4.1 installation not properly loading their groups in 4.2+
+- FIXED: Missing older style {key} replacements in Javascript (fixes embedded form issues)
+- FIXED: Embeddable Forms not processing their hooks properly
+- FIXED: Chrome in Windows rendering some select fields strangely (i.e. in the "Address" type of a Text field)
+- FIXED: Form fields' title and subtitle attributes not encoding properly on update (lead to issues with titles that had < or > or " in them)
+- FIXED: "Max" message not aligning properly in a matrix nested inside a matrix or callout
+- FIXED: The return-to-the-page-you-were-editing functionality when editing the template of the home page
+- FIXED: 301 redirects containing special characters (i.e. # or &) not redirecting correctly
+- FIXED: Deleting of pending items leading to a 404 page
+- FIXED: Callout access levels not functioning properly
+- FIXED: Resource type hints in template / callout files always being "Array"
+- CHANGED: TinyMCE 4's default configuration now allows for all tags and attributes rather than stripping tags randomly that it doesn't understand.
+- CHANGED: "Required" Javascript logic to work better with custom field types
+
+### 4.2.6 Release
+- SECURITY FIX: Fixed a critical path manipulation bug that could expose private files
+- FIXED: Cron failing when using a custom admin class
+- FIXED: Fields that were set to ignore sometimes nulling the value of a good column.
+- FIXED: Feed parsers containing a " character not being editable
+- FIXED: Removing fields from a feed not working
+- FIXED: Related Menu dropdown looking broken in IE10/11
+- FIXED: Template editor showing related module for basic templates
+- FIXED: Permission errors when a module has the same route as a core ajax directory (i.e. callouts)
+- FIXED: Chrome issues with TinyMCE (updated to latest release)
+
+### 4.2.5 Release
+- FIXED: A permissions breaking bug that prevented normal users from hitting the Pages tab
+- FIXED: Installation on Windows server setups
+- FIXED: BigTree::makeDirectory failing on Windows environments
+- FIXED: Missing underline icon in TinyMCE 4
+
+### 4.2.4 Release
+- ADDED: CSS loaded in the admin now has access to the www_root/, static_root/, and admin_root/ variables
+- ADDED: BigTree::dateFormat method that parses dates set in $bigtree["config"]["date_format"] into another format
+- FIXED: Extensions that used module form hooks failing to import the form hooks properly
+- FIXED: "Trees" module in the example site not generating its URL routes properly
+- FIXED: Several XSS and SQL injection vectors that could possibly be exploited by users with admin access (thanks to Tim Coen @ Curesec GmbH)
+- FIXED: Deleting a pending page returning you to the wrong page tree
+- FIXED: Deleting cloud files with protocol agnostic URLs failing
+- FIXED: Packages that contained related forms for views failing to import the views properly
+- FIXED: Creating packages/extensions with callouts and templates failing to also include custom field types used by them
+- FIXED: Importing templates and callouts from a 4.1 package not importing the resource fields properly
+- CHANGED: A file is now only deleted from the file system / file manager after it has been removed from all the containing folders in the file manager
+
+### 4.2.3 Release
+- FIXED: Ignoring an update notification not sticking
+- FIXED: Example site using old style index.php
+- FIXED: Service APIs that used off site redirects failing after 4.2.2 security hardening
+- FIXED: Incorrect error messages in Users section
+- FIXED: "columns" parameter not working in BigTreeModule's getAllPositioned method
+- FIXED: BigTreeYouTubeAPI's timeSplit method being protected (it's needed by other classes in the API)
+- FIXED: Launcher now works better with sym-linked cores (in fresh installs)
+- FIXED: Converting Array of Items (4.0/4.1 field type) into Matrix when upgrading (for real this time)
+- FIXED: Incorrect message when deleting callout groups
+- FIXED: BigTree admin bar not working on secure pages
+- FIXED: User's names and company names not being encoded properly (XSS)
+- FIXED: Date and Date/Time pickers losing their value if used in Matrix / Callouts and not edited
+- FIXED: Draggable views setting positions to be negative numbers (failed to sort if you were using unsigned columns)
+
+### 4.2.2 Release
+- ADDED: You can now instantiate a BigTreePaymentGateway object with the desired payment gateway in the constructor for using multiple services
+- ADDED: When grouping by a special column such as featured, approved, or archived, groups now get meaningful titles and clicking the relevant icons reloads the view to show movement between groups.
+- ADDED: BigTreeCMS::cacheUnique method that allows you to specify only a identifier and will return a unique key for the data being stored
+- FIXED: Making updates to a pending change before publishing failing
+- FIXED: Example site's photo gallery field not functioning
+- FIXED: Protocol agnostic Cloud files URLs not working with copyFile
+- FIXED: Redirect Lower pages option failing if all the child pages were not visible in nav
+- FIXED: Importing a field type from an extension failing to properly set use cases
+- FIXED: 4.1->4.2 array of items to matrix field type conversion failing for modules
+- FIXED: Upload fields in matrix / callouts that were set to required failing to recognize existing data when resaving
+- FIXED: List-style matrix fields not drawing properly after a callout-style matrix or callouts field
+- FIXED: Matrix fields not properly using subtypes of text fields for titles properly
+- FIXED: Corrupt many to many data showing up when adding new content
+- FIXED: Issues with custom checkboxes in the admin sometimes not switching properly
+- FIXED: Module reports not being deletable
+- FIXED: Multiple cross-site scripting vectors that could lead to an admin user being phished
+- FIXED: Potential path abuse vectors that could lead to a admin user storing or including a file outside the proper directory
+- FIXED: BigTreeCMS::cacheGet failing to return values when max_age was not passed
+- FIXED: Potential abuse of cropping images through POSTing to the process-crops URLs with dummy data.
+- FIXED: Crops not occurring in Pages and Settings if errors occurred
+- FIXED: Potential phishing download abuse
+- FIXED: Potential SQL injection vectors that administrative users could possibly exploit
+- FIXED: Developer level AJAX calls often not requiring developer access.
+- FIXED: Possible variable scope override issues.
+- FIXED: Potential cookie manipulation via phishing.
+- FIXED: Module forms for extensions not properly importing.
+- FIXED: Reports in packages and extensions not properly packaging their related tables.
+- CHANGED: Old internal page links that used BigTree 3 format (serialized) are no longer support. This resolves a potential object injection attack.
+- CHANGED: BigTree::redirect can no longer be used to redirect outside the current domain when called within the admin. This helps prevent phishing attempt redirections.
+
 ### 4.2.1 Release
 - ADDED: SendGrid email service support (thanks zumbrunnen)
 - ADDED: Support for altnernate ports and sockets when connecting to MySQL (thanks zumbrunnen)

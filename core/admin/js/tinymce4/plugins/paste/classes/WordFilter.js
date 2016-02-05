@@ -1,8 +1,8 @@
 /**
  * WordFilter.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -11,7 +11,7 @@
 /**
  * This class parses word HTML into proper TinyMCE markup.
  *
- * @class tinymce.pasteplugin.Quirks
+ * @class tinymce.pasteplugin.WordFilter
  * @private
  */
 define("tinymce/pasteplugin/WordFilter", [
@@ -62,7 +62,7 @@ define("tinymce/pasteplugin/WordFilter", [
 	}
 
 	function isBulletList(text) {
-		return /^[\s\u00a0]*[\u2022\u00b7\u00a7\u00d8\u25CF]\s*/.test(text);
+		return /^[\s\u00a0]*[\u2022\u00b7\u00a7\u25CF]\s*/.test(text);
 	}
 
 	function WordFilter(editor) {
@@ -70,6 +70,10 @@ define("tinymce/pasteplugin/WordFilter", [
 
 		editor.on('BeforePastePreProcess', function(e) {
 			var content = e.content, retainStyleProperties, validStyles;
+
+			// Remove google docs internal guid markers
+			content = content.replace(/<b[^>]+id="?docs-internal-[^>]*>/gi, '');
+			content = content.replace(/<br class="?Apple-interchange-newline"?>/gi, '');
 
 			retainStyleProperties = settings.paste_retain_style_properties;
 			if (retainStyleProperties) {
@@ -174,14 +178,26 @@ define("tinymce/pasteplugin/WordFilter", [
 					// Remove start of list item "1. " or "&middot; " etc
 					removeIgnoredNodes(paragraphNode);
 					trimListStart(paragraphNode, /^\u00a0+/);
-					trimListStart(paragraphNode, /^\s*([\u2022\u00b7\u00a7\u00d8\u25CF]|\w+\.)/);
+					trimListStart(paragraphNode, /^\s*([\u2022\u00b7\u00a7\u25CF]|\w+\.)/);
 					trimListStart(paragraphNode, /^\u00a0+/);
 				}
 
-				var paragraphs = node.getAll('p');
+				// Build a list of all root level elements before we start
+				// altering them in the loop below.
+				var elements = [], child = node.firstChild;
+				while (typeof child !== 'undefined' && child !== null) {
+					elements.push(child);
 
-				for (var i = 0; i < paragraphs.length; i++) {
-					node = paragraphs[i];
+					child = child.walk();
+					if (child !== null) {
+						while (typeof child !== 'undefined' && child.parent !== node) {
+							child = child.walk();
+						}
+					}
+				}
+
+				for (var i = 0; i < elements.length; i++) {
+					node = elements[i];
 
 					if (node.name == 'p' && node.firstChild) {
 						// Find first text node in paragraph
@@ -196,7 +212,7 @@ define("tinymce/pasteplugin/WordFilter", [
 						// Detect ordered lists 1., a. or ixv.
 						if (isNumericList(nodeText)) {
 							// Parse OL start number
-							var matches = /([0-9])\./.exec(nodeText);
+							var matches = /([0-9]+)\./.exec(nodeText);
 							var start = 1;
 							if (matches) {
 								start = parseInt(matches[1], 10);
@@ -212,6 +228,13 @@ define("tinymce/pasteplugin/WordFilter", [
 							continue;
 						}
 
+						currentListNode = null;
+					} else {
+						// If the root level element isn't a p tag which can be
+						// processed by convertParagraphToLi, it interrupts the
+						// lists, causing a new list to start instead of having
+						// elements from the next list inserted above this tag.
+						prevListNode = currentListNode;
 						currentListNode = null;
 					}
 				}
@@ -346,8 +369,11 @@ define("tinymce/pasteplugin/WordFilter", [
 
 				var validElements = settings.paste_word_valid_elements;
 				if (!validElements) {
-					validElements = '-strong/b,-em/i,-span,-p,-ol,-ul,-li,-h1,-h2,-h3,-h4,-h5,-h6,-p/div,' +
-						'-table[width],-tr,-td[colspan|rowspan|width],-th,-thead,-tfoot,-tbody,-a[href|name],sub,sup,strike,br,del';
+					validElements = (
+						'-strong/b,-em/i,-u,-span,-p,-ol,-ul,-li,-h1,-h2,-h3,-h4,-h5,-h6,' +
+						'-p/div,-a[href|name],sub,sup,strike,br,del,table[width],tr,' +
+						'td[colspan|rowspan|width],th[colspan|rowspan|width],thead,tfoot,tbody'
+					);
 				}
 
 				// Setup strict schema
@@ -359,6 +385,7 @@ define("tinymce/pasteplugin/WordFilter", [
 				// Add style/class attribute to all element rules since the user might have removed them from
 				// paste_word_valid_elements config option and we need to check them for properties
 				Tools.each(schema.elements, function(rule) {
+					/*eslint dot-notation:0*/
 					if (!rule.attributes["class"]) {
 						rule.attributes["class"] = {};
 						rule.attributesOrder.push("class");
@@ -396,7 +423,7 @@ define("tinymce/pasteplugin/WordFilter", [
 						node = nodes[i];
 
 						className = node.attr('class');
-						if (/^(MsoCommentReference|MsoCommentText|msoDel|MsoCaption)$/i.test(className)) {
+						if (/^(MsoCommentReference|MsoCommentText|msoDel)$/i.test(className)) {
 							node.remove();
 						}
 
@@ -455,10 +482,14 @@ define("tinymce/pasteplugin/WordFilter", [
 				var rootNode = domParser.parse(content);
 
 				// Process DOM
-				convertFakeListsToProperLists(rootNode);
+				if (settings.paste_convert_word_fake_lists !== false) {
+					convertFakeListsToProperLists(rootNode);
+				}
 
 				// Serialize DOM back to HTML
-				e.content = new Serializer({}, schema).serialize(rootNode);
+				e.content = new Serializer({
+					validate: settings.validate
+				}, schema).serialize(rootNode);
 			}
 		});
 	}

@@ -8,6 +8,12 @@
 		if (!empty($preset["preview_prefix"])) {
 			$field["options"]["preview_prefix"] = $preset["preview_prefix"];
 		}
+		if (!empty($preset["min_width"])) {
+			$field["options"]["min_width"] = $preset["min_width"];
+		}
+		if (!empty($preset["min_height"])) {
+			$field["options"]["min_height"] = $preset["min_height"];
+		}
 	}
 
 	// Get min width/height designations

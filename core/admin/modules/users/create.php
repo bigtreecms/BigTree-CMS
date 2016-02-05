@@ -19,6 +19,7 @@
 		$id = $admin->createUser($_POST);	
 		if (!$id) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
+			$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";
 			$admin->growl("Users","Creation Failed","error");
 			BigTree::redirect(ADMIN_ROOT."users/add/");
 		}

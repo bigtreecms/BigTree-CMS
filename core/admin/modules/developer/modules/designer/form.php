@@ -20,7 +20,7 @@
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/form-create/" class="module">
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
-		<input type="hidden" name="table" value="<?=$table?>" />
+		<input type="hidden" name="table" value="<?=htmlspecialchars($table)?>" />
 		<section>
 			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">

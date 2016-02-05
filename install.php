@@ -199,7 +199,8 @@
 			"[email]",
 			"[settings_key]",
 			"[force_secure_login]",
-			"[routing]"
+			"[routing]",
+			"[slash_behavior]"
 		);
 		
 		$replace = array(
@@ -221,7 +222,8 @@
 			$cms_user,
 			uniqid("",true),
 			(isset($force_secure_login)) ? "true" : "false",
-			($routing == "basic") ? "basic" : "htaccess"
+			($routing == "basic") ? "basic" : "htaccess",
+			$slash_behavior
 		);
 		
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
@@ -350,7 +352,10 @@
 		}
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
-		bt_touch_writable("site/index.php",'<? include "../core/launch.php" ?>');
+		bt_touch_writable("site/index.php",'<?
+	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));	
+	include "../core/launch.php";
+?>');
 		
 		if ($routing == "advanced") {
 			bt_touch_writable("site/.htaccess",'<IfModule mod_deflate.c>
@@ -683,30 +688,41 @@ RewriteRule (.*) site/$1 [L]');
 						<?php } ?>
 					</ul>
 				</fieldset>
-				<fieldset class="clear">
-					<select name="routing" tabindex="13">
-						<?php
-							if ($iis) {
-						?>
-						<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
-						<option value="iis"<?php if ($routing == "iis") { ?> selected="selected"<?php } ?>>Rewrite Routing</option>
-						<?php
-							} else {
-						?>
-						<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
-						<?php
-								if ($rewrite_enabled) {
-						?>
-						<option value="simple"<?php if ($routing == "simple") { ?> selected="selected"<?php } ?>>Simple Rewrite Routing</option>
-						<option value="advanced"<?php if ($routing == "advanced") { ?> selected="selected"<?php } ?>>Advanced Routing</option>
-						<?php
+				<hr />
+				<div class="contain">
+					<fieldset class="left">
+						<label>Routing</label>
+						<select name="routing" tabindex="13">
+							<?php
+								if ($iis) {
+							?>
+							<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
+							<option value="iis"<?php if ($routing == "iis") { ?> selected="selected"<?php } ?>>Rewrite Routing</option>
+							<?php
+								} else {
+							?>
+							<option value="basic"<?php if (!$routing || $routing == "basic") { ?> selected="selected"<?php } ?>>Basic Routing</option>
+							<?php
+									if ($rewrite_enabled) {
+							?>
+							<option value="simple"<?php if ($routing == "simple") { ?> selected="selected"<?php } ?>>Simple Rewrite Routing</option>
+							<option value="advanced"<?php if ($routing == "advanced") { ?> selected="selected"<?php } ?>>Advanced Routing</option>
+							<?php
+									}
 								}
-							}
-						?>
-					</select>
-				</fieldset>
+							?>
+						</select>
+					</fieldset>
+					<fieldset class="left">
+						<label>URL Behavior</label>
+						<select name="slash_behavior">
+							<option value="append">URLs End With /</option>
+							<option value="remove"<?php if ($slash_behavior == "remove") { ?> selected="selected"<?php } ?>>URLs End With Page Slug</option>
+							<option value="none"<?php if ($slash_behavior == "none") { ?> selected="selected"<?php } ?>>Allow Either</option>
+						</select>
+					</fieldset>
+				</div>
 				
-				<br />
 				<hr />
 				<?php } else { ?>
 				<input type="hidden" name="routing" value="basic" />
@@ -732,14 +748,14 @@ RewriteRule (.*) site/$1 [L]');
 		    <script>
 		        $(document).ready(function() {
 		        	$("#loadbalanced").on("change", function() {
-		        		if ($(this).attr("checked")) {
+		        		if ($(this).prop("checked")) {
 		        			$("#loadbalanced_settings").css({ display: "block" });
 		        		} else {
 		        			$("#loadbalanced_settings").css({ display: "none" });
 		        		}
 		        	});
 		        	$("#db_port_or_socket").on("change", function() {
-		        		if ($(this).attr("checked")) {
+		        		if ($(this).prop("checked")) {
 		        			$(".db_port_or_socket_settings").css({ display: "block" });
 		        		} else {
 		        			$(".db_port_or_socket_settings").css({ display: "none" });

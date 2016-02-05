@@ -1,8 +1,8 @@
 /**
  * plugin.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -30,8 +30,22 @@ tinymce.PluginManager.add('lists', function(editor) {
 		return node && !!editor.schema.getTextBlockElements()[node.nodeName];
 	}
 
+	function isEditorBody(elm) {
+		return elm === editor.getBody();
+	}
+
 	editor.on('init', function() {
 		var dom = editor.dom, selection = editor.selection;
+
+		function isEmpty(elm, keepBookmarks) {
+			var empty = dom.isEmpty(elm);
+
+			if (keepBookmarks && dom.select('span[data-mce-type=bookmark]').length > 0) {
+				return false;
+			}
+
+			return empty;
+		}
 
 		/**
 		 * Returns a range bookmark. This will convert indexed bookmarks into temporary span elements with
@@ -207,15 +221,29 @@ tinymce.PluginManager.add('lists', function(editor) {
 		}
 
 		function splitList(ul, li, newBlock) {
-			var tmpRng, fragment;
+			var tmpRng, fragment, bookmarks, node;
 
-			var bookmarks = dom.select('span[data-mce-type="bookmark"]', ul);
+			function removeAndKeepBookmarks(targetNode) {
+				tinymce.each(bookmarks, function(node) {
+					targetNode.parentNode.insertBefore(node, li.parentNode);
+				});
 
+				dom.remove(targetNode);
+			}
+
+			bookmarks = dom.select('span[data-mce-type="bookmark"]', ul);
 			newBlock = newBlock || createNewTextBlock(li);
 			tmpRng = dom.createRng();
 			tmpRng.setStartAfter(li);
 			tmpRng.setEndAfter(ul);
 			fragment = tmpRng.extractContents();
+
+			for (node = fragment.firstChild; node; node = node.firstChild) {
+				if (node.nodeName == 'LI' && dom.isEmpty(node)) {
+					dom.remove(node);
+					break;
+				}
+			}
 
 			if (!dom.isEmpty(fragment)) {
 				dom.insertAfter(fragment, ul);
@@ -223,15 +251,15 @@ tinymce.PluginManager.add('lists', function(editor) {
 
 			dom.insertAfter(newBlock, ul);
 
-			if (dom.isEmpty(li.parentNode)) {
-				tinymce.each(bookmarks, function(node) {
-					li.parentNode.parentNode.insertBefore(node, li.parentNode);
-				});
-
-				dom.remove(li.parentNode);
+			if (isEmpty(li.parentNode)) {
+				removeAndKeepBookmarks(li.parentNode);
 			}
 
 			dom.remove(li);
+
+			if (isEmpty(ul)) {
+				dom.remove(ul);
+			}
 		}
 
 		function mergeWithAdjacentLists(listBlock) {
@@ -269,7 +297,7 @@ tinymce.PluginManager.add('lists', function(editor) {
 					if (sibling && sibling.nodeName == 'LI') {
 						sibling.appendChild(ul);
 
-						if (dom.isEmpty(parentNode)) {
+						if (isEmpty(parentNode)) {
 							dom.remove(parentNode);
 						}
 					}
@@ -289,9 +317,13 @@ tinymce.PluginManager.add('lists', function(editor) {
 			var ul = li.parentNode, ulParent = ul.parentNode, newBlock;
 
 			function removeEmptyLi(li) {
-				if (dom.isEmpty(li)) {
+				if (isEmpty(li)) {
 					dom.remove(li);
 				}
+			}
+
+			if (isEditorBody(ul)) {
+				return true;
 			}
 
 			if (li.nodeName == 'DD') {
@@ -336,23 +368,21 @@ tinymce.PluginManager.add('lists', function(editor) {
 				}
 
 				return true;
-			} else {
-				if (ulParent.nodeName == 'LI') {
-					ul = ulParent;
-					newBlock = createNewTextBlock(li, 'LI');
-				} else if (isListNode(ulParent)) {
-					newBlock = createNewTextBlock(li, 'LI');
-				} else {
-					newBlock = createNewTextBlock(li);
-				}
-
-				splitList(ul, li, newBlock);
-				normalizeList(ul.parentNode);
-
-				return true;
 			}
 
-			return false;
+			if (ulParent.nodeName == 'LI') {
+				ul = ulParent;
+				newBlock = createNewTextBlock(li, 'LI');
+			} else if (isListNode(ulParent)) {
+				newBlock = createNewTextBlock(li, 'LI');
+			} else {
+				newBlock = createNewTextBlock(li);
+			}
+
+			splitList(ul, li, newBlock);
+			normalizeList(ul.parentNode);
+
+			return true;
 		}
 
 		function indent(li) {
@@ -580,7 +610,11 @@ tinymce.PluginManager.add('lists', function(editor) {
 			tinymce.each(getSelectedListItems(), function(li) {
 				var node, rootList;
 
-				if (dom.isEmpty(li)) {
+				if (isEditorBody(li.parentNode)) {
+					return;
+				}
+
+				if (isEmpty(li)) {
 					outdent(li);
 					return;
 				}
@@ -599,6 +633,10 @@ tinymce.PluginManager.add('lists', function(editor) {
 
 		function toggleList(listName) {
 			var parentList = dom.getParent(selection.getStart(), 'OL,UL,DL');
+
+			if (isEditorBody(parentList)) {
+				return;
+			}
 
 			if (parentList) {
 				if (parentList.nodeName == listName) {
@@ -624,13 +662,24 @@ tinymce.PluginManager.add('lists', function(editor) {
 		self.backspaceDelete = function(isForward) {
 			function findNextCaretContainer(rng, isForward) {
 				var node = rng.startContainer, offset = rng.startOffset;
+				var nonEmptyBlocks, walker;
 
 				if (node.nodeType == 3 && (isForward ? offset < node.data.length : offset > 0)) {
 					return node;
 				}
 
-				var walker = new tinymce.dom.TreeWalker(rng.startContainer);
+				nonEmptyBlocks = editor.schema.getNonEmptyElements();
+				walker = new tinymce.dom.TreeWalker(rng.startContainer);
+
 				while ((node = walker[isForward ? 'next' : 'prev']())) {
+					if (node.nodeName == 'LI' && !node.hasChildNodes()) {
+						return node;
+					}
+
+					if (nonEmptyBlocks[node.nodeName]) {
+						return node;
+					}
+
 					if (node.nodeType == 3 && node.data.length > 0) {
 						return node;
 					}
@@ -649,8 +698,14 @@ tinymce.PluginManager.add('lists', function(editor) {
 					dom.remove(node);
 				}
 
-				while ((node = fromElm.firstChild)) {
-					toElm.appendChild(node);
+				if (isEmpty(toElm, true)) {
+					dom.$(toElm).empty();
+				}
+
+				if (!isEmpty(fromElm, true)) {
+					while ((node = fromElm.firstChild)) {
+						toElm.appendChild(node);
+					}
 				}
 
 				if (listNode) {
@@ -659,17 +714,22 @@ tinymce.PluginManager.add('lists', function(editor) {
 
 				dom.remove(fromElm);
 
-				if (dom.isEmpty(ul)) {
+				if (isEmpty(ul) && !isEditorBody(ul)) {
 					dom.remove(ul);
 				}
 			}
 
 			if (selection.isCollapsed()) {
-				var li = dom.getParent(selection.getStart(), 'LI');
+				var li = dom.getParent(selection.getStart(), 'LI'), ul, rng, otherLi;
 
 				if (li) {
-					var rng = selection.getRng(true);
-					var otherLi = dom.getParent(findNextCaretContainer(rng, isForward), 'LI');
+					ul = li.parentNode;
+					if (isEditorBody(ul) && dom.isEmpty(ul)) {
+						return true;
+					}
+
+					rng = selection.getRng(true);
+					otherLi = dom.getParent(findNextCaretContainer(rng, isForward), 'LI');
 
 					if (otherLi && otherLi != li) {
 						var bookmark = createBookmark(rng);
@@ -684,7 +744,7 @@ tinymce.PluginManager.add('lists', function(editor) {
 
 						return true;
 					} else if (!otherLi) {
-						if (!isForward && removeList(li.parentNode.nodeName)) {
+						if (!isForward && removeList(ul.nodeName)) {
 							return true;
 						}
 					}
@@ -692,14 +752,22 @@ tinymce.PluginManager.add('lists', function(editor) {
 			}
 		};
 
-		editor.addCommand('Indent', function() {
-			if (!indentSelection()) {
-				return true;
-			}
-		});
+		editor.on('BeforeExecCommand', function(e) {
+			var cmd = e.command.toLowerCase(), isHandled;
 
-		editor.addCommand('Outdent', function() {
-			if (!outdentSelection()) {
+			if (cmd == "indent") {
+				if (indentSelection()) {
+					isHandled = true;
+				}
+			} else if (cmd == "outdent") {
+				if (outdentSelection()) {
+					isHandled = true;
+				}
+			}
+
+			if (isHandled) {
+				editor.fire('ExecCommand', {command: e.command});
+				e.preventDefault();
 				return true;
 			}
 		});
@@ -721,7 +789,12 @@ tinymce.PluginManager.add('lists', function(editor) {
 		editor.addQueryStateHandler('InsertDefinitionList', queryListCommandState('DL'));
 
 		editor.on('keydown', function(e) {
-			if (e.keyCode == 9 && editor.dom.getParent(editor.selection.getStart(), 'LI,DT,DD')) {
+			// Check for tab but not ctrl/cmd+tab since it switches browser tabs
+			if (e.keyCode != 9 || tinymce.util.VK.metaKeyPressed(e)) {
+				return;
+			}
+
+			if (editor.dom.getParent(editor.selection.getStart(), 'LI,DT,DD')) {
 				e.preventDefault();
 
 				if (e.shiftKey) {

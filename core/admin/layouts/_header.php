@@ -69,9 +69,22 @@
 			
 			// Runtime based CSS
 			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
+				$bigtree["css"] = array_unique($bigtree["css"]);
 				foreach ($bigtree["css"] as $style) {
+					$css_path = explode("/",$style);
+
+					// This is an extension piece acknowledging it could be used outside the extension root
+					if ($css_path[0] == "*") {
+						$include_path = ADMIN_ROOT.$style;
+					// This is an extension inside its routed directory loading its own styles
+					} elseif (defined("EXTENSION_ROOT")) {
+						$include_path = ADMIN_ROOT."*/".$bigtree["module"]["extension"]."/css/".$style;
+					// This is just a regular old include
+					} else {
+						$include_path = ADMIN_ROOT."css/".$style;
+					}
 		?>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT.(defined("EXTENSION_ROOT") ? "*/".$bigtree["module"]["extension"]."/" : "")?>css/<?=$style?>" type="text/css" media="screen" />
+		<link rel="stylesheet" href="<?=$include_path?>" type="text/css" media="screen" />
 		<?
 				}
 			}
@@ -92,9 +105,23 @@
 
 			// Runtime based JS
 			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
+				$bigtree["js"] = array_unique($bigtree["js"]);
 				foreach ($bigtree["js"] as $script) {
+					$js_path = explode("/",$script);
+
+					// This is an extension piece acknowledging it could be used outside the extension root
+					if ($js_path[0] == "*") {
+						$include_path = ADMIN_ROOT.$script;
+					// This is an extension inside its routed directory loading its own scripts
+					} elseif (defined("EXTENSION_ROOT")) {
+						$include_path = ADMIN_ROOT."*/".$bigtree["module"]["extension"]."/js/".$script;
+					// This is just a regular old include
+					} else {
+						$include_path = ADMIN_ROOT."js/".$script;
+					}
+
 		?>
-		<script src="<?=ADMIN_ROOT.(defined("EXTENSION_ROOT") ? "*/".$bigtree["module"]["extension"]."/" : "")?>js/<?=$script?>"></script>
+		<script src="<?=$include_path?>"></script>
 		<?
 				}
 			}
@@ -104,6 +131,13 @@
 		<![endif]-->
 	</head>
 	<body class="bigtree">
+		<script>
+			if ($.browser.name == "msie" && $.browser.versionNumber > 11) {
+				$("body").addClass("browser_msedge browser_msedge_" + $.browser.versionNumber);
+			} else {
+				$("body").addClass("browser_" + $.browser.name).addClass("browser_" + $.browser.name + "_" + $.browser.versionNumber);
+			}
+		</script>
 		<header class="main">
 			<section>
 				<a href="<? if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span>Logout</a>

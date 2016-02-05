@@ -42,7 +42,7 @@
 				BigTree::redirect(ADMIN_ROOT."developer/geocoding/yahoo-boss/");
 			}
 			$this->Settings["token_secret"] = $oauth_token_secret;
-			BigTree::redirect("https://api.login.yahoo.com/oauth/v2/request_auth?oauth_token=$oauth_token");
+			header("Location: https://api.login.yahoo.com/oauth/v2/request_auth?oauth_token=$oauth_token");
 		}
 
 		/*

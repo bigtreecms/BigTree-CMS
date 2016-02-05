@@ -264,7 +264,7 @@
 		// Per Page Setting
 		sqlquery("INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `description`, `locked`, `system`, `encrypted`) VALUES ('bigtree-internal-per-page', X'3135', 'text', '', 'Number of Items Per Page', '<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>', 'on', '', '')");
 		// Module reports
-		sqlquery("CREATE TABLE `bigtree_module_reports` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL DEFAULT '', `table` varchar(255) NOT NULL, `type` varchar(255) NOT NULL, `filters` text NOT NULL, `fields` text NOT NULL, `parser` varchar(255) NOT NULL DEFAULT '', `view` int(11) unsigned DEFAULT NULL, PRIMARY KEY (`id`), KEY `view` (`view`), CONSTRAINT `bigtree_module_reports_ibfk_1` FOREIGN KEY (`view`) REFERENCES `bigtree_module_views` (`id`) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+		sqlquery("CREATE TABLE `bigtree_module_reports` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` int(11) unsigned DEFAULT NULL, `title` varchar(255) NOT NULL DEFAULT '', `table` varchar(255) NOT NULL, `type` varchar(255) NOT NULL, `filters` text NOT NULL, `fields` text NOT NULL, `parser` varchar(255) NOT NULL DEFAULT '', `view` int(11) unsigned DEFAULT NULL, PRIMARY KEY (`id`), KEY `view` (`view`), KEY `module` (`module`), CONSTRAINT `bigtree_module_reports_ibfk_2` FOREIGN KEY (`module`) REFERENCES `bigtree_modules` (`id`) ON DELETE CASCADE, CONSTRAINT `bigtree_module_reports_ibfk_1` FOREIGN KEY (`view`) REFERENCES `bigtree_module_views` (`id`) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 		sqlquery("ALTER TABLE `bigtree_module_actions` ADD COLUMN `report` int(11) unsigned NULL AFTER `view`");
 		// Embeddable Module Forms
 		sqlquery("CREATE TABLE `bigtree_module_embeds` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `module` int(11) unsigned DEFAULT NULL, `title` varchar(255) NOT NULL, `preprocess` varchar(255) NOT NULL, `callback` varchar(255) NOT NULL, `table` varchar(255) NOT NULL, `fields` text NOT NULL, `default_position` varchar(255) NOT NULL, `default_pending` char(2) NOT NULL, `css` varchar(255) NOT NULL, `hash` varchar(255) NOT NULL DEFAULT '', `redirect_url` varchar(255) NOT NULL DEFAULT '', `thank_you_message` text NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
@@ -397,7 +397,7 @@
 		$current = $cms->getSetting("resource-thumbnail-sizes");
 		$thumbs = json_decode($current,true);
 		$value = array();
-		foreach ($thumbs as $title => $info) {
+		foreach (array_filter((array)$thumbs) as $title => $info) {
 			$value[] = array("title" => $title,"prefix" => $info["prefix"],"width" => $info["width"],"height" => $info["height"]);
 		}
 		sqlquery("INSERT INTO bigtree_settings (`id`,`value`,`type`,`options`,`name`,`locked`) VALUES ('bigtree-file-manager-thumbnail-sizes','".sqlescape(json_encode($value))."','array','".sqlescape('{"fields":[{"key":"title","title":"Title","type":"text"},{"key":"prefix","title":"File Prefix (i.e. thumb_)","type":"text"},{"key":"width","title":"Width","type":"text"},{"key":"height","title":"Height","type":"text"}]}')."','File Manager Thumbnail Sizes','on')");
@@ -525,20 +525,20 @@
 			$new_fields = array();
 			foreach ($fields as $id => $field) {
 				// Array of Items no longer exists, switching to Matrix
-				if ($item["type"] == "array") {
-					$item["type"] = "matrix";
-					$item["columns"] = array();
+				if ($field["type"] == "array") {
+					$field["type"] = "matrix";
+					$field["columns"] = array();
 					$x = 0;
-					foreach ($item["fields"] as $field) {
+					foreach ($field["fields"] as $subfield) {
 						$x++;
-						$item["columns"][] = array(
-							"id" => $field["key"],
-							"type" => $field["type"],
-							"title" => $field["title"],
+						$field["columns"][] = array(
+							"id" => $subfield["key"],
+							"type" => $subfield["type"],
+							"title" => $subfield["title"],
 							"display_title" => ($x == 1) ? "on" : ""
 						);
 					}
-					unset($item["fields"]);
+					unset($field["fields"]);
 				}
 				$r = array(
 					"column" => $id,

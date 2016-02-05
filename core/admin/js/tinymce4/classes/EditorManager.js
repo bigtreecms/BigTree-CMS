@@ -1,8 +1,8 @@
 /**
  * EditorManager.js
  *
- * Copyright, Moxiecode Systems AB
  * Released under LGPL License.
+ * Copyright (c) 1999-2015 Ephox Corp. All rights reserved
  *
  * License: http://www.tinymce.com/license
  * Contributing: http://www.tinymce.com/contributing
@@ -28,10 +28,28 @@ define("tinymce/EditorManager", [
 	"tinymce/util/Observable",
 	"tinymce/util/I18n",
 	"tinymce/FocusManager"
-], function(Editor, DomQuery, DOMUtils, URI, Env, Tools, Observable, I18n, FocusManager) {
+], function(Editor, $, DOMUtils, URI, Env, Tools, Observable, I18n, FocusManager) {
 	var DOM = DOMUtils.DOM;
 	var explode = Tools.explode, each = Tools.each, extend = Tools.extend;
-	var instanceCounter = 0, beforeUnloadDelegate, EditorManager;
+	var instanceCounter = 0, beforeUnloadDelegate, EditorManager, boundGlobalEvents = false;
+
+	function globalEventDelegate(e) {
+		each(EditorManager.editors, function(editor) {
+			editor.fire('ResizeWindow', e);
+		});
+	}
+
+	function toggleGlobalEvents(editors, state) {
+		if (state !== boundGlobalEvents) {
+			if (state) {
+				$(window).on('resize', globalEventDelegate);
+			} else {
+				$(window).off('resize', globalEventDelegate);
+			}
+
+			boundGlobalEvents = state;
+		}
+	}
 
 	function removeEditorFromList(editor) {
 		var editors = EditorManager.editors, removedFromList;
@@ -78,7 +96,7 @@ define("tinymce/EditorManager", [
 		 * @property $
 		 * @type tinymce.dom.DomQuery
 		 */
-		$: DomQuery,
+		$: $,
 
 		/**
 		 * Major version of TinyMCE build.
@@ -165,8 +183,9 @@ define("tinymce/EditorManager", [
 					// tinymce.js tinymce.min.js tinymce.dev.js
 					// tinymce.jquery.js tinymce.jquery.min.js tinymce.jquery.dev.js
 					// tinymce.full.js tinymce.full.min.js tinymce.full.dev.js
+					var srcScript = src.substring(src.lastIndexOf('/'));
 					if (/tinymce(\.full|\.jquery|)(\.min|\.dev|)\.js/.test(src)) {
-						if (src.indexOf('.min') != -1) {
+						if (srcScript.indexOf('.min') != -1) {
 							suffix = '.min';
 						}
 
@@ -240,7 +259,7 @@ define("tinymce/EditorManager", [
 		 * });
 		 */
 		init: function(settings) {
-			var self = this, editors = [], editor;
+			var self = this, editors = [];
 
 			function createId(elm) {
 				var id = elm.id;
@@ -265,6 +284,7 @@ define("tinymce/EditorManager", [
 			function createEditor(id, settings, targetElm) {
 				if (!purgeDestroyedEditor(self.get(id))) {
 					var editor = new Editor(id, settings, self);
+
 					editor.targetElm = editor.targetElm || targetElm;
 					editors.push(editor);
 					editor.render();
@@ -318,18 +338,18 @@ define("tinymce/EditorManager", [
 						l = settings.elements || '';
 
 						if (l.length > 0) {
-							each(explode(l), function(v) {
-								if (DOM.get(v)) {
-									editor = new Editor(v, settings, self);
-									editors.push(editor);
-									editor.render();
+							each(explode(l), function(id) {
+								var elm;
+
+								if ((elm = DOM.get(id))) {
+									createEditor(id, settings, elm);
 								} else {
 									each(document.forms, function(f) {
 										each(f.elements, function(e) {
-											if (e.name === v) {
-												v = 'mce_editor_' + instanceCounter++;
-												DOM.setAttrib(e, 'id', v);
-												createEditor(v, settings, e);
+											if (e.name === id) {
+												id = 'mce_editor_' + instanceCounter++;
+												DOM.setAttrib(e, 'id', id);
+												createEditor(id, settings, e);
 											}
 										});
 									});
@@ -425,6 +445,10 @@ define("tinymce/EditorManager", [
 			editors[editor.id] = editor;
 			editors.push(editor);
 
+			toggleGlobalEvents(editors, true);
+
+			// Doesn't call setActive method since we don't want
+			// to fire a bunch of activate/deactivate calls while initializing
 			self.activeEditor = editor;
 
 			/**
@@ -491,7 +515,7 @@ define("tinymce/EditorManager", [
 			}
 
 			// Remove editors by selector
-			if (typeof(selector) == "string") {
+			if (typeof selector == "string") {
 				selector = selector.selector || selector;
 
 				each(DOM.select(selector), function(elm) {
@@ -529,6 +553,8 @@ define("tinymce/EditorManager", [
 
 			editor.remove();
 
+			toggleGlobalEvents(editors, editors.length > 0);
+
 			return editor;
 		},
 
@@ -536,9 +562,9 @@ define("tinymce/EditorManager", [
 		 * Executes a specific command on the currently active editor.
 		 *
 		 * @method execCommand
-		 * @param {String} c Command to perform for example Bold.
-		 * @param {Boolean} u Optional boolean state if a UI should be presented for the command or not.
-		 * @param {String} v Optional value parameter like for example an URL to a link.
+		 * @param {String} cmd Command to perform for example Bold.
+		 * @param {Boolean} ui Optional boolean state if a UI should be presented for the command or not.
+		 * @param {String} value Optional value parameter like for example an URL to a link.
 		 * @return {Boolean} true/false if the command was executed or not.
 		 */
 		execCommand: function(cmd, ui, value) {
@@ -617,6 +643,26 @@ define("tinymce/EditorManager", [
 		 */
 		translate: function(text) {
 			return I18n.translate(text);
+		},
+
+		/**
+		 * Sets the active editor instance and fires the deactivate/activate events.
+		 *
+		 * @method setActive
+		 * @param {tinymce.Editor} editor Editor instance to set as the active instance.
+		 */
+		setActive: function(editor) {
+			var activeEditor = this.activeEditor;
+
+			if (this.activeEditor != editor) {
+				if (activeEditor) {
+					activeEditor.fire('deactivate', {relatedTarget: editor});
+				}
+
+				editor.fire('activate', {relatedTarget: activeEditor});
+			}
+
+			this.activeEditor = editor;
 		}
 	};
 

@@ -2,8 +2,8 @@
 	// Draw field types as callout resources
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 
-	$bigtree["matrix_count"] = $_POST["count"];
-	$bigtree["matrix_key"] = $_POST["key"];
+	$bigtree["matrix_count"] = intval($_POST["count"]);
+	$bigtree["matrix_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["matrix_columns"] = $_POST["columns"];
 
 	$bigtree["resources"] = isset($_POST["data"]) ? json_decode(base64_decode($_POST["data"]),true) : array();
@@ -24,7 +24,7 @@
 		<?
 			if (count($bigtree["matrix_columns"])) {
 
-				$bigtree["tabindex"] = 1000;	
+				$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
 				$bigtree["field_namespace"] = uniqid("matrix_field_");
@@ -59,4 +59,5 @@
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
 	include BigTree::path("admin/layouts/_html-field-loader.php");
+	include BigTree::path("admin/layouts/_ajax-ready-loader.php");
 ?>

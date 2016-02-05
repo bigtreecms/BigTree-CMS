@@ -29,7 +29,19 @@
 	if ($bigtree["view"]["preview_url"]) {
 		$actions["preview"] = "on";
 	}
-	
+
+	// Setup custom overrides for group titles when we're grouping by a special BigTree column
+	$group_title_overrides = array();
+	if ($bigtree["view"]["options"]["group_field"] == "featured") {
+		$group_title_overrides["on"] = "Featured";
+		$group_title_overrides[""] = "Normal";
+	} elseif ($bigtree["view"]["options"]["group_field"] == "archived") {
+		$group_title_overrides["on"] = "Archived";
+		$group_title_overrides[""] = "Active";
+	} elseif ($bigtree["view"]["options"]["group_field"] == "approved") {
+		$group_title_overrides["on"] = "Approved";
+		$group_title_overrides[""] = "Not Approved";
+	}
 	
 	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
 	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "search" => $search)));
@@ -67,7 +79,7 @@
 		if (count($r["results"])) {
 			$gc++;
 ?>
-<header class="group"><?=$title?></header>
+<header class="group"><?=(isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title)?></header>
 <ul id="sort_table_<?=$gc?>">
 	<? 
 		foreach ($r["results"] as $item) {

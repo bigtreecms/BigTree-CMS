@@ -276,7 +276,7 @@
 		*/
 		
 		function getAllPositioned($columns = false) {
-			return $this->getAll("position DESC, id ASC",false,false,$columns);
+			return $this->getAll("position DESC, id ASC",$columns);
 		}
 		
 		/*
@@ -650,7 +650,7 @@
 		*/
 		
 		function getRecentFeatured($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'",$columns);
+			return $this->fetch("$field DESC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*

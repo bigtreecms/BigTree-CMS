@@ -1,6 +1,4 @@
 <?
-	$admin->requireLevel(2);
-	
 	// Get existing presets
 	$settings = $cms->getSetting("bigtree-internal-media-settings");
 

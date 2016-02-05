@@ -18,7 +18,7 @@
 		
 		<!-- G+ AND FACEBOOK META TAGS -->
 		<meta property="og:title" content="<?=$bigtree["page"]["title"]?>" />
-		<meta property="og:url" content="<?=$current_url?>" />
+		<meta property="og:url" content="<?=htmlspecialchars($current_url)?>" />
 		<meta property="og:type" content="website">
 		<meta property="og:image" content="<?=STATIC_ROOT?>images/facebook.jpg" />
 		<meta property="og:description" content="<?=$page["meta_description"]?>" />
@@ -28,7 +28,7 @@
 		<meta name="twitter:card" content="summary" />
 		<meta name="twitter:site" content="@" />
 		<meta name="twitter:creator" content="@" />
-		<meta name="twitter:url" content="<?=$current_url?>" />
+		<meta name="twitter:url" content="<?=htmlspecialchars($current_url)?>" />
 		<meta name="twitter:title" content="<?=$bigtree["page"]["title"]?>" />
 		<meta name="twitter:description" content="<?=$page["meta_description"]?>" />
 		<meta name="twitter:image" content="<?=STATIC_ROOT?>images/facebook.jpg" />

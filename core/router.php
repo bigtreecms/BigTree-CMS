@@ -145,7 +145,7 @@
 			die();
 		}
 	}
-	
+
 	// Serve Placeholder Image
 	if ($bigtree["path"][0] == "images" && $bigtree["path"][1] == "placeholder") {
 		if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])) {
@@ -160,6 +160,15 @@
 		}
 	}
 	
+	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
+    if (array_filter($bigtree["path"])) {
+    	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+    	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
+    	}
+    }
+
 	// Start output buffering and sessions
 	ob_start();
 	session_set_cookie_params(0,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
@@ -326,6 +335,10 @@
 		if ($bigtree["page"]["template"] == "!") {
 			$nav = $cms->getNavByParent($bigtree["page"]["id"],1);
 			$first = current($nav);
+			if (!$first) {
+				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
+				$first = current($nav);
+			}
 			BigTree::redirect($first["link"], 303);
 		}
 
@@ -447,15 +460,16 @@
 		'),$bigtree["content"]);
 		// Replace script and image tags.
 		$bigtree["content"] = str_replace('src="http://','src="https://',$bigtree["content"]);
-		//Replace inline background images
-		$patterns = array("/url\('http:\/\//", '/url\("http:\/\//', '/url\(http:\/\//');
-		$replacements = array("url('https://", 'url("https://', "url(https://");
-		$bigtree["content"] = preg_replace($patterns, $replacements, $bigtree["content"]);
-		unset($patterns, $replacements);
+		// Replace inline background images
+		$bigtree["content"] = preg_replace(
+			array("/url\('http:\/\//", '/url\("http:\/\//', '/url\(http:\/\//'),
+			array("url('https://", 'url("https://', "url(https://"),
+			$bigtree["content"]
+		);
 	}
 	
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
-	if (isset($bigtree["page"]) && !BigTreeCMS::$Secure && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
+	if (isset($bigtree["page"]) && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
 		include_once BigTree::path("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
@@ -482,13 +496,13 @@
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
-			$return_link = $_GET["bigtree_preview_return"];
+			$return_link = htmlspecialchars(urlencode($_GET["bigtree_preview_return"]));
 		}
 		// Pending Pages don't have their ID set.
 		if (!isset($bigtree["page"]["id"])) {
 			$bigtree["page"]["id"] = $bigtree["page"]["page"];
 		}
-		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'"></script></body>',$bigtree["content"]);
+		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : BigTree::safeEncode($bigtree["bar_edit_link"])).'"></script></body>',$bigtree["content"]);
 		// Don't cache the page with the BigTree bar
 		$bigtree["config"]["cache"] = false;
 	}

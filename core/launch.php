@@ -4,20 +4,22 @@
 	
 	$bigtree["config"] = array();
 	$bigtree["config"]["debug"] = false;
-	include str_replace("core/launch.php","custom/environment.php",strtr(__FILE__, "\\", "/"));
-	include str_replace("core/launch.php","custom/settings.php",strtr(__FILE__, "\\", "/"));
-	$bigtree["config"] = isset($config) ? $config : $bigtree["config"]; // Backwards compatibility
-	$bigtree["config"]["debug"] = isset($debug) ? $debug : $bigtree["config"]["debug"]; // Backwards compatibility
 
-	// For shared core setups
-	$server_root = str_replace("core/launch.php","",strtr(__FILE__, "\\", "/"));
-	
+	// Newer installs should use a strict $server_root variable to launch properly from shared cores
+	if (empty($server_root)) {
+		$server_root = str_replace("core/launch.php","",strtr(__FILE__, "\\", "/"));
+	}
+	include $server_root."custom/environment.php";
+	include $server_root."custom/settings.php";
+
 	// Basic routing
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {
 			$bigtree["path"] = array();
+			$bigtree["trailing_slash_present"] = false;
 		} else {
 			$bigtree["path"] = explode("/",trim($_SERVER["PATH_INFO"],"/"));
+			$bigtree["trailing_slash_present"] = (substr($_SERVER["PATH_INFO"],-1,1) === "/");
 		}
 
 	// "Advanced" or "Simple Rewrite" routing
@@ -27,7 +29,17 @@
 		}
 	
 		$bigtree["path"] = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
+		$bigtree["trailing_slash_present"] = (substr($_GET["bigtree_htaccess_url"],-1,1) === "/");
 	}
+
+	// Prevent path manipulations
+	$bigtree["path"] = array_filter($bigtree["path"],function($val) {
+		if ($val == "..") {
+			die();
+		}
+		return true;
+	});
+	
 	$path = $bigtree["path"]; // Backwards compatibility
 	
 	// Figure out if we're requesting a page in the admin

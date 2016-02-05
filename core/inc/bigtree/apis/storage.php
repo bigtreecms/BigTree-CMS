@@ -77,7 +77,7 @@
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
 			// Cloud
-			if (substr($file_location,0,4) == "http") {
+			if (substr($file_location,0,4) == "http" || substr($file_location,0,2) == "//") {
 				// Try to get the container and pointer
 				$parts = explode("/",$file_location);
 				$domain = $parts[2];
@@ -135,6 +135,9 @@
 		*/
 
 		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+			// Make sure there are no path exploits
+			$file_name = BigTree::cleanFile($file_name);
+			
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
@@ -186,6 +189,9 @@
 		*/
 
 		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
+			// Make sure there are no path exploits
+			$file_name = BigTree::cleanFile($file_name);
+
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;

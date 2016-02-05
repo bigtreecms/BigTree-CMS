@@ -75,6 +75,7 @@
 	foreach (array_filter((array)$callouts) as $callout) {
 		if (strpos($callout,"*") === false) {
 			sqlquery("UPDATE bigtree_callouts SET extension = '$extension', id = '$extension*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
+			$callout = "$id*$callout";
 		}
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
@@ -85,7 +86,10 @@
 	}
 	
 	foreach (array_filter((array)$settings) as $setting) {
-		sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
+		if (strpos($setting,"*") === false) {
+			sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
+			$setting = "$id*$setting";
+		}
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
 
@@ -135,6 +139,7 @@
 	foreach (array_filter((array)$templates) as $template) {
 		if (strpos($template,"*") === false) {
 			sqlquery("UPDATE bigtree_templates SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($template)."'");
+			$template = "$id*$template";
 		}
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}

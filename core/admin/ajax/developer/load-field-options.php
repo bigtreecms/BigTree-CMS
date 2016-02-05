@@ -1,5 +1,6 @@
 <?
-	$field_type = $_POST["type"];
+	// Prevent directory path shenanigans
+	$field_type = BigTree::cleanFile($_POST["type"]);
 	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	
 	$validation_options = array(
@@ -48,12 +49,10 @@
 			echo "<hr />";
 		}
 		include $path;
-	} else {
-		if ($field_type != "text" && $field_type != "textarea" && $t = "upload" && $field_type != "html" && $field_type != "list" && $field_type != "time" && $field_type != "date" && $field_type != "datetime") {
+	} elseif ($field_type != "textarea" && $field_type != "time") {
 ?>
 <p>This field type does not have any options.</p>
 <?
-		}
 	}
 ?>
 <script>	

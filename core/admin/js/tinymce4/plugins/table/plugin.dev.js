@@ -36,6 +36,10 @@
 	}
 
 	function resolve(id) {
+		if (exports.privateModules && id in exports.privateModules) {
+			return;
+		}
+
 		var target = exports;
 		var fragments = id.split(/[.\/]/);
 
@@ -66,6 +70,8 @@
 	}
 
 	function define(id, dependencies, definition) {
+		var privateModules, i;
+
 		if (typeof id !== 'string') {
 			throw 'invalid module definition, module id must be defined and be a string';
 		}
@@ -83,10 +89,26 @@
 		});
 
 		if (--moduleCount === 0) {
-			for (var i = 0; i < exposedModules.length; i++) {
+			for (i = 0; i < exposedModules.length; i++) {
 				register(exposedModules[i]);
 			}
 		}
+
+		// Expose private modules for unit tests
+		if (exports.AMDLC_TESTS) {
+			privateModules = exports.privateModules || {};
+
+			for (id in modules) {
+				privateModules[id] = modules[id];
+			}
+
+			for (i = 0; i < exposedModules.length; i++) {
+				delete privateModules[exposedModules[i]];
+			}
+
+			exports.privateModules = privateModules;
+		}
+
 	}
 
 	function expose(ids) {
@@ -106,6 +128,7 @@
 	exports.define = define;
 	exports.require = require;
 
+	load('classes/Utils.js');
 	load('classes/TableGrid.js');
 	load('classes/Quirks.js');
 	load('classes/CellSelection.js');
@@ -115,4 +138,4 @@
 	writeScripts();
 })(this);
 
-// $hash: 1255daa6b9cf0c42f98e84921bca8617
+// $hash: a069cf10a716e49b7a1b6694a74bcc5a
