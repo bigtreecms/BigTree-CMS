@@ -121,7 +121,18 @@
 		*/
 
 		static function cleanFile($file) {
-			return str_replace("../","",$file);
+			$pieces = array_filter(explode("/",$file), function($val) {
+				// Let empties through
+				if (!trim($val)) {
+					return true;
+				}
+				// Strip path manipulation
+				if (trim(str_replace(".","",$val)) === "") {
+					return false;
+				}
+				return true;
+			});
+			return implode("/",$pieces);
 		}
 		
 		/*
@@ -157,7 +168,7 @@
 		
 			$new_color = "#".str_pad(dechex($fc_r + $r_diff),2,"0",STR_PAD_LEFT).str_pad(dechex($fc_g + $g_diff),2,"0",STR_PAD_LEFT).str_pad(dechex($fc_b + $b_diff),2,"0",STR_PAD_LEFT);
 		
-			return $new_color;
+			return strtoupper($new_color);
 		}
 		
 		/*
@@ -1174,10 +1185,13 @@
 
 			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
-				if (strpos($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
-					global $$bigtree["key"];
+				if (substr($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
+					// Fix for PHP 7
+					$key = $bigtree["key"];
+					global $$key;
+
 					if (is_array($bigtree["val"])) {
-						$$bigtree["key"] = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
+						$$key = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -1189,7 +1203,7 @@
 								$bigtree["val"] = $bigtree["function"]($bigtree["val"]);
 							}
 						}
-						$$bigtree["key"] = $bigtree["val"];
+						$$key = $bigtree["val"];
 					}
 				}
 			}

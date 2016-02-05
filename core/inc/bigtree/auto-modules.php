@@ -673,7 +673,7 @@
 						$otsf = "id";
 						$otsd = "ASC";
 					}
-					$q = sqlquery("SELECT id,`".$view["options"]["title_field"]."` AS `title` FROM `".$view["options"]["other_table"]."` WHERE ".implode(" OR ",$otq)." ORDER BY $otsf $otsd");
+					$q = sqlquery("SELECT id,`".$view["options"]["title_field"]."` AS `title` FROM `".$view["options"]["other_table"]."` WHERE ".implode(" OR ",$otq)." ORDER BY `$otsf` $otsd");
 					while ($f = sqlfetch($q)) {
 						$groups[$f["id"]] = $f["title"];
 					}
