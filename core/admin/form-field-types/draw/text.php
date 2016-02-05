@@ -1,9 +1,10 @@
 <div class="text_input">
 	<?
 		$st = isset($field["options"]["sub_type"]) ? $field["options"]["sub_type"] : false;
+		$ml = isset($field["options"]["max_length"]) ? $field["options"]["max_length"] : false;
 		if (!$st) {
 	?>
-	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
+	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" <? if($ml != '0' && trim($ml) != ''){ echo 'maxlength="' . $ml . '" placeholder="Maximum of ' . $ml  . ' characters"';} ?>/>
 	<?
 		} elseif ($st == "name") {
 			// To prevent warnings we'll try to extract a first name / last name from a string.
