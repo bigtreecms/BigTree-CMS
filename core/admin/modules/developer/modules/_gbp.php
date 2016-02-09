@@ -48,4 +48,10 @@
 			</div>
 		</fieldset>
 	</article>
+	<article style="width: 60%;">
+		<fieldset>
+			<label>Item Title Parser Function<small>(Modifies the title field value used when assigning user permissions)</small></label>
+			<input type="text" name="gbp[item_parser]" value="<?= $gbp["item_parser"];?>" style="width: 80%;" />
+		</fieldset>
+	</article>
 </section>

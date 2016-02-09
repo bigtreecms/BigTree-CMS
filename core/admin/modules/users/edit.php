@@ -299,6 +299,16 @@
 									<ul class="depth_2"<? if ($closed) { ?> style="display: none;"<? } ?>>
 										<?
 															while ($c = sqlfetch($q)) {
+
+																$parser_query = sqlquery("SELECT gbp FROM bigtree_modules WHERE id = " . $m["id"]);
+																if($parser_query && sqlrows($parser_query)){
+																	$gbp_data = sqlfetch($parser_query);
+																	$gbp_data = json_decode($gbp_data["gbp"], true);
+		
+																	if($gbp_data["item_parser"] && $gbp_data["item_parser"] != ''){
+																		$c[$tf] = call_user_func($gbp_data["item_parser"], $c[$tf]);
+																	}
+																}
 										?>
 										<li>
 											<span class="depth"></span>
