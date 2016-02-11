@@ -161,7 +161,7 @@
 
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { border-color: #C0362F; }
 
-	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; }
+	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; pointer-events: none; }
 	input.date_picker, input.time_picker, input.date_time_picker { float: left; width: 180px !important; }
 	input.date_picker:focus, input.time_picker:focus, input.date_time_picker:focus { border-radius: 2px 2px 0 0; }
 
