@@ -306,7 +306,7 @@
 																	$gbp_data = json_decode($gbp_data["gbp"], true);
 		
 																	if($gbp_data["item_parser"] && $gbp_data["item_parser"] != ''){
-																		$c[$tf] = call_user_func($gbp_data["item_parser"], $c[$tf]);
+																		$c[$tf] = call_user_func($gbp_data["item_parser"], $c[$tf], $c["id"]);
 																	}
 																}
 										?>
