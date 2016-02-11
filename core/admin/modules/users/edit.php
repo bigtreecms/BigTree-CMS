@@ -292,7 +292,7 @@
 															while ($c = sqlfetch($q)) {
 																// Run parser on the name if it exists
 																if (!empty($gbp["item_parser"])) {
-																	$c[$tf] = call_user_func($gbp["item_parser"], $c[$tf]);
+																	$c[$tf] = call_user_func($gbp["item_parser"], $c[$tf], $c["id"]);
 																}
 																$gbp_categories[] = $c;
 															}
