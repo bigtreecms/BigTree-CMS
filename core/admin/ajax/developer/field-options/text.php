@@ -22,8 +22,8 @@
 	</select>
 </fieldset>
 <fieldset>
-	<label>Maximum Character Length<small>(leave empty or 0 for no max)</small></label>
-	<input type="text" placeholder="0" name="max_length" value="<?=$data["max_length"];?>" />
+	<label>Maximum Character Length <small>(leave empty or 0 for no max)</small></label>
+	<input type="text" placeholder="0" name="max_length" value="<?=$data["max_length"]?>" />
 </fieldset>
 <? if (isset($_POST["template"])) { ?>
 <fieldset>

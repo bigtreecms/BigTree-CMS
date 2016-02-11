@@ -1,12 +1,13 @@
 <div class="text_input">
 	<?
-		$st = isset($field["options"]["sub_type"]) ? $field["options"]["sub_type"] : false;
-		$ml = isset($field["options"]["max_length"]) ? $field["options"]["max_length"] : false;
-		if (!$st) {
+		$sub_type = isset($field["options"]["sub_type"]) ? $field["options"]["sub_type"] : false;
+		$max_length = isset($field["options"]["max_length"]) ? intval($field["options"]["max_length"]) : false;
+
+		if (!$sub_type) {
 	?>
-	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" <? if($ml != '0' && trim($ml) != ''){ echo 'maxlength="' . $ml . '" placeholder="Maximum of ' . $ml  . ' characters"';} ?>/>
+	<input class="<?=$field["options"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>"<? if ($max_length) { ?> maxlength="<?=$max_length?>" placeholder="Maximum of <?=$max_length?> characters"<? } ?> />
 	<?
-		} elseif ($st == "name") {
+		} elseif ($sub_type == "name") {
 			// To prevent warnings we'll try to extract a first name / last name from a string.
 			if (!is_array($field["value"])) {
 				if ($field["value"]) {
@@ -26,7 +27,7 @@
 	<?
 			// Increase form tab index since we used extras
 			$bigtree["tabindex"]++;
-		} elseif ($st == "address") {
+		} elseif ($sub_type == "address") {
 			// Prevent warnings.
 			if (!is_array($field["value"])) {
 				$field["value"] = array("street" => "", "city" => "", "state" => "", "zip" => "", "country" => "");
@@ -41,8 +42,8 @@
 	<section class="input_address_state">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[state]" id="<?=$field["id"]?>_state" tabindex="<?=($field["tabindex"] + 2)?>">
 			<option value="">Select a State</option>
-			<? foreach (BigTree::$StateList as $a => $s) { ?>
-			<option value="<?=$a?>"<? if ($a == $field["value"]["state"]) { ?> selected="selected"<? } ?>><?=$s?></option>
+			<? foreach (BigTree::$StateList as $abbreviation => $state_name) { ?>
+			<option value="<?=$a?>"<? if ($abbreviation == $field["value"]["state"]) { ?> selected="selected"<? } ?>><?=$state_name?></option>
 			<? } ?>
 		</select>
 	</section>
@@ -51,23 +52,23 @@
 	</section>
 	<section class="input_address_country">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[country]" id="<?=$field["id"]?>_country" tabindex="<?=($field["tabindex"] + 4)?>">
-			<? foreach (BigTree::$CountryList as $c) { ?>
-			<option value="<?=$c?>"<? if ($c == $field["value"]["country"]) { ?> selected="selected"<? } ?>><?=$c?></option>
+			<? foreach (BigTree::$CountryList as $country_name) { ?>
+			<option value="<?=$c?>"<? if ($country_name == $field["value"]["country"]) { ?> selected="selected"<? } ?>><?=$country_name?></option>
 			<? } ?>
 		</select>
 	</section>
 	<?
 			// Increase form tab index since we used extras
 			$bigtree["tabindex"] += 4;
-		} elseif ($st == "email") {
+		} elseif ($sub_type == "email") {
 	?>
 	<input class="<?=$field["options"]["validation"]?>" type="email" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
 	<?
-		} elseif ($st == "website") {
+		} elseif ($sub_type == "website") {
 	?>
 	<input class="<?=$field["options"]["validation"]?>" type="url" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
 	<?
-		} elseif ($st == "phone") {
+		} elseif ($sub_type == "phone") {
 			list($area_code,$prefix,$line_number) = explode("-",$field["value"]);
 	?>
 	<section class="input_phone_3">
