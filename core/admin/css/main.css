@@ -1150,8 +1150,6 @@
 
 	#gbp div { overflow: hidden; }
 	#gbp .select div { overflow: auto; }
-	#gbp article { float: left; margin: 15px 0 0 0; width: 449px; }
-	#gbp article input[type=text] { width: 200px; }
 
 	.api_account_block { overflow: hidden; }
 	.api_account_block img { float: left; width: 50px; }
