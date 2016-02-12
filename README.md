@@ -20,6 +20,10 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.15 Release
+- SECURITY FIX: A privilege escalation issue that would enable Administrator level users to become Developer level for a session.
+- SECURITY FIX: Fixed object injection vulnerability in POST data that enabled any BigTree admin-side user to poison settings. Thanks to Tim Coen @ Curesec GmbH for the disclosure.
+
 ### 4.1.14 Release
 - ADDED: A ping to bigtreecms.org to help us maintain version usage numbers (you can disable this by setting $bigtree["config"]["disable_ping"] to true)
 - UPDATED: Google API notes and made it trim keys for easier copy/paste
