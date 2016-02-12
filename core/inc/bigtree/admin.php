@@ -3991,7 +3991,7 @@
 		static function getPageAdminLinks() {
 			global $bigtree;
 			$pages = array();
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE resources LIKE '%{adminroot}%' OR resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
+			$q = sqlquery("SELECT * FROM bigtree_pages WHERE REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%' OR resources LIKE '%".$bigtree["config"]["admin_root"]."%' OR resources LIKE '%".str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"])."%'");
 			while ($f = sqlfetch($q)) {
 				$pages[] = $f;
 			}
