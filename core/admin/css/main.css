@@ -189,9 +189,9 @@
 	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
 	.select.disabled { opacity: 0.5; }
 	.select .handle { background: url(../images/icon-sprite.svg) -340px -105px; float: right; height: 30px; position: absolute; right: 0; width: 34px; z-index: 2; }
-	.select span { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; }
+	.select span { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; max-width: 841px; }
 	.select .group { background: #F6F6F6; color: #666; cursor: default; font-size: 10px; line-height: 15px; padding: 5px 10px; }
-	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
+	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-width: 896px; max-height: 300px; overflow: auto; position: absolute; z-index: 5;}
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
 	.select a:last-child { border-radius: 0px 0px 2px 2px; }
 	.select a.active { background: #EFF7FD; }
