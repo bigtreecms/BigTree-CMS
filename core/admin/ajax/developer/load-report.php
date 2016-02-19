@@ -5,7 +5,7 @@
 		"boolean" => "Yes/No/Both Select",
 		"date-range" => "Date Range"
 	);
-	$type = isset($_POST["report_type"]) ? $_POST["report_type"] : $type;
+	$report_type = isset($_POST["report_type"]) ? $_POST["report_type"] : $type;
 	
 	$used_fields = array();
 	$used_filters = array();
@@ -104,7 +104,7 @@
 	</div>
 </fieldset>
 
-<fieldset id="field_table" class="last"<? if ($type != "csv") { ?> style="display: none;"<? } ?>>
+<fieldset id="field_table" class="last"<? if ($report_type != "csv") { ?> style="display: none;"<? } ?>>
 	<br /><br />
 	<label>Fields to Include in CSV File</label>
 	<div class="form_table">
