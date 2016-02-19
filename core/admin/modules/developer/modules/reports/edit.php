@@ -25,6 +25,15 @@
 						<? BigTree::getTableSelectOptions($table); ?>
 					</select>
 				</fieldset>
+
+				<fieldset id="filtered_view" style="<?php if($type == 'csv'){ ?>display: none;<?php } ?>">
+					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
+					<select name="view">
+						<? foreach ($available_views as $v) { ?>
+						<option value="<?=$v["id"]?>"<? if ($view == $v["id"]) { ?> selected="selected"<? } ?>><?=$v["title"]?></option>
+						<? } ?>
+					</select>
+				</fieldset>
 			</div>
 
 			<div class="right last">
@@ -40,15 +49,6 @@
 					<label>Data Parser Function <small>(optional, just the function name)</small></label>
 					<input type="text" name="parser" value="<?=htmlspecialchars($parser)?>" />
 					<p class="note">Your function will receive an array of records to modify and return.</p>
-				</fieldset>
-
-				<fieldset id="filtered_view" style="display: none;">
-					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
-					<select name="return_view">
-						<? foreach ($available_views as $v) { ?>
-						<option value="<?=$v["id"]?>"<? if ($view == $v["id"]) { ?> selected="selected"<? } ?>><?=$v["title"]?></option>
-						<? } ?>
-					</select>
 				</fieldset>
 			</div>
 		</section>

@@ -978,9 +978,12 @@
 					}
 				}
 			}
-			foreach ($form["fields"] as $key => $field) {
-				if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
-					$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
+			
+			if(count($form["fields"])){		
+				foreach ($form["fields"] as $key => $field) {
+					if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
+						$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
+					}
 				}
 			}
 
@@ -1042,6 +1045,11 @@
 				} else {
 					array_multisort($sort_values,SORT_DESC,$items);
 				}
+			}
+
+			// If there is a data parser we need to run it
+			if (isset($report["parser"]) && $report["parser"] != '' && function_exists($report["parser"])) {
+				$items = call_user_func($report["parser"], $items);
 			}
 
 			return $items;
