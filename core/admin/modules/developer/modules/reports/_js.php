@@ -14,11 +14,9 @@
 	$("#report_type").change(function(event,data) {
 		var v = $(this).val();
 		if (v == "csv") {
-			$("#data_parser_function").show();
 			$("#filtered_view").hide();
 			$("#field_table").show();
 		} else {
-			$("#data_parser_function").hide();
 			$("#filtered_view").show();
 			$("#field_table").hide();
 		}
