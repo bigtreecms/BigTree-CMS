@@ -1316,35 +1316,52 @@
 		*/
 
 		static function isDirectoryWritable($path) {
-			// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
-			if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
-				// Directory exists, check to see if we can create a temporary file inside it
-				if (is_dir($path)) {
-					$file = rtrim($path,"/")."/".uniqid().".tmp";
-					$success = @touch($file);
-					if ($success) {
-						unlink($file);
-						return true;
+			// We need to setup an error handler to catch open_basedir restrictions
+			set_error_handler(function($error_number, $error_string) {
+				if ($error_number == 2 && strpos($error_string,"open_basedir") !== false) {
+					throw new Exception("open_basedir restriction in effect");
+				}
+			});
+			
+			// If open_basedir restriction is hit we'll failover into the exceptiond and return false
+			try {
+				// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
+				if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
+					// Directory exists, check to see if we can create a temporary file inside it
+					if (is_dir($path)) {
+						$file = rtrim($path,"/")."/".uniqid().".tmp";
+						$success = @touch($file);
+						if ($success) {
+							unlink($file);
+							restore_error_handler();
+							return true;
+						}
+						restore_error_handler();
+						return false;
+					// Remove the last directory from the path and then run isDirectoryWritable again
+					} else {
+						$parts = explode("/",$path);
+						array_pop($parts);
+						if (count($parts)) {
+							return static::isDirectoryWritable(implode("/",$parts));
+						}
+						restore_error_handler();
+						return false;
 					}
-					return false;
-				// Remove the last directory from the path and then run isDirectoryWritable again
 				} else {
+					// Directory exists, return its writable state
+					if (is_dir($path)) {
+						restore_error_handler();
+						return is_writable($path);
+					}
+					// Remove the last directory from the path and try again
 					$parts = explode("/",$path);
 					array_pop($parts);
-					if (count($parts)) {
-						return static::isDirectoryWritable(implode("/",$parts));
-					}
-					return false;
+					return static::isDirectoryWritable(implode("/",$parts));
 				}
-			} else {
-				// Directory exists, return its writable state
-				if (is_dir($path)) {
-					return is_writable($path);
-				}
-				// Remove the last directory from the path and try again
-				$parts = explode("/",$path);
-				array_pop($parts);
-				return static::isDirectoryWritable(implode("/",$parts));
+			} catch (Exception $e) {
+				restore_error_handler();
+				return false;
 			}
 		}
 		
