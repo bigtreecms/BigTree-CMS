@@ -1842,38 +1842,35 @@
 			
 			Parameters:
 				length - The number of characters to return.
-				seeds - The seed set to use ("alpha" for lowercase letters, "numeric" for numbers, "alphanum" for uppercase letters and numbers, "hexidec" for hexidecimal)
+				types - The set of characters to use ("alpha" for lowercase letters, "numeric" for numbers, "alphanum" for uppercase letters and numbers, "hexidec" for hexidecimal)
 			
 			Returns:
 				A random string.
 		*/
 		
-		static function randomString($length = 8, $seeds = 'alphanum') {
-			// Possible seeds
-			$seedings = array(
+		static function randomString($length = 8, $type = "alphanum") {
+			// Character sets
+			$types = array(
 				"alpha" => "abcdefghijklmnopqrstuvwqyz",
 				"numeric" => "0123456789",
 				"alphanum" => "ABCDEFGHJKLMNPQRTUVWXY0123456789",
-				"hexidec" => '0123456789abcdef'
+				"hexidec" => "0123456789abcdef"
 			);
 		
-			// Choose seed
-			if (isset($seedings[$seeds])) {
-				$seeds = $seedings[$seeds];
-			}
+			$character_set = $types[$type];
 		
-			// Seed generator
+			// Seed the random number generator
 			list($usec, $sec) = explode(' ', microtime());
-			$seed = (float) $sec + ((float) $usec * 100000);
-			mt_srand($seed);
+			mt_srand((float) $sec + ((float) $usec * 100000));
 		
 			// Generate
-			$str = '';
-			$seeds_count = strlen($seeds);
-			for ($i = 0; $length > $i; $i++) {
-				$str .= $seeds { mt_rand(0, $seeds_count - 1) };
+			$sting = "";
+			$character_set_length = strlen($character_set) - 1;
+			for ($i = 0; $i < $length; $i++) {
+				$string .= $character_set[mt_rand(0,$character_set_length)];
 			}
-			return $str;
+
+			return $string;
 		}
 		
 		/*
