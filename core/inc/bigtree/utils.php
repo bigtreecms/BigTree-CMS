@@ -1383,7 +1383,7 @@
 			
 			$www_root = str_replace(array("https://","http://"),"//",WWW_ROOT);
 			$url = str_replace(array("https://","http://"),"//",$url);
-			if (strpos($url,$www_root) !== 0) {
+			if (strpos($url,$www_root) === 0) {
 				return false;
 			}
 
