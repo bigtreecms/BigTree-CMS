@@ -1377,7 +1377,7 @@
 		*/
 		
 		static function isExternalLink($url) {
-			if (substr($url,0,7) != "http://" && substr($url,0,8) != "https://")) {
+			if (substr($url,0,7) != "http://" && substr($url,0,8) != "https://") {
 				return false;
 			}
 			

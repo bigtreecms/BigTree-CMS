@@ -1883,7 +1883,7 @@
 			foreach ($groups as $group) {
 				$callouts = array_filter((array)json_decode($group["callouts"],true));
 				// Remove this callout
-				$callouts = array_diff($callouts, array($id);
+				$callouts = array_diff($callouts, array($id));
 				// Update DB
 				static::$DB->update("bigtree_callout_groups",$group["id"],array("callouts" => $callouts));
 			}
