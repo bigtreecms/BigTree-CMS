@@ -1377,7 +1377,17 @@
 		*/
 		
 		static function isExternalLink($url) {
-			return ((substr($url,0,7) == "http://" || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
+			if (substr($url,0,7) != "http://" && substr($url,0,8) != "https://")) {
+				return false;
+			}
+			
+			$www_root = str_replace(array("https://","http://"),"//",WWW_ROOT);
+			$url = str_replace(array("https://","http://"),"//",$url);
+			if (strpos($url,$www_root) !== 0) {
+				return false;
+			}
+
+			return true;
 		}
 
 		/*
