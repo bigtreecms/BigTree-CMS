@@ -1416,18 +1416,18 @@
 			$json = (static::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
 			// SQL escape if requested
 			if ($sql) {
-				return BigTree::$DB->escape($json);
+				return BigTreeCMS::$DB->escape($json);
 			}
 			return $json;
 		}
 
 		/*
 			Function: jsonExtract
-				Returns a JSON string of only the specified columns from the dataset in compact format.
+				Returns a JSON string of only the specified columns from each row in a dataset in compact format.
 
 			Parameters:
-				data - A dataset array
-				columns - The columns to return in JSON
+				data - An array of rows/arrays
+				columns - The columns of each row/sub-array to return in JSON
 				preserve_keys - Whether to perserve keys (false turns the output into a JSON array, defaults to false)
 
 			Returns:
@@ -1435,6 +1435,15 @@
 		*/
 
 		static function jsonExtract($data,$columns = array(),$preserve_keys = false) {
+			// Only run version compare once in case we're encoding a lot of JSON
+			if (static::$JSONEncoding === false) {
+				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
+					static::$JSONEncoding = 1;
+				} else {
+					static::$JSONEncoding = 0;
+				}
+			}
+
 			$simple_data = array();
 			foreach ($data as $key => $val) {
 				$row = array();
@@ -1447,7 +1456,7 @@
 					$simple_data[] = $row;
 				}
 			}
-			return json_encode($simple_data,JSON_UNESCAPED_SLASHES);
+			return (static::$JSONEncoding) ? json_encode($simple_data,JSON_UNESCAPED_SLASHES) : json_encode($simple_data);
 		}
 		
 		/*
