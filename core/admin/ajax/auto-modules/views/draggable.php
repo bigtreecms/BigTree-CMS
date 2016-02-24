@@ -25,7 +25,7 @@
 	}
 	
 	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
-	$edit_append = "?view_data=".base64_encode(serialize(array("view" => $bigtree["view"]["id"], "search" => $search)));
+	$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $bigtree["view"]["id"], "search" => $search)));
 	
 	foreach ($items as $item) {
 		// Stop the item status notice

@@ -683,6 +683,7 @@
 			if ($id == 0) {
 				return WWW_ROOT;
 			}
+
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
 				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {

@@ -35,7 +35,7 @@
 				$blurb = BigTree::trimLength($content,$limit);
 		?>
 		<item>
-			<guid><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?=$f["id"]?></guid>
+			<guid><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?=$item["id"]?>/</guid>
 			<title><![CDATA[<?=strip_tags($item[$feed["options"]["title"]])?>]]></title>
 			<description><![CDATA[<?=$blurb?><?php if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><?php } ?>]]></description>
 			<link><?=$link?></link>

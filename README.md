@@ -20,6 +20,29 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.9 Release
+- ADDED: Clear Label button to callout editor in case you don't want to use any resource for the label
+- ADDED: $_SESSION["bigtree_referring_url"] is now set when your site is in maintenance mode (for use by your maintenance template for logging)
+- ADDED: Title Field Parser for Group Based Permissions to change the group name that appears when editing users (thanks Jordan Mason)
+- ADDED: Regular Text fields can now specify maximum lengths (thanks Jordan Mason)
+- FIXED: Not being able to click calendar/clock icons to open date/time picker
+- FIXED: Invalid guid in RSS2 feeds
+- FIXED: When deleting a callout, it should now be removed from all groups (thanks Jordan Mason)
+- FIXED: Field type cache not being cleared after deleting a field type
+- FIXED: Improper change type in daily digest emails
+- FIXED: Improper audit trail tracking for pages that were deleted because their ancestor page was deleted
+- FIXED: Improper audit trail tracking for deleting page drafts logging the incorrect ID
+- FIXED: Missing check for {adminroot} when finding admin backlinks
+- FIXED: Checkbox values can now be used for part of a matrix field's title/subtitle
+- FIXED: Page revisions should now be properly stored up to 10 entries or all entries in the past month
+- FIXED: Group query failing when the other table's sort field was a reserved mysql keyword
+- FIXED: Link returning functions (breadcrumbs, getLink, getNav) should now respect trailing slash behavior
+- FIXED: PHP 7 not working with BigTree::globalizeArray
+- FIXED: BigTree::cleanFile not properly sanitizing paths
+- FIXED: Preview URL not working if a trailing slash wasn't entered
+- SECURITY FIX: A privilege escalation issue that would enable Administrator level users to become Developer level for a session.
+- SECURITY FIX: Fixed object injection vulnerability in POST data that enabled any BigTree admin-side user to poison settings. Thanks to Tim Coen @ Curesec GmbH for the disclosure.
+
 ### 4.2.8 Release
 - ADDED: A ping to bigtreecms.org to help us maintain version usage numbers (you can disable this by setting $bigtree["config"]["disable_ping"] to true)
 - ADDED: Very limited Facebook API support to Service APIs.

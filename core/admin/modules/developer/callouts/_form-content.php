@@ -41,6 +41,7 @@
 	<div class="form_table">
 		<header>
 			<a href="#" class="add_resource add"><span></span>Add Resource</a>
+			<a href="#" class="button clear_label"><span></span> Clear Label</a>
 		</header>
 		<div class="labels">
 			<span class="developer_resource_callout_id">ID</span>

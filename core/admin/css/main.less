@@ -133,7 +133,7 @@
 
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { border-color: #C0362F; }
 
-	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; }
+	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; pointer-events: none; }
 	input.date_picker, input.time_picker, input.date_time_picker { float: left; width: 180px !important; }
 	input.date_picker:focus, input.time_picker:focus, input.date_time_picker:focus { border-radius: 2px 2px 0 0; }
 
@@ -161,9 +161,9 @@
 	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; .no_user_select; }
 	.select.disabled { opacity: 0.5; }
 	.select .handle { background: url(../images/icon-sprite.svg) -340px -105px; float: right; height: 30px; position: absolute; right: 0; width: 34px; z-index: 2; }
-	.select span { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; }
+	.select span { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; max-width: 841px; }
 	.select .group { background: #F6F6F6; color: #666; cursor: default; font-size: 10px; line-height: 15px; padding: 5px 10px; }
-	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; overflow: auto; position: absolute; z-index: 5; }
+	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-height: 300px; max-width: 896px; overflow: auto; position: absolute; z-index: 5; }
 	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; .no_user_select; }
 	.select a:last-child { border-radius: 0px 0px 2px 2px; }
 	.select a.active { background: #EFF7FD; }
@@ -431,6 +431,8 @@
 	.form_table header nav a, .form_table header nav a:hover { background: #D4D4D4; border: 1px solid #D4D4D4; border-radius: 3px 3px 0 0; border-top-color: #B9B9B9; border-width: 1px 1px 0 1px; color: #666; display: block; float: left; height: 26px; line-height: 26px; margin: 0 5px 0 0; padding: 0 15px; transition: background-color 0.2s, color 0.2s; }
 	.form_table header nav a:hover { background: #DCDCDC; color: #333; }
 	.form_table header nav a.active { background: #AFAFAF; border-color: #AFAFAF; color: #fff; padding: 0 15px; }
+	.form_table .add, .form_table header .button { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #666; display: block; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 5px 5px 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
+	.form_table .add:hover, .form_table header .button:hover { color: #333; }
 	.form_table header .add span, .table summary .add span { background: url(../images/icon-sprite.svg) no-repeat -32px -140px; float: left; height: 16px; margin: 2px 4px 0 -4px; width: 16px; }
 	.form_table ul { list-style: none; margin: 0; }
 	.form_table .labels { background: #eee; border-bottom: 1px solid #ccc; color: #666; height: 20px; line-height: 20px; margin-top: -1px; overflow: hidden; text-transform: uppercase; }
@@ -973,9 +975,6 @@
 	.table .developer_image_preset { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
 	.table .developer_image_preset a { color: #333; display: block; margin: 0; width: 846px; }
 	
-	.form_table .add { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #666; display: block; float: right; font-size: 11px; height: 22px; line-height: 23px; margin: 5px 5px 0 0; padding: 0 10px; text-transform: uppercase; transition: background-color 0.2s, border-color 0.2s; }
-	.form_table .add:hover { color: #333; }
-
 	.developer .form_table li { background: #fff; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
 	.developer .form_table li:first-child { border-top-color: transparent; }
 	.developer .form_table li:nth-of-type(odd) { background: #FFF; }
@@ -1079,8 +1078,6 @@
 
 	#gbp div { overflow: hidden; }
 	#gbp .select div { overflow: auto; }
-	#gbp article { float: left; margin: 15px 0 0 0; width: 449px; }
-	#gbp article input[type=text] { width: 200px; }
 
 	.api_account_block { overflow: hidden; }
 	.api_account_block img { float: left; width: 50px; }

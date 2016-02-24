@@ -1875,7 +1875,20 @@
 			// Delete template file
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 
+			// Delete callout
 			static::$DB->delete("bigtree_callouts",$id);
+
+			// Remove the callout from any groups it lives in
+			$groups = static::$DB->fetchAll("SELECT id, callouts FROM bigtree_callout_groups WHERE callouts LIKE '%\"".static::$DB->escape($id)."\"%'");
+			foreach ($groups as $group) {
+				$callouts = array_filter((array)json_decode($group["callouts"],true));
+				// Remove this callout
+				$callouts = array_diff($callouts, array($id);
+				// Update DB
+				static::$DB->update("bigtree_callout_groups",$group["id"],array("callouts" => $callouts));
+			}
+
+			// Track deletion
 			$this->track("bigtree_callouts",$id,"deleted");
 		}
 
@@ -1965,6 +1978,7 @@
 			// Clear cache
 			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
+			// Delete and track
 			static::$DB->delete("bigtree_field_types",$id);
 			$this->track("bigtree_field_types",$id,"deleted");
 		}
@@ -4255,7 +4269,7 @@
 			return static::$DB->fetchAll("SELECT * FROM bigtree_pages 
 										  WHERE resources LIKE '%$admin_root%' OR 
 										  		resources LIKE '%$partial_root%' OR
-										  		resources LIKE '%{adminroot}%'
+										  		REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%'
 										  ORDER BY nav_title ASC");
 		}
 

@@ -138,7 +138,7 @@
 	
 	// Figure out if we should return to a view with search results / page / sorting preset.
 	if (isset($_POST["_bigtree_return_view_data"])) {
-		$return_view_data = unserialize(base64_decode($_POST["_bigtree_return_view_data"]));
+		$return_view_data = json_decode(base64_decode($_POST["_bigtree_return_view_data"]),true);
 		if (!$bigtree["form"]["return_view"] || $bigtree["form"]["return_view"] == $return_view_data["view"]) {
 			$redirect_append = array();
 			unset($return_view_data["view"]); // We don't need the view passed back.
@@ -172,7 +172,7 @@
 	// If we've specified a preview URL in our module and the user clicked Save & Preview, return to preview page.
 	if ($_POST["_bigtree_preview"]) {
 		$admin->ungrowl();
-		$redirect_url = $view["preview_url"].$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
+		$redirect_url = rtrim($view["preview_url"],"/")."/".$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
 	}
 
 	// If there's a callback function for this module, let's get'r'done.

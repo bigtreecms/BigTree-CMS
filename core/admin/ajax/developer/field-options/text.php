@@ -2,6 +2,7 @@
 	// Stop notices
 	$data["seo_h1"] = isset($data["seo_h1"]) ? $data["seo_h1"] : "";
 	$data["sub_type"] = isset($data["sub_type"]) ? $data["sub_type"] : "";
+	$data["max_length"] = isset($data["max_length"]) ? $data["max_length"] : "";
 	
 	$sub_types = array(
 		"" => "",
@@ -19,6 +20,10 @@
 		<option value="<?=$type?>"<?php if ($type == $data["sub_type"]) { ?> selected="selected"<?php } ?>><?=$desc?></option>
 		<?php } ?>
 	</select>
+</fieldset>
+<fieldset>
+	<label>Maximum Character Length <small>(leave empty or 0 for no max)</small></label>
+	<input type="text" placeholder="0" name="max_length" value="<?=$data["max_length"]?>" />
 </fieldset>
 <?php if (isset($_POST["template"])) { ?>
 <fieldset>

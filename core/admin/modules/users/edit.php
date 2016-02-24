@@ -272,46 +272,47 @@
 														}
 													}
 												}
+
+												$gbp_categories = array();
+												if (!empty($gbp["enabled"])) {
+													if (BigTree::tableExists($gbp["other_table"])) {
+														$categories = array();
+														if (!empty($gbp["other_table"]) && !empty($gbp["title_field"])) {
+															$title_field = str_replace("`","",$gbp["title_field"]);
+															$other_table = str_replace("`","",$gbp["other_table"]);
+															$gbp_categories = $db->fetchAll("SELECT id, `$title_field` AS `title` FROM `$other_table` ORDER BY `$title_field` ASC");
+															// Run parser on the name if it exists
+															if (!empty($gbp["item_parser"])) {
+																foreach ($gbp_categories as &$category) {
+																	$category["title"] = call_user_func($gbp["item_parser"], $category["title"], $category["id"]);
+																}
+															}
+														}
+													}
+												}
 								?>
 								<li>
 									<span class="depth"></span>
-									<a class="permission_label permission_label_wider<?php if (!isset($gbp["enabled"]) || !$gbp["enabled"]) { ?> disabled<?php } ?><?php if (!$closed) { ?>  expanded<?php } ?>" href="#"><?=$m["name"]?></a>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <?php if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <?php if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <?php if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
-									<?php
-												if (isset($gbp["enabled"]) && $gbp["enabled"]) {
-													if (BigTree::tableExists($gbp["other_table"])) {
-														$title_field = str_replace("`","",$gbp["title_field"]);
-														$other_table = str_replace("`","",$gbp["other_table"]);
-
-														if ($title_field && $other_table) {
-															$query = $db->query("SELECT id,`$title_field`
-																				 FROM `$other_table` ORDER BY `$title_field` ASC");
-									?>
-									<ul class="depth_2"<?php if ($closed) { ?> style="display: none;"<?php } ?>>
-										<?php
-															while ($category = $query->fetch()) {
-										?>
+									<a class="permission_label permission_label_wider<? if (!count($gbp_categories)) { ?> disabled<? } ?><? if (!$closed) { ?>  expanded<? } ?>" href="#"><?=$m["name"]?></a>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
+									<? if (count($gbp_categories)) { ?>
+									<ul class="depth_2"<? if ($closed) { ?> style="display: none;"<? } ?>>
+										<? foreach ($gbp_categories as $category) { ?>
 										<li>
 											<span class="depth"></span>
-											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$category[$title_field]?></a>
+											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$category["title"]?></a>
 											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$category["id"]?>]" value="p" <?php if ($permissions["module_gbp"][$m["id"]][$category["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
 											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$category["id"]?>]" value="e" <?php if ($permissions["module_gbp"][$m["id"]][$category["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
 											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$category["id"]?>]" value="n" <?php if (!$permissions["module_gbp"][$m["id"]][$category["id"]] || $permissions["module_gbp"][$m["id"]][$category["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
 										</li>
-										<?php
-															}
-										?>
+										<?php } ?>
 									</ul>
-									<?php
-														}
-													}
-												}
-											}
-									?>
+									<?php } ?>
 								</li>
 								<?php
+											}
 										}
 									}
 								?>	
