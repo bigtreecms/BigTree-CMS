@@ -1474,43 +1474,32 @@
 		*/
 		
 		static function makeDirectory($directory) {
+			// Make sure we skip open_basedir issues
+			if (!static::isDirectoryWritable($directory)) {
+				return false;
+			}
+
+			// Already exists, just say we made it
 			if (file_exists($directory)) {
 				return true;
 			}
 
 			// Windows systems aren't going to start with /
 			if (substr($directory,0,1) == "/") {
-				$dir_path = "/";
+				$directory_path = "/";
 			} else {
-				$dir_path = "";
+				$directory_path = "";
 			}
 
-			$dir_parts = explode("/",rtrim($directory,"/"));
-			$dir_part_count = count($dir_parts);
-			$directories_to_create = array();
-
-			// Find all the directories we need to create. We're going backwards to avoid open_basedir restrictions.
-			for ($x = 0; $x < $dir_part_count; $x++) {
-				if ($x) {
-					$directory_to_check = implode("/",array_slice($dir_parts,0,-1 * $x));
-				} else {
-					$directory_to_check = $directory;
+			$directory_parts = explode("/",trim($directory,"/"));
+			foreach ($directory_parts as $part) {
+				$directory_path .= $part;
+				// Silence situations with open_basedir restrictions.
+				if (!@file_exists($directory_path)) {
+					@mkdir($directory_path);
+					@static::setPermissions($directory_path);
 				}
-				if ($directory_to_check) {
-					if (!file_exists($directory_to_check)) {
-						$directories_to_create[] = $directory_to_check;
-					} else {
-						break;
-					}
-				}
-			}
-
-			// Make the directories
-			foreach (array_reverse($directories_to_create) as $directory_to_create) {
-				if (!mkdir($directory_to_create)) {
-					trigger_error("BigTree::makeDirectory failed to create directory: ".$directory_to_create, E_USER_WARNING);
-					return false;
-				}
+				$directory_path .= "/";
 			}
 			
 			return true;
