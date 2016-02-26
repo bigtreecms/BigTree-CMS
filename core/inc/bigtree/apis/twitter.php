@@ -11,7 +11,7 @@
 		var $Configuration;
 		var $EndpointURL = "https://api.twitter.com/1.1/";
 		var $OAuthVersion = "1.0";
-		var $RequestType = "hash";
+		var $RequestType = "hash-header";
 		var $TweetLength;
 
 		/*

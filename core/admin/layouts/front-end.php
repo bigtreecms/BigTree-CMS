@@ -5,7 +5,7 @@
 <!--[if IE 9 ]>	<html lang="en" class="ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en"> <!--<![endif]-->
 	<head>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" charset="utf-8" />
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less" type="text/css" media="screen" charset="utf-8" />
 		<?php
 			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
 				foreach ($bigtree["css"] as $style) {

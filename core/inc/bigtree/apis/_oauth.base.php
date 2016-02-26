@@ -141,7 +141,7 @@
 			$get = array();
 
 			// If we have to HMAC sign the request
-			if ($this->RequestType == "hash") {
+			if ($this->RequestType == "hash" || $this->RequestType == "hash-header") {
 				// Extract GET vars from the URL.
 				parse_str(parse_url($url,PHP_URL_QUERY),$get);
 				if (count($get)) {
@@ -157,8 +157,10 @@
 	
 				// Merge GET and POST and OAuth
 				$mixed = array_merge($get,$data,$oauth);
+
 				// Sort keys
 				ksort($mixed);
+
 				// Create a string for signing
 				$string = "";
 				foreach ($mixed as $key => $val) {
@@ -177,12 +179,35 @@
 
 			// Build out our new URL with OAuth vars + GET vars we extracted.
 			$url .= "?";
-			foreach (array_filter((array)$get) as $key => $val) {
+			foreach ($get as $key => $val) {
 				$url .= "$key=".rawurlencode($val)."&";
 			}
 
 			// If we're using GET or DELETE, append OAuth vars, otherwise add them to the POST data.
-			if (($method == "POST" || $method == "PUT") && is_array($data)) {
+			if ($this->RequestType == "hash-header") {
+				$oauth_header = array();
+				foreach ($oauth as $key => $value) {
+					$oauth_header[] = $key.'="'.rawurlencode($value).'"';
+				}
+				$headers[] = "Authorization: OAuth ".implode(", ",$oauth_header);
+
+				if ($method == "POST") {
+					if (is_array($data)) {
+						$data_array = $data;
+						$data = array();
+						foreach ($data_array as $key => $val) {
+							$data[] = "$key=".rawurlencode($val);
+						}
+						$data = implode("&",$data);
+					}
+				} else {
+					if (is_array($data) && count($data)) {
+						$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",str_replace("+","%20",http_build_query($data,"","&")))."&";
+						$data = false;
+					}
+				}
+
+			} elseif (($method == "POST" || $method == "PUT") && is_array($data)) {
 				$data = array_merge($oauth,$data);
 			} else {
 				if (is_array($data) && count($data)) {
@@ -215,7 +240,7 @@
 				Information directly from the API.
 		*/
 
-		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
 				trigger_warning("This API is not connected.",E_USER_ERROR);
 			}
