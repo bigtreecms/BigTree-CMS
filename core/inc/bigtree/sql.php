@@ -383,7 +383,7 @@
 					} elseif ($args[$x] === "NOW()") {
 						$replacement = $args[$x];
 					} else {
-						$replacement = "'".$this->Connection->real_escape_string($args[$x])."'";
+						$replacement = "'".$this->escape($args[$x])."'";
 					}
 
 					$query = substr($query,0,$position).$replacement.substr($query,$position + 1);

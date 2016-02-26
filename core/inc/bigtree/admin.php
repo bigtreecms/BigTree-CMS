@@ -8382,7 +8382,8 @@
 			}
 
 			if ($item["encrypted"]) {
-				static::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT('$value', ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);
+				static::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
+									$value, $bigtree["config"]["settings_key"], $id);
 			} else {
 				static::$DB->update("bigtree_settings",$id,array("value" => $value));
 			}
