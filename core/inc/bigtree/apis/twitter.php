@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTreeTwitterAPI
 			Twitter API class that implements most functionality (limited lists support).
@@ -11,7 +11,7 @@
 		var $Configuration;
 		var $EndpointURL = "https://api.twitter.com/1.1/";
 		var $OAuthVersion = "1.0";
-		var $RequestType = "hash";
+		var $RequestType = "hash-header";
 		var $TweetLength;
 
 		/*
@@ -30,7 +30,7 @@
 		}
 
 		/*
-			Function: block
+			Function: blockUser
 				Blocks a given username by the authenticated user.
 
 			Parameters:
@@ -40,20 +40,21 @@
 				A BigTreeTwitterUser object if successful.
 		*/
 
-		function block($username) {
-			$response = $this->call("blocks/create.json",array("screen_name" => $username),"POST");
+		function blockUser($username) {
+			$response = $this->callUncached("blocks/create.json",array("screen_name" => $username),"POST");
 			if (!$response) {
 				return false;
 			}
 			return new BigTreeTwitterUser($response,$this);
 		}
+		function block($username) { return $this->blockUser($username); }
 
 		/*
 			Function: callUncached
 				Piggybacks on the base call to provide error checking for Twitter.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
 			if (isset($response->errors) && count($response->errors)) {
 				foreach ($response->errors as $e) {
@@ -76,7 +77,7 @@
 		*/
 
 		function deleteDirectMessage($id) {
-			$response = $this->call("direct_messages/destroy.json",array("id" => $id),"POST");
+			$response = $this->callUncached("direct_messages/destroy.json",array("id" => $id),"POST");
 			if (!$response) {
 				return false;
 			}
@@ -133,7 +134,7 @@
 		*/
 
 		function followUser($username) {
-			$response = $this->call("friendships/create.json",array("screen_name" => $username),"POST");
+			$response = $this->callUncached("friendships/create.json",array("screen_name" => $username),"POST");
 			if (!$response) {
 				return false;
 			}
@@ -219,7 +220,7 @@
 		*/
 
 		function getDirectMessages($count = 10,$params = array()) {
-			$response = $this->call("direct_messages.json",array_merge($params,array("count" => $count)));
+			$response = $this->callUncached("direct_messages.json",array_merge($params,array("count" => $count)));
 			if (!$response) {
 				return false;
 			}
@@ -555,10 +556,12 @@
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
+			
 			// Figure out how many URLs are
 			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
 			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
 			$url_length = $http_length + $https_length;
+
 			// Replace URLs so they no longer count toward length
   			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
   			if (strlen($content_trimmed) + $url_length > 140) {
@@ -601,6 +604,7 @@
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
+
 			// Figure out how many URLs are
 			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
 			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
@@ -613,12 +617,17 @@
   				return false;
   			}
 
-			// With image, we call statuses/update_with_media
+			// Upload media first
 			if ($image) {
-				$response = $this->callUncached("statuses/update_with_media.json",array_merge($params,array("status" => $content,"media[]" => $image)),"POST",array("Files" => array("media[]" => array())));
-			} else {
-				$response = $this->callUncached("statuses/update.json",array_merge($params,array("status" => $content)),"POST");
+				$params["media_ids"] = $this->uploadMedia($image);
+				if (!$media_id) {
+					return false;
+				}
 			}
+			
+			// Post tweet
+			$response = $this->callUncached("statuses/update.json",array_merge($params,array("status" => $content)),"POST");
+
 			if (!$response) {
 				return false;
 			}
@@ -760,12 +769,13 @@
 		*/
 
 		function unblockUser($username) {
-			$response = $this->call("blocks/destroy.json",array("screen_name" => $username),"POST");
+			$response = $this->callUncached("blocks/destroy.json",array("screen_name" => $username),"POST");
 			if (!$response) {
 				return false;
 			}
 			return new BigTreeTwitterUser($response,$this);
 		}
+		function unblock($username) { return $this->unblockUser($username); }
 
 		/*
 			Function: unfavoriteTweet
@@ -798,13 +808,36 @@
 		*/
 
 		function unfollowUser($username) {
-			$response = $this->call("friendships/destroy.json",array("screen_name" => $username),"POST");
+			$response = $this->callUncached("friendships/destroy.json",array("screen_name" => $username),"POST");
 			if (!$response) {
 				return false;
 			}
 			return new BigTreeTwitterUser($response,$this);
 		}
 		function unfriendUser($username) { return $this->unfollowUser($username); }
+
+		/*
+			Function: uploadMedia
+				Uploads media to Twitter's hosting service.
+				Media IDs expire after 60 minutes if not used.
+
+			Parameters:
+				media - An image with maximum size of 5MB or less (PNG, JPG, WebP, GIF) or a video of 15MB or less (MP4)
+
+			Returns:
+				Media ID
+		*/
+
+		function uploadMedia($media) {
+			// Different endpoint, we call this manually
+			$media_response = json_decode($this->callAPI("https://upload.twitter.com/1.1/media/upload.json","POST",array("media" => "@".$media),array(),array("media")),true);
+			if ($media_response["media_id"]) {
+				return $media_response["media_id"];
+			} else {
+				$this->Errors[] = $media_response["errors"][0]["message"];
+				return false;
+			}
+		}
 	}
 
 	/*
