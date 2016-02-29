@@ -193,12 +193,22 @@
 
 				if ($method == "POST") {
 					if (is_array($data)) {
-						$data_array = $data;
-						$data = array();
-						foreach ($data_array as $key => $val) {
-							$data[] = "$key=".rawurlencode($val);
+						// Make sure we're not posting files first.
+						$files_included = false;
+						foreach ($data as $val) {
+							if (substr($val,0,1) == "@" && file_exists(substr($val,1))) {
+								$files_included = true;
+							}
 						}
-						$data = implode("&",$data);
+
+						if (!$files_included) {
+							$data_array = $data;
+							$data = array();
+							foreach ($data_array as $key => $val) {
+								$data[] = "$key=".rawurlencode($val);
+							}
+							$data = implode("&",$data);
+						}
 					}
 				} else {
 					if (is_array($data) && count($data)) {
@@ -240,7 +250,7 @@
 				Information directly from the API.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
 				trigger_warning("This API is not connected.",E_USER_ERROR);
 			}
