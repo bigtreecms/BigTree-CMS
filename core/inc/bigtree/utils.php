@@ -437,14 +437,14 @@
 			// Setup post data
 			if ($post !== false) {
 				// Use cURLFile for any file uploads
-				foreach ($post as &$post_field) {
-					if (substr($post_field,0,1) == "@" && file_exists(substr($post_field,1))) {
-						if (function_exists("curl_file_create")) {
+				if (function_exists("curl_file_create")) {
+					foreach ($post as &$post_field) {
+						if (substr($post_field,0,1) == "@" && file_exists(substr($post_field,1))) {
 							$post_field = curl_file_create(substr($post_field,1));
 						}
 					}
+					unset($post_field);
 				}
-				unset($post_field);
 
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 			}
