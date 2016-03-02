@@ -122,7 +122,7 @@
 				key - The key for your data (if no key is passed, deletes all data for a given identifier)
 		*/
 
-		function cacheDelete($identifier,$key = false) {
+		static function cacheDelete($identifier,$key = false) {
 			$identifier = sqlescape($identifier);
 			
 			if ($key === false) {
