@@ -61,8 +61,6 @@
 			),
 			"extension" => array()
 		);
-		public static $IRLPrefixes = false;
-		public static $IRLsCreated = array();
 		public static $PerPage = 15;
 		public static $ReservedColumns = array(
 			"id",
@@ -266,20 +264,7 @@
 		*/
 
 		static function allocateResources($module,$entry) {
-			// Wipe existing allocations
-			static::$DB->delete("bigtree_resource_allocation",array(
-				"module" => $module,
-				"entry" => $entry
-			));
-
-			// Add new allocations
-			foreach (static::$IRLsCreated as $resource) {
-				static::$DB->insert("bigtree_resource_allocation",array(
-					"module" => $module,
-					"entry" => $entry,
-					"resource" => $resource
-				));
-			}
+			BigTree\Resource::allocate($module,$entry);
 		}
 
 		/*
@@ -353,26 +338,7 @@
 		*/
 
 		static function autoIPL($html) {
-			// If this string is actually just a URL, IPL it.
-			if ((substr($html,0,7) == "http://" || substr($html,0,8) == "https://") && strpos($html,"\n") === false && strpos($html,"\r") === false) {
-				$html = static::makeIPL($html);
-			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
-			} else {
-				$html = preg_replace_callback('/href="([^"]*)"/',array("BigTreeAdmin","autoIPLCallbackHref"),$html);
-				$html = preg_replace_callback('/src="([^"]*)"/',array("BigTreeAdmin","autoIPLCallbackSrc"),$html);
-				$html = BigTreeCMS::replaceHardRoots($html);
-			}
-			return $html;
-		}
-		
-		private static function autoIPLCallbackHref($matches) {
-			$href = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
-			return 'href="'.$href.'"';
-		}
-
-		private static function autoIPLCallbackSrc($matches) {
-			$src = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
-			return 'src="'.$src.'"';
+			return BigTree\Link::encode($html);
 		}
 
 		/*
@@ -1540,20 +1506,7 @@
 		*/
 
 		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
-			$id = static::$DB->insert("bigtree_resources",array(
-				"file" => BigTree::replaceHardRoots($file),
-				"md5" => $md5,
-				"name" => BigTree::safeEncode($name),
-				"type" => $type,
-				"folder" => $folder ? $folder : null,
-				"is_image" => $is_image,
-				"height" => intval($height),
-				"width" => intval($width),
-				"thumbs" => $thumbs
-			));
-
-			$this->track("bigtree_resources",$id,"created");
-			return $id;
+			return BigTree\Resource::create($folder,$file,$md5,$name,$type,$is_image,$height,$width,$thumbs);
 		}
 
 		/*
@@ -1570,18 +1523,13 @@
 		*/
 
 		function createResourceFolder($parent,$name) {
+			// Backwards compatibility as ResourceFolder doesn't check permissions
 			$permission = $this->getResourceFolderPermission($parent);
 			if ($permission != "p") {
 				return false;
 			}
 
-			$id = static::$DB->insert("bigtree_resource_folders",array(
-				"name" => BigTree::safeEncode($name),
-				"parent" => $parent
-			));
-
-			$this->track("bigtree_resource_folders",$id,"created");
-			return $id;
+			return BigTree\ResourceFolder::create($parent,$name);
 		}
 
 		/*
@@ -1605,53 +1553,7 @@
 		*/
 
 		function createSetting($id,$name = "",$description = "",$type = "",$options = array(),$extension = "",$system = false,$encrypted = false,$locked = false) {
-			// Allow for backwards compatibility with pre-4.3 syntax
-			if (is_array($id)) {
-				$data = $id;
-				$id = false;
-				// Loop through and create our expected parameters.
-				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
-						$$key = $val;
-					}
-				}
-			}
-
-			// No id, bad call.
-			if (!$id) {
-				return false;
-			}
-			
-			// If an extension is creating a setting, make it a reference back to the extension
-			if (defined("EXTENSION_ROOT") && !$extension) {
-				$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
-				
-				// Don't append extension again if it's already being called via the namespace
-				if (strpos($id,"$extension*") === false) {
-					$id = "$extension*$id";
-				}
-			}
-
-			// Check for ID collision
-			if (static::$DB->exists("bigtree_settings",$id)) {
-				return false;
-			}
-
-			// Create the setting
-			static::$DB->insert("bigtree_settings",array(
-				"id" => $id,
-				"name" => BigTree::safeEncode($name),
-				"description" => $description,
-				"type" => BigTree::safeEncode($type),
-				"options" => array_filter((array)$options),
-				"locked" => $locked ? "on" : "",
-				"encrypted" => $encrypted ? "on" : "",
-				"system" => $system ? "on" : "",
-				"extension" => $extension ? $extension : null
-			));
-
-			$this->track("bigtree_settings",$id,"created");
-			return true;
+			return BigTree\Settings::create($id,$name,$description,$type,$options,$extension,$system,$encrypted,$locked);
 		}
 
 		/*
@@ -2310,25 +2212,7 @@
 		*/
 
 		function deleteResource($id) {
-			$resource = $this->getResource($id);
-			if (!$resource) {
-				return false;
-			}
-
-			// Delete resource record
-			static::$DB->delete("bigtree_resources",$id);
-			$this->track("bigtree_resources",$id,"deleted");
-
-			// If this file isn't located in any other folders, delete it from the file system
-			if (!static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?",$resource["file"])) {
-				$storage = new BigTreeStorage;
-				$storage->delete($resource["file"]);
-
-				// Delete any thumbnails as well
-				foreach (array_filter((array)$resource["thumbs"]) as $thumb) {
-					$storage->delete($thumb);
-				}
-			}
+			return BigTree\Resource::delete($id);
 		}
 
 		/*
@@ -2340,22 +2224,7 @@
 		*/
 
 		function deleteResourceFolder($id) {
-			// Get everything inside the folder
-			$items = $this->getContentsOfResourceFolder($id);
-
-			// Delete all subfolders
-			foreach ($items["folders"] as $folder) {
-				$this->deleteResourceFolder($folder["id"]);
-			}
-
-			// Delete all files
-			foreach ($items["resources"] as $resource) {
-				$this->deleteResource($resource["id"]);
-			}
-
-			// Delete the folder
-			static::$DB->delete("bigtree_resource_folders",$id);
-			$this->track("bigtree_resource_folders",$id,"deleted");
+			return BigTree\ResourceFolder::delete($id);
 		}
 
 		/*
@@ -2367,12 +2236,7 @@
 		*/
 
 		function deleteSetting($id) {
-			// Grab extension based ID if we're calling from an extension
-			$id = BigTreeCMS::extensionSettingCheck($id);
-
-			// Delete setting
-			static::$DB->delete("bigtree_settings",$id);
-			$this->track("bigtree_settings",$id,"deleted");
+			BigTree\Setting::delete($id);
 		}
 
 		/*
@@ -4938,15 +4802,7 @@
 		*/
 
 		static function getContentsOfResourceFolder($folder, $sort = "date DESC") {
-			if (is_array($folder)) {
-				$folder = $folder["id"];
-			}
-			$null_query = $folder ? "" : "OR folder IS NULL";
-
-			$folders = static::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $folder);
-			$resources = static::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $folder);
-
-			return array("folders" => $folders, "resources" => $resources);
+			return BigTree\ResourceFolder::contents($folder,$sort);
 		}
 
 		/*
@@ -4961,42 +4817,7 @@
 		*/
 
 		static function getResourceByFile($file) {
-			// Populate a list of resource prefixes if we don't already have it cached
-			if (static::$IRLPrefixes === false) {
-				static::$IRLPrefixes = array();
-				$thumbnail_sizes = static::getSetting("bigtree-file-manager-thumbnail-sizes");
-				foreach ($thumbnail_sizes["value"] as $ts) {
-					static::$IRLPrefixes[] = $ts["prefix"];
-				}
-			}
-
-			$last_prefix = false;
-			$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", $file, BigTreeCMS::replaceHardRoots($file));
-			
-			// If we didn't find the resource, check all the prefixes
-			if (!$resource) {
-				foreach (static::$IRLPrefixes as $prefix) {
-					if (!$resource) {
-						$prefixed_file = str_replace("files/resources/$prefix","files/resources/",$file);
-						$resource = static::$DB->fetch("SELECT * FROM bigtree_resources
-														WHERE file = ? OR file = ?", $file, BigTreeCMS::replaceHardRoots($prefixed_file));
-						$last_prefix = $prefix;
-					}
-				}
-				if (!$resource) {
-					return false;
-				}
-			}
-
-			// Decode some things
-			$resource["prefix"] = $last_prefix;
-			$resource["file"] = BigTreeCMS::replaceRelativeRoots($resource["file"]);
-			$resource["thumbs"] = json_decode($resource["thumbs"],true);
-			foreach ($resource["thumbs"] as &$thumb) {
-				$thumb = BigTreeCMS::replaceRelativeRoots($thumb);
-			}
-
-			return $resource;
+			return BigTree\Resource::file($file);
 		}
 
 		/*
@@ -5011,9 +4832,7 @@
 		*/
 
 		static function getResource($id) {
-			$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-			$resource["thumbs"] = json_decode($resource["thumbs"],true);
-			return $resource;
+			return BigTree\Resource::get($id);
 		}
 
 		/*
@@ -5028,7 +4847,7 @@
 		*/
 
 		static function getResourceAllocation($id) {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
+			return BigTree\Resource::allocation($id);
 		}
 
 		/*
@@ -5043,7 +4862,7 @@
 		*/
 
 		static function getResourceFolder($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $id);
+			return BigTree\ResourceFolder::get($id);
 		}
 
 		/*
@@ -5058,24 +4877,7 @@
 		*/
 
 		static function getResourceFolderAllocationCounts($folder) {
-			$allocations = $folders = $resources = 0;
-			$items = static::getContentsOfResourceFolder($folder);
-
-			// Loop through subfolders
-			foreach ($items["folders"] as $folder) {
-				$folders++;
-				$subs = static::getResourceFolderAllocationCounts($folder["id"]);
-				$allocations += $subs["allocations"];
-				$folders += $subs["folders"];
-				$resources += $subs["resources"];
-			}
-
-			foreach ($items["resources"] as $resource) {
-				$resources++;
-				$allocations += count(static::getResourceAllocation($resource["id"]));
-			}
-
-			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
+			return BigTree\ResourceFolder::info($folder);
 		}
 
 		/*
@@ -5090,24 +4892,7 @@
 		*/
 
 		static function getResourceFolderBreadcrumb($folder,$crumb = array()) {
-			if (!is_array($folder)) {
-				$folder = static::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
-			}
-
-			// Append the folder to the running breadcrumb
-			if ($folder) {
-				$crumb[] = array("id" => $folder["id"], "name" => $folder["name"]);
-			}
-
-			// If we have a parent, go higher up
-			if ($folder["parent"]) {
-				return static::getResourceFolderBreadcrumb($folder["parent"],$crumb);
-			
-			// Append home, reverse, return
-			} else {
-				$crumb[] = array("id" => 0, "name" => "Home");
-				return array_reverse($crumb);
-			}
+			return BigTree\ResourceFolder::breadcrumb($folder,$crumb);
 		}
 
 		/*
@@ -5122,7 +4907,7 @@
 		*/
 
 		static function getResourceFolderChildren($id) {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name ASC", $id);
+			return BigTree\ResourceFolder::children($id);
 		}
 
 		/*
@@ -5137,41 +4922,7 @@
 		*/
 
 		function getResourceFolderPermission($folder) {
-			// User is an admin or developer
-			if ($this->Level > 0) {
-				return "p";
-			}
-
-			// We're going to save the folder entry in case we need its parent later.
-			if (is_array($folder)) {
-				$id = $folder["id"];
-			} else {
-				$id = $folder;
-			}
-
-			$p = $this->Permissions["resources"][$id];
-			// If p is already no, creator, or consumer we can just return it.
-			if ($p && $p != "i") {
-				return $p;
-			} else {
-				// If folder is 0, we're already at home and can't check a higher folder for permissions.
-				if (!$folder) {
-					return "e";
-				}
-
-				// If a folder entry wasn't passed in, we need it to find its parent.
-				if (!is_array($folder)) {
-					$folder = static::$DB->fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
-				}
-
-				// If we couldn't find the folder anymore, just say they can consume.
-				if (!$folder) {
-					return "e";
-				}
-
-				// Return the parent's permissions
-				return $this->getResourceFolderPermission($folder["parent"]);
-			}
+			return BigTree\ResourceFolder::permission($folder);
 		}
 
 		/*
@@ -5203,34 +4954,7 @@
 		*/
 
 		static function getSetting($id,$decode = true) {
-			global $bigtree;
-			$id = BigTreeCMS::extensionSettingCheck($id);
-			$setting = static::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
-			
-			// Setting doesn't exist
-			if (!$setting) {
-				return false;
-			}
-
-			// Encrypted setting
-			if ($setting["encrypted"]) {
-				$setting["value"] = static::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` 
-															  FROM bigtree_settings 
-															  WHERE id = ?", $bigtree["config"]["settings_key"], $id);
-			}
-
-			// Decode the JSON value
-			if ($decode) {
-				$setting["value"] = json_decode($setting["value"],true);
-	
-				if (is_array($setting["value"])) {
-					$setting["value"] = BigTree::untranslateArray($setting["value"]);
-				} else {
-					$setting["value"] = BigTreeCMS::replaceInternalPageLinks($setting["value"]);
-				}
-			}
-
-			return $setting;
+			return BigTree\Setting::get($id,$decode);
 		}
 
 		/*
@@ -5247,54 +4971,7 @@
 		*/
 
 		function getSettings($sort = "name ASC") {
-			$lock_check = ($this->Level < 2) ? "locked = '' AND " : "";
-
-			$settings = static::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE $lock_check system = '' ORDER BY $sort");
-			foreach ($settings as &$setting) {
-				if ($setting["encrypted"] == "on") {
-					$setting["value"] = "[Encrypted Text]";
-				} else {
-					$setting["value"] = json_decode($setting["value"],true);
-				}
-				$setting = BigTree::untranslateArray($setting);
-			}
-
-			return $settings;
-		}
-
-		/*
-			Function: getSettingsPageCount
-				Returns the number of pages of settings that the logged in user has access to.
-
-			Parameters:
-				query - Optional string to query against.
-
-			Returns:
-				The number of pages of settings.
-		*/
-
-		function getSettingsPageCount($query = "") {
-			$lock_check = ($this->Level < 2) ? " AND locked = ''" : "";
-			$query_parts = array(1);
-
-			// If we're searching.
-			if ($query) {
-				$string_parts = explode(" ",$query);
-				foreach ($string_parts as $part) {
-					$part = static::$DB->escape($part);
-					$query_parts[] = "(name LIKE '%$part%' OR value LIKE '%$part%')";
-				}
-			}
-
-			$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_settings 
-											   WHERE ".implode(" AND ",$query_parts)." AND system = '' $lock_check");
-
-			$pages = ceil($count / static::$PerPage);
-			if ($pages == 0) {
-				$pages = 1;
-			}
-
-			return $pages;
+			return BigTree\Setting::list($sort);
 		}
 
 		/*
@@ -6126,26 +5803,7 @@
 		*/
 
 		static function matchResourceMD5($file,$new_folder) {
-			$md5 = md5_file($file);
-
-			$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE md5 = ? LIMIT 1", $md5);
-			if (!$resource) {
-				return false;
-			}
-
-			// If we already have this exact resource in this exact folder, just update its modification time
-			if ($resource["folder"] == $new_folder) {
-				static::$DB->update("bigtree_resources",$resource["id"],array("date" => "NOW()"));
-			} else {
-				// Make a copy of the resource
-				unset($resource["id"]);
-				$resource["date"] = "NOW()";
-				$resource["folder"] = $new_folder ? $new_folder : null;
-
-				static::$DB->insert("bigtree_resources",$resource);
-			}
-
-			return true;
+			return BigTree\Resource::md5Check($file,$new_folder);
 		}
 
 		/*
@@ -7001,31 +6659,7 @@
 		*/
 
 		function searchResources($query, $sort = "date DESC") {
-			$query = static::$DB->escape($query);
-			$folders = $resources = $permission_cache = array();
-
-			// Get matching folders
-			$folders = static::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
-			foreach ($folders as &$folder) {
-				$folder["permission"] = $this->getResourceFolderPermission($folder);
-
-				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
-				$permission_cache[$folder["id"]] = $folder["permission"];
-			}
-
-			// Get matching resources
-			$resources = static::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
-			foreach ($resources as &$resource) {
-				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
-				if ($permission_cache[$resource["folder"]]) {
-					$resource["permission"] = $permission_cache[$resource["folder"]];
-				} else {
-					$resource["permission"] = $this->getResourceFolderPermission($resource["folder"]);
-					$permission_cache[$resource["folder"]] = $resource["permission"];
-				}
-			}
-
-			return array("folders" => $folders, "resources" => $resources);
+			return BigTree\Resource::search($query,$sort);
 		}
 
 		/*
@@ -7191,7 +6825,7 @@
 		*/
 
 		static function settingExists($id) {
-			return static::$DB->exists("bigtree_settings",BigTreeCMS::extensionSettingCheck($id));
+			return BigTree\Setting::exists($id);
 		}
 
 		/*
@@ -7322,16 +6956,8 @@
 				type - The action taken by the user (delete, edit, create, etc.)
 		*/
 
-		function track($table,$entry,$type) {
-			// If this is running fron cron or something, nobody is logged in so don't track.
-			if (isset($this->ID)) {
-				static::$DB->insert("bigtree_audit_trail",array(
-					"table" => $table,
-					"user" => $this->ID,
-					"entry" => $entry,
-					"type" => $type
-				));
-			}
+		static function track($table,$entry,$type) {
+			BigTree\AuditTrail::track($table,$entry,$type);
 		}
 
 		/*
@@ -8285,8 +7911,7 @@
 		*/
 
 		function updateResource($id,$attributes) {
-			static::$DB->update("bigtree_resources",$id,$attributes);
-			$this->track("bigtree_resources",$id,"updated");
+			BigTree\Resource::update($id,$attributes);
 		}
 
 		/*
@@ -8308,55 +7933,8 @@
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		function updateSetting($old_id,$id,$type = "",$options = array(), $name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
-			global $bigtree;
-
-			// Allow for pre-4.3 parameter syntax
-			if (is_array($id)) {
-				$data = $id;
-				$id = "";
-
-				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
-						$$key = $val;
-					}
-				}
-			}
-
-			// Get the existing setting information.
-			$existing = static::getSetting($old_id);
-
-			// See if we have an id collision with the new id.
-			if ($old_id != $id && static::settingExists($id)) {
-				return false;
-			}
-
-			// Update base setting
-			static::$DB->update("bigtree_settings",$old_id,array(
-				"id" => $id,
-				"type" => $type,
-				"options" => $options,
-				"name" => BigTree::safeEncode($name),
-				"description" => $description,
-				"locked" => $locked ? "on" : "",
-				"system" => $system ? "on" : "",
-				"encrypted" => $encrypted ? "on" : ""
-			));
-
-			// If encryption status has changed, update the value
-			if ($existing["encrypted"] && !$encrypted) {
-				static::$DB->query("UPDATE bigtree_settings SET value = AES_DECRYPT(value, ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);
-			} elseif (!$existing["encrypted"] && $encrypted) {
-				static::$DB->query("UPDATE bigtree_settings SET value = AES_ENCRYPT(value, ?) WHERE id = ?", $bigtree["config"]["settings_key"], $id);
-			}
-
-			// Audit trail.
-			$this->track("bigtree_settings",$id,"updated");
-			if ($id != $old_id) {
-				$this->track("bigtree_settings",$old_id,"changed-id");
-			}
-
-			return true;
+		function updateSetting($old_id,$id,$type = "",$options = array(),$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
+			return BigTree\Setting::update($old_id,$id,$type,$options,$name,$description,$locked,$encrypted,$system);
 		}
 
 		/*
@@ -8369,29 +7947,7 @@
 		*/
 
 		static function updateSettingValue($id,$value) {
-			global $bigtree,$admin;
-
-			$id = BigTreeCMS::extensionSettingCheck($id);
-			$item = static::$DB->fetch("SELECT encrypted, system FROM bigtree_settings WHERE id = ?", $id);
-
-			// Do encoding
-			if (is_array($value)) {
-				$value = BigTree::translateArray($value);
-			} else {
-				$value = static::autoIPL($value);
-			}
-
-			if ($item["encrypted"]) {
-				static::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
-									$value, $bigtree["config"]["settings_key"], $id);
-			} else {
-				static::$DB->update("bigtree_settings",$id,array("value" => $value));
-			}
-
-			if ($admin && !$item["system"]) {
-				// Audit trail.
-				$admin->track("bigtree_settings",$id,"updated");
-			}
+			BigTree\Setting::updateValue($id,$value);
 		}
 
 		/*

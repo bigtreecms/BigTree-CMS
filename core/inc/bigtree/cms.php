@@ -15,11 +15,7 @@
 		// Public static properties
 		public static $BreadcrumbTrunk;
 		public static $DB;
-		public static $IRLCache = array();
-		public static $IPLCache = array();
 		public static $MySQLTime = false;
-		public static $ReplaceableRootKeys = array();
-		public static $ReplaceableRootVals = array();
 		public static $Secure;
 
 		/*
@@ -188,12 +184,8 @@
 				key - The key for your data (if no key is passed, deletes all data for a given identifier)
 		*/
 
-		function cacheDelete($identifier,$key = false) {
-			if ($key === false) {
-				static::$DB->query("DELETE FROM bigtree_caches WHERE `identifier` = ?",$identifier);
-			} else {
-				static::$DB->query("DELETE FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
-			}
+		static function cacheDelete($identifier,$key = false) {
+			return BigTree\Cache::delete($identifier,$key);
 		}
 
 		/*
@@ -211,19 +203,7 @@
 		*/
 
 		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
-			if ($max_age) {
-				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-				if (!static::$MySQLTime) {
-					static::$MySQLTime = static::$DB->fetchSingle("SELECT NOW()");
-				}
-				$max_age = date("Y-m-d H:i:s",strtotime(static::$MySQLTime) - $max_age);
-
-				$entry = static::$DB->fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age);
-			} else {
-				$entry = static::$DB->fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
-			}
-
-			return $decode ? json_decode($entry,true) : $entry;
+			return BigTree\Cache::get($identifier,$key,$max_age,$decode);
 		}
 
 		/*
@@ -241,18 +221,7 @@
 		*/
 
 		static function cachePut($identifier,$key,$value,$replace = true) {
-			$exists = static::$DB->exists("bigtree_caches",array("identifier" => $identifier,"key" => $key));
-			if (!$replace && $exists) {
-				return false;
-			}
-
-			$value = BigTree::json($value);
-			
-			if ($exists) {
-				return static::$DB->update("bigtree_caches",array("identifier" => $identifier,"key" => $key),array("value" => $value));
-			} else {
-				return static::$DB->insert("bigtree_caches",array("identifier" => $identifier,"key" => $key,"value" => $value));
-			}
+			return BigTree\Cache::put($identifier,$key,$value,$replace);
 		}
 
 		/*
@@ -268,12 +237,7 @@
 		*/
 
 		static function cacheUnique($identifier,$value) {
-			$success = false;
-			while (!$success) {
-				$key = uniqid("",true);
-				$success = static::cachePut($identifier,$key,$value,false);
-			}
-			return $key;
+			return BigTree\Cache::putUnique($identifier,$value);
 		}
 		
 		/*
@@ -413,22 +377,7 @@
 		*/
 
 		static function extensionSettingCheck($id) {
-			// See if we're in an extension
-			if (defined("EXTENSION_ROOT")) {
-				$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
-				
-				// If we're already asking for it by it's namespaced name, don't append again.
-				if (substr($id,0,strlen($extension)) == $extension) {
-					return $id;
-				}
-				
-				// See if namespaced version exists
-				if (static::$DB->exists("bigtree_settings",array("id" => "$extension*$id"))) {
-					return "$extension*$id";
-				}
-			}
-			
-			return $id;
+			return BigTree\Setting::context($id);
 		}
 		
 		/*
@@ -599,70 +548,7 @@
 		*/
 		
 		static function getInternalPageLink($ipl) {
-			global $bigtree;
-
-			// Regular links
-			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
-				return static::replaceRelativeRoots($ipl);
-			}
-			$ipl = explode("//",$ipl);
-			$navid = $ipl[1];
-
-			// Resource Links
-			if ($ipl[0] == "irl:") {
-				// See if it's in the cache.
-				if (isset(static::$IRLCache[$navid])) {
-					if ($ipl[2]) {
-						return BigTree::prefixFile(static::$IRLCache[$navid],$ipl[2]);
-					} else {
-						return static::$IRLCache[$navid];
-					}
-				} else {
-					$resource = static::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?",$navid);
-					$file = $resource ? static::replaceRelativeRoots($resource["file"]) : false;
-					static::$IRLCache[$navid] = $file;
-					if ($ipl[2]) {
-						return BigTree::prefixFile($file,$ipl[2]);
-					} else {
-						return $file;
-					}
-				}
-			}
-			
-			// New IPLs are encoded in JSON
-			$c = json_decode(base64_decode($ipl[2]));
-			
-			// If it can't be rectified, we still don't want a warning.
-			if (is_array($c) && count($c)) {
-				$last = end($c);
-				$commands = implode("/",$c);
-				if (strpos($last,"#") === false && strpos($last,"?") === false) {
-					$commands .= "/";
-				}
-			} else {
-				$commands = "";
-			}
-
-			// See if it's in the cache.
-			if (isset(static::$IPLCache[$navid])) {
-				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
-					return static::$IPLCache[$navid]."/".$commands;
-				} else {
-					return static::$IPLCache[$navid];
-				}
-			} else {
-				// Get the page's path
-				$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$navid);
-
-				// Set the cache
-				static::$IPLCache[$navid] = WWW_ROOT.$path;
-
-				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
-					return WWW_ROOT.$path."/".$commands;
-				} else {
-					return WWW_ROOT.$path;
-				}
-			}
+			return BigTree\Link::decodeIPL($ipl);
 		}
 		
 		/*
@@ -677,32 +563,7 @@
 		*/
 		
 		static function getLink($id) {
-			global $bigtree;
-
-			// Homepage, just return the web root.
-			if ($id == 0) {
-				return WWW_ROOT;
-			}
-
-			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
-			if ($bigtree["page"]["id"] == $id) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
-					return WWW_ROOT.$bigtree["page"]["path"];					
-				} else {
-					return WWW_ROOT.$bigtree["page"]["path"]."/";
-				}
-			}
-
-			// Otherwise we'll grab the page path from the db.
-			$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?",$id);
-			if ($path) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
-					return WWW_ROOT.$path;
-				} else {
-					return WWW_ROOT.$path."/";
-				}
-			}
-			return false;
+			return BigTree\Link::get($id);
 		}
 		
 		/*
@@ -1126,26 +987,7 @@
 		*/
 		
 		static function getSetting($id) {
-			global $bigtree;
-			$id = static::extensionSettingCheck($id);
-
-			$setting = static::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?",$id);
-			// Setting doesn't exist
-			if (!$setting) {
-				return false;
-			}
-
-			// If the setting is encrypted, we need to re-pull just the value.
-			if ($setting["encrypted"]) {
-				$setting["value"] = static::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) FROM bigtree_settings WHERE id = ?",$bigtree["config"]["settings_key"],$id);
-			}
-
-			$value = json_decode($setting["value"],true);
-			if (is_array($value)) {
-				return BigTree::untranslateArray($value);
-			} else {
-				return static::replaceInternalPageLinks($value);
-			}
+			return BigTree\Setting::value($id);
 		}
 		
 		
@@ -1161,45 +1003,7 @@
 		*/
 		
 		static function getSettings($ids) {
-			global $bigtree;
-
-			// If for some reason we only requested one, just call getSetting
-			if (!is_array($ids)) {
-				return array(static::getSetting($ids));
-			}
-
-			// If we're in an extension, just call getSetting on the whole array since we need to make inferences on each ID
-			if (defined("EXTENSION_ROOT")) {
-				$settings = array();
-				foreach ($ids as $id) {
-					$settings[$id] = static::getSetting($id);
-				}
-				return $settings;
-			}
-
-			// Not in an extension, we can query them all at once
-			$parts = array();
-			foreach ($ids as $id) {
-				$parts[] = "id = '".static::$DB->escape($id)."'";
-			}
-
-			$settings = array();
-			$settings_list = static::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE (".implode(" OR ",$parts).") ORDER BY id ASC");
-			foreach ($settings_list as $setting) {
-				// If the setting is encrypted, we need to re-pull just the value.
-				if ($setting["encrypted"]) {
-					$setting["value"] = static::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) FROM bigtree_settings WHERE id = ?",$bigtree["config"]["settings_key"],$setting["id"]);
-				}
-
-				$value = json_decode($setting["value"],true);
-				if (is_array($value)) {
-					$settings[$setting["id"]] = BigTree::untranslateArray($value);
-				} else {
-					$settings[$setting["id"]] = static::replaceInternalPageLinks($value);
-				}
-			}
-
-			return $settings;
+			return BigTree\Setting::value($ids);
 		}
 		
 		/*
@@ -1435,22 +1239,7 @@
 		*/
 
 		static function replaceHardRoots($string) {
-			// Figure out what roots we can replace
-			if (!count(static::$ReplaceableRootKeys)) {
-				if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
-					static::$ReplaceableRootKeys[] = ADMIN_ROOT;
-					static::$ReplaceableRootVals[] = "{adminroot}";
-				}
-				if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
-					static::$ReplaceableRootKeys[] = STATIC_ROOT;
-					static::$ReplaceableRootVals[] = "{staticroot}";
-				}
-				if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
-					static::$ReplaceableRootKeys[] = WWW_ROOT;
-					static::$ReplaceableRootVals[] = "{wwwroot}";
-				}
-			}
-			return str_replace(static::$ReplaceableRootKeys,static::$ReplaceableRootVals,$string);
+			return BigTree\Link::tokenize($string);
 		}
 
 		/*
@@ -1465,23 +1254,7 @@
 		*/
 		
 		static function replaceInternalPageLinks($html) {
-			// Save time if there's no content
-			if (trim($html) === "") {
-				return "";
-			}
-			
-			if (substr($html,0,6) == "ipl://" || substr($html,0,6) == "irl://") {
-				$html = static::getInternalPageLink($html);
-			} else {
-				$html = static::replaceRelativeRoots($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array("BigTreeCMS","replaceInternalPageLinksHook"),$html);
-				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^',array("BigTreeCMS","replaceInternalPageLinksHook"),$html);
-			}
-
-			return $html;
-		}
-		static function replaceInternalPageLinksHook($matches) {
-			return '="'.static::getInternalPageLink($matches[1]).'"';
+			return BigTree\Link::decode($html);
 		}
 		
 		/*
@@ -1496,7 +1269,7 @@
 		*/
 
 		static function replaceRelativeRoots($string) {
-			return str_replace(array("{adminroot}","{wwwroot}","{staticroot}"),array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),$string);
+			return BigTree\Link::detokenize($string);
 		}
 
 		/*
