@@ -3,6 +3,12 @@
 	if (isset($_POST["user"]) && isset($_POST["password"])) {
 		if (!$admin->login($_POST["user"],$_POST["password"],$_POST["stay_logged_in"])) {
 			$failure = true;
+		} else {
+			if (isset($_SESSION["bigtree_login_redirect"])) {
+				BigTree::redirect($_SESSION["bigtree_login_redirect"]);
+			} else {
+				BigTree::redirect(ADMIN_ROOT);
+			}
 		}
 	}
 	
@@ -10,7 +16,7 @@
 ?>
 <form method="post" action="" class="module">
 	<?php
-		if ($bigtree["ban_expiration"]) {
+		if (!empty($bigtree["ban_expiration"])) {
 	?>
 	<p class="error_message clear">You are temporarily banned due to failed login attempts.<br />You may try logging in again after <?=$bigtree["ban_expiration"]?>.</p>
 	<?php

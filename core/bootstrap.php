@@ -35,7 +35,8 @@
 	}
 	
 	// Connect to MySQL and include the shorterner functions
-	include BigTree::path("inc/bigtree/sql.php");
+	include BigTree::path("inc/bigtree/classes/sql.php");
+	include BigTree::path("inc/bigtree/compat/sql.php");
 	
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
@@ -62,7 +63,7 @@
 	}
 
 	// Initialize DB instance
-	BigTreeCMS::$DB = $db = new BigTreeSQL;
+	BigTreeCMS::$DB = $db = new BigTree\SQL;
 
 	// Initialize CMS instance
 	$cms = new BigTreeCMS;
@@ -92,11 +93,15 @@
 		"BigTreeYahooBOSSAPI" => "inc/bigtree/apis/yahoo-boss.php",
 		"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
 		'BigTree\AuditTrail' => "inc/bigtree/classes/audit-trail.php",
+		'BigTree\Auth' => "inc/bigtree/classes/auth.php",
 		'BigTree\Cache' => "inc/bigtree/classes/cache.php",
 		'BigTree\Link' => "inc/bigtree/classes/link.php",
 		'BigTree\Resource' => "inc/bigtree/classes/resource.php",
 		'BigTree\ResourceFolder' => "inc/bigtree/classes/resource-folder.php",
 		'BigTree\Setting' => "inc/bigtree/classes/setting.php",
+		'BigTree\Callout' => "inc/bigtree/classes/callout.php",
+		'BigTree\CalloutGroup' => "inc/bigtree/classes/callout-group.php",
+		'BigTree\User' => "inc/bigtree/classes/user.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",

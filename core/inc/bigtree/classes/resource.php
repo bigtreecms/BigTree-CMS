@@ -245,7 +245,7 @@
 			// Get matching folders
 			$folders = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
 			foreach ($folders as &$folder) {
-				$folder["permission"] = BigTree\ResourceFolder::permission($folder);
+				$folder["permission"] = BigTree\ResourceFolder::access($folder);
 
 				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
 				$permission_cache[$folder["id"]] = $folder["permission"];
@@ -258,7 +258,7 @@
 				if ($permission_cache[$resource["folder"]]) {
 					$resource["permission"] = $permission_cache[$resource["folder"]];
 				} else {
-					$resource["permission"] = BigTree\ResourceFolder::permission($resource["folder"]);
+					$resource["permission"] = BigTree\ResourceFolder::access($resource["folder"]);
 					$permission_cache[$resource["folder"]] = $resource["permission"];
 				}
 			}

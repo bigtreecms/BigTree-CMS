@@ -18,7 +18,13 @@
 			BigTree::redirect(ADMIN_ROOT."users/add/");
 		}
 
-		$id = $admin->createUser($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);	
+		// Don't let them exceed permission level
+		if ($admin->Level < intval($level)) {
+			$level = $admin->Level;
+		}
+
+		$id = BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+			
 		if (!$id) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";

@@ -123,6 +123,17 @@
 
 		function __construct() {
 			global $bigtree;
+
+			// Handle authentication
+			$this->Auth = new BigTree\Auth;
+
+			// Backwards compatibility
+			$this->ID = $this->Auth->ID;
+			$this->User = $this->Auth->User;
+			$this->Level = $this->Auth->Level;
+			$this->Name = $this->Auth->Name;
+			$this->Permissions = $this->Auth->Permissions;
+
 			$extension_cache_file = SERVER_ROOT."cache/bigtree-extension-cache.json";
 
 			// Handle extension cache
@@ -139,7 +150,7 @@
 				foreach ($extension_ids as $extension_id) {
 					// Load up the manifest
 					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"),true);
-					if (is_array($manifest["plugins"])) {
+					if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
 						foreach ($manifest["plugins"] as $type => $list) {
 							foreach ($list as $id => $plugin) {
 								$plugins[$type][$extension_id][$id] = $plugin;
@@ -161,73 +172,6 @@
 			static::$DashboardPlugins["extension"] = $plugins["dashboard"];
 			static::$InterfaceTypes["extension"] = $plugins["interfaces"];
 			static::$ViewTypes["extension"] = $plugins["view-types"];
-
-			// Handle Login Session
-			if (isset($_SESSION["bigtree_admin"]["email"])) {
-				$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE id = ? AND email = ?",
-										   $_SESSION["bigtree_admin"]["id"],
-										   $_SESSION["bigtree_admin"]["email"]);
-				if ($user) {
-					$this->ID = $user["id"];
-					$this->User = $user["email"];
-					$this->Level = $user["level"];
-					$this->Name = $user["name"];
-					$this->Permissions = json_decode($user["permissions"],true);
-				}
-			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
-				// Get chain and session broken out
-				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"]);
-
-				// See if this is the current chain and session
-				$chain_entry = static::$DB->fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
-												  $_COOKIE["bigtree_admin"]["email"],$chain);
-				if ($chain_entry) {
-					// If both chain and session are legit, log them in
-					if ($chain_entry["id"] == $session) {
-						$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE email = ?",$_COOKIE["bigtree_admin"]["email"]);
-						if ($user) {
-							// Setup session
-							$this->ID = $user["id"];
-							$this->User = $user["email"];
-							$this->Level = $user["level"];
-							$this->Name = $user["name"];
-							$this->Permissions = json_decode($user["permissions"],true);
-							$_SESSION["bigtree_admin"]["id"] = $user["id"];
-							$_SESSION["bigtree_admin"]["email"] = $user["email"];
-							$_SESSION["bigtree_admin"]["name"] = $user["name"];
-							$_SESSION["bigtree_admin"]["level"] = $user["level"];
-
-							// Delete existing session
-							static::$DB->delete("bigtree_user_sessions",$session);
-							
-							// Generate a random session id
-							$session = uniqid("session-",true);
-							while (static::$DB->exists("bigtree_user_sessions",array("id" => $session))) {
-								$session = uniqid("session-",true);
-							}
-
-							// Create a new session with the same chain
-							static::$DB->insert("bigtree_user_sessions",array(
-								"id" => $session,
-								"chain" => $chain,
-								"email" => $this->User
-							));
-							BigTree::setCookie("bigtree_admin[login]",json_encode(array($session,$chain)),"+1 month");
-						}
-					// Chain is legit and session isn't -- someone has taken your cookies
-					} else {
-						// Delete existing cookies
-						BigTree::setCookie("bigtree_admin[login]","",time() - 3600);
-						BigTree::setCookie("bigtree_admin[email]","",time() - 3600);
-						
-						// Delete all sessions for this user
-						static::$DB->delete("bigtree_user_sessions",array("email" => $_COOKIE["bigtree_admin"]["email"]));
-					}
-				}
-
-				// Clean up
-				unset($user,$f,$session,$chain,$chain_entry);
-			}
 
 			// Check the permissions to see if we should show the pages tab.
 			if (!$this->Level) {
@@ -270,6 +214,7 @@
 		/*
 			Function: archivePage
 				Archives a page.
+				Checks permissions.
 
 			Parameters:
 				page - Either a page id or page entry.
@@ -353,37 +298,7 @@
 		*/
 
 		static function backupDatabase($file) {
-			if (!BigTree::isDirectoryWritable($file)) {
-				return false;
-			}
-
-			$pointer = fopen($file,"w");
-			fwrite($pointer,"SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
-			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
-
-			$tables = static::$DB->fetchAllSingle("SHOW TABLES");
-			foreach ($tables as $table) {				
-				// Write the drop / create statements
-				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
-				$definition = static::$DB->fetchSingle("SHOW CREATE TABLE `$table`");
-				if (is_array($definition)) {
-					fwrite($pointer, str_replace(array("\n  ", "\n"), "", end($definition)) . ";\n");
-				}
-
-				// Get all the table contents, write them out
-				$rows = BigTree::tableContents($table);
-				foreach ($rows as $row) {
-					fwrite($pointer,$row.";\n");
-				}
-				
-				// Separate it from the next table
-				fwrite($pointer,"\n");
-			}
-
-			fwrite($pointer,"SET foreign_key_checks = 1;");
-			fclose($pointer);
-
-			return true;
+			return static::$DB->backup($file);
 		}
 
 		/*
@@ -800,17 +715,7 @@
 		*/
 
 		function createCalloutGroup($name,$callouts) {
-			// Order callouts alphabetically by ID
-			sort($callouts);
-
-			// Insert group
-			$id = static::$DB->insert("bigtree_callout_groups",array(
-				"name" => BigTree::safeEncode($name),
-				"callouts" => $callouts
-			));
-
-			$this->track("bigtree_callout_groups",$id,"created");
-			return $id;
+			return BigTree\CalloutGroup::create($name,$callouts);
 		}
 
 		/*
@@ -1716,37 +1621,7 @@
 				return false;
 			}
 
-			// See if user exists already
-			if (static::$DB->exists("bigtree_users",array("email" => $email))) {
-				return false;
-			}
-
-			// Make sure level is numeric
-			$level = intval($level);
-
-			// Don't allow the level to be set higher than the logged in user's level
-			if ($level > $this->Level) {
-				$level = $this->Level;
-			}
-
-			// Hash the password.
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = $phpass->HashPassword(trim($password));
-
-			// Create the user
-			$id = static::$DB->insert("bigtree_users",array(
-				"email" => $email,
-				"password" => $password,
-				"name" => BigTree::safeEncode($name),
-				"company" => BigTree::safeEncode($company),
-				"level" => $level,
-				"permissions" => $permissions,
-				"alerts" => $alerts,
-				"daily_digest" => ($daily_digest ? "on" : "")
-			));
-
-			$this->track("bigtree_users",$id,"created");
-			return $id;
+			return BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
 		}
 
 		/*
@@ -1774,24 +1649,7 @@
 		*/
 
 		function deleteCallout($id) {
-			// Delete template file
-			unlink(SERVER_ROOT."templates/callouts/$id.php");
-
-			// Delete callout
-			static::$DB->delete("bigtree_callouts",$id);
-
-			// Remove the callout from any groups it lives in
-			$groups = static::$DB->fetchAll("SELECT id, callouts FROM bigtree_callout_groups WHERE callouts LIKE '%\"".static::$DB->escape($id)."\"%'");
-			foreach ($groups as $group) {
-				$callouts = array_filter((array)json_decode($group["callouts"],true));
-				// Remove this callout
-				$callouts = array_diff($callouts, array($id));
-				// Update DB
-				static::$DB->update("bigtree_callout_groups",$group["id"],array("callouts" => $callouts));
-			}
-
-			// Track deletion
-			$this->track("bigtree_callouts",$id,"deleted");
+			return BigTree\Callout::delete($id);
 		}
 
 		/*
@@ -1803,8 +1661,8 @@
 		*/
 
 		function deleteCalloutGroup($id) {
-			static::$DB->delete("bigtree_callout_groups",$id);
-			$this->track("bigtree_callout_groups",$id,"deleted");
+			$group = new BigTree\CalloutGroup($id);
+			$group->delete();
 		}
 
 		/*
@@ -2270,8 +2128,7 @@
 
 		/*
 			Function: deleteUser
-				Deletes a user.
-				Checks for developer access.
+				Deletes a user
 
 			Parameters:
 				id - The user id to delete.
@@ -2281,15 +2138,7 @@
 		*/
 
 		function deleteUser($id) {
-			// If this person has higher access levels than the person trying to update them, fail.
-			$current = static::getUser($id);
-			if ($current["level"] > $this->Level) {
-				return false;
-			}
-
-			static::$DB->delete("bigtree_users",$id);
-			$this->track("bigtree_users",$id,"deleted");
-			return true;
+			return BigTree\User::delete($id);
 		}
 
 		/*
@@ -2925,53 +2774,7 @@
 		*/
 
 		static function getCachedFieldTypes($split = false) {
-			// Used cached values if available, otherwise query the DB
-			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
-				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
-			} else {
-				$types = array();
-				$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = array(
-					"default" => array(
-						"text" => array("name" => "Text", "self_draw" => false),
-						"textarea" => array("name" => "Text Area", "self_draw" => false),
-						"html" => array("name" => "HTML Area", "self_draw" => false),
-						"upload" => array("name" => "Upload", "self_draw" => false),
-						"list" => array("name" => "List", "self_draw" => false),
-						"checkbox" => array("name" => "Checkbox", "self_draw" => false),
-						"date" => array("name" => "Date Picker", "self_draw" => false),
-						"time" => array("name" => "Time Picker", "self_draw" => false),
-						"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
-						"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
-						"callouts" => array("name" => "Callouts", "self_draw" => true),
-						"matrix" => array("name" => "Matrix", "self_draw" => true),
-						"one-to-many" => array("name" => "One to Many", "self_draw" => false)
-					),
-					"custom" => array()
-				);
-
-				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
-
-				$field_types = static::$DB->fetchAll("SELECT * FROM bigtree_field_types ORDER BY name");
-				foreach ($field_types as $field_type) {
-					$use_cases = json_decode($field_type["use_cases"],true);
-					foreach ((array)$use_cases as $case => $val) {
-						if ($val) {
-							$types[$case]["custom"][$field_type["id"]] = array("name" => $field_type["name"],"self_draw" => $field_type["self_draw"]);
-						}
-					}
-				}
-
-				BigTree::putFile(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
-			}
-
-			// Re-merge if we don't want them split
-			if (!$split) {
-				foreach ($types as $use_case => $list) {
-					$types[$use_case] = array_merge($list["default"],$list["custom"]);
-				}
-			}
-
-			return $types;
+			return BigTree\FieldType::reference($split);
 		}
 
 		/*
@@ -2986,13 +2789,7 @@
 		*/
 
 		static function getCallout($id) {
-			$callout = static::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?",$id);
-			if (!$callout) {
-				return false;
-			}
-
-			$callout["resources"] = json_decode($callout["resources"],true);
-			return $callout;
+			return BigTree\Callout::get($id);
 		}
 
 		/*
@@ -3007,13 +2804,8 @@
 		*/
 
 		static function getCalloutGroup($id) {
-			$group = static::$DB->fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?",$id);
-			if (!$group) {
-				return false;
-			}
-
-			$group["callouts"] = array_filter((array)json_decode($group["callouts"],true));
-			return $group;
+			$group = new BigTree\CalloutGroup($id);
+			return array("id" => $group->ID, "name" => $group->Name, "callouts" => $group->Callouts);
 		}
 
 		/*
@@ -3025,13 +2817,7 @@
 		*/
 
 		static function getCalloutGroups() {
-			$groups = static::$DB->fetchAll("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
-
-			foreach ($groups as &$group) {
-				$group["callouts"] = array_filter((array)json_decode($group["callouts"],true));
-			}
-
-			return $groups;
+			return BigTree\CalloutGroup::all();
 		}
 
 		/*
@@ -3046,11 +2832,11 @@
 		*/
 
 		static function getCallouts($sort = "position DESC, id ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_callouts ORDER BY $sort");
+			return BigTree\Callout::all();
 		}
 
 		/*
-			Function: getCalloutAllowed
+			Function: getCalloutsAllowed
 				Returns a list of callouts the logged-in user is allowed access to.
 
 			Parameters:
@@ -3061,7 +2847,7 @@
 		*/
 
 		function getCalloutsAllowed($sort = "position DESC, id ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $this->Level);
+			return BigTree\Callout::allAllowed();
 		}
 
 		/*
@@ -3077,28 +2863,7 @@
 		*/
 
 		function getCalloutsInGroups($groups,$auth = true) {
-			$ids = $callouts = $names = array();
-
-			foreach ($groups as $group_id) {
-				$group = $this->getCalloutGroup($group_id);
-
-				foreach ($group["callouts"] as $callout_id) {
-					// Only grab each callout once
-					if (!in_array($callout_id,$ids)) {
-						$callout = $this->getCallout($callout_id);
-						$ids[] = $callout_id;
-
-						// If we're looking at only the ones the user is allowed to access, check levels
-						if (!$auth || $this->Level >= $callout["level"]) {
-							$callouts[] = $callout;
-							$names[] = $callout["name"];
-						}
-					}
-				}
-			}
-			
-			array_multisort($names,$callouts);
-			return $callouts;
+			return BigTree\Callout::allInGroups($groups,$auth);
 		}
 
 		/*
@@ -4315,41 +4080,6 @@
 		}
 
 		/*
-			Function: getPageOfUsers
-				Returns a page of users.
-
-			Parameters:
-				page - The page of users to return.
-				query - Optional query string to search against.
-				sort - Order to sort the results by. Defaults to name ASC.
-
-			Returns:
-				An array of entries from bigtree_users.
-		*/
-
-		static function getPageOfUsers($page = 1,$query = "",$sort = "name ASC") {
-			// If we're searching.
-			if ($query) {
-				$string_parts = explode(" ",$query);
-				$query_parts = array();
-
-				foreach ($string_parts as $part) {
-					$part = static::$DB->escape($part);
-					$query_parts[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
-				}
-
-				return static::$DB->fetchAll("SELECT * FROM bigtree_users 
-											  WHERE ".implode(" AND ",$query_parts)." 
-											  ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
-			// If we're grabbing anyone.
-			} else {
-				return static::$DB->fetchAll("SELECT * FROM bigtree_users 
-											  ORDER BY $sort 
-											  LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
-			}
-		}
-
-		/*
 			Function: getPageRevision
 				Returns a version of a page from the bigtree_page_revisions table.
 
@@ -4922,7 +4652,7 @@
 		*/
 
 		function getResourceFolderPermission($folder) {
-			return BigTree\ResourceFolder::permission($folder);
+			return BigTree\ResourceFolder::access($folder);
 		}
 
 		/*
@@ -4971,7 +4701,7 @@
 		*/
 
 		function getSettings($sort = "name ASC") {
-			return BigTree\Setting::list($sort);
+			return BigTree\Setting::all($sort);
 		}
 
 		/*
@@ -5045,14 +4775,7 @@
 		*/
 
 		static function getUser($id) {
-			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE id = ?", $id);
-			if (!$user) {
-				return false;
-			}
-
-			$user["permissions"] = json_decode($user["permissions"],true);
-			$user["alerts"] = json_decode($user["alerts"],true);
-			return $user;
+			return BigTree\User::get($id);
 		}
 
 		/*
@@ -5067,7 +4790,7 @@
 		*/
 
 		static function getUserByEmail($email) {
-			return static::$DB->fetch("SELECT * FROM bigtree_users WHERE email = ?", $email);
+			return BigTree\User::getByEmail($email);
 		}
 
 		/*
@@ -5082,7 +4805,7 @@
 		*/
 
 		static function getUserByHash($hash) {
-			return static::$DB->fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?", $hash);
+			return BigTree\User::getByHash($hash);
 		}
 
 		/*
@@ -5098,51 +4821,7 @@
 		*/
 
 		static function getUsers($sort = "name ASC") {
-			$users = static::$DB->fetchAll("SELECT * FROM bigtree_users ORDER BY $sort");
-			$user_array = array();
-
-			// Get the keys all nice
-			foreach ($users as $user) {
-				$user_array[$user["id"]] = $user;
-			}
-
-			return $user_array;
-		}
-
-		/*
-			Function: getUsersPageCount
-				Returns the number of pages of users.
-
-			Parameters:
-				query - Optional query string to search against.
-
-			Returns:
-				The number of pages of results.
-		*/
-
-		static function getUsersPageCount($query = "") {
-			// If we're searching.
-			if ($query) {
-				$string_parts = explode(" ",$query);
-				$query_parts = array();
-
-				foreach ($string_parts as $part) {
-					$part = static::$DB->escape($part);
-					$query_parts[] = "(name LIKE '%$part%' OR email LIKE '%$part%' OR company LIKE '%$part%')";
-				}
-
-				$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_users WHERE ".implode(" AND ",$query_parts));			
-			// If we're showing all.
-			} else {
-				$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_users");
-			}
-
-			$pages = ceil($count / static::$PerPage);
-			if ($pages == 0) {
-				$pages = 1;
-			}
-
-			return $pages;
+			return BigTree\User::all($sort);
 		}
 
 		/*
@@ -5485,35 +5164,7 @@
 		*/
 
 		static function iplExists($ipl) {
-			$ipl = explode("//",$ipl);
-
-			// See if the page it references still exists.
-			$nav_id = $ipl[1];
-			if (!static::$DB->exists("bigtree_pages",$nav_id)) {
-				return false;
-			}
-
-			// Decode the commands attached to the page
-			$commands = json_decode(base64_decode($ipl[2]),true);
-			// If there are no commands, we're good.
-			if (empty($commands[0])) {
-				return true;
-			}
-			// If it's a hash tag link, we're also good.
-			if (substr($commands[0],0,1) == "#") {
-				return true;
-			}
-			// Get template for the navigation id to see if it's a routed template
-			$routed = static::$DB->fetchSingle("SELECT bigtree_templates.routed FROM bigtree_templates JOIN bigtree_pages 
-												ON bigtree_templates.id = bigtree_pages.template 
-												WHERE bigtree_pages.id = ?", $nav_id);
-			// If we're a routed template, we're good.
-			if ($routed) {
-				return true;
-			}
-
-			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
-			return false;
+			return BigTree\Link::iplExists($ipl);
 		}
 
 		/*
@@ -5528,8 +5179,7 @@
 		*/
 
 		static function irlExists($irl) {
-			$irl = explode("//",$irl);
-			return static::getResource($irl[1]) ? true : false;
+			return BigTree\Link::irlExists($irl);
 		}
 
 		/*
@@ -5596,128 +5246,11 @@
 				stay_logged_in - Whether to set a cookie to keep the user logged in.
 
 			Returns:
-				false if login failed, otherwise redirects back to the page the person requested.
+				false if login failed, true if successful
 		*/
 
-		static function login($email,$password,$stay_logged_in = false) {
-			global $bigtree;
-
-			// Check to see if this IP is already banned from logging in.
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-			$ban = static::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = ?", $ip);
-			if ($ban) {
-				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
-				$bigtree["ban_is_user"] = false;
-				return false;
-			}
-
-			// Get rid of whitespace and make the email lowercase for consistency
-			$email = trim(strtolower($email));
-			$password = trim($password);
-			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
-
-			// If the user doesn't exist, fail immediately
-			if (!$user) {
-				return false;
-			}
-
-			// See if this user is banned due to failed login attempts
-			$ban = static::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = ?", $user["id"]);
-			if ($ban) {
-				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
-				$bigtree["ban_is_user"] = true;
-				return false;
-			}
-
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"],true);
-
-			// Verify password
-			if ($phpass->CheckPassword($password,$user["password"])) {
-				// Generate random session and chain ids
-				$chain = static::$DB->unique("bigtree_user_sessions","chain",uniqid("chain-",true));
-				$session = static::$DB->unique("bigtree_user_sessions","id",uniqid("session-",true));
-
-				// Create the new session chain
-				static::$DB->insert("bigtree_user_sessions",array(
-					"id" => $session,
-					"chain" => $chain,
-					"email" => $user["email"]
-				));
-
-				// We still set the email for BigTree bar usage even if they're not being "remembered"
-				setcookie('bigtree_admin[email]',$user["email"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
-				if ($stay_logged_in) {
-					setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
-				}
-
-				$_SESSION["bigtree_admin"]["id"] = $user["id"];
-				$_SESSION["bigtree_admin"]["email"] = $user["email"];
-				$_SESSION["bigtree_admin"]["level"] = $user["level"];
-				$_SESSION["bigtree_admin"]["name"] = $user["name"];
-				$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"],true);
-
-				if (isset($_SESSION["bigtree_login_redirect"])) {
-					BigTree::redirect($_SESSION["bigtree_login_redirect"]);
-				} else {
-					BigTree::redirect(ADMIN_ROOT);
-				}
-
-			// Failed login attempt, log it.
-			} else {
-				// Log it as a failed attempt for a user if the email address matched
-				static::$DB->insert("bigtree_login_attempts",array(
-					"ip" => $ip,
-					"user" => $user ? "'".$user["id"]."'" : null
-				));
-
-				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
-				if ($user["id"] && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
-					$policy = $bigtree["security-policy"]["user_fails"];
-					$attempts = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
-														  WHERE `user` = ? AND 
-														  		`timestamp` >= DATE_SUB(NOW(),INTERVAL ".$policy["time"]." MINUTE)", $user);
-					// Earned a ban
-					if ($attempts >= $policy["count"]) {
-						// See if they have an existing ban that hasn't expired, if so, extend it
-						$existing_ban = static::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `user` = ? AND expires >= NOW()", $user);
-						if ($existing_ban) {
-							static::$DB->query("UPDATE bigtree_login_bans 
-												SET expires = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE) 
-												WHERE id = ?", $existing_ban["id"]);
-						} else {
-							static::$DB->query("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) 
-												VALUES (?, ?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE))", $ip, $user);
-						}
-						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$policy["ban"]." minutes"));
-						$bigtree["ban_is_user"] = true;
-					}
-				}
-
-				// See if this attempt earns the IP as a whole a ban - first verify the policy is completely filled out (3 parts)
-				if (count(array_filter((array)$bigtree["security-policy"]["ip_fails"])) == 3) {
-					$policy = $bigtree["security-policy"]["ip_fails"];
-					$attempts = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
-														  WHERE `ip` = ? AND 
-														  		`timestamp` >= DATE_SUB(NOW(),INTERVAL ".$policy["time"]." MINUTE)", $ip);
-					// Earned a ban
-					if ($attempts >= $policy["count"]) {
-						$existing_ban = static::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `ip` = ? AND expires >= NOW()", $ip);
-						if ($existing_ban) {
-							static::$DB->query("UPDATE bigtree_login_bans 
-												SET expires = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR) 
-												WHERE id = ?", $existing_ban["id"]);
-						} else {
-							static::$DB->query("INSERT INTO bigtree_login_bans (`ip`,`expires`) 
-												VALUES (?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR))", $ip);
-						}
-						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$policy["ban"]." hours"));
-						$bigtree["ban_is_user"] = false;
-					}
-				}
-
-				return false;
-			}
-			return true;
+		function login($email,$password,$stay_logged_in = false) {
+			return $this->Auth->login($email,$password,$stay_logged_in);
 		}
 
 		/*
@@ -5727,11 +5260,7 @@
 		*/
 
 		static function logout() {
-			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			unset($_COOKIE["bigtree_admin"]);
-			unset($_SESSION["bigtree_admin"]);
-			BigTree::redirect(ADMIN_ROOT);
+			$this->Auth->logout();
 		}
 
 		/*
@@ -6730,7 +6259,7 @@
 		*/
 
 		static function setCalloutPosition($id,$position) {
-			static::$DB->update("bigtree_callouts",$id,array("position" => $position));
+			BigTree\Callout::setPosition($id,$position);
 		}
 
 		/*
@@ -6797,7 +6326,7 @@
 		*/
 
 		static function setPasswordHashForUser($user) {
-			static::$DB->update("bigtree_users",$user["id"],array("change_password_hash" => md5(microtime().$user["password"])));
+			return BigTree\User::setPasswordHash($user);
 		}
 
 		/*
@@ -7134,30 +6663,7 @@
 		*/
 
 		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
-			$clean_resources = array();
-			foreach ($resources as $resource) {
-				// "type" is still a reserved keyword due to the way we save callout data when editing.
-				if ($resource["id"] && $resource["id"] != "type") {
-					$clean_resources[] = array(
-						"id" => BigTree::safeEncode($resource["id"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"title" => BigTree::safeEncode($resource["title"]),
-						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => json_decode($resource["options"],true)
-					);
-				}
-			}
-
-			static::$DB->update("bigtree_callouts",$id,array(
-				"resources" => $clean_resources,
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
-				"level" => $level,
-				"display_field" => $display_field,
-				"display_default" => $display_default
-			));
-
-			$this->track("bigtree_callouts",$id,"updated");
+			return BigTree\Callout::update($id,$name,$description,$level,$resources,$display_field,$display_default);
 		}
 
 		/*
@@ -7171,14 +6677,8 @@
 		*/
 
 		function updateCalloutGroup($id,$name,$callouts) {
-			sort($callouts);
-
-			static::$DB->update("bigtree_callout_groups",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"callouts" => $callouts
-			));
-
-			$this->track("bigtree_callout_groups",$id,"updated");
+			$group = new BigTree\CalloutGroup($id);
+			$group->update($name,$callouts);
 		}
 
 		/*
@@ -8017,48 +7517,7 @@
 				}
 			}
 
-			// See if there's an email collission
-			if (static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_users WHERE email = ? AND id != ?", $email, $id)) {
-				return false;
-			}
-
-			// Going to do permission checks
-			$level = intval($level);
-
-			// If this person has higher access levels than the person trying to update them, fail.
-			$current = static::getUser($id);
-			if ($current["level"] > $this->Level) {
-				return false;
-			}
-
-			// If the user is editing themselves, they can't change the level.
-			if ($this->ID == $current["id"]) {
-				$level = $current["level"];
-			}
-
-			// Don't allow the level to be set higher than the logged in user's level
-			if ($level > $this->Level) {
-				$level = $this->Level;
-			}
-
-			$update_values = array(
-				"email" => $email,
-				"name" => BigTree::safeEncode($name),
-				"company" => BigTree::safeEncode($company),
-				"level" => $level,
-				"permissions" => $permissions,
-				"alerts" => $alerts,
-				"daily_digest" => $daily_digest ? "on" : ""
-			);
-
-			if ($password) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$update_values["password"] = $phpass->HashPassword(trim($password));
-			}
-
-			static::$DB->update("bigtree_users",$id,$update_values);
-			$this->track("bigtree_users",$id,"updated");
-			return true;
+			return BigTree\User::update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
 		}
 
 		/*
@@ -8071,10 +7530,7 @@
 		*/
 
 		static function updateUserPassword($id,$password) {
-			global $bigtree;
-
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			static::$DB->update("bigtree_users",$id,array("password" => $phpass->HashPassword(trim($password))));
+			BigTree\User::updatePassword($id,$password);
 		}
 
 		/*
@@ -8089,29 +7545,7 @@
 		*/
 
 		static function validatePassword($password) {
-			global $bigtree;
-
-			$policy = $bigtree["security-policy"]["password"];
-			$failed = false;
-
-			// Check length policy
-			if ($policy["length"] && strlen($password) < $policy["length"]) {
-				$failed = true;
-			}
-			// Check case policy
-			if ($policy["multicase"] && strtolower($password) === $password) {
-				$failed = true;
-			}
-			// Check numeric policy
-			if ($policy["numbers"] && !preg_match("/[0-9]/",$password)) {
-				$failed = true;
-			}
-			// Check non-alphanumeric policy
-			if ($policy["nonalphanumeric"] && ctype_alnum($password)) {
-				$failed = true;
-			}
-
-			return !$failed;
+			return BigTree\User::validatePassword($password);
 		}
 
 		/*

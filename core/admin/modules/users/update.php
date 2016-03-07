@@ -18,14 +18,34 @@
 			BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
 		}
 
-		$perms = json_decode($_POST["permissions"],true);
-		$_POST["permissions"] = array("page" => $perms["Page"],"module" => $perms["Module"],"resources" => $perms["Resource"],"module_gbp" => $perms["ModuleGBP"]);
-		$_POST["alerts"] = json_decode($_POST["alerts"],true);
-		$success = $admin->updateUser($id,$_POST);
+		// Check permission level
+		$error = false;
+		$user = BigTree\User::get($id);
+
+		if ($user["level"] <= $admin->Level) {
+			$error = "level";
+		} elseif ($id == $admin->ID && intval($level) != $admin->Level) {
+			$error = "level";
+		}
+
+		if (!$error) {
+			$permission_data = json_decode($_POST["permissions"],true);
+			$permissions = $_POST["permissions"] = array(
+				"page" => $permission_data["Page"],
+				"module" => $perms["Module"],
+				"resources" => $perms["Resource"],
+				"module_gbp" => $perms["ModuleGBP"]
+			);
+			$alerts = $_POST["alerts"] = json_decode($_POST["alerts"],true);
+			
+			if (!BigTree\User::update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest) {
+				$error = "email";
+			}
+		}
 		
-		if (!$success) {
+		if ($error) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
-			$_SESSION["bigtree_admin"]["update_user"]["error"] = "email";
+			$_SESSION["bigtree_admin"]["update_user"]["error"] = $error;
 			$admin->growl("Users","Update Failed","error");
 			BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
 		}

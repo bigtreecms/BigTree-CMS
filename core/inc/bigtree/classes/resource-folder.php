@@ -11,6 +11,62 @@
 	class ResourceFolder {
 
 		/*
+			Function: access
+				Returns the access level of the current user for the folder.
+				Can only be called within admin context.
+
+			Parameters:
+				folder - The id of a folder or a folder entry.
+
+			Returns:
+				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
+		*/
+
+		function access($folder) {
+			global $admin;
+
+			if (!$admin || get_class($admin) != "BigTreeAdmin") {
+				return false;
+			}
+
+			// User is an admin or developer
+			if ($admin->Level > 0) {
+				return "p";
+			}
+
+			// We're going to save the folder entry in case we need its parent later.
+			if (is_array($folder)) {
+				$id = $folder["id"];
+			} else {
+				$id = $folder;
+			}
+
+			$p = $admin->Permissions["resources"][$id];
+			// If p is already no, creator, or consumer we can just return it.
+			if ($p && $p != "i") {
+				return $p;
+			} else {
+				// If folder is 0, we're already at home and can't check a higher folder for permissions.
+				if (!$folder) {
+					return "e";
+				}
+
+				// If a folder entry wasn't passed in, we need it to find its parent.
+				if (!is_array($folder)) {
+					$folder = static::$DB->fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
+				}
+
+				// If we couldn't find the folder anymore, just say they can consume.
+				if (!$folder) {
+					return "e";
+				}
+
+				// Return the parent's permissions
+				return $this->getResourceFolderPermission($folder["parent"]);
+			}
+		}
+
+		/*
 			Function: breadcrumb
 				Returns a breadcrumb of the given folder.
 
@@ -175,61 +231,5 @@
 			}
 
 			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
-		}
-
-		/*
-			Function: permission
-				Returns the permission level of the current user for the folder.
-				Can only be called within admin context.
-
-			Parameters:
-				folder - The id of a folder or a folder entry.
-
-			Returns:
-				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
-		*/
-
-		function permission($folder) {
-			global $admin;
-
-			if (!$admin || get_class($admin) != "BigTreeAdmin") {
-				return false;
-			}
-
-			// User is an admin or developer
-			if ($admin->Level > 0) {
-				return "p";
-			}
-
-			// We're going to save the folder entry in case we need its parent later.
-			if (is_array($folder)) {
-				$id = $folder["id"];
-			} else {
-				$id = $folder;
-			}
-
-			$p = $admin->Permissions["resources"][$id];
-			// If p is already no, creator, or consumer we can just return it.
-			if ($p && $p != "i") {
-				return $p;
-			} else {
-				// If folder is 0, we're already at home and can't check a higher folder for permissions.
-				if (!$folder) {
-					return "e";
-				}
-
-				// If a folder entry wasn't passed in, we need it to find its parent.
-				if (!is_array($folder)) {
-					$folder = static::$DB->fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
-				}
-
-				// If we couldn't find the folder anymore, just say they can consume.
-				if (!$folder) {
-					return "e";
-				}
-
-				// Return the parent's permissions
-				return $this->getResourceFolderPermission($folder["parent"]);
-			}
 		}
 	}

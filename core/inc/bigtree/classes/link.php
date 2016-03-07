@@ -205,7 +205,7 @@
 				// Set the cache
 				static::$IPLCache[$navid] = WWW_ROOT.$path;
 
-				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
 					return WWW_ROOT.$path."/".$commands;
 				} else {
 					return WWW_ROOT.$path;
@@ -249,6 +249,65 @@
 			}
 
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
+		}
+
+		/*
+			Function: iplExists
+				Determines whether an internal page link still exists or not.
+
+			Parameters:
+				ipl - An internal page link
+
+			Returns:
+				True if it is still a valid link, otherwise false.
+		*/
+
+		static function iplExists($ipl) {
+			$ipl = explode("//",$ipl);
+
+			// See if the page it references still exists.
+			$nav_id = $ipl[1];
+			if (!BigTreeCMS::$DB->exists("bigtree_pages",$nav_id)) {
+				return false;
+			}
+
+			// Decode the commands attached to the page
+			$commands = json_decode(base64_decode($ipl[2]),true);
+			// If there are no commands, we're good.
+			if (empty($commands[0])) {
+				return true;
+			}
+			// If it's a hash tag link, we're also good.
+			if (substr($commands[0],0,1) == "#") {
+				return true;
+			}
+			// Get template for the navigation id to see if it's a routed template
+			$routed = BigTreeCMS::$DB->fetchSingle("SELECT bigtree_templates.routed FROM bigtree_templates JOIN bigtree_pages 
+													ON bigtree_templates.id = bigtree_pages.template 
+													WHERE bigtree_pages.id = ?", $nav_id);
+			// If we're a routed template, we're good.
+			if ($routed) {
+				return true;
+			}
+
+			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
+			return false;
+		}
+
+		/*
+			Function: irlExists
+				Determines whether an internal resource link still exists or not.
+
+			Parameters:
+				irl - An internal resource link
+
+			Returns:
+				True if it is still a valid link, otherwise false.
+		*/
+
+		static function irlExists($irl) {
+			$irl = explode("//",$irl);
+			return BigTree\Resource::get($irl[1]) ? true : false;
 		}
 
 		/*

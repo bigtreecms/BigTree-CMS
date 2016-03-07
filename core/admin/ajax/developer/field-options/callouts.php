@@ -1,5 +1,6 @@
 <?php
-	$groups = $admin->getCalloutGroups();
+	$groups = BigTree\CalloutGroup::list();
+
 	// Stop notices
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();
 	$data["verb"] = isset($data["verb"]) ? $data["verb"] : "";
@@ -20,11 +21,11 @@
 			<?php
 				$x = 0;
 				foreach ($data["groups"] as $id) {
-					$group = $admin->getCalloutGroup($id);
+					$group = new BigTree\CalloutGroup($id);
 			?>
 			<li>
-				<input type="hidden" name="groups[<?=$x?>]" value="<?=$group["id"]?>" />
-				<p><?=$group["name"]?></p>
+				<input type="hidden" name="groups[<?=$x?>]" value="<?=$group->ID?>" />
+				<p><?=$group->Name?></p>
 				<a href="#" class="icon_delete"></a>
 			</li>
 			<?php
@@ -36,9 +37,9 @@
 			<select>
 				<?php
 					foreach ($groups as $group) {
-						if (!in_array($group["id"],$data["groups"])) {
+						if (!in_array($group->ID,$data["groups"])) {
 				?>
-				<option value="<?=$group["id"]?>"><?=$group["name"]?></option>
+				<option value="<?=$group->ID?>"><?=$group->Name?></option>
 				<?php
 						}
 					}

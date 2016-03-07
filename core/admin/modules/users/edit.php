@@ -163,7 +163,7 @@
 				</fieldset>
 
 				<?php if ($user["id"] != $admin->ID) { ?>
-				<fieldset>
+				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> >
 					<label class="required">User Level</label>
 					<select name="level" tabindex="5" id="user_level">
 						<option value="0"<?php if ($user["level"] == "0") { ?> selected="selected"<?php } ?>>Normal User</option>

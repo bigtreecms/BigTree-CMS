@@ -850,4 +850,9 @@
 		$db->query("CREATE INDEX `name` ON `bigtree_extensions` (`name`)");
 		$db->query("CREATE INDEX `last_updated` ON `bigtree_extensions` (`last_updated`)");
 		$db->query("CREATE INDEX `name` ON `bigtree_feeds` (`name`)");
+
+		// Add user table references
+		$db->query("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");
+		$db->query("ALTER TABLE `bigtree_login_attempts` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");
+		$db->query("ALTER TABLE `bigtree_login_bans` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");
 	}

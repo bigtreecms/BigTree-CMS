@@ -6,10 +6,40 @@
 
 	namespace BigTree;
 
+	use BigTree;
 	use BigTreeCMS;
 	use BigTreeAdmin;
 
 	class Setting {
+
+		/*
+			Function: all
+				Returns a list of all settings that the logged in user has access to.
+
+			Parameters:
+				sort - Order to return the settings. Defaults to name ASC.
+
+			Returns:
+				An array of entries from bigtree_settings.
+				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
+				If the calling user is a developer, returns locked settings, otherwise they are left out.
+		*/
+
+		static function all($sort = "name ASC") {
+			$lock_check = ($this->Level < 2) ? "locked = '' AND " : "";
+
+			$settings = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE $lock_check system = '' ORDER BY $sort");
+			foreach ($settings as &$setting) {
+				if ($setting["encrypted"] == "on") {
+					$setting["value"] = "[Encrypted Text]";
+				} else {
+					$setting["value"] = json_decode($setting["value"],true);
+				}
+				$setting = BigTree::untranslateArray($setting);
+			}
+
+			return $settings;
+		}
 
 		/*
 			Function: context
@@ -123,7 +153,7 @@
 				id - The id of the setting.
 		*/
 
-		function delete($id) {
+		static function delete($id) {
 			// Grab extension based ID if we're calling from an extension
 			$id = static::context($id);
 
@@ -193,35 +223,6 @@
 		}
 
 		/*
-			Function: list
-				Returns a list of all settings that the logged in user has access to.
-
-			Parameters:
-				sort - Order to return the settings. Defaults to name ASC.
-
-			Returns:
-				An array of entries from bigtree_settings.
-				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
-				If the calling user is a developer, returns locked settings, otherwise they are left out.
-		*/
-
-		function list($sort = "name ASC") {
-			$lock_check = ($this->Level < 2) ? "locked = '' AND " : "";
-
-			$settings = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE $lock_check system = '' ORDER BY $sort");
-			foreach ($settings as &$setting) {
-				if ($setting["encrypted"] == "on") {
-					$setting["value"] = "[Encrypted Text]";
-				} else {
-					$setting["value"] = json_decode($setting["value"],true);
-				}
-				$setting = BigTree::untranslateArray($setting);
-			}
-
-			return $settings;
-		}
-
-		/*
 			Function: update
 				Updates a setting.
 
@@ -240,7 +241,7 @@
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		function update($old_id,$id,$type = "",$options = array(),$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
+		static function update($old_id,$id,$type = "",$options = array(),$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
 			global $bigtree;
 
 			// Allow for pre-4.3 parameter syntax
@@ -312,7 +313,7 @@
 			if (is_array($value)) {
 				$value = BigTree::translateArray($value);
 			} else {
-				$value = static::autoIPL($value);
+				$value = Link::encode($value);
 			}
 
 			if ($item["encrypted"]) {
@@ -365,7 +366,7 @@
 					if (is_array($value)) {
 						$setting_values[$id] = BigTree::untranslateArray($value);
 					} else {
-						$setting_values[$id] = BigTree\Link::parseHTML($value);
+						$setting_values[$id] = Link::decode($value);
 					}
 				}
 			}
