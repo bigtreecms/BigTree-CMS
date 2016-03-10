@@ -25,7 +25,7 @@
 			</select>
 		</fieldset>
 		<fieldset>
-			<label class="required">Default Display Label <small>(displays if no resources are assigned as "Label")</small></label>
+			<label class="required">Default Display Label <small>(displays if no fields are assigned as "Label")</small></label>
 			<input type="text" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
@@ -37,59 +37,59 @@
 	</div>
 </section>
 <section class="sub">
-	<label>Resources <small>("type", "display_field", "display_title", and "display_default" are all reserved IDs &mdash; any resources with these IDs will be removed)</small></label>
+	<label>Fields <small>("type", "display_field", "display_title", and "display_default" are all reserved IDs &mdash; any fields with these IDs will be removed)</small></label>
 	<div class="form_table">
 		<header>
-			<a href="#" class="add_resource add"><span></span>Add Resource</a>
+			<a href="#" class="add_field add"><span></span>Add Field</a>
 			<a href="#" class="button clear_label"><span></span> Clear Label</a>
 		</header>
 		<div class="labels">
-			<span class="developer_resource_callout_id">ID</span>
-			<span class="developer_resource_callout_title">Title</span>
-			<span class="developer_resource_callout_subtitle">Subtitle</span>
-			<span class="developer_resource_type">Type</span>
-			<span class="developer_resource_display_title">Label</span>
-			<span class="developer_resource_action right">Delete</span>
+			<span class="developer_field_callout_id">ID</span>
+			<span class="developer_field_callout_title">Title</span>
+			<span class="developer_field_callout_subtitle">Subtitle</span>
+			<span class="developer_field_type">Type</span>
+			<span class="developer_field_display_title">Label</span>
+			<span class="developer_field_action right">Delete</span>
 		</div>
-		<ul id="resource_table">
+		<ul id="field_table">
 			<?php
 				$x = 0;
-				foreach ($resources as $resource) {
+				foreach ($fields as $field) {
 					$x++;
 			?>
 			<li>
-				<section class="developer_resource_callout_id">
+				<section class="developer_field_callout_id">
 					<span class="icon_sort"></span>
-					<input type="text" name="resources[<?=$x?>][id]" value="<?=$resource["id"]?>" />
+					<input type="text" name="fields[<?=$x?>][id]" value="<?=$field["id"]?>" />
 				</section>
-				<section class="developer_resource_callout_title">
-					<input type="text" name="resources[<?=$x?>][title]" value="<?=$resource["title"]?>" />
+				<section class="developer_field_callout_title">
+					<input type="text" name="fields[<?=$x?>][title]" value="<?=$field["title"]?>" />
 				</section>
-				<section class="developer_resource_callout_subtitle">
-					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=$resource["subtitle"]?>" />
+				<section class="developer_field_callout_subtitle">
+					<input type="text" name="fields[<?=$x?>][subtitle]" value="<?=$field["subtitle"]?>" />
 				</section>
-				<section class="developer_resource_type">
-					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
+				<section class="developer_field_type">
+					<select name="fields[<?=$x?>][type]" id="type_<?=$x?>">
 						<optgroup label="Default">
 							<?php foreach ($types["default"] as $k => $v) { ?>
-							<option value="<?=$k?>"<?php if ($k == $resource["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
+							<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
 							<?php } ?>
 						</optgroup>
 						<?php if (count($types["custom"])) { ?>
 						<optgroup label="Custom">
 							<?php foreach ($types["custom"] as $k => $v) { ?>
-							<option value="<?=$k?>"<?php if ($k == $resource["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
+							<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
 							<?php } ?>
 						</optgroup>
 						<?php } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>
-					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource["options"]))?>" id="options_<?=$x?>" />
+					<input type="hidden" name="fields[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($field["options"]))?>" id="options_<?=$x?>" />
 				</section>
-				<section class="developer_resource_display_title">
-					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<?php if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
+				<section class="developer_field_display_title">
+					<input type="radio" name="display_field" value="<?=$field["id"]?>" id="display_title_<?=$x?>"<?php if ($display_field == $field["id"]) echo ' checked="checked"'; ?> />
 				</section>
-				<section class="developer_resource_action right">
+				<section class="developer_field_action right">
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>

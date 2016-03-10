@@ -1,8 +1,9 @@
 <?php
-	$id = end($bigtree["path"]);
-	$page = $cms->getPage($id,false);
-	$access = $admin->archivePage($id);
+	$page = new BigTree\Page(end($bigtree["path"]));
 	
-	$admin->growl("Pages","Archived Page");
+	if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
+		$page->archive();
+		$admin->growl("Pages","Archived Page");
+	}
 
 	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$page["parent"]."/");

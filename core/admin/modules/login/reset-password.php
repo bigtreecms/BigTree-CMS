@@ -8,7 +8,14 @@
 		} elseif ($_POST["password"] != $_POST["confirm_password"]) {
 			$failure = "match";
 		} else {
-			if ($admin->changePassword(end($bigtree["path"]),$_POST["password"])) {
+			$user = BigTree\User::getByHash(end($bigtree["path"]));
+			if ($user) {
+				$user->ChangePasswordHash = "";
+				$user->Password = $_POST["password"];
+				
+				$user->save();
+				$user->removeBans();
+
 				BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 			}
 		}

@@ -3,9 +3,9 @@
 	BigTreeTable({
 		container: "#callout_groups_table",
 		title: "Callout Groups",
-		data: <?=BigTree::jsonExtract(BigTree\CalloutGroup::list(),array("Name","ID"))?>,
+		data: <?=BigTree::jsonExtract(BigTree\CalloutGroup::all(true),array("name","id"))?>,
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>callouts/groups/edit/{ID}/",
+			edit: "<?=DEVELOPER_ROOT?>callouts/groups/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
 					title: "Delete Callout Group",
@@ -19,7 +19,7 @@
 			}
 		},
 		columns: {
-			Name: { title: "Group Name", largeFont: true, actionHook: "edit" }
+			name: { title: "Group Name", largeFont: true, actionHook: "edit" }
 		},
 		searchable: true
 	});

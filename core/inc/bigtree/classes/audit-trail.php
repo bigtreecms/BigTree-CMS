@@ -6,6 +6,7 @@
 
 	namespace BigTree;
 	
+	use BigTreeAdmin;
 	use BigTreeCMS;
 
 	class AuditTrail {
@@ -25,7 +26,7 @@
 
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$admin->DB->insert("bigtree_audit_trail",array(
+				BigTreeAdmin::$DB->insert("bigtree_audit_trail",array(
 					"table" => $table,
 					"user" => $admin->ID,
 					"entry" => $entry,

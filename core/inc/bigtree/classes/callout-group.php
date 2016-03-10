@@ -1,3 +1,4 @@
+
 <?php
 	/*
 		Class: BigTree\CalloutGroup
@@ -6,9 +7,10 @@
 
 	namespace BigTree;
 
+	use BigTree;
 	use BigTreeCMS;
 
-	class CalloutGroup {
+	class CalloutGroup extends BaseObject {
 
 		protected $ID; // This shouldn't be editable from outside the class instance
 
@@ -20,7 +22,8 @@
 				Builds a CalloutGroup object referencing an existing database entry.
 
 			Parameters:
-				group - Either an ID (to pull a record) or an array (to use the array as the record)
+				group - Either an ID (t
+				o pull a record) or an array (to use the array as the record)
 		*/
 
 		function __construct($group) {
@@ -40,30 +43,24 @@
 		}
 
 		/*
-			Get Magic Method:
-				Allows retrieval of the write-protected ID property.
-		*/
-
-		function __get($property) {
-			if ($property == "ID") {
-				return $this->ID;
-			}
-		}
-
-		/*
 			Function: all
 				Returns an array of callout groups sorted by name.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
 
 			Returns:
 				An array of BigTree\CalloutGroup objects.
 		*/
 
-		static function all() {
+		static function all($return_arrays = false) {
 			$groups = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
 
 			// Convert to objects
-			foreach ($groups as &$group) {
-				$group = new CalloutGroup($group);
+			if (!$return_arrays) {
+				foreach ($groups as &$group) {
+					$group = new CalloutGroup($group);
+				}
 			}
 
 			return $groups;
@@ -81,7 +78,7 @@
 				The id of the newly created group.
 		*/
 
-		static function create($name,$callouts) {
+		static function create($name,$callouts = array()) {
 			// Order callouts alphabetically by ID
 			sort($callouts);
 
@@ -91,9 +88,9 @@
 				"callouts" => $callouts
 			));
 
-			BigTree\AuditTrail::track("bigtree_callout_groups",$id,"created");
+			AuditTrail::track("bigtree_callout_groups",$id,"created");
 
-			return new BigTree\CalloutGroup($id);
+			return new CalloutGroup($id);
 		}
 
 		/*
@@ -106,7 +103,7 @@
 
 		function delete() {
 			BigTreeCMS::$DB->delete("bigtree_callout_groups",$this->ID);
-			BigTree\AuditTrail::track("bigtree_callout_groups",$this->ID,"deleted");
+			AuditTrail::track("bigtree_callout_groups",$this->ID,"deleted");
 		}
 
 		/*
@@ -115,12 +112,15 @@
 		*/
 
 		function save() {
+			$this->Callouts = (array)$this->Callouts;
+			sort($this->Callouts);
+
 			BigTreeCMS::$DB->update("bigtree_callout_groups",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"callouts" => $this->Callouts
 			));
 
-			BigTree\AuditTrail::track("bigtree_callout_groups",$this->ID,"updated");
+			AuditTrail::track("bigtree_callout_groups",$this->ID,"updated");
 		}
 
 		/*
@@ -133,8 +133,6 @@
 		*/
 
 		function update($name,$callouts) {
-			sort($callouts);
-
 			$this->Name = $name;
 			$this->Callouts = $callouts;
 			$this->save();

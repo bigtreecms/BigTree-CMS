@@ -42,11 +42,9 @@
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					$bigtree["tabindex"] = 1;
-					$bigtree["field_namespace"] = uniqid("form_field_");
-					$bigtree["field_counter"] = 0;
-	
-					$cached_types = $admin->getCachedFieldTypes();
-					$bigtree["field_types"] = $cached_types["modules"];
+					$bigtree["field_types"] = BigTree\FieldType::reference(false,"modules");
+
+					BigTree\Field::$Namespace = uniqid("form_field_");
 	
 					foreach ($bigtree["form"]["fields"] as $resource) {
 						if (is_array($resource)) {
@@ -64,8 +62,9 @@
 							if ($resource["type"] == "many-to-many") {
 								$field["value"] = isset($bigtree["many-to-many"][$resource["column"]]) ? $bigtree["many-to-many"][$resource["column"]]["data"] : false;
 							}
-	
-							BigTreeAdmin::drawField($field);
+		
+							$field = new BigTree\Field($field);
+							$field->draw();
 						}
 					}
 				?>

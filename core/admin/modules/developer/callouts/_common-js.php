@@ -5,12 +5,12 @@
 <script>
 	(function() {
 		var CurrentFieldKey = false;
-		var ResourceCount = <?=$x?>;
+		var FieldCount = <?=$x?>;
 
 		BigTreeFormValidator("form.module");		
 		
-		$("#resource_table").on("blur", ".developer_resource_id input", function() {
-			$(this).parents("li").find(".developer_resource_display_title input").val($(this).val());
+		$("#field_table").on("blur", ".developer_field_id input", function() {
+			$(this).parents("li").find(".developer_field_display_title input").val($(this).val());
 		});
 
 		$(".clear_label").click(function(ev) {
@@ -41,8 +41,8 @@
 			
 		}).on("click",".icon_delete",function() {
 			BigTreeDialog({
-				title: "Delete Resource",
-				content: '<p class="confirm">Are you sure you want to delete this resource?</p>',
+				title: "Delete field",
+				content: '<p class="confirm">Are you sure you want to delete this field?</p>',
 				icon: "delete",
 				alternateSaveText: "OK",
 				callback: $.proxy(function() {
@@ -56,25 +56,25 @@
 			// Get the id field
 			var id = $(this).parents("li").find("input").eq(0).val();
 			$(this).val(id);
-		}).on("change",".developer_resource_callout_id input",function() {
+		}).on("change",".developer_field_callout_id input",function() {
 			$(this).parents("li").find("input[type=radio]").val($(this).val());
 		});
 			
-		$(".add_resource").click(function() {
-			ResourceCount++;
+		$(".add_field").click(function() {
+			FieldCount++;
 			
-			var li = $('<li id="row_' + ResourceCount + '">');
-			li.html('<section class="developer_resource_callout_id"><span class="icon_sort"></span><input type="text" name="resources[' + ResourceCount + '][id]" value="" /></section><section class="developer_resource_callout_title"><input type="text" name="resources[' + ResourceCount + '][title]" value="" /></section><section class="developer_resource_callout_subtitle"><input type="text" name="resources[' + ResourceCount + '][subtitle]" value="" /></section><section class="developer_resource_type"><select name="resources[' + ResourceCount + '][type]" id="type_' + ResourceCount + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + ResourceCount + '"></a><input type="hidden" name="resources[' + ResourceCount + '][options]" value="" id="options_' + ResourceCount + '" /></section><section class="developer_resource_display_title"><input type="radio" name="display_field" value="" id="display_title_' + ResourceCount + '" /></section><section class="developer_resource_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
+			var li = $('<li id="row_' + FieldCount + '">');
+			li.html('<section class="developer_field_callout_id"><span class="icon_sort"></span><input type="text" name="fields[' + FieldCount + '][id]" value="" /></section><section class="developer_field_callout_title"><input type="text" name="fields[' + FieldCount + '][title]" value="" /></section><section class="developer_field_callout_subtitle"><input type="text" name="fields[' + FieldCount + '][subtitle]" value="" /></section><section class="developer_field_type"><select name="fields[' + FieldCount + '][type]" id="type_' + FieldCount + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + FieldCount + '"></a><input type="hidden" name="fields[' + FieldCount + '][options]" value="" id="options_' + FieldCount + '" /></section><section class="developer_field_display_title"><input type="radio" name="display_field" value="" id="display_title_' + FieldCount + '" /></section><section class="developer_field_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
 	
-			$("#resource_table").append(li);
+			$("#field_table").append(li);
 			li.find("select").get(0).customControl = new BigTreeSelect(li.find("select").get(0));
 			li.find("input[type=radio]").get(0).customControl = new BigTreeRadioButton(li.find("input[type=radio]").get(0));
 	
-			$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+			$("#field_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	
 			return false;
 		});
 		
-		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+		$("#field_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	})();
 </script>

@@ -15,10 +15,9 @@
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/settings/edit/".$item["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
 	}
 
-	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["settings"];
-	$bigtree["field_namespace"] = uniqid("setting_field_");
-	$bigtree["field_counter"] = 0;
+	$bigtree["field_types"] = BigTree\FieldType::reference(false,"settings");
+
+	BigTree\Field::$Namespace = uniqid("setting_field_");
 ?>
 <div class="container">
 	<summary>
@@ -56,7 +55,7 @@
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					
-					$field = array(
+					$field = new BigTree\Field(array(
 						"type" => $item["type"],
 						"title" => "",
 						"subtitle" => "",
@@ -64,9 +63,9 @@
 						"tabindex" => 1,
 						"options" => json_decode($item["options"],true),
 						"value" => $value
-					);
+					));
 
-					BigTreeAdmin::drawField($field);
+					$field->draw();
 				?>
 			</div>
 		</section>

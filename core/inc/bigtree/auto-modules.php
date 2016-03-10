@@ -1919,27 +1919,7 @@
 		*/
 		
 		static function validate($data,$type) {
-			$parts = explode(" ",$type);
-			// Not required and it's blank
-			if (!in_array("required",$parts) && !$data) {
-				return true;
-			} else {
-				// Requires numeric and it isn't
-				if (in_array("numeric",$parts) && !is_numeric($data)) {
-					return false;
-				// Requires email and it isn't
-				} elseif (in_array("email",$parts) && !filter_var($data,FILTER_VALIDATE_EMAIL)) {
-					return false;
-				// Requires url and it isn't
-				} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
-					return false;
-				} elseif (in_array("required",$parts) && ($data === false || $data === "")) {
-					return false;
-				// It exists and validates as numeric, an email, or URL
-				} else {
-					return true;
-				}
-			}
+			return BigTree\Field::validate($data,$type);
 		}
 
 		/*
@@ -1958,28 +1938,6 @@
 		*/
 		
 		static function validationErrorMessage($data,$type) {
-			$parts = explode(" ",$type);
-			// Not required and it's blank
-			$message = "This field ";
-			$mparts = array();
-			
-			if (!$data && in_array("required",$parts)) {
-				$mparts[] = "is required";
-			}
-			
-			// Requires numeric and it isn't
-			if (in_array("numeric",$parts) && !is_numeric($data)) {
-				$mparts[] = "must be numeric";
-			// Requires email and it isn't
-			} elseif (in_array("email",$parts) && !filter_var($data,FILTER_VALIDATE_EMAIL)) {
-				$mparts[] = "must be an email address";
-			// Requires url and it isn't
-			} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
-				$mparts[] = "must be a link";
-			}
-			
-			$message .= implode(" and ",$mparts).".";
-			
-			return $message;
+			return BigTree\Field::validationErrorMessage($data,$type);
 		}
 	}

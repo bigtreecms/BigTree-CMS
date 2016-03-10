@@ -127,7 +127,7 @@
 			// Handle authentication
 			$this->Auth = new BigTree\Auth;
 
-			// Backwards compatibility
+			// Admin environment
 			$this->ID = $this->Auth->ID;
 			$this->User = $this->Auth->User;
 			$this->Level = $this->Auth->Level;
@@ -227,18 +227,11 @@
 		*/
 
 		function archivePage($page) {
-			$page = is_array($page) ? $page["id"] : $page;
-			$access = $this->getPageAccessLevel($page);
+			$page = new BigTree\Page($page);
 
 			// Only users with publisher access that can also modify this page's children can archive it
-			if ($access == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
-				// Archive the page and the page children
-				static::$DB->update("bigtree_pages",$page,array("archived" => "on"));
-				$this->archivePageChildren($page);
-
-				// Track and growl
-				static::growl("Pages","Archived Page");
-				$this->track("bigtree_pages",$page,"archived");
+			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
+				$page->archive();
 				return true;
 			}
 
@@ -258,17 +251,8 @@
 		*/
 
 		function archivePageChildren($page) {
-			// Track and recursively archive
-			$children = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'",$page);
-			foreach ($children as $child_id) {
-				$this->track("bigtree_pages",$child_id,"archived-inherited");
-				$this->archivePageChildren($child_id);
-			}
-
-			// Archive this level
-			static::$DB->query("UPDATE bigtree_pages
-								SET archived = 'on', archived_inherited = 'on' 
-								WHERE parent = ? AND archived != 'on'",$page);
+			$page = new BigTree\Page($page);
+			$page->archiveChildren();
 		}
 
 		/*
@@ -351,22 +335,8 @@
 		*/
 
 		function canModifyChildren($page) {
-			if ($this->Level > 0) {
-				return true;
-			}
-
-			$path = static::$DB->escape($page["path"]);
-			$descendant_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
-
-			// Check all the descendants for an explicit "no" or "editor" permission
-			foreach ($descendant_ids as $id) {
-				$permission = $this->Permissions["page"][$id];
-				if ($permission == "n" || $permission == "e") {
-					return false;
-				}
-			}
-
-			return true;
+			$page = new BigTree\Page($page);
+			return $page->UserCanModifyChildren;
 		}
 
 		/*
@@ -386,25 +356,18 @@
 		*/
 
 		static function changePassword($hash,$password) {
-			global $bigtree;
-
-			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?",$hash);
+			$user = BigTree\User::getByHash($hash);
 			if (!$user) {
 				return false;
 			}
 
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
+			// Update password/hash
+			$user->ChangePasswordHash = "";
+			$user->Password = $password;
+			$user->save();
 
-			// Update password
-			static::$DB->update("bigtree_users",$user["id"],array(
-				"password" => $phpass->HashPassword(trim($password)),
-				"change_password_hash" => ""
-			));
-
-			// Remove any login bans
-			static::$DB->delete("bigtree_login_bans",array("user" => $user["id"]));
-
-			return true;
+			// Remove bans
+			$user->removeBans();
 		}
 
 		/*
@@ -466,99 +429,7 @@
 		*/
 
 		static function checkHTML($relative_path,$html,$external = false) {
-			if (!$html) {
-				return array();
-			}
-			$errors = array();
-
-			// Make sure HTML is valid.
-			$doc = new DOMDocument();
-			try {
-				$doc->loadHTML($html);
-			} catch (Exception $e) {
-				return array();
-			}
-
-			// Check A tags.
-			$links = $doc->getElementsByTagName("a");
-			foreach ($links as $link) {
-				$href = $link->getAttribute("href");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
-				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && strpos($href,WWW_ROOT) === false) {
-					// External link, not much we can do but alert that it's dead
-					if ($external) {
-						if (strpos($href,"#") !== false) {
-							$href = substr($href,0,strpos($href,"#")-1);
-						}
-						if (!static::urlExists($href)) {
-							$errors["a"][] = $href;
-						}
-					}
-				} elseif (substr($href,0,6) == "ipl://") {
-					if (!static::iplExists($href)) {
-						$errors["a"][] = $href;
-					}
-				} elseif (substr($href,0,6) == "irl://") {
-					if (!static::irlExists($href)) {
-						$errors["a"][] = $href;
-					}
-				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:" || substr($href,0,4) == "tel:") {
-					// Don't do anything, it's a page mark, data URI, or email address
-				} elseif (substr($href,0,4) == "http") {
-					// It's a local hard link
-					if (!static::urlExists($href)) {
-						$errors["a"][] = $href;
-					}
-				} elseif (substr($href,0,2) == "//") {
-					// Protocol agnostic link
-					if (!static::urlExists("http:".$href)) {
-						$errors["a"][] = $href;
-					}
-				} else {
-					// Local file.
-					$local = $relative_path.$href;
-					if (!static::urlExists($local)) {
-						$errors["a"][] = $local;
-					}
-				}
-			}
-			// Check IMG tags.
-			$images = $doc->getElementsByTagName("img");
-			foreach ($images as $image) {
-				$href = $image->getAttribute("src");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
-				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
-					// External link, not much we can do but alert that it's dead
-					if ($external) {
-						if (!static::urlExists($href)) {
-							$errors["img"][] = $href;
-						}
-					}
-				} elseif (substr($href,0,6) == "irl://") {
-					if (!static::irlExists($href)) {
-						$errors["img"][] = $href;
-					}
-				} elseif (substr($href,0,5) == "data:") {
-					// Do nothing, it's a data URI
-				} elseif (substr($href,0,4) == "http") {
-					// It's a local hard link
-					if (!static::urlExists($href)) {
-						$errors["img"][] = $href;
-					}
-				} elseif (substr($href,0,2) == "//") {
-					// Protocol agnostic src
-					if (!static::urlExists("http:".$href)) {
-						$errors["img"][] = $href;
-					}
-				} else {
-					// Local file.
-					$local = $relative_path.$href;
-					if (!static::urlExists($local)) {
-						$errors["img"][] = $local;
-					}
-				}
-			}
-			return $errors;
+			return BigTree\Link::integrity($relative_path,$html,$external);
 		}
 
 		/*
@@ -581,9 +452,7 @@
 		*/
 
 		function clearDead404s() {
-			static::$DB->delete("bigtree_404s",array("redirect_url" => ""));
-			static::growl("404 Report","Cleared 404s");
-			$this->track("bigtree_404s","All","Cleared Empty");
+			BigTree\Redirect::clearEmpty();
 		}
 
 		/*
@@ -596,21 +465,7 @@
 		*/
 
 		function create301($from,$to) {
-			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/")));
-			$to = htmlspecialchars($this->autoIPL($to));
-
-			// See if the from already exists
-			$existing = static::$DB->fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?",$from);
-			if ($existing) {
-				static::$DB->update("bigtree_404s",$existing["id"],array("redirect_url" => $to));
-				$this->track("bigtree_404s",$existing["id"],"updated");
-			} else {
-				$id = static::$DB->insert("bigtree_404s",array(
-					"broken_url" => $from,
-					"redirect_url" => $to
-				));
-				$this->track("bigtree_404s",$id,"created");
-			}
+			BigTree\Redirect::create($from,$to);
 		}
 
 		/*
@@ -631,75 +486,8 @@
 		*/
 
 		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
-			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
-				return false;
-			}
-
-			// See if a callout ID already exists
-			if (static::$DB->exists("bigtree_callouts",$id)) {
-				return false;
-			}
-
-			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
-			$file_contents = '<?php
-	/*
-		Resources Available:
-';
-
-			$cached_types = $this->getCachedFieldTypes();
-			$types = $cached_types["callouts"];
-
-			$clean_resources = array();
-			foreach ($resources as $resource) {
-				// "type" is still a reserved keyword due to the way we save callout data when editing.
-				if ($resource["id"] && $resource["id"] != "type") {
-					$field = array(
-						"id" => BigTree::safeEncode($resource["id"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"title" => BigTree::safeEncode($resource["title"]),
-						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => (array)@json_decode($resource["options"],true)
-					);
-
-					// Backwards compatibility with BigTree 4.1 package imports
-					foreach ($resource as $k => $v) {
-						if (!in_array($k,array("id","title","subtitle","type","options"))) {
-							$field["options"][$k] = $v;
-						}
-					}
-
-					$clean_resources[] = $field;
-
-					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
-				}
-			}
-
-			$file_contents .= '	*/
-?>';
-
-			// Create the template file if it doesn't yet exist
-			if (!file_exists(SERVER_ROOT."templates/callouts/$id.php")) {
-				BigTree::putFile(SERVER_ROOT."templates/callouts/$id.php",$file_contents);
-			}
-
-			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			static::$DB->query("UPDATE bigtree_callouts SET position = position + 1");
-
-			// Insert the callout
-			static::$DB->insert("bigtree_callouts",array(
-				"id" => BigTree::safeEncode($id),
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
-				"resources" => $clean_resources,
-				"level" => $level,
-				"display_field" => $display_field,
-				"display_default" => $display_default
-
-			));
-
-			$this->track("bigtree_callouts",$id,"created");
-			return $id;
+			$callout = BigTree\Callout::create($id,$name,$description,$level,$resources,$display_field,$display_default);
+			return $callout ? true : false;
 		}
 
 		/*
@@ -715,7 +503,8 @@
 		*/
 
 		function createCalloutGroup($name,$callouts) {
-			return BigTree\CalloutGroup::create($name,$callouts);
+			$group = BigTree\CalloutGroup::create($name,$callouts);
+			return $group->ID;
 		}
 
 		/*
@@ -735,25 +524,8 @@
 		*/
 
 		function createFeed($name,$description,$table,$type,$options,$fields) {
-			// Options were probably passed as a JSON string, but either way make a nice translated array
-			$options = BigTree::translateArray(is_array($options) ? $options : array_filter((array)json_decode($options,true)));
-
-			// Get a unique route!
-			$route = static::$DB->unique("bigtree_feeds","route",BigTreeCMS::urlify($name));
-
-			// Insert and track
-			$id = static::$DB->insert("bigtree_feeds",array(
-				"route" => $route,
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
-				"type" => $type,
-				"table" => $table,
-				"fields" => $fields,
-				"options" => $options
-			));
-			$this->track("bigtree_feeds",$id,"created");
-
-			return $route;
+			$feed = BigTree\Feed::create($name,$description,$table,$type,$options,$fields);
+			return $feed->Route;
 		}
 
 		/*
@@ -771,71 +543,9 @@
 		*/
 
 		function createFieldType($id,$name,$use_cases,$self_draw) {
-			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
-				return false;
-			}
+			$field_type = BigTree\FieldType::create($id,$name,$use_cases,$self_draw);
 
-			// See if a callout ID already exists
-			if (static::$DB->exists("bigtree_field_types",$id)) {
-				return false;
-			}
-
-			static::$DB->insert("bigtree_field_types",array(
-				"id" => $id,
-				"name" => BigTree::safeEncode($name),
-				"use_cases" => $use_cases,
-				"self_draw" => ($self_draw ? "on" : null)
-			));
-
-			// Make the files for draw and process and options if they don't exist.
-			$file = "$id.php";
-
-			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
-				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?php
-	/*
-		When drawing a field type you are provided with the $field array with the following keys:
-			"title" — The title given by the developer to draw as the label (drawn automatically)
-			"subtitle" — The subtitle given by the developer to draw as the smaller part of the label (drawn automatically)
-			"key" — The value you should use for the "name" attribute of your form field
-			"value" — The existing value for this form field
-			"id" — A unique ID you can assign to your form field for use in JavaScript
-			"tabindex" — The current tab index you can use for the "tabindex" attribute of your form field
-			"options" — An array of options provided by the developer
-			"required" — A boolean value of whether this form field is required or not
-	*/
-
-	include BigTree::path("admin/form-field-types/draw/text.php");
-?>');
-			}
-
-			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
-				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?php
-	/*
-		When processing a field type you are provided with the $field array with the following keys:
-			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
-			"options" — An array of options provided by the developer
-			"input" — The end user\'s $_POST data input for this field
-			"file_input" — The end user\'s uploaded files for this field in a normalized entry from the $_FILES array in the same formatting you\'d expect from "input"
-
-		BigTree expects you to set $field["output"] to the value you wish to store. If you want to ignore this field, set $field["ignore"] to true.
-		Almost all text that is meant for drawing on the front end is expected to be run through PHP\'s htmlspecialchars function as seen in the example below.
-		If you intend to allow HTML tags you will want to run htmlspecialchars in your drawing file on your value and leave it off in the process file.
-	*/
-
-	$field["output"] = htmlspecialchars($field["input"]);
-?>');
-			}
-
-			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
-			}
-
-			// Clear field type cache
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
-
-			$this->track("bigtree_field_types",$id,"created");
-			return $id;
+			return $field_type ? true : false;
 		}
 
 		/*
@@ -1621,7 +1331,8 @@
 				return false;
 			}
 
-			return BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+			$user = BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+			return $user ? $user->ID : false;
 		}
 
 		/*
@@ -1730,17 +1441,8 @@
 		*/
 
 		function deleteFieldType($id) {
-			// Remove related files
-			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
-			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
-			BigTree::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
-
-			// Clear cache
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
-
-			// Delete and track
-			static::$DB->delete("bigtree_field_types",$id);
-			$this->track("bigtree_field_types",$id,"deleted");
+			$field_type = new BigTree\FieldType($id);
+			$field_type->delete();
 		}
 
 		/*
@@ -2138,7 +1840,8 @@
 		*/
 
 		function deleteUser($id) {
-			return BigTree\User::delete($id);
+			$user = new BigTree\User($id);
+			$user->delete();
 		}
 
 		/*
@@ -2203,52 +1906,8 @@
 		*/
 
 		static function drawField($field) {
-			global $admin,$bigtree,$cms,$db;
-
-			// Give the field a unique id
-			$bigtree["field_counter"]++;
-			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
-
-			// Make sure options is an array to prevent warnings
-			if (!is_array($field["options"])) {
-				$field["options"] = array();
-			}
-
-			// Setup Validation Classes
-			$label_validation_class = "";
-			$field["required"] = false;
-			if (!empty($field["options"]["validation"])) {
-				if (strpos($field["options"]["validation"],"required") !== false) {
-					$label_validation_class = ' class="required"';
-					$field["required"] = true;
-				}
-			}
-
-			// Prevent path abuse
-			$field["type"] = BigTree::cleanFile($field["type"]);
-			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$field["type"]);
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
-			} else {
-				$field_type_path = BigTree::path("admin/form-field-types/draw/".$field["type"].".php");
-			}
-			if (file_exists($field_type_path)) {
-				// Don't draw the fieldset for field types that are declared as self drawing.
-				if ($bigtree["field_types"][$field["type"]]["self_draw"]) {
-					include $field_type_path;
-				} else {
-?>
-<fieldset<?php if ($field["matrix_title_field"]) { ?> class="matrix_title_field"<?php } ?>>
-	<?php if ($field["title"] && $field["type"] != "checkbox") { ?>
-	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
-	<?php } ?>
-	<?php include $field_type_path ?>
-</fieldset>
-<?php
-					$bigtree["tabindex"]++;
-				}
-				$bigtree["last_resource_type"] = $field["type"];
-			}
+			$field = new BigTree\Field($field);
+			$field->draw();
 		}
 
 		/*
@@ -2789,7 +2448,8 @@
 		*/
 
 		static function getCallout($id) {
-			return BigTree\Callout::get($id);
+			$callout = new BigTree\Callout($id);
+			return $callout->Array;
 		}
 
 		/*
@@ -2805,7 +2465,7 @@
 
 		static function getCalloutGroup($id) {
 			$group = new BigTree\CalloutGroup($id);
-			return array("id" => $group->ID, "name" => $group->Name, "callouts" => $group->Callouts);
+			return $group->Array;
 		}
 
 		/*
@@ -2817,7 +2477,7 @@
 		*/
 
 		static function getCalloutGroups() {
-			return BigTree\CalloutGroup::all();
+			return BigTree\CalloutGroup::all(true);
 		}
 
 		/*
@@ -2832,7 +2492,7 @@
 		*/
 
 		static function getCallouts($sort = "position DESC, id ASC") {
-			return BigTree\Callout::all();
+			return BigTree\Callout::all($sort,true);
 		}
 
 		/*
@@ -2847,7 +2507,7 @@
 		*/
 
 		function getCalloutsAllowed($sort = "position DESC, id ASC") {
-			return BigTree\Callout::allAllowed();
+			return BigTree\Callout::allAllowed($sort,true);
 		}
 
 		/*
@@ -2863,7 +2523,7 @@
 		*/
 
 		function getCalloutsInGroups($groups,$auth = true) {
-			return BigTree\Callout::allInGroups($groups,$auth);
+			return BigTree\Callout::allInGroups($groups,$auth,true);
 		}
 
 		/*
@@ -3031,13 +2691,8 @@
 		*/
 
 		static function getFieldType($id) {
-			$field_type = static::$DB->fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $id);
-			if (!$field_type) {
-				return false;
-			}
-
-			$field_type["use_cases"] = json_decode($field_type["use_cases"],true);
-			return $field_type;
+			$field_type = new BigTree\FieldType($id);
+			return $field_type->Array;
 		}
 
 		/*
@@ -3052,7 +2707,7 @@
 		*/
 
 		static function getFieldTypes($sort = "name ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_field_types ORDER BY $sort");
+			return BigTree\FieldType::all($sort,true);
 		}
 
 		/*
@@ -4775,7 +4430,8 @@
 		*/
 
 		static function getUser($id) {
-			return BigTree\User::get($id);
+			$user = new BigTree\User($id);
+			return $user->Array;
 		}
 
 		/*
@@ -4790,7 +4446,13 @@
 		*/
 
 		static function getUserByEmail($email) {
-			return BigTree\User::getByEmail($email);
+			$user = BigTree\User::getByEmail($email);
+			
+			if ($user) {
+				return $user->Array;
+			}
+
+			return false;
 		}
 
 		/*
@@ -4805,7 +4467,13 @@
 		*/
 
 		static function getUserByHash($hash) {
-			return BigTree\User::getByHash($hash);
+			$user = BigTree\User::getByHash($hash);
+
+			if ($user) {
+				return $user->Array;
+			}
+
+			return false;
 		}
 
 		/*
@@ -5448,53 +5116,8 @@
 		*/
 
 		static function processField($field) {
-			global $admin,$bigtree,$cms,$db;
-
-			// Check if the field type is stored in an extension
-			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$field["type"]);
-				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
-			} else {
-				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
-			}
-
-			// If we have a customized handler for this data type, run it.
-			if (file_exists($field_type_path)) {
-				include $field_type_path;
-
-				// If it's explicitly ignored return null
-				if ($field["ignore"]) {
-					return null;
-				} else {
-					$output = $field["output"];
-				}
-
-			// Fall back to default handling
-			} else {
-				if (is_array($field["input"])) {
-					$output = $field["input"];
-				} else {
-					$output = BigTree::safeEncode($field["input"]);
-				}
-			}
-
-			// Check validation
-			if (!BigTreeAutoModule::validate($output,$field["options"]["validation"])) {
-				$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($output,$field["options"]["validation"]);
-				$bigtree["errors"][] = array(
-					"field" => $field["title"],
-					"error" => $error
-				);
-			}
-
-			// Translation of internal links
-			if (is_array($output)) {
-				$output = BigTree::translateArray($output);
-			} else {
-				$output = $admin->autoIPL($output);
-			}
-
-			return $output;
+			$field = new BigTree\Field($field);
+			return $field->process();
 		}
 
 		/*
@@ -6259,7 +5882,9 @@
 		*/
 
 		static function setCalloutPosition($id,$position) {
-			BigTree\Callout::setPosition($id,$position);
+			$callout = new BigTree\Callout($id);
+			$callout->Position = $position;
+			$callout->save();
 		}
 
 		/*
@@ -6326,7 +5951,8 @@
 		*/
 
 		static function setPasswordHashForUser($user) {
-			return BigTree\User::setPasswordHash($user);
+			$user = new BigTree\User($user);
+			return $user->setPasswordHash();
 		}
 
 		/*
@@ -6563,7 +6189,7 @@
 		*/
 
 		static function urlExists($url) {
-			return BigTree::urlExists($url);
+			return BigTree\Link::urlExists($url);
 		}
 
 		/*
@@ -6758,16 +6384,8 @@
 		*/
 
 		function updateFieldType($id,$name,$use_cases,$self_draw) {
-			static::$DB->update("bigtree_field_types",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"use_cases" => $use_cases,
-				"self_draw" => $self_draw ? "on" : null
-			));
-
-			$this->track("bigtree_field_types",$id,"updated");
-
-			// Clear cache
-			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			$field_type = new BigTree\FieldType($id);
+			$field_type->update($name,$use_cases,$self_draw);
 		}
 
 		/*
@@ -7517,7 +7135,8 @@
 				}
 			}
 
-			return BigTree\User::update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+			$user = new BigTree\User($id);
+			return $user->update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
 		}
 
 		/*
@@ -7530,7 +7149,9 @@
 		*/
 
 		static function updateUserPassword($id,$password) {
-			BigTree\User::updatePassword($id,$password);
+			$user = new BigTree\User($id);
+			$user->Password = $password;
+			$user->save();
 		}
 
 		/*

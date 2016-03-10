@@ -7,6 +7,7 @@
 
 	namespace BigTree;
 
+	use BigTree;
 	use BigTreeCMS;
 	use mysqli;
 

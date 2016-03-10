@@ -24,9 +24,6 @@
 
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
-
-	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["callouts"];
 	
 	if ($bigtree["callout"]["description"]) {
 ?>
@@ -38,14 +35,13 @@
 <div class="form_fields">
 	<?php
 		if (count($bigtree["callout"]["resources"])) {
-			$cached_types = $admin->getCachedFieldTypes();
-			$bigtree["field_types"] = $cached_types["callouts"];
-	
+
+			BigTree\Field::$Namespace = uniqid("callout_field_");
+
+			$bigtree["field_types"] = BigTree\FieldType::reference(false,"callouts");	
 			$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);	
 			$bigtree["html_fields"] = array();
-			$bigtree["simple_html_fields"] = array();
-			$bigtree["field_namespace"] = uniqid("callout_field_");
-			$bigtree["field_counter"] = 0;
+			$bigtree["simple_html_fields"] = array();			
 
 			foreach ($bigtree["callout"]["resources"] as $resource) {
 				$field = array(
@@ -60,8 +56,9 @@
 				if (empty($field["options"]["directory"])) {
 					$field["options"]["directory"] = "files/callouts/";
 				}
-	
-				BigTreeAdmin::drawField($field);
+		
+				$field = new BigTree\Field($field);
+				$field->draw();
 			}
 		} else {
 			echo '<p>There are no resources for the selected callout.</p>';

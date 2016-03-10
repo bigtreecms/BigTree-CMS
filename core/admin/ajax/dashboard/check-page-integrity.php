@@ -36,7 +36,7 @@
 				}
 		    // HTML we just run through checkHTML
 		    } elseif ($resource["type"] == "html") {
-		    	$integrity_errors[$field] = $admin->checkHTML($local_path,$data,$external);
+		    	$integrity_errors[$field] = BigTree\Link::integrity($local_path,$data,$external);
 		    }
 		}
 	}

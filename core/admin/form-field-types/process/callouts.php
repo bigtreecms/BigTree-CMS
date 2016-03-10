@@ -29,6 +29,8 @@
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
+
+					// Setup default directory
 					if (empty($sub_field["options"]["directory"])) {
 						$sub_field["options"]["directory"] = "files/pages/";
 					}
@@ -38,7 +40,9 @@
 						$sub_field["input"] = json_decode($sub_field["input"],true);
 					}
 
-					$output = BigTreeAdmin::processField($sub_field);
+					$sub_field = new BigTree\Field($sub_field);
+					$output = $sub_field->process();
+
 					if (!is_null($output)) {
 						$bigtree["entry"][$sub_field["key"]] = $output;
 					}

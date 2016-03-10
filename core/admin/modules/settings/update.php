@@ -15,8 +15,7 @@
 		$bigtree["post_data"] = $_POST;
 		$bigtree["file_data"] = BigTree::parsedFilesArray();
 
-		// Pretend like we're a normal field
-		$field = array(
+		$field = new BigTree\Field(array(
 			"type" => $item["type"],
 			"title" => $item["title"],
 			"key" => "value",
@@ -24,10 +23,10 @@
 			"ignore" => false,
 			"input" => $bigtree["post_data"]["value"],
 			"file_input" => $bigtree["file_data"]["value"]
-		);
+		));
 
 		// Process the input
-		$output = BigTreeAdmin::processField($field);
+		$output = $field->process();
 		if (!is_null($output)) {
 			$admin->updateSettingValue($_POST["id"],$output);
 		}

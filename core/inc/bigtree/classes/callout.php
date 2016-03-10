@@ -6,9 +6,51 @@
 
 	namespace BigTree;
 
+	use BigTree;
 	use BigTreeCMS;
 
-	class Callout {
+	class Callout extends BaseObject {
+
+		protected $ID;
+
+		public $Description;
+		public $DisplayDefault;
+		public $DisplayField;
+		public $Extension;
+		public $Fields;
+		public $Level;
+		public $Name;
+		public $Position;
+
+		/*
+			Constructor:
+				Builds a Callout object referencing an existing database entry.
+
+			Parameters:
+				callout - Either an ID (to pull a record) or an array (to use the array as the record)
+		*/
+
+		function __construct($callout) {
+			// Passing in just an ID
+			if (!is_array($callout)) {
+				$callout = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout);
+			}
+
+			// Bad data set
+			if (!is_array($callout)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+			} else {
+				$this->ID = $callout["id"];
+				$this->Description = $callout["description"];
+				$this->DisplayDefault = $callout["display_default"];
+				$this->DisplayField = $callout["display_field"];
+				$this->Extension = $callout["extension"];
+				$this->Fields = is_string($callout["resources"]) ? json_decode($callout["resources"],true) : $callout["resources"];
+				$this->Level = $callout["level"];
+				$this->Name = $callout["name"];
+				$this->Position = $callout["position"];
+			}
+		}
 
 		/*
 			Function: all
@@ -16,13 +58,23 @@
 
 			Parameters:
 				sort - The order to return the callouts. Defaults to positioned.
+				return_arrays - Set to true to return arrays of data rather than objects.
 
 			Returns:
 				An array of callout entries from bigtree_callouts.
 		*/
 
-		static function all($sort = "position DESC, id ASC") {
-			return BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callouts ORDER BY $sort");
+		static function all($sort = "position DESC, id ASC", $return_arrays = false) {
+			$callouts = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callouts ORDER BY $sort");
+
+			// Return objects
+			if (!$return_arrays) {
+				foreach ($callouts as &$callout) {
+					$callout = new Callout($callout);
+				}
+			}
+
+			return $callouts;
 		}
 
 		/*
@@ -31,15 +83,25 @@
 
 			Parameters:
 				sort - The order to return the callouts. Defaults to positioned.
+				return_arrays - Set to true to return arrays of data rather than objects.
 
 			Returns:
 				An array of callout entries from bigtree_callouts.
 		*/
 
-		static function allAllowed($sort = "position DESC, id ASC") {
+		static function allAllowed($sort = "position DESC, id ASC", $return_arrays = false) {
 			global $admin;
 
-			return BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $admin->Level);
+			$callouts = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $admin->Level);
+
+			// Return objects
+			if (!$return_arrays) {
+				foreach ($callouts as &$callout) {
+					$callout = new Callout($callout);
+				}
+			}
+
+			return $callouts;
 		}
 
 		/*
@@ -49,22 +111,23 @@
 			Parameters:
 				groups - An array of group IDs to retrieve callouts for.
 				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
+				return_arrays - Set to true to return arrays of data rather than objects.
 
 			Returns:
 				An alphabetized array of entries from the bigtree_callouts table.
 		*/
 
-		static function allInGroups($groups,$auth = true) {
+		static function allInGroups($groups,$auth = true,$return_arrays = false) {
 			global $admin;
 			$ids = $callouts = $names = array();
 
 			foreach ($groups as $group_id) {
-				$group = new BigTree\CalloutGroup($group_id);
+				$group = new CalloutGroup($group_id);
 
 				foreach ($group["callouts"] as $callout_id) {
 					// Only grab each callout once
 					if (!in_array($callout_id,$ids)) {
-						$callout = static::get($callout_id);
+						$callout = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout_id);
 						$ids[] = $callout_id;
 
 						// If we're looking at only the ones the user is allowed to access, check levels
@@ -77,6 +140,14 @@
 			}
 			
 			array_multisort($names,$callouts);
+
+			// Return objects
+			if (!$return_arrays) {
+				foreach ($callouts as &$callout) {
+					$callout = new Callout($callout);
+				}
+			}
+
 			return $callouts;
 		}
 
@@ -89,15 +160,15 @@
 				name - The name.
 				description - The description.
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers).
-				resources - An array of resources.
+				fields - An array of fields.
 				display_field - The field to use as the display field describing a user's callout
 				display_default - The text string to use in the event the display_field is blank or non-existent
 
 			Returns:
-				true if successful, false if an invalid ID was passed or the ID is already in use
+				A Callout object if successful, false if an invalid ID was passed or the ID is already in use
 		*/
 
-		static function create($id,$name,$description,$level,$resources,$display_field,$display_default) {
+		static function create($id,$name,$description,$level,$fields,$display_field,$display_default) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
@@ -108,37 +179,37 @@
 				return false;
 			}
 
-			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
+			// If we're creating a new file, let's populate it with some convenience things to show what fields are available.
 			$file_contents = '<?php
 	/*
-		Resources Available:
+		Fields Available:
 ';
 
-			$cached_types = BigTree\FieldType::reference();
+			$cached_types = FieldType::reference();
 			$types = $cached_types["callouts"];
 
-			$clean_resources = array();
-			foreach ($resources as $resource) {
+			$clean_fields = array();
+			foreach ($fields as $field) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
-				if ($resource["id"] && $resource["id"] != "type") {
+				if ($field["id"] && $field["id"] != "type") {
 					$field = array(
-						"id" => BigTree::safeEncode($resource["id"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"title" => BigTree::safeEncode($resource["title"]),
-						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => (array)@json_decode($resource["options"],true)
+						"id" => BigTree::safeEncode($field["id"]),
+						"type" => BigTree::safeEncode($field["type"]),
+						"title" => BigTree::safeEncode($field["title"]),
+						"subtitle" => BigTree::safeEncode($field["subtitle"]),
+						"options" => (array)@json_decode($field["options"],true)
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
-					foreach ($resource as $k => $v) {
+					foreach ($field as $k => $v) {
 						if (!in_array($k,array("id","title","subtitle","type","options"))) {
 							$field["options"][$k] = $v;
 						}
 					}
 
-					$clean_resources[] = $field;
+					$clean_fields[] = $field;
 
-					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
+					$file_contents .= '		"'.$field["id"].'" = '.$field["title"].' - '.$types[$field["type"]]["name"]."\n";
 				}
 			}
 
@@ -158,27 +229,26 @@
 				"id" => BigTree::safeEncode($id),
 				"name" => BigTree::safeEncode($name),
 				"description" => BigTree::safeEncode($description),
-				"resources" => $clean_resources,
+				"resources" => $clean_fields,
 				"level" => $level,
 				"display_field" => $display_field,
 				"display_default" => $display_default
 
 			));
 
-			BigTree\AuditTrail::track("bigtree_callouts",$id,"created");
+			AuditTrail::track("bigtree_callouts",$id,"created");
 
-			return $id;
+			return new Callout($id);
 		}
 
 		/*
 			Function: delete
-				Deletes a callout and removes its file.
-
-			Parameters:
-				id - The id of the callout.
+				Deletes the callout and removes its file.
 		*/
 
-		static function delete($id) {
+		function delete() {
+			$id = $this->ID;
+
 			// Delete template file
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 
@@ -197,82 +267,66 @@
 			}
 
 			// Track deletion
-			BigTree\AuditTrail::track("bigtree_callouts",$id,"deleted");
+			AuditTrail::track("bigtree_callouts",$id,"deleted");
 		}
 
 		/*
-			Function: get
-				Returns a callout entry.
-
-			Parameters:
-				id - The id of the callout.
-
-			Returns:
-				A callout entry from bigtree_callouts with resources decoded.
+			Function: save
+				Saves the current object properties back to the database.
 		*/
 
-		static function get($id) {
-			$callout = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $id);
-			if (!$callout) {
-				return false;
-			}
-
-			$callout["resources"] = json_decode($callout["resources"],true);
-			return $callout;
-		}
-
-		/*
-			Function: setPosition
-				Sets the position of a callout.
-
-			Parameters:
-				id - The id of the callout.
-				position - The position to set.
-		*/
-
-		static function setPosition($id,$position) {
-			BigTreeCMS::$DB->update("bigtree_callouts",$id,array("position" => $position));
-		}
-
-		/*
-			Function: update
-				Updates a callout.
-
-			Parameters:
-				id - The id of the callout to update.
-				name - The name.
-				description - The description.
-				level - The access level (0 for all users, 1 for administrators, 2 for developers)
-				resources - An array of resources.
-				display_field - The field to use as the display field describing a user's callout
-				display_default - The text string to use in the event the display_field is blank or non-existent
-		*/
-
-		static function update($id,$name,$description,$level,$resources,$display_field,$display_default) {
-			$clean_resources = array();
-			foreach ($resources as $resource) {
+		function save() {
+			// Clean up fields
+			$clean_fields = array();
+			foreach ($this->Fields as $field) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
-				if ($resource["id"] && $resource["id"] != "type") {
-					$clean_resources[] = array(
-						"id" => BigTree::safeEncode($resource["id"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"title" => BigTree::safeEncode($resource["title"]),
-						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => json_decode($resource["options"],true)
+				if ($field["id"] && $field["id"] != "type") {
+					$clean_fields[] = array(
+						"id" => BigTree::safeEncode($field["id"]),
+						"type" => BigTree::safeEncode($field["type"]),
+						"title" => BigTree::safeEncode($field["title"]),
+						"subtitle" => BigTree::safeEncode($field["subtitle"]),
+						"options" => json_decode($field["options"],true)
 					);
 				}
 			}
 
-			BigTreeCMS::$DB->update("bigtree_callouts",$id,array(
-				"resources" => $clean_resources,
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
-				"level" => $level,
-				"display_field" => $display_field,
-				"display_default" => $display_default
+			BigTreeCMS::$DB->update("bigtree_callouts",$this->ID,array(
+				"name" => BigTree::safeEncode($this->Name),
+				"description" => BigTree::safeEncode($this->Description),
+				"display_default" => $this->DisplayDefault,
+				"display_field" => $this->DisplayField,
+				"resources" => $clean_fields,
+				"level" => $this->Level,
+				"position" => $this->Position,
+				"extension" => $this->Extension
 			));
 
-			BigTree\AuditTrail::track("bigtree_callouts",$id,"updated");
+			AuditTrail::track("bigtree_callouts",$this->ID,"updated");
+		}
+
+		/*
+			Function: update
+				Updates the callout properties and saves changes to the database.
+
+			Parameters:
+				name - The name.
+				description - The description.
+				level - The access level (0 for all users, 1 for administrators, 2 for developers)
+				fields - An array of fields.
+				display_field - The field to use as the display field describing a user's callout
+				display_default - The text string to use in the event the display_field is blank or non-existent
+		*/
+
+		static function update($name,$description,$level,$fields,$display_field,$display_default) {
+			$this->Name = $name;
+			$this->Description = $description;
+			$this->Level = $level;
+			$this->Fields = $fields;
+			$this->DisplayField = $display_field;
+			$this->DisplayDefault = $display_default;
+
+			$this->save();
 		}
 
 	}

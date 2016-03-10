@@ -1,7 +1,7 @@
 <?php
 	// Stop notices
 	$id = $name = $description = $display_default = $level = "";
-	$resources = array();
+	$fields = array();
 
 	if ($_SESSION["bigtree_admin"]["error"]) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);

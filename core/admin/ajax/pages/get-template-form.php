@@ -1,7 +1,4 @@
 <?php
-	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["templates"];
-
 	$template_id = $bigtree["current_page"]["template"];
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
@@ -34,14 +31,16 @@
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
-		$bigtree["field_namespace"] = uniqid("template_field_");
-		$bigtree["field_counter"] = 0;
+		$bigtree["field_types"] = BigTree\FieldType::reference(false,"templates");
+
+		BigTree\Field::$Namespace = uniqid("template_field_");
+
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 	
 		if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
 			foreach ($bigtree["template"]["resources"] as $resource) {
-				$field = array(
+				$field = new BigTree\Field(array(
 					"type" => $resource["type"],
 					"title" => $resource["title"],
 					"subtitle" => $resource["subtitle"],
@@ -49,9 +48,9 @@
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
 					"options" => $resource["options"]
-				);
+				));
 	
-				BigTreeAdmin::drawField($field);
+				$field->draw();
 			}
 		} else {
 			echo '<p>There are no resources for the selected template.</p>';

@@ -20,7 +20,8 @@
 			$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		}
 
-		$output = BigTreeAdmin::processField($field);
+		$field = new BigTree\Field($field);
+		$output = $field->process();
 		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $output;
 		}

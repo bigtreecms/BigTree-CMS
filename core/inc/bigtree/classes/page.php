@@ -1,7 +1,7 @@
 <?php
 	/*
-		Class: BigTree\Cache
-			Provides an interface for the bigtree_caches table.
+		Class: BigTree\Page
+			Provides an interface for BigTree pages.
 	*/
 
 	namespace BigTree;
@@ -11,43 +11,55 @@
 	class Page {
 
 		/*
-			Function: access
-				Returns the access level for the provided user to a page.
+			Constructor:
+				Builds a Page object referencing an existing database entry.
 
 			Parameters:
-				page - The page id.
-				user - The user entry or user id.
-
-			Returns:
-				"p" for publisher, "e" for editor, false for no access.
-
-			See Also:
-				<getPageAccessLevel>
+				page - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		static function access($page,$user) {
-			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
-			if (!is_numeric($page) && $page[0] == "p") {
-				$pending_change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($page,1));
-				$changes = json_decode($pending_change["changes"],true);
-				return static::getPageAccessLevelByUser($changes["parent"],$user);
+		function __construct($page) {
+			// Passing in just an ID
+			if (!is_array($page)) {
+				$page = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
 			}
 
-			// If we don't have a user entry, turn it into an entry
-			if (!is_array($user)) {
-				$user = static::getUser($user);
+			// Bad data set
+			if (!is_array($page)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+			} else {
+				$this->ID = $page["id"];
+			}
+		}
+
+		/*
+			Get Magic Method:
+				Allows retrieval of the write-protected ID property.
+		*/
+
+		function __get($property) {
+			// Read-only properties that require a lot of work, stored as protected methods
+			if ($property == "UserAccessLevel") {
+				return $this->_getUserAccessLevel();
+			}
+			if ($property == "UserCanModifyChildren") {
+				return $this->_getUserCanModifyChildren();
 			}
 
-			$level = $user["level"];
-			$permissions = $user["permissions"];
-		
+			return parent::__get($property);
+		}
+
+		// $this->UserAccessLevel
+		protected function _getUserAccessLevel() {
+			global $admin;
+
 			// See if the user is an administrator, if so we can skip permissions.
-			if ($level > 0) {
+			if ($admin->Level > 0) {
 				return "p";
 			}
 
 			// See if this page has an explicit permission set and return it if so.
-			$explicit_permission = $permissions["page"][$page];
+			$explicit_permission = $admin->Permissions["page"][$page];
 			if ($explicit_permission == "n") {
 				return false;
 			} elseif ($explicit_permission && $explicit_permission != "i") {
@@ -58,10 +70,10 @@
 			$page_parent = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
 
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$parent_permission = $permissions["page"][$page_parent];
+			$parent_permission = $admin->Permissions["page"][$page_parent];
 			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
 				$parent_id = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
-				$parent_permission = $permissions["page"][$parent_id];
+				$parent_permission = $admin->Permissions["page"][$parent_id];
 			}
 
 			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
@@ -73,39 +85,65 @@
 			return $parent_permission;
 		}
 
-		/*
-			Function: archivePage
-				Archives a page.
+		// $this->UserCanModifyChildren
+		protected function _getUserCanModifyChildren() {
+			global $admin;
 
-			Parameters:
-				page - Either a page id or page entry.
-
-			Returns:
-				true if successful. false if the logged in user doesn't have permission.
-
-			See Also:
-				<archivePageChildren>
-		*/
-
-		function archivePage($page) {
-			$page = is_array($page) ? $page["id"] : $page;
-			$access = $this->getPageAccessLevel($page);
-
-			// Only users with publisher access that can also modify this page's children can archive it
-			if ($access == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
-				// Archive the page and the page children
-				static::$DB->update("bigtree_pages",$page,array("archived" => "on"));
-				$this->archivePageChildren($page);
-
-				// Track and growl
-				static::growl("Pages","Archived Page");
-				$this->track("bigtree_pages",$page,"archived");
+			if ($admin->Level > 0) {
 				return true;
 			}
 
-			// No access
-			return false;
+			$path = static::$DB->escape($page["path"]);
+			$descendant_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
+
+			// Check all the descendants for an explicit "no" or "editor" permission
+			foreach ($descendant_ids as $id) {
+				$permission = $admin->Permissions["page"][$id];
+				if ($permission == "n" || $permission == "e") {
+					return false;
+				}
+			}
+
+			return true;
 		}
-		
-		
+
+		/*
+			Function: archive
+				Archives the page and the page's children.
+
+			See Also:
+				<archiveChildren>
+		*/
+
+		function archive() {
+			// Archive the page and the page children
+			BigTreeCMS::$DB->update("bigtree_pages",$page,array("archived" => "on"));
+			$this->archiveChildren();
+
+			// Track
+			AuditTrail::track("bigtree_pages",$page,"archived");
+		}
+
+		/*
+			Function: archiveChildren
+				Archives the page's children and sets the archive status to inherited.
+
+			See Also:
+				<archivePage>
+		*/
+
+		function archiveChildren($recursion = false) {
+			$page_id = $recursion ?: $this->ID;
+
+			// Track and recursively archive
+			$children = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'", $page_id);
+			foreach ($children as $child_id) {
+				AuditTrail::track("bigtree_pages",$child_id,"archived-inherited");
+				$this->archiveChildren($child_id);
+			}
+
+			// Archive this level
+			static::$DB->query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
+								WHERE parent = ? AND archived != 'on'", $page_id);
+		}	
 	}

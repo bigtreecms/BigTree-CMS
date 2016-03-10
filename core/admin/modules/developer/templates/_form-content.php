@@ -80,10 +80,10 @@
 	</fieldset>
 </section>
 <section class="sub">
-	<label>Resources</label>
+	<label>Fields</label>
 	<div class="form_table">
 		<header>
-			<a href="#" class="add_resource add"><span></span>Add Resource</a>
+			<a href="#" class="add_resource add"><span></span>Add Field</a>
 		</header>
 		<div class="labels">
 			<span class="developer_resource_id">ID</span>

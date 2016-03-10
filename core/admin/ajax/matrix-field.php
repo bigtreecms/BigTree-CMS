@@ -24,30 +24,32 @@
 		<?php
 			if (count($bigtree["matrix_columns"])) {
 
+				$bigtree["field_types"] = BigTree\FieldType::reference(false,"callouts");
 				$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
-				$bigtree["field_namespace"] = uniqid("matrix_field_");
-				$bigtree["field_counter"] = 0;
-			
-				$cached_types = $admin->getCachedFieldTypes();
-				$bigtree["field_types"] = $cached_types["callouts"];
 
+				BigTree\Field::$Namespace = uniqid("matrix_field_");
+				
 				foreach ($bigtree["matrix_columns"] as $resource) {
 					$options = @json_decode($resource["options"],true);
 					
-					$field = array(
+					$field = new BigTree\Field(array(
 						"type" => $resource["type"],
 						"title" => htmlspecialchars($resource["title"]),
 						"subtitle" => htmlspecialchars($resource["subtitle"]),
 						"key" => $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]",
 						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 						"tabindex" => $bigtree["tabindex"],
-						"options" => is_array($options) ? $options : array(),
-						"matrix_title_field" => $resource["display_title"] ? true : false
-					);
+						"options" => is_array($options) ? $options : array()
+					));
 
-					BigTreeAdmin::drawField($field);
+					// Apply custom fieldset class
+					if ($resource["display_title"]) {
+						$field->FieldsetClass = "matrix_title_field";
+					}
+
+					$field->draw();
 				}
 			} else {
 				echo '<p>There are no resources for the selected callout.</p>';

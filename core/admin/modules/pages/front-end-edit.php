@@ -10,8 +10,6 @@
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;
-	$bigtree["field_namespace"] = uniqid("template_field_");
-	$bigtree["field_counter"] = 0;
 ?>
 <h2>Edit Page Content</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
@@ -32,11 +30,12 @@
 				if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
 
 					// Get field types for knowing self drawing ones
-					$cached_types = $admin->getCachedFieldTypes();
-					$bigtree["field_types"] = $cached_types["templates"];
+					$bigtree["field_types"] = BigTree\FieldType::reference(false,"templates");
+
+					BigTree\Field::$Namespace = uniqid("template_field_");
 
 					foreach ($bigtree["template"]["resources"] as $resource) {
-						$field = array(
+						$field = new BigTree\Field(array(
 							"type" => $resource["type"],
 							"title" => $resource["title"],
 							"subtitle" => $resource["subtitle"],
@@ -44,9 +43,9 @@
 							"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 							"tabindex" => $bigtree["tabindex"],
 							"options" => $resource["options"]
-						);
+						));
 
-						BigTreeAdmin::drawField($field);
+						$field->draw();
 					}
 				} else {
 					echo '<p>There are no resources for the selected template.</p>';

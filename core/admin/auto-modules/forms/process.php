@@ -49,7 +49,7 @@
 	$bigtree["file_data"] = BigTree::parsedFilesArray();
 
 	foreach ($bigtree["form"]["fields"] as $resource) {
-		$field = array(
+		$field = new BigTree\Field(array(
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"key" => $resource["column"],
@@ -57,9 +57,9 @@
 			"ignore" => false,
 			"input" => $bigtree["post_data"][$resource["column"]],
 			"file_input" => $bigtree["file_data"][$resource["column"]]
-		);
+		));
 
-		$output = BigTreeAdmin::processField($field);
+		$output = $field->process();
 		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $output;
 		}

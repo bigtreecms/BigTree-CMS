@@ -3,7 +3,7 @@
 	BigTreeTable({
 		container: "#callouts_table",
 		title: "Callouts",
-		data: <?=BigTree::jsonExtract($admin->getCallouts("name ASC"),array("name","id"))?>,
+		data: <?=BigTree::jsonExtract(BigTree\Callout::all("name ASC",true),array("name","id"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>callouts/edit/{id}/",
 			delete: function(id,state) {

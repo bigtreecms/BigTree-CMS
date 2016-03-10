@@ -13,7 +13,7 @@
 	// Loop through all the fields
 	foreach ($form["fields"] as $field => $resource) {
 		if ($resource["type"] == "html") {
-			$integrity_errors[$field] = $admin->checkHTML("",$item[$field],$external);
+			$integrity_errors[$field] = BigTree\Link::integrity("",$item[$field],$external);
 		} elseif ($resource["type"] == "text" && is_string($item[$field])) {
 			$href = $item[$field];
 			// External link

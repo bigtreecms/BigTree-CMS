@@ -136,6 +136,115 @@
 		}
 
 		/*
+			Function: integrity
+				Checks a block of HTML for link/image intergirty
+
+			Parameters:
+				relative_path - The starting path of the page containing the HTML (so that relative links, i.e. "good/" know where to begin)
+				html - A string of HTML
+				external - Whether to check external links (slow) or not
+
+			Returns:
+				An array containing two possible keys (a and img) which each could contain an array of errors.
+		*/
+
+		static function integrity($relative_path,$html,$external = false) {
+			if (!$html) {
+				return array();
+			}
+			$errors = array();
+
+			// Make sure HTML is valid.
+			$doc = new DOMDocument();
+			try {
+				$doc->loadHTML($html);
+			} catch (Exception $e) {
+				return array();
+			}
+
+			// Check A tags.
+			$links = $doc->getElementsByTagName("a");
+			foreach ($links as $link) {
+				$href = $link->getAttribute("href");
+				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
+				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && strpos($href,WWW_ROOT) === false) {
+					// External link, not much we can do but alert that it's dead
+					if ($external) {
+						if (strpos($href,"#") !== false) {
+							$href = substr($href,0,strpos($href,"#")-1);
+						}
+						if (!static::urlExists($href)) {
+							$errors["a"][] = $href;
+						}
+					}
+				} elseif (substr($href,0,6) == "ipl://") {
+					if (!static::iplExists($href)) {
+						$errors["a"][] = $href;
+					}
+				} elseif (substr($href,0,6) == "irl://") {
+					if (!static::irlExists($href)) {
+						$errors["a"][] = $href;
+					}
+				} elseif (substr($href,0,7) == "mailto:" || substr($href,0,1) == "#" || substr($href,0,5) == "data:" || substr($href,0,4) == "tel:") {
+					// Don't do anything, it's a page mark, data URI, or email address
+				} elseif (substr($href,0,4) == "http") {
+					// It's a local hard link
+					if (!static::urlExists($href)) {
+						$errors["a"][] = $href;
+					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic link
+					if (!static::urlExists("http:".$href)) {
+						$errors["a"][] = $href;
+					}
+				} else {
+					// Local file.
+					$local = $relative_path.$href;
+					if (!static::urlExists($local)) {
+						$errors["a"][] = $local;
+					}
+				}
+			}
+			// Check IMG tags.
+			$images = $doc->getElementsByTagName("img");
+			foreach ($images as $image) {
+				$href = $image->getAttribute("src");
+				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
+				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
+					// External link, not much we can do but alert that it's dead
+					if ($external) {
+						if (!static::urlExists($href)) {
+							$errors["img"][] = $href;
+						}
+					}
+				} elseif (substr($href,0,6) == "irl://") {
+					if (!static::irlExists($href)) {
+						$errors["img"][] = $href;
+					}
+				} elseif (substr($href,0,5) == "data:") {
+					// Do nothing, it's a data URI
+				} elseif (substr($href,0,4) == "http") {
+					// It's a local hard link
+					if (!static::urlExists($href)) {
+						$errors["img"][] = $href;
+					}
+				} elseif (substr($href,0,2) == "//") {
+					// Protocol agnostic src
+					if (!static::urlExists("http:".$href)) {
+						$errors["img"][] = $href;
+					}
+				} else {
+					// Local file.
+					$local = $relative_path.$href;
+					if (!static::urlExists($local)) {
+						$errors["img"][] = $local;
+					}
+				}
+			}
+			return $errors;
+		}
+
+		/*
 			Function: iplDecode
 				Returns a hard link to the page's publicly accessible URL from its encoded soft link URL.
 			
@@ -338,5 +447,45 @@
 				}
 			}
 			return str_replace(static::$TokenKeys,static::$TokenValues,$string);
+		}
+
+		/*
+			Function: urlExists
+				Attempts to connect to a URL using cURL.
+
+			Parameters:
+				url - The URL to connect to.
+
+			Returns:
+				true if it can connect, false if connection failed.
+		*/
+
+		static function urlExists($url) {
+			// Handle // urls as http://
+			if (substr($url,0,2) == "//") {
+				$url = "http:".$url;
+			}
+
+			$handle = curl_init($url);
+			if ($handle === false) {
+				return false;
+			}
+
+			// We want just the header (NOBODY sets it to a HEAD request)
+			curl_setopt($handle,CURLOPT_HEADER,true);
+			curl_setopt($handle,CURLOPT_NOBODY,true);
+			curl_setopt($handle,CURLOPT_RETURNTRANSFER,true);
+
+			// Fail on error should make it so response codes > 400 result in a fail
+			curl_setopt($handle, CURLOPT_FAILONERROR, true);
+
+			// Request as Firefox so that servers don't reject us for not having headers.
+			curl_setopt($handle, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15") );
+
+			// Execute the request and close the handle
+			$success = curl_exec($handle) ? true : false;
+			curl_close($handle);
+
+			return $success;
 		}
 	}

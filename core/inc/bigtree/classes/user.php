@@ -13,25 +13,71 @@
 
 		static $Table = "bigtree_users";
 
+		protected $ID;
+		protected $OriginalPassword;
+
+		public $Alerts;
+		public $ChangePasswordHash;
+		public $Company;
+		public $DailyDigest;
+		public $Email;
+		public $Level;
+		public $Name;
+		public $Password;
+		public $Permissions;
+
+		/*
+			Constructor:
+				Builds a User object referencing an existing database entry.
+
+			Parameters:
+				user - Either an ID (to pull a record) or an array (to use the array as the record)
+		*/
+
+		function __construct($user) {
+			// Passing in just an ID
+			if (!is_array($user)) {
+				$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE id = ?", $user);
+			}
+
+			// Bad data set
+			if (!is_array($user)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+			} else {
+				$this->ID = $user["id"];
+				$this->Email = $user["email"];
+				$this->Password = $user["password"];
+				$this->OriginalPassword = $user["password"];
+				$this->Name = $user["name"] ?: null;
+				$this->Company = $user["company"] ?: null;
+				$this->Level = $user["level"] ?: 0;
+				$this->Permissions = $user["permissions"] ? json_decode($user["permissions"],true) : null;
+				$this->Alerts = $user["alerts"] ? json_decode($user["alerts"],true) : null;
+				$this->DailyDigest = $user["daily_digest"] ? true : false;
+				$this->ChangePasswordHash = $user["change_password_hash"] ?: null;
+			}
+		}
+
 		/*
 			Function: all
 				Returns a list of all users
 
 			Parameters:
 				sort - Sort order (defaults to "name ASC")
+				return_arrays - Set to true to return arrays of data rather than objects.
 
 			Returns:
 				An array of entries from bigtree_users.
 				The keys of the array are the ids of the user.
 		*/
 
-		static function all($sort = "name ASC") {
+		static function all($sort = "name ASC", $return_arrays = false) {
 			$users = BigTreeCMS::$DB->fetchAll("SELECT * FROM ".static::$Table." ORDER BY $sort");
 			$user_array = array();
 
 			// Get the keys all nice
 			foreach ($users as $user) {
-				$user_array[$user["id"]] = $user;
+				$user_array[$user["id"]] = $return_arrays ? $user : new User($user);
 			}
 
 			return $user_array;
@@ -80,50 +126,19 @@
 				"daily_digest" => ($daily_digest ? "on" : "")
 			));
 
-			BigTree\AuditTrail::track(static::$Table,$id,"created");
+			AuditTrail::track(static::$Table,$id,"created");
 
-			return $id;
+			return new User($id);
 		}
 
 		/*
 			Function: delete
-				Deletes a user
-
-			Parameters:
-				id - User ID
-
-			Returns:
-				true if successful. false if the logged in user does not have permission to delete the user.
+				Deletes the user
 		*/
 
-		function delete($id) {
-			BigTreeCMS::$DB->delete(static::$Table,$id);
-			BigTree\AuditTrail::track(static::$Table,$id,"deleted");
-
-			return true;
-		}
-
-		/*
-			Function: get
-				Gets a user by ID with permissions and alerts decoded.
-
-			Parameters:
-				id - User ID
-
-			Returns:
-				A user array or false if the user was not found
-		*/
-
-		static function get($id) {
-			$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE id = ?", $id);
-			if (!$user) {
-				return false;
-			}
-
-			$user["permissions"] = isset($user["permissions"]) ? @json_decode($user["permissions"],true) : null;
-			$user["alerts"] = isset($user["alerts"]) ? @json_decode($user["alerts"],true) : null;
-			
-			return $user;
+		function delete() {
+			BigTreeCMS::$DB->delete(static::$Table,$this->ID);
+			BigTree\AuditTrail::track(static::$Table,$this->ID,"deleted");
 		}
 
 		/*
@@ -138,7 +153,13 @@
 		*/
 
 		static function getByEmail($email) {
-			return BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
+			$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
+			
+			if ($user) {
+				return new User($user);
+			}
+
+			return false;
 		}
 
 		/*
@@ -152,31 +173,72 @@
 				A user array or false if the user was not found
 		*/
 
-		static function getUserByHash($hash) {
-			return BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
+		static function getByHash($hash) {
+			$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
+
+			if ($user) {
+				return new User($user);
+			}
+
+			return false;
+		}
+
+		/*
+			Function: removeBans
+				Removes all login bans for the user
+		*/
+
+		function removeBans() {
+			BigTreeCMS::$DB->delete("bigtree_login_bans",array("user" => $user["id"]));
 		}
 
 		/*
 			Function: setPasswordHash
 				Creates a change password hash for a user
 
-			Parameters:
-				user - A user entry.
-
 			Returns:
 				A change password hash.
 		*/
 
-		static function setPasswordHash($user) {
-			BigTreeCMS::$DB->update("bigtree_users",$user["id"],array("change_password_hash" => md5(microtime().$user["password"])));
+		function setPasswordHash() {
+			$hash = md5(microtime().$this->Password);
+			BigTreeCMS::$DB->update("bigtree_users",$this->ID,array("change_password_hash" => $hash));
+
+			return $hash;
+		}
+
+		/*
+			Function: save
+				Saves the current object properties back to the database.
+		*/
+
+		function save() {
+			global $bigtree;
+
+			$update_values = array(
+				"email" => $this->Email,
+				"name" => BigTree::safeEncode($this->Name),
+				"company" => BigTree::safeEncode($this->Company),
+				"level" => intval($this->Level),
+				"permissions" => (array) $this->Permissions,
+				"alerts" => (array) $this->Alerts,
+				"daily_digest" => $this->DailyDigest ? "on" : ""
+			);
+
+			if ($this->Password != $this->OriginalPassword) {
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
+				$update_values["password"] = $phpass->HashPassword(trim($this->Password));
+			}
+
+			BigTreeCMS::$DB->update(static::$Table,$this->ID,$update_values);
+			BigTree\AuditTrail::track("bigtree_users",$this->ID,"updated");
 		}
 
 		/*
 			Function: update
-				Updates a user.
+				Updates the user properties and saves the changes to the database.
 
 			Parameters:
-				id - The user's ID
 				email - Email Address
 				password - Password
 				name - Name
@@ -190,49 +252,25 @@
 				true if successful. false if there was an email collision.
 		*/
 
-		function update($id,$email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
-			global $bigtree;
-
+		function update($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
 			// See if there's an email collission
 			if (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $id)) {
 				return false;
 			}
 
-			$update_values = array(
-				"email" => $email,
-				"name" => BigTree::safeEncode($name),
-				"company" => BigTree::safeEncode($company),
-				"level" => intval($level),
-				"permissions" => $permissions,
-				"alerts" => $alerts,
-				"daily_digest" => $daily_digest ? "on" : ""
-			);
+			$this->Email = $email;
+			$this->Name = $name;
+			$this->Company = $company;
+			$this->Level = $level;
+			$this->Permissions = $permissions;
+			$this->Alerts = $alerts;
+			$this->DailyDigest = $daily_digest;
 
-			if ($password) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$update_values["password"] = $phpass->HashPassword(trim($password));
+			if ($password != "") {
+				$this->Password = $password;
 			}
 
-			BigTreeCMS::$DB->update(static::$Table,$id,$update_values);
-			BigTree\AuditTrail::track("bigtree_users",$id,"updated");
-
-			return true;
-		}
-
-		/*
-			Function: updatePassword
-				Updates a user's password.
-
-			Parameters:
-				id - User ID
-				password - New password
-		*/
-
-		static function updatePassword($id,$password) {
-			global $bigtree;
-
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			static::$DB->update(static::$Table,$id,array("password" => $phpass->HashPassword(trim($password))));
+			$this->save();
 		}
 
 		/*

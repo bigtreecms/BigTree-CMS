@@ -1,7 +1,8 @@
 <?php
 	$admin->requireLevel(1);
 	if (isset($_POST["clear"])) {
-		$admin->clearDead404s();
+		BigTree\Redirect::clearEmpty();
+		$admin->growl("404 Report","Cleared 404s");
 		BigTree::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/");
 	} else {
 ?>

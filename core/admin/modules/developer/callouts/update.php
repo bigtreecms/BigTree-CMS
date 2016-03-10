@@ -1,10 +1,15 @@
 <?php
-	if ($_POST["group_new"]) {
-		$group = $admin->createCalloutGroup($_POST["group_new"]);
+	BigTree::globalizePOSTVars();
+
+	if (!empty($group_new)) {
+		$new_group = BigTree\CalloutGroup::create($group_new);
+		$group_id = $new_group->ID;
 	} else {
-		$group = $_POST["group_existing"];
+		$group_id = $group_existing;
 	}
-	$admin->updateCallout($_POST["id"],$_POST["name"],$_POST["description"],$_POST["level"],$_POST["resources"],$_POST["display_field"],$_POST["display_default"],$group);
+
+	$callout = new BigTree\Callout($id);
+	$callout->update($name,$description,$level,$fields,$display_field,$display_default);
 
 	$admin->growl("Developer","Updated Callout");
 	BigTree::redirect(DEVELOPER_ROOT."callouts/");

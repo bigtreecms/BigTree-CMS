@@ -39,7 +39,9 @@
 					}
 	
 					// Process the input
-					$output = BigTreeAdmin::processField($field);
+					$field = new BigTree\Field($field);
+					$output = $field->process();
+					
 					if (!is_null($output)) {
 						$bigtree["entry"][$field["key"]] = $output;
 					}
