@@ -2962,7 +2962,7 @@
 		}
 
 		/*
-			Function: getCalloutAllowed
+			Function: getCalloutsAllowed
 				Returns a list of callouts the logged-in user is allowed access to.
 
 			Parameters:
