@@ -17,7 +17,7 @@
 			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
 			
 			// Check if we're doing module based permissions on this table.
-			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
+			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
 				$is_group_based_perm = true;
 				while ($f = sqlfetch($q)) {
 					// Find out whether the logged in user can access a given group, and if so, specify the access level.
