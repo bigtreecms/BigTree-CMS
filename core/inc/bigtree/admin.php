@@ -3895,7 +3895,13 @@
 		*/
 
 		static function getContentsOfResourceFolder($folder, $sort = "date DESC") {
-			return BigTree\ResourceFolder::contents($folder,$sort);
+			if ($folder) {
+				$folder = new BigTree\ResourceFolder($folder);
+			} else {
+				$folder = BigTree\ResourceFolder::root();
+			}
+
+			return $folder->Contents;
 		}
 
 		/*
@@ -3957,7 +3963,8 @@
 		*/
 
 		static function getResourceFolder($id) {
-			return BigTree\ResourceFolder::get($id);
+			$folder = new BigTree\ResourceFolder($id);
+			return $folder->Array;
 		}
 
 		/*
@@ -3972,7 +3979,8 @@
 		*/
 
 		static function getResourceFolderAllocationCounts($folder) {
-			return BigTree\ResourceFolder::info($folder);
+			$folder = new BigTree\ResourceFolder($folder);
+			return $folder->Statistics;
 		}
 
 		/*
@@ -3987,7 +3995,8 @@
 		*/
 
 		static function getResourceFolderBreadcrumb($folder,$crumb = array()) {
-			return BigTree\ResourceFolder::breadcrumb($folder,$crumb);
+			$folder = new BigTree\ResourceFolder($folder);
+			return $folder->Breadcrumb;
 		}
 
 		/*
@@ -4002,7 +4011,7 @@
 		*/
 
 		static function getResourceFolderChildren($id) {
-			return BigTree\ResourceFolder::children($id);
+			return BigTree\ResourceFolder::allByParent($id,"name ASC",true);
 		}
 
 		/*

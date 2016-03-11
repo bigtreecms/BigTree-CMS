@@ -12,86 +12,72 @@
 
 		static $Table = "bigtree_resource_folders";
 
+		protected $ID;
+
+		public $Name;
+		public $Parent;
+
 		/*
-			Function: access
-				Returns the access level of the current user for the folder.
-				Can only be called within admin context.
+			Constructor:
+				Builds a ResourceFolder object referencing an existing database entry.
 
 			Parameters:
-				folder - The id of a folder or a folder entry.
-
-			Returns:
-				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
+				folder - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function access($folder) {
-			global $admin;
-
-			if (!$admin || get_class($admin) != "BigTreeAdmin") {
-				return false;
+		function __construct($folder) {
+			// Passing in just an ID
+			if (!is_array($folder)) {
+				$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
 			}
 
-			// User is an admin or developer
-			if ($admin->Level > 0) {
-				return "p";
-			}
-
-			// We're going to save the folder entry in case we need its parent later.
-			if (is_array($folder)) {
-				$id = $folder["id"];
+			// Bad data set
+			if (!is_array($folder)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
 			} else {
-				$id = $folder;
-			}
+				$this->ID = $folder["id"];
 
-			$p = $admin->Permissions["resources"][$id];
-			// If p is already no, creator, or consumer we can just return it.
-			if ($p && $p != "i") {
-				return $p;
-			} else {
-				// If folder is 0, we're already at home and can't check a higher folder for permissions.
-				if (!$folder) {
-					return "e";
-				}
-
-				// If a folder entry wasn't passed in, we need it to find its parent.
-				if (!is_array($folder)) {
-					$folder = static::$DB->fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
-				}
-
-				// If we couldn't find the folder anymore, just say they can consume.
-				if (!$folder) {
-					return "e";
-				}
-
-				// Return the parent's permissions
-				return $this->getResourceFolderPermission($folder["parent"]);
+				$this->Name = $folder["name"];
+				$this->Parent = $folder["parent"];
 			}
 		}
 
 		/*
-			Function: breadcrumb
-				Returns a breadcrumb of the given folder.
-
-			Parameters:
-				folder - The id of a folder or a folder entry.
-
-			Returns:
-				An array of arrays containing the name and id of folders above.
+			Get Magic Method:
+				Allows retrieval of the write-protected ID property and other heavy data processing properties.
 		*/
 
-		static function breadcrumb($folder,$crumb = array()) {
-			if (!is_array($folder)) {
-				$folder = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
+		function __get($property) {
+			// Read-only properties that require a lot of work, stored as protected methods
+			if ($property == "Breadcrumb") {
+				return $this->_getBreadcrumb();
+			}
+			if ($property == "Contents") {
+				return $this->_getContents();
+			}
+			if ($property == "Statistics") {
+				return $this->_getStatistics();
+			}
+			if ($property == "UserAccessLevel") {
+				return $this->_getUserAccessLevel();
 			}
 
-			// Append the folder to the running breadcrumb
-			if ($folder) {
-				$crumb[] = array("id" => $folder["id"], "name" => $folder["name"]);
+			return parent::__get($property);
+		}
+
+		// $this->Breadcrumb
+		protected function _getBreadcrumb($folder = false,$crumb = array()) {
+			// First call won't have folder
+			if (!$folder) {
+				$folder = $this;
 			}
+
+			// Add crumb part
+			$crumb[] = array("id" => $folder->ID, "name" => $folder->Name);
 
 			// If we have a parent, go higher up
-			if ($folder["parent"]) {
-				return static::breadcrumb($folder["parent"],$crumb);
+			if ($folder->Parent) {
+				return $this->_getBreadcrumb(new ResourceFolder($this->Parent),$crumb);
 			
 			// Append home, reverse, return
 			} else {
@@ -100,43 +86,79 @@
 			}
 		}
 
-		/*
-			Function: children
-				Returns the child folders of a resource folder.
+		// $this->Contents
+		protected function _getContents($sort = "date DESC") {
+			$null_query = $this->ID ? "" : "OR folder IS NULL";
 
-			Parameters:
-				id - The id of the parent folder.
-
-			Returns:
-				An array of resource folder entries.
-		*/
-
-		static function children($id) {
-			return BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name ASC", $id);
-		}
-
-		/*
-			Function: contents
-				Returns a list of resources and subfolders in a folder.
-
-			Parameters:
-				folder - The id of a folder or a folder entry.
-				sort - The column to sort the folder's files on (default: date DESC).
-
-			Returns:
-				An array of two arrays - folders and resources.
-		*/
-
-		static function contents($folder, $sort = "date DESC") {
-			if (is_array($folder)) {
-				$folder = $folder["id"];
-			}
-			$null_query = $folder ? "" : "OR folder IS NULL";
-
-			$folders = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $folder);
-			$resources = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $folder);
+			$folders = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $this->ID);
+			$resources = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $this->ID);
 
 			return array("folders" => $folders, "resources" => $resources);
+		}
+
+		// $this->Statistics
+		protected function _getStatistics() {
+			$allocations = $folders = $resources = 0;
+			$items = $this->Contents;
+
+			// Loop through subfolders
+			foreach ($items["folders"] as $folder) {
+				$folders++;
+
+				$sub_folder = new ResourceFolder($folder);
+				$sub_folder_stats = $sub_folder->Statistics;
+
+				$allocations += $sub_folder_stats["allocations"];
+				$folders += $sub_folder_stats["folders"];
+				$resources += $sub_folder_stats["resources"];
+			}
+
+			foreach ($items["resources"] as $resource) {
+				$resources++;
+
+				$resource = new Resource($resource);
+				$allocations += $resource->AllocationCount;
+			}
+
+			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
+		}
+
+		// $this->UserAccessLevel
+		protected function _getUserAccessLevel($recursion = false) {
+			// Not much, but skip it since it's not needed on recursion
+			if ($recursion == false) {
+				global $admin;
+		
+				if (!$admin || get_class($admin) != "BigTreeAdmin") {
+					return false;
+				}
+		
+				// User is an admin or developer
+				if ($admin->Level > 0) {
+					return "p";
+				}
+
+				$id = $this->ID;
+			} else {
+				$id = $recursion;
+			}
+
+			$permission = $admin->Permissions["resources"][$id];
+			// If permission is already no, creator, or consumer we can just return it.
+			if ($permission && $permission != "i") {
+				return $permission;
+			} else {
+				// If folder is 0, we're already at home and can't check a higher folder for permissions.
+				if (!$id) {
+					return "e";
+				}
+
+				// Find parent folder
+				$parent_folder = ($this->ID == $id) ? $this->Parent : BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
+
+				// Return the parent's permissions
+				return $this->_getUserAccessLevel($parent_folder);
+			}
 		}
 
 		/*
@@ -148,90 +170,70 @@
 				name - The name of the new folder.
 
 			Returns:
-				The new folder id or false if not allowed.
+				A ResourceFolder object.
 		*/
 
-		function create($parent,$name) {
+		static function create($parent,$name) {
 			$id = BigTreeCMS::$DB->insert("bigtree_resource_folders",array(
 				"name" => BigTree::safeEncode($name),
 				"parent" => $parent
 			));
 
-			BigTree\AuditTrail::track("bigtree_resource_folders",$id,"created");
-			return $id;
+			AuditTrail::track("bigtree_resource_folders",$id,"created");
+
+			return new ResourceFolder($id);
 		}
 
 		/*
 			Function: delete
-				Deletes a resource folder and all of its sub folders and resources.
-
-			Parameters:
-				id - The id of the resource folder.
+				Deletes the resource folder and all of its sub folders and resources.
 		*/
 
-		function delete($id) {
+		function delete() {
 			// Get everything inside the folder
-			$items = static::contents($id);
+			$items = $this->Contents;
 
 			// Delete all subfolders
 			foreach ($items["folders"] as $folder) {
-				static::delete($folder["id"]);
+				$folder = new ResourceFolder($folder);
+				$folder->delete();
 			}
 
 			// Delete all files
 			foreach ($items["resources"] as $resource) {
-				BigTree\Resource::delete($resource["id"]);
+				$resource = new Resource($resource);
+				$resource->delete();
 			}
 
 			// Delete the folder
-			BigTreeCMS::$DB->delete("bigtree_resource_folders",$id);
-			BigTree\AuditTrail::track("bigtree_resource_folders",$id,"deleted");
+			BigTreeCMS::$DB->delete("bigtree_resource_folders",$this->ID);
+			AuditTrail::track("bigtree_resource_folders",$this->ID,"deleted");
 		}
 
 		/*
-			Function: get
-				Returns a resource folder.
-
-			Parameters:
-				id - The id of the folder.
+			Function: root
+				Returns a ResourceFolder object for the root folder.
 
 			Returns:
-				A resource folder entry.
+				A ResourceFolder object.
 		*/
 
-		static function get($id) {
-			return BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $id);
+		static function root() {
+			return new ResourceFolder(array("id" => "0", "parent" => "-1", "name" => "Home"));
 		}
 
 		/*
-			Function: info
-				Returns the number of items inside a folder and it's subfolders and the number of allocations of the contained resources.
-
-			Parameters:
-				folder - The id of the folder.
-
-			Returns:
-				A keyed array of "resources", "folders", and "allocations" for the number of resources, sub folders, and allocations.
+			Function: save
+				Saves the current object properties back to the database.
 		*/
 
-		static function info($folder) {
-			$allocations = $folders = $resources = 0;
-			$items = static::contents($folder);
+		function save() {
+			BigTreeCMS::$DB->update("bigtree_resource_folders",$this->ID,array(
+				"name" => BigTree::safeEncode($this->Name),
+				"parent" => intval($this->Parent)
+			));
 
-			// Loop through subfolders
-			foreach ($items["folders"] as $folder) {
-				$folders++;
-				$subs = static::info($folder["id"]);
-				$allocations += $subs["allocations"];
-				$folders += $subs["folders"];
-				$resources += $subs["resources"];
-			}
-
-			foreach ($items["resources"] as $resource) {
-				$resources++;
-				$allocations += count(BigTree\Resource::allocation($resource["id"]));
-			}
-
-			return array("allocations" => $allocations,"folders" => $folders,"resources" => $resources);
+			AuditTrail::track("bigtree_resource_folders",$this->ID,"updated");
 		}
+
 	}

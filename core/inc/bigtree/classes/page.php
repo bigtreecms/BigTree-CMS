@@ -110,6 +110,10 @@
 		protected function _getUserAccessLevel() {
 			global $admin;
 
+			if (!$admin || get_class($admin) != "BigTreeAdmin") {
+				return false;
+			}
+
 			// See if the user is an administrator, if so we can skip permissions.
 			if ($admin->Level > 0) {
 				return "p";
