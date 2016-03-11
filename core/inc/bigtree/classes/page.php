@@ -6,9 +6,38 @@
 
 	namespace BigTree;
 	
+	use BigTree;
+	use BigTreeAdmin;
 	use BigTreeCMS;
 
 	class Page {
+
+		protected $CreatedAt;
+		protected $ID;
+		protected $LastEditedBy;
+		protected $UpdatedAt;
+
+		public $AnalyticsPageViews;
+		public $Archived;
+		public $ArchivedInherited;
+		public $ExpireAt;
+		public $External;
+		public $InNav;
+		public $MaxAge;
+		public $MetaDescription;
+		public $MetaKeywords;
+		public $NavigationTitle;
+		public $NewWindow;
+		public $Parent;
+		public $Path;
+		public $Position;
+		public $PublishAt;
+		public $Resources;
+		public $Route;
+		public $SEOInvisible;
+		public $Template;
+		public $Title;
+		public $Trunk;
 
 		/*
 			Constructor:
@@ -28,7 +57,33 @@
 			if (!is_array($page)) {
 				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
 			} else {
+				// Protected vars first
+				$this->CreatedAt = $page["created_at"];
 				$this->ID = $page["id"];
+				$this->LastEditedBy = $page["last_edited_by"];
+				$this->UpdatedAt = $page["updated_at"];
+
+				// Public vars
+				$this->AnalyticsPageViews = $page["ga_page_views"];
+				$this->Archived = $page["archived"] ? true : false;
+				$this->ArchivedInherited = $page["archived_inherited"] ? true : false;
+				$this->ExpireAt = $page["expire_at"] ?: false;
+				$this->External = $page["external"];
+				$this->InNav = $page["in_nav"] ? true : false;
+				$this->MetaDescription = $page["meta_description"];
+				$this->MetaKeywords = $page["meta_keywords"];
+				$this->NavigationTitle = $page["nav_title"];
+				$this->NewWindow = $page["new_window"] ? true : false;
+				$this->Parent = $page["parent"];
+				$this->Path = $page["path"];
+				$this->Position = $page["position"];
+				$this->PublishAt = $page["publish_at"] ?: false;
+				$this->Resources = array_filter((array) @json_decode($page["resources"],true));
+				$this->Route = $page["route"];
+				$this->SEOInvisible = $page["seo_invisible"] ? true : false;
+				$this->Template = $page["template"];
+				$this->Title = $page["title"];
+				$this->Trunk = $page["trunk"];	
 			}
 		}
 
@@ -145,5 +200,150 @@
 			// Archive this level
 			static::$DB->query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
 								WHERE parent = ? AND archived != 'on'", $page_id);
-		}	
+		}
+
+		/*
+			Function: create
+				Creates a page.
+
+			Parameters:
+				trunk - Trunk status (true or false)
+				parent - Parent page ID
+				in_nav - In navigation (true or false)
+				nav_title - Navigation title
+				title - Page title
+				route - Page route (leave empty to auto generate)
+				meta_description - Page meta description
+				seo_invisible - Pass "X-Robots-Tag: noindex" header (true or false)
+				template - Page template ID
+				external - External link (or empty)
+				new_window - Open in new window from nav (true or false)
+				fields - Array of page data
+				publish_at - Publish time (or false for immediate publishing)
+				expire_at - Expiration time (or false for no expiration)
+				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
+				tags - An array of tags to apply to the page (optional)
+
+			Returns:
+				A Page object.
+		*/
+
+		function create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags = array()) {
+			global $admin;
+
+			// Clean up either their desired route or the nav title
+			$route = BigTreeCMS::urlify($route ?: $nav_title);
+
+			// Make sure route isn't longer than 250 characters
+			$route = substr($route,0,250);
+
+			// We need to figure out a unique route for the page.  Make sure it doesn't match a directory in /site/
+			$original_route = $route;
+			$x = 2;
+			// Reserved paths.
+			if ($parent == 0) {
+				while (file_exists(SERVER_ROOT."site/".$route."/")) {
+					$route = $original_route."-".$x;
+					$x++;
+				}
+				while (in_array($route,BigTreeAdmin::$ReservedTLRoutes)) {
+					$route = $original_route."-".$x;
+					$x++;
+				}
+			}
+
+			// Make sure it doesn't have the same route as any of its siblings.
+			$route = BigTreeCMS::$DB->unique("bigtree_pages","route",$route,array("parent" => $parent),true);
+
+			// If we have a parent, get the full navigation path, otherwise, just use this route as the path since it's top level.
+			if ($parent) {
+				$path = BigTreeCMS::$DB->fetchSingle("SELECT `path` FROM bigtree_pages WHERE id = ?", $parent)."/".$route;
+			} else {
+				$path = $route;
+			}
+
+			// Set the trunk flag back to no if the user isn't a developer
+			$trunk = ($trunk ? "on" : "");
+
+			// Create the page
+			$id = BigTreeCMS::$DB->insert("bigtree_pages",array(
+				"trunk" => $trunk,
+				"parent" => $parent,
+				"nav_title" => BigTree::safeEncode($nav_title),
+				"route" => $route,
+				"path" => $path,
+				"in_nav" => ($in_nav ? "on" : ""),
+				"title" => BigTree::safeEncode($title),
+				"template" => $template,
+				"external" => ($external ? BigTree\Link::encode($external) : ""),
+				"new_window" => ($new_window ? "on" : ""),
+				"resources" => $resources,
+				"meta_keywords" => BigTree::safeEncode($meta_keywords),
+				"meta_description" => BigTree::safeEncode($meta_description),
+				"seo_invisible" => ($seo_invisible ? "on" : ""),
+				"last_edited_by" => (get_class($admin) == "BigTreeAdmin") ? $admin->ID : null,
+				"created_at" => "NOW()",
+				"publish_at" => ($publish_at ? date("Y-m-d",strtotime($publish_at)) : null),
+				"expire_at" => ($expire_at ? date("Y-m-d",strtotime($expire_at)) : null),
+				"max_age" => intval($max_age)
+			));
+
+			// Handle tags
+			foreach (array_filter((array)$tags) as $tag) {
+				BigTreeCMS::$DB->insert("bigtree_tags_rel",array(
+					"table" => "bigtree_pages",
+					"entry" => $id,
+					"tag" => $tag
+				));
+			}
+
+			// If there was an old page that had previously used this path, dump its history so we can take over the path.
+			BigTreeCMS::$DB->delete("bigtree_route_history",array("old_route" => $path));
+
+			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
+			BigTreeAdmin::clearCache();
+
+			// Let search engines know this page now exists.
+			BigTreeAdmin::pingSearchEngines();
+
+			// Track
+			AuditTrail::track("bigtree_pages",$id,"created");
+			
+			return new Page($id);
+		}
+
+		/*
+			Function: delete
+				Deletes the page and all children.
+		*/
+
+		function delete() {
+			// Delete the children as well.
+			$this->deleteChildren($this->ID);
+
+			BigTreeCMS::$DB->delete("bigtree_pages",$this->ID);
+			AuditTrail::track("bigtree_pages",$this->ID,"deleted");
+		}
+
+		/*
+			Function: deleteChildren
+				Deletes the children of the page and recurses downward.
+
+			Parameters:
+				recursive_id - The parent ID to delete children for (used for recursing down)
+		*/
+
+		function deleteChildren($recursive_id = false) {
+			$id = $recursive_id ?: $this->ID;
+
+			$children = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
+			foreach ($children as $child) {
+				// Recurse to this child's children
+				$this->deletePageChildren($child);
+
+				// Delete and track
+				BigTreeCMS::$DB->delete("bigtree_pages",$child);
+				AuditTrail::track("bigtree_pages",$child,"deleted-inherited");
+			}
+		}
 	}

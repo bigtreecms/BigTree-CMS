@@ -90,4 +90,13 @@
 			return new Feed($id);
 		}
 
+		/*
+			Function: delete
+				Deletes the feed.
+		*/
+
+		function delete() {
+			BigTreeCMS::$DB->delete("bigtree_feeds",$this->ID);
+			AuditTrail::track("bigtree_feeds",$this->ID,"deleted");
+		}
 	}

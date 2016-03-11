@@ -59,31 +59,6 @@
 		}
 
 		/*
-			Function: all
-				Returns a list of all users
-
-			Parameters:
-				sort - Sort order (defaults to "name ASC")
-				return_arrays - Set to true to return arrays of data rather than objects.
-
-			Returns:
-				An array of entries from bigtree_users.
-				The keys of the array are the ids of the user.
-		*/
-
-		static function all($sort = "name ASC", $return_arrays = false) {
-			$users = BigTreeCMS::$DB->fetchAll("SELECT * FROM ".static::$Table." ORDER BY $sort");
-			$user_array = array();
-
-			// Get the keys all nice
-			foreach ($users as $user) {
-				$user_array[$user["id"]] = $return_arrays ? $user : new User($user);
-			}
-
-			return $user_array;
-		}
-
-		/*
 			Function: create
 				Creates a user.
 				Supports pre-4.3 syntax by passing an array as the first parameter.
@@ -181,6 +156,38 @@
 			}
 
 			return false;
+		}
+
+		/*
+			Function: initPasswordReset
+				Creates a new password change hash and sends an email to the user.
+		*/
+
+		static function initPasswordReset() {
+			global $bigtree;
+
+			// Update the user's password reset hash code
+			$hash = $this->setPasswordHash();
+
+			// Get site title for email
+			$site_title = BigTreeCMS::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
+
+			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
+
+			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
+			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
+			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
+			$html = str_ireplace("{site_title}",$site_title,$html);
+			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
+
+			$email_service = new BigTreeEmailService;
+			// Only use a custom email service if a from email has been set
+			if ($email_service->Settings["bigtree_from"]) {
+				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+				$email_service->sendEmail("Reset Your Password",$html,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
+			} else {
+				BigTree::sendEmail($user["email"],"Reset Your Password",$html);
+			}
 		}
 
 		/*

@@ -53,31 +53,6 @@
 		}
 
 		/*
-			Function: all
-				Returns a list of callouts.
-
-			Parameters:
-				sort - The order to return the callouts. Defaults to positioned.
-				return_arrays - Set to true to return arrays of data rather than objects.
-
-			Returns:
-				An array of callout entries from bigtree_callouts.
-		*/
-
-		static function all($sort = "position DESC, id ASC", $return_arrays = false) {
-			$callouts = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callouts ORDER BY $sort");
-
-			// Return objects
-			if (!$return_arrays) {
-				foreach ($callouts as &$callout) {
-					$callout = new Callout($callout);
-				}
-			}
-
-			return $callouts;
-		}
-
-		/*
 			Function: allAllowed
 				Returns a list of callouts the logged-in user is allowed access to.
 

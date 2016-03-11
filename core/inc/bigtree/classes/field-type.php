@@ -43,31 +43,6 @@
 		}
 
 		/*
-			Function: all
-				Returns an array of field types.
-
-			Parameters:
-				sort - The sort directon, defaults to name ASC.
-				return_arrays - Set to true to return arrays of data rather than objects.
-
-			Returns:
-				An array of entries from bigtree_field_types.
-		*/
-
-		static function all($sort = "name ASC", $return_arrays = false) {
-			$field_types = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_field_types ORDER BY $sort");
-
-			// Convert to FieldType objects
-			if (!$return_arrays) {
-				foreach ($field_types as &$type) {
-					$type = new FieldType($type);
-				}
-			}
-
-			return $field_types;
-		}
-
-		/*
 			Function: create
 				Creates a field type and its files.
 

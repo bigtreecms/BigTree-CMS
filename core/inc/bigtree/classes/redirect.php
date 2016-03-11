@@ -88,4 +88,14 @@
 			}
 		}
 
+		/*
+			Function: delete
+				Deletes the redirect.
+		*/
+
+		function delete() {
+			BigTreeCMS::$DB->delete("bigtree_404s",$this->ID);
+			AuditTrail::track("bigtree_404s",$this->ID,"deleted");
+		}
+
 	}

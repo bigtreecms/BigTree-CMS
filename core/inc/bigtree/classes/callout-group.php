@@ -43,30 +43,6 @@
 		}
 
 		/*
-			Function: all
-				Returns an array of callout groups sorted by name.
-
-			Parameters:
-				return_arrays - Set to true to return arrays rather than objects.
-
-			Returns:
-				An array of BigTree\CalloutGroup objects.
-		*/
-
-		static function all($return_arrays = false) {
-			$groups = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callout_groups ORDER BY name ASC");
-
-			// Convert to objects
-			if (!$return_arrays) {
-				foreach ($groups as &$group) {
-					$group = new CalloutGroup($group);
-				}
-			}
-
-			return $groups;
-		}
-
-		/*
 			Function: create
 				Creates a callout group.
 

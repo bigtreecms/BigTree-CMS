@@ -560,22 +560,7 @@
 		*/
 
 		function createMessage($subject,$message,$recipients,$in_response_to = 0) {
-			// We build the send_to field this way so that we don't have to create a second table of recipients.
-			$send_to = "|";
-			foreach ($recipients as $r) {
-				// Make sure they actually put in a number and didn't try to screw with the $_POST
-				$send_to .= intval($r)."|";
-			}
-
-			// Insert the message
-			static::$DB->insert("bigtree_messages",array(
-				"sender" => $this->ID,
-				"recipients" => $send_to,
-				"subject" => htmlspecialchars(strip_tags($subject)),
-				"message" => strip_tags($message,"<p><b><strong><em><i><a>"),
-				"date" => "NOW()",
-				"in_response_to" => $in_response_to
-			));
+			BigTree\Message::create($this->ID,$subject,$message,$recipients,$in_response_to);
 		}
 
 		/*
@@ -597,72 +582,8 @@
 		*/
 
 		function createModule($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
-			// Find an available module route.
-			$route = $route ? $route : BigTreeCMS::urlify($name);
-			if (!ctype_alnum(str_replace("-","",$route)) || strlen($route) > 127) {
-				return false;
-			}
-
-			// Go through the hard coded modules
-			$existing = array();
-			$d = opendir(SERVER_ROOT."core/admin/modules/");
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					$existing[] = $f;
-				}
-			}
-			// Go through the directories (really ajax, css, images, js)
-			$d = opendir(SERVER_ROOT."core/admin/");
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					$existing[] = $f;
-				}
-			}
-			// Go through the hard coded pages
-			$d = opendir(SERVER_ROOT."core/admin/pages/");
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					// Drop the .php
-					$existing[] = substr($f,0,-4);
-				}
-			}
-			// Go through already created modules
-			array_merge($existing,static::$DB->fetchAllSingle("SELECT route FROM bigtree_modules"));
-
-			// Get a unique route
-			$x = 2;
-			$original_route = $route;
-			while (in_array($route,$existing)) {
-				$route = $original_route."-".$x;
-				$x++;
-			}
-
-			// Create class module if a class name was provided
-			if ($class && !file_exists(SERVER_ROOT."custom/inc/modules/$route.php")) {
-				// Class file
-				BigTree::putFile(SERVER_ROOT."custom/inc/modules/$route.php",'<?php
-	class '.$class.' extends BigTreeModule {
-		static $RouteRegistry = array();
-		var $Table = "'.$table.'";
-	}
-');
-				// Remove cached class list.
-				BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-			}
-
-			// Create it
-			$id = static::$DB->insert("bigtree_modules",array(
-				"name" => BigTree::safeEncode($name),
-				"route" => $route,
-				"class" => $class,
-				"icon" => $icon,
-				"group" => ($group ? $group : null),
-				"gbp" => $permissions,
-				"developer_only" => ($developer_only ? "on" : "")
-			));
-
-			$this->track("bigtree_modules",$id,"created");
-			return $id;
+			$module = BigTree\Module::create($name,$group,$class,$table,$permissions,$icon,$route,$developer_only);
+			return $module->ID;
 		}
 
 		/*
@@ -684,23 +605,8 @@
 		*/
 
 		function createModuleAction($module,$name,$route,$in_nav,$icon,$interface,$level = 0,$position = 0) {
-			// Get a clean unique route
-			$route = $this->uniqueModuleActionRoute($module,BigTreeCMS::urlify($route));
-
-			// Create
-			$id = static::$DB->insert("bigtree_module_actions",array(
-				"module" => $module,
-				"route" => $route,
-				"in_nav" => ($in_nav ? "on" : ""),
-				"class" => $icon,
-				"level" => intval($level),
-				"interface" => ($interface ? $interface : null),
-				"position" => $position
-			));
-			
-			// Track and return route
-			$this->track("bigtree_module_actions",$id,"created");
-			return $route;
+			$action = BigTree\ModuleAction::create($module,$name,$route,$in_nav,$icon,$interface,$level,$position);
+			return $action->Route;
 		}
 
 		/*
@@ -949,86 +855,13 @@
 				}
 			}
 
-			// Clean up either their desired route or the nav title
-			$route = BigTreeCMS::urlify($data["route"] ? $data["route"] : $data["nav_title"]);
-
-			// Make sure route isn't longer than 250 characters
-			$route = substr($route,0,250);
-
-			// We need to figure out a unique route for the page.  Make sure it doesn't match a directory in /site/
-			$original_route = $route;
-			$x = 2;
-			// Reserved paths.
-			if ($parent == 0) {
-				while (file_exists(SERVER_ROOT."site/".$route."/")) {
-					$route = $original_route."-".$x;
-					$x++;
-				}
-				while (in_array($route,static::$ReservedTLRoutes)) {
-					$route = $original_route."-".$x;
-					$x++;
-				}
-			}
-
-			// Make sure it doesn't have the same route as any of its siblings.
-			$route = static::$DB->unique("bigtree_pages","route",$route,array("parent" => $parent),true);
-
-			// If we have a parent, get the full navigation path, otherwise, just use this route as the path since it's top level.
-			if ($parent) {
-				$path = $this->getFullNavigationPath($parent)."/".$route;
-			} else {
-				$path = $route;
-			}
-
-			// Set the trunk flag back to no if the user isn't a developer
-			$trunk = ($trunk ? "on" : "");
+			// Reset trunk if user isn't developer
 			if ($this->Level < 2) {
 				$trunk = "";
 			}
 
-			// Create the page
-			$id = static::$DB->insert("bigtree_pages",array(
-				"trunk" => $trunk,
-				"parent" => $parent,
-				"nav_title" => BigTree::safeEncode($nav_title),
-				"route" => $route,
-				"path" => $path,
-				"in_nav" => ($in_nav ? "on" : ""),
-				"title" => BigTree::safeEncode($title),
-				"template" => $template,
-				"external" => ($external ? $this->makeIPL($external) : ""),
-				"new_window" => ($new_window ? "on" : ""),
-				"resources" => $resources,
-				"meta_keywords" => BigTree::safeEncode($meta_keywords),
-				"meta_description" => BigTree::safeEncode($meta_description),
-				"seo_invisible" => ($seo_invisible ? "on" : ""),
-				"last_edited_by" => $this->ID,
-				"created_at" => "NOW()",
-				"publish_at" => ($publish_at ? date("Y-m-d",strtotime($publish_at)) : null),
-				"expire_at" => ($expire_at ? date("Y-m-d",strtotime($expire_at)) : null),
-				"max_age" => intval($max_age)
-			));
-
-			// Handle tags
-			foreach (array_filter((array)$data["_tags"]) as $tag) {
-				static::$DB->insert("bigtree_tags_rel",array(
-					"table" => "bigtree_pages",
-					"entry" => $id,
-					"tag" => $tag
-				));
-			}
-
-			// If there was an old page that had previously used this path, dump its history so we can take over the path.
-			static::$DB->delete("bigtree_route_history",array("old_route" => $path));
-
-			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
-			$this->clearCache();
-
-			// Let search engines know this page now exists.
-			$this->pingSearchEngines();
-
-			$this->track("bigtree_pages",$id,"created");
-			return $id;
+			$page = BigTree\Page::create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$data["_tags"]);
+			return $page->ID;
 		}
 
 		/*
@@ -1121,7 +954,8 @@
 		*/
 
 		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
-			return BigTree\Resource::create($folder,$file,$md5,$name,$type,$is_image,$height,$width,$thumbs);
+			$resource = BigTree\Resource::create($folder,$file,$md5,$name,$type,$is_image,$height,$width,$thumbs);
+			return $resource->ID;
 		}
 
 		/*
@@ -1144,7 +978,8 @@
 				return false;
 			}
 
-			return BigTree\ResourceFolder::create($parent,$name);
+			$folder = BigTree\ResourceFolder::create($parent,$name);
+			return $folder->ID;
 		}
 
 		/*
@@ -1298,37 +1133,18 @@
 				Supports pre-4.3 syntax by passing an array as the first parameter.
 
 			Parameters:
-				email - Email Address
-				password - Password
-				name - Name
-				company - Company
-				level - User Level (0 for regular, 1 for admin, 2 for developer)
-				permission - Array of permissions data
-				alerts - Array of alerts data
-				daily_digest - Whether the user wishes to receive the daily digest email
+				data - An array of user data. ("email", "password", "name", "company", "level", "permissions","alerts")
 
 			Returns:
 				id of the newly created user or false if a user already exists with the provided email.
 		*/
 
-		function createUser($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
-			global $bigtree;
-
-			// Allow for backwards compatibility with pre-4.3 syntax
-			if (is_array($email)) {
-				$data = $email;
-				$email = false;
-				// Loop through and create our expected parameters.
-				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
-						$$key = $val;
-					}
+		function createUser($data) {
+			// Loop through and create our expected parameters.
+			foreach ($data as $key => $val) {
+				if (substr($key,0,1) != "_") {
+					$$key = $val;
 				}
-			}
-
-			// Make sure email was passed
-			if (!$email) {
-				return false;
 			}
 
 			$user = BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
@@ -1347,8 +1163,8 @@
 		function delete404($id) {
 			$this->requireLevel(1);
 
-			static::$DB->delete("bigtree_404s",$id);
-			$this->track("bigtree_404s",$id,"deleted");
+			$redirect = new BigTree\Redirect($id);
+			$redirect->delete();
 		}
 
 		/*
@@ -1360,7 +1176,8 @@
 		*/
 
 		function deleteCallout($id) {
-			return BigTree\Callout::delete($id);
+			$callout = new BigTree\Callout($id);
+			$callout->delete();
 		}
 
 		/*
@@ -1428,8 +1245,8 @@
 		*/
 
 		function deleteFeed($id) {
-			static::$DB->delete("bigtree_feeds",$id);
-			$this->track("bigtree_feeds",$id,"deleted");
+			$feed = new BigTree\Feed($id);
+			$feed->delete();
 		}
 
 		/*
@@ -1454,23 +1271,8 @@
 		*/
 
 		function deleteModule($id) {
-			// Get info and delete the class.
-			$module = $this->getModule($id);
-			
-			// Delete class file and custom directory
-			BigTree::deleteFile(SERVER_ROOT."custom/inc/modules/".$module["route"].".php");
-			BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$module["route"]."/");
-
-			// Delete all the related auto module actions
-			static::$DB->delete("bigtree_module_interfaces",array("module" => $id));
-
-			// Delete actions
-			static::$DB->delete("bigtree_module_actions",array("module" => $id));
-
-			// Delete the module
-			static::$DB->delete("bigtree_modules",$id);
-
-			$this->track("bigtree_modules",$id,"deleted");
+			$module = new BigTree\Module($id);
+			$module->delete();
 		}
 
 		/*
@@ -1483,19 +1285,8 @@
 		*/
 
 		function deleteModuleAction($id) {
-			// See if there's a related interface -- if this action is the only one using it, delete it as well.
-			$action = $this->getModuleAction($id);
-			if ($action["interface"]) {
-				$interface_count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_actions WHERE interface = ?",$action["interface"]);
-				if ($interface_count == 1) {
-					static::$DB->delete("bigtree_module_interfaces",$action["interface"]);
-					$this->track("bigtree_module_interfaces",$action["interface"],"deleted");
-				}
-			}
-
-			// Delete the action
-			static::$DB->delete("bigtree_module_actions",$id);
-			$this->track("bigtree_module_actions",$id,"deleted");
+			$action = new BigTree\ModuleAction($id);
+			$action->delete();
 		}
 
 		/*
@@ -1657,27 +1448,23 @@
 		*/
 
 		function deletePage($page) {
-			$permission = $this->getPageAccessLevel($page);
-			if ($permission == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
-				// If the page isn't numeric it's most likely prefixed by the "p" so it's pending.
-				if (!is_numeric($page)) {
-					static::$DB->delete("bigtree_pending_changes",substr($page,1));
-					static::growl("Pages","Deleted Pending Page");
-					$this->track("bigtree_pages",$page,"deleted-pending");
-				} else {
-					// Delete the children as well.
-					$this->deletePageChildren($page);
-
-					static::$DB->delete("bigtree_pages",$page);
-					static::growl("Pages","Deleted Page");
-					$this->track("bigtree_pages",$page,"deleted");
+			// Published page
+			if (is_numeric($page)) {
+				$page = new BigTree\Page($page);
+				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
+					$page->delete();
+					return true;
 				}
-
-				return true;
+			} else {
+				$pending_change = new BigTree\PendingChange(substr($page,1));
+				$page = new BigTree\Page($page);
+				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
+					$pending_change->delete();
+					return true;
+				}
 			}
 
 			$this->stop("You do not have permission to delete this page.");
-			return false;
 		}
 
 		/*
@@ -1690,15 +1477,8 @@
 		*/
 
 		function deletePageChildren($id) {
-			$children = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?",$id);
-			foreach ($children as $child) {
-				// Recurse to this child's children
-				$this->deletePageChildren($child);
-
-				// Delete and track
-				static::$DB->delete("bigtree_pages",$child);
-				$this->track("bigtree_pages",$child,"deleted-inherited");
-			}
+			$page = new BigTree\Page($id);
+			$page->deleteChildren();
 		}
 
 		/*
@@ -1772,7 +1552,8 @@
 		*/
 
 		function deleteResource($id) {
-			return BigTree\Resource::delete($id);
+			$resource = new BigTree\Resource($id);
+			$resource->delete();
 		}
 
 		/*
@@ -1784,7 +1565,8 @@
 		*/
 
 		function deleteResourceFolder($id) {
-			return BigTree\ResourceFolder::delete($id);
+			$folder = new BigTree\ResourceFolder($id);
+			$folder->delete();
 		}
 
 		/*
@@ -1796,7 +1578,8 @@
 		*/
 
 		function deleteSetting($id) {
-			BigTree\Setting::delete($id);
+			$setting = new BigTree\Setting($id);
+			$setting->delete();
 		}
 
 		/*
@@ -2143,40 +1926,13 @@
 		*/
 
 		static function forgotPassword($email) {
-			global $bigtree;
-
-			// Make sure this is a valid user's email
-			$user = static::$DB->fetch("SELECT * FROM bigtree_users WHERE email = ?",$email);
+			$user = BigTree\User::getByEmail($email);
 			if (!$user) {
 				return false;
 			}
 
-			// Update the user's password reset hash code
-			$hash = md5(md5(md5(uniqid("bigtree-hash".microtime(true)))));
-			static::$DB->update("bigtree_users",$user["id"],array("change_password_hash" => $hash));
-
-			// Get site title for email
-			$site_title = static::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
-
-			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
-
-			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
-			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
-			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
-			$html = str_ireplace("{site_title}",$site_title,$html);
-			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
-
-			$email_service = new BigTreeEmailService;
-			// Only use a custom email service if a from email has been set
-			if ($email_service->Settings["bigtree_from"]) {
-				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-				$email_service->sendEmail("Reset Your Password",$html,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
-			} else {
-				BigTree::sendEmail($user["email"],"Reset Your Password",$html);
-			}
-
+			$user->initPasswordReset();
 			BigTree::redirect($login_root."forgot-success/");
-			return true;
 		}
 
 		/*
@@ -2477,7 +2233,7 @@
 		*/
 
 		static function getCalloutGroups() {
-			return BigTree\CalloutGroup::all(true);
+			return BigTree\CalloutGroup::all("name ASC",true);
 		}
 
 		/*
@@ -2676,7 +2432,7 @@
 		*/
 
 		static function getFeeds($sort = "name ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_feeds ORDER BY $sort");
+			return BigTree\Feed::all($sort,true);
 		}
 
 		/*
@@ -2766,12 +2522,9 @@
 		*/
 
 		function getMessage($id) {
-			$message = static::$DB->fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id);
-			if (!$message) {
-				return false;
-			}
+			$message = new BigTree\Message($id);
 
-			if ($message["sender"] != $this->ID && strpos($message["recipients"],"|".$this->ID."|") === false) {
+			if ($message->Sender != $this->ID && !in_array($this->ID,$message->Recipients)) {
 				return false;
 			}
 
@@ -2790,29 +2543,12 @@
 		*/
 
 		function getMessageChain($id) {
-			$message = $this->getMessage($id);
-			if (!$message) {
-				return false;
-			}
+			$message = new BigTree\Message($id);
+			$chain = $message->Chain;
 
-			// Show this message as special in the chain
-			$message["selected"] = true;
-			$chain = array($message);
-
-			// Find parents
-			while ($message["response_to"]) {
-				$message = $this->getMessage($message["response_to"]);
-				// Prepend this message to the chain
-				array_unshift($chain,$message);
-			}
-
-			// Find children
-			$id = $chain[count($chain) - 1]["id"];
-			while ($id = static::fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
-				$message = $this->getMessage($id);
-				if ($message) {
-					$chain[] = $message;
-				}
+			// Convert to arrays
+			foreach ($chain as &$item) {
+				$item = $item->Array;
 			}
 
 			return $chain;
@@ -2829,32 +2565,8 @@
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
 
-		static function getMessages($user = false) {
-			$user = static::$DB->escape($user);
-			$sent = $read = $unread = array();
-			$messages = static::$DB->fetchAll("SELECT bigtree_messages.*, 
-													  bigtree_users.name AS sender_name, 
-													  bigtree_users.email AS sender_email 
-											   FROM bigtree_messages JOIN bigtree_users 
-											   ON bigtree_messages.sender = bigtree_users.id 
-											   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
-											   ORDER BY date DESC");
-
-			foreach ($messages as $message) {
-				// If we're the sender put it in the sent array.
-				if ($message["sender"] == $user) {
-					$sent[] = $message;
-				} else {
-					// If we've been marked read, put it in the read array.
-					if ($message["read_by"] && strpos($message["read_by"],"|".$user."|") !== false) {
-						$read[] = $message;
-					} else {
-						$unread[] = $message;
-					}
-				}
-			}
-
-			return array("sent" => $sent, "read" => $read, "unread" => $unread);
+		static function getMessages($user) {
+			return BigTree\Message::allByUser($user,true);
 		}
 
 		/*
@@ -2869,12 +2581,10 @@
 		*/
 
 		static function getModule($id) {
-			$module = static::$DB->fetch("SELECT * FROM bigtree_modules WHERE id = ?", $id);
-			if (!$module) {
-				return false;
-			}
+			$module = new BigTree\Module($id);
+			$module = $module->Array;
+			$module["gbp"] = $module["group_based_permissions"];
 
-			$module["gbp"] = json_decode($module["gbp"],true);
 			return $module;
 		}
 
@@ -2890,7 +2600,8 @@
 		*/
 
 		static function getModuleAction($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE id = ?", $id);
+			$action = new BigTree\ModuleAction($id);
+			return $action->Array;
 		}
 
 		/*
@@ -2959,8 +2670,8 @@
 		*/
 
 		static function getModuleActionForInterface($interface) {
-			return static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC",
-									  is_array($interface) ? $interface["id"] : $interface);
+			$action = BigTree\ModuleAction::getByInterface($interface);
+			return $action->Array;
 		}
 
 		/*
@@ -3013,8 +2724,7 @@
 		*/
 
 		static function getModuleActions($module) {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? ORDER BY position DESC, id ASC",
-										 is_array($module) ? $module["id"] : $module);
+			return BigTree\ModuleAction::allByModule($module,true);
 		}
 
 		/*
@@ -3029,12 +2739,10 @@
 		*/
 
 		static function getModuleByClass($class) {
-			$module = static::$DB->fetch("SELECT * FROM bigtree_modules WHERE class = ?", $class);
-			if (!$module) {
-				return false;
-			}
+			$module = BigTree\Module::getByClass($class);
+			$module = $module->Array;
+			$module["gbp"] = $module["group_based_permissions"];
 
-			$module["gbp"] = json_decode($module["gbp"],true);
 			return $module;
 		}
 
@@ -3050,12 +2758,10 @@
 		*/
 
 		static function getModuleByRoute($route) {
-			$module = static::$DB->fetch("SELECT * FROM bigtree_modules WHERE route = ?", $route);
-			if (!$module) {
-				return false;
-			}
+			$module = BigTree\Module::getByRoute($class);
+			$module = $module->Array;
+			$module["gbp"] = $module["group_based_permissions"];
 
-			$module["gbp"] = json_decode($module["gbp"],true);
 			return $module;
 		}
 
@@ -6232,33 +5938,6 @@
 
 			static::$DB->update("bigtree_404s",$id,array("ignored" => ""));
 			$this->track("bigtree_404s",$id,"unignored");
-		}
-
-		/*
-			Function: uniqueModuleActionRoute
-				Returns a unique module action route.
-
-			Parameters:
-				module - The module to create a route for.
-				route - The desired route.
-				action - The ID of the action you're trying to set a new route for (optional)
-
-			Returns:
-				A unique action route.
-		*/
-
-		static function uniqueModuleActionRoute($module,$route,$action = false) {
-			$original_route = $route;
-			$x = 2;
-
-			$query_add = ($action !== false) ? " AND id != '".static::$DB->escape($action)."'" : "";
-			while (static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_actions 
-											 WHERE module = ? AND route = ? $query_add", $module, $route)) {
-				$route = $original_route."-".$x;
-				$x++;
-			}
-
-			return $route;
 		}
 
 		/*
