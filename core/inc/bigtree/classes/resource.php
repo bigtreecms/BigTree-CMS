@@ -7,12 +7,80 @@
 	namespace BigTree;
 
 	use BigTreeCMS;
+	use BigTreeStorage;
 
 	class Resource {
 
 		static $CreationLog = array();
 		static $Prefixes = array();
-		static $Table = "bigtree_feeds";
+		static $Table = "bigtree_resources";
+
+		protected $ID;
+
+		public $Crops;
+		public $Date;
+		public $File;
+		public $Folder;
+		public $Height;
+		public $IsImage;
+		public $ListThumbMargin;
+		public $MD5;
+		public $Name;
+		public $Thumbs;
+		public $Type;
+		public $Width;
+
+		/*
+			Constructor:
+				Builds a Resource object referencing an existing database entry.
+
+			Parameters:
+				resource - Either an ID (to pull a record) or an array (to use the array as the record)
+		*/
+
+		function __construct($resource) {
+			// Passing in just an ID
+			if (!is_array($resource)) {
+				$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?", $resource);
+			}
+
+			// Bad data set
+			if (!is_array($resource)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+			} else {
+				$this->ID = $resource["id"];
+
+				$this->Crops = array_filter((array) @json_decode($resource["crops"],true));
+				$this->Date = $resource["date"];
+				$this->File = BigTree\Link::detokenize($resource["file"]);
+				$this->Folder = $resource["folder"];
+				$this->Height = $resource["height"];
+				$this->IsImage = $resource["is_image"] ? true : false;
+				$this->ListThumbMargin = $resource["list_thumb_margin"];
+				$this->MD5 = $resource["md5"];
+				$this->Name = $resource["name"];
+				$this->Thumbs = array_filter((array) @json_decode($resource["thumbs"],true));
+				foreach ($this->Thumbs as &$thumb) {
+					$thumb = BigTree\Link::detokenize($thumb);
+				}
+				$this->Type = $resource["type"];
+				$this->Width = $resource["width"];
+			}
+		}
+
+		/*
+			Get Magic Method:
+				Allows retrieval of the write-protected ID property and other heavy data processing properties.
+		*/
+
+		function __get($property) {
+			// Read-only properties that require a lot of work, stored as protected methods
+			if ($property == "AllocationCount") {
+				return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
+			}
+
+			return parent::__get($property);
+		}
 
 		/*
 			Function: allocate
@@ -39,22 +107,8 @@
 				));
 			}
 
+			// Clear log
 			static::$CreationLog = array();
-		}
-
-		/*
-			Function: allocation
-				Returns the places a resource is used.
-
-			Parameters:
-				id - The id of the resource.
-
-			Returns:
-				An array of entries from the bigtree_resource_allocation table.
-		*/
-
-		static function allocation($id) {
-			return BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
 		}
 
 		/*
@@ -89,27 +143,21 @@
 				"thumbs" => $thumbs
 			));
 
-			BigTree\AuditTrail::track("bigtree_resources",$id,"created");
-			return $id;
+			AuditTrail::track("bigtree_resources",$id,"created");
+
+			return new Resource($id);
 		}
 
 		/*
 			Function: delete
-				Deletes a resource.
-
-			Parameters:
-				id - The id of the resource.
+				Deletes the resource.
+				If no resource allocations remain, the file is deleted as well.
 		*/
 
-		static function delete($id) {
-			$resource = static::get($id);
-			if (!$resource) {
-				return false;
-			}
-
+		static function delete() {
 			// Delete resource record
-			BigTreeCMS::$DB->delete("bigtree_resources",$id);
-			BigTree\AuditTrail::track("bigtree_resources",$id,"deleted");
+			BigTreeCMS::$DB->delete("bigtree_resources",$this->ID);
+			AuditTrail::track("bigtree_resources",$this->ID,"deleted");
 
 			// If this file isn't located in any other folders, delete it from the file system
 			if (!BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", $resource["file"])) {
@@ -124,17 +172,17 @@
 		}
 
 		/*
-			Function: file
+			Function: getByFile
 				Returns a resource with the given file name.
 
 			Parameters:
 				file - The file name.
 
 			Returns:
-				An entry from bigtree_resources with file and thumbs decoded.
+				A Resource object or false if no matching resource was found.
 		*/
 
-		static function file($file) {
+		static function getByFile($file) {
 			// Populate a list of resource prefixes if we don't already have it cached
 			if (static::$Prefixes === false) {
 				static::$Prefixes = array();
@@ -163,32 +211,7 @@
 				}
 			}
 
-			// Decode some things
-			$resource["prefix"] = $last_prefix;
-			$resource["file"] = BigTree\Link::detokenize($resource["file"]);
-			$resource["thumbs"] = json_decode($resource["thumbs"],true);
-			foreach ($resource["thumbs"] as &$thumb) {
-				$thumb = BigTree\Link::detokenize($thumb);
-			}
-
-			return $resource;
-		}
-
-		/*
-			Function: get
-				Returns a resource.
-
-			Parameters:
-				id - The id of the resource.
-
-			Returns:
-				A resource entry with thumbnails decoded.
-		*/
-
-		static function get($id) {
-			$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
-			$resource["thumbs"] = json_decode($resource["thumbs"],true);
-			return $resource;
+			return new Resource($resource);
 		}
 
 		/*

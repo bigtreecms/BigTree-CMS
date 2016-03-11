@@ -1,5 +1,6 @@
 <?php
-	$file = $admin->getResourceByFile($_POST["file"]);
+	$resource = BigTree\Resource::getByFile($_POST["file"]);
+	$file = $resource->Array;
 	$pinfo = BigTree::pathInfo($file["file"]);
 	
 	// We throw on ?uniqid so that we don't cache the thumbnail in the event that we just replaced it
@@ -30,11 +31,10 @@
 </div>
 <?php
 	if ($admin->Level) {
-		$alloc = $admin->getResourceAllocation($file["id"]);
 ?>
 <div class="file_browser_detail_actions">
 	<a href="#" data-replace="<?=$file["id"]?>" class="button replace">Replace</a>
-	<a href="#" data-allocation="<?=count($alloc)?>" class="button delete red">Delete</a>
+	<a href="#" data-allocation="<?=$resource->AllocationCount?>" class="button delete red">Delete</a>
 </div>
 <?php
 	}

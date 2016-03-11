@@ -8,7 +8,6 @@
 
 	use BigTree;
 	use BigTreeCMS;
-	use BigTreeAdmin;
 
 	class Setting {
 

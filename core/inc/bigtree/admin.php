@@ -3910,7 +3910,8 @@
 		*/
 
 		static function getResourceByFile($file) {
-			return BigTree\Resource::file($file);
+			$resource = BigTree\Resource::getByFile($file);
+			return $resource ? $resource->Array : false;
 		}
 
 		/*
@@ -3925,7 +3926,8 @@
 		*/
 
 		static function getResource($id) {
-			return BigTree\Resource::get($id);
+			$resource = new BigTree\Resource($id);
+			return $resource->Array;
 		}
 
 		/*
@@ -3940,7 +3942,7 @@
 		*/
 
 		static function getResourceAllocation($id) {
-			return BigTree\Resource::allocation($id);
+			return BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
 		}
 
 		/*

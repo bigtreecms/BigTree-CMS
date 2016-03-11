@@ -91,7 +91,7 @@
 
 		/*
 			Get Magic Method:
-				Allows retrieval of the write-protected ID property.
+				Allows retrieval of the write-protected ID property and other heavy data processing properties.
 		*/
 
 		function __get($property) {
