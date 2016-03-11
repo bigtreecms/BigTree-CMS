@@ -12,6 +12,8 @@
 
 	class Page {
 
+		static $Table = "bigtree_pages";
+
 		protected $CreatedAt;
 		protected $ID;
 		protected $LastEditedBy;

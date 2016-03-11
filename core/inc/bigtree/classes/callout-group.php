@@ -12,6 +12,8 @@
 
 	class CalloutGroup extends BaseObject {
 
+		static $Table = "bigtree_callout_groups";
+
 		protected $ID; // This shouldn't be editable from outside the class instance
 
 		public $Callouts;

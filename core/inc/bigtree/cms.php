@@ -987,7 +987,7 @@
 		*/
 		
 		static function getSetting($id) {
-			return BigTree\Setting::value($id);
+			return BigTree\Setting::values($id);
 		}
 		
 		
@@ -1003,7 +1003,7 @@
 		*/
 		
 		static function getSettings($ids) {
-			return BigTree\Setting::value($ids);
+			return BigTree\Setting::values($ids);
 		}
 		
 		/*

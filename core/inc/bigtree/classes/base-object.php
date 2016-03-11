@@ -92,20 +92,20 @@
 
 		/*
 			Function: all
-				Returns an array of callout groups sorted by name.
+				Returns an array of records.
 
 			Parameters:
 				sort - Sort direction (optional)
 				return_arrays - Set to true to return arrays rather than objects.
 
 			Returns:
-				An array of BigTree\CalloutGroup objects.
+				An array of the calling object types (or arrays).
 		*/
 
 		static function all($sort = false,$return_arrays = false) {
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
-				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.',E_ERROR);
+				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_WARNING);
 				return false;
 			}
 
@@ -121,6 +121,22 @@
 			}
 
 			return $records;
+		}
+
+		/*
+			Function: delete
+				Deletes the database record for the calling object and records the action in the audit trail (if logged in).
+		*/
+
+		function delete() {
+			// Must have a static Table var.
+			if (empty(static::$Table)) {
+				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_WARNING);
+				return false;
+			}
+
+			BigTreeCMS::$DB->delete(static::$Table,$this->ID);
+			AuditTrail::track(static::$Table,$this->ID,"deleted");
 		}
 
 	}

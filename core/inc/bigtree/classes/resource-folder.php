@@ -10,6 +10,8 @@
 
 	class ResourceFolder {
 
+		static $Table = "bigtree_resource_folders";
+
 		/*
 			Function: access
 				Returns the access level of the current user for the folder.

@@ -1,9 +1,11 @@
 <?php
 	$admin->requireLevel(1);
-	
-	$settings = $admin->getSettings();
+
+	$settings = BigTree\Setting::all("name ASC",true);
 	foreach ($settings as &$item) {
-		if (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
+		if ($item["encrypted"]) {
+			$item["value"] = "&mdash; Encrypted Value &mdash;";
+		} elseif (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
 			$item["value"] = "&mdash; Edit To View &mdash;";
 		} else {
 			$item["value"] = BigTree::trimLength(strip_tags($item["value"]),100);

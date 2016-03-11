@@ -11,6 +11,8 @@
 
 	class FieldType extends BaseObject {
 
+		static $Table = "bigtree_field_types";
+
 		protected $ID;
 
 		public $Name;

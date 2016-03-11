@@ -12,33 +12,69 @@
 
 	class Setting {
 
+		protected $OriginalEncrypted;
+		protected $OriginalID;
+		protected $OriginalValue;
+
+		public $Description;
+		public $Encrypted;
+		public $Extension;
+		public $ID;
+		public $Locked;
+		public $Name;
+		public $Settings;
+		public $System;
+		public $Type;
+		public $Value;
+
 		/*
-			Function: all
-				Returns a list of all settings that the logged in user has access to.
+			Constructor:
+				Builds a Setting object referencing an existing database entry.
 
 			Parameters:
-				sort - Order to return the settings. Defaults to name ASC.
-
-			Returns:
-				An array of entries from bigtree_settings.
-				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
-				If the calling user is a developer, returns locked settings, otherwise they are left out.
+				setting - Either an ID (to pull a record) or an array (to use the array as the record)
+				decode - Whether to decode the setting's value (defaults true, set to false for faster processing of large data value)
 		*/
 
-		static function all($sort = "name ASC") {
-			$lock_check = ($this->Level < 2) ? "locked = '' AND " : "";
+		function __construct($setting, $decode = true) {
+			global $bigtree;
 
-			$settings = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_settings WHERE $lock_check system = '' ORDER BY $sort");
-			foreach ($settings as &$setting) {
-				if ($setting["encrypted"] == "on") {
-					$setting["value"] = "[Encrypted Text]";
-				} else {
-					$setting["value"] = json_decode($setting["value"],true);
-				}
-				$setting = BigTree::untranslateArray($setting);
+			// Passing in just an ID
+			if (!is_array($setting)) {
+				$id = static::context($setting);
+				$setting = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
 			}
 
-			return $settings;
+			// Bad data set
+			if (!is_array($setting)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+			} else {
+				$this->Description = $setting["description"];
+				$this->Encrypted = $this->OriginalEncrypted = $setting["encrypted"] ? true : false;
+				$this->Extension = $setting["extension"];
+				$this->ID = $this->OriginalID = $setting["id"];
+				$this->Locked = $setting["locked"] ? true : false;
+				$this->Name = $setting["name"];
+				$this->Settings = BigTree::untranslateArray(is_string($setting["options"]) ? json_decode($setting["options"],true) : $setting["options"]);
+				$this->System = $setting["system"] ? true : false;
+				$this->Type = $setting["type"];
+
+				// Value may be encrypted
+				if ($this->Encrypted) {
+					$value = BigTreeCMS::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` FROM bigtree_settings 
+																 WHERE id = ?", $bigtree["config"]["settings_key"], $this->ID);
+				} else {
+					$value = $setting["value"];
+				}
+				
+				// Decode value
+				$value = json_decode($value, true);
+				if ($decode) {
+					$value = is_string($value) ? BigTree\Link::decode($value) : BigTree::untranslateArray($value);
+				}
+
+				$this->Value = $this->OriginalValue = $value;
+			}
 		}
 
 		/*
@@ -82,7 +118,7 @@
 				name - Name
 				description - Description / instructions for the user editing the setting
 				type - Field Type
-				options - An array of options for the field
+				settings - An array of settings for the field type
 				extension - Related extension ID (defaults to none unless an extension is calling createSetting)
 				system - Whether to hide this from the Settings tab (defaults to false)
 				encrypted - Whether to encrypt this setting in the database (defaults to false)
@@ -92,26 +128,7 @@
 				True if successful, false if a setting already exists with the ID given.
 		*/
 
-		static function create($id,$name = "",$description = "",$type = "",$options = array(),$extension = "",$system = false,$encrypted = false,$locked = false) {
-			global $admin;
-
-			// Allow for backwards compatibility with pre-4.3 syntax
-			if (is_array($id)) {
-				$data = $id;
-				$id = false;
-				// Loop through and create our expected parameters.
-				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
-						$$key = $val;
-					}
-				}
-			}
-
-			// No id, bad call.
-			if (!$id) {
-				return false;
-			}
-			
+		static function create($id,$name = "",$description = "",$type = "",$settings = array(),$extension = "",$system = false,$encrypted = false,$locked = false) {			
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT") && !$extension) {
 				$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
@@ -133,7 +150,7 @@
 				"name" => BigTree::safeEncode($name),
 				"description" => $description,
 				"type" => BigTree::safeEncode($type),
-				"options" => array_filter((array)$options),
+				"options" => array_filter((array)$settings),
 				"locked" => $locked ? "on" : "",
 				"encrypted" => $encrypted ? "on" : "",
 				"system" => $system ? "on" : "",
@@ -142,24 +159,7 @@
 
 			BigTree\AuditTrail::track("bigtree_settings",$id,"created");
 
-			return true;
-		}
-
-		/*
-			Function: delete
-				Deletes a setting.
-
-			Parameters:
-				id - The id of the setting.
-		*/
-
-		static function delete($id) {
-			// Grab extension based ID if we're calling from an extension
-			$id = static::context($id);
-
-			// Delete setting
-			BigTreeCMS::$DB->delete("bigtree_settings",$id);
-			BigTree\AuditTrail::track("bigtree_settings",$id,"deleted");
+			return new Setting($id);
 		}
 
 		/*
@@ -178,59 +178,71 @@
 		}
 
 		/*
-			Function: get
-				Returns a setting.
-
-			Parameters:
-				id - The id of the setting to return.
-				decode - Whether to decode the array or not. Large data sets may want to set this to false if there aren't internal page links.
-
-			Returns:
-				A setting entry with its value properly decoded and decrypted.
-				Returns false if the setting could not be found.
+			Function: save
+				Saves the current object properties back to the database.
 		*/
 
-		static function get($id,$decode = true) {
+		function save() {
 			global $bigtree;
 
-			$id = static::context($id);
-			$setting = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
-			
-			// Setting doesn't exist
-			if (!$setting) {
-				return false;
-			}
+			BigTreeCMS::$DB->update("bigtree_settings",$this->OriginalID,array(
+				"id" => $this->ID,
+				"type" => $this->Type,
+				"options" => array_filter((array) $this->Settings),
+				"name" => BigTree::safeEncode($this->Name),
+				"description" => $this->Description,
+				"locked" => $this->Locked ? "on" : "",
+				"system" => $this->System ? "on" : "",
+				"encrypted" => $this->Encrypted ? "on" : ""
+			));
 
-			// Encrypted setting
-			if ($setting["encrypted"]) {
-				$setting["value"] = BigTreeCMS::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` 
-																  FROM bigtree_settings 
-																  WHERE id = ?", $bigtree["config"]["settings_key"], $id);
-			}
-
-			// Decode the JSON value
-			if ($decode) {
-				$setting["value"] = json_decode($setting["value"],true);
-	
-				if (is_array($setting["value"])) {
-					$setting["value"] = BigTree::untranslateArray($setting["value"]);
+			// If value has changed, set it now
+			if ($this->Value != $this->OriginalValue) {
+				// Do encoding
+				if (is_array($this->Value)) {
+					$value = BigTree::translateArray($this->Value);
 				} else {
-					$setting["value"] = BigTree\Link::parseHTML($setting["value"]);
+					$value = Link::encode($this->Value);
+				}
+	
+				if ($this->Encrypted) {
+					BigTreeCMS::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
+											$value, $bigtree["config"]["settings_key"], $this->ID);
+				} else {
+					BigTreeCMS::$DB->update("bigtree_settings",$this->ID,array("value" => $value));
+				}
+
+			// If encryption status has changed, update the value directly
+			} else {
+				if ($this->OriginalEncrypted && !$this->Encrypted) {
+					BigTreeeCMS::$DB->query("UPDATE bigtree_settings SET value = AES_DECRYPT(value, ?) WHERE id = ?", 
+											 $bigtree["config"]["settings_key"], $id);
+				} elseif (!$this->OriginalEncrypted && $this->Encrypted) {
+					BigTreeeCMS::$DB->query("UPDATE bigtree_settings SET value = AES_ENCRYPT(value, ?) WHERE id = ?", 
+											 $bigtree["config"]["settings_key"], $id);
 				}
 			}
 
-			return $setting;
+			// If we changed IDs, leave a notice in the audit trail
+			if ($this->OriginalID != $this->ID) {
+				AuditTrail::track("bigtree_settings",$this->OriginalID,"changed-id");
+			}
+			AuditTrail::track("bigtree_settings",$this->ID,"updated");
+
+			// Update "original" value tracking
+			$this->OriginalEncrypted = $this->Encrypted;
+			$this->OriginalID = $this->ID;
+			$this->OriginalValue = $this->Value;
 		}
 
 		/*
 			Function: update
-				Updates a setting.
+				Updates the setting properties and saves back to the database.
 
 			Parameters:
-				old_id - The current id of the setting to update.
 				id - New ID for the setting
 				type - Field Type
-				options - Field Type options
+				settings - Field Type settings
 				name - Name
 				description - Description (HTML)
 				locked - Whether the setting is locked to developers (truthy) or not (falsey)
@@ -241,96 +253,30 @@
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		static function update($old_id,$id,$type = "",$options = array(),$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
+		static function update($id,$type = "",$settings = array(),$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
 			global $bigtree;
 
-			// Allow for pre-4.3 parameter syntax
-			if (is_array($id)) {
-				$data = $id;
-				$id = "";
-
-				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
-						$$key = $val;
-					}
-				}
-			}
-
-			// Get the existing setting information.
-			$existing = static::get($old_id);
-
 			// See if we have an id collision with the new id.
-			if ($old_id != $id && static::exists($id)) {
+			if ($this->ID != $id && static::exists($id)) {
 				return false;
 			}
 
-			// Update base setting
-			BigTreeCMS::$DB->update("bigtree_settings",$old_id,array(
-				"id" => $id,
-				"type" => $type,
-				"options" => $options,
-				"name" => BigTree::safeEncode($name),
-				"description" => $description,
-				"locked" => $locked ? "on" : "",
-				"system" => $system ? "on" : "",
-				"encrypted" => $encrypted ? "on" : ""
-			));
+			$this->ID = $id;
+			$this->Type = $type;
+			$this->Settings = $settings;
+			$this->Name = $name;
+			$this->Description = $description;
+			$this->Locked = $locked ? true : false;
+			$this->Encrypted = $encrypted ? true : false;
+			$this->System = $system ? true : false;
 
-			// If encryption status has changed, update the value
-			if ($existing["encrypted"] && !$encrypted) {
-				BigTreeeCMS::$DB->query("UPDATE bigtree_settings SET value = AES_DECRYPT(value, ?) WHERE id = ?", 
-										 $bigtree["config"]["settings_key"], $id);
-			} elseif (!$existing["encrypted"] && $encrypted) {
-				BigTreeeCMS::$DB->query("UPDATE bigtree_settings SET value = AES_ENCRYPT(value, ?) WHERE id = ?", 
-										 $bigtree["config"]["settings_key"], $id);
-			}
-
-			// Audit trail.
-			BigTree\AuditTrail::track("bigtree_settings",$id,"updated");
-			if ($id != $old_id) {
-				BigTree\AuditTrail::track("bigtree_settings",$old_id,"changed-id");
-			}
+			$this->save();
 
 			return true;
 		}
 
 		/*
-			Function: updateValue
-				Updates the value of a setting.
-
-			Parameters:
-				id - The id of the setting to update.
-				value - A value to set (can be a string or array).
-		*/
-
-		static function updateValue($id,$value) {
-			global $bigtree;
-
-			$id = static::context($id);
-			$item = BigTreeCMS::$DB->fetch("SELECT encrypted, system FROM bigtree_settings WHERE id = ?", $id);
-
-			// Do encoding
-			if (is_array($value)) {
-				$value = BigTree::translateArray($value);
-			} else {
-				$value = Link::encode($value);
-			}
-
-			if ($item["encrypted"]) {
-				BigTreeCMS::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
-										$value, $bigtree["config"]["settings_key"], $id);
-			} else {
-				BigTreeCMS::$DB->update("bigtree_settings",$id,array("value" => $value));
-			}
-
-			// Audit trail.
-			if (!$item["system"]) {
-				BigTree\AuditTrail::track("bigtree_settings",$id,"updated");
-			}
-		}
-
-		/*
-			Function: value
+			Function: values
 				Gets the value of one or more settings.
 			
 			Parameters:
@@ -340,7 +286,7 @@
 				Either an array of setting values or a single setting's value.
 		*/
 		
-		static function value($ids) {
+		static function values($ids) {
 			global $bigtree;
 
 			// Allow for a single ID

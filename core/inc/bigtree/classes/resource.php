@@ -10,8 +10,9 @@
 
 	class Resource {
 
-		public static $CreationLog = array();
-		public static $Prefixes = array();
+		static $CreationLog = array();
+		static $Prefixes = array();
+		static $Table = "bigtree_feeds";
 
 		/*
 			Function: allocate

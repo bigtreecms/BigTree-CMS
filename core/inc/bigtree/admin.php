@@ -985,25 +985,27 @@
 		/*
 			Function: createSetting
 				Creates a setting.
-				Supports pre-4.3 parameter syntax by passing an array as the id parameter.
 
 			Parameters:
-				id - Unique ID
-				name - Name
-				description - Description / instructions for the user editing the setting
-				type - Field Type
-				options - An array of options for the field
-				extension - Related extension ID (defaults to none unless an extension is calling createSetting)
-				system - Whether to hide this from the Settings tab (defaults to false)
-				encrypted - Whether to encrypt this setting in the database (defaults to false)
-				locked - Whether to lock this setting to only developers (defaults to false)
+				data - An array of settings information. Available fields: "id", "name", "description", "type", "locked", "module", "encrypted", "system"
 
 			Returns:
 				True if successful, false if a setting already exists with the ID given.
 		*/
 
-		function createSetting($id,$name = "",$description = "",$type = "",$options = array(),$extension = "",$system = false,$encrypted = false,$locked = false) {
-			return BigTree\Settings::create($id,$name,$description,$type,$options,$extension,$system,$encrypted,$locked);
+		function createSetting($data) {
+			// Setup defaults
+			$id = $name = $extension = $description = $type = $options = $locked = $encrypted = $system = "";
+
+			// Loop through and create our expected parameters.
+			foreach ($data as $key => $val) {
+				if (substr($key,0,1) != "_") {
+					$$key = $val;
+				}
+			}
+
+			$setting = BigTree\Settings::create($id,$name,$description,$type,$options,$extension,$system,$encrypted,$locked);
+			return $setting ? true : false;
 		}
 
 		/*
@@ -4045,7 +4047,8 @@
 		*/
 
 		static function getSetting($id,$decode = true) {
-			return BigTree\Setting::get($id,$decode);
+			$setting = new BigTree\Setting($id,$decode);
+			return $setting->Array;
 		}
 
 		/*
@@ -4062,7 +4065,21 @@
 		*/
 
 		function getSettings($sort = "name ASC") {
-			return BigTree\Setting::all($sort);
+			$settings = BigTree\Setting::all($sort,true);
+			
+			if ($this->Level > 1) {
+				return $settings;
+			}
+
+			// Only draw settings the admin can use
+			$filtered_settings = array();
+			foreach ($settings as $setting) {
+				if (!$setting["locked"]) {
+					$filtered_settings[] = $setting;
+				}
+			}
+
+			return $filtered_settings;
 		}
 
 		/*
@@ -6717,21 +6734,21 @@
 
 			Parameters:
 				old_id - The current id of the setting to update.
-				id - New ID for the setting
-				type - Field Type
-				options - Field Type options
-				name - Name
-				description - Description (HTML)
-				locked - Whether the setting is locked to developers (truthy) or not (falsey)
-				encrypted - Whether the setting's value should be encrypted in the database (truthy) or not (falsey)
-				system - Whether the setting should be hidden from the Settings panel (truthy) or not (falsey)
+				data - The new data for the setting ("id", "type", "name", "description", "locked", "system", "encrypted")
 
 			Returns:
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		function updateSetting($old_id,$id,$type = "",$options = array(),$name = "",$description = "",$locked = "",$encrypted = "",$system = "") {
-			return BigTree\Setting::update($old_id,$id,$type,$options,$name,$description,$locked,$encrypted,$system);
+		function updateSetting($old_id,$data) {
+			foreach ($data as $key => $val) {
+				if (substr($key,0,1) != "_") {
+					$$key = $val;
+				}
+			}
+
+			$setting = new BigTree\Setting($old_id,false);
+			return $setting->update($id,$type,$options,$name,$description,$locked,$encrypted,$system);
 		}
 
 		/*
@@ -6744,7 +6761,9 @@
 		*/
 
 		static function updateSettingValue($id,$value) {
-			BigTree\Setting::updateValue($id,$value);
+			$setting = new BigTree\Setting($id);
+			$setting->Value = $value;
+			$setting->save();
 		}
 
 		/*
