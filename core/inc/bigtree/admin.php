@@ -6727,7 +6727,13 @@
 		*/
 
 		function updateResource($id,$attributes) {
-			BigTree\Resource::update($id,$attributes);
+			$resource = new BigTree\Resource($id);
+			foreach ($attributes as $key => $val) {
+				// Camel case attributes
+				$key = str_replace(" ","",ucwords(str_replace("_"," ",$key)));
+				$resource->$key = $val;
+			}
+			$resource->save();
 		}
 
 		/*

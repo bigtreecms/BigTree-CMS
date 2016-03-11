@@ -1,3 +1,4 @@
 <?php
-	$resource = $admin->getResourceByFile($_POST["file"]);
-	$admin->updateResource($resource["id"],array("name" => $_POST["title"]));
+	$resource = BigTree\Resource::getByFile($_POST["file"]);
+	$resource->Name = $_POST["title"];
+	$resource->save();

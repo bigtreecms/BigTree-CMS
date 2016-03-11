@@ -291,16 +291,37 @@
 		}
 
 		/*
-			Function: update
-				Updates a resource.
-
-			Parameters:
-				id - The id of the resource.
-				attributes - A key/value array of fields to update.
+			Function: save
+				Saves the current object properties back to the database.
 		*/
 
-		static function update($id,$attributes) {
-			BigTreeCMS::$DB->update("bigtree_resources",$id,$attributes);
-			BigTree\AuditTrail::track("bigtree_resources",$id,"updated");
+		function save() {
+			global $bigtree;
+
+			// Convert links
+			foreach ($this->Crops as &$crop) {
+				$crop = BigTree\Link::tokenize($crop);
+			}
+			foreach ($this->Thumbs as &$thumb) {
+				$thumb = BigTree\Link::tokenize($thumb);
+			}
+
+			BigTreeCMS::$DB->update("bigtree_resources",$this->ID,array(
+				"folder" => $this->Folder,
+				"file" => BigTree\Link::tokenize($this->File),
+				"md5" => $this->MD5,
+				"date" => date("Y-m-d H:i:s",strtotime($this->Date)),
+				"name" => $this->Name,
+				"type" => $this->Type,
+				"is_image" => $this->IsImage ? "on" : "",
+				"height" => intval($this->Height),
+				"width" => intval($this->Width),
+				"crops" => $this->Crops,
+				"thumbs" => $this->Thumbs,
+				"list_thumb_margin" => intval($this->ListThumbMargin)
+			));
+
+			AuditTrail::track("bigtree_resources",$this->ID,"updated");
 		}
+
 	}
