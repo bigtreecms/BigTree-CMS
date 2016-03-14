@@ -68,19 +68,9 @@
 			}
 		}
 
-		/*
-			Get Magic Method:
-				Allows retrieval of the write-protected ID property and other heavy data processing properties.
-		*/
-
-		function __get($property) {
-			// Read-only properties that require a lot of work, stored as protected methods
-			if ($property == "AllocationCount") {
-				$this->AllocationCount = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
-				return $this->AllocationCount;
-			}
-
-			return parent::__get($property);
+		// $this->AllocationCount
+		function _getAllocationCount() {
+			return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
 		}
 
 		/*

@@ -62,9 +62,9 @@
 
 		// Get magic methods to allow for Array and ID returns
 		function __get($property) {
-			// Many inherited objects will have read-only ID
-			if ($property == "ID") {
-				return $this->ID;
+			// Many inherited objects will have read-only properties
+			if (property_exists($this,$property)) {
+				return $this->$property;
 			}
 
 			// Allow easy conversion to the old array format for the new data objects
@@ -78,6 +78,14 @@
 
 				return $changed_properties;
 			}
+
+			// Allow for protected _get(Property) methods
+			if (method_exists($this,"_get".$property)) {
+				$this->$property = call_user_func(array($this,"_get".$property));
+				return $this->$property;
+			}
+
+			trigger_error("Invalid property: ".$property);
 		}
 
 		// Courtesy of StackOverflow: http://stackoverflow.com/questions/1993721/how-to-convert-camelcase-to-camel-case

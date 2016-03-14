@@ -42,33 +42,6 @@
 			}
 		}
 
-		/*
-			Get Magic Method:
-				Allows retrieval of the write-protected ID property and other heavy data processing properties.
-		*/
-
-		function __get($property) {
-			// Read-only properties that require a lot of work, stored as protected methods
-			if ($property == "Breadcrumb") {
-				$this->Breadcrumb = $this->_getBreadcrumb();
-				return $this->Breadcrumb;
-			}
-			if ($property == "Contents") {
-				$this->Contents = $this->_getContents();
-				return $this->Contents;
-			}
-			if ($property == "Statistics") {
-				$this->Statistics = $this->_getStatistics();
-				return $this->Statistics;
-			}
-			if ($property == "UserAccessLevel") {
-				$this->UserAccessLevel = $this->_getUserAccessLevel();
-				return $this->UserAccessLevel;
-			}
-
-			return parent::__get($property);
-		}
-
 		// $this->Breadcrumb
 		protected function _getBreadcrumb($folder = false,$crumb = array()) {
 			// First call won't have folder
@@ -133,7 +106,9 @@
 			if ($recursion == false) {
 				global $admin;
 		
-				if (!$admin || get_class($admin) != "BigTreeAdmin") {
+				// Make sure a user is logged in
+				if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
 					return false;
 				}
 		

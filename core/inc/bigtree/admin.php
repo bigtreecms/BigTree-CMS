@@ -299,27 +299,8 @@
 		*/
 
 		function canAccessGroup($module,$group) {
-			if ($this->Level > 0) {
-				return "p";
-			}
-
-			$id = $module["id"];
-			$level = false;
-
-			if ($this->Permissions["module"][$id] && $this->Permissions["module"][$id] != "n") {
-				$level = $this->Permissions["module"][$id];
-			}
-
-			if (is_array($this->Permissions["module_gbp"][$id])) {
-				$gp = $this->Permissions["module_gbp"][$id][$group];
-				if ($gp != "n") {
-					if ($gp == "p" || !$level) {
-						$level = $gp;
-					}
-				}
-			}
-
-			return $level;
+			$module = new BigTree\Module($module);
+			return $module->getGroupAccessLevel($group);
 		}
 
 		/*
@@ -383,36 +364,13 @@
 		*/
 
 		function checkAccess($module,$action = false) {
-			// Developer only module
-			if ($module["developer_only"] && $this->Level < 2) {
-				return false;
+			if ($action) {
+				$action = new ModuleAction($action);
+				return $action->UserCanAccess;
 			}
 
-			// Not developer-only and we're an admin? You have access
-			if ($this->Level > 0) {
-				return true;
-			}
-
-			if (is_array($action) && $action["level"] > $this->Level) {
-				return false;
-			}
-
-			$module_id = $module["id"];
-			if ($this->Permissions["module"][$module_id] && $this->Permissions["module"][$module_id] != "n") {
-				return true;
-			}
-
-			if (isset($this->Permissions["module_gbp"])) {
-				if (is_array($this->Permissions["module_gbp"][$module_id])) {
-					foreach ($this->Permissions["module_gbp"][$module_id] as $p) {
-						if ($p != "n") {
-							return true;
-						}
-					}
-				}
-			}
-
-			return false;
+			$module = new Module($module);
+			return $module->UserCanAccess;
 		}
 
 		/*
@@ -2908,7 +2866,7 @@
 		*/
 
 		static function getModuleGroups($sort = "position DESC, id ASC") {
-			$raw_groups = BigTree\ModuleGroup::list($sort,true);
+			$raw_groups = BigTree\ModuleGroup::all($sort,true);
 			$groups = array();
 			
 			foreach ($raw_groups as $group) {

@@ -89,30 +89,13 @@
 			}
 		}
 
-		/*
-			Get Magic Method:
-				Allows retrieval of the write-protected ID property and other heavy data processing properties.
-		*/
-
-		function __get($property) {
-			// Read-only properties that require a lot of work, stored as protected methods
-			if ($property == "UserAccessLevel") {
-				$this->UserAccessLevel = $this->_getUserAccessLevel();
-				return $this->UserAccessLevel;
-			}
-			if ($property == "UserCanModifyChildren") {
-				$this->UserCanModifyChildren = $this->_getUserCanModifyChildren();
-				return $this->UserCanModifyChildren;
-			}
-
-			return parent::__get($property);
-		}
-
 		// $this->UserAccessLevel
 		protected function _getUserAccessLevel() {
 			global $admin;
 
-			if (!$admin || get_class($admin) != "BigTreeAdmin") {
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
 				return false;
 			}
 
@@ -151,6 +134,12 @@
 		// $this->UserCanModifyChildren
 		protected function _getUserCanModifyChildren() {
 			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
+				return false;
+			}
 
 			if ($admin->Level > 0) {
 				return true;

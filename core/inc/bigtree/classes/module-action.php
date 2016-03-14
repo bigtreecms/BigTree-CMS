@@ -20,7 +20,7 @@
 		public $InNav;
 		public $Interface;
 		public $Level;
-		public $Module;
+		public $ModuleID;
 		public $Name;
 		public $Position;
 		public $Route;
@@ -50,11 +50,30 @@
 				$this->InNav = $action["in_nav"] ? true : false;
 				$this->Interface = $action["interface"] ?: false;
 				$this->Level = $action["level"];
-				$this->Module = $action["module"];
+				$this->ModuleID = $action["module"];
 				$this->Name = $action["name"];
 				$this->Position = $action["position"];
 				$this->Route = $this->OriginalRoute = $action["route"];
 			}
+		}
+
+		// $this->UserCanAccess
+		function _getUserCanAccess() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanAccess not available outside logged-in user context.");
+				return false;
+			}
+
+			// Check action access level
+			if ($action["level"] > $admin->Level) {
+				return false;
+			}
+
+			$module = new Module($this->ModuleID);
+			return $module->UserCanAccess;
 		}
 
 		/*
@@ -150,7 +169,7 @@
 			// Make sure route is unique and clean
 			$this->Route = BigTreeCMS::urlify($this->Route);
 			if ($this->Route != $this->OriginalRoute) {
-				$this->Route = BigTreeCMS::$DB->unique("bigtree_module_actions","route",$this->Route,array("module" => $this->Module),true);
+				$this->Route = BigTreeCMS::$DB->unique("bigtree_module_actions","route",$this->Route,array("module" => $this->ModuleID),true);
 				$this->OriginalRoute = $this->Route;
 			}
 

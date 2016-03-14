@@ -55,21 +55,6 @@
 			}
 		}
 
-		/*
-			Get Magic Method:
-				Allows retrieval of the write-protected ID property.
-		*/
-
-		function __get($property) {
-			// Read-only properties that require a lot of work, stored as protected methods
-			if ($property == "Chain") {
-				$this->Chain = $this->_getChain();
-				return $this->Chain;
-			}
-
-			return parent::__get($property);
-		}
-
 		// $this->Chain
 		protected function _getChain() {
 			// Show this message as special in the chain
@@ -88,7 +73,7 @@
 
 			// Find children
 			$id = $this->ID;
-			while ($id = BigTreeCMS::fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
+			while ($id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
 				$chain[] = new Message($id);
 			}
 
