@@ -21,7 +21,7 @@
 	$min_height = $field["options"]["min_height"] ? intval($field["options"]["min_height"]) : 0;
 ?>
 <div class="<? if (empty($field["options"]["image"])) { ?>upload_field<? } else { ?>image_field<? } ?>">
-	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" />
+	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" <? if (!empty($field["options"]["image"])) { ?> accept="image/*" <? } ?>/>
 	<?	
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
 			if ($field["value"]) {
