@@ -50,16 +50,20 @@
 		function __get($property) {
 			// Read-only properties that require a lot of work, stored as protected methods
 			if ($property == "Breadcrumb") {
-				return $this->_getBreadcrumb();
+				$this->Breadcrumb = $this->_getBreadcrumb();
+				return $this->Breadcrumb;
 			}
 			if ($property == "Contents") {
-				return $this->_getContents();
+				$this->Contents = $this->_getContents();
+				return $this->Contents;
 			}
 			if ($property == "Statistics") {
-				return $this->_getStatistics();
+				$this->Statistics = $this->_getStatistics();
+				return $this->Statistics;
 			}
 			if ($property == "UserAccessLevel") {
-				return $this->_getUserAccessLevel();
+				$this->UserAccessLevel = $this->_getUserAccessLevel();
+				return $this->UserAccessLevel;
 			}
 
 			return parent::__get($property);

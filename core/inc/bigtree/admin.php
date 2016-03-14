@@ -729,13 +729,8 @@
 		*/
 
 		function createModuleGroup($name) {
-			$id = static::$DB->insert("bigtree_module_groups",array(
-				"name" => BigTree::safeEncode($name),
-				"route" => static::$DB->unique("bigtree_module_groups","route",BigTreeCMS::urlify($name))
-			));
-
-			$this->track("bigtree_module_groups",$id,"created");
-			return $id;
+			$group = BigTree\ModuleGroup::create($name);
+			return $group->ID;
 		}
 
 		/*
@@ -1332,8 +1327,8 @@
 		*/
 
 		function deleteModuleGroup($id) {
-			static::$DB->delete("bigtree_module_groups",$id);
-			$this->track("bigtree_module_groups",$id,"deleted");
+			$group = new BigTree\ModuleGroup($id);
+			$group->delete();
 		}
 
 		/*
@@ -2856,7 +2851,8 @@
 		*/
 
 		static function getModuleGroup($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $id);
+			$group = new BigTree\ModuleGroup($id);
+			return $group->Array;
 		}
 
 		/*
@@ -2876,7 +2872,8 @@
 
 
 		static function getModuleGroupByName($name) {
-			return static::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE LOWER(name) = ?", strtolower($name));
+			$group = BigTree\ModuleGroup::getByName($name);
+			return $group ? $group->Array : false;
 		}
 
 		/*
@@ -2895,7 +2892,8 @@
 		*/
 
 		static function getModuleGroupByRoute($route) {
-			return static::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE route = ?", $route);
+			$group = BigTree\ModuleGroup::getByRoute($name);
+			return $group ? $group->Array : false;
 		}
 
 		/*
@@ -2910,10 +2908,10 @@
 		*/
 
 		static function getModuleGroups($sort = "position DESC, id ASC") {
+			$raw_groups = BigTree\ModuleGroup::list($sort,true);
 			$groups = array();
 			
-			$query = static::$DB->query("SELECT * FROM bigtree_module_groups ORDER BY $sort");
-			while ($group = $query->fetch()) {
+			foreach ($raw_groups as $group) {
 				$groups[$group["id"]] = $group;
 			}
 
@@ -5631,7 +5629,9 @@
 		*/
 
 		static function setModuleActionPosition($id,$position) {
-			static::$DB->update("bigtree_module_actions",$id,array("position" => $position));
+			$action = new BigTree\ModuleAction($id);
+			$action->Position = $position;
+			$action->save();
 		}
 
 		/*
@@ -5644,7 +5644,9 @@
 		*/
 
 		static function setModuleGroupPosition($id,$position) {
-			static::$DB->update("bigtree_module_groups",$id,array("position" => $position));
+			$group = new BigTree\ModuleGroup($id);
+			$group->Position = $position;
+			$group->save();
 		}
 
 		/*
@@ -6146,20 +6148,8 @@
 		*/
 
 		function updateModuleAction($id,$name,$route,$in_nav,$icon,$interface,$level,$position) {
-			$item = $this->getModuleAction($id);
-			$route = $this->uniqueModuleActionRoute($item["module"],$route,$id);
-
-			static::$DB->update("bigtree_module_actions",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"route" => BigTree::safeEncode($route),
-				"class" => $icon,
-				"in_nav" => $in_nav,
-				"level" => $level,
-				"position" => $position,
-				"interface" => $interface ? $interface : null
-			));
-
-			$this->track("bigtree_module_actions",$id,"updated");
+			$action = new BigTree\ModuleAction($id);
+			$action->update($name,$route,$in_nav,$icon,$interface,$level,$position);
 		}
 
 		/*
@@ -6259,12 +6249,8 @@
 		*/
 
 		function updateModuleGroup($id,$name) {
-			static::$DB->update("bigtree_module_groups",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"route" => static::$DB->unique("bigtree_module_groups","route",BigTreeCMS::urlify($name))
-			));
-
-			$this->track("bigtree_module_groups",$id,"updated");
+			$group = new BigTree\ModuleGroup($id);
+			$group->update($name);
 		}
 
 		/*

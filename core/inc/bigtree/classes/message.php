@@ -63,7 +63,8 @@
 		function __get($property) {
 			// Read-only properties that require a lot of work, stored as protected methods
 			if ($property == "Chain") {
-				return $this->_getChain();
+				$this->Chain = $this->_getChain();
+				return $this->Chain;
 			}
 
 			return parent::__get($property);

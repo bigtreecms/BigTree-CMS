@@ -14,6 +14,7 @@
 		static $Table = "bigtree_module_actions";
 
 		protected $ID;
+		protected $OriginalRoute;
 
 		public $Icon;
 		public $InNav;
@@ -52,7 +53,7 @@
 				$this->Module = $action["module"];
 				$this->Name = $action["name"];
 				$this->Position = $action["position"];
-				$this->Route = $action["route"];
+				$this->Route = $this->OriginalRoute = $action["route"];
 			}
 		}
 
@@ -135,9 +136,61 @@
 				$id = $interface;
 			}
 
-			$action = static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC", $id);
+			$action = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC", $id);
 
 			return $action ? new ModuleAction($action) : false;
+		}
+
+		/*
+			Function: save
+				Saves the current object properties back to the database.
+		*/
+
+		function save() {
+			// Make sure route is unique and clean
+			$this->Route = BigTreeCMS::urlify($this->Route);
+			if ($this->Route != $this->OriginalRoute) {
+				$this->Route = BigTreeCMS::$DB->unique("bigtree_module_actions","route",$this->Route,array("module" => $this->Module),true);
+				$this->OriginalRoute = $this->Route;
+			}
+
+			BigTreeCMS::$DB->update("bigtree_module_actions",$id,array(
+				"name" => BigTree::safeEncode($this->Name),
+				"route" => $this->Route,
+				"class" => $this->Icon,
+				"in_nav" => $this->InNav ? "on" : false,
+				"level" => $this->Level,
+				"position" => $this->Position,
+				"interface" => $this->Interface ?: null
+			));
+
+			AuditTrail::track("bigtree_module_actions",$this->ID,"updated");
+		}
+
+		/*
+			Function: update
+				Updates the module action.
+
+			Parameters:
+				name - The name of the action.
+				route - The action route.
+				in_nav - Whether the action is in the navigation.
+				icon - The icon class for the action.
+				interface - Related module interface.
+				level - The required access level.
+				position - The position in navigation.
+		*/
+
+		function updateModuleAction($id,$name,$route,$in_nav,$icon,$interface,$level,$position) {
+			$this->Name = $name;
+			$this->Route = $route;
+			$this->InNav = $in_nav;
+			$this->Icon = $icon;
+			$this->Interface = $interface;
+			$this->Level = $level;
+			$this->Position = $position;
+
+			$this->save();
 		}
 
 	}

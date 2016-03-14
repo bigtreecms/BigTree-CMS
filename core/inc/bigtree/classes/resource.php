@@ -76,7 +76,8 @@
 		function __get($property) {
 			// Read-only properties that require a lot of work, stored as protected methods
 			if ($property == "AllocationCount") {
-				return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
+				$this->AllocationCount = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
+				return $this->AllocationCount;
 			}
 
 			return parent::__get($property);

@@ -131,12 +131,44 @@
 		function delete() {
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
-				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_WARNING);
+				trigger_error('Method "delete" must be called from a subclass where the static variable $Table has been set.', E_WARNING);
 				return false;
 			}
 
 			BigTreeCMS::$DB->delete(static::$Table,$this->ID);
 			AuditTrail::track(static::$Table,$this->ID,"deleted");
+		}
+
+		/*
+			Function: save
+				Reads all object properties and compares them against the related table.
+				Saves matching columns to the database and logs the audit trail (if logged in).
+		*/
+
+		function save() {
+			// Must have a static Table var.
+			if (empty(static::$Table)) {
+				trigger_error('Method "save" must be called from a subclass where the static variable $Table has been set.', E_WARNING);
+				return false;
+			}
+
+			// Get the table description and an array equivalent of all object properties
+			$table_description = BigTreeCMS::$DB->describeTable(static::$Table);
+			$array_data = $this->Array;
+			$update_data = array();
+
+			foreach ($array_data as $key => $value) {
+				// We're not going to update IDs or columns not found in the table
+				if ($key != "id" && isset($table_description["columns"][$key])) {
+					$update_data[$key] = $value;
+				}
+			}
+
+			// Update db
+			BigTreeCMS::$DB->update(static::$Table,$this->ID,$update_data);
+
+			// Track
+			AuditTrail::track(static::$Table,$this->ID,"updated");
 		}
 
 	}

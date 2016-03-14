@@ -61,7 +61,6 @@
 		/*
 			Function: create
 				Creates a user.
-				Supports pre-4.3 syntax by passing an array as the first parameter.
 
 			Parameters:
 				email - Email Address

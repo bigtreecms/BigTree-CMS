@@ -97,10 +97,12 @@
 		function __get($property) {
 			// Read-only properties that require a lot of work, stored as protected methods
 			if ($property == "UserAccessLevel") {
-				return $this->_getUserAccessLevel();
+				$this->UserAccessLevel = $this->_getUserAccessLevel();
+				return $this->UserAccessLevel;
 			}
 			if ($property == "UserCanModifyChildren") {
-				return $this->_getUserCanModifyChildren();
+				$this->UserCanModifyChildren = $this->_getUserCanModifyChildren();
+				return $this->UserCanModifyChildren;
 			}
 
 			return parent::__get($property);
