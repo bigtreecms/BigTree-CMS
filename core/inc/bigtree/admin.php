@@ -424,14 +424,14 @@
 				$module = $module["id"];
 			}
 
-			if ($this->Level > 0) {
-				return true;
-			}
-
 			if (is_array($action) && $action["level"] > $this->Level) {
 				return false;
 			}
 
+			if ($this->Level > 0) {
+				return true;
+			}
+			
 			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
 				return true;
 			}
