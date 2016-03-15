@@ -165,10 +165,11 @@
 			$cached_types = FieldType::reference();
 			$types = $cached_types["callouts"];
 
-			$clean_fields = array();
-			foreach ($fields as $field) {
+			foreach ($fields as $key => $field) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
-				if ($field["id"] && $field["id"] != "type") {
+				if (!$field["id"] || $field["id"] == "type") {
+					unset($fields[$key]);
+				} else {
 					$field = array(
 						"id" => BigTree::safeEncode($field["id"]),
 						"type" => BigTree::safeEncode($field["type"]),
@@ -184,7 +185,7 @@
 						}
 					}
 
-					$clean_fields[] = $field;
+					$fields[$key] = $field;
 
 					$file_contents .= '		"'.$field["id"].'" = '.$field["title"].' - '.$types[$field["type"]]["name"]."\n";
 				}
@@ -206,7 +207,7 @@
 				"id" => BigTree::safeEncode($id),
 				"name" => BigTree::safeEncode($name),
 				"description" => BigTree::safeEncode($description),
-				"resources" => $clean_fields,
+				"resources" => $fields,
 				"level" => $level,
 				"display_field" => $display_field,
 				"display_default" => $display_default
@@ -254,11 +255,11 @@
 
 		function save() {
 			// Clean up fields
-			$clean_fields = array();
+			$fields = array();
 			foreach ($this->Fields as $field) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($field["id"] && $field["id"] != "type") {
-					$clean_fields[] = array(
+					$fields[] = array(
 						"id" => BigTree::safeEncode($field["id"]),
 						"type" => BigTree::safeEncode($field["type"]),
 						"title" => BigTree::safeEncode($field["title"]),
@@ -273,7 +274,7 @@
 				"description" => BigTree::safeEncode($this->Description),
 				"display_default" => $this->DisplayDefault,
 				"display_field" => $this->DisplayField,
-				"resources" => $clean_fields,
+				"resources" => $fields,
 				"level" => $this->Level,
 				"position" => $this->Position,
 				"extension" => $this->Extension

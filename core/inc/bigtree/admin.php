@@ -1010,76 +1010,8 @@
 		*/
 
 		function createTemplate($id,$name,$routed,$level,$module,$resources) {
-			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
-				return false;
-			}
-
-			// Check to see if the id already exists
-			if (static::$DB->exists("bigtree_templates",$id)) {
-				return false;
-			}
-
-			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
-			$file_contents = "<?\n	/*\n		Resources Available:\n";
-
-			// Grabbing field types so we can put their name in the template file
-			$types = $this->getCachedFieldTypes();
-			$types = $types["templates"];
-
-			$clean_resources = array();
-			foreach ($resources as $resource) {
-				if ($resource["id"]) {
-					$field = array(
-						"id" => BigTree::safeEncode($resource["id"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"title" => BigTree::safeEncode($resource["title"]),
-						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => (array)@json_decode($resource["options"],true)
-					);
-
-					// Backwards compatibility with BigTree 4.1 package imports
-					foreach ($resource as $k => $v) {
-						if (!in_array($k,array("id","title","subtitle","type","options"))) {
-							$field["options"][$k] = $v;
-						}
-					}
-
-					$clean_resources[] = $field;
-
-					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
-				}
-			}
-
-			$file_contents .= '	*/
-?>';
-			if (!count($clean_resources)) {
-				$file_contents = "";
-			}
-
-			if ($routed == "on") {
-				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
-					BigTree::putFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
-				}
-			} elseif (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
-				BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
-			}
-
-			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			static::$DB->query("UPDATE bigtree_templates SET position = position + 1");
-
-			// Insert template
-			static::$DB->insert("bigtree_templates",array(
-				"id" => $id,
-				"name" => BigTree::safeEncode($name),
-				"module" => $module,
-				"resources" => $resources,
-				"level" => $level,
-				"routed" => $routed ? "on" : ""
-			));
-
-			$this->track("bigtree_templates",$id,"created");
-			return true;
+			$template = BigTree\Template::create($id,$name,$routed,$level,$module,$resources);
+			return $template ? true : false;
 		}
 
 		/*
@@ -1549,20 +1481,12 @@
 		*/
 
 		function deleteTemplate($id) {
-			$template = BigTreeCMS::getTemplate($id);
+			$template = new BigTree\Template($id);
 			if (!$template) {
 				return false;
 			}
 
-			// Delete related files
-			if ($template["routed"]) {
-				BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$template["id"]."/");
-			} else {
-				BigTree::deleteFile(SERVER_ROOT."templates/basic/".$template["id"].".php");
-			}
-
-			static::$DB->delete("bigtree_templates",$id);
-			$this->track("bigtree_templates",$id,"deleted");
+			$template->delete();
 			return true;
 		}
 
@@ -2078,7 +2002,13 @@
 		*/
 
 		function getBasicTemplates($sort = "position DESC, id ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_templates WHERE level <= '".$this->Level."' AND routed = '' ORDER BY $sort");
+			$list = BigTree\Template::allByRouted("",$sort,true);
+			foreach ($list as $key => $template) {
+				if ($template["level"] > $this->Level) {
+					unset($list[$key]);
+				}
+			}
+			return $list;
 		}
 
 		/*
@@ -3997,7 +3927,13 @@
 		*/
 
 		function getRoutedTemplates($sort = "position DESC, id ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_templates WHERE routed = 'on' AND level <= ? ORDER BY $sort", $this->Level);
+			$list = BigTree\Template::allByRouted("on",$sort,true);
+			foreach ($list as $key => $template) {
+				if ($template["level"] > $this->Level) {
+					unset($list[$key]);
+				}
+			}
+			return $list;
 		}
 
 		/*
@@ -4092,7 +4028,7 @@
 		*/
 
 		static function getTemplates($sort = "position DESC, name ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_templates ORDER BY $sort");
+			return BigTree\Template::all($sort,true);
 		}
 
 		/*
@@ -5659,7 +5595,9 @@
 		*/
 
 		static function setTemplatePosition($id,$position) {
-			static::$DB->update("bigtree_templates",$id,array("position" => $position));
+			$template = new BigTree\Template($id);
+			$template->Position = $position;
+			$template->save();
 		}
 
 		/*
@@ -6740,26 +6678,8 @@
 		*/
 
 		function updateTemplate($id,$name,$level,$module,$resources) {
-			$clean_resources = array();
-			foreach ($resources as $resource) {
-				if ($resource["id"]) {
-					$clean_resources[] = array(
-						"id" => BigTree::safeEncode($resource["id"]),
-						"title" => BigTree::safeEncode($resource["title"]),
-						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"type" => BigTree::safeEncode($resource["type"]),
-						"options" => is_array($resource["options"]) ? $resource["options"] : json_decode($resource["options"],true)
-					);
-				}
-			}
-
-			static::$DB->update("bigtree_templates",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"module" => $module,
-				"level" => $level,
-				"resources" => $clean_resources
-			));
-			$this->track("bigtree_templates",$id,"updated");
+			$template = new BigTree\Template($id);
+			$template->update($name,$level,$module,$resources);
 		}
 
 		/*
