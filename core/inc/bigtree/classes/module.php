@@ -96,6 +96,41 @@
 		}
 
 		/*
+			Function: allByGroup
+				Returns a list of modules in a given group.
+
+			Parameters:
+				group - The group ID to return modules for.
+				sort - The sort order (defaults to positioned)
+				return_arrays - Set to true to return arrays rather than objects.
+				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
+
+			Returns:
+				An array of entries from the bigtree_modules table.
+		*/
+
+		static function allByGroup($group,$sort = "position DESC, id ASC",$return_arrays = false,$auth = true) {
+			$modules = array();
+
+			if ($group) {
+				$results = BigTree::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
+			} else {
+				$results = BigTree::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+			}
+
+			foreach ($results as $module_array) {
+				$module = new Module($module_array);
+
+				// Check auth
+				if (!$auth || $module->UserCanAccess) {
+					$modules[$module["id"]] = $return_arrays ? $module_array : $module;
+				}
+			}
+
+			return $modules;
+		}
+
+		/*
 			Function: create
 				Creates a module and its class file.
 
@@ -249,5 +284,57 @@
 			}
 
 			return $level;
+		}
+
+		/*
+			Function: save
+				Saves the current object properties back to the database.
+		*/
+
+		function save() {
+			BigTreeCMS::$DB->update("bigtree_modules",$this->ID,array(
+				"group" => $this->Group,
+				"name" => BigTree::safeEncode($this->Name),
+				"route" => BigTreeCMS::$DB->unique("bigtree_modules","route",BigTreeCMS::urlify($this->Route),$this->ID),
+				"class" => $this->Class,
+				"icon" => $this->Icon,
+				"position" => $this->Position,
+				"gbp" => array_filter((array) $this->GroupBasedPermissions),
+				"developer_only" => $this->DeveloperOnly ? "on" : ""
+			));
+
+			AuditTrail::track("bigtree_modules",$this->ID,"updated");
+
+			// Clear cache file in case class or route changed
+			@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
+
+			// If this has a permissions table for group based permissions, wipe that table's view cache
+			if ($this->GroupBasedPermissions["table"]) {
+				BigTreeAutoModule::clearCache($this->GroupBasedPermissions["table"]);
+			}
+		}
+
+		/*
+			Function: update
+				Updates the module properties and saves them back to the database.
+
+			Parameters:
+				name - The name of the module.
+				group - The group for the module.
+				class - The module class name.
+				permissions - The group-based permissions.
+				icon - The icon to use.
+				developer_only - Sets a module to be accessible/visible to only developers.
+		*/
+
+		function update($name,$group,$class,$permissions,$icon,$developer_only = false) {
+			$this->Name = $name;
+			$this->Group = $group;
+			$this->Class = $class;
+			$this->GroupBasedPermissions = $permissions;
+			$this->Icon = $icon;
+			$this->DeveloperOnly = $developer_only;
+
+			$this->save();
 		}
 	}

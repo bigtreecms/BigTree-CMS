@@ -113,12 +113,12 @@
 			}
 
 			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$page_parent = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
+			$page_parent = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
 
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
 			$parent_permission = $admin->Permissions["page"][$page_parent];
 			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
-				$parent_id = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
+				$parent_id = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
 				$parent_permission = $admin->Permissions["page"][$parent_id];
 			}
 
@@ -145,8 +145,8 @@
 				return true;
 			}
 
-			$path = static::$DB->escape($page["path"]);
-			$descendant_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
+			$path = BigTreeCMS::$DB->escape($page["path"]);
+			$descendant_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
 
 			// Check all the descendants for an explicit "no" or "editor" permission
 			foreach ($descendant_ids as $id) {
@@ -188,14 +188,14 @@
 			$page_id = $recursion ?: $this->ID;
 
 			// Track and recursively archive
-			$children = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'", $page_id);
+			$children = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'", $page_id);
 			foreach ($children as $child_id) {
 				AuditTrail::track("bigtree_pages",$child_id,"archived-inherited");
 				$this->archiveChildren($child_id);
 			}
 
 			// Archive this level
-			static::$DB->query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
+			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
 								WHERE parent = ? AND archived != 'on'", $page_id);
 		}
 

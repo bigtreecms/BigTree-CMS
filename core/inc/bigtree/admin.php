@@ -2900,24 +2900,23 @@
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_modules table with an additional "group_name" column for the group the module is in.
+				An array of entries from the bigtree_modules table.
 		*/
 
 		function getModules($sort = "id ASC",$auth = true) {
-			$modules = arary();
-			$results = static::$DB->fetchAll("SELECT bigtree_modules.*, bigtree_module_groups.name AS group_name 
-											  FROM bigtree_modules LEFT JOIN bigtree_module_groups 
-											  ON bigtree_modules.`group` = bigtree_module_groups.id 
-											  ORDER BY $sort");
+			if (!$auth) {
+				return BigTree\Module::all($sort,true);
+			}
 
-			foreach ($results as $module) {
-				// Check auth
-				if (!$auth || $this->checkAccess($module)) {
-					$modules[$module["id"]] = $module;
+			$results = array();
+			$modules = BigTree\Module::all($sort);
+			foreach ($modules as $module) {
+				if ($module->UserCanAccess) {
+					$results[] = $module->Array;
 				}
 			}
 
-			return $modules;
+			return $results;
 		}
 
 		/*
@@ -2934,23 +2933,8 @@
 		*/
 
 		function getModulesByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
-			$modules = array();
 			$group = is_array($group) ? $group["id"] : $group;
-
-			if ($group) {
-				$results = static::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
-			} else {
-				$results = static::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
-			}
-
-			foreach ($results as $module) {
-				// Check auth
-				if (!$auth || $this->checkAccess($module)) {
-					$modules[$module["id"]] = $module;
-				}
-			}
-
-			return $modules;
+			return BigTree\Module::allByGroup($group,$sort,true,$auth);
 		}
 
 		/*
@@ -5553,7 +5537,9 @@
 		*/
 
 		static function setModulePosition($id,$position) {
-			static::$DB->update("bigtree_modules",$id,array("position" => $position));
+			$module = new BigTree\Module($id);
+			$module->Position = $position;
+			$module->save();
 		}
 
 		/*
@@ -6008,24 +5994,8 @@
 		*/
 
 		function updateModule($id,$name,$group,$class,$permissions,$icon,$developer_only = false) {
-			// If this has a permissions table, wipe that table's view cache
-			if ($permissions["table"]) {
-				BigTreeAutoModule::clearCache($permissions["table"]);
-			}
-
-			static::$DB->update("bigtree_modules",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"group" => $group ? $group : null,
-				"class" => $class,
-				"icon" => $icon,
-				"gbp" => $permissions,
-				"developer_only" => $developer_only ? "on" : ""
-			));
-
-			$this->track("bigtree_modules",$id,"updated");
-
-			// Remove cached class list.
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+			$module = new BigTree\Module($id);
+			$module->update($name,$group,$class,$permissions,$icon,$developer_only);
 		}
 
 		/*
