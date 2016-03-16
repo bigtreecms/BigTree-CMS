@@ -636,42 +636,8 @@
 		*/
 
 		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
-			// Clean up fields for backwards compatibility
-			foreach ($fields as $key => $data) {
-				$field = array(
-					"column" => $data["column"] ? $data["column"] : $key,
-					"type" => BigTree::safeEncode($data["type"]),
-					"title" => BigTree::safeEncode($data["title"]),
-					"subtitle" => BigTree::safeEncode($data["subtitle"]),
-					"options" => is_array($data["options"]) ? $data["options"] : array_filter((array)json_decode($data["options"],true))
-				);
-
-				// Backwards compatibility with BigTree 4.1 package imports
-				foreach ($data as $key => $value) {
-					if (!in_array($key,array("title","subtitle","type","options"))) {
-						$field["options"][$key] = $value;
-					}
-				}
-
-				$fields[$key] = $field;
-			}
-
-			$id = $this->createModuleInterface("form",$module,$title,$table,array(
-				"fields" => $clean_fields,
-				"default_position" => $default_position,
-				"return_view" => $return_view,
-				"return_url" => $return_url ? $this->makeIPL($return_url) : "",
-				"tagging" => $tagging ? "on" : "",
-				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
-			));
-
-			// Get related views for this table and update numeric status
-			$view_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?",$table);
-			foreach ($view_ids as $view_id) {
-				$this->updateModuleViewColumnNumericStatus($view_id);
-			}
-
-			return $id;
+			$form = new BigTree\ModuleForm::create($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
+			return $form->ID;
 		}
 
 		/*
@@ -1138,7 +1104,8 @@
 		*/
 
 		function deleteModuleForm($id) {
-			return $this->deleteModuleInterface($id);
+			$form = new BigTree\ModuleInterface($id);
+			$form->delete();
 		}
 
 		/*
@@ -5751,34 +5718,8 @@
 		*/
 
 		function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
-			$clean_fields = array();
-			foreach ($fields as $key => $field) {
-				$field["options"] = is_array($field["options"]) ? $field["options"] : json_decode($field["options"],true);
-				$field["column"] = $key;
-				$field["title"] = BigTree::safeEncode($field["title"]);
-				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
-				$clean_fields[] = $field;
-			}
-
-			$this->updateModuleInterface($id,$title,$table,array(
-				"fields" => $clean_fields,
-				"default_position" => $default_position,
-				"return_view" => $return_view,
-				"return_url" => $return_url ? $this->makeIPL($return_url) : "",
-				"tagging" => $tagging ? "on" : "",
-				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
-			));
-
-			// Update action titles
-			$title = static::$DB->escape($title);
-			static::$DB->query("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE interface = ? AND route LIKE 'add%'", $id);
-			static::$DB->query("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE interface = ? AND route LIKE 'edit%'", $id);
-
-			// Get related views for this table and update numeric status
-			$view_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
-			foreach ($view_ids as $view_id) {
-				$this->updateModuleViewColumnNumericStatus($view_id);
-			}
+			$form = new BigTree\ModuleForm($id);
+			$form->update($title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
 		}
 
 		/*
@@ -5846,7 +5787,7 @@
 
 		/*
 			Function: updateModuleView
-				Updates a module view.
+				Updates a module view and the associated module action's title.
 
 			Parameters:
 				id - The view id.
@@ -5863,24 +5804,7 @@
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
 			$view = new BigTree\ModuleView($id);
-
-			$view->Description = $description;
-			$view->Table = $table;
-			$view->Title = $title;
-			$view->Type = $type;
-			$view->Settings = $options;
-			$view->Fields = $fields;
-			$view->Actions = $actions;
-			$view->RelatedForm = $related_form;
-			$view->PreviewURL = $preview_url;
-
-			// This method will automatically save
-			$view->refreshNumericColumns();
-
-			// Update related action titles
-			$action = BigTree\ModuleAction::getByInterface($id);
-			$action->Name = "View ".BigTree::safeEncode($title);
-			$action->save();
+			$view->update($title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
 		}
 
 		/*

@@ -26,10 +26,10 @@
 
 		/*
 			Constructor:
-				Builds a Extension object referencing an existing database entry.
+				Builds a ModuleView object referencing an existing database entry.
 
 			Parameters:
-				extension - Either an ID (to pull a record) or an array (to use the array as the record)
+				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
 		function __construct($interface) {
@@ -161,6 +161,42 @@
 			));
 
 			AuditTrail::track("bigtree_module_interfaces",$this->ID,"updated");
+		}
+
+		/*
+			Function: update
+				Updates the module view and the associated module action's title.
+
+			Parameters:
+				title - View title.
+				description - Description.
+				table - Data table.
+				type - View type.
+				options - View options array.
+				fields - Field array.
+				actions - Actions array.
+				related_form - Form ID to handle edits.
+				preview_url - Optional preview URL.
+		*/
+
+		function update($title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
+			$this->Actions = $actions;
+			$this->Description = $description;
+			$this->Fields = $fields;
+			$this->PreviewURL = $preview_url;
+			$this->RelatedForm = $related_form;
+			$this->Settings = $options;
+			$this->Table = $table;
+			$this->Title = $title;
+			$this->Type = $type;
+
+			// This method will automatically save
+			$this->refreshNumericColumns();
+
+			// Update related action titles
+			$action = BigTree\ModuleAction::getByInterface($id);
+			$action->Name = "View ".BigTree::safeEncode($title);
+			$action->save();
 		}
 
 	}

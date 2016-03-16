@@ -22,10 +22,10 @@
 
 		/*
 			Constructor:
-				Builds a Extension object referencing an existing database entry.
+				Builds a ModuleInterface object referencing an existing database entry.
 
 			Parameters:
-				extension - Either an ID (to pull a record) or an array (to use the array as the record)
+				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
 		function __construct($interface) {
