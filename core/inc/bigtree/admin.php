@@ -636,7 +636,7 @@
 		*/
 
 		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
-			$form = new BigTree\ModuleForm::create($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
+			$form = BigTree\ModuleForm::create($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
 			return $form->ID;
 		}
 

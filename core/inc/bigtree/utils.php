@@ -126,7 +126,7 @@
 				}
 
 			// Auto loadable via the path
-			} elseif (strpos($class,0,8) == "BigTree\\") {
+			} elseif (substr($class,0,8) == "BigTree\\") {
 				$path = static::path("inc/bigtree/classes/".substr($class,8).".php");
 				if (file_exists($path)) {
 					include_once $path;
