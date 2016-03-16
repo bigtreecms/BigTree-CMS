@@ -123,6 +123,18 @@
 		}
 
 		/*
+			Function: delete
+				Deletes the module interface and the actions that use it.
+		*/
+
+		function delete() {
+			BigTreeCMS::$DB->delete("bigtree_module_actions",array("interface" => $this->ID));
+			BigTreeCMS::$DB->delete("bigtree_module_interfaces",$this->ID);
+
+			AuditTrail::track("bigtree_module_interfaces",$this->ID,"deleted");
+		}
+
+		/*
 			Function: save
 				Saves the current object properties back to the database.
 		*/

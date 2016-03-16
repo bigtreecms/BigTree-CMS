@@ -296,33 +296,76 @@
 
 
 		/*
-			Function: deleteExtension
-				Uninstalls the extension from BigTree and removes its related components and files.
+			Function: delete
+				Uninstalls the extension or package from BigTree and removes its related components and files.
 		*/
 
 		function delete() {
-			// Delete site files
-			BigTree::deleteDirectory(SITE_ROOT."extensions/".$this->ID."/");
-			// Delete extensions directory
-			BigTree::deleteDirectory(SERVER_ROOT."extensions/".$this->ID."/");
-		
-			// Delete components
-			foreach ($this->Manifest["components"] as $type => $list) {
-				if ($type == "tables") {
-					// Turn off foreign key checks since we're going to be dropping tables.
-					BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 0");
-					
-					// Drop all the tables the extension created
-					foreach ($list as $table => $create_statement) {
-						BigTreeCMS::$DB->query("DROP TABLE IF EXISTS `$table`");
+			// Regular extension
+			if ($this->Type == "extesion") {
+				// Delete site files
+				BigTree::deleteDirectory(SITE_ROOT."extensions/".$this->ID."/");
+				// Delete extensions directory
+				BigTree::deleteDirectory(SERVER_ROOT."extensions/".$this->ID."/");
+			
+				// Delete components
+				foreach ($this->Manifest["components"] as $type => $list) {
+					if ($type == "tables") {
+						// Turn off foreign key checks since we're going to be dropping tables.
+						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 0");
+						
+						// Drop all the tables the extension created
+						foreach ($list as $table => $create_statement) {
+							BigTreeCMS::$DB->query("DROP TABLE IF EXISTS `$table`");
+						}
+						
+						// Re-enable foreign key checks
+						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 1");
+					} else {
+						// Remove other database entries
+						foreach ($list as $item) {
+							BigTreeCMS::$DB->delete("bigtree_".$type,$item["id"]);
+						}
 					}
-					
-					// Re-enable foreign key checks
-					BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 1");
-				} else {
-					// Remove other database entries
-					foreach ($list as $item) {
-						BigTreeCMS::$DB->delete("bigtree_".$type,$item["id"]);
+				}
+			// Simple package
+			} else {
+				// Delete related files
+				foreach ($this->Manifest["files"] as $file) {
+					BigTree::deleteFile(SERVER_ROOT.$file);
+				}
+			
+				// Delete components
+				foreach ($this->Manifest["components"] as $type => $list) {
+					if ($type == "tables") {
+						// Turn off foreign key checks since we're going to be dropping tables.
+						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 0");
+	
+						// Remove all the tables the package added
+						foreach ($list as $table) {
+							BigTreeCMS::$DB->query("DROP TABLE IF EXISTS `$table`");
+						}
+	
+						// Re-enable key checks
+						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 1");
+					} else {
+						// Remove all the bigtree components the package made
+						foreach ($list as $item) {
+							BigTreeCMS::$DB->delete("bigtree_$type",$item["id"]);
+						}
+	
+						// Modules might have their own directories
+						if ($type == "modules") {
+							foreach ($list as $item) {
+								BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
+								BigTree::deleteDirectory(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
+								BigTree::deleteDirectory(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
+							}
+						} elseif ($type == "templates") {
+							foreach ($list as $item) {
+								BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$item["id"]."/");
+							}
+						}
 					}
 				}
 			}

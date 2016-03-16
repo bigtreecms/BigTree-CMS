@@ -66,4 +66,99 @@
 
 		}
 
+		/*
+			Function: createPendingChange
+				Creates a pending change.
+
+			Parameters:
+				table - The table the change applies to.
+				item_id - The entry the change applies to's id.
+				changes - The changes to the fields in the entry.
+				mtm_changes - Many to Many changes.
+				tags_changes - Tags changes.
+				module - The module id for the change.
+
+			Returns:
+				A PendingChange object.
+		*/
+
+		static function create($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
+			global $admin;
+
+			// Get the user creating the change
+			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+				$user = $admin->ID;
+			} else {
+				$user = null;
+			}
+
+			$id = BigTreeCMS::$DB->insert("bigtree_pending_changes",array(
+				"user" => $user,
+				"date" => "NOW()",
+				"table" => $table,
+				"item_id" => ($item_id !== false ? $item_id : null),
+				"changes" => $changes,
+				"mtm_changes" => $mtm_changes,
+				"tags_changes" => $tags_changes,
+				"module" => $module
+			));
+
+			AuditTrail::track($table,"p".$id,"created-pending");
+
+			return new PendingChange($id);
+		}
+
+		/*
+			Function: createPage
+				Creates a pending page entry.
+
+			Parameters:
+				nav_title
+
+			Returns:
+				The id of the pending change.
+		*/
+
+		function createPage($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags = array()) {
+			global $admin;
+
+			// Get the user creating the change
+			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+				$user = $admin->ID;
+			} else {
+				$user = null;
+			}
+
+			$changes = array(
+				"trunk" => $trunk ? "on" : "",
+				"parent" => $parent,
+				"in_nav" => $in_nav ? "on" : "",
+				"nav_title" => BigTree::safeEncode($nav_title),
+				"title" => BigTree::safeEncode($title),
+				"route" => BigTree::safeEncode($route),
+				"meta_description" => BigTree::safeEncode($meta_description),
+				"seo_invisible" => $seo_invisible ? "on" : "",
+				"template" => $template,
+				"external" => $external ? Link::encode($external) : "",
+				"new_window" => $new_window ? "on" : "",
+				"resources" => $fields,
+				"publish_at" => $publish_at ? date("Y-m-d H:i:s",strtotime($publish_at)) : null,
+				"expire_at" => $publish_at ? date("Y-m-d H:i:s",strtotime($publish_at)) : null,
+				"max_age" => $max_age ? intval($max_age) : ""
+			);
+
+			$id = BigTreeCMS::$DB->insert("bigtree_pending_changes",array(
+				"user" => $user,
+				"date" => "NOW()",
+				"table" => "bigtree_pages",
+				"changes" => $changes,
+				"tags_changes" => $tags,
+				"pending_page_parent" => intval($parent)
+			));
+
+			AuditTrail::track("bigtree_pages","p".$id,"created-pending");
+
+			return new PendingChange($id);
+		}
+
 	}

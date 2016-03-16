@@ -1,0 +1,120 @@
+<?php
+	/*
+		Class: BigTree\Tag
+			Provides an interface for handling BigTree tags.
+	*/
+
+	namespace BigTree;
+
+	use BigTree;
+	use BigTreeCMS;
+
+	class Tag extends BaseObject {
+
+		static $Table = "bigtree_tags";
+
+		protected $ID;
+		protected $Metaphone;
+		protected $Route;
+
+		public $Name;
+
+		/*
+			Constructor:
+				Builds a Tag object referencing an existing database entry.
+
+			Parameters:
+				tag - Either an ID (to pull a record) or an array (to use the array as the record)
+		*/
+
+		function __construct($tag) {
+			// Passing in just an ID
+			if (!is_array($tag)) {
+				$tag = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $tag);
+			}
+
+			// Bad data set
+			if (!is_array($tag)) {
+				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+			} else {
+				$this->ID = $tag["id"];
+				$this->Metaphone = $tag["metaphone"];
+				$this->Route = $tag["route"];
+
+				$this->Name = $tag["tag"];
+			}
+		}
+
+		/*
+			Function: createTag
+				Creates a new tag.
+				If a duplicate tag exists, that tag is returned instead.
+
+			Parameters:
+				name - The name of the tag.
+
+			Returns:
+				A Tag object.
+		*/
+
+		function createTag($name) {
+			$name = strtolower(html_entity_decode(trim($name)));
+
+			// If this tag already exists, just ignore it and return the ID
+			$existing = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $name);
+			if ($existing) {
+				return new Tag($existing);
+			}
+
+			// Create tag
+			$id = BigTreeCMS::$DB->insert("bigtree_tags",array(
+				"tag" => BigTree::safeEncode($name),
+				"metaphone" => metaphone($name),
+				"route" => BigTreeCMS::$DB->unique("bigtree_tags","route",BigTreeCMS::urlify($name))
+			));
+
+			AuditTrail::track("bigtree_tags",$id,"created");
+
+			return new Tag($id);
+		}
+
+		/*
+			Function: similar
+				Finds existing tags that are similar to the given tag name.
+
+			Parameters:
+				name - A tag name to find similar tags for.
+				count - Number of tags to return at most (defaults to 8).
+				return_only_name - Set to true to return only the tag name rather than full objects.
+
+			Returns:
+				An array of Tag objects.
+		*/
+
+		static function similar($name,$count = 8,$return_only_name = false) {
+			$tags = $distances = array();
+			$meta = metaphone($tag);
+
+			// Get all tags to get sound-alike tags
+			$all_tags = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_tags");
+			foreach ($all_tags as $tag) {
+				// Calculate distance between letters of the sound of both tags
+				$distance = levenshtein($tag["metaphone"],$meta);
+				if ($distance < 2) {
+					if (!$return_only_name) {
+						$tags[] = new Tag($tag);
+					} else {
+						$tags[] = $tag["tag"];
+					}
+					$distances[] = $distance;
+				}
+			}
+
+			// Get most relevant first
+			array_multisort($distances,SORT_ASC,$tags);
+
+			// Return only the number requested
+			return array_slice($tags,0,$count);
+		}
+
+	}

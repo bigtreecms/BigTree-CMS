@@ -763,16 +763,8 @@
 		*/
 
 		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
-			return static::$DB->insert("bigtree_pending_changes",array(
-				"user" => $this->ID,
-				"date" => "NOW()",
-				"table" => $table,
-				"item_id" => ($item_id !== false ? $item_id : null),
-				"changes" => $changes,
-				"mtm_changes" => $mtm_changes,
-				"tags_changes" => $tags_changes,
-				"module" => $module
-			));
+			$change = BigTree\PendingChange::create($table,$item_id,$changes,$mtm_changes,$tags_changes,$module);
+			return $change->ID;
 		}
 
 		/*
@@ -787,33 +779,15 @@
 		*/
 
 		function createPendingPage($data) {
-			// Save the tags, then dump them from the saved changes array.
-			$tags = is_array($data["_tags"]) ? $data["_tags"] : array();
+			// Set the trunk flag back to no if the user isn't a developer
+			if ($this->Level < 2) {
+				$data["trunk"] = "";
+			} else {
+				$data["trunk"] = static::$DB->escape($data["trunk"]);
+			}
 
-			// Clean up data
-			$data["nav_title"] = BigTree::safeEncode($data["nav_title"]);
-			$data["title"] = BigTree::safeEncode($data["title"]);
-			$data["external"] = BigTree::safeEncode($data["external"]);
-			$data["meta_keywords"] = BigTree::safeEncode($data["meta_keywords"]);
-			$data["meta_description"] = BigTree::safeEncode($data["meta_description"]);
-			$data["external"] = $data["external"] ? $this->makeIPL($data["external"]) : "";
-			$data["trunk"] = ($this->Level > 1) ? $data["trunk"] : "";
-			unset($data["MAX_FILE_SIZE"]);
-			unset($data["ptype"]);
-			unset($data["_bigtree_post_check"]);
-
-			$id = static::$DB->insert("bigtree_pending_changes",array(
-				"user" => $this->ID,
-				"date" => "NOW()",
-				"title" => "New Page Created",
-				"table" => "bigtree_pages",
-				"item_id" => null,
-				"changes" => $data,
-				"tags_changes" => $tags
-			));
-
-			$this->track("bigtree_pages","p$id","created-pending");
-			return $id;
+			$change = BigTree\PendingChange::createPage($data["trunk"],$data["parent"],$data["in_nav"],$data["nav_title"],$data["title"],$data["route"],$data["meta_description"],$data["seo_invisible"],$data["template"],$data["external"],$data["new_window"],$data["resources"],$data["publish_at"],$data["expire_at"],$data["max_age"],$data["_tags"]);
+			return $change->ID;
 		}
 
 		/*
@@ -903,23 +877,8 @@
 		*/
 
 		function createTag($tag) {
-			$tag = strtolower(html_entity_decode(trim($tag)));
-
-			// If this tag already exists, just ignore it and return the ID
-			$existing = static::$DB->fetch("SELECT id FROM bigtree_tags WHERE tag = ?",$tag);
-			if ($existing) {
-				return $existing["id"];
-			}
-
-			// Create tag
-			$id = static::$DB->insert("bigtree_tags",array(
-				"tag" => $tag,
-				"metaphone" => metaphone($tag),
-				"route" => static::$DB->unique("bigtree_tags","route",BigTreeCMS::urlify($tag))
-			));
-
-			$this->track("bigtree_tags",$id,"created");
-			return $id;
+			$tag = BigTree\Tag::create($tag);
+			return $tag->ID;
 		}
 
 		/*
@@ -1177,50 +1136,7 @@
 		*/
 
 		function deletePackage($id) {
-			$package = $this->getPackage($id);
-			$manifest = json_decode($package["manifest"],true);
-		
-			// Delete related files
-			foreach ($manifest["files"] as $file) {
-				BigTree::deleteFile(SERVER_ROOT.$file);
-			}
-		
-			// Delete components
-			foreach ($manifest["components"] as $type => $list) {
-				if ($type == "tables") {
-					// Turn off foreign key checks since we're going to be dropping tables.
-					static::$DB->query("SET SESSION foreign_key_checks = 0");
-
-					// Remove all the tables the package added
-					foreach ($list as $table) {
-						static::$DB->query("DROP TABLE IF EXISTS `$table`");
-					}
-
-					// Re-enable key checks
-					static::$DB->query("SET SESSION foreign_key_checks = 1");
-				} else {
-					// Remove all the bigtree components the package made
-					foreach ($list as $item) {
-						static::$DB->delete("bigtree_$type",$item["id"]);
-					}
-
-					// Modules might have their own directories
-					if ($type == "modules") {
-						foreach ($list as $item) {
-							BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
-							BigTree::deleteDirectory(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
-							BigTree::deleteDirectory(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
-						}
-					} elseif ($type == "templates") {
-						foreach ($list as $item) {
-							BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$item["id"]."/");
-						}
-					}
-				}
-			}
-
-			static::$DB->delete("bigtree_extensions",$package["id"]);
-			$this->track("bigtree_extensions",$package["id"],"deleted");
+			$this->deleteExtension($id);
 		}
 
 		/*
@@ -3864,7 +3780,8 @@
 		*/
 
 		static function getTag($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE id = ?", $id);
+			$tag = new BigTree\Tag($id);
+			return $tag->Array;
 		}
 
 		/*
@@ -5079,22 +4996,7 @@
 		*/
 
 		static function searchTags($tag) {
-			$tags = $dist = array();
-			$meta = metaphone($tag);
-
-			// Get all tags to get sound-alike tags
-			$all_tags = static::$DB->fetchAll("SELECT * FROM bigtree_tags");
-			foreach ($all_tags as $tag) {
-				// Calculate distance between letters of the sound of both tags
-				$distance = levenshtein($tag["metaphone"],$meta);
-				if ($distance < 2) {
-					$tags[] = $tag["tag"];
-					$dist[] = $distance;
-				}
-			}
-
-			array_multisort($dist,SORT_ASC,$tags);
-			return array_slice($tags,0,8);
+			return BigTree\Tag::similar($tag,8,true);
 		}
 
 		/*
