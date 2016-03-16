@@ -70,7 +70,7 @@
 				$this->Archived = $page["archived"] ? true : false;
 				$this->ArchivedInherited = $page["archived_inherited"] ? true : false;
 				$this->ExpireAt = $page["expire_at"] ?: false;
-				$this->External = $page["external"];
+				$this->External = Link::decode($page["external"]);
 				$this->InNav = $page["in_nav"] ? true : false;
 				$this->MetaDescription = $page["meta_description"];
 				$this->MetaKeywords = $page["meta_keywords"];
@@ -342,5 +342,74 @@
 				BigTreeCMS::$DB->delete("bigtree_pages",$child);
 				AuditTrail::track("bigtree_pages",$child,"deleted-inherited");
 			}
+		}
+
+
+		/*
+			Function: deleteDraft
+				Deletes the pending draft of the page.
+		*/
+
+		function deleteDraft() {
+			// Get the draft copy's ID
+			$draft_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_pending_changes 
+													  WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
+
+			// Delete draft copy
+			BigTreeCMS::$DB->delete("bigtree_pending_changes",$draft_id);
+
+			// Double track to add specificity to what happend to the page
+			AuditTrail::track("bigtree_pages",$this->ID,"deleted-draft");
+			AuditTrail::track("bigtree_pending_changes",$draft_id,"deleted");
+		}
+
+		/*
+			Function: deleteRevision
+				Deletes one of the page's revisions.
+
+			Parameters:
+				id - The page reversion id.
+		*/
+
+		function deleteRevision($id) {
+			// Delete the revision
+			BigTreeCMS::$DB->delete("bigtree_page_revisions",$id);
+
+			// Double track to add specificity to what happend to the page
+			AuditTrail::track("bigtree_pages",$this->ID,"deleted-revision");
+			AuditTrail::track("bigtree_page_revisions",$id,"deleted");
+		}
+
+		/*
+			Function: getRevision
+				Returns a revision of the page.
+
+			Parameters:
+				id - The id of the page revision to apply.
+
+			Returns:
+				A duplicate Page object with changes applied.
+		*/
+
+		static function getRevision($id) {
+			$revision = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $id);
+
+			// Get original page
+			$page = new Page($revision["page"]);
+
+			$page->External = Link::decode($revision["external"]);
+			$page->MetaDescription = $revision["meta_description"];
+			$page->NewWindow = $revision["new_window"] ? true : false;
+			$page->Resources = array_filter((array) @json_decode($revision["resources"],true));
+			$page->Revision = new stdObject;
+			$page->Template = $revision["template"];
+			$page->Title = $revision["title"];
+
+			$this->Revision->Author = $revision["author"];
+			$this->Revision->Description = $revision["saved_description"];
+			$this->Revision->Saved = $revision["saved"] ? true : false;
+			$this->Revision->UpdatedAt = $revision["updated_at"];
+
+			return $page;
 		}
 	}

@@ -20,7 +20,6 @@
 		public $Module;
 		public $ReturnURL;
 		public $ReturnView;
-		public $Settings;
 		public $Tagging;
 		public $Title;
 
@@ -51,7 +50,6 @@
 				$this->Module = $interface["module"];
 				$this->ReturnURL = $this->InterfaceSettings["return_url"];
 				$this->ReturnView = $this->InterfaceSettings["return_view"];
-				$this->Settings = $this->InterfaceSettings["options"];
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
 				$this->Tagging = $this->InterfaceSettings["tagging"] ? true : false;
 				$this->Title = $interface["title"];

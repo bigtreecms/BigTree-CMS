@@ -1047,7 +1047,8 @@
 		*/
 
 		function deleteModuleEmbedForm($id) {
-			return $this->deleteModuleInterface($id);
+			$form = new BigTree\ModuleEmbedForm($id);
+			$form->delete();
 		}
 
 		/*
@@ -1063,7 +1064,7 @@
 		*/
 
 		function deleteModuleForm($id) {
-			$form = new BigTree\ModuleInterface($id);
+			$form = new BigTree\ModuleForm($id);
 			$form->delete();
 		}
 
@@ -1081,20 +1082,6 @@
 		}
 
 		/*
-			Function: deleteModuleInterface
-				Deletes a module interface and the actions that use it.
-
-			Parameters:
-				id - The id of the module interface.
-		*/
-
-		function deleteModuleInterface($id) {
-			static::$DB->delete("bigtree_module_actions",array("interface" => $id));
-			static::$DB->delete("bigtree_module_interfaces",$id);
-			$this->track("bigtree_module_interfaces",$id,"deleted");
-		}
-
-		/*
 			Function: deleteModuleReport
 				Deletes a module report and its related actions.
 				This method is deprecated in favor of deleteModuleInterface.
@@ -1107,7 +1094,8 @@
 		*/
 
 		function deleteModuleReport($id) {
-			return $this->deleteModuleInterface($id);
+			$report = new BigTree\ModuleReport($id);
+			$report->delete();
 		}
 
 		/*
@@ -1195,17 +1183,14 @@
 		*/
 
 		function deletePageDraft($id) {
+			$page = new BigTree\Page($id);
+
 			// Get the version, check if the user has access to the page the version refers to.
-			$permission = $this->getPageAccessLevel($id);
-			if ($permission != "p") {
+			if ($page->UserAccessLevel != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
-			// Get the draft copy's ID
-			$draft_id = static::$DB->fetchSingle("SELECT id FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?",$id);
-
-			// Delete draft copy
-			$this->deletePendingChange($draft_id);
+			$page->deleteDraft();
 		}
 
 		/*
@@ -1219,19 +1204,18 @@
 
 		function deletePageRevision($id) {
 			// Get the version, check if the user has access to the page the version refers to.
-			$revision = $this->getPageRevision($id);
-			if (!$revision) {
+			$page = BigTree\Page::getRevision($id);
+			if (!$page) {
 				return false;
 			}
 
-			$permission = $this->getPageAccessLevel($revision["page"]);
-			if ($permission != "p") {
+			// Force publisher access
+			if ($page->UserAccessLevel != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
 			// Delete the revision
-			static::$DB->delete("bigtree_page_revisions",$id);
-			$this->track("bigtree_page_revisions",$id,"deleted");
+			$page->deleteRevision($id);
 		}
 
 		/*
@@ -3107,7 +3091,8 @@
 		*/
 
 		static function getPageRevision($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $id);
+			$page = BigTree\Page::getRevision($id);
+			return $page->Array;
 		}
 
 		/*
