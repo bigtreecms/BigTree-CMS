@@ -113,6 +113,7 @@
 		static function classAutoLoader($class) {
 			global $bigtree;
 			
+			// Known class in the cache file
 			if ($path = $bigtree["class_list"][$class]) {
 				if (substr($path,0,11) != "extensions/" && substr($path,0,7) != "custom/") {
 					$path = static::path($path);
@@ -123,7 +124,16 @@
 					include_once $path;
 					return;
 				}
+
+			// Auto loadable via the path
+			} elseif (strpos($class,0,8) == "BigTree\\") {
+				$path = static::path("inc/bigtree/classes/".substr($class,8).".php");
+				if (file_exists($path)) {
+					include_once $path;
+					return;
+				}
 			}
+
 			// Clear the module class list just in case we're missing something.
 			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 		}

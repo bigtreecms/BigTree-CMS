@@ -35,7 +35,7 @@
 	}
 	
 	// Connect to MySQL and include the shorterner functions
-	include BigTree::path("inc/bigtree/classes/sql.php");
+	include BigTree::path("inc/bigtree/classes/SQL.php");
 	include BigTree::path("inc/bigtree/compat/sql.php");
 	
 	// Setup our connections as disconnected by default.
@@ -92,25 +92,6 @@
 		"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
 		"BigTreeYahooBOSSAPI" => "inc/bigtree/apis/yahoo-boss.php",
 		"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
-		'BigTree\AuditTrail' => "inc/bigtree/classes/audit-trail.php",
-		'BigTree\Auth' => "inc/bigtree/classes/auth.php",
-		'BigTree\BaseObject' => "inc/bigtree/classes/base-object.php",
-		'BigTree\Cache' => "inc/bigtree/classes/cache.php",
-		'BigTree\Callout' => "inc/bigtree/classes/callout.php",
-		'BigTree\CalloutGroup' => "inc/bigtree/classes/callout-group.php",
-		'BigTree\Feed' => "inc/bigtree/classes/feed.php",
-		'BigTree\Field' => "inc/bigtree/classes/field.php",
-		'BigTree\FieldType' => "inc/bigtree/classes/field-type.php",
-		'BigTree\Link' => "inc/bigtree/classes/link.php",
-		'BigTree\Message' => "inc/bigtree/classes/message.php",
-		'BigTree\Module' => "inc/bigtree/classes/module.php",
-		'BigTree\ModuleAction' => "inc/bigtree/classes/module-action.php",
-		'BigTree\Page' => "inc/bigtree/classes/page.php",
-		'BigTree\Redirect' => "inc/bigtree/classes/redirect.php",
-		'BigTree\Resource' => "inc/bigtree/classes/resource.php",
-		'BigTree\ResourceFolder' => "inc/bigtree/classes/resource-folder.php",
-		'BigTree\Setting' => "inc/bigtree/classes/setting.php",
-		'BigTree\User' => "inc/bigtree/classes/user.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",
