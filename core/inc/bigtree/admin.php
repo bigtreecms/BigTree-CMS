@@ -637,7 +637,6 @@
 
 		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			// Clean up fields for backwards compatibility
-			$clean_fields = array();
 			foreach ($fields as $key => $data) {
 				$field = array(
 					"column" => $data["column"] ? $data["column"] : $key,
@@ -654,7 +653,7 @@
 					}
 				}
 
-				$clean_fields[] = $field;
+				$fields[$key] = $field;
 			}
 
 			$id = $this->createModuleInterface("form",$module,$title,$table,array(
@@ -692,34 +691,6 @@
 		}
 
 		/*
-			Function: createModuleInterface
-				Creates a module interface.
-
-			Parameters:
-				type - Interface type ("view", "form", "report", "embeddable-form", or an extension interface identifier)
-				module - The module ID the interface is for
-				title - The interface title (for admin purposes)
-				table - The related table
-				settings - An array of settings
-
-			Returns:
-				The new interface's ID.
-		*/
-
-		function createModuleInterface($type,$module,$title,$table,$settings = array()) {
-			$id = static::$DB->insert("bigtree_module_interfaces",array(
-				"type" => $type,
-				"module" => intval($module),
-				"title" => BigTree::safeEncode($title),
-				"table" => $table,
-				"settings" => $settings
-			));
-
-			$this->track("bigtree_module_interfaces",$id,"created");
-			return $id;
-		}
-
-		/*
 			Function: createModuleReport
 				Creates a module report and the associated module action.
 
@@ -734,17 +705,19 @@
 				view - A module view ID to use (if type = view).
 
 			Returns:
-				The route created for the module action.
+				The id of the report.
 		*/
 
 		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			return $this->createModuleInterface("report",$module,$title,$table,array(
+			$interface = BigTree\ModuleInterface::create("report",$module,$title,$table,array(
 				"type" => $type,
 				"filters" => $filters,
 				"fields" => $fields,
 				"parser" => $parser,
 				"view" => $view ? $view : null
 			));
+
+			return $interface->ID;
 		}
 
 		/*
@@ -768,18 +741,8 @@
 		*/
 
 		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
-			$id = $this->createModuleInterface("view",$module,$title,$table,array(
-				"description" => BigTree::safeEncode($description),
-				"type" => $type,
-				"fields" => $fields,
-				"options" => $options,
-				"actions" => $actions,
-				"preview_url" => $preview_url ? $this->makeIPL($preview_url) : "",
-				"related_form" => $related_form ? intval($related_form) : null
-			));
-
-			$this->updateModuleViewColumnNumericStatus($id);
-			return $id;
+			$view = BigTree\ModuleView::create($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
+			return $view->ID;
 		}
 
 		/*
@@ -1089,38 +1052,8 @@
 		*/
 
 		function deleteExtension($id) {
-			$extension = $this->getExtension($id);
-			$manifest = json_decode($extension["manifest"],true);
-		
-			// Delete site files
-			BigTree::deleteDirectory(SITE_ROOT."extensions/".$manifest["id"]."/");
-			// Delete extensions directory
-			BigTree::deleteDirectory(SERVER_ROOT."extensions/".$manifest["id"]."/");
-		
-			// Delete components
-			foreach ($manifest["components"] as $type => $list) {
-				if ($type == "tables") {
-					// Turn off foreign key checks since we're going to be dropping tables.
-					static::$DB->query("SET SESSION foreign_key_checks = 0");
-					
-					// Drop all the tables the extension created
-					foreach ($list as $table => $create_statement) {
-						static::$DB->query("DROP TABLE IF EXISTS `$table`");
-					}
-					
-					// Re-enable foreign key checks
-					static::$DB->query("SET SESSION foreign_key_checks = 1");
-				} else {
-					// Remove other database entries
-					foreach ($list as $item) {
-						static::$DB->delete("bigtree_".$type,$item["id"]);
-					}
-				}
-			}
-
-			// Delete extension entry
-			static::$DB->delete("bigtree_extensions",$extension["id"]);
-			$this->track("bigtree_extensions",$extension["id"],"deleted");
+			$extension = new BigTree\Extension($id);
+			$extension->delete();
 		}
 
 		/*
@@ -1264,7 +1197,8 @@
 		*/
 
 		function deleteModuleView($id) {
-			return $this->deleteModuleInterface($id);
+			$view = new BigTree\ModuleView($id);
+			$view->delete();
 		}
 
 		/*
@@ -2287,7 +2221,8 @@
 		*/
 		
 		static function getExtension($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $id);
+			$extension = new BigTree\Extension($id);
+			return $extension->Array;
 		}
 
 		/*
@@ -2302,7 +2237,7 @@
 		*/
 		
 		static function getExtensions($sort = "last_updated DESC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_extensions WHERE type = 'extension' ORDER BY $sort");
+			return BigTree\Extension::allByType("extension",$sort,true);
 		}
 
 		/*
@@ -2663,7 +2598,7 @@
 		*/
 
 		static function getModuleEmbedForms($sort = "title ASC",$module = false) {
-			$interfaces = static::getModuleInterfaces($module,$sort,"embeddable-form");
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"embeddable-form",$sort,true);
 
 			// Return previous table format
 			$forms = array();
@@ -2701,7 +2636,7 @@
 		*/
 
 		static function getModuleForms($sort = "title ASC",$module = false) {
-			$interfaces = static::getModuleInterfaces($module,$sort,"form");
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"form",$sort,true);
 
 			// Return previous table format
 			$forms = array();
@@ -2807,41 +2742,6 @@
 		}
 
 		/*
-			Function: getModuleInterfaces
-				Returns an array of interfaces related to the given module.
-
-			Parameters:
-				module - The module or module ID to pull interfaces for (if false, returns all interfaces)
-				order - Sort order (defaults to title ASC)
-				type - The type of interface to return (defaults to false for all types)
-
-			Returns:
-				An array of interface entries from bigtree_module_interfaces.
-		*/
-
-		static function getModuleInterfaces($module = false,$order = "`title` ASC",$type = false) {
-			$where = $parameters = array();
-
-			// Add module restriction
-			if ($module !== false) {
-				$where[] = "`module` = ?";
-				$parameters[] = is_array($module) ? $module["id"] : $module;
-			}
-
-			// Add type restriciton
-			if ($type !== false) {
-				$where[] = "`type` = ?";
-				$parameters[] = $type;
-			}
-
-			// Add the query
-			$where = count($where) ? " WHERE ".implode(" AND ",$where) : "";
-			array_unshift($parameters,"SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
-
-			return call_user_func_array(array(static::$DB,"fetchAll"),$parameters);
-		}
-
-		/*
 			Function: getModuleNavigation
 				Returns a list of module actions that are in navigation.
 
@@ -2870,7 +2770,7 @@
 		*/
 
 		static function getModuleReports($sort = "title ASC",$module = false) {
-			$interfaces = static::getModuleInterfaces($module,$sort,"report");
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"report",$sort,true);
 
 			// Support the old table format
 			$reports = array();
@@ -2950,7 +2850,7 @@
 		*/
 
 		static function getModuleViews($sort = "title ASC",$module = false) {
-			$interfaces = static::getModuleInterfaces($module,$sort,"view");
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"view",$sort,true);
 
 			// Support the old table format
 			$views = array();
@@ -4202,232 +4102,8 @@
 		*/
 
 		function installExtension($manifest,$upgrade = false) {
-			global $bigtree;
-
-			$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
-			$extension = $manifest["id"];
-
-			// Turn off foreign key checks so we can reference the extension before creating it
-			static::$DB->query("SET foreign_key_checks = 0");
-
-			// Upgrades drop existing modules, templates, etc -- we don't drop settings because they have user data
-			if (is_array($upgrade)) {
-				static::$DB->delete("bigtree_module_groups",array("extension" => $extension));
-				static::$DB->delete("bigtree_modules",array("extension" => $extension));
-				static::$DB->delete("bigtree_templates",array("extension" => $extension));
-				static::$DB->delete("bigtree_callouts",array("extension" => $extension));
-				static::$DB->delete("bigtree_field_types",array("extension" => $extension));
-				static::$DB->delete("bigtree_feeds",array("extension" => $extension));
-
-			// Import tables for new installs
-			} else { 
-				foreach ($manifest["components"]["tables"] as $table_name => $sql_statement) {
-					static::$DB->query("DROP TABLE IF EXISTS `$table_name`");
-					static::$DB->query($sql_statement);
-				}
-			}
-
-			// Import module groups
-			foreach ($manifest["components"]["module_groups"] as &$group) {
-				if (array_filter((array)$group)) {
-					$bigtree["group_match"][$group["id"]] = $this->createModuleGroup($group["name"]);
-					// Update the group ID since we're going to save this manifest locally for uninstalling
-					$group["id"] = $bigtree["group_match"][$group["id"]];
-					static::$DB->update("bigtree_module_groups",$group["id"],array("extension" => $extension));
-				}
-			}
-		
-			// Import modules
-			foreach ($manifest["components"]["modules"] as &$module) {
-				if (array_filter((array)$module)) {
-					$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
-					
-					// Find a unique route
-					$route = static::$DB->unique("bigtree_modules","route",$module["route"]);
-
-					// Create the module
-					$module_id = static::$DB->insert("bigtree_modules",array(
-						"name" => $module["name"],
-						"route" => $route,
-						"class" => $module["class"],
-						"icon" => $module["icon"],
-						"group" => $group,
-						"gbp" => $module["gbp"],
-						"extension" => $extension
-					));
-
-					// Setup matches
-					$bigtree["module_match"][$module["id"]] = $module_id;
-					$bigtree["route_match"][$module["route"]] = $route;
-
-					// Update the module ID since we're going to save this manifest locally for uninstalling
-					$module["id"] = $module_id;
-			
-					// Create the embed forms
-					foreach ($module["embed_forms"] as $form) {
-						$this->createModuleEmbedForm($module_id,$form["title"],$form["table"],BigTree::arrayValue($form["fields"]),$form["hooks"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
-					}
-
-					// Create views
-					foreach ($module["views"] as $view) {
-						$bigtree["view_id_match"][$view["id"]] = $this->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],BigTree::arrayValue($view["options"]),BigTree::arrayValue($view["fields"]),BigTree::arrayValue($view["actions"]),$view["suffix"],$view["preview_url"]);
-					}
-
-					// Create regular forms
-					foreach ($module["forms"] as $form) {
-						$bigtree["form_id_match"][$form["id"]] = $this->createModuleForm($module_id,$form["title"],$form["table"],BigTree::arrayValue($form["fields"]),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
-					}
-
-					// Create reports
-					foreach ($module["reports"] as $report) {
-						$bigtree["report_id_match"][$report["id"]] = $this->createModuleReport($module_id,$report["title"],$report["table"],$report["type"],BigTree::arrayValue($report["filters"]),BigTree::arrayValue($report["fields"]),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
-					}
-
-					// Create actions
-					foreach ($module["actions"] as $action) {
-						// 4.1 and 4.2 compatibility
-						if ($action["report"]) {
-							$action["interface"] = $bigtree["report_id_match"][$action["report"]];
-						} elseif ($action["form"]) {
-							$action["interface"] = $bigtree["form_id_match"][$action["form"]];
-						} elseif ($action["view"]) {
-							$action["interface"] = $bigtree["view_id_match"][$action["view"]];
-						}
-						$this->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$action["interface"],$action["level"],$action["position"]);
-					}
-				}
-			}
-		
-			// Import templates
-			foreach ($manifest["components"]["templates"] as $template) {
-				if (array_filter((array)$template)) {
-					static::$DB->insert("bigtree_templates",array(
-						"id" => $template["id"],
-						"name" => $template["name"],
-						"module" => $bigtree["module_match"][$template["module"]],
-						"resources" => $template["resources"],
-						"level" => $template["level"],
-						"routed" => $template["routed"],
-						"extension" => $extension
-					));
-				}
-			}
-		
-			// Import callouts
-			foreach ($manifest["components"]["callouts"] as $callout) {
-				if (array_filter((array)$callout)) {
-					static::$DB->insert("bigtree_callouts",array(
-						"id" => $callout["id"],
-						"name" => $callout["name"],
-						"description" => $callout["description"],
-						"display_default" => $callout["display_default"],
-						"display_field" => $callout["display_field"],
-						"resources" => $callout["resources"],
-						"level" => $callout["level"],
-						"position" => $callout["position"],
-						"extension" => $extension
-					));
-				}
-			}
-		
-			// Import Settings
-			foreach ($manifest["components"]["settings"] as $setting) {
-				if (array_filter((array)$setting)) {
-					$this->createSetting($setting);
-					static::$DB->update("bigtree_settings",$setting["id"],array("extension" => $extension));
-				}
-			}
-		
-			// Import Feeds
-			foreach ($manifest["components"]["feeds"] as $feed) {
-				if (array_filter((array)$feed)) {
-					static::$DB->insert("bigtree_feeds",array(
-						"route" => $feed["route"],
-						"name" => $feed["name"],
-						"description" => $feed["description"],
-						"type" => $feed["type"],
-						"table" => $feed["table"],
-						"fields" => $feed["fields"],
-						"options" => $feed["options"],
-						"extension" => $extension
-					));
-				}
-			}
-		
-			// Import Field Types
-			foreach ($manifest["components"]["field_types"] as $type) {
-				if (array_filter((array)$type)) {
-					static::$DB->insert("bigtree_field_types",array(
-						"id" => $type["id"],
-						"name" => $type["name"],
-						"use_cases" => $type["use_cases"],
-						"self_draw" => $type["self_draw"] ? "'on'" : null,
-						"extension" => $extension
-					));
-				}
-			}
-
-			// Upgrades don't drop tables, we run the SQL revisions instead
-			if (is_array($upgrade)) {
-				$old_revision = $upgrade["revision"];
-				$sql_revisions = $manifest["sql_revisions"];
-
-				// Go through all the SQL updates, we ksort first to ensure if the manifest somehow got out of order that we run the SQL update sequentially
-				ksort($sql_revisions);
-				foreach ($sql_revisions as $key => $statements) {
-					if ($key > $old_revision) {
-						foreach ($statements as $sql_statement) {
-							static::$DB->query($sql_statement);
-						}
-					}
-				}
-
-				// Update the extension
-				static::$DB->update("bigtree_extensions",$extension,array(
-					"name" => $manifest["title"],
-					"version" => $manifest["version"],
-					"manifest" => $manifest
-				));
-			
-			// Straight installs move files into place locally
-			} else {
-				// Make sure destination doesn't exist
-				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/"; 
-				BigTree::deleteDirectory($destination_path);
-
-				// Move the package to the extension directory
-				rename(SERVER_ROOT."cache/package/",$destination_path);
-				BigTree::setDirectoryPermissions($destination_path);
-
-				// Create the extension
-				static::$DB->insert("bigtree_extensions",array(
-					"id" => $extension,
-					"type" => "extension",
-					"name" => $manifest["title"],
-					"version" => $manifest["version"],
-					"manifest" => $manifest
-				));	
-			}
-
-			// Re-enable foreign key checks
-			static::$DB->query("SET foreign_key_checks = 1");
-
-			// Empty view cache
-			static::$DB->query("DELETE FROM bigtree_module_view_cache");
-
-			// Move public files into the site directory
-			$public_dir = SERVER_ROOT."extensions/".$manifest["id"]."/public/";
-			$site_contents = file_exists($public_dir) ? BigTree::directoryContents($public_dir) : array();
-			foreach ($site_contents as $file_path) {
-				$destination_path = str_replace($public_dir,SITE_ROOT."extensions/".$manifest["id"]."/",$file_path);
-				BigTree::copyFile($file_path,$destination_path);
-			}
-
-			// Clear module class cache and field type cache.
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
-
-			return $manifest;
+			$extension = BigTree\Extension::createFromManifest($manifest,$upgrade);
+			return $extension->Manifest;
 		}
 
 		/*
@@ -6186,21 +5862,25 @@
 		*/
 
 		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
-			$this->updateModuleInterface($id,$title,$table,array(
-				"description" => BigTree::safeEncode($description),
-				"type" => $type,
-				"fields" => $fields,
-				"options" => $options,
-				"actions" => $actions,
-				"preview_url" => $preview_url ? $this->makeIPL($preview_url) : "",
-				"related_form" => $related_form ? intval($related_form) : null
-			));
+			$view = new BigTree\ModuleView($id);
+
+			$view->Description = $description;
+			$view->Table = $table;
+			$view->Title = $title;
+			$view->Type = $type;
+			$view->Settings = $options;
+			$view->Fields = $fields;
+			$view->Actions = $actions;
+			$view->RelatedForm = $related_form;
+			$view->PreviewURL = $preview_url;
+
+			// This method will automatically save
+			$view->refreshNumericColumns();
 
 			// Update related action titles
-			static::$DB->update("bigtree_module_actions",array("interface" => $id),array("name" => "View $title"));
-
-			// Update module view cache stuff
-			$this->updateModuleViewColumnNumericStatus($id);
+			$action = BigTree\ModuleAction::getByInterface($id);
+			$action->Name = "View ".BigTree::safeEncode($title);
+			$action->save();
 		}
 
 		/*
@@ -6212,28 +5892,8 @@
 		*/
 
 		function updateModuleViewColumnNumericStatus($id) {
-			$interface = static::$DB->fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			$settings = json_decode($interface["settings"],true);
-
-			if (is_array($settings["fields"])) {
-				$form = BigTreeAutoModule::getRelatedFormForView($interface);
-				$table = BigTree::describeTable($interface["table"]);
-
-				foreach ($settings["fields"] as $key => $field) {
-					$numeric = false;
-					$t = $table["columns"][$key]["type"];
-					if ($t == "int" || $t == "float" || $t == "double" || $t == "double precision" || $t == "tinyint" || $t == "smallint" || $t == "mediumint" || $t == "bigint" || $t == "real" || $t == "decimal" || $t == "dec" || $t == "fixed" || $t == "numeric") {
-						$numeric = true;
-					}
-					if ($field["parser"] || ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db")) {
-						$numeric = false;
-					}
-
-					$settings["fields"][$key]["numeric"] = $numeric;
-				}
-
-				static::$DB->update("bigtree_module_interfaces",$interface["id"],array("settings" => $settings));
-			}
+			$view = new BigTree\ModuleView($id);
+			$view->refreshNumericColumns();
 		}
 
 		/*
@@ -6246,13 +5906,11 @@
 		*/
 
 		function updateModuleViewFields($id,$fields) {
-			// Grab the interface and replace the fields
-			$interface = static::$DB->fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			$settings = json_decode($interface["settings"],true);
-			$settings["fields"] = $fields;
+			$view = new ModuleView($id);
+			$view->Fields = $fields;
 
-			static::$DB->update("bigtree_module_interfaces",$id,array("settings" => $settings));
-			$this->track("bigtree_module_interfaces",$id,"updated");
+			// Automatically saves
+			$view->refreshNumericColumns();
 		}
 
 		/*
