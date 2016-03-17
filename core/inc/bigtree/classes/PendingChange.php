@@ -61,9 +61,40 @@
 			}
 		}
 
-		// $this->UserAccessLevel
-		function _getUserAccessLevel() {
+		// $this->EditLink
+		protected function _getEditLink() {
+			global $bigtree;
 
+			// Pages are easy
+			if ($this->Table == "bigtree_pages") {
+				if ($this->ItemID) {
+					return $bigtree["config"]["admin_root"]."pages/edit/".$this->ItemID."/";
+				} else {
+					return $bigtree["config"]["admin_root"]."pages/edit/p".$this->ID."/";
+				}
+			}
+
+			// Find a form that uses this table (it's our best guess here)
+			$form_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_module_interfaces 
+													 WHERE `type` = 'form' AND `table` = ?", $this->Table);
+			if (!$form_id) {
+				return false;
+			}
+
+			// Get the module route
+			$module_route = BigTreeCMS::$DB->fetchSingle("SELECT route FROM bigtree_modules WHERE `id` = ?", $this->Module);
+			
+			// We set in_nav to empty because edit links aren't in nav (and add links are) so we can predict where the edit action will be this way
+			$action_route = BigTreeCMS::$DB->fetchSingle("SELECT route FROM bigtree_module_actions 
+														  WHERE `interface` = ? AND `in_nav` = ''", $form_id);
+
+			// Got an action
+			if ($action_route) {
+				return $bigtree["config"]["admin_root"].$module_route."/".$action_route."/".($this->ItemID ?: "p".$this->ID)."/";
+			}
+
+			// Couldn't find a link
+			return false;
 		}
 
 		/*

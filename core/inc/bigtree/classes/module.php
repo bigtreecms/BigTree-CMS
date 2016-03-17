@@ -53,6 +53,38 @@
 			}
 		}
 
+		// $this->UserAccessibleGroups
+		function _getUserAccessibleGroups() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserAccessibleGroups not available outside logged-in user context.");
+				return false;
+			}
+
+			// Admins have "true" access, all groups
+			if ($admin->Level > 0) {
+				return true;
+			}
+
+			// Explicit permission to the whole module, return "true" access
+			if ($admin->Permissions["module"][$this->ID] && $admin->Permissions["module"][$this->ID] != "n") {
+				return true;
+			}
+
+			// Go through each group and return the allowedo nes
+			$groups = array();
+			if (is_array($admin->Permissions["module_gbp"][$this->ID])) {
+				foreach ($admin->Permissions["module_gbp"][$this->ID] as $group => $permission) {
+					if ($permission && $permission != "n") {
+						$groups[] = $group;
+					}
+				}
+			}
+			return $groups;
+		}
+
 		// $this->UserCanAccess
 		function _getUserCanAccess() {
 			global $admin;
@@ -93,6 +125,30 @@
 
 			// No access set
 			return false;
+		}
+
+		// $this->UserAccessLevel
+		function _getUserAccessLevel() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
+				return "n";
+			}
+
+			// Developer only module
+			if ($this->DeveloperOnly && $admin->Level < 2) {
+				return "n";
+			}
+
+			// Not developer-only and we're an admin? Publisher.
+			if ($admin->Level > 0) {
+				return "p";
+			}
+
+			// Explicitly set permission
+			return $admin->Permissions["module"][$this->ID];
 		}
 
 		/*
@@ -238,6 +294,100 @@
 			BigTreeCMS::$DB->delete("bigtree_modules",$this->ID);
 
 			AuditTrail::track("bigtree_modules",$this->ID,"deleted");
+		}
+
+		/*
+			Function: getCachedAccessLevel
+				Returns the permission level for a given module and cached view entry.
+
+			Parameters:
+				item - (optional) The item of the module to check access for.
+				table - (optional) The group based table.
+
+			Returns:
+				The permission level for the given item or module (if item was not passed).
+		*/
+
+		function getCachedAccessLevel($item = array(),$table = "") {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanAccess not available outside logged-in user context.");
+				return "n";
+			}
+
+			$module_id = $this->ID;
+			$permission = $this->UserAccessLevel;
+
+			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
+			if (empty($item) || empty($this->GroupBasedPermissions["enabled"]) || $permission == "p" || $table != $this->GroupBasedPermissions["table"]) {
+				return $permission;
+			}
+
+			if (is_array($admin->Permissions["module_gbp"][$module_id])) {
+				$current_gbp_value = $item["gbp_field"];
+				$original_gbp_value = $item["published_gbp_field"];
+
+				$access_level = $admin->Permissions["module_gbp"][$module_id][$current_gbp_value];
+				if ($access_level != "n") {
+					$original_access_level = $admin->Permissions["module_gbp"][$module_id][$original_gbp_value];
+					if ($original_access_level != "p") {
+						$access_level = $original_access_level;
+					}
+				}
+
+				if ($access_level != "n") {
+					return $access_level;
+				}
+			}
+
+			return $permission;
+		}
+
+		/*
+			Function: getEntryAccessLevel
+				Returns the permission level for a given module and item.
+				Can be called non-statically to check for the logged in user.
+
+			Parameters:
+				item - (optional) The item of the module to check access for.
+				table - (optional) The group based table.
+
+			Returns:
+				The permission level for the given item or module (if item was not passed).
+
+			See Also:
+				<getCachedAccessLevel>
+		*/
+
+		function getEntryAccessLevel($table,$entry) {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanAccess not available outside logged-in user context.");
+				return "n";
+			}
+
+			$module_id = $this->ID;
+			$permission = $this->UserAccessLevel;
+
+			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
+			if (empty($item) || empty($this->GroupBasedPermissions["enabled"]) || $permission == "p" || $table != $this->GroupBasedPermissions["table"]) {
+				return $permission;
+			}
+
+			if (is_array($admin->Permissions["module_gbp"][$module_id])) {
+				$group_value = $entry[$this->GroupBasedPermissions["group_field"]];
+				$group_permission = $admin->Permissions["module_gbp"][$module_id][$group_value];
+
+				if ($group_permission != "n") {
+					return $group_permission;
+				}
+			}
+
+			return $permission;
 		}
 
 		/*

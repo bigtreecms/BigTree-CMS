@@ -1306,7 +1306,7 @@
 		*/
 
 		static function doesModuleActionExist($module,$route) {
-			return static::$DB->exists("bigtree_module_actions",array("module" => $module,"route" => $route));
+			return BigTree\ModuleAction::exists($module,$route);
 		}
 
 		/*
@@ -1315,19 +1315,12 @@
 		*/
 
 		static function drawArrayLevel($keys,$level,$field = false) {
-			// Backwards compatibility in case any external developers used this
 			if ($field === false) {
 				global $field;
 			}
-			foreach ($level as $key => $value) {
-				if (is_array($value)) {
-					static::drawArrayLevel(array_merge($keys,array($key)),$value,$field);
-				} else {
-?>
-<input type="hidden" name="<?=$field["key"]?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
-<?php
-				}
-			}
+
+			$field = new BigTree\Field($field);
+			$field->drawArrayLevel();
 		}
 
 		/*
@@ -1619,27 +1612,8 @@
 		*/
 
 		function getAccessGroups($module) {
-			if ($this->Level > 0) {
-				return true;
-			}
-
-			if (is_array($module)) {
-				$module = $module["id"];
-			}
-
-			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
-				return true;
-			}
-
-			$groups = array();
-			if (is_array($this->Permissions["module_gbp"][$module])) {
-				foreach ($this->Permissions["module_gbp"][$module] as $group => $permission) {
-					if ($permission && $permission != "n") {
-						$groups[] = $group;
-					}
-				}
-			}
-			return $groups;
+			$module = new BigTree\Module($module);
+			return $module->UserAccessibleGroups;
 		}
 
 		/*
@@ -1651,7 +1625,7 @@
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
-				user - A user entry (defaults to false, only allowed when called in a non-static context)
+				user - (optional) User array if checking for a user other than the logged in user.
 
 			Returns:
 				The permission level for the given item or module (if item was not passed).
@@ -1660,40 +1634,24 @@
 				<getCachedAccessLevel>
 		*/
 
-		static function getAccessLevel($module,$item = array(),$table = "",$user = false) {
-			// Allow backwards compatibility with < 4.3 style calls
-			if (!$user) {
+		function getAccessLevel($module,$item = array(),$table = "",$user = false) {
+			// UserAccessLevel uses the $admin object, so we need fake it
+			if ($user !== false) {
 				global $admin;
-				$user = array(
-					"id" => $admin->ID,
-					"level" => $admin->Level,
-					"permissions" => $admin->Permissions
-				);
+
+				$saved = array("level" => $admin->Level, "permissions" => $admin->Permissions);
+				$admin->Level = $user["level"];
+				$admin->Permissions = $user["permissions"];
 			}
 
-			if ($user["level"] > 0) {
-				return "p";
+			$module = new BigTree\Module($module);
+			$permission = $module->getEntryAccessLevel($item,$table);
+
+			// Restore permissions
+			if ($user !== false) {
+				$admin->Level = $saved["level"];
+				$admin->Permissions = $saved["permissions"];
 			}
-
-			$id = is_array($module) ? $module["id"] : $module;
-
-			$perm = $user["permissions"]["module"][$id];
-
-			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
-			if (empty($item) || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
-				return $perm;
-			}
-
-			if (is_array($user["permissions"]["module_gbp"][$id])) {
-				$gv = $item[$module["gbp"]["group_field"]];
-				$gp = $user["permissions"]["module_gbp"][$id][$gv];
-
-				if ($gp != "n") {
-					return $gp;
-				}
-			}
-
-			return $perm;
 		}
 
 		/*
@@ -1712,38 +1670,7 @@
 		*/
 
 		static function getActionClass($action,$item) {
-			$class = "";
-			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
-				return "icon_disabled";
-			}
-			if ($action == "feature") {
-				$class = "icon_feature";
-				if ($item["featured"]) {
-					$class .= " icon_feature_on";
-				}
-			}
-			if ($action == "edit") {
-				$class = "icon_edit";
-			}
-			if ($action == "delete") {
-				$class = "icon_delete";
-			}
-			if ($action == "approve") {
-				$class = "icon_approve";
-				if ($item["approved"]) {
-					$class .= " icon_approve_on";
-				}
-			}
-			if ($action == "archive") {
-				$class = "icon_archive";
-				if ($item["archived"]) {
-					$class .= " icon_archive_on";
-				}
-			}
-			if ($action == "preview") {
-				$class = "icon_preview";
-			}
-			return $class;
+			return BigTree\ModuleView::generateActionClass($action,$item);
 		}
 
 		/*
@@ -1758,7 +1685,8 @@
 		*/
 
 		static function getArchivedNavigationByParent($parent) {
-			return static::$DB->fetchAll("SELECT id, nav_title as title FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' ORDER BY nav_title ASC");
+			$page = new BigTree\Page($parent);
+			return $page->getArchivedChildren(true);
 		}
 
 		/*
@@ -1800,37 +1728,8 @@
 
 		// Since cached items don't use their normal columns...
 		function getCachedAccessLevel($module,$item = array(),$table = "") {
-			if ($this->Level > 0) {
-				return "p";
-			}
-
-			$id = is_array($module) ? $module["id"] : $module;
-
-			$perm = $this->Permissions["module"][$id];
-
-			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
-			if (empty($item) || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
-				return $perm;
-			}
-
-			if (is_array($this->Permissions["module_gbp"][$id])) {
-				$current_gbp_value = $item["gbp_field"];
-				$original_gbp_value = $item["published_gbp_field"];
-
-				$access_level = $this->Permissions["module_gbp"][$id][$current_gbp_value];
-				if ($access_level != "n") {
-					$original_access_level = $this->Permissions["module_gbp"][$id][$original_gbp_value];
-					if ($original_access_level != "p") {
-						$access_level = $original_access_level;
-					}
-				}
-
-				if ($access_level != "n") {
-					return $access_level;
-				}
-			}
-
-			return $perm;
+			$module = new BigTree\Module($module);
+			return $module->getCachedAccessLevel($item,$table);
 		}
 
 		/*
@@ -1950,45 +1849,8 @@
 		*/
 
 		static function getChangeEditLink($change) {
-			global $bigtree;
-
-			if (!is_array($change)) {
-				// We don't need the changes decoded
-				$change = static::getPendingChange($change,false);
-			}
-
-			// Pages are easy
-			if ($change["table"] == "bigtree_pages") {
-				if ($change["item_id"]) {
-					return $bigtree["config"]["admin_root"]."pages/edit/".$change["item_id"]."/";
-				} else {
-					return $bigtree["config"]["admin_root"]."pages/edit/p".$change["id"]."/";
-				}
-			}
-
-			// Items pending creation don't have an item_id so we assign one
-			if (!$change["item_id"]) {
-				$change["item_id"] = "p".$change["id"];
-			}
-
-			// Find a form that uses this table (it's our best guess here)
-			$form_id = static::$DB->fetchSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $change["table"]);
-			if (!$form_id) {
-				return false;
-			}
-
-			// Get the module route
-			$module_route = static::$DB->fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $change["module"]);
-			// We set in_nav to empty because edit links aren't in nav (and add links are) so we can predict where the edit action will be this way
-			$action_route = static::$DB->fetchSingle("SELECT route FROM bigtree_module_actions WHERE `interface` = ? AND in_nav = ''", $form_id);
-
-			// Got an action
-			if ($action_route) {
-				return $bigtree["config"]["admin_root"].$module_route."/".$action_route."/".$change["item_id"]."/";
-			}
-
-			// Couldn't find a link
-			return false;
+			$change = new BigTree\PendingChange($change);
+			return $change->EditLink;
 		}
 
 		/*
@@ -2135,17 +1997,8 @@
 		*/
 
 		static function getFullNavigationPath($id, $path = array()) {
-			$page_info = static::$DB->fetch("SELECT route, parent FROM bigtree_pages WHERE id = ?", $id);
-			$path[] = $page_info["route"];
-			
-			// If we have a higher page, keep recursing up
-			if ($page_info["parent"]) {
-				return static::getFullNavigationPath($page_info["parent"],$path);
-			}
-
-			// Reverse since we started with the deepest level but want the inverse
-			$path = implode("/",array_reverse($path));
-			return $path;
+			$page = new BigTree\Page($id);
+			return $page->regeneratePath();
 		}
 
 		/*
@@ -2160,10 +2013,8 @@
 		*/
 
 		static function getHiddenNavigationByParent($parent) {
-			return static::$DB->fetchAll("SELECT id, nav_title as title, publish_at, expire_at, template, ga_page_views 
-										  FROM bigtree_pages 
-										  WHERE parent = '$parent' AND in_nav = '' AND archived != 'on' 
-										  ORDER BY nav_title ASC");
+			$page = new BigTree\Page($parent);
+			return $page->getHiddenChildren();
 		}
 
 		/*

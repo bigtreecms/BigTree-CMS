@@ -1,7 +1,7 @@
 <?php
 	/*
-		Class: BigTree\ModuleView
-			Provides an interface for handling BigTree module views.
+		Class: BigTree\ModuleForm
+			Provides an interface for handling BigTree module forms.
 	*/
 
 	namespace BigTree;

@@ -8,7 +8,7 @@
 	$add_route = "add";
 	$edit_route = "edit";
 	// If we already have add/edit routes, get unique new ones for this form
-	if ($admin->doesModuleActionExist($module,"add") || $admin->doesModuleActionExist($module,"edit")) {
+	if (BigTree\ModuleAction::exists($module,"add") || BigTree\ModuleAction::exists($module,"edit")) {
 		$add_route = $admin->uniqueModuleActionRoute($module,$cms->urlify("add $title"));
 		$edit_route = $admin->uniqueModuleActionRoute($module,$cms->urlify("edit $title"));
 	}

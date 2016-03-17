@@ -135,6 +135,22 @@
 		}
 
 		/*
+			Function: exists
+				Checks to see if an action exists for a given route and module.
+
+			Parameters:
+				module - The module to check.
+				route - The route of the action to check.
+
+			Returns:
+				true if an action exists, otherwise false.
+		*/
+
+		static function exists($module,$route) {
+			return BigTreeCMS::$DB->exists("bigtree_module_actions",array("module" => $module,"route" => $route));
+		}
+
+		/*
 			Function: getByInterface
 				Returns the module action for a given module interface.
 				Prioritizes edit action over add.

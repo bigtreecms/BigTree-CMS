@@ -381,6 +381,30 @@
 		}
 
 		/*
+			Function: getArchivedChildren
+				Returns an alphabetic array of archived child pages.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of Page entries.
+		*/
+
+		function getArchivedChildren($return_arrays = false) {
+			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' 
+												   ORDER BY nav_title ASC");
+
+			if (!$return_arrays) {
+				foreach ($children as &$child) {
+					$child = new Page($child);
+				}
+			}
+
+			return $children;
+		}
+
+		/*
 			Function: getRevision
 				Returns a revision of the page.
 
@@ -411,5 +435,55 @@
 			$this->Revision->UpdatedAt = $revision["updated_at"];
 
 			return $page;
+		}
+
+		/*
+			Function: getHiddenChildren
+				Returns an alphabetic array of hidden child pages.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of Page entries.
+		*/
+
+		static function getHiddenChildren($return_arrays) {
+			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
+												   ORDER BY nav_title ASC", $this->ID);
+
+			if (!$return_arrays) {
+				foreach ($children as &$child) {
+					$child = new Page($child);
+				}
+			}
+
+			return $children;
+
+		/*
+			Function: regeneratePath
+				Calculates the full navigation path for the page, sets $this->Path, and returns the path.
+
+			Returns:
+				The navigation path (normally found in the "path" column in bigtree_pages).
+		*/
+
+		function regeneratePath($id = false, $path = array()) {
+			if (!$id) {
+				$id = $this->ID;
+			}
+
+			$page_info = BigTreeCMS::$DB->fetch("SELECT route, parent FROM bigtree_pages WHERE id = ?", $id);
+			$path[] = $page_info["route"];
+			
+			// If we have a higher page, keep recursing up
+			if ($page_info["parent"]) {
+				return $this->regeneratePath($page_info["parent"],$path);
+			}
+
+			// Reverse since we started with the deepest level but want the inverse
+			$this->Path = implode("/",array_reverse($path));
+
+			return $this->Path;
 		}
 	}

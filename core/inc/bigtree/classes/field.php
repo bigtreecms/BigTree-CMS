@@ -124,6 +124,23 @@
 		}
 
 		/*
+			Function: drawArrayLevel
+				An internal function used for drawing callout and matrix resource data.
+		*/
+
+		function drawArrayLevel($keys,$level) {
+			foreach ($level as $key => $value) {
+				if (is_array($value)) {
+					$this->drawArrayLevel(array_merge($keys,array($key)),$value);
+				} else {
+?>
+<input type="hidden" name="<?=$this->Key?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
+<?php
+				}
+			}
+		}
+
+		/*
 			Function: process
 				Processes the field's input and returns its output
 

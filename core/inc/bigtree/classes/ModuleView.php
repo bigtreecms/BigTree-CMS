@@ -96,6 +96,64 @@
 		}
 
 		/*
+			Function: generateActionClass
+				Returns the button class for the given action and item.
+
+			Parameters:
+				action - The action route for the item (edit, feature, approve, etc)
+				item - The entry to check the action for.
+
+			Returns:
+				Class name for the <a> tag.
+
+				For example, if the item is already featured, this returns "icon_featured icon_featured_on" for the "feature" action.
+				If the item isn't already featured, it would simply return "icon_featured" for the "feature" action.
+		*/
+
+		static function generateActionClass($action,$item) {
+			$class = "";
+
+			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
+				return "icon_disabled";
+			}
+			
+			if ($action == "feature") {
+				$class = "icon_feature";
+				if ($item["featured"]) {
+					$class .= " icon_feature_on";
+				}
+			}
+			
+			if ($action == "edit") {
+				$class = "icon_edit";
+			}
+			
+			if ($action == "delete") {
+				$class = "icon_delete";
+			}
+			
+			if ($action == "approve") {
+				$class = "icon_approve";
+				if ($item["approved"]) {
+					$class .= " icon_approve_on";
+				}
+			}
+			
+			if ($action == "archive") {
+				$class = "icon_archive";
+				if ($item["archived"]) {
+					$class .= " icon_archive_on";
+				}
+			}
+			
+			if ($action == "preview") {
+				$class = "icon_preview";
+			}
+			
+			return $class;
+		}
+
+		/*
 			Function: refreshNumericColumns
 				Updates the view's columns to designate whether they are numeric or not based on parsers, column type, and related forms.
 		*/
