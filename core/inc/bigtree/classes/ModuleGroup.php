@@ -46,19 +46,6 @@
 			}
 		}
 
-		// $this->UserCanAccess
-		function _getUserCanAccess() {
-			global $admin;
-
-			// Check action access level
-			if ($action["level"] > $admin->Level) {
-				return false;
-			}
-
-			$module = new Module($this->Module);
-			return $module->UserCanAccess;
-		}
-
 		/*
 			Function: create
 				Creates a module group.

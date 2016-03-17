@@ -53,8 +53,33 @@
 			}
 		}
 
-		// $this->UserAccessibleGroups
-		function _getUserAccessibleGroups() {
+		/*
+			Function: getNavigation
+				Returns an array of module actions that are in navigation.
+
+			Returns:
+				An array of ModuleAction objects.
+		*/
+
+		function getNavigation() {
+			$actions = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' 
+												  ORDER BY position DESC, id ASC", $this->ID);
+			foreach ($actions as &$action) {
+				$action = new ModuleAction($action);
+			}
+
+			return $actions;
+		}
+
+		/*
+			Function: getUserAccessibleGroups
+				Returns an array of all groups the logged in user has access to in this module.
+
+			Returns:
+				An array of groups if a user has limited access to a module or "true" if the user has access to all groups.
+		*/
+
+		function getUserAccessibleGroups() {
 			global $admin;
 
 			// Make sure a user is logged in
@@ -85,8 +110,15 @@
 			return $groups;
 		}
 
-		// $this->UserCanAccess
-		function _getUserCanAccess() {
+		/*
+			Function: getUserCanAccess
+				Determines whether the logged in user has access to the module or not.
+
+			Returns:
+				true if the user can access the module, otherwise false.
+		*/
+
+		function getUserCanAccess() {
 			global $admin;
 
 			// Make sure a user is logged in
@@ -127,8 +159,15 @@
 			return false;
 		}
 
-		// $this->UserAccessLevel
-		function _getUserAccessLevel() {
+		/*
+			Function: getUserAccessLevel
+				Returns the permission level for the logged in user to the module
+			
+			Returns:
+				A permission level ("p" for publisher, "e" for editor, "n" for none)
+		*/
+
+		function getUserAccessLevel() {
 			global $admin;
 
 			// Make sure a user is logged in

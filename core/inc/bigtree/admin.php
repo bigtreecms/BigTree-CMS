@@ -305,7 +305,7 @@
 
 		/*
 			Function: canModifyChildren
-				Checks whether the logged in user can modify all child pages or a page.
+				Checks whether the logged in user can modify all child pages of a page.
 				Assumes we already know that we're a publisher of the parent.
 
 			Parameters:
@@ -2125,26 +2125,8 @@
 		*/
 
 		static function getModuleActionByRoute($module,$route) {
-			// For landing routes.
-			if (!count($route)) {
-				$route = array("");
-			}
-
-			$commands = array();
-
-			while (count($route)) {
-				$action = static::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE module = ? AND route = ?", $module, implode("/",$route));
-
-				// If we found an action for this sequence, return it with the extra URL route commands
-				if ($action) {
-					return array("action" => $action, "commands" => array_reverse($commands));
-				}
-
-				// Otherwise strip off the last route as a command and try again
-				$commands[] = array_pop($route);
-			}
-
-			return false;
+			$response = BigTree\ModuleAction::lookup($module,$route);
+			return $response ? array("action" => $response["action"]->Array,"commands" => $response["commands"]) : false;
 		}
 
 		/*
@@ -2441,8 +2423,14 @@
 		*/
 
 		static function getModuleNavigation($module) {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' ORDER BY position DESC, id ASC",
-										 is_array($module) ? $module["id"] : $module);
+			$module = new BigTree\Module;
+			$nav = $module->Navigation;
+			
+			foreach ($nav as &$item) {
+				$item = $item->Array;
+			}
+
+			return $nav;
 		}
 
 		/*
@@ -3360,7 +3348,7 @@
 				$folder = BigTree\ResourceFolder::root();
 			}
 
-			return $folder->Contents;
+			return $folder->getContents($sort);
 		}
 
 		/*

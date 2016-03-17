@@ -62,6 +62,7 @@
 
 		// Get magic methods to allow for Array and ID returns
 		function __get($property) {
+
 			// Many inherited objects will have read-only properties
 			if (property_exists($this,$property)) {
 				return $this->$property;
@@ -80,7 +81,7 @@
 			}
 
 			// Allow for protected _get(Property) methods
-			if (method_exists($this,"_get".$property)) {
+			if (method_exists($this,"get".$property)) {
 				$this->$property = call_user_func(array($this,"_get".$property));
 				return $this->$property;
 			}

@@ -57,19 +57,6 @@
 		}
 
 		/*
-			Get Magic Method:
-				Allows retrieval of the write-protected ID property.
-		*/
-
-		function __get($property) {
-			if ($property == "ID") {
-				return $this->ID;
-			}
-
-			return parent::__get($property);
-		}
-
-		/*
 			Function: draw
 				Draws a field in a form.
 

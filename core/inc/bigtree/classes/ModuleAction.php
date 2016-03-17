@@ -57,25 +57,6 @@
 			}
 		}
 
-		// $this->UserCanAccess
-		function _getUserCanAccess() {
-			global $admin;
-
-			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
-				trigger_error("Property UserCanAccess not available outside logged-in user context.");
-				return false;
-			}
-
-			// Check action access level
-			if ($action["level"] > $admin->Level) {
-				return false;
-			}
-
-			$module = new Module($this->ModuleID);
-			return $module->UserCanAccess;
-		}
-
 		/*
 			Function: create
 				Creates a module action.
@@ -174,6 +155,68 @@
 			$action = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC", $id);
 
 			return $action ? new ModuleAction($action) : false;
+		}
+
+		/*
+			Function: getUserCanAccess
+				Determines whether the logged in user has access to the action or not.
+
+			Returns:
+				true if the user can access the action, otherwise false.
+		*/
+
+		function getUserCanAccess() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanAccess not available outside logged-in user context.");
+				return false;
+			}
+
+			// Check action access level
+			if ($action["level"] > $admin->Level) {
+				return false;
+			}
+
+			$module = new Module($this->ModuleID);
+			return $module->UserCanAccess;
+		}
+
+		/*
+			Function: lookup
+				Returns a ModuleAction for the given module and route.
+
+			Parameters:
+				module - The module to lookup an action for.
+				route - The route of the action.
+
+			Returns:
+				An array containing the action and additional commands or false if lookup failed.
+		*/
+
+		static function lookup($module,$route) {
+			// For landing routes.
+			if (!count($route)) {
+				$route = array("");
+			}
+
+			$commands = array();
+
+			while (count($route)) {
+				$action = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_actions 
+												  WHERE module = ? AND route = ?", $module, implode("/",$route));
+
+				// If we found an action for this sequence, return it with the extra URL route commands
+				if ($action) {
+					return array("action" => new ModuleAction($action), "commands" => array_reverse($commands));
+				}
+
+				// Otherwise strip off the last route as a command and try again
+				$commands[] = array_pop($route);
+			}
+
+			return false;
 		}
 
 		/*

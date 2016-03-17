@@ -89,76 +89,6 @@
 			}
 		}
 
-		// $this->UserAccessLevel
-		protected function _getUserAccessLevel() {
-			global $admin;
-
-			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
-				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
-				return false;
-			}
-
-			// See if the user is an administrator, if so we can skip permissions.
-			if ($admin->Level > 0) {
-				return "p";
-			}
-
-			// See if this page has an explicit permission set and return it if so.
-			$explicit_permission = $admin->Permissions["page"][$page];
-			if ($explicit_permission == "n") {
-				return false;
-			} elseif ($explicit_permission && $explicit_permission != "i") {
-				return $explicit_permission;
-			}
-
-			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$page_parent = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
-
-			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$parent_permission = $admin->Permissions["page"][$page_parent];
-			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
-				$parent_id = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
-				$parent_permission = $admin->Permissions["page"][$parent_id];
-			}
-
-			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
-			if (!$parent_permission || $parent_permission == "i" || $parent_permission == "n") {
-				return false;
-			}
-
-			// Return whatever we found.
-			return $parent_permission;
-		}
-
-		// $this->UserCanModifyChildren
-		protected function _getUserCanModifyChildren() {
-			global $admin;
-
-			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
-				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
-				return false;
-			}
-
-			if ($admin->Level > 0) {
-				return true;
-			}
-
-			$path = BigTreeCMS::$DB->escape($page["path"]);
-			$descendant_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
-
-			// Check all the descendants for an explicit "no" or "editor" permission
-			foreach ($descendant_ids as $id) {
-				$permission = $admin->Permissions["page"][$id];
-				if ($permission == "n" || $permission == "e") {
-					return false;
-				}
-			}
-
-			return true;
-		}
-
 		/*
 			Function: archive
 				Archives the page and the page's children.
@@ -405,6 +335,30 @@
 		}
 
 		/*
+			Function: getHiddenChildren
+				Returns an alphabetic array of hidden child pages.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of Page entries.
+		*/
+
+		function getHiddenChildren($return_arrays) {
+			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
+												   ORDER BY nav_title ASC", $this->ID);
+
+			if (!$return_arrays) {
+				foreach ($children as &$child) {
+					$child = new Page($child);
+				}
+			}
+
+			return $children;
+		}
+
+		/*
 			Function: getRevision
 				Returns a revision of the page.
 
@@ -438,27 +392,89 @@
 		}
 
 		/*
-			Function: getHiddenChildren
-				Returns an alphabetic array of hidden child pages.
-
-			Parameters:
-				return_arrays - Set to true to return arrays rather than objects.
-
+			Function: getUserAccessLevel
+				Returns the permission level for the logged in user to the page
+			
 			Returns:
-				An array of Page entries.
+				A permission level ("p" for publisher, "e" for editor, "n" for none)
 		*/
 
-		static function getHiddenChildren($return_arrays) {
-			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
-												   ORDER BY nav_title ASC", $this->ID);
+		function getUserAccessLevel() {
+			global $admin;
 
-			if (!$return_arrays) {
-				foreach ($children as &$child) {
-					$child = new Page($child);
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
+				return false;
+			}
+
+			// See if the user is an administrator, if so we can skip permissions.
+			if ($admin->Level > 0) {
+				return "p";
+			}
+
+			// See if this page has an explicit permission set and return it if so.
+			$explicit_permission = $admin->Permissions["page"][$page];
+			if ($explicit_permission == "n") {
+				return false;
+			} elseif ($explicit_permission && $explicit_permission != "i") {
+				return $explicit_permission;
+			}
+
+			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
+			$page_parent = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
+
+			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
+			$parent_permission = $admin->Permissions["page"][$page_parent];
+			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
+				$parent_id = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
+				$parent_permission = $admin->Permissions["page"][$parent_id];
+			}
+
+			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
+			if (!$parent_permission || $parent_permission == "i" || $parent_permission == "n") {
+				return false;
+			}
+
+			// Return whatever we found.
+			return $parent_permission;
+		}
+
+		/*
+			Function: getUserCanModifyChildren
+				Checks whether the logged in user can modify all child pages.
+				Assumes we already know that we're a publisher of the parent.
+
+			Returns:
+				true if the user can modify all the page children, otherwise false.
+		*/
+
+		function getUserCanModifyChildren() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
+				return false;
+			}
+
+			if ($admin->Level > 0) {
+				return true;
+			}
+
+			$path = BigTreeCMS::$DB->escape($page["path"]);
+			$descendant_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
+
+			// Check all the descendants for an explicit "no" or "editor" permission
+			foreach ($descendant_ids as $id) {
+				$permission = $admin->Permissions["page"][$id];
+				if ($permission == "n" || $permission == "e") {
+					return false;
 				}
 			}
 
-			return $children;
+			return true;
+		}
 
 		/*
 			Function: regeneratePath

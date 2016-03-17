@@ -68,11 +68,6 @@
 			}
 		}
 
-		// $this->AllocationCount
-		function _getAllocationCount() {
-			return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
-		}
-
 		/*
 			Function: allocate
 				Assigns resources from creation log and wipes creation log.
@@ -160,6 +155,18 @@
 					$storage->delete($thumb);
 				}
 			}
+		}
+
+		/*
+			Function: getAllocationCount
+				Returns the number of places this resource is in use.
+
+			Returns:
+				An integer.
+		*/
+
+		function getAllocationCount() {
+			return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
 		}
 
 		/*

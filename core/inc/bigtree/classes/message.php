@@ -55,31 +55,6 @@
 			}
 		}
 
-		// $this->Chain
-		protected function _getChain() {
-			// Show this message as special in the chain
-			$message = clone $this;
-			$message->Selected = true;
-
-			$chain = array($message);
-
-			// Find parents
-			while ($message->ResponseTo) {
-				$message = new Message($message->ResponseTo);
-
-				// Prepend this message to the chain
-				array_unshift($chain,$message);
-			}
-
-			// Find children
-			$id = $this->ID;
-			while ($id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
-				$chain[] = new Message($id);
-			}
-
-			return $chain;
-		}
-
 		/*
 			Function: allByUser
 				Returns all a user's messages.
@@ -155,6 +130,38 @@
 			));
 
 			return new Message($id);
+		}
+
+		/*
+			Function: getChain
+				Gets a full chain of messages based on this message.
+
+			Returns:
+				An array of Message objects with the current message's Selected property set to true.
+		*/
+
+		function getChain() {
+			// Show this message as special in the chain
+			$message = clone $this;
+			$message->Selected = true;
+
+			$chain = array($message);
+
+			// Find parents
+			while ($message->ResponseTo) {
+				$message = new Message($message->ResponseTo);
+
+				// Prepend this message to the chain
+				array_unshift($chain,$message);
+			}
+
+			// Find children
+			$id = $this->ID;
+			while ($id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
+				$chain[] = new Message($id);
+			}
+
+			return $chain;
 		}
 
 	}
