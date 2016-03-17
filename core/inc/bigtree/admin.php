@@ -13,15 +13,15 @@
 			"core" => array(
 				"pending-changes" => array(
 					"name" => "Pending Changes",
-					"function" => "BigTreeAdmin::dailyDigestChanges"
+					"function" => "BigTree\DailyDigest::getChanges"
 				),
 				"messages" => array(
 					"name" => "Unread Messages",
-					"function" => "BigTreeAdmin::dailyDigestMessages"
+					"function" => "BigTree\DailyDigest::getMessages"
 				),
 				"alerts" => array(
 					"name" => "Content Age Alerts",
-					"function" => "BigTreeAdmin::dailyDigestAlerts"
+					"function" => "BigTree\DailyDigest::getAlerts"
 				)
 			),
 			"extension" => array()

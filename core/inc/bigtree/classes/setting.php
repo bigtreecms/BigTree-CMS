@@ -277,6 +277,7 @@
 		/*
 			Function: values
 				Gets the value of one or more settings.
+				Can also be called by BigTree\Setting::value
 			
 			Parameters:
 				ids - The ID of the setting or an array of setting IDs.
@@ -284,7 +285,8 @@
 			Returns:				
 				Either an array of setting values or a single setting's value.
 		*/
-		
+
+		static function value($id) { return static::values($id); }
 		static function values($ids) {
 			global $bigtree;
 
