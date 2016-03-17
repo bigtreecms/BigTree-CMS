@@ -11,6 +11,7 @@
 
 	class ModuleEmbedForm extends ModuleInterface {
 
+		protected $EmbedCode;
 		protected $Hash;
 		protected $ID;
 		protected $InterfaceSettings;
@@ -56,7 +57,60 @@
 				$this->RedirectURL = $this->InterfaceSettings["redirect_url"];
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
 				$this->Title = $interface["title"];
+
+				// Generate an embed code
+				$this->EmbedCode = '<div id="bigtree_embeddable_form_container_'.$this->ID.'">'.$this->Title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$this->ID.'&hash='.$this->Hash.'"></script>');
 			}
+		}
+
+		/*
+			Function: create
+				Creates an embeddable form.
+
+			Parameters:
+				module - The module ID that this form relates to.
+				title - The title of the form.
+				table - The table for the form data.
+				fields - The form fields.
+				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
+				default_position - Default position for entries to the form (if the view is positioned).
+				default_pending - Whether the submissions to default to pending or not ("on" or "").
+				css - URL of a CSS file to include.
+				redirect_url - The URL to redirect to upon completion of submission.
+				thank_you_message - The message to display upon completeion of submission.
+
+			Returns:
+				A ModuleEmbedForm object.
+		*/
+
+		function create($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
+			// Clean up fields to ensure proper formatting
+			foreach ($fields as $key => $field) {
+				$field["options"] = is_array($field["options"]) ? $field["options"] : array_filter((array)json_decode($field["options"],true));
+				$field["column"] = $field["column"] ? $field["column"] : $key;
+				$fields[$key] = $field;
+			}
+	
+			// Make sure we get a unique hash
+			$hash = uniqid("embeddable-form-",true);
+			while (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
+												 (`settings` LIKE '%\"hash\":\"".BigTreeCMS::$DB->escape($hash)."\"%' OR
+												  `settings` LIKE '%\"hash\": \"".BigTreeCMS::$DB->escape($hash)."\"%')")) {
+				$hash = uniqid("embeddable-form-",true);
+			}
+
+			$interface = ModuleInterface::create("embeddable-form",$module,$title,$table,array(
+				"fields" => $fields,
+				"default_position" => $default_position,
+				"default_pending" => $default_pending ? "on" : "",
+				"css" => BigTree::safeEncode(Link::tokenize($css)),
+				"hash" => $hash,
+				"redirect_url" => $redirect_url ? BigTree::safeEncode(Link::encode($redirect_url)) : "",
+				"thank_you_message" => $thank_you_message,
+				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
+			));
+
+			return new ModuleEmbedForm($interface->Array);
 		}
 	}
 	

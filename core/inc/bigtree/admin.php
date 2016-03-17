@@ -588,32 +588,8 @@
 		*/
 
 		function createModuleEmbedForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
-			// Clean up fields to ensure proper formatting
-			foreach ($fields as $key => &$field) {
-				$field["options"] = is_array($field["options"]) ? $field["options"] : array_filter((array)json_decode($field["options"],true));
-				$field["column"] = $field["column"] ? $field["column"] : $key;
-			}
-	
-			// Make sure we get a unique hash
-			$hash = uniqid("embeddable-form-",true);
-			while (static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
-											 (`settings` LIKE '%\"hash\":\"".static::$DB->escape($hash)."\"%' OR
-											  `settings` LIKE '%\"hash\": \"".static::$DB->escape($hash)."\"%')")) {
-				$hash = uniqid("embeddable-form-",true);
-			}
-
-			$id = $this->createModuleInterface("embeddable-form",$module,$title,$table,array(
-				"fields" => $fields,
-				"default_position" => $default_position,
-				"default_pending" => $default_pending ? "on" : "",
-				"css" => BigTree::safeEncode($this->makeIPL($css)),
-				"hash" => $hash,
-				"redirect_url" => $redirect_url ? BigTree::safeEncode($this->makeIPL($redirect_url)) : "",
-				"thank_you_message" => $thank_you_message,
-				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
-			));
-
-			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.$title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
+			$form = BigTree\ModuleEmbedForm::create($module,$title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
+			return htmlspecialchars($form->EmbedCode);
 		}
 
 		/*
@@ -1313,13 +1289,7 @@
 		*/
 
 		function disconnectGoogleAnalytics() {
-			// Delete cache
-			BigTree::deleteFile(SERVER_ROOT."cache/analytics.json");
-			static::$DB->delete("bigtree_caches",array("identifier" => "org.bigtreecms.api.analytics.google"));
-
-			// Remove page views from Pages
-			static::$DB->query("UPDATE bigtree_pages SET ga_page_views = NULL");
-
+			BigTree\GoogleAnalytics\API::disconnect();
 			static::growl("Analytics","Disconnected");
 		}
 

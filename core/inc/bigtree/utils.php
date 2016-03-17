@@ -127,7 +127,11 @@
 
 			// Auto loadable via the path
 			} elseif (substr($class,0,8) == "BigTree\\") {
-				$path = static::path("inc/bigtree/classes/".substr($class,8).".php");
+				$class = substr($class,8);
+
+				// Allow for sub-namespaces
+				$path = static::path("inc/bigtree/classes/".str_replace("\\","/",substr($class,8)).".php");
+				
 				if (file_exists($path)) {
 					include_once $path;
 					return;

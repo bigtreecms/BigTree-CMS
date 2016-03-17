@@ -2,7 +2,7 @@
 	$relative_path = "admin/modules/dashboard/vitals-statistics/analytics/";
 	define("MODULE_ROOT",ADMIN_ROOT."dashboard/vitals-statistics/analytics/");
 	
-	$analytics = new BigTreeGoogleAnalyticsAPI;
+	$analytics = new BigTree\GoogleAnalytics\API;
 	if (file_exists(SERVER_ROOT."cache/analytics.json")) {
 		$cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.json"),true);
 	} else {

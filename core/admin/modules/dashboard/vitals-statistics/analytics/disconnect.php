@@ -1,4 +1,5 @@
 <?php
-	$admin->disconnectGoogleAnalytics();
-	$analytics->Settings = array();
+	$analytics->disconnect();
+	$admin->growl("Analytics","Disconnected");
+
 	BigTree::redirect(MODULE_ROOT);
