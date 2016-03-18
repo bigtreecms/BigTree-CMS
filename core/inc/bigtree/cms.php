@@ -438,7 +438,7 @@
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
-					if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 						$link = WWW_ROOT.$f["path"];
 					} else {						
 						$link = WWW_ROOT.$f["path"]."/";
@@ -632,7 +632,7 @@
 
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					return WWW_ROOT.$bigtree["page"]["path"];					
 				} else {
 					return WWW_ROOT.$bigtree["page"]["path"]."/";
@@ -642,7 +642,7 @@
 			// Otherwise we'll grab the page path from the db.
 			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
 			if ($f) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					return WWW_ROOT.$f["path"];
 				} else {
 					return WWW_ROOT.$f["path"]."/";
@@ -693,7 +693,7 @@
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					$link = WWW_ROOT.$f["path"];
 				} else {
 					$link = WWW_ROOT.$f["path"]."/";
