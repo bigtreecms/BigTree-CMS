@@ -354,7 +354,7 @@
 
 		/*
 			Function: canModifyChildren
-				Checks whether the logged in user can modify all child pages or a page.
+				Checks whether the logged in user can modify all child pages of a page.
 				Assumes we already know that we're a publisher of the parent.
 
 			Parameters:
@@ -1148,7 +1148,7 @@
 				view - A module view ID to use (if type = view).
 
 			Returns:
-				The route created for the module action.
+				The id of the report.
 		*/
 
 		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
@@ -2603,7 +2603,7 @@
 				module - The module id or entry to check access for.
 				item - (optional) The item of the module to check access for.
 				table - (optional) The group based table.
-				user - (optional) User object if checking for a user other than the logged in user.
+				user - (optional) User array if checking for a user other than the logged in user.
 
 			Returns:
 				The permission level for the given item or module (if item was not passed).
