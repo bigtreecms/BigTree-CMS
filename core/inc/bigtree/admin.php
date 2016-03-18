@@ -1337,221 +1337,12 @@
 		}
 
 		/*
-			Function: dailyDigestAlerts
-				Generates markup for daily digest alerts for a given user.
-
-			Parameters:
-				user - A user entry
-
-			Returns:
-				HTML markup for daily digest email
-		*/
-
-		static function dailyDigestAlerts($user) {
-			$alerts = static::getContentAlerts($user);
-			$alerts_markup = "";
-			$wrapper = '<div style="margin: 20px 0 30px;">
-							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
-							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-									<tr>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Page</th>
-										<th style="font-weight: normal; padding: 4px 20px 3px 15px; text-align: right; width: 50px;" align="left">Age</th>
-										<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">View</th>
-										<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">Edit</th>
-									</tr>
-								</thead>
-								<tbody style="color: #333; font-size: 13px;">
-									{content_alerts}
-								</tbody>
-							</table>
-						</div>';
-
-			// Alerts
-			if (is_array($alerts) && count($alerts)) {
-				foreach ($alerts as $alert) {
-					$alerts_markup .= '<tr>
-										<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$alert["nav_title"].'</td>
-										<td style="border-bottom: 1px solid #eee; padding: 10px 20px 10px 15px; text-align: right;">'.$alert["current_age"].' Days</td>
-										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.WWW_ROOT.$alert["path"].'/"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>
-										<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.ADMIN_ROOT."pages/edit/".$alert["id"].'/"><img src="'.ADMIN_ROOT.'images/email/edit.gif" alt="Edit" /></a></td>
-									 </tr>';
-				}
-			}
-
-			if ($alerts_markup) {
-				return str_replace("{content_alerts}",$alerts_markup,$wrapper);
-			}
-			return "";
-		}
-
-		/*
-			Function: dailyDigestChanges
-				Generates markup for daily digest pending changes for a given user.
-
-			Parameters:
-				user - A user entry
-
-			Returns:
-				HTML markup for daily digest email
-		*/
-
-		static function dailyDigestChanges($user) {
-			$changes = static::getPublishableChanges($user["id"]);
-			$changes_markup = "";
-			$wrapper = '<div style="margin: 20px 0 30px;">
-							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Pending Changes</h3>
-							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-									<tr>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Author</th>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Module</th>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Type</th>
-										<th style="font-weight: normal; padding: 4px 0 3px; text-align: center; width: 50px;" align="left">View</th>
-									</tr>
-								</thead>
-								<tbody style="color: #333; font-size: 13px;">
-									{pending_changes}
-								</tbody>
-							</table>
-						</div>';
-
-			if (count($changes)) {
-				foreach ($changes as $change) {
-					$changes_markup .= '<tr>';
-					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["user"]["name"].'</td>';
-					if ($change["title"]) {
-						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Pages</td>';
-					} else {
-						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
-					}
-					if (is_null($change["item_id"])) {
-						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
-					} else {
-						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
-					}
-					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.static::getChangeEditLink($change).'"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>' . "\r\n";
-					$changes_markup .= '</tr>';
-				}
-
-				return str_replace("{pending_changes}",$changes_markup,$wrapper);
-			} else {
-				return "";
-			}
-		}
-
-		/*
-			Function: dailyDigestMessages
-				Generates markup for daily digest messages for a given user.
-
-			Parameters:
-				user - A user entry
-
-			Returns:
-				HTML markup for daily digest email
-		*/
-
-		static function dailyDigestMessages($user) {
-			$messages = static::getMessages($user["id"]);
-			$messages_markup = "";
-			$wrapper = '<div style="margin: 20px 0 30px;">
-							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
-							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-									<tr>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Sender</th>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Subject</th>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Date</th>
-									</tr>
-								</thead>
-								<tbody style="color: #333; font-size: 13px;">
-									{unread_messages}
-								</tbody>
-							</table>
-						</div>';
-
-			if (count($messages["unread"])) {
-				foreach ($messages["unread"] as $message) {
-					$messages_markup .= '<tr>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia",strtotime($message["date"])).'</td>
-										</tr>';
-				}
-
-				return str_replace("{unread_messages}",$messages_markup,$wrapper);
-			} else {
-				return "";
-			}
-		}
-
-		/*
 			Function: emailDailyDigest
 				Sends out a daily digest email to all who have subscribed.
 		*/
 
 		function emailDailyDigest() {
-			global $bigtree;
-
-			// We're going to show the site's title in the email
-			$site_title = static::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
-
-			// Find out what blocks are on
-			$extension_settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
-			$digest_settings = $extension_settings["digest"];
-
-			// Get a list of blocks we'll draw in emails
-			$blocks = array();
-			$positions = array();
-
-			// Start email service
-			$email_service = new BigTreeEmailService;
-		
-			// We're going to get the position setups and the multi-sort the list to get it in order
-			foreach (BigTreeAdmin::$DailyDigestPlugins["core"] as $id => $details) {
-				if (empty($digest_settings[$id]["disabled"])) {
-					$blocks[] = $details["function"];
-					$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
-				}
-			}
-			foreach (BigTreeAdmin::$DailyDigestPlugins["extension"] as $extension => $set) {
-				foreach ($set as $id => $details) {
-					$id = $extension."*".$id;
-					if (empty($digest_settings[$id]["disabled"])) {
-						$blocks[] = $details["function"];
-						$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
-					}
-				}
-			}
-			array_multisort($positions,SORT_DESC,$blocks);
-
-			// Loop through each user who has opted in to emails
-			$daily_digest_users = static::$DB->fetchAll("SELECT * FROM bigtree_users WHERE daily_digest = 'on'");
-			foreach ($daily_digest_users as $user) {
-				$block_markup = "";
-
-				foreach ($blocks as $function) {
-					$block_markup .= call_user_func($function,$user);
-				}
-
-				// Send it
-				if (trim($block_markup)) {
-					$body = file_get_contents(BigTree::path("admin/email/daily-digest.html"));
-					$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
-					$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
-					$body = str_ireplace("{site_title}", $site_title, $body);
-					$body = str_ireplace("{date}", date("F j, Y",time()), $body);
-					$body = str_ireplace("{blocks}", $block_markup, $body);
-
-					// If we don't have a from email set, third parties most likely will fail so we're going to use local sending
-					if ($email_service->Settings["bigtree_from"]) {
-						$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-						$email_service->sendEmail("$site_title Daily Digest",$body,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
-					} else {
-						BigTree::sendEmail($user["email"],"$site_title Daily Digest",$body);
-					}
-				}
-			}
+			BigTree\DailyDigest::send();
 		}
 
 		/*
@@ -1865,47 +1656,7 @@
 		*/
 
 		static function getContentAlerts($user) {
-			if (!is_array($user)) {
-				$user = static::getUser($user);
-			}
-
-			// Alerts is empty, nothing to check
-			$user["alerts"] = array_filter((array)$user["alerts"]);
-			if (!$user["alerts"]) {
-				return array();
-			}
-
-			// If we care about the whole tree, skip the madness.
-			if ($user["alerts"][0] == "on") {
-				return static::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
-											  FROM bigtree_pages 
-											  WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
-											  ORDER BY current_age DESC");
-			} else {
-				// We're going to generate a list of pages the user cares about first to get their paths.
-				foreach ($user["alerts"] as $alert => $status) {
-					$where[] = "id = '".static::$DB->escape($alert)."'";
-				}
-
-				// Now from this we'll build a path query
-				$path_query = array();
-				$path_strings = static::$DB->fetchAllSingle("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
-				foreach ($path_strings as $path) {
-					$path = static::$DB->escape($path);
-					$path_query[] = "path = '$path' OR path LIKE '$path/%'";
-				}
-
-				// Only run if the pages requested still exist
-				if (count($path_query)) {
-					// Find all the pages that are old that contain our paths
-					$alerts = static::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
-													 FROM bigtree_pages 
-													 WHERE max_age > 0 AND (".implode(" OR ",$path_query).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
-													 ORDER BY current_age DESC");
-				}
-			}
-
-			return array();
+			return BigTree\Page::getAlertsForUser($user);
 		}
 
 		/*
@@ -2014,7 +1765,7 @@
 
 		static function getHiddenNavigationByParent($parent) {
 			$page = new BigTree\Page($parent);
-			return $page->getHiddenChildren();
+			return $page->getHiddenChildren(true);
 		}
 
 		/*
@@ -2562,17 +2313,8 @@
 		*/
 
 		static function getNaturalNavigationByParent($parent,$levels = 1) {
-			$nav = static::$DB->fetchAll("SELECT id, nav_title AS title, template, publish_at, expire_at, ga_page_views 
-										  FROM bigtree_pages 
-										  WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' 
-										  ORDER BY position DESC, id ASC");
-			if ($levels > 1) {
-				foreach ($nav as &$item) {
-					$item["children"] = static::getNaturalNavigationByParent($item["id"],$levels - 1);
-				}
-			}
-
-			return $nav;
+			$page = new BigTree\Page($parent);
+			return $page->getVisibleChildren(true);
 		}
 
 		/*
@@ -2587,7 +2329,8 @@
 		*/
 
 		static function getPackage($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $id);
+			$extension = new BigTree\Extension($id);
+			return $extension->Array;
 		}
 
 		/*
@@ -2602,7 +2345,7 @@
 		*/
 
 		static function getPackages($sort = "last_updated DESC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_extensions WHERE type = 'package' ORDER BY $sort");
+			return BigTree\Extension::allByType("package",$sort,true);
 		}
 
 		/*
@@ -2620,11 +2363,8 @@
 		*/
 
 		function getPageAccessLevel($page) {
-			return $this->getPageAccessLevelByUser($page,array(
-				"id" => $this->ID,
-				"level" => $this->Level,
-				"permissions" => $this->Permissions
-			));
+			$page = new Page($page);
+			return $page->UserAccessLevel;
 		}
 
 		/*
@@ -2643,51 +2383,9 @@
 		*/
 
 		static function getPageAccessLevelByUser($page,$user) {
-			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
-			if (!is_numeric($page) && $page[0] == "p") {
-				$pending_change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($page,1));
-				$changes = json_decode($pending_change["changes"],true);
-				return static::getPageAccessLevelByUser($changes["parent"],$user);
-			}
-
-			// If we don't have a user entry, turn it into an entry
-			if (!is_array($user)) {
-				$user = static::getUser($user);
-			}
-
-			$level = $user["level"];
-			$permissions = $user["permissions"];
-		
-			// See if the user is an administrator, if so we can skip permissions.
-			if ($level > 0) {
-				return "p";
-			}
-
-			// See if this page has an explicit permission set and return it if so.
-			$explicit_permission = $permissions["page"][$page];
-			if ($explicit_permission == "n") {
-				return false;
-			} elseif ($explicit_permission && $explicit_permission != "i") {
-				return $explicit_permission;
-			}
-
-			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$page_parent = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
-
-			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$parent_permission = $permissions["page"][$page_parent];
-			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
-				$parent_id = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
-				$parent_permission = $permissions["page"][$parent_id];
-			}
-
-			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
-			if (!$parent_permission || $parent_permission == "i" || $parent_permission == "n") {
-				return false;
-			}
-
-			// Return whatever we found.
-			return $parent_permission;
+			$page = new BigTree\Page($page);
+			$user = new BigTree\User($user);
+			return $page->getUserAccessLevel($user);
 		}
 
 		/*
@@ -2699,16 +2397,7 @@
 		*/
 
 		static function getPageAdminLinks() {
-			global $bigtree;
-
-			$admin_root = static::$DB->escape($bigtree["config"]["admin_root"]);
-			$partial_root = static::$DB->escape(str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"]));
-
-			return static::$DB->fetchAll("SELECT * FROM bigtree_pages 
-										  WHERE resources LIKE '%$admin_root%' OR 
-										  		resources LIKE '%$partial_root%' OR
-										  		REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%'
-										  ORDER BY nav_title ASC");
+			return BigTree\Page::auditAdminLinks(true);
 		}
 
 		/*
@@ -2723,13 +2412,9 @@
 		*/
 
 		static function getPageChanges($page) {
-			$change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
-			if (!$change) {
-				return false;
-			}
-
-			$change["changes"] = json_decode($change["changes"],true);
-			return $change;
+			$page = new BigTree\Page($page);
+			$change = $page->PendingChange;
+			return $change->Array;
 		}
 
 		/*
@@ -2745,7 +2430,8 @@
 		*/
 
 		static function getPageChildren($page,$sort = "nav_title ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $page);
+			$page = new BigTree\Page($page);
+			return $page->getChildren(true);
 		}
 
 		/*
@@ -2760,13 +2446,8 @@
 		*/
 		
 		function getPageLineage($page) {
-			$parents = array();
-
-			while ($page = static::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
-				$parents[] = $page;
-			}
-
-			return $parents;
+			$page = new BigTree\Page($page);
+			return $page->Lineage;
 		}
 
 		/*
@@ -2778,7 +2459,7 @@
 		*/
 
 		static function getPageIds() {
-			return static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
+			return BigTree\Page::allIDs();
 		}
 
 		/*
@@ -2831,61 +2512,6 @@
 			}
 			
 			return array(false,false,false);
-		}
-
-		/*
-			Function: getPageOfSettings
-				Returns a page of settings the logged in user has access to.
-
-			Parameters:
-				page - The page to return.
-				query - Optional query string to search against.
-				sort - Sort order. Defaults to name ASC.
-
-			Returns:
-				An array of entries from bigtree_settings.
-				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
-				If the calling user is a developer, returns locked settings, otherwise they are left out.
-		*/
-
-		function getPageOfSettings($page = 1,$query = "") {
-			$query_parts = array(1);
-
-			// If we're querying...
-			if ($query) {
-				$string_parts = explode(" ",$query);
-				foreach ($string_parts as $part) {
-					$part = static::$DB->escape($part);
-					$query_parts[] = "(name LIKE '%$part%' OR `value` LIKE '%$part%')";
-				}
-			}
-
-			// Check whether we should return developer only settings
-			$locked = ($this->Level < 2) ? " AND locked = ''" : "";
-
-			// Get the page
-			$settings = static::$DB->fetchAll("SELECT * FROM bigtree_settings 
-											   WHERE ".implode(" AND ",$query_parts)." $locked AND system = '' 
-											   ORDER BY name LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
-
-			// Decode values
-			foreach ($settings as &$setting) {
-				if ($setting["encrypted"]) {
-
-				} else {
-					$setting["value"] = json_decode($setting["value"],true);
-	
-					if (is_array($setting["value"])) {
-						$setting["value"] = BigTree::untranslateArray($setting["value"]);
-					} else {
-						$setting["value"] = BigTreeCMS::replaceInternalPageLinks($setting["value"]);
-					}
-				}
-
-				$setting["description"] = BigTreeCMS::replaceInternalPageLinks($setting["description"]);
-			}
-
-			return $settings;
 		}
 
 		/*

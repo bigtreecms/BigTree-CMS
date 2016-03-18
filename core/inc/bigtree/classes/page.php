@@ -90,6 +90,18 @@
 		}
 
 		/*
+			Function: allIDs
+				Returns all the IDs in bigtree_pages for pages that aren't archived.
+
+			Returns:
+				An array of page ids.
+		*/
+
+		static function allIDs() {
+			return BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
+		}
+
+		/*
 			Function: archive
 				Archives the page and the page's children.
 
@@ -127,6 +139,38 @@
 			// Archive this level
 			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
 								WHERE parent = ? AND archived != 'on'", $page_id);
+		}
+
+		/*
+			Function: auditAdminLinks
+				Gets a list of pages that link back to the admin.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of pages that link to the admin.
+		*/
+
+		static function auditAdminLinks($return_arrays = false) {
+			global $bigtree;
+
+			$admin_root = BigTreeCMS::$DB->escape($bigtree["config"]["admin_root"]);
+			$partial_root = BigTreeCMS::$DB->escape(str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"]));
+
+			$pages = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages 
+												WHERE resources LIKE '%$admin_root%' OR 
+													  resources LIKE '%$partial_root%' OR
+													  REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%'
+												ORDER BY nav_title ASC");
+
+			if (!$return_arrays) {
+				foreach ($pages as &$page) {
+					$page = new Page($page);
+				}
+			}
+
+			return $pages;
 		}
 
 		/*
@@ -335,6 +379,83 @@
 		}
 
 		/*
+			Function: getAlertsForUser
+				Gets a list of pages with content older than their Max Content Age that a user follows.
+
+			Parameters:
+				user - The user id to pull alerts for or a user entry
+
+			Returns:
+				An array of arrays containing a page title, path, and id.
+		*/
+
+		static function getAlertsForUser($user) {
+			$user = new BigTree\User($user);
+
+			// Alerts is empty, nothing to check
+			$user->Alerts = array_filter((array) $user->Alerts);
+			if (!$user->Alerts) {
+				return array();
+			}
+
+			// If we care about the whole tree, skip the madness.
+			if ($user->Alerts[0] == "on") {
+				return BigTreeCMS::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
+												  FROM bigtree_pages 
+												  WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+												  ORDER BY current_age DESC");
+			} else {
+				// We're going to generate a list of pages the user cares about first to get their paths.
+				foreach ($user->Alerts as $alert => $status) {
+					$where[] = "id = '".BigTreeCMS::$DB->escape($alert)."'";
+				}
+
+				// Now from this we'll build a path query
+				$path_query = array();
+				$path_strings = BigTreeCMS::$DB->fetchAllSingle("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
+				foreach ($path_strings as $path) {
+					$path = BigTreeCMS::$DB->escape($path);
+					$path_query[] = "path = '$path' OR path LIKE '$path/%'";
+				}
+
+				// Only run if the pages requested still exist
+				if (count($path_query)) {
+					// Find all the pages that are old that contain our paths
+					return BigTreeCMS::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
+													  FROM bigtree_pages 
+													  WHERE max_age > 0 AND (".implode(" OR ",$path_query).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+													  ORDER BY current_age DESC");
+				}
+			}
+
+			return array();
+		}
+
+		/*
+			Function: getChildren
+				Returns an array of non-archived child pages.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+				sort - Sort order (defaults to "nav_title ASC")
+
+			Returns:
+				An array of Page entries.
+		*/
+
+		function getChildren($return_arrays = false, $sort = "nav_title ASC") {
+			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $this->ID);
+
+			if (!$return_arrays) {
+				foreach ($children as &$child) {
+					$child = new Page($child);
+				}
+			}
+
+			return $children;
+		}
+
+		/*
 			Function: getHiddenChildren
 				Returns an alphabetic array of hidden child pages.
 
@@ -345,7 +466,7 @@
 				An array of Page entries.
 		*/
 
-		function getHiddenChildren($return_arrays) {
+		function getHiddenChildren($return_arrays = false) {
 			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
 												   ORDER BY nav_title ASC", $this->ID);
 
@@ -356,6 +477,42 @@
 			}
 
 			return $children;
+		}
+
+		/*
+			Function: getLineage
+				Returns all the ids of pages above this page not including the homepage.
+			
+			Returns:
+				Array of IDs
+		*/
+		
+		function getLineage() {
+			$parents = array();
+
+			$page = $this->ID;
+			while ($page = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
+				$parents[] = $page;
+			}
+
+			return $parents;
+		}
+
+		/*
+			Function: getPendingChange
+				Returns an array of pending changes for the page.
+
+			Returns:
+				A PendingChange object.
+		*/
+
+		static function getPendingChange() {
+			$change = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
+			if (!$change) {
+				return false;
+			}
+
+			return new PendingChange($change);
 		}
 
 		/*
@@ -394,41 +551,47 @@
 		/*
 			Function: getUserAccessLevel
 				Returns the permission level for the logged in user to the page
+
+			Parameters:
+				user - Optional User object to check permissions for (defaults to logged in user)
 			
 			Returns:
 				A permission level ("p" for publisher, "e" for editor, "n" for none)
 		*/
 
-		function getUserAccessLevel() {
-			global $admin;
+		function getUserAccessLevel($user = false) {
+			// Default to logged in user
+			if ($user == false) {
+				global $admin;
+			
+				// Make sure a user is logged in
+				if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
+					return false;
+				}
 
-			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
-				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
-				return false;
+				$user = $admin;
 			}
 
 			// See if the user is an administrator, if so we can skip permissions.
-			if ($admin->Level > 0) {
+			if ($user->Level > 0) {
 				return "p";
 			}
 
 			// See if this page has an explicit permission set and return it if so.
-			$explicit_permission = $admin->Permissions["page"][$page];
+			$explicit_permission = $user->Permissions["page"][$this->ID];
 			if ($explicit_permission == "n") {
 				return false;
 			} elseif ($explicit_permission && $explicit_permission != "i") {
 				return $explicit_permission;
 			}
 
-			// We're now assuming that this page should inherit permissions from farther up the tree, so let's grab the first parent.
-			$page_parent = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page);
-
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$parent_permission = $admin->Permissions["page"][$page_parent];
+			$page_parent = $this->Parent;
+			$parent_permission = $user->Permissions["page"][$page_parent];
 			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
 				$parent_id = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
-				$parent_permission = $admin->Permissions["page"][$parent_id];
+				$parent_permission = $user->Permissions["page"][$parent_id];
 			}
 
 			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
@@ -474,6 +637,30 @@
 			}
 
 			return true;
+		}
+
+		/*
+			Function: getVisibleChildren
+				Returns a list children of the page that are in navigation.
+			
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of Page objects.
+		*/
+
+		static function getVisibleChildren($return_arrays = false) {
+			$children = static::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' 
+											   ORDER BY position DESC, id ASC");
+			
+			if (!$return_arrays) {
+				foreach ($children as &$child) {
+					$child = new Page($child);
+				}
+			}
+
+			return $children;
 		}
 
 		/*
