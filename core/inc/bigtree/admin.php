@@ -1436,7 +1436,7 @@
 			}
 
 			$module = new BigTree\Module($module);
-			$permission = $module->getEntryAccessLevel($item,$table);
+			$permission = $module->getUserAccessLevelForEntry($item,$table);
 
 			// Restore permissions
 			if ($user !== false) {
@@ -2542,27 +2542,7 @@
 		*/
 
 		static function getPageRevisions($page) {
-			$saved = $unsaved = array();
-			$revisions = static::$DB->fetchAll("SELECT bigtree_users.name, 
-													   bigtree_users.email, 
-													   bigtree_page_revisions.saved, 
-													   bigtree_page_revisions.saved_description, 
-													   bigtree_page_revisions.updated_at, 
-													   bigtree_page_revisions.id 
-												FROM bigtree_page_revisions JOIN bigtree_users 
-												ON bigtree_page_revisions.author = bigtree_users.id 
-												WHERE page = ? 
-												ORDER BY updated_at DESC", $page);
-
-			foreach ($revisions as $revision) {
-				if ($revision["saved"]) {
-					$saved[] = $revision;
-				} else {
-					$unsaved[] = $revision;
-				}
-			}
-
-			return array("saved" => $saved, "unsaved" => $unsaved);
+			return BigTree\PageRevision::allByPage($page,"updated_at DESC",true);
 		}
 
 		/*
@@ -2574,7 +2554,7 @@
 		*/
 
 		static function getPages() {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_pages ORDER BY id ASC");
+			return BigTree\Page::all("id ASC",true);
 		}
 
 		/*
@@ -2608,177 +2588,8 @@
 		*/
 
 		static function getPageSEORating($page,$content) {
-			$template = BigTreeCMS::getTemplate($page["template"]);
-			$tsources = array();
-			$h1_field = "";
-			$body_fields = array();
-
-			if (is_array($template["resources"])) {
-				foreach ($template["resources"] as $item) {
-					if (isset($item["seo_body"]) && $item["seo_body"]) {
-						$body_fields[] = $item["id"];
-					}
-					if (isset($item["seo_h1"]) && $item["seo_h1"]) {
-						$h1_field = $item["id"];
-					}
-					$tsources[$item["id"]] = $item;
-				}
-			}
-
-			if (!$h1_field && $tsources["page_header"]) {
-				$h1_field = "page_header";
-			}
-			if (!count($body_fields) && $tsources["page_content"]) {
-				$body_fields[] = "page_content";
-			}
-
-			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Text.php";
-			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Maths.php";
-			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Syllables.php";
-			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Pluralise.php";
-			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Resource.php";
-			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/TextStatistics.php";
-			$textStats = new \DaveChild\TextStatistics\TextStatistics;
-			$recommendations = array();
-
-			$score = 0;
-
-			// Check if they have a page title.
-			if ($page["title"]) {
-				$score += 5;
-
-				// They have a title, let's see if it's unique
-				$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
-												   WHERE title = ? AND id != ?", $page["title"], $page["id"]);
-				if (!$count) {
-					// They have a unique title
-					$score += 5;
-				} else {
-					$recommendations[] = "Your page title should be unique. ".($count - 1)." other page(s) have the same title.";
-				}
-
-				// Check title length / word count
-				$words = $textStats->wordCount($page["title"]);
-				$length = mb_strlen($page["title"]);
-
-				// Minimum of 4 words, less than 72 characters
-				if ($words >= 4 && $length <= 72) {
-					$score += 5;
-				} else {
-					$recommendations[] = "Your page title should be no more than 72 characters and should contain at least 4 words.";
-				}
-			} else {
-				$recommendations[] = "You should enter a page title.";
-			}
-
-			// Check for meta description
-			if ($page["meta_description"]) {
-				$score += 5;
-
-				// They have a meta description, let's see if it's no more than 165 characters.
-				$meta_length = mb_strlen($page["meta_description"]);
-				if ($meta_length <= 165) {
-					$score += 5;
-				} else {
-					$recommendations[] = "Your meta description should be no more than 165 characters.  It is currently $meta_length characters.";
-				}
-			} else {
-				$recommendations[] = "You should enter a meta description.";
-			}
-
-			// Check for an H1
-			if (!$h1_field || $content[$h1_field]) {
-				$score += 10;
-			} else {
-				$recommendations[] = "You should enter a page header.";
-			}
-
-			// Check the content!
-			if (!count($body_fields)) {
-				// If this template doesn't for some reason have a seo body resource, give the benefit of the doubt.
-				$score += 65;
-			} else {
-				$regular_text = "";
-				$stripped_text = "";
-				foreach ($body_fields as $field) {
-					if (!is_array($content[$field])) {
-						$regular_text .= $content[$field]." ";
-						$stripped_text .= strip_tags($content[$field])." ";
-					}
-				}
-				// Check to see if there is any content
-				if ($stripped_text) {
-					$score += 5;
-					$words = $textStats->wordCount($stripped_text);
-					$readability = $textStats->fleschKincaidReadingEase($stripped_text);
-					if ($readability < 0) {
-						$readability = 0;
-					}
-					$number_of_links = substr_count($regular_text,"<a ");
-					$number_of_external_links = substr_count($regular_text,'href="http://');
-
-					// See if there are at least 300 words.
-					if ($words >= 300) {
-						$score += 15;
-					} else {
-						$recommendations[] = "You should enter at least 300 words of page content.  You currently have ".$words." word(s).";
-					}
-
-					// See if we have any links
-					if ($number_of_links) {
-						$score += 5;
-						// See if we have at least one link per 120 words.
-						if (floor($words / 120) <= $number_of_links) {
-							$score += 5;
-						} else {
-							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
-						}
-						// See if we have any external links.
-						if ($number_of_external_links) {
-							$score += 5;
-						} else {
-							$recommendations[] = "Having an external link helps build Page Rank.";
-						}
-					} else {
-						$recommendations[] = "You should have at least one link in your content.";
-					}
-
-					// Check on our readability score.
-					if ($readability >= 90) {
-						$score += 20;
-					} else {
-						$read_score = round(($readability / 90),2);
-						$recommendations[] = "Your readability score is ".($read_score*100)."%.  Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
-						$score += ceil($read_score * 20);
-					}
-				} else {
-					$recommendations[] = "You should enter page content.";
-				}
-
-				// Check page freshness
-				$updated = strtotime($page["updated_at"]);
-				$age = time() - $updated - (60 * 24 * 60 * 60);
-				// See how much older it is than 2 months.
-				if ($age > 0) {
-					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
-					if ($age_score < 0) {
-						$age_score = 0;
-					}
-					$score += $age_score;
-					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30*24*60*60)))." months old.  Updating your page more frequently will make it rank higher.";
-				} else {
-					$score += 10;
-				}
-			}
-
-			$color = "#008000";
-			if ($score <= 50) {
-				$color = BigTree::colorMesh("#CCAC00","#FF0000",100 - (100 * $score / 50));
-			} elseif ($score <= 80) {
-				$color = BigTree::colorMesh("#008000","#CCAC00",100 - (100 * ($score - 50) / 30));
-			}
-
-			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
+			$page = new BigTree\Page($page);
+			return $page->SEORating;
 		}
 
 		/*
@@ -2787,26 +2598,18 @@
 
 			Parameters:
 				id - The id of the change.
-				decode - Whether to decode change columns (defaults to true)
 
 			Returns:
 				A entry from the table with the "changes" column decoded.
 		*/
 
-		static function getPendingChange($id,$decode = true) {
-			$change = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?",$id);
-			if (!$change || !$decode) {
-				return $change;
-			}
-
-			$change["changes"] = json_decode($change["changes"],true);
-			$change["mtm_changes"] = json_decode($change["mtm_changes"],true);
-			$change["tags_changes"] = json_decode($change["tags_changes"],true);
-			return $change;
+		static function getPendingChange($id) {
+			$change = new BigTree\PendingChange($id);
+			return $change->Array;
 		}
 
 		// For backwards compatibility
-		static function getChange($id) { return static::getPendingChange($id,false); }
+		static function getChange($id) { return static::getPendingChange($id); }
 
 		/*
 			Function: getPublishableChanges
@@ -2820,81 +2623,19 @@
 		*/
 
 		static function getPublishableChanges($user) {
-			$publishable_changes = array();
+			$changes = BigTree\PendingChange::allPublishableByUser($user);
 
-			if (!is_array($user)) {
-				$user = static::getUser($user);
+			// Add things this call used to expect
+			foreach ($changes as $key => $change) {
+				$change = $change->Array;
+				$change["mod"] = $change["module"]->Array;
+				$change["module"] = $change["module"]->ID;
+				$change["user"] = $change["user"]->Array;
+
+				$changes[$key] = $change;
 			}
 
-			// Setup the default search array to just be pages
-			$search = array("`module` = ''");
-			// Add each module the user has publisher permissions to
-			if (is_array($user["permissions"]["module"])) {
-				foreach ($user["permissions"]["module"] as $module => $permission) {
-					if ($permission == "p") {
-						$search[] = "`module` = '$module'";
-					}
-				}
-			}
-
-			// Add module group based permissions as well
-			if (isset($user["permissions"]["module_gbp"]) && is_array($user["permissions"]["module_gbp"])) {
-				foreach ($user["permissions"]["module_gbp"] as $module => $groups) {
-					foreach ($groups as $group => $permission) {
-						if ($permission == "p") {
-							$search[] = "`module` = '$module'";
-						}
-					}
-				}
-			}
-
-			$changes = static::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
-											  WHERE ".implode(" OR ",$search)." 
-											  ORDER BY date DESC");
-
-			foreach ($changes as $change) {
-				$ok = false;
-
-				// Append a p if this isn't a change but rather a pending item
-				if (!$change["item_id"]) {
-					$id = "p".$change["id"];
-				} else {
-					$id = $change["item_id"];
-				}
-
-				// If they're an admin, they've got it.
-				if ($user["level"] > 0) {
-					$ok = true;
-				// Check permissions on a page if it's a page.
-				} elseif ($change["table"] == "bigtree_pages") {
-					$access_level = static::getPageAccessLevelByUser($id,$user);
-					// If we're a publisher, this is ours!
-					if ($access_level == "p") {
-						$ok = true;
-					}
-				} else {
-					// Check our list of modules.
-					if ($user["permissions"]["module"][$change["module"]] == "p") {
-						$ok = true;
-					} else {
-						// Check our group based permissions
-						$item = BigTreeAutoModule::getPendingItem($change["table"],$id);
-						$access_level = static::getAccessLevel(static::getModule($change["module"]),$item["item"],$change["table"],$user);
-						if ($access_level == "p") {
-							$ok = true;
-						}
-					}
-				}
-
-				// We're a publisher, get the info about the change and put it in the change list.
-				if ($ok) {
-					$change["mod"] = static::getModule($change["module"]);
-					$change["user"] = static::getUser($change["user"]);
-					$publishable_changes[] = $change;
-				}
-			}
-
-			return $publishable_changes;
+			return $changes;
 		}
 
 		/*
@@ -2915,7 +2656,7 @@
 				$user = $this->ID;
 			}
 
-			return static::$DB->fetchAll("SELECT * FROM bigtree_pending_changes WHERE user = ? ORDER BY date DESC", $user);
+			return BigTree\PendingChange::allByUser($user,"date DESC",true);
 		}
 
 		/*

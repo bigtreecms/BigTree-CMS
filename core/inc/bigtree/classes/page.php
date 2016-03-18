@@ -27,7 +27,6 @@
 		public $InNav;
 		public $MaxAge;
 		public $MetaDescription;
-		public $MetaKeywords;
 		public $NavigationTitle;
 		public $NewWindow;
 		public $Parent;
@@ -70,10 +69,9 @@
 				$this->Archived = $page["archived"] ? true : false;
 				$this->ArchivedInherited = $page["archived_inherited"] ? true : false;
 				$this->ExpireAt = $page["expire_at"] ?: false;
-				$this->External = Link::decode($page["external"]);
+				$this->External = $page["external"] ? Link::decode($page["external"]) : "";
 				$this->InNav = $page["in_nav"] ? true : false;
 				$this->MetaDescription = $page["meta_description"];
-				$this->MetaKeywords = $page["meta_keywords"];
 				$this->NavigationTitle = $page["nav_title"];
 				$this->NewWindow = $page["new_window"] ? true : false;
 				$this->Parent = $page["parent"];
@@ -549,6 +547,209 @@
 		}
 
 		/*
+			Function: getSEORating
+				Returns the SEO rating for the page.
+
+			Returns:
+				An array of SEO data.
+				"score" reflects a score from 0 to 100 points.
+				"recommendations" is an array of recommendations to improve SEO score.
+				"color" is a color reflecting the SEO score.
+
+				Score Parameters
+				- Having a title - 5 points
+				- Having a unique title - 5 points
+				- Title does not exceed 72 characters and has at least 4 words - 5 points
+				- Having a meta description - 5 points
+				- Meta description that is less than 165 characters - 5 points
+				- Having an h1 - 10 points
+				- Having page content - 5 points
+				- Having at least 300 words in your content - 15 points
+				- Having links in your content - 5 points
+				- Having external links in your content - 5 points
+				- Having one link for every 120 words of content - 5 points
+				- Readability Score - up to 20 points
+				- Fresh content - up to 10 points
+		*/
+
+		function getSEORating() {
+			$template = new Template($this->Template);
+			$template_fields = array();
+			$h1_field = "";
+			$body_fields = array();
+
+			// Figure out what fields should behave as the SEO body and H1
+			if (is_array($template->Fields)) {
+				foreach ($template->Fields as $item) {
+					if (isset($item["seo_body"]) && $item["seo_body"]) {
+						$body_fields[] = $item["id"];
+					}
+					if (isset($item["seo_h1"]) && $item["seo_h1"]) {
+						$h1_field = $item["id"];
+					}
+					$template_fields[$item["id"]] = $item;
+				}
+			}
+
+			// Default to page_header and page_content
+			if (!$h1_field && $template_fields["page_header"]) {
+				$h1_field = "page_header";
+			}
+
+			if (!count($body_fields) && $template_fields["page_content"]) {
+				$body_fields[] = "page_content";
+			}
+
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Text.php";
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Maths.php";
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Syllables.php";
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Pluralise.php";
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Resource.php";
+			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/TextStatistics.php";
+			$textStats = new \DaveChild\TextStatistics\TextStatistics;
+			$recommendations = array();
+
+			$score = 0;
+
+			// Check if they have a page title.
+			if ($this->Title) {
+				$score += 5;
+
+				// They have a title, let's see if it's unique
+				$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
+												   WHERE title = ? AND id != ?", $this->Title, $this->ID);
+				if (!$count) {
+					// They have a unique title
+					$score += 5;
+				} else {
+					$recommendations[] = "Your page title should be unique. ".($count - 1)." other page(s) have the same title.";
+				}
+
+				// Check title length / word count
+				$words = $textStats->wordCount($this->Title);
+				$length = mb_strlen($this->Title);
+
+				// Minimum of 4 words, less than 72 characters
+				if ($words >= 4 && $length <= 72) {
+					$score += 5;
+				} else {
+					$recommendations[] = "Your page title should be no more than 72 characters and should contain at least 4 words.";
+				}
+			} else {
+				$recommendations[] = "You should enter a page title.";
+			}
+
+			// Check for meta description
+			if ($this->MetaDescription) {
+				$score += 5;
+
+				// They have a meta description, let's see if it's no more than 165 characters.
+				$meta_length = mb_strlen($this->MetaDescription);
+				if ($meta_length <= 165) {
+					$score += 5;
+				} else {
+					$recommendations[] = "Your meta description should be no more than 165 characters.  It is currently $meta_length characters.";
+				}
+			} else {
+				$recommendations[] = "You should enter a meta description.";
+			}
+
+			// Check for an H1
+			if (!$h1_field || $content[$h1_field]) {
+				$score += 10;
+			} else {
+				$recommendations[] = "You should enter a page header.";
+			}
+
+			// Check the content!
+			if (!count($body_fields)) {
+				// If this template doesn't for some reason have a seo body resource, give the benefit of the doubt.
+				$score += 65;
+			} else {
+				$regular_text = "";
+				$stripped_text = "";
+				foreach ($body_fields as $field) {
+					if (!is_array($content[$field])) {
+						$regular_text .= $content[$field]." ";
+						$stripped_text .= strip_tags($content[$field])." ";
+					}
+				}
+				// Check to see if there is any content
+				if ($stripped_text) {
+					$score += 5;
+					$words = $textStats->wordCount($stripped_text);
+					$readability = $textStats->fleschKincaidReadingEase($stripped_text);
+					if ($readability < 0) {
+						$readability = 0;
+					}
+					$number_of_links = substr_count($regular_text,"<a ");
+					$number_of_external_links = substr_count($regular_text,'href="http://');
+
+					// See if there are at least 300 words.
+					if ($words >= 300) {
+						$score += 15;
+					} else {
+						$recommendations[] = "You should enter at least 300 words of page content.  You currently have ".$words." word(s).";
+					}
+
+					// See if we have any links
+					if ($number_of_links) {
+						$score += 5;
+						// See if we have at least one link per 120 words.
+						if (floor($words / 120) <= $number_of_links) {
+							$score += 5;
+						} else {
+							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
+						}
+						// See if we have any external links.
+						if ($number_of_external_links) {
+							$score += 5;
+						} else {
+							$recommendations[] = "Having an external link helps build Page Rank.";
+						}
+					} else {
+						$recommendations[] = "You should have at least one link in your content.";
+					}
+
+					// Check on our readability score.
+					if ($readability >= 90) {
+						$score += 20;
+					} else {
+						$read_score = round(($readability / 90),2);
+						$recommendations[] = "Your readability score is ".($read_score*100)."%.  Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
+						$score += ceil($read_score * 20);
+					}
+				} else {
+					$recommendations[] = "You should enter page content.";
+				}
+
+				// Check page freshness
+				$updated = strtotime($this->UpdatedAt);
+				$age = time() - $updated - (60 * 24 * 60 * 60);
+				// See how much older it is than 2 months.
+				if ($age > 0) {
+					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
+					if ($age_score < 0) {
+						$age_score = 0;
+					}
+					$score += $age_score;
+					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30*24*60*60)))." months old.  Updating your page more frequently will make it rank higher.";
+				} else {
+					$score += 10;
+				}
+			}
+
+			$color = "#008000";
+			if ($score <= 50) {
+				$color = BigTree::colorMesh("#CCAC00","#FF0000",100 - (100 * $score / 50));
+			} elseif ($score <= 80) {
+				$color = BigTree::colorMesh("#008000","#CCAC00",100 - (100 * ($score - 50) / 30));
+			}
+
+			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
+		}
+
+		/*
 			Function: getUserAccessLevel
 				Returns the permission level for the logged in user to the page
 
@@ -625,7 +826,7 @@
 				return true;
 			}
 
-			$path = BigTreeCMS::$DB->escape($page["path"]);
+			$path = BigTreeCMS::$DB->escape($this->Path);
 			$descendant_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
 
 			// Check all the descendants for an explicit "no" or "editor" permission

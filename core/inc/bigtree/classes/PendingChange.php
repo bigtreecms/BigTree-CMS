@@ -62,6 +62,110 @@
 		}
 
 		/*
+			Function: allPublishableByUser
+				Returns an array of changes that the given user has access to publish.
+
+			Parameters:
+				user - A User object
+
+			Returns:
+				An array of PendingChange objects sorted by most recent.
+		*/
+
+		static function allPublishableByUser($user) {
+			$publishable_changes = array();
+			$module_cache = array();
+
+			// Setup the default search array to just be pages
+			$search = array("`module` = ''");
+			// Add each module the user has publisher permissions to
+			if (is_array($user->Permissions["module"])) {
+				foreach ($user->Permissions["module"] as $module => $permission) {
+					if ($permission == "p") {
+						$search[] = "`module` = '$module'";
+					}
+				}
+			}
+
+			// Add module group based permissions as well
+			if (isset($user->Permissions["module_gbp"]) && is_array($user->Permissions["module_gbp"])) {
+				foreach ($user->Permissions["module_gbp"] as $module => $groups) {
+					foreach ($groups as $group => $permission) {
+						if ($permission == "p") {
+							$search[] = "`module` = '$module'";
+						}
+					}
+				}
+			}
+
+			$changes = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
+												  WHERE ".implode(" OR ",$search)." 
+												  ORDER BY date DESC");
+
+			foreach ($changes as $change) {
+				$ok = false;
+
+				// Append a p if this isn't a change but rather a pending item
+				if (!$change["item_id"]) {
+					$id = "p".$change["id"];
+				} else {
+					$id = $change["item_id"];
+				}
+
+				// If they're an admin, they've got it.
+				if ($user["level"] > 0) {
+					$ok = true;
+				// Check permissions on a page if it's a page.
+				} elseif ($change["table"] == "bigtree_pages") {
+
+					// If this page isn't published we'll grab the parent permission
+					if ($change["item_id"]) {
+						$page = new BigTree\Page($change["item_id"]);
+					} else {
+						$page = new BigTree\Page($change["pending_page_parent"]);
+					}
+
+					$access_level = $page->getAccessLevelByUser($user);
+				
+					// If we're a publisher, this is ours!
+					if ($access_level == "p") {
+						$ok = true;
+					}
+				} else {
+					// Check our list of modules.
+					if ($user->Permissions["module"][$change["module"]] == "p") {
+						$ok = true;
+					} else {
+						// Cache the modules so we don't make a ton of duplicate objects and waste memory
+						if (!$module_cache[$change["module"]]) {
+							$module_cache[$change["module"]] = new Module($change["module"]);
+						}
+						$module = $module_cache[$change["module"]];
+
+						// Check our group based permissions
+						$item = BigTreeAutoModule::getPendingItem($change["table"],$id);
+						$access_level = $module->getUserAccessLevelForEntry($item["item"],$change["table"],$user);
+						
+						if ($access_level == "p") {
+							$ok = true;
+						}
+					}
+				}
+
+				// We're a publisher, get the info about the change and put it in the change list.
+				if ($ok) {
+					$pending_change = new PendingChange($change);
+					$pending_change->User = new User($change["user"]);
+					$pending_change->Module = new Module($change["module"]);
+
+					$publishable_changes[] = $pending_change;
+				}
+			}
+
+			return $publishable_changes;
+		}
+
+		/*
 			Function: createPendingChange
 				Creates a pending change.
 

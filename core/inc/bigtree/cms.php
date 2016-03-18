@@ -440,7 +440,7 @@
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
-					if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 						$link = WWW_ROOT.$ancestor["path"];
 					} else {						
 						$link = WWW_ROOT.$ancestor["path"]."/";
@@ -616,7 +616,7 @@
 			
 			// Wrangle up some kids
 			foreach ($children as $child) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					$link = WWW_ROOT.$child["path"];
 				} else {
 					$link = WWW_ROOT.$child["path"]."/";

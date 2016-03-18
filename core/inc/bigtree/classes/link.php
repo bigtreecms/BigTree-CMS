@@ -116,7 +116,7 @@
 
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					return WWW_ROOT.$bigtree["page"]["path"];					
 				} else {
 					return WWW_ROOT.$bigtree["page"]["path"]."/";
@@ -126,7 +126,7 @@
 			// Otherwise we'll grab the page path from the db.
 			$path = BigTreeCMS::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?",$id);
 			if ($path) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "none") {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					return WWW_ROOT.$path;
 				} else {
 					return WWW_ROOT.$path."/";
