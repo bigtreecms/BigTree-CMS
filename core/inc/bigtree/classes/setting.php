@@ -77,6 +77,31 @@
 		}
 
 		/*
+			Function: allSystem
+				Returns an array of user defined (no bigtree-internal- prefix) system settings.
+
+			Parameters:
+				sort - Order to return the settings. Defaults to name ASC.
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of entries from bigtree_settings.
+		*/
+
+		static function allSystem($sort = "name ASC",$return_arrays = false) {
+			$settings = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_settings 
+												   WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
+
+			if (!$return_arrays) {
+				foreach ($settings as &$setting) {
+					$setting = new Setting($setting);
+				}
+			}
+
+			return $settings;
+		}
+
+		/*
 			Function: context
 				Checks to see if we're in an extension and if we're requesting a setting attached to it.
 				For example, if "test-setting" is requested and "com.test.extension*test-setting" exists it will be used.

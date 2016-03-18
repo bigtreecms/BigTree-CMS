@@ -498,7 +498,7 @@
 
 		/*
 			Function: getPendingChange
-				Returns an array of pending changes for the page.
+				Returns a PendingChange object that applies to this page.
 
 			Returns:
 				A PendingChange object.
@@ -511,6 +511,42 @@
 			}
 
 			return new PendingChange($change);
+		}
+
+		/*
+			Function: getPendingChildren
+				Returns an array of pending child pages of this page with most recent first.
+
+			Parameters:
+				in_nav - true returns pages in navigation, false returns hidden pages
+
+			Returns:
+				An array of pending page titles/ids.
+		*/
+
+		function getPendingChildren($in_nav = true) {
+			$nav = $titles = array();
+			$changes = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
+												  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
+												  ORDER BY date DESC", $this->ID);
+
+			foreach ($changes as $change) {
+				$page = json_decode($change["changes"],true);
+
+				// Only get the portion we're asking for
+				if (($page["in_nav"] && $in_nav) || (!$page["in_nav"] && !$in_nav)) {
+					$page["bigtree_pending"] = true;
+					$page["title"] = $page["nav_title"];
+					$page["id"] = "p".$change["id"];
+					
+					$titles[] = $page["nav_title"];
+					$nav[] = $page;
+				}
+			}
+
+			// Sort by title
+			array_multisort($titles,$nav);
+			return $nav;
 		}
 
 		/*

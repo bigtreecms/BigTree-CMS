@@ -164,4 +164,25 @@
 			return $chain;
 		}
 
+		/*
+			Function: getUserUnreadCount
+				Returns the number of unread messages for the logged in user.
+
+			Returns:
+				The number of unread messages.
+		*/
+
+		static function getUserUnreadCount() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
+				return false;
+			}
+
+			return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
+												 WHERE recipients LIKE '%|".$admin->ID."|%' AND read_by NOT LIKE '%|".$admin->ID."|%'");
+		}
+
 	}

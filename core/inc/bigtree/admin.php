@@ -2672,28 +2672,8 @@
 		*/
 
 		static function getPendingNavigationByParent($parent,$in_nav = true) {
-			$nav = $titles = array();
-			$changes = static::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
-										  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
-										  ORDER BY date DESC", $parent);
-
-			foreach ($changes as $change) {
-				$page = json_decode($change["changes"],true);
-
-				// Only get the portion we're asking for
-				if (($page["in_nav"] && $in_nav) || (!$page["in_nav"] && !$in_nav)) {
-					$page["bigtree_pending"] = true;
-					$page["title"] = $page["nav_title"];
-					$page["id"] = "p".$change["id"];
-					
-					$titles[] = $page["nav_title"];
-					$nav[] = $page;
-				}
-			}
-
-			// Sort by title
-			array_multisort($titles,$nav);
-			return $nav;
+			$page = new BigTree\Page($parent);
+			return $page->getPendingChildren($in_nav);
 		}
 
 		/*
@@ -2925,8 +2905,7 @@
 		*/
 
 		static function getSystemSettings($sort = "name ASC") {
-			return static::$DB->fetchAll("SELECT * FROM bigtree_settings 
-										  WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
+			return BigTree\Setting::allSystem($sort,true);
 		}
 
 		/*
@@ -2969,8 +2948,7 @@
 		*/
 
 		function getUnreadMessageCount() {
-			return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
-											 WHERE recipients LIKE '%|".$this->ID."|%' AND read_by NOT LIKE '%|".$this->ID."|%'");
+			return BigTree\Message::getUserUnreadCount();
 		}
 
 		/*
@@ -3059,21 +3037,6 @@
 
 		static function growl($title,$message,$type = "success") {
 			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
-		}
-
-		/*
-			Function: htmlClean
-				Removes things that shouldn't be in the <body> of an HTML document from a string.
-
-			Parameters:
-				html - A string of HTML
-
-			Returns:
-				A clean string of HTML for echoing in <body>
-		*/
-
-		static function htmlClean($html) {
-			return str_replace("<br></br>","<br>",strip_tags($html,"<a><abbr><address><area><article><aside><audio><b><base><bdo><blockquote><body><br><button><canvas><caption><cite><code><col><colgroup><command><datalist><dd><del><details><dfn><div><dl><dt><em><emded><fieldset><figcaption><figure><footer><form><h1><h2><h3><h4><h5><h6><header><hgroup><hr><i><iframe><img><input><ins><keygen><kbd><label><legend><li><link><map><mark><menu><meter><nav><noscript><object><ol><optgroup><option><output><p><param><pre><progress><q><rp><rt><ruby><s><samp><script><section><select><small><source><span><strong><style><sub><summary><sup><table><tbody><td><textarea><tfoot><th><thead><time><title><tr><ul><var><video><wbr>"));
 		}
 
 		/*
