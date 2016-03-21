@@ -176,8 +176,8 @@
 			global $admin;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
-				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				trigger_error("Method getUserUnreadCount not available outside logged-in user context.");
 				return false;
 			}
 
@@ -185,4 +185,21 @@
 												 WHERE recipients LIKE '%|".$admin->ID."|%' AND read_by NOT LIKE '%|".$admin->ID."|%'");
 		}
 
+		/*
+			Function: markRead
+				Marks the message as read by the currently logged in user.
+		*/
+
+		function markRead() {
+			global $admin;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				trigger_error("Method markRead not available outside logged-in user context.");
+				return false;
+			}
+
+			$this->ReadBy = str_replace("|".$admin->ID."|","",$this->ReadBy)."|".$admin->ID."|";
+			$this->save();
+		}
 	}

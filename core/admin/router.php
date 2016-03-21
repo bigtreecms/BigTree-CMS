@@ -357,7 +357,7 @@
 	$module = $admin->getModuleByRoute($primary_route);
 	$complete = false;
 	// We're routing through a module, so get module information and check permissions
-	if ($module) {
+	if ($module) {		
 		// Setup environment vars
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");

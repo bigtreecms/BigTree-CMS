@@ -80,9 +80,9 @@
 				return $changed_properties;
 			}
 
-			// Allow for protected _get(Property) methods
+			// Allow for protected get(Property) methods
 			if (method_exists($this,"get".$property)) {
-				$this->$property = call_user_func(array($this,"_get".$property));
+				$this->$property = call_user_func(array($this,"get".$property));
 				return $this->$property;
 			}
 

@@ -22,7 +22,6 @@
 		public $Module;
 		public $PendingPageParent;
 		public $PublishHook;
-		public $Table;
 		public $TagsChanges;
 		public $Title;
 		public $User;
@@ -113,7 +112,7 @@
 				}
 
 				// If they're an admin, they've got it.
-				if ($user["level"] > 0) {
+				if ($user->Level > 0) {
 					$ok = true;
 				// Check permissions on a page if it's a page.
 				} elseif ($change["table"] == "bigtree_pages") {
@@ -125,7 +124,7 @@
 						$page = new BigTree\Page($change["pending_page_parent"]);
 					}
 
-					$access_level = $page->getAccessLevelByUser($user);
+					$access_level = $page->getUserAccessLevel($user);
 				
 					// If we're a publisher, this is ours!
 					if ($access_level == "p") {
@@ -156,7 +155,7 @@
 				if ($ok) {
 					$pending_change = new PendingChange($change);
 					$pending_change->User = new User($change["user"]);
-					$pending_change->Module = new Module($change["module"]);
+					$pending_change->Module = $change["module"] ? new Module($change["module"]) : null;
 
 					$publishable_changes[] = $pending_change;
 				}

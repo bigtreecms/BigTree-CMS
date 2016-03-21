@@ -855,4 +855,7 @@
 		$db->query("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");
 		$db->query("ALTER TABLE `bigtree_login_attempts` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");
 		$db->query("ALTER TABLE `bigtree_login_bans` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");
+
+		// Get rid of unneeded columns
+		$db->query("ALTER TABLE `bigtree_locks` DROP COLUMN `title`");
 	}

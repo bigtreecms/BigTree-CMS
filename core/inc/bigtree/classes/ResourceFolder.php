@@ -187,7 +187,7 @@
 				global $admin;
 		
 				// Make sure a user is logged in
-				if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
 					return false;
 				}

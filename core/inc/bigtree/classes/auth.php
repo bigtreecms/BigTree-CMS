@@ -30,17 +30,17 @@
 		function __construct($user_class = 'BigTree\User',$namespace = "bigtree_admin",$enforce_policies = true) {
 			$this->Namespace = $namespace;
 			$this->Policies = $enforce_policies;
-			$this->UserClass = new $user_class;
+			$this->UserClass = $user_class;
 
 			// Handle Login Session
 			if (isset($_SESSION[$this->Namespace]["email"])) {
-				$user = $this->UserClass->getByEmail($_SESSION[$this->Namespace]["email"]);
+				$user = $user_class::getByEmail($_SESSION[$this->Namespace]["email"]);
 				if ($user) {
-					$this->ID = $user["id"];
-					$this->User = $user["email"];
-					$this->Level = $user["level"];
-					$this->Name = $user["name"];
-					$this->Permissions = @json_decode($user["permissions"],true);
+					$this->ID = $user->ID;
+					$this->User = $user->Email;
+					$this->Level = $user->Level;
+					$this->Name = $user->Name;
+					$this->Permissions = $user->Permissions;
 				}
 
 			// Handle saved cookies
@@ -54,21 +54,21 @@
 				if ($chain_entry) {
 					// If both chain and session are legit, log them in
 					if ($chain_entry["id"] == $session) {
-						$user = $this->UserClass->getByEmail($_COOKIE[$this->Namespace]["email"]);
+						$user = $user_class::getByEmail($_COOKIE[$this->Namespace]["email"]);
 						
 						if ($user) {
 							// Setup session
-							$_SESSION[$this->Namespace]["id"] = $user["id"];
-							$_SESSION[$this->Namespace]["email"] = $user["email"];
-							$_SESSION[$this->Namespace]["name"] = $user["name"];
-							$_SESSION[$this->Namespace]["level"] = $user["level"];
+							$_SESSION[$this->Namespace]["id"] = $user->ID;
+							$_SESSION[$this->Namespace]["email"] = $user->Email;
+							$_SESSION[$this->Namespace]["name"] = $user->Name;
+							$_SESSION[$this->Namespace]["level"] = $user->Level;
 
 							// Setup auth environment
-							$this->ID = $user["id"];
-							$this->User = $user["email"];
-							$this->Level = $user["level"];
-							$this->Name = $user["name"];
-							$this->Permissions = json_decode($user["permissions"],true);
+							$this->ID = $user->ID;
+							$this->User = $user->Email;
+							$this->Level = $user->Level;
+							$this->Name = $user->Name;
+							$this->Permissions = $user->Permissions;
 
 							// Delete existing session
 							BigTreeCMS::$DB->delete("bigtree_user_sessions",$session);
@@ -133,7 +133,7 @@
 			}
 
 			// Get user, we'll be checking against the password later
-			$user = $this->UserClass->getByEmail($email);
+			$user = $user_class::getByEmail($email);
 
 			// If the user doesn't exist, fail immediately
 			if (!$user) {
@@ -143,7 +143,7 @@
 			// See if this user is banned due to failed login attempts
 			if ($this->Policies) {
 				$ban = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `table` = ? AND `expires` > NOW() AND `user` = ?",
-											   $user_class::$Table, $user["id"]);
+											   $user_class::$Table, $user->ID);
 				if ($ban) {
 					$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
 					$bigtree["ban_is_user"] = true;
@@ -153,7 +153,7 @@
 
 			// Verify password
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"],true);
-			if ($phpass->CheckPassword(trim($password),$user["password"])) {
+			if ($phpass->CheckPassword(trim($password),$user->Password)) {
 				// Generate random session and chain ids
 				$chain = BigTreeCMS::$DB->unique("bigtree_user_sessions","chain",uniqid("chain-",true));
 				$session = BigTreeCMS::$DB->unique("bigtree_user_sessions","id",uniqid("session-",true));
@@ -163,20 +163,20 @@
 					"id" => $session,
 					"table" => $user_class::$Table,
 					"chain" => $chain,
-					"email" => $user["email"]
+					"email" => $user->Email
 				));
 
 				// We still set the email for BigTree bar usage even if they're not being "remembered"
-				setcookie($this->Namespace."[email]",$user["email"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+				setcookie($this->Namespace."[email]",$user->Email,strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				if ($stay_logged_in) {
 					setcookie($this->Namespace."[login]",json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 				}
 
-				$_SESSION[$this->Namespace]["id"] = $user["id"];
-				$_SESSION[$this->Namespace]["email"] = $user["email"];
-				$_SESSION[$this->Namespace]["level"] = $user["level"];
-				$_SESSION[$this->Namespace]["name"] = $user["name"];
-				$_SESSION[$this->Namespace]["permissions"] = @json_decode($user["permissions"],true);
+				$_SESSION[$this->Namespace]["id"] = $user->ID;
+				$_SESSION[$this->Namespace]["email"] = $user->Email;
+				$_SESSION[$this->Namespace]["level"] = $user->Level;
+				$_SESSION[$this->Namespace]["name"] = $user->Name;
+				$_SESSION[$this->Namespace]["permissions"] = $user->Permissions;
 
 				return true;
 
@@ -187,11 +187,11 @@
 				BigTreeCMS::$DB->insert("bigtree_login_attempts",array(
 					"ip" => $ip,
 					"table" => $user_class::$Table,
-					"user" => $user ? "'".$user["id"]."'" : null
+					"user" => $user ? "'".$user->ID."'" : null
 				));
 
 				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
-				if ($user["id"] && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
+				if ($user->ID && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
 					$policy = $bigtree["security-policy"]["user_fails"];
 					$attempts = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
 															  WHERE `user` = ? AND 
@@ -251,6 +251,28 @@
 			setcookie($this->Namespace."[login]","",time() - 3600,str_replace(DOMAIN,"",WWW_ROOT));
 			unset($_COOKIE[$this->Namespace]);
 			unset($_SESSION[$this->Namespace]);
+		}
+
+		/*
+			Function: requireLevel
+				Requires the logged in user to have a certain access level to continue.
+				Throws a permission denied page and stops page execution if the user doesn't have access.
+
+			Parameters:
+				level - An access level (0 being normal user, 1 being administrator, 2 being developer)
+				error_path - Path (relative to SERVER_ROOT) of the error page to serve.
+		*/
+
+		function requireLevel($level, $error_path = "admin/pages/_denied.php") {
+			global $admin,$bigtree,$cms,$db;
+
+			// If we aren't logged in or the logged in level is less than required, denied.
+			if (!isset($this->Level) || $this->Level < $level) {
+				define("BIGTREE_ACCESS_DENIED",true);
+				$this->stop(file_get_contents(BigTree::path($error_path)));
+			}
+
+			return true;
 		}
 
 	}

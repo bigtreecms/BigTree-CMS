@@ -13,3 +13,6 @@
 [submodule "core/inc/lib/Text-Statistics"]
 	path = core/inc/lib/Text-Statistics
 	url = https://github.com/DaveChild/Text-Statistics.git
+[submodule "core/inc/lib/kint"]
+	path = core/inc/lib/kint
+	url = https://github.com/raveren/kint.git

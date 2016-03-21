@@ -430,6 +430,18 @@
 		}
 
 		/*
+			Function: getChangeExists
+				Returns whether pending changes exist for the page.
+
+			Returns:
+				true or false
+		*/
+
+		static function getChangeExists() {
+			return BigTreeCMS::$DB->exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $this->ID));
+		}
+
+		/*
 			Function: getChildren
 				Returns an array of non-archived child pages.
 
@@ -802,7 +814,7 @@
 				global $admin;
 			
 				// Make sure a user is logged in
-				if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
 					return false;
 				}
@@ -853,7 +865,7 @@
 			global $admin;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
 				return false;
 			}

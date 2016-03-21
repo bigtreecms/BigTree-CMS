@@ -112,7 +112,7 @@
 
 		static function classAutoLoader($class) {
 			global $bigtree;
-			
+
 			// Known class in the cache file
 			if ($path = $bigtree["class_list"][$class]) {
 				if (substr($path,0,11) != "extensions/" && substr($path,0,7) != "custom/") {
@@ -127,9 +127,6 @@
 
 			// Auto loadable via the path
 			} elseif (substr($class,0,8) == "BigTree\\") {
-				$class = substr($class,8);
-
-				// Allow for sub-namespaces
 				$path = static::path("inc/bigtree/classes/".str_replace("\\","/",substr($class,8)).".php");
 				
 				if (file_exists($path)) {
@@ -260,56 +257,7 @@
 		*/
 		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
-			global $bigtree;
-
-			// If we don't have the memory available, fail gracefully.
-			if (!static::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
-				return false;
-			}
-			
-			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
-			
-			// If we're doing a retina image we're going to check to see if the cropping area is at least twice the desired size
-			if ($retina && ($x + $width) >= $target_width * 2 && ($y + $height) >= $target_height * 2) {
-				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
-				$target_width *= 2;
-				$target_height *= 2;
-			}
-			
-			list($w, $h, $type) = getimagesize($file);
-			$cropped_image = imagecreatetruecolor($target_width,$target_height);
-			if ($type == IMAGETYPE_JPEG) {
-				$original_image = imagecreatefromjpeg($file);
-			} elseif ($type == IMAGETYPE_GIF) {
-				$original_image = imagecreatefromgif($file);
-			} elseif ($type == IMAGETYPE_PNG) {
-				$original_image = imagecreatefrompng($file);
-			} else {
-				return false;
-			}
-			
-			imagealphablending($original_image, true);
-			imagealphablending($cropped_image, false);
-			imagesavealpha($cropped_image, true);
-			imagecopyresampled($cropped_image, $original_image, 0, 0, $x, $y, $target_width, $target_height, $width, $height);
-			
-			if ($grayscale) {
-				imagefilter($cropped_image, IMG_FILTER_GRAYSCALE);
-			}
-		
-			if ($type == IMAGETYPE_JPEG) {
-				imagejpeg($cropped_image,$new_file,$jpeg_quality);
-			} elseif ($type == IMAGETYPE_GIF) {
-				imagegif($cropped_image,$new_file);
-			} elseif ($type == IMAGETYPE_PNG) {
-				imagepng($cropped_image,$new_file);
-			}
-			static::setPermissions($new_file);
-		
-			imagedestroy($original_image);
-			imagedestroy($cropped_image);
-			
-			return $new_file;
+			return BigTree\Image::createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina,$grayscale);
 		}
 		
 		/*
@@ -333,61 +281,7 @@
 		*/
 		
 		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
-			global $bigtree;
-			
-			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
-			
-			if ($upscale) {
-				list($type,$w,$h,$result_width,$result_height) = static::getUpscaleSizes($file,$maxwidth,$maxheight);
-			} else {
-				list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$maxwidth,$maxheight);
-			}
-			
-			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
-			if ($retina && !$upscale && $result_width * 2 <= $w && $result_height * 2 <= $h) {
-				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
-				$result_width *= 2;
-				$result_height *= 2;
-			}
-
-			// If we don't have the memory available, fail gracefully.
-			if (!static::imageManipulationMemoryAvailable($file,$result_width,$result_height)) {
-				return false;
-			}
-
-			$thumbnailed_image = imagecreatetruecolor($result_width, $result_height);
-			if ($type == IMAGETYPE_JPEG) {
-				$original_image = imagecreatefromjpeg($file);
-			} elseif ($type == IMAGETYPE_GIF) {
-				$original_image = imagecreatefromgif($file);
-			} elseif ($type == IMAGETYPE_PNG) {
-				$original_image = imagecreatefrompng($file);
-			} else {
-				return false;
-			}
-		
-			imagealphablending($original_image, true);
-			imagealphablending($thumbnailed_image, false);
-			imagesavealpha($thumbnailed_image, true);
-			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
-		
-			if ($grayscale) {
-				imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
-			}
-		
-			if ($type == IMAGETYPE_JPEG) {
-				imagejpeg($thumbnailed_image,$new_file,$jpeg_quality);
-			} elseif ($type == IMAGETYPE_GIF) {
-				imagegif($thumbnailed_image,$new_file);
-			} elseif ($type == IMAGETYPE_PNG) {
-				imagepng($thumbnailed_image,$new_file);
-			}
-			static::setPermissions($new_file);
-			
-			imagedestroy($original_image);
-			imagedestroy($thumbnailed_image);
-			
-			return $new_file;
+			return BigTree\Image::createThumbnail($file,$new_file,$max_width,$max_height,$retina,$grayscale,$upscale);
 		}
 
 		/*
@@ -839,31 +733,7 @@
 		*/
 		
 		static function getThumbnailSizes($file,$maxwidth,$maxheight) {
-			list($w, $h, $type) = getimagesize($file);
-			if ($w > $maxwidth && $maxwidth) {
-				$perc = $maxwidth / $w;
-				$result_width = $maxwidth;
-				$result_height = round($h * $perc,0);
-				if ($result_height > $maxheight && $maxheight) {
-					$perc = $maxheight / $result_height;
-					$result_height = $maxheight;
-					$result_width = round($result_width * $perc,0);
-				}
-			} elseif ($h > $maxheight && $maxheight) {
-				$perc = $maxheight / $h;
-				$result_height = $maxheight;
-				$result_width = round($w * $perc,0);
-				if ($result_width > $maxwidth && $maxwidth) {
-					$perc = $maxwidth / $result_width;
-					$result_width = $maxwidth;
-					$result_height = round($result_height * $perc,0);
-				}
-			} else {
-				$result_width = $w;
-				$result_height = $h;
-			}
-			
-			return array($type,$w,$h,$result_width,$result_height);
+			return BigTree\Image::getThumbnailSizes($file,$maxwidth,$maxheight);
 		}
 
 		/*
@@ -880,31 +750,7 @@
 		*/
 		
 		static function getUpscaleSizes($file,$min_width,$min_height) {
-			list($w, $h, $type) = getimagesize($file);
-			if ($w < $min_width && $min_width) {
-				$perc = $min_width / $w;
-				$result_width = $min_width;
-				$result_height = round($h * $perc,0);
-				if ($result_height < $min_height && $min_height) {
-					$perc = $min_height / $result_height;
-					$result_height = $min_height;
-					$result_width = round($result_width * $perc,0);
-				}
-			} elseif ($h < $min_height && $min_height) {
-				$perc = $min_height / $h;
-				$result_height = $min_height;
-				$result_width = round($w * $perc,0);
-				if ($result_width < $min_width && $min_width) {
-					$perc = $min_width / $result_width;
-					$result_width = $min_width;
-					$result_height = round($result_height * $perc,0);
-				}
-			} else {
-				$result_width = $w;
-				$result_height = $h;
-			}
-			
-			return array($type,$w,$h,$result_width,$result_height);
+			return BigTree\Image::getUpscaleSizes($file,$min_width,$min_height);
 		}
 		
 		/*
@@ -1054,32 +900,7 @@
 		*/
 
 		static function imageManipulationMemoryAvailable($source,$width,$height) {
-			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
-			$info = getimagesize($source);
-			$source_width = $info[0];
-			$source_height = $info[1];
-
-			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
-			if ($info["mime"] == "image/jpg" || $info["mime"] == "image/jpeg") {
-				$source_size = ceil($source_width * $source_height * 3 * 1.7); 
-				$target_size = ceil($width * $height * 3 * 1.7);
-			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
-			} elseif ($info["mime"] == "image/gif") {
-				$source_size = ceil($source_width * $source_height * 2.5); 
-				$target_size = ceil($width * $height * 2.5);
-			// GD takes about 245% extra memory for PNGs which are most likely running 4 bytes per pixel
-			} elseif ($info["mime"] == "image/png") {
-				$source_size = ceil($source_width * $source_height * 4 * 2.45);
-				$target_size = ceil($width * $height * 4 * 2.45);
-			} else {
-				return true;
-			}
-
-			$memory_usage = $source_size + $target_size + memory_get_usage();
-			if ($memory_usage > $available_memory) {
-				return false;
-			}
-			return true;
+			return BigTree\Image::getMemoryAvailability($source,$width,$height);
 		}
 		
 		/*

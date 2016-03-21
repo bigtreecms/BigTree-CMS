@@ -38,7 +38,7 @@
 
 			// Bad data set
 			if (!is_array($module)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
 			} else {
 				$this->ID = $module["id"];
 
@@ -71,9 +71,9 @@
 			$modules = array();
 
 			if ($group) {
-				$results = BigTree::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
+				$results = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
 			} else {
-				$results = BigTree::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+				$results = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
 			}
 
 			foreach ($results as $module_array) {
@@ -81,7 +81,7 @@
 
 				// Check auth
 				if (!$auth || $module->UserCanAccess) {
-					$modules[$module["id"]] = $return_arrays ? $module_array : $module;
+					$modules[$module_array["id"]] = $return_arrays ? $module_array : $module;
 				}
 			}
 
@@ -214,7 +214,7 @@
 			global $admin;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserCanAccess not available outside logged-in user context.");
 				return "n";
 			}
@@ -270,7 +270,7 @@
 				global $admin;
 			
 				// Make sure a user is logged in
-				if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
 					return false;
 				}
@@ -314,7 +314,7 @@
 			global $admin;
 			
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Method getGroupAccessLevel not available outside logged-in user context.");
 				return false;
 			}
@@ -374,7 +374,7 @@
 			global $admin;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserAccessibleGroups not available outside logged-in user context.");
 				return false;
 			}
@@ -413,7 +413,7 @@
 			global $admin;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserCanAccess not available outside logged-in user context.");
 				return false;
 			}
@@ -462,7 +462,7 @@
 			global $admin;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || $admin->ID) {
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
 				return "n";
 			}
@@ -479,6 +479,66 @@
 
 			// Explicitly set permission
 			return $admin->Permissions["module"][$this->ID];
+		}
+
+		/*
+			Function: requireAccess
+				Checks the logged in user's access to the module.
+				Throws a permission denied page and stops page execution if the user doesn't have access.
+
+			Returns:
+				The permission level of the logged in user.
+		*/
+
+		function requireAccess() {
+			global $admin,$bigtree,$cms,$db;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				trigger_error("Method requireAccess not available outside logged-in user context.", E_USER_ERROR);
+				die();
+			}
+
+			// Admins are automatically publishers
+			if (($admin->Level > 0 && !$this->DeveloperOnly) || $admin->Level > 1) {
+				return "p";
+			}
+
+			// Not set or empty, no access
+			if (!isset($this->Permissions[$this->ID]) || $this->Permissions[$this->ID] == "") {
+				define("BIGTREE_ACCESS_DENIED",true);
+				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+			}
+
+			// Return level defined
+			return $this->Permissions[$this->ID];
+		}
+
+		/*
+			Function: requirePublisher
+				Checks the logged in user's access to the module to make sure they are a publisher.
+				Throws a permission denied page and stops page execution if the user doesn't have access.
+		*/
+
+		function requirePublisher() {
+			global $admin,$bigtree,$cms,$db;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				trigger_error("Method requirePublisher not available outside logged-in user context.", E_USER_ERROR);
+				die();
+			}
+
+			// Admins are publishers
+			if (($admin->Level > 0 && !$this->DeveloperOnly) || $admin->Level > 1) {
+				return;
+			}
+
+			// Require explicit publisher access
+			if ($admin->Permissions[$this->ID] != "p") {
+				define("BIGTREE_ACCESS_DENIED",true);
+				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+			}
 		}
 
 		/*

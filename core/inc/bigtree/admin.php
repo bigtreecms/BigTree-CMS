@@ -365,11 +365,11 @@
 
 		function checkAccess($module,$action = false) {
 			if ($action) {
-				$action = new ModuleAction($action);
+				$action = new BigTree\ModuleAction($action);
 				return $action->UserCanAccess;
 			}
 
-			$module = new Module($module);
+			$module = new BigTree\Module($module);
 			return $module->UserCanAccess;
 		}
 
@@ -2000,9 +2000,12 @@
 
 		static function getModuleByRoute($route) {
 			$module = BigTree\Module::getByRoute($class);
+			if (!$module) {
+				return false;
+			}
+
 			$module = $module->Array;
 			$module["gbp"] = $module["group_based_permissions"];
-
 			return $module;
 		}
 
@@ -2623,6 +2626,7 @@
 		*/
 
 		static function getPublishableChanges($user) {
+			$user = new BigTree\User($user);
 			$changes = BigTree\PendingChange::allPublishableByUser($user);
 
 			// Add things this call used to expect
@@ -3050,10 +3054,9 @@
 
 		function ignore404($id) {
 			$this->requireLevel(1);
-
-			static::$DB->update("bigtree_404s",$id,array("ignored" => "on"));
-
-			$this->track("bigtree_404s",$id,"ignored");
+			$redirect = new BigTree\Redirect($id);
+			$redirect->Ignored = true;
+			$redirect->save();
 		}
 
 		/*
@@ -3156,46 +3159,13 @@
 				id - The id of the entry to check.
 				include - The lock page to include (relative to /core/ or /custom/)
 				force - Whether to force through the lock or not.
-				in_admin - Whether to call stop()
 
 			Returns:
 				Your lock id.
 		*/
 
-		function lockCheck($table,$id,$include,$force = false,$in_admin = true) {
-			global $admin,$bigtree,$cms,$db;
-
-			$lock = static::$DB->fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
-
-			if ($lock && $lock["user"] != $this->ID && strtotime($lock["last_accessed"]) > (time()-300) && !$force) {
-				$locked_by = static::getUser($lock["user"]);
-				$last_accessed = $lock["last_accessed"];
-				
-				include BigTree::path($include);
-				
-				if ($in_admin) {
-					$this->stop();
-				}
-				
-				return false;
-			}
-
-			// We're taking over the lock
-			if ($lock) {
-				static::$DB->update("bigtree_locks",$lock["id"],array(
-					"user" => $this->ID
-				));
-
-				return $lock["id"];
-			
-			// No lock, we're creating a new one
-			} else {
-				return static::$DB->insert("bigtree_locks",array(
-					"table" => $table,
-					"item_id" => $id,
-					"user" => $this->ID
-				));
-			}
+		function lockCheck($table,$id,$include,$force = false) {
+			BigTree\Lock::enforce($table,$id,$include,$force);
 		}
 
 		/*
@@ -3237,27 +3207,7 @@
 		*/
 
 		static function makeIPL($url) {
-			// See if this is a file
-			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
-			if ((substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && file_exists($local_path)) {
-				return BigTreeCMS::replaceHardRoots($url);
-			}
-
-			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
-			// Check for resource link
-			if ($command[0] == "files" && $command[1] == "resources") {
-				$resource = static::getResourceByFile($url);
-				if ($resource) {
-					static::$IRLsCreated[] = $resource["id"];
-					return "irl://".$resource["id"]."//".$resource["prefix"];
-				}
-			}
-			// Check for page link
-			list($navid,$commands) = static::getPageIDForPath($command);
-			if (!$navid) {
-				return BigTreeCMS::replaceHardRoots($url);
-			}
-			return "ipl://".$navid."//".base64_encode(json_encode($commands));
+			return BigTree\Link::iplEncode($url);
 		}
 
 		/*
@@ -3269,15 +3219,8 @@
 		*/
 
 		function markMessageRead($id) {
-			$message = $this->getMessage($id);
-			if (!$message) {
-				return false;
-			}
-
-			$read_by = str_replace("|".$this->ID."|","",$message["read_by"])."|".$this->ID."|";
-			static::$DB->update("bigtree_messages",$message["id"],array("read_by" => $read_by));
-			
-			return true;
+			$message = new BigTree\Message($id);
+			$message->markRead();
 		}
 
 		/*
@@ -3309,7 +3252,8 @@
 		*/
 
 		static function pageChangeExists($page) {
-			return static::$DB->exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $page));
+			$page = new BigTree\Page($page);
+			return $page->ChangeExists;
 		}
 
 		/*
@@ -3340,62 +3284,7 @@
 		*/
 
 		static function processCrops($crop_key) {
-			$storage = new BigTreeStorage;
-
-			// Get and remove the crop data
-			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops",$crop_key);
-			BigTreeCMS::cacheDelete("org.bigtreecms.crops",$crop_key);
-
-			foreach ($crops as $key => $crop) {
-				$image_src = $crop["image"];
-				$target_width = $crop["width"];
-				$target_height = $crop["height"];
-				$x = $_POST["x"][$key];
-				$y = $_POST["y"][$key];
-				$width = $_POST["width"][$key];
-				$height = $_POST["height"][$key];
-				$thumbs = $crop["thumbs"];
-				$center_crops = $crop["center_crops"];
-
-				$pinfo = pathinfo($image_src);
-
-				// Create the crop and put it in a temporary location
-				$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-				BigTree::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
-				
-				// Make thumbnails for the crop
-				if (is_array($thumbs)) {
-					foreach ($thumbs as $thumb) {
-						if (is_array($thumb) && ($thumb["height"] || $thumb["width"])) {
-							// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-							list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"]);
-
-							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-							BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
-							$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
-						}
-					}
-				}
-
-				// Make center crops of the crop
-				if (is_array($center_crops)) {
-					foreach ($center_crops as $center_crop) {
-						if (is_array($center_crop) && $center_crop["height"] && $center_crop["width"]) {
-							$temp_center_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-							BigTree::centerCrop($temp_crop,$temp_center_crop,$center_crop["width"],$center_crop["height"],$crop["retina"],$center_crop["grayscale"]);
-							$storage->replace($temp_center_crop,$center_crop["prefix"].$crop["name"],$crop["directory"]);
-						}
-					}
-				}
-
-				// Move crop into its resting place
-				$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
-			}
-
-			// Remove all the temporary images
-			foreach ($crops as $crop) {
-				BigTree::deleteFile($crop["image"]);
-			}
+			BigTree\Image::processCrops($crop_key);
 		}
 
 		/*
@@ -3431,326 +3320,8 @@
 		*/
 
 		static function processImageUpload($field) {
-			global $bigtree;
-
-			$failed = false;
-			$name = $field["file_input"]["name"];
-			$temp_name = $field["file_input"]["tmp_name"];
-			$error = $field["file_input"]["error"];
-
-			// If a file upload error occurred, return the old image and set errors
-			if ($error == 1 || $error == 2) {
-				$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
-				return false;
-			} elseif ($error == 3) {
-				$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file upload failed ($name).");
-				return false;
-			}
-
-			// We're going to tell BigTreeStorage to handle forcing images into JPEGs instead of writing the code 20x
-			$storage = new BigTreeStorage;
-			$storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
-
-			// Let's check the minimum requirements for the image first before we store it anywhere.
-			$image_info = @getimagesize($temp_name);
-			$iwidth = $image_info[0];
-			$iheight = $image_info[1];
-			$itype = $image_info[2];
-			$channels = $image_info["channels"];
-
-			// See if we're using image presets
-			if ($field["options"]["preset"]) {
-				$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
-				$preset = $media_settings["presets"][$field["options"]["preset"]];
-				// If the preset still exists, copy its properties over to our options
-				if ($preset) {
-					foreach ($preset as $key => $val) {
-						$field["options"][$key] = $val;
-					}
-				}
-			}
-
-			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
-			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
-				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
-				if ($field["options"]["min_height"] && $field["options"]["min_width"]) {
-					$error .= $field["options"]["min_width"]."x".$field["options"]["min_height"]." pixels.";
-				} elseif ($field["options"]["min_height"]) {
-					$error .= $field["options"]["min_height"]." pixels tall.";
-				} elseif ($field["options"]["min_width"]) {
-					$error .= $field["options"]["min_width"]." pixels wide.";
-				}
-				$bigtree["errors"][] = array("field" => $field["title"], "error" => $error);
-				$failed = true;
-			}
-
-			// If it's not a valid image, throw it out!
-			if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
-				$bigtree["errors"][] = array("field" => $field["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
-				$failed = true;
-			}
-
-			// See if it's CMYK
-			if ($channels == 4) {
-				$bigtree["errors"][] = array("field" => $field["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
-				$failed = true;
-			}
-
-			// See if we have enough memory for all our crops and thumbnails
-			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
-				if (is_array($field["options"]["crops"])) {
-					foreach ($field["options"]["crops"] as $crop) {
-						if (!$failed && is_array($crop) && array_filter($crop)) {
-							if ($field["options"]["retina"]) {
-								$crop["width"] *= 2;
-								$crop["height"] *= 2;
-							}
-							// We don't want to add multiple errors so we check if we've already failed
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"])) {
-								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
-								$failed = true;
-							}
-						}
-					}
-				}
-				if (is_array($field["options"]["thumbs"])) {
-					foreach ($field["options"]["thumbs"] as $thumb) {
-						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($thumb) && array_filter($thumb)) {
-							if ($field["options"]["retina"]) {
-								$thumb["width"] *= 2;
-								$thumb["height"] *= 2;
-							}
-							$sizes = BigTree::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4])) {
-								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
-								$failed = true;
-							}
-						}
-					}
-				}
-				if (is_array($field["options"]["center_crops"])) {
-					foreach ($field["options"]["center_crops"] as $crop) {
-						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
-						if (!$failed && is_array($crop) && array_filter($crop)) {
-							list($w,$h) = getimagesize($temp_name);
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$w,$h)) {
-								$bigtree["errors"][] = array("field" => $field["title"], "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
-								$failed = true;
-							}
-						}
-					}
-				}
-			}
-
-			if (!$failed) {
-				// Make a temporary copy to be used for thumbnails and crops.
-				$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
-
-				// Make a first copy
-				$first_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::moveFile($temp_name,$first_copy);
-
-				// Do EXIF Image Rotation
-				if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
-					$exif = @exif_read_data($first_copy);
-					$o = $exif['Orientation'];
-					if ($o == 3 || $o == 6 || $o == 8) {
-						$source = imagecreatefromjpeg($first_copy);
-
-						if ($o == 3) {
-							$source = imagerotate($source,180,0);
-						} elseif ($o == 6) {
-							$source = imagerotate($source,270,0);
-						} else {
-							$source = imagerotate($source,90,0);
-						}
-
-						// We're going to create a PNG so that we don't lose quality when we resave
-						imagepng($source,$first_copy);
-						rename($first_copy,substr($first_copy,0,-3)."png");
-						$first_copy = substr($first_copy,0,-3)."png";
-
-						// Force JPEG since we made the first copy a PNG
-						$storage->AutoJPEG = true;
-
-						// Clean up memory
-						imagedestroy($source);
-
-						// Get new width/height/type
-						list($iwidth,$iheight,$itype,$iattr) = getimagesize($first_copy);
-					}
-				}
-
-				// Create a temporary copy that we will use later for crops and thumbnails
-				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::copyFile($first_copy,$temp_copy);
-
-				// Gather up an array of file prefixes
-				$prefixes = array();
-				if (is_array($field["options"]["thumbs"])) {
-					foreach ($field["options"]["thumbs"] as $thumb) {
-						if (!empty($thumb["prefix"])) {
-							$prefixes[] = $thumb["prefix"];
-						}
-					}
-				}
-				if (is_array($field["options"]["center_crops"])) {
-					foreach ($field["options"]["center_crops"] as $crop) {
-						if (!empty($crop["prefix"])) {
-							$prefixes[] = $crop["prefix"];
-						}
-					}
-				}
-				if (is_array($field["options"]["crops"])) {
-					foreach ($field["options"]["crops"] as $crop) {
-						if (is_array($crop)) {
-							if (!empty($crop["prefix"])) {
-								$prefixes[] = $crop["prefix"];
-							}
-							if (is_array($crop["thumbs"])) {
-								foreach ($crop["thumbs"] as $thumb) {
-									if (!empty($thumb["prefix"])) {
-										$prefixes[] = $thumb["prefix"];
-									}
-								}
-							}
-							if (is_array($crop["center_crops"])) {
-								foreach ($crop["center_crops"] as $center_crop) {
-									if (!empty($center_crop["prefix"])) {
-										$prefixes[] = $center_crop["prefix"];
-									}
-								}
-							}
-						}
-					}
-				}
-
-				// Upload the original to the proper place.
-				$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
-
- 				// If the upload service didn't return a value, we failed to upload it for one reason or another.
- 				if (!$field["output"]) {
- 					if ($storage->DisabledFileError) {
-						$bigtree["errors"][] = array("field" => $field["title"], "error" => "Could not upload file. The file extension is not allowed.");
-					} else {
-						$bigtree["errors"][] = array("field" => $field["title"], "error" => "Could not upload file. The destination is not writable.");
-					}
-					unlink($temp_copy);
-					unlink($first_copy);
-
-				    // Failed, we keep the current value
-					return false;
-				// If we did upload it successfully, check on thumbs and crops.
-				} else {
-					// Get path info on the file.
-					$pinfo = BigTree::pathInfo($field["output"]);
-
-					// Handle Crops
-					if (is_array($field["options"]["crops"])) {
-						foreach ($field["options"]["crops"] as $crop) {
-							if (is_array($crop)) {
-								// Make sure the crops have a width/height and it's numeric
-								if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
-									$cwidth = $crop["width"];
-									$cheight = $crop["height"];
-		
-									// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
-									if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
-										// Make a square if for some reason someone only entered one dimension for a crop.
-										if (!$cwidth) {
-											$cwidth = $cheight;
-										} elseif (!$cheight) {
-											$cheight = $cwidth;
-										}
-										$bigtree["crops"][] = array(
-											"image" => $temp_copy,
-											"directory" => $field["options"]["directory"],
-											"retina" => $field["options"]["retina"],
-											"name" => $pinfo["basename"],
-											"width" => $cwidth,
-											"height" => $cheight,
-											"prefix" => $crop["prefix"],
-											"thumbs" => $crop["thumbs"],
-											"center_crops" => $crop["center_crops"],
-											"grayscale" => $crop["grayscale"]
-										);
-									// If it's the same dimensions, let's see if they're looking for a prefix for whatever reason...
-									} elseif ($iheight == $cheight && $iwidth == $cwidth) {
-										// See if we want thumbnails
-										if (is_array($crop["thumbs"])) {
-											foreach ($crop["thumbs"] as $thumb) {
-												// Make sure the thumbnail has a width or height and it's numeric
-												if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
-													// Create a temporary thumbnail of the image on the server before moving it to it's destination.
-													$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
-													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
-												}
-											}
-										}
-	
-										// See if we want center crops
-										if (is_array($crop["center_crops"])) {
-											foreach ($crop["center_crops"] as $center_crop) {
-												// Make sure the crop has a width and height and it's numeric
-												if ($center_crop["width"] && is_numeric($center_crop["width"]) && $center_crop["height"] && is_numeric($center_crop["height"])) {
-													// Create a temporary crop of the image on the server before moving it to it's destination.
-													$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["options"]["retina"],$center_crop["grayscale"]);
-													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
-												}
-											}
-										}
-										
-										if ($crop["prefix"]) {
-											$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
-										}
-									}
-								}
-							}
-						}
-					}
-
-					// Handle thumbnailing
-					if (is_array($field["options"]["thumbs"])) {
-						foreach ($field["options"]["thumbs"] as $thumb) {
-							// Make sure the thumbnail has a width or height and it's numeric
-							if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
-								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-								BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
-								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
-							}
-						}
-					}
-
-					// Handle center crops
-					if (is_array($field["options"]["center_crops"])) {
-						foreach ($field["options"]["center_crops"] as $crop) {
-							// Make sure the crop has a width and height and it's numeric
-							if ($crop["width"] && is_numeric($crop["width"]) && $crop["height"] && is_numeric($crop["height"])) {
-								$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-								BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$field["options"]["retina"],$crop["grayscale"]);
-								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
-							}
-						}
-					}
-
-					// If we don't have any crops, get rid of the temporary image we made.
-					if (!count($bigtree["crops"])) {
-						unlink($temp_copy);
-					}
-				}
-			// We failed, keep the current value.
-			} else {
-				return false;
-			}
-
-			return $field["output"];
+			$field = new BigTree\Field($field);
+			$field->processImageUpload();
 		}
 
 		/*
@@ -3763,8 +3334,7 @@
 		*/
 
 		function refreshLock($table,$id) {
-			// Update the access time
-			static::$DB->update("bigtree_locks",array("table" => $table,"item_id" => $id, "user" => $this->ID), array("last_accessed" => "NOW()"));
+			BigTree\Lock::refresh($table,$id);
 		}
 
 		/*
@@ -3780,21 +3350,8 @@
 		*/
 
 		function requireAccess($module) {
-			global $admin,$bigtree,$cms,$db;
-			
-			// Admins are automatically publishers
-			if ($this->Level > 0) {
-				return "p";
-			}
-
-			// Not set or empty, no access
-			if (!isset($this->Permissions[$module]) || $this->Permissions[$module] == "") {
-				define("BIGTREE_ACCESS_DENIED",true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
-			}
-
-			// Return level defined
-			return $this->Permissions[$module];
+			$module = new BigTree\Module($module);
+			$module->requireAccess();
 		}
 
 		/*
@@ -3807,15 +3364,7 @@
 		*/
 
 		function requireLevel($level) {
-			global $admin,$bigtree,$cms,$db;
-
-			// If we aren't logged in or the logged in level is less than required, denied.
-			if (!isset($this->Level) || $this->Level < $level) {
-				define("BIGTREE_ACCESS_DENIED",true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
-			}
-
-			return true;
+			$this->Auth->requireLevel($level);
 		}
 
 		/*
@@ -3825,26 +3374,11 @@
 
 			Parameters:
 				module - The id of the module to check access to.
-
-			Returns:
-				The permission level of the logged in user.
 		*/
 
 		function requirePublisher($module) {
-			global $admin,$bigtree,$cms,$db;
-
-			// Admins are publishers
-			if ($this->Level > 0) {
-				return true;
-			}
-
-			// Require explicit publisher access
-			if ($this->Permissions[$module] != "p") {
-				define("BIGTREE_ACCESS_DENIED",true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
-			}
-
-			return true;
+			$module = new BigTree\Module($module);
+			$module->requirePublisher();
 		}
 
 		/*
@@ -3921,27 +3455,9 @@
 		*/
 
 		function saveCurrentPageRevision($page,$description) {
-			// Get the current page.
-			$current = static::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
-			
-			// Make a copy
-			$id = static::$DB->insert("bigtree_page_revisions",array(
-				"page" => $page,
-				"title" => $current["title"],
-				"meta_keywords" => $current["meta_keywords"],
-				"meta_description" => $current["meta_description"],
-				"template" => $current["template"],
-				"external" => $current["external"],
-				"new_window" => $current["new_window"],
-				"resources" => $current["resources"],
-				"author" => $current["last_edited_by"],
-				"updated_at" => $current["updated_at"],
-				"saved" => "on",
-				"saved_description" => $description
-			));
-
-			$this->track("bigtree_page_revisions",$id,"created");
-			return $id;
+			$page = new BigTree\Page($page);
+			$revision = BigTree\PageRevision::create($page,$description);
+			return $revision->ID;
 		}
 
 		/*
@@ -4531,7 +4047,7 @@
 		*/
 
 		static function unlock($table,$id) {
-			static::$DB->delete("bigtree_locks",array("table" => $table, "item_id" => $id));
+			BigTree\Lock::remove($table,$id);
 		}
 
 		/*

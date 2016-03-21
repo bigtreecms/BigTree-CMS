@@ -12,10 +12,10 @@
 	class Redirect extends BaseObject {
 
 		protected $ID;
+		protected $Requests;
 
 		public $BrokenURL;
 		public $RedirectURL;
-		public $Requests;
 		public $Ignored;
 
 		/*
@@ -37,10 +37,11 @@
 				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
 			} else {
 				$this->ID = $redirect["id"];
+				$this->Requests = $redirect["requests"];
+
 				$this->BrokenURL = $redirect["broken_url"];
 				$this->RedirectURL = BigTree\Link::decode($redirect["redirect_url"]);
-				$this->Requests = $redirect["requests"];
-				$tis->Ignored = $redirect["ignored"] ? true : false;
+				$this->Ignored = $redirect["ignored"] ? true : false;
 			}
 		}
 
@@ -68,7 +69,7 @@
 
 		function create($from,$to) {
 			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/")));
-			$to = htmlspecialchars(BigTree\Link::encode($to));
+			$to = htmlspecialchars(Link::encode($to));
 
 			// See if the from already exists
 			$existing = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
@@ -96,6 +97,21 @@
 		function delete() {
 			BigTreeCMS::$DB->delete("bigtree_404s",$this->ID);
 			AuditTrail::track("bigtree_404s",$this->ID,"deleted");
+		}
+
+		/*
+			Function: save
+				Saves the current object properties back to the database.
+		*/
+
+		function save() {
+			BigTreeCMS::$DB->update("bigtree_404s",$this->ID,array(
+				"broken_url" => htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$this->BrokenURL),"/"))),
+				"redirect_url" => htmlspecialchars(Link::encode($this->RedirectURL)),
+				"ignored" => $this->Ignored ? "on" : "";
+			));
+
+			AuditTrail::track("bigtree_404s",$this->ID,"updated");
 		}
 
 	}

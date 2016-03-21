@@ -104,4 +104,36 @@
 			return array("saved" => $saved, "unsaved" => $unsaved);
 		}
 
+		/*
+			Function: create
+				Saves a Page object's data as a revision.
+
+			Parameters:
+				page - A Page object.
+				description - The revision description (to save permanantly)
+
+			Returns:
+				A PageRevision object.
+		*/
+
+		function create(Page $page,$description = "") {
+			$id = BigTreeCMS::$DB->insert("bigtree_page_revisions",array(
+				"page" => $page->ID,
+				"title" => $page->Title,
+				"meta_description" => $page->MetaDescription,
+				"template" => $page->Template,
+				"external" => $page->External ? Link::encode($page->External) : "",
+				"new_window" => $page->NewWindow ? "on" : "",
+				"resources" => $page->Resources,
+				"author" => $page->LastEditedBy,
+				"updated_at" => $page->UpdatedAt,
+				"saved" => $description ? "on" : "",
+				"saved_description" => $description
+			));
+
+			AuditTrail::("bigtree_page_revisions",$id,"created");
+			
+			return new PageRevision($id);
+		}
+
 	}

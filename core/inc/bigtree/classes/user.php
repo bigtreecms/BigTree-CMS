@@ -9,7 +9,7 @@
 	
 	use BigTreeCMS;
 
-	class User {
+	class User extends BaseObject {
 
 		static $Table = "bigtree_users";
 
@@ -45,9 +45,10 @@
 				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
 			} else {
 				$this->ID = $user["id"];
+				$this->OriginalPassword = $user["password"];
+
 				$this->Email = $user["email"];
 				$this->Password = $user["password"];
-				$this->OriginalPassword = $user["password"];
 				$this->Name = $user["name"] ?: null;
 				$this->Company = $user["company"] ?: null;
 				$this->Level = $user["level"] ?: 0;
