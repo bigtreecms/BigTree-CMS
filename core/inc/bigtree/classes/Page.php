@@ -982,4 +982,37 @@
 			}
 
 			return $pages;
+		}
+
+		/*
+			Function: unarchive
+				Unarchives the page and all its children that inherited archived status.
+		*/
+
+		function unarchive() {
+			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array("archived" => ""));
+			$this->unarchiveChildren();
+
+			AuditTrail::track("bigtree_pages",$this->ID,"unarchived");
+		}
+
+		/*
+			Function: unarchiveChildren
+				Unarchives the page's children that have the archived_inherited status.
+		*/
+
+		function unarchiveChildren($id = false) {
+			// Allow for recursion
+			$id = $id ?: $this->ID;
+
+			$child_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'", $id);
+			foreach ($child_ids as $child_id) {
+				AuditTrail::track("bigtree_pages",$child_id,"unarchived-inherited");
+				$this->unarchiveChildren($child_id);
+			}
+
+			// Unarchive this level
+			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = '', archived_inherited = '' 
+									WHERE parent = ? AND archived_inherited = 'on'", $id);
+		}
 	}

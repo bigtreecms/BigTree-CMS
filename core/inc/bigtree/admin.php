@@ -3708,13 +3708,10 @@
 
 		function unarchivePage($page) {
 			$page = is_array($page) ? $page["id"] : $page;
-			$access_level = $this->getPageAccessLevel($page);
+			$page = new BigTree\Page($page);
 
-			if ($access_level == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
-				static::$DB->update("bigtree_pages",$page,array("archived" => ""));
-				$this->unarchivePageChildren($page);
-
-				$this->track("bigtree_pages",$page,"unarchived");
+			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
+				$page->unarchive();
 				return true;
 			}
 
@@ -3731,16 +3728,8 @@
 		*/
 
 		function unarchivePageChildren($id) {
-			$child_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'", $id);
-			foreach ($child_ids as $child_id) {
-				$this->track("bigtree_pages",$child_id,"unarchived-inherited");
-				$this->unarchivePageChildren($child_id);
-			}
-
-			// Unarchive this level
-			static::$DB->query("UPDATE bigtree_pages
-								SET archived = '', archived_inherited = '' 
-								WHERE parent = ? AND archived_inherited = 'on'", $id);
+			$page = new BigTree\Page($id);
+			$page->unarchiveChildren();
 		}
 
 		/*
@@ -3809,8 +3798,9 @@
 		function unignore404($id) {
 			$this->requireLevel(1);
 
-			static::$DB->update("bigtree_404s",$id,array("ignored" => ""));
-			$this->track("bigtree_404s",$id,"unignored");
+			$redirect = new BigTree\Redirect($id);
+			$redirect->Ignored = false;
+			$redirect->save();
 		}
 
 		/*
