@@ -11,6 +11,22 @@
 
 	class DailyDigest extends BaseObject {
 
+		static $CoreOptions = array(
+			"pending-changes" => array(
+				"name" => "Pending Changes",
+				"function" => "BigTree\DailyDigest::getChanges"
+			),
+			"messages" => array(
+				"name" => "Unread Messages",
+				"function" => "BigTree\DailyDigest::getMessages"
+			),
+			"alerts" => array(
+				"name" => "Content Age Alerts",
+				"function" => "BigTree\DailyDigest::getAlerts"
+			)
+		);
+		static $Plugins = array();
+
 		/*
 			Function: getAlerts
 				Generates markup for daily digest alerts for a given user.
@@ -181,15 +197,18 @@
 
 			// Start email service
 			$email_service = new BigTreeEmailService;
+
+			// Cache extension plugins
+			Extension::initializeCache();
 		
 			// We're going to get the position setups and the multi-sort the list to get it in order
-			foreach (BigTreeAdmin::$DailyDigestPlugins["core"] as $id => $details) {
+			foreach (static::$CoreOptions as $id => $details) {
 				if (empty($digest_settings[$id]["disabled"])) {
 					$blocks[] = $details["function"];
 					$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
 				}
 			}
-			foreach (BigTreeAdmin::$DailyDigestPlugins["extension"] as $extension => $set) {
+			foreach (static::$Plugins as $extension => $set) {
 				foreach ($set as $id => $details) {
 					$id = $extension."*".$id;
 					if (empty($digest_settings[$id]["disabled"])) {

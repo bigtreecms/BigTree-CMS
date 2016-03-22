@@ -1,5 +1,6 @@
 <?php
 	$forms = $admin->getModuleForms("title",$module["id"]);
+	BigTree\Extension::initalizeCache();
 ?>
 <section>
 	<div class="left last">
@@ -39,13 +40,13 @@
 			<label>View Type</label>
 			<select name="type" id="view_type" class="left">
 				<optgroup label="Core">
-					<?php foreach (BigTreeAdmin::$ViewTypes["core"] as $key => $t) { ?>
+					<?php foreach (BigTree\ModuleView::$CoreTypes as $key => $t) { ?>
 					<option value="<?=$key?>"<?php if ($key == $type) { ?> selected="selected"<?php } ?>><?=$t?></option>
 					<?php } ?>
 				</optgroup>
 				<optgroup label="Extension">
 					<?php
-						foreach (BigTreeAdmin::$ViewTypes["extension"] as $extension => $extension_types) {
+						foreach (BigTree\ModuleView::$Plugins as $extension => $extension_types) {
 							foreach ($extension_types as $key => $name) {
 								$view_key = "$extension*$key";
 					?>

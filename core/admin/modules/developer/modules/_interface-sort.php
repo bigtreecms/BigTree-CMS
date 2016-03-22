@@ -1,10 +1,14 @@
 <?php
+	BigTree\Extension::initalizeCache();
+
 	$interfaces = $admin->getModuleInterfaces($module);
+
 	$interface_list = array(
 		"form" => array("name" => "Forms","items" => array()),
 		"view" => array("name" => "Views","items" => array()),
 		"report" => array("name" => "Reports","items" => array())
 	);
+
 	// Sort interfaces into relevant sections
 	foreach ($interfaces as $interface) {
 		if (strpos($interface["type"],"*") === false) {
@@ -29,11 +33,12 @@
 		} else {
 			list($extension,$type) = explode("*",$interface["type"]);
 			$interface["edit_url"] = "interfaces/build/$extension/$type/?id=".$interface["id"];
+			
 			if (isset($interface_list[$interface["type"]])) {
 				$interface_list[$interface["type"]]["items"][] = $interface;
 			} else {
 				$interface_list[$interface["type"]] = array(
-					"name" => BigTreeAdmin::$InterfaceTypes["extension"][$extension][$type]["name"],
+					"name" => BigTree\ModuleInterface::$Plugins[$extension][$type]["name"],
 					"items" => array($interface)
 				);
 			}

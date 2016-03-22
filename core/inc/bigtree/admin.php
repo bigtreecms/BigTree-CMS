@@ -8,59 +8,8 @@
 
 		// Static variables
 		public static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
-		public static $CronPlugins = array();
-		public static $DailyDigestPlugins = array(
-			"core" => array(
-				"pending-changes" => array(
-					"name" => "Pending Changes",
-					"function" => "BigTree\DailyDigest::getChanges"
-				),
-				"messages" => array(
-					"name" => "Unread Messages",
-					"function" => "BigTree\DailyDigest::getMessages"
-				),
-				"alerts" => array(
-					"name" => "Content Age Alerts",
-					"function" => "BigTree\DailyDigest::getAlerts"
-				)
-			),
-			"extension" => array()
-		);
-		public static $DashboardPlugins = array(
-			"core" => array(
-				"analytics" => "Google Analytics",
-				"pending-changes" => "Pending Changes",
-				"messages" => "Messages"
-			),
-			"extension" => array()
-		);
 		public static $DB;
 		public static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
-		public static $InterfaceTypes = array(
-			"core" => array(
-				"views" => array(
-					"name" => "View",
-					"icon" => "category",
-					"description" => "Views are lists of database content. Views can have associated actions such as featuring, archiving, approving, editing, and deleting content."
-				),
-				"reports" => array(
-					"name" => "Report",
-					"icon" => "graph",
-					"description" => "Reports allow your admin users to filter database content. Reports can either generate a filtered view (based on an existing View interface) or export the data to a CSV."
-				),
-				"forms" => array(
-					"name" => "Form",
-					"icon" => "form",
-					"description" => "Forms are used for creating and editing database content by admin users."
-				),
-				"embeds" => array(
-					"name" => "Embeddable Form",
-					"icon" => "file_default",
-					"description" => "Embeddable forms allow your front-end users to create database content using your existing field types via iframes."
-				)
-			),
-			"extension" => array()
-		);
 		public static $PerPage = 15;
 		public static $ReservedColumns = array(
 			"id",
@@ -104,17 +53,6 @@
 				"class" => "icon_delete"
 			)
 		);
-		public static $ViewTypes = array(
-			"core" => array(
-				"searchable" => "Searchable List",
-				"draggable" => "Draggable List",
-				"nested" => "Nested Draggable List",
-				"grouped" => "Grouped List",
-				"images" => "Image List",
-				"images-grouped" => "Grouped Image List"
-			),
-			"extension" => array()
-		);
 		
 		/*
 			Constructor:
@@ -133,45 +71,6 @@
 			$this->Level = $this->Auth->Level;
 			$this->Name = $this->Auth->Name;
 			$this->Permissions = $this->Auth->Permissions;
-
-			$extension_cache_file = SERVER_ROOT."cache/bigtree-extension-cache.json";
-
-			// Handle extension cache
-			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
-				$plugins = array(
-					"cron" => array(),
-					"daily-digest" => array(),
-					"dashboard" => array(),
-					"interfaces" => array(),
-					"view-types" => array()
-				);
-
-				$extension_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
-				foreach ($extension_ids as $extension_id) {
-					// Load up the manifest
-					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"),true);
-					if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
-						foreach ($manifest["plugins"] as $type => $list) {
-							foreach ($list as $id => $plugin) {
-								$plugins[$type][$extension_id][$id] = $plugin;
-							}
-						}
-					}
-				}
-
-				// If no longer in debug mode, cache it
-				if (!$bigtree["config"]["debug"]) {
-					file_put_contents($extension_cache_file,BigTree::json($plugins));
-				}
-			} else {
-				$plugins = json_decode(file_get_contents($extension_cache_file),true);
-			}
-			
-			static::$CronPlugins = $plugins["cron"];
-			static::$DailyDigestPlugins["extension"] = $plugins["daily-digest"];
-			static::$DashboardPlugins["extension"] = $plugins["dashboard"];
-			static::$InterfaceTypes["extension"] = $plugins["interfaces"];
-			static::$ViewTypes["extension"] = $plugins["view-types"];
 
 			// Check the permissions to see if we should show the pages tab.
 			if (!$this->Level) {
@@ -3387,59 +3286,7 @@
 		*/
 
 		function runCron() {
-			global $bigtree;
-
-			// Track when we last sent a daily digest
-			if (!$this->settingExists("bigtree-internal-cron-daily-digest-last-sent")) {
-				$this->createSetting(array(
-					"id" => "bigtree-internal-cron-daily-digest-last-sent",
-					"system" => "on"
-				));
-			}
-		
-			$last_sent_daily_digest = BigTreeCMS::getSetting("bigtree-internal-cron-daily-digest-last-sent");
-		
-			// If we last sent the daily digest > ~24 hours ago, send it again. Also refresh analytics.
-			if ($last_sent_daily_digest < strtotime("-23 hours 59 minutes")) {
-				$this->updateSettingValue("bigtree-internal-cron-daily-digest-last-sent",time());
-		
-				// Send daily digest
-				$this->emailDailyDigest();
-		
-				// Cache Google Analytics Information
-				$analytics = new BigTreeGoogleAnalyticsAPI;
-				if ($analytics->API && $analytics->Profile) {
-					$analytics->cacheInformation();
-				}
-
-				// Ping bigtreecms.org with current version stats
-				if (!$bigtree["config"]["disable_ping"]) {
-					BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
-				}
-			}
-		
-			// Run any extension cron jobs
-			$extension_settings = BigTreeCMS::getSetting("bigtree-internal-extension-settings");
-			$cron_settings = $extension_settings["cron"];
-			foreach (BigTreeAdmin::$CronPlugins as $extension => $plugins) {
-				foreach ($plugins as $id => $details) {
-					$id = $extension."*".$id;
-					if (empty($cron_settings[$id]["disabled"])) {
-						call_user_func($details["function"]);
-					}
-				}
-			}
-		
-			// Let the CMS know we're running cron properly
-			if (!$this->settingExists("bigtree-internal-cron-last-run")) {
-				$this->createSetting(array(
-					"id" => "bigtree-internal-cron-last-run",
-					"system" => "on"
-				));
-			}
-			
-			// Tell the admin we've ran cron recently.
-			$this->updateSettingValue("bigtree-internal-cron-last-run",time());
+			BigTree\Cron::run();
 		}
 
 		/*

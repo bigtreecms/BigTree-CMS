@@ -11,6 +11,29 @@
 
 	class ModuleInterface extends BaseObject {
 
+		static $CoreTypes = array(
+			"views" => array(
+				"name" => "View",
+				"icon" => "category",
+				"description" => "Views are lists of database content. Views can have associated actions such as featuring, archiving, approving, editing, and deleting content."
+			),
+			"reports" => array(
+				"name" => "Report",
+				"icon" => "graph",
+				"description" => "Reports allow your admin users to filter database content. Reports can either generate a filtered view (based on an existing View interface) or export the data to a CSV."
+			),
+			"forms" => array(
+				"name" => "Form",
+				"icon" => "form",
+				"description" => "Forms are used for creating and editing database content by admin users."
+			),
+			"embeds" => array(
+				"name" => "Embeddable Form",
+				"icon" => "file_default",
+				"description" => "Embeddable forms allow your front-end users to create database content using your existing field types via iframes."
+			)
+		);
+		static $Plugins = array();
 		static $Table = "bigtree_module_interfaces";
 
 		protected $ID;
