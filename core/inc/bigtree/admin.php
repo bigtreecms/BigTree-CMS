@@ -3374,48 +3374,7 @@
 		*/
 
 		static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
-			$users = $items = $where = $parameters = array();
-			$query = "SELECT * FROM bigtree_audit_trail";
-
-			if ($user) {
-				$where[] = "user = ?";
-				$parameters[] = $user;
-			}
-			if ($table) {
-				$where[] = "`table` = ?";
-				$parameters[] = $table;
-			}
-			if ($entry) {
-				$where[] = "entry = ?";
-				$parameters[] = $entry;
-			}
-			if ($start) {
-				$where[] = "`date` >= '".date("Y-m-d H:i:s",strtotime($start))."'";
-			}
-			if ($end) {
-				$where[] = "`date` <= '".date("Y-m-d H:i:s",strtotime($end))."'";
-			}
-			if (count($where)) {
-				$query .= " WHERE ".implode(" AND ",$where);
-			}
-
-			$entries = static::$DB->fetchAll($query." ORDER BY `date` DESC");
-			foreach ($entries as &$entry) {
-				// Check the user cache
-				if (!$users[$entry["user"]]) {
-					$user = static::getUser($entry["user"]);
-					$users[$entry["user"]] = array(
-						"id" => $user["id"],
-						"name" => $user["name"],
-						"email" => $user["email"],
-						"level" => $user["level"]
-					);
-				}
-
-				$entry["user"] = $users[$entry["user"]];
-			}
-
-			return $entries;
+			return 
 		}
 
 		/*
@@ -3432,27 +3391,7 @@
 		*/
 
 		static function searchPages($query,$fields = array("nav_title"),$max = 10) {
-			// Since we're in JSON we have to do stupid things to the /s for URL searches.
-			$query = str_replace('/','\\\/',$query);
-
-			$results = array();
-			$terms = explode(" ",$query);
-			$where_parts = array("archived != 'on'");
-
-			foreach ($terms as $term) {
-				$term = static::$DB->escape($term);
-				
-				$or_parts = array();
-				foreach ($fields as $field) {
-					$or_parts[] = "`$field` LIKE '%$term%'";
-				}
-
-				$where_parts[] = "(".implode(" OR ",$or_parts).")";
-			}
-
-			return static::$DB->fetchAll("SELECT * FROM bigtree_pages 
-										  WHERE ".implode(" AND ",$where_parts)." 
-										  ORDER BY nav_title LIMIT $max");
+			return BigTree\Page::search($query,$fields,$max,true);
 		}
 
 		/*
@@ -3499,19 +3438,9 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 
-			// Try to convert the short URL into a full one
-			if (strpos($url,"//") === false) {
-				$url = WWW_ROOT.ltrim($url,"/");
-			}
-			$url = htmlspecialchars($this->autoIPL($url));
-
-			// Don't use static roots if they're the same as www just in case they are different when moving environments
-			if (WWW_ROOT === STATIC_ROOT) {
-				$url = str_replace("{staticroot}","{wwwroot}",$url);
-			}
-
-			static::$DB->update("bigtree_404s",$id,array("redirect_url" => $url));
-			$this->track("bigtree_404s",$id,"updated");
+			$redirect = new Redirect($id);
+			$redirect->RedirectURL = $url;
+			$redirect->save();
 		}
 
 		/*

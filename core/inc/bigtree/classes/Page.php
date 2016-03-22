@@ -938,4 +938,48 @@
 
 			return $this->Path;
 		}
+
+		/*
+			Function: search
+				Searches for pages based on the provided fields.
+
+			Parameters:
+				query - Query string to search against.
+				fields - Fields to search.
+				max - Maximum number of results to return.
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of Page objects.
+		*/
+
+		static function search($query,$fields = array("nav_title"),$max = 10,$return_arrays = false) {
+			// Since we're in JSON we have to do stupid things to the /s for URL searches.
+			$query = str_replace('/','\\\/',$query);
+
+			$results = array();
+			$terms = explode(" ",$query);
+			$where_parts = array("archived != 'on'");
+
+			foreach ($terms as $term) {
+				$term = BigTreeCMS::$DB->escape($term);
+				
+				$or_parts = array();
+				foreach ($fields as $field) {
+					$or_parts[] = "`$field` LIKE '%$term%'";
+				}
+
+				$where_parts[] = "(".implode(" OR ",$or_parts).")";
+			}
+
+			$pages = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE ".implode(" AND ",$where_parts)." 
+												ORDER BY nav_title LIMIT $max");
+
+			if (!$return_arrays) {
+				foreach ($pages as &$page) {
+					$page = new Page($page);
+				}
+			}
+
+			return $pages;
 	}
