@@ -281,6 +281,40 @@
 		}
 
 		/*
+			Function: updateProfile
+				Updates the logged-in user's name, company, digest setting, and (optionally) password.
+
+			Parameters:
+				name - Name
+				company - Company
+				daily_digest - Whether to receive the daily digest (truthy value) or not (falsey value)
+				password - Password (leave empty or false to not update)
+		*/
+
+		static function updateProfile($name,$company = "",$daily_digest = "",$password = false) {
+			global $admin,$bigtree;
+
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				trigger_error("Method updateProfile not available outside logged-in user context.");
+				return false;
+			}
+
+			$update_values = array(
+				"name" => BigTree::safeEncode($name),
+				"company" => BigTree::safeEncode($company),
+				"daily_digest" => $daily_digest ? "on" : "",
+			);
+
+			if ($password !== "" && $password !== false) {
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
+				$update_values["password"] = $phpass->HashPassword($password);
+			}
+
+			BigTreeCMS::$DB->update("bigtree_users",$admin->ID,$update_values);
+		}
+
+		/*
 			Function: validatePassword
 				Validates a password against the security policy.
 

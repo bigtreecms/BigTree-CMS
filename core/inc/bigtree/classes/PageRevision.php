@@ -136,4 +136,37 @@
 			return new PageRevision($id);
 		}
 
+		/*
+			Function: save
+				Saves object properties back to the database.
+		*/
+
+		function save() {
+			BigTreeCMS::$DB->update("bigtree_page_revisions",$this->ID,array(
+				"external" => $this->External,
+				"new_window" => $this->NewWindow ? "on" : "",
+				"resources" => $this->Resources,
+				"saved" => $this->Saved ? "on" : "",
+				"saved_description" => BigTree::safeEncode($this->SavedDescription),
+				"template" => $this->Template,
+				"title" => $this->Title
+			));
+
+			AuditTrail::track("bigtree_page_revisions",$this->ID,"updated");
+		}
+
+		/*
+			Function: update
+				Updates the page revision to save it as a favorite.
+
+			Parameters:
+				description - Saved description.
+		*/
+
+		function update($description) {
+			$this->Saved = true;
+			$this->SavedDescription = $description;
+			$this->save();
+		}
+
 	}

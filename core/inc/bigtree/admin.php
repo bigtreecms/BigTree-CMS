@@ -3165,10 +3165,6 @@
 			if ($setting["value"] == "on") {
 				// Google
 				BigTree::cURL("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				// Ask
-				BigTree::cURL("http://submissions.ask.com/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				// Yahoo
-				BigTree::cURL("http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
 				// Bing
 				BigTree::cURL("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
@@ -3513,7 +3509,8 @@
 		*/
 
 		static function setPagePosition($id,$position) {
-			static::$DB->update("bigtree_pages",$id,array("position" => $position));
+			$page = new BigTree\Page($id);
+			$page->updatePosition($position);
 		}
 
 		/*
@@ -3769,21 +3766,8 @@
 		*/
 
 		static function unCache($page) {
-			$get = array();
-			if (is_array($page)) {
-				if (!$page["path"]) {
-					$get["bigtree_htaccess_url"] = "";
-				} else {
-					$get["bigtree_htaccess_url"] = $page["path"]."/";
-				}
-			} else {
-				if ($page == 0) {
-					$get["bigtree_htaccess_url"] = "";
-				} else {
-					$get["bigtree_htaccess_url"] = str_replace(WWW_ROOT,"",BigTreeCMS::getLink($page));
-				}
-			}
-			BigTree::deleteFile(md5(json_encode($get)).".page");
+			$page = new BigTree\Page($page);
+			$page->uncache();
 		}
 
 		/*
@@ -3859,27 +3843,8 @@
 		*/
 
 		static function updateChildPagePaths($page) {
-			$child_pages = static::$DB->fetchAll("SELECT id, path FROM bigtree_pages WHERE parent = ?", $page);
-			foreach ($child_pages as $child) {
-				$new_path = static::getFullNavigationPath($child["id"]);
-
-				if ($child["path"] != $new_path) {
-					// Remove any overlaps
-					static::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $new_path, $child["path"]);
-					
-					// Add a new redirect
-					static::$DB->insert("bigtree_route_history",array(
-						"old_route" => $child["path"],
-						"new_route" => $new_path
-					));
-					
-					// Update the primary path
-					static::$DB->update("bigtree_pages",$child["id"],array("path" => $new_path));
-
-					// Update all this page's children as well
-					static::updateChildPagePaths($child["id"]);
-				}
-			}
+			$page = new BigTree\Page($page);
+			$page->updateChildrenPaths();
 		}
 
 		/*
@@ -4107,7 +4072,7 @@
 		/*
 			Function: updatePage
 				Updates a page.
-				Does not check permissions.
+				Checks some (but not all) permissions.
 
 			Parameters:
 				page - The page id to update.
@@ -4115,41 +4080,6 @@
 		*/
 
 		function updatePage($page,$data) {
-
-			// Save the existing copy as a draft, remove drafts for this page that are one month old or older.
-			$current = static::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
-			
-			// Save a copy
-			static::$DB->insert("bigtree_page_revisions",array(
-				"page" => $page,
-				"title" => $current["title"],
-				"meta_keywords" => $current["meta_keywords"],
-				"meta_description" => $current["meta_description"],
-				"template" => $current["template"],
-				"external" => $current["external"],
-				"new_window" => $current["new_window"],
-				"resources" => $current["resources"],
-				"author" => $current["last_edited_by"],
-				"updated_at" => $current["updated_at"]
-			));
-
-			// Count the page revisions, if we have more than 10, delete any that are more than a month old
-			$revision_count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_page_revisions WHERE page = ? AND saved = ''", $page);
-			if ($revision_count > 10) {
-				static::$DB->query("DELETE FROM bigtree_page_revisions WHERE page = ? AND updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND saved = '' ORDER BY updated_at ASC LIMIT ".($revision_count - 10), $page);
-			}
-
-			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
-			if ($current["template"]) {
-				$template_level = static::$DB->fetchSingle("SELECT level FROM bigtree_templates WHERE id = ?", $current["template"]);
-				if ($template_level > $this->Level) {
-					$data["template"] = $current["template"];
-				}
-			}
-
-			// Remove this page from the cache
-			static::unCache($page);
-
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_keywords = $meta_description = $seo_invisible = "";
 			$parent = $max_age = 0;
@@ -4161,140 +4091,28 @@
 				}
 			}
 
+			$page = new BigTree\Page($page);
+
+			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
+			if ($page->Template) {
+				$template_level = static::$DB->fetchSingle("SELECT level FROM bigtree_templates WHERE id = ?", $page->Template);
+				if ($template_level > $this->Level) {
+					$template = $page->Template;
+				}
+			}
+
 			// Set the trunk flag back to the current value if the user isn't a developer
-			$trunk = ($this->Level < 2) ? $current["trunk"] : $trunk;
+			$trunk = ($this->Level < 2) ? $page->Trunk : $trunk;
 
 			// If this is top level nav and the user isn't a developer, use what the current state is.
-			$in_nav = (!$current["parent"] && $this->Level < 2) ? $current["in_nav"] : $in_nav;
-
-			// Make an ipl:// or {wwwroot}'d version of the URL
-			$external = $external ? static::makeIPL($external) : "";
+			$in_nav = (!$page->Parent && $this->Level < 2) ? $page->InNav : $in_nav;
 
 			// If somehow we didn't provide a parent page (like, say, the user didn't have the right to change it) then pull the one from before.  Actually, this might be exploitable… look into it later.
 			if (!isset($data["parent"])) {
-				$parent = $current["parent"];
+				$parent = $page->Parent;
 			}
 
-			if ($page == 0) {
-				// Home page doesn't get a route - fixes sitemap bug
-				$route = "";
-			} else {
-				// Create a route if we don't have one, otherwise, make sure the one they provided doesn't suck.
-				if (!$route) {
-					$route = BigTreeCMS::urlify($data["nav_title"]);
-				} else {
-					$route = BigTreeCMS::urlify($route);
-				}
-
-				// Get a unique route
-				$original_route = $route;
-				$x = 2;
-				// Reserved paths.
-				if ($parent == 0) {
-					while (file_exists(SERVER_ROOT."site/".$route."/")) {
-						$route = $original_route."-".$x;
-						$x++;
-					}
-					while (in_array($route,static::$ReservedTLRoutes)) {
-						$route = $original_route."-".$x;
-						$x++;
-					}
-				}
-
-				// Make sure route isn't longer than 250
-				$route = substr($route,0,250);
-
-				// Existing pages.
-				while (static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
-												 WHERE `route` = ? AND parent = ? AND id != ?", $route, $parent, $page)) {
-					$route = $original_route."-".$x;
-					$x++;
-				}				
-			}
-
-			// We have no idea how this affects the nav, just wipe it all.
-			if ($current["nav_title"] != $nav_title || $current["route"] != $route || $current["in_nav"] != $in_nav || $current["parent"] != $parent) {
-				static::clearCache();
-			}
-
-			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
-			if ($publish_at && $publish_at != "NULL") {
-				$publish_at = date("Y-m-d",strtotime($publish_at));
-			} else {
-				$publish_at = null;
-			}
-
-			// If we set an expiration date, make it the proper MySQL format.
-			if ($expire_at && $expire_at != "NULL") {
-				$expire_at = date("Y-m-d",strtotime($expire_at));
-			} else {
-				$expire_at = null;
-			}
-
-			// Set the full path, saves DB access time on the front end.
-			if ($parent > 0) {
-				$path = static::getFullNavigationPath($parent)."/".$route;
-			} else {
-				$path = $route;
-			}
-
-			// Update the database
-			static::$DB->update("bigtree_pages",$page,array(
-				"trunk" => $trunk,
-				"parent" => $parent,
-				"nav_title" => BigTree::safeEncode($nav_title),
-				"route" => $route,
-				"path" => $path,
-				"in_nav" => $in_nav,
-				"title" => BigTree::safeEncode($title),
-				"template" => $template,
-				"external" => BigTree::safeEncode($external),
-				"new_window" => $new_window,
-				"resources" => $resources,
-				"meta_keywords" => BigTree::safeEncode($meta_keywords),
-				"meta_description" => BigTree::safeEncode($meta_description),
-				"seo_invisible" => $seo_invisible ? "on" : "",
-				"last_edited_by" => $this->ID,
-				"publish_at" => $publish_at,
-				"expire_at" => $expire_at,
-				"max_age" => $max_age
-			));
-
-			// Remove any pending drafts
-			static::$DB->delete("bigtree_pending_changes",array("table" => "bigtree_pages","item_id" => $page));
-
-			// Remove old paths from the redirect list
-			static::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $path, $current["path"]);
-
-			// Create an automatic redirect from the old path to the new one.
-			if ($current["path"] != $path) {
-				static::$DB->insert("bigtree_route_history",array(
-					"old_route" => $current["path"],
-					"new_route" => $path
-				));
-
-				// Update all child page routes, ping those engines, clean those caches
-				static::updateChildPagePaths($page);
-				static::pingSearchEngines();
-				static::clearCache();
-			}
-
-			// Handle tags
-			static::$DB->delete("bigtree_tags_rel",array("table" => "bigtree_pages","entry" => $page));
-			if (is_array($data["_tags"])) {
-				foreach ($data["_tags"] as $tag) {
-					static::$DB->insert("bigtree_tags_rel",array(
-						"table" => "bigtree_pages",
-						"entry" => $page,
-						"tag" => $tag
-					));
-				}
-			}
-
-			// Audit trail.
-			$this->track("bigtree_pages",$page,"updated");
-
-			return $page;
+			$page->update($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags);
 		}
 
 		/*
@@ -4312,32 +4130,14 @@
 				$this->stop("You are not allowed to move pages.");
 			}
 
-			// Get the existing path so we can create a route history
-			$current = static::$DB->fetch("SELECT in_nav, path FROM bigtree_pages WHERE id = ?", $page);
+			$page = new BigTree\Page($page);
 
-			// If the current user isn't a developer and is moving the page to top level, set it to not be visible
-			$in_nav = $current["in_nav"] ? "on" : "";
+			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {
-				$in_nav = "";
+				BigTreeCMS::$DB->update("bigtree_pages",$page->ID,array("in_nav" => ""))
 			}
 
-			// Update the page parent first so that the navigation path call returns the new path
-			static::$DB->update("bigtree_pages",$page,array("in_nav" => $in_nav, "parent" => $parent));
-			$path = $this->getFullNavigationPath($page);
-
-			// Set the route history
-			static::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $path, $current["path"]);
-			static::$DB->insert("bigtree_route_history",array(
-				"old_route" => $current["path"],
-				"new_route" => $path
-			));
-
-			// Update the page with its new path.
-			static::$DB->update("bigtree_pages",$page,array("path" => $path));
-
-			// Update the paths of any child pages.
-			$this->updateChildPagePaths($page);
-			$this->track("bigtree_pages",$page,"moved");
+			$page->updateParent($parent);
 		}
 
 		/*
@@ -4352,18 +4152,14 @@
 
 		function updatePageRevision($id,$description) {
 			// Get the version, check if the user has access to the page the version refers to.
-			$revision = $this->getPageRevision($id);
-			$access_level = $this->getPageAccessLevel($revision["page"]);
-			if ($access_level != "p") {
+			$revision = new BigTree\PageRevision($id);
+			$origin_page = new BigTree\Page($revision->Page);
+
+			if ($origin_page->UserAccessLevel != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
-			// Save the version's description and saved status
-			static::$DB->update("bigtree_page_revisions",$id,array(
-				"saved" => "on",
-				"saved_description" => BigTree::safeEncode($description)
-			));
-			$this->track("bigtree_page_revisions",$id,"updated");
+			$revision->update($description);
 		}
 
 		/*
@@ -4378,13 +4174,8 @@
 		*/
 
 		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
-			static::$DB->update("bigtree_pending_changes",$id,array(
-				"changes" => $changes,
-				"mtm_changes" => $mtm_changes,
-				"tags_changes" => $tags_changes,
-				"user" => $this->ID
-			));
-			$this->track("bigtree_pending_changes",$id,"updated");
+			$change = new BigTree\PendingChange($id);
+			$change->update($changes,$mtm_changes,$tags_changes);
 		}
 
 		/*
@@ -4399,32 +4190,7 @@
 		*/
 
 		function updateProfile($name,$company = "",$daily_digest = "",$password = false) {
-			global $bigtree;
-
-			// Allow for pre-4.3 style parameters
-			if (is_array($name)) {
-				$data = $name;
-				$name = "";
-
-				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
-						$$key = $val;
-					}
-				}
-			}
-
-			$update_values = array(
-				"name" => BigTree::safeEncode($name),
-				"company" => BigTree::safeEncode($company),
-				"daily_digest" => $daily_digest ? "on" : "",
-			);
-
-			if ($password !== "" && $password !== false) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$update_values["password"] = $phpass->HashPassword($password);
-			}
-
-			static::$DB->update("bigtree_users",$this->ID,$update_values);
+			BigTree\User::updateProfile($name,$company,$daily_digest,$password);
 		}
 
 		/*

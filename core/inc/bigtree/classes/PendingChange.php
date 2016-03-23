@@ -301,5 +301,44 @@
 			// Couldn't find a link
 			return false;
 		}
+
+		/*
+			Function: save
+				Saves the object properties back to the database.
+		*/
+
+		function save() {
+			BigTreeCMS::$DB->update("bigtree_pending_changes",$this->ID,array(
+				"changes" => $this->Changes,
+				"item_id" => $this->ItemID ?: null,
+				"mtm_changes" => $this->ManyToManyChanges,
+				"module" => $this->Module ?: "",
+				"pending_page_parent" => $this->PendingPageParent,
+				"publish_hook" => $this->PublishHook ?: null,
+				"tags_changes" => $this->TagsChanges,
+				"title" => BigTree::safeEncode($this->Title),
+				"user" => $this->User
+			));
+
+			AuditTrail::track("bigtree_pending_changes",$this->ID,"updated");
+		}
+
+		/*
+			Function: update
+				Updates the pending change.
+
+			Parameters:
+				changes - The changes to the fields in the entry.
+				mtm_changes - Many to Many changes.
+				tags_changes - Tags changes.
+		*/
+
+		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
+			$this->Changes = $changes;
+			$this->ManyToManyChanges = $mtm_changes;
+			$this->TagsChanges = $tags_changes;
+
+			$this->save();
+		}
 		
 	}

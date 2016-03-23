@@ -187,7 +187,7 @@
 				template - Page template ID
 				external - External link (or empty)
 				new_window - Open in new window from nav (true or false)
-				fields - Array of page data
+				resources - Array of page data
 				publish_at - Publish time (or false for immediate publishing)
 				expire_at - Expiration time (or false for no expiration)
 				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
@@ -197,7 +197,7 @@
 				A Page object.
 		*/
 
-		function create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags = array()) {
+		function create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$tags = array()) {
 			global $admin;
 
 			// Clean up either their desired route or the nav title
@@ -1014,5 +1014,238 @@
 			// Unarchive this level
 			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = '', archived_inherited = '' 
 									WHERE parent = ? AND archived_inherited = 'on'", $id);
+		}
+
+		/*
+			Function: uncache
+				Removes any static cache copies of this page.
+		*/
+
+		static function uncache() {
+			BigTree::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path))).".page");
+			BigTree::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path."/"))).".page");
+		}
+
+		/*
+			Function: save
+				Saves and validates object properties back to the database.
+		*/
+
+		function save() {
+			// Homepage must have no route
+			if ($this->ID == 0) {
+				$this->Route = "";
+			} else {
+				// Get a unique route
+				$original_route = BigTreeCMS::urlify($this->Route);
+				$x = 2;
+	
+				// Reserved paths.
+				if ($this->Parent == 0) {
+					while (file_exists(SERVER_ROOT."site/".$route."/")) {
+						$route = $original_route."-".$x;
+						$x++;
+					}
+					while (in_array($route,static::$ReservedTLRoutes)) {
+						$route = $original_route."-".$x;
+						$x++;
+					}
+				}
+	
+				// Make sure route isn't longer than 250
+				$route = substr($route,0,250);
+	
+				// Existing pages.
+				while (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
+													 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
+					$route = $original_route."-".$x;
+					$x++;
+				}
+	
+				$this->Route = $route;
+			}
+
+			// Update the path in case the parent changed
+			$original_path = $this->Path;
+			$this->regeneratePath();
+
+			// Remove old paths from the redirect list, add a new redirect and update children
+			if ($this->Path != $original_path) {
+				$this->updateChildrenPaths();
+
+				BigTreeCMS::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $this->Path, $original_path);
+				BigTreeCMS::$DB->insert("bigtree_route_history",array(
+					"old_route" => $original_path,
+					"new_route" => $this->Path
+				));
+			}
+
+			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array(
+				"trunk" => $this->Trunk ? "on" : "",
+				"parent" => $this->Parent,
+				"in_nav" => $this->InNav ? "on" : "",
+				"nav_title" => BigTree::safeEncode($this->NavigationTitle),
+				"title" => BigTree::safeEncode($this->Title),
+				"path" => $this->Path,
+				"route" => $this->Route,
+				"meta_description" => BigTree::safeEncode($this->MetaDescription),
+				"seo_invisible" => $this->SEOInvisible ? "on" : "",
+				"template" => $this->Template,
+				"external" => $this->External ? Link::encode($this->External) : "",
+				"new_window" => $this->NewWindow ? "on" : "",
+				"resources" => (array) $this->Resources,
+				"publish_at" => $this->PublishAt ?: null,
+				"expire_at" => $this->ExpireAt ?: null,
+				"max_age" => $this->MaxAge ?: 0,
+				"last_edited_by" !empty($admin->ID) ? $admin->ID : $this->LastEditedBy
+			));
+		}
+
+		/*
+			Function: update
+				Updates the page's properties and saves changes to the database.
+				Creates a new page revision and erases old page revisions.
+
+			Parameters:
+				trunk - Trunk status (true or false)
+				parent - Parent page ID
+				in_nav - In navigation (true or false)
+				nav_title - Navigation title
+				title - Page title
+				route - Page route (leave empty to auto generate)
+				meta_description - Page meta description
+				seo_invisible - Pass "X-Robots-Tag: noindex" header (true or false)
+				template - Page template ID
+				external - External link (or empty)
+				new_window - Open in new window from nav (true or false)
+				resources - Array of page data
+				publish_at - Publish time (or false for immediate publishing)
+				expire_at - Expiration time (or false for no expiration)
+				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
+				tags - An array of tags to apply to the page (optional)
+		*/
+
+		function update($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$tags = array()) {
+			// Save a page revision
+			PageRevision::create($this);
+
+			// Count the page revisions, if we have more than 10, delete any that are more than a month old
+			$revision_count = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_page_revisions 
+															WHERE page = ? AND saved = ''", $this->ID);
+			if ($revision_count > 10) {
+				BigTreeCMS::$DB->query("DELETE FROM bigtree_page_revisions 
+										WHERE page = ? AND 
+											  updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND 
+											  saved = '' 
+										ORDER BY updated_at ASC LIMIT ".($revision_count - 10), $this->ID);
+			}
+
+			// Remove this page from the cache
+			$this->uncache();
+
+			// We have no idea how this affects the nav, just wipe it all.
+			if ($this->NavigationTitle != $nav_title || $this->Route != $route || $this->InNav != $in_nav || $this->Parent != $parent) {
+				BigTreeAdmin::clearCache();
+			}
+
+			$this->ExpireAt = ($expire_at && $expire_at != "NULL") ? date("Y-m-d",strtotime($expire_at)) : null;
+			$this->External = $external;
+			$this->InNav = $in_nav;
+			$this->MaxAge = $max_age;
+			$this->MetaDescription = $meta_description;
+			$this->NavigationTitle = $nav_title;
+			$this->NewWindow = $new_window;
+			$this->Parent = $parent;
+			$this->PublishAt = ($publish_at && $publish_at != "NULL") ? date("Y-m-d",strtotime($publish_at)) : null;
+			$this->Resources = $resources;
+			$this->Route = $route ?: BigTreeCMS::urlify($nav_title);
+			$this->SEOInvisible = $seo_invisible;
+			$this->Tags = $tags;
+			$this->Template = $template;
+			$this->Title = $title;
+			$this->Trunk = $trunk;
+
+			// Remove any pending drafts
+			BigTreeCMS::$DB->delete("bigtree_pending_changes",array("table" => "bigtree_pages","item_id" => $page));
+
+			// Handle tags
+			BigTreeCMS::$DB->delete("bigtree_tags_rel",array("table" => "bigtree_pages","entry" => $page));
+			foreach ($tags as $tag) {
+				BigTreeCMS::$DB->insert("bigtree_tags_rel",array(
+					"table" => "bigtree_pages",
+					"entry" => $this->ID,
+					"tag" => $tag
+				));
+			}
+
+			$this->save();
+		}
+
+		/*
+			Function: updateChildrenPaths
+				Updates the paths for pages who are descendants of a given page to reflect the page's new route.
+				Also sets route history if the page has changed paths.
+		*/
+
+		function updateChildrenPaths($page = false) {
+			// Allow for recursion
+			if ($page !== false) {
+				$parent_path = BigTreeCMS::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $page);
+			} else {
+				$parent_path = $this->Path;
+				$page = $this->ID;
+			}
+
+			$child_pages = BigTreeCMS::$DB->fetchAll("SELECT id, route, path FROM bigtree_pages WHERE parent = ?", $page);
+			foreach ($child_pages as $child) {
+				$new_path = $parent_path."/".$child["route"];
+
+				if ($child["path"] != $new_path) {
+					// Remove any overlaps
+					BigTreeCMS::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $new_path, $child["path"]);
+					
+					// Add a new redirect
+					BigTreeCMS::$DB->insert("bigtree_route_history",array(
+						"old_route" => $child["path"],
+						"new_route" => $new_path
+					));
+					
+					// Update the primary path
+					BigTreeCMS::$DB->update("bigtree_pages",$child["id"],array("path" => $new_path));
+
+					// Update all this page's children as well
+					$this->updateChildrenPaths($child["id"]);
+				}
+			}
+		}
+
+		/*
+			Function: updateParent
+				Changes the page's parent and adjusts child pages.
+				Sets a special audit trail entry for "moved".
+
+			Parameters:
+				parent - The new parent page ID.
+		*/
+
+		function updateParent($parent) {
+			$this->Parent = $parent;
+			$this->save();
+
+			// Track a movement
+			AuditTrail::track("bigtree_pages",$this->ID,"moved");
+		}
+
+		/*
+			Function: updatePosition
+				Sets the position of the page without adjusting other columns.
+
+			Parameters:
+				position - The position to set.
+		*/
+
+		function updatePosition($position) {
+			$this->Position = $position;
+			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array("position" => $position));
 		}
 	}
