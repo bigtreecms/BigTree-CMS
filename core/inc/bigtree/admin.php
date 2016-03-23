@@ -400,7 +400,7 @@
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
 
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword($password));
+			$password = sqlescape($phpass->HashPassword(trim($password)));
 
 			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
 			sqlquery("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE user = '".$user["id"]."'");
@@ -2509,7 +2509,7 @@
 				return false;
 			}
 
-			$hash = sqlescape(md5(md5(md5(uniqid("bigtree-hash".microtime(true))))));
+			$hash = sqlescape(md5(md5($user["password"]).md5(uniqid("bigtree-hash".microtime(true)))));
 			sqlquery("UPDATE bigtree_users SET change_password_hash = '$hash' WHERE id = '".$user["id"]."'");
 
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
@@ -6398,9 +6398,6 @@
 
 			Parameters:
 				module - The id of the module to check access to.
-
-			Returns:
-				The permission level of the logged in user.
 		*/
 
 		function requirePublisher($module) {
