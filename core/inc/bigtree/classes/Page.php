@@ -938,4 +938,81 @@
 
 			return $this->Path;
 		}
+
+		/*
+			Function: search
+				Searches for pages based on the provided fields.
+
+			Parameters:
+				query - Query string to search against.
+				fields - Fields to search.
+				max - Maximum number of results to return.
+				return_arrays - Set to true to return arrays rather than objects.
+
+			Returns:
+				An array of Page objects.
+		*/
+
+		static function search($query,$fields = array("nav_title"),$max = 10,$return_arrays = false) {
+			// Since we're in JSON we have to do stupid things to the /s for URL searches.
+			$query = str_replace('/','\\\/',$query);
+
+			$results = array();
+			$terms = explode(" ",$query);
+			$where_parts = array("archived != 'on'");
+
+			foreach ($terms as $term) {
+				$term = BigTreeCMS::$DB->escape($term);
+				
+				$or_parts = array();
+				foreach ($fields as $field) {
+					$or_parts[] = "`$field` LIKE '%$term%'";
+				}
+
+				$where_parts[] = "(".implode(" OR ",$or_parts).")";
+			}
+
+			$pages = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE ".implode(" AND ",$where_parts)." 
+												ORDER BY nav_title LIMIT $max");
+
+			if (!$return_arrays) {
+				foreach ($pages as &$page) {
+					$page = new Page($page);
+				}
+			}
+
+			return $pages;
+		}
+
+		/*
+			Function: unarchive
+				Unarchives the page and all its children that inherited archived status.
+		*/
+
+		function unarchive() {
+			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array("archived" => ""));
+			$this->unarchiveChildren();
+
+			AuditTrail::track("bigtree_pages",$this->ID,"unarchived");
+		}
+
+		/*
+			Function: unarchiveChildren
+				Unarchives the page's children that have the archived_inherited status.
+		*/
+
+		function unarchiveChildren($id = false) {
+			// Allow for recursion
+			$id = $id ?: $this->ID;
+
+			$child_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'", $id);
+			foreach ($child_ids as $child_id) {
+				AuditTrail::track("bigtree_pages",$child_id,"unarchived-inherited");
+				$this->unarchiveChildren($child_id);
+			}
+
+			// Unarchive this level
+			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = '', archived_inherited = '' 
+									WHERE parent = ? AND archived_inherited = 'on'", $id);
+		}
 	}

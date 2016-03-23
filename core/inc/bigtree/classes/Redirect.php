@@ -105,9 +105,21 @@
 		*/
 
 		function save() {
+			// Try to convert the short URL into a full one
+			$redirect_url = $this->RedirectURL;
+			if (strpos($redirect_url,"//") === false) {
+				$redirect_url = WWW_ROOT.ltrim($redirect_url,"/");
+			}
+			$redirect_url = htmlspecialchars(Link::encode($redirect_url));
+
+			// Don't use static roots if they're the same as www just in case they are different when moving environments
+			if (WWW_ROOT === STATIC_ROOT) {
+				$redirect_url = str_replace("{staticroot}","{wwwroot}",$redirect_url);
+			}
+
 			BigTreeCMS::$DB->update("bigtree_404s",$this->ID,array(
 				"broken_url" => htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$this->BrokenURL),"/"))),
-				"redirect_url" => htmlspecialchars(Link::encode($this->RedirectURL)),
+				"redirect_url" => $redirect_url,
 				"ignored" => $this->Ignored ? "on" : "";
 			));
 

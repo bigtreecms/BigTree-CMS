@@ -11,6 +11,7 @@
 
 	class Extension extends BaseObject {
 
+		static $CacheInitialized = false;
 		static $Table = "bigtree_extensions";
 
 		protected $ID;
@@ -377,4 +378,58 @@
 			AuditTrail::track("bigtree_extensions",$this->ID,"deleted");
 		}
 
+		/*
+			Function: initalizeCache
+				Initializes any extension plugins and caches them to the proper objects.
+		*/
+
+		static function initalizeCache() {
+			global $bigtree;
+
+			// Already done!
+			if (static::$CacheInitialized) {
+				return;
+			}
+
+			$extension_cache_file = SERVER_ROOT."cache/bigtree-extension-cache.json";
+
+			// Handle extension cache
+			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
+				$plugins = array(
+					"cron" => array(),
+					"daily-digest" => array(),
+					"dashboard" => array(),
+					"interfaces" => array(),
+					"view-types" => array()
+				);
+
+				$extension_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
+				foreach ($extension_ids as $extension_id) {
+					// Load up the manifest
+					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"),true);
+					if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
+						foreach ($manifest["plugins"] as $type => $list) {
+							foreach ($list as $id => $plugin) {
+								$plugins[$type][$extension_id][$id] = $plugin;
+							}
+						}
+					}
+				}
+
+				// If no longer in debug mode, cache it
+				if (!$bigtree["config"]["debug"]) {
+					file_put_contents($extension_cache_file,BigTree::json($plugins));
+				}
+			} else {
+				$plugins = json_decode(file_get_contents($extension_cache_file),true);
+			}
+			
+			Cron::$Plugins = $plugins["cron"];
+			DailyDigest::$Plugins = $plugins["daily-digest"];
+			Dashboard::$Plugins = $plugins["dashboard"];
+			ModuleInterface::$Plugins = $plugins["interfaces"];
+			ModuleView::$Plugins = $plugins["view-types"];
+
+			static::$CacheInitialized = true;
+		}
 	}

@@ -4,7 +4,7 @@
 	</summary>
 	<section>
 		<?php
-			foreach (BigTreeAdmin::$InterfaceTypes["core"] as $route => $interface) {
+			foreach (BigTree\ModuleInterface::$CoreTypes as $route => $interface) {
 		?>
 		<h3><span class="icon_small_<?=$interface["icon"]?>"></span> <?=$interface["name"]?></h3>
 		<p><?=$interface["description"]?></p>
@@ -16,7 +16,8 @@
 	</section>
 </div>
 <?php
-	if (count(BigTreeAdmin::$InterfaceTypes["extension"])) {
+	BigTree\Extension::initalizeCache();
+	if (count(BigTree\ModuleInterface::$Plugins)) {
 ?>
 <div class="container">
 	<summary>
@@ -24,7 +25,7 @@
 	</summary>
 	<section>
 		<?php
-			foreach (BigTreeAdmin::$InterfaceTypes["extension"] as $extension => $interfaces) {
+			foreach (BigTree\ModuleInterface::$Plugins as $extension => $interfaces) {
 				foreach ($interfaces as $id => $interface) {
 		?>
 		<h3><?php if ($interface["icon"]) { ?><span class="icon_small_<?=$interface["icon"]?>"></span> <?php } ?><?=$interface["name"]?></h3>

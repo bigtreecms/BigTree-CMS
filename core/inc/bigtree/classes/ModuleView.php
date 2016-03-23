@@ -11,6 +11,16 @@
 
 	class ModuleView extends ModuleInterface {
 
+		static $CoreTypes = array(
+			"searchable" => "Searchable List",
+			"draggable" => "Draggable List",
+			"nested" => "Nested Draggable List",
+			"grouped" => "Grouped List",
+			"images" => "Image List",
+			"images-grouped" => "Grouped Image List"
+		);
+		static $Plugins = array();
+		
 		protected $ID;
 		protected $InterfaceSettings;
 

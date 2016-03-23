@@ -10,7 +10,7 @@
 	$settings = $extension_settings["dashboard"];
 
 	// Sort the panes
-	foreach (BigTreeAdmin::$DashboardPlugins["core"] as $id => $name) {
+	foreach (BigTree\Dashboard::$CoreOptions as $id => $name) {
 		$panes[] = array(
 			"id" => $id,
 			"name" => $name,
@@ -18,7 +18,7 @@
 		);
 		$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 	}
-	foreach (BigTreeAdmin::$DashboardPlugins["extension"] as $extension => $set) {
+	foreach (BigTree\Dashboard::$Plugins as $extension => $set) {
 		foreach ($set as $id => $name) {
 			$id = $extension."*".$id;
 			$panes[] = array(
