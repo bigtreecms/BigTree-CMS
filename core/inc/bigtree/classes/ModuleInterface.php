@@ -140,12 +140,13 @@
 		*/
 
 		function save() {
+			// Some sub-classes use $this->Settings so we check for InterfaceSettings first when grabbing data.
 			BigTreeCMS::$DB->update("bigtree_module_interfaces",$this->ID,array(
 				"type" => $this->Type,
 				"module" => $this->Module,
 				"title" => BigTree::safeEncode($this->Title),
 				"table" => $this->Table,
-				"settings" => (array) $this->Settings
+				"settings" => (array) ($this->InterfaceSettings ?: $this->Settings)
 			));
 
 			AuditTrail::track("bigtree_module_interfaces",$this->ID,"updated");

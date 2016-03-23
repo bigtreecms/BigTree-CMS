@@ -91,4 +91,48 @@
 
 			return new Feed($id);
 		}
+
+		/*
+			Function: save
+				Saves the object properties back to the database.
+		*/
+
+		function save() {
+			BigTreeCMS::$DB->update("bigtree_feeds",$this->ID,array(
+				"name" => BigTree::safeEncode($this->Name),
+				"description" => BigTree::safeEncode($this->Description),
+				"table" => $this->Table,
+				"type" => $this->Type,
+				"fields" => $this->Fields,
+				"options" => BigTree::translateArray($this->Settings)
+			));
+
+			AuditTrail::track("bigtree_feeds",$this->ID,"updated");
+		}
+
+		/*
+			Function: update
+				Updates the feed's properties and saves them back to the database.
+
+			Parameters:
+				name - The name.
+				description - The description.
+				table - The data table.
+				type - The feed type.
+				settings - The feed type settings.
+				fields - The fields.
+		*/
+
+		function update($name,$description,$table,$type,$settings,$fields) {
+			$settings = is_array($settings) ? $settings : json_decode($settings,true);
+
+			$this->Name = $name;
+			$this->Description = $description;
+			$this->Table = $table;
+			$this->Type = $type;
+			$this->Settings = $settings;
+			$this->Fields = $fields;
+
+			$this->save();
+		}
 	}

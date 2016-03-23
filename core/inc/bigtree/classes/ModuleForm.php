@@ -131,22 +131,16 @@
 				$this->Fields[$key] = $field;
 			}
 
-			// Update the DB
-			BigTreeCMS::$DB->update("bigtree_module_interfaces",$this->ID,array(
-				"module" => $this->Module,
-				"title" => BigTree::safeEncode($this->Title),
-				"table" => $this->Table,
-				"settings" => array(
-					"fields" => array_filter((array) $this->Fields),
-					"default_position" => $this->DefaultPosition,
-					"return_view" => intval($this->ReturnView) ?: null,
-					"return_url" => $this->ReturnURL,
-					"tagging" => $this->Tagging ? "on" : "",
-					"hooks" => array_filter((array) $this->Hooks)
-				)
-			));
+			$this->InterfaceSettings = array(
+				"fields" => array_filter((array) $this->Fields),
+				"default_position" => $this->DefaultPosition,
+				"return_view" => intval($this->ReturnView) ?: null,
+				"return_url" => $this->ReturnURL,
+				"tagging" => $this->Tagging ? "on" : "",
+				"hooks" => array_filter((array) $this->Hooks)
+			);
 
-			AuditTrail::track("bigtree_module_interfaces",$this->ID,"updated");
+			parent::save();
 		}
 
 		/*

@@ -53,4 +53,47 @@
 				$this->View = $this->InterfaceSettings["view"];
 			}
 		}
+
+		/*
+			Function: save
+				Saves the object's properties back to the database and updates InterfaceSettings.
+		*/
+
+		function save() {
+			$this->InterfaceSettings = array(
+				"type" => $this->Type,
+				"filters" => $this->Filters,
+				"fields" => $this->Fields,
+				"parser" => $this->Parser,
+				"view" => $this->View ?: null
+			);
+
+			parent::save();
+		}
+
+		/*
+			Function: update
+				Updates the module report's properties and saves them back to the interface settings and database.
+
+			Parameters:
+				title - The title of the report.
+				table - The table for the report data.
+				type - The type of report (csv or view).
+				filters - The filters a user can use to create the report.
+				fields - The fields to show in the CSV export (if type = csv).
+				parser - An optional parser function to run on the CSV export data (if type = csv).
+				view - A module view ID to use (if type = view).
+		*/
+
+		function update($title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+			$this->Fields = $fieldss;
+			$this->Filters = $filters;
+			$this->Parser = $parser;
+			$this->Table = $table;
+			$this->Title = $title;
+			$this->Type = $type;
+			$this->View = $view ?: null;
+
+			$this->save();
+		}
 	}

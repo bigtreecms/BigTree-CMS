@@ -203,22 +203,17 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_module_interfaces",$this->ID,array(
-				"module" => $this->Module,
-				"title" => BigTree::safeEncode($this->Title),
-				"table" => $this->Table,
-				"settings" => array(
-					"description" => BigTree::safeEncode($this->Description),
-					"type" => $this->Type,
-					"fields" => array_filter((array) $this->Fields),
-					"options" => (array) $this->Settings,
-					"actions" => array_filter((array) $this->Actions),
-					"preview_url" => $preview_url ? Link::encode($preview_url) : "",
-					"related_form" => $related_form ? intval($related_form) : null
-				)
-			));
+			$this->InterfaceSettings = array(
+				"description" => BigTree::safeEncode($this->Description),
+				"type" => $this->Type,
+				"fields" => array_filter((array) $this->Fields),
+				"options" => (array) $this->Settings,
+				"actions" => array_filter((array) $this->Actions),
+				"preview_url" => $preview_url ? Link::encode($preview_url) : "",
+				"related_form" => $related_form ? intval($related_form) : null
+			);
 
-			AuditTrail::track("bigtree_module_interfaces",$this->ID,"updated");
+			parent::save();
 		}
 
 		/*

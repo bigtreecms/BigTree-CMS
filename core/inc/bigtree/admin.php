@@ -4131,21 +4131,8 @@
 		*/
 
 		function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
-			$options = is_array($options) ? $options : json_decode($options,true);
-			foreach ($options as &$option) {
-				$option = BigTreeCMS::replaceHardRoots($option);
-			}
-
-			static::$DB->update("bigtree_feeds",$id,array(
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
-				"table" => $table,
-				"type" => $type,
-				"fields" => $fields,
-				"options" => $options
-			));
-
-			$this->track("bigtree_feeds",$id,"updated");
+			$feed = new BigTree\Feed($id);
+			$feed->update($name,$description,$table,$type,$options,$fields);
 		}
 
 		/*
@@ -4221,26 +4208,8 @@
 		*/
 
 		function updateModuleEmbedForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
-			$clean_fields = array();
-			foreach ($fields as $key => $field) {
-				$field["options"] = json_decode($field["options"],true);
-				$field["column"] = $key;
-				$clean_fields[] = $field;
-			}
-
-			// Get existing form to preserve its hash
-			$interface_settings = json_decode(static::$DB->fetchSingle("SELECT settings FROM bigtree_module_interfaces WHERE id = ?", $id),true);
-
-			$this->updateModuleInterface($id,$title,$table,array(
-				"fields" => $clean_fields,
-				"default_position" => $default_position,
-				"default_pending" => $default_pending ? "on" : "",
-				"css" => BigTree::safeEncode($this->makeIPL($css)),
-				"hash" => $interface_settings["hash"],
-				"redirect_url" => $redirect_url ? BigTree::safeEncode($this->makeIPL($redirect_url)) : "",
-				"thank_you_message" => $thank_you_message,
-				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
-			));
+			$form = new BigTree\ModuleEmbedForm($id);
+			$form->update($title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
 		}
 
 		/*
@@ -4290,13 +4259,11 @@
 		*/
 
 		function updateModuleInterface($id,$title,$table,$settings = array()) {
-			static::$DB->update("bigtree_module_interfaces",$id,array(
-				"title" => BigTree::safeEncode($title),
-				"table" => $table,
-				"settings" => $settings
-			));
-
-			$this->track("bigtree_module_interfaces",$id,"updated");
+			$interface = new BigTree\ModuleInterface($id);
+			$interface->Title = $title;
+			$interface->Table = $table;
+			$interface->Settings = $settings;
+			$interface->save();
 		}
 
 		/*
@@ -4315,16 +4282,8 @@
 		*/
 
 		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$this->updateModuleInterface($id,$title,$table,array(
-				"type" => $type,
-				"filters" => $filters,
-				"fields" => $fields,
-				"parser" => $parser,
-				"view" => $view ? $view : null
-			));
-
-			// Update related module action names
-			static::$DB->update("bigtree_module_actions",array("interface" => $id),array("name" => $title));
+			$report = new BigTree\ModuleReport($id);
+			$report->update($title,$table,$type,$filters,$fields,$parser,$view);
 		}
 
 		/*
