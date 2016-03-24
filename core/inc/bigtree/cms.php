@@ -7,7 +7,6 @@
 	class BigTreeCMSBase {
 		
 		// Public properties
-		public $AutoSaveSettings = array();
 		public $ExtensionRequiredFiles = array();
 		public $ModuleClassList = array();
 		public $RouteRegistry = array("public" => array(),"admin" => array(),"template" => array());
@@ -87,92 +86,6 @@
 			$this->ExtensionRequiredFiles = $data["extension_required_files"];
 			$this->ModuleClassList = $data["classes"];
 			$this->RouteRegistry = $data["routes"];
-		}
-
-		/*
-			Destructor:
-				Saves settings back to the database that were instantiated through the autoSaveSetting method.
-		*/
-
-		function __destruct() {
-			foreach ($this->AutoSaveSettings as $id => $obj) {
-				if (is_object($obj)) {
-					BigTreeAdmin::updateSettingValue($id,get_object_vars($obj));
-				} else {
-					BigTreeAdmin::updateSettingValue($id,$obj);
-				}
-			}
-		}
-
-		/*
-			Function: autoSaveSetting
-				Returns a reference to an object that can be modified which will automatically save back to a bigtree_settings entry on the $cms class destruction.
-				The entry in bigtree_settings should be an associate array. If the setting doesn't exist, an encrypted setting with the passed in id will be created.
-				You MUST set your variable to be a reference using $var = &$cms->autoSaveSetting("my-id") for this to function properly.
-
-			Parameters:
-				id - The bigtree_settings id.
-				return_object - Return the data an object (default, set to false to return as array)
-				name - Optional name for the setting.
-
-			Returns:
-				An object reference.
-		*/
-
-		function &autoSaveSetting($id,$return_object = true,$name = "") {
-			$id = static::extensionSettingCheck($id);
-
-			// Only want one usage to exist
-			if (!isset($this->AutoSaveSettings[$id])) {
-				$data = $this->getSetting($id);
-
-				// Create a setting if it doesn't exist yet
-				if ($data === false) {
-
-					// If an extension is creating an auto save setting, make it a reference back to the extension
-					if (defined("EXTENSION_ROOT") && strpos($id,"bigtree-internal-") !== 0) {
-						$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
-						
-						// Don't append extension again if it's already being called via the namespace
-						if (strpos($id,"$extension*") === false) {
-							$id = "$extension*$id";
-						}
-						
-						static::$DB->insert("bigtree_settings",array(
-							"id" => $id,
-							"name" => $name,
-							"encrypted" => "on",
-							"system" => "on",
-							"extension" => $extension
-						));
-					} else {
-						static::$DB->insert("bigtree_settings",array(
-							"id" => $id,
-							"name" => $name,
-							"encrypted" => "on",
-							"system" => "on"
-						));
-					}
-					$data = array();
-				}
-
-				// Asking for an object? Return it as an object
-				if ($return_object) {
-					$obj = new stdClass;
-					if (is_array($data)) {
-						foreach ($data as $key => $val) {
-							$obj->$key = $val;
-						}
-					}
-					$this->AutoSaveSettings[$id] = $obj;
-				// Otherwise return an array
-				} else {
-					$this->AutoSaveSettings[$id] = $data;
-				}
-			}
-
-			// Already exists, return it
-			return $this->AutoSaveSettings[$id];
 		}
 
 		/*
@@ -1284,15 +1197,6 @@
 		*/
 
 		static function urlify($title) {
-			$accent_match = array('Â', 'Ã', 'Ä', 'À', 'Á', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 'Ð', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'ß', 'à', 'á', 'â', 'ã', 'ä', 'å', 'æ', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ð', 'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'ÿ');
-			$accent_replace = array('A', 'A', 'A', 'A', 'A', 'A', 'AE', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'D', 'N', 'O', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'B', 'a', 'a', 'a', 'a', 'a', 'a', 'ae', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'o', 'n', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'y');
-
-			$title = str_replace($accent_match, $accent_replace, $title);
-			$title = htmlspecialchars_decode($title);
-			$title = str_replace("/","-",$title);
-			$title = strtolower(preg_replace('/\s/', '-',preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '',trim($title))));
-			$title = str_replace("--","-",$title);
-	
-			return $title;
+			return BigTree\Link::urlify($title);
 		}
 	}

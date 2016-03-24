@@ -88,7 +88,9 @@
 		*/
 
 		static function getChanges($user) {
-			$changes = static::getPublishableChanges($user["id"]);
+			$user = new BigTree\User($user);
+			$changes = BigTree\PendingChange::allPublishableByUser($user);
+
 			$changes_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
 							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Pending Changes</h3>
