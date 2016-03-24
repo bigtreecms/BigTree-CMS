@@ -30,7 +30,7 @@
 
 			// Just send the request with the secret.
 			$this->RequestParameters = array();
-			$this->RequestParameters["access_token"] = &$this->Setting->Value["token"];
+			$this->RequestParameters["access_token"] = &$this->Settings["token"];
 		}
 
 		/*

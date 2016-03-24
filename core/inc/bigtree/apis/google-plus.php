@@ -31,9 +31,9 @@
 
 			// Just send the request with the secret.
 			$this->RequestParameters = array();
-			$this->RequestParameters["access_token"] = &$this->Setting->Value["token"];
-			$this->RequestParameters["api_key"] = &$this->Setting->Value["key"];
-			$this->RequestParameters["api_secret"] = &$this->Setting->Value["secret"];
+			$this->RequestParameters["access_token"] = &$this->Settings["token"];
+			$this->RequestParameters["api_key"] = &$this->Settings["key"];
+			$this->RequestParameters["api_secret"] = &$this->Settings["secret"];
 		}
 
 		/*
