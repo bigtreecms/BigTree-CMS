@@ -75,7 +75,6 @@
 				}
 
 				$this->Value = $this->OriginalValue = $value;
-
 				$this->AutoSave = $auto_save;
 			}
 		}

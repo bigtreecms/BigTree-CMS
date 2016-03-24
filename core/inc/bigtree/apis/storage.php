@@ -11,7 +11,7 @@
 		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		var $Service = "";
 		var $Cloud = false;
-		var $Settings;
+		var $Setting;
 
 		/*
 			Constructor:
@@ -21,15 +21,14 @@
 		function __construct() {
 			global $cms;
 			
-			// Get by reference because we modify it.
-			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
+			$this->Setting = new BigTree\Setting("bigtree-internal-storage",true,true);
 			
-			if (!empty($this->Settings->Service)) {
-				if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
+			if (!empty($this->Setting->Value["Service"])) {
+				if ($this->Setting->Value["Service"] == "s3" || $this->Setting->Value["Service"] == "amazon") {
 					$this->Cloud = new BigTreeCloudStorage("amazon");
-				} elseif ($this->Settings->Service == "rackspace") {
+				} elseif ($this->Setting->Value["Service"] == "rackspace") {
 					$this->Cloud = new BigTreeCloudStorage("rackspace");
-				} elseif ($this->Settings->Service == "google") {
+				} elseif ($this->Setting->Value["Service"] == "google") {
 					$this->Cloud = new BigTreeCloudStorage("google");
 				}
 			}
@@ -91,8 +90,8 @@
 					$service = "rackspace";
 					// Need to figure out the actual container
 					$container = false;
-					$cloud = ($this->Settings->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
-					foreach ($cloud->Settings["rackspace"]["container_cdn_urls"] as $c => $url) {
+					$cloud = ($this->Setting->Value["Service"] == $service) ? $this->Cloud : new BigTreeCloudStorage;
+					foreach ($cloud->Setting->Value["rackspace"]["container_cdn_urls"] as $c => $url) {
 						if ($url == "http://$domain") {
 							$container = $c;
 						}
@@ -103,10 +102,10 @@
 					$pointer_parts = array_slice($parts,3);
 				}
 
-				if ($this->Settings->Service == $service) {
+				if ($this->Setting->Value["Service"] == $service) {
 					$pointer = implode("/",$pointer_parts);
 					$this->Cloud->deleteFile($container,$pointer);
-					if ($this->Settings->Container == $container) {
+					if ($this->Setting->Value["Container"] == $container) {
 						BigTreeCMS::$DB->delete("bigtree_caches", array(
 							"identifier" => "org.bigtreecms.cloudfiles",
 							"key" => $pointer
@@ -154,7 +153,7 @@
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
 			if ($this->Cloud) {
-				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file,$this->Setting->Value["Container"],$relative_path.$file_name,true);
 				if ($success) {
 					BigTreeCMS::$DB->update("bigtree_caches", 
 						array(
@@ -253,7 +252,7 @@
 					}
 				}
 				// Upload it
-				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file,$this->Setting->Value["Container"],$relative_path.$file_name,true);
 				if ($success) {
 					BigTreeCMS::$DB->insert("bigtree_caches", array(
 						"identifier" => "org.bigtreecms.cloudfiles",

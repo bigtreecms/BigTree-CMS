@@ -31,8 +31,8 @@
 
 		function __construct($cache = false) {
 			parent::__construct("bigtree-internal-google-analytics-api","Google Analytics API","org.bigtreecms.api.analytics.google",$cache);
-			$this->Settings["key"] = $this->ClientID;
-			$this->Settings["secret"] = $this->ClientSecret;
+			$this->Setting->Value["key"] = $this->ClientID;
+			$this->Setting->Value["secret"] = $this->ClientSecret;
 			$this->ReturnURL = "urn:ietf:wg:oauth:2.0:oob";
 		}
 
@@ -232,7 +232,7 @@
 			$cache = array();
 			
 			// First we're going to update the monthly view counts for all pages.
-			$results = $this->getData($this->Settings["profile"],"1 month ago","today","pageviews","pagePath");
+			$results = $this->getData($this->Setting->Value["profile"],"1 month ago","today","pageviews","pagePath");
 			$used_paths = array();
 			foreach ($results as $item) {
 				$clean_path = trim($item->pagePath,"/");
@@ -249,46 +249,46 @@
 			}
 			
 			// Service Provider report
-			$results = $this->getData($this->Settings["profile"],"1 month ago","today",array("pageviews","visits"),"networkLocation","-ga:pageviews");
+			$results = $this->getData($this->Setting->Value["profile"],"1 month ago","today",array("pageviews","visits"),"networkLocation","-ga:pageviews");
 			foreach ($results as $item) {
 				$cache["service_providers"][] = array("name" => $item->networkLocation, "views" => $item->pageviews, "visits" => $item->visits);
 			}
 			
 			// Referrer report
-			$results = $this->getData($this->Settings["profile"],"1 month ago","today",array("pageviews","visits"),"source","-ga:pageviews");
+			$results = $this->getData($this->Setting->Value["profile"],"1 month ago","today",array("pageviews","visits"),"source","-ga:pageviews");
 			foreach ($results as $item) {
 				$cache["referrers"][] = array("name" => $item->source, "views" => $item->pageviews, "visits" => $item->visits);
 			}
 			
 			// Keyword report
-			$results = $this->getData($this->Settings["profile"],"1 month ago","today",array("pageviews","visits"),"keyword","-ga:pageviews");
+			$results = $this->getData($this->Setting->Value["profile"],"1 month ago","today",array("pageviews","visits"),"keyword","-ga:pageviews");
 			foreach ($results as $item) {
 				$cache["keywords"][] = array("name" => $item->keyword, "views" => $item->pageviews, "visits" => $item->visits);
 			}
 			
 			// Yearly Report
-			$this->getData($this->Settings["profile"],date("Y-01-01"),date("Y-m-d"),array("pageviews","visits","bounces","timeOnSite"),"browser");
+			$this->getData($this->Setting->Value["profile"],date("Y-01-01"),date("Y-m-d"),array("pageviews","visits","bounces","timeOnSite"),"browser");
 			$cache["year"] = $this->cacheParseLastData();
-			$this->getData($this->Settings["profile"],date("Y-01-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),array("pageviews","visits","bounces","timeOnSite"),"browser");
+			$this->getData($this->Setting->Value["profile"],date("Y-01-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),array("pageviews","visits","bounces","timeOnSite"),"browser");
 			$cache["year_ago_year"] = $this->cacheParseLastData();
 			
 			// Quarterly Report
 			$quarters = array(1,3,6,9);
 			$current_quarter_month = $quarters[floor((date("m") - 1) / 3)];
 
-			$this->getData($this->Settings["profile"],date("Y-".str_pad($current_quarter_month,2,"0",STR_PAD_LEFT)."-01"),date("Y-m-d"),array("pageviews","visits","bounces","timeOnSite"),"browser");
+			$this->getData($this->Setting->Value["profile"],date("Y-".str_pad($current_quarter_month,2,"0",STR_PAD_LEFT)."-01"),date("Y-m-d"),array("pageviews","visits","bounces","timeOnSite"),"browser");
 			$cache["quarter"] = $this->cacheParseLastData();
-			$this->getData($this->Settings["profile"],date("Y-".str_pad($current_quarter_month,2,"0",STR_PAD_LEFT)."-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),array("pageviews","visits","bounces","timeOnSite"),"browser");
+			$this->getData($this->Setting->Value["profile"],date("Y-".str_pad($current_quarter_month,2,"0",STR_PAD_LEFT)."-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),array("pageviews","visits","bounces","timeOnSite"),"browser");
 			$cache["year_ago_quarter"] = $this->cacheParseLastData();
 						
 			// Monthly Report
-			$this->getData($this->Settings["profile"],date("Y-m-01"),date("Y-m-d"),array("pageviews","visits","bounces","timeOnSite"),"browser");
+			$this->getData($this->Setting->Value["profile"],date("Y-m-01"),date("Y-m-d"),array("pageviews","visits","bounces","timeOnSite"),"browser");
 			$cache["month"] = $this->cacheParseLastData();
-			$this->getData($this->Settings["profile"],date("Y-m-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),array("pageviews","visits","bounces","timeOnSite"),"browser");
+			$this->getData($this->Setting->Value["profile"],date("Y-m-01",strtotime("-1 year")),date("Y-m-d",strtotime("-1 year")),array("pageviews","visits","bounces","timeOnSite"),"browser");
 			$cache["year_ago_month"] = $this->cacheParseLastData();
 			
 			// Two Week Heads Up
-			$results = $this->getData($this->Settings["profile"],date("Y-m-d",strtotime("-2 weeks")),date("Y-m-d",strtotime("-1 day")),"visits","date","date");
+			$results = $this->getData($this->Setting->Value["profile"],date("Y-m-d",strtotime("-2 weeks")),date("Y-m-d",strtotime("-1 day")),"visits","date","date");
 			foreach ($results as $item) {
 				$cache["two_week"][$item->date] = $item->visits;
 			}

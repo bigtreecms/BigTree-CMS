@@ -29,7 +29,7 @@
 			$this->ReturnURL = ADMIN_ROOT."developer/services/facebook/return/";
 
 			// Set access scope
-			$this->Scope = $this->Settings["scope"];
+			$this->Scope = $this->Setting->Value["scope"];
 		}
 
 		/*

@@ -492,13 +492,13 @@
 		*/
 
 		function oAuthRedirect() {
-			$this->Settings["token_secret"] = "";
+			$this->Setting->Value["token_secret"] = "";
 			$admin = new BigTreeAdmin;
 			$r = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
 			parse_str($r);
 			if ($oauth_callback_confirmed) {
-				$this->Settings["token"] = $oauth_token;
-				$this->Settings["token_secret"] = $oauth_token_secret;
+				$this->Setting->Value["token"] = $oauth_token;
+				$this->Setting->Value["token_secret"] = $oauth_token_secret;
 				header("Location: http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 				die();
 			} else {
@@ -514,14 +514,14 @@
 
 		function oAuthRefreshToken() {
 			$r = json_decode(BigTree::cURL($this->TokenURL,array(
-				"client_id" => $this->Settings["key"],
-				"client_secret" => $this->Settings["secret"],
-				"refresh_token" => $this->Settings["refresh_token"],
+				"client_id" => $this->Setting->Value["key"],
+				"client_secret" => $this->Setting->Value["secret"],
+				"refresh_token" => $this->Setting->Value["refresh_token"],
 				"grant_type" => "refresh_token"
 			)));
 			if ($r->access_token) {
-				$this->Settings["token"] = $r->access_token;
-				$this->Settings["expires"] = strtotime("+".$r->expires_in." seconds");
+				$this->Setting->Value["token"] = $r->access_token;
+				$this->Setting->Value["expires"] = strtotime("+".$r->expires_in." seconds");
 			}
 		}
 
@@ -537,8 +537,8 @@
 			$r = $this->callAPI("http://www.flickr.com/services/oauth/access_token","GET",array("oauth_verifier" => $_GET["oauth_verifier"],"oauth_token" => $_GET["oauth_token"]));
 			parse_str($r);
 			if ($fullname) {
-				$this->Settings["token"] = $oauth_token;
-				$this->Settings["token_secret"] = $oauth_token_secret;
+				$this->Setting->Value["token"] = $oauth_token;
+				$this->Setting->Value["token_secret"] = $oauth_token_secret;
 				$this->Connected = true;
 				return true;
 			}
