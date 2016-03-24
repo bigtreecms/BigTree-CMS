@@ -40,10 +40,16 @@
 			global $cms;
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
+			$this->SettingID = $setting_id;
 
 			// If we don't have the setting for the API, create it.
-			$this->Settings = &$cms->autoSaveSetting($setting_id,false,$setting_name);
-			$this->SettingID = $setting_id;
+			if (!Setting::exists($setting_id)) {
+				Setting::create($setting_id,$setting_name,"","",array(),"","on","on");
+			}
+			$this->Setting = new Setting($setting_id,false,true);
+
+			// Emulate old functionality of $this->Settings by making it a reference to the setting value
+			$this->Settings &= $this->Setting->Value;
 
 			// Setup dependency table for cache busting
 			$this->Settings["hash_table"] = @is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
