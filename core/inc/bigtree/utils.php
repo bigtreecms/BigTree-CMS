@@ -1197,11 +1197,11 @@
 				// Prevent messing with super globals
 				if (substr($bigtree["key"],0,1) != "_" && !in_array($bigtree["key"],array("admin","bigtree","cms"))) {
 					// Fix for PHP 7
-					$key = $bigtree["key"];
-					global $$key;
+					$__bigtree_internal_key = $bigtree["key"];
+					global $$__bigtree_internal_key;
 
 					if (is_array($bigtree["val"])) {
-						$$key = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
+						$$__bigtree_internal_key = static::globalizeArrayRecursion($bigtree["val"],$bigtree["functions"]);
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -1213,7 +1213,7 @@
 								$bigtree["val"] = $bigtree["function"]($bigtree["val"]);
 							}
 						}
-						$$key = $bigtree["val"];
+						$$__bigtree_internal_key = $bigtree["val"];
 					}
 				}
 			}

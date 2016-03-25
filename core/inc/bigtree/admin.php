@@ -5859,10 +5859,6 @@
 			if ($setting["value"] == "on") {
 				// Google
 				file_get_contents("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				// Ask
-				file_get_contents("http://submissions.ask.com/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				// Yahoo
-				file_get_contents("http://search.yahooapis.com/SiteExplorerService/V1/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
 				// Bing
 				file_get_contents("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
@@ -7009,21 +7005,19 @@
 		*/
 
 		static function unCache($page) {
-			$get = array();
+			$url = "";
+
+			// Already have the path
 			if (is_array($page)) {
-				if (!$page["path"]) {
-					$get["bigtree_htaccess_url"] = "";
-				} else {
-					$get["bigtree_htaccess_url"] = $page["path"]."/";
-				}
+				$url = $page["path"]."/";
 			} else {
-				if ($page == 0) {
-					$get["bigtree_htaccess_url"] = "";
-				} else {
-					$get["bigtree_htaccess_url"] = str_replace(WWW_ROOT,"",BigTreeCMS::getLink($page));
+				if ($page != 0) {
+					$url = str_replace(WWW_ROOT,"",BigTreeCMS::getLink($page));
 				}
 			}
-			@unlink(md5(json_encode($get)).".page");
+
+			@unlink(md5(json_encode(array("bigtree_htaccess_url" => $url))).".page");
+			@unlink(md5(json_encode(array("bigtree_htaccess_url" => rtrim($url,"/")))).".page");
 		}
 
 		/*
@@ -7525,7 +7519,7 @@
 		/*
 			Function: updatePage
 				Updates a page.
-				Does not check permissions.
+				Checks some (but not all) permissions.
 
 			Parameters:
 				page - The page id to update.
@@ -7767,7 +7761,7 @@
 
 		/*
 			Function: updatePendingChange
-				Updated a pending change.
+				Updates a pending change.
 
 			Parameters:
 				id - The id of the pending change.
