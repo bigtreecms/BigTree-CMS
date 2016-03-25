@@ -46,9 +46,10 @@
 
 			Parameters:
 				page - Either an ID (to pull a record) or an array (to use the array as the record)
+				decode - Whether to decode resource data (true is default, false is faster if resource data isn't needed)
 		*/
 
-		function __construct($page) {
+		function __construct($page, $decode = true) {
 			// Passing in just an ID
 			if (!is_array($page)) {
 				$page = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
@@ -78,7 +79,7 @@
 				$this->Path = $page["path"];
 				$this->Position = $page["position"];
 				$this->PublishAt = $page["publish_at"] ?: false;
-				$this->Resources = array_filter((array) @json_decode($page["resources"],true));
+				$this->Resources = $decode ? array_filter((array) @json_decode($page["resources"],true)) : $page["resources"];
 				$this->Route = $page["route"];
 				$this->SEOInvisible = $page["seo_invisible"] ? true : false;
 				$this->Template = $page["template"];
@@ -282,6 +283,47 @@
 		}
 
 		/*
+			Function: decodeResources
+				Turns the JSON resources data into a PHP array of resources with links being translated into front-end readable links.
+				This function is called by BigTree's router and is generally not a function needed to end users.
+			
+			Parameters:
+				data - JSON encoded callout data.
+			
+			Returns:
+				An array of resources.
+		*/
+
+		static function decodeResources($data) {
+			if (!is_array($data)) {
+				$data = json_decode($data,true);
+			}
+
+			if (is_array($data)) {
+				foreach ($data as $key => $val) {
+					// Already an array, decode the whole thing
+					if (is_array($val)) {
+						$val = BigTree::untranslateArray($val);
+					} else {
+						// See if it's a JSON string first, if so decode the array
+						$decoded_val = json_decode($val,true);
+						if (is_array($decoded_val)) {
+							$val = BigTree::untranslateArray($decoded_val);
+
+						// Otherwise it's a string, just replace the {wwwroot} and ipls.
+						} else {
+							$val = Link::decode($val);				
+						}
+					}
+
+					$data[$key] = $val;
+				}
+			}
+			
+			return $data;
+		}
+
+		/*
 			Function: delete
 				Deletes the page and all children.
 		*/
@@ -427,6 +469,93 @@
 			}
 
 			return array();
+		}
+
+		/*
+			Function: getBreadcrumb
+				Returns an array of titles, links, and ids for pages above this page.
+			
+			Parameters:
+				ignore_trunk - Ignores trunk settings when returning the breadcrumb
+			
+			Returns:
+				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
+			
+			See Also:
+				<getBreadcrumbByPage>
+		*/
+		
+		function getBreadcrumb($ignore_trunk = false) {
+			return static::getBreadcrumbForPage($this->ID,$ignore_trunk);
+		}
+		
+		/*
+			Function: getBreadcrumbForPage
+				Returns an array of titles, links, and ids for the pages above the given page.
+			
+			Parameters:
+				page - A page array (containing at least the "path" from the database)
+				ignore_trunk - Ignores trunk settings when returning the breadcrumb
+			
+			Returns:
+				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
+				If a trunk is hit, BigTree\Router::$Trunk is set to the trunk.
+			
+			See Also:
+				<getBreadcrumb>
+		*/
+		
+		static function getBreadcrumbForPage($page,$ignore_trunk = false) {
+			global $bigtree;
+
+			$bc = array();
+			
+			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
+			$pieces = explode("/",$page["path"]);
+			$paths = array();
+			$path = "";
+			foreach ($pieces as $piece) {
+				$path = $path.$piece."/";
+				$paths[] = "path = '".BigTreeCMS::$DB->escape(trim($path,"/"))."'";
+			}
+			
+			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
+			$ancestors = static::$BigTreeCMS->fetchAll("SELECT id, nav_title, path, trunk FROM bigtree_pages 
+														WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
+			$trunk_hit = false;
+			foreach ($ancestors as $ancestor) {
+				// In case we want to know what the trunk is.
+				if ($ancestor["trunk"]) {
+					$trunk_hit = true;
+					BigTreeCMS::$BreadcrumbTrunk = $ancestor;
+					Router::$Trunk = $ancestor;
+				}
+				
+				if (!$trunk_hit || $ignore_trunk) {
+					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+						$link = WWW_ROOT.$ancestor["path"];
+					} else {						
+						$link = WWW_ROOT.$ancestor["path"]."/";
+					}
+					$bc[] = array("title" => stripslashes($ancestor["nav_title"]),"link" => $link,"id" => $ancestor["id"]);
+				}
+			}
+			$bc = array_reverse($bc);
+			
+			// Check for module breadcrumbs
+			$module_class = BigTreeCMS::$DB->fetchSingle("SELECT bigtree_modules.class
+														  FROM bigtree_modules JOIN bigtree_templates
+														  ON bigtree_modules.id = bigtree_templates.module
+														  WHERE bigtree_templates.id = ?",$page["template"]);
+
+			if ($module_class && class_exists($module_class)) {
+				$module = new $module_class;
+				if (method_exists($module, "getBreadcrumb")) {
+					$bc = array_merge($bc,$module->getBreadcrumb($page));
+				}
+			}
+			
+			return $bc;
 		}
 
 		/*
@@ -795,6 +924,34 @@
 			}
 
 			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
+		}
+
+		/*
+			Function: getTags
+				Returns an array of tags for this page.
+
+			Parameters:
+				return_arrays - Set to true to return arrays rather than objects.
+			
+			Returns:
+				An array of Tag objects.
+		*/
+		
+		static function getTags($return_arrays = false) {
+			$tags = BigTreeCMS::$DB->fetchAll("SELECT bigtree_tags.*
+											   FROM bigtree_tags JOIN bigtree_tags_rel 
+											   ON bigtree_tags.id = bigtree_tags_rel.tag 
+											   WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND 
+										   			 bigtree_tags_rel.entry = ?
+											   ORDER BY bigtree_tags.tag", $this->ID);
+
+			if (!$return_arrays) {
+				foreach ($tags as &$tag) {
+					$tag = new Tag($tag);
+				}
+			}
+
+			return $tags;
 		}
 
 		/*

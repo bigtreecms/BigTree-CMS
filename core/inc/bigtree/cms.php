@@ -5,13 +5,7 @@
 	*/
 
 	class BigTreeCMSBase {
-		
-		// Public properties
-		public $ExtensionRequiredFiles = array();
-		public $ModuleClassList = array();
-		public $RouteRegistry = array("public" => array(),"admin" => array(),"template" => array());
 
-		// Public static properties
 		public static $BreadcrumbTrunk;
 		public static $DB;
 		public static $MySQLTime = false;
@@ -19,73 +13,78 @@
 
 		/*
 			Constructor:
-				Builds a flat file module class list so that module classes can be autoloaded instead of always in memory.
+				Builds caches, sets up auto loaders, loads required files.
 		*/
 		
 		function __construct() {
 			global $bigtree;
 
-			// If the cache exists, just use it.
-			if (!$bigtree["config"]["debug"] && file_exists(SERVER_ROOT."cache/bigtree-module-cache.json")) {
-				$data = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-cache.json"),true);
+			// Turn on debugging if we're in debug mode.
+			if ($bigtree["config"]["debug"] === "full") {
+				error_reporting(E_ALL);
+				ini_set("display_errors","on");
+				require_once(BigTree::path("inc/lib/kint/Kint.class.php")); 
+			} elseif ($bigtree["config"]["debug"]) {
+				error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
+				ini_set("display_errors","on");
+				require_once(BigTree::path("inc/lib/kint/Kint.class.php"));
 			} else {
-				$data = array(
-					"routes" => array("admin" => array(),"public" => array(),"template" => array()),
-					"classes" => array(),
-					"extension_required_files" => array()
-				);
-
-				// Preload the BigTreeModule class since others are based off it
-				include_once BigTree::path("inc/bigtree/modules.php");
-
-				// Get all modules from the db
-				$modules = static::$DB->fetchAll("SELECT route,class FROM bigtree_modules");
-				foreach ($modules as $module) {
-					$class = $module["class"];
-					$route = $module["route"];
-
-					if ($class) {
-						// Get the class file path
-						if (strpos($route,"*") !== false) {
-							list($extension,$file_route) = explode("*",$route);
-							$path = "extensions/$extension/classes/$file_route.php";
-						} else {
-							$path = "custom/inc/modules/$route.php";
-						}
-						$data["classes"][$class] = $path;
-
-						// Get the registered routes, load the class
-						include_once SERVER_ROOT.$path;
-						if (isset($class::$RouteRegistry) && is_array($class::$RouteRegistry)) {
-							foreach ($class::$RouteRegistry as $registration) {
-								$type = $registration["type"];
-								unset($registration["type"]);
-	
-								$data["routes"][$type][] = $registration;
-								$this->RouteRegistry[$type][] = $registration;
-							}
-						}
-					}
-				}
-
-				// Get all extension required files and add them to a required list
-				$extensions = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
-				foreach ($extensions as $id) {
-					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/$id/required/");
-					foreach (array_filter((array)$required_contents) as $file) {
-						$data["extension_required_files"][] = $file;
-					}
-				}
-				
-				if (!$bigtree["config"]["debug"]) {
-					// Cache it so we don't hit the database.
-					BigTree::putFile(SERVER_ROOT."cache/bigtree-module-cache.json",BigTree::json($data));
-				}
+				ini_set("display_errors","off");
 			}
 
-			$this->ExtensionRequiredFiles = $data["extension_required_files"];
-			$this->ModuleClassList = $data["classes"];
-			$this->RouteRegistry = $data["routes"];
+			// Auto load classes	
+			spl_autoload_register("BigTree::classAutoLoader");
+		
+			// Build caches
+			BigTree\Module::buildCaches();
+		
+			// Lazy loading of modules
+			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache,array(
+				"BigTreeAdminBase" => "inc/bigtree/admin.php",
+				"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
+				"BigTreeModule" => "inc/bigtree/modules.php",
+				"BigTreeFTP" => "inc/bigtree/ftp.php",
+				"BigTreeSFTP" => "inc/bigtree/sftp.php",
+				"BigTreeUpdater" => "inc/bigtree/updater.php",
+				"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
+				"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
+				"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
+				"BigTreeStorage" => "inc/bigtree/apis/storage.php",
+				"BigTreeCloudStorage" => "inc/bigtree/apis/cloud-storage.php",
+				"BigTreeGeocoding" => "inc/bigtree/apis/geocoding.php",
+				"BigTreeEmailService" => "inc/bigtree/apis/email-service.php",
+				"BigTreeTwitterAPI" => "inc/bigtree/apis/twitter.php",
+				"BigTreeInstagramAPI" => "inc/bigtree/apis/instagram.php",
+				"BigTreeGooglePlusAPI" => "inc/bigtree/apis/google-plus.php",
+				"BigTreeYouTubeAPI" => "inc/bigtree/apis/youtube.php",
+				"BigTreeFlickrAPI" => "inc/bigtree/apis/flickr.php",
+				"BigTreeSalesforceAPI" => "inc/bigtree/apis/salesforce.php",
+				"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
+				"BigTreeYahooBOSSAPI" => "inc/bigtree/apis/yahoo-boss.php",
+				"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
+				"S3" => "inc/lib/amazon-s3.php",
+				"CF_Authentication" => "inc/lib/rackspace/cloud.php",
+				"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",
+				"PasswordHash" => "inc/lib/PasswordHash.php"
+			));
+
+			// Load everything in the custom extras folder.
+			$directory_handle = opendir(SERVER_ROOT."custom/inc/required/");
+			$custom_required_includes = array();
+			while ($file = readdir($directory_handle)) {
+				if (substr($file,0,1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$file")) {
+					$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$file";
+				}
+			}
+			closedir($directory_handle);
+			
+			foreach ($custom_required_includes as $file) {
+				include $file;
+			}
+		
+			foreach (BigTree\Extension::$RequiredFiles as $file) {
+				include $file;
+			}
 		}
 
 		/*
@@ -159,18 +158,7 @@
 		*/
 		
 		static function catch404() {
-			global $admin,$bigtree,$cms;
-			
-			ob_clean();
-			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
-				$bigtree["layout"] = "default";
-				ob_start();
-				include SERVER_ROOT."templates/basic/_404.php";
-				$bigtree["content"] = ob_get_clean();
-				ob_start();
-				include "../templates/layouts/".$bigtree["layout"].".php";
-				die();
-			}
+			BigTree\Redirect::catch404();
 		}
 		
 		/*
@@ -182,23 +170,7 @@
 		*/
 		
 		static function checkOldRoutes($path) {
-			$found = false;
-			$x = count($path);
-			while ($x) {
-				$result = static::$DB->fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?",implode("/",array_slice($path,0,$x)));
-				if ($result) {
-					$old = $result["old_route"];
-					$new = $result["new_route"];
-					$found = true;
-					break;
-				}
-				$x--;
-			}
-			// If it's in the old routing table, send them to the new page.
-			if ($found) {
-				$new_url = $new.substr($_GET["bigtree_htaccess_url"],strlen($old));
-				BigTree::redirect(WWW_ROOT.$new_url,"301");
-			}
+			BigTree\Router::checkPathHistory($path);
 		}
 		
 		/*
@@ -214,25 +186,7 @@
 		*/
 
 		static function decodeResources($data) {
-			if (!is_array($data)) {
-				$data = json_decode($data,true);
-			}
-			if (is_array($data)) {
-				foreach ($data as $key => $val) {
-					if (is_array($val)) {
-						// If this value is an array, untranslate it so that {wwwroot} and ipls get fixed.
-						$val = BigTree::untranslateArray($val);
-					} elseif (is_array(json_decode($val,true))) {
-						// If this value is an array, untranslate it so that {wwwroot} and ipls get fixed.
-						$val = BigTree::untranslateArray(json_decode($val,true));
-					} else {
-						// Otherwise it's a string, just replace the {wwwroot} and ipls.
-						$val = static::replaceInternalPageLinks($val);				
-					}
-					$data[$key] = $val;
-				}
-			}
-			return $data;
+			return BigTree\Page::decodeResources($data);
 		}
 		
 		/*
@@ -309,7 +263,7 @@
 		
 		static function getBreadcrumb($ignore_trunk = false) {
 			global $bigtree;
-			return static::getBreadcrumbByPage($bigtree["page"],$ignore_trunk);
+			return BigTree\Page::getBreadcrumbForPage($bigtree["page"],$ignore_trunk);
 		}
 		
 		/*
@@ -317,7 +271,7 @@
 				Returns an array of titles, links, and ids for the pages above the given page.
 			
 			Parameters:
-				page - A page array (containing at least the "path" from the database) *(optional)*
+				page - A page array (containing at least the "path" from the database)
 				ignore_trunk - Ignores trunk settings when returning the breadcrumb
 			
 			Returns:
@@ -329,54 +283,7 @@
 		*/
 		
 		static function getBreadcrumbByPage($page,$ignore_trunk = false) {
-			global $bigtree;
-
-			$bc = array();
-			
-			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
-			$pieces = explode("/",$page["path"]);
-			$paths = array();
-			$path = "";
-			foreach ($pieces as $piece) {
-				$path = $path.$piece."/";
-				$paths[] = "path = '".static::$DB->escape(trim($path,"/"))."'";
-			}
-			
-			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
-			$ancestors = static::$DB->fetchAll("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
-			$trunk_hit = false;
-			foreach ($ancestors as $ancestor) {
-				// In case we want to know what the trunk is.
-				if ($ancestor["trunk"]) {
-					$trunk_hit = true;
-					static::$BreadcrumbTrunk = $ancestor;
-				}
-				
-				if (!$trunk_hit || $ignore_trunk) {
-					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-						$link = WWW_ROOT.$ancestor["path"];
-					} else {						
-						$link = WWW_ROOT.$ancestor["path"]."/";
-					}
-					$bc[] = array("title" => stripslashes($ancestor["nav_title"]),"link" => $link,"id" => $ancestor["id"]);
-				}
-			}
-			$bc = array_reverse($bc);
-			
-			// Check for module breadcrumbs
-			$module_class = static::$DB->fetchSingle("SELECT bigtree_modules.class
-												FROM bigtree_modules JOIN bigtree_templates
-												ON bigtree_modules.id = bigtree_templates.module
-												WHERE bigtree_templates.id = ?",$page["template"]);
-
-			if ($module_class && class_exists($module_class)) {
-				$module = new $module_class;
-				if (method_exists($module, "getBreadcrumb")) {
-					$bc = array_merge($bc,$module->getBreadcrumb($page));
-				}
-			}
-			
-			return $bc;
+			return BigTree\Page::getBreadcrumbForPage($page,$ignore_trunk);
 		}
 		
 		/*
@@ -394,23 +301,10 @@
 		*/
 		
 		static function getFeed($item) {
-			if (!is_array($item)) {
-				$item = static::$DB->fetch("SELECT * FROM bigtree_feeds WHERE id = ?",$item);
-			}
-
-			if (!$item) {
-				return false;
-			}
-
-			$item["fields"] = json_decode($item["fields"],true);
-			$item["options"] = json_decode($item["options"],true);
-			if (is_array($item["options"])) {
-				foreach ($item["options"] as &$option) {
-					$option = static::replaceRelativeRoots($option);
-				}
-			}
-			
-			return $item;
+			$feed = new BigTree\Feed($item);
+			$feed = $feed->Array;
+			$feed["options"] = $feed["settings"];
+			return $feed;
 		}
 		
 		/*
@@ -655,37 +549,7 @@
 		*/
 		
 		static function getNavId($path,$previewing = false) {
-			$commands = array();
-			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
-			
-			// See if we have a straight up perfect match to the path.
-			$page = static::$DB->fetch("SELECT bigtree_pages.id,bigtree_templates.routed
-										FROM bigtree_pages LEFT JOIN bigtree_templates
-										ON bigtree_pages.template = bigtree_templates.id
-										WHERE path = ? AND archived = '' $publish_at",implode("/",$path));
-			if ($page) {
-				return array($page["id"],array(),$page["routed"]);
-			}
-
-			// Guess we don't, let's chop off commands until we find a page.
-			$x = 0;
-			while ($x < count($path)) {
-				$x++;
-				$commands[] = $path[count($path)-$x];
-				$path_string = implode("/",array_slice($path,0,-1 * $x));
-				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$page_id = static::$DB->fetchSingle("SELECT bigtree_pages.id
-													 FROM bigtree_pages JOIN bigtree_templates 
-													 ON bigtree_pages.template = bigtree_templates.id 
-													 WHERE bigtree_pages.path = ? AND 
-														   bigtree_pages.archived = '' AND
-														   bigtree_templates.routed = 'on' $publish_at",$path_string);
-				if ($page_id) {
-					return array($page_id,array_reverse($commands),"on");
-				}
-			}
-			
-			return array(false,false,false);
+			return BigTree\Router::routeToPage($path,$previewing);
 		}
 		
 		/*
@@ -701,18 +565,13 @@
 		*/
 		
 		static function getPage($id,$decode = true) {
-			$page = static::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?",$id);
-			if (!$page) {
-				return false;
-			}
+			$page = new BigTree\Page($id,$decode);
+			$page = $page->Array;
 
-			if ($page["external"] && $page["template"] == "") {
-				$page["external"] = static::getInternalPageLink($page["external"]);
-			}
-
+			// Backwards compatibility stuff
+			$page["nav_title"] = $page["navigation_title"];
+			
 			if ($decode) {
-				$page["resources"] = static::decodeResources($page["resources"]);
-				
 				// Backwards compatibility with 4.0 callout system
 				if (isset($page["resources"]["4.0-callouts"])) {
 					$page["callouts"] = $page["resources"]["4.0-callouts"];
@@ -722,6 +581,7 @@
 					$page["callouts"] = array();
 				}
 			}
+
 			return $page;
 		}
 		
@@ -931,7 +791,8 @@
 		*/
 		
 		static function getTag($id) {
-			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE id = ?",$id);
+			$tag = new BigTree\Tag($id);
+			return $tag->Array;
 		}
 		
 		/*
@@ -946,7 +807,8 @@
 		*/
 		
 		static function getTagByRoute($route) {
-			return static::$DB->fetch("SELECT * FROM bigtree_tags WHERE route = ?", $route);
+			$tag = BigTree\Tag::getByRoute($route);
+			return $tag ? $tag->Array : false;
 		}
 		
 		/*
@@ -961,16 +823,8 @@
 		*/
 		
 		static function getTagsForPage($page) {
-			if (!is_numeric($page)) {
-				$page = $page["id"];
-			}
-
-			return static::$DB->fetchAll("SELECT bigtree_tags.*
-										  FROM bigtree_tags JOIN bigtree_tags_rel 
-										  ON bigtree_tags.id = bigtree_tags_rel.tag 
-										  WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND 
-												bigtree_tags_rel.entry = ?
-										  ORDER BY bigtree_tags.tag",$page);
+			$page = new BigTree\Page($page,false);
+			return $page->Tags;
 		}
 		
 		/*
@@ -985,13 +839,9 @@
 		*/
 		
 		static function getTemplate($id) {
-			$template = static::$DB->fetch("SELECT * FROM bigtree_templates WHERE id = ?",$id);
-			if (!$template) {
-				return false;
-			}
-
-			$template["resources"] = json_decode($template["resources"],true);
-			return $template;
+			$template = new BigTree\Template;
+			$template->Resources = $template->Fields;
+			return $template->Array;
 		}
 		
 		/*
@@ -1075,56 +925,7 @@
 		*/
 		
 		static function handle404($url) {
-			$url = htmlspecialchars(strip_tags(rtrim($url,"/")));
-			if (!$url) {
-				return false;
-			}
-
-			$entry = static::$DB->fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?",$url);
-			
-			// We already have a redirect
-			if ($entry["redirect_url"]) {
-				$entry["redirect_url"] = static::getInternalPageLink($entry["redirect_url"]);
-
-				// If we're redirecting to the homepage, don't add additional trailing slashes
-				if ($entry["redirect_url"] == "/") {
-					$entry["redirect_url"] = "";
-				}
-				
-				// Full URL, use the whole thing
-				if (substr($entry["redirect_url"],0,7) == "http://" || substr($entry["redirect_url"],0,8) == "https://") {
-					$redirect = $entry["redirect_url"];
-				
-				// Partial URL, append WWW_ROOT
-				} else {
-					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$entry["redirect_url"]);
-				}
-				
-				// Update request count
-				static::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?",$entry["id"]);
-
-				// Redirect with a 301
-				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
-
-			// No redirect, log the 404 and throw the 404 headers
-			} else {
-				// Throw 404 header
-				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-
-				if ($entry) {
-					static::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?",$entry["id"]);
-				} else {
-					static::$DB->insert("bigtree_404s",array(
-						"broken_url" => $url,
-						"requests" => 1
-					));
-				}
-
-				// Tell BigTree to not cache this page
-				define("BIGTREE_DO_NOT_CACHE",true);
-			}
-
-			return true;
+			return BigTree\Redirect::handle404();
 		}
 		
 		/*

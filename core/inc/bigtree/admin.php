@@ -126,7 +126,7 @@
 		*/
 
 		function archivePage($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 
 			// Only users with publisher access that can also modify this page's children can archive it
 			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
@@ -150,7 +150,7 @@
 		*/
 
 		function archivePageChildren($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			$page->archiveChildren();
 		}
 
@@ -215,7 +215,7 @@
 		*/
 
 		function canModifyChildren($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			return $page->UserCanModifyChildren;
 		}
 
@@ -1017,14 +1017,14 @@
 		function deletePage($page) {
 			// Published page
 			if (is_numeric($page)) {
-				$page = new BigTree\Page($page);
+				$page = new BigTree\Page($page,false);
 				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 					$page->delete();
 					return true;
 				}
 			} else {
 				$pending_change = new BigTree\PendingChange(substr($page,1));
-				$page = new BigTree\Page($page);
+				$page = new BigTree\Page($page,false);
 				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 					$pending_change->delete();
 					return true;
@@ -1044,7 +1044,7 @@
 		*/
 
 		function deletePageChildren($id) {
-			$page = new BigTree\Page($id);
+			$page = new BigTree\Page($id,false);
 			$page->deleteChildren();
 		}
 
@@ -1058,7 +1058,7 @@
 		*/
 
 		function deletePageDraft($id) {
-			$page = new BigTree\Page($id);
+			$page = new BigTree\Page($id,false);
 
 			// Get the version, check if the user has access to the page the version refers to.
 			if ($page->UserAccessLevel != "p") {
@@ -1375,7 +1375,7 @@
 		*/
 
 		static function getArchivedNavigationByParent($parent) {
-			$page = new BigTree\Page($parent);
+			$page = new BigTree\Page($parent,false);
 			return $page->getArchivedChildren(true);
 		}
 
@@ -1647,7 +1647,7 @@
 		*/
 
 		static function getFullNavigationPath($id, $path = array()) {
-			$page = new BigTree\Page($id);
+			$page = new BigTree\Page($id,false);
 			return $page->regeneratePath();
 		}
 
@@ -1663,7 +1663,7 @@
 		*/
 
 		static function getHiddenNavigationByParent($parent) {
-			$page = new BigTree\Page($parent);
+			$page = new BigTree\Page($parent,false);
 			return $page->getHiddenChildren(true);
 		}
 
@@ -2215,7 +2215,7 @@
 		*/
 
 		static function getNaturalNavigationByParent($parent,$levels = 1) {
-			$page = new BigTree\Page($parent);
+			$page = new BigTree\Page($parent,false);
 			return $page->getVisibleChildren(true);
 		}
 
@@ -2285,7 +2285,7 @@
 		*/
 
 		static function getPageAccessLevelByUser($page,$user) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			$user = new BigTree\User($user);
 			return $page->getUserAccessLevel($user);
 		}
@@ -2314,7 +2314,7 @@
 		*/
 
 		static function getPageChanges($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			$change = $page->PendingChange;
 			return $change->Array;
 		}
@@ -2332,7 +2332,7 @@
 		*/
 
 		static function getPageChildren($page,$sort = "nav_title ASC") {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			return $page->getChildren(true);
 		}
 
@@ -2348,7 +2348,7 @@
 		*/
 		
 		function getPageLineage($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			return $page->Lineage;
 		}
 
@@ -2575,7 +2575,7 @@
 		*/
 
 		static function getPendingNavigationByParent($parent,$in_nav = true) {
-			$page = new BigTree\Page($parent);
+			$page = new BigTree\Page($parent,false);
 			return $page->getPendingChildren($in_nav);
 		}
 
@@ -3151,7 +3151,7 @@
 		*/
 
 		static function pageChangeExists($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			return $page->ChangeExists;
 		}
 
@@ -3509,7 +3509,7 @@
 		*/
 
 		static function setPagePosition($id,$position) {
-			$page = new BigTree\Page($id);
+			$page = new BigTree\Page($id,false);
 			$page->updatePosition($position);
 		}
 
@@ -3705,7 +3705,7 @@
 
 		function unarchivePage($page) {
 			$page = is_array($page) ? $page["id"] : $page;
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 
 			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 				$page->unarchive();
@@ -3725,7 +3725,7 @@
 		*/
 
 		function unarchivePageChildren($id) {
-			$page = new BigTree\Page($id);
+			$page = new BigTree\Page($id,false);
 			$page->unarchiveChildren();
 		}
 
@@ -3766,7 +3766,7 @@
 		*/
 
 		static function unCache($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			$page->uncache();
 		}
 
@@ -3843,7 +3843,7 @@
 		*/
 
 		static function updateChildPagePaths($page) {
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 			$page->updateChildrenPaths();
 		}
 
@@ -4130,7 +4130,7 @@
 				$this->stop("You are not allowed to move pages.");
 			}
 
-			$page = new BigTree\Page($page);
+			$page = new BigTree\Page($page,false);
 
 			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {

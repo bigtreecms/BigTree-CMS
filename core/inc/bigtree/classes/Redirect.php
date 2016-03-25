@@ -46,6 +46,31 @@
 		}
 
 		/*
+			Function: catch404
+				Manually catch and display the 404 page from a routed template; logs missing page with handle404
+		*/
+		
+		static function catch404() {
+			global $admin,$bigtree,$cms,$db;
+			
+			// Wipe any content that's already been drawn
+			ob_clean();
+
+			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+				$bigtree["layout"] = "default";
+				include SERVER_ROOT."templates/basic/_404.php";
+
+				// Get content and start the buffer again
+				$bigtree["content"] = ob_get_clean();
+				ob_start();
+
+				// Draw content in the provided layout
+				include "../templates/layouts/".$bigtree["layout"].".php";
+				die();
+			}
+		}
+
+		/*
 			Function: clearEmpty
 				Removes all 404s that don't have 301 redirects.
 		*/
@@ -97,6 +122,67 @@
 		function delete() {
 			BigTreeCMS::$DB->delete("bigtree_404s",$this->ID);
 			AuditTrail::track("bigtree_404s",$this->ID,"deleted");
+		}
+
+		/*
+			Function: handle404
+				Handles a 404.
+			
+			Parameters:
+				url - The URL you hit that's a 404.
+		*/
+		
+		static function handle404($url) {
+			$url = htmlspecialchars(strip_tags(rtrim($url,"/")));
+			if (!$url) {
+				return false;
+			}
+
+			$entry = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?", $url);
+			
+			// We already have a redirect
+			if ($entry["redirect_url"]) {
+				$entry["redirect_url"] = Link::iplEncode($entry["redirect_url"]);
+
+				// If we're redirecting to the homepage, don't add additional trailing slashes
+				if ($entry["redirect_url"] == "/") {
+					$entry["redirect_url"] = "";
+				}
+				
+				// Full URL, use the whole thing
+				if (substr($entry["redirect_url"],0,7) == "http://" || substr($entry["redirect_url"],0,8) == "https://") {
+					$redirect = $entry["redirect_url"];
+				
+				// Partial URL, append WWW_ROOT
+				} else {
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$entry["redirect_url"]);
+				}
+				
+				// Update request count
+				BigTreeCMS::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+
+				// Redirect with a 301
+				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
+
+			// No redirect, log the 404 and throw the 404 headers
+			} else {
+				// Throw 404 header
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+
+				if ($entry) {
+					BigTreeCMS::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+				} else {
+					BigTreeCMS::$DB->insert("bigtree_404s",array(
+						"broken_url" => $url,
+						"requests" => 1
+					));
+				}
+
+				// Tell BigTree to not cache this page
+				define("BIGTREE_DO_NOT_CACHE",true);
+			}
+
+			return true;
 		}
 
 		/*

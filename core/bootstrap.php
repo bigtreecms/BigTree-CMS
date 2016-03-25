@@ -42,19 +42,6 @@
 	$bigtree["mysql_read_connection"] = "disconnected";
 	$bigtree["mysql_write_connection"] = "disconnected";
 	
-	// Turn on debugging if we're in debug mode.
-	if ($bigtree["config"]["debug"] === "full") {
-		error_reporting(E_ALL);
-		ini_set("display_errors","on");
-		require_once(BigTree::path("inc/lib/kint/Kint.class.php")); 
-	} elseif ($bigtree["config"]["debug"]) {
-		error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
-		ini_set("display_errors","on");
-		require_once(BigTree::path("inc/lib/kint/Kint.class.php"));
-	} else {
-		ini_set("display_errors","off");
-	}
-	
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/cms.php");
 	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
@@ -67,42 +54,6 @@
 	// Initialize DB instance
 	BigTreeCMS::$DB = $db = new BigTree\SQL;
 
-	// Initialize CMS instance
-	$cms = new BigTreeCMS;
-
-	// Lazy loading of modules
-	$bigtree["class_list"] = array_merge($cms->ModuleClassList,array(
-		"BigTreeAdminBase" => "inc/bigtree/admin.php",
-		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
-		"BigTreeModule" => "inc/bigtree/modules.php",
-		"BigTreeFTP" => "inc/bigtree/ftp.php",
-		"BigTreeSFTP" => "inc/bigtree/sftp.php",
-		"BigTreeUpdater" => "inc/bigtree/updater.php",
-		"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
-		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
-		"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
-		"BigTreeStorage" => "inc/bigtree/apis/storage.php",
-		"BigTreeCloudStorage" => "inc/bigtree/apis/cloud-storage.php",
-		"BigTreeGeocoding" => "inc/bigtree/apis/geocoding.php",
-		"BigTreeEmailService" => "inc/bigtree/apis/email-service.php",
-		"BigTreeTwitterAPI" => "inc/bigtree/apis/twitter.php",
-		"BigTreeInstagramAPI" => "inc/bigtree/apis/instagram.php",
-		"BigTreeGooglePlusAPI" => "inc/bigtree/apis/google-plus.php",
-		"BigTreeYouTubeAPI" => "inc/bigtree/apis/youtube.php",
-		"BigTreeFlickrAPI" => "inc/bigtree/apis/flickr.php",
-		"BigTreeSalesforceAPI" => "inc/bigtree/apis/salesforce.php",
-		"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
-		"BigTreeYahooBOSSAPI" => "inc/bigtree/apis/yahoo-boss.php",
-		"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
-		"S3" => "inc/lib/amazon-s3.php",
-		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
-		"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",
-		"PasswordHash" => "inc/lib/PasswordHash.php"
-	));
-	
-	// Auto load classes	
-	spl_autoload_register("BigTree::classAutoLoader");
-
 	// Setup admin class if it's custom, but don't instantiate the $admin var.
 	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;
@@ -114,22 +65,5 @@
 	// Give BigTreeAdmin a copy of the DB
 	BigTreeAdmin::$DB = $db;
 
-	// Load everything in the custom extras folder.
-	$d = opendir(SERVER_ROOT."custom/inc/required/");
-	$custom_required_includes = array();
-	while ($f = readdir($d)) {
-		if (substr($f,0,1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$f")) {
-			$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$f";
-		}
-	}
-	closedir($d);
-	
-	foreach ($custom_required_includes as $r) {
-		include $r;
-	}
-	foreach ($cms->ExtensionRequiredFiles as $file) {
-		include $file;
-	}
-	
-	// Clean up
-	unset($d,$r,$custom_required_includes);
+	// Bootstrap CMS instance
+	$cms = new BigTreeCMS;

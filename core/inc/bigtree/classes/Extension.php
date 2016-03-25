@@ -12,6 +12,7 @@
 	class Extension extends BaseObject {
 
 		static $CacheInitialized = false;
+		static $RequiredFiles = array();
 		static $Table = "bigtree_extensions";
 
 		protected $ID;
