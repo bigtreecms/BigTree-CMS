@@ -8,7 +8,7 @@
 
 	use BigTreeCMS;
 
-	class ResourceFolder {
+	class ResourceFolder extends BaseObject {
 
 		static $Table = "bigtree_resource_folders";
 
@@ -28,7 +28,7 @@
 		function __construct($folder) {
 			// Passing in just an ID
 			if (!is_array($folder)) {
-				$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
+				$folder = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
 			}
 
 			// Bad data set

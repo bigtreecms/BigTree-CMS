@@ -296,7 +296,7 @@
 				display_default - The text string to use in the event the display_field is blank or non-existent
 		*/
 
-		static function update($name,$description,$level,$fields,$display_field,$display_default) {
+		function update($name,$description,$level,$fields,$display_field,$display_default) {
 			$this->Name = $name;
 			$this->Description = $description;
 			$this->Level = $level;

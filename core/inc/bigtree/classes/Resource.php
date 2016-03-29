@@ -9,7 +9,7 @@
 	use BigTreeCMS;
 	use BigTreeStorage;
 
-	class Resource {
+	class Resource extends BaseObject {
 
 		static $CreationLog = array();
 		static $Prefixes = array();

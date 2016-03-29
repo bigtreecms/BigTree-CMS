@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree\GoogleAnalytics;
 
+	use BigTree;
+	use BigTreeCMS;
 	use BigTree\OAuth;
 	use BigTree\GoogleResultSet;
 

@@ -54,6 +54,7 @@
 	// Initialize DB instance
 	BigTreeCMS::$DB = $db = new BigTree\SQL;
 
+	include BigTree::path("inc/bigtree/admin.php");
 	// Setup admin class if it's custom, but don't instantiate the $admin var.
 	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;

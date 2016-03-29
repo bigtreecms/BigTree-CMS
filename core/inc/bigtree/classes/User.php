@@ -6,7 +6,8 @@
 	*/
 
 	namespace BigTree;
-	
+
+	use BigTree;
 	use BigTreeCMS;
 
 	class User extends BaseObject {
@@ -77,11 +78,11 @@
 				id of the newly created user or false if a user already exists with the provided email
 		*/
 
-		function create($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
+		static function create($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
 			global $bigtree;
 
 			// See if user exists already
-			if (BigTree::$DB->exists(static::$Table,array("email" => $email))) {
+			if (BigTreeCMS::$DB->exists(static::$Table,array("email" => $email))) {
 				return false;
 			}
 
@@ -163,7 +164,7 @@
 				Creates a new password change hash and sends an email to the user.
 		*/
 
-		static function initPasswordReset() {
+		function initPasswordReset() {
 			global $bigtree;
 
 			// Update the user's password reset hash code
@@ -184,9 +185,9 @@
 			// Only use a custom email service if a from email has been set
 			if ($email_service->Settings["bigtree_from"]) {
 				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-				$email_service->sendEmail("Reset Your Password",$html,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
+				$email_service->sendEmail("Reset Your Password",$html,$this->Email,$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
 			} else {
-				BigTree::sendEmail($user["email"],"Reset Your Password",$html);
+				BigTree::sendEmail($this->Email,"Reset Your Password",$html);
 			}
 		}
 
@@ -196,7 +197,7 @@
 		*/
 
 		function removeBans() {
-			BigTreeCMS::$DB->delete("bigtree_login_bans",array("user" => $user["id"]));
+			BigTreeCMS::$DB->delete("bigtree_login_bans",array("user" => $this->ID));
 		}
 
 		/*
@@ -261,7 +262,7 @@
 
 		function update($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
 			// See if there's an email collission
-			if (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $id)) {
+			if (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $this->ID)) {
 				return false;
 			}
 

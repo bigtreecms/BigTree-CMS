@@ -9,7 +9,7 @@
 	use BigTree;
 	use BigTreeCMS;
 
-	class PageRevision {
+	class PageRevision extends BaseObject {
 
 		static $Table = "bigtree_page_revisions";
 

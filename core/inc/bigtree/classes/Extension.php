@@ -96,7 +96,7 @@
 					$bigtree["group_match"][$group["id"]] = $this->createModuleGroup($group["name"]);
 					// Update the group ID since we're going to save this manifest locally for uninstalling
 					$group["id"] = $bigtree["group_match"][$group["id"]];
-					BigTreeCMS::$DB->update("bigtree_module_groups",$group["id"],arrayÏ("extension" => $extension));
+					BigTreeCMS::$DB->update("bigtree_module_groups",$group["id"],array("extension" => $extension));
 				}
 			}
 		
@@ -133,19 +133,19 @@
 
 					// Create views
 					foreach ($module["views"] as $view) {
-						$view_object = View::create($module_id,$view["title"],$view["description"],$view["table"],$view["type"],BigTree::arrayValue($view["options"]),BigTree::arrayValue($view["fields"]),BigTree::arrayValue($view["actions"]),$view["suffix"],$view["preview_url"]);
+						$view_object = ModuleView::create($module_id,$view["title"],$view["description"],$view["table"],$view["type"],BigTree::arrayValue($view["options"]),BigTree::arrayValue($view["fields"]),BigTree::arrayValue($view["actions"]),$view["suffix"],$view["preview_url"]);
 						$bigtree["view_id_match"][$view["id"]] = $view_object->ID;
 					}
 
 					// Create regular forms
 					foreach ($module["forms"] as $form) {
-						$form_object = Form::create($module_id,$form["title"],$form["table"],BigTree::arrayValue($form["fields"]),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
+						$form_object = ModuleForm::create($module_id,$form["title"],$form["table"],BigTree::arrayValue($form["fields"]),$form["hooks"],$form["default_position"],($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false),$form["return_url"],$form["tagging"]);
 						$bigtree["form_id_match"][$form["id"]] = $form_object->ID;
 					}
 
 					// Create reports
 					foreach ($module["reports"] as $report) {
-						$report_object = Report::create($module_id,$report["title"],$report["table"],$report["type"],BigTree::arrayValue($report["filters"]),BigTree::arrayValue($report["fields"]),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
+						$report_object = ModuleReport::create($module_id,$report["title"],$report["table"],$report["type"],BigTree::arrayValue($report["filters"]),BigTree::arrayValue($report["fields"]),$report["parser"],($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
 						$bigtree["report_id_match"][$report["id"]] = $report_object->ID;
 					}
 

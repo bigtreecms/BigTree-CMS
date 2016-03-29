@@ -10,7 +10,7 @@
 	use BigTreeAdmin;
 	use BigTreeCMS;
 
-	class Page {
+	class Page extends BaseObject {
 
 		static $Table = "bigtree_pages";
 
@@ -1254,7 +1254,7 @@
 				"publish_at" => $this->PublishAt ?: null,
 				"expire_at" => $this->ExpireAt ?: null,
 				"max_age" => $this->MaxAge ?: 0,
-				"last_edited_by" !empty($admin->ID) ? $admin->ID : $this->LastEditedBy
+				"last_edited_by" => !empty($admin->ID) ? $admin->ID : $this->LastEditedBy
 			));
 		}
 

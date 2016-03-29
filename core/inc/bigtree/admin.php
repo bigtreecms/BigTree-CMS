@@ -601,7 +601,7 @@
 		function createPage($data) {
 			// Defaults
 			$parent = 0;
-			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = $in_nav = "";
+			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = $in_nav = $route = "";
 			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = false;
 			$resources = array();
 
@@ -617,7 +617,7 @@
 				$trunk = "";
 			}
 
-			$page = BigTree\Page::create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$data["_tags"]);
+			$page = BigTree\Page::create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$data["_tags"]);
 			return $page->ID;
 		}
 
@@ -735,7 +735,7 @@
 				}
 			}
 
-			$setting = BigTree\Settings::create($id,$name,$description,$type,$options,$extension,$system,$encrypted,$locked);
+			$setting = BigTree\Setting::create($id,$name,$description,$type,$options,$extension,$system,$encrypted,$locked);
 			return $setting ? true : false;
 		}
 
@@ -790,6 +790,10 @@
 		*/
 
 		function createUser($data) {
+			// Set defaults
+			$email = $password = $name = $company = $level = $daily_digest = "";
+			$permissions = $alerts = array();
+
 			// Loop through and create our expected parameters.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
@@ -1259,12 +1263,16 @@
 		*/
 
 		static function forgotPassword($email) {
+			global $bigtree;
+
 			$user = BigTree\User::getByEmail($email);
 			if (!$user) {
 				return false;
 			}
 
 			$user->initPasswordReset();
+
+			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			BigTree::redirect($login_root."forgot-success/");
 		}
 
@@ -1898,7 +1906,7 @@
 		*/
 
 		static function getModuleByRoute($route) {
-			$module = BigTree\Module::getByRoute($class);
+			$module = BigTree\Module::getByRoute($route);
 			if (!$module) {
 				return false;
 			}
@@ -2038,7 +2046,7 @@
 		*/
 
 		static function getModuleGroupByRoute($route) {
-			$group = BigTree\ModuleGroup::getByRoute($name);
+			$group = BigTree\ModuleGroup::getByRoute($route);
 			return $group ? $group->Array : false;
 		}
 
@@ -3090,7 +3098,7 @@
 				Destroys the user's session and unsets the login cookies, then sends the user back to the login page.
 		*/
 
-		static function logout() {
+		function logout() {
 			$this->Auth->logout();
 		}
 
@@ -3370,7 +3378,7 @@
 		*/
 
 		static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
-			return 
+			return BigTree\AuditTrail::seach($user,$table,$entry,$start,$end);
 		}
 
 		/*
@@ -4083,7 +4091,7 @@
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_keywords = $meta_description = $seo_invisible = "";
 			$parent = $max_age = 0;
-			$resources = array();
+			$resources = $tags = array();
 
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
@@ -4112,7 +4120,7 @@
 				$parent = $page->Parent;
 			}
 
-			$page->update($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags);
+			$page->update($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$tags);
 		}
 
 		/*
@@ -4134,7 +4142,7 @@
 
 			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {
-				BigTreeCMS::$DB->update("bigtree_pages",$page->ID,array("in_nav" => ""))
+				BigTreeCMS::$DB->update("bigtree_pages",$page->ID,array("in_nav" => ""));
 			}
 
 			$page->updateParent($parent);
@@ -4225,6 +4233,9 @@
 		*/
 
 		function updateSetting($old_id,$data) {
+			$id = $type = $name = $description = $locked = $encrypted = $system = "";
+			$options = array();
+
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
 					$$key = $val;

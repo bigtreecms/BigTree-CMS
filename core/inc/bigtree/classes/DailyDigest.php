@@ -14,15 +14,15 @@
 		static $CoreOptions = array(
 			"pending-changes" => array(
 				"name" => "Pending Changes",
-				"function" => "BigTree\DailyDigest::getChanges"
+				"function" => "DailyDigest::getChanges"
 			),
 			"messages" => array(
 				"name" => "Unread Messages",
-				"function" => "BigTree\DailyDigest::getMessages"
+				"function" => "DailyDigest::getMessages"
 			),
 			"alerts" => array(
 				"name" => "Content Age Alerts",
-				"function" => "BigTree\DailyDigest::getAlerts"
+				"function" => "DailyDigest::getAlerts"
 			)
 		);
 		static $Plugins = array();
@@ -39,7 +39,7 @@
 		*/
 
 		static function getAlerts($user) {
-			$alerts = BigTree\Page::getAlertsForUser($user);
+			$alerts = Page::getAlertsForUser($user);
 			$alerts_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
 							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Content Age Alerts</h3>
@@ -88,8 +88,8 @@
 		*/
 
 		static function getChanges($user) {
-			$user = new BigTree\User($user);
-			$changes = BigTree\PendingChange::allPublishableByUser($user);
+			$user = new User($user);
+			$changes = PendingChange::allPublishableByUser($user);
 
 			$changes_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
@@ -145,7 +145,7 @@
 		*/
 
 		static function getMessages($user) {
-			$messages = BigTree\Message::allByUser($user["id"],true);
+			$messages = Message::allByUser($user["id"],true);
 			$messages_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
 							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>

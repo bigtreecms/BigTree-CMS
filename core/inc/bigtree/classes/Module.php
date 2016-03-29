@@ -101,7 +101,9 @@
 				return;
 			}
 
-			if (!$bigtree["config"]["debug"] && file_exists(SERVER_ROOT."cache/bigtree-module-cache.json")) {
+			$cache_file = SERVER_ROOT."cache/bigtree-module-cache.json";
+
+			if ($bigtree["config"]["debug"] || !file_exists($cache_file)) {
 				// Preload the BigTreeModule class since others are based off it
 				include_once BigTree::path("inc/bigtree/modules.php");
 
@@ -141,7 +143,7 @@
 				}
 
 				// Get all extension required files and add them to a required list
-				$extensions = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
+				$extensions = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
 				foreach ($extensions as $id) {
 					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/$id/required/");
 					foreach (array_filter((array)$required_contents) as $file) {
@@ -151,10 +153,10 @@
 				
 				if (!$bigtree["config"]["debug"]) {
 					// Cache it so we don't hit the database.
-					BigTree::putFile(SERVER_ROOT."cache/bigtree-module-cache.json",BigTree::json($data));
+					BigTree::putFile($cache_file,BigTree::json($data));
 				}
 			} else {
-				$data = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-cache.json"),true);
+				$data = json_decode(file_get_contents($cache_file),true);
 			}
 
 			Router::$Registry = $data["routes"];
