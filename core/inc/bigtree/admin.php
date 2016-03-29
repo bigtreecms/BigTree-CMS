@@ -2653,7 +2653,7 @@
 		*/
 
 		static function getResourceAllocation($id) {
-			return BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
+			return SQL::fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
 		}
 
 		/*
@@ -4142,7 +4142,7 @@
 
 			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {
-				BigTreeCMS::$DB->update("bigtree_pages",$page->ID,array("in_nav" => ""));
+				SQL::update("bigtree_pages",$page->ID,array("in_nav" => ""));
 			}
 
 			$page->updateParent($parent);

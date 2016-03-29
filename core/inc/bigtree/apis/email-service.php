@@ -18,7 +18,7 @@
 
 			// Setting doesn't exist? Create it.
 			if ($s === false) {
-				BigTreeCMS::$DB->insert("bigtree_settings", array(
+				SQL::insert("bigtree_settings", array(
 					"id" => "bigtree-internal-email-service",
 					"system" => "on",
 					"encrypted" => "on"

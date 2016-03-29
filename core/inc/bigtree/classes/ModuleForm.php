@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class ModuleForm extends ModuleInterface {
 
@@ -34,7 +33,7 @@
 		function __construct($interface) {
 			// Passing in just an ID
 			if (!is_array($interface)) {
-				$interface = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
 			}
 
 			// Bad data set
@@ -107,7 +106,7 @@
 			));
 
 			// Get related views for this table and update numeric status
-			$view_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($view_ids as $view_id) {
 				$view = new ModuleView($view_id);
 				$view->refreshNumericColumns();
@@ -172,14 +171,14 @@
 			$this->save();
 
 			// Update action titles
-			$title = BigTreeCMS::$DB->escape(BigTree::safeEncode($title));
-			BigTreeCMS::$DB->query("UPDATE bigtree_module_actions SET name = 'Add $title' 
+			$title = SQL::escape(BigTree::safeEncode($title));
+			SQL::query("UPDATE bigtree_module_actions SET name = 'Add $title' 
 									WHERE interface = ? AND route LIKE 'add%'", $this->ID);
-			BigTreeCMS::$DB->query("UPDATE bigtree_module_actions SET name = 'Edit $title' 
+			SQL::query("UPDATE bigtree_module_actions SET name = 'Edit $title' 
 									WHERE interface = ? AND route LIKE 'edit%'", $this->ID);
 
 			// Get related views for this table and update numeric status
-			$view_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($view_ids as $view_id) {
 				$view = new ModuleView($view_id);
 				$view->refreshNumericColumns();

@@ -8,7 +8,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class CalloutGroup extends BaseObject {
 
@@ -31,7 +30,7 @@
 		function __construct($group) {
 			// Passing in just an ID
 			if (!is_array($group)) {
-				$group = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?", $group);
+				$group = SQL::fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?", $group);
 			}
 
 			// Bad data set
@@ -61,7 +60,7 @@
 			sort($callouts);
 
 			// Insert group
-			$id = BigTreeCMS::$DB->insert("bigtree_callout_groups",array(
+			$id = SQL::insert("bigtree_callout_groups",array(
 				"name" => BigTree::safeEncode($name),
 				"callouts" => $callouts
 			));
@@ -80,7 +79,7 @@
 		*/
 
 		function delete() {
-			BigTreeCMS::$DB->delete("bigtree_callout_groups",$this->ID);
+			SQL::delete("bigtree_callout_groups",$this->ID);
 			AuditTrail::track("bigtree_callout_groups",$this->ID,"deleted");
 		}
 
@@ -93,7 +92,7 @@
 			$this->Callouts = (array)$this->Callouts;
 			sort($this->Callouts);
 
-			BigTreeCMS::$DB->update("bigtree_callout_groups",$this->ID,array(
+			SQL::update("bigtree_callout_groups",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"callouts" => $this->Callouts
 			));

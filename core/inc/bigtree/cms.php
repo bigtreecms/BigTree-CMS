@@ -7,8 +7,6 @@
 	class BigTreeCMSBase {
 
 		public static $BreadcrumbTrunk;
-		public static $DB;
-		public static $MySQLTime = false;
 		public static $Secure;
 
 		/*

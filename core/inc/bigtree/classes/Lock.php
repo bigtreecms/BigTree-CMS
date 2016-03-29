@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Lock extends BaseObject {
 
@@ -30,7 +29,7 @@
 		function __construct($lock) {
 			// Passing in just an ID
 			if (!is_array($lock)) {
-				$lock = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock);
+				$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock);
 			}
 
 			// Bad data set
@@ -88,7 +87,7 @@
 
 			// We're taking over the lock, force was sent or this is an old lock
 			if ($lock) {
-				BigTreeCMS::$DB->update("bigtree_locks",$lock["id"],array(
+				SQL::update("bigtree_locks",$lock["id"],array(
 					"user" => $admin->ID
 				));
 
@@ -96,7 +95,7 @@
 			
 			// No lock, we're creating a new one
 			} else {
-				$id = BigTreeCMS::$DB->insert("bigtree_locks",array(
+				$id = SQL::insert("bigtree_locks",array(
 					"table" => $table,
 					"item_id" => $id,
 					"user" => $this->ID
@@ -124,7 +123,7 @@
 			}
 
 			// Update the access time and user
-			BigTreeCMS::$DB->update("bigtree_locks",array("table" => $table,"item_id" => $id, "user" => $admin->ID), array("last_accessed" => "NOW()"));
+			SQL::update("bigtree_locks",array("table" => $table,"item_id" => $id, "user" => $admin->ID), array("last_accessed" => "NOW()"));
 		}
 
 		/*
@@ -137,7 +136,7 @@
 		*/
 
 		static function unlock($table,$id) {
-			BigTreeCMS::$DB->delete("bigtree_locks",array("table" => $table, "item_id" => $id));
+			SQL::delete("bigtree_locks",array("table" => $table, "item_id" => $id));
 		}
 		
 	}

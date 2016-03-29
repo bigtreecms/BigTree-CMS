@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Extension extends BaseObject {
 
@@ -34,7 +33,7 @@
 		function __construct($extension) {
 			// Passing in just an ID
 			if (!is_array($extension)) {
-				$extension = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $extension);
+				$extension = SQL::fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $extension);
 			}
 
 			// Bad data set
@@ -71,22 +70,22 @@
 			$extension = $manifest["id"];
 
 			// Turn off foreign key checks so we can reference the extension before creating it
-			BigTreeCMS::$DB->query("SET foreign_key_checks = 0");
+			SQL::query("SET foreign_key_checks = 0");
 
 			// Upgrades drop existing modules, templates, etc -- we don't drop settings because they have user data
 			if (is_array($upgrade)) {
-				BigTreeCMS::$DB->delete("bigtree_module_groups",array("extension" => $extension));
-				BigTreeCMS::$DB->delete("bigtree_modules",array("extension" => $extension));
-				BigTreeCMS::$DB->delete("bigtree_templates",array("extension" => $extension));
-				BigTreeCMS::$DB->delete("bigtree_callouts",array("extension" => $extension));
-				BigTreeCMS::$DB->delete("bigtree_field_types",array("extension" => $extension));
-				BigTreeCMS::$DB->delete("bigtree_feeds",array("extension" => $extension));
+				SQL::delete("bigtree_module_groups",array("extension" => $extension));
+				SQL::delete("bigtree_modules",array("extension" => $extension));
+				SQL::delete("bigtree_templates",array("extension" => $extension));
+				SQL::delete("bigtree_callouts",array("extension" => $extension));
+				SQL::delete("bigtree_field_types",array("extension" => $extension));
+				SQL::delete("bigtree_feeds",array("extension" => $extension));
 
 			// Import tables for new installs
 			} else { 
 				foreach ($manifest["components"]["tables"] as $table_name => $sql_statement) {
-					BigTreeCMS::$DB->query("DROP TABLE IF EXISTS `$table_name`");
-					BigTreeCMS::$DB->query($sql_statement);
+					SQL::query("DROP TABLE IF EXISTS `$table_name`");
+					SQL::query($sql_statement);
 				}
 			}
 
@@ -96,7 +95,7 @@
 					$bigtree["group_match"][$group["id"]] = $this->createModuleGroup($group["name"]);
 					// Update the group ID since we're going to save this manifest locally for uninstalling
 					$group["id"] = $bigtree["group_match"][$group["id"]];
-					BigTreeCMS::$DB->update("bigtree_module_groups",$group["id"],array("extension" => $extension));
+					SQL::update("bigtree_module_groups",$group["id"],array("extension" => $extension));
 				}
 			}
 		
@@ -106,10 +105,10 @@
 					$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
 					
 					// Find a unique route
-					$route = BigTreeCMS::$DB->unique("bigtree_modules","route",$module["route"]);
+					$route = SQL::unique("bigtree_modules","route",$module["route"]);
 
 					// Create the module
-					$module_id = BigTreeCMS::$DB->insert("bigtree_modules",array(
+					$module_id = SQL::insert("bigtree_modules",array(
 						"name" => $module["name"],
 						"route" => $route,
 						"class" => $module["class"],
@@ -167,7 +166,7 @@
 			// Import templates
 			foreach ($manifest["components"]["templates"] as $template) {
 				if (array_filter((array)$template)) {
-					BigTreeCMS::$DB->insert("bigtree_templates",array(
+					SQL::insert("bigtree_templates",array(
 						"id" => $template["id"],
 						"name" => $template["name"],
 						"module" => $bigtree["module_match"][$template["module"]],
@@ -182,7 +181,7 @@
 			// Import callouts
 			foreach ($manifest["components"]["callouts"] as $callout) {
 				if (array_filter((array)$callout)) {
-					BigTreeCMS::$DB->insert("bigtree_callouts",array(
+					SQL::insert("bigtree_callouts",array(
 						"id" => $callout["id"],
 						"name" => $callout["name"],
 						"description" => $callout["description"],
@@ -200,14 +199,14 @@
 			foreach ($manifest["components"]["settings"] as $setting) {
 				if (array_filter((array)$setting)) {
 					$this->createSetting($setting);
-					BigTreeCMS::$DB->update("bigtree_settings",$setting["id"],array("extension" => $extension));
+					SQL::update("bigtree_settings",$setting["id"],array("extension" => $extension));
 				}
 			}
 		
 			// Import Feeds
 			foreach ($manifest["components"]["feeds"] as $feed) {
 				if (array_filter((array)$feed)) {
-					BigTreeCMS::$DB->insert("bigtree_feeds",array(
+					SQL::insert("bigtree_feeds",array(
 						"route" => $feed["route"],
 						"name" => $feed["name"],
 						"description" => $feed["description"],
@@ -223,7 +222,7 @@
 			// Import Field Types
 			foreach ($manifest["components"]["field_types"] as $type) {
 				if (array_filter((array)$type)) {
-					BigTreeCMS::$DB->insert("bigtree_field_types",array(
+					SQL::insert("bigtree_field_types",array(
 						"id" => $type["id"],
 						"name" => $type["name"],
 						"use_cases" => $type["use_cases"],
@@ -243,13 +242,13 @@
 				foreach ($sql_revisions as $key => $statements) {
 					if ($key > $old_revision) {
 						foreach ($statements as $sql_statement) {
-							BigTreeCMS::$DB->query($sql_statement);
+							SQL::query($sql_statement);
 						}
 					}
 				}
 
 				// Update the extension
-				BigTreeCMS::$DB->update("bigtree_extensions",$extension,array(
+				SQL::update("bigtree_extensions",$extension,array(
 					"name" => $manifest["title"],
 					"version" => $manifest["version"],
 					"manifest" => $manifest
@@ -266,7 +265,7 @@
 				BigTree::setDirectoryPermissions($destination_path);
 
 				// Create the extension
-				BigTreeCMS::$DB->insert("bigtree_extensions",array(
+				SQL::insert("bigtree_extensions",array(
 					"id" => $extension,
 					"type" => "extension",
 					"name" => $manifest["title"],
@@ -276,10 +275,10 @@
 			}
 
 			// Re-enable foreign key checks
-			BigTreeCMS::$DB->query("SET foreign_key_checks = 1");
+			SQL::query("SET foreign_key_checks = 1");
 
 			// Empty view cache
-			BigTreeCMS::$DB->query("DELETE FROM bigtree_module_view_cache");
+			SQL::query("DELETE FROM bigtree_module_view_cache");
 
 			// Move public files into the site directory
 			$public_dir = SERVER_ROOT."extensions/".$manifest["id"]."/public/";
@@ -314,19 +313,19 @@
 				foreach ($this->Manifest["components"] as $type => $list) {
 					if ($type == "tables") {
 						// Turn off foreign key checks since we're going to be dropping tables.
-						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 0");
+						SQL::query("SET SESSION foreign_key_checks = 0");
 						
 						// Drop all the tables the extension created
 						foreach ($list as $table => $create_statement) {
-							BigTreeCMS::$DB->query("DROP TABLE IF EXISTS `$table`");
+							SQL::query("DROP TABLE IF EXISTS `$table`");
 						}
 						
 						// Re-enable foreign key checks
-						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 1");
+						SQL::query("SET SESSION foreign_key_checks = 1");
 					} else {
 						// Remove other database entries
 						foreach ($list as $item) {
-							BigTreeCMS::$DB->delete("bigtree_".$type,$item["id"]);
+							SQL::delete("bigtree_".$type,$item["id"]);
 						}
 					}
 				}
@@ -341,19 +340,19 @@
 				foreach ($this->Manifest["components"] as $type => $list) {
 					if ($type == "tables") {
 						// Turn off foreign key checks since we're going to be dropping tables.
-						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 0");
+						SQL::query("SET SESSION foreign_key_checks = 0");
 	
 						// Remove all the tables the package added
 						foreach ($list as $table) {
-							BigTreeCMS::$DB->query("DROP TABLE IF EXISTS `$table`");
+							SQL::query("DROP TABLE IF EXISTS `$table`");
 						}
 	
 						// Re-enable key checks
-						BigTreeCMS::$DB->query("SET SESSION foreign_key_checks = 1");
+						SQL::query("SET SESSION foreign_key_checks = 1");
 					} else {
 						// Remove all the bigtree components the package made
 						foreach ($list as $item) {
-							BigTreeCMS::$DB->delete("bigtree_$type",$item["id"]);
+							SQL::delete("bigtree_$type",$item["id"]);
 						}
 	
 						// Modules might have their own directories
@@ -373,7 +372,7 @@
 			}
 
 			// Delete extension entry
-			BigTreeCMS::$DB->delete("bigtree_extensions",$this->ID);
+			SQL::delete("bigtree_extensions",$this->ID);
 			
 			// Track
 			AuditTrail::track("bigtree_extensions",$this->ID,"deleted");

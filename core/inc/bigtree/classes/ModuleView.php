@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class ModuleView extends ModuleInterface {
 
@@ -45,7 +44,7 @@
 		function __construct($interface) {
 			// Passing in just an ID
 			if (!is_array($interface)) {
-				$interface = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
 			}
 
 			// Bad data set

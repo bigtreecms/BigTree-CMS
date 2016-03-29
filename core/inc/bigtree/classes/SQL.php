@@ -2,7 +2,7 @@
 	/*
 		Class: BigTree\SQL
 			A MySQL helper class that wraps the pre-4.3 functions.
-			When BigTree is bootstrapped, $db, BigTreeCMS::$DB, and BigTreeAdmin::$DB are instances of this class.
+			When BigTree is bootstrapped, $db is an instance of this class.
 	*/
 
 	namespace BigTree;
@@ -12,19 +12,48 @@
 	use mysqli;
 
 	class SQL {
+		static $Connection = "disconnected";
 		static $ErrorLog = array();
+		static $MySQLTime = false;
 		static $QueryLog = array();
+		static $WriteConnection = "disconnected";
 
-		var $ActiveQuery;
-		var $Connection = "disconnected";
-		var $WriteConnection = "disconnected";
+		public $ActiveQuery = false;
 
+		// Constructor for chain queries
 		function __construct($chain_query = false) {
 			// Chained instances should use the primary connection
 			if ($chain_query) {
-				$this->ActiveQuery = $chain_query;
-				$this->Connection = BigTreeCMS::$DB->Connection;
-				$this->WriteConnection = BigTreeCMS::$DB->WriteConnection;
+				static::ActiveQuery = $chain_query;
+			}
+		}
+
+		// A little hack to allow fetch to be called both statically and chained
+		function __call($method, $arguments) {
+			if ($method == "fetch") {
+				call_user_func_array(array($this, "_local_fetch"), $arguments);
+			} elseif ($method == "fetchAll") {
+				call_user_func_array(array($this, "_local_fetchAll"), $arguments);
+			} elseif ($method == "fetchAllSingle") {
+				call_user_func_array(array($this, "_local_fetchAllSingle"), $arguments);
+			} elseif ($method == "fetchSingle") {
+				call_user_func_array(array($this, "_local_fetchSingle"), $arguments);
+			} elseif ($method == "rows") {
+				call_user_func_array(array($this, "_local_rows"), $arguments);
+			}
+		}
+
+		function __callStatic($method, $arguments) {
+			if ($method == "fetch") {
+				call_user_func_array(array(static, "_static_fetch"), $arguments);
+			} elseif ($method == "fetchAll") {
+				call_user_func_array(array(static, "_static_fetchAll"), $arguments);
+			} elseif ($method == "fetchAllSingle") {
+				call_user_func_array(array(static, "_static_fetchAllSingle"), $arguments);
+			} elseif ($method == "fetchSingle") {
+				call_user_func_array(array(static, "_static_fetchSingle"), $arguments);
+			} elseif ($method == "rows") {
+				call_user_func_array(array(static, "_static_rows"), $arguments);
 			}
 		}
 
@@ -39,7 +68,7 @@
 				true if successful.
 		*/
 
-		function backup($file) {
+		static function backup($file) {
 			if (!BigTree::isDirectoryWritable($file)) {
 				return false;
 			}
@@ -48,11 +77,11 @@
 			fwrite($pointer,"SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
 			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
 
-			$tables = $this->fetchAllSingle("SHOW TABLES");
+			$tables = static::fetchAllSingle("SHOW TABLES");
 			foreach ($tables as $table) {				
 				// Write the drop / create statements
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
-				$definition = $this->fetchSingle("SHOW CREATE TABLE `$table`");
+				$definition = static::fetchSingle("SHOW CREATE TABLE `$table`");
 				if (is_array($definition)) {
 					fwrite($pointer, str_replace(array("\n  ", "\n"), "", end($definition)) . ";\n");
 				}
@@ -85,12 +114,12 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 
-		function compareTables($table_a,$table_b) {
+		static function compareTables($table_a,$table_b) {
 			// Get table A's description
-			$table_a_description = $this->describeTable($table_a);
+			$table_a_description = static::describeTable($table_a);
 			$table_a_columns = $table_a_description["columns"];
 			// Get table B's description
-			$table_b_description = $this->describeTable($table_b);
+			$table_b_description = static::describeTable($table_b);
 			$table_b_columns = $table_b_description["columns"];
 
 			// Setup up query array
@@ -136,7 +165,7 @@
 			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
 			    	    	$mod .= " DEFAULT $d";
 			    	    } else {
-			    	    	$mod .= " DEFAULT '".$this->escape($d)."'";
+			    	    	$mod .= " DEFAULT '".static::escape($d)."'";
 			    	    }
 			    	}
 			    	
@@ -256,7 +285,7 @@
 				Sets up the internal connections to the MySQL server(s).
 		*/
 
-		function connect($property,$type) {
+		static function connect($property,$type) {
 			global $bigtree;
 
 			// Initializing optional params, if they don't exist yet due to older install
@@ -264,7 +293,7 @@
 			!empty($bigtree["config"][$type]["port"]) || $bigtree["config"][$type]["port"] = 3306;
 			!empty($bigtree["config"][$type]["socket"]) || $bigtree["config"][$type]["socket"] = null;
 
-			$this->$property = new mysqli(
+			static::$property = new mysqli(
 				$bigtree["config"][$type]["host"],
 				$bigtree["config"][$type]["user"],
 				$bigtree["config"][$type]["password"],
@@ -274,14 +303,14 @@
 			);
 
 			// Make sure everything is run in UTF8, turn off strict mode if set
-			$this->$property->query("SET NAMES 'utf8'");
-			$this->$property->query("SET SESSION sql_mode = ''");
+			static::$property->query("SET NAMES 'utf8'");
+			static::$property->query("SET SESSION sql_mode = ''");
 
 			// Remove BigTree connection parameters once it is setup.
 			unset($bigtree["config"][$type]["user"]);
 			unset($bigtree["config"][$type]["password"]);
 
-			return $this->$property;
+			return static::$property;
 		}
 
 		/*
@@ -296,7 +325,7 @@
 				true if successful (even if no rows match)
 		*/
 
-		function delete($table,$id) {
+		static function delete($table,$id) {
 			$values = $where = array();
 
 			// If the ID is an associative array we match based on the given columns
@@ -315,7 +344,7 @@
 			array_unshift($values,"DELETE FROM `$table` WHERE ".implode(" AND ",$where));
 
 			// Call BigTree\SQL::query
-			$response = call_user_func_array(array($this,"query"),$values);
+			$response = call_user_func_array(array(static, "query"),$values);
 			return $response->ActiveQuery ? true : false;
 		}
 
@@ -330,7 +359,7 @@
 				An array of table information.
 		*/
 		
-		function describeTable($table) {
+		static function describeTable($table) {
 			$result = array(
 				"columns" => array(),
 				"indexes" => array(),
@@ -338,7 +367,7 @@
 				"primary_key" => array()
 			);
 			
-			$result = $this->fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`");
+			$result = static::fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`");
 			if (!$result) {
 				return false;
 			}
@@ -358,14 +387,14 @@
 						$unique = false;
 					}
 					// Get the key's name.
-					$key_name = $this->nextColumnDefinition($line);
+					$key_name = static::nextColumnDefinition($line);
 					// Get the key's content
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 4); // Skip ` (`
 					$line = substr(rtrim($line,","),0,-1); // Remove trailing , and )
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
-						$part = $this->nextColumnDefinition($line);
+						$part = static::nextColumnDefinition($line);
 						$size = false;
 						// See if there's a size definition, include it
 						if (substr($line,strlen($part) + 1,1) == "(") {
@@ -385,7 +414,7 @@
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
-						$part = $this->nextColumnDefinition($line);
+						$part = static::nextColumnDefinition($line);
 						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
 						if ($part) {
 							if (strpos($part,"KEY_BLOCK_SIZE=") === false) {
@@ -396,7 +425,7 @@
 					$result["primary_key"] = $key_parts;
 				} elseif (strtoupper(substr($line,0,10)) == "CONSTRAINT") { // Foreign Keys
 					$line = substr($line,12); // Remove CONSTRAINT `
-					$key_name = $this->nextColumnDefinition($line);
+					$key_name = static::nextColumnDefinition($line);
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
 					
 					// Get local reference columns
@@ -404,7 +433,7 @@
 					$part = true;
 					$end = false;
 					while (!$end && $part) {
-						$part = $this->nextColumnDefinition($line);
+						$part = static::nextColumnDefinition($line);
 						$line = substr($line,strlen($part) + 1); // Take off the trailing `
 						if (substr($line,0,1) == ")") {
 							$end = true;
@@ -416,7 +445,7 @@
 
 					// Get other table name
 					$line = substr($line,14); // Skip ) REFERENCES `
-					$other_table = $this->nextColumnDefinition($line);
+					$other_table = static::nextColumnDefinition($line);
 					$line = substr($line,strlen($other_table) + substr_count($other_table,"`") + 4); // Remove ` (`
 
 					// Get other table columns
@@ -424,7 +453,7 @@
 					$part = true;
 					$end = false;
 					while (!$end && $part) {
-						$part = $this->nextColumnDefinition($line);
+						$part = static::nextColumnDefinition($line);
 						$line = substr($line,strlen($part) + 1); // Take off the trailing `
 						if (substr($line,0,1) == ")") {
 							$end = true;
@@ -464,7 +493,7 @@
 					}
 				} elseif (substr($line,0,1) == "`") { // Column Definition
 					$line = substr($line,1); // Get rid of the first `
-					$key = $this->nextColumnDefinition($line); // Get the column name.
+					$key = static::nextColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
 					
 					$size = $current_option = "";
@@ -592,11 +621,11 @@
 				An array.
 		*/
 
-		function dumpTable($table) {
+		static function dumpTable($table) {
 			$inserts = array();
 
 			// Figure out which columns are binary and need to be pulled as hex
-			$description = $this->describeTable($table);
+			$description = static::describeTable($table);
 			$column_query = array();
 			$binary_columns = array();			
 			foreach ($description["columns"] as $key => $column) {
@@ -609,7 +638,7 @@
 			}
 
 			// Get the rows out of the table
-			$query = $this->query("SELECT ".implode(", ",$column_query)." FROM `$table`");
+			$query = static::query("SELECT ".implode(", ",$column_query)." FROM `$table`");
 			while ($row = $query->fetch()) {
 				$keys = $vals = array();
 
@@ -619,9 +648,9 @@
 						$vals[] = "NULL";
 					} else {
 						if (in_array($key,$binary_columns)) {
-							$vals[] = "X'".str_replace("\n","\\n",$this->escape($val))."'";
+							$vals[] = "X'".str_replace("\n","\\n",static::escape($val))."'";
 						} else {
-							$vals[] = "'".str_replace("\n","\\n",$this->escape($val))."'";
+							$vals[] = "'".str_replace("\n","\\n",static::escape($val))."'";
 						}
 					}
 				}
@@ -643,12 +672,12 @@
 				Escaped string
 		*/
 
-		function escape($string) {
+		static function escape($string) {
 			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
 				$string = BigTree::json($string);
 			}
 			
-			$connection = ($this->Connection && $this->Connection !== "disconnected") ? $this->Connection : $this->connect("Connection","db");
+			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection","db");
 			return $connection->real_escape_string($string);
 		}
 
@@ -664,7 +693,7 @@
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 
-		function exists($table,$values) {
+		static function exists($table,$values) {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = array();
@@ -681,7 +710,7 @@
 			array_unshift($values,"SELECT 1 FROM `$table` WHERE ".implode(" AND ",$where));
 
 			// Execute query, return a single result
-			return call_user_func_array(array($this,"fetchSingle"),$values) ? true : false;
+			return call_user_func_array(array(static, "fetchSingle"),$values) ? true : false;
 		}
 
 		/*
@@ -697,21 +726,27 @@
 				A row from the active query (or false if no more rows exist)
 		*/
 
-		function fetch() {
+		function _local_fetch() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			if (count($args)) {
-				$query = call_user_func_array(array($this,"query"),$args);
+				$query = call_user_func_array(array($this, "query"), $args);
 				return $query->fetch();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
 				return false;
 			} else {
 				return $this->ActiveQuery->fetch_assoc();
 			}
+		}
+
+		static function _static_fetch() {
+			// Allow this to be called without calling query first
+			$query = call_user_func_array(array(static, "query"), func_get_args());
+			return $query->fetch();
 		}
 
 		/*
@@ -727,17 +762,17 @@
 				An array of rows from the active query.
 		*/
 
-		function fetchAll() {
+		function _local_fetchAll() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			if (count($args)) {
-				$query = call_user_func_array(array($this,"query"),$args);
+				$query = call_user_func_array(array($this, "query"), $args);
 				return $query->fetchAll();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
 				return false;
 			} else {
 				$results = array();
@@ -746,6 +781,11 @@
 				}
 				return $results;
 			}
+		}
+
+		static function _static_fetchAll() {
+			$query = call_user_func_array(array(static, "query"),func_get_args());
+			return $query->fetchAll();
 		}
 
 		/*
@@ -763,17 +803,17 @@
 				<fetchAll>
 		*/
 
-		function fetchAllSingle() {
+		function _local_fetchAllSingle() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			if (count($args)) {
-				$query = call_user_func_array(array($this,"query"),$args);
+				$query = call_user_func_array(array($this, "query"), $args);
 				return $query->fetchAllSingle();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
+				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
 				return false;
 			} else {
 				$results = array();
@@ -782,6 +822,11 @@
 				}
 				return $results;
 			}
+		}
+
+		static function __fetchAllSingle() {
+			$query = call_user_func_array(array(static, "query"),func_get_args());
+			return $query->fetchAllSingle();
 		}
 
 		/*
@@ -799,22 +844,27 @@
 				<fetch>
 		*/
 
-		function fetchSingle() {
+		function _local_fetchSingle() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			if (count($args)) {
-				$query = call_user_func_array(array($this,"query"),$args);
+				$query = call_user_func_array(array($this, "query"), $args);
 				return $query->fetchSingle();
 			}
 
 			// Chained call
-			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1],E_USER_WARNING);
+			if (!is_object(static::ActiveQuery)) {
+				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
 				return false;
 			} else {
-				$result = $this->ActiveQuery->fetch_assoc();
+				$result = static::ActiveQuery->fetch_assoc();
 				return is_array($result) ? current($result) : false;
 			}
+		}
+
+		static function _static_fetchSingle() {
+			$query = call_user_func_array(array(static, "query"),func_get_args());
+			return $query->fetchSingle();
 		}
 
 		/*
@@ -829,7 +879,7 @@
 				Primary key of the inserted row
 		*/
 
-		function insert($table,$values) {
+		static function insert($table,$values) {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::inserts expects a non-empty array as its second parameter");
 				return false;
@@ -845,11 +895,11 @@
 				} elseif ($value === "NOW()") {
 					$vals[] = $value;
 				} else {
-					$vals[] = "'".$this->escape($value)."'";
+					$vals[] = "'".static::escape($value)."'";
 				}
 			}
 			
-			$query_response = $this->query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$vals).")");
+			$query_response = static::query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$vals).")");
 			$id = $query_response->insertID();
 			return $id ? $id : $query_response->ActiveQuery;
 		}
@@ -862,11 +912,11 @@
 				The primary key for the most recently inserted row.
 		*/
 
-		function insertID() {
-			if ($this->WriteConnection && $this->WriteConnection !== "disconnected") {
-				return $this->WriteConnection->insert_id;
+		static function insertID() {
+			if (static::$WriteConnection && static::$WriteConnection !== "disconnected") {
+				return static::$WriteConnection->insert_id;
 			} else {
-				return $this->Connection->insert_id;
+				return static::$Connection->insert_id;
 			}
 		}
 
@@ -884,7 +934,7 @@
 				Another instance of BigTree\SQL for chaining fetch, fetchAll, insertID, or rows methods.
 		*/
 
-		function query($query) {
+		static function query($query) {
 			global $bigtree;
 
 			// Debug should log queries
@@ -893,14 +943,14 @@
 			}
 
 			// Setup our read connection if it disconnected for some reason
-			$connection = ($this->Connection && $this->Connection !== "disconnected") ? $this->Connection : $this->connect("Connection","db");
+			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection","db");
 
 			// If we have a separate write host, let's find out if we're writing and use it if so
 			if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
 				$commands = explode(" ",$query);
 				$fc = strtolower($commands[0]);
 				if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
-					$connection = ($this->WriteConnection && $this->WriteConnection !== "disconnected") ? $this->WriteConnection : $this->connect("WriteConnection","db_write");
+					$connection = (static::$WriteConnection && static::$WriteConnection !== "disconnected") ? static::$WriteConnection : static::connect("WriteConnection","db_write");
 				}
 			}
 
@@ -924,7 +974,7 @@
 					} elseif ($args[$x] === "NOW()") {
 						$replacement = $args[$x];
 					} else {
-						$replacement = "'".$this->escape($args[$x])."'";
+						$replacement = "'".static::escape($args[$x])."'";
 					}
 
 					$query = substr($query,0,$position).$replacement.substr($query,$position + 1);
@@ -954,11 +1004,12 @@
 				Number of rows for the active query.
 		*/
 
-		function rows($query = false) {
-			if ($query) {
-				return $query->ActiveQuery->num_rows;
-			}
+		function _local_rows() {
 			return $this->ActiveQuery->num_rows;
+		}
+
+		static function _static_rows($query) {
+			return $query->ActiveQuery->num_rows;
 		}
 
 		/*
@@ -978,7 +1029,7 @@
 				Unique version of value.
 		*/
 
-		function unique($table,$field,$value,$id = false,$inverse = false) {
+		static function unique($table,$field,$value,$id = false,$inverse = false) {
 			$original_value = $value;
 			$count = 1;
 
@@ -1002,14 +1053,14 @@
 					$query = "SELECT COUNT(*) FROM `$table` WHERE `$field` = ? AND `$id_column` != ?";
 				}
 
-				while ($this->fetchSingle($query,$value,$id_value)) {
+				while (static::fetchSingle($query,$value,$id_value)) {
 					$count++;
 					$value = $original_value."-$count";
 				}
 
 			// Checking the whole table
 			} else {
-				while ($this->fetchSingle("SELECT COUNT(*) FROM `$table` WHERE `$field` = ?",$value)) {
+				while (static::fetchSingle("SELECT COUNT(*) FROM `$table` WHERE `$field` = ?",$value)) {
 					$count++;
 					$value = $original_value."-$count";
 				}
@@ -1029,8 +1080,8 @@
 				true if table exists, otherwise false.
 		*/
 
-		function tableExists($table) {
-			$rows = $this->query("SHOW TABLES LIKE ?", $table)->rows();
+		static function tableExists($table) {
+			$rows = static::query("SHOW TABLES LIKE ?", $table)->rows();
 			if ($rows) {
 				return true;
 			}
@@ -1050,7 +1101,7 @@
 				true if successful (even if no rows match)
 		*/
 
-		function update($table,$id,$values) {
+		static function update($table,$id,$values) {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::update expects a non-empty array as its third parameter");
 				return false;
@@ -1079,7 +1130,7 @@
 			array_unshift($values,"UPDATE `$table` SET ".implode(", ",$set)." WHERE ".implode(" AND ",$where));
 
 			// Call BigTree\SQL::query
-			$response = call_user_func_array(array($this,"query"),$values);
+			$response = call_user_func_array(array(static, "query"),$values);
 			return $response->ActiveQuery ? true : false;
 		}
 	}

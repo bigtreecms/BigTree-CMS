@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Setting {
 
@@ -43,7 +42,7 @@
 			// Passing in just an ID
 			if (!is_array($setting)) {
 				$id = static::context($setting);
-				$setting = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
+				$setting = SQL::fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
 			}
 
 			// Bad data set
@@ -62,7 +61,7 @@
 
 				// Value may be encrypted
 				if ($this->Encrypted) {
-					$value = BigTreeCMS::$DB->fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` FROM bigtree_settings 
+					$value = SQL::fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` FROM bigtree_settings 
 																 WHERE id = ?", $bigtree["config"]["settings_key"], $this->ID);
 				} else {
 					$value = $setting["value"];
@@ -88,10 +87,10 @@
 		function __destruct() {
 			if ($this->AutoSave) {
 				if ($this->Encrypted) {
-					BigTreeCMS::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
+					SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
 											$value, $bigtree["config"]["settings_key"], $this->ID);
 				} else {
-					BigTreeCMS::$DB->update("bigtree_settings",$this->ID,array("value" => $value));
+					SQL::update("bigtree_settings",$this->ID,array("value" => $value));
 				}
 			}
 		}
@@ -109,7 +108,7 @@
 		*/
 
 		static function allSystem($sort = "name ASC",$return_arrays = false) {
-			$settings = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_settings 
+			$settings = SQL::fetchAll("SELECT * FROM bigtree_settings 
 												   WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
 
 			if (!$return_arrays) {
@@ -144,7 +143,7 @@
 				}
 				
 				// See if namespaced version exists
-				if (BigTreeCMS::$DB->exists("bigtree_settings",array("id" => "$extension*$id"))) {
+				if (SQL::exists("bigtree_settings",array("id" => "$extension*$id"))) {
 					return "$extension*$id";
 				}
 			}
@@ -184,12 +183,12 @@
 			}
 
 			// Check for ID collision
-			if (BigTreeCMS::$DB->exists("bigtree_settings",$id)) {
+			if (SQL::exists("bigtree_settings",$id)) {
 				return false;
 			}
 
 			// Create the setting
-			BigTreeCMS::$DB->insert("bigtree_settings",array(
+			SQL::insert("bigtree_settings",array(
 				"id" => $id,
 				"name" => BigTree::safeEncode($name),
 				"description" => $description,
@@ -218,7 +217,7 @@
 		*/
 
 		static function exists($id) {
-			return BigTreeCMS::$DB->exists("bigtree_settings",static::context($id));
+			return SQL::exists("bigtree_settings",static::context($id));
 		}
 
 		/*
@@ -229,7 +228,7 @@
 		function save() {
 			global $bigtree;
 
-			BigTreeCMS::$DB->update("bigtree_settings",$this->OriginalID,array(
+			SQL::update("bigtree_settings",$this->OriginalID,array(
 				"id" => $this->ID,
 				"type" => $this->Type,
 				"options" => array_filter((array) $this->Settings),
@@ -250,10 +249,10 @@
 				}
 	
 				if ($this->Encrypted) {
-					BigTreeCMS::$DB->query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
+					SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
 											$value, $bigtree["config"]["settings_key"], $this->ID);
 				} else {
-					BigTreeCMS::$DB->update("bigtree_settings",$this->ID,array("value" => $value));
+					SQL::update("bigtree_settings",$this->ID,array("value" => $value));
 				}
 
 			// If encryption status has changed, update the value directly
@@ -344,12 +343,12 @@
 
 			foreach ($ids as $id) {
 				$contextual_id = static::context($id);
-				$setting = BigTreeCMS::$DB->fetch("SELECT value, encrypted FROM bigtree_settings WHERE id = ?", $contextual_id);
+				$setting = SQL::fetch("SELECT value, encrypted FROM bigtree_settings WHERE id = ?", $contextual_id);
 				
 				if ($setting) {
 					// If the setting is encrypted, we need to re-pull just the value.
 					if ($setting["encrypted"]) {
-						$setting["value"] = BigTreeCMS::$DB->fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings WHERE id = ?",
+						$setting["value"] = SQL::fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings WHERE id = ?",
 																		  $bigtree["config"]["settings_key"], $contextual_id);
 					}
 		

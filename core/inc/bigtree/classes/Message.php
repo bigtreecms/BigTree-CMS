@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Message extends BaseObject {
 
@@ -34,7 +33,7 @@
 		function __construct($message) {
 			// Passing in just an ID
 			if (!is_array($message)) {
-				$message = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_messages WHERE id = ?", $message);
+				$message = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $message);
 			}
 
 			// Bad data set
@@ -70,8 +69,8 @@
 		static function allByUser($user = false,$return_arrays = false) {
 			$sent = $read = $unread = array();
 
-			$user = BigTreeCMS::$DB->escape($user);
-			$messages = BigTreeCMS::$DB->fetchAll("SELECT bigtree_messages.*, 
+			$user = SQL::escape($user);
+			$messages = SQL::fetchAll("SELECT bigtree_messages.*, 
 														  bigtree_users.name AS sender_name, 
 														  bigtree_users.email AS sender_email 
 												   FROM bigtree_messages JOIN bigtree_users 
@@ -120,7 +119,7 @@
 			}
 
 			// Insert the message
-			$id = BigTreeCMS::$DB->insert("bigtree_messages",array(
+			$id = SQL::insert("bigtree_messages",array(
 				"sender" => $sender,
 				"recipients" => $send_to,
 				"subject" => BigTree::safeEncode(strip_tags($subject)),
@@ -157,7 +156,7 @@
 
 			// Find children
 			$id = $this->ID;
-			while ($id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
+			while ($id = SQL::fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
 				$chain[] = new Message($id);
 			}
 
@@ -181,7 +180,7 @@
 				return false;
 			}
 
-			return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
+			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
 												 WHERE recipients LIKE '%|".$admin->ID."|%' AND read_by NOT LIKE '%|".$admin->ID."|%'");
 		}
 

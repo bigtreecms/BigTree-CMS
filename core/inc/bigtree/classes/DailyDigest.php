@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class DailyDigest extends BaseObject {
 
@@ -187,7 +186,7 @@
 			global $bigtree;
 
 			// We're going to show the site's title in the email
-			$site_title = BigTreeCMS::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
+			$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
 
 			// Find out what blocks are on
 			$extension_settings = Setting::value("bigtree-internal-extension-settings");
@@ -222,7 +221,7 @@
 			array_multisort($positions,SORT_DESC,$blocks);
 
 			// Loop through each user who has opted in to emails
-			$daily_digest_users = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_users WHERE daily_digest = 'on'");
+			$daily_digest_users = SQL::fetchAll("SELECT * FROM bigtree_users WHERE daily_digest = 'on'");
 			foreach ($daily_digest_users as $user) {
 				$block_markup = "";
 

@@ -8,7 +8,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class User extends BaseObject {
 
@@ -38,7 +37,7 @@
 		function __construct($user) {
 			// Passing in just an ID
 			if (!is_array($user)) {
-				$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE id = ?", $user);
+				$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE id = ?", $user);
 			}
 
 			// Bad data set
@@ -82,7 +81,7 @@
 			global $bigtree;
 
 			// See if user exists already
-			if (BigTreeCMS::$DB->exists(static::$Table,array("email" => $email))) {
+			if (SQL::exists(static::$Table,array("email" => $email))) {
 				return false;
 			}
 
@@ -91,7 +90,7 @@
 			$password = $phpass->HashPassword(trim($password));
 
 			// Create the user
-			$id = BigTreeCMS::$DB->insert(static::$Table,array(
+			$id = SQL::insert(static::$Table,array(
 				"email" => $email,
 				"password" => $password,
 				"name" => BigTree::safeEncode($name),
@@ -113,7 +112,7 @@
 		*/
 
 		function delete() {
-			BigTreeCMS::$DB->delete(static::$Table,$this->ID);
+			SQL::delete(static::$Table,$this->ID);
 			BigTree\AuditTrail::track(static::$Table,$this->ID,"deleted");
 		}
 
@@ -129,7 +128,7 @@
 		*/
 
 		static function getByEmail($email) {
-			$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
+			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
 			
 			if ($user) {
 				return new User($user);
@@ -150,7 +149,7 @@
 		*/
 
 		static function getByHash($hash) {
-			$user = BigTreeCMS::$DB->fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
+			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
 
 			if ($user) {
 				return new User($user);
@@ -171,7 +170,7 @@
 			$hash = $this->setPasswordHash();
 
 			// Get site title for email
-			$site_title = BigTreeCMS::$DB->fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
+			$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
 
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 
@@ -197,7 +196,7 @@
 		*/
 
 		function removeBans() {
-			BigTreeCMS::$DB->delete("bigtree_login_bans",array("user" => $this->ID));
+			SQL::delete("bigtree_login_bans",array("user" => $this->ID));
 		}
 
 		/*
@@ -210,7 +209,7 @@
 
 		function setPasswordHash() {
 			$hash = md5(microtime().$this->Password);
-			BigTreeCMS::$DB->update("bigtree_users",$this->ID,array("change_password_hash" => $hash));
+			SQL::update("bigtree_users",$this->ID,array("change_password_hash" => $hash));
 
 			return $hash;
 		}
@@ -238,7 +237,7 @@
 				$update_values["password"] = $phpass->HashPassword(trim($this->Password));
 			}
 
-			BigTreeCMS::$DB->update(static::$Table,$this->ID,$update_values);
+			SQL::update(static::$Table,$this->ID,$update_values);
 			BigTree\AuditTrail::track("bigtree_users",$this->ID,"updated");
 		}
 
@@ -262,7 +261,7 @@
 
 		function update($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
 			// See if there's an email collission
-			if (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $this->ID)) {
+			if (SQL::fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $this->ID)) {
 				return false;
 			}
 
@@ -312,7 +311,7 @@
 				$update_values["password"] = $phpass->HashPassword($password);
 			}
 
-			BigTreeCMS::$DB->update("bigtree_users",$admin->ID,$update_values);
+			SQL::update("bigtree_users",$admin->ID,$update_values);
 		}
 
 		/*

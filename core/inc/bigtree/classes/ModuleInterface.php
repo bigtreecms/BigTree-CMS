@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class ModuleInterface extends BaseObject {
 
@@ -54,7 +53,7 @@
 		function __construct($interface) {
 			// Passing in just an ID
 			if (!is_array($interface)) {
-				$interface = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
 			}
 
 			// Bad data set
@@ -104,7 +103,7 @@
 			$where = count($where) ? " WHERE ".implode(" AND ",$where) : "";
 
 			// Get the arrays
-			$interfaces = call_user_func_array(array(BigTreeCMS::$DB,"fetchAll"),$parameters);
+			$interfaces = call_user_func_array(array("SQL","fetchAll"),$parameters);
 
 			// Turn into objects
 			if (!$return_arrays) {
@@ -132,7 +131,7 @@
 		*/
 
 		static function create($type,$module,$title,$table,$settings = array()) {
-			$id = BigTreeCMS::$DB->insert("bigtree_module_interfaces",array(
+			$id = SQL::insert("bigtree_module_interfaces",array(
 				"type" => $type,
 				"module" => intval($module),
 				"title" => BigTree::safeEncode($title),
@@ -151,8 +150,8 @@
 		*/
 
 		function delete() {
-			BigTreeCMS::$DB->delete("bigtree_module_actions",array("interface" => $this->ID));
-			BigTreeCMS::$DB->delete("bigtree_module_interfaces",$this->ID);
+			SQL::delete("bigtree_module_actions",array("interface" => $this->ID));
+			SQL::delete("bigtree_module_interfaces",$this->ID);
 
 			AuditTrail::track("bigtree_module_interfaces",$this->ID,"deleted");
 		}
@@ -164,7 +163,7 @@
 
 		function save() {
 			// Some sub-classes use $this->Settings so we check for InterfaceSettings first when grabbing data.
-			BigTreeCMS::$DB->update("bigtree_module_interfaces",$this->ID,array(
+			SQL::update("bigtree_module_interfaces",$this->ID,array(
 				"type" => $this->Type,
 				"module" => $this->Module,
 				"title" => BigTree::safeEncode($this->Title),

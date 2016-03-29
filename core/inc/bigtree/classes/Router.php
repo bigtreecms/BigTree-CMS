@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTreeCMS;
-
 	class Router {
 
 		static $Registry = false;
@@ -25,7 +23,7 @@
 			$x = count($path);
 
 			while ($x) {
-				$result = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?", implode("/",array_slice($path,0,$x)));
+				$result = SQL::fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?", implode("/",array_slice($path,0,$x)));
 				if ($result) {
 					$old = $result["old_route"];
 					$new = $result["new_route"];
@@ -60,7 +58,7 @@
 			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
 			
 			// See if we have a straight up perfect match to the path.
-			$page = BigTreeCMS::$DB->fetch("SELECT bigtree_pages.id,bigtree_templates.routed
+			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed
 											FROM bigtree_pages LEFT JOIN bigtree_templates
 											ON bigtree_pages.template = bigtree_templates.id
 											WHERE path = ? AND archived = '' $publish_at", implode("/",$path));
@@ -75,7 +73,7 @@
 				$commands[] = $path[count($path)-$x];
 				$path_string = implode("/",array_slice($path,0,-1 * $x));
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$page_id = BigTreeCMS::$DB->fetchSingle("SELECT bigtree_pages.id
+				$page_id = SQL::fetchSingle("SELECT bigtree_pages.id
 														 FROM bigtree_pages JOIN bigtree_templates 
 														 ON bigtree_pages.template = bigtree_templates.id 
 														 WHERE bigtree_pages.path = ? AND 

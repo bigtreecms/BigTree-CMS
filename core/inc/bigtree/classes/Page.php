@@ -52,7 +52,7 @@
 		function __construct($page, $decode = true) {
 			// Passing in just an ID
 			if (!is_array($page)) {
-				$page = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
+				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
 			}
 
 			// Bad data set
@@ -97,7 +97,7 @@
 		*/
 
 		static function allIDs() {
-			return BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
+			return SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
 		}
 
 		/*
@@ -110,7 +110,7 @@
 
 		function archive() {
 			// Archive the page and the page children
-			BigTreeCMS::$DB->update("bigtree_pages",$page,array("archived" => "on"));
+			SQL::update("bigtree_pages",$page,array("archived" => "on"));
 			$this->archiveChildren();
 
 			// Track
@@ -129,14 +129,14 @@
 			$page_id = $recursion ?: $this->ID;
 
 			// Track and recursively archive
-			$children = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'", $page_id);
+			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'", $page_id);
 			foreach ($children as $child_id) {
 				AuditTrail::track("bigtree_pages",$child_id,"archived-inherited");
 				$this->archiveChildren($child_id);
 			}
 
 			// Archive this level
-			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
+			SQL::query("UPDATE bigtree_pages SET archived = 'on', archived_inherited = 'on' 
 								WHERE parent = ? AND archived != 'on'", $page_id);
 		}
 
@@ -154,10 +154,10 @@
 		static function auditAdminLinks($return_arrays = false) {
 			global $bigtree;
 
-			$admin_root = BigTreeCMS::$DB->escape($bigtree["config"]["admin_root"]);
-			$partial_root = BigTreeCMS::$DB->escape(str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"]));
+			$admin_root = SQL::escape($bigtree["config"]["admin_root"]);
+			$partial_root = SQL::escape(str_replace($bigtree["config"]["www_root"],"{wwwroot}",$bigtree["config"]["admin_root"]));
 
-			$pages = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages 
+			$pages = SQL::fetchAll("SELECT * FROM bigtree_pages 
 												WHERE resources LIKE '%$admin_root%' OR 
 													  resources LIKE '%$partial_root%' OR
 													  REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%'
@@ -202,7 +202,7 @@
 			global $admin;
 
 			// Clean up either their desired route or the nav title
-			$route = BigTreeCMS::urlify($route ?: $nav_title);
+			$route = Link::urlify($route ?: $nav_title);
 
 			// Make sure route isn't longer than 250 characters
 			$route = substr($route,0,250);
@@ -223,11 +223,11 @@
 			}
 
 			// Make sure it doesn't have the same route as any of its siblings.
-			$route = BigTreeCMS::$DB->unique("bigtree_pages","route",$route,array("parent" => $parent),true);
+			$route = SQL::unique("bigtree_pages","route",$route,array("parent" => $parent),true);
 
 			// If we have a parent, get the full navigation path, otherwise, just use this route as the path since it's top level.
 			if ($parent) {
-				$path = BigTreeCMS::$DB->fetchSingle("SELECT `path` FROM bigtree_pages WHERE id = ?", $parent)."/".$route;
+				$path = SQL::fetchSingle("SELECT `path` FROM bigtree_pages WHERE id = ?", $parent)."/".$route;
 			} else {
 				$path = $route;
 			}
@@ -236,7 +236,7 @@
 			$trunk = ($trunk ? "on" : "");
 
 			// Create the page
-			$id = BigTreeCMS::$DB->insert("bigtree_pages",array(
+			$id = SQL::insert("bigtree_pages",array(
 				"trunk" => $trunk,
 				"parent" => $parent,
 				"nav_title" => BigTree::safeEncode($nav_title),
@@ -260,7 +260,7 @@
 
 			// Handle tags
 			foreach (array_filter((array)$tags) as $tag) {
-				BigTreeCMS::$DB->insert("bigtree_tags_rel",array(
+				SQL::insert("bigtree_tags_rel",array(
 					"table" => "bigtree_pages",
 					"entry" => $id,
 					"tag" => $tag
@@ -268,7 +268,7 @@
 			}
 
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
-			BigTreeCMS::$DB->delete("bigtree_route_history",array("old_route" => $path));
+			SQL::delete("bigtree_route_history",array("old_route" => $path));
 
 			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
 			BigTreeAdmin::clearCache();
@@ -332,7 +332,7 @@
 			// Delete the children as well.
 			$this->deleteChildren($this->ID);
 
-			BigTreeCMS::$DB->delete("bigtree_pages",$this->ID);
+			SQL::delete("bigtree_pages",$this->ID);
 			AuditTrail::track("bigtree_pages",$this->ID,"deleted");
 		}
 
@@ -347,13 +347,13 @@
 		function deleteChildren($recursive_id = false) {
 			$id = $recursive_id ?: $this->ID;
 
-			$children = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
+			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
 			foreach ($children as $child) {
 				// Recurse to this child's children
 				$this->deletePageChildren($child);
 
 				// Delete and track
-				BigTreeCMS::$DB->delete("bigtree_pages",$child);
+				SQL::delete("bigtree_pages",$child);
 				AuditTrail::track("bigtree_pages",$child,"deleted-inherited");
 			}
 		}
@@ -366,11 +366,11 @@
 
 		function deleteDraft() {
 			// Get the draft copy's ID
-			$draft_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_pending_changes 
+			$draft_id = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes 
 													  WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
 
 			// Delete draft copy
-			BigTreeCMS::$DB->delete("bigtree_pending_changes",$draft_id);
+			SQL::delete("bigtree_pending_changes",$draft_id);
 
 			// Double track to add specificity to what happend to the page
 			AuditTrail::track("bigtree_pages",$this->ID,"deleted-draft");
@@ -387,7 +387,7 @@
 
 		function deleteRevision($id) {
 			// Delete the revision
-			BigTreeCMS::$DB->delete("bigtree_page_revisions",$id);
+			SQL::delete("bigtree_page_revisions",$id);
 
 			// Double track to add specificity to what happend to the page
 			AuditTrail::track("bigtree_pages",$this->ID,"deleted-revision");
@@ -406,7 +406,7 @@
 		*/
 
 		function getArchivedChildren($return_arrays = false) {
-			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' 
+			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' 
 												   ORDER BY nav_title ASC");
 
 			if (!$return_arrays) {
@@ -440,28 +440,28 @@
 
 			// If we care about the whole tree, skip the madness.
 			if ($user->Alerts[0] == "on") {
-				return BigTreeCMS::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
+				return SQL::fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
 												  FROM bigtree_pages 
 												  WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
 												  ORDER BY current_age DESC");
 			} else {
 				// We're going to generate a list of pages the user cares about first to get their paths.
 				foreach ($user->Alerts as $alert => $status) {
-					$where[] = "id = '".BigTreeCMS::$DB->escape($alert)."'";
+					$where[] = "id = '".SQL::escape($alert)."'";
 				}
 
 				// Now from this we'll build a path query
 				$path_query = array();
-				$path_strings = BigTreeCMS::$DB->fetchAllSingle("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
+				$path_strings = SQL::fetchAllSingle("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
 				foreach ($path_strings as $path) {
-					$path = BigTreeCMS::$DB->escape($path);
+					$path = SQL::escape($path);
 					$path_query[] = "path = '$path' OR path LIKE '$path/%'";
 				}
 
 				// Only run if the pages requested still exist
 				if (count($path_query)) {
 					// Find all the pages that are old that contain our paths
-					return BigTreeCMS::$DB->fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
+					return SQL::fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
 													  FROM bigtree_pages 
 													  WHERE max_age > 0 AND (".implode(" OR ",$path_query).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
 													  ORDER BY current_age DESC");
@@ -516,12 +516,12 @@
 			$path = "";
 			foreach ($pieces as $piece) {
 				$path = $path.$piece."/";
-				$paths[] = "path = '".BigTreeCMS::$DB->escape(trim($path,"/"))."'";
+				$paths[] = "path = '".SQL::escape(trim($path,"/"))."'";
 			}
 			
 			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
-			$ancestors = static::$BigTreeCMS->fetchAll("SELECT id, nav_title, path, trunk FROM bigtree_pages 
-														WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
+			$ancestors = SQL::fetchAll("SELECT id, nav_title, path, trunk FROM bigtree_pages 
+										WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
 			$trunk_hit = false;
 			foreach ($ancestors as $ancestor) {
 				// In case we want to know what the trunk is.
@@ -543,7 +543,7 @@
 			$bc = array_reverse($bc);
 			
 			// Check for module breadcrumbs
-			$module_class = BigTreeCMS::$DB->fetchSingle("SELECT bigtree_modules.class
+			$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
 														  FROM bigtree_modules JOIN bigtree_templates
 														  ON bigtree_modules.id = bigtree_templates.module
 														  WHERE bigtree_templates.id = ?",$page["template"]);
@@ -567,7 +567,7 @@
 		*/
 
 		static function getChangeExists() {
-			return BigTreeCMS::$DB->exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $this->ID));
+			return SQL::exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $this->ID));
 		}
 
 		/*
@@ -583,7 +583,7 @@
 		*/
 
 		function getChildren($return_arrays = false, $sort = "nav_title ASC") {
-			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $this->ID);
+			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $this->ID);
 
 			if (!$return_arrays) {
 				foreach ($children as &$child) {
@@ -606,7 +606,7 @@
 		*/
 
 		function getHiddenChildren($return_arrays = false) {
-			$children = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
+			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
 												   ORDER BY nav_title ASC", $this->ID);
 
 			if (!$return_arrays) {
@@ -630,7 +630,7 @@
 			$parents = array();
 
 			$page = $this->ID;
-			while ($page = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
+			while ($page = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
 				$parents[] = $page;
 			}
 
@@ -646,7 +646,7 @@
 		*/
 
 		static function getPendingChange() {
-			$change = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
+			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
 			if (!$change) {
 				return false;
 			}
@@ -667,7 +667,7 @@
 
 		function getPendingChildren($in_nav = true) {
 			$nav = $titles = array();
-			$changes = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
+			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
 												  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
 												  ORDER BY date DESC", $this->ID);
 
@@ -702,7 +702,7 @@
 		*/
 
 		static function getRevision($id) {
-			$revision = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $id);
+			$revision = SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $id);
 
 			// Get original page
 			$page = new Page($revision["page"]);
@@ -938,7 +938,7 @@
 		*/
 		
 		static function getTags($return_arrays = false) {
-			$tags = BigTreeCMS::$DB->fetchAll("SELECT bigtree_tags.*
+			$tags = SQL::fetchAll("SELECT bigtree_tags.*
 											   FROM bigtree_tags JOIN bigtree_tags_rel 
 											   ON bigtree_tags.id = bigtree_tags_rel.tag 
 											   WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND 
@@ -996,7 +996,7 @@
 			$page_parent = $this->Parent;
 			$parent_permission = $user->Permissions["page"][$page_parent];
 			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
-				$parent_id = BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
+				$parent_id = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
 				$parent_permission = $user->Permissions["page"][$parent_id];
 			}
 
@@ -1031,8 +1031,8 @@
 				return true;
 			}
 
-			$path = BigTreeCMS::$DB->escape($this->Path);
-			$descendant_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
+			$path = SQL::escape($this->Path);
+			$descendant_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '$path%'");
 
 			// Check all the descendants for an explicit "no" or "editor" permission
 			foreach ($descendant_ids as $id) {
@@ -1082,7 +1082,7 @@
 				$id = $this->ID;
 			}
 
-			$page_info = BigTreeCMS::$DB->fetch("SELECT route, parent FROM bigtree_pages WHERE id = ?", $id);
+			$page_info = SQL::fetch("SELECT route, parent FROM bigtree_pages WHERE id = ?", $id);
 			$path[] = $page_info["route"];
 			
 			// If we have a higher page, keep recursing up
@@ -1119,7 +1119,7 @@
 			$where_parts = array("archived != 'on'");
 
 			foreach ($terms as $term) {
-				$term = BigTreeCMS::$DB->escape($term);
+				$term = SQL::escape($term);
 				
 				$or_parts = array();
 				foreach ($fields as $field) {
@@ -1129,7 +1129,7 @@
 				$where_parts[] = "(".implode(" OR ",$or_parts).")";
 			}
 
-			$pages = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE ".implode(" AND ",$where_parts)." 
+			$pages = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE ".implode(" AND ",$where_parts)." 
 												ORDER BY nav_title LIMIT $max");
 
 			if (!$return_arrays) {
@@ -1147,7 +1147,7 @@
 		*/
 
 		function unarchive() {
-			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array("archived" => ""));
+			SQL::update("bigtree_pages",$this->ID,array("archived" => ""));
 			$this->unarchiveChildren();
 
 			AuditTrail::track("bigtree_pages",$this->ID,"unarchived");
@@ -1162,14 +1162,14 @@
 			// Allow for recursion
 			$id = $id ?: $this->ID;
 
-			$child_ids = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'", $id);
+			$child_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'", $id);
 			foreach ($child_ids as $child_id) {
 				AuditTrail::track("bigtree_pages",$child_id,"unarchived-inherited");
 				$this->unarchiveChildren($child_id);
 			}
 
 			// Unarchive this level
-			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET archived = '', archived_inherited = '' 
+			SQL::query("UPDATE bigtree_pages SET archived = '', archived_inherited = '' 
 									WHERE parent = ? AND archived_inherited = 'on'", $id);
 		}
 
@@ -1194,7 +1194,7 @@
 				$this->Route = "";
 			} else {
 				// Get a unique route
-				$original_route = BigTreeCMS::urlify($this->Route);
+				$original_route = Link::urlify($this->Route);
 				$x = 2;
 	
 				// Reserved paths.
@@ -1213,7 +1213,7 @@
 				$route = substr($route,0,250);
 	
 				// Existing pages.
-				while (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
+				while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
 													 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
 					$route = $original_route."-".$x;
 					$x++;
@@ -1230,14 +1230,14 @@
 			if ($this->Path != $original_path) {
 				$this->updateChildrenPaths();
 
-				BigTreeCMS::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $this->Path, $original_path);
-				BigTreeCMS::$DB->insert("bigtree_route_history",array(
+				SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $this->Path, $original_path);
+				SQL::insert("bigtree_route_history",array(
 					"old_route" => $original_path,
 					"new_route" => $this->Path
 				));
 			}
 
-			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array(
+			SQL::update("bigtree_pages",$this->ID,array(
 				"trunk" => $this->Trunk ? "on" : "",
 				"parent" => $this->Parent,
 				"in_nav" => $this->InNav ? "on" : "",
@@ -1287,10 +1287,10 @@
 			PageRevision::create($this);
 
 			// Count the page revisions, if we have more than 10, delete any that are more than a month old
-			$revision_count = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_page_revisions 
+			$revision_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_page_revisions 
 															WHERE page = ? AND saved = ''", $this->ID);
 			if ($revision_count > 10) {
-				BigTreeCMS::$DB->query("DELETE FROM bigtree_page_revisions 
+				SQL::query("DELETE FROM bigtree_page_revisions 
 										WHERE page = ? AND 
 											  updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND 
 											  saved = '' 
@@ -1315,7 +1315,7 @@
 			$this->Parent = $parent;
 			$this->PublishAt = ($publish_at && $publish_at != "NULL") ? date("Y-m-d",strtotime($publish_at)) : null;
 			$this->Resources = $resources;
-			$this->Route = $route ?: BigTreeCMS::urlify($nav_title);
+			$this->Route = $route ?: Link::urlify($nav_title);
 			$this->SEOInvisible = $seo_invisible;
 			$this->Tags = $tags;
 			$this->Template = $template;
@@ -1323,12 +1323,12 @@
 			$this->Trunk = $trunk;
 
 			// Remove any pending drafts
-			BigTreeCMS::$DB->delete("bigtree_pending_changes",array("table" => "bigtree_pages","item_id" => $page));
+			SQL::delete("bigtree_pending_changes",array("table" => "bigtree_pages","item_id" => $page));
 
 			// Handle tags
-			BigTreeCMS::$DB->delete("bigtree_tags_rel",array("table" => "bigtree_pages","entry" => $page));
+			SQL::delete("bigtree_tags_rel",array("table" => "bigtree_pages","entry" => $page));
 			foreach ($tags as $tag) {
-				BigTreeCMS::$DB->insert("bigtree_tags_rel",array(
+				SQL::insert("bigtree_tags_rel",array(
 					"table" => "bigtree_pages",
 					"entry" => $this->ID,
 					"tag" => $tag
@@ -1347,28 +1347,28 @@
 		function updateChildrenPaths($page = false) {
 			// Allow for recursion
 			if ($page !== false) {
-				$parent_path = BigTreeCMS::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $page);
+				$parent_path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $page);
 			} else {
 				$parent_path = $this->Path;
 				$page = $this->ID;
 			}
 
-			$child_pages = BigTreeCMS::$DB->fetchAll("SELECT id, route, path FROM bigtree_pages WHERE parent = ?", $page);
+			$child_pages = SQL::fetchAll("SELECT id, route, path FROM bigtree_pages WHERE parent = ?", $page);
 			foreach ($child_pages as $child) {
 				$new_path = $parent_path."/".$child["route"];
 
 				if ($child["path"] != $new_path) {
 					// Remove any overlaps
-					BigTreeCMS::$DB->query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $new_path, $child["path"]);
+					SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $new_path, $child["path"]);
 					
 					// Add a new redirect
-					BigTreeCMS::$DB->insert("bigtree_route_history",array(
+					SQL::insert("bigtree_route_history",array(
 						"old_route" => $child["path"],
 						"new_route" => $new_path
 					));
 					
 					// Update the primary path
-					BigTreeCMS::$DB->update("bigtree_pages",$child["id"],array("path" => $new_path));
+					SQL::update("bigtree_pages",$child["id"],array("path" => $new_path));
 
 					// Update all this page's children as well
 					$this->updateChildrenPaths($child["id"]);
@@ -1403,6 +1403,6 @@
 
 		function updatePosition($position) {
 			$this->Position = $position;
-			BigTreeCMS::$DB->update("bigtree_pages",$this->ID,array("position" => $position));
+			SQL::update("bigtree_pages",$this->ID,array("position" => $position));
 		}
 	}

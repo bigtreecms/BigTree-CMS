@@ -107,7 +107,7 @@
 					$pointer = implode("/",$pointer_parts);
 					$this->Cloud->deleteFile($container,$pointer);
 					if ($this->Settings->Container == $container) {
-						BigTreeCMS::$DB->delete("bigtree_caches", array(
+						SQL::delete("bigtree_caches", array(
 							"identifier" => "org.bigtreecms.cloudfiles",
 							"key" => $pointer
 						));
@@ -156,7 +156,7 @@
 			if ($this->Cloud) {
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($success) {
-					BigTreeCMS::$DB->update("bigtree_caches", 
+					SQL::update("bigtree_caches", 
 						array(
 							"identifier" => "org.bigtreecms.cloudfiles", 
 							"key" => $relative_path.$file_name
@@ -231,7 +231,7 @@
 				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
 				// Make sure we have a unique name
-				while (!$file_name || BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
+				while (!$file_name || SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
 					   												WHERE `identifier` = 'org.bigtreecms.cloudfiles' 
 					   												  AND `key` = ?", $relative_path.$file_name)) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
@@ -241,10 +241,10 @@
 					if (is_array($prefixes) && count($prefixes)) {
 						$prefix_query = array();
 						foreach ($prefixes as $prefix) {
-							$prefix_query[] = "`key` = '".BigTreeCMS::$DB->escape($relative_path.$prefix.$file_name)."'";
+							$prefix_query[] = "`key` = '".SQL::escape($relative_path.$prefix.$file_name)."'";
 						}
 
-						$exists = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
+						$exists = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
 																WHERE identifier = 'org.bigtreecms.cloudfiles' 
 																  AND (".implode(" OR ",$prefix_query).")");
 						if ($exists) {
@@ -255,7 +255,7 @@
 				// Upload it
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				if ($success) {
-					BigTreeCMS::$DB->insert("bigtree_caches", array(
+					SQL::insert("bigtree_caches", array(
 						"identifier" => "org.bigtreecms.cloudfiles",
 						"key" => $relative_path.$file_name,
 						"value" => array(

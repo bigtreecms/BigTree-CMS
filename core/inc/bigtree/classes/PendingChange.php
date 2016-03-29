@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class PendingChange extends BaseObject {
 
@@ -37,7 +36,7 @@
 		function __construct($change) {
 			// Passing in just an ID
 			if (!is_array($change)) {
-				$change = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
+				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
 			}
 
 			// Bad data set
@@ -97,7 +96,7 @@
 				}
 			}
 
-			$changes = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_pending_changes 
+			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
 												  WHERE ".implode(" OR ",$search)." 
 												  ORDER BY date DESC");
 
@@ -190,7 +189,7 @@
 				$user = null;
 			}
 
-			$id = BigTreeCMS::$DB->insert("bigtree_pending_changes",array(
+			$id = SQL::insert("bigtree_pending_changes",array(
 				"user" => $user,
 				"date" => "NOW()",
 				"table" => $table,
@@ -245,7 +244,7 @@
 				"max_age" => $max_age ? intval($max_age) : ""
 			);
 
-			$id = BigTreeCMS::$DB->insert("bigtree_pending_changes",array(
+			$id = SQL::insert("bigtree_pending_changes",array(
 				"user" => $user,
 				"date" => "NOW()",
 				"table" => "bigtree_pages",
@@ -280,17 +279,17 @@
 			}
 
 			// Find a form that uses this table (it's our best guess here)
-			$form_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_module_interfaces 
+			$form_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
 													 WHERE `type` = 'form' AND `table` = ?", $this->Table);
 			if (!$form_id) {
 				return false;
 			}
 
 			// Get the module route
-			$module_route = BigTreeCMS::$DB->fetchSingle("SELECT route FROM bigtree_modules WHERE `id` = ?", $this->Module);
+			$module_route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE `id` = ?", $this->Module);
 			
 			// We set in_nav to empty because edit links aren't in nav (and add links are) so we can predict where the edit action will be this way
-			$action_route = BigTreeCMS::$DB->fetchSingle("SELECT route FROM bigtree_module_actions 
+			$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions 
 														  WHERE `interface` = ? AND `in_nav` = ''", $form_id);
 
 			// Got an action
@@ -308,7 +307,7 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_pending_changes",$this->ID,array(
+			SQL::update("bigtree_pending_changes",$this->ID,array(
 				"changes" => $this->Changes,
 				"item_id" => $this->ItemID ?: null,
 				"mtm_changes" => $this->ManyToManyChanges,

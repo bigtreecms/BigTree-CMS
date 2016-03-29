@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Module extends BaseObject {
 
@@ -36,7 +35,7 @@
 		function __construct($module) {
 			// Passing in just an ID
 			if (!is_array($module)) {
-				$module = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_modules WHERE id = ?", $module);
+				$module = SQL::fetch("SELECT * FROM bigtree_modules WHERE id = ?", $module);
 			}
 
 			// Bad data set
@@ -74,9 +73,9 @@
 			$modules = array();
 
 			if ($group) {
-				$results = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
+				$results = SQL::fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
 			} else {
-				$results = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+				$results = SQL::fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
 			}
 
 			foreach ($results as $module_array) {
@@ -114,7 +113,7 @@
 				);
 
 				// Get all modules from the db
-				$modules = BigTreeCMS::$DB->fetchAll("SELECT route,class FROM bigtree_modules");
+				$modules = SQL::fetchAll("SELECT route,class FROM bigtree_modules");
 				foreach ($modules as $module) {
 					$class = $module["class"];
 					$route = $module["route"];
@@ -143,7 +142,7 @@
 				}
 
 				// Get all extension required files and add them to a required list
-				$extensions = BigTreeCMS::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
+				$extensions = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
 				foreach ($extensions as $id) {
 					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/$id/required/");
 					foreach (array_filter((array)$required_contents) as $file) {
@@ -186,7 +185,7 @@
 
 		function create($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
 			// Find an available module route.
-			$route = $route ? $route : BigTreeCMS::urlify($name);
+			$route = $route ? $route : Link::urlify($name);
 			if (!ctype_alnum(str_replace("-","",$route)) || strlen($route) > 127) {
 				return false;
 			}
@@ -215,7 +214,7 @@
 				}
 			}
 			// Go through already created modules
-			array_merge($existing,BigTreeCMS::$DB->fetchAllSingle("SELECT route FROM bigtree_modules"));
+			array_merge($existing,SQL::fetchAllSingle("SELECT route FROM bigtree_modules"));
 
 			// Get a unique route
 			$x = 2;
@@ -239,7 +238,7 @@
 			}
 
 			// Create it
-			$id = BigTreeCMS::$DB->insert("bigtree_modules",array(
+			$id = SQL::insert("bigtree_modules",array(
 				"name" => BigTree::safeEncode($name),
 				"route" => $route,
 				"class" => $class,
@@ -265,13 +264,13 @@
 			BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
 
 			// Delete all the related auto module actions
-			BigTreeCMS::$DB->delete("bigtree_module_interfaces",array("module" => $this->ID));
+			SQL::delete("bigtree_module_interfaces",array("module" => $this->ID));
 
 			// Delete actions
-			BigTreeCMS::$DB->delete("bigtree_module_actions",array("module" => $this->ID));
+			SQL::delete("bigtree_module_actions",array("module" => $this->ID));
 
 			// Delete the module
-			BigTreeCMS::$DB->delete("bigtree_modules",$this->ID);
+			SQL::delete("bigtree_modules",$this->ID);
 
 			AuditTrail::track("bigtree_modules",$this->ID,"deleted");
 		}
@@ -431,7 +430,7 @@
 		*/
 
 		function getNavigation() {
-			$actions = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' 
+			$actions = SQL::fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' 
 												  ORDER BY position DESC, id ASC", $this->ID);
 			foreach ($actions as &$action) {
 				$action = new ModuleAction($action);
@@ -625,10 +624,10 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_modules",$this->ID,array(
+			SQL::update("bigtree_modules",$this->ID,array(
 				"group" => $this->Group,
 				"name" => BigTree::safeEncode($this->Name),
-				"route" => BigTreeCMS::$DB->unique("bigtree_modules","route",BigTreeCMS::urlify($this->Route),$this->ID),
+				"route" => SQL::unique("bigtree_modules","route",Link::urlify($this->Route),$this->ID),
 				"class" => $this->Class,
 				"icon" => $this->Icon,
 				"position" => $this->Position,

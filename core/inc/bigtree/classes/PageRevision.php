@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class PageRevision extends BaseObject {
 
@@ -38,7 +37,7 @@
 		function __construct($revision) {
 			// Passing in just an ID
 			if (!is_array($revision)) {
-				$revision = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?", $revision);
+				$revision = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $revision);
 			}
 
 			// Bad data set
@@ -51,7 +50,7 @@
 
 				// Get user information -- allByPage provides this already
 				if (!$revision["name"] || !$revision["email"]) {
-					$this->Author = BigTreeCMS::$DB->fetch("SELECT id, name, email FROM bigtree_users WHERE id = ?", $revision["author"]);
+					$this->Author = SQL::fetch("SELECT id, name, email FROM bigtree_users WHERE id = ?", $revision["author"]);
 				} else {
 					$this->Author = array("id" => $revision["author"], "name" => $revision["name"], "email" => $revision["email"]);
 				}
@@ -82,7 +81,7 @@
 
 		function allByPage($page,$sort = "updated_at DESC",$return_arrays = false) {
 			$saved = $unsaved = array();
-			$revisions = BigTreeCMS::$DB->fetchAll("SELECT bigtree_users.name, 
+			$revisions = SQL::fetchAll("SELECT bigtree_users.name, 
 														   bigtree_users.email, 
 														   bigtree_page_revisions.saved, 
 														   bigtree_page_revisions.saved_description, 
@@ -117,7 +116,7 @@
 		*/
 
 		function create(Page $page,$description = "") {
-			$id = BigTreeCMS::$DB->insert("bigtree_page_revisions",array(
+			$id = SQL::insert("bigtree_page_revisions",array(
 				"page" => $page->ID,
 				"title" => $page->Title,
 				"meta_description" => $page->MetaDescription,
@@ -142,7 +141,7 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_page_revisions",$this->ID,array(
+			SQL::update("bigtree_page_revisions",$this->ID,array(
 				"external" => $this->External,
 				"new_window" => $this->NewWindow ? "on" : "",
 				"resources" => $this->Resources,

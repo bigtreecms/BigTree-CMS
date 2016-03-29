@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class ModuleEmbedForm extends ModuleInterface {
 
@@ -38,7 +37,7 @@
 		function __construct($interface) {
 			// Passing in just an ID
 			if (!is_array($interface)) {
-				$interface = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
 			}
 
 			// Bad data set
@@ -95,9 +94,9 @@
 	
 			// Make sure we get a unique hash
 			$hash = uniqid("embeddable-form-",true);
-			while (BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
-												 (`settings` LIKE '%\"hash\":\"".BigTreeCMS::$DB->escape($hash)."\"%' OR
-												  `settings` LIKE '%\"hash\": \"".BigTreeCMS::$DB->escape($hash)."\"%')")) {
+			while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
+												 (`settings` LIKE '%\"hash\":\"".SQL::escape($hash)."\"%' OR
+												  `settings` LIKE '%\"hash\": \"".SQL::escape($hash)."\"%')")) {
 				$hash = uniqid("embeddable-form-",true);
 			}
 

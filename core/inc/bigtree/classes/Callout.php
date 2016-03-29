@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Callout extends BaseObject {
 
@@ -35,7 +34,7 @@
 		function __construct($callout) {
 			// Passing in just an ID
 			if (!is_array($callout)) {
-				$callout = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout);
+				$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout);
 			}
 
 			// Bad data set
@@ -69,7 +68,7 @@
 		static function allAllowed($sort = "position DESC, id ASC", $return_arrays = false) {
 			global $admin;
 
-			$callouts = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $admin->Level);
+			$callouts = SQL::fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $admin->Level);
 
 			// Return objects
 			if (!$return_arrays) {
@@ -104,7 +103,7 @@
 				foreach ($group["callouts"] as $callout_id) {
 					// Only grab each callout once
 					if (!in_array($callout_id,$ids)) {
-						$callout = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout_id);
+						$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout_id);
 						$ids[] = $callout_id;
 
 						// If we're looking at only the ones the user is allowed to access, check levels
@@ -152,7 +151,7 @@
 			}
 
 			// See if a callout ID already exists
-			if (BigTreeCMS::$DB->exists("bigtree_callouts",$id)) {
+			if (SQL::exists("bigtree_callouts",$id)) {
 				return false;
 			}
 
@@ -200,10 +199,10 @@
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			BigTreeCMS::$DB->query("UPDATE bigtree_callouts SET position = position + 1");
+			SQL::query("UPDATE bigtree_callouts SET position = position + 1");
 
 			// Insert the callout
-			BigTreeCMS::$DB->insert("bigtree_callouts",array(
+			SQL::insert("bigtree_callouts",array(
 				"id" => BigTree::safeEncode($id),
 				"name" => BigTree::safeEncode($name),
 				"description" => BigTree::safeEncode($description),
@@ -231,17 +230,17 @@
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 
 			// Delete callout
-			BigTreeCMS::$DB->delete("bigtree_callouts",$id);
+			SQL::delete("bigtree_callouts",$id);
 
 			// Remove the callout from any groups it lives in
-			$groups = BigTreeCMS::$DB->fetchAll("SELECT id, callouts FROM bigtree_callout_groups 
-												 WHERE callouts LIKE '%\"".BigTreeCMS::$DB->escape($id)."\"%'");
+			$groups = SQL::fetchAll("SELECT id, callouts FROM bigtree_callout_groups 
+												 WHERE callouts LIKE '%\"".SQL::escape($id)."\"%'");
 			foreach ($groups as $group) {
 				$callouts = array_filter((array)json_decode($group["callouts"],true));
 				// Remove this callout
 				$callouts = array_diff($callouts, array($id));
 				// Update DB
-				BigTreeCMS::$DB->update("bigtree_callout_groups",$group["id"],array("callouts" => $callouts));
+				SQL::update("bigtree_callout_groups",$group["id"],array("callouts" => $callouts));
 			}
 
 			// Track deletion
@@ -269,7 +268,7 @@
 				}
 			}
 
-			BigTreeCMS::$DB->update("bigtree_callouts",$this->ID,array(
+			SQL::update("bigtree_callouts",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"description" => BigTree::safeEncode($this->Description),
 				"display_default" => $this->DisplayDefault,

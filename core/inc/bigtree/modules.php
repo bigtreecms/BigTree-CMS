@@ -94,11 +94,11 @@
 			if ($enforce_unique) {
 				$existing_parts = array();
 				foreach ($insert_array as $key => $val) {
-					$val = is_array($val) ? BigTree::json($val,true) : BigTreeCMS::$DB->escape($val);
+					$val = is_array($val) ? BigTree::json($val,true) : SQL::escape($val);
 					$existing_parts[] = "`$key` = '$val'";
 				}
 
-				$existing_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM `".$this->Table."` 
+				$existing_id = SQL::fetchSingle("SELECT id FROM `".$this->Table."` 
 															 WHERE ".implode(" AND ",$existing_parts)." LIMIT 1");
 				// If it's the same as an existing entry, return that entry's id
 				if ($existing_id) {
@@ -107,7 +107,7 @@
 			}
 			
 			// Add the entry and cache it.
-			$id = BigTreeCMS::$DB->insert($this->Table,$insert_array);
+			$id = SQL::insert($this->Table,$insert_array);
 
 			if (!$ignore_cache) {
 				BigTreeAutoModule::cacheNewItem($id,$this->Table);
@@ -171,8 +171,8 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			BigTreeCMS::$DB->delete($this->Table,$item);
-			BigTreeCMS::$DB->delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $item));
+			SQL::delete($this->Table,$item);
+			SQL::delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $item));
 			BigTreeAutoModule::uncacheItem($item,$this->Table);
 		}
 		
@@ -228,7 +228,7 @@
 			}
 			
 			$items = array();
-			$query = BigTreeCMS::$DB->query($query);
+			$query = SQL::query($query);
 			while ($item = $query->fetch()) {
 				$items[] = $this->get($item);
 			}
@@ -250,7 +250,7 @@
 		
 		function get($item) {
 			if (!is_array($item)) {
-				$item = BigTreeCMS::$DB->fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $item);
+				$item = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $item);
 			}
 			
 			if (!$item) {
@@ -369,7 +369,7 @@
 		*/
 		
 		function getByRoute($route) {
-			$item = BigTreeCMS::$DB->fetch("SELECT * FROM `".$this->Table."` WHERE route = ?", $route);
+			$item = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE route = ?", $route);
 
 			if (!$item) {
 				return false;
@@ -422,19 +422,19 @@
 
 			$base_query = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = ?";
 
-			$created = BigTreeCMS::$DB->fetch($base_query." AND type = 'created'", $entry);
+			$created = SQL::fetch($base_query." AND type = 'created'", $entry);
 			if ($created) {
 				$info["created_at"] = $created["date"];
 				$info["creator"] = $created["user"];
 			}
 
-			$updated = BigTreeCMS::$DB->fetch($base_query." AND type = 'updated' ORDER BY date DESC LIMIT 1", $entry);
+			$updated = SQL::fetch($base_query." AND type = 'updated' ORDER BY date DESC LIMIT 1", $entry);
 			if ($updated) {
 				$info["updated_at"] = $updated["date"];
 				$info["last_updated_by"] = $updated["user"];
 			}
 			
-			$changed = BigTreeCMS::$DB->fetch($base_query." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1", $entry);
+			$changed = SQL::fetch($base_query." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1", $entry);
 			if ($changed && strtotime($changed) > strtotime($info["updated_at"])) {
 				$info["status"] = "changed";
 			} else {
@@ -472,7 +472,7 @@
 				if (!$exact && ($value === "NULL" || !$value)) {
 					$where[] = "(`$key` IS NULL OR `$key` = '' OR `$key` = '0')";
 				} else {
-					$where[] = "`$key` = '".BigTreeCMS::$DB->escape($value)."'";
+					$where[] = "`$key` = '".SQL::escape($value)."'";
 				}
 			}
 			
@@ -576,7 +576,7 @@
 				$query = "SELECT COUNT(*) FROM `".$this->Table."`";
 			}
 
-			$pages = ceil(BigTreeCMS::$DB->fetchSingle($query) / $perpage);
+			$pages = ceil(SQL::fetchSingle($query) / $perpage);
 			if ($pages == 0) {
 				$pages = 1;
 			}
@@ -597,13 +597,13 @@
 		function getPending($id) {
 			// Completely pending
 			if (substr($id,0,1) == "p") {
-				$pending = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id,1));
+				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id,1));
 				$item = json_decode($pending["changes"],true);
 				$item["id"] = $id;
 			// Published with changes
 			} else {
-				$item = BigTreeCMS::$DB->fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $id);
-				$pending = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE item_id = ? AND `table` = '".$this->Table."'", $id);
+				$item = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $id);
+				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE item_id = ? AND `table` = '".$this->Table."'", $id);
 				if ($pending) {
 					$changes = json_decode($pending["changes"],true);
 					foreach ($changes as $key => $val) {
@@ -697,11 +697,11 @@
 				if (is_array($tag)) {
 					$tag_id = $tag["id"];
 				} else {
-					$tag_id = BigTreeCMS::$DB->fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?", $tag);
+					$tag_id = SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?", $tag);
 				}
 
 				if ($tag_id) {
-					$query = BigTreeCMS::$DB->query("SELECT * FROM bigtree_tags_rel WHERE tag = '$tag_id' AND `table` = '".$this->Table."'");
+					$query = SQL::query("SELECT * FROM bigtree_tags_rel WHERE tag = '$tag_id' AND `table` = '".$this->Table."'");
 					while ($relationship = $query->fetch()) {
 						$id = $relationship["entry"];
 
@@ -765,7 +765,7 @@
 				$item = $item["id"];
 			}
 			
-			return BigTreeCMS::$DB->fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel 
+			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel 
 													ON bigtree_tags.id = bigtree_tags_rel.tag 
 													WHERE bigtree_tags_rel.`table` = ? 
 													  AND bigtree_tags_rel.entry = ? 
@@ -899,7 +899,7 @@
 				$pieces = explode(" ",$query);
 				foreach ($pieces as $piece) {
 					if ($piece) {
-						$piece = BigTreeCMS::$DB->escape($piece);
+						$piece = SQL::escape($piece);
 
 						$where_piece = array();
 						foreach ($table_description["columns"] as $field => $parameters) {
@@ -916,9 +916,9 @@
 			} else {
 				foreach ($table_description["columns"] as $field => $parameters) {
 					if ($case_sensitive) {
-						$where[] = "`$field` LIKE '%".BigTreeCMS::$DB->escape($query)."%'";
+						$where[] = "`$field` LIKE '%".SQL::escape($query)."%'";
 					} else {
-						$where[] = "LOWER(`$field`) LIKE '%".BigTreeCMS::$DB->escape(strtolower($query))."%'";
+						$where[] = "LOWER(`$field`) LIKE '%".SQL::escape(strtolower($query))."%'";
 					}
 				}
 				return $this->fetch($order,$limit,implode(" OR ",$where),$columns);
@@ -1035,7 +1035,7 @@
 			}
 
 			// Update
-			BigTreeCMS::$DB->update($this->Table, $id, $update_fields);
+			SQL::update($this->Table, $id, $update_fields);
 
 			if (!$ignore_cache) {
 				BigTreeAutoModule::recacheItem($id,$this->Table);

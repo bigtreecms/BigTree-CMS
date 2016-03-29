@@ -509,7 +509,7 @@
 		*/
 		
 		static function describeTable($table) {
-			return BigTreeCMS::$DB->describeTable($table);
+			return SQL::describeTable($table);
 		}
 
 		/*
@@ -707,7 +707,7 @@
 		static function getTableSelectOptions($default = "") {
 			global $bigtree;
 			
-			$tables = BigTreeCMS::$DB->fetchAllSingle("SHOW TABLES");
+			$tables = SQL::fetchAllSingle("SHOW TABLES");
 			foreach ($tables as $table_name) {
 				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
 					if ($default == $table_name) {
@@ -1017,7 +1017,7 @@
 			$json = (static::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
 			// SQL escape if requested
 			if ($sql) {
-				return BigTreeCMS::$DB->escape($json);
+				return SQL::escape($json);
 			}
 			return $json;
 		}
@@ -1993,7 +1993,7 @@
 		*/
 
 		static function tableCompare($table_a,$table_b) {
-			return BigTreeCMS::$DB->compareTables($table_a,$table_b);
+			return SQL::compareTables($table_a,$table_b);
 		}
 
 		/*
@@ -2009,7 +2009,7 @@
 		*/
 
 		static function tableContents($table) {
-			return BigTreeCMS::$DB->dumpTable($table);
+			return SQL::dumpTable($table);
 		}
 
 		/*
@@ -2024,7 +2024,7 @@
 		*/
 
 		static function tableExists($table) {
-			return BigTreeCMS::$DB->tableExists($table);
+			return SQL::tableExists($table);
 		}
 
 		/*

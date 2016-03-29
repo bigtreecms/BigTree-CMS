@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTreeCMS;
-
 	class ResourceFolder extends BaseObject {
 
 		static $Table = "bigtree_resource_folders";
@@ -28,7 +26,7 @@
 		function __construct($folder) {
 			// Passing in just an ID
 			if (!is_array($folder)) {
-				$folder = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
+				$folder = SQL::fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
 			}
 
 			// Bad data set
@@ -55,7 +53,7 @@
 		*/
 
 		static function create($parent,$name) {
-			$id = BigTreeCMS::$DB->insert("bigtree_resource_folders",array(
+			$id = SQL::insert("bigtree_resource_folders",array(
 				"name" => BigTree::safeEncode($name),
 				"parent" => $parent
 			));
@@ -87,7 +85,7 @@
 			}
 
 			// Delete the folder
-			BigTreeCMS::$DB->delete("bigtree_resource_folders",$this->ID);
+			SQL::delete("bigtree_resource_folders",$this->ID);
 			AuditTrail::track("bigtree_resource_folders",$this->ID,"deleted");
 		}
 
@@ -133,8 +131,8 @@
 		function getContents($sort = "date DESC") {
 			$null_query = $this->ID ? "" : "OR folder IS NULL";
 
-			$folders = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $this->ID);
-			$resources = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $this->ID);
+			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $this->ID);
+			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $this->ID);
 
 			return array("folders" => $folders, "resources" => $resources);
 		}
@@ -213,7 +211,7 @@
 				}
 
 				// Find parent folder
-				$parent_folder = ($this->ID == $id) ? $this->Parent : BigTreeCMS::$DB->fetchSingle("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
+				$parent_folder = ($this->ID == $id) ? $this->Parent : SQL::fetchSingle("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
 
 				// Return the parent's permissions
 				return $this->_getUserAccessLevel($parent_folder);
@@ -238,7 +236,7 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_resource_folders",$this->ID,array(
+			SQL::update("bigtree_resource_folders",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"parent" => intval($this->Parent)
 			));

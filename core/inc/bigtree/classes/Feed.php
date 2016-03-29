@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Feed extends BaseObject {
 
@@ -34,7 +33,7 @@
 		function __construct($feed) {
 			// Passing in just an ID
 			if (!is_array($feed)) {
-				$feed = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $feed);
+				$feed = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $feed);
 			}
 
 			// Bad data set
@@ -74,10 +73,10 @@
 			$settings = BigTree::translateArray(is_array($settings) ? $settings : array_filter((array)json_decode($settings,true)));
 
 			// Get a unique route!
-			$route = BigTreeCMS::$DB->unique("bigtree_feeds","route",BigTreeCMS::urlify($name));
+			$route = SQL::unique("bigtree_feeds", "route", Link::urlify($name));
 
 			// Insert and track
-			$id = BigTreeCMS::$DB->insert("bigtree_feeds",array(
+			$id = SQL::insert("bigtree_feeds",array(
 				"route" => $route,
 				"name" => BigTree::safeEncode($name),
 				"description" => BigTree::safeEncode($description),
@@ -98,7 +97,7 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_feeds",$this->ID,array(
+			SQL::update("bigtree_feeds",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"description" => BigTree::safeEncode($this->Description),
 				"table" => $this->Table,

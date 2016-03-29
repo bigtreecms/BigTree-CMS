@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class ModuleGroup extends BaseObject {
 
@@ -31,7 +30,7 @@
 		function __construct($group) {
 			// Passing in just an ID
 			if (!is_array($group)) {
-				$group = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $group);
+				$group = SQL::fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $group);
 			}
 
 			// Bad data set
@@ -58,9 +57,9 @@
 		*/
 
 		function create($name) {
-			$id = BigTreeCMS::$DB->insert("bigtree_module_groups",array(
+			$id = SQL::insert("bigtree_module_groups",array(
 				"name" => BigTree::safeEncode($name),
-				"route" => BigTreeCMS::$DB->unique("bigtree_module_groups","route",BigTreeCMS::urlify($name))
+				"route" => SQL::unique("bigtree_module_groups","route",Link::urlify($name))
 			));
 
 			AuditTrail::track("bigtree_module_groups",$id,"created");
@@ -74,9 +73,9 @@
 		*/
 
 		function save() {
-			BigTreeCMS::$DB->update("bigtree_module_groups",$this->ID,array(
+			SQL::update("bigtree_module_groups",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
-				"route" => BigTreeCMS::$DB->unique("bigtree_module_groups","route",BigTreeCMS::urlify($this->Route),$this->ID)
+				"route" => SQL::unique("bigtree_module_groups","route",Link::urlify($this->Route),$this->ID)
 			));
 
 			AuditTrail::track("bigtree_module_groups",$this->ID,"updated");
@@ -92,7 +91,7 @@
 
 		function update($name) {
 			$this->Name = $name;
-			$this->Route = BigTreeCMS::urlify($name);
+			$this->Route = Link::urlify($name);
 			$this->save();
 		}
 

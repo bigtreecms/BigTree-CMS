@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Template extends BaseObject {
 
@@ -33,7 +32,7 @@
 		function __construct($template) {
 			// Passing in just an ID
 			if (!is_array($template)) {
-				$template = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_templates WHERE id = ?", $template);
+				$template = SQL::fetch("SELECT * FROM bigtree_templates WHERE id = ?", $template);
 			}
 
 			// Bad data set
@@ -74,7 +73,7 @@
 			}
 
 			// Check to see if the id already exists
-			if (BigTreeCMS::$DB->exists("bigtree_templates",$id)) {
+			if (SQL::exists("bigtree_templates",$id)) {
 				return false;
 			}
 
@@ -125,10 +124,10 @@
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			BigTreeCMS::$DB->query("UPDATE bigtree_templates SET position = position + 1");
+			SQL::query("UPDATE bigtree_templates SET position = position + 1");
 
 			// Insert template
-			BigTreeCMS::$DB->insert("bigtree_templates",array(
+			SQL::insert("bigtree_templates",array(
 				"id" => $id,
 				"name" => BigTree::safeEncode($name),
 				"module" => $module,
@@ -155,7 +154,7 @@
 				BigTree::deleteFile(SERVER_ROOT."templates/basic/".$this->ID.".php");
 			}
 
-			BigTreeCMS::$DB->delete("bigtree_templates",$this->ID);
+			SQL::delete("bigtree_templates",$this->ID);
 			
 			AuditTrail::track("bigtree_templates",$this->ID,"deleted");
 		}
@@ -181,7 +180,7 @@
 			}
 			
 			// Update DB
-			BigTreeCMS::$DB->update("bigtree_templates",$this->ID,array(
+			SQL::update("bigtree_templates",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"resources" => array_filter($fields),
 				"module" => $this->Module,

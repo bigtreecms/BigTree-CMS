@@ -46,10 +46,10 @@
 		function disconnect() {
 			// Delete cache
 			BigTree::deleteFile(SERVER_ROOT."cache/analytics.json");
-			BigTreeCMS::$DB->delete("bigtree_caches",array("identifier" => "org.bigtreecms.api.analytics.google"));
+			SQL::delete("bigtree_caches",array("identifier" => "org.bigtreecms.api.analytics.google"));
 
 			// Remove page views from Pages
-			BigTreeCMS::$DB->query("UPDATE bigtree_pages SET ga_page_views = NULL");
+			SQL::query("UPDATE bigtree_pages SET ga_page_views = NULL");
 
 			// Clear settings
 			$this->Settings = array();
@@ -242,10 +242,10 @@
 				
 				// Sometimes Google has slightly different routes like "cheese" and "cheese/" so we need to add these page views together.
 				if (in_array($clean_path,$used_paths)) {
-					BigTreeCMS::$DB->query("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) 
+					SQL::query("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) 
 											WHERE `path` = ?", $clean_path);
 				} else {
-					BigTreeCMS::$DB->update("bigtree_pages", array("path" => $clean_path), array("ga_page_views" => $views));
+					SQL::update("bigtree_pages", array("path" => $clean_path), array("ga_page_views" => $views));
 					$used_paths[] = $clean_path;
 				}
 			}

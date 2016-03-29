@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Tag extends BaseObject {
 
@@ -30,7 +29,7 @@
 		function __construct($tag) {
 			// Passing in just an ID
 			if (!is_array($tag)) {
-				$tag = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $tag);
+				$tag = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $tag);
 			}
 
 			// Bad data set
@@ -61,16 +60,16 @@
 			$name = strtolower(html_entity_decode(trim($name)));
 
 			// If this tag already exists, just ignore it and return the ID
-			$existing = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $name);
+			$existing = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $name);
 			if ($existing) {
 				return new Tag($existing);
 			}
 
 			// Create tag
-			$id = BigTreeCMS::$DB->insert("bigtree_tags",array(
+			$id = SQL::insert("bigtree_tags",array(
 				"tag" => BigTree::safeEncode($name),
 				"metaphone" => metaphone($name),
-				"route" => BigTreeCMS::$DB->unique("bigtree_tags","route",BigTreeCMS::urlify($name))
+				"route" => SQL::unique("bigtree_tags","route",Link::urlify($name))
 			));
 
 			AuditTrail::track("bigtree_tags",$id,"created");
@@ -96,7 +95,7 @@
 			$meta = metaphone($tag);
 
 			// Get all tags to get sound-alike tags
-			$all_tags = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_tags");
+			$all_tags = SQL::fetchAll("SELECT * FROM bigtree_tags");
 			foreach ($all_tags as $tag) {
 				// Calculate distance between letters of the sound of both tags
 				$distance = levenshtein($tag["metaphone"],$meta);

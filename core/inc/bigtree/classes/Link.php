@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTreeCMS;
-
 	class Link {
 
 		public static $IRLCache = array();
@@ -124,7 +122,7 @@
 			}
 
 			// Otherwise we'll grab the page path from the db.
-			$path = BigTreeCMS::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?",$id);
+			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?",$id);
 			if ($path) {
 				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					return WWW_ROOT.$path;
@@ -275,7 +273,7 @@
 						return static::$IRLCache[$navid];
 					}
 				} else {
-					$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?",$navid);
+					$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?",$navid);
 					$file = $resource ? static::detokenize($resource["file"]) : false;
 					static::$IRLCache[$navid] = $file;
 					if ($ipl[2]) {
@@ -309,7 +307,7 @@
 				}
 			} else {
 				// Get the page's path
-				$path = BigTreeCMS::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$navid);
+				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$navid);
 
 				// Set the cache
 				static::$IPLCache[$navid] = WWW_ROOT.$path;
@@ -376,7 +374,7 @@
 
 			// See if the page it references still exists.
 			$nav_id = $ipl[1];
-			if (!BigTreeCMS::$DB->exists("bigtree_pages",$nav_id)) {
+			if (!SQL::exists("bigtree_pages",$nav_id)) {
 				return false;
 			}
 
@@ -391,7 +389,7 @@
 				return true;
 			}
 			// Get template for the navigation id to see if it's a routed template
-			$routed = BigTreeCMS::$DB->fetchSingle("SELECT bigtree_templates.routed FROM bigtree_templates JOIN bigtree_pages 
+			$routed = SQL::fetchSingle("SELECT bigtree_templates.routed FROM bigtree_templates JOIN bigtree_pages 
 													ON bigtree_templates.id = bigtree_pages.template 
 													WHERE bigtree_pages.id = ?", $nav_id);
 			// If we're a routed template, we're good.

@@ -52,7 +52,7 @@
 	}
 
 	// Initialize DB instance
-	BigTreeCMS::$DB = $db = new BigTree\SQL;
+	$db = new BigTree\SQL;
 
 	include BigTree::path("inc/bigtree/admin.php");
 	// Setup admin class if it's custom, but don't instantiate the $admin var.
@@ -62,9 +62,6 @@
 	} else {
 		class BigTreeAdmin extends BigTreeAdminBase {};
 	}
-
-	// Give BigTreeAdmin a copy of the DB
-	BigTreeAdmin::$DB = $db;
 
 	// Bootstrap CMS instance
 	$cms = new BigTreeCMS;

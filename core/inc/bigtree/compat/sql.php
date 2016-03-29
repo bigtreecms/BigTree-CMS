@@ -1,7 +1,7 @@
 <?php
 	// Backwards compatibility
 	function sqlquery($query) {
-		return BigTreeCMS::$DB->query($query);
+		return SQL::query($query);
 	}
 
 	function sqlfetch($query) {
@@ -13,9 +13,9 @@
 	}
 
 	function sqlid() {
-		return BigTreeCMS::$DB->insertID();
+		return SQL::insertID();
 	}
 
 	function sqlescape($string) {
-		return BigTreeCMS::$DB->escape($string);
+		return SQL::escape($string);
 	}

@@ -6,7 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTreeCMS;
 	use BigTreeStorage;
 
 	class Resource extends BaseObject {
@@ -41,7 +40,7 @@
 		function __construct($resource) {
 			// Passing in just an ID
 			if (!is_array($resource)) {
-				$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE id = ?", $resource);
+				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $resource);
 			}
 
 			// Bad data set
@@ -79,14 +78,14 @@
 
 		static function allocate($module,$entry) {
 			// Wipe existing allocations
-			BigTreeCMS::$DB->delete("bigtree_resource_allocation",array(
+			SQL::delete("bigtree_resource_allocation",array(
 				"module" => $module,
 				"entry" => $entry
 			));
 
 			// Add new allocations
 			foreach (static::$CreationLog as $resource) {
-				BigTreeCMS::$DB->insert("bigtree_resource_allocation",array(
+				SQL::insert("bigtree_resource_allocation",array(
 					"module" => $module,
 					"entry" => $entry,
 					"resource" => $resource
@@ -117,7 +116,7 @@
 		*/
 
 		static function create($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
-			$id = BigTreeCMS::$DB->insert("bigtree_resources",array(
+			$id = SQL::insert("bigtree_resources",array(
 				"file" => BigTree\Link::tokenize($file),
 				"md5" => $md5,
 				"name" => BigTree::safeEncode($name),
@@ -142,11 +141,11 @@
 
 		static function delete() {
 			// Delete resource record
-			BigTreeCMS::$DB->delete("bigtree_resources",$this->ID);
+			SQL::delete("bigtree_resources",$this->ID);
 			AuditTrail::track("bigtree_resources",$this->ID,"deleted");
 
 			// If this file isn't located in any other folders, delete it from the file system
-			if (!BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", $resource["file"])) {
+			if (!SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", $resource["file"])) {
 				$storage = new BigTreeStorage;
 				$storage->delete($resource["file"]);
 
@@ -166,7 +165,7 @@
 		*/
 
 		function getAllocationCount() {
-			return BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
+			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
 		}
 
 		/*
@@ -191,7 +190,7 @@
 			}
 
 			$last_prefix = false;
-			$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", 
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", 
 												$file, BigTree\Link::tokenize($file));
 			
 			// If we didn't find the resource, check all the prefixes
@@ -199,7 +198,7 @@
 				foreach (static::$Prefixes as $prefix) {
 					if (!$resource) {
 						$prefixed_file = str_replace("files/resources/$prefix","files/resources/",$file);
-						$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources
+						$resource = SQL::fetch("SELECT * FROM bigtree_resources
 															WHERE file = ? OR file = ?", $file, BigTree\Link::tokenize($prefixed_file));
 						$last_prefix = $prefix;
 					}
@@ -228,21 +227,21 @@
 		static function md5Check($file,$new_folder) {
 			$md5 = md5_file($file);
 
-			$resource = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_resources WHERE md5 = ? LIMIT 1", $md5);
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE md5 = ? LIMIT 1", $md5);
 			if (!$resource) {
 				return false;
 			}
 
 			// If we already have this exact resource in this exact folder, just update its modification time
 			if ($resource["folder"] == $new_folder) {
-				BigTreeCMS::$DB->update("bigtree_resources",$resource["id"],array("date" => "NOW()"));
+				SQL::update("bigtree_resources",$resource["id"],array("date" => "NOW()"));
 			} else {
 				// Make a copy of the resource
 				unset($resource["id"]);
 				$resource["date"] = "NOW()";
 				$resource["folder"] = $new_folder ? $new_folder : null;
 
-				BigTreeCMS::$DB->insert("bigtree_resources",$resource);
+				SQL::insert("bigtree_resources",$resource);
 			}
 
 			return true;
@@ -261,11 +260,11 @@
 		*/
 
 		static function search($query, $sort = "date DESC") {
-			$query = BigTreeCMS::$DB->escape($query);
+			$query = SQL::escape($query);
 			$folders = $resources = $permission_cache = array();
 
 			// Get matching folders
-			$folders = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
+			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
 			foreach ($folders as &$folder) {
 				$folder_object = new BigTree\ResourceFolder($folder);
 				$folder["permission"] = $folder_object->UserAccessLevel;
@@ -275,7 +274,7 @@
 			}
 
 			// Get matching resources
-			$resources = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
+			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
 			foreach ($resources as &$resource) {
 				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
 				if ($permission_cache[$resource["folder"]]) {
@@ -306,7 +305,7 @@
 				$thumb = BigTree\Link::tokenize($thumb);
 			}
 
-			BigTreeCMS::$DB->update("bigtree_resources",$this->ID,array(
+			SQL::update("bigtree_resources",$this->ID,array(
 				"folder" => $this->Folder,
 				"file" => BigTree\Link::tokenize($this->File),
 				"md5" => $this->MD5,

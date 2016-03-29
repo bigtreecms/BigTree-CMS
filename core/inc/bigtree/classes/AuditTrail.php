@@ -6,9 +6,6 @@
 
 	namespace BigTree;
 	
-	use BigTreeAdmin;
-	use BigTreeCMS;
-
 	class AuditTrail {
 
 		/*
@@ -26,7 +23,7 @@
 
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				BigTreeAdmin::$DB->insert("bigtree_audit_trail",array(
+				SQL::insert("bigtree_audit_trail",array(
 					"table" => $table,
 					"user" => $admin->ID,
 					"entry" => $entry,
@@ -76,11 +73,11 @@
 				$query .= " WHERE ".implode(" AND ",$where);
 			}
 
-			$entries = BigTreeCMS::$DB->fetchAll($query." ORDER BY `date` DESC");
+			$entries = SQL::fetchAll($query." ORDER BY `date` DESC");
 			foreach ($entries as &$entry) {
 				// Check the user cache
 				if (!$users[$entry["user"]]) {
-					$user = BigTreeCMS::$DB->fetch("SELECT id,name,email,level FROM bigtree_users WHERE id = ?", $entry["user"]);
+					$user = SQL::fetch("SELECT id,name,email,level FROM bigtree_users WHERE id = ?", $entry["user"]);
 					$users[$entry["user"]] = $user;
 				}
 

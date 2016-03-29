@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Redirect extends BaseObject {
 
@@ -29,7 +28,7 @@
 		function __construct($redirect) {
 			// Passing in just an ID
 			if (!is_array($redirect)) {
-				$redirect = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_404s WHERE id = ?", $redirect);
+				$redirect = SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $redirect);
 			}
 
 			// Bad data set
@@ -76,7 +75,7 @@
 		*/
 
 		static function clearEmpty() {
-			BigTreeCMS::$DB->delete("bigtree_404s",array("redirect_url" => ""));
+			SQL::delete("bigtree_404s",array("redirect_url" => ""));
 			AuditTrail::track("bigtree_404s","All","Cleared Empty");
 		}
 
@@ -97,14 +96,14 @@
 			$to = htmlspecialchars(Link::encode($to));
 
 			// See if the from already exists
-			$existing = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+			$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
 			if ($existing) {
-				BigTreeCMS::$DB->update("bigtree_404s",$existing["id"],array("redirect_url" => $to));
+				SQL::update("bigtree_404s",$existing["id"],array("redirect_url" => $to));
 				AuditTrail::track("bigtree_404s",$existing["id"],"updated");
 
 				return new Redirect($existing["id"]);
 			} else {
-				$id = BigTreeCMS::$DB->insert("bigtree_404s",array(
+				$id = SQL::insert("bigtree_404s",array(
 					"broken_url" => $from,
 					"redirect_url" => $to
 				));
@@ -120,7 +119,7 @@
 		*/
 
 		function delete() {
-			BigTreeCMS::$DB->delete("bigtree_404s",$this->ID);
+			SQL::delete("bigtree_404s",$this->ID);
 			AuditTrail::track("bigtree_404s",$this->ID,"deleted");
 		}
 
@@ -138,7 +137,7 @@
 				return false;
 			}
 
-			$entry = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?", $url);
+			$entry = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?", $url);
 			
 			// We already have a redirect
 			if ($entry["redirect_url"]) {
@@ -159,7 +158,7 @@
 				}
 				
 				// Update request count
-				BigTreeCMS::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+				SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
 
 				// Redirect with a 301
 				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
@@ -170,9 +169,9 @@
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 
 				if ($entry) {
-					BigTreeCMS::$DB->query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
 				} else {
-					BigTreeCMS::$DB->insert("bigtree_404s",array(
+					SQL::insert("bigtree_404s",array(
 						"broken_url" => $url,
 						"requests" => 1
 					));
@@ -203,7 +202,7 @@
 				$redirect_url = str_replace("{staticroot}","{wwwroot}",$redirect_url);
 			}
 
-			BigTreeCMS::$DB->update("bigtree_404s",$this->ID,array(
+			SQL::update("bigtree_404s",$this->ID,array(
 				"broken_url" => htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$this->BrokenURL),"/"))),
 				"redirect_url" => $redirect_url,
 				"ignored" => $this->Ignored ? "on" : "";

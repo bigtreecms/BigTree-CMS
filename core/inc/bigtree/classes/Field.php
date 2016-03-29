@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Field extends BaseObject {
 
@@ -234,7 +233,7 @@
 
 			// See if we're using image presets
 			if ($this->Settings["preset"]) {
-				$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+				$media_settings = Seting::value("bigtree-internal-media-settings");
 				$preset = $media_settings["presets"][$this->Settings["preset"]];
 				// If the preset still exists, copy its properties over to our options
 				if ($preset) {

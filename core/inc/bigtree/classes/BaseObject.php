@@ -1,8 +1,6 @@
 <?php
 	namespace BigTree;
 
-	use BigTreeCMS;
-
 	class BaseObject {
 
 		static $Table = "";
@@ -27,7 +25,7 @@
 				// Magically create "allBy" methods
 				if (substr($method,0,5) == "allBy") {
 					$sort = !empty($arguments[1]) ? " ORDER BY ".$arguments[1] : "";
-					$records = BigTreeCMS::$DB->fetchAll("SELECT * FROM `".static::$Table."` WHERE `$column` = ? $sort", $value);
+					$records = SQL::fetchAll("SELECT * FROM `".static::$Table."` WHERE `$column` = ? $sort", $value);
 
 					// Third parameter will be whether to return as an array
 					if (empty($arguments[2])) {
@@ -43,7 +41,7 @@
 				// Magically create "getBy" methods
 				if (substr($method,0,5) == "getBy") {
 
-					$record = BigTreeCMS::$DB->fetch("SELECT * FROM `".static::$Table."` WHERE `$column` = ?", $value);
+					$record = SQL::fetch("SELECT * FROM `".static::$Table."` WHERE `$column` = ?", $value);
 					if (!$record) {
 						return false;
 					}
@@ -119,7 +117,7 @@
 			}
 
 			$sort = $sort ? " ORDER BY ".$sort : "";
-			$records = BigTreeCMS::$DB->fetchAll("SELECT * FROM `".static::$Table."` $sort");
+			$records = SQL::fetchAll("SELECT * FROM `".static::$Table."` $sort");
 
 			// Third parameter will be whether to return as an array
 			if (!$return_arrays) {
@@ -144,7 +142,7 @@
 				return false;
 			}
 
-			BigTreeCMS::$DB->delete(static::$Table,$this->ID);
+			SQL::delete(static::$Table,$this->ID);
 			AuditTrail::track(static::$Table,$this->ID,"deleted");
 		}
 
@@ -162,7 +160,7 @@
 			}
 
 			// Get the table description and an array equivalent of all object properties
-			$table_description = BigTreeCMS::$DB->describeTable(static::$Table);
+			$table_description = SQL::describeTable(static::$Table);
 			$array_data = $this->Array;
 			$update_data = array();
 
@@ -174,7 +172,7 @@
 			}
 
 			// Update db
-			BigTreeCMS::$DB->update(static::$Table,$this->ID,$update_data);
+			SQL::update(static::$Table,$this->ID,$update_data);
 
 			// Track
 			AuditTrail::track(static::$Table,$this->ID,"updated");

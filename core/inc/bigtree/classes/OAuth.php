@@ -73,7 +73,7 @@
 		function cacheBust($id) {
 			if (is_array($this->Settings["hash_table"][$id])) {
 				foreach ($this->Settings["hash_table"][$id] as $i) {
-					BigTreeCMS::$DB->delete("bigtree_caches", array(
+					SQL::delete("bigtree_caches", array(
 						"identifier" => $this->CacheIdentifier,
 						"key" => $i
 					));
@@ -292,8 +292,8 @@
 		*/
 
 		function disconnect() {
-			BigTreeCMS::$DB->delete("bigtree_caches", array("identifier" => $this->CacheIdentifier));
-			BigTreeCMS::$DB->delete("bigtree_settings", $this->SettingID);
+			SQL::delete("bigtree_caches", array("identifier" => $this->CacheIdentifier));
+			SQL::delete("bigtree_settings", $this->SettingID);
 		}
 
 		/*

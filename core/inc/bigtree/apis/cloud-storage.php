@@ -797,9 +797,9 @@
 		*/
 
 		function resetCache($data) {
-			BigTreeCMS::$DB->delete("bigtree_caches", array("identifier" => "org.bigtreecms.cloudfiles"));
+			SQL::delete("bigtree_caches", array("identifier" => "org.bigtreecms.cloudfiles"));
 			foreach ($data as $item) {
-				BigTreeCMS::$DB->insert("bigtree_caches", array(
+				SQL::insert("bigtree_caches", array(
 					"identifier" => "org.bigtreecms.cloudfiles",
 					"key" => $item["path"],
 					"value" => array(

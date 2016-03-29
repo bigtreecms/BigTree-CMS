@@ -7,7 +7,6 @@
 	namespace BigTree;
 	
 	use BigTree;
-	use BigTreeCMS;
 	use PasswordHash;
 
 	class Auth {
@@ -49,7 +48,7 @@
 				list($session,$chain) = json_decode($_COOKIE[$this->Namespace]["login"]);
 
 				// See if this is the current chain and session
-				$chain_entry = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
+				$chain_entry = SQL::fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
 													   $_COOKIE[$this->Namespace]["email"], $chain);
 				if ($chain_entry) {
 					// If both chain and session are legit, log them in
@@ -71,16 +70,16 @@
 							$this->Permissions = $user->Permissions;
 
 							// Delete existing session
-							BigTreeCMS::$DB->delete("bigtree_user_sessions",$session);
+							SQL::delete("bigtree_user_sessions",$session);
 							
 							// Generate a random session id
 							$session = uniqid("session-",true);
-							while (BigTreeCMS::$DB->exists("bigtree_user_sessions",array("id" => $session))) {
+							while (SQL::exists("bigtree_user_sessions",array("id" => $session))) {
 								$session = uniqid("session-",true);
 							}
 
 							// Create a new session with the same chain
-							BigTreeCMS::$DB->insert("bigtree_user_sessions",array(
+							SQL::insert("bigtree_user_sessions",array(
 								"id" => $session,
 								"chain" => $chain,
 								"email" => $this->User
@@ -95,7 +94,7 @@
 						BigTree::setCookie($this->Namespace."[email]","",time() - 3600);
 						
 						// Delete all sessions for this user
-						BigTreeCMS::$DB->delete("bigtree_user_sessions",array("email" => $_COOKIE[$this->Namespace]["email"]));
+						SQL::delete("bigtree_user_sessions",array("email" => $_COOKIE[$this->Namespace]["email"]));
 					}
 				}
 
@@ -124,7 +123,7 @@
 			// Check to see if this IP is already banned from logging in.
 			if ($this->Policies) {
 				$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-				$ban = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `expires` > NOW() AND `ip` = ?", $ip);
+				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `expires` > NOW() AND `ip` = ?", $ip);
 				if ($ban) {
 					$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
 					$bigtree["ban_is_user"] = false;
@@ -142,7 +141,7 @@
 
 			// See if this user is banned due to failed login attempts
 			if ($this->Policies) {
-				$ban = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `table` = ? AND `expires` > NOW() AND `user` = ?",
+				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `table` = ? AND `expires` > NOW() AND `user` = ?",
 											   $user_class::$Table, $user->ID);
 				if ($ban) {
 					$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
@@ -155,11 +154,11 @@
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"],true);
 			if ($phpass->CheckPassword(trim($password),$user->Password)) {
 				// Generate random session and chain ids
-				$chain = BigTreeCMS::$DB->unique("bigtree_user_sessions","chain",uniqid("chain-",true));
-				$session = BigTreeCMS::$DB->unique("bigtree_user_sessions","id",uniqid("session-",true));
+				$chain = SQL::unique("bigtree_user_sessions","chain",uniqid("chain-",true));
+				$session = SQL::unique("bigtree_user_sessions","id",uniqid("session-",true));
 
 				// Create the new session chain
-				BigTreeCMS::$DB->insert("bigtree_user_sessions",array(
+				SQL::insert("bigtree_user_sessions",array(
 					"id" => $session,
 					"table" => $user_class::$Table,
 					"chain" => $chain,
@@ -184,7 +183,7 @@
 			} elseif ($this->Policies) {
 
 				// Log it as a failed attempt for a user if the email address matched
-				BigTreeCMS::$DB->insert("bigtree_login_attempts",array(
+				SQL::insert("bigtree_login_attempts",array(
 					"ip" => $ip,
 					"table" => $user_class::$Table,
 					"user" => $user ? "'".$user->ID."'" : null
@@ -193,19 +192,19 @@
 				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
 				if ($user->ID && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
 					$policy = $bigtree["security-policy"]["user_fails"];
-					$attempts = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
+					$attempts = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
 															  WHERE `user` = ? AND 
 														 			`timestamp` >= DATE_SUB(NOW(),INTERVAL ".$policy["time"]." MINUTE)", $user);
 					// Earned a ban
 					if ($attempts >= $policy["count"]) {
 						// See if they have an existing ban that hasn't expired, if so, extend it
-						$existing_ban = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `user` = ? AND `expires` >= NOW()", $user);
+						$existing_ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `user` = ? AND `expires` >= NOW()", $user);
 						if ($existing_ban) {
-							BigTreeCMS::$DB->query("UPDATE bigtree_login_bans 
+							SQL::query("UPDATE bigtree_login_bans 
 													SET `expires` = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE) 
 													WHERE `id` = ?", $existing_ban["id"]);
 						} else {
-							BigTreeCMS::$DB->query("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) 
+							SQL::query("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) 
 													VALUES (?, ?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE))", $ip, $user);
 						}
 						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$policy["ban"]." minutes"));
@@ -216,18 +215,18 @@
 				// See if this attempt earns the IP as a whole a ban - first verify the policy is completely filled out (3 parts)
 				if (count(array_filter((array)$bigtree["security-policy"]["ip_fails"])) == 3) {
 					$policy = $bigtree["security-policy"]["ip_fails"];
-					$attempts = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
+					$attempts = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
 															  WHERE `ip` = ? AND 
 																	`timestamp` >= DATE_SUB(NOW(),INTERVAL ".$policy["time"]." MINUTE)", $ip);
 					// Earned a ban
 					if ($attempts >= $policy["count"]) {
-						$existing_ban = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_login_bans WHERE `ip` = ? AND `expires` >= NOW()", $ip);
+						$existing_ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `ip` = ? AND `expires` >= NOW()", $ip);
 						if ($existing_ban) {
-							BigTreeCMS::$DB->query("UPDATE bigtree_login_bans 
+							SQL::query("UPDATE bigtree_login_bans 
 													SET `expires` = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR) 
 													WHERE `id` = ?", $existing_ban["id"]);
 						} else {
-							BigTreeCMS::$DB->query("INSERT INTO bigtree_login_bans (`ip`,`expires`) 
+							SQL::query("INSERT INTO bigtree_login_bans (`ip`,`expires`) 
 													VALUES (?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR))", $ip);
 						}
 						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$policy["ban"]." hours"));

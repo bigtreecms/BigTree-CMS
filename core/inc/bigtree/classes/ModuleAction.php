@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class ModuleAction extends BaseObject {
 
@@ -37,7 +36,7 @@
 		function __construct($action) {
 			// Passing in just an ID
 			if (!is_array($action)) {
-				$action = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE id = ?", $action);
+				$action = SQL::fetch("SELECT * FROM bigtree_module_actions WHERE id = ?", $action);
 			}
 
 			// Bad data set
@@ -77,10 +76,10 @@
 
 		static function create($module,$name,$route,$in_nav,$icon,$interface,$level = 0,$position = 0) {
 			// Get a clean unique route
-			$route = BigTreeCMS::$DB->unique("bigtree_module_actions","route",BigTreeCMS::urlify($route),array("module" => $module),true);
+			$route = SQL::unique("bigtree_module_actions","route",Link::urlify($route),array("module" => $module),true);
 
 			// Create
-			$id = BigTreeCMS::$DB->insert("bigtree_module_actions",array(
+			$id = SQL::insert("bigtree_module_actions",array(
 				"module" => $module,
 				"route" => $route,
 				"in_nav" => ($in_nav ? "on" : ""),
@@ -103,15 +102,15 @@
 		function delete($id) {
 			// If this action is the only one using the interface, delete it as well
 			if ($this->Interface) {
-				$interface_count = BigTreeCMS::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_module_actions WHERE interface = ?",$this->Interface);
+				$interface_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_actions WHERE interface = ?",$this->Interface);
 				if ($interface_count == 1) {
-					BigTreeCMS::$DB->delete("bigtree_module_interfaces",$this->Interface);
+					SQL::delete("bigtree_module_interfaces",$this->Interface);
 					AuditTrail::track("bigtree_module_interfaces",$this->Interface,"deleted");
 				}
 			}
 
 			// Delete the action
-			BigTreeCMS::$DB->delete("bigtree_module_actions",$this->ID);
+			SQL::delete("bigtree_module_actions",$this->ID);
 			AuditTrail::track("bigtree_module_actions",$this->ID,"deleted");
 		}
 
@@ -128,7 +127,7 @@
 		*/
 
 		static function exists($module,$route) {
-			return BigTreeCMS::$DB->exists("bigtree_module_actions",array("module" => $module,"route" => $route));
+			return SQL::exists("bigtree_module_actions",array("module" => $module,"route" => $route));
 		}
 
 		/*
@@ -152,7 +151,7 @@
 				$id = $interface;
 			}
 
-			$action = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC", $id);
+			$action = SQL::fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC", $id);
 
 			return $action ? new ModuleAction($action) : false;
 		}
@@ -204,7 +203,7 @@
 			$commands = array();
 
 			while (count($route)) {
-				$action = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_module_actions 
+				$action = SQL::fetch("SELECT * FROM bigtree_module_actions 
 												  WHERE module = ? AND route = ?", $module, implode("/",$route));
 
 				// If we found an action for this sequence, return it with the extra URL route commands
@@ -226,13 +225,13 @@
 
 		function save() {
 			// Make sure route is unique and clean
-			$this->Route = BigTreeCMS::urlify($this->Route);
+			$this->Route = Link::urlify($this->Route);
 			if ($this->Route != $this->OriginalRoute) {
-				$this->Route = BigTreeCMS::$DB->unique("bigtree_module_actions","route",$this->Route,array("module" => $this->ModuleID),true);
+				$this->Route = SQL::unique("bigtree_module_actions","route",$this->Route,array("module" => $this->ModuleID),true);
 				$this->OriginalRoute = $this->Route;
 			}
 
-			BigTreeCMS::$DB->update("bigtree_module_actions",$id,array(
+			SQL::update("bigtree_module_actions",$id,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"route" => $this->Route,
 				"class" => $this->Icon,

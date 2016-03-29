@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class FieldType extends BaseObject {
 
@@ -30,7 +29,7 @@
 		function __construct($field_type) {
 			// Passing in just an ID
 			if (!is_array($field_type)) {
-				$field_type = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $field_type);
+				$field_type = SQL::fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $field_type);
 			}
 
 			// Bad data set
@@ -65,11 +64,11 @@
 			}
 
 			// See if a callout ID already exists
-			if (BigTreeCMS::$DB->exists("bigtree_field_types",$id)) {
+			if (SQL::exists("bigtree_field_types",$id)) {
 				return false;
 			}
 
-			BigTreeCMS::$DB->insert("bigtree_field_types",array(
+			SQL::insert("bigtree_field_types",array(
 				"id" => $id,
 				"name" => BigTree::safeEncode($name),
 				"use_cases" => $use_cases,
@@ -145,7 +144,7 @@
 			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			// Delete and track
-			BigTreeCMS::$DB->delete("bigtree_field_types",$id);
+			SQL::delete("bigtree_field_types",$id);
 			AuditTrail::track("bigtree_field_types",$id,"deleted");
 		}
 
@@ -188,7 +187,7 @@
 
 				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
 
-				$field_types = BigTreeCMS::$DB->fetchAll("SELECT * FROM bigtree_field_types ORDER BY name");
+				$field_types = SQL::fetchAll("SELECT * FROM bigtree_field_types ORDER BY name");
 				foreach ($field_types as $field_type) {
 					$use_cases = json_decode($field_type["use_cases"],true);
 					foreach ((array)$use_cases as $case => $val) {
@@ -223,7 +222,7 @@
 
 		function save() {
 			// Update DB
-			BigTreeCMS::$DB->update("bigtree_field_types",$this->ID,array(
+			SQL::update("bigtree_field_types",$this->ID,array(
 				"name" => BigTree::safeEncode($this->Name),
 				"use_cases" => array_filter((array)$this->UseCases),
 				"self_draw" => $this->SelfDraw ? "on" : ""

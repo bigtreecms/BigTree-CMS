@@ -8,9 +8,8 @@
 	
 	use BigTree;
 	use BigTreeAdmin;
-	use BigTreeCMS;
 
-	class PageDraft {
+	class PageDraft extends BaseObject {
 
 		protected $CreatedAt;
 		protected $ID;
@@ -56,7 +55,7 @@
 
 			// Passing in just an ID
 			if (!is_array($page)) {
-				$change = BigTreeCMS::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
+				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
 			}
 
 			$data = json_decode($change["changes"],true);

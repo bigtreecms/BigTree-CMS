@@ -7,7 +7,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 
 	class Cache {
 
@@ -22,9 +21,9 @@
 
 		static function delete($identifier,$key = false) {
 			if ($key === false) {
-				BigTreeCMS::$DB->query("DELETE FROM bigtree_caches WHERE `identifier` = ?",$identifier);
+				SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = ?",$identifier);
 			} else {
-				BigTreeCMS::$DB->query("DELETE FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
+				SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
 			}
 		}
 
@@ -45,14 +44,14 @@
 		static function get($identifier,$key,$max_age = false,$decode = true) {
 			if ($max_age) {
 				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-				if (!BigTreeCMS::$MySQLTime) {
-					BigTreeCMS::$MySQLTime = BigTreeCMS::$DB->fetchSingle("SELECT NOW()");
+				if (!SQL::$MySQLTime) {
+					SQL::$MySQLTime = SQL::fetchSingle("SELECT NOW()");
 				}
-				$max_age = date("Y-m-d H:i:s",strtotime(BigTreeCMS::$MySQLTime) - $max_age);
+				$max_age = date("Y-m-d H:i:s",strtotime(SQL::$MySQLTime) - $max_age);
 
-				$entry = BigTreeCMS::$DB->fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age);
+				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age);
 			} else {
-				$entry = BigTreeCMS::$DB->fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
+				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
 			}
 
 			return $decode ? json_decode($entry,true) : $entry;
@@ -73,7 +72,7 @@
 		*/
 
 		static function put($identifier,$key,$value,$replace = true) {
-			$exists = BigTreeCMS::$DB->exists("bigtree_caches",array("identifier" => $identifier,"key" => $key));
+			$exists = SQL::exists("bigtree_caches",array("identifier" => $identifier,"key" => $key));
 			if (!$replace && $exists) {
 				return false;
 			}
@@ -81,9 +80,9 @@
 			$value = BigTree::json($value);
 			
 			if ($exists) {
-				return BigTreeCMS::$DB->update("bigtree_caches",array("identifier" => $identifier,"key" => $key),array("value" => $value));
+				return SQL::update("bigtree_caches",array("identifier" => $identifier,"key" => $key),array("value" => $value));
 			} else {
-				return BigTreeCMS::$DB->insert("bigtree_caches",array("identifier" => $identifier,"key" => $key,"value" => $value));
+				return SQL::insert("bigtree_caches",array("identifier" => $identifier,"key" => $key,"value" => $value));
 			}
 		}
 
