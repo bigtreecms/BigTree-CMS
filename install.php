@@ -5,7 +5,7 @@
 	// Setup SQL functions for MySQL extension if we have it.
 	if (function_exists("mysql_connect")) {
 		function sqlconnect($server,$user,$password,$port,$socket) {
-			$port = $port ? $port : 3306;
+			$port = $port ?: 3306;
 			$server = $socket ? ":".ltrim($socket,":") : $server.":".$port;
 			return mysql_connect($server,$user,$password);
 		}
@@ -24,7 +24,7 @@
 	// Otherwise Use MySQLi
 	} else {
 		function sqlconnect($server,$user,$password,$port,$socket) {
-			return mysqli_connect($server,$user,$password,"",$port,$socket);
+			return mysqli_connect($server,$user,$password,"",$port ?: 3306,$socket);
 		}
 
 		function sqlselectdb($db) {
