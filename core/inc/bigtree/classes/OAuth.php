@@ -11,22 +11,22 @@
 	
 	class OAuth {
 
-		var $AuthorizeURL = "";
-		var $Cache = true;
-		var $CacheIdentifier = "";
-		var $Connected = false;
-		var $EndpointURL = "";
-		var $Errors = array();
-		var $LastCacheKey = false;
-		var $OAuthError = false;
-		var $OAuthVersion = false;
-		var $RequestParameters = array();
-		var $RequestType = false;
-		var $ReturnURL = "";
-		var $Scope = false;
-		var $Settings = array();
-		var $SettingID = false;
-		var $TokenURL = "";
+		public $AuthorizeURL = "";
+		public $Cache = true;
+		public $CacheIdentifier = "";
+		public $Connected = false;
+		public $EndpointURL = "";
+		public $Errors = array();
+		public $LastCacheKey = false;
+		public $OAuthError = false;
+		public $OAuthVersion = false;
+		public $RequestParameters = array();
+		public $RequestType = false;
+		public $ReturnURL = "";
+		public $Scope = false;
+		public $Settings = array();
+		public $SettingID = false;
+		public $TokenURL = "";
 
 		/*
 			Constructor:

@@ -1,0 +1,43 @@
+<?php
+	/*
+		Class: BigTreeTwitterPlace
+			A Twitter object that contains information about and methods you can perform on a place.
+	*/
+
+	namespace BigTree\Twitter;
+
+	class Place {
+
+		protected $API;
+
+		/*
+			Constructor:
+				Creates a place object from Twitter data.
+
+			Parameters:
+				place - Twitter data
+				api - Reference to the BigTreeTwitterAPI class instance
+		*/
+
+		function __construct($place,&$api) {
+			$this->API = $api;
+			isset($place->bounding_box->coordinates) ? $this->BoundingBox = $place->bounding_box->coordinates : false;
+			isset($place->country) ? $this->Country = $place->country : false;
+			isset($place->country_code) ? $this->CountryCode = $place->country_code : false;
+			isset($place->full_name) ? $this->FullName = $place->full_name : false;
+			isset($place->id) ? $this->ID = $place->id : false;
+			isset($place->name) ? $this->Name = $place->name : false;
+			isset($place->place_type) ? $this->Type = $place->place_type : false;
+			isset($place->url) ? $this->URL = $place->url : false;
+		}
+
+		/*
+			Function: __toString
+				Returns the Places's name when this object is treated as a string.
+		*/
+
+		function __toString() {
+			return $this->Name;
+		}
+
+	}
