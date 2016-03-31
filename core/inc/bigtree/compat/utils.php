@@ -86,23 +86,7 @@
 		*/
 		
 		static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
-			list($w, $h) = getimagesize($file);
-			
-			// Find out what orientation we're cropping at.
-			$v = $cw / $w;
-			$nh = $h * $v;
-			if ($nh < $ch) {
-				// We're shrinking the height to the crop height and then chopping the left and right off.
-				$v = $ch / $h;
-				$nw = $w * $v;
-				$x = ceil(($nw - $cw) / 2 * $w / $nw);
-				$y = 0;
-				return static::createCrop($file,$newfile,$x,$y,$cw,$ch,($w - $x * 2),$h,$retina,$grayscale);
-			} else {
-				$y = ceil(($nh - $ch) / 2 * $h / $nh);
-				$x = 0;
-				return static::createCrop($file,$newfile,$x,$y,$cw,$ch,$w,($h - $y * 2),$retina,$grayscale);
-			}
+			return BigTree\Image::centerCrop($file, $newfile, $cw, $ch, $retina, $grayscale);
 		}
 
 		/*
@@ -509,7 +493,7 @@
 		*/
 		
 		static function describeTable($table) {
-			return SQL::describeTable($table);
+			return BigTree\SQL::describeTable($table);
 		}
 
 		/*

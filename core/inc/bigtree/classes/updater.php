@@ -1,10 +1,14 @@
 <?php
 	/*
-		Class: BigTreeUpdater
+		Class: BigTree\Updater
 			Facilitates updating the CMS and extensions.
 	*/
 
-	class BigTreeUpdater {
+	namespace BigTree;
+
+	use BigTree;
+
+	class Updater {
 
 		var $Connection = false;
 		var $Extension = false;
@@ -27,8 +31,8 @@
 				$this->Method = "Local";
 			} else {
 				// Can't use local, see what FTP methods are available
-				$ftp = new BigTreeFTP;
-				$sftp = new BigTreeSFTP;
+				$ftp = new FTP;
+				$sftp = new SFTP;
 	
 				if ($ftp->connect("localhost")) {
 					$this->Connection = $ftp;
@@ -50,7 +54,7 @@
 
 		function checkZip() {
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
-			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
+			$zip = new \PclZip(SERVER_ROOT."cache/update.zip");
 			$zip->listContent();
 			if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
 				return false;
@@ -80,7 +84,7 @@
 
 		function extract() {
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
-			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
+			$zip = new \PclZip(SERVER_ROOT."cache/update.zip");
 
 			// If the temporary update directory doesn't exist, create it
 			BigTree::makeDirectory(SERVER_ROOT."cache/update/");
@@ -126,20 +130,16 @@
 		/*
 			Function: getFTPRoot
 				Attempts to determing the FTP directory in which BigTree can be found
-			
-			Parameters:
-				user - Username for FTP/SFTP
-				password - Password for FTP/SFTP
 
 			Returns:
 				The FTP directory if successful.
 				false if not successful.
 		*/
 
-		function getFTPRoot($user,$password) {
+		function getFTPRoot() {
 			// Try to determine the FTP root.
 			$ftp_root = false;
-			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
+			$saved_root = Setting::value("bigtree-internal-ftp-upgrade-root");
 			if ($saved_root !== false && $this->Connection->changeDirectory($saved_root."core/inc/bigtree/")) {
 				$ftp_root = $saved_root;
 			} elseif ($this->Connection->changeDirectory(SERVER_ROOT."core/inc/bigtree/")) {
@@ -173,7 +173,7 @@
 			// Doing a core upgrade
 			if ($this->Extension === false) {
 				// Backup database
-				BigTreeAdmin::backupDatabase(SERVER_ROOT."cache/backup.sql");
+				SQL::backup(SERVER_ROOT."cache/backup.sql");
 				$this->Connection->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
 				
 				// Backup old core

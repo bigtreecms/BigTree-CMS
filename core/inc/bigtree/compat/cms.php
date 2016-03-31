@@ -45,7 +45,7 @@
 				"BigTreeModule" => "inc/bigtree/modules.php",
 				"BigTreeFTP" => "inc/bigtree/ftp.php",
 				"BigTreeSFTP" => "inc/bigtree/sftp.php",
-				"BigTreeUpdater" => "inc/bigtree/updater.php",
+				"BigTreeUpdater" => "inc/bigtree/Updater.php",
 				"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
 				"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
 				"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat

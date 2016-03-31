@@ -6,7 +6,49 @@
 
 	namespace BigTree;
 
+	use BigTree;
+	use BigTreeStorage;
+
 	class Image {
+
+		/*
+			Function: centerCrop
+				Crop from the center of an image to create a new one.
+
+			Parameters:
+				file - The location of the image to crop.
+				newfile - The location to save the new cropped image.
+				crop_width - The crop width.
+				crop_height - The crop height.
+				retina - Whether to try to create a retina crop (2x, defaults false)
+				grayscale - Whether to convert to grayscale (defaults false)
+
+			Returns:
+				The new file name if successful, false if there was not enough memory available.
+		*/
+
+		static function centerCrop($file, $newfile, $crop_width, $crop_height, $retina = false, $grayscale = false) {
+			list($width, $height) = getimagesize($file);
+
+			// Find out what orientation we're cropping at.
+			$ratio = $crop_width / $width;
+			$new_height = $height * $ratio;
+
+			if ($new_height < $crop_height) {
+				// We're shrinking the height to the crop height and then chopping the left and right off.
+				$ratio = $crop_height / $height;
+				$nw = $width * $ratio;
+				$x = ceil(($nw - $crop_width) / 2 * $width / $nw);
+				$y = 0;
+
+				return static::createCrop($file,$newfile,$x,$y,$crop_width,$crop_height,($width - $x * 2),$height,$retina,$grayscale);
+			} else {
+				$y = ceil(($new_height - $crop_height) / 2 * $height / $new_height);
+				$x = 0;
+
+				return static::createCrop($file,$newfile,$x,$y,$crop_width,$crop_height,$width,($height - $y * 2),$retina,$grayscale);
+			}
+		}
 
 		/*
 			Function: createCrop

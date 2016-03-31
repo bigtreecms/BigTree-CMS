@@ -1,10 +1,12 @@
 <?php
 	/*
-		Class: BigTreeGoogleResultSet
+		Class: BigTree\GoogleResultSet
 			Common result set class for Google+, YouTube, and Google Analytics.
 	*/
 
-	class BigTreeGoogleResultSet {
+	namespace BigTree;
+
+	class GoogleResultSet {
 
 		/*
 			Constructor:
@@ -50,7 +52,7 @@
 			Returns:
 				A BigTreeGoogleResultSet or false if there is not a previous page.
 		*/
-
+	
 		function previousPage() {
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
