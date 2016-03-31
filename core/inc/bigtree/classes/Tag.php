@@ -92,7 +92,7 @@
 
 		static function similar($name,$count = 8,$return_only_name = false) {
 			$tags = $distances = array();
-			$meta = metaphone($tag);
+			$meta = metaphone($name);
 
 			// Get all tags to get sound-alike tags
 			$all_tags = SQL::fetchAll("SELECT * FROM bigtree_tags");

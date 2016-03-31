@@ -79,18 +79,18 @@
 				An array of "saved" revisions and "unsaved" revisions.
 		*/
 
-		function allByPage($page,$sort = "updated_at DESC",$return_arrays = false) {
+		static function allByPage($page,$sort = "updated_at DESC",$return_arrays = false) {
 			$saved = $unsaved = array();
 			$revisions = SQL::fetchAll("SELECT bigtree_users.name, 
-														   bigtree_users.email, 
-														   bigtree_page_revisions.saved, 
-														   bigtree_page_revisions.saved_description, 
-														   bigtree_page_revisions.updated_at, 
-														   bigtree_page_revisions.id 
-													FROM bigtree_page_revisions JOIN bigtree_users 
-													ON bigtree_page_revisions.author = bigtree_users.id 
-													WHERE page = ? 
-													ORDER BY updated_at DESC", $page);
+											   bigtree_users.email, 
+											   bigtree_page_revisions.saved, 
+											   bigtree_page_revisions.saved_description, 
+											   bigtree_page_revisions.updated_at, 
+											   bigtree_page_revisions.id 
+										FROM bigtree_page_revisions JOIN bigtree_users 
+										ON bigtree_page_revisions.author = bigtree_users.id 
+										WHERE page = ? 
+										ORDER BY $sort", $page);
 
 			foreach ($revisions as $revision) {
 				if ($revision["saved"]) {
@@ -115,7 +115,7 @@
 				A PageRevision object.
 		*/
 
-		function create(Page $page,$description = "") {
+		static function create(Page $page,$description = "") {
 			$id = SQL::insert("bigtree_page_revisions",array(
 				"page" => $page->ID,
 				"title" => $page->Title,
@@ -130,7 +130,7 @@
 				"saved_description" => $description
 			));
 
-			AuditTrail::("bigtree_page_revisions",$id,"created");
+			AuditTrail::track("bigtree_page_revisions",$id,"created");
 			
 			return new PageRevision($id);
 		}

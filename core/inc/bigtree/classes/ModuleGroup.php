@@ -56,7 +56,7 @@
 				A ModuleGroup object.
 		*/
 
-		function create($name) {
+		static function create($name) {
 			$id = SQL::insert("bigtree_module_groups",array(
 				"name" => BigTree::safeEncode($name),
 				"route" => SQL::unique("bigtree_module_groups","route",Link::urlify($name))

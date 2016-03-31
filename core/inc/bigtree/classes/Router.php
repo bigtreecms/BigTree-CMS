@@ -6,9 +6,14 @@
 
 	namespace BigTree;
 
+	use BigTree;
+
 	class Router {
 
+		protected static $ReservedRoutes = array();
+
 		static $Registry = false;
+		static $Trunk = false;
 
 		/*
 			Function: checkPathHistory
@@ -38,6 +43,37 @@
 				$new_url = $new.substr($_GET["bigtree_htaccess_url"],strlen($old));
 				BigTree::redirect(WWW_ROOT.$new_url,"301");
 			}
+		}
+
+		/*
+		 	Function: getReservedRoutes
+				Returns an array of already reserved top level routes.
+
+			Returns:
+				An array of strings.
+		*/
+
+		static function getReservedRoutes() {
+			// Already cached them
+			if (count(static::$ReservedRoutes)) {
+				return static::$ReservedRoutes;
+			}
+
+			static::$ReservedRoutes = array(
+				"ajax",
+				"css",
+				"feeds",
+				"js",
+				"sitemap.xml",
+				"_preview",
+				"_preview-pending"
+			);
+
+			// Update the reserved top level routes with the admin's route
+			list($admin_route) = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
+			static::$ReservedRoutes[] = $admin_route;
+
+			return static::$ReservedRoutes;
 		}
 
 		/*

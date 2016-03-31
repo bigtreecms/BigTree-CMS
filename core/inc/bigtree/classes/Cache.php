@@ -102,7 +102,7 @@
 			$success = false;
 			while (!$success) {
 				$key = uniqid("",true);
-				$success = static::cachePut($identifier,$key,$value,false);
+				$success = static::put($identifier,$key,$value,false);
 			}
 			return $key;
 		}

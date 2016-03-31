@@ -7,7 +7,6 @@
 	namespace BigTree;
 	
 	use BigTree;
-	use BigTreeAdmin;
 
 	class PageDraft extends BaseObject {
 
@@ -54,16 +53,16 @@
 			}
 
 			// Passing in just an ID
-			if (!is_array($page)) {
+			if (!is_array($change)) {
 				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
 			}
 
-			$data = json_decode($change["changes"],true);
-
 			// Bad data set
-			if (!is_array($page)) {
+			if (!is_array($change)) {
 				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
 			} else {
+				$data = json_decode($change["changes"],true);
+
 				// Protected vars first
 				$this->CreatedAt = $change["date"];
 				$this->ID = $change["id"];

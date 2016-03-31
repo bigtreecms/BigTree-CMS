@@ -91,7 +91,7 @@
 				A Redirect object.
 		*/
 
-		function create($from,$to) {
+		static function create($from,$to) {
 			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/")));
 			$to = htmlspecialchars(Link::encode($to));
 
@@ -205,7 +205,7 @@
 			SQL::update("bigtree_404s",$this->ID,array(
 				"broken_url" => htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$this->BrokenURL),"/"))),
 				"redirect_url" => $redirect_url,
-				"ignored" => $this->Ignored ? "on" : "";
+				"ignored" => $this->Ignored ? "on" : ""
 			));
 
 			AuditTrail::track("bigtree_404s",$this->ID,"updated");

@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTreeCMS;
-
 	class Dashboard {
 
 		static $CoreOptions = array(

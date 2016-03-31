@@ -110,11 +110,11 @@
 
 		function archive() {
 			// Archive the page and the page children
-			SQL::update("bigtree_pages",$page,array("archived" => "on"));
+			SQL::update("bigtree_pages",$this->ID,array("archived" => "on"));
 			$this->archiveChildren();
 
 			// Track
-			AuditTrail::track("bigtree_pages",$page,"archived");
+			AuditTrail::track("bigtree_pages",$this->ID,"archived");
 		}
 
 		/*
@@ -198,7 +198,7 @@
 				A Page object.
 		*/
 
-		function create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$tags = array()) {
+		static function create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$tags = array()) {
 			global $admin;
 
 			// Clean up either their desired route or the nav title
@@ -216,7 +216,8 @@
 					$route = $original_route."-".$x;
 					$x++;
 				}
-				while (in_array($route,BigTreeAdmin::$ReservedTLRoutes)) {
+				$reserved_routes = Router::getReservedRoutes();
+				while (in_array($route,$reserved_routes)) {
 					$route = $original_route."-".$x;
 					$x++;
 				}
@@ -248,7 +249,6 @@
 				"external" => ($external ? BigTree\Link::encode($external) : ""),
 				"new_window" => ($new_window ? "on" : ""),
 				"resources" => $resources,
-				"meta_keywords" => BigTree::safeEncode($meta_keywords),
 				"meta_description" => BigTree::safeEncode($meta_description),
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
 				"last_edited_by" => (get_class($admin) == "BigTreeAdmin") ? $admin->ID : null,
@@ -406,8 +406,8 @@
 		*/
 
 		function getArchivedChildren($return_arrays = false) {
-			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = '$parent' AND archived = 'on' 
-												   ORDER BY nav_title ASC");
+			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived = 'on' 
+									   ORDER BY nav_title ASC", $this->ID);
 
 			if (!$return_arrays) {
 				foreach ($children as &$child) {
@@ -566,7 +566,7 @@
 				true or false
 		*/
 
-		static function getChangeExists() {
+		function getChangeExists() {
 			return SQL::exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $this->ID));
 		}
 
@@ -645,7 +645,7 @@
 				A PendingChange object.
 		*/
 
-		static function getPendingChange() {
+		function getPendingChange() {
 			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
 			if (!$change) {
 				return false;
@@ -711,14 +711,14 @@
 			$page->MetaDescription = $revision["meta_description"];
 			$page->NewWindow = $revision["new_window"] ? true : false;
 			$page->Resources = array_filter((array) @json_decode($revision["resources"],true));
-			$page->Revision = new stdObject;
+			$page->Revision = new \stdClass;
 			$page->Template = $revision["template"];
 			$page->Title = $revision["title"];
 
-			$this->Revision->Author = $revision["author"];
-			$this->Revision->Description = $revision["saved_description"];
-			$this->Revision->Saved = $revision["saved"] ? true : false;
-			$this->Revision->UpdatedAt = $revision["updated_at"];
+			$page->Revision->Author = $revision["author"];
+			$page->Revision->Description = $revision["saved_description"];
+			$page->Revision->Saved = $revision["saved"] ? true : false;
+			$page->Revision->UpdatedAt = $revision["updated_at"];
 
 			return $page;
 		}
@@ -793,8 +793,8 @@
 				$score += 5;
 
 				// They have a title, let's see if it's unique
-				$count = static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
-												   WHERE title = ? AND id != ?", $this->Title, $this->ID);
+				$count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
+										   WHERE title = ? AND id != ?", $this->Title, $this->ID);
 				if (!$count) {
 					// They have a unique title
 					$score += 5;
@@ -832,7 +832,7 @@
 			}
 
 			// Check for an H1
-			if (!$h1_field || $content[$h1_field]) {
+			if (!$h1_field || $this->Resources[$h1_field]) {
 				$score += 10;
 			} else {
 				$recommendations[] = "You should enter a page header.";
@@ -846,9 +846,9 @@
 				$regular_text = "";
 				$stripped_text = "";
 				foreach ($body_fields as $field) {
-					if (!is_array($content[$field])) {
-						$regular_text .= $content[$field]." ";
-						$stripped_text .= strip_tags($content[$field])." ";
+					if (!is_array($this->Resources[$field])) {
+						$regular_text .= $this->Resources[$field]." ";
+						$stripped_text .= strip_tags($this->Resources[$field])." ";
 					}
 				}
 				// Check to see if there is any content
@@ -937,7 +937,7 @@
 				An array of Tag objects.
 		*/
 		
-		static function getTags($return_arrays = false) {
+		function getTags($return_arrays = false) {
 			$tags = SQL::fetchAll("SELECT bigtree_tags.*
 											   FROM bigtree_tags JOIN bigtree_tags_rel 
 											   ON bigtree_tags.id = bigtree_tags_rel.tag 
@@ -1056,9 +1056,9 @@
 				An array of Page objects.
 		*/
 
-		static function getVisibleChildren($return_arrays = false) {
-			$children = static::$DB->fetchAll("SELECT * FROM bigtree_pages WHERE parent = '$parent' AND in_nav = 'on' AND archived != 'on' 
-											   ORDER BY position DESC, id ASC");
+		function getVisibleChildren($return_arrays = false) {
+			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = 'on' AND archived != 'on' 
+									   ORDER BY position DESC, id ASC", $this->ID);
 			
 			if (!$return_arrays) {
 				foreach ($children as &$child) {
@@ -1114,7 +1114,6 @@
 			// Since we're in JSON we have to do stupid things to the /s for URL searches.
 			$query = str_replace('/','\\\/',$query);
 
-			$results = array();
 			$terms = explode(" ",$query);
 			$where_parts = array("archived != 'on'");
 
@@ -1130,7 +1129,7 @@
 			}
 
 			$pages = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE ".implode(" AND ",$where_parts)." 
-												ORDER BY nav_title LIMIT $max");
+									ORDER BY nav_title LIMIT $max");
 
 			if (!$return_arrays) {
 				foreach ($pages as &$page) {
@@ -1178,7 +1177,7 @@
 				Removes any static cache copies of this page.
 		*/
 
-		static function uncache() {
+		function uncache() {
 			BigTree::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path))).".page");
 			BigTree::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path."/"))).".page");
 		}
@@ -1189,12 +1188,14 @@
 		*/
 
 		function save() {
+			global $admin;
+
 			// Homepage must have no route
 			if ($this->ID == 0) {
 				$this->Route = "";
 			} else {
 				// Get a unique route
-				$original_route = Link::urlify($this->Route);
+				$original_route = $route = Link::urlify($this->Route);
 				$x = 2;
 	
 				// Reserved paths.
@@ -1203,7 +1204,8 @@
 						$route = $original_route."-".$x;
 						$x++;
 					}
-					while (in_array($route,static::$ReservedTLRoutes)) {
+					$reserved_routes = Router::getReservedRoutes();
+					while (in_array($route,$reserved_routes)) {
 						$route = $original_route."-".$x;
 						$x++;
 					}
@@ -1323,10 +1325,10 @@
 			$this->Trunk = $trunk;
 
 			// Remove any pending drafts
-			SQL::delete("bigtree_pending_changes",array("table" => "bigtree_pages","item_id" => $page));
+			SQL::delete("bigtree_pending_changes",array("table" => "bigtree_pages","item_id" => $this->ID));
 
 			// Handle tags
-			SQL::delete("bigtree_tags_rel",array("table" => "bigtree_pages","entry" => $page));
+			SQL::delete("bigtree_tags_rel",array("table" => "bigtree_pages","entry" => $this->ID));
 			foreach ($tags as $tag) {
 				SQL::insert("bigtree_tags_rel",array(
 					"table" => "bigtree_pages",

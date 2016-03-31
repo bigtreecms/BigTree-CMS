@@ -4,6 +4,8 @@
 			The primary interface to BigTree that is used by the front end of the site for pulling settings, navigation, and page content.
 	*/
 
+	use BigTree\SQL;
+
 	class BigTreeCMSBase {
 
 		public static $BreadcrumbTrunk;
@@ -95,7 +97,7 @@
 		*/
 
 		static function cacheDelete($identifier,$key = false) {
-			return BigTree\Cache::delete($identifier,$key);
+			BigTree\Cache::delete($identifier,$key);
 		}
 
 		/*
@@ -197,7 +199,8 @@
 			echo '<?xml version="1.0" encoding="UTF-8" ?>';
 			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
 			
-			$pages = static::$DB->fetchAll("SELECT id,template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
+			$pages = SQL::fetchAll("SELECT id,template,external,path FROM bigtree_pages 
+									WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
 			foreach ($pages as $page) {
 				if ($page["template"] || strpos($page["external"],DOMAIN)) {	
 					if (!$page["template"]) {
@@ -209,10 +212,10 @@
 					echo "<url><loc>".$link."</loc></url>\n";
 					
 					// Added routed template support
-					$module_class = static::$DB->fetchSingle("SELECT bigtree_modules.class
-															  FROM bigtree_templates JOIN bigtree_modules 
-															  ON bigtree_modules.id = bigtree_templates.module
-															  WHERE bigtree_templates.id = ?",$page["template"]);
+					$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
+													  FROM bigtree_templates JOIN bigtree_modules 
+													  ON bigtree_modules.id = bigtree_templates.module
+													  WHERE bigtree_templates.id = ?", $page["template"]);
 					if ($module_class) {
 						$module = new $module_class;
 						if (method_exists($module,"getSitemap")) {
@@ -320,7 +323,7 @@
 		*/
 		
 		static function getFeedByRoute($route) {
-			return static::getFeed(static::$DB->fetch("SELECT * FROM bigtree_feeds WHERE route = ?",$route));
+			return static::getFeed(SQL::fetch("SELECT * FROM bigtree_feeds WHERE route = ?",$route));
 		}
 		
 		/*
@@ -353,7 +356,7 @@
 		*/
 		
 		static function getInternalPageLink($ipl) {
-			return BigTree\Link::decodeIPL($ipl);
+			return BigTree\Link::decode($ipl);
 		}
 		
 		/*
@@ -398,26 +401,26 @@
 			if (is_array($parent)) {
 				$where_parent = array();
 				foreach ($parent as $p) {
-					$where_parent[] = "parent = '".static::$DB->escape($p)."'";
+					$where_parent[] = "parent = '".SQL::escape($p)."'";
 				}
 				$where_parent = "(".implode(" OR ",$where_parent).")";
 			// If it's an integer, let's just pull the children for the provided parent.
 			} else {
-				$parent = static::$DB->escape($parent);
+				$parent = SQL::escape($parent);
 				$where_parent = "parent = '$parent'";
 			}
 			
 			$in_nav = $only_hidden ? "" : "on";
 			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
 			
-			$children = static::$DB->fetchAll("SELECT id,nav_title,parent,external,new_window,template,route,path 
-											   FROM bigtree_pages
-											   WHERE $where_parent AND
-											   		 in_nav = '$in_nav' AND
-											   		 archived != 'on' AND
-											   		 (publish_at <= NOW() OR publish_at IS NULL) AND 
-											   		 (expire_at >= NOW() OR expire_at IS NULL) 
-											   ORDER BY $sort");
+			$children = SQL::fetchAll("SELECT id,nav_title,parent,external,new_window,template,route,path 
+									   FROM bigtree_pages
+									   WHERE $where_parent AND
+									   		 in_nav = '$in_nav' AND
+									   		 archived != 'on' AND
+									   		 (publish_at <= NOW() OR publish_at IS NULL) AND 
+									   		 (expire_at >= NOW() OR expire_at IS NULL) 
+									   ORDER BY $sort");
 			
 			// Wrangle up some kids
 			foreach ($children as $child) {
@@ -469,19 +472,19 @@
 				if (is_array($parent)) {
 					$where_parent = array();
 					foreach ($parent as $p) {
-						$where_parent[] = "bigtree_pages.id = '".static::$DB->escape($p)."'";
+						$where_parent[] = "bigtree_pages.id = '".SQL::escape($p)."'";
 					}
 
-					$module_pages = static::$DB->fetchAll("SELECT bigtree_modules.class,
-														   		  bigtree_templates.routed,
-																  bigtree_templates.module,
-																  bigtree_pages.id,
-																  bigtree_pages.path,
-																  bigtree_pages.template
-														   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
-														   ON bigtree_templates.id = bigtree_pages.template 
-														   WHERE bigtree_modules.id = bigtree_templates.module AND 
-														   		 (".implode(" OR ",$where_parent).")");
+					$module_pages = SQL::fetchAll("SELECT bigtree_modules.class,
+														  bigtree_templates.routed,
+														  bigtree_templates.module,
+														  bigtree_pages.id,
+														  bigtree_pages.path,
+														  bigtree_pages.template
+												   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
+												   ON bigtree_templates.id = bigtree_pages.template 
+												   WHERE bigtree_modules.id = bigtree_templates.module AND 
+														 (".implode(" OR ",$where_parent).")");
 					foreach ($module_pages as $module_page) {
 						// If the class exists, instantiate it and call it
 						if ($module_page["class"] && class_exists($module_page["class"])) {
@@ -506,16 +509,16 @@
 					}
 				// This is the first iteration.
 				} else {
-					$module_page = static::$DB->fetch("SELECT bigtree_modules.class,
-															  bigtree_templates.routed,
-															  bigtree_templates.module,
-															  bigtree_pages.id,
-															  bigtree_pages.path,
-															  bigtree_pages.template 
-													   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
-													   ON bigtree_templates.id = bigtree_pages.template 
-													   WHERE bigtree_modules.id = bigtree_templates.module AND 
-													   		 bigtree_pages.id = ?",$parent);
+					$module_page = SQL::fetch("SELECT bigtree_modules.class,
+													  bigtree_templates.routed,
+													  bigtree_templates.module,
+													  bigtree_pages.id,
+													  bigtree_pages.path,
+													  bigtree_pages.template 
+											   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
+											   ON bigtree_templates.id = bigtree_pages.template 
+											   WHERE bigtree_modules.id = bigtree_templates.module AND 
+											   		 bigtree_pages.id = ?",$parent);
 					// If the class exists, instantiate it and call it.
 					if ($module_page["class"] && class_exists($module_page["class"])) {
 						$module = new $module_page["class"];
@@ -610,7 +613,7 @@
 				}
 
 				// Get pending changes for this page.
-				$changes = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?",$page["id"]);
+				$changes = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $page["id"]);
 
 			// If it's prefixed with a "p" then it's a pending entry.
 			} else {
@@ -618,7 +621,7 @@
 				$page = array();
 
 				// Get the changes.
-				$changes = static::$DB->fetch("SELECT * FROM bigtree_pending_changes WHERE `id` = ?",substr($id,1));
+				$changes = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `id` = ?",substr($id,1));
 				if (!$changes) {
 					return false;
 				}
@@ -643,7 +646,7 @@
 					$tags_changes = json_decode($changes["tags_changes"],true);
 					if (is_array($tags_changes)) {
 						foreach ($tags_changes as $tag) {
-							$tags[] = static::$DB->fetch("SELECT * FROM bigtree_tags WHERE id = ?",$tag);
+							$tags[] = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?",$tag);
 						}
 					}
 					$page["tags"] = $tags;
@@ -686,7 +689,7 @@
 			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
 			} else {
-				$path = static::$DB->fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$id);
+				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$id);
 				return WWW_ROOT."_preview/$path/";
 			}
 		}
@@ -714,9 +717,9 @@
 					$tag = $tag["tag"];
 				}
 
-				$tag_id = static::$DB->fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?",$tag);
+				$tag_id = SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?",$tag);
 				if ($tag_id) {
-					$related_pages = static::$DB->fetchAllSingle("SELECT entry FROM bigtree_tags_rel WHERE tag = ? AND `table` = 'bigtree_pages'",$tag_id);
+					$related_pages = SQL::fetchAllSingle("SELECT entry FROM bigtree_tags_rel WHERE tag = ? AND `table` = 'bigtree_pages'",$tag_id);
 
 					foreach ($related_pages as $page_id) {
 						// If we already have this result, add relevance
@@ -837,7 +840,7 @@
 		*/
 		
 		static function getTemplate($id) {
-			$template = new BigTree\Template;
+			$template = new BigTree\Template($id);
 			$template->Resources = $template->Fields;
 			return $template->Array;
 		}
@@ -886,26 +889,26 @@
 			foreach ($parts as $part) {
 				$path .= "/".$part;
 				$path = ltrim($path,"/");
-				$paths[] = "path = '".static::$DB->escape($path)."'";
+				$paths[] = "path = '".SQL::escape($path)."'";
 			}
 
 			// Get either the trunk or the top level nav id.
-			$page = static::$DB->fetch("SELECT id, trunk, path
-										FROM bigtree_pages
-										WHERE (".implode(" OR ",$paths).") AND
-											  (trunk = 'on' OR parent = '0')
-										ORDER BY LENGTH(path) DESC
-										LIMIT 1");
+			$page = SQL::fetch("SELECT id, trunk, path
+								FROM bigtree_pages
+								WHERE (".implode(" OR ",$paths).") AND
+									  (trunk = 'on' OR parent = '0')
+								ORDER BY LENGTH(path) DESC
+								LIMIT 1");
 
 			// If we don't want the trunk, look higher
 			if ($page["trunk"] && $page["parent"] && !$trunk_as_toplevel) {
 				// Get the next item in the path.
-				$id = static::$DB->fetchSingle("SELECT id 
-												FROM bigtree_pages 
-												WHERE (".implode(" OR ",$paths).") AND 
-													  LENGTH(path) < ".strlen($page["path"])." 
-												ORDER BY LENGTH(path) ASC
-												LIMIT 1");
+				$id = SQL::fetchSingle("SELECT id 
+										FROM bigtree_pages 
+										WHERE (".implode(" OR ",$paths).") AND 
+											  LENGTH(path) < ".strlen($page["path"])." 
+										ORDER BY LENGTH(path) ASC
+										LIMIT 1");
 				if ($id) {
 					return $id;
 				}
@@ -923,7 +926,7 @@
 		*/
 		
 		static function handle404($url) {
-			return BigTree\Redirect::handle404();
+			return BigTree\Redirect::handle404($url);
 		}
 		
 		/*

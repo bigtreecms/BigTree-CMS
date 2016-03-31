@@ -7,6 +7,8 @@
 	
 	class BigTreeGoogleAnalytics {
 
+		public $API;
+
 		/*
 			Constructor:
 				Sets up the Google Analytics API connections.
@@ -31,7 +33,7 @@
 		*/
 
 		function getAccounts($params = array()) {
-			return $this->API->getAccount($params);
+			return $this->API->getAccounts($params);
 		}
 
 		/*

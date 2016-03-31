@@ -4,6 +4,8 @@
 			The main class used by the admin for manipulating and retrieving data.
 	*/
 
+	use BigTree\SQL;
+
 	class BigTreeAdminBase {
 
 		// Static variables
@@ -16,15 +18,6 @@
 			"position",
 			"archived",
 			"approved"
-		);
-		public static $ReservedTLRoutes = array(
-			"ajax",
-			"css",
-			"feeds",
-			"js",
-			"sitemap.xml",
-			"_preview",
-			"_preview-pending"
 		);
 		public static $ViewActions = array(
 			"approve" => array(
@@ -53,6 +46,12 @@
 				"class" => "icon_delete"
 			)
 		);
+
+		public $ID;
+		public $Level;
+		public $Name;
+		public $Permissions;
+		public $User;
 		
 		/*
 			Constructor:
@@ -60,8 +59,6 @@
 		*/
 
 		function __construct() {
-			global $bigtree;
-
 			// Handle authentication
 			$this->Auth = new BigTree\Auth;
 
@@ -86,12 +83,8 @@
 				$this->HidePages = false;
 			}
 
-			// Update the reserved top level routes with the admin's route
-			list($admin_route) = explode("/",str_replace(WWW_ROOT,"",rtrim(ADMIN_ROOT,"/")));
-			static::$ReservedTLRoutes[] = $admin_route;
-
 			// Check for Per Page value
-			$per_page = intval(BigTreeCMS::getSetting("bigtree-internal-per-page"));
+			$per_page = intval(BigTree\Setting::value("bigtree-internal-per-page"));
 			if ($per_page) {
 				static::$PerPage = $per_page;
 			}
@@ -181,7 +174,7 @@
 		*/
 
 		static function backupDatabase($file) {
-			return static::$DB->backup($file);
+			return SQL::backup($file);
 		}
 
 		/*
@@ -248,6 +241,8 @@
 
 			// Remove bans
 			$user->removeBans();
+
+			return true;
 		}
 
 		/*
@@ -658,7 +653,7 @@
 			if ($this->Level < 2) {
 				$data["trunk"] = "";
 			} else {
-				$data["trunk"] = static::$DB->escape($data["trunk"]);
+				$data["trunk"] = SQL::escape($data["trunk"]);
 			}
 
 			$change = BigTree\PendingChange::createPage($data["trunk"],$data["parent"],$data["in_nav"],$data["nav_title"],$data["title"],$data["route"],$data["meta_description"],$data["seo_invisible"],$data["template"],$data["external"],$data["new_window"],$data["resources"],$data["publish_at"],$data["expire_at"],$data["max_age"],$data["_tags"]);
@@ -1036,6 +1031,7 @@
 			}
 
 			$this->stop("You do not have permission to delete this page.");
+			return false;
 		}
 
 		/*
@@ -1095,6 +1091,7 @@
 
 			// Delete the revision
 			$page->deleteRevision($id);
+			return true;
 		}
 
 		/*
@@ -1106,7 +1103,7 @@
 		*/
 
 		function deletePendingChange($id) {
-			static::$DB->delete("bigtree_pending_changes",$id);
+			SQL::delete("bigtree_pending_changes",$id);
 			$this->track("bigtree_pending_changes",$id,"deleted");
 		}
 
@@ -1192,7 +1189,8 @@
 		*/
 
 		function disconnectGoogleAnalytics() {
-			BigTree\GoogleAnalytics\API::disconnect();
+			$api = new BigTree\GoogleAnalytics\API;
+			$api->disconnect();
 			static::growl("Analytics","Disconnected");
 		}
 
@@ -1223,7 +1221,7 @@
 			}
 
 			$field = new BigTree\Field($field);
-			$field->drawArrayLevel();
+			$field->drawArrayLevel($keys,$level);
 		}
 
 		/*
@@ -1274,6 +1272,7 @@
 
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			BigTree::redirect($login_root."forgot-success/");
+			return true;
 		}
 
 		/*
@@ -1289,11 +1288,11 @@
 
 		static function get404Total($type) {
 			if ($type == "404") {
-				return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
+				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
 			} elseif ($type == "301") {
-				return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''");
+				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''");
 			} elseif ($type == "ignored") {
-				return static::$DB->fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on'");
+				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on'");
 			}
 			return false;
 		}
@@ -1350,6 +1349,8 @@
 				$admin->Level = $saved["level"];
 				$admin->Permissions = $saved["permissions"];
 			}
+
+			return $permission;
 		}
 
 		/*
@@ -1390,7 +1391,7 @@
 		/*
 			Function: getBasicTemplates
 				Returns a list of non-routed templates ordered by position that the logged in user has access to.
-			
+
 			Parameters:
 				sort - Sort order, defaults to positioned
 
@@ -1576,7 +1577,7 @@
 			Returns:
 				A package/extension.
 		*/
-		
+
 		static function getExtension($id) {
 			$extension = new BigTree\Extension($id);
 			return $extension->Array;
@@ -1592,7 +1593,7 @@
 			Returns:
 				An array of extensions.
 		*/
-		
+
 		static function getExtensions($sort = "last_updated DESC") {
 			return BigTree\Extension::allByType("extension",$sort,true);
 		}
@@ -1654,7 +1655,7 @@
 				The navigation path (normally found in the "path" column in bigtree_pages).
 		*/
 
-		static function getFullNavigationPath($id, $path = array()) {
+		static function getFullNavigationPath($id) {
 			$page = new BigTree\Page($id,false);
 			return $page->regeneratePath();
 		}
@@ -1809,7 +1810,7 @@
 		/*
 			Function: getModuleActionForInterface
 				Returns the related module action for a given module interface. Prioritizes edit action over add.
-		
+
 			Parameters:
 				interface - The id of an interface or interface array.
 
@@ -2064,7 +2065,7 @@
 		static function getModuleGroups($sort = "position DESC, id ASC") {
 			$raw_groups = BigTree\ModuleGroup::all($sort,true);
 			$groups = array();
-			
+
 			foreach ($raw_groups as $group) {
 				$groups[$group["id"]] = $group;
 			}
@@ -2084,9 +2085,9 @@
 		*/
 
 		static function getModuleNavigation($module) {
-			$module = new BigTree\Module;
+			$module = new BigTree\Module($module);
 			$nav = $module->Navigation;
-			
+
 			foreach ($nav as &$item) {
 				$item = $item->Array;
 			}
@@ -2222,7 +2223,7 @@
 				An array of page entries.
 		*/
 
-		static function getNaturalNavigationByParent($parent,$levels = 1) {
+		static function getNaturalNavigationByParent($parent) {
 			$page = new BigTree\Page($parent,false);
 			return $page->getVisibleChildren(true);
 		}
@@ -2273,7 +2274,7 @@
 		*/
 
 		function getPageAccessLevel($page) {
-			$page = new Page($page);
+			$page = new BigTree\Page($page);
 			return $page->UserAccessLevel;
 		}
 
@@ -2340,21 +2341,21 @@
 		*/
 
 		static function getPageChildren($page,$sort = "nav_title ASC") {
-			$page = new BigTree\Page($page,false);
-			return $page->getChildren(true);
+			$page = new BigTree\Page($page, false);
+			return $page->getChildren(true, $sort);
 		}
 
 		/*
 			Function: getPageLineage
 				Returns all the ids of pages above this page not including the homepage.
-			
+
 			Parameters:
 				page - Page ID
-			
+
 			Returns:
 				Array of IDs
 		*/
-		
+
 		function getPageLineage($page) {
 			$page = new BigTree\Page($page,false);
 			return $page->Lineage;
@@ -2376,51 +2377,51 @@
 			Function: getPageIDForPath
 				Provides the page ID for a given path array.
 				This is equivalent to BigTreeCMS::getNavId.
-			
+
 			Parameters:
 				path - An array of path elements from a URL
 				previewing - Whether we are previewing or not.
-			
+
 			Returns:
 				An array containing the page ID and any additional commands.
 		*/
-		
+
 		static function getPageIDForPath($path,$previewing = false) {
 			$commands = array();
-			
+
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
 			} else {
 				$publish_at = "";
 			}
-			
+
 			// See if we have a straight up perfect match to the path.
-			$page = static::$DB->fetch("SELECT bigtree_pages.id, bigtree_templates.routed 
-										FROM bigtree_pages LEFT JOIN bigtree_templates 
-										ON bigtree_pages.template = bigtree_templates.id 
-										WHERE path = ? AND archived = '' $publish_at", implode("/",$path));
+			$page = SQL::fetch("SELECT bigtree_pages.id, bigtree_templates.routed 
+								FROM bigtree_pages LEFT JOIN bigtree_templates 
+								ON bigtree_pages.template = bigtree_templates.id 
+								WHERE path = ? AND archived = '' $publish_at", implode("/",$path));
 			if ($page) {
 				return array($page["id"],$commands,$page["routed"]);
 			}
-			
+
 			// Guess we don't, let's chop off commands until we find a page.
 			$x = 0;
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path)-$x];
 				$path_string = implode("/",array_slice($path,0,-1 * $x));
-				
+
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$page = static::$DB->fetch("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates 
-											ON bigtree_pages.template = bigtree_templates.id 
-											WHERE bigtree_pages.path = ? AND 
-												  bigtree_pages.archived = '' AND 
-												  bigtree_templates.routed = 'on' $publish_at", $path_string);
+				$page = SQL::fetch("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates 
+									ON bigtree_pages.template = bigtree_templates.id 
+									WHERE bigtree_pages.path = ? AND 
+										  bigtree_pages.archived = '' AND 
+										  bigtree_templates.routed = 'on' $publish_at", $path_string);
 				if ($page) {
 					return array($page["id"],array_reverse($commands),"on");
 				}
 			}
-			
+
 			return array(false,false,false);
 		}
 
@@ -2499,6 +2500,7 @@
 
 		static function getPageSEORating($page,$content) {
 			$page = new BigTree\Page($page);
+			$page->Resources = $content;
 			return $page->SEORating;
 		}
 
@@ -2699,7 +2701,7 @@
 				An array of arrays containing the name and id of folders above.
 		*/
 
-		static function getResourceFolderBreadcrumb($folder,$crumb = array()) {
+		static function getResourceFolderBreadcrumb($folder) {
 			$folder = new BigTree\ResourceFolder($folder);
 			return $folder->Breadcrumb;
 		}
@@ -2788,7 +2790,7 @@
 
 		function getSettings($sort = "name ASC") {
 			$settings = BigTree\Setting::all($sort,true);
-			
+
 			if ($this->Level > 1) {
 				return $settings;
 			}
@@ -2891,7 +2893,7 @@
 
 		static function getUserByEmail($email) {
 			$user = BigTree\User::getByEmail($email);
-			
+
 			if ($user) {
 				return $user->Array;
 			}
@@ -2974,7 +2976,7 @@
 		function initSecurity() {
 			global $bigtree;
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-			$bigtree["security-policy"] = $policy = BigTreeCMS::getSetting("bigtree-internal-security-policy");
+			$bigtree["security-policy"] = $policy = BigTree\Setting::value("bigtree-internal-security-policy");
 
 			// Check banned IPs list for the user's IP
 			if (!empty($policy["banned_ips"])) {
@@ -3325,10 +3327,8 @@
 		*/
 
 		static function search404s($type,$query = "",$page = 1) {
-			$items = array();
-
 			if ($query) {
-				$query = static::$DB->escape($query);
+				$query = SQL::escape($query);
 				if ($type == "301") {
 					$where = "ignored = '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%') AND redirect_url != ''";
 				} elseif ($type == "ignored") {
@@ -3347,19 +3347,20 @@
 			}
 
 			// Get the page count
-			$result_count = static::$DB->fetchSingle("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where");
+			$result_count = SQL::fetchSingle("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where");
 			$pages = ceil($result_count / 20);
+
 			// Return 1 page even if there are 0
 			$pages = $pages ? $pages : 1;
 
 			// Get the results
-			$results = static::$DB->fetchAll("SELECT * FROM bigtree_404s WHERE $where 
-											  ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
+			$results = SQL::fetchAll("SELECT * FROM bigtree_404s WHERE $where 
+									  ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			foreach ($results as &$result) {
-				$result["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($result["redirect_url"]);
+				$result["redirect_url"] = BigTree\Link::decode($result["redirect_url"]);
 			}
 
-			return $results;
+			return array($pages,$results);
 		}
 
 		/*
@@ -3378,7 +3379,7 @@
 		*/
 
 		static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
-			return BigTree\AuditTrail::seach($user,$table,$entry,$start,$end);
+			return BigTree\AuditTrail::search($user,$table,$entry,$start,$end);
 		}
 
 		/*
@@ -3442,7 +3443,7 @@
 		function set404Redirect($id,$url) {
 			$this->requireLevel(1);
 
-			$redirect = new Redirect($id);
+			$redirect = new BigTree\Redirect($id);
 			$redirect->RedirectURL = $url;
 			$redirect->save();
 		}
@@ -3577,17 +3578,7 @@
 		*/
 
 		function stop($message = "",$file = "") {
-			global $admin,$bigtree,$cms,$db;
-
-			if ($file) {
-				include $file;
-			} else {
-				echo $message;
-			}
-
-			$bigtree["content"] = ob_get_clean();
-			include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
-			die();
+			$this->Auth->stop($message,$file);
 		}
 
 		/*
@@ -3611,8 +3602,8 @@
 				// It's an existing page
 				$pending = false;
 				$existing_page = BigTreeCMS::getPage($page);
-				$existing_pending_change = static::$DB->fetchSingle("SELECT id FROM bigtree_pending_changes 
-																	 WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
+				$existing_pending_change = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes 
+															 WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
 			}
 
 			// Save tags separately
@@ -3653,7 +3644,7 @@
 				}
 
 				// Update existing draft and track
-				static::$DB->update("bigtree_pending_changes",$existing_pending_change,array(
+				SQL::update("bigtree_pending_changes",$existing_pending_change,array(
 					"changes" => $diff,
 					"tags_changes" => $tags,
 					"user" => $this->ID
@@ -3674,7 +3665,7 @@
 				// Create draft and track
 				$this->track("bigtree_pages",$page,"saved-draft");
 
-				return static::$DB->insert("bigtree_pending_changes",array(
+				return SQL::insert("bigtree_pending_changes",array(
 					"user" => $this->ID,
 					"table" => "bigtree_pages",
 					"item_id" => $page,
@@ -3823,7 +3814,8 @@
 		*/
 
 		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
-			return BigTree\Callout::update($id,$name,$description,$level,$resources,$display_field,$display_default);
+			$callout = new BigTree\Callout($id);
+			$callout->update($name,$description,$level,$resources,$display_field,$display_default);
 		}
 
 		/*
@@ -4070,7 +4062,7 @@
 		*/
 
 		function updateModuleViewFields($id,$fields) {
-			$view = new ModuleView($id);
+			$view = new BigTree\ModuleView($id);
 			$view->Fields = $fields;
 
 			// Automatically saves
@@ -4095,7 +4087,7 @@
 
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
-					$kkey = $val;
+					$$key = $val;
 				}
 			}
 
@@ -4103,7 +4095,7 @@
 
 			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
 			if ($page->Template) {
-				$template_level = static::$DB->fetchSingle("SELECT level FROM bigtree_templates WHERE id = ?", $page->Template);
+				$template_level = SQL::fetchSingle("SELECT level FROM bigtree_templates WHERE id = ?", $page->Template);
 				if ($template_level > $this->Level) {
 					$template = $page->Template;
 				}
@@ -4298,8 +4290,6 @@
 		*/
 
 		function updateUser($id,$email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
-			global $bigtree;
-
 			// Allow for pre-4.3 syntax
 			if (is_array($email)) {
 				$data = $email;
@@ -4311,7 +4301,7 @@
 			}
 
 			$user = new BigTree\User($id);
-			return $user->update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+			return $user->update($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
 		}
 
 		/*

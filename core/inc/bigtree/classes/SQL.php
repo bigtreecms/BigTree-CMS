@@ -8,7 +8,6 @@
 	namespace BigTree;
 
 	use BigTree;
-	use BigTreeCMS;
 	use mysqli;
 
 	class SQL {
@@ -24,7 +23,7 @@
 		function __construct($chain_query = false) {
 			// Chained instances should use the primary connection
 			if ($chain_query) {
-				static::ActiveQuery = $chain_query;
+				$this->ActiveQuery = $chain_query;
 			}
 		}
 
@@ -45,15 +44,15 @@
 
 		function __callStatic($method, $arguments) {
 			if ($method == "fetch") {
-				call_user_func_array(array(static, "_static_fetch"), $arguments);
+				call_user_func_array("static::_static_fetch", $arguments);
 			} elseif ($method == "fetchAll") {
-				call_user_func_array(array(static, "_static_fetchAll"), $arguments);
+				call_user_func_array("static::_static_fetchAll", $arguments);
 			} elseif ($method == "fetchAllSingle") {
-				call_user_func_array(array(static, "_static_fetchAllSingle"), $arguments);
+				call_user_func_array("static::_static_fetchAllSingle", $arguments);
 			} elseif ($method == "fetchSingle") {
-				call_user_func_array(array(static, "_static_fetchSingle"), $arguments);
+				call_user_func_array("static::_static_fetchSingle", $arguments);
 			} elseif ($method == "rows") {
-				call_user_func_array(array(static, "_static_rows"), $arguments);
+				call_user_func_array("static::_static_rows", $arguments);
 			}
 		}
 
@@ -78,7 +77,7 @@
 			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
 
 			$tables = static::fetchAllSingle("SHOW TABLES");
-			foreach ($tables as $table) {				
+			foreach ($tables as $table) {
 				// Write the drop / create statements
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
 				$definition = static::fetchSingle("SHOW CREATE TABLE `$table`");
@@ -293,7 +292,7 @@
 			!empty($bigtree["config"][$type]["port"]) || $bigtree["config"][$type]["port"] = 3306;
 			!empty($bigtree["config"][$type]["socket"]) || $bigtree["config"][$type]["socket"] = null;
 
-			static::$property = new mysqli(
+			static::${$property} = new mysqli(
 				$bigtree["config"][$type]["host"],
 				$bigtree["config"][$type]["user"],
 				$bigtree["config"][$type]["password"],
@@ -303,14 +302,14 @@
 			);
 
 			// Make sure everything is run in UTF8, turn off strict mode if set
-			static::$property->query("SET NAMES 'utf8'");
-			static::$property->query("SET SESSION sql_mode = ''");
+			static::${$property}->query("SET NAMES 'utf8'");
+			static::${$property}->query("SET SESSION sql_mode = ''");
 
 			// Remove BigTree connection parameters once it is setup.
 			unset($bigtree["config"][$type]["user"]);
 			unset($bigtree["config"][$type]["password"]);
 
-			return static::$property;
+			return static::${$property};
 		}
 
 		/*
@@ -344,7 +343,7 @@
 			array_unshift($values,"DELETE FROM `$table` WHERE ".implode(" AND ",$where));
 
 			// Call BigTree\SQL::query
-			$response = call_user_func_array(array(static, "query"),$values);
+			$response = call_user_func_array("static::query", $values);
 			return $response->ActiveQuery ? true : false;
 		}
 
@@ -366,13 +365,14 @@
 				"foreign_keys" => array(),
 				"primary_key" => array()
 			);
+			$options = array();
 			
-			$result = static::fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`");
-			if (!$result) {
+			$show_statement = static::fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`");
+			if (!$show_statement) {
 				return false;
 			}
 
-			$lines = explode("\n",$result["Create Table"]);
+			$lines = explode("\n",$show_statement["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines,1,-1);
 			foreach ($main_lines as $line) {
@@ -710,7 +710,7 @@
 			array_unshift($values,"SELECT 1 FROM `$table` WHERE ".implode(" AND ",$where));
 
 			// Execute query, return a single result
-			return call_user_func_array(array(static, "fetchSingle"),$values) ? true : false;
+			return call_user_func_array("static::fetchSingle", $values) ? true : false;
 		}
 
 		/*
@@ -745,7 +745,7 @@
 
 		static function _static_fetch() {
 			// Allow this to be called without calling query first
-			$query = call_user_func_array(array(static, "query"), func_get_args());
+			$query = call_user_func_array("static::query", func_get_args());
 			return $query->fetch();
 		}
 
@@ -784,7 +784,7 @@
 		}
 
 		static function _static_fetchAll() {
-			$query = call_user_func_array(array(static, "query"),func_get_args());
+			$query = call_user_func_array("static::query", func_get_args());
 			return $query->fetchAll();
 		}
 
@@ -825,7 +825,7 @@
 		}
 
 		static function __fetchAllSingle() {
-			$query = call_user_func_array(array(static, "query"),func_get_args());
+			$query = call_user_func_array("static::query", func_get_args());
 			return $query->fetchAllSingle();
 		}
 
@@ -853,17 +853,17 @@
 			}
 
 			// Chained call
-			if (!is_object(static::ActiveQuery)) {
+			if (!is_object($this->ActiveQuery)) {
 				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
 				return false;
 			} else {
-				$result = static::ActiveQuery->fetch_assoc();
+				$result = $this->ActiveQuery->fetch_assoc();
 				return is_array($result) ? current($result) : false;
 			}
 		}
 
 		static function _static_fetchSingle() {
-			$query = call_user_func_array(array(static, "query"),func_get_args());
+			$query = call_user_func_array("static::query", func_get_args());
 			return $query->fetchSingle();
 		}
 
@@ -921,6 +921,38 @@
 		}
 
 		/*
+			Function: nextColumnDefinition
+				Return the next SQL name definition from a string.
+
+			Parameters:
+				string - A string with the name definition being terminated by a single `
+
+			Returns:
+				A string.
+		*/
+
+		static function nextColumnDefinition($string) {
+			$key_name = "";
+			$i = 0;
+			$found_key = false;
+			// Apparently we can have a backtick ` in a column name... ugh.
+			while (!$found_key && $i < strlen($string)) {
+				$char = substr($string,$i,1);
+				$second_char = substr($string,$i + 1,1);
+				if ($char != "`" || $second_char == "`") {
+					$key_name .= $char;
+					if ($char == "`") { // Skip the next one, this was just an escape character.
+						$i++;
+					}
+				} else {
+					$found_key = true;
+				}
+				$i++;
+			}
+			return $key_name;
+		}
+
+		/*
 			Function: query
 				Queries the MySQL server(s).
 				If you pass additional parameters "?" characters in your query statement
@@ -962,7 +994,7 @@
 				// Check argument and ? count to trigger warnings
 				$wildcard_count = substr_count($query,"?");
 				if ($wildcard_count != (count($args) - 1)) {
-					throw new Exception("SQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
+					throw new \Exception("SQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
 				}
 
 				// Do the replacements and escapes
@@ -1130,7 +1162,7 @@
 			array_unshift($values,"UPDATE `$table` SET ".implode(", ",$set)." WHERE ".implode(" AND ",$where));
 
 			// Call BigTree\SQL::query
-			$response = call_user_func_array(array(static, "query"),$values);
+			$response = call_user_func_array("static::query", $values);
 			return $response->ActiveQuery ? true : false;
 		}
 	}

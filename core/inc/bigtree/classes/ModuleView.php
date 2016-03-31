@@ -94,7 +94,7 @@
 				"fields" => $fields,
 				"options" => $settings,
 				"actions" => $actions,
-				"preview_url" => $preview_url ? $this->makeIPL($preview_url) : "",
+				"preview_url" => $preview_url ? Link::encode($preview_url) : "",
 				"related_form" => $related_form ? intval($related_form) : null
 			));
 
@@ -167,7 +167,7 @@
 				Updates the view's columns to designate whether they are numeric or not based on parsers, column type, and related forms.
 		*/
 
-		function refreshNumericColumns($id) {
+		function refreshNumericColumns() {
 			if (array_filter((array) $this->Fields)) {
 				$numeric_column_types = array(
 					"int",
@@ -218,8 +218,8 @@
 				"fields" => array_filter((array) $this->Fields),
 				"options" => (array) $this->Settings,
 				"actions" => array_filter((array) $this->Actions),
-				"preview_url" => $preview_url ? Link::encode($preview_url) : "",
-				"related_form" => $related_form ? intval($related_form) : null
+				"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
+				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
 			);
 
 			parent::save();
@@ -256,7 +256,7 @@
 			$this->refreshNumericColumns();
 
 			// Update related action titles
-			$action = BigTree\ModuleAction::getByInterface($id);
+			$action = BigTree\ModuleAction::getByInterface($this->ID);
 			$action->Name = "View ".BigTree::safeEncode($title);
 			$action->save();
 		}

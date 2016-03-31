@@ -8,6 +8,8 @@
 	namespace BigTree;
 
 	use BigTree;
+	use BigTreeEmailService;
+	use PasswordHash;
 
 	class User extends BaseObject {
 
@@ -278,6 +280,7 @@
 			}
 
 			$this->save();
+			return true;
 		}
 
 		/*
@@ -312,6 +315,7 @@
 			}
 
 			SQL::update("bigtree_users",$admin->ID,$update_values);
+			return true;
 		}
 
 		/*

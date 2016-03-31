@@ -57,7 +57,7 @@
 				true if successful, false if an invalid ID was passed or the ID is already in use
 		*/
 
-		function create($id,$name,$use_cases,$self_draw) {
+		static function create($id,$name,$use_cases,$self_draw) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
@@ -245,7 +245,7 @@
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function update($id,$name,$use_cases,$self_draw) {
+		function update($name,$use_cases,$self_draw) {
 			$this->Name = $name;
 			$this->UseCases = $use_cases;
 			$this->SelfDraw = $self_draw;

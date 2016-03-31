@@ -183,7 +183,7 @@
 				A Module object.
 		*/
 
-		function create($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
+		static function create($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
 			// Find an available module route.
 			$route = $route ? $route : Link::urlify($name);
 			if (!ctype_alnum(str_replace("-","",$route)) || strlen($route) > 127) {
@@ -292,7 +292,7 @@
 
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				trigger_error("Property UserCanAccess not available outside logged-in user context.");
+				trigger_error("Method getCachedAccessLevel not available outside logged-in user context.", E_USER_WARNING);
 				return "n";
 			}
 

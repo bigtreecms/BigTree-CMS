@@ -66,7 +66,7 @@
 				Template object if successful, false if there's an id collision or a bad ID is passed
 		*/
 
-		function create($id,$name,$routed,$level,$module,$fields) {
+		static function create($id,$name,$routed,$level,$module,$fields) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
@@ -97,9 +97,9 @@
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
-					foreach ($field as $key => $value) {
-						if (!in_array($key,array("id","title","subtitle","type","options"))) {
-							$field_data["options"][$key] = $value;
+					foreach ($field as $sub_key => $value) {
+						if (!in_array($sub_key,array("id","title","subtitle","type","options"))) {
+							$field_data["options"][$sub_key] = $value;
 						}
 					}
 
@@ -146,7 +146,7 @@
 				Deletes the template and its related files.
 		*/
 
-		function delete($id) {
+		function delete() {
 			// Delete related files
 			if ($this->Routed) {
 				BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$this->ID."/");

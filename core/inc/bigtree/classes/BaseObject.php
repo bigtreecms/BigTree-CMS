@@ -55,6 +55,8 @@
 					return $record;
 				}
 			}
+
+			throw new \Exception("Invalid method on ".get_called_class().": $method");
 		}
 		function __call($method,$arguments) { return static::__callStatic($method,$arguments); }
 
@@ -84,7 +86,8 @@
 				return $this->$property;
 			}
 
-			trigger_error("Invalid property: ".$property);
+			trigger_error("Invalid property on ".get_called_class().": $property", E_USER_WARNING);
+			return null;
 		}
 
 		// Courtesy of StackOverflow: http://stackoverflow.com/questions/1993721/how-to-convert-camelcase-to-camel-case
@@ -144,6 +147,8 @@
 
 			SQL::delete(static::$Table,$this->ID);
 			AuditTrail::track(static::$Table,$this->ID,"deleted");
+
+			return true;
 		}
 
 		/*
@@ -176,6 +181,8 @@
 
 			// Track
 			AuditTrail::track(static::$Table,$this->ID,"updated");
+
+			return true;
 		}
 
 	}

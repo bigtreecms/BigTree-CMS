@@ -1126,38 +1126,6 @@
 		}
 
 		/*
-			Function: nextSQLColumnDefinition
-				Return the next SQL name definition from a string.
-
-			Parameters:
-				string - A string with the name definition being terminated by a single `
-
-			Returns:
-				A string.
-		*/
-				
-		static function nextSQLColumnDefinition($string) {
-			$key_name = "";
-			$i = 0;
-			$found_key = false;
-			// Apparently we can have a backtick ` in a column name... ugh.
-			while (!$found_key && $i < strlen($string)) {
-				$char = substr($string,$i,1);
-				$second_char = substr($string,$i + 1,1);
-				if ($char != "`" || $second_char == "`") {
-					$key_name .= $char;
-					if ($char == "`") { // Skip the next one, this was just an escape character.
-						$i++;
-					}
-				} else {
-					$found_key = true;
-				}
-				$i++;
-			}
-			return $key_name;
-		}
-
-		/*
 			Function: parsedFilesArray
 				Parses the $_FILES array and returns an array more like a normal $_POST array.
 			

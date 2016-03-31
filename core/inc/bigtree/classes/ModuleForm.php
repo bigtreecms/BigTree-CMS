@@ -74,7 +74,7 @@
 				A ModuleForm object.
 		*/
 
-		function create($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		static function create($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			// Clean up fields for backwards compatibility
 			foreach ($fields as $key => $data) {
 				$field = array(
@@ -86,9 +86,9 @@
 				);
 
 				// Backwards compatibility with BigTree 4.1 package imports
-				foreach ($data as $key => $value) {
-					if (!in_array($key,array("title","subtitle","type","options"))) {
-						$field["options"][$key] = $value;
+				foreach ($data as $sub_key => $value) {
+					if (!in_array($sub_key,array("title","subtitle","type","options"))) {
+						$field["options"][$sub_key] = $value;
 					}
 				}
 
@@ -97,10 +97,10 @@
 
 			// Create the parent interface
 			$interface = parent::create("form",$module,$title,$table,array(
-				"fields" => $clean_fields,
+				"fields" => $fields,
 				"default_position" => $default_position,
 				"return_view" => $return_view,
-				"return_url" => $return_url ? $this->makeIPL($return_url) : "",
+				"return_url" => $return_url ? Link::encode($return_url) : "",
 				"tagging" => $tagging ? "on" : "",
 				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
 			));
@@ -158,7 +158,7 @@
 				tagging - Whether or not to enable tagging.
 		*/
 
-		function update($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		function update($title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
 			$this->DefaultPosition = $default_position;
 			$this->Fields = $fields;
 			$this->Hooks = $hooks;

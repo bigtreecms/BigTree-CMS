@@ -68,6 +68,12 @@
 		static function allAllowed($sort = "position DESC, id ASC", $return_arrays = false) {
 			global $admin;
 
+			// Make sure a user is logged in
+			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+				trigger_error("Method allAllowed not available outside logged-in user context.", E_USER_WARNING);
+				return false;
+			}
+
 			$callouts = SQL::fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $admin->Level);
 
 			// Return objects
@@ -96,6 +102,12 @@
 		static function allInGroups($groups,$auth = true,$return_arrays = false) {
 			global $admin;
 			$ids = $callouts = $names = array();
+
+			// Make sure a user is logged in
+			if ($auth && (get_class($admin) != "BigTreeAdmin" || !$admin->ID)) {
+				trigger_error("Method allInGroups not available outside logged-in user context when passing auth = true.", E_USER_WARNING);
+				return false;
+			}
 
 			foreach ($groups as $group_id) {
 				$group = new CalloutGroup($group_id);

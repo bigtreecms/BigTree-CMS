@@ -84,7 +84,7 @@
 				An array of interfaces.
 		*/
 
-		static function allByModuleAndType($module = false,$type = false,$order = "`title` ASC") {
+		static function allByModuleAndType($module = false,$type = false,$order = "`title` ASC",$return_arrays = false) {
 			$where = $parameters = array();
 
 			// Add module restriction
@@ -101,6 +101,9 @@
 
 			// Add the query
 			$where = count($where) ? " WHERE ".implode(" AND ",$where) : "";
+
+			// Push query onto parameters
+			array_unshift($parameters,"SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
 
 			// Get the arrays
 			$interfaces = call_user_func_array(array("SQL","fetchAll"),$parameters);

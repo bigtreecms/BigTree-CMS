@@ -6,6 +6,8 @@
 
 	namespace BigTree;
 
+	use BigTree;
+
 	class ResourceFolder extends BaseObject {
 
 		static $Table = "bigtree_resource_folders";
@@ -180,10 +182,11 @@
 		*/
 
 		function getUserAccessLevel($recursion = false) {
+			global $admin;
+
 			// Not much, but skip it since it's not needed on recursion
 			if ($recursion == false) {
-				global $admin;
-		
+
 				// Make sure a user is logged in
 				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
@@ -214,7 +217,7 @@
 				$parent_folder = ($this->ID == $id) ? $this->Parent : SQL::fetchSingle("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
 
 				// Return the parent's permissions
-				return $this->_getUserAccessLevel($parent_folder);
+				return $this->getUserAccessLevel($parent_folder);
 			}
 		}
 

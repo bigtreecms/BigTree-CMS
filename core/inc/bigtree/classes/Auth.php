@@ -274,4 +274,28 @@
 			return true;
 		}
 
+		/*
+			Function: stop
+				Stops processing of the Admin area and shows a message in the default layout.
+
+			Parameters:
+				message - Content to show (error, permission denied, etc)
+				file - A file to load (optional, replaces message but $message will be available in the file)
+				layout_directory - The base directory for the layout to load (defaults to "admin/layouts/")
+		*/
+
+		function stop($message = "",$file = "",$layout_directory = "admin/layouts/") {
+			global $admin,$bigtree,$cms,$db;
+
+			if ($file) {
+				include $file;
+			} else {
+				echo $message;
+			}
+
+			$bigtree["content"] = ob_get_clean();
+			include BigTree::path($layout_directory.$bigtree["layout"].".php");
+			die();
+		}
+
 	}

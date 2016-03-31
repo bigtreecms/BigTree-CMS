@@ -1,4 +1,3 @@
-
 <?php
 	/*
 		Class: BigTree\CalloutGroup
@@ -8,6 +7,11 @@
 	namespace BigTree;
 
 	use BigTree;
+
+	/**
+	 * Class CalloutGroup
+	 * @property $ID
+	 */
 
 	class CalloutGroup extends BaseObject {
 

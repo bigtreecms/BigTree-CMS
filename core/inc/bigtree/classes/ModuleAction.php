@@ -99,7 +99,7 @@
 				Deletes the module action and the related interface (if no other action is using it).
 		*/
 
-		function delete($id) {
+		function delete() {
 			// If this action is the only one using the interface, delete it as well
 			if ($this->Interface) {
 				$interface_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_actions WHERE interface = ?",$this->Interface);

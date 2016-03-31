@@ -84,7 +84,7 @@
 				A ModuleEmbedForm object.
 		*/
 
-		function create($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
+		static function create($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
 			// Clean up fields to ensure proper formatting
 			foreach ($fields as $key => $field) {
 				$field["options"] = is_array($field["options"]) ? $field["options"] : array_filter((array)json_decode($field["options"],true));

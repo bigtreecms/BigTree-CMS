@@ -37,7 +37,6 @@
 		*/
 
 		function __construct($setting_id,$setting_name,$cache_id,$cache = true) {
-			global $cms;
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
 			$this->SettingID = $setting_id;
@@ -111,11 +110,9 @@
 		*/
 
 		function call($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
-			global $cms;
-			
 			if ($this->Cache) {
 				$this->LastCacheKey = md5($endpoint.json_encode($params));
-				$record = $cms->cacheGet($this->CacheIdentifier,$this->LastCacheKey,900);
+				$record = Cache::get($this->CacheIdentifier,$this->LastCacheKey,900);
 				if ($record) {
 					// We re-decode it as an object since that's what we're expecting from OAuth normally.
 					return json_decode(json_encode($record));
@@ -125,7 +122,7 @@
 			$response = $this->callUncached($endpoint,$params,$method,$headers);
 			if ($response !== false) {
 				if ($this->Cache) {
-					$cms->cachePut($this->CacheIdentifier,$this->LastCacheKey,$response);
+					Cache::put($this->CacheIdentifier,$this->LastCacheKey,$response);
 				}
 			}
 			return $response;
@@ -263,7 +260,7 @@
 
 		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
-				trigger_warning("This API is not connected.",E_USER_ERROR);
+				trigger_error("This API is not connected.", E_USER_WARNING);
 			}
 
 			// Some APIs expect us to send a JSON string as the content body instead of POST... and they also want a Content-type header.

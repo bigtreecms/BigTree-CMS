@@ -62,7 +62,7 @@
 				An Extension object.
 		*/
 
-		function createFromManifest($manifest,$upgrade = false) {
+		static function createFromManifest($manifest,$upgrade = false) {
 			global $bigtree;
 
 			// Initialize a bunch of empty arrays
@@ -92,7 +92,7 @@
 			// Import module groups
 			foreach ($manifest["components"]["module_groups"] as &$group) {
 				if (array_filter((array)$group)) {
-					$bigtree["group_match"][$group["id"]] = $this->createModuleGroup($group["name"]);
+					$bigtree["group_match"][$group["id"]] = ModuleGroup::create($group["name"]);
 					// Update the group ID since we're going to save this manifest locally for uninstalling
 					$group["id"] = $bigtree["group_match"][$group["id"]];
 					SQL::update("bigtree_module_groups",$group["id"],array("extension" => $extension));
@@ -127,7 +127,7 @@
 			
 					// Create the embed forms
 					foreach ($module["embed_forms"] as $form) {
-						$this->createModuleEmbedForm($module_id,$form["title"],$form["table"],BigTree::arrayValue($form["fields"]),$form["hooks"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
+						ModuleEmbedForm::create($module_id,$form["title"],$form["table"],BigTree::arrayValue($form["fields"]),$form["hooks"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
 					}
 
 					// Create views
@@ -198,7 +198,7 @@
 			// Import Settings
 			foreach ($manifest["components"]["settings"] as $setting) {
 				if (array_filter((array)$setting)) {
-					$this->createSetting($setting);
+					Setting::create($setting["id"],$setting["name"],$setting["description"],$setting["type"],$setting["options"],$setting["extension"],$setting["system"],$setting["encrypted"],$setting["locked"]);
 					SQL::update("bigtree_settings",$setting["id"],array("extension" => $extension));
 				}
 			}
@@ -403,7 +403,7 @@
 					"view-types" => array()
 				);
 
-				$extension_ids = static::$DB->fetchAllSingle("SELECT id FROM bigtree_extensions");
+				$extension_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
 				foreach ($extension_ids as $extension_id) {
 					// Load up the manifest
 					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"),true);

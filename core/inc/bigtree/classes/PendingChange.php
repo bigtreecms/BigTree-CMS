@@ -216,7 +216,7 @@
 				The id of the pending change.
 		*/
 
-		function createPage($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags = array()) {
+		static function createPage($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags = array()) {
 			global $admin;
 
 			// Get the user creating the change
@@ -240,7 +240,7 @@
 				"new_window" => $new_window ? "on" : "",
 				"resources" => $fields,
 				"publish_at" => $publish_at ? date("Y-m-d H:i:s",strtotime($publish_at)) : null,
-				"expire_at" => $publish_at ? date("Y-m-d H:i:s",strtotime($publish_at)) : null,
+				"expire_at" => $expire_at ? date("Y-m-d H:i:s",strtotime($expire_at)) : null,
 				"max_age" => $max_age ? intval($max_age) : ""
 			);
 
@@ -332,7 +332,7 @@
 				tags_changes - Tags changes.
 		*/
 
-		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
+		function updatePendingChange($changes,$mtm_changes = array(),$tags_changes = array()) {
 			$this->Changes = $changes;
 			$this->ManyToManyChanges = $mtm_changes;
 			$this->TagsChanges = $tags_changes;

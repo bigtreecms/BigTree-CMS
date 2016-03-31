@@ -54,6 +54,36 @@
 		}
 
 		/*
+			Function: create
+				Creates a module report and the associated module action.
+
+			Parameters:
+				module - The module ID that this report relates to.
+				title - The title of the report.
+				table - The table for the report data.
+				type - The type of report (csv or view).
+				filters - The filters a user can use to create the report.
+				fields - The fields to show in the CSV export (if type = csv).
+				parser - An optional parser function to run on the CSV export data (if type = csv).
+				view - A module view ID to use (if type = view).
+
+			Returns:
+				The id of the report.
+		*/
+
+		static function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+			$interface = BigTree\ModuleInterface::create("report",$module,$title,$table,array(
+				"type" => $type,
+				"filters" => $filters,
+				"fields" => $fields,
+				"parser" => $parser,
+				"view" => $view ? $view : null
+			));
+
+			return $interface->ID;
+		}
+
+		/*
 			Function: save
 				Saves the object's properties back to the database and updates InterfaceSettings.
 		*/
@@ -85,7 +115,7 @@
 		*/
 
 		function update($title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$this->Fields = $fieldss;
+			$this->Fields = $fields;
 			$this->Filters = $filters;
 			$this->Parser = $parser;
 			$this->Table = $table;

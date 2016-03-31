@@ -6,6 +6,7 @@
 
 	namespace BigTree;
 
+	use BigTree;
 	use BigTreeStorage;
 
 	class Resource extends BaseObject {
@@ -51,7 +52,7 @@
 
 				$this->Crops = array_filter((array) @json_decode($resource["crops"],true));
 				$this->Date = $resource["date"];
-				$this->File = BigTree\Link::detokenize($resource["file"]);
+				$this->File = Link::detokenize($resource["file"]);
 				$this->Folder = $resource["folder"];
 				$this->Height = $resource["height"];
 				$this->IsImage = $resource["is_image"] ? true : false;
@@ -60,7 +61,7 @@
 				$this->Name = $resource["name"];
 				$this->Thumbs = array_filter((array) @json_decode($resource["thumbs"],true));
 				foreach ($this->Thumbs as &$thumb) {
-					$thumb = BigTree\Link::detokenize($thumb);
+					$thumb = Link::detokenize($thumb);
 				}
 				$this->Type = $resource["type"];
 				$this->Width = $resource["width"];
@@ -117,7 +118,7 @@
 
 		static function create($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
 			$id = SQL::insert("bigtree_resources",array(
-				"file" => BigTree\Link::tokenize($file),
+				"file" => Link::tokenize($file),
 				"md5" => $md5,
 				"name" => BigTree::safeEncode($name),
 				"type" => $type,
@@ -139,18 +140,18 @@
 				If no resource allocations remain, the file is deleted as well.
 		*/
 
-		static function delete() {
+		function delete() {
 			// Delete resource record
 			SQL::delete("bigtree_resources",$this->ID);
 			AuditTrail::track("bigtree_resources",$this->ID,"deleted");
 
 			// If this file isn't located in any other folders, delete it from the file system
-			if (!SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", $resource["file"])) {
+			if (!SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", Link::tokenize($this->File))) {
 				$storage = new BigTreeStorage;
-				$storage->delete($resource["file"]);
+				$storage->delete($this->File);
 
 				// Delete any thumbnails as well
-				foreach (array_filter((array)$resource["thumbs"]) as $thumb) {
+				foreach (array_filter((array)$this->Thumbs) as $thumb) {
 					$storage->delete($thumb);
 				}
 			}
@@ -183,15 +184,13 @@
 			// Populate a list of resource prefixes if we don't already have it cached
 			if (static::$Prefixes === false) {
 				static::$Prefixes = array();
-				$thumbnail_sizes = BigTree\Setting::value("bigtree-file-manager-thumbnail-sizes");
+				$thumbnail_sizes = Setting::value("bigtree-file-manager-thumbnail-sizes");
 				foreach ($thumbnail_sizes["value"] as $ts) {
 					static::$Prefixes[] = $ts["prefix"];
 				}
 			}
 
-			$last_prefix = false;
-			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", 
-												$file, BigTree\Link::tokenize($file));
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", $file, Link::tokenize($file));
 			
 			// If we didn't find the resource, check all the prefixes
 			if (!$resource) {
@@ -199,8 +198,7 @@
 					if (!$resource) {
 						$prefixed_file = str_replace("files/resources/$prefix","files/resources/",$file);
 						$resource = SQL::fetch("SELECT * FROM bigtree_resources
-															WHERE file = ? OR file = ?", $file, BigTree\Link::tokenize($prefixed_file));
-						$last_prefix = $prefix;
+												WHERE file = ? OR file = ?", $file, Link::tokenize($prefixed_file));
 					}
 				}
 				if (!$resource) {
@@ -261,12 +259,12 @@
 
 		static function search($query, $sort = "date DESC") {
 			$query = SQL::escape($query);
-			$folders = $resources = $permission_cache = array();
+			$permission_cache = array();
 
 			// Get matching folders
 			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
 			foreach ($folders as &$folder) {
-				$folder_object = new BigTree\ResourceFolder($folder);
+				$folder_object = new ResourceFolder($folder);
 				$folder["permission"] = $folder_object->UserAccessLevel;
 
 				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
@@ -280,7 +278,7 @@
 				if ($permission_cache[$resource["folder"]]) {
 					$resource["permission"] = $permission_cache[$resource["folder"]];
 				} else {
-					$folder = new BigTree\ResourceFolder($resource["folder"]);
+					$folder = new ResourceFolder($resource["folder"]);
 					$resource["permission"] = $folder->UserAccessLevel;
 					$permission_cache[$resource["folder"]] = $resource["permission"];
 				}
@@ -295,19 +293,17 @@
 		*/
 
 		function save() {
-			global $bigtree;
-
 			// Convert links
 			foreach ($this->Crops as &$crop) {
-				$crop = BigTree\Link::tokenize($crop);
+				$crop = Link::tokenize($crop);
 			}
 			foreach ($this->Thumbs as &$thumb) {
-				$thumb = BigTree\Link::tokenize($thumb);
+				$thumb = Link::tokenize($thumb);
 			}
 
 			SQL::update("bigtree_resources",$this->ID,array(
 				"folder" => $this->Folder,
-				"file" => BigTree\Link::tokenize($this->File),
+				"file" => Link::tokenize($this->File),
 				"md5" => $this->MD5,
 				"date" => date("Y-m-d H:i:s",strtotime($this->Date)),
 				"name" => $this->Name,
