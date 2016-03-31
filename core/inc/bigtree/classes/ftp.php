@@ -1,11 +1,11 @@
 <?php
 	/*
-		Class: BigTreeFTP
+		Class: BigTree\FTP
 			An FTP class heavily based on PemFTP by Alexey Dotsenko.
 			http://www.phpclasses.org/browse/package/1743.html
 	*/
 
-	class BigTreeFTP {
+	class FTP {
 		var $LocalEcho,$Verbose,$OS_local,$OS_remote,$_lastaction,$_errors,$_type,$_umask,$_timeout,$_passive,$_host,$_fullhost,$_port,$_datahost,$_dataport,$_ftp_control_sock,$_ftp_data_sock,$_ftp_temp_sock,$_ftp_buff_size,$_login,$_password,$_connected,$_ready,$_code,$_message,$_can_restore,$_port_available,$_curtype,$_features,$_error_array,$AuthorizedTransferMode,$OS_FullName,$_eol_code,$AutoAsciiExt;
 
 		function __construct() {

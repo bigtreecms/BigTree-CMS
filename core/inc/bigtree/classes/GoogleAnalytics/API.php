@@ -152,7 +152,7 @@
 				return false;
 			}
 
-			$this->LastDataTotals = new stdClass;
+			$this->LastDataTotals = new \stdClass;
 			foreach ($response->totalsForAllResults as $column => $total) {
 				$column = str_replace("ga:","",$column);
 				$this->LastDataTotals->$column = $total;
@@ -166,7 +166,7 @@
 			}
 			// Return results
 			foreach ($response->rows as $row) {
-				$result = new stdClass;
+				$result = new \stdClass;
 				foreach ($column_names as $index => $name) {
 					$result->$name = $row[$index];
 				}
@@ -242,8 +242,7 @@
 				
 				// Sometimes Google has slightly different routes like "cheese" and "cheese/" so we need to add these page views together.
 				if (in_array($clean_path,$used_paths)) {
-					SQL::query("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) 
-											WHERE `path` = ?", $clean_path);
+					SQL::query("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) WHERE `path` = ?", $clean_path);
 				} else {
 					SQL::update("bigtree_pages", array("path" => $clean_path), array("ga_page_views" => $views));
 					$used_paths[] = $clean_path;
@@ -323,6 +322,13 @@
 				$bounce_rate = 0;
 			}
 			
-			return array("views" => $d->pageviews,"visits" => $d->visits,"bounces" => $d->bounces,"bounce_rate" => $bounce_rate,"average_time" => $time,"average_time_seconds" => $time_on_site);
+			return array(
+				"views" => $d->pageviews,
+				"visits" => $d->visits,
+				"bounces" => $d->bounces,
+				"bounce_rate" => $bounce_rate,
+				"average_time" => $time,
+				"average_time_seconds" => $time_on_site
+			);
 		}
 	}
