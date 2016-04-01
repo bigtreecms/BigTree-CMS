@@ -13,7 +13,7 @@
 		function __construct($post,&$api) {
 			$this->API = $api;
 			isset($post->isApproved) ? $this->Approved = $post->isApproved : false;
-			isset($post->author) ? $this->Author = new BigTreeDisqusUser($post->author,$api) : false;
+			isset($post->author) ? $this->Author = new User($post->author,$api) : false;
 			isset($post->message) ? $this->Content = $post->message : false;
 			isset($post->raw_message) ? $this->ContentPlainText = $post->raw_message : false;
 			isset($post->isDeleted) ? $this->Deleted = $post->isDeleted : false;

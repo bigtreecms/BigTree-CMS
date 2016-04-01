@@ -65,7 +65,7 @@
 				params - Additional parameters to send to threads/listPosts API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusPost objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
 
 		function getPosts($limit = 25,$order = "desc",$params = array()) {

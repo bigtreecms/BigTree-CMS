@@ -44,7 +44,7 @@
 				user - The ID of the person to return.
 
 			Returns:
-				A BigTreeFacebookPerson object.
+				A BigTree\Facebook\Person object.
 		*/
 
 		function getUser($user = "me") {

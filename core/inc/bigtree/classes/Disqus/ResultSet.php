@@ -33,7 +33,7 @@
 				Returns the next page in the result set.
 
 			Returns:
-				A BigTreeDisqusResultSet with the next page of results or false if there isn't another page.
+				A BigTree\Disqus\ResultSet with the next page of results or false if there isn't another page.
 		*/
 
 		function nextPage() {
@@ -50,7 +50,7 @@
 				Returns the previous page in the result set.
 
 			Returns:
-				A BigTreeDisqusResultSet with the next page of results or false if there isn't a previous page.
+				A BigTree\Disqus\ResultSet with the next page of results or false if there isn't a previous page.
 		*/
 
 		function previousPage() {

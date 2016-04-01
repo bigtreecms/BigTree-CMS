@@ -96,7 +96,7 @@
 				url - The URL the forum will be located at
 
 			Returns:
-				A BigTreeDisqusForum object.
+				A BigTree\Disqus\Forum object.
 				Returns false if the shortname is already taken.
 		*/
 
@@ -110,13 +110,13 @@
 
 		/*
 			Function: getCategory
-				Returns a BigTreeDisqusCategory object for the given category id.
+				Returns a BigTree\Disqus\Category object for the given category id.
 
 			Parameters:
 				id - The category id
 
 			Returns:
-				A BigTreeDisqusCategory object if successful.
+				A BigTree\Disqus\Category object if successful.
 		*/
 
 		function getCategory($id) {
@@ -130,13 +130,13 @@
 
 		/*
 			Function: getForum
-				Returns a BigTreeDisqusForum object for the given forum shortname.
+				Returns a BigTree\Disqus\Forum object for the given forum shortname.
 
 			Parameters:
 				shortname - The forum shortname
 
 			Returns:
-				A BigTreeDisqusForum object if successful.
+				A BigTree\Disqus\Forum object if successful.
 		*/
 
 		function getForum($shortname) {
@@ -150,13 +150,13 @@
 
 		/*
 			Function: getPost
-				Returns a BigTreeDisqusPost object for the given post ID.
+				Returns a BigTree\Disqus\Post object for the given post ID.
 
 			Parameters:
 				post - The post ID
 
 			Returns:
-				A BigTreeDisqusPost object if successful.
+				A BigTree\Disqus\Post object if successful.
 		*/
 
 		function getPost($id) {
@@ -170,14 +170,14 @@
 
 		/*
 			Function: getThread
-				Returns a BigTreeDisqusThread object for the given thread ID.
+				Returns a BigTree\Disqus\Thread object for the given thread ID.
 
 			Parameters:
 				thread - The thread ID, identifier, or link
 				forum - If looking up by link, the shortname for the forum is required.
 
 			Returns:
-				A BigTreeDisqusThread object if successful.
+				A BigTree\Disqus\Thread object if successful.
 		*/
 
 		function getThread($thread,$forum = false) {
@@ -202,14 +202,14 @@
 
 		/*
 			Function: getUser
-				Returns a BigTreeDisqusUser object for the given user.
+				Returns a BigTree\Disqus\User object for the given user.
 				If no user is passed in, the authenticated user's information is returned.
 
 			Parameters:
 				user - The ID of the user or the person's username (leave blank to use the authenticated user)
 
 			Returns:
-				A BigTreeDisqusUser object if successful.
+				A BigTree\Disqus\User object if successful.
 		*/
 
 		function getUser($user = false) {

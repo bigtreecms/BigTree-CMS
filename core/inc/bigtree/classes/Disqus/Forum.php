@@ -30,7 +30,7 @@
 				title - The title of this category.
 
 			Returns:
-				A BigTreeDisqusCategory object.
+				A BigTree\Disqus\Category object.
 		*/
 
 		function addCategory($title) {
@@ -134,7 +134,7 @@
 				params - Additional parameters to send to blacklists/list API call.
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusBlacklistEntry objects
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\BlacklistEntry objects
 		*/
 
 		function getBlacklist($limit = 25,$order = "asc",$params = array()) {
@@ -167,7 +167,7 @@
 				params - Additional parameters to send to forums/listCategories API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusCategory objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\Category objects.
 		*/
 
 		function getCategories($limit = 25,$order = "asc",$params = array()) {
@@ -195,7 +195,7 @@
 				Returns information about this forum's founder.
 
 			Returns:
-				A BigTreeDisqusUser object.
+				A BigTree\Disqus\User object.
 		*/
 
 		function getFounder() {
@@ -207,7 +207,7 @@
 				Returns an array of moderators for this forum.
 
 			Returns:
-				An array of BigTreeDisqusUser objects.
+				An array of BigTree\Disqus\User objects.
 		*/
 
 		function getModerators() {
@@ -236,7 +236,7 @@
 				params - Additional parameters to send to forums/listMostActiveUsers API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusUser objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
 
 		function getMostActiveUsers($limit = 25,$params = array()) {
@@ -266,7 +266,7 @@
 				params - Additional parameters to send to forums/listMostActiveUsers API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusUser objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
 
 		function getMostLikedUsers($limit = 25,$params = array()) {
@@ -299,7 +299,7 @@
 				params - Additional parameters to send to the forums/listPosts API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusPost objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
 
 		function getPosts($limit = 25,$order = "desc",$include = array("approved"),$since = false,$params = array()) {
@@ -336,7 +336,7 @@
 				params - Additional parameters to send to the forums/listThreads API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusThread objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\Thread objects.
 		*/
 
 		function getThreads($limit = 25,$order = "desc",$since = false,$params = array()) {
@@ -369,7 +369,7 @@
 				limit - Number of threads to return (max 10, default 10)
 
 			Returns:
-				An array of BigTreeDisqusPost objects.
+				An array of BigTree\Disqus\Post objects.
 		*/
 
 		function getTrendingThreads($limit = 10) {
@@ -397,7 +397,7 @@
 				params - Additional parameters to send to the forums/listUsers API call
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusUser objects.
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
 
 		function getUsers($limit = 25,$params = array()) {
@@ -430,7 +430,7 @@
 				params - Additional parameters to send to blacklists/list API call.
 
 			Returns:
-				A BigTreeDisqusResultSet of BigTreeDisqusWhitelistEntry objects
+				A BigTree\Disqus\ResultSet of BigTree\Disqus\WhitelistEntry objects
 		*/
 
 		function getWhitelist($limit = 25,$order = "asc",$params = array()) {
