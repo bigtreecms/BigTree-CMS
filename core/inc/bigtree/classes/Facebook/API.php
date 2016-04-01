@@ -10,12 +10,12 @@
 	
 	class API extends OAuth {
 		
-		var $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
-		var $EndpointURL = "https://graph.facebook.com/v2.4/";
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $Scope = "";
-		var $TokenURL = "https://graph.facebook.com/v2.4/oauth/access_token";
+		public $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
+		public $EndpointURL = "https://graph.facebook.com/v2.4/";
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $Scope = "";
+		public $TokenURL = "https://graph.facebook.com/v2.4/oauth/access_token";
 		
 		/*
 			Constructor:

@@ -11,12 +11,12 @@
 
 	class API extends OAuth {
 		
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/plus/v1/";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "custom";
-		var $Scope = "https://www.googleapis.com/auth/plus.login";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $EndpointURL = "https://www.googleapis.com/plus/v1/";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "custom";
+		public $Scope = "https://www.googleapis.com/auth/plus.login";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		/*
 			Constructor:
@@ -268,7 +268,5 @@
 				$results[] = new Person($person,$this);
 			}
 
-			return new GoogleResultSet($this,"searchPeople",array($query,$count,$params),$response,$results);
-		}
-		
+			return new GoogleResultSet($this,"searchPeople",array($query,$count,$params),$response,$results);public
 	}

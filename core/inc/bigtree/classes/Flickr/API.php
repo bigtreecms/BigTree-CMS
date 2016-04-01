@@ -11,11 +11,11 @@
 
 	class API extends OAuth {
 		
-		var $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
-		var $EndpointURL = "https://ycpi.api.flickr.com/services/rest";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "hash";
-		var $TokenURL = "https://www.flickr.com/services/oauth/authorize";
+		public $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
+		public $EndpointURL = "https://ycpi.api.flickr.com/services/rest";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "hash";
+		public $TokenURL = "https://www.flickr.com/services/oauth/authorize";
 		
 		/*
 			Constructor:

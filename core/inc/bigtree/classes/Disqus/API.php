@@ -11,12 +11,12 @@
 
 	class API extends OAuth {
 
-		var $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
-		var $EndpointURL = "https://disqus.com/api/3.0/";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "custom";
-		var $Scope = "read,write,admin";
-		var $TokenURL = "https://disqus.com/api/oauth/2.0/access_token/";
+		public $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
+		public $EndpointURL = "https://disqus.com/api/3.0/";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "custom";
+		public $Scope = "read,write,admin";
+		public $TokenURL = "https://disqus.com/api/oauth/2.0/access_token/";
 		
 		/*
 			Constructor:

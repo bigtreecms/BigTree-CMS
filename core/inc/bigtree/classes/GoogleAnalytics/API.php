@@ -13,15 +13,15 @@
 	
 	class API extends OAuth {
 		
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
-		var $ClientSecret = "lCP25m_7s7o5ua3Z2JY67mRe";
-		var $EndpointURL = "https://www.googleapis.com/analytics/v3/";
-		var $LastDataTotals = false;
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $Scope = "https://www.googleapis.com/auth/analytics.readonly";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
+		public $ClientSecret = "lCP25m_7s7o5ua3Z2JY67mRe";
+		public $EndpointURL = "https://www.googleapis.com/analytics/v3/";
+		public $LastDataTotals = false;
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $Scope = "https://www.googleapis.com/auth/analytics.readonly";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 
 		/*
 			Constructor:
