@@ -8,6 +8,7 @@
 
 	class Category {
 
+		/** @var \BigTree\Disqus\API */
 		protected $API;
 
 		function __construct($category,&$api) {

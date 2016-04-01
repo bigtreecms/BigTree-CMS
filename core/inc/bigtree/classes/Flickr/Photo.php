@@ -6,8 +6,11 @@
 
 	namespace BigTree\Flickr;
 
+	use stdClass;
+
 	class Photo {
 
+		/** @var \BigTree\Flickr\API */
 		protected $API;
 
 		var $NextPhoto = false;

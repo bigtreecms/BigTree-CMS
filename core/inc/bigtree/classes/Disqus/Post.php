@@ -7,7 +7,8 @@
 	namespace BigTree\Disqus;
 
 	class Post {
-
+		
+		/** @var \BigTree\Disqus\API */
 		protected $API;
 
 		function __construct($post,&$api) {

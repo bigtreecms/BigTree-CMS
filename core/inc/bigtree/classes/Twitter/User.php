@@ -8,6 +8,7 @@
 
 	class User {
 
+		/** @var \BigTree\Twitter\API */
 		protected $API;
 
 		/*

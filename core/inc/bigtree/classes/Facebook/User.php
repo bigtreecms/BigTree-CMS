@@ -6,8 +6,11 @@
 
 	namespace BigTree\Facebook;
 
+	use stdClass;
+
 	class User {
 
+		/** @var \BigTree\Facebook\API */
 		protected $API;
 
 		function __construct($user,&$api) {
@@ -35,29 +38,29 @@
 			isset($user->birthday) ? $this->Birthday = $user->birthday : false;
 			if (is_array($user->education)) {
 				foreach ($user->education as $school) {
-					$this->Education[] = new School($school["school"],$school["type"],$api);
+					$this->Education[] = new School($school["school"],$school["type"],$this->API);
 				}
 			}
 			isset($user->email) ? $this->Email = $user->email : false;
 			isset($user->first_name) ? $this->FirstName = $user->first_name : false;
 			isset($user->gender) ? $this->Gender = $user->gender : false;
-			isset($user->hometown) ? $this->Hometown = new Location($user->hometown,$api) : false;
+			isset($user->hometown) ? $this->Hometown = new Location($user->hometown,$this->API) : false;
 			isset($user->last_name) ? $this->LastName = $user->last_name : false;
 			isset($user->updated_time) ? $this->LastUpdate = date("Y-m-d H:i:s",strtotime($user->updated_time)) : false;
 			isset($user->locale) ? $this->Locale = $user->locale : false;
-			isset($user->location) ? $this->Location = new Location($user->location,$api) : false;
+			isset($user->location) ? $this->Location = new Location($user->location,$this->API) : false;
 			isset($user->political) ? $this->Political = $user->political : false;
 			isset($user->relationship_status) ? $this->RelationshipStatus = $user->relationship_status : false;
 			isset($user->religion) ? $this->Religion = $user->religion : false;
-			isset($user->significant_other) ? $this->SignificantOther = new User($user->significant_other,$api) : false;
+			isset($user->significant_other) ? $this->SignificantOther = new User($user->significant_other,$this->API) : false;
 			isset($user->timezone) ? $this->Timezone = $user->timezone : false;
 			isset($user->link) ? $this->URL = $user->link : false;
 			isset($user->verified) ? $this->Verified = $user->verified : false;
 			if (isset($user->work)) {
 				$this->Work = new stdClass;
-				isset($user->work["employer"]) ? $this->Work->Employer = new Employer($user->work["employer"],$api) : false;
-				isset($user->work["location"]) ? $this->Work->Location = new Location($user->work["location"],$api) : false;
-				isset($user->work["position"]) ? $this->Work->JobTitle = new JobTitle($user->work["position"],$api) : false;
+				isset($user->work["employer"]) ? $this->Work->Employer = new Employer($user->work["employer"],$this->API) : false;
+				isset($user->work["location"]) ? $this->Work->Location = new Location($user->work["location"],$this->API) : false;
+				isset($user->work["position"]) ? $this->Work->JobTitle = new JobTitle($user->work["position"],$this->API) : false;
 			}
 		}
 

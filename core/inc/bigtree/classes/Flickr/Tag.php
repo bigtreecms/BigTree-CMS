@@ -8,6 +8,9 @@
 
 	class Tag {
 
+		/** @var \BigTree\Flickr\API */
+		protected $API;
+
 		function __construct($tag,&$api) {
 			if (!is_string($tag)) {
 				$this->API = $api;

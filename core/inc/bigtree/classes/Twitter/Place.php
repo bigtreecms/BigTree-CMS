@@ -8,6 +8,7 @@
 
 	class Place {
 
+		/** @var \BigTree\Twitter\API */
 		protected $API;
 
 		/*

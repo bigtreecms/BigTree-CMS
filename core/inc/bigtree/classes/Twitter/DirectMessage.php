@@ -8,6 +8,7 @@
 
 	class DirectMessage {
 
+		/** @var \BigTree\Twitter\API */
 		protected $API;
 
 		/*

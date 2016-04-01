@@ -8,6 +8,7 @@
 
 	class Forum {
 
+		/** @var \BigTree\Disqus\API */
 		protected $API;
 
 		function __construct($forum,&$api) {
@@ -68,6 +69,8 @@
 				$this->API->cacheBust("moderators".$this->ID);
 				return true;
 			}
+
+			return false;
 		}
 
 		/*
@@ -213,7 +216,7 @@
 		function getModerators() {
 			$response = $this->API->call("forums/listModerators.json",array("forum" => $this->ID));
 
-			if ($response !== false) {
+			if (is_array($response)) {
 				$this->API->cachePush("moderators".$this->ID);
 				$results = array();
 				foreach ($response as $user) {
@@ -375,7 +378,7 @@
 		function getTrendingThreads($limit = 10) {
 			$response = $this->API->call("trends/listThreads.json",array("forum" => $this->ID,"limit" => $limit));
 
-			if ($response !== false) {
+			if (is_array($response)) {
 				$results = array();
 				foreach ($response as $thread) {
 					$this->API->cachePush("thread".$thread->id);

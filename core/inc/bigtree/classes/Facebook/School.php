@@ -8,6 +8,7 @@
 
 	class School {
 
+		/** @var \BigTree\Facebook\API */
 		protected $API;
 
 		function __construct($school,$type,&$api) {

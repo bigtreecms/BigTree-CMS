@@ -6,8 +6,11 @@
 
 	namespace BigTree\Twitter;
 
+	use stdClass;
+
 	class Tweet {
 
+		/** @var \BigTree\Twitter\API */
 		protected $API;
 
 		/*
@@ -156,15 +159,18 @@
 			if (!$this->RetweetCount) {
 				return array();
 			}
+
 			if ($this->OriginalTweet) {
 				$response = $this->API->call("statuses/retweets/".$this->OriginalTweet->ID.".json");
 			} else {
 				$response = $this->API->call("statuses/retweets/".$this->ID.".json");
 			}
+
 			$tweets = array();
 			foreach ($response as $tweet) {
 				$tweets[] = new Tweet($tweet,$this->API);
 			}
+
 			return $tweets;
 		}
 
@@ -179,9 +185,11 @@
 		function retweeters() {
 			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
 			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
+
 			if ($response->ids) {
 				return $response->ids;
 			}
+
 			return false;
 		}
 

@@ -8,6 +8,7 @@
 
 	class Group {
 
+		/** @var \BigTree\Flickr\API */
 		protected $API;
 
 		function __construct($group,&$api) {

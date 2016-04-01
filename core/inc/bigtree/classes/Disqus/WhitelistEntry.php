@@ -8,6 +8,7 @@
 
 	class WhitelistEntry {
 
+		/** @var \BigTree\Disqus\API */
 		protected $API;
 
 		function __construct($item,&$api) {

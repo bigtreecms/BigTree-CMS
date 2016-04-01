@@ -8,6 +8,7 @@
 
 	class JobTitle {
 
+		/** @var \BigTree\Facebook\API */
 		protected $API;
 
 		function __construct($job,&$api) {

@@ -518,9 +518,6 @@
 		/*
 			Function: oAuthSetToken
 				Sets token information (or an error) when provided a response code.
-
-			Returns:
-				A stdClass object of information if successful.
 		*/
 
 		function oAuthSetToken($code) {

@@ -8,6 +8,7 @@
 
 	class Thread {
 
+		/** @var \BigTree\Disqus\API */
 		protected $API;
 
 		function __construct($thread,&$api) {

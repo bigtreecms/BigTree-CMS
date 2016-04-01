@@ -8,6 +8,7 @@
 
 	class User {
 
+		/** @var \BigTree\Disqus\API */
 		protected $API;
 
 		function __construct($user,&$api) {

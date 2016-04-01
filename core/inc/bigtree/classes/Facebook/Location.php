@@ -8,6 +8,7 @@
 
 	class Location {
 
+		/** @var \BigTree\Facebook\API */
 		protected $API;
 
 		function __construct($location,&$api) {

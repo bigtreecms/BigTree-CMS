@@ -8,6 +8,7 @@
 
 	class Person {
 
+		/** @var \BigTree\Flickr\API */
 		protected $API;
 
 		function __construct($person,&$api) {

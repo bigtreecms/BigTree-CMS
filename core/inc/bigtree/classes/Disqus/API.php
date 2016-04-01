@@ -7,6 +7,7 @@
 	namespace BigTree\Disqus;
 	
 	use BigTree\OAuth;
+	use stdClass;
 
 	class API extends OAuth {
 
