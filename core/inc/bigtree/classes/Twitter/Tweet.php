@@ -1,6 +1,6 @@
 <?php
 	/*
-		Class: BigTreeTwitterTweet
+		Class: BigTree\Twitter\Tweet
 			A Twitter object that contains information about and methods you can perform on a tweet.
 	*/
 
@@ -16,7 +16,7 @@
 
 			Parameters:
 				tweet - Twitter data
-				api - Reference to the BigTreeTwitterAPI class instance
+				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
 		function __construct($tweet,&$api) {
@@ -124,7 +124,7 @@
 				Favorites the tweet.
 
 			Returns:
-				A BigTreeTwitterTweet object if successful.
+				A BigTree\Twitter\Tweet object if successful.
 		*/
 
 		function favorite() {
@@ -148,7 +148,7 @@
 				Returns retweets of the tweet.
 
 			Returns:
-				An array of BigTreeTwitterTweet objects.
+				An array of BigTree\Twitter\Tweet objects.
 		*/
 
 		function retweets() {
@@ -190,7 +190,7 @@
 				Unfavorites the tweet.
 
 			Returns:
-				A BigTreeTwitterTweet object if successful.
+				A BigTree\Twitter\Tweet object if successful.
 		*/
 
 		function unfavorite() {

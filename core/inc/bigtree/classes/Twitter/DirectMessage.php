@@ -1,6 +1,6 @@
 <?php
 	/*
-		Class: BigTreeTwitterDirectMessage
+		Class: BigTree\Twitter\DirectMessage
 			A Twitter object that contains information about and methods you can perform on a direct message.
 	*/
 
@@ -16,7 +16,7 @@
 
 			Parameters:
 				message - Twitter data
-				api - Reference to BigTreeTwitterAPI class instance
+				api - Reference to BigTree\Twitter\API class instance
 		*/
 
 		function __construct($message,&$api) {
@@ -40,7 +40,7 @@
 
 		/*
 			Function: delete
-				Alias for BigTreeTwitterTweet::deleteDirectMessage
+				Alias for BigTree\Twitter\Tweet::deleteDirectMessage
 		*/
 
 		function delete() {
@@ -49,7 +49,7 @@
 
 		/*
 			Function: reply
-				Alias for BigTreeTwitterTweet::sendDirectMessage
+				Alias for BigTree\Twitter\Tweet::sendDirectMessage
 		*/
 
 		function reply($content) {

@@ -1,6 +1,6 @@
 <?php
 	/*
-		Class: BigTreeTwitterPlace
+		Class: BigTree\Twitter\Place
 			A Twitter object that contains information about and methods you can perform on a place.
 	*/
 
@@ -16,7 +16,7 @@
 
 			Parameters:
 				place - Twitter data
-				api - Reference to the BigTreeTwitterAPI class instance
+				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
 		function __construct($place,&$api) {

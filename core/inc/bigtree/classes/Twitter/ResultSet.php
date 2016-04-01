@@ -13,8 +13,8 @@
 				Creates a result set of Twitter data.
 
 			Parameters:
-				api - An instance of BigTreeTwitterAPI
-				last_call - Method called on BigTreeTwitterAPI
+				api - An instance of BigTree\Twitter\API
+				last_call - Method called on BigTree\Twitter\API
 				params - The parameters sent to last call
 				results - Results to store
 		*/
@@ -34,7 +34,7 @@
 				Calls the previous method with a max_id of the last received ID.
 
 			Returns:
-				A BigTreeTwitterResultSet with the next page of results.
+				A BigTree\Twitter\ResultSet with the next page of results.
 		*/
 
 		function nextPage() {

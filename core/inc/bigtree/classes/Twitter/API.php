@@ -40,7 +40,7 @@
 				username - The username to block.
 
 			Returns:
-				A BigTreeTwitterUser object if successful.
+				A BigTree\Twitter\User object if successful.
 		*/
 
 		function blockUser($username) {
@@ -114,7 +114,7 @@
 				id - The tweet ID.
 
 			Returns:
-				A BigTreeTwitterTweet object if successful.
+				A BigTree\Twitter\Tweet object if successful.
 		*/
 
 		function favoriteTweet($id) {
@@ -133,7 +133,7 @@
 				username - The username to follow/friend.
 
 			Returns:
-				A BigTreeTwitterUser object on success.
+				A BigTree\Twitter\User object on success.
 		*/
 
 		function followUser($username) {
@@ -154,7 +154,7 @@
 				params - Additional parameters (key/value array) to pass to the the blocks/list API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\User objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/blocks/list
@@ -193,7 +193,7 @@
 				id - The ID of the direct message.
 
 			Returns:
-				A BigTreeTwitterDirectMessage object.
+				A BigTree\Twitter\DirectMessage object.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
@@ -216,7 +216,7 @@
 				params - Additional parameters (key/value array) to pass to the the direct_messages API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\DirectMessage objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
@@ -243,7 +243,7 @@
 				params - Additional parameters (key/value array) to pass to the the favorites/list API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterTweets objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\Tweets objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/favorites/list
@@ -271,7 +271,7 @@
 				params - Additional parameters (key/value array) to pass to the the followers/list API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\User objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/followers/list
@@ -300,7 +300,7 @@
 				params - Additional parameters (key/value array) to pass to the the friends/list API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\User objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/friends/list
@@ -328,7 +328,7 @@
 				params - Additional parameters (key/value array) to pass to the the statuses/user_timeline API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\Tweet objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline
@@ -355,7 +355,7 @@
 				params - Additional parameters (key/value array) to pass to the the statuses/mentions_timeline API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\Tweet objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/mentions_timeline
@@ -381,7 +381,7 @@
 				id - The place ID.
 
 			Returns:
-				A BigTreeTwitterPlace object.
+				A BigTree\Twitter\Place object.
 		*/
 
 		function getPlace($id) {
@@ -401,7 +401,7 @@
 				params - Additional parameters (key/value array) to pass to the the direct_messages/sent API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterDirectMessage objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\DirectMessage objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
@@ -428,7 +428,7 @@
 				params - Additional parameters (key/value array) to pass to the the statuses/show API call.
 
 			Returns:
-				A BigTreeTwitterTweet object.
+				A BigTree\Twitter\Tweet object.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/show
@@ -451,7 +451,7 @@
 				id - The ID of the Twitter user (replaces username if provided)
 
 			Returns:
-				A BigTreeTwitterUser object.
+				A BigTree\Twitter\User object.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/users/show
@@ -479,7 +479,7 @@
 				params - Additional parameters (key/value array) to pass to the the statuses/user_timeline API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\Tweet objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
@@ -550,7 +550,7 @@
 				recipient_id - The recipient ID (replaces the recipient_username field).
 
 			Returns:
-				A BigTreeTwitterDirectMessage object or false if the direct message fails or is too long.
+				A BigTree\Twitter\DirectMessage object or false if the direct message fails or is too long.
 				$this->TweetLength will be set to the length of the tweet if it is > 140 characters.
 		*/
 
@@ -595,7 +595,7 @@
 				params - Additional parameters (key/value array) to pass to the the statuses/update API call.
 
 			Returns:
-				A BigTreeTwitterTweet object or false if the tweet fails or is too long.
+				A BigTree\Twitter\Tweet object or false if the tweet fails or is too long.
 				$this->TweetLength will be set to the length of the tweet if it is > 140 characters.
 
 			See Also:
@@ -667,7 +667,7 @@
 				params - Additional parameters (key/value array) to pass to the the geo/search API call.
 
 			Returns:
-				An array of BigTreeTwitterPlace objects.
+				An array of BigTree\Twitter\Place objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/geo/search
@@ -699,7 +699,7 @@
 				params - Additional parameters (key/value array) to pass to the the search/tweets API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterTweet objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\Tweet objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/search/tweets
@@ -736,14 +736,14 @@
 				params - Additional parameters (key/value array) to pass to the the users/search API call.
 
 			Returns:
-				A BigTreeTwitterResultSet of BigTreeTwitterUser objects.
+				A BigTree\Twitter\ResultSet of BigTree\Twitter\User objects.
 
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/users/search
 		*/
 
 		function searchUsers($query,$count = 10,$params = array()) {
-			// Little hack since BigTreeTwitterResultSet expects to use max_id but we're looking for page here, so ask for the next one.
+			// Little hack since BigTree\Twitter\ResultSet expects to use max_id but we're looking for page here, so ask for the next one.
 			if ($params["page"]) {
 				$params["page"]++;
 			} else {
@@ -768,7 +768,7 @@
 				username - The username to unblock.
 
 			Returns:
-				A BigTreeTwitterUser object if successful.
+				A BigTree\Twitter\User object if successful.
 		*/
 
 		function unblockUser($username) {
@@ -788,7 +788,7 @@
 				id - The tweet ID.
 
 			Returns:
-				A BigTreeTwitterTweet object if successful.
+				A BigTree\Twitter\Tweet object if successful.
 		*/
 
 		function unfavoriteTweet($id) {
@@ -807,7 +807,7 @@
 				username - The username to follow/friend.
 
 			Returns:
-				A BigTreeTwitterUser object on success.
+				A BigTree\Twitter\User object on success.
 		*/
 
 		function unfollowUser($username) {

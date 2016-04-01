@@ -1,6 +1,6 @@
 <?php
 	/*
-		Class: BigTreeTwitterUser
+		Class: BigTree\Twitter\User
 			A Twitter object that contains information about and methods you can perform on a user.
 	*/
 
@@ -58,7 +58,7 @@
 				Blocks the user.
 
 			Returns:
-				A BigTreeTwitterUser object on success.
+				A BigTree\Twitter\User object on success.
 		*/
 
 		function block() {
@@ -70,7 +70,7 @@
 				Friends/follows the user.
 
 			Returns:
-				A BigTreeTwitterUser object on success.
+				A BigTree\Twitter\User object on success.
 		*/
 
 		function follow() {
@@ -85,7 +85,7 @@
 				Unblocks the user.
 
 			Returns:
-				A BigTreeTwitterUser object on success.
+				A BigTree\Twitter\User object on success.
 		*/
 
 		function unblock() {
@@ -97,7 +97,7 @@
 				Unfriends/unfollows the user.
 
 			Returns:
-				A BigTreeTwitterUser object on success.
+				A BigTree\Twitter\User object on success.
 		*/
 
 		function unfollow() {
