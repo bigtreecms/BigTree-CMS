@@ -126,17 +126,13 @@
 		/*
 			Function: getFTPRoot
 				Attempts to determing the FTP directory in which BigTree can be found
-			
-			Parameters:
-				user - Username for FTP/SFTP
-				password - Password for FTP/SFTP
 
 			Returns:
 				The FTP directory if successful.
 				false if not successful.
 		*/
 
-		function getFTPRoot($user,$password) {
+		function getFTPRoot() {
 			// Try to determine the FTP root.
 			$ftp_root = false;
 			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
