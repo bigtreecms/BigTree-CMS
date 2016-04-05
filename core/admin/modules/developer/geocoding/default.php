@@ -21,10 +21,6 @@
 			<span class="bing"></span>
 			<p>Bing</p>
 		</a>
-		<a class="box_select<? if ($gateway["service"] == "yahoo") { ?> connected<? } ?>" href="<?=DEVELOPER_ROOT?>geocoding/yahoo/">
-			<span class="yahoo"></span>
-			<p>Yahoo</p>
-		</a>
 		<a class="box_select<? if ($gateway["service"] == "mapquest") { ?> connected<? } ?>" href="<?=DEVELOPER_ROOT?>geocoding/mapquest/">
 			<span class="mapquest"></span>
 			<p>MapQuest</p>
