@@ -97,7 +97,7 @@
 		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
 			global $bigtree;
 
-			BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer",$contents,array(
+			BigTree::cURL($this->Endpoint."/$container/$pointer",$contents,array(
 				CURLOPT_CUSTOMREQUEST => "PUT",
 				CURLOPT_HTTPHEADER => array(
 					"Content-Length" => strlen($contents),
@@ -303,9 +303,6 @@
 				$path_info = BigTree::pathInfo($file);
 				$pointer = $path_info["basename"];
 			}
-
-			// Get MIME type
-			$content_type = $this->getContentType($file);
 
 			// Open the file pointer for curl to upload from
 			$file_pointer = fopen($file,"r");

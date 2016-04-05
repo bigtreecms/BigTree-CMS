@@ -7,6 +7,8 @@
 
 	namespace BigTree\CloudStorage;
 
+	use BigTree;
+
 	class Amazon extends Provider {
 
 		public $HTTPResponseCode = false;
@@ -128,7 +130,7 @@
 
 			$string_to_sign = $verb."\n".$request_headers["Content-MD5"]."\n".$request_headers["Content-Type"]."\n".$date."\n".$amazon_header_signature.$signable_resource;
 
-			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->_hash($this->Settings["amazon"]["secret"],$string_to_sign);
+			$headers[] = "Authorization: AWS ".$this->Settings["amazon"]["key"].":".$this->hash($this->Settings["amazon"]["secret"],$string_to_sign);
 
 			curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
 			curl_setopt($curl,CURLOPT_HEADER,false);

@@ -7,6 +7,8 @@
 
 	namespace BigTree\CloudStorage;
 
+	use BigTree;
+
 	class Google extends Provider {
 
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
