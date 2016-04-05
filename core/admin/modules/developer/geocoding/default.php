@@ -25,9 +25,5 @@
 			<span class="mapquest"></span>
 			<p>MapQuest</p>
 		</a>
-		<a class="box_select<? if ($gateway["service"] == "yahoo-boss") { ?> connected<? } ?>" href="<?=DEVELOPER_ROOT?>geocoding/yahoo-boss/">
-			<span class="yahooboss"></span>
-			<p>Yahoo BOSS</p>
-		</a>
 	</section>
 </div>

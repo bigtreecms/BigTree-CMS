@@ -32,10 +32,6 @@
 				$this->Service = $geo_service["service"];
 				$this->Settings = $geo_service;
 			}
-			// Yahoo BOSS Geocoding uses the Yahoo BOSS API.
-			if ($this->Service == "yahoo-boss") {
-				$this->API = new BigTreeYahooBOSSAPI;
-			}
 		}
 
 		/*
@@ -67,10 +63,8 @@
 
 			// Geocode
 			$geocode = false;
-			if ($this->Service == "google" || $this->Service == "yahoo") {
+			if ($this->Service == "google" || $this->Service == "yahoo" || $this->Service == "yahoo-boss") {
 				$geocode = $this->geocodeGoogle($address);
-			} elseif ($this->Service == "yahoo-boss") {
-				$geocode = $this->geocodeYahooBOSS($address);
 			} elseif ($this->Service == "bing") {
 				$geocode = $this->geocodeBing($address);
 			} elseif ($this->Service == "mapquest") {
@@ -148,24 +142,5 @@
 			} catch (Exception $e) {
 				return false;
 			}
-		}
-
-		/*
-			Function: geocodeYahooBOSS
-				Private function for using Yahoo BOSS (paid version) as the geocoder.
-		*/
-
-		private function geocodeYahooBOSS($address) {
-			$response = $this->API->call("geo/placefinder",array("q" => $address,"flags" => "J"));
-			if (isset($response->bossresponse->placefinder->results)) {
-				$lat = $response->bossresponse->placefinder->results[0]->latitude;
-				$lon = $response->bossresponse->placefinder->results[0]->longitude;
-				if ($lat && $lon) {
-					return array("latitude" => $lat, "longitude" => $lon);
-				} else {
-					return false;
-				}
-			}
-			return false;
 		}
 	}
