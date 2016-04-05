@@ -1,16 +1,18 @@
 <?php
 	/*
-		Class: BigTreeYahooBOSSAPI
-			Yahoo BOSS API implementation. Currently only supports Geocoding.
+		Class: BigTree\YahooBOSS\API
+			Yahoo BOSS API implementation. Base class that allows for calls to the API.
 	*/
 
-	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
-	class BigTreeYahooBOSSAPI extends BigTreeOAuthAPIBase {
+	namespace BigTree\YahooBOSS;
+
+	use BigTree\OAuth;
+
+	class API extends OAuth {
 
 		var $EndpointURL = "http://yboss.yahooapis.com/";
 		var $OAuthVersion = "1.0";
 		var $RequestType = "hash";
-		var $TokenURL = "https://api.instagram.com/oauth/access_token";
 		
 		/*
 			Constructor:
