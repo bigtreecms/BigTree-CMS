@@ -4,7 +4,8 @@
 		"api_key" => trim($_POST["api_key"]),
 		"region" => trim($_POST["region"])
 	);
-	if (!$cloud->_getRackspaceToken()) {
+
+	if (!$cloud->getToken()) {
 		$admin->growl("Developer","Rackspace Cloud Files Login Failed","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/rackspace/");
 	}
