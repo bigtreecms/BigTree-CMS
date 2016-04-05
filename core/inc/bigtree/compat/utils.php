@@ -135,18 +135,7 @@
 		*/
 
 		static function cleanFile($file) {
-			$pieces = array_filter(explode("/",$file), function($val) {
-				// Let empties through
-				if (!trim($val)) {
-					return true;
-				}
-				// Strip path manipulation
-				if (trim(str_replace(".","",$val)) === "") {
-					return false;
-				}
-				return true;
-			});
-			return implode("/",$pieces);
+			return BigTree\FileSystem::getSafePath($file);
 		}
 		
 		/*
@@ -198,26 +187,7 @@
 		*/
 		
 		static function copyFile($from,$to) {
-			if (!static::isDirectoryWritable($to)) {
-				return false;
-			}
-
-			// If the origin is a protocol agnostic URL, add http:
-			if (substr($from,0,2) == "//") {
-				$from = "http:".$from;
-			}
-
-			// is_readable doesn't work on URLs
-			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
-				return false;
-			}
-			$pathinfo = static::pathInfo($to);
-			$directory = $pathinfo["dirname"];
-			BigTree::makeDirectory($directory);
-			
-			$success = copy($from,$to);
-			static::setPermissions($to);
-			return $success;
+			return BigTree\FileSystem::copyFile($from, $to);
 		}
 		
 		/*
@@ -444,23 +414,7 @@
 		*/
 		
 		static function deleteDirectory($dir) {
-			if (!file_exists($dir)) {
-				return false;
-			}
-			
-			// Make sure it has a trailing /
-			$dir = rtrim($dir,"/")."/";
-			$r = opendir($dir);
-			while ($file = readdir($r)) {
-				if ($file != "." && $file != "..") {
-					if (is_dir($dir.$file)) {
-						static::deleteDirectory($dir.$file);
-					} else {
-						unlink($dir.$file);
-					}
-				}
-			}
-			return rmdir($dir);
+			return BigTree\FileSystem::deleteDirectory($dir);
 		}
 
 		/*
@@ -475,10 +429,7 @@
 		*/
 
 		static function deleteFile($file) {
-			if (file_exists($file)) {
-				return unlink($file);
-			}
-			return false;
+			return BigTree\FileSystem::deleteFile($file);
 		}
 		
 		/*
@@ -512,25 +463,7 @@
 		*/
 
 		static function directoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
-			$contents = array();
-			$d = @opendir($directory);
-			if (!$d) {
-				return false;
-			}
-			while ($r = readdir($d)) {
-				if ($r != "." && $r != ".." && $r != ".DS_Store" && $r != "__MACOSX") {
-					if ($include_git || ($r != ".git" && $r != ".gitignore")) {
-						$path = rtrim($directory,"/")."/".$r;
-						if ($extension === false || substr($path,-1 * strlen($extension)) == $extension) {
-							$contents[] = $path;
-						}
-						if (is_dir($path) && $recurse) {
-							$contents = array_merge($contents,BigTree::directoryContents($path,$recurse,$extension,$include_git));
-						}
-					}
-				}
-			}
-			return $contents;
+			return BigTree\FileSystem::getDirectoryContents($directory, $recurse, $extension, $include_git);
 		}
 
 		/*
@@ -583,28 +516,7 @@
 		*/
 		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			$parts = static::pathInfo($directory.$file);
-			
-			// Clean up the file name
-			$clean_name = BigTreeCMS::urlify($parts["filename"]);
-			if (strlen($clean_name) > 50) {
-				$clean_name = substr($clean_name,0,50);
-			}
-			$file = $clean_name.".".strtolower($parts["extension"]);
-			
-			// Just find a good filename that isn't used now.
-			$x = 2;
-			while (!$file || file_exists($directory.$file)) {
-				$file = $clean_name."-$x.".strtolower($parts["extension"]);
-				// Check prefixes
-				foreach ($prefixes as $prefix) {
-					if (file_exists($directory.$prefix.$file)) {
-						$file = false;
-					}
-				}
-				$x++;
-			}
-			return $file;
+			return BigTree\FileSystem::getAvailableFileName($directory, $file, $prefixes);
 		}
 
 		/*
@@ -899,55 +811,7 @@
 		*/
 
 		static function isDirectoryWritable($path, $recursion = false) {
-			// We need to setup an error handler to catch open_basedir restrictions
-			if (!$recursion) {
-				set_error_handler(function($error_number, $error_string) {
-					if ($error_number == 2 && strpos($error_string,"open_basedir") !== false) {
-						throw new Exception("open_basedir restriction in effect");
-					}
-				});
-			}
-			
-			// If open_basedir restriction is hit we'll failover into the exceptiond and return false
-			try {
-				// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
-				if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
-					// Directory exists, check to see if we can create a temporary file inside it
-					if (is_dir($path)) {
-						$file = rtrim($path,"/")."/".uniqid().".tmp";
-						$success = @touch($file);
-						if ($success) {
-							unlink($file);
-							restore_error_handler();
-							return true;
-						}
-						restore_error_handler();
-						return false;
-					// Remove the last directory from the path and then run isDirectoryWritable again
-					} else {
-						$parts = explode("/",$path);
-						array_pop($parts);
-						if (count($parts)) {
-							return static::isDirectoryWritable(implode("/",$parts), true);
-						}
-						restore_error_handler();
-						return false;
-					}
-				} else {
-					// Directory exists, return its writable state
-					if (is_dir($path)) {
-						restore_error_handler();
-						return is_writable($path);
-					}
-					// Remove the last directory from the path and try again
-					$parts = explode("/",$path);
-					array_pop($parts);
-					return static::isDirectoryWritable(implode("/",$parts), true);
-				}
-			} catch (Exception $e) {
-				restore_error_handler();
-				return false;
-			}
+			return BigTree\FileSystem::getDirectoryWritability($path);
 		}
 		
 		/*
@@ -962,17 +826,7 @@
 		*/
 		
 		static function isExternalLink($url) {
-			if (substr($url,0,7) != "http://" && substr($url,0,8) != "https://") {
-				return false;
-			}
-			
-			$www_root = str_replace(array("https://","http://"),"//",WWW_ROOT);
-			$url = str_replace(array("https://","http://"),"//",$url);
-			if (strpos($url,$www_root) === 0) {
-				return false;
-			}
-
-			return true;
+			return BigTree\Link::isExternal($url);
 		}
 
 		/*
@@ -1057,35 +911,7 @@
 		*/
 		
 		static function makeDirectory($directory) {
-			// Make sure we skip open_basedir issues
-			if (!static::isDirectoryWritable($directory)) {
-				return false;
-			}
-
-			// Already exists, just say we made it
-			if (file_exists($directory)) {
-				return true;
-			}
-
-			// Windows systems aren't going to start with /
-			if (substr($directory,0,1) == "/") {
-				$directory_path = "/";
-			} else {
-				$directory_path = "";
-			}
-
-			$directory_parts = explode("/",trim($directory,"/"));
-			foreach ($directory_parts as $part) {
-				$directory_path .= $part;
-				// Silence situations with open_basedir restrictions.
-				if (!@file_exists($directory_path)) {
-					@mkdir($directory_path);
-					@static::setPermissions($directory_path);
-				}
-				$directory_path .= "/";
-			}
-			
-			return true;
+			return BigTree\FileSystem::createDirectory($directory);
 		}
 		
 		/*
@@ -1101,12 +927,7 @@
 		*/
 		
 		static function moveFile($from,$to) {
-			$success = static::copyFile($from,$to);
-			if (!$success) {
-				return false;
-			}
-			unlink($from);
-			return true;
+			return BigTree\FileSystem::moveFile($from, $to);
 		}
 
 		/*
@@ -1191,11 +1012,7 @@
 		*/
 		
 		static function pathInfo($file) {
-			$parts = pathinfo($file);
-			if (!defined('PATHINFO_FILENAME')) {
-				$parts["filename"] = substr($parts["basename"],0,strrpos($parts["basename"],'.'));
-			}
-			return $parts;
+			return pathinfo($file);
 		}
 
 		/*
@@ -1262,64 +1079,7 @@
 		*/
 		
 		static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
-			// Check size
-			$width = ($width > 2000) ? 2000 : $width;
-			$height = ($height > 2000) ? 2000 : $height;
-			
-			// Check colors
-			$bg_color = (!$bg_color && $bg_color != "000" && $bg_color != "000000") ? "CCCCCC" : ltrim($bg_color,"#");
-			$text_color = (!$text_color  && $text_color != "000" && $text_color != "000000") ? "666666" : ltrim($text_color,"#");
-			
-			// Set text
-			$text = $text_string;
-			if ($icon_path) {
-				$text = "";
-			} else {
-				if (!$text_string) {
-					$text = $width . " X " . $height;
-				}
-			}
-			
-			// Create image
-			$image = imagecreatetruecolor($width, $height);
-			// Build rgba from hex
-			$bg_color = imagecolorallocate($image, base_convert(substr($bg_color, 0, 2), 16, 10), base_convert(substr($bg_color, 2, 2), 16, 10), base_convert(substr($bg_color, 4, 2), 16, 10));
-			$text_color = imagecolorallocate($image, base_convert(substr($text_color, 0, 2), 16, 10), base_convert(substr($text_color, 2, 2), 16, 10), base_convert(substr($text_color, 4, 2), 16, 10));
-			// Fill image
-			imagefill($image, 0, 0, $bg_color); 
-			
-			// Add icon if provided
-			if ($icon_path) {
-				$icon_size = getimagesize($icon_path);
-				$icon_width = $icon_size[0];
-				$icon_height = $icon_size[1];
-				$icon_x = ($width - $icon_width) / 2;
-				$icon_y = ($height - $icon_height) / 2;
-				
-				$ext = strtolower(substr($icon_path,-3));
-				if ($ext == "jpg" || $ext == "peg") {
-					$icon = imagecreatefromjpeg($icon_path);
-				} elseif ($ext == "gif") {
-					$icon = imagecreatefromgif($icon_path);
-				} else {
-					$icon = imagecreatefrompng($icon_path); 
-				}
-				imagesavealpha($icon, true);
-				imagealphablending($icon, true);
-				imagecopyresampled($image, $icon, $icon_x, $icon_y, 0, 0, $icon_width, $icon_height, $icon_width, $icon_height);
-			// Add text if provided or default to size
-			} elseif ($text) {
-				$font = BigTree::path("inc/lib/fonts/arial.ttf");
-				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
-				$textpos = imageTTFBbox($fontsize, 0, $font, $text); 
-				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
-			}
-		
-			// Serve image and die
-			header("Content-Type: image/png"); 
-			imagepng($image);   
-			imagedestroy($image);
-			die();
+			BigTree\Image::placeholder($width, $height, $bg_color, $text_color, $icon_path, $text_string);
 		}
 
 		/*
@@ -1349,10 +1109,7 @@
 		*/
 		
 		static function prefixFile($file,$prefix) {
-			$pinfo = static::pathInfo($file);
-			// Remove notices
-			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
-			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
+			return BigTree\FileSystem::getPrefixedFile($file, $prefix);
 		}
 		
 		/*
@@ -1369,22 +1126,7 @@
 		*/
 		
 		static function putFile($file,$contents) {
-			if (!static::isDirectoryWritable($file)) {
-				return false;
-			}
-			
-			$pathinfo = static::pathInfo($file);
-			$directory = $pathinfo["dirname"];
-			BigTree::makeDirectory($directory);
-			
-			if (!file_exists($file)) {
-				file_put_contents($file,$contents);
-				static::setPermissions($file);
-			} else {
-				file_put_contents($file,$contents);
-			}
-			
-			return true;
+			return BigTree\FileSystem::createFile($file, $contents);
 		}
 
 		/*
@@ -1729,21 +1471,7 @@
 		*/
 
 		static function runningAsSU() {
-			// Already ran the test
-			if (!is_null(static::$SUTestResult)) {
-				return static::$SUTestResult;
-			}
-			// Only works on systems that support posix_getuid
-			if (function_exists("posix_getuid")) {
-				if (posix_getuid() == getmyuid()) {
-					static::$SUTestResult = true;
-				} else {
-					static::$SUTestResult = false;
-				}
-			} else {
-				static::$SUTestResult = false;
-			}
-			return static::$SUTestResult;
+			return BigTree\FileSystem::getRunningAsOwner();
 		}
 
 		/*
@@ -1903,10 +1631,7 @@
 		*/
 
 		static function setDirectoryPermissions($location) {
-			$contents = static::directoryContents($location);
-			foreach ($contents as $file) {
-				static::setPermissions($file);
-			}
+			return BigTree\FileSystem::setDirectoryPermissions($location);
 		}
 
 		/*
@@ -1922,14 +1647,7 @@
 		*/
 
 		static function setPermissions($location) {
-			if (!static::runningAsSU()) {
-				try {
-					chmod($location,0777);
-				} catch (Exception $e) {
-					return false;
-				}
-			}
-			return true;
+			return BigTree\FileSystem::setPermissions($location);
 		}
 
 		/*
@@ -1988,16 +1706,7 @@
 		*/
 		
 		static function touchFile($file) {
-			if (!static::isDirectoryWritable($file)) {
-				return false;
-			}
-
-			$pathinfo = static::pathInfo($file);
-			static::makeDirectory($pathinfo["dirname"]);
-			
-			touch($file);
-			static::setPermissions($file);
-			return true;
+			return BigTree\FileSystem::touchFile($file);
 		}
 		
 		/*

@@ -342,9 +342,9 @@
 			
 			// Check for resource link
 			if ($command[0] == "files" && $command[1] == "resources") {
-				$resource = BigTree\Resource::file($url);
+				$resource = Resource::file($url);
 				if ($resource) {
-					BigTree\Resource::$CreationLog[] = $resource["id"];
+					Resource::$CreationLog[] = $resource["id"];
 					return "irl://".$resource["id"]."//".$resource["prefix"];
 				}
 			}
@@ -414,7 +414,33 @@
 
 		static function irlExists($irl) {
 			$irl = explode("//",$irl);
-			return BigTree\Resource::get($irl[1]) ? true : false;
+			return Resource::get($irl[1]) ? true : false;
+		}
+
+		/*
+			Function: isExternal
+				Check if URL is external, relative to site root
+
+			Parameters:
+				url - The URL to test.
+
+			Returns:
+				true if link is external
+		*/
+
+		static function isExternal($url) {
+			if (substr($url,0,7) != "http://" && substr($url,0,8) != "https://") {
+				return false;
+			}
+
+			$www_root = str_replace(array("https://","http://"),"//",WWW_ROOT);
+			$url = str_replace(array("https://","http://"),"//",$url);
+
+			if (strpos($url,$www_root) === 0) {
+				return false;
+			}
+
+			return true;
 		}
 
 		/*
