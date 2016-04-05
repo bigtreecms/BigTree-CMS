@@ -409,8 +409,8 @@
 		
 		$db->query("ALTER TABLE bigtree_caches CHANGE `key` `key` VARCHAR(10000)");
 		$storage = new BigTreeStorage;
-		if (is_array($storage->Settings->Files)) {
-			foreach ($storage->Settings->Files as $file) {
+		if (is_array($storage->Settings["Files"])) {
+			foreach ($storage->Settings["Files"] as $file) {
 				$db->insert("bigtree_caches", array(
 					"identifier" => "org.bigtreecms.cloudfiles",
 					"key" => $file["path"],
@@ -418,7 +418,7 @@
 				));
 			}
 		}
-		unset($storage->Settings->Files);
+		unset($storage->Settings["Files"]);
 	}
 
 	// BigTree 4.1.1 update -- REVISION 102

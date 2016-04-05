@@ -27,17 +27,17 @@
 					<?php
 						if ($cloud->Settings["amazon"]["active"]) {
 					?>
-					<option value="amazon"<?php if ($storage->Settings->Service == "s3" || $storage->Settings->Service == "amazon") { ?> selected="selected"<?php } ?>>Amazon S3</option>
+					<option value="amazon"<?php if ($storage->Settings["Service"] == "s3" || $storage->Settings["Service"] == "amazon") { ?> selected="selected"<?php } ?>>Amazon S3</option>
 					<?php
 						}
 						if ($cloud->Settings["rackspace"]["active"]) {
 					?>
-					<option value="rackspace"<?php if ($storage->Settings->Service == "rackspace") { ?> selected="selected"<?php } ?>>Rackspace Cloud Files</option>
+					<option value="rackspace"<?php if ($storage->Settings["Service"] == "rackspace") { ?> selected="selected"<?php } ?>>Rackspace Cloud Files</option>
 					<?php
 						}
 						if ($cloud->Settings["google"]["active"]) {
 					?>
-					<option value="google"<?php if ($storage->Settings->Service == "google") { ?> selected="selected"<?php } ?>>Google Cloud Storage</option>
+					<option value="google"<?php if ($storage->Settings["Service"] == "google") { ?> selected="selected"<?php } ?>>Google Cloud Storage</option>
 					<?php
 						}
 					?>

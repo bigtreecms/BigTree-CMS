@@ -51,6 +51,45 @@
 		}
 
 		/*
+			Function: convertPNGToJPEG
+				Replaces (in place) a PNG file with a JPG equivalent.
+
+			Parameters:
+				file - Path to PNG file to convert
+				name - Desired file name
+
+			Returns:
+				jpg file name version of the desired file name
+		*/
+
+		static function convertPNGToJPEG($file,$name) {
+			global $bigtree;
+
+			// Try to figure out what this file is
+			list($image_width,$image_height,$image_type) = @getimagesize($file);
+			
+			if ($image_type !== IMAGETYPE_PNG) {
+				return false;
+			}
+			
+			// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
+			$alpha = ord(@file_get_contents($file,null,null,25,1));
+			if ($alpha != 4 && $alpha != 6) {
+				// Convert the PNG to JPG
+				$source = imagecreatefrompng($file);
+				imagejpeg($source,$file,$bigtree["config"]["image_quality"]);
+				imagedestroy($source);
+
+				// If they originally uploaded a JPG we converted into a PNG, we don't want to change the desired filename, but if they uploaded a PNG the new file should be JPG
+				if (strtolower(substr($name,-3,3)) == "png") {
+					$name = substr($name,0,-3)."jpg";
+				}
+			}
+
+			return $name;
+		}
+
+		/*
 			Function: createCrop
 				Creates a cropped image from a source image.
 			
