@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
 	// Setup defaults
@@ -40,7 +42,7 @@
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($prefix) {
-						$preview_image = BigTree::prefixFile($item["column1"],$prefix);
+						$preview_image = FileSystem::getPrefixedFile($item["column1"],$prefix);
 					} else {
 						$preview_image = $item["column1"];
 					}
@@ -99,7 +101,7 @@
 				foreach ($pending_items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($prefix) {
-						$preview_image = BigTree::prefixFile($item["column1"],$prefix);
+						$preview_image = FileSystem::getPrefixedFile($item["column1"],$prefix);
 					} else {
 						$preview_image = $item["column1"];
 					}

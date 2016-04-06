@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	$photo_gallery = array();
 	if (is_array($field["input"])) {
 		foreach ($field["input"] as $photo_count => $data) {
@@ -22,7 +24,7 @@
 
 				$field_copy = $field;
 				$field_copy["file_input"] = array("name" => $pinfo["basename"],"tmp_name" => SITE_ROOT."files/".uniqid("temp-").".img","error" => false);
-				BigTree::copyFile($data["existing"],$field_copy["file_input"]["tmp_name"]);
+				FileSystem::copyFile($data["existing"],$field_copy["file_input"]["tmp_name"]);
 
 				$file = $admin->processImageUpload($field_copy);
 				if ($file) {

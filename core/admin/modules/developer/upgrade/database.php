@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	while ($current_revision < BIGTREE_REVISION) {
 		$current_revision++;
@@ -550,7 +552,7 @@
 		));
 
 		// New field types
-		BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+		FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 		// Setup an anonymous function for converting a resource set
 		$resource_converter = function($resources) {

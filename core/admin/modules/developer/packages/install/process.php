@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
@@ -157,18 +159,18 @@
 
 	// Import files
 	foreach ($json["files"] as $file) {
-		BigTree::copyFile(SERVER_ROOT."cache/package/$file",SERVER_ROOT.$file);
+		FileSystem::copyFile(SERVER_ROOT."cache/package/$file",SERVER_ROOT.$file);
 	}
 
 	// Empty view cache
 	$db->query("DELETE FROM bigtree_module_view_cache");
 
 	// Remove the package directory
-	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
+	FileSystem::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Clear module class cache and field type cache.
-	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 	// Create package
 	$db->insert("bigtree_extensions",array(

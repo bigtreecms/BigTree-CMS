@@ -1,6 +1,8 @@
 <?php
+	use BigTree\FileSystem;
+
 	// Remove existing update zips
-	BigTree::deleteFile(SERVER_ROOT."cache/update.zip");
+	FileSystem::deleteFile(SERVER_ROOT."cache/update.zip");
 
 	// Get download info
 	$url = $cms->cacheGet("org.bigtreecms.downloads",$_POST["key"]);
@@ -9,7 +11,7 @@
 	// Try fopen first
 	$resource = @fopen($url,"r");
 	if ($resource) {
-		BigTree::putFile(SERVER_ROOT."cache/update.zip",$resource);
+		FileSystem::createFile(SERVER_ROOT."cache/update.zip",$resource);
 	} else {
 		$file = fopen(SERVER_ROOT."cache/update.zip","w");
 		$curl = curl_init();
@@ -21,3 +23,4 @@
 		curl_exec($curl);
 		fclose($file);
 	}
+	

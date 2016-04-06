@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
@@ -40,7 +42,7 @@
 					include_once SERVER_ROOT."core/inc/lib/JShrink/src/JShrink/Minifier.php";
 					$data = \JShrink\Minifier::minify($data);
 				}
-				BigTree::putFile($cfile,$data);
+				FileSystem::createFile($cfile,$data);
 				header("Content-type: text/javascript");
 				die($data);
 			} else {
@@ -131,7 +133,7 @@
 				}	
 
 				// Cache
-				BigTree::putFile($cfile,$data);
+				FileSystem::createFile($cfile,$data);
 
 				// Return
 				header("Content-type: text/css");
@@ -571,5 +573,5 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		BigTree::putFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
+		FileSystem::createFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
 	}

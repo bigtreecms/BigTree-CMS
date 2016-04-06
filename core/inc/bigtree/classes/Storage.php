@@ -102,7 +102,7 @@
 			}
 
 			// Local
-			return BigTree::deleteFile(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
+			return FileSystem::deleteFile(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
 		}
 
 		/*
@@ -123,7 +123,7 @@
 			global $bigtree;
 
 			// Make sure there are no path exploits
-			$file_name = BigTree::cleanFile($file_name);
+			$file_name = FileSystem::getSafePath($file_name);
 
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
@@ -167,9 +167,9 @@
 				return $success;
 			} else {
 				if ($remove_original) {
-					$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$file_name);
+					$success = FileSystem::moveFile($local_file,SITE_ROOT.$relative_path.$file_name);
 				} else {
-					$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
+					$success = FileSystem::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
 				}
 
 				if ($success) {
@@ -199,7 +199,7 @@
 			global $bigtree;
 
 			// Make sure there are no path exploits
-			$file_name = BigTree::cleanFile($file_name);
+			$file_name = FileSystem::getSafePath($file_name);
 
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
@@ -276,12 +276,12 @@
 
 			// Local Storage
 			} else {
-				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);
+				$safe_name = FileSystem::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);
 
 				if ($remove_original) {
-					$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
+					$success = FileSystem::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 				} else {
-					$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
+					$success = FileSystem::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 				}
 
 				if ($success) {

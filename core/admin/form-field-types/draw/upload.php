@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	// If we're using a preset, the prefix may be there
 	if (!empty($field["options"]["preset"])) {
 		if (!isset($bigtree["media_settings"])) {
@@ -36,7 +38,7 @@
 		} else {
 			if ($field["value"]) {
 				if ($field["options"]["preview_prefix"]) {
-					$preview_image = BigTree::prefixFile($field["value"],$field["options"]["preview_prefix"]);
+					$preview_image = FileSystem::getPrefixedFile($field["value"],$field["options"]["preview_prefix"]);
 				} else {
 					$preview_image = $field["value"];
 				}

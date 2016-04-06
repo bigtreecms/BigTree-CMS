@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	BigTree::globalizeArray($bigtree["view"]);
 	
 	// Make sure our view data is cached;
@@ -56,7 +58,7 @@
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($options["prefix"]) {
-						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
+						$preview_image = FileSystem::getPrefixedFile($item["column1"],$options["prefix"]);
 					} else {
 						$preview_image = $item["column1"];
 					}
@@ -117,7 +119,7 @@
 				foreach ($pending_items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($options["prefix"]) {
-						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
+						$preview_image = FileSystem::getPrefixedFile($item["column1"],$options["prefix"]);
 					} else {
 						$preview_image = $item["column1"];
 					}

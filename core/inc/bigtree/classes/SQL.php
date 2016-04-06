@@ -68,7 +68,7 @@
 		*/
 
 		static function backup($file) {
-			if (!BigTree::isDirectoryWritable($file)) {
+			if (!FileSystem::getDirectoryWritability($file)) {
 				return false;
 			}
 

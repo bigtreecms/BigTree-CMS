@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	$trees = $treesMod->getAllPositioned();	
 ?>
 <div class="page">
@@ -11,7 +13,7 @@
 			<?php
 				foreach ($trees as $tree) {
 			?>
-			<article class="post wallpapered" data-wallpaper-options='{"source":"<?=BigTree::prefixFile($tree["cover"], "large_")?>"}'>
+			<article class="post wallpapered" data-wallpaper-options='{"source":"<?=FileSystem::getPrefixedFile($tree["cover"], "large_")?>"}'>
 				<a href="<?=$tree["detail_link"]?>">
 					<div class="cover">
 						<h2><?=$tree["title"]?></h2>

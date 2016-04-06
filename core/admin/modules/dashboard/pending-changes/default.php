@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	// Get pending changes awaiting this user's approval.
 	$changes = $admin->getPublishableChanges($admin->ID);
 	
@@ -117,7 +119,7 @@
 					}
 					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
 					if ($view["options"]["prefix"]) {
-						$image = BigTree::prefixFile($image,$view["options"]["prefix"]);
+						$image = FileSystem::getPrefixedFile($image,$view["options"]["prefix"]);
 					}
 			?>
 			<li class="non_draggable">

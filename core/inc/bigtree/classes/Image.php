@@ -155,7 +155,7 @@
 				imagepng($cropped_image,$new_file);
 			}
 
-			BigTree::setPermissions($new_file);
+			FileSystem::setPermissions($new_file);
 		
 			imagedestroy($original_image);
 			imagedestroy($cropped_image);
@@ -234,7 +234,7 @@
 				imagepng($thumbnailed_image,$new_file);
 			}
 
-			BigTree::setPermissions($new_file);
+			FileSystem::setPermissions($new_file);
 			
 			imagedestroy($original_image);
 			imagedestroy($thumbnailed_image);
@@ -510,7 +510,7 @@
 
 			// Remove all the temporary images
 			foreach ($crops as $crop) {
-				BigTree::deleteFile($crop["image"]);
+				FileSystem::deleteFile($crop["image"]);
 			}
 		}
 

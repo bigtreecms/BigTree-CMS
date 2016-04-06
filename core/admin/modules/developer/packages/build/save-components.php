@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	BigTree::globalizePOSTVars();
 
 	$p = &$_SESSION["bigtree_admin"]["developer"]["package"];
@@ -75,7 +77,12 @@
 			}
 			
 			// Check the custom/admin/modules/{module}/ directory, related ajax directory, related images directory
-			$contents = array_merge((array)BigTree::directoryContents(SERVER_ROOT."custom/admin/modules/".$module["route"]."/"),(array)BigTree::directoryContents(SERVER_ROOT."custom/admin/ajax/".$module["route"]."/"),(array)BigTree::directoryContents(SERVER_ROOT."custom/admin/images/".$module["route"]."/"));
+			$contents = array_merge(
+				(array) FileSystem::getDirectoryContents(SERVER_ROOT."custom/admin/modules/".$module["route"]."/"),
+				(array) FileSystem::getDirectoryContents(SERVER_ROOT."custom/admin/ajax/".$module["route"]."/"),
+				(array) FileSystem::getDirectoryContents(SERVER_ROOT."custom/admin/images/".$module["route"]."/")
+			);
+			
 			foreach ($contents as $file) {
 				if (is_file($file)) {
 					$p["files"][] = $file;
@@ -94,7 +101,7 @@
 	foreach ((array)$templates as $template) {
 		if ($template) {
 			if (is_dir(SERVER_ROOT."templates/routed/$template/")) {
-				$contents = BigTree::directoryContents(SERVER_ROOT."templates/routed/$template/");
+				$contents = FileSystem::getDirectoryContents(SERVER_ROOT."templates/routed/$template/");
 				foreach (array_filter((array)$contents) as $c) {
 					if (is_file($c)) {
 						$p["files"][] = $c;					

@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	// Modified Photo Gallery to add Attribution and Link attributes
 	$photo_gallery = array();
 	if (is_array($field["input"])) {
@@ -25,7 +27,7 @@
 
 				$field_copy = $field;
 				$field_copy["file_input"] = array("name" => $pinfo["basename"],"tmp_name" => SITE_ROOT."files/".uniqid("temp-").".img","error" => false);
-				BigTree::copyFile($data["existing"],$field_copy["file_input"]["tmp_name"]);
+				FileSystem::copyFile($data["existing"],$field_copy["file_input"]["tmp_name"]);
 
 				$file = $admin->processImageUpload($field_copy);
 				if ($file) {

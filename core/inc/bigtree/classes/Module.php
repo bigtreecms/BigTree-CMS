@@ -144,7 +144,7 @@
 				// Get all extension required files and add them to a required list
 				$extensions = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
 				foreach ($extensions as $id) {
-					$required_contents = BigTree::directoryContents(SERVER_ROOT."extensions/$id/required/");
+					$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
 					foreach (array_filter((array)$required_contents) as $file) {
 						$data["extension_required_files"][] = $file;
 					}
@@ -152,7 +152,7 @@
 				
 				if (!$bigtree["config"]["debug"]) {
 					// Cache it so we don't hit the database.
-					BigTree::putFile($cache_file,BigTree::json($data));
+					FileSystem::createFile($cache_file,BigTree::json($data));
 				}
 			} else {
 				$data = json_decode(file_get_contents($cache_file),true);
@@ -227,14 +227,14 @@
 			// Create class module if a class name was provided
 			if ($class && !file_exists(SERVER_ROOT."custom/inc/modules/$route.php")) {
 				// Class file
-				BigTree::putFile(SERVER_ROOT."custom/inc/modules/$route.php",'<?php
+				FileSystem::createFile(SERVER_ROOT."custom/inc/modules/$route.php",'<?php
 	class '.$class.' extends BigTreeModule {
 		static $RouteRegistry = array();
 		var $Table = "'.$table.'";
 	}
 ');
 				// Remove cached class list.
-				BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+				FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 			}
 
 			// Create it
@@ -260,8 +260,8 @@
 
 		function delete() {
 			// Delete class file and custom directory
-			BigTree::deleteFile(SERVER_ROOT."custom/inc/modules/".$this->Route.".php");
-			BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
+			FileSystem::deleteFile(SERVER_ROOT."custom/inc/modules/".$this->Route.".php");
+			FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
 
 			// Delete all the related auto module actions
 			SQL::delete("bigtree_module_interfaces",array("module" => $this->ID));

@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	// Modified Photo Gallery to add Attribution and Link attributes
 
 	$photos = is_array($field["value"]) ? $field["value"] : array();
@@ -15,7 +17,7 @@
 		<?php
 			foreach ($photos as $photo) {
 				if ($field["options"]["preview_prefix"]) {
-					$preview_image = BigTree::prefixFile($photo["image"],$field["options"]["preview_prefix"]);
+					$preview_image = FileSystem::getPrefixedFile($photo["image"],$field["options"]["preview_prefix"]);
 				} else {
 					$preview_image = $photo["image"];
 				}

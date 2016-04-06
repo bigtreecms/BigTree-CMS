@@ -1,10 +1,12 @@
 <?php
+	use BigTree\FileSystem;
+
 	// First we need to package the file so they can download it manually if they wish.
-	if (!BigTree::isDirectoryWritable(SERVER_ROOT."cache/package/")) {
+	if (!FileSystem::getDirectoryWritability(SERVER_ROOT."cache/package/")) {
 		$admin->stop("Your cache/ and cache/package/ directories must be writable.",BigTree::path("admin/layouts/_error.php"));
 	}
 
-	BigTree::makeDirectory(SERVER_ROOT."cache/package/");
+	FileSystem::createDirectory(SERVER_ROOT."cache/package/");
 	
 	// Fix keywords into an array
 	$keywords = explode(",",$keywords);
@@ -118,22 +120,22 @@
 	
 	foreach ((array)$files as $file) {
 		$file = BigTree::replaceServerRoot($file);
-		BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."cache/package/".$file);
+		FileSystem::copyFile(SERVER_ROOT.$file,SERVER_ROOT."cache/package/".$file);
 		$package["files"][] = $file;
 	}
 	
 	// Write the manifest file
 	$json = BigTree::json($package);
-	BigTree::putFile(SERVER_ROOT."cache/package/manifest.json",$json);
+	FileSystem::createFile(SERVER_ROOT."cache/package/manifest.json",$json);
 	
 	// Create the zip
-	BigTree::deleteFile(SERVER_ROOT."cache/package.zip");
+	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
-	$zip->create(BigTree::directoryContents(SERVER_ROOT."cache/package/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."cache/package/");
+	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."cache/package/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."cache/package/");
 
 	// Remove the package directory
-	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
+	FileSystem::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Store it in the database for future updates
 	if ($db->exists("bigtree_extensions",$id)) {

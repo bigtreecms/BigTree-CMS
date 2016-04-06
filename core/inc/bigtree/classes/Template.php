@@ -117,10 +117,10 @@
 
 			if ($routed) {
 				if (!file_exists(SERVER_ROOT."templates/routed/".$id."/default.php")) {
-					BigTree::putFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
+					FileSystem::createFile(SERVER_ROOT."templates/routed/".$id."/default.php",$file_contents);
 				}
 			} elseif (!file_exists(SERVER_ROOT."templates/basic/".$id.".php")) {
-				BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
+				FileSystem::createFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
@@ -149,9 +149,9 @@
 		function delete() {
 			// Delete related files
 			if ($this->Routed) {
-				BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$this->ID."/");
+				FileSystem::deleteDirectory(SERVER_ROOT."templates/routed/".$this->ID."/");
 			} else {
-				BigTree::deleteFile(SERVER_ROOT."templates/basic/".$this->ID.".php");
+				FileSystem::deleteFile(SERVER_ROOT."templates/basic/".$this->ID.".php");
 			}
 
 			SQL::delete("bigtree_templates",$this->ID);

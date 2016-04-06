@@ -1,6 +1,8 @@
 <?php
+	use BigTree\FileSystem;
+	
 	// Prevent directory path shenanigans
-	$field_type = BigTree::cleanFile($_POST["type"]);
+	$field_type = FileSystem::getSafePath($_POST["type"]);
 	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
 	
 	$validation_options = array(

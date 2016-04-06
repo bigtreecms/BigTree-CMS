@@ -69,9 +69,9 @@
 
 		function cleanup() {
 			if (file_exists(SERVER_ROOT."cache/update/")) {
-				BigTree::deleteDirectory(SERVER_ROOT."cache/update/");
+				FileSystem::deleteDirectory(SERVER_ROOT."cache/update/");
 			}
-			BigTree::deleteFile(SERVER_ROOT."cache/update.zip");
+			FileSystem::deleteFile(SERVER_ROOT."cache/update.zip");
 		}
 
 		/*
@@ -87,7 +87,7 @@
 			$zip = new \PclZip(SERVER_ROOT."cache/update.zip");
 
 			// If the temporary update directory doesn't exist, create it
-			BigTree::makeDirectory(SERVER_ROOT."cache/update/");
+			FileSystem::createDirectory(SERVER_ROOT."cache/update/");
 			
 			// Figure out if we have just a single directory at the root
 			$zip_root = $this->zipRoot($zip);
@@ -103,7 +103,7 @@
 			}
 
 			// Make sure everything extracted is 777 -- if we're writing as Apache we want bust permissions for the user.
-			$contents = BigTree::directoryContents(SERVER_ROOT."cache/update/");
+			$contents = FileSystem::getDirectoryContents(SERVER_ROOT."cache/update/");
 			foreach ($contents as $file) {
 				chmod($file,0777);
 			}
@@ -194,7 +194,7 @@
 				$old_version = $current_manifest["version"];
 
 				// Get a unique directory name
-				$old_version = BigTree::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
+				$old_version = FileSystem::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
 
 				// Move old extension into backups
 				$this->Connection->rename($ftp_root."extensions/$extension/",$ftp_root."backups/extensions/$extension/$old_version/");
@@ -213,7 +213,7 @@
 
 		function installLocal() {
 			// Create backups folder
-			BigTree::makeDirectory(SERVER_ROOT."backups/");
+			FileSystem::createDirectory(SERVER_ROOT."backups/");
 
 			// Doing a core upgrade
 			if ($this->Extension === false) {
@@ -232,14 +232,14 @@
 				$extension = $this->Extension;
 
 				// Create a backups folder for this extension
-				BigTree::makeDirectory(SERVER_ROOT."backups/extensions/$extension/");
+				FileSystem::createDirectory(SERVER_ROOT."backups/extensions/$extension/");
 
 				// Read manifest file for current version
 				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);
 				$old_version = $current_manifest["version"];
 
 				// Get a unique directory name
-				$old_version = BigTree::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
+				$old_version = FileSystem::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
 
 				// Move old extension into backups
 				rename(SERVER_ROOT."extensions/$extension/",SERVER_ROOT."backups/extensions/$extension/$old_version/");

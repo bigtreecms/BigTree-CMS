@@ -1178,8 +1178,8 @@
 		*/
 
 		function uncache() {
-			BigTree::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path))).".page");
-			BigTree::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path."/"))).".page");
+			FileSystem::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path))).".page");
+			FileSystem::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path."/"))).".page");
 		}
 
 		/*

@@ -1,6 +1,8 @@
 <?php
+	use BigTree\FileSystem;
+
 	// First we need to package the file so they can download it manually if they wish.
-	if (!is_writable(SERVER_ROOT."cache/") || !BigTree::isDirectoryWritable(SERVER_ROOT."extensions/$id/")) {
+	if (!is_writable(SERVER_ROOT."cache/") || !FileSystem::getDirectoryWritability(SERVER_ROOT."extensions/$id/")) {
 		$admin->stop("Your /cache/ and /extensions/$id/ directories must be writable.",BigTree::path("admin/layouts/_error.php"));
 	}
 	
@@ -25,7 +27,7 @@
 	// Create extension directory if it doesn't exist
 	$extension_root = SERVER_ROOT."extensions/$id/";
 	if (!file_exists($extension_root)) {
-		BigTree::makeDirectory($extension_root);
+		FileSystem::createDirectory($extension_root);
 	}
 	
 	// Setup JSON manifest
@@ -129,9 +131,9 @@
 			$db->query("UPDATE bigtree_settings SET `type` = CONCAT('$extension*',type)  WHERE `type` = ?", $type);
 
 			// Move files into new format
-			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
-			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$extension_root."field-types/$type/process.php");
-			BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/options.php");
+			FileSystem::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
+			FileSystem::moveFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$extension_root."field-types/$type/process.php");
+			FileSystem::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/options.php");
 			
 			// Change type ID
 			$type = "$id*$type";
@@ -222,17 +224,17 @@
 			} elseif (substr($file,0,5) == "site/") {
 				// Already in the proper directory, should be copied to public, not moved
 				if (strpos($file,"site/extensions/$id/") === 0) {
-					BigTree::copyFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/public/".str_replace("site/extensions/$id/","",$file));
+					FileSystem::copyFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/public/".str_replace("site/extensions/$id/","",$file));
 				// Move into the site/extensions/ folder and then copy into /public/
 				} else {
-					BigTree::moveFile(SERVER_ROOT.$file,SITE_ROOT."extensions/$id/".substr($file,5));
-					BigTree::copyFile(SITE_ROOT."extensions/$id/".substr($file,5),SERVER_ROOT."extensions/$id/public/".substr($file,5));
+					FileSystem::moveFile(SERVER_ROOT.$file,SITE_ROOT."extensions/$id/".substr($file,5));
+					FileSystem::copyFile(SITE_ROOT."extensions/$id/".substr($file,5),SERVER_ROOT."extensions/$id/public/".substr($file,5));
 				}
 			}
 
 			// If we have a place to move it to, move it.
 			if ($d) {
-				BigTree::moveFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/".$d);
+				FileSystem::moveFile(SERVER_ROOT.$file,SERVER_ROOT."extensions/$id/".$d);
 			}
 		}
 	}
@@ -307,15 +309,15 @@
 	$db->query("SET foreign_key_checks = 1");
 
 	// Write the manifest file
-	BigTree::putFile(SERVER_ROOT."extensions/$id/manifest.json",BigTree::json($package));
+	FileSystem::createFile(SERVER_ROOT."extensions/$id/manifest.json",BigTree::json($package));
 
 	// Create the zip, clear caches since we may have moved the routes of field types and modules
-	BigTree::deleteFile(SERVER_ROOT."cache/package.zip");
-	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
-	BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
+	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
-	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
+	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 ?>
 <div class="container">
 	<section>

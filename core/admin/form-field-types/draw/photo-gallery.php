@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	$photos = is_array($field["value"]) ? $field["value"] : array();
 	$max = count($photos);
 	$current = 0;
@@ -29,7 +31,7 @@
 			foreach ($photos as $photo) {
 
 				if ($field["options"]["preview_prefix"]) {
-					$preview_image = BigTree::prefixFile($photo["image"],$field["options"]["preview_prefix"]);
+					$preview_image = FileSystem::getPrefixedFile($photo["image"],$field["options"]["preview_prefix"]);
 				} else {
 					$preview_image = $photo["image"];
 				}

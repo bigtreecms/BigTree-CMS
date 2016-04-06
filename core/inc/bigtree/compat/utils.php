@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	/*
 		Class: BigTree
 			A utilities class with many useful functions.
@@ -120,7 +122,7 @@
 			}
 
 			// Clear the module class list just in case we're missing something.
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 		}
 
 		/*
@@ -135,7 +137,7 @@
 		*/
 
 		static function cleanFile($file) {
-			return BigTree\FileSystem::getSafePath($file);
+			return FileSystem::getSafePath($file);
 		}
 		
 		/*
@@ -187,7 +189,7 @@
 		*/
 		
 		static function copyFile($from,$to) {
-			return BigTree\FileSystem::copyFile($from, $to);
+			return FileSystem::copyFile($from, $to);
 		}
 		
 		/*
@@ -414,7 +416,7 @@
 		*/
 		
 		static function deleteDirectory($dir) {
-			return BigTree\FileSystem::deleteDirectory($dir);
+			return FileSystem::deleteDirectory($dir);
 		}
 
 		/*
@@ -429,7 +431,7 @@
 		*/
 
 		static function deleteFile($file) {
-			return BigTree\FileSystem::deleteFile($file);
+			return FileSystem::deleteFile($file);
 		}
 		
 		/*
@@ -463,7 +465,7 @@
 		*/
 
 		static function directoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
-			return BigTree\FileSystem::getDirectoryContents($directory, $recurse, $extension, $include_git);
+			return FileSystem::getDirectoryContents($directory, $recurse, $extension, $include_git);
 		}
 
 		/*
@@ -516,7 +518,7 @@
 		*/
 		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			return BigTree\FileSystem::getAvailableFileName($directory, $file, $prefixes);
+			return FileSystem::getAvailableFileName($directory, $file, $prefixes);
 		}
 
 		/*
@@ -811,7 +813,7 @@
 		*/
 
 		static function isDirectoryWritable($path, $recursion = false) {
-			return BigTree\FileSystem::getDirectoryWritability($path);
+			return FileSystem::getDirectoryWritability($path);
 		}
 		
 		/*
@@ -911,7 +913,7 @@
 		*/
 		
 		static function makeDirectory($directory) {
-			return BigTree\FileSystem::createDirectory($directory);
+			return FileSystem::createDirectory($directory);
 		}
 		
 		/*
@@ -927,7 +929,7 @@
 		*/
 		
 		static function moveFile($from,$to) {
-			return BigTree\FileSystem::moveFile($from, $to);
+			return FileSystem::moveFile($from, $to);
 		}
 
 		/*
@@ -1109,7 +1111,7 @@
 		*/
 		
 		static function prefixFile($file,$prefix) {
-			return BigTree\FileSystem::getPrefixedFile($file, $prefix);
+			return FileSystem::getPrefixedFile($file, $prefix);
 		}
 		
 		/*
@@ -1126,7 +1128,7 @@
 		*/
 		
 		static function putFile($file,$contents) {
-			return BigTree\FileSystem::createFile($file, $contents);
+			return FileSystem::createFile($file, $contents);
 		}
 
 		/*
@@ -1471,7 +1473,7 @@
 		*/
 
 		static function runningAsSU() {
-			return BigTree\FileSystem::getRunningAsOwner();
+			return FileSystem::getRunningAsOwner();
 		}
 
 		/*
@@ -1631,7 +1633,7 @@
 		*/
 
 		static function setDirectoryPermissions($location) {
-			return BigTree\FileSystem::setDirectoryPermissions($location);
+			return FileSystem::setDirectoryPermissions($location);
 		}
 
 		/*
@@ -1647,7 +1649,7 @@
 		*/
 
 		static function setPermissions($location) {
-			return BigTree\FileSystem::setPermissions($location);
+			return FileSystem::setPermissions($location);
 		}
 
 		/*
@@ -1706,7 +1708,7 @@
 		*/
 		
 		static function touchFile($file) {
-			return BigTree\FileSystem::touchFile($file);
+			return FileSystem::touchFile($file);
 		}
 		
 		/*
@@ -1904,7 +1906,7 @@
 		
 		static function unzip($file,$destination) {
 			// If we can't write the output directory, we're not getting anywhere.
-			if (!BigTree::isDirectoryWritable($destination)) {
+			if (!FileSystem::getDirectoryWritability($destination)) {
 				return false;
 			}
 
@@ -1912,7 +1914,7 @@
 			ini_set("memory_limit","512M");
 			
 			$destination = rtrim($destination)."/";
-			BigTree::makeDirectory($destination);
+			FileSystem::createDirectory($destination);
 			
 			// If we have the built in ZipArchive extension, use that.
 			if (class_exists("ZipArchive")) {
@@ -1944,7 +1946,7 @@
 						// File extraction failed.
 						return false;
 					}
-					BigTree::putFile($destination.$file["name"],$content);
+					FileSystem::createFile($destination.$file["name"],$content);
 				}
 				
 				$z->close();
@@ -1983,7 +1985,7 @@
 						continue;
 					}
 					
-					BigTree::putFile($destination.$item["filename"],$item["content"]);
+					FileSystem::createFile($destination.$item["filename"],$item["content"]);
 				}
 				
 				return true;

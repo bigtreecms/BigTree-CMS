@@ -5,6 +5,7 @@
 	use BigTreeCMS;
 	use BigTree\OAuth;
 	use BigTree\GoogleResultSet;
+	use FileSystem;
 
 	/*
 		Class: BigTree\GoogleAnalytics\API
@@ -45,7 +46,7 @@
 
 		function disconnect() {
 			// Delete cache
-			BigTree::deleteFile(SERVER_ROOT."cache/analytics.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/analytics.json");
 			SQL::delete("bigtree_caches",array("identifier" => "org.bigtreecms.api.analytics.google"));
 
 			// Remove page views from Pages
@@ -294,7 +295,7 @@
 				$cache["two_week"][$item->date] = $item->visits;
 			}
 			
-			BigTree::putFile(SERVER_ROOT."cache/analytics.json",BigTree::json($cache));
+			FileSystem::createFile(SERVER_ROOT."cache/analytics.json",BigTree::json($cache));
 		}
 		
 		/*

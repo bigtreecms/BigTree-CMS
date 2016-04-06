@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	if (isset($bigtree["commands"][0])) {
 		$tree = $treesMod->getByRoute($bigtree["commands"][0]);
 	}
@@ -31,7 +33,7 @@
 			<?php foreach ($tree["gallery"] as $photo) { ?>
 			<figure class="mobile-half tablet-fourth desktop-fourth thumbnail">
 				<a href="<?=$photo["image"]?>" class="lightbox" rel="gallery" data-attribution="<?=$photo["attribution"]?>" data-link="<?=$photo["link"]?>">
-					<img src="<?=BigTree::prefixFile($photo["image"], "thumb_")?>" />
+					<img src="<?=FileSystem::getPrefixedFile($photo["image"], "thumb_")?>" />
 					<div class="cover">Explore</div>
 				</a>
 			</figure>

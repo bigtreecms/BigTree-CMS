@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	//!BigTree Warnings
 	$warnings = array();
 	
@@ -15,7 +17,7 @@
 	);
 	
 	foreach ($writable_directories as $directory) {
-		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
+		if (!FileSystem::getDirectoryWritability(SERVER_ROOT.$directory)) {
 		    $warnings[] = array(
 		    	"name" => "Directory Permissions Error",
 		    	"description" => "Make ".SERVER_ROOT.$directory." writable.",
@@ -35,7 +37,7 @@
 				$recurse_fields($options["columns"]);
 			} else {
 				if ($options["directory"]) {
-					if (!BigTree::isDirectoryWritable(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
+					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
 						$directory_warnings[] = $options["directory"];
 						$warnings[] = array(
 							"name" => "Directory Permissions Error",

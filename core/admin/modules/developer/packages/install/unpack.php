@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -26,15 +28,15 @@
 	
 	// Clean up existing area
 	$cache_root = SERVER_ROOT."cache/package/";
-	BigTree::deleteDirectory($cache_root);
-	BigTree::makeDirectory($cache_root);
+	FileSystem::deleteDirectory($cache_root);
+	FileSystem::createDirectory($cache_root);
 
 	// Unzip the package
 	include BigTree::path("inc/lib/pclzip.php");
 	$zip = new PclZip($file);
 	$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
 	if (!$files) {
-		BigTree::deleteDirectory($cache_root);
+		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";
 		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
@@ -43,7 +45,7 @@
 	$json = json_decode(file_get_contents($cache_root."manifest.json"),true);
 	// Make sure it's legit
 	if ($json["type"] != "package" || !isset($json["id"]) || !isset($json["title"])) {
-		BigTree::deleteDirectory($cache_root);
+		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree package.";
 		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
 	}
@@ -90,7 +92,7 @@
 	}
 	// Check file permissions and collisions
 	foreach ((array)$json["files"] as $file) {
-		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$file)) {
+		if (!FileSystem::getDirectoryWritability(SERVER_ROOT.$file)) {
 			$errors[] = "Cannot write to $file &mdash; please make the root directory or file writable.";
 		} elseif (file_exists(SERVER_ROOT.$file)) {
 			if (!is_writable(SERVER_ROOT.$file)) {

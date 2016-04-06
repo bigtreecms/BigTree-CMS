@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	BigTree::globalizeArray($view);
 ?>
@@ -14,7 +16,7 @@
 			<?php
 				foreach ($items as $item) {
 					if ($options["preview_prefix"]) {
-						$preview_image = BigTree::prefixFile($item[$options["image"]],$options["preview_prefix"]);
+						$preview_image = FileSystem::getPrefixedFile($item[$options["image"]],$options["preview_prefix"]);
 					} else {
 						$preview_image = $item[$options["image"]];
 					}

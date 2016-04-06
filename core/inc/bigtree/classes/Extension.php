@@ -258,11 +258,11 @@
 			} else {
 				// Make sure destination doesn't exist
 				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/"; 
-				BigTree::deleteDirectory($destination_path);
+				FileSystem::deleteDirectory($destination_path);
 
 				// Move the package to the extension directory
 				rename(SERVER_ROOT."cache/package/",$destination_path);
-				BigTree::setDirectoryPermissions($destination_path);
+				FileSystem::setDirectoryPermissions($destination_path);
 
 				// Create the extension
 				SQL::insert("bigtree_extensions",array(
@@ -282,15 +282,15 @@
 
 			// Move public files into the site directory
 			$public_dir = SERVER_ROOT."extensions/".$manifest["id"]."/public/";
-			$site_contents = file_exists($public_dir) ? BigTree::directoryContents($public_dir) : array();
+			$site_contents = file_exists($public_dir) ? FileSystem::getDirectoryContents($public_dir) : array();
 			foreach ($site_contents as $file_path) {
 				$destination_path = str_replace($public_dir,SITE_ROOT."extensions/".$manifest["id"]."/",$file_path);
-				BigTree::copyFile($file_path,$destination_path);
+				FileSystem::copyFile($file_path,$destination_path);
 			}
 
 			// Clear module class cache and field type cache.
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			return new Extension($manifest["id"]);
 		}
@@ -305,9 +305,9 @@
 			// Regular extension
 			if ($this->Type == "extesion") {
 				// Delete site files
-				BigTree::deleteDirectory(SITE_ROOT."extensions/".$this->ID."/");
+				FileSystem::deleteDirectory(SITE_ROOT."extensions/".$this->ID."/");
 				// Delete extensions directory
-				BigTree::deleteDirectory(SERVER_ROOT."extensions/".$this->ID."/");
+				FileSystem::deleteDirectory(SERVER_ROOT."extensions/".$this->ID."/");
 			
 				// Delete components
 				foreach ($this->Manifest["components"] as $type => $list) {
@@ -333,7 +333,7 @@
 			} else {
 				// Delete related files
 				foreach ($this->Manifest["files"] as $file) {
-					BigTree::deleteFile(SERVER_ROOT.$file);
+					FileSystem::deleteFile(SERVER_ROOT.$file);
 				}
 			
 				// Delete components
@@ -358,13 +358,13 @@
 						// Modules might have their own directories
 						if ($type == "modules") {
 							foreach ($list as $item) {
-								BigTree::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
-								BigTree::deleteDirectory(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
-								BigTree::deleteDirectory(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
+								FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
+								FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
+								FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
 							}
 						} elseif ($type == "templates") {
 							foreach ($list as $item) {
-								BigTree::deleteDirectory(SERVER_ROOT."templates/routed/".$item["id"]."/");
+								FileSystem::deleteDirectory(SERVER_ROOT."templates/routed/".$item["id"]."/");
 							}
 						}
 					}

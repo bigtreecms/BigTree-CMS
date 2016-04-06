@@ -268,7 +268,7 @@
 				// See if it's in the cache.
 				if (isset(static::$IRLCache[$navid])) {
 					if ($ipl[2]) {
-						return BigTree::prefixFile(static::$IRLCache[$navid],$ipl[2]);
+						return FileSystem::getPrefixedFile(static::$IRLCache[$navid],$ipl[2]);
 					} else {
 						return static::$IRLCache[$navid];
 					}
@@ -277,7 +277,7 @@
 					$file = $resource ? static::detokenize($resource["file"]) : false;
 					static::$IRLCache[$navid] = $file;
 					if ($ipl[2]) {
-						return BigTree::prefixFile($file,$ipl[2]);
+						return FileSystem::getPrefixedFile($file,$ipl[2]);
 					} else {
 						return $file;
 					}

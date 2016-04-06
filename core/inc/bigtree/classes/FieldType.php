@@ -79,7 +79,7 @@
 			$file = "$id.php";
 
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
-				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?php
+				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?php
 	/*
 		When drawing a field type you are provided with the $field array with the following keys:
 			"title" — The title given by the developer to draw as the label (drawn automatically)
@@ -97,7 +97,7 @@
 			}
 
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
-				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?php
+				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?php
 	/*
 		When processing a field type you are provided with the $field array with the following keys:
 			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
@@ -115,11 +115,11 @@
 			}
 
 			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
+				FileSystem::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
 			}
 
 			// Clear field type cache
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			// Track
 			AudiTrail::track("bigtree_field_types",$id,"created");
@@ -136,12 +136,12 @@
 			$id = $this->ID;
 
 			// Remove related files
-			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
-			BigTree::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
-			BigTree::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
 
 			// Clear cache
-			BigTree::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			// Delete and track
 			SQL::delete("bigtree_field_types",$id);
@@ -197,7 +197,7 @@
 					}
 				}
 
-				BigTree::putFile(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
+				FileSystem::createFile(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
 			}
 
 			// Re-merge if we don't want them split

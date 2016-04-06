@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	$installed = false;
 
 	if (!$updater->extract()) {
@@ -16,7 +18,7 @@
 <?php
 	} else {
 		// Save original manifest, prevent path manipulation
-		$id = BigTree::cleanFile($_GET["id"]);
+		$id = FileSystem::getSafePath($_GET["id"]);
 		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
 		
 		// Very simple if we're updating locally

@@ -1,4 +1,6 @@
 <?php
+	use BigTree\FileSystem;
+	
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
 		$bigtree["view"]["actions"]["preview"] = "on";
@@ -13,7 +15,7 @@
 			<?php
 				foreach ($items as $item) {
 					if ($prefix) {
-						$preview_image = BigTree::prefixFile($item[$bigtree["view"]["options"]["image"]],$prefix);
+						$preview_image = FileSystem::getPrefixedFile($item[$bigtree["view"]["options"]["image"]],$prefix);
 					} else {
 						$preview_image = $item[$bigtree["view"]["options"]["image"]];
 					}

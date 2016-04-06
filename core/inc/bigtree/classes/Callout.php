@@ -207,7 +207,7 @@
 
 			// Create the template file if it doesn't yet exist
 			if (!file_exists(SERVER_ROOT."templates/callouts/$id.php")) {
-				BigTree::putFile(SERVER_ROOT."templates/callouts/$id.php",$file_contents);
+				FileSystem::createFile(SERVER_ROOT."templates/callouts/$id.php",$file_contents);
 			}
 
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.

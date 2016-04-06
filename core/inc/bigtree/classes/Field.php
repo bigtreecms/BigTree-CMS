@@ -47,7 +47,7 @@
 			$this->Subtitle = $field["subtitle"] ?: null;
 			$this->TabIndex = $field["tabindex"] ?: null;
 			$this->Title = $field["title"] ?: null;
-			$this->Type = BigTree::cleanFile($field["type"]);
+			$this->Type = FileSystem::getSafePath($field["type"]);
 			$this->Value = $field["value"] ?: null;
 
 			// Give this field a unique ID within the field namespace
@@ -322,7 +322,7 @@
 
 				// Make a first copy
 				$first_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::moveFile($temp_name,$first_copy);
+				FileSystem::moveFile($temp_name,$first_copy);
 
 				// Do EXIF Image Rotation
 				if ($itype == IMAGETYPE_JPEG && function_exists("exif_read_data")) {
@@ -357,7 +357,7 @@
 
 				// Create a temporary copy that we will use later for crops and thumbnails
 				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::copyFile($first_copy,$temp_copy);
+				FileSystem::copyFile($first_copy,$temp_copy);
 
 				// Gather up an array of file prefixes
 				$prefixes = array();
