@@ -1,7 +1,7 @@
 <?php
 	$resource = BigTree\Resource::getByFile($_POST["file"]);
 	$file = $resource->Array;
-	$pinfo = BigTree::pathInfo($file["file"]);
+	$pinfo = pathinfo($file["file"]);
 	
 	// We throw on ?uniqid so that we don't cache the thumbnail in the event that we just replaced it
 	if ($file["is_image"]) {

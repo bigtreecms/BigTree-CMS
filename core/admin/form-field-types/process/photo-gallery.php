@@ -20,7 +20,7 @@
 			// File From Image Manager
 			} elseif ($data["existing"]) {
 				$data["existing"] = str_replace(WWW_ROOT,SITE_ROOT,$data["existing"]);
-				$pinfo = BigTree::pathInfo($data["existing"]);
+				$pinfo = pathinfo($data["existing"]);
 
 				$field_copy = $field;
 				$field_copy["file_input"] = array("name" => $pinfo["basename"],"tmp_name" => SITE_ROOT."files/".uniqid("temp-").".img","error" => false);

@@ -7,7 +7,7 @@
 	if (isset($_POST["replace"])) {
 		$admin->requireLevel(1);
 		$replacing = $admin->getResource($_POST["replace"]);
-		$pinfo = BigTree::pathInfo($replacing["file"]);
+		$pinfo = pathinfo($replacing["file"]);
 		$replacing = $pinfo["basename"];
 		// Set a recently replaced cookie so we don't use cached images
 		setcookie('bigtree_admin[recently_replaced_file]',true,time()+300,str_replace(DOMAIN,"",WWW_ROOT));
@@ -109,7 +109,7 @@
 						if (!$error) {
 							// Now let's make the thumbnails we need for the image manager
 							$thumbs = array();
-							$pinfo = BigTree::pathInfo($file_name);
+							$pinfo = pathinfo($file_name);
 		
 							// Create a bunch of thumbnails
 							foreach ($thumbnails_to_create as $key => $thumb) {

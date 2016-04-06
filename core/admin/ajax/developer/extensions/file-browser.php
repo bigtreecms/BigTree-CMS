@@ -116,7 +116,7 @@
 	<ul>
 		<?php
 			foreach ($files as $file) {
-				$parts = BigTree::pathInfo($file);
+				$parts = pathinfo($file);
 				$ext = strtolower($parts["extension"]);
 		?>
 		<li class="file<?php if ($file == $_POST["file"]) { ?> selected<?php } ?>"><span class="icon_small icon_small_file_default icon_small_file_<?=$ext?>"></span><p><?=$file?></p></li>

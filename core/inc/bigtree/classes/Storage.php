@@ -220,7 +220,7 @@
 			// Cloud Storage
 			if ($this->Cloud) {
 				// Clean up the file name
-				$parts = BigTree::pathInfo($file_name);
+				$parts = pathinfo($file_name);
 				$clean_name = Link::urlify($parts["filename"]);
 				if (strlen($clean_name) > 50) {
 					$clean_name = substr($clean_name,0,50);

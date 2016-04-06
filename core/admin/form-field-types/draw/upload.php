@@ -27,7 +27,7 @@
 	<?php
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
 			if ($field["value"]) {
-				$pathinfo = BigTree::pathInfo($field["value"]);
+				$pathinfo = pathinfo($field["value"]);
 	?>
 	<div class="currently_file">
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />

@@ -162,7 +162,7 @@
 				$data = $db->fetch("SELECT file FROM bigtree_resources WHERE id = ?", $result["entry"]);
 			}
 			if ($data) {
-				$path = BigTree::pathInfo($data["file"]);
+				$path = pathinfo($data["file"]);
 				$title = $path["basename"];
 			} else {
 				$title = $result["entry"];

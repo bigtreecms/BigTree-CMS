@@ -45,7 +45,7 @@
 					if (!file_exists($resource_location)) {
 						$resource_location = $resource["file"];	
 					}
-					$pinfo = BigTree::pathInfo($resource_location);
+					$pinfo = pathinfo($resource_location);
 	
 					// Emulate a newly uploaded file
 					$field["file_input"] = array("name" => $pinfo["basename"],"tmp_name" => SITE_ROOT."files/".uniqid("temp-").".img","error" => false);

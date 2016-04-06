@@ -237,7 +237,7 @@
 				"mov" => "video/quicktime", "flv" => "video/x-flv", "php" => "text/x-php"
 			);
 
-			$path_info = BigTree::pathInfo($file);
+			$path_info = pathinfo($file);
 			$extension = strtolower($path_info["extension"]);
 
 			return isset($mime_types[$extension]) ? $mime_types[$extension] : "application/octet-stream";

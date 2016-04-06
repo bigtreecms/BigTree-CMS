@@ -300,7 +300,7 @@
 
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {
-				$path_info = BigTree::pathInfo($file);
+				$path_info = pathinfo($file);
 				$pointer = $path_info["basename"];
 			}
 

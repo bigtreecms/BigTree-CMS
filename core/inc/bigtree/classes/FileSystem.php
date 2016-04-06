@@ -38,7 +38,7 @@
 			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
 				return false;
 			}
-			$pathinfo = static::pathInfo($to);
+			$pathinfo = pathinfo($to);
 			$directory = $pathinfo["dirname"];
 			static::makeDirectory($directory);
 
